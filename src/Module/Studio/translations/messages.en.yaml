@@ -548,6 +548,9 @@ backend:
                 paper: Paper
                 bold: Bold
                 midnight: Midnight
+                clay: Clay
+                chalk: Chalk
+                duo: Two tones
             colours: Colours
             colour_background: Background
             colour_ink: Text
@@ -623,6 +626,7 @@ backend:
                 left: Band on the left
                 bottom: Band at the bottom
                 edge: Thin edge
+            wash_from_theme: The theme's
             fonts_label: Typography
             font_from_theme: The theme's own
             fonts:

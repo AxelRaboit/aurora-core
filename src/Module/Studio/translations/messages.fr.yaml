@@ -548,6 +548,9 @@ backend:
                 paper: Papier
                 bold: Affirmé
                 midnight: Minuit
+                clay: Terre
+                chalk: Craie
+                duo: Deux tons
             colours: Couleurs
             colour_background: Fond
             colour_ink: Texte
@@ -623,6 +626,7 @@ backend:
                 left: Bande à gauche
                 bottom: Bandeau en bas
                 edge: Bord fin
+            wash_from_theme: Celui du thème
             fonts_label: Typographie
             font_from_theme: Celle du thème
             fonts:

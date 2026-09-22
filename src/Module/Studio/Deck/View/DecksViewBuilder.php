@@ -238,7 +238,7 @@ final readonly class DecksViewBuilder
      * panel previews a theme before it is saved, and without the theme's own
      * pair it would preview the new colours in the *previous* theme's faces.
      *
-     * @return list<array{value: string, labelKey: string, palette: array{background: string, ink: string, accent: string}, fontPair: string}>
+     * @return list<array{value: string, labelKey: string, palette: array{background: string, ink: string, accent: string}, fontPair: string, gradient: string, pattern: string}>
      */
     private function themeOptions(): array
     {
@@ -248,6 +248,8 @@ final readonly class DecksViewBuilder
                 'labelKey' => $theme->labelKey(),
                 'palette' => $theme->palette(),
                 'fontPair' => $theme->fonts()->value,
+                'gradient' => $theme->gradient()->value,
+                'pattern' => $theme->pattern()->value,
             ],
             DeckThemeEnum::cases(),
         );

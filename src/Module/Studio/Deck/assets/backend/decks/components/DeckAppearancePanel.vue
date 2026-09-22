@@ -96,12 +96,20 @@ const fontOptions = computed(() => [
     })),
 ]);
 
-const gradientOptions = computed(() =>
-    props.gradients.map((gradient) => ({
+/**
+ * Le premier choix est « celui du thème », comme pour la typographie.
+ *
+ * Sans lui, le lavis d'un thème deviendrait inatteignable dès qu'un deck a
+ * touché au select une fois : `none` dirait à la fois « à plat » et « je n'ai
+ * rien choisi », et le deck ne pourrait plus revenir à ce que son thème porte.
+ */
+const gradientOptions = computed(() => [
+    { value: "", label: t("backend.studio.decks.wash_from_theme") },
+    ...props.gradients.map((gradient) => ({
         value: gradient.value,
         label: t(gradient.labelKey),
     })),
-);
+]);
 
 const titleCaseOptions = computed(() =>
     props.titleCases.map((value) => ({
@@ -124,12 +132,13 @@ const marginOptions = computed(() =>
     })),
 );
 
-const patternOptions = computed(() =>
-    props.patterns.map((pattern) => ({
+const patternOptions = computed(() => [
+    { value: "", label: t("backend.studio.decks.wash_from_theme") },
+    ...props.patterns.map((pattern) => ({
         value: pattern.value,
         label: t(pattern.labelKey),
     })),
-);
+]);
 
 const transitionOptions = computed(() =>
     props.transitions.map((transition) => ({
@@ -246,11 +255,11 @@ const placementOptions = computed(() =>
                     />
 
                     <AppSelect
-                        :model-value="overrides.gradient ?? 'none'"
+                        :model-value="overrides.gradient ?? ''"
                         :options="gradientOptions"
                         :label="t('backend.studio.decks.gradient_label')"
                         :hint="t('backend.studio.decks.gradient_hint')"
-                        v-on:update:model-value="(value) => write('gradient', value)"
+                        v-on:update:model-value="(value) => write('gradient', value || null)"
                     />
 
                     <AppSelect
@@ -289,11 +298,11 @@ const placementOptions = computed(() =>
                     />
 
                     <AppSelect
-                        :model-value="overrides.pattern ?? 'none'"
+                        :model-value="overrides.pattern ?? ''"
                         :options="patternOptions"
                         :label="t('backend.studio.decks.pattern_label')"
                         :hint="t('backend.studio.decks.pattern_hint')"
-                        v-on:update:model-value="(value) => write('pattern', value)"
+                        v-on:update:model-value="(value) => write('pattern', value || null)"
                     />
 
                     <AppSelect

@@ -48,13 +48,16 @@ final readonly class DeckAppearance
             ? DeckLogoPlacementEnum::tryFrom($style['logoPlacement']) ?? DeckLogoPlacementEnum::None
             : DeckLogoPlacementEnum::None;
 
+        // The deck's own choice, else whatever the theme arrives with. The
+        // five original themes arrive with nothing, so no deck drawn before
+        // this method existed is repainted by it.
         $gradient = is_string($style['gradient'] ?? null)
-            ? DeckGradientEnum::tryFrom($style['gradient']) ?? DeckGradientEnum::None
-            : DeckGradientEnum::None;
+            ? DeckGradientEnum::tryFrom($style['gradient']) ?? $theme->gradient()
+            : $theme->gradient();
 
         $pattern = is_string($style['pattern'] ?? null)
-            ? DeckPatternEnum::tryFrom($style['pattern']) ?? DeckPatternEnum::None
-            : DeckPatternEnum::None;
+            ? DeckPatternEnum::tryFrom($style['pattern']) ?? $theme->pattern()
+            : $theme->pattern();
 
         $logo = $this->pictures->byId(is_int($style['logoMediaId'] ?? null) ? $style['logoMediaId'] : null);
 

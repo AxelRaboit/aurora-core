@@ -39,6 +39,15 @@ enum DeckThemeEnum: string
     /** Deep blue. The corporate register, without the grey. */
     case Midnight = 'midnight';
 
+    /** Warm and printed. Terracotta on paper that has been left in the sun. */
+    case Clay = 'clay';
+
+    /** Almost white, one blue. The register of a school or a hospital. */
+    case Chalk = 'chalk';
+
+    /** Deep green and a yellow that carries. The loudest of the eight. */
+    case Duo = 'duo';
+
     /**
      * The three colours the frame draws with.
      *
@@ -57,6 +66,9 @@ enum DeckThemeEnum: string
             self::Paper => ['background' => '#faf8f4', 'ink' => '#1a1c20', 'accent' => '#1a6a5a'],
             self::Bold => ['background' => '#e8e4dc', 'ink' => '#17181a', 'accent' => '#c2371f'],
             self::Midnight => ['background' => '#0c1b3a', 'ink' => '#eef3fb', 'accent' => '#79b4ff'],
+            self::Clay => ['background' => '#f7efe6', 'ink' => '#2a1f19', 'accent' => '#b4541f'],
+            self::Chalk => ['background' => '#fdfdfb', 'ink' => '#14171c', 'accent' => '#2f4f9e'],
+            self::Duo => ['background' => '#1c2b2a', 'ink' => '#f2f7f5', 'accent' => '#f2b33d'],
         };
     }
 
@@ -67,7 +79,38 @@ enum DeckThemeEnum: string
             self::Slate, self::Midnight => DeckFontPairEnum::Sans,
             self::Ink => DeckFontPairEnum::Technical,
             self::Paper => DeckFontPairEnum::Serif,
-            self::Bold => DeckFontPairEnum::Editorial,
+            self::Bold, self::Clay => DeckFontPairEnum::Editorial,
+            self::Chalk => DeckFontPairEnum::Sans,
+            self::Duo => DeckFontPairEnum::Technical,
+        };
+    }
+
+    /**
+     * The wash and the texture a theme arrives with.
+     *
+     * **The five older themes carry none, and that is not an oversight.** A
+     * theme that started carrying a gradient would repaint every deck already
+     * drawn in it, which is the one thing this enum promised never to do. The
+     * three added with this method are free to arrive composed, because no deck
+     * has ever been drawn in them.
+     *
+     * A deck that picks its own wash overrides this, exactly as it overrides
+     * the palette and the faces.
+     */
+    public function gradient(): DeckGradientEnum
+    {
+        return match ($this) {
+            self::Slate, self::Ink, self::Paper, self::Bold, self::Midnight, self::Chalk => DeckGradientEnum::None,
+            self::Clay => DeckGradientEnum::Corner,
+            self::Duo => DeckGradientEnum::Halo,
+        };
+    }
+
+    public function pattern(): DeckPatternEnum
+    {
+        return match ($this) {
+            self::Slate, self::Ink, self::Paper, self::Bold, self::Midnight, self::Clay, self::Duo => DeckPatternEnum::None,
+            self::Chalk => DeckPatternEnum::Grid,
         };
     }
 
