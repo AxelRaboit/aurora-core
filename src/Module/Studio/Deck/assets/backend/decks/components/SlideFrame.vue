@@ -56,6 +56,14 @@ const props = defineProps({
      * Movement belongs to the act of presenting, exactly as the transition does.
      */
     live: { type: Boolean, default: false },
+    /**
+     * How many lines of this slide's list are out, or null for all of them.
+     *
+     * The hidden ones are drawn and made invisible rather than left out: the
+     * frame measures its own type and shrinks it to fit, so a list that grew a
+     * line at a time would resize every word on the slide at every press.
+     */
+    revealed: { type: Number, default: null },
 });
 
 /**
@@ -131,6 +139,9 @@ const ICONS = {
 };
 
 const iconFor = (name) => ICONS[name] ?? null;
+
+/** Whether the line at this rank is out yet. Everything is, unless told. */
+const isOut = (at) => props.revealed === null || at < props.revealed;
 
 const skin = computed(() => {
     const look = props.appearance;
@@ -385,7 +396,12 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
                 <template v-else-if="slide.layout === 'bullets'">
                     <p class="sf-heading" v-html="emphasis(slide.content.title)" />
                     <ul v-if="!compact" class="sf-list">
-                        <li v-for="(bullet, at) in slide.content.bullets ?? []" :key="at" v-html="emphasis(bullet)" />
+                        <li
+                            v-for="(bullet, at) in slide.content.bullets ?? []"
+                            :key="at"
+                            :class="isOut(at) ? '' : 'is-held'"
+                            v-html="emphasis(bullet)"
+                        />
                     </ul>
                     <div v-else class="sf-lines">
                         <span v-for="(bullet, at) in (slide.content.bullets ?? []).slice(0, 4)" :key="at" />
@@ -443,7 +459,7 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
                 <template v-else-if="slide.layout === 'figures'">
                     <p v-if="slide.content.title" class="sf-heading sf-heading-small" v-html="emphasis(slide.content.title)" />
                     <div class="sf-figures" :style="{ '--figures': Math.min((slide.content.figures ?? []).length || 1, 4) }">
-                        <div v-for="(figure, at) in (slide.content.figures ?? []).slice(0, 4)" :key="at" class="sf-figure">
+                        <div v-for="(figure, at) in (slide.content.figures ?? []).slice(0, 4)" :key="at" class="sf-figure" :class="isOut(at) ? '' : 'is-held'">
                             <span class="sf-figure-value">{{ measured(figure).value }}</span>
                             <span v-if="measured(figure).share !== null" class="sf-gauge">
                                 <i :style="{ width: measured(figure).share + '%' }" />
@@ -516,7 +532,7 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
                 <template v-else-if="slide.layout === 'cards'">
                     <p v-if="slide.content.title" class="sf-heading sf-heading-small" v-html="emphasis(slide.content.title)" />
                     <div class="sf-cards" :style="{ '--cards': Math.min((slide.content.items ?? []).length || 1, 4) }">
-                        <div v-for="(item, at) in slide.content.items ?? []" :key="at" class="sf-card">
+                        <div v-for="(item, at) in slide.content.items ?? []" :key="at" class="sf-card" :class="isOut(at) ? '' : 'is-held'">
                             <component
                                 :is="iconFor(decorated(item).icon)"
                                 v-if="!compact && iconFor(decorated(item).icon)"
@@ -533,7 +549,7 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
                 <template v-else-if="slide.layout === 'timeline'">
                     <p v-if="slide.content.title" class="sf-heading sf-heading-small" v-html="emphasis(slide.content.title)" />
                     <ol class="sf-steps">
-                        <li v-for="(step, at) in slide.content.steps ?? []" :key="at" class="sf-step">
+                        <li v-for="(step, at) in slide.content.steps ?? []" :key="at" class="sf-step" :class="isOut(at) ? '' : 'is-held'">
                             <component
                                 :is="iconFor(decorated(step).icon)"
                                 v-if="!compact && iconFor(decorated(step).icon)"
@@ -732,6 +748,21 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
 
 @media (prefers-reduced-motion: reduce) {
     .sf-backdrop-file.is-drifting { animation: none; }
+}
+
+/* Une ligne pas encore sortie garde sa place et ne se voit pas. `visibility`
+   et non `display` : le cadre mesure son propre texte et le réduit pour qu'il
+   tienne, donc une liste qui grandirait ligne à ligne redimensionnerait tous
+   les mots de la slide à chaque pression. */
+.is-held { visibility: hidden; }
+
+@media (prefers-reduced-motion: no-preference) {
+    .sf-list > li,
+    .sf-card,
+    .sf-step,
+    .sf-figure { transition: opacity 180ms ease; }
+
+    .is-held { opacity: 0; }
 }
 
 /* Le papier ne bouge pas. La classe n'est déjà posée que par le lecteur, mais

@@ -656,6 +656,7 @@ backend:
             grounds:
                 normal: The background
                 accent: The accent
+            reveal_hint: In full screen, each press brings in the next line before moving to the following slide.
             fonts_label: Typography
             font_from_theme: The theme's own
             fonts:
@@ -768,6 +769,7 @@ backend:
                 steps: Steps
                 rows: Rows
                 kicker: Kicker
+                reveal: Lines one at a time
                 ground: Slide ground
                 mediaIds: The pictures
                 titleScale: Title scale

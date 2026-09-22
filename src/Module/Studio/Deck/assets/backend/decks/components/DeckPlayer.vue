@@ -20,7 +20,7 @@
  * through a `BroadcastChannel`: either window drives, so a presenter reading
  * their notes can step from there and a clicker still steps from here.
  */
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { ChevronLeft, ChevronRight, Grid2x2, Radio, X } from "lucide-vue-next";
 import SlideFrame from "./SlideFrame.vue";
@@ -75,15 +75,78 @@ const overview = ref(false);
  */
 const direction = ref(1);
 
-/** Clamped rather than wrapping: the end of a deck is the end of it. */
+/**
+ * How many lines the slide on screen can bring in one at a time.
+ *
+ * **Counted from the content, never measured from the page.** The lines are in
+ * a list slot, so their number is known before anything is drawn; asking the
+ * DOM would tie the way a deck is driven to the way it happens to be laid out
+ * that day, and would answer differently on a thumbnail.
+ *
+ * Zero for every slide that did not ask for it, which is every slide written
+ * before today, so nothing about the arrows changes for them.
+ */
+const REVEAL_SLOTS = ["bullets", "items", "steps", "figures", "lines"];
+
+const revealable = computed(() => {
+    const content = props.slides[at.value]?.content;
+
+    if (content?.reveal !== true) return 0;
+
+    const slot = REVEAL_SLOTS.find((name) => Array.isArray(content[name]));
+
+    return slot ? content[slot].length : 0;
+});
+
+/** How many of them are showing. Reset whenever the slide itself changes. */
+const shown = ref(0);
+
+watch(at, () => {
+    shown.value = 0;
+});
+
+/**
+ * One press, one thing: the next line if there is one, else the next slide.
+ *
+ * Clamped rather than wrapping, because the end of a deck is the end of it.
+ * Going back takes the last line away before it takes the slide away, so a
+ * press backwards always undoes exactly the press forwards that preceded it.
+ */
 function step(by) {
+    if (by > 0 && shown.value < revealable.value) {
+        shown.value += 1;
+
+        return;
+    }
+
+    if (by < 0 && shown.value > 0) {
+        shown.value -= 1;
+
+        return;
+    }
+
     const next = at.value + by;
 
     if (next < 0 || next >= props.slides.length) return;
 
     direction.value = by > 0 ? 1 : -1;
     at.value = next;
+
+    // Coming back into a slide that reveals, everything it had is already out:
+    // walking backwards through a deck should not make the reader press
+    // through every line again in reverse.
+    shown.value = by < 0 ? revealableAt(next) : 0;
     link.announce(next);
+}
+
+function revealableAt(index) {
+    const content = props.slides[index]?.content;
+
+    if (content?.reveal !== true) return 0;
+
+    const slot = REVEAL_SLOTS.find((name) => Array.isArray(content[name]));
+
+    return slot ? content[slot].length : 0;
 }
 
 function jumpTo(index) {
@@ -248,6 +311,7 @@ onBeforeUnmount(() => {
                     :key="at"
                     :slide="current"
                     :appearance="appearance"
+                    :revealed="revealable > 0 ? shown : null"
                     live
                     :index="at + 1"
                 />

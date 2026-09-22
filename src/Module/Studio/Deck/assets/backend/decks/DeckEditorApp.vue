@@ -907,6 +907,15 @@ onBeforeUnmount(() => {
                             />
 
                             <AppToggle
+                                v-if="commonSlots.includes('reveal')"
+                                :model-value="selected.content.reveal === true"
+                                :label="labelFor('reveal')"
+                                :hint="t('backend.studio.decks.reveal_hint')"
+                                :disabled="!editable"
+                                v-on:update:model-value="(value) => writeSlot('reveal', value)"
+                            />
+
+                            <AppToggle
                                 v-if="commonSlots.includes('drift') && selected.content.bgMediaUrl"
                                 :model-value="selected.content.drift === true"
                                 :label="labelFor('drift')"

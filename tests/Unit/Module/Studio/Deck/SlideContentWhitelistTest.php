@@ -263,9 +263,9 @@ final class SlideContentWhitelistTest extends TestCase
         $manager = $this->manager();
 
         $slide = (new Slide())->setLayout(SlideLayoutEnum::Section);
-        $manager->writeContent($slide, ['title' => 'Deuxième partie', 'transition' => 'none', 'drift' => true]);
+        $manager->writeContent($slide, ['title' => 'Deuxième partie', 'transition' => 'none', 'drift' => true, 'reveal' => true]);
         self::assertSame(
-            ['title' => 'Deuxième partie', 'transition' => 'none', 'drift' => true],
+            ['title' => 'Deuxième partie', 'transition' => 'none', 'drift' => true, 'reveal' => true],
             $slide->getContent(),
         );
 

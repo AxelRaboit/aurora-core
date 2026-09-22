@@ -126,7 +126,7 @@ enum SlideLayoutEnum: string
      */
     public static function commonSlots(): array
     {
-        return ['kicker', 'bgMediaId', 'bgDim', 'bgTreatment', 'bgVeil', 'vignette', 'ground', 'anchor', 'align', 'measure', 'band', 'transition', 'drift', 'titleScale'];
+        return ['kicker', 'bgMediaId', 'bgDim', 'bgTreatment', 'bgVeil', 'vignette', 'ground', 'anchor', 'align', 'measure', 'band', 'transition', 'drift', 'titleScale', 'reveal'];
     }
 
     /**

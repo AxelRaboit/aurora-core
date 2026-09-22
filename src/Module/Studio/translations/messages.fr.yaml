@@ -656,6 +656,7 @@ backend:
             grounds:
                 normal: Le fond
                 accent: L'accent
+            reveal_hint: Au plein écran, chaque pression fait apparaître la ligne suivante avant de passer à la slide d'après.
             fonts_label: Typographie
             font_from_theme: Celle du thème
             fonts:
@@ -768,6 +769,7 @@ backend:
                 steps: Étapes
                 rows: Lignes
                 kicker: Sur-titre
+                reveal: Lignes une à une
                 ground: Sol de la slide
                 mediaIds: Les images
                 titleScale: Échelle du titre

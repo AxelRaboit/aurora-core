@@ -232,7 +232,7 @@ class DeckManager
             }
 
             // Three switches, and only their true is kept.
-            if (in_array($slot, ['vignette', 'captionOver', 'mediaBleed', 'drift'], true)) {
+            if (in_array($slot, ['vignette', 'captionOver', 'mediaBleed', 'drift', 'reveal'], true)) {
                 if (true === $value) {
                     $clean[$slot] = true;
                 }
