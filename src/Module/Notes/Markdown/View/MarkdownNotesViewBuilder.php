@@ -49,7 +49,7 @@ final readonly class MarkdownNotesViewBuilder
         return [
             'activeId' => $activeId,
             'folderId' => $folder?->getId(),
-            'notes' => $this->noteRepository->findFlatListForUser($user),
+            'notes' => $this->withExcerpts($this->noteRepository->findFlatListForUser($user), $user),
             'folders' => $folders,
             // The chain the breadcrumb draws, resolved server-side: the page
             // knows where it is before its first fetch, so a reload does not
@@ -64,6 +64,28 @@ final readonly class MarkdownNotesViewBuilder
             'imageMaxEdge' => (int) $this->settingRepository->getOrDefault(MarkdownNoteSettingEnum::ImageMaxEdge),
             'imageQuality' => $this->imageQualityRatio(),
         ];
+    }
+
+    /**
+     * Les extraits, collés sur les lignes de la liste.
+     *
+     * Une requête de plus, et pas une jointure : le corps est chiffré, donc
+     * l'extrait se calcule en PHP après déchiffrement, et le faire ici
+     * plutôt que dans la requête de liste garde celle-ci légère pour les
+     * écrans qui n'en veulent pas.
+     *
+     * @param list<array<string, mixed>> $notes
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function withExcerpts(array $notes, CoreUserInterface $user): array
+    {
+        $excerpts = $this->noteRepository->findExcerptsForUser($user);
+
+        return array_map(
+            static fn (array $note): array => [...$note, 'excerpt' => $excerpts[(int) $note['id']] ?? null],
+            $notes,
+        );
     }
 
     /** @return array<string, string> */

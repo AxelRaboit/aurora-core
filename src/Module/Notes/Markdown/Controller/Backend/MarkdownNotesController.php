@@ -145,18 +145,24 @@ final class MarkdownNotesController extends AbstractController
             $this->folders->countChildrenPerFolderForUser($user),
         );
 
+        $noteSerializer = $this->serializer->withExcerpts($this->repository->findExcerptsForUser($user));
+
         return $this->jsonSuccess([
             'folders' => array_map(static fn (NoteFolderInterface $one): array => $serializer->serialize($one), $children),
             'notes' => array_map(
-                fn (MarkdownNoteInterface $note): array => $this->serializer->serializeListItem($note),
+                static fn (MarkdownNoteInterface $note): array => $noteSerializer->serializeListItem($note),
                 $this->repository->findLivingInFolder($user, $folderId),
             ),
         ]);
     }
 
     /**
-     * Flat list of all the current user's notes (no content). The Vue
-     * frontend rebuilds the tree from parent_id + position.
+     * Toutes les notes de la personne, à plat, sans leur texte.
+     *
+     * Avec leur premier paragraphe quand même : c'est ce que la vue en
+     * mosaïque montre sur une carte, et le faire ici évite une requête par
+     * carte. Le reste du corps ne quitte pas le serveur tant qu'une note
+     * n'est pas ouverte.
      */
     #[Route('/list', name: '_list', methods: [HttpMethodEnum::Get->value])]
     public function list(): JsonResponse
@@ -164,8 +170,13 @@ final class MarkdownNotesController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
+        $excerpts = $this->repository->findExcerptsForUser($user);
+
         return $this->jsonSuccess([
-            'notes' => $this->repository->findFlatListForUser($user),
+            'notes' => array_map(
+                static fn (array $note): array => [...$note, 'excerpt' => $excerpts[(int) $note['id']] ?? null],
+                $this->repository->findFlatListForUser($user),
+            ),
         ]);
     }
 

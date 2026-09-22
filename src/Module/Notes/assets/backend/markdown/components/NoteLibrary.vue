@@ -650,6 +650,17 @@ defineExpose({
                         <AppRowActions :actions="noteActions(note)" :label="noteLabel(note)" />
                     </div>
 
+                    <!-- Les premières lignes, en mosaïque seulement : c'est
+                         ce qui distingue cette vue des cartes, et ce qui
+                         permet de reconnaître une note dont le titre ne dit
+                         rien. -->
+                    <p
+                        v-if="'mosaic' === view && note.excerpt"
+                        class="mt-2 line-clamp-3 text-sm text-muted"
+                    >
+                        {{ note.excerpt }}
+                    </p>
+
                     <div v-if="note.tags?.length" class="mt-2 flex flex-wrap gap-1">
                         <AppBadge v-for="tag in note.tags" :key="tag" color="gray" size="xs">
                             {{ tag }}

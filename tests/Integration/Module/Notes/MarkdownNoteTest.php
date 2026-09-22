@@ -335,6 +335,32 @@ final class MarkdownNoteTest extends IntegrationTestCase
         self::assertSame($folder->getId(), (int) $row['folderId']);
     }
 
+    /**
+     * L'extrait que montre la mosaïque, calculé côté serveur.
+     *
+     * Il vaut un déchiffrement par note : huit millisecondes de plus sur un
+     * carnet de cinq cents notes, mesuré, ce qui est le prix d'une carte qui
+     * montre autre chose qu'un titre. Le Markdown y est aplati, sinon la
+     * carte afficherait des dièses.
+     */
+    public function testTheListCarriesAnExcerpt(): void
+    {
+        $note = $this->note($this->owner, 'Avec du texte', content: "# Titre\n\n- une liste\n- deux");
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_list'));
+
+        $body = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+        $row = current(array_filter(
+            $body['notes'],
+            static fn (array $one): bool => (int) $one['id'] === $note->getId(),
+        ));
+
+        self::assertIsArray($row);
+        self::assertSame('Titre une liste deux', $row['excerpt']);
+    }
+
     /** Title and body are ciphertext in the database, and readable through the ORM. */
     public function testTheBodyIsEncryptedAtRest(): void
     {

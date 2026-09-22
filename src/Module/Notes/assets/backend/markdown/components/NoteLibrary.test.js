@@ -36,6 +36,7 @@ const NOTES = [
         id: 11,
         folderId: null,
         title: "À la racine",
+        excerpt: "Les premières lignes de la note, en clair.",
         tags: ["essai"],
         position: 0,
         updatedAt: "2026-09-20T10:00:00+00:00",
@@ -202,6 +203,27 @@ describe("the library", () => {
         await flushPromises();
 
         expect(foldersApi.move).not.toHaveBeenCalled();
+    });
+
+    /**
+     * L'extrait ne vaut que dans la mosaïque : la vue en cartes est dense
+     * par choix, et la liste montre des colonnes.
+     */
+    it("shows the first lines in the mosaic, and only there", async () => {
+        const wrapper = render();
+
+        expect(wrapper.text()).toContain("Les premières lignes");
+
+        await wrapper
+            .findAll("button")
+            .find(
+                (b) =>
+                    b.attributes("title") ===
+                    "notes.markdown.library.view.cards",
+            )
+            .trigger("click");
+
+        expect(wrapper.text()).not.toContain("Les premières lignes");
     });
 
     it("draws a table when the list view is picked", async () => {
