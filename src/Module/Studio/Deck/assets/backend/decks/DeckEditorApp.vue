@@ -297,6 +297,10 @@ const anchorOptions = compositionOptions("anchor", ["center", "top", "bottom"]);
 const alignOptions = compositionOptions("align", ["left", "center", "right"]);
 const measureOptions = compositionOptions("measure", ["full", "two_thirds", "half"]);
 
+const treatmentOptions = compositionOptions("bg_treatment", ["none", "blur", "mono", "duotone", "grain"]);
+const veilOptions = compositionOptions("bg_veil", ["flat", "bottom", "top"]);
+const frameOptions = compositionOptions("media_frame", ["none", "line", "shadow"]);
+
 const shapeOptions = computed(() => [
     { value: "soft", label: t("backend.studio.decks.media_shape_soft") },
     { value: "round", label: t("backend.studio.decks.media_shape_round") },
@@ -629,6 +633,21 @@ onBeforeUnmount(() => {
                                 v-on:update:model-value="(value) => writeSlot('mediaFit', value)"
                             />
                             <AppSelect
+                                v-else-if="slot === 'mediaFrame'"
+                                :model-value="selected.content.mediaFrame ?? 'none'"
+                                :options="frameOptions"
+                                :label="labelFor(slot)"
+                                :disabled="!editable"
+                                v-on:update:model-value="(value) => writeSlot('mediaFrame', value)"
+                            />
+                            <AppToggle
+                                v-else-if="slot === 'captionOver'"
+                                :model-value="selected.content.captionOver === true"
+                                :label="labelFor(slot)"
+                                :disabled="!editable"
+                                v-on:update:model-value="(value) => writeSlot('captionOver', value)"
+                            />
+                            <AppSelect
                                 v-else-if="slot === 'mediaShape'"
                                 :model-value="selected.content.mediaShape ?? 'soft'"
                                 :options="shapeOptions"
@@ -770,7 +789,33 @@ onBeforeUnmount(() => {
                                 <p class="m-0 text-xs text-muted">
                                     {{ t("backend.studio.decks.backdrop_dim_hint") }}
                                 </p>
+
+                                <div class="grid gap-3 sm:grid-cols-2">
+                                    <AppSelect
+                                        :model-value="selected.content.bgTreatment ?? 'none'"
+                                        :options="treatmentOptions"
+                                        :label="labelFor('bgTreatment')"
+                                        :disabled="!editable"
+                                        v-on:update:model-value="(value) => writeSlot('bgTreatment', value)"
+                                    />
+                                    <AppSelect
+                                        :model-value="selected.content.bgVeil ?? 'flat'"
+                                        :options="veilOptions"
+                                        :label="labelFor('bgVeil')"
+                                        :disabled="!editable"
+                                        v-on:update:model-value="(value) => writeSlot('bgVeil', value)"
+                                    />
+                                </div>
                             </div>
+
+                            <AppToggle
+                                v-if="commonSlots.includes('vignette')"
+                                :model-value="selected.content.vignette === true"
+                                :label="labelFor('vignette')"
+                                :hint="t('backend.studio.decks.vignette_hint')"
+                                :disabled="!editable"
+                                v-on:update:model-value="(value) => writeSlot('vignette', value)"
+                            />
                         </div>
 
                         <p class="m-0 text-xs text-muted">

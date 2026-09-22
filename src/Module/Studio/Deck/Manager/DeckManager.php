@@ -150,6 +150,41 @@ class DeckManager
                 continue;
             }
 
+            // What is done to the picture behind the words, and how the veil
+            // that keeps them readable is laid over it.
+            if ('bgTreatment' === $slot) {
+                if (in_array($value, ['none', 'blur', 'mono', 'duotone', 'grain'], true)) {
+                    $clean[$slot] = $value;
+                }
+
+                continue;
+            }
+
+            if ('bgVeil' === $slot) {
+                if (in_array($value, ['flat', 'bottom', 'top'], true)) {
+                    $clean[$slot] = $value;
+                }
+
+                continue;
+            }
+
+            if ('mediaFrame' === $slot) {
+                if (in_array($value, ['none', 'line', 'shadow'], true)) {
+                    $clean[$slot] = $value;
+                }
+
+                continue;
+            }
+
+            // Two switches, and only their true is kept.
+            if (in_array($slot, ['vignette', 'captionOver'], true)) {
+                if (true === $value) {
+                    $clean[$slot] = true;
+                }
+
+                continue;
+            }
+
             // Where the content sits in the frame, how it is aligned and how
             // wide it is allowed to run. Three short declared lists rather than
             // three enums, for the same reason `mediaFit` is one: values a

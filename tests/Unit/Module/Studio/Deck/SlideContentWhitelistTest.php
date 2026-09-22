@@ -118,6 +118,49 @@ final class SlideContentWhitelistTest extends TestCase
         self::assertSame(['title' => 'Trois axes'], $dropped->getContent());
     }
 
+    public function testTheBackdropTreatmentAndVeilTakeOnlyDeclaredValues(): void
+    {
+        $manager = $this->manager();
+
+        $kept = (new Slide())->setLayout(SlideLayoutEnum::Title);
+        $manager->writeContent($kept, [
+            'title' => 'Le lieu',
+            'bgMediaId' => 12,
+            'bgTreatment' => 'duotone',
+            'bgVeil' => 'bottom',
+            'vignette' => true,
+        ]);
+
+        self::assertSame(
+            ['title' => 'Le lieu', 'bgMediaId' => 12, 'bgTreatment' => 'duotone', 'bgVeil' => 'bottom', 'vignette' => true],
+            $kept->getContent(),
+        );
+
+        $dropped = (new Slide())->setLayout(SlideLayoutEnum::Title);
+        $manager->writeContent($dropped, [
+            'title' => 'Le lieu',
+            'bgTreatment' => 'sepia',
+            'bgVeil' => 'radial',
+            'vignette' => 'on',
+        ]);
+
+        self::assertSame(['title' => 'Le lieu'], $dropped->getContent());
+    }
+
+    /** The picture slots belong to the two layouts that draw a picture. */
+    public function testThePictureFrameIsRefusedOnALayoutWithoutAPicture(): void
+    {
+        $manager = $this->manager();
+
+        $image = (new Slide())->setLayout(SlideLayoutEnum::Image);
+        $manager->writeContent($image, ['mediaId' => 3, 'mediaFrame' => 'line', 'captionOver' => true]);
+        self::assertSame(['mediaId' => 3, 'mediaFrame' => 'line', 'captionOver' => true], $image->getContent());
+
+        $quote = (new Slide())->setLayout(SlideLayoutEnum::Quote);
+        $manager->writeContent($quote, ['quote' => 'Rien', 'mediaFrame' => 'line']);
+        self::assertSame(['quote' => 'Rien'], $quote->getContent());
+    }
+
     public function testItKeepsBulletsAsAListOfStrings(): void
     {
         $slide = (new Slide())->setLayout(SlideLayoutEnum::Bullets);

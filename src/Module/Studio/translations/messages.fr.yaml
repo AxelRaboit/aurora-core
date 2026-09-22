@@ -589,6 +589,21 @@ backend:
                 full: Pleine largeur
                 two_thirds: Deux tiers
                 half: Moitié
+            vignette_hint: Assombrit légèrement les angles et ramène l'oeil au centre.
+            bg_treatments:
+                none: Aucun
+                blur: Flou
+                mono: Noir et blanc
+                duotone: Duotone à l'accent
+                grain: Grain
+            bg_veils:
+                flat: Uniforme
+                bottom: Depuis le bas
+                top: Depuis le haut
+            media_frames:
+                none: Aucun
+                line: Filet d'accent
+                shadow: Ombre douce
             fonts_label: Typographie
             font_from_theme: Celle du thème
             fonts:
@@ -697,6 +712,11 @@ backend:
                 steps: Étapes
                 rows: Lignes
                 kicker: Sur-titre
+                bgTreatment: Traitement de la photo
+                bgVeil: Voile
+                vignette: Vignettage
+                mediaFrame: Contenant de l'image
+                captionOver: Légende sur l'image
                 anchor: Position verticale
                 align: Alignement
                 measure: Largeur du texte

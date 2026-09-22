@@ -149,12 +149,36 @@ const hasFooter = computed(() => showsLogo.value || !!footerText.value || showsN
  * the ground keeps the slide recognisably the deck's.
  */
 const background = computed(() => {
-    const url = props.slide.content.bgMediaUrl;
+    const content = props.slide.content;
+    const url = content.bgMediaUrl;
 
     if (!url) return null;
 
-    return { url, dim: Math.min(Math.max(props.slide.content.bgDim ?? 40, 0), 90) / 100 };
+    const treatment = ["blur", "mono", "duotone", "grain"].includes(content.bgTreatment)
+        ? content.bgTreatment
+        : "none";
+
+    return {
+        url,
+        dim: Math.min(Math.max(content.bgDim ?? 40, 0), 90) / 100,
+        treatment,
+        // The tint and the grain are a layer of their own, between the picture
+        // and the veil: a filter cannot add a colour, and a `::after` on the
+        // backdrop would paint over the veil instead of under it.
+        film: "duotone" === treatment || "grain" === treatment,
+        veil: ["flat", "bottom", "top"].includes(content.bgVeil) ? content.bgVeil : "flat",
+    };
 });
+
+/** The corners, darkened. Works on a flat ground as well as on a picture. */
+const vignette = computed(() => props.slide.content.vignette === true);
+
+/** What the picture of a picture layout is wrapped in. */
+const mediaFrame = computed(() =>
+    ["line", "shadow"].includes(props.slide.content.mediaFrame)
+        ? props.slide.content.mediaFrame
+        : "none",
+);
 
 /** The line above the title. Empty on a thumbnail, where it would be one pixel. */
 const kicker = computed(() => (props.compact ? "" : (props.slide.content.kicker ?? "")));
@@ -188,18 +212,28 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
             :data-pattern="pattern"
             :data-shape="shape"
             :data-margins="margins"
+            :data-media-frame="mediaFrame"
             v-bind="composition"
             :style="[skin, media]"
         >
             <span v-if="pattern !== 'none'" class="sf-pattern" aria-hidden="true" />
 
-            <div v-if="background" class="sf-backdrop" aria-hidden="true">
+            <div
+                v-if="background"
+                class="sf-backdrop"
+                :data-treatment="background.treatment"
+                :data-veil="background.veil"
+                aria-hidden="true"
+            >
                 <img class="sf-backdrop-file" :src="background.url" alt="">
+                <span v-if="background.film" class="sf-backdrop-film" />
                 <span
                     class="sf-backdrop-veil"
                     :style="{ opacity: background.dim }"
                 />
             </div>
+
+            <span v-if="vignette" class="sf-vignette" aria-hidden="true" />
 
             <span v-if="gradient !== 'none'" class="sf-wash" aria-hidden="true" />
 
@@ -332,8 +366,17 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
                             :alt="slide.content.mediaAlt ?? ''"
                         >
                         <span v-else class="sf-image-mark" />
+                        <p
+                            v-if="!compact && slide.content.caption && slide.content.captionOver === true"
+                            class="sf-caption sf-caption-over"
+                            v-html="emphasis(slide.content.caption)"
+                        />
                     </div>
-                    <p v-if="!compact && slide.content.caption" class="sf-caption" v-html="emphasis(slide.content.caption)" />
+                    <p
+                        v-if="!compact && slide.content.caption && slide.content.captionOver !== true"
+                        class="sf-caption"
+                        v-html="emphasis(slide.content.caption)"
+                    />
                 </template>
             </div>
 
@@ -439,6 +482,76 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
    bande de couleur sur le côté d'un décor se voit plus que le coin qu'il perd. */
 .sf-backdrop-file { width: 100%; height: 100%; object-fit: cover; }
 .sf-backdrop-veil { position: absolute; inset: 0; background: var(--slide-bg); }
+
+/* Le traitement de la photo. Le flou est agrandi d'un poil : une image floutée
+   dans son cadre laisse voir ses bords nets, ce qui est pire que pas de flou. */
+.sf-backdrop[data-treatment="blur"] .sf-backdrop-file { filter: blur(1.2cqw); transform: scale(1.06); }
+.sf-backdrop[data-treatment="mono"] .sf-backdrop-file { filter: grayscale(1) contrast(1.06); }
+.sf-backdrop[data-treatment="duotone"] .sf-backdrop-file { filter: grayscale(1) contrast(1.1); }
+
+/* La couche qui ajoute ce qu'un filtre ne sait pas faire : une couleur, ou du
+   bruit. Entre la photo et le voile, pour que baisser le voile dévoile aussi
+   la teinte plutôt que de la laisser flotter au-dessus. */
+.sf-backdrop-film { position: absolute; inset: 0; }
+
+.sf-backdrop[data-treatment="duotone"] .sf-backdrop-film {
+    background: var(--slide-accent);
+    mix-blend-mode: color;
+    opacity: 0.85;
+}
+
+.sf-backdrop[data-treatment="grain"] .sf-backdrop-film {
+    background-image: repeating-radial-gradient(
+        circle at 0 0,
+        rgb(255 255 255 / 16%) 0 0.18cqw,
+        transparent 0.18cqw 0.55cqw
+    );
+    mix-blend-mode: overlay;
+}
+
+/* Le voile dirigé. Pour rendre le texte lisible, le voile plat doit ternir
+   toute la photo ; celui-ci ne descend que du côté où il y a des mots, et
+   l'opacité posée en ligne le multiplie comme elle multipliait l'aplat. */
+.sf-backdrop[data-veil="bottom"] .sf-backdrop-veil {
+    background: linear-gradient(0deg, var(--slide-bg) 6%, color-mix(in srgb, var(--slide-bg) 58%, transparent) 46%, transparent 82%);
+}
+
+.sf-backdrop[data-veil="top"] .sf-backdrop-veil {
+    background: linear-gradient(180deg, var(--slide-bg) 6%, color-mix(in srgb, var(--slide-bg) 58%, transparent) 46%, transparent 82%);
+}
+
+/* Le vignettage ramène l'oeil au centre. Au-dessus du décor et sous le lavis,
+   comme une correction de la photo et non comme une couleur du deck. */
+.sf-vignette {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(78% 88% at 50% 50%, transparent 46%, rgb(0 0 0 / 42%) 100%);
+}
+
+/* Le contenant de l'image, dans les deux gabarits qui en portent un. */
+.slide-frame[data-media-frame="line"] :is(.sf-image, .sf-beside-media) {
+    border: 0.6cqw solid var(--slide-accent);
+}
+
+.slide-frame[data-media-frame="shadow"] :is(.sf-image, .sf-beside-media) {
+    box-shadow: 0 2cqw 4.5cqw rgb(0 0 0 / 30%);
+}
+
+/* La légende posée dans le coin de l'image plutôt que sous elle : la photo
+   reprend les deux lignes qu'elle lui prenait. Son propre voile, parce qu'une
+   légende ne choisit pas ce qu'il y a derrière elle. */
+.sf-caption-over {
+    position: absolute;
+    left: 2cqw;
+    bottom: 2cqw;
+    max-width: calc(100% - 4cqw);
+    padding: 1cqw 1.8cqw;
+    border-radius: 0.6cqw;
+    color: #fff;
+    background: rgb(0 0 0 / 45%);
+    opacity: 1;
+}
 
 /* La marge du cadre. `normal` n'a pas de règle : c'est la valeur que porte
    `.slide-frame` lui-même, donc un deck qui n'a jamais ouvert le panneau

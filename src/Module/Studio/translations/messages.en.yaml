@@ -589,6 +589,21 @@ backend:
                 full: Full width
                 two_thirds: Two thirds
                 half: Half
+            vignette_hint: Darkens the corners a little and brings the eye back to the middle.
+            bg_treatments:
+                none: None
+                blur: Blur
+                mono: Black and white
+                duotone: Duotone in the accent
+                grain: Grain
+            bg_veils:
+                flat: Even
+                bottom: From the bottom
+                top: From the top
+            media_frames:
+                none: None
+                line: Accent rule
+                shadow: Soft shadow
             fonts_label: Typography
             font_from_theme: The theme's own
             fonts:
@@ -697,6 +712,11 @@ backend:
                 steps: Steps
                 rows: Rows
                 kicker: Kicker
+                bgTreatment: Photo treatment
+                bgVeil: Veil
+                vignette: Vignette
+                mediaFrame: Picture frame
+                captionOver: Caption on the picture
                 anchor: Vertical position
                 align: Alignment
                 measure: Text width
