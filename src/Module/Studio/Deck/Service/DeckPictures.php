@@ -47,6 +47,16 @@ final readonly class DeckPictures
                     $ids[] = $id;
                 }
             }
+
+            // The layouts that carry several. Left out of `SLIDE_SLOTS`
+            // because that list holds slots whose value is one id, and a
+            // picture missing from here is a picture the library reports as
+            // used by nobody while a slide is drawing it.
+            foreach ($slide->getContent()['mediaIds'] ?? [] as $id) {
+                if (is_int($id)) {
+                    $ids[] = $id;
+                }
+            }
         }
 
         $logo = $deck->getStyle()['logoMediaId'] ?? null;

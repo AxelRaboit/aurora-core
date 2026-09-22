@@ -12,7 +12,11 @@ use Aurora\Module\Studio\Deck\Service\DeckAppearance;
 use Aurora\Module\Studio\Deck\Service\DeckPicture;
 use Aurora\Module\Studio\Deck\Service\DeckPictures;
 
+use function array_filter;
+use function array_map;
+use function array_values;
 use function count;
+use function is_array;
 use function is_int;
 
 use const DATE_ATOM;
@@ -118,6 +122,32 @@ class DeckSerializer
             $content['mediaUrl'] = $picture['url'] ?? null;
             $content['mediaAlt'] = $picture['alt'] ?? '';
             $content['mediaFocusDefault'] = $picture['focus'] ?? '50% 50%';
+        }
+
+        // Derived like the single one, and aligned with the stored order: the
+        // arrangement is the order somebody picked, so the frame must be able
+        // to draw the first one first without looking anything up.
+        if (is_array($content['mediaIds'] ?? null)) {
+            $content['mediaPictures'] = array_values(array_filter(array_map(
+                function (mixed $id) use ($pictures): ?array {
+                    if (!is_int($id)) {
+                        return null;
+                    }
+
+                    $picture = $pictures[$id] ?? $this->pictures->byId($id);
+
+                    if (null === ($picture['url'] ?? null)) {
+                        return null;
+                    }
+
+                    return [
+                        'url' => $picture['url'],
+                        'alt' => $picture['alt'],
+                        'focus' => $picture['focus'],
+                    ];
+                },
+                $content['mediaIds'],
+            )));
         }
 
         $backgroundId = $content['bgMediaId'] ?? null;

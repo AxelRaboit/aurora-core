@@ -273,6 +273,28 @@ final class SlideContentWhitelistTest extends TestCase
         self::assertSame(['title' => 'Deuxième partie'], $wrong->getContent());
     }
 
+    /**
+     * The order is the arrangement, so the list keeps it. Eight is the cap:
+     * more marks than that on one grid stop being legible at any size.
+     */
+    public function testSeveralPicturesAreKeptInOrderAndCapped(): void
+    {
+        $manager = $this->manager();
+
+        $mosaic = (new Slide())->setLayout(SlideLayoutEnum::Mosaic);
+        $manager->writeContent($mosaic, ['mediaIds' => [7, 'douze', 3, -1, 9, 0]]);
+        self::assertSame(['mediaIds' => [7, 3, 9]], $mosaic->getContent());
+
+        $many = (new Slide())->setLayout(SlideLayoutEnum::Logos);
+        $manager->writeContent($many, ['mediaIds' => range(1, 12)]);
+        self::assertSame(['mediaIds' => range(1, 8)], $many->getContent());
+
+        // A layout that draws one picture does not take a list of them.
+        $image = (new Slide())->setLayout(SlideLayoutEnum::Image);
+        $manager->writeContent($image, ['mediaId' => 4, 'mediaIds' => [5, 6]]);
+        self::assertSame(['mediaId' => 4], $image->getContent());
+    }
+
     public function testItKeepsBulletsAsAListOfStrings(): void
     {
         $slide = (new Slide())->setLayout(SlideLayoutEnum::Bullets);

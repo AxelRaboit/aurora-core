@@ -71,6 +71,12 @@ enum SlideLayoutEnum: string
     /** What a client said, and their face. The testimonial. */
     case Portrait = 'portrait';
 
+    /** The clients' marks, on a grid, brought to one optical height. */
+    case Logos = 'logos';
+
+    /** Two to eight photographs in a declared arrangement. */
+    case Mosaic = 'mosaic';
+
     /**
      * The slots that hold a list of lines rather than one string.
      *
@@ -152,6 +158,8 @@ enum SlideLayoutEnum: string
             self::End => ['title', 'lines'],
             self::Agenda => ['title', 'steps', 'current'],
             self::Portrait => ['quote', 'attribution', 'role', 'mediaId', 'mediaFocus'],
+            self::Logos => ['title', 'mediaIds'],
+            self::Mosaic => ['title', 'mediaIds'],
         };
     }
 

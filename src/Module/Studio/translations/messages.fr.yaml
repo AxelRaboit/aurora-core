@@ -651,6 +651,7 @@ backend:
                 normal: Normale
                 quiet: Discrète
                 loud: Affichée
+            media_ids_hint: L'ordre est l'arrangement. Huit au maximum ; vider une case resserre les autres.
             fonts_label: Typographie
             font_from_theme: Celle du thème
             fonts:
@@ -762,6 +763,7 @@ backend:
                 steps: Étapes
                 rows: Lignes
                 kicker: Sur-titre
+                mediaIds: Les images
                 titleScale: Échelle du titre
                 transition: Transition vers cette slide
                 drift: Travelling sur la photo
@@ -811,6 +813,8 @@ backend:
                 end: Fin
                 agenda: Sommaire
                 portrait: Citation et portrait
+                logos: Grille de logos
+                mosaic: Mosaïque d'images
             categories:
                 errors:
                     name_required: Le nom est obligatoire.

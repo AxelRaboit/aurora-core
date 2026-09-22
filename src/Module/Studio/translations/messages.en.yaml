@@ -651,6 +651,7 @@ backend:
                 normal: Normal
                 quiet: Quiet
                 loud: Loud
+            media_ids_hint: The order is the arrangement. Eight at most; emptying one closes the gap.
             fonts_label: Typography
             font_from_theme: The theme's own
             fonts:
@@ -762,6 +763,7 @@ backend:
                 steps: Steps
                 rows: Rows
                 kicker: Kicker
+                mediaIds: The pictures
                 titleScale: Title scale
                 transition: Transition into this slide
                 drift: Travel across the photo
@@ -811,6 +813,8 @@ backend:
                 end: Closing
                 agenda: Agenda
                 portrait: Quote and portrait
+                logos: Logo grid
+                mosaic: Picture mosaic
             categories:
                 errors:
                     name_required: The name is required.

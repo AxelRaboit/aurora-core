@@ -442,6 +442,24 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
                     </div>
                 </template>
 
+                <template v-else-if="slide.layout === 'logos'">
+                    <p v-if="slide.content.title" class="sf-heading sf-heading-small" v-html="emphasis(slide.content.title)" />
+                    <div class="sf-logos" :style="{ '--logos': Math.min((slide.content.mediaPictures ?? []).length || 1, 4) }">
+                        <span v-for="(picture, at) in slide.content.mediaPictures ?? []" :key="at" class="sf-logo">
+                            <img :src="picture.url" :alt="picture.alt">
+                        </span>
+                    </div>
+                </template>
+
+                <template v-else-if="slide.layout === 'mosaic'">
+                    <p v-if="slide.content.title" class="sf-heading sf-heading-small" v-html="emphasis(slide.content.title)" />
+                    <div class="sf-mosaic" :data-count="Math.min((slide.content.mediaPictures ?? []).length, 8)">
+                        <span v-for="(picture, at) in slide.content.mediaPictures ?? []" :key="at" class="sf-mosaic-cell">
+                            <img :src="picture.url" :alt="picture.alt" :style="{ objectPosition: picture.focus }">
+                        </span>
+                    </div>
+                </template>
+
                 <template v-else-if="slide.layout === 'agenda'">
                     <p v-if="slide.content.title" class="sf-heading sf-heading-small" v-html="emphasis(slide.content.title)" />
                     <ol class="sf-agenda">
@@ -1033,6 +1051,28 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
 /* La jauge : la part qu'un chiffre représente, dessinée sous lui. */
 .sf-gauge { display: block; height: 1.4cqw; border-radius: 9999px; background: color-mix(in srgb, currentColor 14%, transparent); overflow: hidden; }
 .sf-gauge > i { display: block; height: 100%; background: var(--slide-accent); }
+
+/* Les marques, ramenées à une même hauteur optique plutôt qu'à une même
+   largeur : c'est la hauteur qu'un oeil compare, et `contain` garde chacune
+   entière dans sa case. */
+.sf-logos { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(var(--logos, 4), 1fr); gap: 4cqw; align-items: center; justify-items: center; }
+.sf-logo { display: block; width: 100%; height: 8cqw; }
+.sf-logo img { width: 100%; height: 100%; object-fit: contain; }
+
+/* La mosaïque. Les arrangements sont déclarés comme les gabarits le sont : à
+   deux images une colonne chacune, à trois une grande et deux petites, au-delà
+   une grille régulière. Le point de visée de chaque document est respecté,
+   sans quoi un recadrage couperait les visages. */
+.sf-mosaic { flex: 1; min-height: 0; display: grid; gap: 1.5cqw; grid-template-columns: repeat(2, 1fr); grid-auto-rows: 1fr; }
+.sf-mosaic[data-count="1"] { grid-template-columns: 1fr; }
+.sf-mosaic[data-count="3"] { grid-template-columns: 1.4fr 1fr; }
+.sf-mosaic[data-count="3"] .sf-mosaic-cell:first-child { grid-row: span 2; }
+.sf-mosaic[data-count="5"],
+.sf-mosaic[data-count="6"] { grid-template-columns: repeat(3, 1fr); }
+.sf-mosaic[data-count="7"],
+.sf-mosaic[data-count="8"] { grid-template-columns: repeat(4, 1fr); }
+.sf-mosaic-cell { position: relative; overflow: hidden; border-radius: 0.25rem; background: color-mix(in srgb, currentColor 10%, transparent); }
+.sf-mosaic-cell img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 
 /* Le sommaire. Le rang en chasse fixe et en accent, la ligne courante seule à
    pleine encre : c'est le contraste qui dit où on en est, pas une puce. */

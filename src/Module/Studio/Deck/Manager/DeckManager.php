@@ -187,6 +187,23 @@ class DeckManager
                 continue;
             }
 
+            // Several pictures on one slide. Positive integers, in the order
+            // they were picked, because position is the arrangement: a
+            // mosaic's first picture is the large one. Capped at eight, which
+            // is more marks than a grid can show at a legible size anyway.
+            if ('mediaIds' === $slot) {
+                if (is_array($value)) {
+                    $ids = array_values(array_filter(
+                        $value,
+                        static fn (mixed $one): bool => is_int($one) && $one > 0,
+                    ));
+
+                    $clean[$slot] = array_slice($ids, 0, 8);
+                }
+
+                continue;
+            }
+
             if ('titleScale' === $slot) {
                 if (in_array($value, ['quiet', 'normal', 'loud'], true)) {
                     $clean[$slot] = $value;

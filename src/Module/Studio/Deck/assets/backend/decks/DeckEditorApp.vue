@@ -288,6 +288,40 @@ const fitOptions = computed(() => [
     { value: "cover", label: t("backend.studio.decks.media_fit_cover") },
 ]);
 
+/**
+ * Les cases du sélecteur multiple : celles qui portent une image, plus une vide.
+ *
+ * Le composant de choix d'image existe et sait en prendre une. Plutôt que d'en
+ * écrire un second qui en prendrait plusieurs, on le répète : une case par
+ * image déjà choisie, et une de plus pour la suivante. Le rang d'une case est
+ * sa place dans l'arrangement, donc vider la deuxième resserre les autres
+ * plutôt que de laisser un trou.
+ */
+const pictureRows = computed(() => {
+    const ids = selected.value?.content?.mediaIds ?? [];
+    const urls = selected.value?.content?.mediaPictures ?? [];
+
+    return [
+        ...ids.map((id, at) => ({ at, id, url: urls[at]?.url ?? null })),
+        { at: ids.length, id: null, url: null },
+    ].slice(0, 8);
+});
+
+function writePictureAt(at, value) {
+    const ids = [...(selected.value?.content?.mediaIds ?? [])];
+
+    if (value?.id) {
+        ids[at] = value.id;
+    } else {
+        ids.splice(at, 1);
+    }
+
+    writeSlot(
+        "mediaIds",
+        ids.filter((id) => typeof id === "number" && id > 0),
+    );
+}
+
 /** Les trois listes de composition, avec leur valeur d'aujourd'hui en tête. */
 const compositionOptions = (slot, values) =>
     computed(() =>
@@ -645,6 +679,23 @@ onBeforeUnmount(() => {
                                 :disabled="!editable"
                                 v-on:update:model-value="(value) => writeSlot('mediaFit', value)"
                             />
+                            <div v-else-if="slot === 'mediaIds'" class="flex flex-col gap-2">
+                                <span class="text-xs uppercase tracking-wide text-muted">
+                                    {{ labelFor(slot) }}
+                                </span>
+                                <div class="grid gap-2 sm:grid-cols-2">
+                                    <AppImagePickerField
+                                        v-for="row in pictureRows"
+                                        :key="row.at"
+                                        :model-value="row.id ? { id: row.id, url: row.url } : null"
+                                        :size="90"
+                                        v-on:update:model-value="(value) => writePictureAt(row.at, value)"
+                                    />
+                                </div>
+                                <p class="m-0 text-xs text-muted">
+                                    {{ t("backend.studio.decks.media_ids_hint") }}
+                                </p>
+                            </div>
                             <AppSelect
                                 v-else-if="slot === 'mediaFrame'"
                                 :model-value="selected.content.mediaFrame ?? 'none'"
