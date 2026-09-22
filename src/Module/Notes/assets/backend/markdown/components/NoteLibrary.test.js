@@ -57,6 +57,7 @@ function apis() {
     return {
         foldersApi: {
             list: vi.fn(),
+            reorder: vi.fn().mockResolvedValue({ ok: true, payload: {} }),
             create: vi.fn().mockResolvedValue({ ok: true, payload: {} }),
             rename: vi.fn().mockResolvedValue({ ok: true, payload: {} }),
             move: vi.fn().mockResolvedValue({ ok: true, payload: {} }),
@@ -66,6 +67,7 @@ function apis() {
         },
         notesApi: {
             move: vi.fn().mockResolvedValue({ ok: true, payload: {} }),
+            reorder: vi.fn().mockResolvedValue({ ok: true, payload: {} }),
         },
     };
 }
@@ -98,6 +100,9 @@ beforeEach(() => {
 
 afterEach(() => {
     while (mounted.length) mounted.pop().unmount();
+    // Les feuilles d'actions se téléportent dans le body : sans ce coup de
+    // balai, un cas retrouve le menu ouvert par le précédent.
+    document.body.innerHTML = "";
     vi.restoreAllMocks();
 });
 
@@ -247,6 +252,74 @@ describe("the library", () => {
             .trigger("click");
 
         expect(wrapper.text()).not.toContain("Les premières lignes");
+    });
+
+    /**
+     * L'ordre manuel ne vaut que si quelque chose peut le changer : un
+     * critère de tri sans geste pour l'alimenter est un menu qui ment.
+     *
+     * Le geste est dans le menu de la carte plutôt qu'au glisser : lâcher
+     * une carte sur une autre veut déjà dire « range-la dedans », et
+     * distinguer le bord du milieu d'une carte se rate au doigt.
+     */
+    it("moves a note within its folder, in manual order", async () => {
+        window.localStorage.setItem("aurora.notes.library.sort", "manual");
+
+        const notesApi = {
+            move: vi.fn(),
+            reorder: vi.fn().mockResolvedValue({ ok: true, payload: {} }),
+        };
+
+        const wrapper = render({
+            notesApi,
+            folders: [],
+            notes: [
+                { ...NOTES[0], position: 0 },
+                {
+                    id: 14,
+                    folderId: null,
+                    title: "Seconde",
+                    tags: [],
+                    position: 1,
+                    updatedAt: "2026-09-19T10:00:00+00:00",
+                    createdAt: "2026-06-01T10:00:00+00:00",
+                },
+            ],
+        });
+
+        // Ordre manuel décroissant par défaut : « Seconde », position 1,
+        // est en tête, et c'est « À la racine » qui peut monter.
+        const first = wrapper
+            .findAll("article")
+            .find((one) => one.text().includes("À la racine"));
+
+        await first.find("button").trigger("click");
+        await flushPromises();
+
+        const up = [...document.body.querySelectorAll("button")].find((b) =>
+            b.textContent.includes("sort.move_up"),
+        );
+        expect(up, "l'action monter est proposée").toBeTruthy();
+
+        up.click();
+        await flushPromises();
+
+        // Monter d'un cran en ordre décroissant, c'est prendre la position
+        // la plus haute : les deux notes échangent leurs rangs.
+        expect(notesApi.reorder).toHaveBeenCalledWith([
+            { id: 14, folderId: null, position: 0 },
+            { id: 11, folderId: null, position: 1 },
+        ]);
+        expect(wrapper.emitted("changed")).toBeTruthy();
+    });
+
+    it("keeps the order actions out of a sort that would undo them", async () => {
+        const wrapper = render({ folders: [] });
+
+        await wrapper.findAll("article")[0].find("button").trigger("click");
+        await flushPromises();
+
+        expect(document.body.textContent).not.toContain("sort.move_up");
     });
 
     it("draws a table when the list view is picked", async () => {

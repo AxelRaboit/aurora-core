@@ -131,6 +131,8 @@ notes:
         created: Création
         updated: Modification
         manual: Ordre manuel
+        move_up: Monter
+        move_down: Descendre
         asc: Ordre croissant
         desc: Ordre décroissant
       columns:

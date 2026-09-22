@@ -20,7 +20,9 @@ import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 import {
+    ArrowDown,
     ArrowDownWideNarrow,
+    ArrowUp,
     ArrowUpNarrowWide,
     ChevronRight,
     FileText,
@@ -428,6 +430,79 @@ async function onDropOn(targetFolderId, event) {
     await applyMove(kind, Number(id), targetFolderId);
 }
 
+// ── L'ordre manuel ─────────────────────────────────────────────────
+
+/**
+ * Monter et descendre, plutôt qu'une ligne d'insertion au glisser.
+ *
+ * Le glisser sert déjà à ranger : lâcher une carte sur un dossier la met
+ * dedans. Lui faire dire aussi « insère-toi ici » demande de distinguer le
+ * bord d'une carte de son milieu, ce qui se rate au doigt. Deux entrées dans
+ * le menu de la carte disent la même chose sans ambiguïté, et marchent au
+ * clavier.
+ *
+ * Offert seulement quand le tri est manuel : déplacer une carte d'un cran
+ * dans une liste triée par date ne voudrait rien dire, puisque le tri la
+ * remettrait où elle était.
+ */
+const manualOrder = computed(() => "manual" === sort.value);
+
+async function nudge(kind, item, delta) {
+    const list = "folder" === kind ? [...shownFolders.value] : [...shownNotes.value];
+    const from = list.findIndex((one) => Number(one.id) === Number(item.id));
+    const to = from + delta;
+
+    if (from < 0 || to < 0 || to >= list.length) return;
+
+    list.splice(to, 0, ...list.splice(from, 1));
+
+    // Les positions se comptent dans l'ordre croissant, pas dans celui de
+    // l'écran : en ordre décroissant, « monter » veut dire une position plus
+    // grande, et numéroter ce qu'on voit inverserait la liste à chaque clic.
+    const ordered = "desc" === direction.value ? [...list].reverse() : list;
+
+    // Toute la liste repart avec des positions contiguës : renuméroter deux
+    // lignes suffirait tant que personne n'a jamais partagé une position,
+    // et une importation en donne toujours.
+    const entries = ordered.map((one, position) =>
+        "folder" === kind
+            ? { id: Number(one.id), parentId: currentFolderId.value, position }
+            : { id: Number(one.id), folderId: currentFolderId.value, position },
+    );
+
+    const { ok, reported } =
+        "folder" === kind
+            ? await props.foldersApi.reorder(entries)
+            : await props.notesApi.reorder(entries);
+
+    if (!ok) {
+        if (!reported) toast.error(t("notes.markdown.errors.reorder_failed"));
+
+        return;
+    }
+
+    emit("changed");
+}
+
+function orderActions(kind, item) {
+    if (!manualOrder.value) return [];
+
+    return [
+        {
+            key: "up",
+            title: t("notes.markdown.library.sort.move_up"),
+            icon: ArrowUp,
+            onSelect: () => nudge(kind, item, -1),
+        },
+        {
+            key: "down",
+            title: t("notes.markdown.library.sort.move_down"),
+            icon: ArrowDown,
+            onSelect: () => nudge(kind, item, 1),
+        },
+    ];
+}
+
 // ── Les actions d'une carte ────────────────────────────────────────
 function folderActions(folder) {
     return [
@@ -450,6 +525,7 @@ function folderActions(folder) {
             icon: FolderInput,
             onSelect: () => askToMove("folder", folder),
         },
+        ...orderActions("folder", folder),
         {
             key: "delete",
             title: t("notes.markdown.folders.delete"),
@@ -477,6 +553,7 @@ function noteActions(note) {
             icon: FolderInput,
             onSelect: () => askToMove("note", note),
         },
+        ...orderActions("note", note),
     ];
 }
 

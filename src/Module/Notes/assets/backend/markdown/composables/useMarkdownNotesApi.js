@@ -52,7 +52,15 @@ export function useMarkdownNotesApi(props) {
             call(HttpMethod.Post, resolvePath(props.movePath, id), {
                 folderId,
             }),
-        reorder: (ids) => call(HttpMethod.Post, props.reorderPath, { ids }),
+        /**
+         * Les notes d'un dossier, dans l'ordre voulu.
+         *
+         * Envoie ce que le serveur lit - `{entries: [{id, folderId,
+         * position}]}` - et non une liste d'identifiants : l'appel promettait
+         * `{ids}` depuis toujours, que le contrôleur ignorait en silence.
+         */
+        reorder: (entries) =>
+            call(HttpMethod.Post, props.reorderPath, { entries }),
         backlinks: (id) =>
             call(HttpMethod.Get, resolvePath(props.backlinksPath, id)),
         unlinkedMentions: (id) =>
