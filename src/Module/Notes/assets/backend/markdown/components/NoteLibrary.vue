@@ -598,6 +598,127 @@ async function onDropOn(targetFolderId, event) {
     await applyMove(kind, Number(id), targetFolderId);
 }
 
+// ── Le clavier ─────────────────────────────────────────────────────
+
+/**
+ * Se déplacer sans la souris.
+ *
+ * Les cartes sont une liste : les flèches y descendent, Entrée ouvre,
+ * Retour arrière remonte d'un dossier, Espace choisit, Échap lâche tout.
+ * `n` fait une note, `N` un dossier - pas `Cmd+N`, que le navigateur garde
+ * pour lui et qui ouvrirait une fenêtre par-dessus l'écran.
+ *
+ * Rien de tout cela quand on écrit : un champ, une zone de texte ou un
+ * contenu éditable garde ses touches, sinon taper « nouvelle » dans la
+ * recherche créerait deux notes.
+ */
+const focused = ref(-1);
+
+const navigable = computed(() => [
+    ...pagedFolders.value.map((item) => ({ kind: "folder", item })),
+    ...pagedNotes.value.map((item) => ({ kind: "note", item })),
+]);
+
+function isFocused(kind, item) {
+    const current = navigable.value[focused.value];
+
+    return Boolean(
+        current && current.kind === kind && Number(current.item.id) === Number(item.id),
+    );
+}
+
+function typing(event) {
+    const node = event.target;
+
+    if (!node || !node.tagName) return false;
+
+    return (
+        ["INPUT", "TEXTAREA", "SELECT"].includes(node.tagName) ||
+        true === node.isContentEditable
+    );
+}
+
+function onKeydown(event) {
+    // Une modale ouverte a ses propres touches, et le clavier de la
+    // bibliothèque n'a rien à dire par-dessus.
+    if (typing(event) || nameModal.value || moving.value || pendingDelete.value) {
+        return;
+    }
+
+    const total = navigable.value.length;
+
+    switch (event.key) {
+    case "ArrowDown":
+    case "ArrowRight":
+        if (!total) return;
+        event.preventDefault();
+        focused.value = (focused.value + 1) % total;
+
+        return;
+
+    case "ArrowUp":
+    case "ArrowLeft":
+        if (!total) return;
+        event.preventDefault();
+        focused.value = (focused.value - 1 + total) % total;
+
+        return;
+
+    case "Enter": {
+        const current = navigable.value[focused.value];
+        if (!current) return;
+        event.preventDefault();
+
+        if ("folder" === current.kind) {
+            openFolder(current.item.id);
+        } else {
+            emit("open-note", current.item.id);
+        }
+
+        return;
+    }
+
+    case " ": {
+        const current = navigable.value[focused.value];
+        if (!current) return;
+        event.preventDefault();
+        toggleSelection(current.kind, current.item);
+
+        return;
+    }
+
+    case "Backspace":
+        if (null === currentFolderId.value) return;
+        event.preventDefault();
+        openFolder(path.value.at(-2)?.id ?? null);
+
+        return;
+
+    case "Escape":
+        clearSelection();
+
+        return;
+
+    case "n":
+        event.preventDefault();
+        emit("create-note", currentFolderId.value);
+
+        return;
+
+    case "N":
+        event.preventDefault();
+        askForFolderName();
+    }
+}
+
+onMounted(() => window.addEventListener("keydown", onKeydown));
+onUnmounted(() => window.removeEventListener("keydown", onKeydown));
+
+// Ce qui était visé peut disparaître : changer de dossier, filtrer, trier.
+watch([currentFolderId, query, sort, direction], () => {
+    focused.value = -1;
+});
+
 // ── L'ordre manuel ─────────────────────────────────────────────────
 
 /**
@@ -952,6 +1073,7 @@ defineExpose({
                             :class="[
                                 `folder:${folder.id}` === dragOverId ? 'border-accent-500 bg-accent-500/10' : 'border-line hover:border-accent-500/50',
                                 isSelected('folder', folder) ? 'ring-2 ring-accent-500' : '',
+                                isFocused('folder', folder) ? 'ring-2 ring-accent-500/60' : '',
                                 'mosaic' === view ? 'p-4' : 'p-3',
                             ]"
                             draggable="true"
@@ -997,6 +1119,7 @@ defineExpose({
                             class="group flex flex-col rounded-lg border border-line bg-surface transition-colors hover:border-accent-500/50"
                             :class="[
                                 isSelected('note', note) ? 'ring-2 ring-accent-500' : '',
+                                isFocused('note', note) ? 'ring-2 ring-accent-500/60' : '',
                                 'mosaic' === view ? 'p-4 min-h-[8rem]' : 'p-3',
                             ]"
                             draggable="true"

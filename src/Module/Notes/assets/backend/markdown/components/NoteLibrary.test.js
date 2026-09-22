@@ -425,6 +425,65 @@ describe("the library", () => {
         expect(wrapper.text()).not.toContain("library.selected");
     });
 
+    /**
+     * Le clavier, parce qu'un explorateur sans flèches oblige à viser.
+     */
+    describe("au clavier", () => {
+        function press(key) {
+            window.dispatchEvent(
+                new KeyboardEvent("keydown", { key, bubbles: true }),
+            );
+
+            return flushPromises();
+        }
+
+        it("walks the cards and opens the one it stops on", async () => {
+            const wrapper = render({ folders: [] });
+
+            await press("ArrowDown");
+            await press("Enter");
+
+            expect(wrapper.emitted("open-note")?.[0]).toEqual([11]);
+        });
+
+        it("picks and unpicks with the space bar", async () => {
+            const wrapper = render({ folders: [] });
+
+            await press("ArrowDown");
+            await press(" ");
+            expect(wrapper.text()).toContain("library.selected");
+
+            await press("Escape");
+            expect(wrapper.text()).not.toContain("library.selected");
+        });
+
+        it("makes a note with n, and asks for a folder name with N", async () => {
+            const wrapper = render();
+
+            await press("n");
+            expect(wrapper.emitted("create-note")?.[0]).toEqual([null]);
+
+            await press("N");
+            expect(document.body.textContent).toContain("folders.create");
+        });
+
+        /**
+         * Le piège du raccourci à une lettre : taper « nouvelle » dans la
+         * recherche créerait une note par « n ».
+         */
+        it("keeps its hands off the keyboard while somebody types", async () => {
+            const wrapper = render();
+            const input = wrapper.find("input");
+
+            input.element.dispatchEvent(
+                new KeyboardEvent("keydown", { key: "n", bubbles: true }),
+            );
+            await flushPromises();
+
+            expect(wrapper.emitted("create-note")).toBeUndefined();
+        });
+    });
+
     it("draws a table when the list view is picked", async () => {
         const wrapper = render();
 
