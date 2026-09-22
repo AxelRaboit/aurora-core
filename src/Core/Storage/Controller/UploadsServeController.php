@@ -13,6 +13,7 @@ use Aurora\Core\Storage\Adapter\StoredObject;
 use Aurora\Core\Storage\BinaryFileServer;
 use Aurora\Core\Storage\Enum\StorageDeliveryModeEnum;
 use Aurora\Core\Storage\StorageDeliveryModeProviderInterface;
+use Aurora\Core\Storage\StoredContentType;
 use Aurora\Core\Storage\StoredFileLocator;
 use Aurora\Core\Storage\Workspace\LocalPathAware;
 use RuntimeException;
@@ -198,6 +199,29 @@ final class UploadsServeController extends AbstractController
             $response->setPublic();
             $response->setMaxAge(86400);
             $response->headers->addCacheControlDirective('immutable');
+        }
+
+        // A `StreamedResponse` carries no type of its own, so everything this
+        // branch served came back as `text/html`. Raster images survived that
+        // because a browser sniffs an `<img>` out of a wrong type; SVG never
+        // does, being markup, so a vector stored remotely drew nothing at all
+        // while its neighbours drew fine. The local branch never had the bug -
+        // `BinaryFileResponse` fills the type in `prepare()`.
+        $contentType = StoredContentType::forKey($path);
+        $response->headers->set('Content-Type', $contentType);
+
+        // And now that the type is declared, say it is to be believed: the
+        // sniffing that rescued those images is the same sniffing that turns a
+        // file stored under a harmless type into a document.
+        $response->headers->set('X-Content-Type-Options', 'nosniff');
+
+        if (in_array($contentType, BinaryFileServer::EXECUTABLE_INLINE_TYPES, true)) {
+            // The same wall the local branch puts up, for the same reason: a
+            // stored SVG opened in a tab is script on this origin, running as
+            // whoever opened it. A `Content-Disposition` on a subresource is
+            // ignored by browsers, so the pictogram in a page still draws;
+            // what it stops is navigating to the address.
+            $response->headers->set('Content-Disposition', 'attachment');
         }
 
         if ($stored instanceof StoredObject) {

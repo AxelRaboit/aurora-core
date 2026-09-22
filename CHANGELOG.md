@@ -5,6 +5,27 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.222] - 2026-09-22
+
+### Corrigé
+
+#### Un fichier servi depuis un bucket dit enfin ce qu'il est
+Quand les documents sont stockés à distance et rendus à travers l'application
+(mode « proxy »), la réponse ne portait aucun type. Une réponse sans type vaut
+`text/html`, et le navigateur s'en sortait pour une photo, qu'il reconnaît à ses
+octets. Il ne s'en sort jamais pour une image vectorielle : un SVG est du
+balisage, et le deviner est précisément ce qu'un navigateur refuse de faire.
+
+Conséquence : un pictogramme déposé dans la médiathèque ne s'affichait nulle
+part, pendant que la photo posée à côté s'affichait très bien. Rien dans les
+journaux, la requête répondait 200 avec les bons octets.
+
+Le type est désormais posé, avec `X-Content-Type-Options: nosniff` pour qu'il
+fasse foi, et les types qu'un navigateur exécuterait (SVG, HTML, XML) repartent
+en pièce jointe, exactement comme le fait déjà le service des fichiers locaux.
+Une image dans une page continue de s'afficher, c'est la navigation directe vers
+l'adresse qui est fermée.
+
 ## [0.9.221] - 2026-09-22
 
 ### Modifié
