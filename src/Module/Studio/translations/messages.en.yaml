@@ -655,6 +655,7 @@ backend:
             ground_hint: The slide stands on one of the deck's three colours. The text follows, the accent does not move.
             grounds:
                 normal: The background
+                inverted: The ink
                 accent: The accent
             reveal_hint: In full screen, each press brings in the next line before moving to the following slide.
             fonts_label: Typography
@@ -792,7 +793,6 @@ backend:
                 anchor: Vertical position
                 align: Alignment
                 measure: Text width
-                inverted: Inverted slide
                 bgMediaId: Background picture
                 title: Title
                 subtitle: Subtitle

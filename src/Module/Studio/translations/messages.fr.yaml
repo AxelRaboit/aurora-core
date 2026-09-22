@@ -655,6 +655,7 @@ backend:
             ground_hint: La slide se pose sur une des trois couleurs du deck. Le texte suit, l'accent ne bouge pas.
             grounds:
                 normal: Le fond
+                inverted: L'encre
                 accent: L'accent
             reveal_hint: Au plein écran, chaque pression fait apparaître la ligne suivante avant de passer à la slide d'après.
             fonts_label: Typographie
@@ -792,7 +793,6 @@ backend:
                 anchor: Position verticale
                 align: Alignement
                 measure: Largeur du texte
-                inverted: Slide inversée
                 bgMediaId: Image de fond
                 title: Titre
                 subtitle: Sous-titre
