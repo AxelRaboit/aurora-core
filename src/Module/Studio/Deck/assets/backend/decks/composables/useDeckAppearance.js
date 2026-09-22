@@ -109,6 +109,26 @@ export function useDeckAppearance(props) {
         style[key] = value;
     }
 
+    /**
+     * A whole look, applied in one gesture.
+     *
+     * The theme and the keys the look decides, and nothing else: a key the
+     * look leaves out is a key the deck keeps, so trying a look over a deck
+     * that already picked its own accent does not throw that accent away.
+     *
+     * Nothing records which look it was. Once applied, every key is the deck's
+     * own, exactly as if it had been set one select at a time.
+     */
+    function applyLook(look) {
+        if (!look) return;
+
+        theme.value = look.theme;
+
+        for (const [key, value] of Object.entries(look.style ?? {})) {
+            write(key, value);
+        }
+    }
+
     function writeLogo(value) {
         logo.value = { id: value?.id ?? null, url: value?.url ?? null };
         style.logoMediaId = value?.id ?? null;
@@ -250,6 +270,7 @@ export function useDeckAppearance(props) {
         carriesOverrides,
         preview,
         resetColours,
+        applyLook,
         write,
         writeLogo,
         save,

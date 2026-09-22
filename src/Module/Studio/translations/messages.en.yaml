@@ -627,6 +627,18 @@ backend:
                 bottom: Band at the bottom
                 edge: Thin edge
             wash_from_theme: The theme's
+            looks_label: Start from a look
+            looks_hint: Applies a theme and its settings at once. Everything stays editable afterwards.
+            looks:
+                scene: Stage
+                atelier: Workshop
+                dossier: File
+                gallery: Gallery
+            look_descriptions:
+                scene: Shown in a room. Dark, titles in capitals.
+                atelier: It argues. Light and warm, hatched.
+                dossier: It is read. Quiet, squared, wide margins.
+                gallery: The pictures carry it. Near black, tight margins.
             fonts_label: Typography
             font_from_theme: The theme's own
             fonts:

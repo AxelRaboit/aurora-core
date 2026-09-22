@@ -38,21 +38,27 @@ final class DeckStyleWhitelistTest extends TestCase
         self::assertSame(['accent' => '#ff8800', 'fontPair' => 'serif'], $clean);
     }
 
-    public function testAGradientIsKeptOnlyWhenItDrawsSomething(): void
+    /**
+     * `none` is a choice and not an absence, since a theme can carry a wash:
+     * the missing key means "whatever my theme proposes", and a deck has to be
+     * able to say "flat, whatever my theme proposes" instead.
+     */
+    public function testTheFlatGroundIsAChoiceAndNotAnAbsence(): void
     {
         $normalizer = new DeckStyleNormalizer();
 
         self::assertSame(['gradient' => 'halo'], $normalizer->normalize(['gradient' => 'halo']));
-        self::assertSame([], $normalizer->normalize(['gradient' => 'none']), 'the flat ground is the absence of the key');
+        self::assertSame(['gradient' => 'none'], $normalizer->normalize(['gradient' => 'none']));
         self::assertSame([], $normalizer->normalize(['gradient' => 'rainbow']));
+        self::assertSame([], $normalizer->normalize([]), 'nothing chosen leaves the theme in charge');
     }
 
-    public function testAPatternIsKeptOnlyWhenItDrawsSomething(): void
+    public function testTheBareGroundIsAChoiceToo(): void
     {
         $normalizer = new DeckStyleNormalizer();
 
         self::assertSame(['pattern' => 'grid'], $normalizer->normalize(['pattern' => 'grid']));
-        self::assertSame([], $normalizer->normalize(['pattern' => 'none']), 'the bare ground is the absence of the key');
+        self::assertSame(['pattern' => 'none'], $normalizer->normalize(['pattern' => 'none']));
         self::assertSame([], $normalizer->normalize(['pattern' => 'tartan']));
     }
 

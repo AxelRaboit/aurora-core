@@ -627,6 +627,18 @@ backend:
                 bottom: Bandeau en bas
                 edge: Bord fin
             wash_from_theme: Celui du thème
+            looks_label: Partir d'un look
+            looks_hint: Applique un thème et ses réglages d'un coup. Tout reste modifiable ensuite.
+            looks:
+                scene: Scène
+                atelier: Atelier
+                dossier: Dossier
+                gallery: Galerie
+            look_descriptions:
+                scene: Montré dans une salle. Sombre, titres en capitales.
+                atelier: Il argumente. Clair et chaud, hachuré.
+                dossier: Il se lit. Calme, quadrillé, marges larges.
+                gallery: Les photos portent tout. Presque noir, marges serrées.
             fonts_label: Typographie
             font_from_theme: Celle du thème
             fonts:

@@ -11,6 +11,7 @@ use Aurora\Module\Studio\Deck\Entity\DeckInterface;
 use Aurora\Module\Studio\Deck\Enum\DeckFontPairEnum;
 use Aurora\Module\Studio\Deck\Enum\DeckGradientEnum;
 use Aurora\Module\Studio\Deck\Enum\DeckLogoPlacementEnum;
+use Aurora\Module\Studio\Deck\Enum\DeckLookEnum;
 use Aurora\Module\Studio\Deck\Enum\DeckPatternEnum;
 use Aurora\Module\Studio\Deck\Enum\DeckThemeEnum;
 use Aurora\Module\Studio\Deck\Enum\DeckTransitionEnum;
@@ -88,6 +89,7 @@ final readonly class DecksViewBuilder
             'themes' => $this->themeOptions(),
             'fontPairs' => $this->fontPairOptions(),
             'logoPlacements' => $this->logoPlacementOptions(),
+            'looks' => $this->lookOptions(),
             'gradients' => $this->gradientOptions(),
             'patterns' => $this->patternOptions(),
             'margins' => DeckStyleNormalizer::MARGINS,
@@ -278,6 +280,30 @@ final readonly class DecksViewBuilder
                 'labelKey' => $gradient->labelKey(),
             ],
             DeckGradientEnum::cases(),
+        );
+    }
+
+    /**
+     * The looks, each carrying everything it writes.
+     *
+     * The whole combination travels with the option, the way a theme's palette
+     * already does: the panel has to preview a look before anybody commits to
+     * it, and a preview that needed a round trip would make trying four looks
+     * four saves.
+     *
+     * @return list<array{value: string, labelKey: string, descriptionKey: string, theme: string, style: array<string, bool|string>}>
+     */
+    private function lookOptions(): array
+    {
+        return array_map(
+            static fn (DeckLookEnum $look): array => [
+                'value' => $look->value,
+                'labelKey' => $look->labelKey(),
+                'descriptionKey' => $look->descriptionKey(),
+                'theme' => $look->theme()->value,
+                'style' => $look->style(),
+            ],
+            DeckLookEnum::cases(),
         );
     }
 

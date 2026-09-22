@@ -29,6 +29,7 @@ const props = defineProps({
     show: { type: Boolean, default: false },
     themes: { type: Array, default: () => [] },
     fontPairs: { type: Array, default: () => [] },
+    looks: { type: Array, default: () => [] },
     gradients: { type: Array, default: () => [] },
     patterns: { type: Array, default: () => [] },
     margins: { type: Array, default: () => [] },
@@ -67,6 +68,7 @@ const emit = defineEmits([
     "save",
     "write",
     "update:theme",
+    "apply-look",
     "update:logo",
     "reset-colours",
 ]);
@@ -217,6 +219,31 @@ const placementOptions = computed(() =>
                     <p v-if="carriesOverrides" class="m-0 text-xs text-amber-400">
                         {{ t("backend.studio.decks.appearance_overrides_kept") }}
                     </p>
+                </div>
+
+                <!-- Avant les huit réglages plutôt qu'après : quelqu'un qui
+                     ouvre ce panneau cherche d'abord à ce que son deck
+                     ressemble à quelque chose, pas à choisir une trame. -->
+                <div class="flex flex-col gap-3 rounded-lg border border-line p-3">
+                    <span class="text-xs uppercase tracking-wide text-muted">
+                        {{ t("backend.studio.decks.looks_label") }}
+                    </span>
+                    <p class="m-0 text-xs text-muted">
+                        {{ t("backend.studio.decks.looks_hint") }}
+                    </p>
+
+                    <div class="grid gap-2 sm:grid-cols-2">
+                        <button
+                            v-for="look in looks"
+                            :key="look.value"
+                            type="button"
+                            class="flex flex-col gap-0.5 rounded-lg border border-line p-2 text-left transition-colors hover:border-accent"
+                            v-on:click="emit('apply-look', look)"
+                        >
+                            <span class="text-sm font-medium">{{ t(look.labelKey) }}</span>
+                            <span class="text-xs text-muted">{{ t(look.descriptionKey) }}</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="flex flex-col gap-3 rounded-lg border border-line p-3">

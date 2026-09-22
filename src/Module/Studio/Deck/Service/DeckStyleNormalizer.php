@@ -79,14 +79,16 @@ final readonly class DeckStyleNormalizer
             $clean['transition'] = $style['transition'];
         }
 
-        // Stored only when it draws something, on the same reasoning as
-        // `logoPlacement`: the absence of the key already spells the flat
-        // ground, and a stored `none` would be a second way to say it.
+        // `none` is stored like any other value, and deliberately so. It
+        // stopped being the same thing as the absence of the key the day a
+        // theme could carry a wash of its own: absent now means "whatever my
+        // theme proposes", and `none` means "flat, whatever my theme
+        // proposes". A deck needs to be able to say the second one.
         $gradient = is_string($style['gradient'] ?? null)
             ? DeckGradientEnum::tryFrom($style['gradient'])
             : null;
 
-        if ($gradient instanceof DeckGradientEnum && DeckGradientEnum::None !== $gradient) {
+        if ($gradient instanceof DeckGradientEnum) {
             $clean['gradient'] = $gradient->value;
         }
 
@@ -116,13 +118,12 @@ final readonly class DeckStyleNormalizer
             $clean['hairline'] = true;
         }
 
-        // Same shape as the gradient, and for the same reason: the bare
-        // ground is the absence of the key.
+        // Same shape as the gradient, and for the same reason.
         $pattern = is_string($style['pattern'] ?? null)
             ? DeckPatternEnum::tryFrom($style['pattern'])
             : null;
 
-        if ($pattern instanceof DeckPatternEnum && DeckPatternEnum::None !== $pattern) {
+        if ($pattern instanceof DeckPatternEnum) {
             $clean['pattern'] = $pattern->value;
         }
 

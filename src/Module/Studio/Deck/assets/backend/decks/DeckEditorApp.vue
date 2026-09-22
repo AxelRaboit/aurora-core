@@ -81,6 +81,7 @@ const props = defineProps({
     themes: { type: Array, default: () => [] },
     fontPairs: { type: Array, default: () => [] },
     logoPlacements: { type: Array, default: () => [] },
+    looks: { type: Array, default: () => [] },
     gradients: { type: Array, default: () => [] },
     patterns: { type: Array, default: () => [] },
     margins: { type: Array, default: () => [] },
@@ -141,6 +142,7 @@ const {
     carriesOverrides,
     preview,
     resetColours,
+    applyLook,
     write: writeStyle,
     writeLogo,
     save: saveAppearance,
@@ -1012,6 +1014,7 @@ onBeforeUnmount(() => {
             :themes="themes"
             :font-pairs="fontPairs"
             :logo-placements="logoPlacements"
+            :looks="looks"
             :gradients="gradients"
             :patterns="patterns"
             :margins="margins"
@@ -1033,6 +1036,7 @@ onBeforeUnmount(() => {
             v-on:update:theme="(value) => (theme = value)"
             v-on:update:logo="writeLogo"
             v-on:reset-colours="resetColours"
+            v-on:apply-look="applyLook"
         />
     </div>
 </template>
