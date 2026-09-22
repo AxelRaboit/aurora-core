@@ -25,6 +25,7 @@ import {
     ArrowUp,
     ArrowUpNarrowWide,
     ChevronRight,
+    FileDown,
     FileText,
     Folder,
     FolderInput,
@@ -68,6 +69,8 @@ const props = defineProps({
     rootUrl: { type: String, required: true },
     /** Builds a note's own address, for a link that middle-click can open. */
     noteUrlFor: { type: Function, required: true },
+    /** Builds the address that downloads one note as Markdown. */
+    noteExportUrlFor: { type: Function, default: () => "" },
 });
 
 const emit = defineEmits(["open-note", "create-note", "changed"]);
@@ -245,23 +248,49 @@ async function submitName() {
 }
 
 // ── Supprimer ──────────────────────────────────────────────────────
+
+/**
+ * Une note aussi se supprime d'ici.
+ *
+ * Elle ne se supprimait que depuis l'éditeur, ce qui obligeait à ouvrir une
+ * note pour s'en défaire - et à lire d'abord ce qu'on voulait jeter. Les
+ * deux natures passent par la même confirmation, avec le mot juste : un
+ * dossier emporte ce qu'il contient, une note part seule.
+ */
 const pendingDelete = ref(null);
 const deleting = ref(false);
+
+function askToDelete(kind, item) {
+    pendingDelete.value = { kind, item };
+}
 
 async function confirmDelete() {
     if (!pendingDelete.value) return;
 
+    const { kind, item } = pendingDelete.value;
+
     deleting.value = true;
-    const { ok, reported } = await props.foldersApi.remove(pendingDelete.value.id);
+    const { ok, reported } =
+        "folder" === kind
+            ? await props.foldersApi.remove(item.id)
+            : await props.notesApi.remove(item.id);
     deleting.value = false;
 
     if (!ok) {
-        if (!reported) toast.error(t("notes.markdown.folders.errors.delete_failed"));
+        if (!reported) {
+            toast.error(
+                t("folder" === kind
+                    ? "notes.markdown.folders.errors.delete_failed"
+                    : "notes.markdown.errors.delete_failed"),
+            );
+        }
 
         return;
     }
 
-    toast.success(t("notes.markdown.folders.deleted"));
+    toast.success(
+        t("folder" === kind ? "notes.markdown.folders.deleted" : "notes.markdown.saved"),
+    );
     pendingDelete.value = null;
     emit("changed");
 }
@@ -531,9 +560,7 @@ function folderActions(folder) {
             title: t("notes.markdown.folders.delete"),
             icon: Trash2,
             color: "rose",
-            onSelect: () => {
-                pendingDelete.value = folder;
-            },
+            onSelect: () => askToDelete("folder", folder),
         },
     ];
 }
@@ -554,6 +581,19 @@ function noteActions(note) {
             onSelect: () => askToMove("note", note),
         },
         ...orderActions("note", note),
+        {
+            key: "export",
+            title: t("notes.markdown.export.one"),
+            icon: FileDown,
+            href: props.noteExportUrlFor(note.id),
+        },
+        {
+            key: "delete",
+            title: t("notes.markdown.delete"),
+            icon: Trash2,
+            color: "rose",
+            onSelect: () => askToDelete("note", note),
+        },
     ];
 }
 
@@ -572,9 +612,7 @@ function updatedLabel(item) {
 defineExpose({
     openFolder,
     askForFolderName,
-    askToDelete: (folder) => {
-        pendingDelete.value = folder;
-    },
+    askToDelete: (folder) => askToDelete("folder", folder),
     dropInto: (folderId, event) => onDropOn(folderId, event),
 });
 </script>
@@ -960,12 +998,18 @@ defineExpose({
             :show="null !== pendingDelete"
             max-width="sm"
             :closeable="!deleting"
-            :title="t('notes.markdown.folders.delete')"
+            :title="'folder' === pendingDelete?.kind ? t('notes.markdown.folders.delete') : t('notes.markdown.delete')"
             :icon="Trash2"
             v-on:close="pendingDelete = null"
         >
-            <p class="text-sm text-primary">
-                {{ t('notes.markdown.folders.confirm_delete', { name: pendingDelete ? folderLabel(pendingDelete) : '' }) }}
+            <p v-if="'folder' === pendingDelete?.kind" class="text-sm text-primary">
+                {{ t('notes.markdown.folders.confirm_delete', { name: folderLabel(pendingDelete.item) }) }}
+            </p>
+            <p v-else-if="pendingDelete" class="text-sm text-primary">
+                {{ t('notes.markdown.confirm_delete', { title: noteLabel(pendingDelete.item) }) }}
+            </p>
+            <p class="mt-2 text-sm text-secondary">
+                {{ t('notes.markdown.delete_warning') }}
             </p>
 
             <template #footer>

@@ -68,6 +68,7 @@ function apis() {
         notesApi: {
             move: vi.fn().mockResolvedValue({ ok: true, payload: {} }),
             reorder: vi.fn().mockResolvedValue({ ok: true, payload: {} }),
+            remove: vi.fn().mockResolvedValue({ ok: true, payload: {} }),
         },
     };
 }
@@ -320,6 +321,41 @@ describe("the library", () => {
         await flushPromises();
 
         expect(document.body.textContent).not.toContain("sort.move_up");
+    });
+
+    /**
+     * Se défaire d'une note sans avoir à l'ouvrir : elle ne se supprimait
+     * que depuis l'éditeur, donc il fallait lire ce qu'on voulait jeter.
+     */
+    it("deletes a note from the library, after asking", async () => {
+        const notesApi = {
+            move: vi.fn(),
+            reorder: vi.fn(),
+            remove: vi.fn().mockResolvedValue({ ok: true, payload: {} }),
+        };
+        const wrapper = render({ notesApi, folders: [] });
+
+        await wrapper.findAll("article")[0].find("button").trigger("click");
+        await flushPromises();
+
+        const remove = [...document.body.querySelectorAll("button")].find((b) =>
+            b.textContent.includes("markdown.delete"),
+        );
+        expect(remove, "l'action supprimer est proposée").toBeTruthy();
+        remove.click();
+        await flushPromises();
+
+        // La feuille d'actions et la confirmation portent le même libellé ;
+        // celle qui vient d'apparaître est la dernière du document.
+        const confirm = [...document.body.querySelectorAll("button")]
+            .filter((b) => b.textContent.includes("markdown.delete"))
+            .at(-1);
+        expect(confirm, "la confirmation est à l'écran").toBeTruthy();
+        confirm.click();
+        await flushPromises();
+
+        expect(notesApi.remove).toHaveBeenCalledWith(11);
+        expect(wrapper.emitted("changed")).toBeTruthy();
     });
 
     it("draws a table when the list view is picked", async () => {

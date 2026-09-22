@@ -158,6 +158,10 @@ function noteUrlFor(id) {
     return props.showPath.replace('__id__', String(id));
 }
 
+function noteExportUrlFor(id) {
+    return props.exportOnePath.replace('__id__', String(id));
+}
+
 async function openNote(id) {
     try {
         window.history.pushState({ noteId: id }, '', noteUrlFor(id));
@@ -542,6 +546,7 @@ onUnmounted(() => {
                 :breadcrumb="breadcrumb"
                 :root-url="libraryPath"
                 :note-url-for="noteUrlFor"
+                :note-export-url-for="noteExportUrlFor"
                 v-on:open-note="openNote"
                 v-on:create-note="createNote"
                 v-on:changed="onLibraryChanged"
