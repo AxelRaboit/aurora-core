@@ -118,6 +118,10 @@ notes:
       title: All documents
       new_note: New note
       recent: Recently changed
+      selected: '{count} selected'
+      select: Select
+      clear_selection: Clear the selection
+      confirm_delete_selection: 'Send the {count} selected items to the trash?'
       new_folder: New folder
       search_placeholder: Search the notes…
       view:

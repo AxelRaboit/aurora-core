@@ -50,6 +50,7 @@ import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppTab from "@/shared/components/nav/AppTab.vue";
 import AppLoadMore from "@/shared/components/nav/AppLoadMore.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
+import AppSelectionCheck from "@/shared/components/feedback/AppSelectionCheck.vue";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { useNoteLibrary } from "@notes/backend/markdown/composables/useNoteLibrary.js";
 
@@ -200,6 +201,97 @@ function noteLabel(note) {
     return note.title || t("notes.markdown.untitled");
 }
 
+// ── Choisir plusieurs choses à la fois ─────────────────────────────
+
+/**
+ * La sélection, et les deux gestes qu'elle sert.
+ *
+ * Ranger un carnet, c'est rarement déplacer une note : c'est en déplacer
+ * douze. Une case sur chaque carte, une barre qui dit combien, et les deux
+ * actions qui valaient la peine d'être groupées - déplacer et supprimer. Le
+ * reste (renommer, exporter) n'a pas de sens au pluriel.
+ *
+ * Les clés portent la nature avec l'identifiant : une note 3 et un dossier 3
+ * ne sont pas la même chose, et un simple identifiant les aurait confondus.
+ */
+const selected = ref(new Set());
+
+const keyOf = (kind, item) => `${kind}:${item.id}`;
+
+const selectionCount = computed(() => selected.value.size);
+
+function isSelected(kind, item) {
+    return selected.value.has(keyOf(kind, item));
+}
+
+function toggleSelection(kind, item) {
+    const key = keyOf(kind, item);
+    const next = new Set(selected.value);
+
+    if (next.has(key)) {
+        next.delete(key);
+    } else {
+        next.add(key);
+    }
+
+    selected.value = next;
+}
+
+function clearSelection() {
+    selected.value = new Set();
+}
+
+// Changer de dossier vide la sélection : ce qu'elle contient n'est plus à
+// l'écran, et agir dessus de loin est la meilleure façon de déplacer ce
+// qu'on ne regardait pas.
+watch(currentFolderId, clearSelection);
+
+/** Les éléments choisis, rendus à leur nature et à leur objet. */
+function selectedItems() {
+    const items = [];
+
+    for (const key of selected.value) {
+        const [kind, rawId] = key.split(":");
+        const id = Number(rawId);
+        const source = "folder" === kind ? props.folders : props.notes;
+        const item = source.find((one) => Number(one.id) === id);
+
+        if (item) items.push({ kind, item });
+    }
+
+    return items;
+}
+
+async function moveSelection(targetFolderId) {
+    const items = selectedItems();
+
+    // En série plutôt qu'en parallèle : chaque déplacement est une écriture,
+    // et le serveur refuse un dossier rangé dans sa propre branche - une
+    // rafale rendrait l'ordre des refus imprévisible.
+    for (const { kind, item } of items) {
+        if ("folder" === kind && Number(item.id) === targetFolderId) continue;
+
+        await applyMove(kind, Number(item.id), targetFolderId, { quiet: true });
+    }
+
+    clearSelection();
+    toast.success(t("notes.markdown.folders.moved"));
+    emit("changed");
+}
+
+async function deleteSelection() {
+    for (const { kind, item } of selectedItems()) {
+        if ("folder" === kind) {
+            await props.foldersApi.remove(item.id);
+        } else {
+            await props.notesApi.remove(item.id);
+        }
+    }
+
+    clearSelection();
+    emit("changed");
+}
+
 // ── Créer, renommer ────────────────────────────────────────────────
 const nameModal = ref(null);
 const nameValue = ref("");
@@ -275,6 +367,15 @@ async function confirmDelete() {
 
     const { kind, item } = pendingDelete.value;
 
+    if ("selection" === kind) {
+        deleting.value = true;
+        await deleteSelection();
+        deleting.value = false;
+        pendingDelete.value = null;
+
+        return;
+    }
+
     deleting.value = true;
     const { ok, reported } =
         "folder" === kind
@@ -323,6 +424,23 @@ const moveTargets = computed(() => {
 
     const excluded = new Set();
 
+    if ("selection" === moving.value.kind) {
+        for (const { kind, item } of selectedItems()) {
+            if ("folder" !== kind) continue;
+
+            const queue = [Number(item.id)];
+
+            while (queue.length) {
+                const id = queue.shift();
+                excluded.add(id);
+
+                for (const folder of props.folders) {
+                    if (Number(folder.parentId) === id) queue.push(Number(folder.id));
+                }
+            }
+        }
+    }
+
     if ("folder" === moving.value.kind) {
         const queue = [Number(moving.value.item.id)];
 
@@ -365,7 +483,7 @@ function pathLabel(folder) {
     return names.join(" / ");
 }
 
-function askToMove(kind, item) {
+function askToMove(kind, item = null) {
     moving.value = { kind, item };
     moveTarget.value = "";
 }
@@ -375,11 +493,16 @@ async function submitMove() {
 
     const target = "" === moveTarget.value ? null : Number(moveTarget.value);
 
-    await applyMove(moving.value.kind, Number(moving.value.item.id), target);
+    if ("selection" === moving.value.kind) {
+        await moveSelection(target);
+    } else {
+        await applyMove(moving.value.kind, Number(moving.value.item.id), target);
+    }
+
     moving.value = null;
 }
 
-async function applyMove(kind, id, targetFolderId) {
+async function applyMove(kind, id, targetFolderId, { quiet = false } = {}) {
     const { ok, reported, payload } =
         "folder" === kind
             ? await props.foldersApi.move(id, targetFolderId)
@@ -392,14 +515,16 @@ async function applyMove(kind, id, targetFolderId) {
                     ? "notes.markdown.folders.errors.move_refused"
                     : "notes.markdown.folders.errors.move_failed";
 
-            toast.error(t(failed, { max: maxDepth }));
+            toast.error(t(failed, { max: props.maxDepth }));
         }
 
         return;
     }
 
-    toast.success(t("notes.markdown.folders.moved"));
-    emit("changed");
+    if (!quiet) {
+        toast.success(t("notes.markdown.folders.moved"));
+        emit("changed");
+    }
 }
 
 // ── Glisser-déposer ────────────────────────────────────────────────
@@ -738,6 +863,37 @@ defineExpose({
             </div>
         </header>
 
+        <!-- Ce que la sélection permet, quand il y en a une. Une barre
+             plutôt qu'un menu : ce qui est choisi doit rester compté sous
+             les yeux pendant qu'on décide. -->
+        <div
+            v-if="selectionCount"
+            class="flex flex-wrap items-center gap-2 border-b border-line bg-surface-2 px-3 py-2 sm:px-4"
+        >
+            <span class="text-sm text-primary">
+                {{ t('notes.markdown.library.selected', { count: selectionCount }) }}
+            </span>
+
+            <div class="ml-auto flex flex-wrap items-center gap-2">
+                <AppButton variant="ghost" size="sm" v-on:click="askToMove('selection')">
+                    <FolderInput class="w-3.5 h-3.5" :stroke-width="2" />
+                    {{ t('notes.markdown.folders.move_to') }}
+                </AppButton>
+                <AppButton variant="danger" size="sm" v-on:click="askToDelete('selection', null)">
+                    <Trash2 class="w-3.5 h-3.5" :stroke-width="2" />
+                    {{ t('notes.markdown.delete') }}
+                </AppButton>
+                <AppIconButton
+                    :title="t('notes.markdown.library.clear_selection')"
+                    size="sm"
+                    variant="ghost"
+                    v-on:click="clearSelection"
+                >
+                    <X class="w-4 h-4" :stroke-width="2" />
+                </AppIconButton>
+            </div>
+        </div>
+
         <div
             class="flex-1 min-h-0 overflow-auto p-3 sm:p-4"
             :class="rootDragOver ? 'bg-accent-500/5' : ''"
@@ -795,6 +951,7 @@ defineExpose({
                             class="group flex flex-col rounded-lg border bg-surface transition-colors"
                             :class="[
                                 `folder:${folder.id}` === dragOverId ? 'border-accent-500 bg-accent-500/10' : 'border-line hover:border-accent-500/50',
+                                isSelected('folder', folder) ? 'ring-2 ring-accent-500' : '',
                                 'mosaic' === view ? 'p-4' : 'p-3',
                             ]"
                             draggable="true"
@@ -805,6 +962,18 @@ defineExpose({
                             v-on:drop="onDropOn(Number(folder.id), $event)"
                         >
                             <div class="flex items-start gap-2">
+                                <!-- La case précède le titre au lieu de le
+                                     recouvrir : en surimpression, elle
+                                     tombait sur le nom des dossiers courts. -->
+                                <button
+                                    type="button"
+                                    class="shrink-0 pt-0.5"
+                                    :title="t('notes.markdown.library.select')"
+                                    v-on:click.stop="toggleSelection('folder', folder)"
+                                >
+                                    <AppSelectionCheck :active="isSelected('folder', folder)" size="xs" />
+                                </button>
+
                                 <button
                                     type="button"
                                     class="flex min-w-0 flex-1 items-center gap-2 text-left"
@@ -826,12 +995,24 @@ defineExpose({
                             v-for="note in pagedNotes"
                             :key="`note-${note.id}`"
                             class="group flex flex-col rounded-lg border border-line bg-surface transition-colors hover:border-accent-500/50"
-                            :class="'mosaic' === view ? 'p-4 min-h-[8rem]' : 'p-3'"
+                            :class="[
+                                isSelected('note', note) ? 'ring-2 ring-accent-500' : '',
+                                'mosaic' === view ? 'p-4 min-h-[8rem]' : 'p-3',
+                            ]"
                             draggable="true"
                             v-on:dragstart="onDragStart('note', note, $event)"
                             v-on:dragend="onDragEnd"
                         >
                             <div class="flex items-start gap-2">
+                                <button
+                                    type="button"
+                                    class="shrink-0 pt-0.5"
+                                    :title="t('notes.markdown.library.select')"
+                                    v-on:click.stop="toggleSelection('note', note)"
+                                >
+                                    <AppSelectionCheck :active="isSelected('note', note)" size="xs" />
+                                </button>
+
                                 <a
                                     :href="noteUrlFor(note.id)"
                                     class="flex min-w-0 flex-1 items-center gap-2"
@@ -1016,7 +1197,10 @@ defineExpose({
             :icon="Trash2"
             v-on:close="pendingDelete = null"
         >
-            <p v-if="'folder' === pendingDelete?.kind" class="text-sm text-primary">
+            <p v-if="'selection' === pendingDelete?.kind" class="text-sm text-primary">
+                {{ t('notes.markdown.library.confirm_delete_selection', { count: selectionCount }) }}
+            </p>
+            <p v-else-if="'folder' === pendingDelete?.kind" class="text-sm text-primary">
                 {{ t('notes.markdown.folders.confirm_delete', { name: folderLabel(pendingDelete.item) }) }}
             </p>
             <p v-else-if="pendingDelete" class="text-sm text-primary">

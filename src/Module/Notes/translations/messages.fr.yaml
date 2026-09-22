@@ -118,6 +118,10 @@ notes:
       title: Tous les documents
       new_note: Nouvelle note
       recent: Récemment modifiées
+      selected: '{count} sélectionné(s)'
+      select: Sélectionner
+      clear_selection: Tout désélectionner
+      confirm_delete_selection: 'Mettre à la corbeille les {count} éléments sélectionnés ?'
       new_folder: Nouveau dossier
       search_placeholder: Rechercher une note…
       view:

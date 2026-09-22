@@ -294,7 +294,9 @@ describe("the library", () => {
             .findAll("article")
             .find((one) => one.text().includes("À la racine"));
 
-        await first.find("button").trigger("click");
+        // Le premier bouton d'une carte est sa case à cocher ; le menu est
+        // le dernier.
+        await first.findAll("button").at(-1).trigger("click");
         await flushPromises();
 
         const up = [...document.body.querySelectorAll("button")].find((b) =>
@@ -317,7 +319,11 @@ describe("the library", () => {
     it("keeps the order actions out of a sort that would undo them", async () => {
         const wrapper = render({ folders: [] });
 
-        await wrapper.findAll("article")[0].find("button").trigger("click");
+        await wrapper
+            .findAll("article")[0]
+            .findAll("button")
+            .at(-1)
+            .trigger("click");
         await flushPromises();
 
         expect(document.body.textContent).not.toContain("sort.move_up");
@@ -335,7 +341,11 @@ describe("the library", () => {
         };
         const wrapper = render({ notesApi, folders: [] });
 
-        await wrapper.findAll("article")[0].find("button").trigger("click");
+        await wrapper
+            .findAll("article")[0]
+            .findAll("button")
+            .at(-1)
+            .trigger("click");
         await flushPromises();
 
         const remove = [...document.body.querySelectorAll("button")].find((b) =>
@@ -356,6 +366,63 @@ describe("the library", () => {
 
         expect(notesApi.remove).toHaveBeenCalledWith(11);
         expect(wrapper.emitted("changed")).toBeTruthy();
+    });
+
+    /**
+     * Ranger un carnet, c'est rarement déplacer une note : c'est en
+     * déplacer douze. La sélection existe pour ces deux gestes-là, et pour
+     * aucun autre - renommer ou exporter n'a pas de sens au pluriel.
+     */
+    it("moves everything that is selected, in one dialog", async () => {
+        const notesApi = {
+            move: vi.fn().mockResolvedValue({ ok: true, payload: {} }),
+            reorder: vi.fn(),
+            remove: vi.fn(),
+        };
+        const foldersApi = {
+            ...apis().foldersApi,
+            move: vi.fn().mockResolvedValue({ ok: true, payload: {} }),
+        };
+        const wrapper = render({ notesApi, foldersApi });
+
+        // Une note et un dossier : la sélection porte les deux natures, et
+        // un identifiant seul les aurait confondus.
+        const cards = wrapper.findAll("article");
+        await cards[0].findAll("button")[0].trigger("click");
+        await cards.at(-1).findAll("button")[0].trigger("click");
+
+        expect(wrapper.text()).toContain("library.selected");
+
+        await wrapper
+            .findAll("button")
+            .find((b) => b.text().includes("folders.move_to"))
+            .trigger("click");
+        await flushPromises();
+
+        const confirm = [...document.body.querySelectorAll("button")]
+            .filter((b) => b.textContent.includes("folders.move_to"))
+            .at(-1);
+        confirm.click();
+        await flushPromises();
+
+        expect(foldersApi.move).toHaveBeenCalledWith(1, null);
+        expect(notesApi.move).toHaveBeenCalledWith(11, null);
+        expect(wrapper.text()).not.toContain("library.selected");
+    });
+
+    it("forgets the selection when the folder changes", async () => {
+        const wrapper = render();
+
+        await wrapper
+            .findAll("article")[0]
+            .findAll("button")[0]
+            .trigger("click");
+        expect(wrapper.text()).toContain("library.selected");
+
+        wrapper.vm.openFolder(1);
+        await flushPromises();
+
+        expect(wrapper.text()).not.toContain("library.selected");
     });
 
     it("draws a table when the list view is picked", async () => {
