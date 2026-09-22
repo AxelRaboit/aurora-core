@@ -1096,10 +1096,15 @@ defineExpose({
                                     <AppSelectionCheck :active="isSelected('folder', folder)" size="xs" />
                                 </button>
 
+                                <!-- Un clic ouvre, un double-clic renomme :
+                                     c'est le geste d'un explorateur de
+                                     fichiers, et le menu garde l'entrée
+                                     pour qui ne le connaît pas. -->
                                 <button
                                     type="button"
                                     class="flex min-w-0 flex-1 items-center gap-2 text-left"
                                     v-on:click="openFolder(folder.id)"
+                                    v-on:dblclick.stop="askForFolderName(folder)"
                                 >
                                     <Folder class="w-5 h-5 shrink-0 text-accent-500" :stroke-width="2" />
                                     <span class="truncate font-medium text-primary">{{ folderLabel(folder) }}</span>
@@ -1204,7 +1209,12 @@ defineExpose({
                                 v-on:drop="onDropOn(Number(folder.id), $event)"
                             >
                                 <td class="px-2 py-2">
-                                    <button type="button" class="flex items-center gap-2 text-left" v-on:click="openFolder(folder.id)">
+                                    <button
+                                        type="button"
+                                        class="flex items-center gap-2 text-left"
+                                        v-on:click="openFolder(folder.id)"
+                                        v-on:dblclick.stop="askForFolderName(folder)"
+                                    >
                                         <Folder class="w-4 h-4 shrink-0 text-accent-500" :stroke-width="2" />
                                         <span class="truncate font-medium text-primary">{{ folderLabel(folder) }}</span>
                                     </button>

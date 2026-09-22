@@ -484,6 +484,18 @@ describe("the library", () => {
         });
     });
 
+    it("renames a folder on a double click, as a file browser does", async () => {
+        const wrapper = render();
+
+        const folderCard = wrapper
+            .findAll("article")
+            .find((one) => one.text().includes("Clients"));
+
+        await folderCard.findAll("button")[1].trigger("dblclick");
+
+        expect(document.body.textContent).toContain("folders.rename");
+    });
+
     it("draws a table when the list view is picked", async () => {
         const wrapper = render();
 
