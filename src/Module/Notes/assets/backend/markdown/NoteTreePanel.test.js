@@ -10,7 +10,14 @@ const NoteTreePanel = (await import("./NoteTreePanel.vue")).default;
 const i18n = createTestI18n();
 
 const FOLDERS = [
-    { id: 1, name: "Journal", parentId: null, noteCount: 1, folderCount: 1 },
+    {
+        id: 1,
+        name: "Journal",
+        parentId: null,
+        noteCount: 1,
+        folderCount: 1,
+        favoritedAt: "2026-09-20T10:00:00+00:00",
+    },
     { id: 2, name: "Lundi", parentId: 1, noteCount: 0, folderCount: 0 },
     { id: 3, name: "Recettes", parentId: null, noteCount: 2, folderCount: 0 },
 ];
@@ -58,11 +65,18 @@ async function render(url = "/backend/notes/markdown") {
     return wrapper;
 }
 
-/** Les lignes de dossiers, sans la ligne « Tous les documents » en tête. */
+/**
+ * Les lignes de dossiers de l'arborescence : ni « Tous les documents » en
+ * tête, ni les favoris, qui montrent les mêmes adresses plus haut.
+ */
 const folderLinks = (wrapper) =>
     wrapper
         .findAll("a")
-        .filter((a) => a.attributes("href")?.includes("/folder/"));
+        .filter(
+            (a) =>
+                a.attributes("href")?.includes("/folder/") &&
+                undefined === a.attributes("data-favorite-row"),
+        );
 
 beforeEach(() => answerWith());
 
@@ -192,6 +206,30 @@ describe("the folders panel", () => {
         const wrapper = await render();
 
         expect(wrapper.text()).toBe("");
+    });
+});
+
+describe("les favoris", () => {
+    /**
+     * Craft ouvre son menu sur eux, et c'est le seul endroit d'où l'on
+     * atteint une note en un clic sans savoir où elle est rangée.
+     */
+    it("lists what is pinned, above the tree", async () => {
+        const wrapper = await render();
+
+        expect(wrapper.text()).toContain("library.favorites");
+
+        expect(wrapper.findAll("[data-favorite-row]")).toHaveLength(1);
+        expect(wrapper.find("[data-favorite-row]").text()).toBe("Journal");
+    });
+
+    it("hides them while a search is running", async () => {
+        const wrapper = await render();
+
+        await wrapper.find("input").setValue("recett");
+        await flushPromises();
+
+        expect(wrapper.text()).not.toContain("library.favorites");
     });
 });
 

@@ -29,12 +29,12 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
      * l'annotation disait le contraire, ce qui laissait les appelants croire
      * qu'ils tenaient des notes.
      *
-     * @return list<array{id: int, title: string|null, tags: list<string>, position: int, createdAt: DateTimeImmutable, updatedAt: DateTimeImmutable, folderId: int|null}>
+     * @return list<array{id: int, title: string|null, tags: list<string>, position: int, createdAt: DateTimeImmutable, updatedAt: DateTimeImmutable, favoritedAt: DateTimeImmutable|null, folderId: int|null}>
      */
     public function findFlatListForUser(CoreUserInterface $user): array
     {
         return $this->createQueryBuilder('n')
-            ->select('n.id', 'n.title', 'n.tags', 'n.position', 'n.createdAt', 'n.updatedAt', 'IDENTITY(n.folder) AS folderId')
+            ->select('n.id', 'n.title', 'n.tags', 'n.position', 'n.createdAt', 'n.updatedAt', 'n.favoritedAt', 'IDENTITY(n.folder) AS folderId')
             ->where('n.user = :user')
             ->andWhere('n.deletedAt IS NULL')
             ->setParameter('user', $user)

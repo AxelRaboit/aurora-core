@@ -57,6 +57,7 @@ function apis() {
     return {
         foldersApi: {
             list: vi.fn(),
+            favorite: vi.fn().mockResolvedValue({ ok: true, payload: {} }),
             reorder: vi.fn().mockResolvedValue({ ok: true, payload: {} }),
             create: vi.fn().mockResolvedValue({ ok: true, payload: {} }),
             rename: vi.fn().mockResolvedValue({ ok: true, payload: {} }),
@@ -69,6 +70,7 @@ function apis() {
             move: vi.fn().mockResolvedValue({ ok: true, payload: {} }),
             reorder: vi.fn().mockResolvedValue({ ok: true, payload: {} }),
             remove: vi.fn().mockResolvedValue({ ok: true, payload: {} }),
+            favorite: vi.fn().mockResolvedValue({ ok: true, payload: {} }),
         },
     };
 }
@@ -494,6 +496,33 @@ describe("the library", () => {
         await folderCard.findAll("button")[1].trigger("dblclick");
 
         expect(document.body.textContent).toContain("folders.rename");
+    });
+
+    it("pins a note to the side menu", async () => {
+        const notesApi = {
+            move: vi.fn(),
+            reorder: vi.fn(),
+            remove: vi.fn(),
+            favorite: vi.fn().mockResolvedValue({ ok: true, payload: {} }),
+        };
+        const wrapper = render({ notesApi, folders: [] });
+
+        await wrapper
+            .findAll("article")[0]
+            .findAll("button")
+            .at(-1)
+            .trigger("click");
+        await flushPromises();
+
+        const pin = [...document.body.querySelectorAll("button")].find((b) =>
+            b.textContent.includes("library.pin"),
+        );
+        expect(pin, "l'action épingler est proposée").toBeTruthy();
+        pin.click();
+        await flushPromises();
+
+        expect(notesApi.favorite).toHaveBeenCalledWith(11);
+        expect(wrapper.emitted("changed")).toBeTruthy();
     });
 
     it("draws a table when the list view is picked", async () => {

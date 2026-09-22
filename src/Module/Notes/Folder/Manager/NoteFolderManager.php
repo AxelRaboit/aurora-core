@@ -171,6 +171,20 @@ class NoteFolderManager implements NoteFolderManagerInterface
         return count($folders);
     }
 
+    /** Épingle le dossier, ou le décroche. L'heure ordonne le panneau. */
+    public function toggleFavorite(NoteFolderInterface $folder): bool
+    {
+        $pinned = !$folder->getFavoritedAt() instanceof DateTimeImmutable;
+
+        $folder->setFavoritedAt($pinned ? new DateTimeImmutable() : null);
+
+        $this->entityManager->flush();
+
+        $this->auditUpdated($folder);
+
+        return $pinned;
+    }
+
     public function move(NoteFolderInterface $folder, ?NoteFolderInterface $newParent): bool
     {
         if ($this->hierarchy->wouldCreateCycle($folder, $newParent)) {

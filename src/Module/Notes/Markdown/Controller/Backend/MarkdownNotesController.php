@@ -470,6 +470,21 @@ final class MarkdownNotesController extends AbstractController
         return $this->jsonSuccess(['note' => $this->serializer->serializeListItem($note)]);
     }
 
+    /** Épingler une note au menu, ou l'en décrocher. */
+    #[Route('/{id}/favorite', name: '_favorite', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Post->value])]
+    public function favorite(int $id): JsonResponse
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        $note = $this->repository->findOneByUserAndId($user, $id);
+        if (!$note instanceof MarkdownNoteInterface) {
+            return $this->jsonNotFound();
+        }
+
+        return $this->jsonSuccess(['favorite' => $this->manager->toggleFavorite($note)]);
+    }
+
     #[Route('/{id}/backlinks', name: '_backlinks', methods: [HttpMethodEnum::Get->value])]
     public function backlinks(int $id): JsonResponse
     {

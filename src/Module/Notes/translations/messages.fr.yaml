@@ -118,6 +118,10 @@ notes:
       title: Tous les documents
       new_note: Nouvelle note
       recent: Récemment modifiées
+      favorites: Favoris
+      pin: Épingler au menu
+      unpin: Retirer des favoris
+      pin_failed: Impossible d'épingler cet élément.
       selected: '{count} sélectionné(s)'
       select: Sélectionner
       clear_selection: Tout désélectionner

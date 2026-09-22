@@ -51,6 +51,10 @@ abstract class AbstractNoteFolder implements NoteFolderInterface
     #[ORM\Column(type: Types::INTEGER, options: ['unsigned' => true, 'default' => 0])]
     protected int $position = 0;
 
+    /** Quand le dossier a été épinglé, jamais s'il ne l'est pas. */
+    #[ORM\Column(nullable: true)]
+    protected ?DateTimeImmutable $favoritedAt = null;
+
     /** When the folder was moved to the trash. */
     #[ORM\Column(nullable: true)]
     protected ?DateTimeImmutable $deletedAt = null;
@@ -109,6 +113,18 @@ abstract class AbstractNoteFolder implements NoteFolderInterface
     public function setPosition(int $position): static
     {
         $this->position = $position;
+
+        return $this;
+    }
+
+    public function getFavoritedAt(): ?DateTimeImmutable
+    {
+        return $this->favoritedAt;
+    }
+
+    public function setFavoritedAt(?DateTimeImmutable $favoritedAt): static
+    {
+        $this->favoritedAt = $favoritedAt;
 
         return $this;
     }

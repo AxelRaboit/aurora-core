@@ -45,6 +45,8 @@ export function useNoteFoldersApi(paths) {
             call(HttpMethod.Post, resolvePath(paths.move, id), { parentId }),
         remove: (id) =>
             call(HttpMethod.Post, resolvePath(paths.delete, id), {}),
+        favorite: (id) =>
+            call(HttpMethod.Post, resolvePath(paths.favorite, id), {}),
         reorder: (entries) => call(HttpMethod.Post, paths.reorder, { entries }),
         /** The address of a folder's page, for a link the browser can follow. */
         urlFor: (id) => resolvePath(paths.show, id),

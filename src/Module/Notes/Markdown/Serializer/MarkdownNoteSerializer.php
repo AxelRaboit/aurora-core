@@ -42,6 +42,7 @@ class MarkdownNoteSerializer implements MarkdownNoteSerializerInterface
             'createdAt' => $note->getCreatedAt()->format(DateTimeInterface::ATOM),
             'updatedAt' => $note->getUpdatedAt()->format(DateTimeInterface::ATOM),
             'excerpt' => $this->excerpts[(int) $note->getId()] ?? null,
+            'favoritedAt' => $note->getFavoritedAt()?->format(DateTimeInterface::ATOM),
         ];
     }
 

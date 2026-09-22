@@ -15,6 +15,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Index(name: 'idx_notes_folders_parent', columns: ['parent_id'])]
 #[ORM\Index(name: 'idx_notes_folders_deleted_at', columns: ['deleted_at'])]
 #[ORM\Index(name: 'idx_notes_folders_trashed_with', columns: ['trashed_with_folder_id'])]
+#[ORM\Index(name: 'idx_notes_folders_favorited', columns: ['favorited_at'])]
 class NoteFolder extends AbstractNoteFolder
 {
     #[ORM\Id]

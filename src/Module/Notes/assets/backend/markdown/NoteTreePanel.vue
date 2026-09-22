@@ -23,7 +23,7 @@
  */
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { Download, FileText, FolderPlus, Plus, Upload } from "lucide-vue-next";
+import { Download, FileText, Folder, FolderPlus, Plus, Upload } from "lucide-vue-next";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppModulePanel from "@/shared/nav/AppModulePanel.vue";
@@ -130,6 +130,57 @@ const matchingNotes = computed(() => {
         .slice(0, 50);
 });
 
+/** Un dossier est une page : la ligne offre son adresse pour tout le reste. */
+const hrefFor = (folder) => `${LIBRARY_URL}/folder/${folder.id}`;
+
+const noteHrefFor = (note) => `${LIBRARY_URL}/${note.id}`;
+
+/**
+ * Ce qui est épinglé, dossiers puis notes, le plus récent d'abord.
+ *
+ * Craft ouvre son menu là-dessus, et c'est le seul endroit du module d'où
+ * l'on atteint une note en un clic sans savoir où elle est rangée. Caché
+ * pendant une recherche : la liste des résultats répond déjà à la question
+ * posée.
+ */
+const favorites = computed(() => {
+    if (searching.value) return [];
+
+    const pinned = (items, kind) =>
+        items
+            .filter((one) => Boolean(one.favoritedAt))
+            .map((item) => ({ kind, item }));
+
+    return [
+        ...pinned(folders.value, "folder"),
+        ...pinned(notes.value, "note"),
+    ].sort((a, b) => Date.parse(b.item.favoritedAt) - Date.parse(a.item.favoritedAt));
+});
+
+function favoriteLabel({ kind, item }) {
+    if ("folder" === kind) {
+        return item.name || t("notes.markdown.folders.untitled");
+    }
+
+    return item.title || t("notes.markdown.untitled");
+}
+
+function favoriteHref({ kind, item }) {
+    return "folder" === kind ? hrefFor(item) : noteHrefFor(item);
+}
+
+function onFavoriteClick(entry, event) {
+    event.preventDefault();
+
+    if ("folder" === entry.kind) {
+        onSelect(entry.item.id);
+
+        return;
+    }
+
+    forward("select", entry.item.id);
+}
+
 const foldersById = computed(() => {
     const map = new Map();
     for (const folder of folders.value) map.set(Number(folder.id), folder);
@@ -190,11 +241,6 @@ function onDrop(folder, event) {
     draggingId.value = null;
     forward("drop", folder, event);
 }
-
-/** Un dossier est une page : la ligne offre son adresse pour tout le reste. */
-const hrefFor = (folder) => `${LIBRARY_URL}/folder/${folder.id}`;
-
-const noteHrefFor = (note) => `${LIBRARY_URL}/${note.id}`;
 
 function onNoteClick(note, event) {
     event.preventDefault();
@@ -285,6 +331,30 @@ onUnmounted(() => {
             <FileText class="h-4 w-4 shrink-0" :stroke-width="2" />
             <span class="flex-1 truncate">{{ t('notes.markdown.library.title') }}</span>
         </a>
+
+        <!-- Les favoris, avant l'arborescence : ce qu'on vient chercher
+             tous les jours n'a pas à se retrouver dans un arbre. -->
+        <div v-if="favorites.length" class="mb-2 border-b border-line pb-2">
+            <p class="px-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted">
+                {{ t('notes.markdown.library.favorites') }}
+            </p>
+
+            <a
+                v-for="entry in favorites"
+                :key="`${entry.kind}-${entry.item.id}`"
+                :data-favorite-row="`${entry.kind}-${entry.item.id}`"
+                :href="favoriteHref(entry)"
+                class="flex min-w-0 items-center gap-2 rounded-lg px-3 py-2 text-sm text-primary no-underline transition-colors hover:bg-surface-2"
+                v-on:click="onFavoriteClick(entry, $event)"
+            >
+                <component
+                    :is="'folder' === entry.kind ? Folder : FileText"
+                    class="h-4 w-4 shrink-0 text-muted"
+                    :stroke-width="2"
+                />
+                <span class="min-w-0 flex-1 truncate">{{ favoriteLabel(entry) }}</span>
+            </a>
+        </div>
 
         <p v-if="isEmpty && !searching" class="px-3 py-1 text-xs text-muted">
             {{ t("notes.markdown.folders.tree_empty") }}

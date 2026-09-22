@@ -361,6 +361,50 @@ final class MarkdownNoteTest extends IntegrationTestCase
         self::assertSame('Titre une liste deux', $row['excerpt']);
     }
 
+    /**
+     * Épingler une note, et la décrocher.
+     *
+     * Le panneau du menu ouvre là-dessus : un carnet a trois ou quatre
+     * endroits où l'on retourne tous les jours, et les chercher dans
+     * l'arborescence à chaque fois est la corvée que les favoris suppriment.
+     */
+    public function testANoteCanBePinnedAndUnpinned(): void
+    {
+        $note = $this->note($this->owner, 'À portée de main');
+
+        $this->client->loginUser($this->owner, 'admin');
+
+        $body = $this->post('backend_notes_markdown_favorite', [], ['id' => $note->getId()]);
+        self::assertTrue($body['favorite']);
+
+        $this->entityManager->clear();
+        $pinned = $this->entityManager->find(MarkdownNote::class, $note->getId());
+        self::assertInstanceOf(MarkdownNoteInterface::class, $pinned);
+        self::assertNotNull($pinned->getFavoritedAt());
+
+        $body = $this->post('backend_notes_markdown_favorite', [], ['id' => $note->getId()]);
+        self::assertFalse($body['favorite']);
+
+        $this->entityManager->clear();
+        $loose = $this->entityManager->find(MarkdownNote::class, $note->getId());
+        self::assertInstanceOf(MarkdownNoteInterface::class, $loose);
+        self::assertNull($loose->getFavoritedAt());
+    }
+
+    /** Un dossier s'épingle aussi, et personne d'autre ne peut l'épingler. */
+    public function testAFolderIsPinnedByItsOwnerOnly(): void
+    {
+        $folder = $this->folder($this->owner, 'Clients');
+
+        $this->client->loginUser($this->other, 'admin');
+        $this->post('backend_notes_markdown_folders_favorite', [], ['id' => $folder->getId()]);
+        self::assertResponseStatusCodeSame(404);
+
+        $this->client->loginUser($this->owner, 'admin');
+        $body = $this->post('backend_notes_markdown_folders_favorite', [], ['id' => $folder->getId()]);
+        self::assertTrue($body['favorite']);
+    }
+
     /** Title and body are ciphertext in the database, and readable through the ORM. */
     public function testTheBodyIsEncryptedAtRest(): void
     {

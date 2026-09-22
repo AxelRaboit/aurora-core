@@ -137,6 +137,21 @@ final class NoteFoldersController extends AbstractController
         return $this->jsonSuccess(['folder' => $this->serializer->serialize($folder)]);
     }
 
+    /** Épingler un dossier au menu, ou l'en décrocher. */
+    #[Route('/{id}/favorite', name: '_favorite', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Post->value])]
+    public function favorite(int $id): JsonResponse
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        $folder = $this->repository->findOneByUserAndId($user, $id);
+        if (!$folder instanceof NoteFolderInterface) {
+            return $this->jsonNotFound();
+        }
+
+        return $this->jsonSuccess(['favorite' => $this->manager->toggleFavorite($folder)]);
+    }
+
     /** Sends a folder to the trash, with everything inside it. */
     #[Route('/{id}/delete', name: '_delete', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Post->value])]
     public function delete(int $id): JsonResponse

@@ -100,6 +100,7 @@ final readonly class MarkdownNotesViewBuilder
             'updatePath' => $this->urlGenerator->generate('backend_notes_markdown_update', ['id' => '__id__']),
             'deletePath' => $this->urlGenerator->generate('backend_notes_markdown_delete', ['id' => '__id__']),
             'movePath' => $this->urlGenerator->generate('backend_notes_markdown_move', ['id' => '__id__']),
+            'favoritePath' => $this->urlGenerator->generate('backend_notes_markdown_favorite', ['id' => '__id__']),
             'reorderPath' => $this->urlGenerator->generate('backend_notes_markdown_reorder'),
             'backlinksPath' => $this->urlGenerator->generate('backend_notes_markdown_backlinks', ['id' => '__id__']),
             'unlinkedMentionsPath' => $this->urlGenerator->generate('backend_notes_markdown_unlinked_mentions', ['id' => '__id__']),
@@ -139,6 +140,7 @@ final readonly class MarkdownNotesViewBuilder
                 'move' => $this->urlGenerator->generate('backend_notes_markdown_folders_move', ['id' => '__id__']),
                 'delete' => $this->urlGenerator->generate('backend_notes_markdown_folders_delete', ['id' => '__id__']),
                 'reorder' => $this->urlGenerator->generate('backend_notes_markdown_folders_reorder'),
+                'favorite' => $this->urlGenerator->generate('backend_notes_markdown_folders_favorite', ['id' => '__id__']),
                 'show' => $this->urlGenerator->generate('backend_notes_markdown_folder', ['id' => '__id__']),
             ],
         ];

@@ -56,6 +56,16 @@ abstract class AbstractMarkdownNote implements MarkdownNoteInterface
     #[ORM\Column(type: Types::INTEGER, options: ['unsigned' => true, 'default' => 0])]
     protected int $position = 0;
 
+    /**
+     * Quand la note a été épinglée, jamais si elle ne l'est pas.
+     *
+     * Une date plutôt qu'un booléen : elle donne l'ordre des favoris sans
+     * rien de plus, et « épinglé le » est une information qu'un booléen
+     * jette.
+     */
+    #[ORM\Column(nullable: true)]
+    protected ?DateTimeImmutable $favoritedAt = null;
+
     /** When the note was moved to the trash. */
     #[ORM\Column(nullable: true)]
     protected ?DateTimeImmutable $deletedAt = null;
@@ -138,6 +148,18 @@ abstract class AbstractMarkdownNote implements MarkdownNoteInterface
     public function setPosition(int $position): static
     {
         $this->position = $position;
+
+        return $this;
+    }
+
+    public function getFavoritedAt(): ?DateTimeImmutable
+    {
+        return $this->favoritedAt;
+    }
+
+    public function setFavoritedAt(?DateTimeImmutable $favoritedAt): static
+    {
+        $this->favoritedAt = $favoritedAt;
 
         return $this;
     }

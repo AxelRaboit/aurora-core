@@ -28,6 +28,13 @@ interface MarkdownNoteManagerInterface
     /** Destroys what has been in the trash since before `$cutoff`. */
     public function purgeTrashedBefore(DateTimeImmutable $cutoff): int;
 
+    /**
+     * Pins the note to the side menu, or unpins it.
+     *
+     * @return bool whether it is pinned afterwards
+     */
+    public function toggleFavorite(MarkdownNoteInterface $note): bool;
+
     /** Files a note in a folder, or at the root with null. */
     public function move(MarkdownNoteInterface $note, ?NoteFolderInterface $folder): void;
 

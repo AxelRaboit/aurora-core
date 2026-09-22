@@ -52,6 +52,8 @@ export function useMarkdownNotesApi(props) {
             call(HttpMethod.Post, resolvePath(props.movePath, id), {
                 folderId,
             }),
+        favorite: (id) =>
+            call(HttpMethod.Post, resolvePath(props.favoritePath, id), {}),
         /**
          * Les notes d'un dossier, dans l'ordre voulu.
          *

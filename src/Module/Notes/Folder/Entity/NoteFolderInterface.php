@@ -40,6 +40,11 @@ interface NoteFolderInterface extends TimestampableInterface
 
     public function setPosition(int $position): static;
 
+    /** When the folder was pinned, null when it is not. */
+    public function getFavoritedAt(): ?DateTimeImmutable;
+
+    public function setFavoritedAt(?DateTimeImmutable $favoritedAt): static;
+
     public function getDeletedAt(): ?DateTimeImmutable;
 
     public function setDeletedAt(?DateTimeImmutable $deletedAt): static;

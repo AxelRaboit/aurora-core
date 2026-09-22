@@ -33,6 +33,8 @@ import {
     LayoutGrid,
     List,
     Pencil,
+    Pin,
+    PinOff,
     Plus,
     Rows3,
     Trash2,
@@ -812,6 +814,42 @@ async function nudge(kind, item, delta) {
     emit("changed");
 }
 
+/**
+ * Épingler, ou décrocher.
+ *
+ * Un carnet a trois ou quatre endroits où l'on retourne tous les jours, et
+ * les chercher dans l'arbre à chaque fois est une corvée que Craft supprime
+ * avec ses favoris. L'action dit ce qu'elle va faire, pas l'état actuel :
+ * « Épingler » sur ce qui ne l'est pas.
+ */
+function favoriteAction(kind, item) {
+    const pinned = Boolean(item.favoritedAt);
+
+    return {
+        key: "favorite",
+        title: pinned
+            ? t("notes.markdown.library.unpin")
+            : t("notes.markdown.library.pin"),
+        icon: pinned ? PinOff : Pin,
+        onSelect: () => togglePin(kind, item),
+    };
+}
+
+async function togglePin(kind, item) {
+    const { ok, reported } =
+        "folder" === kind
+            ? await props.foldersApi.favorite(item.id)
+            : await props.notesApi.favorite(item.id);
+
+    if (!ok) {
+        if (!reported) toast.error(t("notes.markdown.library.pin_failed"));
+
+        return;
+    }
+
+    emit("changed");
+}
+
 function orderActions(kind, item) {
     if (!manualOrder.value) return [];
 
@@ -853,6 +891,7 @@ function folderActions(folder) {
             icon: FolderInput,
             onSelect: () => askToMove("folder", folder),
         },
+        favoriteAction("folder", folder),
         ...orderActions("folder", folder),
         {
             key: "delete",
@@ -879,6 +918,7 @@ function noteActions(note) {
             icon: FolderInput,
             onSelect: () => askToMove("note", note),
         },
+        favoriteAction("note", note),
         ...orderActions("note", note),
         {
             key: "export",

@@ -151,6 +151,25 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
         return count($notes);
     }
 
+    /**
+     * Épingle la note, ou la décroche.
+     *
+     * L'heure est celle du geste, et c'est elle qui ordonne le panneau : le
+     * dernier épinglé arrive en tête, là où on vient de le poser.
+     */
+    public function toggleFavorite(MarkdownNoteInterface $note): bool
+    {
+        $pinned = !$note->getFavoritedAt() instanceof DateTimeImmutable;
+
+        $note->setFavoritedAt($pinned ? new DateTimeImmutable() : null);
+
+        $this->entityManager->flush();
+
+        $this->auditUpdated($note);
+
+        return $pinned;
+    }
+
     public function move(MarkdownNoteInterface $note, ?NoteFolderInterface $folder): void
     {
         $note->setFolder($folder);

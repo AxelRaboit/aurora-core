@@ -46,6 +46,7 @@ const props = defineProps({
     updatePath: { type: String, required: true },
     deletePath: { type: String, required: true },
     movePath: { type: String, required: true },
+    favoritePath: { type: String, default: '' },
     reorderPath: { type: String, required: true },
     backlinksPath: { type: String, required: true },
     unlinkedMentionsPath: { type: String, required: true },
