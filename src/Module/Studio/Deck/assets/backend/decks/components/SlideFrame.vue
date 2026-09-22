@@ -1208,7 +1208,10 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
 
 /* Deux colonnes qui se répondent. Le filet entre elles dit l'opposition que
    le gabarit `split` laissait deviner. */
-.sf-compare { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 5cqw; align-items: start; }
+/* `align-items: start` aligne les deux en-tetes entre elles, `align-content`
+   centre le bloc dans la hauteur qui reste : sans le second, une comparaison
+   de deux phrases courtes se colle en haut d'un cadre aux trois quarts vide. */
+.sf-compare { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: min-content; align-content: center; gap: 5cqw; align-items: start; }
 .sf-compare-side { display: flex; flex-direction: column; gap: 1.6cqw; min-width: 0; }
 .sf-compare-side.is-second { border-left: 0.25cqw solid color-mix(in srgb, currentColor 22%, transparent); padding-left: 5cqw; }
 .sf-compare-side p { margin: 0; font-size: calc(3.4cqw * var(--fit)); line-height: 1.45; }
