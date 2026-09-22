@@ -739,6 +739,20 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
    erreur que personne ne verrait avant de recevoir le PDF. */
 @media print {
     .sf-backdrop-file.is-drifting { animation: none; }
+
+    /* Le deck s'imprime dans ses couleurs, point.
+     *
+     * Sans cette ligne, le fond ne sort que si le lecteur a coché « imprimer
+     * les arrière-plans », donc le rendu dépend d'une case dans le navigateur
+     * de quelqu'un d'autre : personne ne sait ce qu'il va obtenir, l'auteur le
+     * premier. Un PDF de deck est un fichier qu'on envoie, pas une feuille
+     * qu'on imprime, et un deck qui arrive gris sur blanc est un livrable
+     * cassé. Celui qui veut économiser son encre a « niveaux de gris » dans sa
+     * propre boîte de dialogue, qu'il connaît déjà. */
+    .slide-frame {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
 }
 
 /* Le traitement de la photo. Le flou est agrandi d'un poil : une image floutée
