@@ -15,6 +15,7 @@ use Aurora\Core\Storage\Enum\StorageDiskEnum;
 use Aurora\Core\Storage\Exception\StorageException;
 use Aurora\Core\Storage\R2\R2ConfigurationProviderInterface;
 use Aurora\Core\Storage\R2\S3ClientFactory;
+use Aurora\Core\Storage\StoredContentType;
 use Aurora\Core\Storage\Workspace\LocalPathAware;
 use DateTimeImmutable;
 use Generator;
@@ -414,19 +415,12 @@ final readonly class R2StorageAdapter implements StorageAdapterInterface
      * Type from the extension, for the calls that hold bytes rather than a
      * file. Wrong beats absent: an object stored without one is served as a
      * download, which for an image on a page means it does not render.
+     *
+     * Shared with the serve endpoint, which asks the same question of the
+     * same key when it streams an object back through PHP.
      */
     private function contentTypeForKey(string $key): string
     {
-        return match (mb_strtolower(pathinfo($key, PATHINFO_EXTENSION))) {
-            'jpg', 'jpeg' => 'image/jpeg',
-            'png' => 'image/png',
-            'gif' => 'image/gif',
-            'webp' => 'image/webp',
-            'svg' => 'image/svg+xml',
-            'pdf' => 'application/pdf',
-            'json' => 'application/json',
-            'txt' => 'text/plain',
-            default => 'application/octet-stream',
-        };
+        return StoredContentType::forKey($key);
     }
 }

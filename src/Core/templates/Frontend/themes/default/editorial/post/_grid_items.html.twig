@@ -118,23 +118,26 @@
                             {{ 'frontend.editorial.grid.recommended'|trans }}
                         </span>
                     {% endif %}
-                    {% if entry.media %}
-                        {# A pictogram above the name, at a size that reads as
-                           an icon rather than as an illustration. The picture
-                           was always on the entry - the editor offers one for
-                           every item - and this costume was the one that did
-                           not draw it, so a card could be given an icon and
-                           show nothing. `object-contain` because a pictogram
-                           cropped to a square is a pictogram with its edges
-                           cut off. #}
-                        <img
-                            src="{{ entry.media.url }}"
-                            alt=""
-                            loading="lazy"
-                            class="mb-3 h-10 w-10 object-contain"
-                        >
-                    {% endif %}
-                    {% if entry.title %}<h3 class="m-0 text-lg font-semibold text-primary">{{ entry.title }}</h3>{% endif %}
+                    {# The pictogram beside the name rather than over it, at a
+                       size that reads as an icon rather than as an
+                       illustration. On its own line it pushed the words down
+                       and bought nothing: these cards carry a name and a line
+                       or two, and a name read next to its sign is read once.
+                       `shrink-0` so a long name wraps beside the icon instead
+                       of squeezing it, and `object-contain` because a
+                       pictogram cropped to a square is a pictogram with its
+                       edges cut off. #}
+                    <div class="flex items-center gap-3">
+                        {% if entry.media %}
+                            <img
+                                src="{{ entry.media.url }}"
+                                alt=""
+                                loading="lazy"
+                                class="h-10 w-10 shrink-0 object-contain"
+                            >
+                        {% endif %}
+                        {% if entry.title %}<h3 class="m-0 text-lg font-semibold text-primary">{{ entry.title }}</h3>{% endif %}
+                    </div>
                     {% if entry.caption %}<p class="m-0 mt-2 text-3xl font-bold text-accent">{{ entry.caption }}</p>{% endif %}
                     {% if entry.description %}
                         {# One line per line, which is how the field is filled
