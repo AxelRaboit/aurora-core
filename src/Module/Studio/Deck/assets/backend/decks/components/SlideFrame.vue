@@ -59,22 +59,30 @@ const props = defineProps({
 });
 
 /**
- * The slide drawn the other way round: its ground is the deck's ink.
+ * Which of the deck's three colours this slide stands on.
  *
- * **Two properties swapped, and not a sixth theme.** A dark section slide in
- * the middle of a light deck is the cheapest thing a deck can do to stop
- * reading as one long page, and it only holds if it is the deck's OWN two
- * colours that trade places - a slide painted with a colour of its own would
- * drift the day the deck's palette is overridden.
+ * **One setting and not two.** The first version of this was a boolean called
+ * `inverted`, and a per-slide ground taken from the palette would have been a
+ * second way to spell the same slide: ground-is-the-ink IS the inversion. One
+ * slot with three values says it once, and makes room for the third ground the
+ * boolean had nowhere to put.
  *
- * The accent does not move. It is the one tone that already sits at a
- * deliberate distance from both, and swapping it too would leave the wash and
- * the rules on an inverted slide looking like another deck's.
+ * **Always the deck's own colours**, never a colour of its own: a slide painted
+ * with a value of its own would drift the day the deck's palette is
+ * overridden.
  *
- * A frame drawn outside a deck has no two colours to trade, so it stays as it
- * is rather than inventing a pair.
+ * The accent does not move when the ground does. It is the one tone that sits
+ * at a deliberate distance from both others, and moving it too would leave the
+ * wash and the rules on such a slide looking like another deck's.
+ *
+ * A frame drawn outside a deck has no palette to stand on, so it stays as it
+ * is rather than inventing one.
  */
-const inverted = computed(() => props.slide.content.inverted === true);
+const ground = computed(() =>
+    ["inverted", "accent"].includes(props.slide.content.ground)
+        ? props.slide.content.ground
+        : "normal",
+);
 
 /**
  * The picture's outline, as a name the stylesheet matches on.
@@ -130,8 +138,11 @@ const skin = computed(() => {
     if (!look) return {};
 
     return {
-        "--slide-bg": inverted.value ? look.ink : look.background,
-        "--slide-ink": inverted.value ? look.background : look.ink,
+        // The accent ground borrows the deck's background for its text: it is
+        // the one tone guaranteed to sit at a distance from the accent, since
+        // the palette was picked so the ink reads on it.
+        "--slide-bg": { inverted: look.ink, accent: look.accent }[ground.value] ?? look.background,
+        "--slide-ink": "normal" === ground.value ? look.ink : look.background,
         "--slide-accent": look.accent,
         "--slide-heading": look.headingFont,
         "--slide-body": look.bodyFont,
@@ -720,6 +731,13 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
 }
 
 @media (prefers-reduced-motion: reduce) {
+    .sf-backdrop-file.is-drifting { animation: none; }
+}
+
+/* Le papier ne bouge pas. La classe n'est déjà posée que par le lecteur, mais
+   une feuille imprimée qui attraperait une image en plein travelling est une
+   erreur que personne ne verrait avant de recevoir le PDF. */
+@media print {
     .sf-backdrop-file.is-drifting { animation: none; }
 }
 

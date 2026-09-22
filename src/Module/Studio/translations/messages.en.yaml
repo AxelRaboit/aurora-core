@@ -652,6 +652,10 @@ backend:
                 quiet: Quiet
                 loud: Loud
             media_ids_hint: The order is the arrangement. Eight at most; emptying one closes the gap.
+            ground_hint: The slide stands on one of the deck's three colours. The text follows, the accent does not move.
+            grounds:
+                normal: The background
+                accent: The accent
             fonts_label: Typography
             font_from_theme: The theme's own
             fonts:
@@ -672,7 +676,6 @@ backend:
             slide_numbers: Number the slides
             slide_numbers_hint: The cover is never numbered.
             common_slots: Backdrop and kicker
-            inverted_hint: The ground and the text swap colours. One dark slide inside a light deck, without changing theme.
             kicker_placeholder: Audit, Part two, Our proposal…
             backdrop_hint: A photograph behind the text, on any layout.
             backdrop_dim: Veil
@@ -763,6 +766,7 @@ backend:
                 steps: Steps
                 rows: Rows
                 kicker: Kicker
+                ground: Slide ground
                 mediaIds: The pictures
                 titleScale: Title scale
                 transition: Transition into this slide

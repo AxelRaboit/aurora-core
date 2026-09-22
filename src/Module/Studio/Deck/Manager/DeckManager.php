@@ -268,12 +268,16 @@ class DeckManager
                 continue;
             }
 
-            // Only the true is stored, on the same reasoning as `slideNumbers`
-            // in the style: the absence already says "drawn the usual way round",
-            // and a stored false would be a second way to spell it.
-            if ('inverted' === $slot) {
-                if (true === $value) {
-                    $clean[$slot] = true;
+            // Which of the deck's own three colours the slide stands on.
+            //
+            // One slot rather than a boolean and a colour: "inverted" and
+            // "ground: ink" were the same slide drawn twice, and the accent
+            // ground had nowhere to live. Three values taken from the palette
+            // and never a free colour, so a slide cannot step outside the
+            // deck's.
+            if ('ground' === $slot) {
+                if (in_array($value, ['normal', 'inverted', 'accent'], true)) {
+                    $clean[$slot] = $value;
                 }
 
                 continue;

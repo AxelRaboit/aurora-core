@@ -652,6 +652,10 @@ backend:
                 quiet: Discrète
                 loud: Affichée
             media_ids_hint: L'ordre est l'arrangement. Huit au maximum ; vider une case resserre les autres.
+            ground_hint: La slide se pose sur une des trois couleurs du deck. Le texte suit, l'accent ne bouge pas.
+            grounds:
+                normal: Le fond
+                accent: L'accent
             fonts_label: Typographie
             font_from_theme: Celle du thème
             fonts:
@@ -672,7 +676,6 @@ backend:
             slide_numbers: Numéroter les slides
             slide_numbers_hint: La couverture n'est jamais numérotée.
             common_slots: Fond et sur-titre
-            inverted_hint: Le fond et le texte échangent leurs couleurs. Une slide sombre au milieu d'un deck clair, sans changer de thème.
             kicker_placeholder: Audit, partie 2, Notre proposition…
             backdrop_hint: Une photo derrière le texte, sur n'importe quel gabarit.
             backdrop_dim: Voile
@@ -763,6 +766,7 @@ backend:
                 steps: Étapes
                 rows: Lignes
                 kicker: Sur-titre
+                ground: Sol de la slide
                 mediaIds: Les images
                 titleScale: Échelle du titre
                 transition: Transition vers cette slide

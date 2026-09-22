@@ -340,6 +340,7 @@ const veilOptions = compositionOptions("bg_veil", ["flat", "bottom", "top"]);
 const frameOptions = compositionOptions("media_frame", ["none", "line", "shadow"]);
 const bandOptions = compositionOptions("band", ["none", "left", "bottom", "edge"]);
 const titleScaleOptions = compositionOptions("title_scale", ["normal", "quiet", "loud"]);
+const groundOptions = compositionOptions("ground", ["normal", "inverted", "accent"]);
 const slideTransitionOptions = computed(() => [
     { value: "", label: t("backend.studio.decks.transition_from_deck") },
     ...["none", "fade", "slide"].map((value) => ({
@@ -837,13 +838,14 @@ onBeforeUnmount(() => {
                                 />
                             </div>
 
-                            <AppToggle
-                                v-if="commonSlots.includes('inverted')"
-                                :model-value="selected.content.inverted === true"
-                                :label="labelFor('inverted')"
-                                :hint="t('backend.studio.decks.inverted_hint')"
+                            <AppSelect
+                                v-if="commonSlots.includes('ground')"
+                                :model-value="selected.content.ground ?? 'normal'"
+                                :options="groundOptions"
+                                :label="labelFor('ground')"
+                                :hint="t('backend.studio.decks.ground_hint')"
                                 :disabled="!editable"
-                                v-on:update:model-value="(value) => writeSlot('inverted', value)"
+                                v-on:update:model-value="(value) => writeSlot('ground', value)"
                             />
 
                             <AppImagePickerField

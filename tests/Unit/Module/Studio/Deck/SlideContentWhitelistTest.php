@@ -38,23 +38,24 @@ final class SlideContentWhitelistTest extends TestCase
         );
     }
 
-    public function testTheInversionIsStoredOnlyWhenItIsTrue(): void
+    public function testTheGroundIsOneOfTheDecksOwnThreeColours(): void
     {
         $manager = $this->manager();
 
-        $on = (new Slide())->setLayout(SlideLayoutEnum::Section);
-        $manager->writeContent($on, ['title' => 'Deuxième partie', 'inverted' => true]);
-        self::assertSame(['title' => 'Deuxième partie', 'inverted' => true], $on->getContent());
+        foreach (['inverted', 'accent'] as $value) {
+            $slide = (new Slide())->setLayout(SlideLayoutEnum::Section);
+            $manager->writeContent($slide, ['title' => 'Deuxième partie', 'ground' => $value]);
+            self::assertSame(['title' => 'Deuxième partie', 'ground' => $value], $slide->getContent());
+        }
 
-        // A checkbox posting "on", or a false, both mean the usual way round,
-        // which the absence of the key already spells.
-        $off = (new Slide())->setLayout(SlideLayoutEnum::Section);
-        $manager->writeContent($off, ['title' => 'Deuxième partie', 'inverted' => 'on']);
-        self::assertSame(['title' => 'Deuxième partie'], $off->getContent());
+        // The boolean this replaced, and a free colour: neither is a ground.
+        $stale = (new Slide())->setLayout(SlideLayoutEnum::Section);
+        $manager->writeContent($stale, ['title' => 'Deuxième partie', 'ground' => true]);
+        self::assertSame(['title' => 'Deuxième partie'], $stale->getContent());
 
-        $plain = (new Slide())->setLayout(SlideLayoutEnum::Section);
-        $manager->writeContent($plain, ['title' => 'Deuxième partie', 'inverted' => false]);
-        self::assertSame(['title' => 'Deuxième partie'], $plain->getContent());
+        $free = (new Slide())->setLayout(SlideLayoutEnum::Section);
+        $manager->writeContent($free, ['title' => 'Deuxième partie', 'ground' => '#112233']);
+        self::assertSame(['title' => 'Deuxième partie'], $free->getContent());
     }
 
     /** A picture is an id, and a string there would fail to resolve at render. */
