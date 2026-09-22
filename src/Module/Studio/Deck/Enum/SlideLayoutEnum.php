@@ -120,7 +120,7 @@ enum SlideLayoutEnum: string
      */
     public static function commonSlots(): array
     {
-        return ['kicker', 'bgMediaId', 'bgDim', 'bgTreatment', 'bgVeil', 'vignette', 'inverted', 'anchor', 'align', 'measure', 'band', 'transition', 'drift'];
+        return ['kicker', 'bgMediaId', 'bgDim', 'bgTreatment', 'bgVeil', 'vignette', 'inverted', 'anchor', 'align', 'measure', 'band', 'transition', 'drift', 'titleScale'];
     }
 
     /**

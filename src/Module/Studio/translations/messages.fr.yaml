@@ -566,6 +566,7 @@ backend:
                 bottom: Depuis le bas
                 corner: En diagonale
                 halo: Halo central
+                duo: Accent vers encre
             pattern_label: Motif
             pattern_hint: Une texture sur le fond, cachée sur les slides à photo.
             patterns:
@@ -646,6 +647,10 @@ backend:
             transition_from_deck: Celle du deck
             slide_transition_hint: Ne vaut que pour cette slide, et seulement au plein écran.
             drift_hint: Un déplacement très lent de la photo pendant que la slide est à l'écran. Plein écran seulement.
+            title_scales:
+                normal: Normale
+                quiet: Discrète
+                loud: Affichée
             fonts_label: Typographie
             font_from_theme: Celle du thème
             fonts:
@@ -757,6 +762,7 @@ backend:
                 steps: Étapes
                 rows: Lignes
                 kicker: Sur-titre
+                titleScale: Échelle du titre
                 transition: Transition vers cette slide
                 drift: Travelling sur la photo
                 role: Fonction

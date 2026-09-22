@@ -305,6 +305,7 @@ const treatmentOptions = compositionOptions("bg_treatment", ["none", "blur", "mo
 const veilOptions = compositionOptions("bg_veil", ["flat", "bottom", "top"]);
 const frameOptions = compositionOptions("media_frame", ["none", "line", "shadow"]);
 const bandOptions = compositionOptions("band", ["none", "left", "bottom", "edge"]);
+const titleScaleOptions = compositionOptions("title_scale", ["normal", "quiet", "loud"]);
 const slideTransitionOptions = computed(() => [
     { value: "", label: t("backend.studio.decks.transition_from_deck") },
     ...["none", "fade", "slide"].map((value) => ({
@@ -761,6 +762,13 @@ onBeforeUnmount(() => {
                                     :label="labelFor('align')"
                                     :disabled="!editable"
                                     v-on:update:model-value="(value) => writeSlot('align', value)"
+                                />
+                                <AppSelect
+                                    :model-value="selected.content.titleScale ?? 'normal'"
+                                    :options="titleScaleOptions"
+                                    :label="labelFor('titleScale')"
+                                    :disabled="!editable"
+                                    v-on:update:model-value="(value) => writeSlot('titleScale', value)"
                                 />
                                 <AppSelect
                                     :model-value="selected.content.band ?? 'none'"

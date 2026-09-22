@@ -187,6 +187,14 @@ class DeckManager
                 continue;
             }
 
+            if ('titleScale' === $slot) {
+                if (in_array($value, ['quiet', 'normal', 'loud'], true)) {
+                    $clean[$slot] = $value;
+                }
+
+                continue;
+            }
+
             // A slide may cut where the deck fades. The rhythm before a
             // section slide is something only that slide knows.
             if ('transition' === $slot) {

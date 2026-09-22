@@ -252,6 +252,19 @@ const background = computed(() => {
  */
 const drifts = computed(() => props.live && props.slide.content.drift === true);
 
+/**
+ * How loud the title is on this slide, before the fit shrinks anything.
+ *
+ * **A multiplier on the starting point and not a size.** Every size in the
+ * frame is `Xcqw * var(--fit)`, and `useSlideFit` lowers `--fit` until the
+ * words stop falling out. A scale that set a size outright would be a value
+ * fighting that measurement; one that multiplies the start is simply a taller
+ * starting point for the same ladder to come down.
+ */
+const titleScale = computed(
+    () => ({ quiet: 0.72, loud: 1.35 })[props.slide.content.titleScale] ?? 1,
+);
+
 /** The corners, darkened. Works on a flat ground as well as on a picture. */
 const vignette = computed(() => props.slide.content.vignette === true);
 
@@ -318,7 +331,7 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
             :data-rules="rules ? 'on' : 'off'"
             :data-bleed="slide.content.mediaBleed === true ? 'on' : 'off'"
             v-bind="composition"
-            :style="[skin, media]"
+            :style="[skin, media, { '--title-scale': titleScale }]"
         >
             <span v-if="pattern !== 'none'" class="sf-pattern" aria-hidden="true" />
 
@@ -882,6 +895,14 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
     );
 }
 
+.slide-frame[data-gradient="duo"] .sf-wash {
+    background: linear-gradient(
+        140deg,
+        color-mix(in srgb, var(--slide-accent) 52%, transparent),
+        color-mix(in srgb, var(--slide-ink) 26%, transparent) 78%
+    );
+}
+
 .slide-frame[data-gradient="halo"] .sf-wash {
     background: radial-gradient(
         80% 95% at 50% 42%,
@@ -900,10 +921,10 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
     color: var(--slide-accent);
 }
 
-.sf-title { margin: 0; font-family: var(--slide-heading); font-size: calc(8cqw * var(--fit)); font-weight: 600; line-height: 1.1; }
+.sf-title { margin: 0; font-family: var(--slide-heading); font-size: calc(8cqw * var(--fit) * var(--title-scale, 1)); font-weight: 600; line-height: 1.1; }
 .sf-subtitle { margin: 0; font-size: calc(4cqw * var(--fit)); opacity: 0.7; }
-.sf-section { position: relative; margin: 0; font-family: var(--slide-heading); font-size: calc(7cqw * var(--fit)); font-weight: 600; text-align: center; }
-.sf-heading { margin: 0; font-family: var(--slide-heading); font-size: calc(6cqw * var(--fit)); font-weight: 600; }
+.sf-section { position: relative; margin: 0; font-family: var(--slide-heading); font-size: calc(7cqw * var(--fit) * var(--title-scale, 1)); font-weight: 600; text-align: center; }
+.sf-heading { margin: 0; font-family: var(--slide-heading); font-size: calc(6cqw * var(--fit) * var(--title-scale, 1)); font-weight: 600; }
 /* `list-style` rétabli explicitement : la réinitialisation de Tailwind retire
    les marqueurs de toutes les listes, et une liste à puces sans puces se lit
    comme un paragraphe coupé. */

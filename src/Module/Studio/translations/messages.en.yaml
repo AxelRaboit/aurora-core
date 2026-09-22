@@ -566,6 +566,7 @@ backend:
                 bottom: From the bottom
                 corner: Diagonal
                 halo: Centre halo
+                duo: Accent into ink
             pattern_label: Pattern
             pattern_hint: A texture on the ground, hidden on slides that carry a photo.
             patterns:
@@ -646,6 +647,10 @@ backend:
             transition_from_deck: The deck's
             slide_transition_hint: Applies to this slide only, and only in full screen.
             drift_hint: A very slow travel across the photo while the slide is up. Full screen only.
+            title_scales:
+                normal: Normal
+                quiet: Quiet
+                loud: Loud
             fonts_label: Typography
             font_from_theme: The theme's own
             fonts:
@@ -757,6 +762,7 @@ backend:
                 steps: Steps
                 rows: Rows
                 kicker: Kicker
+                titleScale: Title scale
                 transition: Transition into this slide
                 drift: Travel across the photo
                 role: Role

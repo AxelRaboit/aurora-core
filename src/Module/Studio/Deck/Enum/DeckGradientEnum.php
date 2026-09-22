@@ -40,6 +40,17 @@ enum DeckGradientEnum: string
     /** A halo behind the middle of the frame. For covers and section slides. */
     case Halo = 'halo';
 
+    /**
+     * Accent into ink, across the frame.
+     *
+     * The only one of the five that is not the accent fading into nothing, and
+     * the reason it exists: a wash that ends in a second tone reads as a
+     * designed ground rather than as a tint. The second tone is the deck's own
+     * ink at a low mix, computed in the frame, so it is not a fourth colour to
+     * keep in agreement with a palette a deck can override.
+     */
+    case Duo = 'duo';
+
     public function labelKey(): string
     {
         return 'backend.studio.decks.gradients.'.$this->value;
