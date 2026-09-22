@@ -121,6 +121,7 @@ notes:
       selected: '{count} selected'
       select: Select
       clear_selection: Clear the selection
+      some_refused: '{count} items could not be handled.'
       confirm_delete_selection: 'Send the {count} selected items to the trash?'
       new_folder: New folder
       search_placeholder: Search the notes…

@@ -76,7 +76,12 @@ const props = defineProps({
     maxDepth: { type: Number, default: 8 },
 });
 
-const emit = defineEmits(["open-note", "create-note", "changed"]);
+const emit = defineEmits([
+    "open-note",
+    "create-note",
+    "changed",
+    "folder-changed",
+]);
 
 const { t } = useI18n();
 const { formatDateTimeNumeric } = useDateFormat();
@@ -111,6 +116,12 @@ const {
 
 onMounted(() => window.addEventListener("popstate", onPopState));
 onUnmounted(() => window.removeEventListener("popstate", onPopState));
+
+// La page suit le dossier ouvert : c'est là qu'un import doit atterrir, et
+// c'est ce que le panneau du menu met en évidence. Sans cela, importer
+// après avoir changé de dossier déposait les fichiers dans celui d'où l'on
+// était parti, c'est-à-dire celui que le serveur avait rendu.
+watch(currentFolderId, (id) => emit("folder-changed", id), { immediate: true });
 
 const query = ref("");
 
@@ -264,6 +275,7 @@ function selectedItems() {
 
 async function moveSelection(targetFolderId) {
     const items = selectedItems();
+    let refused = 0;
 
     // En série plutôt qu'en parallèle : chaque déplacement est une écriture,
     // et le serveur refuse un dossier rangé dans sa propre branche - une
@@ -271,25 +283,45 @@ async function moveSelection(targetFolderId) {
     for (const { kind, item } of items) {
         if ("folder" === kind && Number(item.id) === targetFolderId) continue;
 
-        await applyMove(kind, Number(item.id), targetFolderId, { quiet: true });
+        const moved = await applyMove(kind, Number(item.id), targetFolderId, {
+            quiet: true,
+        });
+
+        if (!moved) ++refused;
     }
 
     clearSelection();
-    toast.success(t("notes.markdown.folders.moved"));
     emit("changed");
+
+    // Un message par refus, pour douze éléments, c'est douze messages
+    // empilés sur ce qu'on voulait lire : la fin du geste se dit une fois.
+    if (refused) {
+        toast.error(t("notes.markdown.library.some_refused", { count: refused }));
+
+        return;
+    }
+
+    toast.success(t("notes.markdown.folders.moved"));
 }
 
 async function deleteSelection() {
+    let failed = 0;
+
     for (const { kind, item } of selectedItems()) {
-        if ("folder" === kind) {
-            await props.foldersApi.remove(item.id);
-        } else {
-            await props.notesApi.remove(item.id);
-        }
+        const { ok } =
+            "folder" === kind
+                ? await props.foldersApi.remove(item.id)
+                : await props.notesApi.remove(item.id);
+
+        if (!ok) ++failed;
     }
 
     clearSelection();
     emit("changed");
+
+    if (failed) {
+        toast.error(t("notes.markdown.library.some_refused", { count: failed }));
+    }
 }
 
 // ── Créer, renommer ────────────────────────────────────────────────
@@ -426,32 +458,12 @@ const moveTargets = computed(() => {
 
     if ("selection" === moving.value.kind) {
         for (const { kind, item } of selectedItems()) {
-            if ("folder" !== kind) continue;
-
-            const queue = [Number(item.id)];
-
-            while (queue.length) {
-                const id = queue.shift();
-                excluded.add(id);
-
-                for (const folder of props.folders) {
-                    if (Number(folder.parentId) === id) queue.push(Number(folder.id));
-                }
-            }
+            if ("folder" === kind) excludeBranch(Number(item.id), excluded);
         }
     }
 
     if ("folder" === moving.value.kind) {
-        const queue = [Number(moving.value.item.id)];
-
-        while (queue.length) {
-            const id = queue.shift();
-            excluded.add(id);
-
-            for (const folder of props.folders) {
-                if (Number(folder.parentId) === id) queue.push(Number(folder.id));
-            }
-        }
+        excludeBranch(Number(moving.value.item.id), excluded);
     }
 
     return [
@@ -467,6 +479,29 @@ const moveTargets = computed(() => {
 });
 
 const moveTarget = ref("");
+
+/**
+ * Un dossier et tout ce qui pend dessous, marqués comme interdits.
+ *
+ * Le parcours tient une liste de ce qu'il a déjà vu : le serveur refuse les
+ * cycles, mais une ligne modifiée à la main en ferait un, et une boucle sans
+ * garde bloquerait l'onglet plutôt que d'afficher un menu incomplet.
+ */
+function excludeBranch(rootId, excluded) {
+    const queue = [rootId];
+
+    while (queue.length) {
+        const id = queue.shift();
+
+        if (excluded.has(id)) continue;
+
+        excluded.add(id);
+
+        for (const folder of props.folders) {
+            if (Number(folder.parentId) === id) queue.push(Number(folder.id));
+        }
+    }
+}
 
 /** Le chemin complet d'un dossier, pour que deux homonymes se distinguent. */
 function pathLabel(folder) {
@@ -509,7 +544,9 @@ async function applyMove(kind, id, targetFolderId, { quiet = false } = {}) {
             : await props.notesApi.move(id, targetFolderId);
 
     if (!ok) {
-        if (!reported) {
+        // Un déplacement de groupe compte ses refus et le dit une fois ;
+        // seul, il se dit tout de suite.
+        if (!reported && !quiet) {
             const failed =
                 "refused" === payload?.error
                     ? "notes.markdown.folders.errors.move_refused"
@@ -518,13 +555,15 @@ async function applyMove(kind, id, targetFolderId, { quiet = false } = {}) {
             toast.error(t(failed, { max: props.maxDepth }));
         }
 
-        return;
+        return false;
     }
 
     if (!quiet) {
         toast.success(t("notes.markdown.folders.moved"));
         emit("changed");
     }
+
+    return true;
 }
 
 // ── Glisser-déposer ────────────────────────────────────────────────

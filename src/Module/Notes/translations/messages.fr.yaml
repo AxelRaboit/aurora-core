@@ -121,6 +121,7 @@ notes:
       selected: '{count} sélectionné(s)'
       select: Sélectionner
       clear_selection: Tout désélectionner
+      some_refused: "{count} élément(s) n'ont pas pu être traités."
       confirm_delete_selection: 'Mettre à la corbeille les {count} éléments sélectionnés ?'
       new_folder: Nouveau dossier
       search_placeholder: Rechercher une note…

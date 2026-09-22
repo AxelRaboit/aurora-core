@@ -141,6 +141,12 @@ const folders = ref([...props.folders]);
  */
 const libraryRef = ref(null);
 
+/**
+ * Le dossier sous les yeux, qui n'est pas toujours celui de l'adresse
+ * initiale : la bibliothèque navigue sans recharger.
+ */
+const openFolderId = ref(props.folderId);
+
 function folderUrlFor(id) {
     return props.folderPaths.show.replace('__id__', String(id));
 }
@@ -192,8 +198,11 @@ async function onLibraryChanged() {
 }
 
 function backToLibrary() {
+    const folderId = openFolderId.value;
+    const url = folderId ? folderUrlFor(folderId) : props.libraryPath;
+
     try {
-        window.history.pushState({ folderId: null }, '', props.libraryPath);
+        window.history.pushState({ folderId }, '', url);
     } catch {
         // Idem : le retour se fait, l'adresse ne suit pas.
     }
@@ -247,7 +256,7 @@ async function onImportFiles(event) {
     files.forEach((file) => form.append("files[]", file));
 
     // Dans le dossier ouvert quand il y en a un : on importe là où on regarde.
-    if (props.folderId) form.append("folderId", String(props.folderId));
+    if (openFolderId.value) form.append("folderId", String(openFolderId.value));
 
     const { ok, payload } = await api.import(form);
 
@@ -287,7 +296,7 @@ function announce() {
         notes: notes.value,
         folders: folders.value,
         selectedId: selectedId.value,
-        folderId: props.folderId,
+        folderId: openFolderId.value,
     });
 }
 
@@ -303,6 +312,7 @@ onMounted(() => {
     announce();
     stopListening.push(watch(notes, announce, { deep: true }));
     stopListening.push(watch(folders, announce, { deep: true }));
+    stopListening.push(watch(openFolderId, announce));
     stopListening.push(watch(selectedId, announce));
 
     window.addEventListener('popstate', onHistoryPop);
@@ -551,6 +561,7 @@ onUnmounted(() => {
                 v-on:open-note="openNote"
                 v-on:create-note="createNote"
                 v-on:changed="onLibraryChanged"
+                v-on:folder-changed="openFolderId = $event"
             />
         </section>
 

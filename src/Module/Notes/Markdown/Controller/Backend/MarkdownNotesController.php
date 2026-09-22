@@ -556,7 +556,13 @@ final class MarkdownNotesController extends AbstractController
                 throw $this->createNotFoundException();
             }
 
-            return $this->render('@Notes/backend/markdown/index.html.twig', $this->viewBuilder->indexView($user, $id));
+            // Le dossier de la note voyage avec elle : le fil d'Ariane le
+            // montre, et le retour à la bibliothèque rend l'endroit où la
+            // note est rangée plutôt que la racine.
+            return $this->render(
+                '@Notes/backend/markdown/index.html.twig',
+                $this->viewBuilder->indexView($user, $id, $note->getFolder()),
+            );
         }
 
         if (!$note instanceof MarkdownNoteInterface) {
