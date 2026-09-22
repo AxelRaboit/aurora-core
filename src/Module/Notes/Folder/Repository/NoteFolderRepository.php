@@ -7,6 +7,7 @@ namespace Aurora\Module\Notes\Folder\Repository;
 use Aurora\Core\Repository\ResolveTargetEntityRepository;
 use Aurora\Module\Notes\Folder\Entity\NoteFolder;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
+use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\Order;
@@ -177,7 +178,7 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
         /** @var list<array{folderId: int|string|null, total: int|string}> $rows */
         $rows = $this->getEntityManager()->createQueryBuilder()
             ->select('IDENTITY(n.folder) AS folderId', 'COUNT(n.id) AS total')
-            ->from('Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface', 'n')
+            ->from(MarkdownNoteInterface::class, 'n')
             ->where('n.user = :user')
             ->andWhere('n.deletedAt IS NULL')
             ->andWhere('n.folder IS NOT NULL')

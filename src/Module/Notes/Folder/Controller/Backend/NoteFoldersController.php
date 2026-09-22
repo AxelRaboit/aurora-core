@@ -221,7 +221,11 @@ final class NoteFoldersController extends AbstractController
 
         $entries = [];
         foreach ($raw as $entry) {
-            if (!is_array($entry) || !isset($entry['id'])) {
+            if (!is_array($entry)) {
+                continue;
+            }
+
+            if (!isset($entry['id'])) {
                 continue;
             }
 
@@ -248,7 +252,7 @@ final class NoteFoldersController extends AbstractController
         );
 
         return array_map(
-            static fn (NoteFolderInterface $folder): array => $serializer->serialize($folder),
+            $serializer->serialize(...),
             $this->repository->findAllForUser($user),
         );
     }

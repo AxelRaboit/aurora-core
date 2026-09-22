@@ -148,9 +148,9 @@ final class MarkdownNotesController extends AbstractController
         $noteSerializer = $this->serializer->withExcerpts($this->repository->findExcerptsForUser($user));
 
         return $this->jsonSuccess([
-            'folders' => array_map(static fn (NoteFolderInterface $one): array => $serializer->serialize($one), $children),
+            'folders' => array_map($serializer->serialize(...), $children),
             'notes' => array_map(
-                static fn (MarkdownNoteInterface $note): array => $noteSerializer->serializeListItem($note),
+                $noteSerializer->serializeListItem(...),
                 $this->repository->findLivingInFolder($user, $folderId),
             ),
         ]);

@@ -182,7 +182,11 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
         $folders = [];
         foreach ($entries as $entry) {
             $folderId = $entry['folderId'] ?? null;
-            if (null === $folderId || isset($folders[(int) $folderId])) {
+            if (null === $folderId) {
+                continue;
+            }
+
+            if (isset($folders[(int) $folderId])) {
                 continue;
             }
 

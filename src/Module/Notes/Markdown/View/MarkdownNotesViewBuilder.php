@@ -42,7 +42,7 @@ final readonly class MarkdownNotesViewBuilder
         );
 
         $folders = array_map(
-            static fn (NoteFolderInterface $one): array => $serializer->serialize($one),
+            $serializer->serialize(...),
             $this->folderRepository->findAllForUser($user),
         );
 

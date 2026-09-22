@@ -111,7 +111,7 @@ final readonly class MarkdownNoteImporter
                 continue;
             }
 
-            $fileName = $isDirectory ? null : (string) array_pop($segments);
+            $fileName = $isDirectory ? null : array_pop($segments);
 
             $under = $folder;
             $path = '';
