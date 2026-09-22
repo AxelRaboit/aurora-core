@@ -663,6 +663,8 @@ backend:
                 serif: Avec empattements
                 editorial: Titres serif, texte sans
                 technical: Titres chasse fixe, texte sans
+                report: Titres sans, texte serif
+                soft: Arrondie
             signature: Signature
             logo: Logo
             logo_hint: Affiché en petit, dans un coin de la slide.

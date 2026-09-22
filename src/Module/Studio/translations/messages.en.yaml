@@ -663,6 +663,8 @@ backend:
                 serif: Serif
                 editorial: Serif headings, sans text
                 technical: Monospaced headings, sans text
+                report: Sans titles, serif text
+                soft: Rounded
             signature: Signature
             logo: Logo
             logo_hint: Drawn small, in a corner of the slide.
