@@ -67,8 +67,8 @@ const { loading, empty, onMouseDown, onMouseMove, onMouseUp, onClick } = useNote
             <AppNoData
                 v-else-if="empty"
                 class="absolute inset-0 flex items-center justify-center bg-surface-2/30"
-                :title="t('notes.markdown.graph.empty.title')"
-                :description="t('notes.markdown.graph.empty.description')"
+                :message="t('notes.markdown.graph.empty.title')"
+                :hint="t('notes.markdown.graph.empty.description')"
                 :icon="Network"
             />
         </div>

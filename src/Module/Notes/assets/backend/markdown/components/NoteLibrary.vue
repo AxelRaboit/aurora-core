@@ -1387,22 +1387,22 @@ defineExpose({
                  vide » serait faux, le dossier n'y est pour rien. -->
             <AppNoData
                 v-if="null !== activeTag && isEmpty"
-                :title="t('notes.markdown.library.tag.none')"
-                :description="t('notes.markdown.library.tag.none_description', { tag: activeTag })"
+                :message="t('notes.markdown.library.tag.none')"
+                :hint="t('notes.markdown.library.tag.none_description', { tag: activeTag })"
                 :icon="Tag"
             />
 
             <AppNoData
                 v-else-if="isEmpty"
-                :title="null === currentFolderId ? t('notes.markdown.library.empty_root.title') : t('notes.markdown.library.empty.title')"
-                :description="null === currentFolderId ? t('notes.markdown.library.empty_root.description') : t('notes.markdown.library.empty.description')"
+                :message="null === currentFolderId ? t('notes.markdown.library.empty_root.title') : t('notes.markdown.library.empty.title')"
+                :hint="null === currentFolderId ? t('notes.markdown.library.empty_root.description') : t('notes.markdown.library.empty.description')"
                 :icon="Folder"
             />
 
             <AppNoData
                 v-else-if="nothingShown"
-                :title="t('notes.markdown.search_no_results')"
-                :description="t('notes.markdown.search_no_results_description', { query })"
+                :message="t('notes.markdown.search_no_results')"
+                :hint="t('notes.markdown.search_no_results_description', { query })"
                 :icon="FileText"
             />
 

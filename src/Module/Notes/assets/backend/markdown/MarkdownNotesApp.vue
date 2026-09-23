@@ -488,8 +488,8 @@ onUnmounted(() => {
         <section class="flex-1 flex flex-col min-w-0 min-h-0">
             <div v-if="crashed" class="flex flex-1 items-center justify-center p-6">
                 <AppNoData
-                    :title="t('notes.markdown.errors.crashed')"
-                    :description="String(crashed?.message ?? crashed)"
+                    :message="t('notes.markdown.errors.crashed')"
+                    :hint="String(crashed?.message ?? crashed)"
                     :icon="TriangleAlert"
                 />
             </div>
@@ -518,7 +518,11 @@ onUnmounted(() => {
                         class="w-full text-lg font-medium"
                     />
 
-                    <div class="flex flex-wrap items-center gap-2 md:gap-3">
+                    <!-- Collés à droite : le titre prend la ligne du dessus
+                         sur toute la largeur, et une rangée d'icônes accrochée
+                         au bord gauche sous lui laissait un vide de la moitié
+                         de l'en-tête. Demandé par Axel le 23/09. -->
+                    <div class="flex flex-wrap items-center justify-end gap-2 md:gap-3">
                         <!-- Disabled until a note is selected: there is nothing to
                              share from an empty editor, and a modal that opens on
                              null would ask the server for share links of no note. -->

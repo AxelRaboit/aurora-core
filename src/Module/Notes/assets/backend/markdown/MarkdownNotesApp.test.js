@@ -212,6 +212,44 @@ describe("les étiquettes de l'éditeur", () => {
     });
 });
 
+/**
+ * Ouvrir le partage effaçait la page.
+ *
+ * `api.preview` n'existait pas : la route était là, le chemin était passé au
+ * composant, et l'appel partait d'un `watch` sur l'ouverture de la modale.
+ * L'exception y devenait un rejet non traité - invisible - jusqu'à ce que la
+ * page se dote d'un garde-fou, qui l'a rendue spectaculaire.
+ */
+describe("le partage", () => {
+    it("opens without taking the page down with it", async () => {
+        const failures = [];
+        const spy = vi
+            .spyOn(console, "error")
+            .mockImplementation((...args) =>
+                failures.push(args.map(String).join(" ")),
+            );
+
+        const wrapper = render();
+        await flushPromises();
+        askPage("notes:select", { args: [1] });
+        await flushPromises();
+
+        const share = wrapper
+            .findAll("button")
+            .find((b) => b.attributes("title")?.includes("share.button"));
+
+        expect(share, "le bouton de partage est là").toBeTruthy();
+
+        await share.trigger("click");
+        await flushPromises();
+
+        spy.mockRestore();
+
+        expect(failures.join("\n")).not.toContain("la page a échoué");
+        expect(wrapper.text()).not.toContain("Aucune donnée à afficher");
+    });
+});
+
 describe("what the page tells the panel", () => {
     /**
      * The bug the reader hit: a note created in the editor did not reach the
