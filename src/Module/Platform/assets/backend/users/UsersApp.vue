@@ -172,31 +172,34 @@ const pageActions = computed(() => {
         <div class="relative space-y-4">
             <div v-if="isNarrow" class="space-y-2">
                 <AppNoData v-if="!loading && !users.length" :message="t('backend.users.empty')" />
-                <div v-for="user in users" :key="user.id" class="aurora-card overflow-hidden">
-                    <!-- Avatar + nom + email -->
-                    <div class="flex items-center gap-3 p-4">
-                        <AppAvatar
-                            variant="solid"
-                            :name="user.name"
-                            :photo-url="user.profilePhotoUrl ?? ''"
-                            :size="40"
-                            class="shrink-0"
-                        />
-                        <div class="min-w-0">
-                            <p class="font-medium text-primary text-sm truncate">{{ user.name }}</p>
-                            <p class="text-xs text-muted truncate mt-0.5">{{ user.email }}</p>
+                <!-- Une personne, un bloc.
+                     La carte en empilait trois : l'avatar et le nom, puis les
+                     étiquettes, puis un pied barré d'un trait qui ne portait
+                     qu'un menu de trois points, aligné à droite d'une bande
+                     vide. Quarante-cinq pixels et une bordure par personne
+                     pour un seul bouton, sur l'écran qui a le moins de place.
+                     Le menu remonte à la hauteur du nom, là où on le cherche,
+                     et le pied disparaît. -->
+                <div v-for="user in users" :key="user.id" class="aurora-card flex items-start gap-3 p-3">
+                    <AppAvatar
+                        variant="solid"
+                        :name="user.name"
+                        :photo-url="user.profilePhotoUrl ?? ''"
+                        :size="40"
+                        class="shrink-0"
+                    />
+                    <div class="min-w-0 flex-1">
+                        <p class="font-medium text-primary text-sm truncate">{{ user.name }}</p>
+                        <p class="text-xs text-muted truncate mt-0.5">{{ user.email }}</p>
+                        <div class="mt-2 flex flex-wrap gap-1">
+                            <AppBadge :color="statusBadgeColor(user.status)">{{ user.statusLabel }}</AppBadge>
+                            <AppBadge :color="user.type === 'backend' ? 'accent' : 'gray'">{{ user.typeLabel }}</AppBadge>
+                            <AppBadge v-if="user.isDev" :color="user.devColor">Dev</AppBadge>
+                            <AppBadge v-if="user.roleLabel" :color="user.roleColor">{{ user.roleLabel }}</AppBadge>
+                            <AppBadge v-if="isCurrent(user)" color="accent">{{ t('backend.users.you') }}</AppBadge>
                         </div>
                     </div>
-                    <!-- Badges -->
-                    <div class="flex flex-wrap gap-1 px-4 pb-3">
-                        <AppBadge :color="statusBadgeColor(user.status)">{{ user.statusLabel }}</AppBadge>
-                        <AppBadge :color="user.type === 'backend' ? 'accent' : 'gray'">{{ user.typeLabel }}</AppBadge>
-                        <AppBadge v-if="user.isDev" :color="user.devColor">Dev</AppBadge>
-                        <AppBadge v-if="user.roleLabel" :color="user.roleColor">{{ user.roleLabel }}</AppBadge>
-                        <AppBadge v-if="isCurrent(user)" color="accent">{{ t('backend.users.you') }}</AppBadge>
-                    </div>
-                    <!-- Footer actions -->
-                    <div class="flex justify-end px-3 py-2 border-t border-line/40 bg-surface-2/40">
+                    <div class="shrink-0">
                         <UserRowActions
                             :user="user"
                             :is-dev="isDev"

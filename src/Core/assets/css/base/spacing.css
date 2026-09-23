@@ -15,12 +15,11 @@
  *   était la somme des `py-8` de `<main>` recopiée en dur. Changer la marge
  *   cassait la hauteur, en silence.
  *
- * Deux valeurs suffisent à toute l'application, et elles vivent ici :
- *
- * - `--aurora-gutter` : la distance entre le bord de la page et son contenu.
- *   Tout ce qui doit s'aligner verticalement la lit, du fil d'Ariane à la
- *   dernière carte.
- * - `--aurora-band` : l'air au-dessus et en dessous du contenu de la page.
+ * **Une seule valeur, `--aurora-gutter`, et elle vaut dans les deux sens.**
+ * La première version en portait deux, une pour les côtés et une pour le haut
+ * et le bas, vingt-quatre contre seize sur grand écran. Ça se voit : le coin
+ * d'une carte n'est pas à la même distance du bord selon qu'on regarde à
+ * gauche ou en haut, et rien ne le justifie. Une page a une marge, pas deux.
  *
  * Les valeurs sont plus serrées qu'avant, volontairement : trente-deux pixels
  * de chaque côté sur un écran large, c'est une colonne de texte perdue, et
@@ -32,36 +31,38 @@
  */
 :root {
     --aurora-gutter: 0.5rem;
-    --aurora-band: 0.5rem;
 }
 
 @media (min-width: 640px) {
     :root {
-        --aurora-gutter: 1.25rem;
-        --aurora-band: 1rem;
+        --aurora-gutter: 1rem;
     }
 }
 
 @media (min-width: 1024px) {
     :root {
-        --aurora-gutter: 1.5rem;
+        --aurora-gutter: 1.25rem;
     }
 }
 
 /**
- * Le contenu d'une page : la gouttière des deux côtés, la bande en haut et en
- * bas. Posé sur `<main>`, et sur lui seul.
+ * Le contenu d'une page : la même marge sur les quatre bords. Posé sur
+ * `<main>`, et sur lui seul.
  */
 @utility aurora-page {
-    padding-inline: var(--aurora-gutter);
-    padding-block: var(--aurora-band);
+    padding: var(--aurora-gutter);
 }
 
 /**
- * La gouttière seule, pour ce qui borde la page sans être dedans : les bandes
- * collées en haut, qui portent leur propre hauteur et leur propre bordure.
- * C'est ce qui garantit qu'un fil d'Ariane commence à la verticale exacte de
- * la première carte en dessous.
+ * La gouttière seule, pour ce qui borde la page sans être dedans : la bande
+ * collée en haut, qui porte sa propre hauteur et sa propre bordure.
+ *
+ * Mesuré sur la liste des utilisateurs : en dessous de `lg`, où la bande ne
+ * porte que le fil d'Ariane, celui-ci démarre exactement à la verticale de la
+ * première carte - huit pixels tous les deux, contre seize et huit avant. À
+ * partir de `lg`, les commandes occupent la gouttière à gauche et le fil
+ * commence après elles ; c'est le bord de la bande qui s'aligne, pas son
+ * contenu.
  */
 @utility aurora-gutter {
     padding-inline: var(--aurora-gutter);

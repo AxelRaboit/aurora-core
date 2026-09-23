@@ -21,8 +21,10 @@
    tiroir qui porte déjà sa propre barre avec le logo, la recherche et la
    cloche, et il ne reste ici que le fil.
 
-   Les bords lisent `--aurora-gutter`, comme `<main>` : le fil commence donc à
-   la verticale exacte de la première carte en dessous, à toutes les largeurs.
+   Les bords lisent `--aurora-gutter`, comme `<main>`. Sur téléphone, où la
+   bande ne porte que le fil, celui-ci tombe donc exactement à la verticale de
+   la première carte - c'est le décrochage que les deux fichiers entretenaient
+   chacun de son côté, seize pixels ici contre huit en dessous.
 
    `strict_variables` est actif, donc la garde ci-dessous porte : demander
    `.label` à une liste vide lève une erreur au lieu de ne rien rendre.
