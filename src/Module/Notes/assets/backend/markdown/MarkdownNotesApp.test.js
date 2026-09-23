@@ -75,6 +75,21 @@ const FOLDERS = [
     { id: 7, name: "Clients", parentId: null, noteCount: 1, folderCount: 0 },
 ];
 
+/**
+ * Le menu de la note : ce qui se fait une fois par note y vit, plutôt que
+ * d'occuper la ligne du titre.
+ */
+async function openNoteMenu(wrapper) {
+    const trigger = wrapper
+        .findAll("button")
+        .find((b) => b.attributes("title")?.startsWith("shared.actions.open"));
+
+    await trigger.trigger("click");
+    await flushPromises();
+
+    return [...document.body.querySelectorAll("button, a")];
+}
+
 const mounted = [];
 
 function render(props = {}) {
@@ -259,13 +274,14 @@ describe("le partage", () => {
         askPage("notes:select", { args: [1] });
         await flushPromises();
 
-        const share = wrapper
-            .findAll("button")
-            .find((b) => b.attributes("title")?.includes("share.button"));
+        const entrees = await openNoteMenu(wrapper);
+        const share = entrees.find((node) =>
+            node.textContent.includes("share.button"),
+        );
 
-        expect(share, "le bouton de partage est là").toBeTruthy();
+        expect(share, "l'entrée de partage est là").toBeTruthy();
 
-        await share.trigger("click");
+        share.click();
         await flushPromises();
 
         spy.mockRestore();
@@ -509,16 +525,15 @@ describe("the way into the graph", () => {
         const graph = wrapper.findComponent({ name: "NoteGraph" });
         expect(graph.props("show")).toBe(false);
 
-        const button = wrapper
-            .findAll("button")
-            .find(
-                (node) =>
-                    node.attributes("title") === "notes.markdown.graph.open",
-            );
+        const entrees = await openNoteMenu(wrapper);
+        const button = entrees.find((node) =>
+            node.textContent.includes("notes.markdown.graph.open"),
+        );
 
-        expect(button, "aucun bouton pour ouvrir le graphe").toBeDefined();
+        expect(button, "aucune entrée pour ouvrir le graphe").toBeDefined();
 
-        await button.trigger("click");
+        button.click();
+        await flushPromises();
 
         expect(wrapper.findComponent({ name: "NoteGraph" }).props("show")).toBe(
             true,

@@ -19,6 +19,7 @@ import AppTagsInput from '@shared/components/form/select/AppTagsInput.vue';
 import AppModal from '@shared/components/overlay/AppModal.vue';
 import AppModalFooter from '@shared/components/overlay/AppModalFooter.vue';
 import AppTab from '@shared/components/nav/AppTab.vue';
+import AppRowActions from '@shared/components/action/AppRowActions.vue';
 import { computed, nextTick, onErrorCaptured, onMounted, onUnmounted, watch } from 'vue';
 import { onPanelRequest, tellPanels } from '@/shared/nav/modulePanelBridge.js';
 import { Trash2, BookOpen, FileDown, Image, PanelRightOpen, PanelRightClose, Tag, TriangleAlert, Users, X, Network, Share2 } from 'lucide-vue-next';
@@ -324,6 +325,68 @@ const sharingFolder = computed(() => {
 const visibleToTeam = computed(
     () => sharedWithTeam.value || null !== sharingFolder.value,
 );
+
+/**
+ * Ce que le menu de la note porte : les gestes qu'on fait une fois.
+ *
+ * Exporter, envoyer un lien, choisir une image, ouvrir le graphe, rendre
+ * la note visible : chacun se fait une fois par note, quand les modes
+ * d'affichage, les étiquettes et les liens se touchent en écrivant. Les
+ * douze sur une ligne ne laissaient plus de place au titre.
+ */
+const noteActions = computed(() => {
+    const actions = [
+        {
+            key: "cover",
+            title: t('notes.markdown.cover.title'),
+            icon: Image,
+            onSelect: () => {
+                coverModalOpen.value = true;
+            },
+        },
+        {
+            key: "share-link",
+            title: t('notes.markdown.share.button'),
+            icon: Share2,
+            onSelect: () => {
+                shareModalOpen.value = true;
+            },
+        },
+        {
+            key: "team",
+            title: sharingFolder.value
+                ? t('notes.markdown.library.shared.via_folder', {
+                    folder: sharingFolder.value.name || t('notes.markdown.folders.untitled'),
+                })
+                : sharedWithTeam.value
+                    ? t('notes.markdown.library.shared.stop')
+                    : t('notes.markdown.library.shared.start'),
+            icon: Users,
+            // Quand c'est le dossier qui décide, l'entrée mène à lui plutôt
+            // que de proposer une bascule qui ne changerait rien.
+            ...(sharingFolder.value
+                ? { href: folderUrlFor(sharingFolder.value.id) }
+                : { onSelect: () => toggleTeamVisibility() }),
+        },
+        {
+            key: "graph",
+            title: t('notes.markdown.graph.open'),
+            icon: Network,
+            onSelect: () => {
+                graphOpen.value = true;
+            },
+        },
+        {
+            key: "export",
+            title: t('notes.markdown.export.one'),
+            icon: FileDown,
+            onSelect: () => exportOne(selectedId.value),
+        },
+    ];
+
+    return actions;
+});
+
 
 async function toggleTeamVisibility() {
     if (!selectedId.value) return;
@@ -719,65 +782,18 @@ onUnmounted(() => {
                         >
 
                         <div class="ml-auto flex shrink-0 flex-wrap items-center justify-end gap-2 md:gap-3">
-                            <!-- Disabled until a note is selected: there is nothing to
-                             share from an empty editor, and a modal that opens on
-                             null would ask the server for share links of no note. -->
-                            <!-- Cette note seule, en Markdown. À côté du partage
-                             parce que les deux répondent à « je veux la donner
-                             à quelqu'un », par un lien ou par un fichier. -->
-                            <AppIconButton
-                                :title="t('notes.markdown.export.one')"
-                                size="md"
-                                :disabled="!selectedId"
-                                v-on:click="exportOne(selectedId)"
-                            >
-                                <FileDown class="w-4 h-4" :stroke-width="2" />
-                            </AppIconButton>
-
-                            <AppIconButton
-                                :title="t('notes.markdown.share.button')"
-                                size="md"
-                                :disabled="!selectedId"
-                                v-on:click="shareModalOpen = true"
-                            >
-                                <Share2 class="w-4 h-4" :stroke-width="2" />
-                            </AppIconButton>
-
-                            <!-- Deux voisins, deux gestes : celui d'à côté
-                                 envoie un lien à quelqu'un du dehors,
-                                 celui-ci ouvre la note aux comptes de la
-                                 maison. Les appeler tous les deux
-                                 « partager » faisait hésiter, ce qui s'est
-                                 vu tout de suite. -->
-                            <AppIconButton
-                                :class="visibleToTeam ? 'text-accent-400' : ''"
-                                :title="sharingFolder
-                                    ? t('notes.markdown.library.shared.via_folder', { folder: sharingFolder.name || t('notes.markdown.folders.untitled') })
-                                    : sharedWithTeam ? t('notes.markdown.library.shared.stop') : t('notes.markdown.library.shared.start')"
-                                size="md"
-                                :disabled="!selectedId || null !== sharingFolder"
-                                v-on:click="toggleTeamVisibility"
-                            >
-                                <Users class="w-4 h-4" :stroke-width="2" />
-                            </AppIconButton>
-
-                            <!-- Le graphe n'avait aucun bouton : le composant était
-                             monté, branché sur sa source et traduit, et
-                             `graphOpen` n'était mis à vrai nulle part. La
-                             fonction existait sans porte d'entrée. -->
-                            <AppIconButton
-                                :title="t('notes.markdown.cover.title')"
-                                :aria-label="t('notes.markdown.cover.title')"
-                                size="md"
-                                :disabled="!selectedId"
-                                v-on:click="coverModalOpen = true"
-                            >
-                                <Image class="w-4 h-4" :stroke-width="2" />
-                            </AppIconButton>
-
-                            <!-- Une vraie adresse, donc un lien : on garde la
-                             lecture ouverte dans un onglet, et le clic du
-                             milieu se comporte. -->
+                            <!-- Ce qu'on touche en écrivant reste sous la
+                                 main ; le reste passe dans le menu.
+                                 
+                                 Douze commandes sur la ligne du titre, et
+                                 le titre n'avait plus de place : exporter,
+                                 partager, changer l'image ou ouvrir le
+                                 graphe se font une fois par note, quand
+                                 les modes d'affichage, les étiquettes et
+                                 les liens se touchent en permanence. La
+                                 règle de la maison le dit déjà pour les
+                                 cartes - au-delà de cinq, on garde la
+                                 feuille. -->
                             <AppIconButton
                                 v-if="readHref"
                                 :href="readHref"
@@ -806,14 +822,6 @@ onUnmounted(() => {
                             </AppIconButton>
 
                             <AppIconButton
-                                :title="t('notes.markdown.graph.open')"
-                                size="md"
-                                v-on:click="graphOpen = true"
-                            >
-                                <Network class="w-4 h-4" :stroke-width="2" />
-                            </AppIconButton>
-
-                            <AppIconButton
                                 :title="sidePanelOpen ? t('notes.markdown.links.close') : t('notes.markdown.links.open')"
                                 size="md"
                                 :variant="sidePanelOpen ? 'primary' : 'ghost'"
@@ -822,6 +830,11 @@ onUnmounted(() => {
                                 <PanelRightClose v-if="sidePanelOpen" class="w-4 h-4" :stroke-width="2" />
                                 <PanelRightOpen v-else class="w-4 h-4" :stroke-width="2" />
                             </AppIconButton>
+
+                            <AppRowActions
+                                :actions="noteActions"
+                                :label="form.title || t('notes.markdown.untitled')"
+                            />
 
                             <!-- View mode toggle (edit / split / preview) - segmented AppTab control -->
                             <div class="inline-flex rounded-md border border-line overflow-hidden">
