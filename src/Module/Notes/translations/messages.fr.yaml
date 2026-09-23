@@ -177,6 +177,29 @@ notes:
       upload_failed: Impossible d'envoyer l'image.
     title: Notes Markdown
     save: Enregistrer
+    read:
+      open: Lire la note seule
+      subheading: Vue de lecture
+      back: Retour à l'éditeur
+    cover:
+      add: Ajouter une image d'entête
+      change: Changer l'image d'entête
+      remove: Retirer l'image
+      credit: 'Photo : {name} (Pexels)'
+      search_placeholder: Chercher une photo…
+      search_empty: Aucune photo pour cette recherche
+      not_configured: Pexels n'est pas configuré.
+      not_configured_hint: Un administrateur peut renseigner la clé dans les réglages de la médiathèque.
+      position: Cadrage
+      title: Image d'entête
+    appearance:
+      title: Apparence
+      plain: Ordinaire
+      sepia: Sépia
+      slate: Ardoise
+      paper: Papier
+      midnight: Nuit
+      mint: Menthe
     delete: Supprimer
     cancel: Annuler
     saved: Note enregistrée

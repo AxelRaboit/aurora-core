@@ -1,0 +1,78 @@
+/*
+ * L'habillage d'une note : un fond, une encre, et rien d'autre.
+ *
+ * Des classes déclarées plutôt qu'un style calculé : une apparence est un
+ * nom dans une colonne, et ce nom doit pouvoir changer de sens le jour où le
+ * back-office change de couleurs. Un code hexadécimal écrit dans mille notes
+ * ne le pourrait pas.
+ *
+ * Les variables sont celles que la feuille de rendu lit déjà, donc la même
+ * définition habille l'éditeur, l'aperçu et la page de lecture.
+ */
+.note-look {
+    background-color: var(--note-look-bg, var(--color-surface));
+    color: var(--note-look-ink, var(--color-primary));
+}
+
+.note-look-sepia {
+    --note-look-bg: #f6efe2;
+    --note-look-ink: #3b2f22;
+    --note-look-muted: #7a6a54;
+    --note-look-line: #e0d3bb;
+}
+
+.note-look-slate {
+    --note-look-bg: #1b2430;
+    --note-look-ink: #e6edf5;
+    --note-look-muted: #9fb0c3;
+    --note-look-line: #2c3a4a;
+}
+
+.note-look-paper {
+    --note-look-bg: #ffffff;
+    --note-look-ink: #16181d;
+    --note-look-muted: #5d636e;
+    --note-look-line: #e6e8ec;
+}
+
+.note-look-midnight {
+    --note-look-bg: #0d1220;
+    --note-look-ink: #dfe6f5;
+    --note-look-muted: #93a0bd;
+    --note-look-line: #1f2740;
+}
+
+.note-look-mint {
+    --note-look-bg: #eef7f2;
+    --note-look-ink: #12302a;
+    --note-look-muted: #4c6b62;
+    --note-look-line: #d2e7de;
+}
+
+/*
+ * Ce que l'habillage repeint à l'intérieur de la note.
+ *
+ * Seulement quand une apparence est posée : sans cela, `plain` écraserait
+ * les couleurs du back-office par les siennes, et une note cesserait de
+ * suivre le thème clair ou sombre de la personne.
+ */
+.note-look[class*="note-look-"] .note-preview,
+.note-look[class*="note-look-"] .note-preview p,
+.note-look[class*="note-look-"] .note-preview li,
+.note-look[class*="note-look-"] .note-preview h1,
+.note-look[class*="note-look-"] .note-preview h2,
+.note-look[class*="note-look-"] .note-preview h3,
+.note-look[class*="note-look-"] .note-preview h4,
+.note-look[class*="note-look-"] .note-preview strong {
+    color: var(--note-look-ink);
+}
+
+.note-look[class*="note-look-"] .note-preview blockquote,
+.note-look[class*="note-look-"] .note-preview code {
+    border-color: var(--note-look-line);
+    color: var(--note-look-muted);
+}
+
+.note-look[class*="note-look-"] .note-look-caption {
+    color: var(--note-look-muted);
+}

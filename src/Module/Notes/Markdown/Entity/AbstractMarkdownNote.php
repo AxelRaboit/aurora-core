@@ -7,6 +7,7 @@ namespace Aurora\Module\Notes\Markdown\Entity;
 use Aurora\Core\Encryption\Doctrine\EncryptedTextType;
 use Aurora\Core\Timestampable\TimestampableTrait;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
+use Aurora\Module\Notes\Markdown\Enum\NoteAppearanceEnum;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
 use DateTimeImmutable;
@@ -55,6 +56,47 @@ abstract class AbstractMarkdownNote implements MarkdownNoteInterface
 
     #[ORM\Column(type: Types::INTEGER, options: ['unsigned' => true, 'default' => 0])]
     protected int $position = 0;
+
+    /**
+     * L'image d'entête, chez celui qui l'héberge.
+     *
+     * **Une adresse, pas un fichier.** La photo reste chez Pexels : rien
+     * n'entre dans la médiathèque, qui n'a pas à se remplir d'illustrations
+     * décoratives dont personne ne redemandera jamais une seule. Le prix
+     * assumé est qu'une image retirée de chez eux laisse un cadre vide ; on
+     * en choisit une autre, et c'est tout.
+     *
+     * En clair, comme la couleur d'un dossier : une adresse d'image ne dit
+     * rien de ce que la note raconte.
+     */
+    #[ORM\Column(length: 1024, nullable: true)]
+    protected ?string $coverUrl = null;
+
+    /**
+     * Qui a pris la photo, et où le voir.
+     *
+     * Pas du zèle : la licence Pexels demande de créditer, et une fois
+     * l'image sortie de la médiathèque il n'y a plus qu'ici pour le faire.
+     */
+    #[ORM\Column(length: 255, nullable: true)]
+    protected ?string $coverCreditName = null;
+
+    #[ORM\Column(length: 1024, nullable: true)]
+    protected ?string $coverCreditUrl = null;
+
+    /**
+     * Où couper la photo, en pourcentage de sa hauteur.
+     *
+     * Un bandeau montre une bande d'une image qui n'a pas été cadrée pour
+     * ça : sans ce réglage, une photo de portrait montre un front ou un
+     * menton, jamais un visage.
+     */
+    #[ORM\Column(type: Types::INTEGER, options: ['default' => 50])]
+    protected int $coverPosition = 50;
+
+    /** {@see NoteAppearanceEnum} - le fond de la note et son encre. */
+    #[ORM\Column(length: 20, options: ['default' => 'plain'])]
+    protected string $appearance = NoteAppearanceEnum::Plain->value;
 
     /**
      * Quand la note a été épinglée, jamais si elle ne l'est pas.
@@ -124,6 +166,67 @@ abstract class AbstractMarkdownNote implements MarkdownNoteInterface
     public function setContent(?string $content): static
     {
         $this->content = $content;
+
+        return $this;
+    }
+
+    public function getCoverUrl(): ?string
+    {
+        return $this->coverUrl;
+    }
+
+    public function setCoverUrl(?string $coverUrl): static
+    {
+        $this->coverUrl = $coverUrl;
+
+        return $this;
+    }
+
+    public function getCoverCreditName(): ?string
+    {
+        return $this->coverCreditName;
+    }
+
+    public function setCoverCreditName(?string $name): static
+    {
+        $this->coverCreditName = $name;
+
+        return $this;
+    }
+
+    public function getCoverCreditUrl(): ?string
+    {
+        return $this->coverCreditUrl;
+    }
+
+    public function setCoverCreditUrl(?string $url): static
+    {
+        $this->coverCreditUrl = $url;
+
+        return $this;
+    }
+
+    public function getCoverPosition(): int
+    {
+        return $this->coverPosition;
+    }
+
+    /** Borné ici plutôt qu'au bord : c'est un pourcentage, rien d'autre. */
+    public function setCoverPosition(int $percent): static
+    {
+        $this->coverPosition = max(0, min(100, $percent));
+
+        return $this;
+    }
+
+    public function getAppearance(): NoteAppearanceEnum
+    {
+        return NoteAppearanceEnum::fromNullable($this->appearance);
+    }
+
+    public function setAppearance(NoteAppearanceEnum $appearance): static
+    {
+        $this->appearance = $appearance->value;
 
         return $this;
     }

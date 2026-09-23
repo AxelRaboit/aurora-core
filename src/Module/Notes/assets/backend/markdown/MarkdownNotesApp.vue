@@ -9,6 +9,7 @@ import NotePreview from '@notes/backend/markdown/components/NotePreview.vue';
 import NoteSidePanel from '@notes/backend/markdown/components/NoteSidePanel.vue';
 import NoteTagManagerModal from '@notes/backend/markdown/components/NoteTagManagerModal.vue';
 import NoteShareModal from '@notes/backend/markdown/components/NoteShareModal.vue';
+import NoteCoverModal from '@notes/backend/markdown/components/NoteCoverModal.vue';
 import NoteEditor from '@notes/backend/markdown/components/NoteEditor.vue';
 import NoteGraph from '@notes/backend/markdown/components/NoteGraph.vue';
 import AppButton from '@shared/components/action/AppButton.vue';
@@ -21,8 +22,9 @@ import AppModalFooter from '@shared/components/overlay/AppModalFooter.vue';
 import AppTab from '@shared/components/nav/AppTab.vue';
 import { computed, nextTick, onErrorCaptured, onMounted, onUnmounted, watch } from 'vue';
 import { onPanelRequest, tellPanels } from '@/shared/nav/modulePanelBridge.js';
-import { Trash2, FileDown, PanelRightOpen, PanelRightClose, Tag, TriangleAlert, X, Network, Share2 } from 'lucide-vue-next';
+import { Trash2, BookOpen, FileDown, Image, PanelRightOpen, PanelRightClose, Tag, TriangleAlert, X, Network, Share2 } from 'lucide-vue-next';
 import AppNoData from '@shared/components/feedback/AppNoData.vue';
+import "@notes/share/appearance.css";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { useFoldable } from "@notes/backend/markdown/composables/useFoldable.js";
 
@@ -66,6 +68,10 @@ const props = defineProps({
     sharesCreatePath: { type: String, required: true },
     sharesRevokePath: { type: String, required: true },
     imageUploadPath: { type: String, required: true },
+    /** L'adresse qui montre une note seule, sans le back-office. */
+    readPath: { type: String, default: '' },
+    /** Le relais vers Pexels pour le bandeau : aucune image n'entre en GED. */
+    coversSearchPath: { type: String, default: '' },
     imageMaxEdge: { type: Number, default: 2048 },
     imageQuality: { type: Number, default: 0.85 },
     /**
@@ -121,6 +127,51 @@ const {
 // sharing is opened from the toolbar and closed by the modal, and nothing in
 // the page composable reads it.
 const shareModalOpen = ref(false);
+
+/**
+ * Le bandeau et l'apparence : une seule porte pour « de quoi cette note a
+ * l'air ».
+ *
+ * Les deux s'écrivent dans le formulaire, donc l'enregistrement automatique
+ * les emporte comme le reste : choisir une image n'a pas de bouton à
+ * valider.
+ */
+const coverModalOpen = ref(false);
+
+const cover = computed(() => ({
+    url: form.value.coverUrl,
+    creditName: form.value.coverCreditName,
+    creditUrl: form.value.coverCreditUrl,
+    position: form.value.coverPosition ?? 50,
+}));
+
+function chooseCover(photo) {
+    form.value.coverUrl = photo.url;
+    form.value.coverCreditName = photo.creditName;
+    form.value.coverCreditUrl = photo.creditUrl;
+}
+
+function removeCover() {
+    form.value.coverUrl = null;
+    form.value.coverCreditName = null;
+    form.value.coverCreditUrl = null;
+    form.value.coverPosition = 50;
+}
+
+// `plain` ne pose aucune classe : une note sans habillage suit le thème
+// clair ou sombre de la personne, et une classe qui la repeindrait en dur
+// lui retirerait ce choix.
+const lookClass = computed(() =>
+    'plain' === form.value.appearance || !form.value.appearance
+        ? ''
+        : `note-look note-look-${form.value.appearance}`,
+);
+
+const readHref = computed(() =>
+    selectedId.value && props.readPath
+        ? props.readPath.replace('__id__', String(selectedId.value))
+        : '',
+);
 
 /**
  * Les étiquettes se replient en icône, comme la recherche de la
@@ -494,7 +545,25 @@ onUnmounted(() => {
                 />
             </div>
 
-            <div v-else-if="selectedNote" class="flex-1 flex flex-col min-h-0">
+            <div v-else-if="selectedNote" class="flex-1 flex flex-col min-h-0" :class="lookClass">
+                <!-- Le bandeau, quand la note en porte un. L'image vit chez
+                     celui qui l'héberge : rien n'est entré en médiathèque, et
+                     si elle disparaît de là-bas on en choisit une autre. -->
+                <figure v-if="form.coverUrl" class="relative m-0 shrink-0">
+                    <img
+                        :src="form.coverUrl"
+                        alt=""
+                        class="h-28 w-full object-cover sm:h-36"
+                        :style="{ objectPosition: `50% ${form.coverPosition ?? 50}%` }"
+                    >
+                    <figcaption
+                        v-if="form.coverCreditName"
+                        class="absolute bottom-0 right-0 bg-black/40 px-2 py-0.5 text-2xs text-white"
+                    >
+                        {{ t('notes.markdown.cover.credit', { name: form.coverCreditName }) }}
+                    </figcaption>
+                </figure>
+
                 <header class="p-2 border-b border-line flex flex-col gap-2 sm:p-4">
                     <!-- Le chemin de retour. Une note ouverte depuis la
                          bibliothèque doit pouvoir y revenir sans le bouton
@@ -551,6 +620,29 @@ onUnmounted(() => {
                              monté, branché sur sa source et traduit, et
                              `graphOpen` n'était mis à vrai nulle part. La
                              fonction existait sans porte d'entrée. -->
+                        <AppIconButton
+                            :title="t('notes.markdown.cover.title')"
+                            :aria-label="t('notes.markdown.cover.title')"
+                            size="md"
+                            :disabled="!selectedId"
+                            v-on:click="coverModalOpen = true"
+                        >
+                            <Image class="w-4 h-4" :stroke-width="2" />
+                        </AppIconButton>
+
+                        <!-- Une vraie adresse, donc un lien : on garde la
+                             lecture ouverte dans un onglet, et le clic du
+                             milieu se comporte. -->
+                        <AppIconButton
+                            v-if="readHref"
+                            :href="readHref"
+                            :title="t('notes.markdown.read.open')"
+                            :aria-label="t('notes.markdown.read.open')"
+                            size="md"
+                        >
+                            <BookOpen class="w-4 h-4" :stroke-width="2" />
+                        </AppIconButton>
+
                         <AppIconButton
                             class="relative"
                             :title="tagsLabel"
@@ -735,6 +827,18 @@ onUnmounted(() => {
             :fetch-graph="api.graph"
             v-on:close="graphOpen = false"
             v-on:navigate="navigateFromGraph"
+        />
+
+        <NoteCoverModal
+            :show="coverModalOpen"
+            :search-path="coversSearchPath"
+            :cover="cover"
+            :appearance="form.appearance"
+            v-on:close="coverModalOpen = false"
+            v-on:choose="chooseCover"
+            v-on:remove="removeCover"
+            v-on:position="form.coverPosition = $event"
+            v-on:appearance="form.appearance = $event"
         />
 
         <NoteShareModal

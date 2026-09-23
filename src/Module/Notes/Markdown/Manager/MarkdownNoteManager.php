@@ -10,6 +10,7 @@ use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
 use Aurora\Module\Notes\Markdown\Dto\MarkdownNoteInputInterface;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNote;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
+use Aurora\Module\Notes\Markdown\Enum\NoteAppearanceEnum;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteImageService;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
@@ -620,6 +621,14 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
         $note->setTitle($input->getTitle());
         $note->setContent($input->getContent());
         $note->setTags($input->getTags());
+        $note->setCoverUrl($input->getCoverUrl());
+        $note->setCoverCreditName($input->getCoverCreditName());
+        $note->setCoverCreditUrl($input->getCoverCreditUrl());
+        $note->setAppearance(NoteAppearanceEnum::fromNullable($input->getAppearance()));
+
+        if (null !== $input->getCoverPosition()) {
+            $note->setCoverPosition($input->getCoverPosition());
+        }
 
         if (null !== $input->getPosition()) {
             $note->setPosition($input->getPosition());
