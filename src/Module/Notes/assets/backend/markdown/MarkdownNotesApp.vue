@@ -9,11 +9,11 @@ import NotePreview from '@notes/backend/markdown/components/NotePreview.vue';
 import NoteSidePanel from '@notes/backend/markdown/components/NoteSidePanel.vue';
 import NoteTagManagerModal from '@notes/backend/markdown/components/NoteTagManagerModal.vue';
 import NoteShareModal from '@notes/backend/markdown/components/NoteShareModal.vue';
+import NoteCoverModal from '@notes/backend/markdown/components/NoteCoverModal.vue';
 import NoteEditor from '@notes/backend/markdown/components/NoteEditor.vue';
 import NoteGraph from '@notes/backend/markdown/components/NoteGraph.vue';
 import AppButton from '@shared/components/action/AppButton.vue';
 import AppIconButton from '@shared/components/action/AppIconButton.vue';
-import AppInput from '@shared/components/form/input/AppInput.vue';
 import AppSearchInput from '@shared/components/form/input/AppSearchInput.vue';
 import AppTagsInput from '@shared/components/form/select/AppTagsInput.vue';
 import AppModal from '@shared/components/overlay/AppModal.vue';
@@ -21,10 +21,12 @@ import AppModalFooter from '@shared/components/overlay/AppModalFooter.vue';
 import AppTab from '@shared/components/nav/AppTab.vue';
 import { computed, nextTick, onErrorCaptured, onMounted, onUnmounted, watch } from 'vue';
 import { onPanelRequest, tellPanels } from '@/shared/nav/modulePanelBridge.js';
-import { Trash2, FileDown, PanelRightOpen, PanelRightClose, Tag, TriangleAlert, X, Network, Share2 } from 'lucide-vue-next';
+import { Trash2, BookOpen, FileDown, Image, PanelRightOpen, PanelRightClose, Tag, TriangleAlert, X, Network, Share2 } from 'lucide-vue-next';
 import AppNoData from '@shared/components/feedback/AppNoData.vue';
+import "@notes/share/appearance.css";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { useFoldable } from "@notes/backend/markdown/composables/useFoldable.js";
+import { withoutLeadingTitle } from "@notes/backend/markdown/composables/noteBody.js";
 
 const { formatDateTimeNumeric } = useDateFormat();
 
@@ -66,6 +68,10 @@ const props = defineProps({
     sharesCreatePath: { type: String, required: true },
     sharesRevokePath: { type: String, required: true },
     imageUploadPath: { type: String, required: true },
+    /** L'adresse qui montre une note seule, sans le back-office. */
+    readPath: { type: String, default: '' },
+    /** Le relais vers Pexels pour le bandeau : aucune image n'entre en GED. */
+    coversSearchPath: { type: String, default: '' },
     imageMaxEdge: { type: Number, default: 2048 },
     imageQuality: { type: Number, default: 0.85 },
     /**
@@ -121,6 +127,62 @@ const {
 // sharing is opened from the toolbar and closed by the modal, and nothing in
 // the page composable reads it.
 const shareModalOpen = ref(false);
+
+/**
+ * Le bandeau et l'apparence : une seule porte pour « de quoi cette note a
+ * l'air ».
+ *
+ * Les deux s'écrivent dans le formulaire, donc l'enregistrement automatique
+ * les emporte comme le reste : choisir une image n'a pas de bouton à
+ * valider.
+ */
+const coverModalOpen = ref(false);
+
+const cover = computed(() => ({
+    url: form.value.coverUrl,
+    creditName: form.value.coverCreditName,
+    creditUrl: form.value.coverCreditUrl,
+    position: form.value.coverPosition ?? 50,
+}));
+
+function chooseCover(photo) {
+    form.value.coverUrl = photo.url;
+    form.value.coverCreditName = photo.creditName;
+    form.value.coverCreditUrl = photo.creditUrl;
+}
+
+function removeCover() {
+    form.value.coverUrl = null;
+    form.value.coverCreditName = null;
+    form.value.coverCreditUrl = null;
+    form.value.coverPosition = 50;
+}
+
+// `plain` ne pose aucune classe : une note sans habillage suit le thème
+// clair ou sombre de la personne, et une classe qui la repeindrait en dur
+// lui retirerait ce choix.
+const lookClass = computed(() =>
+    'plain' === form.value.appearance || !form.value.appearance
+        ? ''
+        : `note-look note-look-${form.value.appearance}`,
+);
+
+/**
+ * Le corps tel que l'aperçu le montre : sans le titre répété en tête.
+ *
+ * Les index des cases à cocher suivent : retirer un titre ne change ni le
+ * nombre ni l'ordre des cases, donc cocher dans l'aperçu écrit toujours
+ * dans la bonne ligne du source.
+ */
+const previewBody = computed(() =>
+    withoutLeadingTitle(form.value.content, form.value.title),
+);
+
+const readHref = computed(() =>
+    selectedId.value && props.readPath
+        ? props.readPath.replace('__id__', String(selectedId.value))
+        : '',
+);
 
 /**
  * Les étiquettes se replient en icône, comme la recherche de la
@@ -472,184 +534,251 @@ onUnmounted(() => {
         v-on:change="onImportFiles"
     >
 
-    <div class="relative flex h-[calc(100dvh-var(--aurora-topbar)-4rem)] bg-surface rounded-xl border border-line overflow-hidden">
-        <!-- No tree column and no drawer of its own: the notes are in the
+    <!-- Une colonne, et la carte prend ce qui reste.
+         Le chemin de retour vit **au-dessus** de la note, pas dedans : une
+         note peut porter son propre fond - papier, ardoise, nuit - et un
+         lien de navigation posé sur ce fond se lit mal, voire pas du tout
+         quand son survol prend la couleur d'encre du back-office. Il est
+         sorti de la carte plutôt que recoloré, parce qu'il n'appartient pas
+         à la note : il dit comment en sortir. `flex-1 min-h-0` sur la carte
+         évite d'écrire sa hauteur en soustrayant celle du lien, un nombre
+         qui serait faux au premier changement de taille de police. -->
+    <div class="flex h-[calc(100dvh-var(--aurora-topbar)-4rem)] flex-col gap-1.5">
+        <button
+            v-if="selectedNote && !crashed"
+            type="button"
+            class="self-start text-xs text-muted transition-colors hover:text-primary"
+            v-on:click="backToLibrary"
+        >
+            ← {{ t('notes.markdown.library.title') }}
+        </button>
+
+        <div class="relative flex min-h-0 flex-1 bg-surface rounded-xl border border-line overflow-hidden">
+            <!-- No tree column and no drawer of its own: the notes are in the
              side menu's panel now, on every page of the module rather than
              this one, and the menu already has a drawer on small screens.
              Two drawers was two gestures to learn for the same thing. -->
 
-        <!-- Editor pane -->
-        <!-- `min-h-0` sur toute la colonne, et pas seulement `overflow-auto` en
+            <!-- Editor pane -->
+            <!-- `min-h-0` sur toute la colonne, et pas seulement `overflow-auto` en
              bas : un enfant de flex vaut `min-height: auto`, donc il refuse de
              descendre sous la hauteur de son contenu. Une note longue poussait
              la colonne au-delà de la carte au lieu de faire défiler le volet,
              et la fin du texte sortait de l'écran. C'est le pendant vertical de
              ce que le commentaire des deux volets dit déjà pour la largeur. -->
-        <section class="flex-1 flex flex-col min-w-0 min-h-0">
-            <div v-if="crashed" class="flex flex-1 items-center justify-center p-6">
-                <AppNoData
-                    :message="t('notes.markdown.errors.crashed')"
-                    :hint="String(crashed?.message ?? crashed)"
-                    :icon="TriangleAlert"
-                />
-            </div>
-
-            <div v-else-if="selectedNote" class="flex-1 flex flex-col min-h-0">
-                <header class="p-2 border-b border-line flex flex-col gap-2 sm:p-4">
-                    <!-- Le chemin de retour. Une note ouverte depuis la
-                         bibliothèque doit pouvoir y revenir sans le bouton
-                         précédent du navigateur, qui n'est pas une commande
-                         de l'application. -->
-                    <button
-                        type="button"
-                        class="self-start text-xs text-muted hover:text-primary transition-colors"
-                        v-on:click="backToLibrary"
-                    >
-                        ← {{ t('notes.markdown.library.title') }}
-                    </button>
-                    <!-- Le titre prend la ligne. Partagée avec les six boutons
-                         et les deux mentions d'état, elle laissait au nom de la
-                         note ce qui restait, c'est-à-dire peu : sur un écran
-                         moyen, un titre un peu long était tronqué à la saisie.
-                         Ce qui l'accompagne descend d'un cran. -->
-                    <AppInput
-                        v-model="form.title"
-                        :placeholder="t('notes.markdown.title_placeholder')"
-                        class="w-full text-lg font-medium"
+            <section class="flex-1 flex flex-col min-w-0 min-h-0">
+                <div v-if="crashed" class="flex flex-1 items-center justify-center p-6">
+                    <AppNoData
+                        :message="t('notes.markdown.errors.crashed')"
+                        :hint="String(crashed?.message ?? crashed)"
+                        :icon="TriangleAlert"
                     />
+                </div>
 
-                    <!-- Collés à droite : le titre prend la ligne du dessus
-                         sur toute la largeur, et une rangée d'icônes accrochée
-                         au bord gauche sous lui laissait un vide de la moitié
-                         de l'en-tête. Demandé par Axel le 23/09. -->
-                    <div class="flex flex-wrap items-center justify-end gap-2 md:gap-3">
-                        <!-- Disabled until a note is selected: there is nothing to
+                <div v-else-if="selectedNote" class="flex-1 flex flex-col min-h-0" :class="lookClass">
+                    <!-- Le bandeau, quand la note en porte un. L'image vit chez
+                     celui qui l'héberge : rien n'est entré en médiathèque, et
+                     si elle disparaît de là-bas on en choisit une autre.
+                     
+                     Plus haut dans la vue de lecture que dans l'éditeur, et
+                     c'est voulu : ici il partage la colonne avec le texte
+                     qu'on est en train d'écrire, là-bas la page défile et
+                     n'a que la note à montrer. -->
+                    <figure v-if="form.coverUrl" class="relative m-0 shrink-0">
+                        <img
+                            :src="form.coverUrl"
+                            alt=""
+                            class="h-40 w-full object-cover sm:h-56"
+                            :style="{ objectPosition: `50% ${form.coverPosition ?? 50}%` }"
+                        >
+                        <figcaption
+                            v-if="form.coverCreditName"
+                            class="absolute bottom-0 right-0 bg-black/40 px-2 py-0.5 text-2xs text-white"
+                        >
+                            {{ t('notes.markdown.cover.credit', { name: form.coverCreditName }) }}
+                        </figcaption>
+                    </figure>
+
+                    <!-- Le titre et les commandes sur une seule ligne : seul,
+                         le titre laissait la moitié de l'en-tête vide et
+                         poussait la note d'un rang vers le bas. Le repli est
+                         celui du panneau du menu - le titre réclame quinze
+                         rem, les commandes descendent d'elles-mêmes quand la
+                         place manque vraiment. -->
+                    <header class="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-line p-2 sm:p-4">
+                        <!-- Le titre s'écrit comme un titre, pas comme un
+                             champ de formulaire.
+                             
+                             Une boîte avec sa bordure et son fond disait « ici
+                             une donnée à saisir » au-dessus d'un document qui
+                             est, lui, du texte libre : deux registres pour la
+                             même page. Craft et Notion écrivent le titre dans
+                             la page, en grand, et c'est ce qu'on lit d'abord.
+                             
+                             Ce n'est pas un `AppInput` sans bordure mais un
+                             champ nu : la boîte de la maison porte son fond,
+                             son filet et son anneau de focus, et les enlever
+                             un par un en classes aurait laissé un composant
+                             qui promet une apparence qu'il n'a plus. -->
+                        <input
+                            v-model="form.title"
+                            type="text"
+                            class="min-w-0 flex-1 basis-60 border-0 bg-transparent p-0 text-2xl font-semibold text-primary placeholder:font-normal placeholder:text-muted focus:outline-none focus:ring-0"
+                            :placeholder="t('notes.markdown.title_placeholder')"
+                            :aria-label="t('notes.markdown.title_placeholder')"
+                        >
+
+                        <div class="ml-auto flex shrink-0 flex-wrap items-center justify-end gap-2 md:gap-3">
+                            <!-- Disabled until a note is selected: there is nothing to
                              share from an empty editor, and a modal that opens on
                              null would ask the server for share links of no note. -->
-                        <!-- Cette note seule, en Markdown. À côté du partage
+                            <!-- Cette note seule, en Markdown. À côté du partage
                              parce que les deux répondent à « je veux la donner
                              à quelqu'un », par un lien ou par un fichier. -->
-                        <AppIconButton
-                            :title="t('notes.markdown.export.one')"
-                            size="md"
-                            :disabled="!selectedId"
-                            v-on:click="exportOne(selectedId)"
-                        >
-                            <FileDown class="w-4 h-4" :stroke-width="2" />
-                        </AppIconButton>
+                            <AppIconButton
+                                :title="t('notes.markdown.export.one')"
+                                size="md"
+                                :disabled="!selectedId"
+                                v-on:click="exportOne(selectedId)"
+                            >
+                                <FileDown class="w-4 h-4" :stroke-width="2" />
+                            </AppIconButton>
 
-                        <AppIconButton
-                            :title="t('notes.markdown.share.button')"
-                            size="md"
-                            :disabled="!selectedId"
-                            v-on:click="shareModalOpen = true"
-                        >
-                            <Share2 class="w-4 h-4" :stroke-width="2" />
-                        </AppIconButton>
+                            <AppIconButton
+                                :title="t('notes.markdown.share.button')"
+                                size="md"
+                                :disabled="!selectedId"
+                                v-on:click="shareModalOpen = true"
+                            >
+                                <Share2 class="w-4 h-4" :stroke-width="2" />
+                            </AppIconButton>
 
-                        <!-- Le graphe n'avait aucun bouton : le composant était
+                            <!-- Le graphe n'avait aucun bouton : le composant était
                              monté, branché sur sa source et traduit, et
                              `graphOpen` n'était mis à vrai nulle part. La
                              fonction existait sans porte d'entrée. -->
-                        <AppIconButton
-                            class="relative"
-                            :title="tagsLabel"
-                            :aria-label="tagsLabel"
-                            size="md"
-                            :variant="tagsOpen ? 'primary' : 'ghost'"
-                            v-on:click="toggleTags"
-                        >
-                            <Tag class="w-4 h-4" :stroke-width="2" />
-                            <span
-                                v-if="form.tags?.length"
-                                class="absolute -right-0.5 -top-0.5 min-w-3.5 rounded-full bg-accent-600 px-1 text-[0.625rem] font-semibold leading-3.5 text-white"
+                            <AppIconButton
+                                :title="t('notes.markdown.cover.title')"
+                                :aria-label="t('notes.markdown.cover.title')"
+                                size="md"
+                                :disabled="!selectedId"
+                                v-on:click="coverModalOpen = true"
                             >
-                                {{ form.tags.length }}
-                            </span>
-                        </AppIconButton>
+                                <Image class="w-4 h-4" :stroke-width="2" />
+                            </AppIconButton>
 
-                        <AppIconButton
-                            :title="t('notes.markdown.graph.open')"
-                            size="md"
-                            v-on:click="graphOpen = true"
-                        >
-                            <Network class="w-4 h-4" :stroke-width="2" />
-                        </AppIconButton>
-
-                        <AppIconButton
-                            :title="sidePanelOpen ? t('notes.markdown.links.close') : t('notes.markdown.links.open')"
-                            size="md"
-                            :variant="sidePanelOpen ? 'primary' : 'ghost'"
-                            v-on:click="sidePanelOpen = !sidePanelOpen"
-                        >
-                            <PanelRightClose v-if="sidePanelOpen" class="w-4 h-4" :stroke-width="2" />
-                            <PanelRightOpen v-else class="w-4 h-4" :stroke-width="2" />
-                        </AppIconButton>
-
-                        <!-- View mode toggle (edit / split / preview) - segmented AppTab control -->
-                        <div class="inline-flex rounded-md border border-line overflow-hidden">
-                            <AppTab
-                                v-for="opt in viewModeOptions"
-                                :key="opt.value"
-                                size="sm"
-                                align="center"
-                                shape-class="rounded-none"
-                                :active="viewMode === opt.value"
-                                :title="opt.label"
-                                v-on:click="viewMode = opt.value"
+                            <!-- Une vraie adresse, donc un lien : on garde la
+                             lecture ouverte dans un onglet, et le clic du
+                             milieu se comporte. -->
+                            <AppIconButton
+                                v-if="readHref"
+                                :href="readHref"
+                                :title="t('notes.markdown.read.open')"
+                                :aria-label="t('notes.markdown.read.open')"
+                                size="md"
                             >
-                                <component :is="opt.icon" class="w-4 h-4" :stroke-width="2" />
-                            </AppTab>
+                                <BookOpen class="w-4 h-4" :stroke-width="2" />
+                            </AppIconButton>
+
+                            <AppIconButton
+                                class="relative"
+                                :title="tagsLabel"
+                                :aria-label="tagsLabel"
+                                size="md"
+                                :variant="tagsOpen ? 'primary' : 'ghost'"
+                                v-on:click="toggleTags"
+                            >
+                                <Tag class="w-4 h-4" :stroke-width="2" />
+                                <span
+                                    v-if="form.tags?.length"
+                                    class="absolute -right-0.5 -top-0.5 min-w-3.5 rounded-full bg-accent-600 px-1 text-[0.625rem] font-semibold leading-3.5 text-white"
+                                >
+                                    {{ form.tags.length }}
+                                </span>
+                            </AppIconButton>
+
+                            <AppIconButton
+                                :title="t('notes.markdown.graph.open')"
+                                size="md"
+                                v-on:click="graphOpen = true"
+                            >
+                                <Network class="w-4 h-4" :stroke-width="2" />
+                            </AppIconButton>
+
+                            <AppIconButton
+                                :title="sidePanelOpen ? t('notes.markdown.links.close') : t('notes.markdown.links.open')"
+                                size="md"
+                                :variant="sidePanelOpen ? 'primary' : 'ghost'"
+                                v-on:click="sidePanelOpen = !sidePanelOpen"
+                            >
+                                <PanelRightClose v-if="sidePanelOpen" class="w-4 h-4" :stroke-width="2" />
+                                <PanelRightOpen v-else class="w-4 h-4" :stroke-width="2" />
+                            </AppIconButton>
+
+                            <!-- View mode toggle (edit / split / preview) - segmented AppTab control -->
+                            <div class="inline-flex rounded-md border border-line overflow-hidden">
+                                <AppTab
+                                    v-for="opt in viewModeOptions"
+                                    :key="opt.value"
+                                    size="sm"
+                                    align="center"
+                                    shape-class="rounded-none"
+                                    :active="viewMode === opt.value"
+                                    :title="opt.label"
+                                    v-on:click="viewMode = opt.value"
+                                >
+                                    <component :is="opt.icon" class="w-4 h-4" :stroke-width="2" />
+                                </AppTab>
+                            </div>
+
+                            <div class="flex items-center gap-3 shrink-0">
+                                <span
+                                    v-if="saveStatusDisplay"
+                                    class="inline-flex items-center gap-1.5 text-xs"
+                                    :class="saveStatusDisplay.classes"
+                                >
+                                    <component
+                                        :is="saveStatusDisplay.icon"
+                                        class="w-3.5 h-3.5"
+                                        :class="saveStatusDisplay.spin ? 'animate-spin' : ''"
+                                        :stroke-width="2"
+                                    />
+                                    {{ saveStatusDisplay.label }}
+                                </span>
+                                <span
+                                    v-if="lastSavedAt"
+                                    class="text-xs text-muted"
+                                    :title="formatDateTimeNumeric(lastSavedAt.toISOString())"
+                                >
+                                    {{ t('shared.common.autosave.last_saved', { time: lastSavedRelative }) }}
+                                </span>
+                            </div>
                         </div>
 
-                        <div class="flex items-center gap-3 shrink-0">
-                            <span
-                                v-if="saveStatusDisplay"
-                                class="inline-flex items-center gap-1.5 text-xs"
-                                :class="saveStatusDisplay.classes"
-                            >
-                                <component
-                                    :is="saveStatusDisplay.icon"
-                                    class="w-3.5 h-3.5"
-                                    :class="saveStatusDisplay.spin ? 'animate-spin' : ''"
-                                    :stroke-width="2"
-                                />
-                                {{ saveStatusDisplay.label }}
-                            </span>
-                            <span
-                                v-if="lastSavedAt"
-                                class="text-xs text-muted"
-                                :title="formatDateTimeNumeric(lastSavedAt.toISOString())"
-                            >
-                                {{ t('shared.common.autosave.last_saved', { time: lastSavedRelative }) }}
-                            </span>
-                        </div>
-                    </div>
-
-                    <!-- Repliées en icône : voir la note s'écrire vaut mieux
+                        <!-- Repliées en icône : voir la note s'écrire vaut mieux
                          qu'une ligne d'étiquettes qu'on ne touche presque
                          jamais. Le nombre est sur l'icône, les noms dans son
                          infobulle. -->
-                    <div
-                        v-if="tagsOpen"
-                        ref="tagsBox"
-                        v-on:keyup.esc="foldTags"
-                        v-on:focusout="closeTagsIfIdle"
-                    >
-                        <AppTagsInput
-                            v-model="form.tags"
-                            :placeholder="t('notes.markdown.tags.add_placeholder')"
-                        />
-                    </div>
+                        <div
+                            v-if="tagsOpen"
+                            ref="tagsBox"
+                            v-on:keyup.esc="foldTags"
+                            v-on:focusout="closeTagsIfIdle"
+                        >
+                            <AppTagsInput
+                                v-model="form.tags"
+                                :placeholder="t('notes.markdown.tags.add_placeholder')"
+                            />
+                        </div>
 
-                    <!-- Editor form extension point. Scoped slot exposes
+                        <!-- Editor form extension point. Scoped slot exposes
                          `form` (mutable reactive ref) so clients can wire
                          their custom v-model bindings against entity
                          fields they've added via aurora-client. -->
-                    <slot name="extra-form-fields" :form="form" />
-                </header>
+                        <slot name="extra-form-fields" :form="form" />
+                    </header>
 
-                <!-- Two separate fixes, because the first one alone was aimed
+                    <!-- Two separate fixes, because the first one alone was aimed
                      at the wrong measurement.
                      
                      `max-w-[70%]` is the one that matters: the editor pane takes
@@ -665,127 +794,145 @@ onUnmounted(() => {
                      columns would be unusable even when they fit. `min-w-0` on
                      both panes lets them actually shrink: a flex item defaults
                      to `min-width: auto` and refuses to go below its content. -->
-                <div class="flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden">
-                    <div
-                        v-if="viewMode !== 'preview'"
-                        ref="editorPaneRef"
-                        class="p-2 overflow-auto min-w-0 sm:p-4"
-                        :class="viewMode === 'split' && !isMobile ? 'shrink-0 max-w-[70%]' : 'flex-1'"
-                        :style="viewMode === 'split' && !isMobile ? { width: `${editorWidth}px` } : {}"
-                    >
-                        <NoteEditor
-                            v-model="form.content"
-                            :placeholder="t('notes.markdown.content_placeholder')"
-                            :flat-notes="notes"
-                            :upload-image="api.uploadImage"
-                            :image-max-edge="imageMaxEdge"
-                            :image-quality="imageQuality"
-                        />
-                    </div>
+                    <div class="flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden">
+                        <div
+                            v-if="viewMode !== 'preview'"
+                            ref="editorPaneRef"
+                            class="p-2 overflow-auto min-w-0 sm:p-4"
+                            :class="viewMode === 'split' && !isMobile ? 'shrink-0 max-w-[70%]' : 'flex-1'"
+                            :style="viewMode === 'split' && !isMobile ? { width: `${editorWidth}px` } : {}"
+                        >
+                            <NoteEditor
+                                v-model="form.content"
+                                :placeholder="t('notes.markdown.content_placeholder')"
+                                :flat-notes="notes"
+                                :upload-image="api.uploadImage"
+                                :image-max-edge="imageMaxEdge"
+                                :image-quality="imageQuality"
+                            />
+                        </div>
 
-                    <!-- Resize handle: split mode on a wide screen only. Stacked
+                        <!-- Resize handle: split mode on a wide screen only. Stacked
                          panes have nothing to redistribute horizontally. -->
-                    <div
-                        v-if="viewMode === 'split' && !isMobile"
-                        class="w-1 shrink-0 cursor-col-resize bg-line hover:bg-accent-500/40 transition-colors"
-                        :class="splitDragging ? 'bg-accent-500/60' : ''"
-                        :title="t('notes.markdown.resize_handle')"
-                        v-on:pointerdown="startSplitResize"
-                    />
-
-                    <div
-                        v-if="viewMode !== 'edit'"
-                        class="flex-1 min-w-0 p-2 overflow-auto sm:p-4"
-                    >
-                        <NotePreview
-                            :content="form.content"
-                            :note-titles="notes"
-                            v-on:wiki-link-click="onWikiLinkClick"
-                            v-on:checkbox-toggle="onCheckboxToggle"
-                            v-on:image-resize="onImageResize"
+                        <div
+                            v-if="viewMode === 'split' && !isMobile"
+                            class="w-1 shrink-0 cursor-col-resize bg-line hover:bg-accent-500/40 transition-colors"
+                            :class="splitDragging ? 'bg-accent-500/60' : ''"
+                            :title="t('notes.markdown.resize_handle')"
+                            v-on:pointerdown="startSplitResize"
                         />
+
+                        <div
+                            v-if="viewMode !== 'edit'"
+                            class="flex-1 min-w-0 p-2 overflow-auto sm:p-4"
+                        >
+                            <!-- Le titre vit dans le champ au-dessus : l'aperçu
+                                 ne le redit pas. Le texte, lui, n'est pas
+                                 touché - c'est le rendu qui s'abstient, et le
+                                 `# ` reste dans la zone d'écriture comme à
+                                 l'export. -->
+                            <NotePreview
+                                :content="previewBody"
+                                :note-titles="notes"
+                                v-on:wiki-link-click="onWikiLinkClick"
+                                v-on:checkbox-toggle="onCheckboxToggle"
+                                v-on:image-resize="onImageResize"
+                            />
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Pas de note ouverte : la bibliothèque. C'était un écran vide
+                <!-- Pas de note ouverte : la bibliothèque. C'était un écran vide
                  qui disait « choisissez une note » sans montrer lesquelles. -->
-            <NoteLibrary
-                v-else
-                ref="libraryRef"
-                :folders="folders"
-                :notes="notes"
-                :folders-api="foldersApi"
-                :notes-api="api"
-                :initial-folder-id="folderId"
-                :breadcrumb="breadcrumb"
-                :root-url="libraryPath"
-                :note-url-for="noteUrlFor"
-                :note-export-url-for="noteExportUrlFor"
-                :max-depth="maxDepth"
-                v-on:open-note="openNote"
-                v-on:create-note="createNote"
-                v-on:changed="onLibraryChanged"
-                v-on:folder-changed="openFolderId = $event"
+                <NoteLibrary
+                    v-else
+                    ref="libraryRef"
+                    :folders="folders"
+                    :notes="notes"
+                    :folders-api="foldersApi"
+                    :notes-api="api"
+                    :initial-folder-id="folderId"
+                    :breadcrumb="breadcrumb"
+                    :root-url="libraryPath"
+                    :note-url-for="noteUrlFor"
+                    :note-export-url-for="noteExportUrlFor"
+                    :max-depth="maxDepth"
+                    v-on:open-note="openNote"
+                    v-on:create-note="createNote"
+                    v-on:changed="onLibraryChanged"
+                    v-on:folder-changed="openFolderId = $event"
+                />
+            </section>
+
+            <NoteGraph
+                :show="graphOpen"
+                :fetch-graph="api.graph"
+                v-on:close="graphOpen = false"
+                v-on:navigate="navigateFromGraph"
             />
-        </section>
 
-        <NoteGraph
-            :show="graphOpen"
-            :fetch-graph="api.graph"
-            v-on:close="graphOpen = false"
-            v-on:navigate="navigateFromGraph"
-        />
+            <NoteCoverModal
+                :show="coverModalOpen"
+                :search-path="coversSearchPath"
+                :cover="cover"
+                :appearance="form.appearance"
+                v-on:close="coverModalOpen = false"
+                v-on:choose="chooseCover"
+                v-on:remove="removeCover"
+                v-on:position="form.coverPosition = $event"
+                v-on:appearance="form.appearance = $event"
+            />
 
-        <NoteShareModal
-            :show="shareModalOpen"
-            :note-id="selectedId"
-            :paths="props"
-            v-on:close="shareModalOpen = false"
-        />
+            <NoteShareModal
+                :show="shareModalOpen"
+                :note-id="selectedId"
+                :paths="props"
+                v-on:close="shareModalOpen = false"
+            />
 
-        <NoteTagManagerModal
-            :show="tagManagerOpen"
-            :api="tagsApi"
-            v-on:close="tagManagerOpen = false"
-            v-on:changed="onTagsChanged"
-        />
+            <NoteTagManagerModal
+                :show="tagManagerOpen"
+                :api="tagsApi"
+                v-on:close="tagManagerOpen = false"
+                v-on:changed="onTagsChanged"
+            />
 
-        <NoteSidePanel
-            v-if="sidePanelOpen && selectedNote"
-            :note-id="selectedId"
-            :fetch-backlinks="api.backlinks"
-            :fetch-unlinked-mentions="api.unlinkedMentions"
-            v-on:close="sidePanelOpen = false"
-            v-on:navigate="selectNote"
-        />
+            <NoteSidePanel
+                v-if="sidePanelOpen && selectedNote"
+                :note-id="selectedId"
+                :fetch-backlinks="api.backlinks"
+                :fetch-unlinked-mentions="api.unlinkedMentions"
+                v-on:close="sidePanelOpen = false"
+                v-on:navigate="selectNote"
+            />
 
-        <AppModal
-            :show="!!pendingDelete"
-            max-width="sm"
-            :closeable="!deleting"
-            :title="t('notes.markdown.delete')"
-            :icon="Trash2"
-            v-on:close="cancelDelete"
-        >
-            <p class="text-sm text-primary">
-                {{ t('notes.markdown.confirm_delete', { title: pendingDelete?.title || t('notes.markdown.untitled') }) }}
-            </p>
-            <p class="text-sm text-secondary mt-2">
-                {{ t('notes.markdown.delete_warning') }}
-            </p>
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton variant="ghost" size="md" :disabled="deleting" v-on:click="cancelDelete">
-                        <X class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ t('notes.markdown.cancel') }}
-                    </AppButton>
-                    <AppButton variant="danger" size="md" :loading="deleting" v-on:click="confirmDelete">
-                        <Trash2 class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ t('notes.markdown.delete') }}
-                    </AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
+            <AppModal
+                :show="!!pendingDelete"
+                max-width="sm"
+                :closeable="!deleting"
+                :title="t('notes.markdown.delete')"
+                :icon="Trash2"
+                v-on:close="cancelDelete"
+            >
+                <p class="text-sm text-primary">
+                    {{ t('notes.markdown.confirm_delete', { title: pendingDelete?.title || t('notes.markdown.untitled') }) }}
+                </p>
+                <p class="text-sm text-secondary mt-2">
+                    {{ t('notes.markdown.delete_warning') }}
+                </p>
+                <template #footer>
+                    <AppModalFooter>
+                        <AppButton variant="ghost" size="md" :disabled="deleting" v-on:click="cancelDelete">
+                            <X class="w-3.5 h-3.5" :stroke-width="2" />
+                            {{ t('notes.markdown.cancel') }}
+                        </AppButton>
+                        <AppButton variant="danger" size="md" :loading="deleting" v-on:click="confirmDelete">
+                            <Trash2 class="w-3.5 h-3.5" :stroke-width="2" />
+                            {{ t('notes.markdown.delete') }}
+                        </AppButton>
+                    </AppModalFooter>
+                </template>
+            </AppModal>
+        </div>
     </div>
 </template>

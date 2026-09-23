@@ -10,6 +10,7 @@ use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
 use Aurora\Module\Notes\Folder\Serializer\NoteFolderSerializerInterface;
 use Aurora\Module\Notes\Folder\Service\NoteFolderHierarchy;
+use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
 use Aurora\Module\Notes\Markdown\Setting\MarkdownNoteSettingEnum;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
@@ -67,6 +68,46 @@ final readonly class MarkdownNotesViewBuilder
     }
 
     /**
+     * Ce qu'il faut pour dessiner une note seule, sans le back-office.
+     *
+     * L'index des titres est celui de tout le carnet, et non d'un périmètre
+     * comme pour un partage : le lecteur est ici chez lui, donc un wiki-lien
+     * mène toujours quelque part.
+     *
+     * @return array<string, mixed>
+     */
+    public function readView(CoreUserInterface $user, MarkdownNoteInterface $note): array
+    {
+        $titles = [];
+
+        // La liste à plat plutôt que les entités : elle porte les titres et
+        // les identifiants, et rien d'autre. Charger neuf cents corps
+        // chiffrés pour construire un index de titres serait le prix d'un
+        // déchiffrement par note, pour rien.
+        foreach ($this->noteRepository->findFlatListForUser($user) as $one) {
+            $title = mb_strtolower(mb_trim((string) ($one['title'] ?? '')));
+
+            if ('' !== $title) {
+                $titles[$title] = (int) $one['id'];
+            }
+        }
+
+        return [
+            'note' => $note,
+            'readNotePath' => $this->urlGenerator->generate('backend_notes_markdown_read', ['id' => '__id__']),
+            'backPath' => $this->urlGenerator->generate('backend_notes_markdown_show', ['id' => $note->getId()]),
+            'cover' => [
+                'url' => $note->getCoverUrl(),
+                'creditName' => $note->getCoverCreditName(),
+                'creditUrl' => $note->getCoverCreditUrl(),
+                'position' => $note->getCoverPosition(),
+            ],
+            'appearance' => $note->getAppearance()->value,
+            'titleIndex' => $titles,
+        ];
+    }
+
+    /**
      * Les extraits, collés sur les lignes de la liste.
      *
      * Une requête de plus, et pas une jointure : le corps est chiffré, donc
@@ -117,6 +158,8 @@ final readonly class MarkdownNotesViewBuilder
             'sharesCreatePath' => $this->urlGenerator->generate('backend_notes_markdown_shares_create'),
             'sharesRevokePath' => $this->urlGenerator->generate('backend_notes_markdown_shares_revoke', ['id' => '__id__']),
             'imageUploadPath' => $this->urlGenerator->generate('backend_notes_markdown_images_upload'),
+            'readPath' => $this->urlGenerator->generate('backend_notes_markdown_read', ['id' => '__id__']),
+            'coversSearchPath' => $this->urlGenerator->generate('backend_notes_markdown_covers_search'),
         ];
     }
 

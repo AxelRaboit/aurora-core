@@ -1,0 +1,33 @@
+{% extends '@Notes/share/layout.html.twig' %}
+
+{#
+   La note, seule.
+
+   Le gabarit du partage plutôt qu'un troisième : il ne porte ni menu ni
+   fil d'Ariane, ce qui est exactement ce qu'on demande ici, et il garde le
+   thème et les couleurs de l'application pour que la page se lise comme
+   Aurora et non comme une page égarée. La différence tient dans le lecteur :
+   ici il est chez lui, donc les images passent par la route ordinaire et les
+   wiki-liens mènent à cette même vue de lecture.
+#}
+
+{% block title %}{{ note.title|default('')|trim ?: 'notes.markdown.untitled'|trans }} - {{ siteName }}{% endblock %}
+
+{% block heading %}{{ note.title|default('')|trim ?: 'notes.markdown.untitled'|trans }}{% endblock %}
+{% block subheading %}{{ 'notes.markdown.read.subheading'|trans }}{% endblock %}
+
+{% block body %}
+<div {{ vue_component('notes/share/NoteShareApp', {
+    imagePrefix: '',
+    shareImagePath: '',
+    shareNotePath: readNotePath,
+    backPath: backPath,
+    noteId: note.id,
+    noteTitle: note.title,
+    content: note.content,
+    cover: cover,
+    appearance: appearance,
+    tree: [],
+    titleIndex: titleIndex,
+}) }}></div>
+{% endblock %}

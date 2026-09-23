@@ -5,6 +5,79 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.226] - 2026-09-23
+
+### Ajouté
+
+#### Une note peut porter une image d'entête, sans rien encombrer
+Un bandeau se choisit dans une recherche Pexels, et **l'image reste chez
+eux** : la note n'en garde que l'adresse, le nom du photographe et le lien
+vers sa page. Rien n'entre dans la médiathèque, exprès - une photo
+décorative n'a pas de vie propre, personne ne la cherchera ni ne la rangera,
+et la verser là-bas la mettrait dans la même liste que les contrats. Le prix
+assumé est qu'une image retirée de chez eux laisse un cadre vide ; on en
+choisit une autre.
+
+Le crédit n'est pas une politesse : la licence demande de nommer le
+photographe, et hors de la médiathèque il n'y a plus de fiche pour le
+porter. Un point de cadrage règle la bande montrée, parce qu'une photo n'a
+pas été prise pour être coupée en bandeau.
+
+La recherche passe par une route du module Notes et non par celle de la
+médiathèque : cette dernière exige un droit sur les documents, que quelqu'un
+qui prend des notes n'a pas forcément, et le lui demander pour choisir une
+image décorative serait un droit de trop.
+
+#### Six apparences pour une note
+Ordinaire, sépia, ardoise, papier, nuit, menthe. Des apparences déclarées et
+non une couleur à la pipette : un nom se fait évoluer - on change ce qu'il
+veut dire et les notes qui le portent suivent - là où un code hexadécimal
+écrit dans mille notes garderait l'ancien fond pour toujours. `Ordinaire` ne
+pose aucune couleur, donc une note sans habillage continue de suivre le
+thème clair ou sombre de la personne.
+
+#### Une adresse qui n'affiche que la note
+`/backend/notes/markdown/{id}/read` montre la note seule, sans menu ni fil
+d'Ariane, avec son bandeau et son apparence. C'est le gabarit du partage
+public qui la dessine - il est déjà fait pour ça - mais lue par son
+propriétaire : les images passent par la route ordinaire, et les
+`[[wiki-liens]]` mènent à cette même vue, de note en note.
+
+### Dans aurora-client
+
+Une migration ajoute cinq colonnes à `core_notes_markdown_notes` :
+l'adresse du bandeau, le nom et le lien de son auteur, le cadrage, et
+l'apparence. Elles valent toutes null ou `plain`, donc aucune note existante
+ne change d'allure.
+
+Pour que le choix d'image fonctionne, la clé Pexels doit être renseignée
+dans les réglages de la médiathèque ; sans elle, le sélecteur le dit au lieu
+d'échouer.
+
+---
+
+## [0.9.225] - 2026-09-23
+
+### Modifié
+
+#### La mosaïque des notes montre une vignette, pas une phrase
+Une carte affichait les premières lignes de la note aplaties en un
+paragraphe : les dièses, les tirets et les cases à cocher étaient retirés, et
+vingt cartes finissaient par se ressembler. Elle montre maintenant le début
+de la note **tel qu'il se relira** - un titre, une liste, une citation - en
+petit et coupé en bas par un dégradé. Le confort de lecture n'est pas le
+sujet à ce moment-là : on cherche « ah oui, c'est celle-là ».
+
+L'extrait part donc en Markdown plutôt qu'en texte, sur sept cents
+caractères au lieu de cent soixante. Les images en sont retirées - une seule
+en `data:` pèserait plus que toute la liste - et un bloc de code coupé au
+milieu est refermé, sans quoi la fin de la vignette passerait pour du code.
+
+Et la mosaïque tient sur **quatre colonnes** au-delà de 1280 px, au lieu de
+trois, comme le mur de cartes de Craft.
+
+---
+
 ## [0.9.224] - 2026-09-23
 
 ### Ajouté

@@ -45,7 +45,39 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
 
     const notes = ref([...initialNotes]);
     const selectedId = ref(null);
-    const form = ref({ title: "", content: "", tags: [], ...extraDefaults() });
+    /**
+     * Ce que l'habillage d'une note ajoute au formulaire.
+     *
+     * Le bandeau et l'apparence se sauvegardent comme le texte - par la même
+     * écriture automatique, sur la même route - parce que ce sont des champs
+     * de la note et rien d'autre. Les nommer ici les fait entrer dans
+     * l'instantané, donc dans la détection de modification : choisir une
+     * image déclenche l'enregistrement, sans bouton.
+     */
+    const LOOK_DEFAULTS = {
+        coverUrl: null,
+        coverCreditName: null,
+        coverCreditUrl: null,
+        coverPosition: 50,
+        appearance: "plain",
+    };
+
+    function pickLook(source) {
+        return Object.fromEntries(
+            Object.entries(LOOK_DEFAULTS).map(([key, fallback]) => [
+                key,
+                source?.[key] ?? fallback,
+            ]),
+        );
+    }
+
+    const form = ref({
+        title: "",
+        content: "",
+        tags: [],
+        ...LOOK_DEFAULTS,
+        ...extraDefaults(),
+    });
     // Snapshot of the last known server state for the selected note -
     // includes content (which the flat `notes` list omits). The isDirty
     // comparison runs against this, not against the flat list entry.
@@ -76,6 +108,16 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
         for (const key of extraKeys) {
             if (loadedSnapshot.value[key] !== form.value[key]) return true;
         }
+
+        // L'habillage compte autant que le texte. Sans ces clés, choisir
+        // une image ou déplacer le cadrage laissait le formulaire « propre » :
+        // la surveillance se déclenchait bien, mais repartait aussitôt
+        // faute de différence à écrire, et le réglage disparaissait au
+        // rechargement suivant. Signalé par Axel le 23/09.
+        for (const key of Object.keys(LOOK_DEFAULTS)) {
+            if (loadedSnapshot.value[key] !== form.value[key]) return true;
+        }
+
         return false;
     });
 
@@ -132,6 +174,7 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
             title: payload.note.title ?? "",
             content: payload.note.content ?? "",
             tags: [...(payload.note.tags ?? [])],
+            ...pickLook(payload.note),
             ...pickExtras(payload.note),
         };
         loadedSnapshot.value = snapshot;
@@ -175,6 +218,7 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
             title: form.value.title,
             content: form.value.content,
             tags: [...form.value.tags],
+            ...pickLook(form.value),
             ...pickExtras(form.value),
         };
 

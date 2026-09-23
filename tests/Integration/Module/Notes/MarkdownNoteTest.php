@@ -270,6 +270,89 @@ final class MarkdownNoteTest extends IntegrationTestCase
         self::assertSame('#22c55e', $fresh->getColor(), 'The refused colour must leave the folder alone.');
     }
 
+    /**
+     * Le bandeau d'une note, et la page qui ne montre qu'elle.
+     *
+     * L'image reste chez celui qui l'héberge : la note n'en garde que
+     * l'adresse et le crédit, et **rien n'entre dans la médiathèque**.
+     */
+    public function testANoteKeepsItsCoverAndItsLook(): void
+    {
+        $note = $this->note($this->owner, 'Avec une image');
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->post('backend_notes_markdown_update', [
+            'title' => 'Avec une image',
+            'content' => '',
+            'coverUrl' => 'https://images.pexels.com/photos/1/photo.jpg',
+            'coverCreditName' => 'Ada L.',
+            'coverCreditUrl' => 'https://www.pexels.com/@ada',
+            'coverPosition' => 20,
+            'appearance' => 'sepia',
+        ], ['id' => $note->getId()]);
+
+        self::assertResponseIsSuccessful();
+
+        $this->entityManager->clear();
+        $fresh = $this->entityManager->find(MarkdownNote::class, $note->getId());
+        self::assertInstanceOf(MarkdownNote::class, $fresh);
+        self::assertSame('https://images.pexels.com/photos/1/photo.jpg', $fresh->getCoverUrl());
+        self::assertSame('Ada L.', $fresh->getCoverCreditName());
+        self::assertSame(20, $fresh->getCoverPosition());
+        self::assertSame('sepia', $fresh->getAppearance()->value);
+    }
+
+    /** Une adresse qui n'est pas une adresse ne s'écrit pas. */
+    public function testACoverRefusesAnythingButAnHttpsAddress(): void
+    {
+        $note = $this->note($this->owner, 'Sans image');
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->post('backend_notes_markdown_update', [
+            'title' => 'Sans image',
+            'content' => '',
+            'coverUrl' => 'javascript:alert(1)',
+        ], ['id' => $note->getId()]);
+
+        self::assertResponseStatusCodeSame(422);
+
+        $this->entityManager->clear();
+        $fresh = $this->entityManager->find(MarkdownNote::class, $note->getId());
+        self::assertInstanceOf(MarkdownNote::class, $fresh);
+        self::assertNull($fresh->getCoverUrl());
+    }
+
+    /**
+     * La note seule, sans le back-office autour.
+     *
+     * Et seulement la sienne : la vue de lecture n'a pas de jeton, c'est le
+     * compte qui fait la portée.
+     */
+    public function testTheReadingViewRendersTheNoteAlone(): void
+    {
+        $note = $this->note($this->owner, 'À lire', content: '# Titre');
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->client->request('GET', $this->urlGenerator->generate(
+            'backend_notes_markdown_read',
+            ['id' => $note->getId()],
+        ));
+
+        self::assertResponseIsSuccessful();
+
+        $html = (string) $this->client->getResponse()->getContent();
+        self::assertStringContainsString('notes/share/NoteShareApp', $html);
+        self::assertStringNotContainsString('sidemenu-nav', $html);
+
+        $this->client->loginUser($this->other, 'admin');
+        $this->client->request('GET', $this->urlGenerator->generate(
+            'backend_notes_markdown_read',
+            ['id' => $note->getId()],
+        ));
+
+        self::assertResponseStatusCodeSame(404);
+    }
+
     /** Somebody else's folder is neither listed nor reachable. */
     public function testSomebodyElsesFolderIsNotListed(): void
     {
@@ -364,8 +447,9 @@ final class MarkdownNoteTest extends IntegrationTestCase
      *
      * Il vaut un déchiffrement par note : huit millisecondes de plus sur un
      * carnet de cinq cents notes, mesuré, ce qui est le prix d'une carte qui
-     * montre autre chose qu'un titre. Le Markdown y est aplati, sinon la
-     * carte afficherait des dièses.
+     * montre autre chose qu'un titre. **Il part en Markdown**, pas aplati :
+     * la vignette le rend en petit, et c'est de voir un titre et une liste
+     * qu'on reconnaît une note.
      */
     public function testTheListCarriesAnExcerpt(): void
     {
@@ -382,7 +466,37 @@ final class MarkdownNoteTest extends IntegrationTestCase
         ));
 
         self::assertIsArray($row);
-        self::assertSame('Titre une liste deux', $row['excerpt']);
+        self::assertSame("# Titre\n\n- une liste\n- deux", $row['excerpt']);
+    }
+
+    /**
+     * Une image ne part pas dans l'extrait, et un bloc de code coupé se
+     * referme.
+     *
+     * Une seule image en `data:` pèserait plus que toute la liste, et une
+     * clôture manquante ferait passer la fin de la vignette pour du code.
+     */
+    public function testTheExcerptDropsImagesAndClosesWhatItCuts(): void
+    {
+        $note = $this->note(
+            $this->owner,
+            'Avec une image',
+            content: "![vue](data:image/png;base64,AAAA)\n\nLe texte.\n\n```php\necho 1;",
+        );
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_list'));
+
+        $body = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+        $row = current(array_filter(
+            $body['notes'],
+            static fn (array $one): bool => (int) $one['id'] === $note->getId(),
+        ));
+
+        self::assertIsArray($row);
+        self::assertStringNotContainsString('data:image', (string) $row['excerpt']);
+        self::assertSame(2, mb_substr_count((string) $row['excerpt'], '```'));
     }
 
     /**

@@ -6,6 +6,7 @@ namespace Aurora\Module\Notes\Markdown\Entity;
 
 use Aurora\Core\Timestampable\TimestampableInterface;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
+use Aurora\Module\Notes\Markdown\Enum\NoteAppearanceEnum;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use DateTimeImmutable;
 
@@ -30,6 +31,28 @@ interface MarkdownNoteInterface extends TimestampableInterface
     public function setContent(?string $content): static;
 
     /** @return list<string> */
+    /** L'adresse de l'image d'entête, chez celui qui l'héberge. */
+    public function getCoverUrl(): ?string;
+
+    public function setCoverUrl(?string $coverUrl): static;
+
+    public function getCoverCreditName(): ?string;
+
+    public function setCoverCreditName(?string $name): static;
+
+    public function getCoverCreditUrl(): ?string;
+
+    public function setCoverCreditUrl(?string $url): static;
+
+    /** Où couper la photo, en pourcentage de sa hauteur. */
+    public function getCoverPosition(): int;
+
+    public function setCoverPosition(int $percent): static;
+
+    public function getAppearance(): NoteAppearanceEnum;
+
+    public function setAppearance(NoteAppearanceEnum $appearance): static;
+
     public function getTags(): array;
 
     /** @param list<string> $tags */

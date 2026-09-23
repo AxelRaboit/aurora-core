@@ -177,6 +177,30 @@ notes:
       upload_failed: The image could not be uploaded.
     title: Markdown notes
     save: Save
+    read:
+      open: Read the note on its own
+      subheading: Reading view
+      back: Back to the editor
+    cover:
+      add: Add a cover image
+      change: Change the cover image
+      remove: Remove the image
+      credit: 'Photo: {name} (Pexels)'
+      search_placeholder: Search a photo…
+      search_empty: No photo for that search
+      not_configured: Pexels is not configured.
+      not_configured_hint: An administrator can set the key in the media library settings.
+      position: Framing
+      autosaved: The framing saves itself, like the note's text.
+      title: Cover image
+    appearance:
+      title: Appearance
+      plain: Plain
+      sepia: Sepia
+      slate: Slate
+      paper: Paper
+      midnight: Midnight
+      mint: Mint
     delete: Delete
     cancel: Cancel
     saved: Note saved
