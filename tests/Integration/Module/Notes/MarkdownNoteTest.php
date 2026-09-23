@@ -235,6 +235,41 @@ final class MarkdownNoteTest extends IntegrationTestCase
         self::assertNull($fresh->getParent(), 'The refused move must leave the tree untouched.');
     }
 
+    /**
+     * Une couleur se garde, et une couleur inventée se refuse.
+     *
+     * Elle finit dans un attribut de style : tout ce qui n'est pas
+     * `#rrggbb` est un refus, pas une valeur qu'on nettoie en silence.
+     */
+    public function testAFolderKeepsItsColour(): void
+    {
+        $this->client->loginUser($this->owner, 'admin');
+
+        $created = $this->post('backend_notes_markdown_folders_create', [
+            'name' => 'Clients',
+            'color' => '#22c55e',
+        ]);
+
+        self::assertResponseIsSuccessful();
+        self::assertSame('#22c55e', $created['folder']['color']);
+
+        $id = (int) $created['folder']['id'];
+        $this->created[] = [NoteFolder::class, $id];
+
+        $this->post(
+            'backend_notes_markdown_folders_update',
+            ['name' => 'Clients', 'color' => 'rouge'],
+            ['id' => $id],
+        );
+
+        self::assertResponseStatusCodeSame(422);
+
+        $this->entityManager->clear();
+        $fresh = $this->entityManager->find(NoteFolder::class, $id);
+        self::assertInstanceOf(NoteFolder::class, $fresh);
+        self::assertSame('#22c55e', $fresh->getColor(), 'The refused colour must leave the folder alone.');
+    }
+
     /** Somebody else's folder is neither listed nor reachable. */
     public function testSomebodyElsesFolderIsNotListed(): void
     {

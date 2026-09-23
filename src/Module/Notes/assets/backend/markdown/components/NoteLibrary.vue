@@ -46,6 +46,7 @@ import {
 } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
+import AppColorPicker from "@/shared/components/form/picker/AppColorPicker.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppMultiselect from "@/shared/components/form/select/AppMultiselect.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
@@ -283,6 +284,16 @@ const sortLabel = computed(
     () => sortOptions.value.find((one) => one.value === sort.value)?.label ?? "",
 );
 
+/**
+ * La couleur d'un dossier, s'il en porte une.
+ *
+ * Posée en style plutôt qu'en classe : c'est une valeur libre, choisie par
+ * le lecteur, et Tailwind ne génère que les classes qu'il voit écrites.
+ */
+function folderTint(folder) {
+    return folder.color ? { color: folder.color } : null;
+}
+
 function folderLabel(folder) {
     return folder.name || t("notes.markdown.folders.untitled");
 }
@@ -423,6 +434,7 @@ async function deleteSelection() {
 // ── Créer, renommer ────────────────────────────────────────────────
 const nameModal = ref(null);
 const nameValue = ref("");
+const nameColor = ref(null);
 const nameSaving = ref(false);
 
 function askForFolderName(folder = null, parentId = undefined) {
@@ -431,6 +443,7 @@ function askForFolderName(folder = null, parentId = undefined) {
         parentId: undefined === parentId ? currentFolderId.value : parentId,
     };
     nameValue.value = folder?.name ?? "";
+    nameColor.value = folder?.color ?? null;
 }
 
 async function submitName() {
@@ -443,11 +456,13 @@ async function submitName() {
         ? await props.foldersApi.create(
             nameValue.value,
             nameModal.value.parentId ?? null,
+            nameColor.value,
         )
         : await props.foldersApi.rename(
             id,
             nameValue.value,
             nameModal.value.parentId ?? null,
+            nameColor.value,
         );
 
     nameSaving.value = false;
@@ -1392,7 +1407,11 @@ defineExpose({
                                     v-on:click="openFolder(folder.id)"
                                     v-on:dblclick.stop="askForFolderName(folder)"
                                 >
-                                    <Folder class="w-5 h-5 shrink-0 text-accent-500" :stroke-width="2" />
+                                    <Folder
+                                        class="w-5 h-5 shrink-0 text-accent-500"
+                                        :style="folderTint(folder)"
+                                        :stroke-width="2"
+                                    />
                                     <span class="truncate font-medium text-primary">{{ folderLabel(folder) }}</span>
                                 </button>
 
@@ -1516,7 +1535,11 @@ defineExpose({
                                         v-on:click="openFolder(folder.id)"
                                         v-on:dblclick.stop="askForFolderName(folder)"
                                     >
-                                        <Folder class="w-4 h-4 shrink-0 text-accent-500" :stroke-width="2" />
+                                        <Folder
+                                            class="w-4 h-4 shrink-0 text-accent-500"
+                                            :style="folderTint(folder)"
+                                            :stroke-width="2"
+                                        />
                                         <span class="truncate font-medium text-primary">{{ folderLabel(folder) }}</span>
                                     </button>
                                 </td>
@@ -1597,6 +1620,15 @@ defineExpose({
                 :placeholder="t('notes.markdown.folders.name_placeholder')"
                 class="w-full"
                 v-on:keyup.enter="submitName"
+            />
+
+            <!-- Une couleur pour reconnaître un dossier sans le lire. Le
+                 sélecteur de la maison, présets et hexadécimal, le même
+                 qu'aux étiquettes de document. -->
+            <AppColorPicker
+                v-model="nameColor"
+                class="mt-4"
+                :label="t('notes.markdown.folders.color')"
             />
 
             <template #footer>

@@ -96,6 +96,7 @@ notes:
       rename: Rename
       renamed: Folder renamed
       name_placeholder: Folder name…
+      color: Colour
       untitled: Untitled folder
       delete: Delete the folder
       confirm_delete: 'Send "{name}" to the trash, with what it holds?'
@@ -109,6 +110,7 @@ notes:
       errors:
         move_refused: 'Move refused: a folder cannot be filed inside itself, nor deeper than {max} levels.'
         bad_payload: Invalid payload.
+        bad_color: 'Invalid colour: it must look like #rrggbb.'
         create_failed: Could not create the folder.
         rename_failed: Could not rename the folder.
         delete_failed: Could not delete the folder.

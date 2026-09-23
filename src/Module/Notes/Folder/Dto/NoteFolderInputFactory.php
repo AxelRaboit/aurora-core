@@ -16,6 +16,7 @@ class NoteFolderInputFactory implements NoteFolderInputFactoryInterface
     {
         return new NoteFolderInput(
             name: Str::trimOrNullFromArray($data, 'name'),
+            color: Str::trimOrNullFromArray($data, 'color'),
             parentId: $this->intOrNull($data, 'parentId'),
             position: $this->intOrNull($data, 'position'),
         );

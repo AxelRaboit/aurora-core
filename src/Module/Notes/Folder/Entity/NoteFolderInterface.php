@@ -36,6 +36,17 @@ interface NoteFolderInterface extends TimestampableInterface
 
     public function setName(?string $name): static;
 
+    /**
+     * La couleur du dossier, `#rrggbb`, ou null s'il n'en porte pas.
+     *
+     * En clair, contrairement au nom : une couleur ne dit rien de ce qu'il y
+     * a dedans, et c'est ce qui permet de la trier et de la compter en SQL
+     * le jour où un écran le demandera.
+     */
+    public function getColor(): ?string;
+
+    public function setColor(?string $color): static;
+
     public function getPosition(): int;
 
     public function setPosition(int $position): static;

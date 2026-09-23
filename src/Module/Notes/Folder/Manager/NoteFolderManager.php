@@ -314,6 +314,7 @@ class NoteFolderManager implements NoteFolderManagerInterface
     protected function applyInput(NoteFolderInterface $folder, NoteFolderInputInterface $input): void
     {
         $folder->setName($input->getName());
+        $folder->setColor($input->getColor());
 
         $parentId = $input->getParentId();
         $parent = null === $parentId
@@ -371,6 +372,9 @@ class NoteFolderManager implements NoteFolderManagerInterface
         return [
             'parentId' => $folder->getParent()?->getId(),
             'position' => $folder->getPosition(),
+            // La couleur, elle, peut y figurer : elle ne dit rien de ce que
+            // le dossier contient.
+            'color' => $folder->getColor(),
         ];
     }
 }

@@ -57,6 +57,20 @@ const isSelected = computed(() => props.selectedKey === props.node.key);
 const isDragOver = computed(() => props.dragOverKey === props.node.key);
 const isBeingDragged = computed(() => props.draggingKey === props.node.key);
 
+/**
+ * La couleur du dossier, quand il en porte une.
+ *
+ * En style et non en classe : la valeur vient du lecteur, et Tailwind
+ * n'écrit que les classes qu'il voit dans le source. Elle passe devant la
+ * classe de couleur sauf quand la ligne est choisie ou survolée par un
+ * glisser : là, c'est l'état qui doit se voir, pas la décoration.
+ */
+const tint = computed(() =>
+    isFolder.value && props.node.color && !isSelected.value && !isDragOver.value
+        ? { color: props.node.color }
+        : null,
+);
+
 const label = computed(() =>
     isFolder.value
         ? props.node.name || undefined
@@ -129,6 +143,7 @@ const indentStyle = computed(() => ({ marginLeft: `${props.depth * 1}rem` }));
                     :is="isFolder ? (isOpen && hasChildren ? FolderOpen : Folder) : FileText"
                     class="w-4 h-4 shrink-0"
                     :class="isSelected || isDragOver ? 'text-accent-400' : 'text-muted'"
+                    :style="tint"
                     :stroke-width="2"
                 />
 

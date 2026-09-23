@@ -19,6 +19,16 @@ class NoteFolderInput implements NoteFolderInputInterface
     public function __construct(
         #[Assert\Length(max: 150)]
         public readonly ?string $name = null,
+        /**
+         * Une couleur refusée n'est pas silencieusement ignorée.
+         *
+         * Le nom est libre, la couleur non : elle finit dans un attribut de
+         * style, donc tout ce qui n'est pas `#rrggbb` est un refus et non
+         * une valeur nettoyée. La fabrique laisse passer ce qu'elle reçoit
+         * pour que ce soit cette contrainte qui le dise.
+         */
+        #[Assert\Regex(pattern: '/^#[0-9a-fA-F]{6}$/', message: 'notes.markdown.folders.errors.bad_color')]
+        public readonly ?string $color = null,
         public readonly ?int $parentId = null,
         #[Assert\PositiveOrZero]
         public readonly ?int $position = null,
@@ -27,6 +37,11 @@ class NoteFolderInput implements NoteFolderInputInterface
     public function getName(): ?string
     {
         return $this->name;
+    }
+
+    public function getColor(): ?string
+    {
+        return $this->color;
     }
 
     public function getParentId(): ?int

@@ -13,6 +13,7 @@ const FOLDERS = [
         id: 1,
         parentId: null,
         name: "Clients",
+        color: "#22c55e",
         position: 0,
         noteCount: 2,
         folderCount: 1,
@@ -781,6 +782,36 @@ describe("the library", () => {
                 titles.some((title) => title.includes("scope.open_folder")),
             ).toBe(false);
         });
+    });
+
+    /**
+     * Une couleur se pose en style et non en classe : elle est choisie par
+     * le lecteur, et Tailwind n'écrit que les classes qu'il voit dans le
+     * source.
+     */
+    it("paints a folder's icon with the colour it carries", () => {
+        const wrapper = render();
+
+        const tinted = wrapper
+            .findAll("svg")
+            .filter((svg) =>
+                svg.attributes("style")?.includes("rgb(34, 197, 94)"),
+            );
+
+        expect(tinted.length).toBeGreaterThan(0);
+    });
+
+    it("leaves a folder without a colour alone", () => {
+        const wrapper = render({
+            folders: [{ ...FOLDERS[0], color: null }],
+            notes: [],
+        });
+
+        const styled = wrapper
+            .findAll("svg")
+            .filter((svg) => (svg.attributes("style") ?? "").includes("color"));
+
+        expect(styled).toHaveLength(0);
     });
 
     it("draws a table when the list view is picked", async () => {

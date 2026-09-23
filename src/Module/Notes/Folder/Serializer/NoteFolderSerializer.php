@@ -38,6 +38,7 @@ class NoteFolderSerializer implements NoteFolderSerializerInterface
             'id' => $folder->getId(),
             'parentId' => $folder->getParent()?->getId(),
             'name' => $folder->getName(),
+            'color' => $folder->getColor(),
             'position' => $folder->getPosition(),
             'favoritedAt' => $folder->getFavoritedAt()?->format(DateTimeInterface::ATOM),
             'noteCount' => $this->noteCounts[$id] ?? 0,

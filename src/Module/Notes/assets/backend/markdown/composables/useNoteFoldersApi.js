@@ -34,12 +34,16 @@ export function useNoteFoldersApi(paths) {
 
     return {
         list: () => call(HttpMethod.Get, paths.list),
-        create: (name, parentId = null) =>
-            call(HttpMethod.Post, paths.create, { name, parentId }),
-        rename: (id, name, parentId = null) =>
+        create: (name, parentId = null, color = null) =>
+            call(HttpMethod.Post, paths.create, { name, parentId, color }),
+        // `rename` écrit aussi la couleur : c'est la même modale et le même
+        // endpoint, et un appel qui ometterait la couleur l'effacerait,
+        // puisque le manager applique tout l'input.
+        rename: (id, name, parentId = null, color = null) =>
             call(HttpMethod.Post, resolvePath(paths.update, id), {
                 name,
                 parentId,
+                color,
             }),
         move: (id, parentId) =>
             call(HttpMethod.Post, resolvePath(paths.move, id), { parentId }),

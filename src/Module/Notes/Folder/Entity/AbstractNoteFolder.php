@@ -48,6 +48,14 @@ abstract class AbstractNoteFolder implements NoteFolderInterface
     #[ORM\Column(type: EncryptedTextType::NAME, nullable: true)]
     protected ?string $name = null;
 
+    /**
+     * `#rrggbb`, ou rien. Sept caractères parce que c'est la forme que le
+     * sélecteur de la maison produit, celle que porte déjà l'étiquette de
+     * document.
+     */
+    #[ORM\Column(length: 7, nullable: true)]
+    protected ?string $color = null;
+
     #[ORM\Column(type: Types::INTEGER, options: ['unsigned' => true, 'default' => 0])]
     protected int $position = 0;
 
@@ -101,6 +109,18 @@ abstract class AbstractNoteFolder implements NoteFolderInterface
     public function setName(?string $name): static
     {
         $this->name = $name;
+
+        return $this;
+    }
+
+    public function getColor(): ?string
+    {
+        return $this->color;
+    }
+
+    public function setColor(?string $color): static
+    {
+        $this->color = $color;
 
         return $this;
     }

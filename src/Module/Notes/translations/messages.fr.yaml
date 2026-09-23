@@ -96,6 +96,7 @@ notes:
       rename: Renommer
       renamed: Dossier renommé
       name_placeholder: Nom du dossier…
+      color: Couleur
       untitled: Dossier sans titre
       delete: Supprimer le dossier
       confirm_delete: "Mettre « {name} » à la corbeille, avec ce qu'il contient ?"
@@ -109,6 +110,7 @@ notes:
       errors:
         move_refused: 'Déplacement refusé : un dossier ne peut pas être rangé dans lui-même, ni au-delà de {max} niveaux.'
         bad_payload: Données invalides.
+        bad_color: 'Couleur invalide : il faut une valeur de la forme #rrggbb.'
         create_failed: Impossible de créer le dossier.
         rename_failed: Impossible de renommer le dossier.
         delete_failed: Impossible de supprimer le dossier.
