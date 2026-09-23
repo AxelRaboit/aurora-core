@@ -6,16 +6,16 @@ namespace Aurora\Module\Notes\Markdown\Controller\Backend;
 
 use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonResponseTrait;
-use Aurora\Core\Storage\BinaryFileServer;
+use Aurora\Core\Storage\StoredFileResponder;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteImageService;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
-use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -28,7 +28,7 @@ final class MarkdownNotesImagesController extends AbstractController
 
     public function __construct(
         private readonly MarkdownNoteImageService $imageService,
-        private readonly BinaryFileServer $binaryFileServer,
+        private readonly StoredFileResponder $storedFileResponder,
         private readonly UrlGeneratorInterface $urlGenerator,
     ) {}
 
@@ -61,14 +61,18 @@ final class MarkdownNotesImagesController extends AbstractController
     }
 
     /**
-     * Serve an image to its owner. Per-user auth is enforced by routing
-     * the path through `MarkdownNoteImageService::path()`, which builds the
-     * absolute path *from the current user's directory* and refuses any
-     * filename that resolves outside it (path traversal guard). A 404 is
-     * returned for missing or non-owned images.
+     * Sert une image à qui la possède.
      *
-     * The `filename` requirement bans `/` to keep the route confined to
-     * a flat filename - no nested traversal can ever reach the action.
+     * La règle d'accès tient dans la clé : elle est construite avec
+     * l'identifiant de **la personne connectée**, jamais avec celui que porte
+     * la demande. Réclamer l'image d'un autre revient donc à réclamer une clé
+     * qui n'existe pas, et la réponse est le même 404 que pour une image
+     * supprimée. Rien ne dit à qui demande si le fichier existe ailleurs.
+     *
+     * C'est plus court que ce qu'il y avait : un chemin absolu construit
+     * depuis le dossier de la personne, un `realpath`, et une comparaison à
+     * la racine pour empêcher une remontée. Une clé d'objet n'a pas de
+     * dossier parent.
      */
     #[Route(
         '/{filename}',
@@ -81,22 +85,22 @@ final class MarkdownNotesImagesController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        try {
-            $path = $this->imageService->path($filename, $user);
-        } catch (RuntimeException) {
+        $key = $this->imageService->keyOrNull($filename, $user);
+
+        if (null === $key) {
             return $this->jsonNotFound();
         }
 
         try {
-            // Through the shared server rather than a `BinaryFileResponse` of
-            // its own: that is where `nosniff` is set and where the types a
-            // browser would run as a document are handed over as downloads.
-            // Building the response here meant this route quietly opted out of
-            // both. The default it applies - private, one hour - is the one
-            // this route wants anyway: filenames are uuids, so a different
-            // file is a different URL, and the content is auth-gated.
-            return $this->binaryFileServer->serve($path, $this->imageService->root());
-        } catch (RuntimeException) {
+            // Par le répondeur partagé plutôt qu'une réponse fabriquée ici :
+            // c'est lui qui pose `nosniff`, qui rend en téléchargement ce
+            // qu'un navigateur exécuterait comme un document, et qui sait
+            // servir un fichier local tel quel et diffuser un distant par
+            // morceaux. Sa politique - privé, une heure - est celle que cette
+            // route veut : les noms sont des uuid, donc un autre fichier est
+            // une autre adresse, et le contenu est derrière une autorisation.
+            return $this->storedFileResponder->respond($key);
+        } catch (NotFoundHttpException) {
             return $this->jsonNotFound();
         }
     }
