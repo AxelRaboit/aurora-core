@@ -134,6 +134,11 @@ notes:
         badge: Shared
         by: 'By {name}'
         read_only: Read-only
+      visibility:
+        all: 'Filter: everything'
+        shared: 'Filter: shared with the team'
+        private: 'Filter: private'
+        clear: Clear the filter
       selected: '{count} selected'
       select: Select
       clear_selection: Clear the selection

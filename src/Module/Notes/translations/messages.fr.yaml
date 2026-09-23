@@ -134,6 +134,11 @@ notes:
         badge: Partagé
         by: 'Par {name}'
         read_only: Lecture seule
+      visibility:
+        all: 'Filtrer : tout'
+        shared: 'Filtre : partagés avec l''équipe'
+        private: 'Filtre : privés'
+        clear: Retirer le filtre
       selected: '{count} sélectionné(s)'
       select: Sélectionner
       clear_selection: Tout désélectionner
