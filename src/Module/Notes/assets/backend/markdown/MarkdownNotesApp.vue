@@ -627,11 +627,7 @@ onUnmounted(() => {
                             :aria-label="t('notes.markdown.title_placeholder')"
                         >
 
-                        <!-- Collés à droite : le titre prend la ligne du dessus
-                         sur toute la largeur, et une rangée d'icônes accrochée
-                         au bord gauche sous lui laissait un vide de la moitié
-                         de l'en-tête. Demandé par Axel le 23/09. -->
-                        <div class="flex flex-wrap items-center justify-end gap-2 md:gap-3">
+                        <div class="ml-auto flex shrink-0 flex-wrap items-center justify-end gap-2 md:gap-3">
                             <!-- Disabled until a note is selected: there is nothing to
                              share from an empty editor, and a modal that opens on
                              null would ask the server for share links of no note. -->
