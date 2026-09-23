@@ -196,7 +196,32 @@ const SHOTS = [
             await page.waitForTimeout(2_500);
         },
     },
-    { name: "tour-notes", path: "/backend/notes/markdown" },
+    {
+        // La carte promet « le rendu à côté de la source », et son texte de
+        // remplacement décrit « une note, son rendu à côté, ses étiquettes et
+        // ses liens ». La prise montrait la bibliothèque : des dossiers et des
+        // vignettes, c'est-à-dire la seule chose que la carte ne dit pas.
+        //
+        // Par le nom et non par un identifiant : les fixtures renumérotent à
+        // chaque rechargement. « Cabinet Verrier » est la seule note de la
+        // démonstration qui réunisse les trois : un bandeau, un lien wiki dans
+        // son texte, et un lien entrant, donc un panneau qui montre quelque
+        // chose. « Sommaire des clients » a une source plus riche mais rien ne
+        // pointe vers elle : le panneau s'ouvrait sur « Aucun lien entrant »,
+        // au milieu d'une image qui sert à montrer que les notes se relient.
+        name: "tour-notes",
+        path: "/backend/notes/markdown",
+        async prepare(page) {
+            // Un lien et non un bouton : dans la bande « Récemment modifiées »,
+            // chaque note est une ancre vers son adresse.
+            await page.getByRole("link", { name: /^Cabinet Verrier/ }).first().click();
+            await page.waitForTimeout(2_500);
+            await page.getByTitle("Édition + aperçu").first().click();
+            await page.waitForTimeout(1_000);
+            await page.getByTitle("Afficher les liens entrants").first().click();
+            await page.waitForTimeout(1_500);
+        },
+    },
     { name: "tour-calendrier", path: "/backend/planning/calendar" },
 
     { name: "tour-contrats", path: "/backend/studio/contracts" },
