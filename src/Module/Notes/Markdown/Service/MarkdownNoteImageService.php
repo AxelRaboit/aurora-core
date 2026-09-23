@@ -4,35 +4,42 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Notes\Markdown\Service;
 
-use Aurora\Core\Storage\BinaryFileServer;
 use Aurora\Core\Storage\Enum\MimeTypeEnum;
+use Aurora\Core\Storage\Enum\StorageAreaEnum;
+use Aurora\Core\Storage\Enum\StorageDiskEnum;
+use Aurora\Core\Storage\StorageManager;
+use Aurora\Core\Storage\StoredFileName;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
-use RuntimeException;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\Filesystem\Path;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
-use Symfony\Component\Uid\Uuid;
 
 use function in_array;
 use function sprintf;
 
-use const DIRECTORY_SEPARATOR;
-
 /**
- * Filesystem-backed image storage for markdown notes. Files are kept
- * **outside** the public document root (`var/uploads/notes-markdown/`)
- * because they must be served through the controller for per-user auth
- * - direct nginx serving would let any logged-in user fetch another
- * user's images by guessing the URL.
+ * Les images collées dans une note, rangées là où va tout le reste.
  *
- * Layout: `{storageDir}/{userId}/{uuid}.{ext}`.
+ * Elles allaient dans `var/uploads/notes-markdown/` par un `Filesystem` posé
+ * en direct, sans passer par la couche de stockage. C'était le seul module à
+ * faire ça : la médiathèque, les photos de profil et les contrats écrivent
+ * tous par `StorageManager`, et le disque actif en production est R2 depuis le
+ * 12 septembre. Les images de note restaient donc sur le disque du serveur,
+ * seules de leur espèce.
  *
- * The service deliberately stays "path B" (no Doctrine entity): notes
- * markdown images don't need metadata (alt, dimensions, hash, …) and a
- * filesystem layout keeps the surface tiny. Migrate to an entity later
- * if quotas, deduplication, or EXIF inspection enter scope.
+ * Le plus parlant : `StorageAreaEnum` déclarait déjà la zone `notes-markdown`,
+ * ajoutée en 0.9.188 pour qu'un garde d'accès puisse revendiquer le préfixe.
+ * La zone existait, l'adaptateur existait, l'écriture n'était pas branchée.
+ *
+ * **La clé porte le propriétaire** : `notes-markdown/{idUtilisateur}/{uuid}.ext`.
+ * C'est elle qui tient la règle d'accès, et elle la tient mieux que l'ancien
+ * calcul de chemin : le contrôleur la construit avec l'identifiant de la
+ * personne connectée, donc demander l'image d'un autre revient à demander une
+ * clé qui n'existe pas. Il n'y a plus de `realpath` à comparer, plus de
+ * remontée possible par `..`, plus de racine à faire respecter.
+ *
+ * Toujours pas d'entité Doctrine, pour la raison d'avant : une image de note
+ * n'a ni alt, ni dimensions, ni empreinte à retenir. Le jour où il faudra des
+ * quotas ou de la déduplication, ce sera une autre discussion.
  */
 final readonly class MarkdownNoteImageService
 {
@@ -60,17 +67,35 @@ final readonly class MarkdownNoteImageService
      */
     public const string FILENAME_PATTERN = '#/backend/notes/markdown/images/([A-Za-z0-9._-]+)#';
 
+    /**
+     * Un nom de fichier tel que ce service en fabrique : un uuid, un point,
+     * une extension. Tout le reste est refusé avant de devenir une clé.
+     *
+     * La route qui sert une image accepte `[A-Za-z0-9._-]+`, ce qui laisse
+     * passer `..`. Sur une clé d'objet, deux points ne sont qu'un segment de
+     * plus ; sur le disque local, ils remonteraient d'un cran. L'adaptateur
+     * local canonicalise et compare à sa racine, donc il tiendrait, mais on ne
+     * fait pas reposer une règle d'accès sur la vigilance de la couche d'en
+     * dessous.
+     *
+     * **Deux formes, parce qu'il y a eu deux époques.** Les images d'avant la
+     * 0.9.230 portent un uuid v4 écrit en toutes lettres, avec ses tirets ;
+     * celles d'après portent les trente-deux caractères que `StoredFileName`
+     * fabrique, seize octets du générateur du système et rien d'autre. Refuser
+     * la première forme rendrait illisible tout ce qui a été collé avant, et
+     * la commande d'adoption ne peut pas renommer sans réécrire les notes qui
+     * citent ces fichiers.
+     */
+    private const string FILENAME_SHAPE = '/^(?:[0-9a-f]{32}|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\.[a-z0-9]{1,5}$/';
+
     public function __construct(
-        #[Autowire('%kernel.project_dir%/var/uploads/notes-markdown')]
-        private string $storageDir,
-        private Filesystem $filesystem = new Filesystem(),
+        private StorageManager $storageManager,
     ) {}
 
     /**
-     * Move the uploaded file under the user's directory, renamed to a
-     * uuid so the client-supplied basename never lands on disk. Returns
-     * the bare filename (uuid.ext) for embedding into markdown - the
-     * controller knows how to recover the absolute path from it.
+     * Écrit le fichier téléversé sous la clé de la personne, renommé en uuid
+     * pour que le nom choisi par le navigateur ne touche jamais le stockage.
+     * Rend le nom nu (uuid.ext), qui est ce que le markdown porte.
      *
      * @throws FileException when validation fails (bad MIME, too big)
      */
@@ -87,57 +112,83 @@ final readonly class MarkdownNoteImageService
             throw new FileException(sprintf('Unsupported MIME type "%s".', $mime));
         }
 
-        $filename = sprintf('%s.%s', Uuid::v4()->toRfc4122(), $imageMime->extension());
+        $filename = StoredFileName::withExtension($imageMime->extension());
 
-        $userDir = $this->userDir($user);
-        $this->filesystem->mkdir($userDir, 0o755);
-
-        $file->move($userDir, $filename);
+        // Le fichier est déjà quelque part sur cette machine, PHP l'y a mis :
+        // passer son chemin plutôt que son contenu fait une copie au lieu de
+        // deux. C'est ce que fait la photo de profil, pour la même raison.
+        $this->storageManager->active()->writeFromLocalFile(
+            $this->keyFor($filename, $user),
+            $file->getPathname(),
+        );
 
         return $filename;
     }
 
     /**
-     * Absolute path for serving the given filename to the given user.
-     * Path traversal guard: the resolved `realpath` must stay under the
-     * user's directory - otherwise a `..`-laden filename could escape
-     * upward (e.g. read another user's images).
+     * La clé de stockage d'une image, ou null si le nom n'a pas la forme que
+     * ce service produit.
      *
-     * @throws RuntimeException when the file is missing or outside the user dir
+     * Null plutôt qu'une exception : l'appelant en fait un 404, ce qui est la
+     * bonne réponse aussi bien pour un nom malformé que pour une image qui
+     * n'existe pas. Distinguer les deux dirait à qui demande si le fichier
+     * existe chez quelqu'un d'autre.
      */
-    public function path(string $filename, CoreUserInterface $user): string
+    public function keyOrNull(string $filename, CoreUserInterface $user): ?string
     {
-        $userDir = $this->userDir($user);
-        $candidate = Path::join($userDir, $filename);
-        $real = realpath($candidate);
-
-        if (false === $real) {
-            throw new RuntimeException(sprintf('Image not found: %s', $filename));
+        if (1 !== preg_match(self::FILENAME_SHAPE, $filename)) {
+            return null;
         }
 
-        $userRoot = realpath($userDir);
-        if (false === $userRoot || !str_starts_with($real, $userRoot.DIRECTORY_SEPARATOR) && $real !== $userRoot) {
-            throw new RuntimeException(sprintf('Image path escapes user directory: %s', $filename));
-        }
-
-        return $real;
+        return $this->keyFor($filename, $user);
     }
 
     /**
-     * Delete a single image. Silently no-ops on a missing file so the
-     * cleanup hook stays idempotent even if a previous run partially
-     * deleted state (or if the same orphan appears in two simultaneous
-     * updates).
+     * Supprime une image, sur tous les disques.
+     *
+     * Sur tous, et pas seulement sur l'actif : une image écrite avant une
+     * bascule de disque vit encore sur l'ancien, et ne la supprimer que sur le
+     * nouveau la laisserait là pour toujours, invisible et facturée. C'est la
+     * même raison qui fait boucler la photo de profil sur les disques.
+     *
+     * Silencieux sur un fichier absent, pour que le nettoyage reste rejouable.
      */
     public function delete(string $filename, CoreUserInterface $user): void
     {
-        try {
-            $real = $this->path($filename, $user);
-        } catch (RuntimeException) {
+        $key = $this->keyOrNull($filename, $user);
+
+        if (null === $key) {
             return;
         }
 
-        $this->filesystem->remove($real);
+        foreach (StorageDiskEnum::cases() as $disk) {
+            $this->storageManager->forDisk($disk)->delete($key);
+        }
+    }
+
+    /**
+     * Le contenu d'une image, pour qui a besoin des octets plutôt que d'une
+     * réponse HTTP - l'export zip, qui les range à côté du markdown.
+     *
+     * Null quand l'image n'existe pas : une note peut citer une image
+     * supprimée entre-temps, et un export qui lèverait pour ça refuserait de
+     * sortir un carnet entier à cause d'un fichier manquant.
+     */
+    public function contents(string $filename, CoreUserInterface $user): ?string
+    {
+        $key = $this->keyOrNull($filename, $user);
+
+        if (null === $key) {
+            return null;
+        }
+
+        foreach ($this->storageManager->all() as $adapter) {
+            if ($adapter->exists($key)) {
+                return $adapter->read($key);
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -160,21 +211,8 @@ final readonly class MarkdownNoteImageService
         return array_values(array_unique($matches[1]));
     }
 
-    private function userDir(CoreUserInterface $user): string
+    private function keyFor(string $filename, CoreUserInterface $user): string
     {
-        return Path::join($this->storageDir, (string) $user->getId());
-    }
-
-    /**
-     * The directory every note image resolves under.
-     *
-     * Handed to {@see BinaryFileServer} as the allowed
-     * root so its `realpath` check has something to compare against. The
-     * per-user guard is still {@see Path()}'s job - this only says how far
-     * out of the tree a resolved path may not climb.
-     */
-    public function root(): string
-    {
-        return $this->storageDir;
+        return sprintf('%s/%s/%s', StorageAreaEnum::NotesMarkdown->value, (string) $user->getId(), $filename);
     }
 }

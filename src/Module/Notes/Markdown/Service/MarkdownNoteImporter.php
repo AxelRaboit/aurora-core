@@ -10,6 +10,8 @@ use Aurora\Module\Notes\Folder\Manager\NoteFolderManagerInterface;
 use Aurora\Module\Notes\Markdown\Dto\MarkdownNoteInput;
 use Aurora\Module\Notes\Markdown\Manager\MarkdownNoteManagerInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use ZipArchive;
 
@@ -48,9 +50,23 @@ use function str_starts_with;
  */
 final readonly class MarkdownNoteImporter
 {
+    /**
+     * Les extensions qu'une archive peut porter comme image.
+     *
+     * La même liste que celle du service d'images, moins le détail : c'est
+     * lui qui tranche pour de bon, en lisant le type réel du fichier. Ici on
+     * ne fait que décider quelles entrées du zip valent la peine d'être
+     * ouvertes, pour ne pas tenter d'importer un PDF de deux cents pages.
+     *
+     * @var list<string>
+     */
+    private const array IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'webp', 'gif'];
+
     public function __construct(
         private MarkdownNoteManagerInterface $notes,
         private NoteFolderManagerInterface $folders,
+        private MarkdownNoteImageService $images,
+        private Filesystem $filesystem = new Filesystem(),
     ) {}
 
     /**
@@ -91,6 +107,10 @@ final readonly class MarkdownNoteImporter
         /** @var array<string, NoteFolderInterface> $byPath */
         $byPath = [];
         $created = 0;
+
+        // Les images d'abord, parce qu'une note qui en cite une a besoin de
+        // sa nouvelle adresse au moment où on l'écrit.
+        $imported = $this->importImages($zip, $user);
 
         for ($i = 0; $i < $zip->numFiles; ++$i) {
             $entry = (string) $zip->getNameIndex($i);
@@ -134,13 +154,130 @@ final readonly class MarkdownNoteImporter
                 continue;
             }
 
-            $this->createNote($user, $under, $this->titleOf($fileName), (string) $zip->getFromIndex($i));
+            $this->createNote($user, $under, $this->titleOf($fileName), $this->relink((string) $zip->getFromIndex($i), $imported));
             ++$created;
         }
 
         $zip->close();
 
         return $created;
+    }
+
+    /**
+     * Reprend les images que l'archive transporte, et rend la table qui dit
+     * quel nom de fichier est devenu quelle adresse.
+     *
+     * Indexées par leur **nom de base** et non par leur chemin : nos archives
+     * les rangent dans `_images/`, Obsidian dans un dossier de pièces jointes
+     * que chacun nomme comme il veut, et une note y renvoie par un chemin
+     * relatif qui dépend de sa profondeur. Le nom de base est ce que les deux
+     * ont en commun. Deux images homonymes dans deux dossiers différents se
+     * marcheraient dessus ; c'est le prix, et il est plus faible que celui de
+     * ne rien importer du tout.
+     *
+     * Une image refusée par le service - trop grosse, ou d'un type qu'on
+     * n'accepte pas, un SVG par exemple - est simplement sautée. L'import du
+     * carnet continue, et la note gardera un lien mort plutôt que de ne pas
+     * exister.
+     *
+     * @return array<string, string> nom de base dans l'archive => adresse à écrire
+     */
+    private function importImages(ZipArchive $zip, CoreUserInterface $user): array
+    {
+        $imported = [];
+
+        for ($i = 0; $i < $zip->numFiles; ++$i) {
+            $entry = (string) $zip->getNameIndex($i);
+            if (str_starts_with($entry, '__MACOSX/')) {
+                continue;
+            }
+
+            if (str_ends_with($entry, '/')) {
+                continue;
+            }
+
+            $base = basename($entry);
+            $extension = mb_strtolower(pathinfo($base, PATHINFO_EXTENSION));
+            if (!in_array($extension, self::IMAGE_EXTENSIONS, true)) {
+                continue;
+            }
+
+            if (isset($imported[$base])) {
+                continue;
+            }
+
+            $octets = $zip->getFromIndex($i);
+            if (false === $octets) {
+                continue;
+            }
+
+            if ('' === $octets) {
+                continue;
+            }
+
+            // Par un fichier temporaire : le service valide le type réel en
+            // lisant le fichier, ce qu'on ne peut pas lui demander sur une
+            // chaîne en mémoire. Le cinquième argument met l'objet en mode
+            // test, sans quoi Symfony refuse un fichier que PHP n'a pas
+            // reçu lui-même d'un formulaire.
+            $temporaire = (string) tempnam(sys_get_temp_dir(), 'aurora-note-image-');
+            $this->filesystem->dumpFile($temporaire, $octets);
+
+            try {
+                $filename = $this->images->store(
+                    new UploadedFile($temporaire, $base, null, null, true),
+                    $user,
+                );
+                $imported[$base] = '/backend/notes/markdown/images/'.$filename;
+            } catch (FileException) {
+                // Sautée, pour la raison dite plus haut.
+            } finally {
+                $this->filesystem->remove($temporaire);
+            }
+        }
+
+        return $imported;
+    }
+
+    /**
+     * Remplace, dans le texte d'une note, les chemins vers les images de
+     * l'archive par les adresses qu'elles ont prises ici.
+     *
+     * Ce que l'export a écrit dans l'autre sens : `_images/x.png` redevient
+     * une adresse du back-office. Le chemin est comparé par son nom de base,
+     * donc `../../_images/x.png` comme `attachments/x.png` retombent sur la
+     * même entrée.
+     *
+     * Une adresse absolue est laissée telle quelle : elle ne désigne pas un
+     * fichier de l'archive.
+     *
+     * @param array<string, string> $imported
+     */
+    private function relink(string $content, array $imported): string
+    {
+        if ([] === $imported) {
+            return $content;
+        }
+
+        return (string) preg_replace_callback(
+            '/!\[([^\]]*)\]\(([^)\s]+)([^)]*)\)/',
+            static function (array $m) use ($imported): string {
+                $cible = $m[2];
+
+                if (str_starts_with($cible, 'http://') || str_starts_with($cible, 'https://') || str_starts_with($cible, 'data:')) {
+                    return $m[0];
+                }
+
+                $base = basename(explode('#', explode('?', $cible)[0])[0]);
+
+                if (!isset($imported[$base])) {
+                    return $m[0];
+                }
+
+                return sprintf('![%s](%s%s)', $m[1], $imported[$base], $m[3]);
+            },
+            $content,
+        );
     }
 
     private function createNote(
