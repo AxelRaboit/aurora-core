@@ -16,13 +16,14 @@
  * au clavier et au doigt, parce qu'un glisser-déposer n'existe pas sur un
  * téléphone.
  */
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 import {
     ArrowDown,
     ArrowDownWideNarrow,
     ArrowUp,
+    ArrowUpDown,
     ArrowUpNarrowWide,
     ChevronRight,
     FileDown,
@@ -56,6 +57,7 @@ import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppSelectionCheck from "@/shared/components/feedback/AppSelectionCheck.vue";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { useNoteLibrary } from "@notes/backend/markdown/composables/useNoteLibrary.js";
+import { useFoldable } from "@notes/backend/markdown/composables/useFoldable.js";
 import {
     NOTE_DRAG_MIME,
     readNoteDrag,
@@ -141,19 +143,20 @@ const query = ref("");
  * oblique aussi, Échap la referme - mais seulement si elle est vide : un
  * filtre actif et invisible ferait chercher pourquoi la liste est courte.
  */
-const searchOpen = ref(false);
-const searchBox = ref(null);
-
-async function openSearch() {
-    searchOpen.value = true;
-    await nextTick();
-    searchBox.value?.querySelector("input")?.focus();
-}
+const {
+    open: searchOpen,
+    box: searchBox,
+    reveal: openSearch,
+    fold: foldSearch,
+} = useFoldable();
 
 function closeSearch() {
+    // Tant qu'il y a quelque chose dans le champ, il reste ouvert : un
+    // filtre actif et invisible ferait chercher pourquoi la liste est
+    // courte.
     if ("" !== query.value.trim()) return;
 
-    searchOpen.value = false;
+    foldSearch();
 }
 
 /**
@@ -228,12 +231,38 @@ const viewOptions = computed(() => [
     { value: "list", icon: List, label: t("notes.markdown.library.view.list") },
 ]);
 
+/**
+ * Le tri se replie aussi, mais il ne se referme pas comme la recherche.
+ *
+ * Son panneau est téléporté hors du bouton : se refermer à la perte du
+ * focus le fermerait au moment même où l'on clique une option, et le clic
+ * n'arriverait jamais. Il se referme donc sur un choix ou sur Échap, et
+ * l'icône dit en infobulle quel critère est en vigueur - un tri replié
+ * dont on ignore la valeur serait pire qu'un tri qui prend de la place.
+ */
+const {
+    open: sortOpen,
+    box: sortBox,
+    reveal: openSort,
+    fold: foldSort,
+} = useFoldable();
+
+function chooseSort(value) {
+    setSort(value);
+    foldSort();
+}
+
 const sortOptions = computed(() => [
     { value: "name", label: t("notes.markdown.library.sort.name") },
     { value: "updated", label: t("notes.markdown.library.sort.updated") },
     { value: "created", label: t("notes.markdown.library.sort.created") },
     { value: "manual", label: t("notes.markdown.library.sort.manual") },
 ]);
+
+/** Le critère en vigueur, écrit, pour que l'icône puisse le dire. */
+const sortLabel = computed(
+    () => sortOptions.value.find((one) => one.value === sort.value)?.label ?? "",
+);
 
 function folderLabel(folder) {
     return folder.name || t("notes.markdown.folders.untitled");
@@ -1153,17 +1182,30 @@ defineExpose({
                          Craft : changer d'ordre ne doit pas demander de
                          rouvrir la liste des critères. -->
                     <div class="flex items-center gap-1">
+                        <!-- Replié en icône, comme la recherche : le
+                             critère se change par à-coups et n'a pas à
+                             occuper sa largeur en permanence. -->
+                        <AppIconButton
+                            v-if="!sortOpen"
+                            :title="`${t('notes.markdown.library.sort.label')} : ${sortLabel}`"
+                            :aria-label="`${t('notes.markdown.library.sort.label')} : ${sortLabel}`"
+                            v-on:click="openSort"
+                        >
+                            <ArrowUpDown class="h-4 w-4" :stroke-width="2" />
+                        </AppIconButton>
+
                         <!-- Le sélecteur de la maison plutôt que le
                              `<select>` natif : même allure que partout
                              ailleurs dans le back-office. Pas de recherche
-                             ici, quatre critères ne se cherchent pas. -->
-                        <AppMultiselect
-                            :model-value="sort"
-                            :options="sortOptions"
-                            :searchable="false"
-                            class="min-w-[9.5rem]"
-                            v-on:update:model-value="setSort($event)"
-                        />
+                             dedans, quatre critères ne se cherchent pas. -->
+                        <div v-else ref="sortBox" class="w-44" v-on:keyup.esc="foldSort">
+                            <AppMultiselect
+                                :model-value="sort"
+                                :options="sortOptions"
+                                :searchable="false"
+                                v-on:update:model-value="chooseSort($event)"
+                            />
+                        </div>
                         <AppIconButton
                             :title="'asc' === direction ? t('notes.markdown.library.sort.asc') : t('notes.markdown.library.sort.desc')"
                             v-on:click="toggleDirection"

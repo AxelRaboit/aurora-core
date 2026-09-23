@@ -650,6 +650,33 @@ describe("the library", () => {
         expect(wrapper.find("input").exists()).toBe(true);
     });
 
+    /**
+     * Le tri se replie lui aussi : on en change par à-coups, il n'a pas à
+     * occuper sa largeur en permanence. Mais il dit ce qu'il vaut, sinon
+     * on ignorerait pourquoi la liste est dans cet ordre.
+     */
+    it("folds the sort into an icon that names the current criterion", async () => {
+        const wrapper = render();
+
+        const trigger = wrapper
+            .findAll("button")
+            .find((b) =>
+                b
+                    .attributes("title")
+                    ?.startsWith("notes.markdown.library.sort.label"),
+            );
+
+        expect(trigger, "l'icône du tri est là").toBeTruthy();
+        expect(trigger.attributes("title")).toContain("sort.updated");
+
+        await trigger.trigger("click");
+        await flushPromises();
+
+        expect(wrapper.findComponent({ name: "AppMultiselect" }).exists()).toBe(
+            true,
+        );
+    });
+
     it("draws a table when the list view is picked", async () => {
         const wrapper = render();
 
