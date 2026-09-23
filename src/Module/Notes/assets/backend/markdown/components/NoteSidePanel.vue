@@ -33,7 +33,6 @@ const { tab, items, loading } = useNoteSidePanel({
             <AppIconButton
                 :title="t('notes.markdown.links.close')"
                 size="sm"
-                variant="ghost"
                 v-on:click="emit('close')"
             >
                 <X class="w-4 h-4" :stroke-width="2" />
@@ -81,8 +80,8 @@ const { tab, items, loading } = useNoteSidePanel({
 
             <AppNoData
                 v-else
-                :title="tab === 'backlinks' ? t('notes.markdown.links.empty_backlinks') : t('notes.markdown.links.empty_mentions')"
-                :description="tab === 'backlinks' ? t('notes.markdown.links.empty_backlinks_description') : t('notes.markdown.links.empty_mentions_description')"
+                :message="tab === 'backlinks' ? t('notes.markdown.links.empty_backlinks') : t('notes.markdown.links.empty_mentions')"
+                :hint="tab === 'backlinks' ? t('notes.markdown.links.empty_backlinks_description') : t('notes.markdown.links.empty_mentions_description')"
                 :icon="tab === 'backlinks' ? Link2 : FileSearch"
             />
         </div>

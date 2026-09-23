@@ -63,7 +63,7 @@ l'ancienne version de cette table listait treize modules qui n'existent plus.
 | Dev | `MountPoint` |
 | Editorial | `Comment`, `Form`, `FormField`, `Menu`, `MenuItem`, `Post`, `PostTranslation`, `PostType`, `PostTypeField`, `Taxonomy`, `TaxonomyTerm` |
 | Ged | `Document`, `DocumentCategory`, `DocumentFolder`, `DocumentTag` |
-| Notes | `MarkdownNote` |
+| Notes | `MarkdownNote`, `NoteFolder` |
 | Planning | `Planning`, `PlanningEvent`, `PlanningReminder`, `PlanningShareLink` |
 | Platform | `AccessRequest`, `User` |
 | Studio | `Contract`, `ContractSignature`, `ContractTemplate`, `ContractTemplateVersion`, `Customer`, `CustomerSpace`, `Deck`, `DeckCategory`, `SpaceAccessLink`, `SpaceContentColumn`, `SpaceContentItem` |
@@ -647,24 +647,32 @@ Pour la liste (`PostsApp.vue`), les slots `extra-headers` / `extra-cells`
 restent identiques au pattern DocumentCategory - la complexité de l'editor ne change
 pas la liste.
 
-### 4.bis.3 Tree-based editor (pas une table)
+### 4.bis.3 Bibliothèque + éditeur (pas une table)
 
-**Cas** : `MarkdownNotesApp.vue`.
+**Cas** : `MarkdownNotesApp.vue`, qui monte selon l'adresse soit la
+bibliothèque (`NoteLibrary.vue`), soit l'éditeur d'une note.
 
-Quand l'interface est un **arbre** (sidebar récursive de nœuds parent/enfant)
-+ éditeur central, pas de table tabulaire, le mapping des slots
-`extra-headers` / `extra-cells` à la convention DocumentCategory demande une
-adaptation :
+Deux entités, deux rôles : `NoteFolder` range, `MarkdownNote` se lit. L'arbre
+des dossiers vit dans le panneau du menu (`NoteTreePanel.vue`), la liste de ce
+qu'un dossier contient dans la bibliothèque. Le mapping des slots à la
+convention DocumentCategory demande donc une adaptation :
 
-- **`extra-headers`** : surface du panneau sidebar au-dessus de l'arbre
-  (à côté de la recherche / des filtres tags). Sert à injecter des
-  contrôles globaux (filtre custom, view-switcher, etc.).
-- **`extra-cells`** : décoration par-rangée passée **récursivement** au
-  `NoteTreeItem`, qui forward le slot via une `<template #extra-cells>`
-  imbriquée pour que tous les niveaux de profondeur le rendent.
+- **`extra-headers`** : la barre de la bibliothèque, à côté du fil d'Ariane,
+  de la recherche et des bascules d'affichage. Pour un contrôle global
+  (filtre maison, second tri).
+- **`extra-cells`** : décoration par-rangée. Deux surfaces, parce qu'il y a
+  deux listes : la carte d'une note ou d'un dossier dans la bibliothèque, et
+  la ligne d'un dossier dans le panneau, où `NoteTreeItem` forward le slot via
+  une `<template #extra-cells>` imbriquée pour que tous les niveaux de
+  profondeur le rendent (le scope s'y appelle `folder`, pas `note`).
 - **`extra-form-fields`** : à côté du titre/tags dans l'header de
   l'éditeur (l'éditeur lui-même reste le textarea markdown - les champs
   custom vivent dans le header au-dessus).
+
+**Ce qui ne se trie pas en SQL.** Le titre d'une note et le nom d'un dossier
+sont chiffrés en colonne. Un client qui ajoute une liste, un tri ou une
+recherche sur ces champs les fait en PHP ou dans le navigateur ; une requête
+qui les ordonne compare des blobs.
 
 Le composable form n'est pas `useXxxForm` mais `useNotesEditor` : il
 accepte une option `extraFields` (même shape `{ key: { default } }`),

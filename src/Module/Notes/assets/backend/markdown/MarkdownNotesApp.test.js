@@ -4,15 +4,27 @@ import { createTestI18n } from "@/tests/helpers/createTestI18n.js";
 import { askPage, onPageNotice } from "@/shared/nav/modulePanelBridge.js";
 
 window.__isAdmin__ = true;
-window.matchMedia = vi.fn().mockImplementation((query) => ({
-    matches: false,
-    media: query,
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-}));
+
+/**
+ * Reposé avant chaque cas, et pas une fois pour toutes.
+ *
+ * `vi.restoreAllMocks()` rend à un `vi.fn()` son implémentation vide : posé
+ * au chargement du module, `matchMedia` cessait de répondre dès le deuxième
+ * cas, et la page se montait alors sans savoir si elle est sur un téléphone.
+ */
+function installMatchMedia() {
+    window.matchMedia = vi.fn().mockImplementation((query) => ({
+        matches: false,
+        media: query,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+    }));
+}
+
+installMatchMedia();
 
 const MarkdownNotesApp = (await import("./MarkdownNotesApp.vue")).default;
 
@@ -29,6 +41,9 @@ const PATHS = [
     "backlinksPath",
     "unlinkedMentionsPath",
     "graphPath",
+    "exportPath",
+    "exportOnePath",
+    "importPath",
     "searchPath",
     "tagsListPath",
     "tagsRenamePath",
@@ -41,7 +56,24 @@ const PATHS = [
     "imageUploadPath",
 ].reduce((all, name) => ({ ...all, [name]: `/notes/${name}` }), {});
 
-const NOTES = [{ id: 1, title: "Journal", parentId: null, tags: [] }];
+PATHS.libraryPath = "/notes/library";
+PATHS.folderPaths = {
+    list: "/notes/folders",
+    create: "/notes/folders/create",
+    update: "/notes/folders/__id__/update",
+    move: "/notes/folders/__id__/move",
+    delete: "/notes/folders/__id__/delete",
+    reorder: "/notes/folders/reorder",
+    show: "/notes/folders/__id__",
+};
+
+const NOTES = [
+    { id: 1, title: "Journal", folderId: null, tags: [] },
+    { id: 2, title: "Devis Lumen", folderId: 7, tags: [] },
+];
+const FOLDERS = [
+    { id: 7, name: "Clients", parentId: null, noteCount: 1, folderCount: 0 },
+];
 
 const mounted = [];
 
@@ -56,12 +88,14 @@ function render(props = {}) {
 }
 
 beforeEach(() => {
+    installMatchMedia();
     global.fetch = vi.fn().mockResolvedValue({
         ok: true,
         status: 200,
         json: async () => ({
             success: true,
             notes: NOTES,
+            folders: FOLDERS,
             note: NOTES[0],
             tags: [],
         }),
@@ -111,6 +145,111 @@ describe("the notes page, once its tree moved to the menu", () => {
     });
 });
 
+describe("les étiquettes de l'éditeur", () => {
+    function tagsButton(wrapper) {
+        return wrapper
+            .findAll("button")
+            .find(
+                (b) =>
+                    b.attributes("title")?.includes("tags.add_placeholder") ||
+                    b.attributes("title")?.includes("tags.summary"),
+            );
+    }
+
+    /** L'éditeur n'est à l'écran qu'une fois une note ouverte. */
+    async function editing(tags = []) {
+        global.fetch = vi.fn().mockResolvedValue({
+            ok: true,
+            status: 200,
+            json: async () => ({
+                success: true,
+                notes: NOTES,
+                folders: FOLDERS,
+                note: { ...NOTES[0], tags },
+                tags: [],
+            }),
+        });
+
+        const wrapper = render();
+        await flushPromises();
+        askPage("notes:select", { args: [1] });
+        await flushPromises();
+
+        return wrapper;
+    }
+
+    /**
+     * Elles prenaient une ligne entière de l'en-tête en permanence, pour une
+     * chose qu'on touche quand la note naît et plus guère ensuite.
+     */
+    it("keeps its row out of the way until it is asked for", async () => {
+        const wrapper = await editing();
+
+        expect(
+            tagsButton(wrapper),
+            "l'icône des étiquettes est là",
+        ).toBeTruthy();
+        expect(wrapper.findComponent({ name: "AppTagsInput" }).exists()).toBe(
+            false,
+        );
+
+        await tagsButton(wrapper).trigger("click");
+        await flushPromises();
+
+        expect(wrapper.findComponent({ name: "AppTagsInput" }).exists()).toBe(
+            true,
+        );
+    });
+
+    /** Repliées, on doit savoir qu'il y en a, et lesquelles. */
+    it("carries the count, and names them in its tooltip", async () => {
+        const wrapper = await editing(["client", "photo"]);
+
+        expect(tagsButton(wrapper).text()).toBe("2");
+        expect(tagsButton(wrapper).attributes("title")).toContain(
+            "client, photo",
+        );
+    });
+});
+
+/**
+ * Ouvrir le partage effaçait la page.
+ *
+ * `api.preview` n'existait pas : la route était là, le chemin était passé au
+ * composant, et l'appel partait d'un `watch` sur l'ouverture de la modale.
+ * L'exception y devenait un rejet non traité - invisible - jusqu'à ce que la
+ * page se dote d'un garde-fou, qui l'a rendue spectaculaire.
+ */
+describe("le partage", () => {
+    it("opens without taking the page down with it", async () => {
+        const failures = [];
+        const spy = vi
+            .spyOn(console, "error")
+            .mockImplementation((...args) =>
+                failures.push(args.map(String).join(" ")),
+            );
+
+        const wrapper = render();
+        await flushPromises();
+        askPage("notes:select", { args: [1] });
+        await flushPromises();
+
+        const share = wrapper
+            .findAll("button")
+            .find((b) => b.attributes("title")?.includes("share.button"));
+
+        expect(share, "le bouton de partage est là").toBeTruthy();
+
+        await share.trigger("click");
+        await flushPromises();
+
+        spy.mockRestore();
+
+        expect(failures.join("\n")).not.toContain("la page a échoué");
+        expect(wrapper.text()).not.toContain("Aucune donnée à afficher");
+    });
+});
+
 describe("what the page tells the panel", () => {
     /**
      * The bug the reader hit: a note created in the editor did not reach the
@@ -155,14 +294,135 @@ describe("what the page tells the panel", () => {
             ["select", [note.id]],
             ["create", [null]],
             ["delete", [note]],
-            ["drag-start", [note, event]],
-            ["drag-end", []],
-            ["drag-over", [note, event]],
-            ["drag-leave", [note, event]],
-            ["drop", [note, event]],
+            ["open-folder", [7]],
+            ["create-folder", [null]],
+            ["delete-folder", [FOLDERS[0]]],
+            ["drop", [FOLDERS[0], event]],
         ]) {
             expect(askPage(`notes:${intent}`, { args })).toBe(true);
         }
+    });
+});
+
+/**
+ * Ce que le panneau demande doit changer l'écran, pas seulement trouver
+ * quelqu'un au bout du fil.
+ *
+ * Le test précédent vérifiait que l'intention était *répondue* - `askPage`
+ * rend vrai dès qu'un écouteur existe - ce qui laissait passer une
+ * bibliothèque qui n'avait jamais reçu l'ordre. Axel a cliqué sur un
+ * dossier et est resté sur « Tous les documents ».
+ */
+describe("ouvrir un dossier depuis le panneau", () => {
+    it("shows what the folder holds, not the root", async () => {
+        const wrapper = render();
+        await flushPromises();
+
+        expect(wrapper.text()).toContain("Journal");
+
+        askPage("notes:open-folder", { args: [7] });
+        await flushPromises();
+
+        // Le dossier contient « Devis Lumen » et rien d'autre ; « Journal »
+        // est à la racine, donc il disparaît de la grille.
+        const cards = wrapper.findAll("article").map((one) => one.text());
+        expect(cards.some((text) => text.includes("Devis Lumen"))).toBe(true);
+        expect(cards.some((text) => text.includes("Journal"))).toBe(false);
+    });
+
+    it("comes back to the root when the panel asks for it", async () => {
+        const wrapper = render();
+        await flushPromises();
+
+        askPage("notes:open-folder", { args: [7] });
+        await flushPromises();
+
+        askPage("notes:open-folder", { args: [null] });
+        await flushPromises();
+
+        const cards = wrapper.findAll("article").map((one) => one.text());
+        expect(cards.some((text) => text.includes("Journal"))).toBe(true);
+    });
+});
+
+/**
+ * Depuis l'éditeur, la bibliothèque n'est pas montée. Elle vit pourtant
+ * dans la même application : quitter l'une pour l'autre est un changement
+ * d'affichage, pas un rechargement - celui-ci jetait le défilement, la
+ * sélection et l'arbre déplié pour revenir au même endroit.
+ */
+describe("ouvrir un dossier avec une note ouverte", () => {
+    it("swaps the editor for the folder, without reloading", async () => {
+        const assign = vi.fn();
+        const original = window.location;
+        Object.defineProperty(window, "location", {
+            configurable: true,
+            value: {
+                ...original,
+                assign,
+                pathname: "/backend/notes/markdown/1",
+            },
+        });
+
+        const wrapper = render({ activeId: 1 });
+        await flushPromises();
+
+        // Une note est ouverte : l'éditeur occupe la place, pas la grille.
+        expect(wrapper.findAll("article")).toHaveLength(0);
+
+        askPage("notes:open-folder", { args: [7] });
+        await flushPromises();
+
+        const cards = wrapper.findAll("article").map((one) => one.text());
+        expect(cards.some((text) => text.includes("Devis Lumen"))).toBe(true);
+        expect(assign, "aucun rechargement").not.toHaveBeenCalled();
+
+        Object.defineProperty(window, "location", {
+            configurable: true,
+            value: original,
+        });
+    });
+
+    it("opens the folder dialog after coming back from a note", async () => {
+        const wrapper = render({ activeId: 1 });
+        await flushPromises();
+
+        askPage("notes:create-folder", { args: [null] });
+        await flushPromises();
+
+        expect(wrapper.findAll("article").length).toBeGreaterThan(0);
+        expect(document.body.textContent).toContain("folders.create");
+
+        document.body.innerHTML = "";
+    });
+});
+
+/**
+ * Supprimer un dossier depuis le menu emporte ses notes, dont peut-être
+ * celle qu'on est en train d'écrire : la laisser ouverte ferait écrire
+ * l'enregistrement automatique dans une note à la corbeille.
+ */
+describe("la note ouverte disparaît sous nos pieds", () => {
+    it("closes the editor when the note is no longer in the list", async () => {
+        const wrapper = render({ activeId: 1 });
+        await flushPromises();
+
+        // L'éditeur tient la note 1.
+        expect(wrapper.findAll("article")).toHaveLength(0);
+
+        // Le serveur ne la rend plus : elle est partie avec son dossier.
+        global.fetch = vi.fn().mockResolvedValue({
+            ok: true,
+            status: 200,
+            json: async () => ({ success: true, notes: [], folders: FOLDERS }),
+        });
+
+        askPage("notes:delete-folder", { args: [{ id: 7 }] });
+        await flushPromises();
+
+        // Retour à la bibliothèque plutôt qu'un éditeur sur du vide.
+        expect(wrapper.text()).toContain("library.title");
+        document.body.innerHTML = "";
     });
 });
 
@@ -209,8 +469,16 @@ describe("deleting a note the panel asked to delete", () => {
  * was nothing to photograph.
  */
 describe("the way into the graph", () => {
+    // Le graphe est une commande de l'éditeur : sans note ouverte, la page
+    // montre la bibliothèque, qui n'a pas de bouton pour lui.
     it("opens the graph when its button is pressed", async () => {
-        const wrapper = render();
+        const wrapper = render({ activeId: 1 });
+        await flushPromises();
+
+        // La note s'ouvre par le pont, comme le ferait le panneau : c'est le
+        // même chemin que celui d'un lecteur, et il ne dépend pas de l'ordre
+        // dans lequel les cas de ce fichier se suivent.
+        askPage("notes:select", { args: [1] });
         await flushPromises();
 
         const graph = wrapper.findComponent({ name: "NoteGraph" });

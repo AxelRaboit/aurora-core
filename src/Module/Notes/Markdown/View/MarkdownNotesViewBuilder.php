@@ -6,6 +6,10 @@ namespace Aurora\Module\Notes\Markdown\View;
 
 use Aurora\Core\Support\Num;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
+use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
+use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
+use Aurora\Module\Notes\Folder\Serializer\NoteFolderSerializerInterface;
+use Aurora\Module\Notes\Folder\Service\NoteFolderHierarchy;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
 use Aurora\Module\Notes\Markdown\Setting\MarkdownNoteSettingEnum;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
@@ -15,23 +19,87 @@ final readonly class MarkdownNotesViewBuilder
 {
     public function __construct(
         private MarkdownNoteRepository $noteRepository,
+        private NoteFolderRepository $folderRepository,
+        private NoteFolderSerializerInterface $folderSerializer,
+        private NoteFolderHierarchy $hierarchy,
         private UrlGeneratorInterface $urlGenerator,
         private SettingRepository $settingRepository,
     ) {}
 
-    /** @return array<string, mixed> */
-    /** @param ?int $activeId the note the address names, null when there are none */
-    public function indexView(CoreUserInterface $user, ?int $activeId = null): array
+    /**
+     * What the page needs to draw itself, before any request of its own.
+     *
+     * @param ?int                 $activeId the note the address names, null on a listing
+     * @param ?NoteFolderInterface $folder   the folder being browsed, null at the root
+     *
+     * @return array<string, mixed>
+     */
+    public function indexView(CoreUserInterface $user, ?int $activeId = null, ?NoteFolderInterface $folder = null): array
     {
+        $serializer = $this->folderSerializer->withCounts(
+            $this->folderRepository->countNotesPerFolderForUser($user),
+            $this->folderRepository->countChildrenPerFolderForUser($user),
+        );
+
+        $folders = array_map(
+            $serializer->serialize(...),
+            $this->folderRepository->findAllForUser($user),
+        );
+
         return [
             'activeId' => $activeId,
-            'notes' => $this->noteRepository->findFlatListForUser($user),
+            'folderId' => $folder?->getId(),
+            'notes' => $this->withExcerpts($this->noteRepository->findFlatListForUser($user), $user),
+            'folders' => $folders,
+            // The chain the breadcrumb draws, resolved server-side: the page
+            // knows where it is before its first fetch, so a reload does not
+            // flash the root.
+            'breadcrumb' => array_map(
+                static fn (NoteFolderInterface $one): array => ['id' => $one->getId(), 'name' => $one->getName()],
+                $this->hierarchy->pathTo($folder),
+            ),
+            'maxDepth' => NoteFolderHierarchy::MAX_DEPTH,
+            ...$this->notePaths(),
+            ...$this->folderPaths(),
+            'imageMaxEdge' => (int) $this->settingRepository->getOrDefault(MarkdownNoteSettingEnum::ImageMaxEdge),
+            'imageQuality' => $this->imageQualityRatio(),
+        ];
+    }
+
+    /**
+     * Les extraits, collés sur les lignes de la liste.
+     *
+     * Une requête de plus, et pas une jointure : le corps est chiffré, donc
+     * l'extrait se calcule en PHP après déchiffrement, et le faire ici
+     * plutôt que dans la requête de liste garde celle-ci légère pour les
+     * écrans qui n'en veulent pas.
+     *
+     * @param list<array<string, mixed>> $notes
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function withExcerpts(array $notes, CoreUserInterface $user): array
+    {
+        $excerpts = $this->noteRepository->findExcerptsForUser($user);
+
+        return array_map(
+            static fn (array $note): array => [...$note, 'excerpt' => $excerpts[(int) $note['id']] ?? null],
+            $notes,
+        );
+    }
+
+    /** @return array<string, string> */
+    private function notePaths(): array
+    {
+        return [
             'listPath' => $this->urlGenerator->generate('backend_notes_markdown_list'),
+            'libraryPath' => $this->urlGenerator->generate('backend_notes_markdown'),
             'showPath' => $this->urlGenerator->generate('backend_notes_markdown_show', ['id' => '__id__']),
             'createPath' => $this->urlGenerator->generate('backend_notes_markdown_create'),
             'updatePath' => $this->urlGenerator->generate('backend_notes_markdown_update', ['id' => '__id__']),
             'deletePath' => $this->urlGenerator->generate('backend_notes_markdown_delete', ['id' => '__id__']),
             'movePath' => $this->urlGenerator->generate('backend_notes_markdown_move', ['id' => '__id__']),
+            'favoritePath' => $this->urlGenerator->generate('backend_notes_markdown_favorite', ['id' => '__id__']),
             'reorderPath' => $this->urlGenerator->generate('backend_notes_markdown_reorder'),
             'backlinksPath' => $this->urlGenerator->generate('backend_notes_markdown_backlinks', ['id' => '__id__']),
             'unlinkedMentionsPath' => $this->urlGenerator->generate('backend_notes_markdown_unlinked_mentions', ['id' => '__id__']),
@@ -49,8 +117,31 @@ final readonly class MarkdownNotesViewBuilder
             'sharesCreatePath' => $this->urlGenerator->generate('backend_notes_markdown_shares_create'),
             'sharesRevokePath' => $this->urlGenerator->generate('backend_notes_markdown_shares_revoke', ['id' => '__id__']),
             'imageUploadPath' => $this->urlGenerator->generate('backend_notes_markdown_images_upload'),
-            'imageMaxEdge' => (int) $this->settingRepository->getOrDefault(MarkdownNoteSettingEnum::ImageMaxEdge),
-            'imageQuality' => $this->imageQualityRatio(),
+        ];
+    }
+
+    /**
+     * The folder routes, in one object.
+     *
+     * Grouped rather than flattened into the component's props: the page
+     * already takes two dozen path strings, and a second family of them
+     * arriving one prop at a time is how that list got there.
+     *
+     * @return array<string, array<string, string>>
+     */
+    private function folderPaths(): array
+    {
+        return [
+            'folderPaths' => [
+                'list' => $this->urlGenerator->generate('backend_notes_markdown_folders_list'),
+                'create' => $this->urlGenerator->generate('backend_notes_markdown_folders_create'),
+                'update' => $this->urlGenerator->generate('backend_notes_markdown_folders_update', ['id' => '__id__']),
+                'move' => $this->urlGenerator->generate('backend_notes_markdown_folders_move', ['id' => '__id__']),
+                'delete' => $this->urlGenerator->generate('backend_notes_markdown_folders_delete', ['id' => '__id__']),
+                'reorder' => $this->urlGenerator->generate('backend_notes_markdown_folders_reorder'),
+                'favorite' => $this->urlGenerator->generate('backend_notes_markdown_folders_favorite', ['id' => '__id__']),
+                'show' => $this->urlGenerator->generate('backend_notes_markdown_folder', ['id' => '__id__']),
+            ],
         ];
     }
 

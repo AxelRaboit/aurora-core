@@ -39,7 +39,6 @@ class MarkdownNoteShareLinkManager implements MarkdownNoteShareLinkManagerInterf
 
     public function create(
         MarkdownNoteInterface $note,
-        bool $includeDescendants,
         bool $includeLinked,
         ?string $recipientEmail = null,
         string $label = '',
@@ -47,7 +46,6 @@ class MarkdownNoteShareLinkManager implements MarkdownNoteShareLinkManagerInterf
     ): MarkdownNoteShareLinkInterface {
         $link = $this->createLink();
         $link->setNote($note);
-        $link->setIncludeDescendants($includeDescendants);
         $link->setIncludeLinked($includeLinked);
         $link->setRecipientEmail($recipientEmail);
         $link->setLabel($label);
@@ -60,7 +58,6 @@ class MarkdownNoteShareLinkManager implements MarkdownNoteShareLinkManagerInterf
         // one being recorded.
         $this->auditLogger->log('notes_markdown', 'share_link.created', 'MarkdownNoteShareLink', null, [
             'note' => $note->getId(),
-            'includeDescendants' => $includeDescendants,
             'includeLinked' => $includeLinked,
             'recipient' => $recipientEmail,
             'expiresAt' => $expiresAt?->format('c'),

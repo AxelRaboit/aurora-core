@@ -17,10 +17,6 @@ interface MarkdownNoteShareLinkInterface
 
     public function setNote(MarkdownNoteInterface $note): static;
 
-    public function includesDescendants(): bool;
-
-    public function setIncludeDescendants(bool $includeDescendants): static;
-
     public function includesLinked(): bool;
 
     public function setIncludeLinked(bool $includeLinked): static;

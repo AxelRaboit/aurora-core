@@ -13,7 +13,7 @@ const props = defineProps({
     noteId: { type: Number, required: true },
     noteTitle: { type: String, default: "" },
     content: { type: String, default: "" },
-    /** list<{id, title, parentId}> - the whole share, titles only. */
+    /** list<{id, title}> - every note of the share, titles only. */
     tree: { type: Array, default: () => [] },
     /** lower-cased title -> id, for resolving `[[links]]` inside the share. */
     titleIndex: { type: Object, default: () => ({}) },
@@ -56,7 +56,7 @@ function titleOf(node) {
                                 ? 'bg-surface-2 font-medium text-primary'
                                 : 'text-secondary hover:bg-surface-2'
                         "
-                        :style="{ paddingLeft: `${node.parentId ? 1.5 : 0.5}rem` }"
+                        :style="{ paddingLeft: '0.5rem' }"
                     >{{ titleOf(node) }}</a>
                 </li>
             </ul>

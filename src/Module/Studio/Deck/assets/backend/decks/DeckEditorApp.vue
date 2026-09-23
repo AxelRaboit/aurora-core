@@ -638,8 +638,8 @@ onBeforeUnmount(() => {
                 <AppNoData
                     v-if="!selected"
                     :icon="Presentation"
-                    :title="t('backend.studio.decks.no_slide_title')"
-                    :description="t('backend.studio.decks.no_slide_description')"
+                    :message="t('backend.studio.decks.no_slide_title')"
+                    :hint="t('backend.studio.decks.no_slide_description')"
                 />
 
                 <template v-else>

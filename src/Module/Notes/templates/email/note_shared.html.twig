@@ -5,10 +5,6 @@
 
 <p>{{ 'notes.markdown.share.mail.intro'|trans({'%name%': sharerName, '%title%': noteTitle}) }}</p>
 
-{% if includesDescendants %}
-    <p>{{ 'notes.markdown.share.mail.includes_descendants'|trans }}</p>
-{% endif %}
-
 <p><a href="{{ url }}">{{ 'notes.markdown.share.mail.open'|trans }}</a></p>
 
 {% if expiresAt %}

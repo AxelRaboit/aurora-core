@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Integration\Module\Notes;
 
+use Aurora\Module\Notes\Folder\Entity\NoteFolder;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNote;
 use Aurora\Module\Notes\Share\Entity\MarkdownNoteShareLink;
 use Aurora\Module\Notes\Share\Entity\MarkdownNoteShareLinkInterface;
@@ -132,32 +133,34 @@ final class NoteShareTest extends IntegrationTestCase
     }
 
     /**
-     * The share carries one note unless it was told otherwise.
+     * A note filed in the same folder is not in the share.
      *
-     * This is the decision the checkbox exists for: publishing a note and
-     * publishing the branch under it are different acts.
+     * Folders are not shared, and the switch that used to publish a branch
+     * is gone with the branch: a link carries the note it names, plus what
+     * that note links to when the sharer says so. A set that grows every
+     * time a note is dropped into a folder is not something a checkbox can
+     * make safe.
      */
-    public function testAChildNoteIsOutOfScopeUnlessDescendantsAreIncluded(): void
+    public function testANoteInTheSameFolderIsOutOfScope(): void
     {
-        $parent = $this->note('Parent');
-        $child = $this->note('Enfant', parent: $parent);
-
-        $link = $this->link($parent);
-
-        $this->client->request('GET', $this->urlGenerator->generate(
-            'notes_share_note',
-            ['token' => $link->getToken(), 'id' => $child->getId()],
-        ));
-        self::assertResponseStatusCodeSame(404);
-
-        $link->setIncludeDescendants(true);
+        $folder = new NoteFolder();
+        $folder->setUser($this->owner);
+        $folder->setName('Clients');
+        $this->entityManager->persist($folder);
         $this->entityManager->flush();
+        $this->created[] = [NoteFolder::class, (int) $folder->getId()];
+
+        $shared = $this->note('Partagée', folder: $folder);
+        $neighbour = $this->note('Voisine', folder: $folder);
+
+        $link = $this->link($shared, includeLinked: true);
 
         $this->client->request('GET', $this->urlGenerator->generate(
             'notes_share_note',
-            ['token' => $link->getToken(), 'id' => $child->getId()],
+            ['token' => $link->getToken(), 'id' => $neighbour->getId()],
         ));
-        self::assertResponseIsSuccessful();
+
+        self::assertResponseStatusCodeSame(404);
     }
 
     /**
@@ -171,7 +174,7 @@ final class NoteShareTest extends IntegrationTestCase
         $shared = $this->note('Partagée');
         $unrelated = $this->note('Sans rapport');
 
-        $link = $this->link($shared, includeDescendants: true);
+        $link = $this->link($shared, includeLinked: true);
 
         $this->client->request('GET', $this->urlGenerator->generate(
             'notes_share_note',
@@ -179,28 +182,6 @@ final class NoteShareTest extends IntegrationTestCase
         ));
 
         self::assertResponseStatusCodeSame(404);
-    }
-
-    /** The scope resolves the tree, and survives a parent cycle rather than hanging. */
-    public function testTheScopeWalksTheTreeAndSurvivesACycle(): void
-    {
-        $scope = static::getContainer()->get(SharedNoteScope::class);
-
-        $a = $this->note('A');
-        $b = $this->note('B', parent: $a);
-        $c = $this->note('C', parent: $b);
-
-        $link = $this->link($a, includeDescendants: true);
-        self::assertCount(3, $scope->notesFor($link));
-        self::assertCount(2, $scope->preview($a, descendants: true, linked: false));
-
-        // A cycle cannot be built through the UI; a hand-edited row could make
-        // one, and an endless loop in a public route is a denial of service
-        // handed to whoever holds the link.
-        $a->setParent($c);
-        $this->entityManager->flush();
-
-        self::assertCount(3, $scope->notesFor($link));
     }
 
     /** Only the owner may open a share on a note. */
@@ -275,7 +256,7 @@ final class NoteShareTest extends IntegrationTestCase
         $second = $this->note('Deux', 'Puis [[Trois]].');
         $first = $this->note('Un', 'Voir [[Deux]].');
 
-        self::assertCount(3, $scope->walk($first, descendants: false, linked: true));
+        self::assertCount(3, $scope->walk($first, linked: true));
     }
 
     /**
@@ -291,8 +272,8 @@ final class NoteShareTest extends IntegrationTestCase
         $a = $this->note('Aller', 'Vers [[Retour]].');
         $b = $this->note('Retour', 'Vers [[Aller]].');
 
-        self::assertCount(2, $scope->walk($a, descendants: false, linked: true));
-        self::assertCount(2, $scope->walk($b, descendants: false, linked: true));
+        self::assertCount(2, $scope->walk($a, linked: true));
+        self::assertCount(2, $scope->walk($b, linked: true));
     }
 
     /** A link naming a note that does not exist adds nothing and breaks nothing. */
@@ -302,7 +283,7 @@ final class NoteShareTest extends IntegrationTestCase
 
         $note = $this->note('Seule', 'Voir [[Cette note na jamais existe]].');
 
-        self::assertCount(1, $scope->walk($note, descendants: false, linked: true));
+        self::assertCount(1, $scope->walk($note, linked: true));
     }
 
     /**
@@ -318,7 +299,7 @@ final class NoteShareTest extends IntegrationTestCase
         $this->note('Cible', 'Contenu.');
         $root = $this->note('Source', 'Voir [[Cible]].');
 
-        $preview = $scope->preview($root, descendants: false, linked: true);
+        $preview = $scope->preview($root, linked: true);
 
         self::assertCount(1, $preview);
         self::assertSame('Cible', $preview[0]['title']);
@@ -332,7 +313,7 @@ final class NoteShareTest extends IntegrationTestCase
         $this->note('Cible', 'Contenu.');
         $root = $this->note('Source', 'Voir [[Cible#un-titre]].');
 
-        $preview = $scope->preview($root, descendants: false, linked: true);
+        $preview = $scope->preview($root, linked: true);
 
         self::assertSame(['Cible'], array_column($preview, 'title'));
     }
@@ -385,14 +366,14 @@ final class NoteShareTest extends IntegrationTestCase
         $this->created[] = [MarkdownNoteShareLink::class, (int) $body['link']['id']];
     }
 
-    private function note(string $title, string $content = '', ?MarkdownNote $parent = null): MarkdownNote
+    private function note(string $title, string $content = '', ?NoteFolder $folder = null): MarkdownNote
     {
         $note = new MarkdownNote();
         $note->setUser($this->owner);
         $note->setTitle($title);
         $note->setContent($content);
-        if (null !== $parent) {
-            $note->setParent($parent);
+        if (null !== $folder) {
+            $note->setFolder($folder);
         }
         $this->entityManager->persist($note);
         $this->entityManager->flush();
@@ -401,11 +382,11 @@ final class NoteShareTest extends IntegrationTestCase
         return $note;
     }
 
-    private function link(MarkdownNote $note, bool $includeDescendants = false): MarkdownNoteShareLinkInterface
+    private function link(MarkdownNote $note, bool $includeLinked = false): MarkdownNoteShareLinkInterface
     {
         $link = new MarkdownNoteShareLink();
         $link->setNote($note);
-        $link->setIncludeDescendants($includeDescendants);
+        $link->setIncludeLinked($includeLinked);
         $this->entityManager->persist($link);
         $this->entityManager->flush();
         $this->created[] = [MarkdownNoteShareLink::class, (int) $link->getId()];

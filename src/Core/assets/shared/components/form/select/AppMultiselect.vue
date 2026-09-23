@@ -24,7 +24,16 @@ const props = defineProps({
     useTeleport: { type: Boolean, default: true },
 });
 
-const emit = defineEmits(["update:modelValue"]);
+/**
+ * `open` et `close` sont relayés parce que rien d'autre ne peut les voir.
+ *
+ * Les écouteurs posés sur ce composant tombent sur son `<div>` racine, pas
+ * sur le sélecteur qu'il enveloppe, et le panneau de celui-ci est téléporté
+ * dans le `body` : un appelant qui veut savoir quand la liste se referme -
+ * pour replier le contrôle autour, par exemple - n'a ni l'événement ni un
+ * `focusout` qui dise la vérité.
+ */
+const emit = defineEmits(["update:modelValue", "open", "close"]);
 
 const selectedOption = computed(() => {
     if (props.multiple) {
@@ -62,6 +71,8 @@ function onSelect(value) {
             deselect-label=""
             :class="{ 'multiselect--error': error }"
             v-on:update:model-value="onSelect"
+            v-on:open="emit('open')"
+            v-on:close="emit('close')"
         >
             <template #noOptions>{{ t('shared.common.no_options') }}</template>
             <template #noResult>{{ t('shared.common.no_result') }}</template>

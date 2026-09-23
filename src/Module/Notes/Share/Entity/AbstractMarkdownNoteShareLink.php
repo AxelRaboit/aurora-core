@@ -48,16 +48,6 @@ abstract class AbstractMarkdownNoteShareLink implements MarkdownNoteShareLinkInt
     protected MarkdownNoteInterface $note;
 
     /**
-     * Whether the notes filed under this one come along.
-     *
-     * Off by default, and asked as a question with the count shown: publishing a
-     * branch of thirty notes and publishing one note are different acts, and the
-     * person doing it should have had to say which they meant.
-     */
-    #[ORM\Column(options: ['default' => false])]
-    protected bool $includeDescendants = false;
-
-    /**
      * Whether the notes this one links to come along.
      *
      * A different question from the tree, and the riskier of the two: links are
@@ -122,18 +112,6 @@ abstract class AbstractMarkdownNoteShareLink implements MarkdownNoteShareLinkInt
     public function setNote(MarkdownNoteInterface $note): static
     {
         $this->note = $note;
-
-        return $this;
-    }
-
-    public function includesDescendants(): bool
-    {
-        return $this->includeDescendants;
-    }
-
-    public function setIncludeDescendants(bool $includeDescendants): static
-    {
-        $this->includeDescendants = $includeDescendants;
 
         return $this;
     }

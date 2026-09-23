@@ -206,8 +206,8 @@ const deckUrl = (deck) => buildPath(props.showPath, { id: deck.id });
         <AppNoData
             v-if="!filteredItems.length"
             :icon="Presentation"
-            :title="t('backend.studio.decks.empty_title')"
-            :description="t('backend.studio.decks.empty_description')"
+            :message="t('backend.studio.decks.empty_title')"
+            :hint="t('backend.studio.decks.empty_description')"
         />
 
         <div v-else-if="!isNarrow" class="overflow-x-auto rounded-xl border border-line bg-surface">

@@ -15,19 +15,19 @@ use Aurora\Module\Notes\Share\Entity\MarkdownNoteShareLinkInterface;
  * identifier from the request ever widens the set: a guest asking for note 12
  * gets it only if 12 is already in the scope the link defines.
  *
- * Two kinds of recursion meet in a notes application, and they are two
- * different acts with two different risks:
+ * One kind of recursion is left, and it is the unbounded one: **`[[wiki
+ * links]]`**, followed transitively, where a note citing two notes that each
+ * cite two more reaches most of a vault in three hops. This is why the share
+ * screen lists the titles it would publish instead of counting them, a number
+ * being impossible to check against what somebody meant to share.
  *
- * 1. **The tree.** Notes filed under the shared note. Bounded by how somebody
- *    filed their notes, and usually small.
- * 2. **`[[wiki links]]`.** Notes a body points at, followed transitively. Not
- *    bounded by anything: a note citing two notes that each cite two more
- *    reaches most of a vault in three hops. This is why the share screen lists
- *    the titles it would publish instead of counting them - a number cannot be
- *    checked against what somebody meant to share.
+ * The other one, the tree, is gone with the tree itself: notes are filed in
+ * folders now, and a folder is not shared. Sharing a folder would publish a
+ * set that grows every time a note is added to it, long after the link was
+ * sent, which is not something a switch on a screen can make safe.
  *
- * Each is its own switch, off by default. Neither is implied by the other, and
- * a note reachable through neither is never in scope, whatever id is asked for.
+ * The switch is off by default, and a note it does not reach is never in
+ * scope, whatever id is asked for.
  */
 final readonly class SharedNoteScope
 {
@@ -43,15 +43,11 @@ final readonly class SharedNoteScope
      */
     public function notesFor(MarkdownNoteShareLinkInterface $link): array
     {
-        return $this->walk(
-            $link->getNote(),
-            $link->includesDescendants(),
-            $link->includesLinked(),
-        );
+        return $this->walk($link->getNote(), $link->includesLinked());
     }
 
     /**
-     * What a share with these two switches would carry, root first.
+     * What a share with this switch would carry, root first.
      *
      * Used both to resolve a live link and to answer the share screen before
      * anything is created: the list of titles somebody is about to publish has
@@ -60,9 +56,9 @@ final readonly class SharedNoteScope
      *
      * @return list<MarkdownNoteInterface>
      */
-    public function walk(MarkdownNoteInterface $root, bool $descendants, bool $linked): array
+    public function walk(MarkdownNoteInterface $root, bool $linked): array
     {
-        if (!$descendants && !$linked) {
+        if (!$linked) {
             return [$root];
         }
 
@@ -72,11 +68,8 @@ final readonly class SharedNoteScope
         // anyway, to read the links out of them.
         $all = $this->notes->findAllWithContentForUser($root->getUser());
 
-        $byParent = [];
         $byTitle = [];
         foreach ($all as $note) {
-            $byParent[$note->getParent()?->getId() ?? 0][] = $note;
-
             $title = mb_trim((string) $note->getTitle());
             if ('' !== $title) {
                 // First one wins: titles are not unique, and a link naming a
@@ -94,17 +87,9 @@ final readonly class SharedNoteScope
             $current = array_shift($queue);
             $next = [];
 
-            if ($descendants) {
-                foreach ($byParent[(int) $current->getId()] ?? [] as $child) {
-                    $next[] = $child;
-                }
-            }
-
-            if ($linked) {
-                foreach ($this->wikiLinks->titlesIn($current->getContent()) as $title) {
-                    if (isset($byTitle[$title])) {
-                        $next[] = $byTitle[$title];
-                    }
+            foreach ($this->wikiLinks->titlesIn($current->getContent()) as $title) {
+                if (isset($byTitle[$title])) {
+                    $next[] = $byTitle[$title];
                 }
             }
 
@@ -136,9 +121,9 @@ final readonly class SharedNoteScope
      *
      * @return list<array{id: int, title: string|null}>
      */
-    public function preview(MarkdownNoteInterface $note, bool $descendants, bool $linked): array
+    public function preview(MarkdownNoteInterface $note, bool $linked): array
     {
-        $scope = $this->walk($note, $descendants, $linked);
+        $scope = $this->walk($note, $linked);
 
         // The root is what is being shared, not something a switch added.
         array_shift($scope);

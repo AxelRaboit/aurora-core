@@ -43,7 +43,6 @@ const errors = ref({});
 
 const recipientEmail = ref("");
 const label = ref("");
-const includeDescendants = ref(false);
 const expiresAt = ref("");
 
 const active = computed(() => links.value.filter((l) => !l.revokedAt));
@@ -69,13 +68,12 @@ watch(
 async function refreshPreview() {
     if (!props.noteId) return;
     const payload = await api.preview(props.noteId, {
-        descendants: includeDescendants.value,
         linked: includeLinked.value,
     });
     if (payload) previewNotes.value = payload.notes ?? [];
 }
 
-watch([includeDescendants, includeLinked], refreshPreview);
+watch(includeLinked, refreshPreview);
 
 function resetForm() {
     errors.value = {};
@@ -83,7 +81,6 @@ function resetForm() {
     previewNotes.value = [];
     recipientEmail.value = "";
     label.value = "";
-    includeDescendants.value = false;
     expiresAt.value = "";
 }
 
@@ -92,7 +89,6 @@ async function create() {
     try {
         const payload = await api.create({
             noteId: props.noteId,
-            includeDescendants: includeDescendants.value,
             includeLinked: includeLinked.value,
             recipientEmail: recipientEmail.value.trim(),
             label: label.value.trim(),
@@ -180,16 +176,13 @@ function openedLabel(link) {
                     :error="errors.expiresAt"
                 />
 
-                <!-- `AppCheckbox` brings its own <label>; wrapping it in
-                     another one nested two labels over the same input, so every
-                     click toggled it twice and the box could not be unticked. -->
-                <AppCheckbox
-                    v-model="includeDescendants"
-                    :label="t('notes.markdown.share.include_descendants')"
-                    :hint="t('notes.markdown.share.include_descendants_hint')"
-                    :disabled="submitting"
-                />
+                <!-- Un seul commutateur depuis que les dossiers existent :
+                     les sous-notes n'existent plus, et un dossier ne se
+                     partage pas.
 
+                     `AppCheckbox` apporte son propre <label> ; l'envelopper
+                     dans un second empilait deux étiquettes sur le même
+                     champ, si bien qu'un clic le cochait deux fois. -->
                 <AppCheckbox
                     v-model="includeLinked"
                     :label="t('notes.markdown.share.include_linked')"
@@ -218,7 +211,7 @@ function openedLabel(link) {
                     </ul>
                 </div>
                 <p
-                    v-else-if="includeDescendants || includeLinked"
+                    v-else-if="includeLinked"
                     class="text-xs text-muted"
                 >
                     {{ t("notes.markdown.share.nothing_else") }}

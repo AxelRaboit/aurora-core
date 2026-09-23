@@ -322,7 +322,6 @@ function openSearchFromMobile() {
             <component
                 :is="modulePanel"
                 v-if="modulePanel && inModuleView && !navFilter"
-                class="mt-1"
             />
         </nav>
 

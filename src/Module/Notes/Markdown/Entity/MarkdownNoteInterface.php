@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Aurora\Module\Notes\Markdown\Entity;
 
 use Aurora\Core\Timestampable\TimestampableInterface;
+use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use DateTimeImmutable;
-use Doctrine\Common\Collections\Collection;
 
 interface MarkdownNoteInterface extends TimestampableInterface
 {
@@ -17,12 +17,9 @@ interface MarkdownNoteInterface extends TimestampableInterface
 
     public function setUser(CoreUserInterface $user): static;
 
-    public function getParent(): ?self;
+    public function getFolder(): ?NoteFolderInterface;
 
-    public function setParent(?self $parent): static;
-
-    /** @return Collection<int, MarkdownNoteInterface> */
-    public function getChildren(): Collection;
+    public function setFolder(?NoteFolderInterface $folder): static;
 
     public function getTitle(): ?string;
 
@@ -42,6 +39,11 @@ interface MarkdownNoteInterface extends TimestampableInterface
 
     public function setPosition(int $position): static;
 
+    /** When the note was pinned, null when it is not. */
+    public function getFavoritedAt(): ?DateTimeImmutable;
+
+    public function setFavoritedAt(?DateTimeImmutable $favoritedAt): static;
+
     public function getDeletedAt(): ?DateTimeImmutable;
 
     public function setDeletedAt(?DateTimeImmutable $deletedAt): static;
@@ -49,8 +51,8 @@ interface MarkdownNoteInterface extends TimestampableInterface
     /** Whether this note sits in the trash rather than in the tree. */
     public function isTrashed(): bool;
 
-    /** The note whose deletion took this one down, if any. */
-    public function getTrashedWithNoteId(): ?int;
+    /** The folder whose deletion took this note down, if any. */
+    public function getTrashedWithFolderId(): ?int;
 
-    public function setTrashedWithNoteId(?int $trashedWithNoteId): static;
+    public function setTrashedWithFolderId(?int $trashedWithFolderId): static;
 }
