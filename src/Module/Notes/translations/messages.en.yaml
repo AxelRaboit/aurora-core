@@ -46,8 +46,8 @@ backend:
 notes:
   markdown:
     share:
-      button: Share
-      title: Share this note
+      button: Share with a link
+      title: Share this note with a link
       page_heading: Shared note
       read_only: Read only
       tree_label: Notes in this share
@@ -125,18 +125,18 @@ notes:
       unpin: Remove from favourites
       pin_failed: This item could not be pinned.
       shared:
-        start: Share with the team
-        stop: Stop sharing
-        started: Shared read-only with the back office
-        stopped: Sharing removed
-        failed: Could not change the sharing.
-        section: Shared with me
-        badge: Shared
+        start: Make visible to the team
+        stop: Hide from the team
+        started: Visible to the team, read-only
+        stopped: Hidden from the team again
+        failed: Could not change the visibility.
+        section: Visible to me
+        badge: Visible to the team
         by: 'By {name}'
         read_only: Read-only
       visibility:
         all: 'Filter: everything'
-        shared: 'Filter: shared with the team'
+        shared: 'Filter: visible to the team'
         private: 'Filter: private'
         clear: Clear the filter
       selected: '{count} selected'

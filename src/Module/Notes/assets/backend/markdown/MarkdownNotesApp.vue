@@ -21,7 +21,7 @@ import AppModalFooter from '@shared/components/overlay/AppModalFooter.vue';
 import AppTab from '@shared/components/nav/AppTab.vue';
 import { computed, nextTick, onErrorCaptured, onMounted, onUnmounted, watch } from 'vue';
 import { onPanelRequest, tellPanels } from '@/shared/nav/modulePanelBridge.js';
-import { Trash2, BookOpen, FileDown, Image, PanelRightOpen, PanelRightClose, Tag, TriangleAlert, X, Network, Share2 } from 'lucide-vue-next';
+import { Trash2, BookOpen, FileDown, Image, PanelRightOpen, PanelRightClose, Tag, TriangleAlert, Users, X, Network, Share2 } from 'lucide-vue-next';
 import AppNoData from '@shared/components/feedback/AppNoData.vue';
 import "@notes/share/appearance.css";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
@@ -180,6 +180,38 @@ const lookClass = computed(() =>
 const previewBody = computed(() =>
     withoutLeadingTitle(form.value.content, form.value.title),
 );
+
+/**
+ * Rendre la note ouverte visible par l'équipe, ou la refermer.
+ *
+ * La bascule n'existait que dans le menu d'une carte, donc depuis la
+ * bibliothèque : depuis la note elle-même, la seule chose qui ressemblait
+ * à un partage était le lien public, qui est une tout autre chose. Deux
+ * gestes différents portaient le même mot, et il en manquait un là où on
+ * l'attend.
+ */
+const sharedWithTeam = computed(() => Boolean(selectedNote.value?.sharedAt));
+
+async function toggleTeamVisibility() {
+    if (!selectedId.value) return;
+
+    const etait = sharedWithTeam.value;
+    const { ok, reported } = await api.shareInternally(selectedId.value);
+
+    if (!ok) {
+        if (!reported) toast.error(t('notes.markdown.library.shared.failed'));
+
+        return;
+    }
+
+    toast.success(
+        etait
+            ? t('notes.markdown.library.shared.stopped')
+            : t('notes.markdown.library.shared.started'),
+    );
+
+    await refreshList();
+}
 
 const readHref = computed(() =>
     selectedId.value && props.readPath
@@ -654,6 +686,22 @@ onUnmounted(() => {
                                 v-on:click="shareModalOpen = true"
                             >
                                 <Share2 class="w-4 h-4" :stroke-width="2" />
+                            </AppIconButton>
+
+                            <!-- Deux voisins, deux gestes : celui d'à côté
+                                 envoie un lien à quelqu'un du dehors,
+                                 celui-ci ouvre la note aux comptes de la
+                                 maison. Les appeler tous les deux
+                                 « partager » faisait hésiter, ce qui s'est
+                                 vu tout de suite. -->
+                            <AppIconButton
+                                :class="sharedWithTeam ? 'text-accent-400' : ''"
+                                :title="sharedWithTeam ? t('notes.markdown.library.shared.stop') : t('notes.markdown.library.shared.start')"
+                                size="md"
+                                :disabled="!selectedId"
+                                v-on:click="toggleTeamVisibility"
+                            >
+                                <Users class="w-4 h-4" :stroke-width="2" />
                             </AppIconButton>
 
                             <!-- Le graphe n'avait aucun bouton : le composant était
