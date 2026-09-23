@@ -1258,7 +1258,7 @@ defineExpose({
 
 <template>
     <div class="flex flex-col min-h-0 flex-1">
-        <header class="flex flex-col gap-3 border-b border-line p-3 sm:p-4">
+        <header class="flex flex-col gap-3 border-b border-line p-3">
             <!-- Le fil d'Ariane est aussi une cible : remonter d'un niveau se
                  fait en y glissant ce qu'on tient, sans ouvrir de modale. -->
             <!-- Première ligne : où l'on est, et ce qu'on peut y créer. -->
@@ -1511,7 +1511,7 @@ defineExpose({
         </div>
 
         <div
-            class="flex-1 min-h-0 overflow-auto p-3 sm:p-4"
+            class="flex-1 min-h-0 overflow-auto p-3"
             :class="rootDragOver ? 'bg-accent-500/5' : ''"
             v-on:dragover="onDragOverCrumb(null, $event)"
             v-on:drop="onDropOn(null, $event)"

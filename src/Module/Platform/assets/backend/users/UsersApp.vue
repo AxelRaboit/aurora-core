@@ -156,7 +156,7 @@ const pageActions = computed(() => {
 </script>
 
 <template>
-    <div ref="container" class="space-y-2 sm:space-y-4">
+    <div ref="container" class="space-y-3">
         <div class="flex flex-col sm:flex-row sm:items-center gap-3">
             <AppSearchInput v-model="search" :placeholder="t('backend.users.search_placeholder')" class="flex-1" />
             <AppMultiselect
@@ -172,7 +172,7 @@ const pageActions = computed(() => {
         <div class="relative space-y-4">
             <div v-if="isNarrow" class="space-y-2">
                 <AppNoData v-if="!loading && !users.length" :message="t('backend.users.empty')" />
-                <div v-for="user in users" :key="user.id" class="bg-surface border border-line/60 rounded-xl overflow-hidden shadow-sm">
+                <div v-for="user in users" :key="user.id" class="aurora-card overflow-hidden">
                     <!-- Avatar + nom + email -->
                     <div class="flex items-center gap-3 p-4">
                         <AppAvatar
@@ -218,7 +218,7 @@ const pageActions = computed(() => {
                 </div>
             </div>
 
-            <div v-else class="bg-surface border border-line/60 rounded-xl overflow-x-auto scrollbar-thin">
+            <div v-else class="aurora-card overflow-x-auto scrollbar-thin">
                 <AppNoData v-if="!loading && !users.length" :message="t('backend.users.empty')" />
                 <table v-else class="w-full text-sm">
                     <thead>
@@ -229,18 +229,18 @@ const pageActions = computed(() => {
                                  disparaissait sous 1024 pixels - donc l'écran
                                  où l'on cherche quelqu'un par son mail était
                                  justement celui qui ne le montrait pas. -->
-                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t('backend.users.user_label') }}</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden md:table-cell">{{ t('backend.users.role_label') }}</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">{{ t('backend.users.type_label') }}</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t('backend.users.status_label') }}</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">{{ t('backend.users.created') }}</th>
+                            <th class="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t('backend.users.user_label') }}</th>
+                            <th class="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wider text-muted hidden md:table-cell">{{ t('backend.users.role_label') }}</th>
+                            <th class="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">{{ t('backend.users.type_label') }}</th>
+                            <th class="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t('backend.users.status_label') }}</th>
+                            <th class="px-4 py-2.5 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">{{ t('backend.users.created') }}</th>
                             <slot name="extra-headers" />
-                            <th class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted sticky right-0 bg-surface-2 border-l border-line/40">{{ t('backend.users.actions') }}</th>
+                            <th class="px-4 py-2.5 text-right text-xs font-medium uppercase tracking-wider text-muted sticky right-0 bg-surface-2 border-l border-line/40">{{ t('backend.users.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-line/40">
                         <tr v-for="user in users" :key="user.id" class="group hover:bg-surface-2/40 transition-colors">
-                            <td class="px-4 py-3 text-primary font-medium">
+                            <td class="px-4 py-2.5 text-primary font-medium">
                                 <div class="flex items-center gap-3 min-w-0">
                                     <AppAvatar variant="solid" :name="user.name" :photo-url="user.profilePhotoUrl ?? ''" :size="32" />
                                     <div class="min-w-0">
@@ -253,21 +253,21 @@ const pageActions = computed(() => {
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-4 py-3 hidden md:table-cell">
+                            <td class="px-4 py-2.5 hidden md:table-cell">
                                 <div class="flex items-center gap-1 flex-wrap">
                                     <AppBadge v-if="user.isDev" :color="user.devColor">Dev</AppBadge>
                                     <AppBadge v-if="user.roleLabel" :color="user.roleColor">{{ user.roleLabel }}</AppBadge>
                                 </div>
                             </td>
-                            <td class="px-4 py-3 hidden lg:table-cell">
+                            <td class="px-4 py-2.5 hidden lg:table-cell">
                                 <AppBadge :color="user.type === 'backend' ? 'accent' : 'gray'">{{ user.typeLabel }}</AppBadge>
                             </td>
-                            <td class="px-4 py-3">
+                            <td class="px-4 py-2.5">
                                 <AppBadge :color="statusBadgeColor(user.status)">{{ user.statusLabel }}</AppBadge>
                             </td>
-                            <td class="px-4 py-3 text-xs text-muted hidden lg:table-cell">{{ formatDateShort(user.createdAt) }}</td>
+                            <td class="px-4 py-2.5 text-xs text-muted hidden lg:table-cell">{{ formatDateShort(user.createdAt) }}</td>
                             <slot name="extra-cells" :user="user" />
-                            <td class="px-4 py-3 sticky right-0 bg-surface border-l border-line/40">
+                            <td class="px-4 py-2.5 sticky right-0 bg-surface border-l border-line/40">
                                 <div class="flex justify-end">
                                     <UserRowActions
                                         :user="user"

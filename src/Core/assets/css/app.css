@@ -117,6 +117,7 @@
 @import "./base/chart.css";
 @import "./base/theme-transition.css";
 @import "./base/base.css";
+@import "./base/spacing.css";
 @import "./base/scrollbar.css";
 
 /* ── Shared component styles (loaded everywhere, used everywhere) ──── */

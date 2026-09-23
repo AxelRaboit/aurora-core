@@ -1,0 +1,84 @@
+/**
+ * L'espacement des pages du back-office, décidé une fois.
+ *
+ * Avant ce fichier, chaque bord était écrit à la main là où il servait :
+ * `<main>` posait `px-2 py-2 sm:px-6 sm:py-8 lg:px-8`, le bandeau de titre
+ * `px-4 sm:px-6 lg:px-8`, le fil d'Ariane la même chose recopiée, et les
+ * quarante-six écrans empilaient là-dessus leurs propres cartes. Deux
+ * conséquences mesurées avant d'y toucher :
+ *
+ * - **Le titre et le contenu ne s'alignaient pas sur téléphone.** Huit pixels
+ *   pour le contenu, seize pour le bandeau au-dessus : un décrochage visible
+ *   sur chaque page, qu'aucun des deux fichiers ne pouvait voir tout seul.
+ * - **Un écran plein hauteur devait soustraire la marge à la main.** Le module
+ *   Notes portait `h-[calc(100dvh-var(--aurora-topbar)-4rem)]`, où `4rem`
+ *   était la somme des `py-8` de `<main>` recopiée en dur. Changer la marge
+ *   cassait la hauteur, en silence.
+ *
+ * Deux valeurs suffisent à toute l'application, et elles vivent ici :
+ *
+ * - `--aurora-gutter` : la distance entre le bord de la page et son contenu.
+ *   Tout ce qui doit s'aligner verticalement la lit, du fil d'Ariane à la
+ *   dernière carte.
+ * - `--aurora-band` : l'air au-dessus et en dessous du contenu de la page.
+ *
+ * Les valeurs sont plus serrées qu'avant, volontairement : trente-deux pixels
+ * de chaque côté sur un écran large, c'est une colonne de texte perdue, et
+ * trente-deux pixels sous un bandeau qui porte déjà une bordure, c'est du vide
+ * qui ne sépare rien. Sur téléphone la gouttière ne bouge pas - elle était
+ * déjà au minimum utile, décidé sur l'espace client.
+ *
+ * Écrit le 23/09/2026.
+ */
+:root {
+    --aurora-gutter: 0.5rem;
+    --aurora-band: 0.5rem;
+}
+
+@media (min-width: 640px) {
+    :root {
+        --aurora-gutter: 1.25rem;
+        --aurora-band: 1rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    :root {
+        --aurora-gutter: 1.5rem;
+    }
+}
+
+/**
+ * Le contenu d'une page : la gouttière des deux côtés, la bande en haut et en
+ * bas. Posé sur `<main>`, et sur lui seul.
+ */
+@utility aurora-page {
+    padding-inline: var(--aurora-gutter);
+    padding-block: var(--aurora-band);
+}
+
+/**
+ * La gouttière seule, pour ce qui borde la page sans être dedans : les bandes
+ * collées en haut, qui portent leur propre hauteur et leur propre bordure.
+ * C'est ce qui garantit qu'un fil d'Ariane commence à la verticale exacte de
+ * la première carte en dessous.
+ */
+@utility aurora-gutter {
+    padding-inline: var(--aurora-gutter);
+}
+
+/**
+ * Une carte : une surface, un trait, un arrondi.
+ *
+ * Cent cinq endroits les réécrivaient en Tailwind, avec trois arrondis
+ * différents (`rounded-lg`, `rounded-xl`, `rounded-2xl`) et six opacités de
+ * bordure. Rien ne les distinguait : c'était la même carte, écrite par des
+ * mains différentes des mois d'écart. Le remplissage reste au cas par cas,
+ * parce qu'une carte de tableau et une carte de formulaire n'ont pas la même
+ * densité ; l'enveloppe, elle, est la même partout.
+ */
+@utility aurora-card {
+    background-color: var(--th-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 0.75rem;
+}
