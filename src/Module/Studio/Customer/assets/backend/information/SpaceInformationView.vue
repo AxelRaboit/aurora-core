@@ -20,8 +20,9 @@
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { Info, Plus, RotateCcw, Save, Trash2 } from "lucide-vue-next";
+import { Plus, RotateCcw, Save, Trash2 } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
+import AppMessage from "@/shared/components/feedback/AppMessage.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
@@ -154,10 +155,7 @@ async function save() {
 
 <template>
     <div class="space-y-6">
-        <div class="flex items-start gap-2 rounded-lg border border-line bg-surface-2/40 p-3">
-            <Info class="mt-0.5 h-4 w-4 shrink-0 text-muted" :stroke-width="2" />
-            <p class="text-xs text-muted">{{ t("backend.studio.space_information.scope") }}</p>
-        </div>
+        <AppMessage variant="neutral">{{ t("backend.studio.space_information.scope") }}</AppMessage>
 
         <form v-if="editable" class="space-y-6" v-on:submit.prevent="save">
             <!-- Une colonne sur téléphone, deux à partir de `sm` : deux

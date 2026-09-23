@@ -1,7 +1,12 @@
 {% set _variant = variant|default('info') %}
 {% set _strip = strip|default(false) %}
 
+{# `neutral` : expliquer n'est pas alerter. Les autres variantes sont des
+   couleurs d'état ; celle-ci sert à la phrase qui dit comment marche l'écran
+   qu'on regarde, et qui n'annonce rien. Déclarée ici comme dans le composant
+   Vue, pour que les deux disent la même chose. #}
 {% set _variants = {
+    neutral: {strip: 'bg-surface-2/40 border-line text-muted', card: 'border-line bg-surface-2/40 text-muted', defaultIcon: 'info'},
     info: {strip: 'bg-sky-500/15 border-sky-500/40 text-sky-300', card: 'border-sky-300 bg-sky-50 text-sky-800 dark:border-sky-700 dark:bg-sky-950/40 dark:text-sky-300', defaultIcon: 'info'},
     success: {strip: 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300', card: 'border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300', defaultIcon: 'check-circle'},
     warning: {strip: 'bg-amber-500/15 border-amber-500/40 text-amber-300', card: 'border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-300', defaultIcon: 'alert-triangle'},

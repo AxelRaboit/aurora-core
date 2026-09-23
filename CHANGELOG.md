@@ -5,6 +5,23 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.231] - 2026-09-23
+
+### Ajouté
+
+#### Une variante `neutral` pour les messages
+`AppMessage` n'avait que des couleurs d'état : il s'est passé quelque chose,
+et la couleur dit quoi. Une phrase qui explique comment marche l'écran qu'on
+regarde n'annonce rien, et une boîte bleue la fait crier plus fort qu'elle ne
+parle.
+
+La fiche client d'un espace s'était donc écrit son propre bloc gris, seule de
+son espèce dans tout le code. Elle passe sur le composant, et la maison a
+désormais le registre de l'explication à côté de celui de l'alerte. Déclarée
+des deux côtés, Vue et Twig, pour que les deux disent la même chose.
+
+---
+
 ## [0.9.230] - 2026-09-23
 
 ### Modifié

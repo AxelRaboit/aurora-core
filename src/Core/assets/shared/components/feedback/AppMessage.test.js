@@ -18,6 +18,20 @@ describe("AppMessage", () => {
         expect(div.classes()).toContain("text-sky-800");
     });
 
+    /**
+     * La variante qui explique plutôt qu'elle n'alerte : c'est la seule dont
+     * les classes ne viennent pas d'une couleur d'état, donc la seule qu'une
+     * relecture distraite pourrait aligner sur les autres « pour faire
+     * pareil ». Le test dit qu'elle est neutre exprès.
+     */
+    it("keeps the neutral variant free of any state colour", () => {
+        const wrapper = mount(AppMessage, { props: { variant: "neutral" } });
+
+        expect(wrapper.classes().join(" ")).toContain("bg-surface-2/40");
+        expect(wrapper.classes().join(" ")).toContain("text-muted");
+        expect(wrapper.classes().join(" ")).not.toContain("sky");
+    });
+
     it("applies danger variant classes", () => {
         const wrapper = mount(AppMessage, { props: { variant: "danger" } });
         const div = wrapper.find("div");
