@@ -171,6 +171,27 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
         return $pinned;
     }
 
+    /**
+     * Ouvre ou referme cette note au reste du back-office.
+     *
+     * Pour une note **seule** : celles qui vivent dans un dossier partagé
+     * n'ont pas à porter leur propre date, le dossier décide pour elles.
+     * Partager la note d'un dossier partagé ne fait donc rien de plus, et
+     * la refermer ne la retire pas du dossier.
+     */
+    public function toggleShared(MarkdownNoteInterface $note): bool
+    {
+        $partage = !$note->getSharedAt() instanceof DateTimeImmutable;
+
+        $note->setSharedAt($partage ? new DateTimeImmutable() : null);
+
+        $this->entityManager->flush();
+
+        $this->auditUpdated($note);
+
+        return $partage;
+    }
+
     public function move(MarkdownNoteInterface $note, ?NoteFolderInterface $folder): void
     {
         $note->setFolder($folder);

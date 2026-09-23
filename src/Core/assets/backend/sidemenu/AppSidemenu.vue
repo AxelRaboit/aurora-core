@@ -23,7 +23,7 @@ import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
 import AppNavButton from "@/shared/components/nav/AppNavButton.vue";
 import AppTooltip from "@/shared/components/overlay/AppTooltip.vue";
 import AppNotificationsBell from "@core/backend/notifications/AppNotificationsBell.vue";
-import AppSidemenuAccount from "./AppSidemenuAccount.vue";
+import AppTopbarAccount from "./AppTopbarAccount.vue";
 import AppSidemenuNav from "./AppSidemenuNav.vue";
 import { getModulePanel } from "@/shared/nav/modulePanelRegistry.js";
 import {
@@ -132,7 +132,6 @@ const nav = useSidemenuNav(props.navSections, props.activeRoute, props.navSectio
 const {
     dashboardPath, activeSections, navItems, navFilter, displayedSections,
     inModuleView, hasModuleView, moduleLabel, moduleId, backToProject, enterModuleView,
-    isAccountExpanded, toggleAccount,
     isActive, isActiveExact,
 } = nav;
 
@@ -325,29 +324,6 @@ function openSearchFromMobile() {
             />
         </nav>
 
-        <div class="sidemenu-bottom shrink-0 border-t border-line py-3">
-            <AppSidemenuAccount
-                :user-name="userName"
-                :user-email="userEmail"
-                :user-photo-url="userPhotoUrl"
-                :mailpit-url="mailpitUrl"
-                :profile-path="profilePath"
-                :preferences-path="sidemenuPreferencesPath"
-                :logout-path="logoutPath"
-                :logout-csrf="logoutCsrf"
-                :profile-active="isActiveExact('backend_general_profile')"
-                :preferences-active="isActive('backend_general_profile_sidemenu')"
-                :theme="theme"
-                :expanded="isAccountExpanded()"
-                v-on:toggle="toggleAccount"
-                v-on:toggle-theme="toggleTheme"
-            />
-        </div>
-
-        <!-- The application's own copyright, from the name set in the
-             settings. It used to be a link to the author's GitHub, which read
-             as the product's credit line on somebody else's deployment: what a
-             reader wants there is whose application this is. -->
         <div class="flex justify-center py-2 border-t border-line/30">
             <span class="text-xs text-muted/40 tracking-wide select-none">
                 {{ t('shared.common.built_with', { year: new Date().getFullYear(), siteName }) }}
@@ -382,6 +358,20 @@ function openSearchFromMobile() {
                 :mark-all-read-path="notificationsMarkAllReadPath"
                 :delete-path="notificationsDeletePath"
                 :delete-all-path="notificationsDeleteAllPath"
+            />
+            <!-- Le compte, ici aussi. Sur grand écran il vit dans l'en-tête
+                 de page, qui est caché sous le grand point de rupture : sans
+                 cette copie, un téléphone n'aurait plus aucun moyen de se
+                 déconnecter depuis que le bloc a quitté le pied du menu. -->
+            <AppTopbarAccount
+                :user-name="userName"
+                :user-email="userEmail"
+                :user-photo-url="userPhotoUrl"
+                :mailpit-url="mailpitUrl"
+                :profile-path="profilePath"
+                :preferences-path="sidemenuPreferencesPath"
+                :logout-path="logoutPath"
+                :logout-csrf="logoutCsrf"
             />
             <!-- The desktop toggle's icons, and its alternation: an open
                  panel when the drawer is open, a closed one when it is shut.
@@ -484,29 +474,6 @@ function openSearchFromMobile() {
                     class="mt-1"
                 />
             </nav>
-
-            <!-- The same component the aside uses. It carried its own copy
-                 in plain markup until the collapsed rules were scoped to
-                 `#sidemenu`; before that, hiding the menu on a desktop session
-                 would have hidden this drawer on a phone. -->
-            <div class="shrink-0 border-t border-line px-3 py-3">
-                <AppSidemenuAccount
-                    :user-name="userName"
-                    :user-email="userEmail"
-                    :user-photo-url="userPhotoUrl"
-                    :mailpit-url="mailpitUrl"
-                    :profile-path="profilePath"
-                    :preferences-path="sidemenuPreferencesPath"
-                    :logout-path="logoutPath"
-                    :logout-csrf="logoutCsrf"
-                    :profile-active="isActiveExact('backend_general_profile')"
-                    :preferences-active="isActive('backend_general_profile_sidemenu')"
-                    :theme="theme"
-                    :expanded="isAccountExpanded()"
-                    v-on:toggle="toggleAccount"
-                    v-on:toggle-theme="toggleTheme"
-                />
-            </div>
         </div>
     </div>
 

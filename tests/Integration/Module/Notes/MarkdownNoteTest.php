@@ -353,6 +353,140 @@ final class MarkdownNoteTest extends IntegrationTestCase
         self::assertResponseStatusCodeSame(404);
     }
 
+    /**
+     * Un dossier partagé s'ouvre chez les autres, en lecture.
+     *
+     * Le partage se pose sur le dossier et ce qu'il contient suit : c'est
+     * toute la règle, et c'est elle qu'on vérifie ici plutôt que la
+     * colonne.
+     */
+    public function testASharedFolderLetsOthersReadWhatIsInside(): void
+    {
+        $folder = $this->folder($this->owner, 'Équipe');
+        $note = $this->note($this->owner, 'Compte rendu', $folder, content: '# Compte rendu');
+        $privee = $this->note($this->owner, 'Pour moi seul', content: 'Rien à voir');
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->post('backend_notes_markdown_folders_share', [], ['id' => $folder->getId()]);
+        self::assertResponseIsSuccessful();
+
+        $this->client->loginUser($this->other, 'admin');
+
+        $this->client->request('GET', $this->urlGenerator->generate(
+            'backend_notes_markdown_read',
+            ['id' => $note->getId()],
+        ));
+        self::assertResponseIsSuccessful();
+
+        // Ce qui n'est pas dedans reste dehors.
+        $this->client->request('GET', $this->urlGenerator->generate(
+            'backend_notes_markdown_read',
+            ['id' => $privee->getId()],
+        ));
+        self::assertResponseStatusCodeSame(404);
+    }
+
+    /** Une note partagée seule, sans dossier autour. */
+    public function testANoteCanBeSharedOnItsOwn(): void
+    {
+        $note = $this->note($this->owner, 'Note isolée', content: 'Texte');
+
+        $this->client->loginUser($this->other, 'admin');
+        $this->client->request('GET', $this->urlGenerator->generate(
+            'backend_notes_markdown_read',
+            ['id' => $note->getId()],
+        ));
+        self::assertResponseStatusCodeSame(404);
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->post('backend_notes_markdown_share_internally', [], ['id' => $note->getId()]);
+
+        $this->client->loginUser($this->other, 'admin');
+        $this->client->request('GET', $this->urlGenerator->generate(
+            'backend_notes_markdown_read',
+            ['id' => $note->getId()],
+        ));
+        self::assertResponseIsSuccessful();
+    }
+
+    /**
+     * Partagé veut dire lisible, pas modifiable.
+     *
+     * L'éditeur enregistre tout seul et sans contrôle de concurrence : à
+     * deux sur une note, le dernier qui tape écraserait l'autre en
+     * silence. Tant que ce n'est pas traité, l'écriture reste au
+     * propriétaire, et c'est un test qui le tient.
+     */
+    public function testASharedNoteStaysReadOnlyForEverybodyElse(): void
+    {
+        $note = $this->note($this->owner, 'Partagée', content: 'Le texte d\'origine');
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->post('backend_notes_markdown_share_internally', [], ['id' => $note->getId()]);
+
+        $this->client->loginUser($this->other, 'admin');
+        $this->post(
+            'backend_notes_markdown_update',
+            ['title' => 'Détournée', 'content' => 'Réécrite par quelqu\'un d\'autre'],
+            ['id' => $note->getId()],
+        );
+        self::assertResponseStatusCodeSame(404);
+
+        // Et la page de l'éditeur ne s'ouvre pas non plus : elle sert à
+        // écrire, donc au propriétaire. La lecture a son adresse à elle.
+        $this->client->request('GET', $this->urlGenerator->generate(
+            'backend_notes_markdown_show',
+            ['id' => $note->getId()],
+        ));
+        self::assertResponseStatusCodeSame(404);
+
+        $this->entityManager->clear();
+        $fresh = $this->entityManager->find(MarkdownNote::class, $note->getId());
+        self::assertInstanceOf(MarkdownNote::class, $fresh);
+        self::assertSame('Le texte d\'origine', $fresh->getContent());
+    }
+
+    /** On ne partage pas le dossier d'un autre. */
+    public function testOnlyTheOwnerDecidesWhatIsShared(): void
+    {
+        $folder = $this->folder($this->owner, 'Privé');
+
+        $this->client->loginUser($this->other, 'admin');
+        $this->post('backend_notes_markdown_folders_share', [], ['id' => $folder->getId()]);
+
+        self::assertResponseStatusCodeSame(404);
+
+        $this->entityManager->clear();
+        $fresh = $this->entityManager->find(NoteFolder::class, $folder->getId());
+        self::assertInstanceOf(NoteFolder::class, $fresh);
+        self::assertNull($fresh->getSharedAt());
+    }
+
+    /** La liste de ce que les autres ont partagé, et rien de soi. */
+    public function testTheSharedListCarriesWhatOthersOpened(): void
+    {
+        $folder = $this->folder($this->owner, 'Équipe');
+        $dedans = $this->note($this->owner, 'Dedans', $folder);
+        $aMoi = $this->folder($this->other, 'Mon coin');
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->post('backend_notes_markdown_folders_share', [], ['id' => $folder->getId()]);
+
+        $this->client->loginUser($this->other, 'admin');
+        $this->post('backend_notes_markdown_folders_share', [], ['id' => $aMoi->getId()]);
+
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_shared'));
+        self::assertResponseIsSuccessful();
+
+        $body = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+        $dossiers = array_map(static fn (array $one): int => (int) $one['id'], $body['folders']);
+        $notes = array_map(static fn (array $one): int => (int) $one['id'], $body['notes']);
+
+        self::assertContains((int) $folder->getId(), $dossiers);
+        self::assertNotContains((int) $aMoi->getId(), $dossiers, 'Son propre dossier partagé ne lui est pas rendu.');
+        self::assertContains((int) $dedans->getId(), $notes);
+    }
+
     /** Somebody else's folder is neither listed nor reachable. */
     public function testSomebodyElsesFolderIsNotListed(): void
     {

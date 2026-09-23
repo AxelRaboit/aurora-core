@@ -152,6 +152,27 @@ final class NoteFoldersController extends AbstractController
         return $this->jsonSuccess(['favorite' => $this->manager->toggleFavorite($folder)]);
     }
 
+    /**
+     * Ouvre ou referme ce dossier au reste du back-office.
+     *
+     * Seul son propriétaire décide : la recherche passe par
+     * `findOneByUserAndId`, donc partager le dossier d'un collègue répond
+     * 404 comme n'importe quel dossier qui n'est pas à soi.
+     */
+    #[Route('/{id}/share', name: '_share', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Post->value])]
+    public function share(int $id): JsonResponse
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        $folder = $this->repository->findOneByUserAndId($user, $id);
+        if (!$folder instanceof NoteFolderInterface) {
+            return $this->jsonNotFound();
+        }
+
+        return $this->jsonSuccess(['shared' => $this->manager->toggleShared($folder)]);
+    }
+
     /** Sends a folder to the trash, with everything inside it. */
     #[Route('/{id}/delete', name: '_delete', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Post->value])]
     public function delete(int $id): JsonResponse
