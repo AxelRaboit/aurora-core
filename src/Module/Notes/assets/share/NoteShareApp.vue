@@ -105,7 +105,7 @@ const lookClass = computed(() =>
                 <img
                     :src="coverUrl"
                     :alt="''"
-                    class="h-44 w-full object-cover sm:h-56"
+                    class="h-48 w-full object-cover sm:h-72"
                     :style="coverStyle"
                     loading="lazy"
                 >

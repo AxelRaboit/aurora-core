@@ -566,12 +566,17 @@ onUnmounted(() => {
                 <div v-else-if="selectedNote" class="flex-1 flex flex-col min-h-0" :class="lookClass">
                     <!-- Le bandeau, quand la note en porte un. L'image vit chez
                      celui qui l'héberge : rien n'est entré en médiathèque, et
-                     si elle disparaît de là-bas on en choisit une autre. -->
+                     si elle disparaît de là-bas on en choisit une autre.
+                     
+                     Plus haut dans la vue de lecture que dans l'éditeur, et
+                     c'est voulu : ici il partage la colonne avec le texte
+                     qu'on est en train d'écrire, là-bas la page défile et
+                     n'a que la note à montrer. -->
                     <figure v-if="form.coverUrl" class="relative m-0 shrink-0">
                         <img
                             :src="form.coverUrl"
                             alt=""
-                            class="h-28 w-full object-cover sm:h-36"
+                            class="h-40 w-full object-cover sm:h-56"
                             :style="{ objectPosition: `50% ${form.coverPosition ?? 50}%` }"
                         >
                         <figcaption
