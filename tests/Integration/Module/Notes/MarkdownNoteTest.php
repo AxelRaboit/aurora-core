@@ -364,8 +364,9 @@ final class MarkdownNoteTest extends IntegrationTestCase
      *
      * Il vaut un déchiffrement par note : huit millisecondes de plus sur un
      * carnet de cinq cents notes, mesuré, ce qui est le prix d'une carte qui
-     * montre autre chose qu'un titre. Le Markdown y est aplati, sinon la
-     * carte afficherait des dièses.
+     * montre autre chose qu'un titre. **Il part en Markdown**, pas aplati :
+     * la vignette le rend en petit, et c'est de voir un titre et une liste
+     * qu'on reconnaît une note.
      */
     public function testTheListCarriesAnExcerpt(): void
     {
@@ -382,7 +383,37 @@ final class MarkdownNoteTest extends IntegrationTestCase
         ));
 
         self::assertIsArray($row);
-        self::assertSame('Titre une liste deux', $row['excerpt']);
+        self::assertSame("# Titre\n\n- une liste\n- deux", $row['excerpt']);
+    }
+
+    /**
+     * Une image ne part pas dans l'extrait, et un bloc de code coupé se
+     * referme.
+     *
+     * Une seule image en `data:` pèserait plus que toute la liste, et une
+     * clôture manquante ferait passer la fin de la vignette pour du code.
+     */
+    public function testTheExcerptDropsImagesAndClosesWhatItCuts(): void
+    {
+        $note = $this->note(
+            $this->owner,
+            'Avec une image',
+            content: "![vue](data:image/png;base64,AAAA)\n\nLe texte.\n\n```php\necho 1;",
+        );
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_list'));
+
+        $body = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+        $row = current(array_filter(
+            $body['notes'],
+            static fn (array $one): bool => (int) $one['id'] === $note->getId(),
+        ));
+
+        self::assertIsArray($row);
+        self::assertStringNotContainsString('data:image', (string) $row['excerpt']);
+        self::assertSame(2, mb_substr_count((string) $row['excerpt'], '```'));
     }
 
     /**

@@ -63,6 +63,7 @@ import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { useNoteLibrary } from "@notes/backend/markdown/composables/useNoteLibrary.js";
 import { useFoldable } from "@notes/backend/markdown/composables/useFoldable.js";
 import { useNotePreview } from "@notes/backend/markdown/composables/useNotePreview.js";
+import { useMarkdownRenderer } from "@notes/backend/markdown/composables/useMarkdownRenderer.js";
 import NotePreview from "@notes/backend/markdown/components/NotePreview.vue";
 import {
     NOTE_DRAG_MIME,
@@ -303,6 +304,40 @@ const sortLabel = computed(
  */
 function folderTint(folder) {
     return folder.color ? { color: folder.color } : null;
+}
+
+/**
+ * La vignette d'une note : son début, rendu petit.
+ *
+ * **C'est le rendu qui fait reconnaître une note**, pas le texte. Un titre,
+ * une liste, une case cochée se repèrent d'un coup d'œil, là où le même
+ * début aplati en une phrase rendait toutes les cartes identiques. C'est ce
+ * que fait Craft, et ce qu'Axel a demandé le 23/09 en montrant son mur de
+ * cartes.
+ *
+ * Le confort de lecture n'est pas le sujet ici : on cherche « ah oui, c'est
+ * celle-là », donc le texte est petit et la vignette est coupée en bas.
+ *
+ * Gardé en mémoire par note et par date de modification : on redessine la
+ * grille à chaque tri, à chaque filtre, à chaque page de plus, et analyser
+ * soixante extraits à chaque fois pour un résultat identique se paierait à
+ * chaque clic.
+ */
+const { render: renderMarkdown } = useMarkdownRenderer();
+const thumbnails = new Map();
+
+function thumbnail(note) {
+    if (!note.excerpt) return "";
+
+    const key = `${note.id}:${note.updatedAt}`;
+    const known = thumbnails.get(key);
+
+    if (undefined !== known) return known;
+
+    const html = renderMarkdown(note.excerpt);
+    thumbnails.set(key, html);
+
+    return html;
 }
 
 function folderLabel(folder) {
@@ -1435,7 +1470,7 @@ defineExpose({
                 <div v-if="'list' !== view">
                     <div
                         class="grid grid-cols-1 gap-3"
-                        :class="'mosaic' === view ? 'sm:grid-cols-2 xl:grid-cols-3' : 'sm:grid-cols-3 xl:grid-cols-4'"
+                        :class="'mosaic' === view ? 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'sm:grid-cols-3 xl:grid-cols-4'"
                     >
                         <article
                             v-for="folder in pagedFolders"
@@ -1501,7 +1536,7 @@ defineExpose({
                             :class="[
                                 isSelected('note', note) ? 'ring-2 ring-accent-500' : '',
                                 isFocused('note', note) ? 'ring-2 ring-accent-500/60' : '',
-                                'mosaic' === view ? 'p-4 min-h-[8rem]' : 'p-3',
+                                'mosaic' === view ? 'p-4' : 'p-3',
                             ]"
                             draggable="true"
                             v-on:dragstart="onDragStart('note', note, $event)"
@@ -1532,16 +1567,18 @@ defineExpose({
                                 <AppRowActions :actions="noteActions(note)" :label="noteLabel(note)" />
                             </div>
 
-                            <!-- Les premières lignes, en mosaïque seulement : c'est
-                         ce qui distingue cette vue des cartes, et ce qui
-                         permet de reconnaître une note dont le titre ne dit
-                         rien. -->
-                            <p
+                            <!-- La vignette, en mosaïque seulement : c'est ce
+                                 qui distingue cette vue des cartes. Coupée en
+                                 bas par un dégradé plutôt que par une ligne
+                                 nette, pour que rien ne ressemble à une fin
+                                 de note. -->
+                            <div
                                 v-if="'mosaic' === view && note.excerpt"
-                                class="mt-2 line-clamp-3 text-sm text-muted"
+                                class="note-thumb relative mt-2 h-40 overflow-hidden text-[0.6875rem] leading-snug text-muted"
                             >
-                                {{ note.excerpt }}
-                            </p>
+                                <div v-html="thumbnail(note)" />
+                                <div class="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-surface to-transparent" />
+                            </div>
 
                             <!-- À plat, le dossier d'où la note vient, et
                                  le chemin pour y aller. -->
@@ -1826,3 +1863,78 @@ defineExpose({
         </Teleport>
     </div>
 </template>
+
+<style scoped>
+/*
+ * La vignette d'une carte : le rendu de la note, en petit.
+ *
+ * `:deep` parce que ce HTML vient d'un `v-html` et non du gabarit : les
+ * styles de portée ne le marquent pas. Et pas la feuille de l'aperçu
+ * (`preview.css`), qui est dimensionnée pour être lue : ici on veut la
+ * silhouette d'une note, pas son confort.
+ */
+.note-thumb :deep(h1),
+.note-thumb :deep(h2),
+.note-thumb :deep(h3),
+.note-thumb :deep(h4) {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    margin: 0 0 0.25rem;
+    line-height: 1.3;
+}
+
+.note-thumb :deep(p),
+.note-thumb :deep(ul),
+.note-thumb :deep(ol),
+.note-thumb :deep(blockquote),
+.note-thumb :deep(pre) {
+    margin: 0 0 0.375rem;
+}
+
+.note-thumb :deep(ul),
+.note-thumb :deep(ol) {
+    padding-left: 1rem;
+    list-style: revert;
+}
+
+.note-thumb :deep(blockquote) {
+    border-left: 2px solid var(--color-line);
+    padding-left: 0.5rem;
+}
+
+.note-thumb :deep(pre) {
+    background: var(--color-surface-2);
+    border-radius: 0.25rem;
+    padding: 0.25rem 0.375rem;
+    overflow: hidden;
+    white-space: pre-wrap;
+}
+
+.note-thumb :deep(code) {
+    font-size: 0.625rem;
+}
+
+.note-thumb :deep(a) {
+    color: var(--color-accent-400);
+    text-decoration: none;
+}
+
+.note-thumb :deep(hr) {
+    border-color: var(--color-line);
+    margin: 0.375rem 0;
+}
+
+/* Une table entière dans une vignette de quinze lignes ne dirait rien de
+   plus qu'un bloc gris, et ferait déborder la carte en largeur. */
+.note-thumb :deep(table) {
+    display: none;
+}
+
+/* Le serveur retire les images de l'extrait ; celles qui passeraient par un
+   autre chemin (une balise HTML dans le texte) restent bornées. */
+.note-thumb :deep(img) {
+    max-height: 4rem;
+    width: auto;
+}
+</style>
