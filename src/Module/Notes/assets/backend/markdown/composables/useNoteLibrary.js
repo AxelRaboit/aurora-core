@@ -111,27 +111,21 @@ export function useNoteLibrary({
         () => sortedFolders.value.length + sortedNotes.value.length,
     );
 
-    function sorted(items, labelOf) {
-        const factor = "asc" === direction.value ? 1 : -1;
+    /**
+     * Le rang de deux éléments, avant que le sens s'en mêle.
+     *
+     * **Il n'y a jamais d'égalité au bout.** Une importation donne la même
+     * seconde à trente notes, et un tri par date les laissait alors dans un
+     * ordre que le bouton de sens ne changeait pas : il avait l'air cassé,
+     * et il ne l'était pas. Le nom départage, puis l'identifiant, qui lui
+     * est unique - ainsi inverser le sens inverse toujours quelque chose.
+     */
+    function rank(a, b, labelOf) {
+        if ("manual" === sort.value) {
+            const byPosition = (a.position ?? 0) - (b.position ?? 0);
 
-        return [...items].sort((a, b) => {
-            if ("manual" === sort.value) {
-                return factor * ((a.position ?? 0) - (b.position ?? 0));
-            }
-
-            if ("name" === sort.value) {
-                // `localeCompare` with `numeric` so "Note 2" comes before
-                // "Note 10", which a plain code-point comparison reverses.
-                return (
-                    factor *
-                    String(labelOf(a) ?? "").localeCompare(
-                        String(labelOf(b) ?? ""),
-                        undefined,
-                        { numeric: true, sensitivity: "base" },
-                    )
-                );
-            }
-
+            if (0 !== byPosition) return byPosition;
+        } else if ("name" !== sort.value) {
             const field = "created" === sort.value ? "createdAt" : "updatedAt";
 
             // Une date illisible vaut zéro plutôt que `NaN` : un comparateur
@@ -142,8 +136,28 @@ export function useNoteLibrary({
                 return Number.isFinite(value) ? value : 0;
             };
 
-            return factor * (at(a) - at(b));
-        });
+            const byDate = at(a) - at(b);
+
+            if (0 !== byDate) return byDate;
+        }
+
+        // `localeCompare` avec `numeric` pour que « Note 2 » précède
+        // « Note 10 », que la comparaison de codes inverse.
+        const byName = String(labelOf(a) ?? "").localeCompare(
+            String(labelOf(b) ?? ""),
+            undefined,
+            { numeric: true, sensitivity: "base" },
+        );
+
+        if (0 !== byName) return byName;
+
+        return Number(a.id ?? 0) - Number(b.id ?? 0);
+    }
+
+    function sorted(items, labelOf) {
+        const factor = "asc" === direction.value ? 1 : -1;
+
+        return [...items].sort((a, b) => factor * rank(a, b, labelOf));
     }
 
     /**

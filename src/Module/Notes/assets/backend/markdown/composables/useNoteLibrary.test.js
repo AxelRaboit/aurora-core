@@ -126,6 +126,54 @@ describe("useNoteLibrary", () => {
         expect(library.notes.value.map((n) => n.id)).toEqual([11, 12]);
     });
 
+    /**
+     * Le bouton de sens avait l'air cassé sur le jeu d'Axel : ses trois
+     * notes portaient la même seconde, donc le tri par date les déclarait à
+     * égalité et l'inversion ne changeait rien de visible.
+     */
+    it("still reverses something when the dates are all equal", () => {
+        const sameSecond = "2026-09-23T06:59:00+00:00";
+        const notes = ref([
+            {
+                id: 21,
+                folderId: null,
+                title: "Alpha",
+                position: 0,
+                updatedAt: sameSecond,
+            },
+            {
+                id: 22,
+                folderId: null,
+                title: "Bravo",
+                position: 1,
+                updatedAt: sameSecond,
+            },
+            {
+                id: 23,
+                folderId: null,
+                title: "Charlie",
+                position: 2,
+                updatedAt: sameSecond,
+            },
+        ]);
+
+        const library = useNoteLibrary({
+            folders: ref([]),
+            notes,
+            initialFolderId: null,
+            breadcrumb: [],
+            urlFor: (id) => `/f/${id}`,
+            rootUrl: "/",
+        });
+
+        const descending = library.notes.value.map((note) => note.title);
+        library.toggleDirection();
+        const ascending = library.notes.value.map((note) => note.title);
+
+        expect(ascending).toEqual([...descending].reverse());
+        expect(ascending).toEqual(["Alpha", "Bravo", "Charlie"]);
+    });
+
     it("keeps the manual order when asked for it", () => {
         const library = build();
 

@@ -44,7 +44,7 @@ import {
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
-import AppSelect from "@/shared/components/form/select/AppSelect.vue";
+import AppMultiselect from "@/shared/components/form/select/AppMultiselect.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
@@ -1106,7 +1106,11 @@ defineExpose({
                  gestes portent sur l'endroit où l'on est, pas sur la façon
                  de le lire. Une barre unique les mélangeait, et huit
                  contrôles collés se lisaient comme un mur. -->
-            <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+            <!-- Tout à droite, en un seul groupe : la loupe seule à gauche
+                 laissait un vide de la moitié de la barre pour un bouton de
+                 trente pixels. Ouverte, la recherche prend sa place dans le
+                 groupe et repousse le reste, au lieu de traverser l'écran. -->
+            <div class="flex flex-wrap items-center justify-end gap-x-3 gap-y-2">
                 <AppIconButton
                     v-if="!searchOpen"
                     :title="t('notes.markdown.library.search_placeholder')"
@@ -1119,7 +1123,7 @@ defineExpose({
                 <div
                     v-else
                     ref="searchBox"
-                    class="min-w-[12rem] flex-1 sm:max-w-sm"
+                    class="w-full sm:w-64"
                     v-on:keyup.esc="closeSearch"
                     v-on:focusout="closeSearch"
                 >
@@ -1129,7 +1133,7 @@ defineExpose({
                     />
                 </div>
 
-                <div class="ml-auto flex items-center gap-3">
+                <div class="flex items-center gap-3">
                     <div class="inline-flex overflow-hidden rounded-md border border-line">
                         <AppTab
                             v-for="opt in viewOptions"
@@ -1149,10 +1153,15 @@ defineExpose({
                          Craft : changer d'ordre ne doit pas demander de
                          rouvrir la liste des critères. -->
                     <div class="flex items-center gap-1">
-                        <AppSelect
+                        <!-- Le sélecteur de la maison plutôt que le
+                             `<select>` natif : même allure que partout
+                             ailleurs dans le back-office. Pas de recherche
+                             ici, quatre critères ne se cherchent pas. -->
+                        <AppMultiselect
                             :model-value="sort"
                             :options="sortOptions"
-                            class="min-w-[8.5rem]"
+                            :searchable="false"
+                            class="min-w-[9.5rem]"
                             v-on:update:model-value="setSort($event)"
                         />
                         <AppIconButton
@@ -1492,7 +1501,15 @@ defineExpose({
             :icon="FolderInput"
             v-on:close="moving = null"
         >
-            <AppSelect v-model="moveTarget" :options="moveTargets" class="w-full" />
+            <!-- Cherchable, celui-ci : un carnet rangé a des dizaines de
+                 dossiers, et dérouler la liste entière pour en viser un
+                 serait la même corvée que l'arbre qu'on vient de quitter. -->
+            <AppMultiselect
+                v-model="moveTarget"
+                :options="moveTargets"
+                :placeholder="t('notes.markdown.folders.move_to')"
+                class="w-full"
+            />
 
             <template #footer>
                 <AppModalFooter>
