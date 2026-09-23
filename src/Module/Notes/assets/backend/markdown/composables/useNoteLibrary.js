@@ -134,9 +134,15 @@ export function useNoteLibrary({
 
             const field = "created" === sort.value ? "createdAt" : "updatedAt";
 
-            return (
-                factor * (Date.parse(a[field] ?? 0) - Date.parse(b[field] ?? 0))
-            );
+            // Une date illisible vaut zéro plutôt que `NaN` : un comparateur
+            // qui rend `NaN` laisse l'ordre à la merci du moteur.
+            const at = (item) => {
+                const value = Date.parse(item[field]);
+
+                return Number.isFinite(value) ? value : 0;
+            };
+
+            return factor * (at(a) - at(b));
         });
     }
 

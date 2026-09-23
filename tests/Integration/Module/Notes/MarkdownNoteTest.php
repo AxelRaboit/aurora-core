@@ -417,6 +417,35 @@ final class MarkdownNoteTest extends IntegrationTestCase
         self::assertTrue($body['favorite']);
     }
 
+    /**
+     * Les dates de la liste partent en chaînes, pas en objets.
+     *
+     * L'hydratation en tableau de Doctrine rend des `DateTimeImmutable`, que
+     * `json_encode` écrit `{date, timezone_type, timezone}`. Le navigateur
+     * n'y voit pas une date : `Intl` lève, et l'exception emporte le
+     * composant entier - la page devient un cadre vide. Personne ne l'a vu
+     * tant qu'aucun écran n'affichait ces dates.
+     */
+    public function testTheFlatListSendsDatesAsStrings(): void
+    {
+        $note = $this->note($this->owner, 'Datée');
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_list'));
+
+        $body = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+
+        $row = current(array_filter(
+            $body['notes'],
+            static fn (array $one): bool => (int) $one['id'] === $note->getId(),
+        ));
+
+        self::assertIsArray($row);
+        self::assertIsString($row['updatedAt'], 'une date de liste est une chaîne ISO');
+        self::assertIsString($row['createdAt']);
+        self::assertNotFalse(strtotime($row['updatedAt']), 'et cette chaîne se relit');
+    }
+
     /** Title and body are ciphertext in the database, and readable through the ORM. */
     public function testTheBodyIsEncryptedAtRest(): void
     {

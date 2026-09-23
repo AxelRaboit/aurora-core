@@ -9,6 +9,7 @@ use Aurora\Module\Notes\Markdown\Entity\MarkdownNote;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use DateTimeImmutable;
+use DateTimeInterface;
 use Doctrine\Common\Collections\Order;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -29,11 +30,19 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
      * l'annotation disait le contraire, ce qui laissait les appelants croire
      * qu'ils tenaient des notes.
      *
-     * @return list<array{id: int, title: string|null, tags: list<string>, position: int, createdAt: DateTimeImmutable, updatedAt: DateTimeImmutable, favoritedAt: DateTimeImmutable|null, folderId: int|null}>
+     * **Les dates partent en chaînes ISO**, comme celles du sérialiseur.
+     * L'hydratation en tableau rend des `DateTimeImmutable`, que `json_encode`
+     * écrit `{date, timezone_type, timezone}` : un objet que le navigateur ne
+     * sait pas lire comme une date. Personne ne l'avait vu tant que l'écran
+     * n'affichait aucune date ; le jour où la bibliothèque a montré « modifiée
+     * le », le formatage a levé et la page entière est restée blanche.
+     *
+     * @return list<array{id: int, title: string|null, tags: list<string>, position: int, createdAt: string, updatedAt: string, favoritedAt: string|null, folderId: int|null}>
      */
     public function findFlatListForUser(CoreUserInterface $user): array
     {
-        return $this->createQueryBuilder('n')
+        /** @var list<array<string, mixed>> $rows */
+        $rows = $this->createQueryBuilder('n')
             ->select('n.id', 'n.title', 'n.tags', 'n.position', 'n.createdAt', 'n.updatedAt', 'n.favoritedAt', 'IDENTITY(n.folder) AS folderId')
             ->where('n.user = :user')
             ->andWhere('n.deletedAt IS NULL')
@@ -42,6 +51,19 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
             ->addOrderBy('n.createdAt', Order::Descending->value)
             ->getQuery()
             ->getArrayResult();
+
+        return array_map(static fn (array $row): array => [
+            ...$row,
+            'createdAt' => self::asAtom($row['createdAt'] ?? null),
+            'updatedAt' => self::asAtom($row['updatedAt'] ?? null),
+            'favoritedAt' => self::asAtom($row['favoritedAt'] ?? null),
+        ], $rows);
+    }
+
+    /** Une date de l'hydratation en tableau, rendue lisible par un navigateur. */
+    private static function asAtom(mixed $value): ?string
+    {
+        return $value instanceof DateTimeInterface ? $value->format(DateTimeInterface::ATOM) : null;
     }
 
     /**

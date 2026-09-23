@@ -941,8 +941,19 @@ function noteActions(note) {
     ];
 }
 
+/**
+ * La date d'une carte, ou rien.
+ *
+ * `Intl` lève une `RangeError` sur une date qu'il ne comprend pas, et une
+ * exception pendant le rendu emporte le composant entier : la page devient
+ * un cadre vide, sans un mot. C'est arrivé le 23/09, avec des dates que le
+ * serveur envoyait en objets plutôt qu'en chaînes. Le serveur est corrigé,
+ * et l'affichage ne dépend plus de sa bonne volonté.
+ */
 function updatedLabel(item) {
-    return item.updatedAt ? formatDateTimeNumeric(item.updatedAt) : "";
+    return Number.isFinite(Date.parse(item.updatedAt))
+        ? formatDateTimeNumeric(item.updatedAt)
+        : "";
 }
 
 /**

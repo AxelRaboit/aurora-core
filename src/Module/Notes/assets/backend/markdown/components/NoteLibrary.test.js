@@ -525,6 +525,28 @@ describe("the library", () => {
         expect(wrapper.emitted("changed")).toBeTruthy();
     });
 
+    /**
+     * Le défaut qui a rendu la page blanche : le serveur envoyait ses dates
+     * en objets, `Intl` levait, et l'exception emportait le composant
+     * entier. Le serveur est corrigé ; ceci vérifie que l'affichage tient
+     * même si une date redevenait illisible.
+     */
+    it("survives a date it cannot read", () => {
+        const wrapper = render({
+            folders: [],
+            notes: [
+                {
+                    ...NOTES[0],
+                    updatedAt: { date: "2026-09-23 04:59:53", timezone: "UTC" },
+                    createdAt: null,
+                },
+            ],
+        });
+
+        expect(wrapper.findAll("article")).toHaveLength(1);
+        expect(wrapper.text()).toContain("À la racine");
+    });
+
     it("draws a table when the list view is picked", async () => {
         const wrapper = render();
 
