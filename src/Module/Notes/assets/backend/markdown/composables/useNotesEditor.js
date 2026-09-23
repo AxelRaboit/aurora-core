@@ -108,6 +108,16 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
         for (const key of extraKeys) {
             if (loadedSnapshot.value[key] !== form.value[key]) return true;
         }
+
+        // L'habillage compte autant que le texte. Sans ces clés, choisir
+        // une image ou déplacer le cadrage laissait le formulaire « propre » :
+        // la surveillance se déclenchait bien, mais repartait aussitôt
+        // faute de différence à écrire, et le réglage disparaissait au
+        // rechargement suivant. Signalé par Axel le 23/09.
+        for (const key of Object.keys(LOOK_DEFAULTS)) {
+            if (loadedSnapshot.value[key] !== form.value[key]) return true;
+        }
+
         return false;
     });
 
