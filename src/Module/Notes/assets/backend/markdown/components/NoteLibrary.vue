@@ -1338,7 +1338,13 @@ defineExpose({
 
                 <!-- Icônes seules : le libellé prenait la moitié de la barre
                      pour dire ce qu'un « + » dit aussi bien, et l'infobulle
-                     le nomme pour qui hésite. -->
+                     le nomme pour qui hésite.
+
+                     Les deux sont des boutons d'icône, du même dessin. Celui
+                     de la note était un bouton plein vert, plus gros et
+                     rempli, posé à côté de son voisin en simple contour :
+                     deux gestes du même genre, à un pas l'un de l'autre, qui
+                     n'avaient pas l'air de la même famille. -->
                 <div class="flex shrink-0 items-center gap-1">
                     <AppIconButton
                         color="accent"
@@ -1349,16 +1355,14 @@ defineExpose({
                         <FolderPlus class="h-4 w-4" :stroke-width="2" />
                     </AppIconButton>
 
-                    <AppButton
-                        variant="primary"
-                        size="md"
-                        class="min-h-11 !px-2.5 sm:min-h-0"
+                    <AppIconButton
+                        color="accent"
                         :title="t('notes.markdown.library.new_note')"
                         :aria-label="t('notes.markdown.library.new_note')"
                         v-on:click="emit('create-note', currentFolderId)"
                     >
                         <Plus class="h-4 w-4" :stroke-width="2" />
-                    </AppButton>
+                    </AppIconButton>
                 </div>
             </div>
 
