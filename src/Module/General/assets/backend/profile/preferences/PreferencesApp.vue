@@ -47,7 +47,7 @@ const current = computed(() => TABS[0]);
          menu; there is nothing here to move, only a control to drop. Put the
          strip back the day a second tab exists, or contribute it to the module
          view like the settings tabs. -->
-    <div class="bg-surface border border-line rounded-xl p-4 sm:p-6">
+    <div class="aurora-card p-4 sm:p-6">
         <component :is="current.component" v-bind="current.getProps()" />
     </div>
 </template>

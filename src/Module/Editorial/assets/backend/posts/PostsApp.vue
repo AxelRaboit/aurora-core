@@ -313,7 +313,7 @@ const pageActions = computed(() => {
             {{ t("backend.posts.bulk.result", { done: bulkResult.done, skipped: bulkResult.skipped }) }}
         </p>
 
-        <div class="bg-surface border border-line rounded-xl p-4 space-y-3">
+        <div class="aurora-card p-4 space-y-3">
             <div class="flex items-center justify-between gap-3">
                 <span class="flex items-center gap-2 text-sm font-medium text-primary">
                     <Filter class="w-4 h-4" :stroke-width="2" /> {{ t("backend.posts.filters") }}
@@ -366,11 +366,11 @@ const pageActions = computed(() => {
             </div>
         </div>
 
-        <div v-if="!isNarrow" class="bg-surface border border-line rounded-lg overflow-x-auto scrollbar-thin">
+        <div v-if="!isNarrow" class="aurora-card overflow-x-auto scrollbar-thin">
             <table class="w-full text-sm">
                 <thead>
                     <tr class="bg-surface-2/50 border-b border-line/40">
-                        <th class="w-10 px-6 py-3">
+                        <th class="w-10 px-4 py-2">
                             <input
                                 type="checkbox"
                                 class="cursor-pointer accent-accent-600"
@@ -379,27 +379,27 @@ const pageActions = computed(() => {
                                 v-on:change="toggleAllOnPage"
                             >
                         </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t("backend.posts.title_column") }}</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden md:table-cell">{{ t("backend.posts.type_column") }}</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t("backend.posts.title_column") }}</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden md:table-cell">{{ t("backend.posts.type_column") }}</th>
                         <th
                             v-if="locales.length > 1"
                             class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell"
                         >
                             {{ t("backend.posts.translations.column") }}
                         </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t("backend.posts.status_column") }}</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">{{ t("backend.posts.updated_column") }}</th>
-                        <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted sticky right-0 bg-surface-2 border-l border-line/40">{{ t("shared.common.actions") }}</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t("backend.posts.status_column") }}</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">{{ t("backend.posts.updated_column") }}</th>
+                        <th class="px-4 py-2 text-right text-xs font-medium uppercase tracking-wider text-muted sticky right-0 bg-surface-2 border-l border-line/40">{{ t("shared.common.actions") }}</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-line/40">
+                <tbody class="divide-y divide-line/40/40">
                     <tr
                         v-for="post in items"
                         :key="post.id"
                         class="group transition-colors"
                         :class="selected.has(post.id) ? 'bg-accent-600/10' : 'hover:bg-surface-2/40'"
                     >
-                        <td class="px-6 py-3">
+                        <td class="px-4 py-2">
                             <input
                                 type="checkbox"
                                 class="cursor-pointer accent-accent-600"
@@ -408,11 +408,11 @@ const pageActions = computed(() => {
                                 v-on:change="toggleRow(post)"
                             >
                         </td>
-                        <td class="px-6 py-3">
+                        <td class="px-4 py-2">
                             <p class="font-medium text-primary truncate">{{ post.title || t("backend.posts.untitled") }}</p>
                             <p class="text-xs text-muted font-mono mt-0.5 truncate">{{ post.reference }}</p>
                         </td>
-                        <td class="px-6 py-3 text-secondary hidden md:table-cell">{{ post.postType.label }}</td>
+                        <td class="px-4 py-2 text-secondary hidden md:table-cell">{{ post.postType.label }}</td>
                         <!-- Every language, with the missing ones dimmed rather than
                              absent. A row listing only what exists cannot be scanned
                              down a column for holes, which is the one thing this is
@@ -432,13 +432,13 @@ const pageActions = computed(() => {
                                 >{{ code }}</span>
                             </span>
                         </td>
-                        <td class="px-6 py-3">
+                        <td class="px-4 py-2">
                             <AppBadge :color="statusColors[post.status] ?? 'gray'">
                                 {{ t(`backend.posts.status.${post.status}`) }}
                             </AppBadge>
                         </td>
-                        <td class="px-6 py-3 text-muted text-xs hidden lg:table-cell">{{ formatDateTime(post.updatedAt) }}</td>
-                        <td class="px-6 py-3 sticky right-0 bg-surface border-l border-line/40">
+                        <td class="px-4 py-2 text-muted text-xs hidden lg:table-cell">{{ formatDateTime(post.updatedAt) }}</td>
+                        <td class="px-4 py-2 sticky right-0 bg-surface border-l border-line/40">
                             <AppRowActions :actions="actionsFor(post)" :label="post.title" />
                         </td>
                     </tr>

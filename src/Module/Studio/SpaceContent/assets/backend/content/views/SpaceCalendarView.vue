@@ -142,7 +142,7 @@ function goToToday() {
                 <!-- La grille dit quels jours portent quelque chose ; celle-ci
                      dit quoi. L'une sans l'autre est illisible sur un
                      téléphone. -->
-                <section v-if="isNarrow" class="rounded-xl border border-line/60 bg-surface">
+                <section v-if="isNarrow" class="aurora-card">
                     <header class="flex items-baseline gap-2 border-b border-line/40 px-3 py-2">
                         <h3 class="text-sm font-medium capitalize text-primary">
                             {{ dayTitle }}
@@ -156,7 +156,7 @@ function goToToday() {
                         {{ t("backend.studio.space_content.calendar_day_empty") }}
                     </p>
 
-                    <ul v-else class="divide-y divide-line/40">
+                    <ul v-else class="divide-y divide-line/40/40">
                         <li v-for="event in dayItems" :key="event.id">
                             <button
                                 type="button"
@@ -177,7 +177,7 @@ function goToToday() {
 
             <!-- Beside the grid and not under it: the two are read together,
                  one card at a time being taken out of the list into a week. -->
-            <aside class="w-full shrink-0 rounded-xl border border-line/60 bg-surface-2/40 lg:w-72">
+            <aside class="w-full shrink-0 rounded-xl border border-line bg-surface-2/40 lg:w-72">
                 <header class="flex items-center gap-2 border-b border-line/40 px-3 py-2">
                     <h3 class="min-w-0 flex-1 truncate text-sm font-medium text-primary">
                         {{ t("backend.studio.space_content.unscheduled_rail") }}
@@ -195,7 +195,7 @@ function goToToday() {
                     <li v-for="item in unscheduled" :key="item.id">
                         <button
                             type="button"
-                            class="w-full rounded-lg border border-line/60 bg-surface px-3 py-2 text-left transition-colors hover:border-line"
+                            class="aurora-card w-full px-3 py-2 text-left transition-colors hover:border-line-strong"
                             v-on:click="emit('open-item', item)"
                         >
                             <p class="truncate text-sm font-medium text-primary">

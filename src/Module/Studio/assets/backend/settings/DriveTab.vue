@@ -172,7 +172,7 @@ defineExpose({ save, apply, canEnable });
                     rows="5"
                     spellcheck="false"
                     :placeholder="hasAccount ? t('backend.studio.drive.settings.key_stored') : '{ &quot;type&quot;: &quot;service_account&quot;, … }'"
-                    class="w-full rounded-lg border border-line bg-surface px-3 py-2 font-mono text-xs text-primary"
+                    class="aurora-card w-full px-3 py-2 font-mono text-xs text-primary"
                 />
                 <span class="block text-xs text-muted">{{ t("backend.studio.drive.settings.key_hint") }}</span>
             </label>

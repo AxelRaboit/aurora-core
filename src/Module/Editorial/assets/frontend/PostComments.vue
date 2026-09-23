@@ -72,7 +72,7 @@ function reactionCount(comment, type) {
                             v-for="reaction in reactionTypes"
                             :key="reaction.value"
                             type="button"
-                            class="px-2 py-0.5 text-xs rounded-md border border-line/60 text-secondary hover:text-primary hover:border-line transition-colors"
+                            class="px-2 py-0.5 text-xs rounded-md border border-line text-secondary hover:text-primary hover:border-line transition-colors"
                             :title="t(reaction.labelKey)"
                             :aria-label="t(reaction.labelKey)"
                             v-on:click="react(comment, reaction.value)"
@@ -91,7 +91,7 @@ function reactionCount(comment, type) {
                     </div>
                 </article>
 
-                <ul v-if="comment.replies?.length" class="space-y-4 pl-5 border-l border-line/60">
+                <ul v-if="comment.replies?.length" class="space-y-4 pl-5 border-l border-line">
                     <li v-for="reply in comment.replies" :key="reply.id" class="space-y-2">
                         <header class="flex flex-wrap items-baseline gap-2 text-sm">
                             <span class="font-medium text-primary">{{ reply.authorName }}</span>
@@ -105,7 +105,7 @@ function reactionCount(comment, type) {
                                 v-for="reaction in reactionTypes"
                                 :key="reaction.value"
                                 type="button"
-                                class="px-2 py-0.5 text-xs rounded-md border border-line/60 text-secondary hover:text-primary hover:border-line transition-colors"
+                                class="px-2 py-0.5 text-xs rounded-md border border-line text-secondary hover:text-primary hover:border-line transition-colors"
                                 :title="t(reaction.labelKey)"
                                 :aria-label="t(reaction.labelKey)"
                                 v-on:click="react(reply, reaction.value)"
@@ -143,7 +143,7 @@ function reactionCount(comment, type) {
                         type="text"
                         required
                         :placeholder="t('frontend.editorial.comments.name_placeholder')"
-                        class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-primary"
+                        class="aurora-card w-full px-3 py-2 text-sm text-primary"
                     >
                     <span v-if="errors.authorName" class="block text-xs text-rose-500">{{ errors.authorName }}</span>
                 </label>
@@ -155,7 +155,7 @@ function reactionCount(comment, type) {
                         type="email"
                         required
                         :placeholder="t('frontend.editorial.comments.email_placeholder')"
-                        class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-primary"
+                        class="aurora-card w-full px-3 py-2 text-sm text-primary"
                     >
                     <span class="block text-xs text-muted">{{ t("frontend.editorial.comments.email_hint") }}</span>
                     <span v-if="errors.authorEmail" class="block text-xs text-rose-500">{{ errors.authorEmail }}</span>
@@ -169,7 +169,7 @@ function reactionCount(comment, type) {
                     rows="4"
                     required
                     :placeholder="t('frontend.editorial.comments.content_placeholder')"
-                    class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-primary"
+                    class="aurora-card w-full px-3 py-2 text-sm text-primary"
                 />
                 <span v-if="errors.content" class="block text-xs text-rose-500">{{ errors.content }}</span>
             </label>

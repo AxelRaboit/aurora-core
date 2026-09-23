@@ -97,7 +97,7 @@ function badgeColor(value) {
             <article
                 v-for="comment in comments"
                 :key="comment.id"
-                class="bg-surface border border-line rounded-xl p-4 space-y-2"
+                class="aurora-card p-4 space-y-2"
             >
                 <header class="flex items-start justify-between gap-3">
                     <div class="min-w-0">

@@ -30,7 +30,7 @@ const colorStyle = computed(() =>
 
 <template>
     <span
-        class="inline-flex items-center leading-tight px-1.5 py-0.5 rounded-full border border-line/60"
+        class="inline-flex items-center leading-tight px-1.5 py-0.5 rounded-full border border-line"
         :class="textClass"
         :style="colorStyle"
     >{{ tag.name }}</span>

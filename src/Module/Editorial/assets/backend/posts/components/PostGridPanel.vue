@@ -441,7 +441,7 @@ function resizeZone(index, columns) {
                         <div
                             v-for="(child, childIndex) in childrenOf(index)"
                             :key="child.id"
-                            class="space-y-3 rounded-lg border border-line bg-surface p-3"
+                            class="aurora-card space-y-3 p-3"
                         >
                             <div class="flex items-center gap-2">
                                 <component :is="ZONE_ICONS[child.type]" class="w-4 h-4 text-secondary" :stroke-width="2" />

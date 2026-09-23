@@ -57,7 +57,7 @@ const { photoUrl, photoLoading, onPhotoSelected, removePhoto } = useProfilePhoto
         <div class="grid lg:grid-cols-2 gap-6 items-start">
             <!-- Left column: identity & security -->
             <div class="space-y-6">
-                <div class="bg-surface border border-line/60 rounded-2xl p-6 shadow-sm">
+                <div class="aurora-card p-4">
                     <header class="mb-6">
                         <h2 class="text-lg font-semibold text-primary">{{ t('backend.profile.photo.title') }}</h2>
                         <p class="mt-1 text-sm text-secondary">{{ t('backend.profile.photo.subtitle') }}</p>
@@ -90,7 +90,7 @@ const { photoUrl, photoLoading, onPhotoSelected, removePhoto } = useProfilePhoto
                     </div>
                 </div>
 
-                <div class="bg-surface border border-line/60 rounded-2xl p-6 shadow-sm">
+                <div class="aurora-card p-4">
                     <header class="mb-6">
                         <h2 class="text-lg font-semibold text-primary">{{ t('backend.profile.info.title') }}</h2>
                         <p class="mt-1 text-sm text-secondary">{{ t('backend.profile.info.subtitle') }}</p>
@@ -119,7 +119,7 @@ const { photoUrl, photoLoading, onPhotoSelected, removePhoto } = useProfilePhoto
                     </form>
                 </div>
 
-                <div class="bg-surface border border-line/60 rounded-2xl p-6 shadow-sm">
+                <div class="aurora-card p-4">
                     <header class="mb-6">
                         <h2 class="text-lg font-semibold text-primary">{{ t('backend.profile.password.title') }}</h2>
                         <p class="mt-1 text-sm text-secondary">{{ t('backend.profile.password.subtitle') }}</p>
@@ -164,7 +164,7 @@ const { photoUrl, photoLoading, onPhotoSelected, removePhoto } = useProfilePhoto
 
             <!-- Right column: personalization -->
             <div class="space-y-6">
-                <div class="bg-surface border border-line/60 rounded-2xl p-6 shadow-sm">
+                <div class="aurora-card p-4">
                     <header class="mb-6">
                         <h2 class="text-lg font-semibold text-primary">{{ t('backend.profile.locale.title') }}</h2>
                         <p class="mt-1 text-sm text-secondary">{{ t('backend.profile.locale.subtitle') }}</p>
@@ -186,7 +186,7 @@ const { photoUrl, photoLoading, onPhotoSelected, removePhoto } = useProfilePhoto
                     :description="t('backend.profile.preferences.subtitle')"
                 />
 
-                <div class="bg-surface border border-line/60 rounded-2xl p-6 shadow-sm">
+                <div class="aurora-card p-4">
                     <header class="mb-6">
                         <h2 class="text-lg font-semibold text-primary">{{ t('backend.profile.mood.title') }}</h2>
                         <p class="mt-1 text-sm text-secondary">{{ t('backend.profile.mood.subtitle') }}</p>
@@ -211,7 +211,7 @@ const { photoUrl, photoLoading, onPhotoSelected, removePhoto } = useProfilePhoto
                     </form>
                 </div>
 
-                <div class="bg-surface border border-line/60 rounded-2xl p-6 shadow-sm">
+                <div class="aurora-card p-4">
                     <header class="mb-6">
                         <h2 class="text-lg font-semibold text-primary">{{ t('backend.profile.account.title') }}</h2>
                         <p class="mt-1 text-sm text-secondary">{{ t('backend.profile.account.subtitle') }}</p>
@@ -232,7 +232,7 @@ const { photoUrl, photoLoading, onPhotoSelected, removePhoto } = useProfilePhoto
                         </div>
                     </div>
 
-                    <dl class="divide-y divide-line/40 text-sm">
+                    <dl class="divide-y divide-line/40/40 text-sm">
                         <div v-if="account.info.value.reference" class="grid grid-cols-3 gap-3 py-2.5">
                             <dt class="text-secondary">{{ t('backend.profile.account.reference') }}</dt>
                             <dd class="col-span-2 font-mono text-primary truncate">{{ account.info.value.reference }}</dd>
@@ -271,7 +271,7 @@ const { photoUrl, photoLoading, onPhotoSelected, removePhoto } = useProfilePhoto
         </div>
 
         <!-- Full-width danger zone -->
-        <div class="bg-surface border border-rose-900/40 rounded-2xl p-6 shadow-sm">
+        <div class="aurora-card border-rose-900/40 p-4">
             <header class="mb-6">
                 <h2 class="text-lg font-semibold text-rose-400">{{ t('backend.profile.danger.title') }}</h2>
                 <p class="mt-1 text-sm text-secondary">{{ t('backend.profile.danger.description') }}</p>

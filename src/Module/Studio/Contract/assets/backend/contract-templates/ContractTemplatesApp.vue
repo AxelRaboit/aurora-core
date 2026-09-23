@@ -299,7 +299,7 @@ const pageActions = computed(() => {
                  Same control as every other list, so the gesture is learned
                  once. -->
             <template #inline>
-                <div v-if="!isNarrow" class="flex shrink-0 border border-line/60 rounded-lg p-0.5">
+                <div v-if="!isNarrow" class="flex shrink-0 border border-line rounded-lg p-0.5">
                     <AppIconButton
                         :title="t('shared.common.list_view')"
                         :class="storedViewMode === 'list' ? 'bg-surface-3 text-primary' : 'text-muted hover:text-primary'"
@@ -401,42 +401,42 @@ const pageActions = computed(() => {
              states that actually change - published and draft. -->
         <div
             v-else-if="viewMode === 'list'"
-            class="bg-surface border border-line rounded-lg overflow-x-auto scrollbar-thin"
+            class="aurora-card overflow-x-auto scrollbar-thin"
         >
             <table class="w-full text-sm">
                 <thead>
                     <tr class="bg-surface-2/50 border-b border-line/40">
-                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted">
+                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">
                             {{ t("backend.studio.contract_templates.name") }}
                         </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted">
+                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">
                             {{ t("backend.studio.contract_templates.kind_label") }}
                         </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted">
+                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">
                             {{ t("backend.studio.contract_templates.category_label") }}
                         </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted">
+                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">
                             {{ t("backend.studio.contract_templates.in_force") }}
                         </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden md:table-cell">
+                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden md:table-cell">
                             {{ t("backend.studio.contract_templates.state_draft") }}
                         </th>
                         <!-- Named, and the only column aligned right: it is
                              where the hand goes, not something to read across
                              with the rest. -->
-                        <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted sticky right-0 bg-surface-2 border-l border-line/40">
+                        <th class="px-4 py-2 text-right text-xs font-medium uppercase tracking-wider text-muted sticky right-0 bg-surface-2 border-l border-line/40">
                             {{ t("shared.common.actions") }}
                         </th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-line/40">
+                <tbody class="divide-y divide-line/40/40">
                     <tr
                         v-for="template in visibleItems"
                         :key="template.id"
                         class="hover:bg-surface-2/40 transition-colors"
                         :class="{ 'opacity-60': template.isArchived }"
                     >
-                        <td class="px-6 py-3 text-primary">
+                        <td class="px-4 py-2 text-primary">
                             <span class="flex items-center gap-2 min-w-0">
                                 <ScrollText class="w-4 h-4 shrink-0 text-muted" :stroke-width="2" />
                                 <span class="truncate">{{ template.name }}</span>
@@ -448,7 +448,7 @@ const pageActions = computed(() => {
                                 </span>
                             </span>
                         </td>
-                        <td class="px-6 py-3">
+                        <td class="px-4 py-2">
                             <span
                                 class="text-2xs uppercase tracking-wider px-1.5 py-0.5 rounded-full border whitespace-nowrap"
                                 :class="kindStyle(template.kind).pill"
@@ -460,7 +460,7 @@ const pageActions = computed(() => {
                              one too rather than an empty cell: a blank reads as
                              a bug, and grey against three colours says plainly
                              that nobody has chosen yet. -->
-                        <td class="px-6 py-3 whitespace-nowrap">
+                        <td class="px-4 py-2 whitespace-nowrap">
                             <AppBadge :color="categoryColor(template.category)">
                                 {{ categoryLabel(template.category) }}
                             </AppBadge>
@@ -470,7 +470,7 @@ const pageActions = computed(() => {
                              the colour the app gives a published thing. An
                              absence stays plain text: "never published" is a
                              sentence, not a state to spot. -->
-                        <td class="px-6 py-3 whitespace-nowrap">
+                        <td class="px-4 py-2 whitespace-nowrap">
                             <AppBadge
                                 v-if="template.publishedVersion"
                                 color="emerald"
@@ -489,7 +489,7 @@ const pageActions = computed(() => {
                         <!-- The draft is amber and clickable: on this screen it
                              is the one state somebody is meant to act on, and
                              the badge is the way into the editor. -->
-                        <td class="px-6 py-3 hidden md:table-cell whitespace-nowrap">
+                        <td class="px-4 py-2 hidden md:table-cell whitespace-nowrap">
                             <AppBadge
                                 v-if="template.draftId"
                                 color="amber"
@@ -505,7 +505,7 @@ const pageActions = computed(() => {
                                 {{ t("backend.studio.contract_templates.no_draft") }}
                             </span>
                         </td>
-                        <td class="px-6 py-3 sticky right-0 bg-surface border-l border-line/40">
+                        <td class="px-4 py-2 sticky right-0 bg-surface border-l border-line/40">
                             <AppRowActions
                                 :actions="rowActions(template)"
                                 :label="template.name"

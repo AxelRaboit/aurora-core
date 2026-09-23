@@ -48,7 +48,7 @@ const CHEVRON_HOVER_CLASSES = {
         :href="href"
         :target="target"
         :rel="target === '_blank' ? 'noopener' : undefined"
-        class="block bg-surface border border-line/60 rounded-2xl p-4 sm:p-5 shadow-sm hover:bg-surface-2 transition-colors group"
+        class="aurora-card group block p-4 transition-colors hover:bg-surface-2"
         :class="HOVER_CLASSES[color]"
     >
         <div class="flex items-center gap-4">

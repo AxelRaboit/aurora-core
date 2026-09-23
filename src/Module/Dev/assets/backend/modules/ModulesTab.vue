@@ -50,7 +50,7 @@ onMounted(() => {
         <div
             v-for="parameter in modules.filteredParameters.value"
             :key="parameter.key"
-            class="bg-surface border border-line rounded-xl overflow-hidden"
+            class="aurora-card overflow-hidden"
         >
             <!-- Parent module header (clickable to collapse/expand) -->
             <div
@@ -118,7 +118,7 @@ onMounted(() => {
             <!-- Sub-modules (collapsible) -->
             <div
                 v-if="parameter.subModules?.length && sections.isExpanded(parameter.key)"
-                class="border-t border-line bg-surface-alt/30 divide-y divide-line/40"
+                class="border-t border-line bg-surface-alt/30 divide-y divide-line/40/40"
             >
                 <div
                     v-for="sub in parameter.subModules"

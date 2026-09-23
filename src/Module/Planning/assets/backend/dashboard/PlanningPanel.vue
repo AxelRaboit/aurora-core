@@ -43,7 +43,7 @@ const upcoming = computed(() =>
 <template>
     <div class="space-y-6">
         <div class="grid grid-cols-2 gap-3">
-            <div class="bg-surface border border-line rounded-xl p-4 flex items-center gap-3">
+            <div class="aurora-card p-4 flex items-center gap-3">
                 <CalendarDays class="w-4 h-4 shrink-0 text-muted" :stroke-width="2" />
                 <div class="min-w-0">
                     <p class="text-lg font-semibold text-primary tabular-nums leading-none">
@@ -80,7 +80,7 @@ const upcoming = computed(() =>
             </div>
         </div>
 
-        <div class="bg-surface border border-line rounded-xl p-4 space-y-3">
+        <div class="aurora-card p-4 space-y-3">
             <div class="flex items-center gap-2">
                 <p class="text-2xs font-semibold uppercase tracking-wider text-muted">
                     {{ t("backend.plannings.upcoming") }}

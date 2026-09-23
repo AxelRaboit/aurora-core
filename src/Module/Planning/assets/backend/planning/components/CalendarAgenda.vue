@@ -36,7 +36,7 @@ function isToday(date) {
 </script>
 
 <template>
-    <div class="bg-surface border border-line rounded-xl overflow-hidden">
+    <div class="aurora-card overflow-hidden">
         <AppNoData v-if="!days.length" class="py-10" :message="t('backend.plannings.nothing_in_range')" />
 
         <div

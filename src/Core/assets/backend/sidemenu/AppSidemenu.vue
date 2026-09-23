@@ -324,7 +324,7 @@ function openSearchFromMobile() {
             />
         </nav>
 
-        <div class="flex justify-center py-2 border-t border-line/30">
+        <div class="flex justify-center py-2 border-t border-line">
             <span class="text-xs text-muted/40 tracking-wide select-none">
                 {{ t('shared.common.built_with', { year: new Date().getFullYear(), siteName }) }}
             </span>
@@ -419,7 +419,7 @@ function openSearchFromMobile() {
             <div class="shrink-0 px-3 pt-3 pb-1 space-y-1">
                 <button
                     type="button"
-                    class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-muted border border-line/60 hover:border-line hover:text-primary hover:bg-surface-2 transition-colors"
+                    class="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-muted border border-line hover:border-line hover:text-primary hover:bg-surface-2 transition-colors"
                     v-on:click="openSearchFromMobile"
                 >
                     <Search class="w-4 h-4 shrink-0" :stroke-width="2" />
@@ -489,7 +489,7 @@ function openSearchFromMobile() {
             <div v-if="searchOpen" class="fixed inset-0 z-50 flex items-start justify-center pt-20 px-2 sm:px-4" v-on:click.self="closePalette">
                 <div class="fixed inset-0 bg-black/60" v-on:click="closePalette" />
 
-                <div class="relative w-full max-w-2xl bg-surface border border-line rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[70vh]">
+                <div class="aurora-card relative w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[70vh]">
                     <div class="flex items-center gap-3 px-4 py-3 border-b border-line">
                         <Search class="w-4 h-4 text-muted shrink-0" :stroke-width="2" />
                         <input

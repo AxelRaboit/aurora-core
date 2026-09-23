@@ -1553,7 +1553,7 @@ defineExpose({
                             v-for="note in recent"
                             :key="`recent-${note.id}`"
                             :href="noteUrlFor(note.id)"
-                            class="flex min-w-0 items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2 text-sm no-underline transition-colors hover:border-accent-500/50"
+                            class="aurora-card flex min-w-0 items-center gap-2 px-3 py-2 text-sm no-underline transition-colors hover:border-accent-500/50"
                             v-on:click.prevent="emit('open-note', note.id)"
                         >
                             <FileText class="h-4 w-4 shrink-0 text-muted" :stroke-width="2" />
@@ -1638,7 +1638,7 @@ defineExpose({
                         <article
                             v-for="note in pagedNotes"
                             :key="`note-${note.id}`"
-                            class="group flex cursor-pointer flex-col rounded-lg border border-line bg-surface transition-colors hover:border-accent-500/50"
+                            class="aurora-card group flex cursor-pointer flex-col transition-colors hover:border-accent-500/50"
                             :class="[
                                 isSelected('note', note) ? 'ring-2 ring-accent-500' : '',
                                 isFocused('note', note) ? 'ring-2 ring-accent-500/60' : '',
@@ -1957,7 +1957,7 @@ defineExpose({
         <Teleport to="body">
             <div
                 v-if="null !== previewId"
-                class="pointer-events-none fixed z-50 w-90 overflow-hidden rounded-lg border border-line bg-surface p-3 shadow-xl"
+                class="aurora-card pointer-events-none fixed z-50 w-90 overflow-hidden p-3 shadow-xl"
                 :style="{
                     top: `${previewAt.top}px`,
                     left: `${previewAt.left}px`,

@@ -47,7 +47,7 @@
            has already lost the glance it was there to catch. #}
         <dl class="m-0 grid grid-cols-1 gap-6 {{ columns[items.columns] }}">
             {% for entry in items.entries %}
-                <div class="rounded-xl border border-line bg-surface p-6">
+                <div class="aurora-card p-6">
                     <dt class="m-0 text-3xl font-bold text-accent sm:text-4xl">{{ entry.title }}</dt>
                     {% if entry.description %}<dd class="m-0 mt-1 text-sm text-secondary">{{ entry.description }}</dd>{% endif %}
                 </div>
@@ -64,7 +64,7 @@
            that does not know the attribute, which is the behaviour every list
            already published has. Scoped to the zone: two lists on one page
            must not close each other's panels. #}
-        <div class="divide-y divide-line border-y border-line">
+        <div class="divide-y divide-line/40 border-y border-line">
             {% for entry in items.entries %}
                 <details
                     class="group py-4"
@@ -215,7 +215,7 @@
            `<blockquote>` because that is what it is. #}
         <div class="grid grid-cols-1 gap-6 {{ columns[items.columns] }}">
             {% for entry in items.entries %}
-                <figure class="m-0 flex h-full flex-col rounded-xl border border-line bg-surface p-6">
+                <figure class="aurora-card m-0 flex h-full flex-col p-6">
                     {% if entry.description %}
                         <blockquote class="m-0 flex-1 border-0 p-0 text-secondary not-italic">{{ entry.description }}</blockquote>
                     {% endif %}

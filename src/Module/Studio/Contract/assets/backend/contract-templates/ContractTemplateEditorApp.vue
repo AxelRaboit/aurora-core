@@ -260,7 +260,7 @@ const governingLabel = computed(
                      "which languages does this version actually have" is
                      answered without opening all three. -->
                 <div
-                    class="flex flex-wrap gap-1 border-b border-line/60"
+                    class="flex flex-wrap gap-1 border-b border-line"
                     role="tablist"
                 >
                     <button
@@ -298,7 +298,7 @@ const governingLabel = computed(
                             :readonly="isPublished"
                         />
                         <div
-                            class="rounded-lg border border-line bg-surface p-3"
+                            class="aurora-card p-3"
                             :class="{ 'opacity-70 pointer-events-none': isPublished }"
                         >
                             <AppBlockEditor
@@ -316,7 +316,7 @@ const governingLabel = computed(
                 <!-- Which language prevails. Asked here rather than at
                      publication time, because it is a decision about the
                      wording somebody is writing, not a step in a dialog. -->
-                <div class="rounded-lg border border-line bg-surface p-3 space-y-2">
+                <div class="aurora-card p-3 space-y-2">
                     <p class="text-xs font-medium uppercase tracking-wider text-muted">
                         {{ t("backend.studio.contract_templates.governing_locale") }}
                     </p>
@@ -346,7 +346,7 @@ const governingLabel = computed(
 
                 <div
                     v-if="otherVersions.length"
-                    class="rounded-lg border border-line bg-surface p-3 space-y-2"
+                    class="aurora-card p-3 space-y-2"
                 >
                     <p class="text-xs font-medium uppercase tracking-wider text-muted">
                         {{ t("backend.studio.contract_templates.other_versions") }}
@@ -397,7 +397,7 @@ const governingLabel = computed(
 
                 <div
                     v-if="previewLocales.length > 1"
-                    class="flex flex-wrap gap-1 border-b border-line/60"
+                    class="flex flex-wrap gap-1 border-b border-line"
                     role="tablist"
                 >
                     <button
@@ -428,7 +428,7 @@ const governingLabel = computed(
 
                 <article
                     v-else
-                    class="bg-surface border border-line rounded-lg p-4 sm:p-6 prose-contract max-h-[65vh] overflow-y-auto"
+                    class="aurora-card p-4 sm:p-6 prose-contract max-h-[65vh] overflow-y-auto"
                     v-html="previewHtml"
                 />
             </div>

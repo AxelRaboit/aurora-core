@@ -195,7 +195,7 @@ const pageActions = computed(() => {
              onglet visible : un espace ouvert pour un prospect serait sinon
              range quelque part que personne ne pense a ouvrir. -->
         <div
-            class="flex items-center gap-0.5 rounded-lg border border-line/60 bg-surface-2/40 p-0.5"
+            class="flex items-center gap-0.5 rounded-lg border border-line bg-surface-2/40 p-0.5"
             role="group"
             :aria-label="t('backend.studio.customers.status')"
         >
@@ -235,7 +235,7 @@ const pageActions = computed(() => {
             <div
                 v-for="space in visibleItems"
                 :key="space.id"
-                class="bg-surface border border-line/60 rounded-xl overflow-hidden shadow-sm"
+                class="aurora-card overflow-hidden"
             >
                 <div class="flex items-start gap-3 px-4 py-3">
                     <span
@@ -272,51 +272,51 @@ const pageActions = computed(() => {
         <!-- Desktop table -->
         <div
             v-else
-            class="bg-surface border border-line rounded-lg overflow-x-auto scrollbar-thin"
+            class="aurora-card overflow-x-auto scrollbar-thin"
         >
             <table class="w-full text-sm">
                 <thead>
                     <tr class="bg-surface-2/50 border-b border-line/40">
                         <th
-                            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted"
+                            class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted"
                         >
                             {{ t("backend.studio.spaces.col_space") }}
                         </th>
                         <th
-                            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted"
+                            class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted"
                         >
                             {{ t("backend.studio.spaces.col_customer") }}
                         </th>
                         <th
-                            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell"
+                            class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell"
                         >
                             {{ t("backend.studio.spaces.col_team") }}
                         </th>
                         <th
-                            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden md:table-cell"
+                            class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden md:table-cell"
                         >
                             {{ t("backend.studio.spaces.col_status") }}
                         </th>
                         <th
-                            class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted hidden xl:table-cell"
+                            class="px-4 py-2 text-right text-xs font-medium uppercase tracking-wider text-muted hidden xl:table-cell"
                         >
                             {{ t("backend.studio.spaces.col_storage") }}
                         </th>
                         <th
-                            class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted sticky right-0 bg-surface-2 border-l border-line/40"
+                            class="px-4 py-2 text-right text-xs font-medium uppercase tracking-wider text-muted sticky right-0 bg-surface-2 border-l border-line/40"
                         >
                             {{ t("shared.common.actions") }}
                         </th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-line/40">
+                <tbody class="divide-y divide-line/40/40">
                     <tr
                         v-for="space in visibleItems"
                         :key="space.id"
                         class="group hover:bg-surface-2/40 transition-colors"
                         :class="space.archived ? 'opacity-60' : ''"
                     >
-                        <td class="px-6 py-3">
+                        <td class="px-4 py-2">
                             <div class="flex items-center gap-2.5">
                                 <span
                                     class="w-2.5 h-2.5 shrink-0 rounded-full"
@@ -340,14 +340,14 @@ const pageActions = computed(() => {
                                 </div>
                             </div>
                         </td>
-                        <td class="px-6 py-3 text-primary">{{ space.customerName }}</td>
-                        <td class="px-6 py-3 hidden lg:table-cell">
+                        <td class="px-4 py-2 text-primary">{{ space.customerName }}</td>
+                        <td class="px-4 py-2 hidden lg:table-cell">
                             <CustomerSpaceTeamCell
                                 :members="space.members"
                                 v-on:open="teamOf = space"
                             />
                         </td>
-                        <td class="px-6 py-3 hidden md:table-cell">
+                        <td class="px-4 py-2 hidden md:table-cell">
                             <span
                                 v-if="space.archived"
                                 class="text-xs text-muted"
@@ -363,10 +363,10 @@ const pageActions = computed(() => {
                              écrans étroits : on ne la lit pas tous les jours,
                              mais le jour où le disque se remplit, c'est elle
                              qui dit chez qui. -->
-                        <td class="px-6 py-3 text-right text-xs text-muted tabular-nums hidden xl:table-cell">
+                        <td class="px-4 py-2 text-right text-xs text-muted tabular-nums hidden xl:table-cell">
                             {{ weigh(storage[space.id] ?? 0) }}
                         </td>
-                        <td class="px-6 py-3 sticky right-0 bg-surface border-l border-line/40">
+                        <td class="px-4 py-2 sticky right-0 bg-surface border-l border-line/40">
                             <div class="flex items-center justify-end gap-0.5">
                                 <AppRowActions
                                     :actions="actionsFor(space)"

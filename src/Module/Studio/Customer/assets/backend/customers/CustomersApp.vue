@@ -191,7 +191,7 @@ const pageActions = computed(() => {
              onglet visible : un prospect cree depuis un espace serait sinon
              range quelque part que personne ne pense a ouvrir. -->
         <div
-            class="flex items-center gap-0.5 rounded-lg border border-line/60 bg-surface-2/40 p-0.5"
+            class="flex items-center gap-0.5 rounded-lg border border-line bg-surface-2/40 p-0.5"
             role="group"
             :aria-label="t('backend.studio.customers.status')"
         >
@@ -222,7 +222,7 @@ const pageActions = computed(() => {
             <div
                 v-for="customer in visibleItems"
                 :key="customer.id"
-                class="bg-surface border border-line/60 rounded-xl overflow-hidden shadow-sm"
+                class="aurora-card overflow-hidden"
             >
                 <div class="px-4 py-3 space-y-1">
                     <p class="font-medium text-primary text-sm">
@@ -253,45 +253,45 @@ const pageActions = computed(() => {
         <!-- Desktop table -->
         <div
             v-else
-            class="bg-surface border border-line rounded-lg overflow-x-auto scrollbar-thin"
+            class="aurora-card overflow-x-auto scrollbar-thin"
         >
             <table class="w-full text-sm">
                 <thead>
                     <tr class="bg-surface-2/50 border-b border-line/40">
                         <th
-                            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted"
+                            class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted"
                         >
                             {{ t("backend.studio.customers.col_company") }}
                         </th>
                         <th
-                            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell"
+                            class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell"
                         >
                             {{ t("backend.studio.customers.col_representative") }}
                         </th>
                         <th
-                            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden md:table-cell"
+                            class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden md:table-cell"
                         >
                             {{ t("backend.studio.customers.col_siret") }}
                         </th>
                         <th
-                            class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted"
+                            class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted"
                         >
                             {{ t("backend.studio.customers.col_contact") }}
                         </th>
                         <th
-                            class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted sticky right-0 bg-surface-2 border-l border-line/40"
+                            class="px-4 py-2 text-right text-xs font-medium uppercase tracking-wider text-muted sticky right-0 bg-surface-2 border-l border-line/40"
                         >
                             {{ t("shared.common.actions") }}
                         </th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-line/40">
+                <tbody class="divide-y divide-line/40/40">
                     <tr
                         v-for="customer in visibleItems"
                         :key="customer.id"
                         class="group hover:bg-surface-2/40 transition-colors"
                     >
-                        <td class="px-6 py-3">
+                        <td class="px-4 py-2">
                             <div class="font-medium text-primary">
                                 {{ customer.legalName }}
                             </div>
@@ -305,7 +305,7 @@ const pageActions = computed(() => {
                                 </span>
                             </div>
                         </td>
-                        <td class="px-6 py-3 hidden lg:table-cell">
+                        <td class="px-4 py-2 hidden lg:table-cell">
                             <div v-if="customer.representativeFullName" class="text-primary">
                                 {{ customer.representativeFullName }}
                             </div>
@@ -315,11 +315,11 @@ const pageActions = computed(() => {
                             </div>
                         </td>
                         <td
-                            class="px-6 py-3 text-muted font-mono text-xs hidden md:table-cell whitespace-nowrap"
+                            class="px-4 py-2 text-muted font-mono text-xs hidden md:table-cell whitespace-nowrap"
                         >
                             {{ formatSiret(customer.siret) }}
                         </td>
-                        <td class="px-6 py-3">
+                        <td class="px-4 py-2">
                             <div class="text-primary break-all">
                                 {{ customer.contractualEmail }}
                             </div>
@@ -331,7 +331,7 @@ const pageActions = computed(() => {
                                 }}
                             </div>
                         </td>
-                        <td class="px-6 py-3 sticky right-0 bg-surface border-l border-line/40">
+                        <td class="px-4 py-2 sticky right-0 bg-surface border-l border-line/40">
                             <div class="flex items-center justify-end gap-0.5">
                                 <AppRowActions
                                     :actions="actionsFor(customer)"

@@ -87,7 +87,7 @@ function isUnresolved(item) {
         <!-- No picker column: the side menu lists the menus, one entry per
              record and one address each. -->
         <section v-if="selected" class="space-y-4">
-            <div class="bg-surface border border-line rounded-xl p-3 sm:p-5 space-y-3">
+            <div class="aurora-card p-3 sm:p-5 space-y-3">
                 <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0">
                         <h2 class="text-lg font-semibold text-primary truncate">{{ selected.name }}</h2>
@@ -106,7 +106,7 @@ function isUnresolved(item) {
                 </div>
             </div>
 
-            <div class="bg-surface border border-line rounded-xl p-3 sm:p-5 space-y-3">
+            <div class="aurora-card p-3 sm:p-5 space-y-3">
                 <div class="flex items-center justify-between gap-3">
                     <h3 class="text-sm font-semibold text-primary">{{ t("backend.menus.items") }}</h3>
                     <AppButton
@@ -121,7 +121,7 @@ function isUnresolved(item) {
 
                 <AppNoData v-if="!rows.length" :message="t('backend.menus.items_empty')" />
 
-                <div class="divide-y divide-line/40">
+                <div class="divide-y divide-line/40/40">
                     <div
                         v-for="item in rows"
                         :key="item.id"

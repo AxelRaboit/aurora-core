@@ -261,7 +261,7 @@ const pageActions = computed(() => {
                  beside the search on a phone, where stacked under the field it
                  read as a second filter. -->
             <template #inline>
-                <div v-if="!isNarrow" class="flex shrink-0 border border-line/60 rounded-lg p-0.5">
+                <div v-if="!isNarrow" class="flex shrink-0 border border-line rounded-lg p-0.5">
                     <AppIconButton
                         :title="t('shared.common.list_view')"
                         :class="storedViewMode === 'list' ? 'bg-surface-3 text-primary' : 'text-muted hover:text-primary'"
@@ -309,7 +309,7 @@ const pageActions = computed(() => {
                 <article
                     v-for="contract in drafts"
                     :key="contract.id"
-                    class="bg-surface border border-line rounded-lg p-4 space-y-3 min-w-0"
+                    class="aurora-card p-4 space-y-3 min-w-0"
                 >
                     <div class="space-y-1">
                         <h3 class="font-medium text-primary">
@@ -362,44 +362,44 @@ const pageActions = computed(() => {
                  words. -->
             <div
                 v-else
-                class="bg-surface border border-line rounded-lg overflow-x-auto scrollbar-thin"
+                class="aurora-card overflow-x-auto scrollbar-thin"
             >
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="bg-surface-2/50 border-b border-line/40">
-                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted">
+                            <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">
                                 {{ t("backend.studio.contracts.col_customer") }}
                             </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted">
+                            <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">
                                 {{ t("backend.studio.contracts.body") }}
                             </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">
+                            <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">
                                 {{ t("backend.studio.contracts.annex") }}
                             </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden md:table-cell">
+                            <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden md:table-cell">
                                 {{ t("backend.studio.contracts.amount") }}
                             </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden xl:table-cell">
+                            <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden xl:table-cell">
                                 {{ t("backend.studio.contracts.effective_date") }}
                             </th>
                             <!-- Named, and the only column aligned right: it is
                                  where the hand goes, not something to read
                                  across with the rest. -->
-                            <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted sticky right-0 bg-surface-2 border-l border-line/40">
+                            <th class="px-4 py-2 text-right text-xs font-medium uppercase tracking-wider text-muted sticky right-0 bg-surface-2 border-l border-line/40">
                                 {{ t("shared.common.actions") }}
                             </th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-line/40">
+                    <tbody class="divide-y divide-line/40/40">
                         <tr
                             v-for="contract in drafts"
                             :key="contract.id"
                             class="hover:bg-surface-2/40 transition-colors"
                         >
-                            <td class="px-6 py-3 text-primary">
+                            <td class="px-4 py-2 text-primary">
                                 {{ contract.customerName }}
                             </td>
-                            <td class="px-6 py-3 text-muted">
+                            <td class="px-4 py-2 text-muted">
                                 <span class="text-primary">
                                     {{ contract.body?.templateName ?? "-" }}
                                 </span>
@@ -418,20 +418,20 @@ const pageActions = computed(() => {
                                     {{ t("backend.studio.contracts.outdated_version") }}
                                 </span>
                             </td>
-                            <td class="px-6 py-3 text-muted hidden lg:table-cell">
+                            <td class="px-4 py-2 text-muted hidden lg:table-cell">
                                 {{ contract.annex?.templateName ?? "-" }}
                             </td>
-                            <td class="px-6 py-3 text-primary hidden md:table-cell whitespace-nowrap">
+                            <td class="px-4 py-2 text-primary hidden md:table-cell whitespace-nowrap">
                                 {{ formatAmount(contract) || "-" }}
                             </td>
-                            <td class="px-6 py-3 text-muted text-xs hidden xl:table-cell whitespace-nowrap">
+                            <td class="px-4 py-2 text-muted text-xs hidden xl:table-cell whitespace-nowrap">
                                 {{
                                     contract.effectiveDate
                                         ? formatDateNumeric(contract.effectiveDate)
                                         : "-"
                                 }}
                             </td>
-                            <td class="px-6 py-3 sticky right-0 bg-surface border-l border-line/40">
+                            <td class="px-4 py-2 sticky right-0 bg-surface border-l border-line/40">
                                 <AppRowActions
                                     :actions="draftRowActions(contract)"
                                     :label="contract.customerName ?? ''"
@@ -449,38 +449,38 @@ const pageActions = computed(() => {
             </h2>
             <div
                 v-if="!isNarrow"
-                class="bg-surface border border-line rounded-lg overflow-x-auto scrollbar-thin"
+                class="aurora-card overflow-x-auto scrollbar-thin"
             >
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="bg-surface-2/50 border-b border-line/40">
-                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted">
+                            <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">
                                 {{ t("backend.studio.contracts.col_reference") }}
                             </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted">
+                            <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">
                                 {{ t("backend.studio.contracts.col_customer") }}
                             </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden md:table-cell">
+                            <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden md:table-cell">
                                 {{ t("backend.studio.contracts.col_status") }}
                             </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">
+                            <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">
                                 {{ t("backend.studio.contracts.col_sealed_at") }}
                             </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden xl:table-cell">
+                            <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden xl:table-cell">
                                 {{ t("backend.studio.contracts.col_link") }}
                             </th>
-                            <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted sticky right-0 bg-surface-2 border-l border-line/40">
+                            <th class="px-4 py-2 text-right text-xs font-medium uppercase tracking-wider text-muted sticky right-0 bg-surface-2 border-l border-line/40">
                                 {{ t("shared.common.actions") }}
                             </th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-line/40">
+                    <tbody class="divide-y divide-line/40/40">
                         <tr
                             v-for="contract in sealed"
                             :key="contract.id"
                             class="hover:bg-surface-2/40 transition-colors"
                         >
-                            <td class="px-6 py-3 font-mono text-xs text-primary whitespace-nowrap">
+                            <td class="px-4 py-2 font-mono text-xs text-primary whitespace-nowrap">
                                 {{ contract.reference }}
                                 <!-- An amendment reads as what it changes: the
                                      reference already carries the parentage,
@@ -500,13 +500,13 @@ const pageActions = computed(() => {
                                     }}
                                 </span>
                             </td>
-                            <td class="px-6 py-3 text-primary">
+                            <td class="px-4 py-2 text-primary">
                                 {{ contract.customerName }}
                             </td>
-                            <td class="px-6 py-3 text-muted hidden md:table-cell">
+                            <td class="px-4 py-2 text-muted hidden md:table-cell">
                                 {{ t(contract.statusLabel) }}
                             </td>
-                            <td class="px-6 py-3 text-muted text-xs hidden lg:table-cell whitespace-nowrap">
+                            <td class="px-4 py-2 text-muted text-xs hidden lg:table-cell whitespace-nowrap">
                                 {{
                                     contract.frozenAt
                                         ? formatDateNumeric(contract.frozenAt)
@@ -515,7 +515,7 @@ const pageActions = computed(() => {
                             </td>
                             <!-- The one thing a link answers that nothing else
                                  can: whether the customer ever opened it. -->
-                            <td class="px-6 py-3 text-xs hidden xl:table-cell">
+                            <td class="px-4 py-2 text-xs hidden xl:table-cell">
                                 <template v-if="contract.link">
                                     <div class="text-primary truncate max-w-[14rem]">
                                         {{ contract.link.recipientEmail }}
@@ -548,7 +548,7 @@ const pageActions = computed(() => {
                                     {{ t("backend.studio.contracts.no_link") }}
                                 </span>
                             </td>
-                            <td class="px-6 py-3 sticky right-0 bg-surface border-l border-line/40">
+                            <td class="px-4 py-2 sticky right-0 bg-surface border-l border-line/40">
                                 <AppRowActions
                                     :actions="sealedRowActions(contract)"
                                     :label="contract.reference ?? ''"
@@ -563,7 +563,7 @@ const pageActions = computed(() => {
                 <article
                     v-for="contract in sealed"
                     :key="contract.id"
-                    class="bg-surface border border-line rounded-lg p-3 space-y-2.5"
+                    class="aurora-card p-3 space-y-2.5"
                 >
                     <div class="flex items-start justify-between gap-3">
                         <div class="min-w-0">
@@ -628,7 +628,7 @@ const pageActions = computed(() => {
 
                 <article
                     v-else
-                    class="bg-surface border border-line rounded-lg p-4 sm:p-6 prose-contract max-h-[65vh] overflow-y-auto"
+                    class="aurora-card p-4 sm:p-6 prose-contract max-h-[65vh] overflow-y-auto"
                     v-html="previewHtml"
                 />
             </div>

@@ -46,7 +46,7 @@ const { t } = useI18n();
                 <section
                     v-for="group in grouped"
                     :key="group.column.id"
-                    class="flex w-72 shrink-0 flex-col overflow-hidden rounded-xl border border-line/60 bg-surface-2/40"
+                    class="flex w-72 shrink-0 flex-col overflow-hidden rounded-xl border border-line bg-surface-2/40"
                 >
                     <!-- A rule across the top rather than a dot beside the
                          name: the column is what is being identified, and a

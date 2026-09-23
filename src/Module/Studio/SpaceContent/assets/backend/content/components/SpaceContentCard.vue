@@ -86,7 +86,7 @@ const answered = computed(() => "pending" !== props.item.approval);
 
 <template>
     <article
-        class="group cursor-pointer rounded-lg border border-line/60 bg-surface px-3 py-2.5 shadow-sm transition-colors hover:border-line"
+        class="aurora-card group cursor-pointer px-3 py-2.5 transition-colors hover:border-line-strong"
         v-on:click="open"
     >
         <div class="flex items-start gap-2">

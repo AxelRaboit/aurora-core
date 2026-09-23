@@ -151,7 +151,7 @@ function addAllDayOn(day) {
 </script>
 
 <template>
-    <div class="bg-surface border border-line rounded-xl overflow-hidden">
+    <div class="aurora-card overflow-hidden">
         <!-- Header: the hour gutter's width is repeated in three places below,
              so the columns line up with the labels. -->
         <div class="flex border-b border-line">

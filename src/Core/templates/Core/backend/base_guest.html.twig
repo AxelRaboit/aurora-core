@@ -36,7 +36,7 @@
         {% set form_icon = form_icon|trim %}
 
         {% set form_card %}
-            <div class="w-full bg-surface border border-line shadow-md rounded-xl overflow-hidden {% if hero_content|trim %}{% else %}sm:max-w-md{% endif %}">
+            <div class="aurora-card w-full overflow-hidden shadow-md {% if hero_content|trim %}{% else %}sm:max-w-md{% endif %}">
                 {% if form_title|trim or form_icon %}
                     <div class="relative h-20 bg-linear-to-br from-accent-400 via-accent-500 to-accent-700">
                         <div class="absolute inset-0 opacity-25" style="background-image: radial-gradient(circle at 25% 20%, rgba(255,255,255,0.9) 0%, transparent 45%), radial-gradient(circle at 80% 80%, rgba(255,255,255,0.4) 0%, transparent 45%);"></div>

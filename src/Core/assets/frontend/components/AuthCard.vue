@@ -7,7 +7,7 @@ defineProps({
 
 <template>
     <div class="flex min-h-[80vh] items-center justify-center px-4 py-12">
-        <div class="w-full sm:max-w-md bg-surface border border-line shadow-md rounded-xl overflow-hidden">
+        <div class="aurora-card w-full sm:max-w-md shadow-md overflow-hidden">
             <div class="relative h-20 bg-linear-to-br from-accent-400 via-accent-500 to-accent-700">
                 <div
                     class="absolute inset-0 opacity-25"

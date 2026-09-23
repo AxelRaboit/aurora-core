@@ -141,7 +141,7 @@
            readers want from a plaquette. #}
         <a
             href="{{ zone.document.url }}"
-            class="not-prose flex items-center gap-4 rounded-xl border border-line bg-surface p-4 no-underline transition-colors hover:border-accent"
+            class="aurora-card not-prose flex items-center gap-4 p-4 no-underline transition-colors hover:border-accent"
         >
             {# The extension rather than an icon per format: a set of glyphs
                would need one per type the library accepts, and "PDF" in a box
@@ -553,7 +553,7 @@
            never arrives still gets the snippet, in a monospace box, intact.
 
            `{{ }}` escapes - the snippet is shown, never interpreted. #}
-        <div class="not-prose relative overflow-hidden rounded-xl border border-line bg-surface" data-code-zone>
+        <div class="aurora-card not-prose relative overflow-hidden" data-code-zone>
             <div class="absolute right-3 top-2 flex items-center gap-3">
                 {% if zone.language %}
                     <span class="text-2xs uppercase tracking-wider text-muted">{{ zone.language }}</span>

@@ -149,7 +149,7 @@ function expiryLabel(link) {
                     <input
                         :value="link.url"
                         readonly
-                        class="min-w-0 flex-1 rounded-lg border border-line bg-surface px-2.5 py-1.5 font-mono text-xs text-secondary"
+                        class="aurora-card min-w-0 flex-1 px-2.5 py-1.5 font-mono text-xs text-secondary"
                         v-on:focus="$event.target.select()"
                     >
                     <AppButton

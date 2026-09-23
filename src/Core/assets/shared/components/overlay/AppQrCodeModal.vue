@@ -61,7 +61,7 @@ watch(
     <AppModal :show="!!item" max-width="sm" :closeable="false" v-on:close="emit('close')">
         <h3 class="text-sm font-medium text-primary mb-4">{{ t("shared.common.qr_code") }} - {{ item ? label(item) : '' }}</h3>
         <div class="flex flex-col items-center gap-4">
-            <img v-if="qrDataUrl" :src="qrDataUrl" alt="QR Code" class="w-48 h-48 rounded-xl border border-line/60">
+            <img v-if="qrDataUrl" :src="qrDataUrl" alt="QR Code" class="w-48 h-48 rounded-xl border border-line">
             <p class="text-xs text-muted text-center break-all">{{ item ? permalink(item) : '' }}</p>
             <a v-if="qrDataUrl" :href="qrDataUrl" download="qrcode.png">
                 <AppButton size="sm" variant="ghost"><Download class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.download_qr") }}</AppButton>

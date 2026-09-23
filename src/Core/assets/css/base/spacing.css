@@ -110,9 +110,16 @@
  * mains différentes des mois d'écart. Le remplissage reste au cas par cas,
  * parce qu'une carte de tableau et une carte de formulaire n'ont pas la même
  * densité ; l'enveloppe, elle, est la même partout.
+ *
+ * Les trois propriétés du trait sont écrites séparément, et pas avec le
+ * raccourci `border`. Le raccourci remet le style à `solid` : une zone de
+ * dépôt en pointillés qui garde son `border-dashed` à côté se retrouvait à
+ * lutter à poids égal avec lui, et c'est l'ordre de la feuille qui tranchait.
  */
 @utility aurora-card {
     background-color: var(--th-surface);
-    border: 1px solid var(--color-border);
+    border-width: 1px;
+    border-style: solid;
+    border-color: var(--color-border);
     border-radius: 0.75rem;
 }
