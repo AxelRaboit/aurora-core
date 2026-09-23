@@ -245,6 +245,14 @@ function onHistoryPop() {
 
 async function onLibraryChanged() {
     await Promise.all([refreshFolders(), refreshList()]);
+
+    // Une note absente de la liste rafraîchie est partie à la corbeille,
+    // seule ou avec son dossier. La garder ouverte laisserait
+    // l'enregistrement automatique écrire dans une note supprimée, et le
+    // lecteur croirait travailler sur quelque chose qui n'existe plus.
+    if (selectedId.value && !notes.value.some((note) => note.id === selectedId.value)) {
+        backToLibrary();
+    }
 }
 
 function backToLibrary() {

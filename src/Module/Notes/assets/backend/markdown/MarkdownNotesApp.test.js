@@ -252,7 +252,11 @@ describe("ouvrir un dossier avec une note ouverte", () => {
         const original = window.location;
         Object.defineProperty(window, "location", {
             configurable: true,
-            value: { ...original, assign, pathname: "/backend/notes/markdown/1" },
+            value: {
+                ...original,
+                assign,
+                pathname: "/backend/notes/markdown/1",
+            },
         });
 
         const wrapper = render({ activeId: 1 });
@@ -284,6 +288,35 @@ describe("ouvrir un dossier avec une note ouverte", () => {
         expect(wrapper.findAll("article").length).toBeGreaterThan(0);
         expect(document.body.textContent).toContain("folders.create");
 
+        document.body.innerHTML = "";
+    });
+});
+
+/**
+ * Supprimer un dossier depuis le menu emporte ses notes, dont peut-être
+ * celle qu'on est en train d'écrire : la laisser ouverte ferait écrire
+ * l'enregistrement automatique dans une note à la corbeille.
+ */
+describe("la note ouverte disparaît sous nos pieds", () => {
+    it("closes the editor when the note is no longer in the list", async () => {
+        const wrapper = render({ activeId: 1 });
+        await flushPromises();
+
+        // L'éditeur tient la note 1.
+        expect(wrapper.findAll("article")).toHaveLength(0);
+
+        // Le serveur ne la rend plus : elle est partie avec son dossier.
+        global.fetch = vi.fn().mockResolvedValue({
+            ok: true,
+            status: 200,
+            json: async () => ({ success: true, notes: [], folders: FOLDERS }),
+        });
+
+        askPage("notes:delete-folder", { args: [{ id: 7 }] });
+        await flushPromises();
+
+        // Retour à la bibliothèque plutôt qu'un éditeur sur du vide.
+        expect(wrapper.text()).toContain("library.title");
         document.body.innerHTML = "";
     });
 });
