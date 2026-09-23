@@ -137,9 +137,13 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                 ->setTags($definition['tags'])
                 ->setPosition($position++)
                 ->setAppearance(NoteAppearanceEnum::fromNullable($definition['appearance'] ?? null))
-                ->setCoverUrl($definition['cover'] ?? null)
-                ->setCoverCreditName(isset($definition['cover']) ? 'Lorem Picsum' : null)
-                ->setCoverCreditUrl(isset($definition['cover']) ? 'https://picsum.photos' : null)
+                ->setCoverUrl(isset($definition['cover']) ? $this->pexels($definition['cover']) : null)
+                ->setCoverCreditName($definition['coverCredit'] ?? null)
+                ->setCoverCreditUrl(
+                    isset($definition['cover'])
+                        ? sprintf('https://www.pexels.com/photo/%d/', $definition['cover'])
+                        : null,
+                )
                 ->setCoverPosition($definition['coverPosition'] ?? 50)
                 ->setFolder(isset($definition['folder']) ? $folders[$definition['folder']] : null);
 
@@ -212,22 +216,34 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
     }
 
     /**
-     * Une image d'entête qui existe vraiment.
+     * L'adresse d'une photo Pexels, telle que la note la garde.
      *
-     * Pas une adresse Pexels : la clé n'est pas renseignée quand les
-     * fixtures tournent, et inventer des identifiants de photos donnerait
-     * des cadres vides et un crédit faux - ce qui est pire qu'un carnet
-     * sans bandeau. Picsum sert des images stables sans clé, et le crédit
-     * dit ce que c'est. Le champ, lui, ne demande qu'une adresse `https` :
-     * il ne sait pas d'où elle vient, et c'est précisément le point.
+     * **Rien n'est téléchargé, ici pas plus qu'ailleurs** : la démo écrit
+     * l'adresse servie par leur CDN, exactement ce que le sélecteur écrit
+     * quand on choisit une photo. C'est la démonstration la plus fidèle du
+     * choix de conception - l'image vit dehors, la note n'en a que
+     * l'adresse et le crédit.
+     *
+     * Les identifiants et les noms viennent d'une vraie recherche
+     * (`aurora:ged:pexels:search`, jouée là où la clé est configurée), et
+     * chaque adresse a été vérifiée. Inventer des identifiants aurait donné
+     * des cadres vides sous un crédit faux, ce qui est pire qu'un carnet
+     * sans bandeau.
+     *
+     * Le lien de crédit pointe la page de la photo : la licence demande de
+     * nommer l'auteur, et c'est de là qu'on remonte à lui.
      */
-    private function cover(string $seed): string
+    private function pexels(int $id): string
     {
-        return sprintf('https://picsum.photos/seed/%s/1200/500', $seed);
+        return sprintf(
+            'https://images.pexels.com/photos/%d/pexels-photo-%d.jpeg?auto=compress&cs=tinysrgb&w=1200',
+            $id,
+            $id,
+        );
     }
 
     /**
-     * @return array<string, array{title: string, content: string, tags: list<string>, folder?: string, cover?: string, coverPosition?: int, appearance?: string, favorite?: bool, trashed?: bool}>
+     * @return array<string, array{title: string, content: string, tags: list<string>, folder?: string, cover?: int, coverCredit?: string, coverPosition?: int, appearance?: string, favorite?: bool, trashed?: bool}>
      */
     private function notes(): array
     {
@@ -241,7 +257,8 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                 'tags' => ['index', 'client'],
                 'folder' => 'clients',
                 'favorite' => true,
-                'cover' => $this->cover('aurora-notes-clients'),
+                'cover' => 33714905,
+                'coverCredit' => 'Matheus Bertelli',
                 'appearance' => 'paper',
                 'content' => <<<'MD'
                     # Sommaire des clients
@@ -276,6 +293,8 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                 'title' => 'Cabinet Verrier',
                 'tags' => ['client', 'web'],
                 'folder' => 'clients',
+                'cover' => 923307,
+                'coverCredit' => 'Julien Bachelet',
                 'content' => <<<'MD'
                     # Cabinet Verrier
 
@@ -306,8 +325,12 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                 'title' => 'Séance en extérieur',
                 'tags' => ['photo', 'méthode'],
                 'folder' => 'photo',
-                'cover' => $this->cover('aurora-notes-seance'),
-                'coverPosition' => 35,
+                // Une photo en hauteur, coupée haut : c'est le cas qui
+                // justifie le réglage de cadrage, un portrait montrant un
+                // menton quand on le centre.
+                'cover' => 35256272,
+                'coverCredit' => 'Alef Morais',
+                'coverPosition' => 30,
                 'content' => <<<'MD'
                     # Séance en extérieur
 
@@ -325,6 +348,8 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                 'title' => 'Matériel',
                 'tags' => ['photo'],
                 'folder' => 'photo',
+                'cover' => 18880006,
+                'coverCredit' => 'Amar Preciado',
                 'content' => <<<'MD'
                     # Matériel
 
@@ -411,6 +436,8 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                 'tags' => ['éditorial', 'planning'],
                 'folder' => 'editorial',
                 'appearance' => 'slate',
+                'cover' => 15635240,
+                'coverCredit' => 'Walls.io',
                 'content' => <<<'MD'
                     # Calendrier éditorial
 
