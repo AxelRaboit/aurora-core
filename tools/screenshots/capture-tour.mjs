@@ -288,16 +288,31 @@ const SHOTS = [
         },
     },
     {
-        // Une note en lecture seule, avec son bandeau et son apparence : le
-        // module sait habiller une note, et aucune image ne le disait.
-        // « Sommaire des clients » porte le fond papier.
+        // La vue de lecture : une adresse qui n'affiche **que** la note, sans
+        // le menu ni le fil d'Ariane, pour qui a un compte.
+        //
+        // La prise montrait l'aperçu de l'éditeur, c'est-à-dire la même
+        // fenêtre que la première image, en mode rendu. Deux photos du même
+        // écran, et la vue qui existe précisément pour montrer une note nue
+        // n'était sur aucune. Elle se distingue aussi de la page de partage,
+        // qui est l'autre bout : celle-ci se lit sans compte et porte la
+        // liste des notes liées quand le lien les emporte.
+        //
+        // Par l'adresse plutôt que par un clic : le bouton qui y mène est
+        // dans le menu de la note, et ouvrir un menu pour photographier ce
+        // qu'il y a derrière allonge le scénario sans rien prouver de plus.
         name: "tour-notes-apparence",
         path: "/backend/notes/markdown",
         async prepare(page) {
             await page.getByRole("link", { name: /^Sommaire des clients/ }).first().click();
             await page.waitForTimeout(2_500);
-            await page.getByTitle("Aperçu seul").first().click();
-            await page.waitForTimeout(1_500);
+
+            const id = /\/markdown\/(\d+)/.exec(page.url())?.[1];
+
+            if (undefined === id) throw new Error("la note ne s'est pas ouverte");
+
+            await page.goto(`${BASE_URL}/backend/notes/markdown/${id}/read`, { waitUntil: "networkidle" });
+            await page.waitForTimeout(2_000);
         },
     },
     { name: "tour-calendrier", path: "/backend/planning/calendar" },
