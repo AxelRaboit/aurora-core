@@ -924,6 +924,121 @@ final class MarkdownNoteTest extends IntegrationTestCase
             ->findAllWithContentForUser($this->owner);
     }
 
+    /**
+     * Une archive se suffit : les images partent avec le texte.
+     *
+     * C'est ce qui manquait. Le markdown portait l'adresse du back-office,
+     * donc un carnet exporté s'ouvrait dans Obsidian avec ses images en
+     * icônes cassées - ou pire, en demandes de connexion. Le test fait
+     * l'aller **et** le retour, parce que la moitié qui compte est celle où
+     * l'archive revient : une image réimportée doit redevenir une image de la
+     * personne qui importe, pas un lien vers le fichier de quelqu'un d'autre.
+     */
+    public function testAnExportCarriesItsImagesAndAnImportTakesThemBack(): void
+    {
+        $this->client->loginUser($this->owner, 'admin');
+
+        // Un PNG d'un pixel, écrit ici plutôt que lu d'un fichier : le test
+        // ne dépend d'aucune ressource à côté de lui.
+        $pixel = (string) base64_decode(
+            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+            true,
+        );
+        $source = (string) tempnam(sys_get_temp_dir(), 'aurora-test-image-');
+        file_put_contents($source, $pixel);
+
+        $this->client->request(
+            'POST',
+            $this->urlGenerator->generate('backend_notes_markdown_images_upload'),
+            files: ['image' => new UploadedFile($source, 'pixel.png', 'image/png', null, true)],
+        );
+
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+        $upload = json_decode((string) $this->client->getResponse()->getContent(), true);
+        $url = $upload['url'];
+
+        // La note est rangée dans un dossier, pour que le chemin relatif ait
+        // un cran à remonter : c'est là que l'export se trompait le plus
+        // facilement.
+        $folder = $this->post('backend_notes_markdown_folders_create', ['name' => 'Illustré']);
+        $this->created[] = [NoteFolder::class, (int) $folder['folder']['id']];
+
+        $note = $this->post('backend_notes_markdown_create', [
+            'title' => 'Une note illustrée',
+            'content' => sprintf('Voici le pixel :\n\n![Un pixel](%s)\n', $url),
+            'folderId' => $folder['folder']['id'],
+        ]);
+        $this->created[] = [MarkdownNote::class, (int) $note['note']['id']];
+
+        $path = static::getContainer()->get(MarkdownNoteArchive::class)->zipFor($this->owner);
+
+        $archive = new ZipArchive();
+        self::assertTrue($archive->open($path));
+
+        $entries = [];
+        for ($i = 0; $i < $archive->numFiles; ++$i) {
+            $entries[] = (string) $archive->getNameIndex($i);
+        }
+
+        $exported = (string) $archive->getFromName('Illustré/Une note illustrée.md');
+        $archive->close();
+
+        self::assertContains('_images/'.$upload['filename'], $entries, "l'image est dans l'archive");
+        self::assertStringContainsString(
+            '../_images/'.$upload['filename'],
+            $exported,
+            'la note remonte d\'un cran, puisqu\'elle est dans un dossier',
+        );
+        self::assertStringNotContainsString(
+            '/backend/notes/markdown/images/',
+            $exported,
+            "plus aucune adresse du back-office dans l'archive",
+        );
+
+        // Le retour.
+        $this->client->request(
+            'POST',
+            $this->urlGenerator->generate('backend_notes_markdown_import'),
+            files: ['files' => [new UploadedFile($path, 'notes.zip', 'application/zip', null, true)]],
+        );
+
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        foreach ($this->notes() as $one) {
+            $this->created[] = [MarkdownNote::class, (int) $one->getId()];
+        }
+
+        foreach ($this->folders() as $one) {
+            $this->created[] = [NoteFolder::class, (int) $one->getId()];
+        }
+
+        $reimported = null;
+        foreach ($this->notes() as $one) {
+            if ($one->getId() !== (int) $note['note']['id'] && 'Une note illustrée' === (string) $one->getTitle()) {
+                $reimported = $one;
+            }
+        }
+
+        self::assertNotNull($reimported, 'la note importée existe à côté de l\'originale');
+
+        $contenu = (string) $reimported->getContent();
+
+        self::assertStringContainsString(
+            '/backend/notes/markdown/images/',
+            $contenu,
+            "le chemin relatif est redevenu une adresse servie par l'application",
+        );
+        self::assertStringNotContainsString('_images/', $contenu);
+        self::assertStringNotContainsString(
+            $upload['filename'],
+            $contenu,
+            "l'image importée est une nouvelle image, pas un lien vers l'ancienne",
+        );
+
+        unlink($source);
+        unlink($path);
+    }
+
     private function post(string $route, array $payload = [], array $params = []): array
     {
         $this->client->request(

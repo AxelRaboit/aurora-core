@@ -5,6 +5,62 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.230] - 2026-09-23
+
+### Modifié
+
+#### Les images d'une note vont là où va tout le reste
+Le module était le seul à écrire ses fichiers en direct sur le disque du
+serveur, dans `var/uploads/notes-markdown/`. La médiathèque, les photos de
+profil et les contrats passent tous par la couche de stockage, et le disque
+actif d'une installation peut être R2.
+
+Le plus parlant : la zone `notes-markdown` était **déjà déclarée**, ajoutée en
+0.9.188 pour qu'un garde d'accès puisse revendiquer le préfixe. La zone
+existait, l'adaptateur existait, l'écriture n'était pas branchée.
+
+La clé porte le propriétaire, `notes-markdown/{utilisateur}/{nom}`, et c'est
+une meilleure garde que ce qu'elle remplace : le contrôleur la construit avec
+la personne connectée, donc demander l'image d'un autre revient à demander une
+clé qui n'existe pas, et la réponse est le même 404 que pour une image
+supprimée. Plus de `realpath` à comparer, plus de racine à faire respecter,
+plus de remontée possible - une clé d'objet n'a pas de dossier parent.
+
+La suppression balaie tous les disques et pas seulement l'actif : une image
+écrite avant une bascule vit encore sur l'ancien, et ne l'effacer que sur le
+nouveau la laisserait là pour toujours, invisible et facturée.
+
+#### Une archive emporte ses images
+Le markdown portait l'adresse du back-office : un carnet exporté et ouvert
+dans Obsidian arrivait entier, avec ses images en icônes cassées ou en
+demandes de connexion. Elles voyagent maintenant dans `_images/` à la racine
+de l'archive, une seule fois quel que soit le nombre de notes qui les citent,
+et le lien devient un chemin relatif à la note.
+
+L'import fait le retour. Les images sont indexées par leur nom de base, parce
+que nos archives les rangent dans `_images/` et Obsidian dans un dossier de
+pièces jointes que chacun nomme comme il veut. Une image réimportée est une
+**nouvelle** image, qui appartient à qui importe.
+
+Un `.md` téléchargé seul garde ses adresses : il n'a pas de dossier voisin où
+poser des images.
+
+### Ajouté
+
+#### `aurora:notes:images:adopt`
+Reprend les images restées sur le disque et les range dans le stockage actif.
+Idempotente, ne supprime rien sans `--purge`. Sur une installation qui reste
+en stockage local, elle ne déplace rien : le chemin sur le disque **est** déjà
+la clé.
+
+### Dans aurora-client
+
+Aucune migration. Après la mise à jour, lancer `aurora:notes:images:adopt` si
+des images ont déjà été collées dans des notes ; la commande le dit
+elle-même quand il n'y a rien à reprendre.
+
+---
+
 ## [0.9.229] - 2026-09-23
 
 ### Modifié

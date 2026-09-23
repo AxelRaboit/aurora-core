@@ -5,14 +5,13 @@ declare(strict_types=1);
 namespace Aurora\Module\Notes\Share\Controller;
 
 use Aurora\Core\Enum\HttpMethodEnum;
+use Aurora\Core\Storage\StoredFileResponder;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteImageService;
 use Aurora\Module\Notes\Share\Entity\MarkdownNoteShareLinkInterface;
 use Aurora\Module\Notes\Share\Manager\MarkdownNoteShareLinkManagerInterface;
 use Aurora\Module\Notes\Share\Service\SharedNoteScope;
-use RuntimeException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -40,6 +39,7 @@ final class NoteShareController extends AbstractController
         private readonly MarkdownNoteShareLinkManagerInterface $shareLinks,
         private readonly SharedNoteScope $scope,
         private readonly MarkdownNoteImageService $images,
+        private readonly StoredFileResponder $storedFileResponder,
     ) {}
 
     /**
@@ -99,11 +99,14 @@ final class NoteShareController extends AbstractController
     /**
      * An image embedded in a shared note.
      *
-     * Without this route every picture in a shared note is a broken icon: the
-     * backend one builds its path from the *current user's* directory and a
-     * guest has no user. The path is built from the note owner's directory
-     * instead, and the same traversal guard applies - the filename cannot
-     * escape it.
+     * Sans cette route, chaque image d'une note partagée est une icône cassée :
+     * celle du back-office construit sa clé avec la personne connectée, et un
+     * invité n'en est pas une. Ici la clé est celle du propriétaire de la
+     * note, que le jeton vient de désigner.
+     *
+     * Le jeton est la seule autorisation, et il a déjà été validé au-dessus :
+     * `resolveUsable` refuse un lien révoqué ou périmé. Ce qui suit ne décide
+     * donc plus rien, il sert.
      */
     #[Route(
         '/{token}/images/{filename}',
@@ -119,17 +122,17 @@ final class NoteShareController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-        try {
-            // The backend service's own traversal guard is what makes this safe:
-            // it resolves the realpath and refuses anything that leaves the
-            // owner's directory. Reusing it means the guest route cannot drift
-            // away from the rule the authenticated one enforces.
-            $path = $this->images->path($filename, $link->getNote()->getUser());
-        } catch (RuntimeException) {
+        // La forme du nom est vérifiée par le service, qui rend null plutôt
+        // que de fabriquer une clé à partir de n'importe quoi. Réutiliser le
+        // même point d'entrée que la route authentifiée garde les deux sur la
+        // même règle.
+        $key = $this->images->keyOrNull($filename, $link->getNote()->getUser());
+
+        if (null === $key) {
             throw $this->createNotFoundException();
         }
 
-        return new BinaryFileResponse($path);
+        return $this->storedFileResponder->respond($key);
     }
 
     /**
