@@ -40,8 +40,6 @@ use function is_numeric;
 use function preg_replace;
 use function sprintf;
 
-use const DATE_ATOM;
-
 #[Route('/backend/notes/markdown', name: 'backend_notes_markdown')]
 #[IsGranted('notes.markdown.use')]
 final class MarkdownNotesController extends AbstractController
@@ -128,31 +126,6 @@ final class MarkdownNotesController extends AbstractController
                 $this->repository->findFlatListForUser($user),
             ),
         ]);
-    }
-
-    /**
-     * The notes waiting in the trash.
-     *
-     * Titles only, and only the ones trashed on their own: a sub-note that
-     * fell with its parent comes back with it, and listing it separately would
-     * offer a restore that puts a page under a parent still deleted.
-     */
-    #[Route('/trash', name: '_trash', methods: [HttpMethodEnum::Get->value])]
-    public function trash(): JsonResponse
-    {
-        /** @var CoreUserInterface $user */
-        $user = $this->getUser();
-
-        $notes = array_map(
-            static fn (MarkdownNoteInterface $note): array => [
-                'id' => $note->getId(),
-                'title' => $note->getTitle(),
-                'deletedAt' => $note->getDeletedAt()?->format(DATE_ATOM),
-            ],
-            $this->repository->findTrashedRootsForUser($user),
-        );
-
-        return $this->jsonSuccess(['notes' => $notes]);
     }
 
     #[Route('/{id}/restore', name: '_restore', methods: [HttpMethodEnum::Post->value])]

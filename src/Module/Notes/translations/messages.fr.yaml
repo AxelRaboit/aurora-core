@@ -170,7 +170,6 @@ notes:
     search_no_results: Aucun résultat
     search_no_results_description: 'Aucune note ne correspond à « {query} ».'
     resize_handle: Glisser pour redimensionner
-    drag_handle: Glisser pour réordonner
     content_placeholder: "# Écrivez du markdown ici\n\nReliez vos notes avec [[Titre]]"
     create_root: Nouvelle note
     export:
@@ -181,7 +180,6 @@ notes:
       done: "Aucune note importée | 1 note importée | {count} notes importées"
       errors:
         required: Choisissez au moins un fichier.
-    tree_empty: Aucune note pour l'instant.
     create_in_folder: Nouvelle note dans ce dossier
     confirm_delete: 'Supprimer définitivement « {title} » ?'
 
@@ -269,9 +267,6 @@ notes:
     empty:
       title: Aucune note
       description: Cliquez sur + pour créer votre première note.
-    no_selection:
-      title: Sélectionnez une note
-      description: Choisissez une note dans la bibliothèque, ou créez-en une nouvelle.
     errors:
       load_failed: Impossible de charger la note.
       crashed: Cette page n'a pas pu s'afficher

@@ -170,7 +170,6 @@ notes:
     search_no_results: No results
     search_no_results_description: 'No note matches "{query}".'
     resize_handle: Drag to resize
-    drag_handle: Drag to reorder
     content_placeholder: "# Write markdown here\n\nLink to other notes with [[Title]]"
     create_root: New note
     export:
@@ -181,7 +180,6 @@ notes:
       done: "No note imported | 1 note imported | {count} notes imported"
       errors:
         required: Choose at least one file.
-    tree_empty: No note yet.
     create_in_folder: New note in this folder
     confirm_delete: 'Permanently delete "{title}"?'
     confirm_discard_changes: You have unsaved changes. Discard them?
@@ -264,9 +262,6 @@ notes:
     empty:
       title: No notes yet
       description: Click + to create your first note.
-    no_selection:
-      title: Select a note
-      description: Pick a note from the library, or create a new one.
     errors:
       load_failed: Could not load the note.
       crashed: This page could not be displayed
