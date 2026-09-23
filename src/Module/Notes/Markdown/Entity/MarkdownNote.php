@@ -14,6 +14,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Index(name: 'idx_notes_md_deleted_at', columns: ['deleted_at'])]
 #[ORM\Index(name: 'idx_notes_md_trashed_with', columns: ['trashed_with_folder_id'])]
 #[ORM\Index(name: 'idx_notes_md_favorited', columns: ['favorited_at'])]
+#[ORM\Index(name: 'idx_notes_md_shared', columns: ['shared_at'])]
 class MarkdownNote extends AbstractMarkdownNote
 {
     #[ORM\Id]

@@ -68,6 +68,14 @@
                 notificationsMarkAllReadPath: path('backend_notifications_mark_all_read'),
                 notificationsDeletePath: path_template('backend_notifications_delete', {id: '__id__'}),
                 notificationsDeleteAllPath: path('backend_notifications_delete_all'),
+                userName: app.user.name,
+                userEmail: app.user.email,
+                userPhotoUrl: aurora_profile_photo_url(app.user) ?? '',
+                mailpitUrl: aurora_is_dev() ? 'http://127.0.0.1:8025' : '',
+                profilePath: path('backend_general_profile'),
+                preferencesPath: path('backend_general_profile_sidemenu'),
+                logoutPath: path('backend_platform_logout'),
+                logoutCsrf: csrf_token('logout'),
             }) }}></div>
         </div>
     </div>

@@ -912,6 +912,78 @@ describe("the library", () => {
         expect(wrapper.find(".note-thumb").exists()).toBe(false);
     });
 
+    /**
+     * Une fois le partage possible, « qu'est-ce qui est sorti de chez
+     * moi » devient une vraie question. Y répondre en parcourant les
+     * cartes une par une serait absurde.
+     */
+    describe("le filtre de visibilité", () => {
+        /**
+         * Le bouton de la barre, pas la croix de la puce : les deux
+         * portent un titre qui commence pareil, et viser par préfixe
+         * attrapait la croix, qui est plus haut dans le document.
+         */
+        function filtre(wrapper) {
+            return wrapper.findAll("button").find((b) => {
+                const titre = b.attributes("title") ?? "";
+
+                return (
+                    titre.includes("library.visibility") &&
+                    !titre.includes("clear")
+                );
+            });
+        }
+
+        it("cycles through everything, shared, then private", async () => {
+            const wrapper = render({
+                folders: [
+                    { ...FOLDERS[0], sharedAt: "2026-09-23T10:00:00+00:00" },
+                ],
+                notes: [{ id: 21, folderId: null, title: "Privée", tags: [] }],
+            });
+
+            expect(wrapper.text()).toContain("Clients");
+            expect(wrapper.text()).toContain("Privée");
+
+            await filtre(wrapper).trigger("click");
+
+            expect(wrapper.text()).toContain("Clients");
+            expect(wrapper.text(), "une note non partagée sort").not.toContain(
+                "Privée",
+            );
+
+            await filtre(wrapper).trigger("click");
+
+            expect(
+                wrapper.text(),
+                "et le partagé sort à son tour",
+            ).not.toContain("Clients");
+            expect(wrapper.text()).toContain("Privée");
+
+            await filtre(wrapper).trigger("click");
+
+            expect(wrapper.text()).toContain("Clients");
+            expect(wrapper.text()).toContain("Privée");
+        });
+
+        it("marks what is shared, without opening a menu", () => {
+            const wrapper = render({
+                folders: [
+                    { ...FOLDERS[0], sharedAt: "2026-09-23T10:00:00+00:00" },
+                ],
+                notes: [],
+            });
+
+            const marque = wrapper
+                .findAll("svg")
+                .filter((svg) =>
+                    svg.attributes("title")?.includes("shared.badge"),
+                );
+
+            expect(marque.length).toBeGreaterThan(0);
+        });
+    });
+
     it("draws a table when the list view is picked", async () => {
         const wrapper = render();
 

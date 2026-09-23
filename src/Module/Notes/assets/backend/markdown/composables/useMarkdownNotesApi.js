@@ -54,6 +54,15 @@ export function useMarkdownNotesApi(props) {
             }),
         favorite: (id) =>
             call(HttpMethod.Post, resolvePath(props.favoritePath, id), {}),
+        /** Ouvre ou referme une note au reste du back-office. */
+        shareInternally: (id) =>
+            call(
+                HttpMethod.Post,
+                resolvePath(props.shareInternallyPath, id),
+                {},
+            ),
+        /** Ce que les autres ont partagé : dossiers et notes, en lecture. */
+        sharedWithMe: () => call(HttpMethod.Get, props.sharedPath),
         /**
          * Les notes d'un dossier, dans l'ordre voulu.
          *

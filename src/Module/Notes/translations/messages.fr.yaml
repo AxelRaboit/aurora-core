@@ -46,8 +46,8 @@ backend:
 notes:
   markdown:
     share:
-      button: Partager
-      title: Partager cette note
+      button: Partager par un lien
+      title: Partager cette note par un lien
       page_heading: Note partagée
       read_only: Lecture seule
       tree_label: Notes de ce partage
@@ -124,6 +124,24 @@ notes:
       pin: Épingler au menu
       unpin: Retirer des favoris
       pin_failed: Impossible d'épingler cet élément.
+      shared:
+        start: Rendre visible par l'équipe
+        stop: Ne plus rendre visible
+        started: Visible en lecture par l'équipe
+        stopped: Retiré de la vue de l'équipe
+        failed: Impossible de changer la visibilité.
+        section: Visible pour moi
+        badge: Visible par l'équipe
+        via_folder: 'Visible par l''équipe via le dossier {folder}'
+        change_on_folder: Ouvrir le dossier pour changer cela
+        confirm_folder: 'Le dossier {folder} et les {count} notes qu''il contient cesseront d''être visibles par l''équipe.'
+        by: 'Par {name}'
+        read_only: Lecture seule
+      visibility:
+        all: 'Filtrer : tout'
+        shared: 'Filtre : visibles par l''équipe'
+        private: 'Filtre : privés'
+        clear: Retirer le filtre
       selected: '{count} sélectionné(s)'
       select: Sélectionner
       clear_selection: Tout désélectionner

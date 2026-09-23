@@ -39,6 +39,12 @@ interface NoteFolderManagerInterface
      *
      * @return bool whether it is pinned afterwards
      */
+    /**
+     * Ouvre ou referme ce dossier au reste du back-office, et rend son
+     * nouvel état. Ce qu'il contient suit.
+     */
+    public function toggleShared(NoteFolderInterface $folder): bool;
+
     public function toggleFavorite(NoteFolderInterface $folder): bool;
 
     /**

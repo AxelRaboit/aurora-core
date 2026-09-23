@@ -58,6 +58,22 @@ export function useNoteLibrary({
      */
     const tag = ref(null);
 
+    /**
+     * Ce qu'on regarde : tout, ce qui est ouvert à l'équipe, ou ce qui ne
+     * l'est pas.
+     *
+     * **Savoir ce qu'on expose vaut mieux que de le deviner.** Une fois le
+     * partage possible, la question « qu'est-ce qui est sorti de chez
+     * moi » se pose vraiment, et parcourir les cartes une par une pour y
+     * répondre serait absurde. Trois états plutôt que deux : « privé »
+     * répond à la question inverse, qui est celle qu'on se pose quand on
+     * cherche où ranger quelque chose de sensible.
+     *
+     * Pas retenu d'une visite à l'autre, comme l'étiquette : c'est une
+     * question qu'on pose, pas une façon de lire.
+     */
+    const visibility = ref("all");
+
     // Seeded from the server so a reload does not flash the root while the
     // chain is recomputed; rebuilt from the folder list on every move after.
     const serverBreadcrumb = ref(breadcrumb.map(normaliseCrumb));
@@ -134,12 +150,22 @@ export function useNoteLibrary({
     // À plat comme sous une étiquette, il n'y a pas de dossier à montrer :
     // les notes sont déjà toutes là, et les redonner en cartes doublerait
     // l'affichage. Un dossier ne porte d'ailleurs pas d'étiquette.
+    /** Le filtre de visibilité, posé sur un dossier comme sur une note. */
+    function matchesVisibility(item) {
+        if ("all" === visibility.value) return true;
+
+        const partage = null !== (item.sharedAt ?? null);
+
+        return "shared" === visibility.value ? partage : !partage;
+    }
+
     const childFolders = computed(() =>
         flat.value || null !== tag.value
             ? []
             : folders.value.filter(
                   (folder) =>
-                      normaliseId(folder.parentId) === currentFolderId.value,
+                      normaliseId(folder.parentId) === currentFolderId.value &&
+                      matchesVisibility(folder),
               ),
     );
 
@@ -157,10 +183,12 @@ export function useNoteLibrary({
             );
         }
 
-        return notes.value.filter((note) =>
-            flat.value
-                ? subtreeIds.value.has(normaliseId(note.folderId))
-                : normaliseId(note.folderId) === currentFolderId.value,
+        return notes.value.filter(
+            (note) =>
+                matchesVisibility(note) &&
+                (flat.value
+                    ? subtreeIds.value.has(normaliseId(note.folderId))
+                    : normaliseId(note.folderId) === currentFolderId.value),
         );
     });
 
@@ -321,6 +349,21 @@ export function useNoteLibrary({
                 : String(value);
     }
 
+    /**
+     * Fait tourner le filtre : tout, partagés, privés, et retour.
+     *
+     * Un seul bouton plutôt que trois : la barre en porte déjà six, et
+     * l'infobulle dit lequel des trois états est en vigueur.
+     */
+    function cycleVisibility() {
+        visibility.value =
+            "all" === visibility.value
+                ? "shared"
+                : "shared" === visibility.value
+                  ? "private"
+                  : "all";
+    }
+
     function toggleDirection() {
         direction.value = "asc" === direction.value ? "desc" : "asc";
         store(DIRECTION_KEY, direction.value);
@@ -335,6 +378,7 @@ export function useNoteLibrary({
         direction,
         flat,
         tag,
+        visibility,
         folders: sortedFolders,
         notes: sortedNotes,
         isEmpty,
@@ -346,6 +390,7 @@ export function useNoteLibrary({
         toggleDirection,
         toggleFlat,
         setTag,
+        cycleVisibility,
         folderNameOf,
     };
 }

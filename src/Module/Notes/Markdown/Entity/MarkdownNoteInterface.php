@@ -63,6 +63,11 @@ interface MarkdownNoteInterface extends TimestampableInterface
     public function setPosition(int $position): static;
 
     /** When the note was pinned, null when it is not. */
+    /** Depuis quand c'est lisible par les autres, ou jamais. */
+    public function getSharedAt(): ?DateTimeImmutable;
+
+    public function setSharedAt(?DateTimeImmutable $sharedAt): static;
+
     public function getFavoritedAt(): ?DateTimeImmutable;
 
     public function setFavoritedAt(?DateTimeImmutable $favoritedAt): static;

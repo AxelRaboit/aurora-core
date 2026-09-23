@@ -185,6 +185,26 @@ class NoteFolderManager implements NoteFolderManagerInterface
         return $pinned;
     }
 
+    /**
+     * Ouvre ou referme ce dossier au reste du back-office.
+     *
+     * Ce qu'il contient suit, sous-dossiers compris : c'est le sens même
+     * de partager un endroit plutôt que chaque feuille qu'on y range.
+     * Rien n'est copié ni déplacé, une seule date change.
+     */
+    public function toggleShared(NoteFolderInterface $folder): bool
+    {
+        $partage = !$folder->getSharedAt() instanceof DateTimeImmutable;
+
+        $folder->setSharedAt($partage ? new DateTimeImmutable() : null);
+
+        $this->entityManager->flush();
+
+        $this->auditUpdated($folder);
+
+        return $partage;
+    }
+
     public function move(NoteFolderInterface $folder, ?NoteFolderInterface $newParent): bool
     {
         if ($this->hierarchy->wouldCreateCycle($folder, $newParent)) {

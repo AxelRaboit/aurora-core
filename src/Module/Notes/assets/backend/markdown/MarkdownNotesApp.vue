@@ -19,9 +19,10 @@ import AppTagsInput from '@shared/components/form/select/AppTagsInput.vue';
 import AppModal from '@shared/components/overlay/AppModal.vue';
 import AppModalFooter from '@shared/components/overlay/AppModalFooter.vue';
 import AppTab from '@shared/components/nav/AppTab.vue';
+import AppRowActions from '@shared/components/action/AppRowActions.vue';
 import { computed, nextTick, onErrorCaptured, onMounted, onUnmounted, watch } from 'vue';
 import { onPanelRequest, tellPanels } from '@/shared/nav/modulePanelBridge.js';
-import { Trash2, BookOpen, FileDown, Image, PanelRightOpen, PanelRightClose, Tag, TriangleAlert, X, Network, Share2 } from 'lucide-vue-next';
+import { Trash2, BookOpen, FileDown, Image, PanelRightOpen, PanelRightClose, Tag, TriangleAlert, Users, X, Network, Share2 } from 'lucide-vue-next';
 import AppNoData from '@shared/components/feedback/AppNoData.vue';
 import "@notes/share/appearance.css";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
@@ -72,6 +73,9 @@ const props = defineProps({
     readPath: { type: String, default: '' },
     /** Le relais vers Pexels pour le bandeau : aucune image n'entre en GED. */
     coversSearchPath: { type: String, default: '' },
+    /** Ce que les autres ont ouvert à tout le back-office. */
+    sharedPath: { type: String, default: '' },
+    shareInternallyPath: { type: String, default: '' },
     imageMaxEdge: { type: Number, default: 2048 },
     imageQuality: { type: Number, default: 0.85 },
     /**
@@ -178,6 +182,15 @@ const previewBody = computed(() =>
     withoutLeadingTitle(form.value.content, form.value.title),
 );
 
+/**
+ * Rendre la note ouverte visible par l'équipe, ou la refermer.
+ *
+ * La bascule n'existait que dans le menu d'une carte, donc depuis la
+ * bibliothèque : depuis la note elle-même, la seule chose qui ressemblait
+ * à un partage était le lien public, qui est une tout autre chose. Deux
+ * gestes différents portaient le même mot, et il en manquait un là où on
+ * l'attend.
+ */
 const readHref = computed(() =>
     selectedId.value && props.readPath
         ? props.readPath.replace('__id__', String(selectedId.value))
@@ -280,6 +293,199 @@ const libraryRef = ref(null);
  * initiale : la bibliothèque navigue sans recharger.
  */
 const openFolderId = ref(props.folderId);
+
+const sharedWithTeam = computed(() => Boolean(selectedNote.value?.sharedAt));
+
+/**
+ * Le dossier qui rend cette note visible sans qu'elle porte rien.
+ *
+ * Une note rangée dans un dossier ouvert à l'équipe **est** visible, mais
+ * sa propre marque est vide : afficher « Rendre visible » sur une note que
+ * tout le monde voit déjà serait un mensonge. On remonte donc la chaîne
+ * des parents pour nommer le dossier responsable, et la bascule de la note
+ * s'efface devant lui - c'est là-bas que ça se change.
+ */
+const sharingFolder = computed(() => {
+    const parId = new Map(folders.value.map((one) => [Number(one.id), one]));
+
+    let dossier = parId.get(Number(selectedNote.value?.folderId));
+    const vus = new Set();
+
+    while (dossier && !vus.has(Number(dossier.id))) {
+        vus.add(Number(dossier.id));
+
+        if (dossier.sharedAt) return dossier;
+
+        dossier = parId.get(Number(dossier.parentId));
+    }
+
+    return null;
+});
+
+const visibleToTeam = computed(
+    () => sharedWithTeam.value || null !== sharingFolder.value,
+);
+
+/**
+ * Refermer le dossier qui rend cette note visible, en disant quoi.
+ *
+ * Le geste part d'une note et emporte toutes ses voisines : celui qui le
+ * fait n'en voit qu'une, donc la question nomme le dossier **et** compte
+ * ce qu'il contient. Sans ce compte, on retire la visibilité à douze notes
+ * en croyant en traiter une.
+ */
+const pendingUnshare = ref(null);
+const unsharing = ref(false);
+
+const unshareCount = computed(() => {
+    if (!pendingUnshare.value) return 0;
+
+    const dossiers = new Set([Number(pendingUnshare.value.id)]);
+    let change = true;
+
+    while (change) {
+        change = false;
+
+        for (const dossier of folders.value) {
+            const id = Number(dossier.id);
+
+            if (!dossiers.has(id) && dossiers.has(Number(dossier.parentId))) {
+                dossiers.add(id);
+                change = true;
+            }
+        }
+    }
+
+    return notes.value.filter((note) => dossiers.has(Number(note.folderId))).length;
+});
+
+async function confirmUnshare() {
+    if (!pendingUnshare.value) return;
+
+    unsharing.value = true;
+
+    const { ok, reported } = await foldersApi.share(pendingUnshare.value.id);
+
+    unsharing.value = false;
+
+    if (!ok) {
+        if (!reported) toast.error(t('notes.markdown.library.shared.failed'));
+
+        return;
+    }
+
+    pendingUnshare.value = null;
+    toast.success(t('notes.markdown.library.shared.stopped'));
+
+    await Promise.all([refreshFolders(), refreshList()]);
+}
+
+/**
+ * Ce que le menu de la note porte : les gestes qu'on fait une fois.
+ *
+ * Exporter, envoyer un lien, choisir une image, ouvrir le graphe, rendre
+ * la note visible : chacun se fait une fois par note, quand les modes
+ * d'affichage, les étiquettes et les liens se touchent en écrivant. Les
+ * douze sur une ligne ne laissaient plus de place au titre.
+ */
+const noteActions = computed(() => {
+    const actions = [
+        {
+            key: "read",
+            title: t('notes.markdown.read.open'),
+            icon: BookOpen,
+            href: readHref.value,
+        },
+        {
+            // Le compteur d'étiquettes était une pastille sur l'icône ;
+            // dans un menu, c'est le libellé qui les nomme, ce qui en dit
+            // plus qu'un chiffre.
+            key: "tags",
+            title: tagsLabel.value,
+            icon: Tag,
+            onSelect: () => toggleTags(),
+        },
+        {
+            key: "cover",
+            title: t('notes.markdown.cover.title'),
+            icon: Image,
+            onSelect: () => {
+                coverModalOpen.value = true;
+            },
+        },
+        {
+            key: "share-link",
+            title: t('notes.markdown.share.button'),
+            icon: Share2,
+            onSelect: () => {
+                shareModalOpen.value = true;
+            },
+        },
+        {
+            key: "team",
+            title: sharingFolder.value
+                ? t('notes.markdown.library.shared.via_folder', {
+                    folder: sharingFolder.value.name || t('notes.markdown.folders.untitled'),
+                })
+                : sharedWithTeam.value
+                    ? t('notes.markdown.library.shared.stop')
+                    : t('notes.markdown.library.shared.start'),
+            icon: Users,
+            // Quand c'est le dossier qui décide, l'entrée le referme -
+            // après avoir dit ce que ça emporte. Elle menait à la page du
+            // dossier, où l'on arrivait devant son contenu sans y trouver
+            // sa carte, donc sans rien à faire : un lien qui dépose le
+            // lecteur devant une porte fermée.
+            onSelect: () => {
+                if (sharingFolder.value) {
+                    pendingUnshare.value = sharingFolder.value;
+
+                    return;
+                }
+
+                void toggleTeamVisibility();
+            },
+        },
+        {
+            key: "graph",
+            title: t('notes.markdown.graph.open'),
+            icon: Network,
+            onSelect: () => {
+                graphOpen.value = true;
+            },
+        },
+        {
+            key: "export",
+            title: t('notes.markdown.export.one'),
+            icon: FileDown,
+            onSelect: () => exportOne(selectedId.value),
+        },
+    ];
+
+    return actions;
+});
+
+
+async function toggleTeamVisibility() {
+    if (!selectedId.value) return;
+
+    const etait = sharedWithTeam.value;
+    const { ok, reported } = await api.shareInternally(selectedId.value);
+
+    if (!ok) {
+        if (!reported) toast.error(t('notes.markdown.library.shared.failed'));
+
+        return;
+    }
+
+    toast.success(
+        etait
+            ? t('notes.markdown.library.shared.stopped')
+            : t('notes.markdown.library.shared.started'),
+    );
+
+    await refreshList();
+}
 
 function folderUrlFor(id) {
     return props.folderPaths.show.replace('__id__', String(id));
@@ -620,6 +826,25 @@ onUnmounted(() => {
                              son filet et son anneau de focus, et les enlever
                              un par un en classes aurait laissé un composant
                              qui promet une apparence qu'il n'a plus. -->
+                        <!-- L'état, écrit, pas seulement une icône qui change
+                             de teinte. Une infobulle se survole et un message
+                             disparaît : ni l'un ni l'autre ne dit, en arrivant
+                             sur la note, si elle est sortie de chez soi. -->
+                        <!-- La pastille dit l'état, elle ne fait rien.
+                             Elle a été un lien vers le dossier, et c'était
+                             une porte fermée : on arrivait devant son
+                             contenu, sans sa carte, donc sans rien à
+                             faire. Ce qui agit vit dans le menu. -->
+                        <span
+                            v-if="visibleToTeam"
+                            class="inline-flex shrink-0 items-center gap-1 rounded-full bg-accent-600/15 px-2 py-1 text-xs font-medium text-accent-400"
+                        >
+                            <Users class="h-3 w-3" :stroke-width="2" />
+                            {{ sharingFolder
+                                ? t('notes.markdown.library.shared.via_folder', { folder: sharingFolder.name || t('notes.markdown.folders.untitled') })
+                                : t('notes.markdown.library.shared.badge') }}
+                        </span>
+
                         <input
                             v-model="form.title"
                             type="text"
@@ -629,82 +854,28 @@ onUnmounted(() => {
                         >
 
                         <div class="ml-auto flex shrink-0 flex-wrap items-center justify-end gap-2 md:gap-3">
-                            <!-- Disabled until a note is selected: there is nothing to
-                             share from an empty editor, and a modal that opens on
-                             null would ask the server for share links of no note. -->
-                            <!-- Cette note seule, en Markdown. À côté du partage
-                             parce que les deux répondent à « je veux la donner
-                             à quelqu'un », par un lien ou par un fichier. -->
-                            <AppIconButton
-                                :title="t('notes.markdown.export.one')"
-                                size="md"
-                                :disabled="!selectedId"
-                                v-on:click="exportOne(selectedId)"
-                            >
-                                <FileDown class="w-4 h-4" :stroke-width="2" />
-                            </AppIconButton>
+                            <!-- Ce qu'on touche en écrivant reste sous la
+                                 main ; le reste passe dans le menu.
+                                 
+                                 Douze commandes sur la ligne du titre, et
+                                 le titre n'avait plus de place : exporter,
+                                 partager, changer l'image ou ouvrir le
+                                 graphe se font une fois par note, quand
+                                 les modes d'affichage, les étiquettes et
+                                 les liens se touchent en permanence. La
+                                 règle de la maison le dit déjà pour les
+                                 cartes - au-delà de cinq, on garde la
+                                 feuille. -->
+                            <AppRowActions
+                                :actions="noteActions"
+                                :label="form.title || t('notes.markdown.untitled')"
+                            />
 
-                            <AppIconButton
-                                :title="t('notes.markdown.share.button')"
-                                size="md"
-                                :disabled="!selectedId"
-                                v-on:click="shareModalOpen = true"
-                            >
-                                <Share2 class="w-4 h-4" :stroke-width="2" />
-                            </AppIconButton>
-
-                            <!-- Le graphe n'avait aucun bouton : le composant était
-                             monté, branché sur sa source et traduit, et
-                             `graphOpen` n'était mis à vrai nulle part. La
-                             fonction existait sans porte d'entrée. -->
-                            <AppIconButton
-                                :title="t('notes.markdown.cover.title')"
-                                :aria-label="t('notes.markdown.cover.title')"
-                                size="md"
-                                :disabled="!selectedId"
-                                v-on:click="coverModalOpen = true"
-                            >
-                                <Image class="w-4 h-4" :stroke-width="2" />
-                            </AppIconButton>
-
-                            <!-- Une vraie adresse, donc un lien : on garde la
-                             lecture ouverte dans un onglet, et le clic du
-                             milieu se comporte. -->
-                            <AppIconButton
-                                v-if="readHref"
-                                :href="readHref"
-                                :title="t('notes.markdown.read.open')"
-                                :aria-label="t('notes.markdown.read.open')"
-                                size="md"
-                            >
-                                <BookOpen class="w-4 h-4" :stroke-width="2" />
-                            </AppIconButton>
-
-                            <AppIconButton
-                                class="relative"
-                                :title="tagsLabel"
-                                :aria-label="tagsLabel"
-                                size="md"
-                                :variant="tagsOpen ? 'primary' : 'ghost'"
-                                v-on:click="toggleTags"
-                            >
-                                <Tag class="w-4 h-4" :stroke-width="2" />
-                                <span
-                                    v-if="form.tags?.length"
-                                    class="absolute -right-0.5 -top-0.5 min-w-3.5 rounded-full bg-accent-600 px-1 text-[0.625rem] font-semibold leading-3.5 text-white"
-                                >
-                                    {{ form.tags.length }}
-                                </span>
-                            </AppIconButton>
-
-                            <AppIconButton
-                                :title="t('notes.markdown.graph.open')"
-                                size="md"
-                                v-on:click="graphOpen = true"
-                            >
-                                <Network class="w-4 h-4" :stroke-width="2" />
-                            </AppIconButton>
-
+                            <!-- Le dépliant reste dehors, à droite du menu :
+                                 c'est le seul de ces gestes qui change ce
+                                 qu'on a sous les yeux pendant qu'on écrit,
+                                 et son état - ouvert ou fermé - doit se
+                                 lire sans ouvrir quoi que ce soit. -->
                             <AppIconButton
                                 :title="sidePanelOpen ? t('notes.markdown.links.close') : t('notes.markdown.links.open')"
                                 size="md"
@@ -905,6 +1076,33 @@ onUnmounted(() => {
                 v-on:close="sidePanelOpen = false"
                 v-on:navigate="selectNote"
             />
+
+            <AppModal
+                :show="null !== pendingUnshare"
+                max-width="sm"
+                :closeable="!unsharing"
+                :title="t('notes.markdown.library.shared.stop')"
+                :icon="Users"
+                v-on:close="pendingUnshare = null"
+            >
+                <p class="text-sm text-primary">
+                    {{ t('notes.markdown.library.shared.confirm_folder', {
+                        folder: pendingUnshare?.name || t('notes.markdown.folders.untitled'),
+                        count: unshareCount,
+                    }) }}
+                </p>
+                <template #footer>
+                    <AppModalFooter>
+                        <AppButton variant="ghost" size="md" :disabled="unsharing" v-on:click="pendingUnshare = null">
+                            <X class="w-3.5 h-3.5" :stroke-width="2" />
+                            {{ t('notes.markdown.cancel') }}
+                        </AppButton>
+                        <AppButton variant="primary" size="md" :loading="unsharing" v-on:click="confirmUnshare">
+                            {{ t('notes.markdown.library.shared.stop') }}
+                        </AppButton>
+                    </AppModalFooter>
+                </template>
+            </AppModal>
 
             <AppModal
                 :show="!!pendingDelete"

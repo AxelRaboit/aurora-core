@@ -75,6 +75,21 @@ const FOLDERS = [
     { id: 7, name: "Clients", parentId: null, noteCount: 1, folderCount: 0 },
 ];
 
+/**
+ * Le menu de la note : ce qui se fait une fois par note y vit, plutôt que
+ * d'occuper la ligne du titre.
+ */
+async function openNoteMenu(wrapper) {
+    const trigger = wrapper
+        .findAll("button")
+        .find((b) => b.attributes("title")?.startsWith("shared.actions.open"));
+
+    await trigger.trigger("click");
+    await flushPromises();
+
+    return [...document.body.querySelectorAll("button, a")];
+}
+
 const mounted = [];
 
 function render(props = {}) {
@@ -171,14 +186,19 @@ describe("le chemin de retour", () => {
 });
 
 describe("les étiquettes de l'éditeur", () => {
-    function tagsButton(wrapper) {
-        return wrapper
-            .findAll("button")
-            .find(
-                (b) =>
-                    b.attributes("title")?.includes("tags.add_placeholder") ||
-                    b.attributes("title")?.includes("tags.summary"),
-            );
+    /**
+     * Les étiquettes vivent dans le menu de la note depuis que la ligne du
+     * titre a été allégée : douze commandes ne laissaient plus de place au
+     * titre lui-même.
+     */
+    async function tagsEntry(wrapper) {
+        const entrees = await openNoteMenu(wrapper);
+
+        return entrees.find(
+            (node) =>
+                node.textContent.includes("tags.add_placeholder") ||
+                node.textContent.includes("tags.summary"),
+        );
     }
 
     /** L'éditeur n'est à l'écran qu'une fois une note ouverte. */
@@ -210,15 +230,15 @@ describe("les étiquettes de l'éditeur", () => {
     it("keeps its row out of the way until it is asked for", async () => {
         const wrapper = await editing();
 
-        expect(
-            tagsButton(wrapper),
-            "l'icône des étiquettes est là",
-        ).toBeTruthy();
         expect(wrapper.findComponent({ name: "AppTagsInput" }).exists()).toBe(
             false,
         );
 
-        await tagsButton(wrapper).trigger("click");
+        const entree = await tagsEntry(wrapper);
+
+        expect(entree, "l'entrée des étiquettes est là").toBeTruthy();
+
+        entree.click();
         await flushPromises();
 
         expect(wrapper.findComponent({ name: "AppTagsInput" }).exists()).toBe(
@@ -226,14 +246,15 @@ describe("les étiquettes de l'éditeur", () => {
         );
     });
 
-    /** Repliées, on doit savoir qu'il y en a, et lesquelles. */
-    it("carries the count, and names them in its tooltip", async () => {
+    /**
+     * Dans un menu, c'est le libellé qui nomme les étiquettes - ce qui en
+     * dit plus que le chiffre que portait l'icône.
+     */
+    it("names them in the entry itself", async () => {
         const wrapper = await editing(["client", "photo"]);
+        const entree = await tagsEntry(wrapper);
 
-        expect(tagsButton(wrapper).text()).toBe("2");
-        expect(tagsButton(wrapper).attributes("title")).toContain(
-            "client, photo",
-        );
+        expect(entree.textContent).toContain("client, photo");
     });
 });
 
@@ -259,13 +280,14 @@ describe("le partage", () => {
         askPage("notes:select", { args: [1] });
         await flushPromises();
 
-        const share = wrapper
-            .findAll("button")
-            .find((b) => b.attributes("title")?.includes("share.button"));
+        const entrees = await openNoteMenu(wrapper);
+        const share = entrees.find((node) =>
+            node.textContent.includes("share.button"),
+        );
 
-        expect(share, "le bouton de partage est là").toBeTruthy();
+        expect(share, "l'entrée de partage est là").toBeTruthy();
 
-        await share.trigger("click");
+        share.click();
         await flushPromises();
 
         spy.mockRestore();
@@ -509,16 +531,15 @@ describe("the way into the graph", () => {
         const graph = wrapper.findComponent({ name: "NoteGraph" });
         expect(graph.props("show")).toBe(false);
 
-        const button = wrapper
-            .findAll("button")
-            .find(
-                (node) =>
-                    node.attributes("title") === "notes.markdown.graph.open",
-            );
+        const entrees = await openNoteMenu(wrapper);
+        const button = entrees.find((node) =>
+            node.textContent.includes("notes.markdown.graph.open"),
+        );
 
-        expect(button, "aucun bouton pour ouvrir le graphe").toBeDefined();
+        expect(button, "aucune entrée pour ouvrir le graphe").toBeDefined();
 
-        await button.trigger("click");
+        button.click();
+        await flushPromises();
 
         expect(wrapper.findComponent({ name: "NoteGraph" }).props("show")).toBe(
             true,

@@ -5,6 +5,81 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.227] - 2026-09-23
+
+### Ajouté
+
+#### Une note peut être ouverte au reste du back-office
+Le module était strictement personnel : deux personnes dans le même
+back-office ne voyaient rien l'une de l'autre, pas même un dossier. C'était
+le choix d'origine, et il devient faux dès qu'on est plusieurs.
+
+**Le partage se pose sur un dossier**, et ce qu'il contient suit,
+sous-dossiers compris ; une note à la racine se partage seule. Poser la
+question note par note devient ingérable au bout de trente notes, quand plus
+personne ne sait qui voit quoi.
+
+**En lecture seule**, et ce n'est pas de la prudence de principe :
+l'éditeur enregistre tout seul, sans aucun contrôle de concurrence, donc
+deux personnes sur la même note seraient le dernier qui tape qui écrase
+l'autre, en silence. Ouvrir l'écriture demande de traiter ça d'abord.
+
+Un seul endroit décide du droit de lire, et la vue de lecture est la seule
+porte qui l'accepte : tout ce qui écrit continue de passer par le
+propriétaire. Rien ne change pour l'existant, privé reste le défaut.
+
+#### Voir ce qui est ouvert, et ce qui ne l'est pas
+Une marque sur la carte, une pastille en toutes lettres à côté du titre de
+la note, et un bouton qui fait tourner la liste : tout, visible par
+l'équipe, privé. Une note rangée dans un dossier partagé **est** visible
+alors que sa propre marque est vide : la pastille nomme alors le dossier
+responsable, et l'entrée du menu le referme après avoir compté ce que ça
+emporte.
+
+Les autres trouvent ce qui leur est ouvert dans une section « Visible pour
+moi » du menu, jamais mêlée à leur propre rangement - un dossier qui n'est
+pas à vous ne doit pas ressembler à quelque chose qu'on peut déplacer.
+
+### Modifié
+
+#### Le compte quitte le pied du menu pour la barre du haut
+Trois lignes d'identité et cinq entrées dépliables tenaient le bas de la
+colonne de navigation, pour une chose qu'on touche une fois par jour. Ce
+n'est pas de la navigation : l'avatar passe en haut à droite, après la
+cloche, et ouvre une feuille avec l'identité en tête et les mêmes entrées.
+Le même avatar rejoint la barre du téléphone, sans quoi un mobile n'aurait
+plus eu de quoi se déconnecter.
+
+#### La ligne d'une note ne porte plus que ce qu'on touche en écrivant
+Douze commandes ne laissaient plus de place au titre. Le menu de la note
+prend la vue de lecture, les étiquettes, l'image d'entête, le partage par
+lien, la visibilité d'équipe, le graphe et l'export ; restent dehors le
+dépliant des liens et les trois modes d'affichage. C'est la règle que la
+maison applique déjà aux cartes : au-delà de cinq, on garde la feuille.
+
+Et « partager » cesse de désigner deux choses : le lien public devient
+« Partager par un lien », la lecture interne « Rendre visible par
+l'équipe ».
+
+### Corrigé
+
+- Les cases à cocher d'une vignette gardaient leur puce et collaient au
+  texte : la feuille de l'aperçu vise `.note-preview`, et une vignette n'en
+  est pas une. Elles sont aussi devenues inertes - cocher dans une vignette
+  changeait un dessin sans rien écrire.
+- L'état de partage n'arrivait jamais à l'écran : la liste plate nomme ses
+  colonnes une par une et `shared_at` n'y était pas, donc la marque ne
+  s'affichait pas, le filtre ne trouvait rien et la bascule disait toujours
+  la même chose.
+
+### Dans aurora-client
+
+Une migration ajoute `shared_at` aux dossiers et aux notes, avec son index.
+Toutes les lignes existantes restent nulles : aucun carnet ne s'ouvre tout
+seul.
+
+---
+
 ## [0.9.226] - 2026-09-23
 
 ### Ajouté

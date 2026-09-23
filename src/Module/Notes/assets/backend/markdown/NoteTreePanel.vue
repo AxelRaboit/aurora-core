@@ -28,7 +28,7 @@
  */
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { ChevronDown, ChevronRight, Download, FileText, Folder, FolderPlus, Pin, PinOff, Plus, Tag, Upload } from "lucide-vue-next";
+import { ChevronDown, ChevronRight, Download, FileText, Folder, FolderPlus, Pin, PinOff, Plus, Tag, Upload, Users } from "lucide-vue-next";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppModulePanel from "@/shared/nav/AppModulePanel.vue";
@@ -44,6 +44,7 @@ import NoteTreeItem from "./components/NoteTreeItem.vue";
 const FOLDERS_ENDPOINT = "/backend/notes/markdown/folders";
 const NOTES_ENDPOINT = "/backend/notes/markdown/list";
 const SEARCH_ENDPOINT = "/backend/notes/markdown/search";
+const SHARED_ENDPOINT = "/backend/notes/markdown/shared";
 const LIBRARY_URL = "/backend/notes/markdown";
 const EXPANDED_KEY = "aurora.notes.panel.expanded";
 const PINNED_TAGS_KEY = "aurora.notes.panel.pinnedTags";
@@ -198,6 +199,79 @@ const favorites = computed(() => {
         ...pinned(notes.value, "note"),
     ].sort((a, b) => Date.parse(b.favoritedAt) - Date.parse(a.favoritedAt));
 });
+
+// ── Ce que les autres ont partagé ──────────────────────────────────
+
+/**
+ * Le carnet des autres, en lecture.
+ *
+ * **Jamais mêlé au sien.** Ce qui n'appartient pas à la personne ne se
+ * range pas dans son arborescence : les mélanger ferait croire qu'on peut
+ * déplacer le dossier d'un collègue, et un glisser qui échoue au bout de
+ * trois secondes vaut moins qu'une section qui dit ce qu'elle est.
+ *
+ * Une note partagée mène à la vue de lecture, pas à l'éditeur : elle n'est
+ * pas à écrire, et lui ouvrir l'éditeur promettrait le contraire.
+ */
+const shared = ref({ folders: [], notes: [] });
+
+onMounted(async () => {
+    const payload = await request(SHARED_ENDPOINT, null, {
+        method: HttpMethod.Get,
+        noGuard: true,
+    });
+
+    if (payload) {
+        shared.value = {
+            folders: payload.folders ?? [],
+            notes: payload.notes ?? [],
+        };
+    }
+});
+
+/**
+ * Les racines du partage, avec ce qu'elles portent.
+ *
+ * Le serveur rend les dossiers partagés **et** leurs descendants, parce
+ * qu'il faut pouvoir descendre ; ici on ne montre que les racines, chacune
+ * suivie de ses notes, pour que la section tienne dans un panneau.
+ */
+const sharedGroups = computed(() => {
+    if (searching.value) return [];
+
+    const ids = new Set(shared.value.folders.map((one) => Number(one.id)));
+    const racines = shared.value.folders.filter(
+        (one) => !ids.has(Number(one.parentId)),
+    );
+
+    const parDossier = new Map();
+    for (const note of shared.value.notes) {
+        const cle = Number(note.folderId) || 0;
+
+        if (!parDossier.has(cle)) parDossier.set(cle, []);
+
+        parDossier.get(cle).push(note);
+    }
+
+    const groupes = racines.map((dossier) => ({
+        key: `folder:${dossier.id}`,
+        name: dossier.name,
+        owner: dossier.ownerName,
+        notes: parDossier.get(Number(dossier.id)) ?? [],
+    }));
+
+    // Les notes partagées seules : celles dont le dossier n'est pas
+    // lui-même partagé.
+    const seules = shared.value.notes.filter(
+        (note) => !ids.has(Number(note.folderId)),
+    );
+
+    return seules.length
+        ? [...groupes, { key: "loose", name: null, owner: null, notes: seules }]
+        : groupes;
+});
+
+const hasShared = computed(() => sharedGroups.value.length > 0);
 
 // ── Les étiquettes ─────────────────────────────────────────────────
 
@@ -549,6 +623,38 @@ onUnmounted(() => {
             v-on:drag-leave="onDragLeave"
             v-on:drop="onDrop"
         />
+        <!-- Le carnet des autres, en lecture, et à part. Ce qui n'est
+             pas à soi ne se range pas dans son arborescence. -->
+        <div v-if="hasShared" class="mt-2 border-t border-line pt-2">
+            <p class="px-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted">
+                {{ t('notes.markdown.library.shared.section') }}
+            </p>
+
+            <div v-for="groupe in sharedGroups" :key="groupe.key" class="mb-1">
+                <p
+                    v-if="groupe.name"
+                    class="flex min-w-0 items-center gap-2 px-3 py-1 text-sm text-secondary"
+                    :title="groupe.owner ? t('notes.markdown.library.shared.by', { name: groupe.owner }) : undefined"
+                >
+                    <Users class="h-3.5 w-3.5 shrink-0 text-muted" :stroke-width="2" />
+                    <span class="min-w-0 flex-1 truncate">{{ groupe.name }}</span>
+                </p>
+
+                <a
+                    v-for="note in groupe.notes"
+                    :key="`shared-${note.id}`"
+                    :href="`${LIBRARY_URL}/${note.id}/read`"
+                    class="flex min-w-0 items-center gap-2 rounded-lg py-1.5 pl-6 pr-3 text-sm text-primary no-underline transition-colors hover:bg-surface-2"
+                    :title="note.ownerName ? t('notes.markdown.library.shared.by', { name: note.ownerName }) : undefined"
+                >
+                    <FileText class="h-4 w-4 shrink-0 text-muted" :stroke-width="2" />
+                    <span class="min-w-0 flex-1 truncate">
+                        {{ note.title || t('notes.markdown.untitled') }}
+                    </span>
+                </a>
+            </div>
+        </div>
+
         <!-- Les étiquettes, sous l'arborescence : elles traversent le
              rangement, donc elles ne peuvent pas y tenir une place. Cliquer
              l'une d'elles montre ses notes, où qu'elles soient. -->

@@ -160,6 +160,8 @@ final readonly class MarkdownNotesViewBuilder
             'imageUploadPath' => $this->urlGenerator->generate('backend_notes_markdown_images_upload'),
             'readPath' => $this->urlGenerator->generate('backend_notes_markdown_read', ['id' => '__id__']),
             'coversSearchPath' => $this->urlGenerator->generate('backend_notes_markdown_covers_search'),
+            'sharedPath' => $this->urlGenerator->generate('backend_notes_markdown_shared'),
+            'shareInternallyPath' => $this->urlGenerator->generate('backend_notes_markdown_share_internally', ['id' => '__id__']),
         ];
     }
 
@@ -182,6 +184,7 @@ final readonly class MarkdownNotesViewBuilder
                 'move' => $this->urlGenerator->generate('backend_notes_markdown_folders_move', ['id' => '__id__']),
                 'delete' => $this->urlGenerator->generate('backend_notes_markdown_folders_delete', ['id' => '__id__']),
                 'reorder' => $this->urlGenerator->generate('backend_notes_markdown_folders_reorder'),
+                'share' => $this->urlGenerator->generate('backend_notes_markdown_folders_share', ['id' => '__id__']),
                 'favorite' => $this->urlGenerator->generate('backend_notes_markdown_folders_favorite', ['id' => '__id__']),
                 'show' => $this->urlGenerator->generate('backend_notes_markdown_folder', ['id' => '__id__']),
             ],

@@ -42,6 +42,10 @@ import {
     Rows3,
     Search,
     Tag,
+    Lock,
+    UserPlus,
+    Users,
+    UsersRound,
     Trash2,
     X,
 } from "lucide-vue-next";
@@ -124,6 +128,7 @@ const {
     direction,
     flat,
     tag: activeTag,
+    visibility,
     folders: visibleFolders,
     notes: visibleNotes,
     isEmpty,
@@ -134,6 +139,7 @@ const {
     toggleDirection,
     toggleFlat,
     setTag,
+    cycleVisibility,
     folderNameOf,
 } = library;
 
@@ -209,7 +215,7 @@ const nothingShown = computed(
 const PAGE = 60;
 const shown = ref(PAGE);
 
-watch([currentFolderId, query, sort, direction, flat, activeTag], () => {
+watch([currentFolderId, query, sort, direction, flat, activeTag, visibility], () => {
     shown.value = PAGE;
 });
 
@@ -234,6 +240,10 @@ const recent = computed(() => {
     if (
         null !== currentFolderId.value ||
         null !== activeTag.value ||
+        // Un filtre posé vaut pour tout l'écran : la rangée des récentes
+        // montrait encore ce que le filtre venait d'écarter, ce qui fait
+        // douter du filtre plutôt que de la rangée.
+        "all" !== visibility.value ||
         "" !== query.value.trim()
     ) {
         return [];
@@ -290,6 +300,11 @@ const sortOptions = computed(() =>
             ? []
             : [{ value: "manual", label: t("notes.markdown.library.sort.manual") }]),
     ],
+);
+
+/** L'état du filtre de visibilité, écrit, pour l'infobulle et la puce. */
+const visibilityLabel = computed(() =>
+    t(`notes.markdown.library.visibility.${visibility.value}`),
 );
 
 /** Le critère en vigueur, écrit, pour que l'icône puisse le dire. */
@@ -952,7 +967,7 @@ onMounted(() => window.addEventListener("keydown", onKeydown));
 onUnmounted(() => window.removeEventListener("keydown", onKeydown));
 
 // Ce qui était visé peut disparaître : changer de dossier, filtrer, trier.
-watch([currentFolderId, query, sort, direction, flat, activeTag], () => {
+watch([currentFolderId, query, sort, direction, flat, activeTag, visibility], () => {
     focused.value = -1;
 });
 
@@ -1046,6 +1061,52 @@ async function togglePin(kind, item) {
     emit("changed");
 }
 
+/**
+ * Ouvrir un dossier, ou une note, au reste du back-office.
+ *
+ * **Le partage se pose sur un endroit**, et ce qu'il contient suit : c'est
+ * pour ça que l'entrée se lit « Partager ce dossier » et non « partager
+ * ces notes ». Une note isolée se partage aussi, pour le document qui ne
+ * vit dans aucun dossier.
+ *
+ * En lecture seule, et l'infobulle le dit : tant que l'éditeur enregistre
+ * tout seul sans contrôle de concurrence, deux personnes sur une note
+ * seraient le dernier qui tape qui écrase l'autre.
+ */
+function shareAction(kind, item) {
+    const partage = Boolean(item.sharedAt);
+
+    return {
+        key: "share-internally",
+        title: partage
+            ? t("notes.markdown.library.shared.stop")
+            : t("notes.markdown.library.shared.start"),
+        icon: partage ? Users : UserPlus,
+        onSelect: () => toggleShared(kind, item),
+    };
+}
+
+async function toggleShared(kind, item) {
+    const { ok, reported } =
+        "folder" === kind
+            ? await props.foldersApi.share(item.id)
+            : await props.notesApi.shareInternally(item.id);
+
+    if (!ok) {
+        if (!reported) toast.error(t("notes.markdown.library.shared.failed"));
+
+        return;
+    }
+
+    toast.success(
+        item.sharedAt
+            ? t("notes.markdown.library.shared.stopped")
+            : t("notes.markdown.library.shared.started"),
+    );
+
+    emit("changed");
+}
+
 function orderActions(kind, item) {
     if (!manualOrder.value) return [];
 
@@ -1088,6 +1149,7 @@ function folderActions(folder) {
             onSelect: () => askToMove("folder", folder),
         },
         favoriteAction("folder", folder),
+        shareAction("folder", folder),
         ...orderActions("folder", folder),
         {
             key: "delete",
@@ -1115,6 +1177,7 @@ function noteActions(note) {
             onSelect: () => askToMove("note", note),
         },
         favoriteAction("note", note),
+        shareAction("note", note),
         ...orderActions("note", note),
         {
             key: "export",
@@ -1220,6 +1283,23 @@ defineExpose({
                          traverse le carnet, donc le chemin d'un dossier ne
                          décrit plus ce qui est à l'écran. La croix rend le
                          dossier où l'on était, qui n'a pas bougé. -->
+                    <template v-if="'all' !== visibility">
+                        <ChevronRight class="w-3.5 h-3.5 text-muted shrink-0" :stroke-width="2" />
+                        <span class="inline-flex items-center gap-1 rounded-full bg-accent-600/15 px-2 py-1 text-xs font-medium text-accent-400">
+                            <component :is="'shared' === visibility ? Users : Lock" class="h-3 w-3" :stroke-width="2" />
+                            {{ visibilityLabel }}
+                            <button
+                                type="button"
+                                class="transition-colors hover:text-primary"
+                                :title="t('notes.markdown.library.visibility.clear')"
+                                :aria-label="t('notes.markdown.library.visibility.clear')"
+                                v-on:click="visibility = 'all'"
+                            >
+                                <X class="h-3 w-3" :stroke-width="2" />
+                            </button>
+                        </span>
+                    </template>
+
                     <template v-if="null !== activeTag">
                         <ChevronRight class="w-3.5 h-3.5 text-muted shrink-0" :stroke-width="2" />
                         <span class="inline-flex items-center gap-1 rounded-full bg-accent-600/15 px-2 py-1 text-xs font-medium text-accent-400">
@@ -1319,6 +1399,20 @@ defineExpose({
                          ce que l'endroit contient, ou toutes les notes d'ici
                          et de dessous d'un coup, pour retrouver ce dont on
                          ne sait plus où on l'a mis. -->
+                    <!-- Ce qui est ouvert à l'équipe, ce qui ne l'est pas,
+                         ou tout. Un bouton qui tourne plutôt que trois :
+                         la barre en porte déjà six. -->
+                    <AppIconButton
+                        :class="'all' === visibility ? '' : 'text-accent-400'"
+                        :title="visibilityLabel"
+                        :aria-label="visibilityLabel"
+                        v-on:click="cycleVisibility"
+                    >
+                        <Users v-if="'shared' === visibility" class="h-4 w-4" :stroke-width="2" />
+                        <Lock v-else-if="'private' === visibility" class="h-4 w-4" :stroke-width="2" />
+                        <UsersRound v-else class="h-4 w-4" :stroke-width="2" />
+                    </AppIconButton>
+
                     <AppIconButton
                         :class="flat ? 'text-accent-400' : ''"
                         :title="flat ? t('notes.markdown.library.scope.grouped') : t('notes.markdown.library.scope.flat')"
@@ -1523,6 +1617,14 @@ defineExpose({
                                         :stroke-width="2"
                                     />
                                     <span class="truncate font-medium text-primary">{{ folderLabel(folder) }}</span>
+                                    <!-- Ce qui est sorti de chez soi se voit
+                                         sans avoir à ouvrir un menu. -->
+                                    <Users
+                                        v-if="folder.sharedAt"
+                                        class="h-3.5 w-3.5 shrink-0 text-accent-400"
+                                        :title="t('notes.markdown.library.shared.badge')"
+                                        :stroke-width="2"
+                                    />
                                 </button>
 
                                 <AppRowActions :actions="folderActions(folder)" :label="folderLabel(folder)" />
@@ -1566,6 +1668,12 @@ defineExpose({
                                 >
                                     <FileText class="w-5 h-5 shrink-0 text-muted" :stroke-width="2" />
                                     <span class="truncate font-medium text-primary">{{ noteLabel(note) }}</span>
+                                    <Users
+                                        v-if="note.sharedAt"
+                                        class="h-3.5 w-3.5 shrink-0 text-accent-400"
+                                        :title="t('notes.markdown.library.shared.badge')"
+                                        :stroke-width="2"
+                                    />
                                 </a>
 
                                 <AppRowActions :actions="noteActions(note)" :label="noteLabel(note)" />
@@ -1927,6 +2035,31 @@ defineExpose({
 .note-thumb :deep(hr) {
     border-color: var(--color-line);
     margin: 0.375rem 0;
+}
+
+/*
+ * Les cases à cocher : sans puce, avec de l'air, et inertes.
+ *
+ * La feuille de l'aperçu les traite déjà, mais elle vise `.note-preview`
+ * et la vignette n'en est pas : les lignes gardaient donc leur puce *et*
+ * leur case, collées au texte. Et une case dans une vignette ne doit pas
+ * se cocher - la carte ouvre la note, et cocher ici changerait un dessin
+ * sans rien écrire.
+ */
+.note-thumb :deep(.task-list-item) {
+    list-style: none;
+    margin-left: -0.9rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.35rem;
+}
+
+.note-thumb :deep(.task-checkbox) {
+    pointer-events: none;
+    flex-shrink: 0;
+    width: 0.7rem;
+    height: 0.7rem;
+    margin: 0;
 }
 
 /* Une table entière dans une vignette de quinze lignes ne dirait rien de
