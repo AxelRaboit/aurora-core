@@ -950,6 +950,35 @@ function noteActions(note) {
  * serveur envoyait en objets plutôt qu'en chaînes. Le serveur est corrigé,
  * et l'affichage ne dépend plus de sa bonne volonté.
  */
+/**
+ * Toute la carte ouvre, pas seulement son titre.
+ *
+ * Une carte est une cible large, c'est ce qu'elle promet en occupant cette
+ * place ; ne rendre cliquable que ses vingt pixels de titre oblige à viser.
+ * Le titre reste un lien, pour le clic du milieu et pour « ouvrir dans un
+ * nouvel onglet ».
+ *
+ * Deux gestes ne sont pas des ouvertures et sont laissés tranquilles : ce
+ * qui part d'un bouton ou d'un lien (la case à cocher, le menu, le titre
+ * lui-même, qui ont leur propre réponse), et un clic qui vient de terminer
+ * une sélection de texte - lire un extrait en le surlignant ne doit pas
+ * quitter la page.
+ */
+function onCardClick(kind, item, event) {
+    if (event.target.closest("button, a")) return;
+
+    const selection = window.getSelection?.();
+    if (selection && "" !== String(selection)) return;
+
+    if ("folder" === kind) {
+        openFolder(item.id);
+
+        return;
+    }
+
+    emit("open-note", item.id);
+}
+
 function updatedLabel(item) {
     return Number.isFinite(Date.parse(item.updatedAt))
         ? formatDateTimeNumeric(item.updatedAt)
@@ -1164,7 +1193,7 @@ defineExpose({
                         <article
                             v-for="folder in pagedFolders"
                             :key="`folder-${folder.id}`"
-                            class="group flex flex-col rounded-lg border bg-surface transition-colors"
+                            class="group flex cursor-pointer flex-col rounded-lg border bg-surface transition-colors"
                             :class="[
                                 `folder:${folder.id}` === dragOverId ? 'border-accent-500 bg-accent-500/10' : 'border-line hover:border-accent-500/50',
                                 isSelected('folder', folder) ? 'ring-2 ring-accent-500' : '',
@@ -1177,6 +1206,7 @@ defineExpose({
                             v-on:dragover="onDragOverFolder(folder, $event)"
                             v-on:dragleave="onDragLeaveFolder(folder, $event)"
                             v-on:drop="onDropOn(Number(folder.id), $event)"
+                            v-on:click="onCardClick('folder', folder, $event)"
                         >
                             <div class="flex items-start gap-2">
                                 <!-- La case précède le titre au lieu de le
@@ -1216,7 +1246,7 @@ defineExpose({
                         <article
                             v-for="note in pagedNotes"
                             :key="`note-${note.id}`"
-                            class="group flex flex-col rounded-lg border border-line bg-surface transition-colors hover:border-accent-500/50"
+                            class="group flex cursor-pointer flex-col rounded-lg border border-line bg-surface transition-colors hover:border-accent-500/50"
                             :class="[
                                 isSelected('note', note) ? 'ring-2 ring-accent-500' : '',
                                 isFocused('note', note) ? 'ring-2 ring-accent-500/60' : '',
@@ -1225,6 +1255,7 @@ defineExpose({
                             draggable="true"
                             v-on:dragstart="onDragStart('note', note, $event)"
                             v-on:dragend="onDragEnd"
+                            v-on:click="onCardClick('note', note, $event)"
                         >
                             <div class="flex items-start gap-2">
                                 <button
@@ -1302,6 +1333,7 @@ defineExpose({
                                 v-on:dragover="onDragOverFolder(folder, $event)"
                                 v-on:dragleave="onDragLeaveFolder(folder, $event)"
                                 v-on:drop="onDropOn(Number(folder.id), $event)"
+                                v-on:click="onCardClick('folder', folder, $event)"
                             >
                                 <td class="px-2 py-2">
                                     <button
@@ -1330,6 +1362,7 @@ defineExpose({
                                 draggable="true"
                                 v-on:dragstart="onDragStart('note', note, $event)"
                                 v-on:dragend="onDragEnd"
+                                v-on:click="onCardClick('note', note, $event)"
                             >
                                 <td class="px-2 py-2">
                                     <a

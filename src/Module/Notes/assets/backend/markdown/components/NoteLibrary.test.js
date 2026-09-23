@@ -547,6 +547,45 @@ describe("the library", () => {
         expect(wrapper.text()).toContain("À la racine");
     });
 
+    /**
+     * Une carte est une cible large : ne rendre cliquable que son titre
+     * oblige à viser vingt pixels de texte.
+     */
+    it("opens the note from anywhere on its card", async () => {
+        const wrapper = render({ folders: [] });
+
+        const card = wrapper
+            .findAll("article")
+            .find((one) => one.text().includes("À la racine"));
+
+        // L'extrait, pas le titre : le clic doit compter quand même.
+        await card.find("p").trigger("click");
+
+        expect(wrapper.emitted("open-note")?.[0]).toEqual([11]);
+    });
+
+    it("opens the folder from anywhere on its card", async () => {
+        const wrapper = render();
+
+        const card = wrapper
+            .findAll("article")
+            .find((one) => one.text().includes("Clients"));
+
+        await card.find("p").trigger("click");
+
+        expect(wrapper.text()).toContain("Devis");
+    });
+
+    /** La case à cocher choisit, elle n'ouvre pas. */
+    it("does not open when the checkbox is pressed", async () => {
+        const wrapper = render({ folders: [] });
+
+        await wrapper.findAll("article")[0].findAll("button")[0].trigger("click");
+
+        expect(wrapper.emitted("open-note")).toBeUndefined();
+        expect(wrapper.text()).toContain("library.selected");
+    });
+
     it("draws a table when the list view is picked", async () => {
         const wrapper = render();
 

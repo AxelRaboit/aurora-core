@@ -272,7 +272,11 @@ describe("ouvrir un dossier avec une note ouverte", () => {
         const original = window.location;
         Object.defineProperty(window, "location", {
             configurable: true,
-            value: { ...original, assign, pathname: "/backend/notes/markdown/1" },
+            value: {
+                ...original,
+                assign,
+                pathname: "/backend/notes/markdown/1",
+            },
         });
 
         const wrapper = render({ activeId: 1 });
@@ -297,7 +301,11 @@ describe("ouvrir un dossier avec une note ouverte", () => {
         const original = window.location;
         Object.defineProperty(window, "location", {
             configurable: true,
-            value: { ...original, assign, pathname: "/backend/notes/markdown/1" },
+            value: {
+                ...original,
+                assign,
+                pathname: "/backend/notes/markdown/1",
+            },
         });
 
         render({ activeId: 1 });
