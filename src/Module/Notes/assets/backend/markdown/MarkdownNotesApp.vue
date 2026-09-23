@@ -26,6 +26,7 @@ import AppNoData from '@shared/components/feedback/AppNoData.vue';
 import "@notes/share/appearance.css";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { useFoldable } from "@notes/backend/markdown/composables/useFoldable.js";
+import { withoutLeadingTitle } from "@notes/backend/markdown/composables/noteBody.js";
 
 const { formatDateTimeNumeric } = useDateFormat();
 
@@ -164,6 +165,17 @@ const lookClass = computed(() =>
     'plain' === form.value.appearance || !form.value.appearance
         ? ''
         : `note-look note-look-${form.value.appearance}`,
+);
+
+/**
+ * Le corps tel que l'aperçu le montre : sans le titre répété en tête.
+ *
+ * Les index des cases à cocher suivent : retirer un titre ne change ni le
+ * nombre ni l'ordre des cases, donc cocher dans l'aperçu écrit toujours
+ * dans la bonne ligne du source.
+ */
+const previewBody = computed(() =>
+    withoutLeadingTitle(form.value.content, form.value.title),
 );
 
 const readHref = computed(() =>
@@ -817,8 +829,13 @@ onUnmounted(() => {
                             v-if="viewMode !== 'edit'"
                             class="flex-1 min-w-0 p-2 overflow-auto sm:p-4"
                         >
+                            <!-- Le titre vit dans le champ au-dessus : l'aperçu
+                                 ne le redit pas. Le texte, lui, n'est pas
+                                 touché - c'est le rendu qui s'abstient, et le
+                                 `# ` reste dans la zone d'écriture comme à
+                                 l'export. -->
                             <NotePreview
-                                :content="form.content"
+                                :content="previewBody"
                                 :note-titles="notes"
                                 v-on:wiki-link-click="onWikiLinkClick"
                                 v-on:checkbox-toggle="onCheckboxToggle"

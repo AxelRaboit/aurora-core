@@ -6,6 +6,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { useMarkdownRenderer } from "@notes/backend/markdown/composables/useMarkdownRenderer.js";
 import { shareHtml } from "@notes/share/useSharedNoteHtml.js";
+import { withoutLeadingTitle } from "@notes/backend/markdown/composables/noteBody.js";
 
 const props = defineProps({
     imagePrefix: { type: String, required: true },
@@ -36,7 +37,8 @@ const { t } = useI18n();
 const { render } = useMarkdownRenderer();
 
 const html = computed(() =>
-    shareHtml(render(props.content), {
+    // La page écrit déjà le titre au-dessus du corps.
+    shareHtml(render(withoutLeadingTitle(props.content, props.noteTitle)), {
         imagePrefix: props.imagePrefix,
         shareImagePath: props.shareImagePath,
         shareNotePath: props.shareNotePath,

@@ -119,7 +119,10 @@ describe("useNotesEditor", () => {
         editor.form.value.coverPosition = 20;
         await nextTick();
 
-        expect(editor.isDirty.value, "le cadrage compte comme une modification").toBe(true);
+        expect(
+            editor.isDirty.value,
+            "le cadrage compte comme une modification",
+        ).toBe(true);
 
         await editor.saveSelected();
 
