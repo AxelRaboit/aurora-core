@@ -1,78 +1,84 @@
 /*
- * L'habillage d'une note : un fond, une encre, et rien d'autre.
+ * L'habillage d'une note : un fond, une encre, et tout ce qui va avec.
  *
- * Des classes déclarées plutôt qu'un style calculé : une apparence est un
- * nom dans une colonne, et ce nom doit pouvoir changer de sens le jour où le
- * back-office change de couleurs. Un code hexadécimal écrit dans mille notes
- * ne le pourrait pas.
+ * **Une apparence redéfinit les variables du thème, elle ne peint pas des
+ * éléments un par un.** La première version posait un fond et une couleur de
+ * texte sur le bloc, et tout ce qui vivait dedans gardait les couleurs du
+ * back-office : sur le fond papier, le lien de retour restait gris clair, et
+ * au survol il passait à `text-primary`, c'est-à-dire presque blanc en thème
+ * sombre - invisible sur du blanc. C'est ce qu'Axel a vu le 23/09, et ce
+ * n'était pas le lien qui avait tort, c'était la peinture.
  *
- * Les variables sont celles que la feuille de rendu lit déjà, donc la même
- * définition habille l'éditeur, l'aperçu et la page de lecture.
+ * Les variables `--th-*` sont celles que `@theme inline` recopie dans chaque
+ * utilitaire Tailwind : les redéfinir ici suffit pour que `text-muted`,
+ * `hover:text-primary`, `bg-surface-2` et `border-line` se recalculent dans
+ * la note, du champ de titre aux icônes de la barre. C'est le mécanisme que
+ * le thème clair et le thème sombre utilisent déjà entre eux.
+ *
+ * Des apparences déclarées plutôt qu'une couleur à la pipette : un nom se
+ * fait évoluer, un code hexadécimal écrit dans mille notes non.
  */
 .note-look {
-    background-color: var(--note-look-bg, var(--color-surface));
-    color: var(--note-look-ink, var(--color-primary));
+    background-color: var(--th-surface);
+    color: var(--th-primary);
 }
 
+/* Papier chaud, encre brune. Pour lire longtemps. */
 .note-look-sepia {
-    --note-look-bg: #f6efe2;
-    --note-look-ink: #3b2f22;
-    --note-look-muted: #7a6a54;
-    --note-look-line: #e0d3bb;
+    --th-surface: #f6efe2;
+    --th-surface-2: #efe5d3;
+    --th-surface-3: #e7dac3;
+    --th-primary: #3b2f22;
+    --th-secondary: #5f5140;
+    --th-muted: #8a7a63;
+    --color-border: #e0d3bb;
+    --color-border-strong: #cdbb9b;
 }
 
+/* Ardoise. Plus sombre que le reste de l'écran, pour s'en détacher. */
 .note-look-slate {
-    --note-look-bg: #1b2430;
-    --note-look-ink: #e6edf5;
-    --note-look-muted: #9fb0c3;
-    --note-look-line: #2c3a4a;
+    --th-surface: #1b2430;
+    --th-surface-2: #223041;
+    --th-surface-3: #2a3a4d;
+    --th-primary: #e6edf5;
+    --th-secondary: #bcc9d9;
+    --th-muted: #8ea0b6;
+    --color-border: #2c3a4a;
+    --color-border-strong: #3d4f63;
 }
 
+/* Presque blanc, encre noire. Le registre d'un document imprimé. */
 .note-look-paper {
-    --note-look-bg: #ffffff;
-    --note-look-ink: #16181d;
-    --note-look-muted: #5d636e;
-    --note-look-line: #e6e8ec;
+    --th-surface: #ffffff;
+    --th-surface-2: #f4f5f7;
+    --th-surface-3: #eceef1;
+    --th-primary: #16181d;
+    --th-secondary: #3f444d;
+    --th-muted: #6b7280;
+    --color-border: #e6e8ec;
+    --color-border-strong: #d3d7dd;
 }
 
+/* Nuit profonde, encre claire. */
 .note-look-midnight {
-    --note-look-bg: #0d1220;
-    --note-look-ink: #dfe6f5;
-    --note-look-muted: #93a0bd;
-    --note-look-line: #1f2740;
+    --th-surface: #0d1220;
+    --th-surface-2: #151c2f;
+    --th-surface-3: #1c2540;
+    --th-primary: #dfe6f5;
+    --th-secondary: #b3bed6;
+    --th-muted: #8592af;
+    --color-border: #1f2740;
+    --color-border-strong: #2d3857;
 }
 
+/* Vert d'eau très pâle. */
 .note-look-mint {
-    --note-look-bg: #eef7f2;
-    --note-look-ink: #12302a;
-    --note-look-muted: #4c6b62;
-    --note-look-line: #d2e7de;
-}
-
-/*
- * Ce que l'habillage repeint à l'intérieur de la note.
- *
- * Seulement quand une apparence est posée : sans cela, `plain` écraserait
- * les couleurs du back-office par les siennes, et une note cesserait de
- * suivre le thème clair ou sombre de la personne.
- */
-.note-look[class*="note-look-"] .note-preview,
-.note-look[class*="note-look-"] .note-preview p,
-.note-look[class*="note-look-"] .note-preview li,
-.note-look[class*="note-look-"] .note-preview h1,
-.note-look[class*="note-look-"] .note-preview h2,
-.note-look[class*="note-look-"] .note-preview h3,
-.note-look[class*="note-look-"] .note-preview h4,
-.note-look[class*="note-look-"] .note-preview strong {
-    color: var(--note-look-ink);
-}
-
-.note-look[class*="note-look-"] .note-preview blockquote,
-.note-look[class*="note-look-"] .note-preview code {
-    border-color: var(--note-look-line);
-    color: var(--note-look-muted);
-}
-
-.note-look[class*="note-look-"] .note-look-caption {
-    color: var(--note-look-muted);
+    --th-surface: #eef7f2;
+    --th-surface-2: #e2f0e9;
+    --th-surface-3: #d6e9df;
+    --th-primary: #12302a;
+    --th-secondary: #2f5248;
+    --th-muted: #5a7a70;
+    --color-border: #d2e7de;
+    --color-border-strong: #bcd9cd;
 }
