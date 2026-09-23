@@ -191,6 +191,7 @@ notes:
       not_configured: Pexels n'est pas configuré.
       not_configured_hint: Un administrateur peut renseigner la clé dans les réglages de la médiathèque.
       position: Cadrage
+      autosaved: Le cadrage s'enregistre tout seul, comme le texte de la note.
       title: Image d'entête
     appearance:
       title: Apparence

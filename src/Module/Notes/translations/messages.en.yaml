@@ -191,6 +191,7 @@ notes:
       not_configured: Pexels is not configured.
       not_configured_hint: An administrator can set the key in the media library settings.
       position: Framing
+      autosaved: The framing saves itself, like the note's text.
       title: Cover image
     appearance:
       title: Appearance

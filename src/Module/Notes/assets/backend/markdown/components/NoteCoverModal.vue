@@ -18,7 +18,7 @@
  */
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { Image, Search, Trash2, X } from "lucide-vue-next";
+import { Check, Image, Search, Trash2 } from "lucide-vue-next";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
@@ -161,6 +161,10 @@ function applyPosition(value) {
                     {{ t('notes.markdown.cover.remove') }}
                 </AppButton>
             </div>
+
+            <p class="mt-1 text-2xs text-muted">
+                {{ t('notes.markdown.cover.autosaved') }}
+            </p>
         </div>
 
         <form class="flex items-center gap-2" v-on:submit.prevent="search">
@@ -230,11 +234,19 @@ function applyPosition(value) {
             </div>
         </div>
 
+        <!-- « Fermer » et non « Annuler ».
+             
+             Rien ici n'attend d'être validé : choisir une photo, la recadrer
+             ou changer d'apparence écrit dans la note, et l'enregistrement
+             automatique s'en charge comme pour le texte - la barre de la
+             note dit « enregistré » quand c'est fait. Un bouton nommé
+             « Annuler » promettait un retour en arrière qu'il ne faisait
+             pas : il ne faisait que fermer. -->
         <template #footer>
             <AppModalFooter>
-                <AppButton variant="ghost" size="md" v-on:click="emit('close')">
-                    <X class="h-3.5 w-3.5" :stroke-width="2" />
-                    {{ t('notes.markdown.cancel') }}
+                <AppButton variant="primary" size="md" v-on:click="emit('close')">
+                    <Check class="h-3.5 w-3.5" :stroke-width="2" />
+                    {{ t('shared.common.close') }}
                 </AppButton>
             </AppModalFooter>
         </template>
