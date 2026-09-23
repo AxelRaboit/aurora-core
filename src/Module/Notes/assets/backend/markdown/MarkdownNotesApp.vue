@@ -14,7 +14,6 @@ import NoteEditor from '@notes/backend/markdown/components/NoteEditor.vue';
 import NoteGraph from '@notes/backend/markdown/components/NoteGraph.vue';
 import AppButton from '@shared/components/action/AppButton.vue';
 import AppIconButton from '@shared/components/action/AppIconButton.vue';
-import AppInput from '@shared/components/form/input/AppInput.vue';
 import AppSearchInput from '@shared/components/form/input/AppSearchInput.vue';
 import AppTagsInput from '@shared/components/form/select/AppTagsInput.vue';
 import AppModal from '@shared/components/overlay/AppModal.vue';
@@ -589,11 +588,27 @@ onUnmounted(() => {
                          note ce qui restait, c'est-à-dire peu : sur un écran
                          moyen, un titre un peu long était tronqué à la saisie.
                          Ce qui l'accompagne descend d'un cran. -->
-                        <AppInput
+                        <!-- Le titre s'écrit comme un titre, pas comme un
+                             champ de formulaire.
+                             
+                             Une boîte avec sa bordure et son fond disait « ici
+                             une donnée à saisir » au-dessus d'un document qui
+                             est, lui, du texte libre : deux registres pour la
+                             même page. Craft et Notion écrivent le titre dans
+                             la page, en grand, et c'est ce qu'on lit d'abord.
+                             
+                             Ce n'est pas un `AppInput` sans bordure mais un
+                             champ nu : la boîte de la maison porte son fond,
+                             son filet et son anneau de focus, et les enlever
+                             un par un en classes aurait laissé un composant
+                             qui promet une apparence qu'il n'a plus. -->
+                        <input
                             v-model="form.title"
+                            type="text"
+                            class="w-full border-0 bg-transparent p-0 text-2xl font-semibold text-primary placeholder:font-normal placeholder:text-muted focus:outline-none focus:ring-0"
                             :placeholder="t('notes.markdown.title_placeholder')"
-                            class="w-full text-lg font-medium"
-                        />
+                            :aria-label="t('notes.markdown.title_placeholder')"
+                        >
 
                         <!-- Collés à droite : le titre prend la ligne du dessus
                          sur toute la largeur, et une rangée d'icônes accrochée
