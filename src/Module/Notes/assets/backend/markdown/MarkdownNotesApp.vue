@@ -19,7 +19,7 @@ import AppTagsInput from '@shared/components/form/select/AppTagsInput.vue';
 import AppModal from '@shared/components/overlay/AppModal.vue';
 import AppModalFooter from '@shared/components/overlay/AppModalFooter.vue';
 import AppTab from '@shared/components/nav/AppTab.vue';
-import { onErrorCaptured, onMounted, onUnmounted, watch } from 'vue';
+import { nextTick, onErrorCaptured, onMounted, onUnmounted, watch } from 'vue';
 import { onPanelRequest, tellPanels } from '@/shared/nav/modulePanelBridge.js';
 import { Trash2, FileDown, PanelRightOpen, PanelRightClose, TriangleAlert, X, Network, Share2 } from 'lucide-vue-next';
 import AppNoData from '@shared/components/feedback/AppNoData.vue';
@@ -173,8 +173,36 @@ function folderUrlFor(id) {
     return props.folderPaths.show.replace('__id__', String(id));
 }
 
-function goToFolder(id) {
-    window.location.assign(null === id || undefined === id ? props.libraryPath : folderUrlFor(id));
+/**
+ * Revenir à la bibliothèque, et s'y poser où on le demande.
+ *
+ * Elle et l'éditeur vivent dans la même application : quitter l'un pour
+ * l'autre est un changement d'affichage, pas une navigation. Le panneau
+ * déclenchait un rechargement complet quand une note était ouverte, ce qui
+ * jetait le défilement, la sélection, et l'état déplié de l'arbre pour
+ * revenir au même endroit.
+ *
+ * @returns {Promise<void>} résolue une fois la bibliothèque montée
+ */
+async function showLibrary(folderId = null) {
+    selectedId.value = null;
+
+    // La bibliothèque n'existe qu'une fois l'éditeur retiré : sans ce tour
+    // de boucle, la référence est encore nulle et l'ordre se perd.
+    await nextTick();
+
+    if (libraryRef.value) {
+        libraryRef.value.openFolder(folderId ?? null);
+
+        return;
+    }
+
+    // Repli : si elle ne s'est pas montée, l'adresse reste la vérité.
+    window.location.assign(
+        null === folderId || undefined === folderId
+            ? props.libraryPath
+            : folderUrlFor(folderId),
+    );
 }
 
 async function refreshFolders() {
@@ -298,13 +326,25 @@ const PANEL_INTENTS = {
     import: () => askForFiles(),
     create: (folderId) => createNote(folderId ?? null),
     delete: (note) => requestDelete(note),
-    'open-folder': (id) => (libraryRef.value ? libraryRef.value.openFolder(id) : goToFolder(id)),
-    'create-folder': (parentId) =>
-        libraryRef.value
-            ? libraryRef.value.askForFolderName(null, parentId ?? null)
-            : goToFolder(parentId ?? null),
-    'delete-folder': (folder) =>
-        libraryRef.value ? libraryRef.value.askToDelete(folder) : goToFolder(folder?.id ?? null),
+    'open-folder': async (id) => {
+        if (libraryRef.value) {
+            libraryRef.value.openFolder(id);
+
+            return;
+        }
+
+        await showLibrary(id);
+    },
+    'create-folder': async (parentId) => {
+        if (!libraryRef.value) await showLibrary(parentId ?? null);
+
+        libraryRef.value?.askForFolderName(null, parentId ?? null);
+    },
+    'delete-folder': async (folder) => {
+        if (!libraryRef.value) await showLibrary(folder?.parentId ?? null);
+
+        libraryRef.value?.askToDelete(folder);
+    },
     // Le glisser du panneau : la cible est une ligne de dossier, et ce qui
     // est déplacé voyage dans le presse-papier de l'événement, donc la
     // bibliothèque sait quoi en faire sans qu'on le lui répète.

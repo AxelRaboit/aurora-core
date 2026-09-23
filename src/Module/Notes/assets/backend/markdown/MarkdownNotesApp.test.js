@@ -241,42 +241,18 @@ describe("ouvrir un dossier depuis le panneau", () => {
 });
 
 /**
- * Depuis l'éditeur, la bibliothèque n'est pas montée : le panneau parle à
- * une page qui ne peut pas lui répondre sur place, donc elle navigue.
- * C'est le chemin qu'Axel emprunte quand il clique un dossier alors qu'une
- * note est ouverte.
+ * Depuis l'éditeur, la bibliothèque n'est pas montée. Elle vit pourtant
+ * dans la même application : quitter l'une pour l'autre est un changement
+ * d'affichage, pas un rechargement - celui-ci jetait le défilement, la
+ * sélection et l'arbre déplié pour revenir au même endroit.
  */
-/**
- * La page d'un dossier, telle que le serveur la rend après la navigation :
- * `folderId` dans les propriétés, aucune note ouverte. Elle doit s'ouvrir
- * sur le dossier, pas sur la racine.
- */
-describe("la page d'un dossier", () => {
-    it("opens on the folder the address names", async () => {
-        const wrapper = render({
-            folderId: 7,
-            breadcrumb: [{ id: 7, name: "Clients" }],
-        });
-        await flushPromises();
-
-        const cards = wrapper.findAll("article").map((one) => one.text());
-
-        expect(cards.some((text) => text.includes("Devis Lumen"))).toBe(true);
-        expect(cards.some((text) => text.includes("Journal"))).toBe(false);
-    });
-});
-
 describe("ouvrir un dossier avec une note ouverte", () => {
-    it("navigates to the folder's own address", async () => {
+    it("swaps the editor for the folder, without reloading", async () => {
         const assign = vi.fn();
         const original = window.location;
         Object.defineProperty(window, "location", {
             configurable: true,
-            value: {
-                ...original,
-                assign,
-                pathname: "/backend/notes/markdown/1",
-            },
+            value: { ...original, assign, pathname: "/backend/notes/markdown/1" },
         });
 
         const wrapper = render({ activeId: 1 });
@@ -288,7 +264,9 @@ describe("ouvrir un dossier avec une note ouverte", () => {
         askPage("notes:open-folder", { args: [7] });
         await flushPromises();
 
-        expect(assign).toHaveBeenCalledWith("/notes/folders/7");
+        const cards = wrapper.findAll("article").map((one) => one.text());
+        expect(cards.some((text) => text.includes("Devis Lumen"))).toBe(true);
+        expect(assign, "aucun rechargement").not.toHaveBeenCalled();
 
         Object.defineProperty(window, "location", {
             configurable: true,
@@ -296,30 +274,17 @@ describe("ouvrir un dossier avec une note ouverte", () => {
         });
     });
 
-    it("goes back to the library when the panel asks for the root", async () => {
-        const assign = vi.fn();
-        const original = window.location;
-        Object.defineProperty(window, "location", {
-            configurable: true,
-            value: {
-                ...original,
-                assign,
-                pathname: "/backend/notes/markdown/1",
-            },
-        });
-
-        render({ activeId: 1 });
+    it("opens the folder dialog after coming back from a note", async () => {
+        const wrapper = render({ activeId: 1 });
         await flushPromises();
 
-        askPage("notes:open-folder", { args: [null] });
+        askPage("notes:create-folder", { args: [null] });
         await flushPromises();
 
-        expect(assign).toHaveBeenCalledWith("/notes/library");
+        expect(wrapper.findAll("article").length).toBeGreaterThan(0);
+        expect(document.body.textContent).toContain("folders.create");
 
-        Object.defineProperty(window, "location", {
-            configurable: true,
-            value: original,
-        });
+        document.body.innerHTML = "";
     });
 });
 
