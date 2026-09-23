@@ -599,12 +599,13 @@ onUnmounted(() => {
                         </figcaption>
                     </figure>
 
-                    <header class="p-2 border-b border-line flex flex-col gap-2 sm:p-4">
-                        <!-- Le titre prend la ligne. Partagée avec les six boutons
-                         et les deux mentions d'état, elle laissait au nom de la
-                         note ce qui restait, c'est-à-dire peu : sur un écran
-                         moyen, un titre un peu long était tronqué à la saisie.
-                         Ce qui l'accompagne descend d'un cran. -->
+                    <!-- Le titre et les commandes sur une seule ligne : seul,
+                         le titre laissait la moitié de l'en-tête vide et
+                         poussait la note d'un rang vers le bas. Le repli est
+                         celui du panneau du menu - le titre réclame quinze
+                         rem, les commandes descendent d'elles-mêmes quand la
+                         place manque vraiment. -->
+                    <header class="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-line p-2 sm:p-4">
                         <!-- Le titre s'écrit comme un titre, pas comme un
                              champ de formulaire.
                              
@@ -622,7 +623,7 @@ onUnmounted(() => {
                         <input
                             v-model="form.title"
                             type="text"
-                            class="w-full border-0 bg-transparent p-0 text-2xl font-semibold text-primary placeholder:font-normal placeholder:text-muted focus:outline-none focus:ring-0"
+                            class="min-w-0 flex-1 basis-60 border-0 bg-transparent p-0 text-2xl font-semibold text-primary placeholder:font-normal placeholder:text-muted focus:outline-none focus:ring-0"
                             :placeholder="t('notes.markdown.title_placeholder')"
                             :aria-label="t('notes.markdown.title_placeholder')"
                         >
