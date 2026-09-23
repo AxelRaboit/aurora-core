@@ -10,6 +10,7 @@ use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Storage\Access\UploadPolicyProvider;
 use Aurora\Core\Storage\Access\UploadRefusalEnum;
 use Aurora\Core\Validation\Service\PayloadValidator;
+use Aurora\Module\Ged\Pexels\Service\PexelsClient;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
 use Aurora\Module\Notes\Markdown\Dto\MarkdownNoteInputFactoryInterface;
@@ -125,6 +126,75 @@ final class MarkdownNotesController extends AbstractController
                 static fn (array $note): array => [...$note, 'excerpt' => $excerpts[(int) $note['id']] ?? null],
                 $this->repository->findFlatListForUser($user),
             ),
+        ]);
+    }
+
+    /**
+     * La note, seule, sans le back-office autour.
+     *
+     * Une adresse à part plutôt qu'un mode d'affichage : on la garde ouverte
+     * dans un onglet, on la partage à soi-même, et le navigateur y revient.
+     * C'est le gabarit du partage public qui la dessine - il est déjà fait
+     * pour rendre une note sans menu ni fil d'Ariane - mais lue par son
+     * propriétaire : les images passent par la route ordinaire, et un
+     * wiki-lien mène à cette même vue plutôt que d'être neutralisé, puisque
+     * tout le carnet est à portée.
+     */
+    // `__id__` est admis pour que la page reçoive un gabarit d'adresse à
+    // remplir plutôt qu'une adresse par note : il arrive ici en zéro, qui
+    // n'appartient à personne, donc il répond 404 comme n'importe quel
+    // identifiant inconnu.
+    #[Route('/{id}/read', name: '_read', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Get->value])]
+    public function read(int $id): Response
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        $note = $this->repository->findOneByUserAndId($user, $id);
+
+        if (!$note instanceof MarkdownNoteInterface) {
+            throw $this->createNotFoundException();
+        }
+
+        return $this->render(
+            '@Notes/backend/markdown/read.html.twig',
+            $this->viewBuilder->readView($user, $note),
+        );
+    }
+
+    /**
+     * Des photos pour le bandeau d'une note, cherchées chez Pexels.
+     *
+     * Un relais et non un appel direct : la clé reste sur le serveur, comme
+     * pour le sélecteur de la médiathèque. Mais ce relais-ci s'arrête là -
+     * **rien n'est téléchargé, rien n'entre dans la GED**. La note ne garde
+     * que l'adresse de l'image et le crédit de son auteur, et si la photo
+     * disparaît un jour de chez eux, on en choisit une autre.
+     *
+     * Sa propre route plutôt que celle de la médiathèque : celle-là exige le
+     * droit `ged.documents.view`, que quelqu'un qui prend des notes n'a pas
+     * forcément, et lui demander de l'obtenir pour choisir une image
+     * décorative serait un droit de trop.
+     */
+    #[Route('/covers/search', name: '_covers_search', methods: [HttpMethodEnum::Get->value])]
+    public function searchCovers(Request $request, PexelsClient $pexels): JsonResponse
+    {
+        // Annoncé plutôt qu'échoué : le sélecteur affiche « non configuré »,
+        // ce qui dit à un administrateur quoi faire. Un 500 ne dirait que
+        // « quelque chose a cassé ».
+        if (!$pexels->isConfigured()) {
+            return $this->jsonSuccess(['configured' => false, 'results' => []]);
+        }
+
+        $result = $pexels->search(
+            (string) $request->query->get('q', ''),
+            $request->query->getInt('page', 1),
+        );
+
+        return $this->jsonSuccess([
+            'configured' => true,
+            'results' => $result['results'],
+            'totalPages' => $result['totalPages'],
         ]);
     }
 

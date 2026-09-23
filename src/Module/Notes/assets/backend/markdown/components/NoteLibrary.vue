@@ -64,6 +64,7 @@ import { useNoteLibrary } from "@notes/backend/markdown/composables/useNoteLibra
 import { useFoldable } from "@notes/backend/markdown/composables/useFoldable.js";
 import { useNotePreview } from "@notes/backend/markdown/composables/useNotePreview.js";
 import { useMarkdownRenderer } from "@notes/backend/markdown/composables/useMarkdownRenderer.js";
+import { withoutLeadingTitle } from "@notes/backend/markdown/composables/noteBody.js";
 import NotePreview from "@notes/backend/markdown/components/NotePreview.vue";
 import {
     NOTE_DRAG_MIME,
@@ -334,7 +335,10 @@ function thumbnail(note) {
 
     if (undefined !== known) return known;
 
-    const html = renderMarkdown(note.excerpt);
+    // Le titre est déjà écrit au-dessus de la vignette : le laisser en
+    // tête du rendu le dirait deux fois, et mangerait la première ligne
+    // de ce qu'on cherche à reconnaître.
+    const html = renderMarkdown(withoutLeadingTitle(note.excerpt, note.title));
     thumbnails.set(key, html);
 
     return html;

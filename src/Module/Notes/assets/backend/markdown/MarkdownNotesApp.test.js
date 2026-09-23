@@ -145,6 +145,31 @@ describe("the notes page, once its tree moved to the menu", () => {
     });
 });
 
+/**
+ * Une note peut porter son propre fond : le chemin de retour ne doit donc
+ * pas vivre dessus. Sur du papier blanc, son survol prenait la couleur
+ * d'encre du back-office - presque blanche en thème sombre - et le lien
+ * disparaissait.
+ */
+describe("le chemin de retour", () => {
+    it("lives outside the note's own card", async () => {
+        const wrapper = render();
+        await flushPromises();
+        askPage("notes:select", { args: [1] });
+        await flushPromises();
+
+        const back = wrapper
+            .findAll("button")
+            .find((b) => b.text().includes("notes.markdown.library.title"));
+
+        expect(back, "le lien de retour est là").toBeTruthy();
+        expect(
+            back.element.closest("header"),
+            "il n'est pas dans l'en-tête de la note",
+        ).toBeNull();
+    });
+});
+
 describe("les étiquettes de l'éditeur", () => {
     function tagsButton(wrapper) {
         return wrapper

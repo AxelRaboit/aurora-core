@@ -84,6 +84,59 @@ describe("useNotesEditor", () => {
         expect(editor.form.value.title).toBe("Studio Lumen");
     });
 
+    /**
+     * L'habillage se sauvegarde comme le texte.
+     *
+     * Il ne l'a pas fait tout de suite : la détection de modification
+     * comparait le titre, le contenu et les étiquettes, et rien d'autre.
+     * Déplacer le cadrage laissait donc le formulaire « propre », et le
+     * réglage disparaissait au rechargement suivant.
+     */
+    it("écrit le bandeau et l'apparence comme le reste", async () => {
+        const api = {
+            show: vi.fn().mockResolvedValue({
+                ok: true,
+                payload: {
+                    note: {
+                        id: 2,
+                        title: "Studio Lumen",
+                        content: "Texte.",
+                        tags: [],
+                        coverUrl: "https://images.pexels.com/photos/1/a.jpeg",
+                        coverPosition: 50,
+                        appearance: "plain",
+                    },
+                },
+            }),
+            update: vi.fn().mockResolvedValue({ ok: true, payload: {} }),
+        };
+
+        const editor = editorWith(api);
+        await editor.selectNote(2);
+
+        expect(editor.isDirty.value).toBe(false);
+
+        editor.form.value.coverPosition = 20;
+        await nextTick();
+
+        expect(
+            editor.isDirty.value,
+            "le cadrage compte comme une modification",
+        ).toBe(true);
+
+        await editor.saveSelected();
+
+        expect(api.update).toHaveBeenCalledWith(
+            2,
+            expect.objectContaining({ coverPosition: 20 }),
+        );
+
+        editor.form.value.appearance = "sepia";
+        await nextTick();
+
+        expect(editor.isDirty.value, "l'apparence aussi").toBe(true);
+    });
+
     // Le défaut : `selectNote` posait l'identifiant demandé avant d'avoir la
     // réponse, et sortait sur échec sans toucher au formulaire. L'éditeur
     // affichait donc la note précédente en face du nouvel identifiant, et la

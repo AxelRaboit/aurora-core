@@ -18,6 +18,11 @@ class MarkdownNoteInputFactory implements MarkdownNoteInputFactoryInterface
             content: $this->stringOrNull($data, 'content'),
             tags: $this->stringList($data['tags'] ?? []),
             position: isset($data['position']) ? (int) $data['position'] : null,
+            coverUrl: $this->stringOrNull($data, 'coverUrl'),
+            coverCreditName: Str::trimOrNullFromArray($data, 'coverCreditName'),
+            coverCreditUrl: $this->stringOrNull($data, 'coverCreditUrl'),
+            coverPosition: isset($data['coverPosition']) ? (int) $data['coverPosition'] : null,
+            appearance: Str::trimOrNullFromArray($data, 'appearance'),
         );
     }
 

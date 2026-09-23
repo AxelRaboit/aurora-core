@@ -160,6 +160,17 @@ final class NoteShareController extends AbstractController
                 'token' => $token,
                 'id' => '__id__',
             ]),
+            // La note telle qu'elle est, bandeau et habillage compris : un
+            // lien partagé montre la note, pas une version dépouillée
+            // d'elle. L'image vit chez celui qui l'héberge, donc un invité
+            // la voit sans qu'on lui ouvre quoi que ce soit.
+            'cover' => [
+                'url' => $note->getCoverUrl(),
+                'creditName' => $note->getCoverCreditName(),
+                'creditUrl' => $note->getCoverCreditUrl(),
+                'position' => $note->getCoverPosition(),
+            ],
+            'appearance' => $note->getAppearance()->value,
             'noteCount' => count($scope),
             // The list is handed to the page so a share carrying several
             // notes can be navigated, and it carries titles and ids only -
