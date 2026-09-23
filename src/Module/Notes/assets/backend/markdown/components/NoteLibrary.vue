@@ -61,6 +61,8 @@ import AppSelectionCheck from "@/shared/components/feedback/AppSelectionCheck.vu
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { useNoteLibrary } from "@notes/backend/markdown/composables/useNoteLibrary.js";
 import { useFoldable } from "@notes/backend/markdown/composables/useFoldable.js";
+import { useNotePreview } from "@notes/backend/markdown/composables/useNotePreview.js";
+import NotePreview from "@notes/backend/markdown/components/NotePreview.vue";
 import {
     NOTE_DRAG_MIME,
     readNoteDrag,
@@ -746,6 +748,35 @@ async function onDropOn(targetFolderId, event) {
     if ("folder" === dragged.kind && dragged.id === targetFolderId) return;
 
     await applyMove(dragged.kind, dragged.id, targetFolderId);
+}
+
+// ── L'aperçu au survol ─────────────────────────────────────────────
+
+/**
+ * L'aperçu au survol : le rendu de la note, pas sa source.
+ *
+ * Le contenu est chiffré, donc il n'arrive pas avec la liste ; l'aperçu le
+ * demande à la carte survolée, une fois, et le garde. Il ne s'ouvre pas
+ * pendant un glisser : on est en train de ranger, pas de lire.
+ */
+const {
+    noteId: previewId,
+    content: previewContent,
+    loading: previewLoading,
+    position: previewAt,
+    open: openPreview,
+    close: closePreview,
+} = useNotePreview({
+    fetchNote: (id) =>
+        "function" === typeof props.notesApi.show
+            ? props.notesApi.show(id)
+            : Promise.resolve({ ok: false, payload: {} }),
+});
+
+function hoverNote(note, event) {
+    if (dragging.value) return;
+
+    openPreview(note, event.currentTarget);
 }
 
 // ── Le clavier ─────────────────────────────────────────────────────
@@ -1436,6 +1467,8 @@ defineExpose({
                             v-on:dragstart="onDragStart('note', note, $event)"
                             v-on:dragend="onDragEnd"
                             v-on:click="onCardClick('note', note, $event)"
+                            v-on:mouseenter="hoverNote(note, $event)"
+                            v-on:mouseleave="closePreview"
                         >
                             <div class="flex items-start gap-2">
                                 <button
@@ -1560,6 +1593,8 @@ defineExpose({
                                 v-on:dragstart="onDragStart('note', note, $event)"
                                 v-on:dragend="onDragEnd"
                                 v-on:click="onCardClick('note', note, $event)"
+                                v-on:mouseenter="hoverNote(note, $event)"
+                                v-on:mouseleave="closePreview"
                             >
                                 <td class="px-2 py-2">
                                     <a
@@ -1709,5 +1744,30 @@ defineExpose({
                 </AppModalFooter>
             </template>
         </AppModal>
+
+        <!-- L'aperçu vit dans le `body` : la grille défile et rogne, et une
+             carte flottante ne doit pas se faire couper par ce qu'elle
+             survole. Elle ne prend jamais le pointeur - `pointer-events` à
+             none - sinon elle s'interposerait entre le curseur et la carte
+             qui l'a ouverte, qui recevrait aussitôt un `mouseleave`. -->
+        <Teleport to="body">
+            <div
+                v-if="null !== previewId"
+                class="pointer-events-none fixed z-50 w-90 overflow-hidden rounded-lg border border-line bg-surface p-3 shadow-xl"
+                :style="{
+                    top: `${previewAt.top}px`,
+                    left: `${previewAt.left}px`,
+                    maxHeight: '17.5rem',
+                }"
+            >
+                <p v-if="previewLoading" class="text-xs text-muted">
+                    {{ t('shared.common.loading') }}
+                </p>
+                <p v-else-if="'' === previewContent" class="text-xs text-muted">
+                    {{ t('notes.markdown.library.preview.empty') }}
+                </p>
+                <NotePreview v-else :content="previewContent" />
+            </div>
+        </Teleport>
     </div>
 </template>

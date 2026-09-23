@@ -814,6 +814,53 @@ describe("the library", () => {
         expect(styled).toHaveLength(0);
     });
 
+    /**
+     * L'aperçu au survol montre le rendu, pas la source : c'est ce qui le
+     * distingue de l'extrait des cartes, qui est du texte aplati.
+     */
+    describe("l'aperçu au survol", () => {
+        beforeEach(() => {
+            vi.useFakeTimers();
+            window.matchMedia = vi.fn(() => ({ matches: true }));
+        });
+
+        afterEach(() => vi.useRealTimers());
+
+        function renderWithShow(show) {
+            return render({ notesApi: { ...apis().notesApi, show } });
+        }
+
+        it("renders the note under the cursor, once the cursor has settled", async () => {
+            const show = vi.fn().mockResolvedValue({
+                ok: true,
+                payload: { note: { content: "## Repérage" } },
+            });
+            const wrapper = renderWithShow(show);
+
+            await wrapper.findAll("article").at(-1).trigger("mouseenter");
+            await vi.advanceTimersByTimeAsync(600);
+            await flushPromises();
+
+            expect(show).toHaveBeenCalled();
+            expect(document.body.innerHTML).toContain("Repérage");
+            // Le rendu, pas la source : le titre markdown est devenu un h2.
+            expect(document.body.innerHTML).toContain("<h2");
+        });
+
+        it("says nothing while the cursor only passes by", async () => {
+            const show = vi.fn();
+            const wrapper = renderWithShow(show);
+
+            const card = wrapper.findAll("article").at(-1);
+            await card.trigger("mouseenter");
+            await vi.advanceTimersByTimeAsync(200);
+            await card.trigger("mouseleave");
+            await vi.advanceTimersByTimeAsync(600);
+
+            expect(show).not.toHaveBeenCalled();
+        });
+    });
+
     it("draws a table when the list view is picked", async () => {
         const wrapper = render();
 

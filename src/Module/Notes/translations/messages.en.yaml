@@ -131,6 +131,8 @@ notes:
       confirm_delete_selection: 'Send the {count} selected items to the trash?'
       new_folder: New folder
       search_placeholder: Search the notes…
+      preview:
+        empty: This note is empty.
       view:
         label: View
         mosaic: Mosaic

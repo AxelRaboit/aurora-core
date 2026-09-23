@@ -131,6 +131,8 @@ notes:
       confirm_delete_selection: 'Mettre à la corbeille les {count} éléments sélectionnés ?'
       new_folder: Nouveau dossier
       search_placeholder: Rechercher une note…
+      preview:
+        empty: Cette note est vide.
       view:
         label: Affichage
         mosaic: Mosaïque
