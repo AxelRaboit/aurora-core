@@ -40,6 +40,7 @@
 - [pitfall_resolve_target_entities.md](pitfall_resolve_target_entities.md) - Doctrine résout les relations, pas `new`
 - [pitfall_type_hint_interface.md](pitfall_type_hint_interface.md) - décoration impose le type-hint interface
 - [pitfall_service_entity_repository.md](pitfall_service_entity_repository.md) - `ServiceEntityRepository` hardcode la classe → `ResolveTargetEntityRepository`
+- [pitfall_array_hydration_dates.md](pitfall_array_hydration_dates.md) - `getArrayResult()` rend des `DateTimeImmutable` : en JSON ils deviennent `{date, timezone_type, timezone}`, `Intl` lève, et l'exception emporte tout le composant Vue. Formater en ATOM dans le repository
 - [pitfall_bundle_get_path.md](pitfall_bundle_get_path.md) - `AbstractBundle::getPath()` retourne la racine projet → nest infini `assets:install`
 - [pitfall_module_translations_two_registrations.md](pitfall_module_translations_two_registrations.md) - seul `resolve_target_entities` est manuel, tout le reste est auto-découvert
 - [pitfall_sequence_generator_naming.md](pitfall_sequence_generator_naming.md) - `app_seq_*` = séquences métier, `seq_core_*_id` = PKs Doctrine
