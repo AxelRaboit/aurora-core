@@ -16,6 +16,7 @@
 import { useI18n } from "vue-i18n";
 import { Search } from "lucide-vue-next";
 import AppNotificationsBell from "@core/backend/notifications/AppNotificationsBell.vue";
+import AppTopbarAccount from "./AppTopbarAccount.vue";
 import { SEARCH_OPEN_EVENT } from "./composables/useBackendSearch.js";
 
 defineProps({
@@ -24,6 +25,21 @@ defineProps({
     notificationsMarkAllReadPath: { type: String, default: "" },
     notificationsDeletePath: { type: String, default: "" },
     notificationsDeleteAllPath: { type: String, default: "" },
+    /**
+     * Le compte, qui vivait au pied du menu.
+     *
+     * Trois lignes et cinq entrées dépliables pour une chose qu'on touche
+     * une fois par jour, dans la colonne qui sert à naviguer : ce n'est pas
+     * de la navigation, et cette place coûtait au menu sa hauteur utile.
+     */
+    userName: { type: String, default: "" },
+    userEmail: { type: String, default: "" },
+    userPhotoUrl: { type: String, default: "" },
+    mailpitUrl: { type: String, default: "" },
+    profilePath: { type: String, default: "" },
+    preferencesPath: { type: String, default: "" },
+    logoutPath: { type: String, default: "" },
+    logoutCsrf: { type: String, default: "" },
 });
 
 const { t } = useI18n();
@@ -52,6 +68,18 @@ function openSearch() {
             :mark-all-read-path="notificationsMarkAllReadPath"
             :delete-path="notificationsDeletePath"
             :delete-all-path="notificationsDeleteAllPath"
+        />
+
+        <AppTopbarAccount
+            v-if="logoutPath"
+            :user-name="userName"
+            :user-email="userEmail"
+            :user-photo-url="userPhotoUrl"
+            :mailpit-url="mailpitUrl"
+            :profile-path="profilePath"
+            :preferences-path="preferencesPath"
+            :logout-path="logoutPath"
+            :logout-csrf="logoutCsrf"
         />
     </div>
 </template>
