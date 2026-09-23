@@ -237,13 +237,21 @@ const viewOptions = computed(() => [
 ]);
 
 /**
- * Le tri se replie aussi, mais il ne se referme pas comme la recherche.
+ * Le tri se replie comme la recherche, mais pas sur le même signal.
  *
- * Son panneau est téléporté hors du bouton : se refermer à la perte du
- * focus le fermerait au moment même où l'on clique une option, et le clic
- * n'arriverait jamais. Il se referme donc sur un choix ou sur Échap, et
- * l'icône dit en infobulle quel critère est en vigueur - un tri replié
- * dont on ignore la valeur serait pire qu'un tri qui prend de la place.
+ * Son panneau est téléporté hors du bouton : un `focusout` posé là le
+ * fermerait au moment même où l'on clique une option, et le clic
+ * n'arriverait jamais. C'est donc le sélecteur lui-même qui dit quand il se
+ * referme - qu'on ait choisi, appuyé sur Échap, ou cliqué ailleurs - et le
+ * contrôle se replie avec lui. L'icône dit en infobulle quel critère est en
+ * vigueur : un tri replié dont on ignore la valeur serait pire qu'un tri
+ * qui prend de la place.
+ *
+ * C'est aussi pourquoi le clavier va au sélecteur lui-même et non à un
+ * champ : sans recherche dedans, il n'y a pas d'`input`, et c'est la racine
+ * du contrôle qui porte le focus. Elle ouvre la liste en le recevant, donc
+ * un clic sur l'icône déroule les critères au lieu de poser une boîte
+ * fermée que le lecteur devrait cliquer une seconde fois.
  */
 const {
     open: sortOpen,
@@ -1232,7 +1240,7 @@ defineExpose({
                             v-if="!sortOpen"
                             :title="`${t('notes.markdown.library.sort.label')} : ${sortLabel}`"
                             :aria-label="`${t('notes.markdown.library.sort.label')} : ${sortLabel}`"
-                            v-on:click="openSort()"
+                            v-on:click="openSort('.multiselect')"
                         >
                             <ArrowUpDown class="h-4 w-4" :stroke-width="2" />
                         </AppIconButton>
@@ -1247,6 +1255,7 @@ defineExpose({
                                 :options="sortOptions"
                                 :searchable="false"
                                 v-on:update:model-value="chooseSort($event)"
+                                v-on:close="foldSort"
                             />
                         </div>
                         <AppIconButton

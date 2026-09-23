@@ -678,6 +678,38 @@ describe("the library", () => {
     });
 
     /**
+     * Et il se replie quand on le quitte, comme la loupe. Le signal vient du
+     * sélecteur lui-même : son panneau est téléporté dans le `body`, donc un
+     * `focusout` posé autour se déclencherait au moment du clic sur une
+     * option, avant que le choix n'arrive.
+     */
+    it("folds the sort back when the select closes", async () => {
+        const wrapper = render();
+
+        const trigger = () =>
+            wrapper
+                .findAll("button")
+                .find((b) =>
+                    b
+                        .attributes("title")
+                        ?.startsWith("notes.markdown.library.sort.label"),
+                );
+
+        await trigger().trigger("click");
+        await flushPromises();
+
+        expect(trigger()).toBeFalsy();
+
+        wrapper.findComponent({ name: "AppMultiselect" }).vm.$emit("close");
+        await flushPromises();
+
+        expect(wrapper.findComponent({ name: "AppMultiselect" }).exists()).toBe(
+            false,
+        );
+        expect(trigger(), "l'icône est revenue").toBeTruthy();
+    });
+
+    /**
      * Le carnet a deux lectures : ce que l'endroit contient, et tout ce
      * qu'il y a dessous d'un coup. La seconde est celle qu'on veut quand
      * on ne sait plus dans quel dossier on a rangé quelque chose.
