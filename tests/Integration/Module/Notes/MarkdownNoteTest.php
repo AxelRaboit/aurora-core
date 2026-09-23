@@ -286,10 +286,22 @@ final class MarkdownNoteTest extends IntegrationTestCase
         ));
 
         self::assertResponseIsSuccessful();
+
+        $html = (string) $this->client->getResponse()->getContent();
+
         // Le fil d'Ariane part de la racine : sans lui, un rechargement
         // afficherait la racine le temps que le navigateur recalcule.
-        self::assertStringContainsString('Studio Lumen', (string) $this->client->getResponse()->getContent());
-        self::assertStringContainsString('Clients', (string) $this->client->getResponse()->getContent());
+        self::assertStringContainsString('Studio Lumen', $html);
+        self::assertStringContainsString('Clients', $html);
+
+        // Et surtout : la page dit au composant quel dossier elle est. Sans
+        // cette propriété, la bibliothèque s'ouvre sur la racine alors que
+        // l'adresse nomme un dossier - ce qu'Axel a vu.
+        self::assertMatchesRegularExpression(
+            '/&quot;folderId&quot;:\s*'.$child->getId().'\b/',
+            $html,
+            'la page du dossier doit transmettre son identifiant au composant',
+        );
     }
 
     /** Ce qu'un dossier contient, en une requête. */
