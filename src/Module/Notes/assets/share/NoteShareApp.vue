@@ -77,7 +77,7 @@ const lookClass = computed(() =>
     <div class="flex flex-col gap-2 sm:gap-4 md:flex-row md:items-start">
         <nav
             v-if="hasTree"
-            class="w-full shrink-0 rounded-xl border border-line bg-surface p-2 md:w-64"
+            class="aurora-card w-full shrink-0 p-2 md:w-64"
             :aria-label="t('notes.markdown.share.tree_label')"
         >
             <ul class="flex flex-col">
@@ -97,7 +97,7 @@ const lookClass = computed(() =>
         </nav>
 
         <article
-            class="min-w-0 flex-1 overflow-hidden rounded-xl border border-line bg-surface"
+            class="aurora-card min-w-0 flex-1 overflow-hidden"
             :class="lookClass"
         >
             <!-- Le bandeau, quand la note en porte un. L'image vit chez celui
@@ -126,7 +126,7 @@ const lookClass = computed(() =>
                 </figcaption>
             </figure>
 
-            <div class="p-4 sm:p-6">
+            <div class="p-4 sm:p-5">
                 <h2 class="mb-4 text-xl font-semibold text-primary">
                     {{ noteTitle?.trim() || t("notes.markdown.untitled") }}
                 </h2>

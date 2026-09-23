@@ -65,7 +65,7 @@ const slides = props.deck.slides ?? [];
             />
         </div>
 
-        <footer class="mt-auto border-t border-line/50 pt-3 text-xs text-muted">
+        <footer class="mt-auto border-t border-line pt-3 text-xs text-muted">
             <p v-if="expiresAt" class="m-0">
                 {{ t("backend.studio.decks.share_expires_on", { date: d(new Date(expiresAt), "short") }) }}
             </p>

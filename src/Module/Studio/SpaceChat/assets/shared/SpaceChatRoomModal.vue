@@ -178,7 +178,7 @@ function rename() {
                  boutons se partageaient trois cents pixels, donc chacun tenait
                  sur deux lignes et aucun n'offrait une cible franche. Ils
                  reprennent leur largeur naturelle dès qu'il y a la place. -->
-            <div class="flex flex-col gap-2 border-t border-line/60 pt-4 sm:flex-row sm:flex-wrap">
+            <div class="flex flex-col gap-2 border-t border-line pt-4 sm:flex-row sm:flex-wrap">
                 <AppButton
                     v-if="canInvite && !isDirect && !isMain"
                     size="sm"

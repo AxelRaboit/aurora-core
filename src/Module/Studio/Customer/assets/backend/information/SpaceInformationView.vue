@@ -154,7 +154,7 @@ async function save() {
 
 <template>
     <div class="space-y-6">
-        <div class="flex items-start gap-2 rounded-lg border border-line/60 bg-surface-2/40 p-3">
+        <div class="flex items-start gap-2 rounded-lg border border-line bg-surface-2/40 p-3">
             <Info class="mt-0.5 h-4 w-4 shrink-0 text-muted" :stroke-width="2" />
             <p class="text-xs text-muted">{{ t("backend.studio.space_information.scope") }}</p>
         </div>
@@ -290,7 +290,7 @@ async function save() {
             </div>
         </form>
 
-        <div class="space-y-3 rounded-xl border border-line/60 bg-surface p-4">
+        <div class="aurora-card space-y-3 p-4">
             <p class="text-xs uppercase tracking-wide text-muted">
                 {{ t("backend.studio.space_information.what_the_client_sees") }}
             </p>

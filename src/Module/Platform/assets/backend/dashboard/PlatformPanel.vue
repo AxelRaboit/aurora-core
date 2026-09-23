@@ -60,7 +60,7 @@ const byRole = computed(() =>
             />
         </div>
 
-        <div v-if="hasAnyShare(byRole)" class="bg-surface border border-line rounded-xl p-3 sm:p-5 space-y-4">
+        <div v-if="hasAnyShare(byRole)" class="aurora-card p-3 sm:p-5 space-y-4">
             <h3 class="text-sm font-semibold text-primary">{{ t("backend.stats.platform.by_role") }}</h3>
 
             <AppShareBar :segments="byRole" />

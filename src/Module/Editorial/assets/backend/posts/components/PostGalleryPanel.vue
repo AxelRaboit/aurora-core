@@ -154,7 +154,7 @@ async function onFiles(files) {
 
 <template>
     <div class="space-y-4">
-        <div class="bg-surface border border-line rounded-xl p-3 sm:p-5 space-y-4">
+        <div class="aurora-card p-3 sm:p-5 space-y-4">
             <div class="flex items-start justify-between gap-4">
                 <div class="min-w-0">
                     <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.gallery.title") }}</h3>
@@ -187,7 +187,7 @@ async function onFiles(files) {
             </div>
         </div>
 
-        <div class="bg-surface border border-line rounded-xl p-3 sm:p-5 space-y-4">
+        <div class="aurora-card p-3 sm:p-5 space-y-4">
             <div class="flex items-center justify-between gap-3">
                 <h3 class="text-sm font-semibold text-primary">
                     {{ t("backend.posts.gallery.pictures") }}
@@ -252,7 +252,7 @@ async function onFiles(files) {
                 <div
                     v-for="(item, index) in items"
                     :key="item.id"
-                    class="group relative aspect-square cursor-grab overflow-hidden rounded-lg border border-line/60 bg-surface-2 active:cursor-grabbing"
+                    class="group relative aspect-square cursor-grab overflow-hidden rounded-lg border border-line bg-surface-2 active:cursor-grabbing"
                 >
                     <img
                         v-if="item.url"

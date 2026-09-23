@@ -105,7 +105,7 @@ function error(field) {
                         :class="
                             form.kind === entry.key
                                 ? 'border-accent bg-accent/5 text-primary'
-                                : 'border-line/60 text-muted hover:border-line hover:text-primary'
+                                : 'border-line text-muted hover:border-line hover:text-primary'
                         "
                         :aria-pressed="form.kind === entry.key"
                         v-on:click="form.kind = entry.key"

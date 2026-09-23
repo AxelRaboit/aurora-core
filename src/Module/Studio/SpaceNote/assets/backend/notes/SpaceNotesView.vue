@@ -114,7 +114,7 @@ function tint(note) {
                      et « Personnelles 2 » font 274 pixels, et dans une fenêtre
                      de 250 c'est la page entière qui partait à droite. -->
                 <div
-                    class="flex max-w-full items-center gap-0.5 overflow-x-auto rounded-lg border border-line/60 bg-surface-2/40 p-0.5"
+                    class="flex max-w-full items-center gap-0.5 overflow-x-auto rounded-lg border border-line bg-surface-2/40 p-0.5"
                     role="group"
                     :aria-label="t('backend.studio.space_notes.visibility')"
                 >
@@ -146,7 +146,7 @@ function tint(note) {
                  deux listes de la même page qui se lisent en carte ou en ligne
                  ne devraient pas se commander différemment. -->
             <div
-                class="flex items-center gap-0.5 rounded-lg border border-line/60 bg-surface-2/40 p-0.5"
+                class="flex items-center gap-0.5 rounded-lg border border-line bg-surface-2/40 p-0.5"
                 role="group"
                 :aria-label="t('backend.studio.space_notes.view_label')"
             >
@@ -181,7 +181,7 @@ function tint(note) {
             <article
                 v-for="note in rows"
                 :key="note.id"
-                class="group flex min-w-0 flex-col rounded-lg border border-l-[3px] border-line/60 bg-surface-2/40 p-3 transition-colors hover:bg-surface-2/70"
+                class="group flex min-w-0 flex-col rounded-lg border border-l-[3px] border-line bg-surface-2/40 p-3 transition-colors hover:bg-surface-2/70"
                 :style="tint(note)"
             >
                 <header class="flex items-start gap-2">
@@ -241,7 +241,7 @@ function tint(note) {
         </div>
 
         <!-- La liste -->
-        <ul v-else class="divide-y divide-line/40 rounded-lg border border-line/60 bg-surface">
+        <ul v-else class="aurora-card divide-y divide-line/40">
             <li
                 v-for="note in rows"
                 :key="note.id"

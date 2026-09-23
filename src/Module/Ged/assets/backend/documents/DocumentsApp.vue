@@ -327,7 +327,7 @@ const pageActions = computed(() => {
 <template>
     <div ref="container" class="space-y-2 sm:space-y-4">
         <!-- Header: breadcrumb + search + add -->
-        <div class="flex flex-col sm:flex-row sm:items-center gap-3 bg-surface border border-line/60 rounded-xl px-2 py-2 sm:px-4 sm:py-3">
+        <div class="aurora-card flex flex-col sm:flex-row sm:items-center gap-3 px-2 py-2 sm:px-4 sm:py-3">
             <nav class="flex items-center gap-1 text-sm text-muted min-w-0 flex-1 flex-wrap">
                 <template v-if="allDocumentsView">
                     <span class="flex items-center gap-1.5 text-primary shrink-0">
@@ -433,7 +433,7 @@ const pageActions = computed(() => {
 
                 <!-- View toolbar: sort + view mode + multiselect -->
                 <div class="flex flex-wrap items-center gap-1.5">
-                    <div class="flex gap-1 border border-line/60 rounded-lg p-0.5">
+                    <div class="flex gap-1 border border-line rounded-lg p-0.5">
                         <AppTab
                             v-for="s in DOCUMENT_SORT_FIELDS"
                             :key="s.key"
@@ -452,7 +452,7 @@ const pageActions = computed(() => {
                          rien à l'écran, et un bouton qui ne fait rien se lit
                          comme un bouton cassé. Le choix est gardé et revient
                          avec la place. -->
-                    <div v-if="!isNarrow" class="flex border border-line/60 rounded-lg p-0.5">
+                    <div v-if="!isNarrow" class="flex border border-line rounded-lg p-0.5">
                         <AppIconButton
                             size="sm"
                             variant="ghost"
@@ -474,7 +474,7 @@ const pageActions = computed(() => {
                         v-if="can('ged.documents.delete') || can('ged.documents.edit')"
                         size="sm"
                         variant="ghost"
-                        class="border border-line/60"
+                        class="border border-line"
                         :class="isSelecting ? 'bg-accent-500/15 text-accent-400' : 'text-muted hover:text-primary'"
                         v-on:click="isSelecting = !isSelecting; if (!isSelecting) clearSelection()"
                     >
@@ -492,7 +492,7 @@ const pageActions = computed(() => {
                             :key="doc.id"
                             class="group relative bg-surface border rounded-lg overflow-hidden transition-colors cursor-pointer"
                             :class="[
-                                selectedIds.has(doc.id) ? 'border-accent-400 ring-2 ring-accent-500' : 'border-line/60 hover:border-accent-400',
+                                selectedIds.has(doc.id) ? 'border-accent-400 ring-2 ring-accent-500' : 'border-line hover:border-accent-400',
                             ]"
                             draggable="true"
                             v-on:click="isSelecting ? toggleSelect(doc.id) : viewDoc(doc)"
@@ -586,19 +586,19 @@ const pageActions = computed(() => {
                          rôle. -->
 
                     <!-- Desktop table (list view) -->
-                    <div v-show="viewMode === 'list' && !isNarrow" class="bg-surface border border-line rounded-lg overflow-x-auto scrollbar-thin">
+                    <div v-show="viewMode === 'list' && !isNarrow" class="aurora-card overflow-x-auto scrollbar-thin">
                         <table class="w-full text-sm">
                             <thead>
                                 <tr class="bg-surface-2/50 border-b border-line/40">
                                     <th v-if="isSelecting" class="w-8 px-3 py-3" />
-                                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t("backend.ged.documents.title") }}</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden md:table-cell">{{ t("backend.ged.documents.category") }}</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">{{ t("backend.ged.documents.status") }}</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">{{ t("backend.ged.documents.file") }}</th>
-                                    <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">{{ t("backend.ged.documents.size") }}</th>
-                                    <th v-if="storageRelocationAvailable" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">{{ t("backend.ged.documents.storage.column") }}</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden xl:table-cell">{{ t("backend.ged.documents.preview") }}</th>
-                                    <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted sticky right-0 bg-surface-2 border-l border-line/40">{{ t("shared.common.actions") }}</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t("backend.ged.documents.title") }}</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden md:table-cell">{{ t("backend.ged.documents.category") }}</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">{{ t("backend.ged.documents.status") }}</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">{{ t("backend.ged.documents.file") }}</th>
+                                    <th class="px-4 py-2 text-right text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">{{ t("backend.ged.documents.size") }}</th>
+                                    <th v-if="storageRelocationAvailable" class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">{{ t("backend.ged.documents.storage.column") }}</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden xl:table-cell">{{ t("backend.ged.documents.preview") }}</th>
+                                    <th class="px-4 py-2 text-right text-xs font-medium uppercase tracking-wider text-muted sticky right-0 bg-surface-2 border-l border-line/40">{{ t("shared.common.actions") }}</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-line/40">
@@ -615,7 +615,7 @@ const pageActions = computed(() => {
                                         <CheckSquare v-if="selectedIds.has(doc.id)" class="w-4 h-4 text-accent-400" :stroke-width="2" />
                                         <Square v-else class="w-4 h-4 text-muted" :stroke-width="2" />
                                     </td>
-                                    <td class="px-6 py-3">
+                                    <td class="px-4 py-2">
                                         <p class="font-medium text-primary">{{ doc.title }}</p>
                                         <div class="flex items-center gap-2 mt-0.5 flex-wrap">
                                             <span v-if="doc.reference" class="text-xs text-muted font-mono">{{ doc.reference }}</span>
@@ -625,15 +625,15 @@ const pageActions = computed(() => {
                                             <DocumentTagChip v-for="tag in doc.tags" :key="tag.id" :tag="tag" />
                                         </div>
                                     </td>
-                                    <td class="px-6 py-3 text-secondary hidden md:table-cell">{{ doc.categoryName ?? t("backend.ged.documents.no_category") }}</td>
-                                    <td class="px-6 py-3 hidden lg:table-cell">
+                                    <td class="px-4 py-2 text-secondary hidden md:table-cell">{{ doc.categoryName ?? t("backend.ged.documents.no_category") }}</td>
+                                    <td class="px-4 py-2 hidden lg:table-cell">
                                         <AppBadge :color="DOCUMENT_STATUS_BADGE[doc.status]">{{ doc.statusLabel }}</AppBadge>
                                     </td>
-                                    <td class="px-6 py-3 hidden lg:table-cell">
+                                    <td class="px-4 py-2 hidden lg:table-cell">
                                         <span v-if="doc.fileName" class="flex items-center gap-1 text-xs text-muted"><Paperclip class="w-3 h-3" :stroke-width="2" /> {{ doc.fileName }}</span>
                                         <span v-else class="text-muted text-xs">-</span>
                                     </td>
-                                    <td class="px-6 py-3 text-right hidden lg:table-cell text-xs text-muted tabular-nums">
+                                    <td class="px-4 py-2 text-right hidden lg:table-cell text-xs text-muted tabular-nums">
                                         <span v-if="doc.fileSize">{{ formatSize(doc.fileSize) }}</span>
                                         <span v-else>-</span>
                                     </td>
@@ -641,14 +641,14 @@ const pageActions = computed(() => {
                                          sorting a hundred rows by eye is what a column is for, and the
                                          chip under the title is only in the card view. Hidden entirely
                                          while a single backend exists, like the chip. -->
-                                    <td v-if="storageRelocationAvailable" class="px-6 py-3 hidden lg:table-cell">
+                                    <td v-if="storageRelocationAvailable" class="px-4 py-2 hidden lg:table-cell">
                                         <DocumentStorageChip
                                             :disk="doc.storageDisk"
                                             :state="doc.storageTransferState"
                                             :error="doc.storageTransferError"
                                         />
                                     </td>
-                                    <td class="px-6 py-3 hidden xl:table-cell">
+                                    <td class="px-4 py-2 hidden xl:table-cell">
                                         <!-- A card in grid mode already opens the detail modal on click; the
                                              thumbnail here looked identical and did nothing. Same target, so
                                              the same affordance: a real button, reachable by keyboard. -->
@@ -676,7 +676,7 @@ const pageActions = computed(() => {
                                         </button>
                                         <span v-else class="text-muted text-xs">-</span>
                                     </td>
-                                    <td class="px-6 py-3 sticky right-0 bg-surface border-l border-line/40">
+                                    <td class="px-4 py-2 sticky right-0 bg-surface border-l border-line/40">
                                         <div class="flex items-center justify-end gap-0.5">
                                             <AppRowActions :actions="documentActions(doc)" :label="doc.title ?? ''" />
                                         </div>

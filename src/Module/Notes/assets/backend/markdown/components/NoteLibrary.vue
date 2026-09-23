@@ -1258,7 +1258,7 @@ defineExpose({
 
 <template>
     <div class="flex flex-col min-h-0 flex-1">
-        <header class="flex flex-col gap-3 border-b border-line p-3 sm:p-4">
+        <header class="flex flex-col gap-3 border-b border-line p-3">
             <!-- Le fil d'Ariane est aussi une cible : remonter d'un niveau se
                  fait en y glissant ce qu'on tient, sans ouvrir de modale. -->
             <!-- Première ligne : où l'on est, et ce qu'on peut y créer. -->
@@ -1338,7 +1338,13 @@ defineExpose({
 
                 <!-- Icônes seules : le libellé prenait la moitié de la barre
                      pour dire ce qu'un « + » dit aussi bien, et l'infobulle
-                     le nomme pour qui hésite. -->
+                     le nomme pour qui hésite.
+
+                     Les deux sont des boutons d'icône, du même dessin. Celui
+                     de la note était un bouton plein vert, plus gros et
+                     rempli, posé à côté de son voisin en simple contour :
+                     deux gestes du même genre, à un pas l'un de l'autre, qui
+                     n'avaient pas l'air de la même famille. -->
                 <div class="flex shrink-0 items-center gap-1">
                     <AppIconButton
                         color="accent"
@@ -1349,16 +1355,14 @@ defineExpose({
                         <FolderPlus class="h-4 w-4" :stroke-width="2" />
                     </AppIconButton>
 
-                    <AppButton
-                        variant="primary"
-                        size="md"
-                        class="min-h-11 !px-2.5 sm:min-h-0"
+                    <AppIconButton
+                        color="accent"
                         :title="t('notes.markdown.library.new_note')"
                         :aria-label="t('notes.markdown.library.new_note')"
                         v-on:click="emit('create-note', currentFolderId)"
                     >
                         <Plus class="h-4 w-4" :stroke-width="2" />
-                    </AppButton>
+                    </AppIconButton>
                 </div>
             </div>
 
@@ -1511,7 +1515,7 @@ defineExpose({
         </div>
 
         <div
-            class="flex-1 min-h-0 overflow-auto p-3 sm:p-4"
+            class="flex-1 min-h-0 overflow-auto p-3"
             :class="rootDragOver ? 'bg-accent-500/5' : ''"
             v-on:dragover="onDragOverCrumb(null, $event)"
             v-on:drop="onDropOn(null, $event)"
@@ -1553,7 +1557,7 @@ defineExpose({
                             v-for="note in recent"
                             :key="`recent-${note.id}`"
                             :href="noteUrlFor(note.id)"
-                            class="flex min-w-0 items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2 text-sm no-underline transition-colors hover:border-accent-500/50"
+                            class="aurora-card flex min-w-0 items-center gap-2 px-3 py-2 text-sm no-underline transition-colors hover:border-accent-500/50"
                             v-on:click.prevent="emit('open-note', note.id)"
                         >
                             <FileText class="h-4 w-4 shrink-0 text-muted" :stroke-width="2" />
@@ -1638,7 +1642,7 @@ defineExpose({
                         <article
                             v-for="note in pagedNotes"
                             :key="`note-${note.id}`"
-                            class="group flex cursor-pointer flex-col rounded-lg border border-line bg-surface transition-colors hover:border-accent-500/50"
+                            class="aurora-card group flex cursor-pointer flex-col transition-colors hover:border-accent-500/50"
                             :class="[
                                 isSelected('note', note) ? 'ring-2 ring-accent-500' : '',
                                 isFocused('note', note) ? 'ring-2 ring-accent-500/60' : '',
@@ -1957,7 +1961,7 @@ defineExpose({
         <Teleport to="body">
             <div
                 v-if="null !== previewId"
-                class="pointer-events-none fixed z-50 w-90 overflow-hidden rounded-lg border border-line bg-surface p-3 shadow-xl"
+                class="aurora-card pointer-events-none fixed z-50 w-90 overflow-hidden p-3 shadow-xl"
                 :style="{
                     top: `${previewAt.top}px`,
                     left: `${previewAt.left}px`,

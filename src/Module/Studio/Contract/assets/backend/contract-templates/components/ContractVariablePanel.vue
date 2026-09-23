@@ -55,7 +55,7 @@ async function copy(token) {
 </script>
 
 <template>
-    <div class="rounded-lg border border-line bg-surface p-3 space-y-3">
+    <div class="aurora-card p-3 space-y-3">
         <div class="space-y-1">
             <p class="text-xs font-medium uppercase tracking-wider text-muted">
                 {{ t("backend.studio.contract_templates.variables.title") }}

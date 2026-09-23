@@ -473,7 +473,7 @@ const contractActions = computed(() => {
                  last one is what is in force. -->
             <div
                 v-if="contract.amends || contract.amendments?.length"
-                class="bg-surface border border-line rounded-lg p-4 space-y-2 text-sm"
+                class="aurora-card p-4 space-y-2 text-sm"
             >
                 <p class="text-xs uppercase tracking-wider text-muted">
                     {{ t("backend.studio.contracts.chain") }}
@@ -538,7 +538,7 @@ const contractActions = computed(() => {
                  today's code produces rather than what was signed. Cleaned
                  once more on the way into the DOM, see documentHtml. -->
             <article
-                class="bg-surface border border-line rounded-lg p-4 sm:p-6 prose-contract"
+                class="aurora-card p-4 sm:p-6 prose-contract"
                 v-html="documentHtml"
             />
 

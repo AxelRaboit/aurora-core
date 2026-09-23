@@ -102,7 +102,7 @@ const pageActions = computed(() => {
             <AppPageActions :actions="pageActions" />
         </div>
 
-        <div class="bg-surface border border-line rounded-xl overflow-x-auto scrollbar-thin">
+        <div class="aurora-card overflow-x-auto scrollbar-thin">
             <p v-if="!mp.filteredMountPoints.value.length" class="py-8 text-center text-sm text-muted">
                 {{ t("backend.mount_points.empty") }}
             </p>
@@ -110,11 +110,11 @@ const pageActions = computed(() => {
             <table v-else class="w-full text-sm">
                 <thead>
                     <tr class="bg-surface-2/50 border-b border-line/40">
-                        <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t("backend.mount_points.name") }}</th>
-                        <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t("backend.mount_points.type") }}</th>
-                        <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden md:table-cell">{{ t("backend.mount_points.host") }}</th>
-                        <th class="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">{{ t("backend.mount_points.last_tested") }}</th>
-                        <th class="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted">{{ t("shared.common.actions") }}</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t("backend.mount_points.name") }}</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t("backend.mount_points.type") }}</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden md:table-cell">{{ t("backend.mount_points.host") }}</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">{{ t("backend.mount_points.last_tested") }}</th>
+                        <th class="px-4 py-2 text-right text-xs font-medium uppercase tracking-wider text-muted">{{ t("shared.common.actions") }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-line/40">
@@ -123,12 +123,12 @@ const pageActions = computed(() => {
                         :key="mountPoint.id"
                         class="hover:bg-surface-2/40 transition-colors"
                     >
-                        <td class="px-5 py-3 font-medium text-primary">{{ mountPoint.name }}</td>
-                        <td class="px-5 py-3 text-muted capitalize">{{ mountPoint.type }}</td>
-                        <td class="px-5 py-3 text-secondary hidden md:table-cell font-mono text-xs">
+                        <td class="px-4 py-2 font-medium text-primary">{{ mountPoint.name }}</td>
+                        <td class="px-4 py-2 text-muted capitalize">{{ mountPoint.type }}</td>
+                        <td class="px-4 py-2 text-secondary hidden md:table-cell font-mono text-xs">
                             {{ mountPoint.host }}{{ mountPoint.port ? `:${mountPoint.port}` : "" }}
                         </td>
-                        <td class="px-5 py-3 hidden lg:table-cell">
+                        <td class="px-4 py-2 hidden lg:table-cell">
                             <span v-if="mountPoint.lastTestedAt" class="inline-flex items-center gap-1.5 text-xs">
                                 <Wifi v-if="mountPoint.lastTestSuccessful" class="w-3.5 h-3.5 text-success shrink-0" :stroke-width="2" />
                                 <WifiOff v-else class="w-3.5 h-3.5 text-danger shrink-0" :stroke-width="2" />
@@ -139,7 +139,7 @@ const pageActions = computed(() => {
                                 {{ t("backend.mount_points.never") }}
                             </span>
                         </td>
-                        <td class="px-5 py-3">
+                        <td class="px-4 py-2">
                             <AppRowActions :actions="actionsFor(mountPoint)" :label="mountPoint.name" />
                         </td>
                     </tr>

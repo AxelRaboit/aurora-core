@@ -141,7 +141,7 @@ function addOn(date) {
 </script>
 
 <template>
-    <div class="overflow-hidden rounded-xl border border-line bg-surface">
+    <div class="aurora-card overflow-hidden">
         <div class="grid grid-cols-7 border-b border-line">
             <span
                 v-for="day in weekdays"

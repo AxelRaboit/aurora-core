@@ -122,7 +122,7 @@ async function submit() {
                 <!-- Des boutons radio, et non une liste déroulante : ils sont
                      une poignée, et voir les titres côte à côte est le geste
                      qu'on vient faire. -->
-                <ul v-else class="divide-y divide-line/60 overflow-hidden rounded-lg border border-line">
+                <ul v-else class="divide-y divide-line/40 overflow-hidden rounded-lg border border-line">
                     <li v-for="document in documents" :key="document.id">
                         <label
                             class="flex cursor-pointer items-center gap-3 px-3 py-2.5 transition-colors"

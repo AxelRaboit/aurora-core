@@ -67,7 +67,7 @@ function close() {
 
             <div
                 v-if="filteredTags.length > 0"
-                class="border border-line rounded-md divide-y divide-line max-h-96 overflow-auto"
+                class="border border-line rounded-md divide-y divide-line/40 max-h-96 overflow-auto"
             >
                 <div
                     v-for="entry in filteredTags"

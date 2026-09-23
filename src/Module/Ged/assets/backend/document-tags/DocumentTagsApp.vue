@@ -80,7 +80,7 @@ const pageActions = computed(() => {
         <!-- Mobile cards -->
         <div class="sm:hidden space-y-2">
             <AppNoData v-if="!filteredItems.length" :message="t('backend.ged.tags.empty')" />
-            <div v-for="tag in filteredItems" :key="tag.id" class="bg-surface border border-line/60 rounded-xl overflow-hidden shadow-sm">
+            <div v-for="tag in filteredItems" :key="tag.id" class="aurora-card overflow-hidden">
                 <div class="flex items-center gap-3 px-4 py-3">
                     <span v-if="tag.color" class="inline-block w-3 h-3 rounded-full shrink-0" :style="{ backgroundColor: tag.color }" />
                     <div class="min-w-0">
@@ -98,23 +98,23 @@ const pageActions = computed(() => {
         </div>
 
         <!-- Desktop table -->
-        <div class="hidden sm:block bg-surface border border-line rounded-lg overflow-x-auto scrollbar-thin">
+        <div class="aurora-card hidden sm:block overflow-x-auto scrollbar-thin">
             <table class="w-full text-sm">
                 <thead>
                     <tr class="bg-surface-2/50 border-b border-line/40">
-                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t("backend.ged.tags.name") }}</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden md:table-cell">{{ t("backend.ged.tags.color") }}</th>
-                        <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted">{{ t("shared.common.actions") }}</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t("backend.ged.tags.name") }}</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden md:table-cell">{{ t("backend.ged.tags.color") }}</th>
+                        <th class="px-4 py-2 text-right text-xs font-medium uppercase tracking-wider text-muted">{{ t("shared.common.actions") }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-line/40">
                     <tr v-for="tag in filteredItems" :key="tag.id" class="group hover:bg-surface-2/40 transition-colors">
-                        <td class="px-6 py-3 font-medium text-primary flex items-center gap-2">
+                        <td class="px-4 py-2 font-medium text-primary flex items-center gap-2">
                             <span v-if="tag.color" class="inline-block w-3 h-3 rounded-full" :style="{ backgroundColor: tag.color }" />
                             {{ tag.name }}
                         </td>
-                        <td class="px-6 py-3 text-muted font-mono text-xs hidden md:table-cell">{{ tag.color ?? '-' }}</td>
-                        <td class="px-6 py-3">
+                        <td class="px-4 py-2 text-muted font-mono text-xs hidden md:table-cell">{{ tag.color ?? '-' }}</td>
+                        <td class="px-4 py-2">
                             <div class="flex items-center justify-end gap-0.5">
                                 <AppRowActions :actions="actionsFor(tag)" :label="tag.name ?? tag.label ?? ''" />
                             </div>

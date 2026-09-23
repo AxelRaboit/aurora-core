@@ -309,7 +309,7 @@ function removeMember(userId) {
                 <li
                     v-for="member in form.members"
                     :key="member.userId"
-                    class="flex flex-wrap items-center gap-2 rounded-lg border border-line/60 bg-surface-2/40 px-3 py-2"
+                    class="flex flex-wrap items-center gap-2 rounded-lg border border-line bg-surface-2/40 px-3 py-2"
                 >
                     <span class="flex-1 min-w-0 truncate text-sm text-primary">
                         {{ userLabel(member.userId) }}

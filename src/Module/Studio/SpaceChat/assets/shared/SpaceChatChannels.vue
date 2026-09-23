@@ -88,7 +88,7 @@ const reachable = computed(() => {
     />
 
     <aside
-        class="absolute inset-y-0 left-0 z-20 flex w-56 shrink-0 flex-col gap-2 border-r border-line/60 bg-surface p-3 shadow-xl transition-transform duration-200 md:static md:w-52 md:translate-x-0 md:bg-transparent md:shadow-none"
+        class="absolute inset-y-0 left-0 z-20 flex w-56 shrink-0 flex-col gap-2 border-r border-line bg-surface p-3 shadow-xl transition-transform duration-200 md:static md:w-52 md:translate-x-0 md:bg-transparent md:shadow-none"
         :class="open ? 'translate-x-0' : '-translate-x-full'"
     >
         <!-- L'intitulé disparaît sur téléphone : une colonne de gauche a besoin

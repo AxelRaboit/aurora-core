@@ -25,7 +25,7 @@ const { searchInput, filteredModules } = usePermissionsFilter(data);
             :placeholder="t('backend.permissions.search_placeholder')"
         />
         <AppNoData v-if="!filteredModules.length" :message="t('backend.permissions.empty')" />
-        <div v-for="moduleEntry in filteredModules" :key="moduleEntry.id" class="bg-surface border border-line rounded-lg overflow-x-auto scrollbar-thin">
+        <div v-for="moduleEntry in filteredModules" :key="moduleEntry.id" class="aurora-card overflow-x-auto scrollbar-thin">
             <div class="bg-surface-2 border-b border-line px-4 py-2.5">
                 <h3 class="text-sm font-semibold text-primary">{{ t(`backend.modules.${moduleEntry.id}`, moduleEntry.id) }}</h3>
             </div>
@@ -36,8 +36,8 @@ const { searchInput, filteredModules } = usePermissionsFilter(data);
             <table v-else class="w-full text-sm">
                 <thead>
                     <tr class="bg-surface-2/50 border-b border-line/40">
-                        <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t('backend.permissions.name') }}</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted font-mono w-72">{{ t('backend.permissions.key') }}</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t('backend.permissions.name') }}</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted font-mono w-72">{{ t('backend.permissions.key') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-line/40">

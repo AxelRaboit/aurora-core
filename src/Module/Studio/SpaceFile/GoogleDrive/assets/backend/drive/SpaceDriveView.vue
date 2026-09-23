@@ -201,7 +201,7 @@ async function importToLibrary(file) {
                      interrupteur qui ne change rien se lit comme cassé. -->
                 <div
                     v-if="!isNarrow"
-                    class="flex items-center gap-0.5 rounded-lg border border-line/60 bg-surface-2/40 p-0.5"
+                    class="flex items-center gap-0.5 rounded-lg border border-line bg-surface-2/40 p-0.5"
                     role="group"
                     :aria-label="t('backend.studio.drive.space.view_label')"
                 >
@@ -358,7 +358,7 @@ async function importToLibrary(file) {
                         v-for="entry in folders"
                         :key="`folder:${entry.name}`"
                         type="button"
-                        class="overflow-hidden rounded-lg border border-line/60 bg-surface text-left transition-colors hover:border-accent/50"
+                        class="aurora-card overflow-hidden text-left transition-colors hover:border-accent/50"
                         :title="entry.name"
                         v-on:click="open(entry.name)"
                     >
@@ -376,7 +376,7 @@ async function importToLibrary(file) {
                     <article
                         v-for="file in visible"
                         :key="file.id"
-                        class="overflow-hidden rounded-lg border border-line/60 bg-surface"
+                        class="aurora-card overflow-hidden"
                     >
                         <button
                             type="button"
@@ -404,7 +404,7 @@ async function importToLibrary(file) {
                     </article>
                 </div>
 
-                <ul v-else class="divide-y divide-line/60 overflow-hidden rounded-lg border border-line">
+                <ul v-else class="divide-y divide-line/40 overflow-hidden rounded-lg border border-line">
                     <li v-for="entry in folders" :key="`folder:${entry.name}`">
                         <button
                             type="button"

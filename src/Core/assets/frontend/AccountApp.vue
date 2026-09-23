@@ -21,7 +21,7 @@ defineProps({
             </form>
         </div>
 
-        <div class="bg-surface border border-line/60 rounded-xl p-4 sm:p-6 space-y-4">
+        <div class="aurora-card p-4 sm:p-6 space-y-4">
             <div class="flex flex-col gap-1">
                 <span class="text-xs font-medium text-secondary uppercase tracking-wide">{{ t('frontend.account.name') }}</span>
                 <span class="text-sm text-primary font-medium">{{ user.name }}</span>

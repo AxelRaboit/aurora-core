@@ -50,7 +50,7 @@ onMounted(() => {
         <div
             v-for="parameter in modules.filteredParameters.value"
             :key="parameter.key"
-            class="bg-surface border border-line rounded-xl overflow-hidden"
+            class="aurora-card overflow-hidden"
         >
             <!-- Parent module header (clickable to collapse/expand) -->
             <div

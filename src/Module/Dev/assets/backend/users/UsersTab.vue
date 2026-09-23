@@ -77,7 +77,7 @@ const pageActions = computed(() => {
 
         <div class="sm:hidden space-y-3">
             <p v-if="!users.parsedUsers.value.items?.length" class="py-8 text-center text-sm text-muted">{{ t('backend.users.empty') }}</p>
-            <div v-for="user in users.parsedUsers.value.items" :key="user.id" class="bg-surface border border-line rounded-lg overflow-hidden">
+            <div v-for="user in users.parsedUsers.value.items" :key="user.id" class="aurora-card overflow-hidden">
                 <div class="flex items-center gap-3 p-4">
                     <AppAvatar :name="user.name" :email="user.email" size="lg" class="shrink-0" />
                     <div class="min-w-0">
@@ -101,21 +101,21 @@ const pageActions = computed(() => {
             </div>
         </div>
 
-        <div class="hidden sm:block bg-surface border border-line rounded-lg overflow-x-auto scrollbar-thin">
+        <div class="aurora-card hidden sm:block overflow-x-auto scrollbar-thin">
             <table class="w-full text-sm">
                 <thead>
                     <tr class="bg-surface-2/50 border-b border-line/40">
-                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t('backend.users.name') }}</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t('backend.users.email') }}</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden md:table-cell">{{ t('backend.users.role_label') }}</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">{{ t('backend.users.locale') }}</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">{{ t('backend.users.created') }}</th>
-                        <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted">{{ t('backend.users.actions') }}</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t('backend.users.name') }}</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t('backend.users.email') }}</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden md:table-cell">{{ t('backend.users.role_label') }}</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">{{ t('backend.users.locale') }}</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">{{ t('backend.users.created') }}</th>
+                        <th class="px-4 py-2 text-right text-xs font-medium uppercase tracking-wider text-muted">{{ t('backend.users.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-line/40">
                     <tr v-for="user in users.parsedUsers.value.items" :key="user.id" class="group hover:bg-surface-2/40 transition-colors">
-                        <td class="px-6 py-3">
+                        <td class="px-4 py-2">
                             <div class="flex items-center gap-3">
                                 <AppAvatar :name="user.name" :email="user.email" size="md" />
                                 <p class="font-medium text-primary inline-flex items-center gap-1.5">
@@ -124,17 +124,17 @@ const pageActions = computed(() => {
                                 </p>
                             </div>
                         </td>
-                        <td class="px-6 py-3 text-secondary">{{ user.email }}</td>
-                        <td class="px-6 py-3 hidden md:table-cell">
+                        <td class="px-4 py-2 text-secondary">{{ user.email }}</td>
+                        <td class="px-4 py-2 hidden md:table-cell">
                             <AppBadge :color="user.roleColor">
                                 {{ user.isDevRole ? t('backend.users.role_dev') : t('backend.users.role_user') }}
                             </AppBadge>
                         </td>
-                        <td class="px-6 py-3 hidden lg:table-cell">
+                        <td class="px-4 py-2 hidden lg:table-cell">
                             <AppBadge color="gray" class="uppercase">{{ user.locale }}</AppBadge>
                         </td>
-                        <td class="px-6 py-3 text-sm text-secondary hidden lg:table-cell">{{ formatDateShort(user.createdAt) }}</td>
-                        <td class="px-6 py-3">
+                        <td class="px-4 py-2 text-sm text-secondary hidden lg:table-cell">{{ formatDateShort(user.createdAt) }}</td>
+                        <td class="px-4 py-2">
                             <div class="flex items-center justify-end gap-1">
                                 <UserActions
                                     :user="user"

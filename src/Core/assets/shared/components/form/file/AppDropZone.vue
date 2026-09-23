@@ -52,7 +52,7 @@ const displayLabel = computed(() => {
     <AppFileInput v-slot="{ trigger }" :accept="accept" :multiple="multiple" v-on:change="$emit('change', $event)">
         <div
             class="border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center gap-3 transition-colors cursor-pointer"
-            :class="dragOver ? 'border-accent-500 bg-accent-500/10' : 'border-line/60 hover:border-accent-500/60 hover:bg-surface-2/50'"
+            :class="dragOver ? 'border-accent-500 bg-accent-500/10' : 'border-line hover:border-accent-500/60 hover:bg-surface-2/50'"
             v-on:click="!uploading && trigger()"
             v-on:dragover="onDragOver"
             v-on:dragleave="onDragLeave"

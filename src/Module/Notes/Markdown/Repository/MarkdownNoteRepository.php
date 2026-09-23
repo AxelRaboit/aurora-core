@@ -37,13 +37,20 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
      * n'affichait aucune date ; le jour où la bibliothèque a montré « modifiée
      * le », le formatage a levé et la page entière est restée blanche.
      *
-     * @return list<array{id: int, title: string|null, tags: list<string>, position: int, createdAt: string, updatedAt: string, favoritedAt: string|null, sharedAt: string|null, folderId: int|null}>
+     * @return list<array{id: int, title: string|null, tags: list<string>, position: int, createdAt: string, updatedAt: string, favoritedAt: string|null, sharedAt: string|null, coverUrl: string|null, coverPosition: int, appearance: string, folderId: int|null}>
      */
     public function findFlatListForUser(CoreUserInterface $user): array
     {
+        // `coverUrl`, `coverPosition` et `appearance` voyagent avec la liste
+        // pour que l'entête d'une note soit dessinée dès le clic, sans attendre
+        // le corps. Sans eux, passer d'une note à bandeau à une autre faisait
+        // disparaître l'image puis revenir : cent soixante pixels de saut,
+        // mesurés, à chaque changement. Ce sont trois colonnes en clair sur une
+        // requête qui en lisait déjà neuf ; seuls le titre et le texte sont
+        // chiffrés, donc elles ne coûtent rien à déchiffrer.
         /** @var list<array<string, mixed>> $rows */
         $rows = $this->createQueryBuilder('n')
-            ->select('n.id', 'n.title', 'n.tags', 'n.position', 'n.createdAt', 'n.updatedAt', 'n.favoritedAt', 'n.sharedAt', 'IDENTITY(n.folder) AS folderId')
+            ->select('n.id', 'n.title', 'n.tags', 'n.position', 'n.createdAt', 'n.updatedAt', 'n.favoritedAt', 'n.sharedAt', 'n.coverUrl', 'n.coverPosition', 'n.appearance', 'IDENTITY(n.folder) AS folderId')
             ->where('n.user = :user')
             ->andWhere('n.deletedAt IS NULL')
             ->setParameter('user', $user)

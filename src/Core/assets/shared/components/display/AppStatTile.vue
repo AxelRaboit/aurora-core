@@ -29,7 +29,7 @@ const TONES = {
 </script>
 
 <template>
-    <div class="flex flex-col rounded-xl border border-line bg-surface p-4">
+    <div class="aurora-card flex flex-col p-4">
         <div class="flex flex-1 items-start gap-2 text-xs uppercase tracking-wide text-secondary">
             <component :is="icon" v-if="icon" class="mt-0.5 h-4 w-4 shrink-0" :stroke-width="2" />
             <span>{{ label }}</span>

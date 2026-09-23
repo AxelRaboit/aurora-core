@@ -71,13 +71,17 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
         );
     }
 
-    const form = ref({
-        title: "",
-        content: "",
-        tags: [],
-        ...LOOK_DEFAULTS,
-        ...extraDefaults(),
-    });
+    function blankForm() {
+        return {
+            title: "",
+            content: "",
+            tags: [],
+            ...LOOK_DEFAULTS,
+            ...extraDefaults(),
+        };
+    }
+
+    const form = ref(blankForm());
     // Snapshot of the last known server state for the selected note -
     // includes content (which the flat `notes` list omits). The isDirty
     // comparison runs against this, not against the flat list entry.
@@ -93,6 +97,18 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
 
     const selectedNote = computed(
         () => notes.value.find((n) => n.id === selectedId.value) ?? null,
+    );
+
+    /**
+     * Ce que le formulaire montre appartient-il à la note demandée ?
+     *
+     * Faux entre le clic et l'arrivée de la réponse, et faux aussi quand le
+     * chargement a échoué. C'est le même `loadedId` qui garde la sauvegarde
+     * automatique : une seule vérité pour « ce formulaire est-il celui de
+     * cette note », plutôt qu'un drapeau de chargement à tenir à jour à côté.
+     */
+    const bodyReady = computed(
+        () => null !== loadedId.value && loadedId.value === selectedId.value,
     );
 
     const isDirty = computed(() => {
@@ -150,6 +166,24 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
         // une sauvegarde qui écrirait l'ancienne note sur la nouvelle.
         loadedId.value = null;
         loadedSnapshot.value = null;
+        // Et on le vide pour de bon. Le marquer non chargé suffisait à
+        // protéger les données, pas les yeux : le titre, le texte et le
+        // bandeau de la note qu'on venait de quitter restaient à l'écran le
+        // temps de l'aller-retour, sous l'identité de la nouvelle. On voyait
+        // donc, une fraction de seconde, une note qui n'a jamais existé.
+        form.value = blankForm();
+
+        // Le titre et l'entête, on les connaît déjà : ils sont dans la liste à
+        // plat, qui est ce sur quoi on vient de cliquer. Les poser tout de
+        // suite évite deux clignotements - un mauvais titre remplacé par un
+        // champ vide, et surtout le bandeau qui disparaissait puis revenait,
+        // cent soixante pixels de saut à chaque passage d'une note à bandeau à
+        // une autre. Seul le texte attend la réponse.
+        const connue = notes.value.find((n) => n.id === id);
+        if (connue) {
+            form.value.title = connue.title ?? "";
+            Object.assign(form.value, pickLook(connue));
+        }
 
         const { ok, reported, payload } = await api.show(id);
 
@@ -424,6 +458,7 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
         selectedId,
         selectedNote,
         form,
+        bodyReady,
         isDirty,
         saving,
         deleting,

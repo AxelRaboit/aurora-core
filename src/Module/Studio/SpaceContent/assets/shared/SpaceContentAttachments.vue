@@ -133,7 +133,7 @@ function remove(attachment) {
             <li
                 v-for="attachment in attachments"
                 :key="attachment.id"
-                class="group relative overflow-hidden rounded-lg border border-line/60 bg-surface-2/40"
+                class="group relative overflow-hidden rounded-lg border border-line bg-surface-2/40"
             >
                 <a
                     :href="attachment.url"
@@ -182,7 +182,7 @@ function remove(attachment) {
         <div
             v-if="canAdd"
             class="rounded-lg border border-dashed px-3 py-3 text-center transition-colors sm:py-4"
-            :class="dragging ? 'border-accent bg-accent/5' : 'border-line/60'"
+            :class="dragging ? 'border-accent bg-accent/5' : 'border-line'"
             v-on:dragover.prevent="dragging = true"
             v-on:dragleave.prevent="dragging = false"
             v-on:drop.prevent="onDrop"
@@ -192,7 +192,7 @@ function remove(attachment) {
             <div class="mt-2 flex flex-wrap items-center justify-center gap-2">
                 <button
                     type="button"
-                    class="inline-flex items-center gap-1.5 rounded-md border border-line/60 px-2.5 py-1 text-xs text-primary transition-colors hover:bg-surface-2 disabled:opacity-50"
+                    class="inline-flex items-center gap-1.5 rounded-md border border-line px-2.5 py-1 text-xs text-primary transition-colors hover:bg-surface-2 disabled:opacity-50"
                     :disabled="loading"
                     v-on:click="input?.click()"
                 >
@@ -207,7 +207,7 @@ function remove(attachment) {
                 <button
                     v-if="canPick"
                     type="button"
-                    class="rounded-md border border-line/60 px-2.5 py-1 text-xs text-primary transition-colors hover:bg-surface-2"
+                    class="rounded-md border border-line px-2.5 py-1 text-xs text-primary transition-colors hover:bg-surface-2"
                     v-on:click="emit('pick')"
                 >
                     {{ t("shared.attachments.pick") }}
@@ -216,7 +216,7 @@ function remove(attachment) {
                 <button
                     v-if="canPickDrive"
                     type="button"
-                    class="inline-flex items-center gap-1.5 rounded-md border border-line/60 px-2.5 py-1 text-xs text-primary transition-colors hover:bg-surface-2 disabled:opacity-50"
+                    class="inline-flex items-center gap-1.5 rounded-md border border-line px-2.5 py-1 text-xs text-primary transition-colors hover:bg-surface-2 disabled:opacity-50"
                     :disabled="loading"
                     v-on:click="emit('pick-drive')"
                 >
