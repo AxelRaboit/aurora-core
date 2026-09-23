@@ -392,7 +392,7 @@ const pageActions = computed(() => {
                         <th class="px-4 py-2 text-right text-xs font-medium uppercase tracking-wider text-muted sticky right-0 bg-surface-2 border-l border-line/40">{{ t("shared.common.actions") }}</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-line/40/40">
+                <tbody class="divide-y divide-line/40">
                     <tr
                         v-for="post in items"
                         :key="post.id"

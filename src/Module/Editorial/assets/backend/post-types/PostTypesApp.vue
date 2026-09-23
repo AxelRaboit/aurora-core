@@ -202,7 +202,7 @@ const pageActions = computed(() => {
 
                 <AppNoData v-if="!selected.fields.length" :message="t('backend.post_types.fields.empty')" />
 
-                <div class="divide-y divide-line/40/40">
+                <div class="divide-y divide-line/40">
                     <div
                         v-for="field in selected.fields"
                         :key="field.id"

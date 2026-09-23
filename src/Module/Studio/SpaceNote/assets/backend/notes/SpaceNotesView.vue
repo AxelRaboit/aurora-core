@@ -241,7 +241,7 @@ function tint(note) {
         </div>
 
         <!-- La liste -->
-        <ul v-else class="aurora-card divide-y divide-line/40/40">
+        <ul v-else class="aurora-card divide-y divide-line/40">
             <li
                 v-for="note in rows"
                 :key="note.id"

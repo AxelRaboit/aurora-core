@@ -56,7 +56,7 @@ onMounted(() => {
                         <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t('backend.audit.date') }}</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-line/40/40">
+                <tbody class="divide-y divide-line/40">
                     <tr v-for="log in data.items" :key="log.id" class="group hover:bg-surface-2/40 transition-colors">
                         <td class="px-4 py-2">
                             <span class="text-primary text-sm font-medium">{{ t(`backend.audit.actions.${log.module}.${log.action}`) }}</span>

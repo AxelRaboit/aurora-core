@@ -390,7 +390,7 @@ const pageActions = computed(() => {
                             </th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-line/40/40">
+                    <tbody class="divide-y divide-line/40">
                         <tr
                             v-for="contract in drafts"
                             :key="contract.id"
@@ -474,7 +474,7 @@ const pageActions = computed(() => {
                             </th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-line/40/40">
+                    <tbody class="divide-y divide-line/40">
                         <tr
                             v-for="contract in sealed"
                             :key="contract.id"

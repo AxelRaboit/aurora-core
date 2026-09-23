@@ -130,7 +130,7 @@ function isPdf(mimeType) {
         </div>
 
         <!-- Main card -->
-        <div class="aurora-card divide-y divide-line/40/40">
+        <div class="aurora-card divide-y divide-line/40">
             <!-- Reference + status.
                  No title: it is already in the topbar, which takes the last
                  breadcrumb, and the trail spells it out just under. A third copy

@@ -215,7 +215,7 @@ function openedLabel(link) {
             :hint="t('backend.studio.space_access.empty_hint')"
         />
 
-        <ul v-else class="aurora-card divide-y divide-line/40/40">
+        <ul v-else class="aurora-card divide-y divide-line/40">
             <!-- **Empilé sur téléphone.** Le nom, l'adresse, l'état et les
                  deux gestes tenaient sur une ligne qui repliait chaque mot :
                  « Camille, g… », « Jamais ouvert · Expire » sur cinq lignes, et

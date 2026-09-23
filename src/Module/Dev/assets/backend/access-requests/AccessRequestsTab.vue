@@ -109,7 +109,7 @@ const pageActions = computed(() => {
                             <th class="px-4 py-2 text-right text-xs font-medium uppercase tracking-wider text-muted">{{ t('backend.users.actions') }}</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-line/40/40">
+                    <tbody class="divide-y divide-line/40">
                         <tr v-for="accessRequest in accessRequests.items.value" :key="accessRequest.id" class="group hover:bg-surface-2/40 transition-colors">
                             <td class="px-4 py-2">
                                 <p class="font-medium text-primary">{{ accessRequest.requesterName ?? '-' }}</p>

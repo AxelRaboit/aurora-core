@@ -601,7 +601,7 @@ const pageActions = computed(() => {
                                     <th class="px-4 py-2 text-right text-xs font-medium uppercase tracking-wider text-muted sticky right-0 bg-surface-2 border-l border-line/40">{{ t("shared.common.actions") }}</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-line/40/40">
+                            <tbody class="divide-y divide-line/40">
                                 <tr
                                     v-for="doc in displayedItems"
                                     :key="doc.id"
@@ -1061,7 +1061,7 @@ const pageActions = computed(() => {
 
                         <div v-if="viewingDocVersions.length > 1" class="space-y-2">
                             <p class="text-xs text-muted uppercase tracking-wide">{{ t("backend.ged.documents.versions") }}</p>
-                            <div class="divide-y divide-line/40/40 rounded-lg border border-line overflow-hidden">
+                            <div class="divide-y divide-line/40 rounded-lg border border-line overflow-hidden">
                                 <div
                                     v-for="version in viewingDocVersions"
                                     :key="version.id"
@@ -1080,7 +1080,7 @@ const pageActions = computed(() => {
 
                         <div v-if="viewingDocUsage && viewingDocUsage.total > 0" class="space-y-2">
                             <p class="text-xs text-muted uppercase tracking-wide">{{ t("backend.ged.documents.usage_title") }} ({{ viewingDocUsage.total }})</p>
-                            <div class="divide-y divide-line/40/40 rounded-lg border border-line overflow-hidden">
+                            <div class="divide-y divide-line/40 rounded-lg border border-line overflow-hidden">
                                 <template v-for="group in viewingDocUsage.groups" :key="group.type">
                                     <component
                                         :is="item.href ? 'a' : 'div'"

@@ -121,7 +121,7 @@ function isUnresolved(item) {
 
                 <AppNoData v-if="!rows.length" :message="t('backend.menus.items_empty')" />
 
-                <div class="divide-y divide-line/40/40">
+                <div class="divide-y divide-line/40">
                     <div
                         v-for="item in rows"
                         :key="item.id"

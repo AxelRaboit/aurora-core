@@ -113,7 +113,7 @@ const pageActions = computed(() => {
                         <th class="px-4 py-2 text-right text-xs font-medium uppercase tracking-wider text-muted">{{ t('backend.users.actions') }}</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-line/40/40">
+                <tbody class="divide-y divide-line/40">
                     <tr v-for="user in users.parsedUsers.value.items" :key="user.id" class="group hover:bg-surface-2/40 transition-colors">
                         <td class="px-4 py-2">
                             <div class="flex items-center gap-3">

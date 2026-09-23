@@ -232,7 +232,7 @@ const { photoUrl, photoLoading, onPhotoSelected, removePhoto } = useProfilePhoto
                         </div>
                     </div>
 
-                    <dl class="divide-y divide-line/40/40 text-sm">
+                    <dl class="divide-y divide-line/40 text-sm">
                         <div v-if="account.info.value.reference" class="grid grid-cols-3 gap-3 py-2.5">
                             <dt class="text-secondary">{{ t('backend.profile.account.reference') }}</dt>
                             <dd class="col-span-2 font-mono text-primary truncate">{{ account.info.value.reference }}</dd>

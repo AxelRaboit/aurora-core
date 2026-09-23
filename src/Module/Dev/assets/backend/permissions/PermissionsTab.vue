@@ -40,7 +40,7 @@ const { searchInput, filteredModules } = usePermissionsFilter(data);
                         <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted font-mono w-72">{{ t('backend.permissions.key') }}</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-line/40/40">
+                <tbody class="divide-y divide-line/40">
                     <tr v-for="permission in moduleEntry.permissions" :key="permission.name" class="group hover:bg-surface-2/40 transition-colors">
                         <td class="px-4 py-2"><span class="text-primary text-sm">{{ t(`backend.permissions.names.${permission.name}`) }}</span></td>
                         <td class="px-4 py-2 w-72"><span class="font-mono text-xs text-accent-400 whitespace-nowrap">{{ permission.name }}</span></td>

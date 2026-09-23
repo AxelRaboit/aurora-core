@@ -658,7 +658,7 @@ function isLate(event) {
                         </button>
                     </header>
 
-                    <ul class="divide-y divide-line/40/40">
+                    <ul class="divide-y divide-line/40">
                         <li
                             v-for="event in pendingEvents"
                             :key="event.id"
@@ -708,7 +708,7 @@ function isLate(event) {
                         {{ t("studio.public.space.calendar_day_empty") }}
                     </p>
 
-                    <ul v-else class="divide-y divide-line/40/40">
+                    <ul v-else class="divide-y divide-line/40">
                         <li v-for="event in dayItems" :key="event.id">
                             <button
                                 type="button"

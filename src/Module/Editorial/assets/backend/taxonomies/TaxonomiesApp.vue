@@ -195,7 +195,7 @@ const pageActions = computed(() => {
 
                 <AppNoData v-if="!rows.length" :message="t('backend.taxonomies.terms.empty')" />
 
-                <div class="divide-y divide-line/40/40">
+                <div class="divide-y divide-line/40">
                     <div
                         v-for="term in rows"
                         :key="term.id"

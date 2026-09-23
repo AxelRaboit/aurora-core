@@ -107,7 +107,7 @@ const pageActions = computed(() => {
                         <th class="px-4 py-2 text-right text-xs font-medium uppercase tracking-wider text-muted">{{ t("shared.common.actions") }}</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-line/40/40">
+                <tbody class="divide-y divide-line/40">
                     <tr v-for="tag in filteredItems" :key="tag.id" class="group hover:bg-surface-2/40 transition-colors">
                         <td class="px-4 py-2 font-medium text-primary flex items-center gap-2">
                             <span v-if="tag.color" class="inline-block w-3 h-3 rounded-full" :style="{ backgroundColor: tag.color }" />

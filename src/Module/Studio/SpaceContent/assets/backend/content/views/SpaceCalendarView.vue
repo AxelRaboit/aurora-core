@@ -156,7 +156,7 @@ function goToToday() {
                         {{ t("backend.studio.space_content.calendar_day_empty") }}
                     </p>
 
-                    <ul v-else class="divide-y divide-line/40/40">
+                    <ul v-else class="divide-y divide-line/40">
                         <li v-for="event in dayItems" :key="event.id">
                             <button
                                 type="button"

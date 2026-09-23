@@ -136,7 +136,7 @@ function formatDate(value) {
                     </AppLink>
                 </AppMessage>
 
-                <div v-else class="aurora-card overflow-hidden divide-y divide-line/40/40">
+                <div v-else class="aurora-card overflow-hidden divide-y divide-line/40">
                     <!-- **Empilé sur téléphone.** « Restaurer » et « Supprimer
                          définitivement » font trois cents pixels à eux deux :
                          sur trois cent cinquante-neuf, il en restait **trois**

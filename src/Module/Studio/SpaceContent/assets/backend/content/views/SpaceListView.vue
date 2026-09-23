@@ -91,7 +91,7 @@ function when(item) {
                 {{ t("backend.studio.space_content.empty_column") }}
             </p>
 
-            <ul v-else class="aurora-card divide-y divide-line/40/40">
+            <ul v-else class="aurora-card divide-y divide-line/40">
                 <li
                     v-for="card in group.cards"
                     :key="card.id"

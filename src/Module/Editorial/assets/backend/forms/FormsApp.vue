@@ -202,7 +202,7 @@ const pageActions = computed(() => {
 
                 <AppNoData v-if="!fields.length" :message="t('backend.forms.fields.empty')" />
 
-                <div class="divide-y divide-line/40/40">
+                <div class="divide-y divide-line/40">
                     <div
                         v-for="field in fields"
                         :key="field.id"
@@ -250,7 +250,7 @@ const pageActions = computed(() => {
 
                 <AppNoData v-if="!submissions.length" :message="t('backend.forms.submissions.empty')" />
 
-                <div v-else class="divide-y divide-line/40/40">
+                <div v-else class="divide-y divide-line/40">
                     <article v-for="submission in submissions" :key="submission.id" class="py-3 space-y-1">
                         <p class="text-xs text-muted">
                             {{ submission.reference }} · {{ formatDate(submission.submittedAt) }} · {{ submission.locale }}

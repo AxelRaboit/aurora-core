@@ -309,7 +309,7 @@ const pageActions = computed(() => {
                         </th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-line/40/40">
+                <tbody class="divide-y divide-line/40">
                     <tr
                         v-for="space in visibleItems"
                         :key="space.id"

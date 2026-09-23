@@ -48,7 +48,7 @@ function roleLabel(roles, value) {
             :message="t('backend.studio.spaces.team_modal_empty')"
         />
 
-        <ul v-else class="divide-y divide-line/40/40">
+        <ul v-else class="divide-y divide-line/40">
             <li
                 v-for="member in space.members"
                 :key="member.userId"

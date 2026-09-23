@@ -134,7 +134,7 @@ const totalCustomisations = computed(() => prefs.hiddenCount.value + prefs.custo
                         />
                     </div>
                 </div>
-                <div class="divide-y divide-line/40/40">
+                <div class="divide-y divide-line/40">
                     <div
                         v-for="item in section.items"
                         :key="item.key"

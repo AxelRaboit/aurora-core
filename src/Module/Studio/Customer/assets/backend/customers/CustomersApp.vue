@@ -285,7 +285,7 @@ const pageActions = computed(() => {
                         </th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-line/40/40">
+                <tbody class="divide-y divide-line/40">
                     <tr
                         v-for="customer in visibleItems"
                         :key="customer.id"
