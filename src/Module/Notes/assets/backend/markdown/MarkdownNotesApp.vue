@@ -327,6 +327,60 @@ const visibleToTeam = computed(
 );
 
 /**
+ * Refermer le dossier qui rend cette note visible, en disant quoi.
+ *
+ * Le geste part d'une note et emporte toutes ses voisines : celui qui le
+ * fait n'en voit qu'une, donc la question nomme le dossier **et** compte
+ * ce qu'il contient. Sans ce compte, on retire la visibilité à douze notes
+ * en croyant en traiter une.
+ */
+const pendingUnshare = ref(null);
+const unsharing = ref(false);
+
+const unshareCount = computed(() => {
+    if (!pendingUnshare.value) return 0;
+
+    const dossiers = new Set([Number(pendingUnshare.value.id)]);
+    let change = true;
+
+    while (change) {
+        change = false;
+
+        for (const dossier of folders.value) {
+            const id = Number(dossier.id);
+
+            if (!dossiers.has(id) && dossiers.has(Number(dossier.parentId))) {
+                dossiers.add(id);
+                change = true;
+            }
+        }
+    }
+
+    return notes.value.filter((note) => dossiers.has(Number(note.folderId))).length;
+});
+
+async function confirmUnshare() {
+    if (!pendingUnshare.value) return;
+
+    unsharing.value = true;
+
+    const { ok, reported } = await foldersApi.share(pendingUnshare.value.id);
+
+    unsharing.value = false;
+
+    if (!ok) {
+        if (!reported) toast.error(t('notes.markdown.library.shared.failed'));
+
+        return;
+    }
+
+    pendingUnshare.value = null;
+    toast.success(t('notes.markdown.library.shared.stopped'));
+
+    await Promise.all([refreshFolders(), refreshList()]);
+}
+
+/**
  * Ce que le menu de la note porte : les gestes qu'on fait une fois.
  *
  * Exporter, envoyer un lien, choisir une image, ouvrir le graphe, rendre
@@ -377,11 +431,20 @@ const noteActions = computed(() => {
                     ? t('notes.markdown.library.shared.stop')
                     : t('notes.markdown.library.shared.start'),
             icon: Users,
-            // Quand c'est le dossier qui décide, l'entrée mène à lui plutôt
-            // que de proposer une bascule qui ne changerait rien.
-            ...(sharingFolder.value
-                ? { href: folderUrlFor(sharingFolder.value.id) }
-                : { onSelect: () => toggleTeamVisibility() }),
+            // Quand c'est le dossier qui décide, l'entrée le referme -
+            // après avoir dit ce que ça emporte. Elle menait à la page du
+            // dossier, où l'on arrivait devant son contenu sans y trouver
+            // sa carte, donc sans rien à faire : un lien qui dépose le
+            // lecteur devant une porte fermée.
+            onSelect: () => {
+                if (sharingFolder.value) {
+                    pendingUnshare.value = sharingFolder.value;
+
+                    return;
+                }
+
+                void toggleTeamVisibility();
+            },
         },
         {
             key: "graph",
@@ -767,26 +830,20 @@ onUnmounted(() => {
                              de teinte. Une infobulle se survole et un message
                              disparaît : ni l'un ni l'autre ne dit, en arrivant
                              sur la note, si elle est sortie de chez soi. -->
-                        <!-- Quand c'est le dossier qui décide, la pastille
-                             est un lien vers lui : dire « ça vient de
-                             Clients » sans donner le moyen d'y aller
-                             laisserait le lecteur devant une porte fermée,
-                             et refermer le dossier depuis une seule de ses
-                             notes retirerait la visibilité à toutes les
-                             autres sans qu'il les voie. -->
-                        <component
-                            :is="sharingFolder ? 'a' : 'span'"
+                        <!-- La pastille dit l'état, elle ne fait rien.
+                             Elle a été un lien vers le dossier, et c'était
+                             une porte fermée : on arrivait devant son
+                             contenu, sans sa carte, donc sans rien à
+                             faire. Ce qui agit vit dans le menu. -->
+                        <span
                             v-if="visibleToTeam"
-                            :href="sharingFolder ? folderUrlFor(sharingFolder.id) : undefined"
-                            :title="sharingFolder ? t('notes.markdown.library.shared.change_on_folder') : undefined"
-                            class="inline-flex shrink-0 items-center gap-1 rounded-full bg-accent-600/15 px-2 py-1 text-xs font-medium text-accent-400 no-underline"
-                            :class="sharingFolder ? 'transition-colors hover:bg-accent-600/25' : ''"
+                            class="inline-flex shrink-0 items-center gap-1 rounded-full bg-accent-600/15 px-2 py-1 text-xs font-medium text-accent-400"
                         >
                             <Users class="h-3 w-3" :stroke-width="2" />
                             {{ sharingFolder
                                 ? t('notes.markdown.library.shared.via_folder', { folder: sharingFolder.name || t('notes.markdown.folders.untitled') })
                                 : t('notes.markdown.library.shared.badge') }}
-                        </component>
+                        </span>
 
                         <input
                             v-model="form.title"
@@ -1019,6 +1076,33 @@ onUnmounted(() => {
                 v-on:close="sidePanelOpen = false"
                 v-on:navigate="selectNote"
             />
+
+            <AppModal
+                :show="null !== pendingUnshare"
+                max-width="sm"
+                :closeable="!unsharing"
+                :title="t('notes.markdown.library.shared.stop')"
+                :icon="Users"
+                v-on:close="pendingUnshare = null"
+            >
+                <p class="text-sm text-primary">
+                    {{ t('notes.markdown.library.shared.confirm_folder', {
+                        folder: pendingUnshare?.name || t('notes.markdown.folders.untitled'),
+                        count: unshareCount,
+                    }) }}
+                </p>
+                <template #footer>
+                    <AppModalFooter>
+                        <AppButton variant="ghost" size="md" :disabled="unsharing" v-on:click="pendingUnshare = null">
+                            <X class="w-3.5 h-3.5" :stroke-width="2" />
+                            {{ t('notes.markdown.cancel') }}
+                        </AppButton>
+                        <AppButton variant="primary" size="md" :loading="unsharing" v-on:click="confirmUnshare">
+                            {{ t('notes.markdown.library.shared.stop') }}
+                        </AppButton>
+                    </AppModalFooter>
+                </template>
+            </AppModal>
 
             <AppModal
                 :show="!!pendingDelete"

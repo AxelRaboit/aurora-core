@@ -134,6 +134,7 @@ notes:
         badge: Visible par l'équipe
         via_folder: 'Visible par l''équipe via le dossier {folder}'
         change_on_folder: Ouvrir le dossier pour changer cela
+        confirm_folder: 'Le dossier {folder} et les {count} notes qu''il contient cesseront d''être visibles par l''équipe.'
         by: 'Par {name}'
         read_only: Lecture seule
       visibility:
