@@ -298,6 +298,7 @@ function announce() {
         folders: folders.value,
         selectedId: selectedId.value,
         folderId: openFolderId.value,
+        noteId: selectedId.value,
     });
 }
 

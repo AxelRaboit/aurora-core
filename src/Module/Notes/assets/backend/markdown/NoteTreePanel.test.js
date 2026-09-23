@@ -56,8 +56,17 @@ function answerWith({
 const mounted = [];
 const stops = [];
 
-async function render(url = "/backend/notes/markdown") {
+async function render(url = "/backend/notes/markdown", { expanded = [] } = {}) {
     window.history.replaceState({}, "", url);
+
+    // L'arbre s'ouvre replié : un carnet de neuf cents notes déplié d'un
+    // coup est ce que la refonte a supprimé. Un cas qui regarde une branche
+    // la déplie, comme le lecteur.
+    window.localStorage.setItem(
+        "aurora.notes.panel.expanded",
+        JSON.stringify(expanded),
+    );
+
     const wrapper = mount(NoteTreePanel, { global: { plugins: [i18n] } });
     mounted.push(wrapper);
     await flushPromises();
@@ -105,9 +114,9 @@ describe("the folders panel", () => {
      * somebody and opened in a new tab.
      */
     it("points every row at the folder's own address", async () => {
-        const hrefs = folderLinks(await render()).map((a) =>
-            a.attributes("href"),
-        );
+        const hrefs = folderLinks(
+            await render("/backend/notes/markdown", { expanded: [1] }),
+        ).map((a) => a.attributes("href"));
 
         expect(hrefs).toEqual([
             "/backend/notes/markdown/folder/1",
@@ -116,10 +125,46 @@ describe("the folders panel", () => {
         ]);
     });
 
+    /**
+     * Ce que le dépliage sert : voir ce qu'un dossier contient sans quitter
+     * le menu. Replié, la ligne dit seulement combien.
+     */
+    it("shows the notes of a folder once it is unfolded", async () => {
+        const wrapper = await render();
+
+        expect(wrapper.text()).not.toContain("Journal de bord");
+
+        const chevron = wrapper
+            .find("[data-folder-row='1']")
+            .findAll("button")
+            .at(0);
+        await chevron.trigger("click");
+
+        expect(wrapper.text()).toContain("Journal de bord");
+    });
+
+    it("remembers what was unfolded, because the panel is remounted on every page", async () => {
+        const first = await render();
+
+        await first
+            .find("[data-folder-row='1']")
+            .findAll("button")
+            .at(0)
+            .trigger("click");
+
+        const second = mount(NoteTreePanel, { global: { plugins: [i18n] } });
+        mounted.push(second);
+        await flushPromises();
+
+        expect(second.text()).toContain("Journal de bord");
+    });
+
     it("nests a folder under its parent", async () => {
         // The indent is on the row, not on the link inside it: the row is the
         // drop target and the draggable handle, the link is only the name.
-        const indents = (await render())
+        const indents = (
+            await render("/backend/notes/markdown", { expanded: [1] })
+        )
             .findAll("[data-folder-row]")
             .map((row) => row.attributes("style") ?? "");
 
@@ -132,7 +177,9 @@ describe("the folders panel", () => {
         const handler = vi.fn();
         stops.push(onPanelRequest("notes:open-folder", handler));
 
-        await folderLinks(await render())[2].trigger("click");
+        await folderLinks(
+            await render("/backend/notes/markdown", { expanded: [1] }),
+        )[2].trigger("click");
 
         expect(handler).toHaveBeenCalledWith({ args: [3] });
     });
@@ -175,9 +222,7 @@ describe("the folders panel", () => {
         await wrapper.find("input").setValue("recett");
         await flushPromises();
 
-        expect(folderLinks(wrapper).map((a) => a.text())).toEqual([
-            "Recettes2",
-        ]);
+        expect(folderLinks(wrapper).map((a) => a.text())).toEqual(["Recettes"]);
     });
 
     /**
@@ -187,17 +232,21 @@ describe("the folders panel", () => {
      * does; finding a note whose folder you have forgotten is this field's
      * job, and the matched notes are listed flat beneath the folders.
      */
-    it("lists the notes that match, across the notebook", async () => {
+    /**
+     * Une recherche ouvre les branches où elle a trouvé quelque chose :
+     * laisser le résultat replié, c'est ne rien montrer.
+     */
+    it("finds a note across the notebook and opens its folder", async () => {
         const wrapper = await render();
 
         await wrapper.find("input").setValue("tarte");
         await flushPromises();
 
-        const noteLinks = wrapper
-            .findAll("a")
-            .filter((a) => /\/markdown\/\d+$/.test(a.attributes("href") ?? ""));
-
-        expect(noteLinks.map((a) => a.text())).toEqual(["TarteRecettes"]);
+        expect(wrapper.text()).toContain("Tarte");
+        // Son dossier reste affiché, sinon la note trouvée n'aurait plus de
+        // branche à laquelle se rattacher.
+        expect(wrapper.text()).toContain("Recettes");
+        expect(wrapper.text()).not.toContain("Journal de bord");
     });
 
     it("disappears rather than complaining when the fetch fails", async () => {
@@ -267,7 +316,9 @@ describe("what the panel kept from the aside", () => {
      * once on arrival and nothing ever told it otherwise.
      */
     it("takes the page's word for the list when it changes", async () => {
-        const wrapper = await render();
+        const wrapper = await render("/backend/notes/markdown", {
+            expanded: [1],
+        });
         expect(folderLinks(wrapper)).toHaveLength(3);
 
         tellPanels("notes:changed", {

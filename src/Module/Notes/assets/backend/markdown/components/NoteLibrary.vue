@@ -55,6 +55,11 @@ import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppSelectionCheck from "@/shared/components/feedback/AppSelectionCheck.vue";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { useNoteLibrary } from "@notes/backend/markdown/composables/useNoteLibrary.js";
+import {
+    NOTE_DRAG_MIME,
+    readNoteDrag,
+    startNoteDrag,
+} from "@notes/backend/markdown/composables/noteDrag.js";
 
 const props = defineProps({
     /** Every folder of the reader, flat, `{id, parentId, name, noteCount, …}`. */
@@ -569,7 +574,9 @@ async function applyMove(kind, id, targetFolderId, { quiet = false } = {}) {
 }
 
 // ── Glisser-déposer ────────────────────────────────────────────────
-const DATA_KIND = "application/x-aurora-note-item";
+//
+// Le format du presse-papier est partagé avec le panneau du menu, d'où l'on
+// glisse aussi : voir `noteDrag.js`.
 const dragOverId = ref(null);
 const rootDragOver = ref(false);
 const dragging = ref(null);
@@ -578,8 +585,7 @@ function onDragStart(kind, item, event) {
     if (!event.dataTransfer) return;
 
     dragging.value = { kind, id: Number(item.id) };
-    event.dataTransfer.effectAllowed = "move";
-    event.dataTransfer.setData(DATA_KIND, `${kind}:${item.id}`);
+    startNoteDrag(event, kind, item.id);
 }
 
 function onDragEnd() {
@@ -589,7 +595,7 @@ function onDragEnd() {
 }
 
 function acceptsDrop(event) {
-    return Boolean(event.dataTransfer?.types.includes(DATA_KIND));
+    return Boolean(event.dataTransfer?.types.includes(NOTE_DRAG_MIME));
 }
 
 function onDragOverFolder(folder, event) {
@@ -626,17 +632,16 @@ async function onDropOn(targetFolderId, event) {
     event.preventDefault();
     event.stopPropagation();
 
-    const raw = String(event.dataTransfer.getData(DATA_KIND));
-    const [kind, id] = raw.split(":");
+    const dragged = readNoteDrag(event);
 
     dragOverId.value = null;
     rootDragOver.value = false;
     dragging.value = null;
 
-    if (!id) return;
-    if ("folder" === kind && Number(id) === targetFolderId) return;
+    if (!dragged) return;
+    if ("folder" === dragged.kind && dragged.id === targetFolderId) return;
 
-    await applyMove(kind, Number(id), targetFolderId);
+    await applyMove(dragged.kind, dragged.id, targetFolderId);
 }
 
 // ── Le clavier ─────────────────────────────────────────────────────

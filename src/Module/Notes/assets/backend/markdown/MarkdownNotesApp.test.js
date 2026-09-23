@@ -67,8 +67,13 @@ PATHS.folderPaths = {
     show: "/notes/folders/__id__",
 };
 
-const NOTES = [{ id: 1, title: "Journal", folderId: null, tags: [] }];
-const FOLDERS = [{ id: 7, name: "Clients", parentId: null }];
+const NOTES = [
+    { id: 1, title: "Journal", folderId: null, tags: [] },
+    { id: 2, title: "Devis Lumen", folderId: 7, tags: [] },
+];
+const FOLDERS = [
+    { id: 7, name: "Clients", parentId: null, noteCount: 1, folderCount: 0 },
+];
 
 const mounted = [];
 
@@ -191,6 +196,47 @@ describe("what the page tells the panel", () => {
         ]) {
             expect(askPage(`notes:${intent}`, { args })).toBe(true);
         }
+    });
+});
+
+/**
+ * Ce que le panneau demande doit changer l'écran, pas seulement trouver
+ * quelqu'un au bout du fil.
+ *
+ * Le test précédent vérifiait que l'intention était *répondue* - `askPage`
+ * rend vrai dès qu'un écouteur existe - ce qui laissait passer une
+ * bibliothèque qui n'avait jamais reçu l'ordre. Axel a cliqué sur un
+ * dossier et est resté sur « Tous les documents ».
+ */
+describe("ouvrir un dossier depuis le panneau", () => {
+    it("shows what the folder holds, not the root", async () => {
+        const wrapper = render();
+        await flushPromises();
+
+        expect(wrapper.text()).toContain("Journal");
+
+        askPage("notes:open-folder", { args: [7] });
+        await flushPromises();
+
+        // Le dossier contient « Devis Lumen » et rien d'autre ; « Journal »
+        // est à la racine, donc il disparaît de la grille.
+        const cards = wrapper.findAll("article").map((one) => one.text());
+        expect(cards.some((text) => text.includes("Devis Lumen"))).toBe(true);
+        expect(cards.some((text) => text.includes("Journal"))).toBe(false);
+    });
+
+    it("comes back to the root when the panel asks for it", async () => {
+        const wrapper = render();
+        await flushPromises();
+
+        askPage("notes:open-folder", { args: [7] });
+        await flushPromises();
+
+        askPage("notes:open-folder", { args: [null] });
+        await flushPromises();
+
+        const cards = wrapper.findAll("article").map((one) => one.text());
+        expect(cards.some((text) => text.includes("Journal"))).toBe(true);
     });
 });
 

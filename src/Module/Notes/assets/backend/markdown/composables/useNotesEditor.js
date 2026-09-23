@@ -1,4 +1,4 @@
-import { ref, computed, onMounted, onBeforeUnmount, watch } from "vue";
+import { ref, computed, onBeforeUnmount, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 import { useAutoSave } from "@/shared/composables/useAutoSave.js";
@@ -323,11 +323,20 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
     }
 
     // ── Lifecycle ──────────────────────────────────────────────────────────
-    onMounted(() => {
-        if (selectedId.value === null && notes.value.length > 0) {
-            selectNote(notes.value[0].id);
-        }
-    });
+    //
+    // Plus d'ouverture automatique de la première note.
+    //
+    // Elle datait du temps où cette page n'était qu'un éditeur : sans note
+    // ouverte il n'y avait rien à montrer, donc on en ouvrait une. Depuis
+    // que le carnet a une bibliothèque, cette ligne détournait tout :
+    // arriver sur « Tous les documents » ouvrait une note, entrer dans un
+    // dossier en ouvrait une aussi, et cliquer sur un dossier dans le menu
+    // semblait ne rien faire - la bibliothèque n'était jamais montée, donc
+    // le panneau parlait à une page absente et se rabattait sur une
+    // navigation qui rouvrait une note.
+    //
+    // C'est le serveur qui décide : une adresse de note ouvre cette note
+    // (cf. `useMarkdownNotesPage`), les autres montrent la bibliothèque.
 
     function beforeUnloadHandler(event) {
         event.preventDefault();

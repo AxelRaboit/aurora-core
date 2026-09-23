@@ -174,12 +174,17 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
     {
         return [
             'clients' => [
-                'title' => 'Clients',
+                // Le sommaire ne porte pas le nom de son dossier : deux
+                // lignes « Clients » l'une sous l'autre, un dossier et une
+                // note, est exactement l'ambiguïté que les dossiers ont
+                // supprimée.
+                'title' => 'Sommaire des clients',
                 'tags' => ['index'],
+                'folder' => 'clients',
                 'content' => <<<'MD'
-                    # Clients
+                    # Sommaire des clients
 
-                    La porte d'entrée du carnet : chaque client a sa note, et
+                    La porte d'entrée du dossier : chaque client a sa note, et
                     chaque note renvoie ici.
 
                     - [[Studio Lumen]] : photo, en cours

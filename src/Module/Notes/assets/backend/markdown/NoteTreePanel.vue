@@ -1,25 +1,30 @@
 <script setup>
 /**
- * Le rangement, dans le menu latéral.
+ * Le carnet, dans le menu latéral.
  *
- * C'était l'arborescence des notes, du temps où une note qui avait des
- * enfants tenait lieu de dossier : neuf cents notes n'ont jamais été une
- * arborescence lisible. Le panneau ne porte plus que **des dossiers**, avec
- * « Tous les documents » en tête, et ce qu'il y a dedans se regarde dans la
- * bibliothèque, qui est faite pour ça.
+ * Il n'a porté que des dossiers pendant une version, et c'était une
+ * demi-réponse : on voyait le rangement sans voir ce qui est rangé. **Un
+ * dossier se déplie ici** et montre ses notes, comme dans n'importe quel
+ * explorateur ; la bibliothèque reste l'écran où l'on regarde, trie et
+ * range, le panneau celui d'où l'on atteint.
+ *
+ * **Le dépliage se retient.** Il vit dans le navigateur, pas dans le
+ * carnet : c'est une habitude de lecture, elle ne regarde que la personne
+ * assise là, et elle doit survivre au changement de page - le panneau est
+ * remonté à chaque navigation.
  *
  * **Les lignes sont de vraies adresses.** Un dossier est une page
- * (`/backend/notes/markdown/folder/42`), donc il s'envoie et le clic du
- * milieu se comporte. Au clic simple le panneau demande d'abord à la page,
- * par `modulePanelBridge` : la bibliothèque est montée, elle prend le clic et
- * change de dossier sur place. Personne à l'écoute veut dire que le lecteur
- * est ailleurs dans le module, et le lien navigue.
+ * (`/backend/notes/markdown/folder/42`), une note aussi, donc les deux
+ * s'envoient et le clic du milieu se comporte. Au clic simple le panneau
+ * demande d'abord à la page, par `modulePanelBridge` : elle est montée, elle
+ * prend le clic et change de dossier ou de note sur place. Personne à
+ * l'écoute veut dire que le lecteur est ailleurs dans le module, et le lien
+ * navigue.
  *
- * **La recherche, elle, reste globale.** C'est le seul endroit d'où l'on
- * cherche une note dans tout le carnet : la bibliothèque filtre le dossier
- * ouvert, ce qui est ce qu'on attend d'un explorateur, et pas ce qu'on
- * attend d'un champ de recherche. Les notes trouvées s'affichent sous les
- * dossiers, à plat, avec leur dossier en légende.
+ * **La recherche reste globale**, et c'est le seul endroit où elle l'est :
+ * elle traverse les titres, les étiquettes et le texte des notes - ce
+ * dernier côté serveur, les corps étant chiffrés - et l'arbre s'ouvre sur ce
+ * qu'elle a trouvé.
  */
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -32,13 +37,15 @@ import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 import { askPage, onPageNotice } from "@/shared/nav/modulePanelBridge.js";
 import { useModulePanelData } from "@/shared/nav/useModulePanelData.js";
-import { useNoteTree } from "./composables/useNoteTree.js";
+import { folderIdsIn, useNoteTree } from "./composables/useNoteTree.js";
+import { startNoteDrag } from "./composables/noteDrag.js";
 import NoteTreeItem from "./components/NoteTreeItem.vue";
 
 const FOLDERS_ENDPOINT = "/backend/notes/markdown/folders";
 const NOTES_ENDPOINT = "/backend/notes/markdown/list";
 const SEARCH_ENDPOINT = "/backend/notes/markdown/search";
 const LIBRARY_URL = "/backend/notes/markdown";
+const EXPANDED_KEY = "aurora.notes.panel.expanded";
 
 const { t } = useI18n();
 
@@ -65,12 +72,8 @@ const announcedNotes = ref(null);
 const folders = computed(() => announcedFolders.value ?? fetchedFolders.value);
 const notes = computed(() => announcedNotes.value ?? fetchedNotes.value);
 
-const selectedId = ref(null);
+const selectedKey = ref(null);
 const treeQuery = ref("");
-
-const { tree } = useNoteTree(folders, treeQuery);
-
-const isEmpty = computed(() => 0 === folders.value.length);
 
 const searching = computed(() => "" !== treeQuery.value.trim());
 
@@ -93,9 +96,7 @@ const runContentSearch = useDebounce(async (query) => {
         { method: HttpMethod.Get, noGuard: true },
     );
 
-    contentMatchIds.value = new Set(
-        (payload?.ids ?? []).map((id) => Number(id)),
-    );
+    contentMatchIds.value = new Set((payload?.ids ?? []).map((id) => Number(id)));
 }, 300);
 
 watch(treeQuery, (value) => {
@@ -110,30 +111,66 @@ watch(treeQuery, (value) => {
     runContentSearch(trimmed);
 });
 
-/** Les notes qui correspondent, dans tout le carnet, titre et étiquettes. */
-const matchingNotes = computed(() => {
-    if (!searching.value) return [];
+const { tree } = useNoteTree(folders, treeQuery, notes, contentMatchIds);
 
-    const needle = treeQuery.value.trim().toLowerCase();
+const isEmpty = computed(() => 0 === folders.value.length && 0 === notes.value.length);
 
-    return notes.value
-        .filter((note) => {
-            const title = String(note.title ?? "").toLowerCase();
-            if (title.includes(needle)) return true;
+// ── Plier, déplier ─────────────────────────────────────────────────
 
-            if (contentMatchIds.value.has(Number(note.id))) return true;
+const openedIds = ref(readStoredExpanded());
 
-            return (note.tags ?? []).some((tag) =>
-                String(tag).toLowerCase().includes(needle),
-            );
-        })
-        .slice(0, 50);
-});
+/**
+ * Ce qui est ouvert à l'écran : ce que la personne a déplié, et pendant une
+ * recherche, tout ce que l'arbre filtré contient. Une recherche qui laisse
+ * les branches fermées ne montre rien, puisque ce qu'elle a trouvé est
+ * justement replié.
+ */
+const expanded = computed(() =>
+    searching.value ? folderIdsIn(tree.value) : openedIds.value,
+);
 
-/** Un dossier est une page : la ligne offre son adresse pour tout le reste. */
-const hrefFor = (folder) => `${LIBRARY_URL}/folder/${folder.id}`;
+function toggle(node) {
+    const id = Number(node.id);
+    const next = new Set(openedIds.value);
 
-const noteHrefFor = (note) => `${LIBRARY_URL}/${note.id}`;
+    if (next.has(id)) {
+        next.delete(id);
+    } else {
+        next.add(id);
+    }
+
+    openedIds.value = next;
+    storeExpanded(next);
+}
+
+function readStoredExpanded() {
+    try {
+        const raw = window.localStorage.getItem(EXPANDED_KEY);
+        const ids = JSON.parse(raw ?? "[]");
+
+        return new Set(Array.isArray(ids) ? ids.map(Number) : []);
+    } catch {
+        // Stockage indisponible ou contenu abîmé : l'arbre s'ouvre fermé,
+        // ce qui est un défaut d'agrément, pas une panne.
+        return new Set();
+    }
+}
+
+function storeExpanded(ids) {
+    try {
+        window.localStorage.setItem(EXPANDED_KEY, JSON.stringify([...ids]));
+    } catch {
+        // Idem : une préférence de lecture, pas un état du carnet.
+    }
+}
+
+// ── Les favoris ────────────────────────────────────────────────────
+
+/** Un dossier est une page, une note aussi : chacun offre son adresse. */
+const hrefFor = (node) =>
+    "folder" === node.kind
+        ? `${LIBRARY_URL}/folder/${node.id}`
+        : `${LIBRARY_URL}/${node.id}`;
 
 /**
  * Ce qui est épinglé, dossiers puis notes, le plus récent d'abord.
@@ -149,52 +186,23 @@ const favorites = computed(() => {
     const pinned = (items, kind) =>
         items
             .filter((one) => Boolean(one.favoritedAt))
-            .map((item) => ({ kind, item }));
+            .map((item) => ({ ...item, kind, key: `${kind}:${item.id}` }));
 
     return [
         ...pinned(folders.value, "folder"),
         ...pinned(notes.value, "note"),
-    ].sort((a, b) => Date.parse(b.item.favoritedAt) - Date.parse(a.item.favoritedAt));
+    ].sort((a, b) => Date.parse(b.favoritedAt) - Date.parse(a.favoritedAt));
 });
 
-function favoriteLabel({ kind, item }) {
-    if ("folder" === kind) {
-        return item.name || t("notes.markdown.folders.untitled");
+function labelOf(node) {
+    if ("folder" === node.kind) {
+        return node.name || t("notes.markdown.folders.untitled");
     }
 
-    return item.title || t("notes.markdown.untitled");
+    return node.title || t("notes.markdown.untitled");
 }
 
-function favoriteHref({ kind, item }) {
-    return "folder" === kind ? hrefFor(item) : noteHrefFor(item);
-}
-
-function onFavoriteClick(entry, event) {
-    event.preventDefault();
-
-    if ("folder" === entry.kind) {
-        onSelect(entry.item.id);
-
-        return;
-    }
-
-    forward("select", entry.item.id);
-}
-
-const foldersById = computed(() => {
-    const map = new Map();
-    for (const folder of folders.value) map.set(Number(folder.id), folder);
-
-    return map;
-});
-
-function folderNameOf(note) {
-    const folder = note.folderId
-        ? foldersById.value.get(Number(note.folderId))
-        : null;
-
-    return folder?.name || t("notes.markdown.library.title");
-}
+// ── Ce que le panneau demande à la page ────────────────────────────
 
 /**
  * Notre propre copie de ce qui est glissé, pour que les lignes s'allument.
@@ -203,48 +211,76 @@ function folderNameOf(note) {
  * refléter ici coûte une affectation par événement qu'on transmet déjà, là
  * où le relire demanderait une annonce à chaque `dragover`.
  */
-const draggingId = ref(null);
-const dragOverId = ref(null);
+const draggingKey = ref(null);
+const dragOverKey = ref(null);
 
 function forward(name, ...args) {
     askPage(`notes:${name}`, { args });
 }
 
-function onSelect(id) {
-    selectedId.value = id;
-    forward("open-folder", id);
+/**
+ * Un clic ouvre : un dossier dans la bibliothèque, une note dans l'éditeur.
+ *
+ * La page répond aux deux ; si personne n'écoute, le lien de la ligne a déjà
+ * l'adresse et le navigateur y va.
+ */
+function onSelect(node) {
+    selectedKey.value = node.key;
+
+    if ("folder" === node.kind) {
+        forward("open-folder", Number(node.id));
+
+        return;
+    }
+
+    forward("select", Number(node.id));
 }
 
-function onDragStart(folder, event) {
-    draggingId.value = folder.id;
-    forward("drag-start", folder, event);
+function onFavoriteClick(entry, event) {
+    event.preventDefault();
+    onSelect(entry);
+}
+
+/**
+ * Le glisser part d'ici, donc le presse-papier se remplit ici.
+ *
+ * La page ne peut pas le faire à notre place : elle reçoit l'événement une
+ * fois le glisser commencé, et `setData` n'a plus d'effet à ce moment. Les
+ * lignes se laissaient saisir sans rien transporter, et le dépôt ne faisait
+ * rien du tout.
+ */
+function onDragStart(node, event) {
+    draggingKey.value = node.key;
+    startNoteDrag(event, node.kind, node.id);
 }
 
 function onDragEnd() {
-    draggingId.value = null;
-    dragOverId.value = null;
-    forward("drag-end");
+    draggingKey.value = null;
+    dragOverKey.value = null;
 }
 
-function onDragOver(folder, event) {
-    if (folder.id !== draggingId.value) dragOverId.value = folder.id;
-    forward("drag-over", folder, event);
-}
+function onDragOver(node, event) {
+    // Une note ne reçoit rien : elle ne range pas.
+    if ("folder" !== node.kind || node.key === draggingKey.value) return;
 
-function onDragLeave(folder, event) {
-    if (dragOverId.value === folder.id) dragOverId.value = null;
-    forward("drag-leave", folder, event);
-}
-
-function onDrop(folder, event) {
-    dragOverId.value = null;
-    draggingId.value = null;
-    forward("drop", folder, event);
-}
-
-function onNoteClick(note, event) {
     event.preventDefault();
-    forward("select", note.id);
+    event.stopPropagation();
+    dragOverKey.value = node.key;
+}
+
+function onDragLeave(node, event) {
+    const related = event.relatedTarget;
+    if (related && event.currentTarget.contains(related)) return;
+    if (dragOverKey.value === node.key) dragOverKey.value = null;
+}
+
+function onDrop(node, event) {
+    dragOverKey.value = null;
+    draggingKey.value = null;
+
+    if ("folder" !== node.kind) return;
+
+    forward("drop", { id: node.id }, event);
 }
 
 const stopListening = [];
@@ -256,7 +292,21 @@ onMounted(() => {
             if (Array.isArray(detail?.folders)) {
                 announcedFolders.value = detail.folders;
             }
-            if ("folderId" in (detail ?? {})) selectedId.value = detail.folderId;
+
+            // La page dit ce qu'elle montre : un dossier, une note, ou la
+            // racine. La ligne correspondante s'allume, et son dossier
+            // s'ouvre pour qu'elle soit visible.
+            if (detail?.noteId) {
+                selectedKey.value = `note:${detail.noteId}`;
+
+                return;
+            }
+
+            if ("folderId" in (detail ?? {})) {
+                selectedKey.value = detail.folderId
+                    ? `folder:${detail.folderId}`
+                    : null;
+            }
         }),
     );
 });
@@ -296,7 +346,7 @@ onUnmounted(() => {
                 size="sm"
                 variant="ghost"
                 :title="t('notes.markdown.folders.create')"
-                v-on:click="forward('create-folder', selectedId)"
+                v-on:click="forward('create-folder', null)"
             >
                 <FolderPlus class="h-3.5 w-3.5" :stroke-width="2" />
             </AppIconButton>
@@ -304,7 +354,7 @@ onUnmounted(() => {
                 size="sm"
                 variant="ghost"
                 :title="t('notes.markdown.create_root')"
-                v-on:click="forward('create', selectedId)"
+                v-on:click="forward('create', null)"
             >
                 <Plus class="h-3.5 w-3.5" :stroke-width="2" />
             </AppIconButton>
@@ -319,21 +369,8 @@ onUnmounted(() => {
             />
         </div>
 
-        <!-- La racine est une ligne comme les autres : c'est là qu'on
-             retombe, et une arborescence sans son sommet oblige à deviner
-             comment y revenir. -->
-        <a
-            :href="LIBRARY_URL"
-            class="group mb-0.5 flex min-w-0 items-center gap-2 rounded-lg border border-transparent px-3 py-2 text-sm no-underline transition-colors"
-            :class="null === selectedId ? 'border-accent-600/30 bg-accent-600/15 text-accent-400' : 'text-primary hover:bg-surface-2'"
-            v-on:click.prevent="onSelect(null)"
-        >
-            <FileText class="h-4 w-4 shrink-0" :stroke-width="2" />
-            <span class="flex-1 truncate">{{ t('notes.markdown.library.title') }}</span>
-        </a>
-
-        <!-- Les favoris, avant l'arborescence : ce qu'on vient chercher
-             tous les jours n'a pas à se retrouver dans un arbre. -->
+        <!-- Les favoris, avant l'arborescence : ce qu'on vient chercher tous
+             les jours n'a pas à se retrouver dans un arbre. -->
         <div v-if="favorites.length" class="mb-2 border-b border-line pb-2">
             <p class="px-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted">
                 {{ t('notes.markdown.library.favorites') }}
@@ -341,9 +378,9 @@ onUnmounted(() => {
 
             <a
                 v-for="entry in favorites"
-                :key="`${entry.kind}-${entry.item.id}`"
-                :data-favorite-row="`${entry.kind}-${entry.item.id}`"
-                :href="favoriteHref(entry)"
+                :key="entry.key"
+                :data-favorite-row="entry.key"
+                :href="hrefFor(entry)"
                 class="flex min-w-0 items-center gap-2 rounded-lg px-3 py-2 text-sm text-primary no-underline transition-colors hover:bg-surface-2"
                 v-on:click="onFavoriteClick(entry, $event)"
             >
@@ -352,24 +389,44 @@ onUnmounted(() => {
                     class="h-4 w-4 shrink-0 text-muted"
                     :stroke-width="2"
                 />
-                <span class="min-w-0 flex-1 truncate">{{ favoriteLabel(entry) }}</span>
+                <span class="min-w-0 flex-1 truncate">{{ labelOf(entry) }}</span>
             </a>
         </div>
+
+        <!-- La racine est une ligne comme les autres : c'est là qu'on
+             retombe, et une arborescence sans son sommet oblige à deviner
+             comment y revenir. -->
+        <a
+            :href="LIBRARY_URL"
+            data-root-row
+            class="group mb-0.5 flex min-w-0 items-center gap-2 rounded-lg border border-transparent px-3 py-2 text-sm no-underline transition-colors"
+            :class="null === selectedKey ? 'border-accent-600/30 bg-accent-600/15 text-accent-400' : 'text-primary hover:bg-surface-2'"
+            v-on:click.prevent="onSelect({ kind: 'folder', id: null, key: null })"
+        >
+            <FileText class="h-4 w-4 shrink-0" :stroke-width="2" />
+            <span class="flex-1 truncate">{{ t('notes.markdown.library.title') }}</span>
+        </a>
 
         <p v-if="isEmpty && !searching" class="px-3 py-1 text-xs text-muted">
             {{ t("notes.markdown.folders.tree_empty") }}
         </p>
 
+        <p v-else-if="searching && !tree.length" class="px-3 py-1 text-xs text-muted">
+            {{ t("notes.markdown.search_no_results") }}
+        </p>
+
         <NoteTreeItem
             v-for="node in tree"
-            :key="node.id"
+            :key="node.key"
             :node="node"
-            :selected-id="selectedId"
+            :selected-key="selectedKey"
+            :expanded="expanded"
             :draggable="true"
-            :dragging-id="draggingId"
-            :drag-over-id="dragOverId"
+            :dragging-key="draggingKey"
+            :drag-over-key="dragOverKey"
             :href-for="hrefFor"
             v-on:select="onSelect"
+            v-on:toggle="toggle"
             v-on:create-note="(id) => forward('create', id)"
             v-on:delete="(folder) => forward('delete-folder', folder)"
             v-on:drag-start="onDragStart"
@@ -378,27 +435,5 @@ onUnmounted(() => {
             v-on:drag-leave="onDragLeave"
             v-on:drop="onDrop"
         />
-
-        <!-- Les notes trouvées, à plat : une recherche ne répond pas par une
-             arborescence, elle répond par une liste. -->
-        <div v-if="searching" class="mt-2 border-t border-line pt-2">
-            <p v-if="!matchingNotes.length" class="px-3 py-1 text-xs text-muted">
-                {{ t("notes.markdown.search_no_results") }}
-            </p>
-
-            <a
-                v-for="note in matchingNotes"
-                :key="note.id"
-                :href="noteHrefFor(note)"
-                class="flex min-w-0 items-center gap-2 rounded-lg px-3 py-2 text-sm no-underline text-primary transition-colors hover:bg-surface-2"
-                v-on:click="onNoteClick(note, $event)"
-            >
-                <FileText class="h-4 w-4 shrink-0 text-muted" :stroke-width="2" />
-                <span class="min-w-0 flex-1 truncate">
-                    {{ note.title || t('notes.markdown.untitled') }}
-                </span>
-                <span class="shrink-0 truncate text-xs text-muted">{{ folderNameOf(note) }}</span>
-            </a>
-        </div>
     </AppModulePanel>
 </template>

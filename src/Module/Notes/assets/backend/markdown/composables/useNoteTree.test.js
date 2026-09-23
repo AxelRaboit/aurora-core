@@ -57,6 +57,54 @@ describe("useNoteTree", () => {
         expect(tree.value).toEqual([]);
     });
 
+    /**
+     * Le dépliage sert à voir ce qui est rangé : les notes sont dans
+     * l'arbre, à la suite des sous-dossiers de leur dossier.
+     */
+    it("files the notes under their folder, after the sub-folders", () => {
+        const notes = [
+            { id: 11, folderId: 1, title: "Devis" },
+            { id: 12, folderId: null, title: "À la racine" },
+        ];
+
+        const { tree } = useNoteTree(ref(FOLDERS), null, ref(notes));
+
+        const clients = tree.value[0];
+        expect(clients.kind).toBe("folder");
+        expect(clients.children.map((child) => child.kind)).toEqual([
+            "folder",
+            "folder",
+            "note",
+        ]);
+
+        // Ce qui n'est rangé nulle part ferme la liste, à côté des dossiers.
+        expect(tree.value.at(-1)).toMatchObject({ kind: "note", id: 12 });
+    });
+
+    it("keeps a note's folder on screen when the note is the match", () => {
+        const notes = [{ id: 11, folderId: 3, title: "Tarte" }];
+
+        const { tree } = useNoteTree(ref(FOLDERS), ref("tarte"), ref(notes));
+
+        expect(tree.value).toHaveLength(1);
+        expect(tree.value[0]).toMatchObject({ id: 1, matched: false });
+        expect(collectIds(tree.value)).toContain(11);
+    });
+
+    /** Le texte d'une note est au serveur : il arrive par ses identifiants. */
+    it("takes the content matches the server resolved", () => {
+        const notes = [{ id: 11, folderId: 1, title: "Sans rapport" }];
+
+        const { tree } = useNoteTree(
+            ref(FOLDERS),
+            ref("facture"),
+            ref(notes),
+            ref(new Set([11])),
+        );
+
+        expect(collectIds(tree.value)).toContain(11);
+    });
+
     it("rebuilds when the list changes", async () => {
         const folders = ref(FOLDERS);
         const { tree } = useNoteTree(folders);
