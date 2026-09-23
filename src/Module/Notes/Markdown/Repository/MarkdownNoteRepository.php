@@ -37,13 +37,13 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
      * n'affichait aucune date ; le jour où la bibliothèque a montré « modifiée
      * le », le formatage a levé et la page entière est restée blanche.
      *
-     * @return list<array{id: int, title: string|null, tags: list<string>, position: int, createdAt: string, updatedAt: string, favoritedAt: string|null, folderId: int|null}>
+     * @return list<array{id: int, title: string|null, tags: list<string>, position: int, createdAt: string, updatedAt: string, favoritedAt: string|null, sharedAt: string|null, folderId: int|null}>
      */
     public function findFlatListForUser(CoreUserInterface $user): array
     {
         /** @var list<array<string, mixed>> $rows */
         $rows = $this->createQueryBuilder('n')
-            ->select('n.id', 'n.title', 'n.tags', 'n.position', 'n.createdAt', 'n.updatedAt', 'n.favoritedAt', 'IDENTITY(n.folder) AS folderId')
+            ->select('n.id', 'n.title', 'n.tags', 'n.position', 'n.createdAt', 'n.updatedAt', 'n.favoritedAt', 'n.sharedAt', 'IDENTITY(n.folder) AS folderId')
             ->where('n.user = :user')
             ->andWhere('n.deletedAt IS NULL')
             ->setParameter('user', $user)
@@ -57,6 +57,13 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
             'createdAt' => self::asAtom($row['createdAt'] ?? null),
             'updatedAt' => self::asAtom($row['updatedAt'] ?? null),
             'favoritedAt' => self::asAtom($row['favoritedAt'] ?? null),
+            // Sans cette ligne, l'écran ne savait jamais qu'une note est
+            // ouverte à l'équipe : la marque ne s'affichait pas, le filtre
+            // ne trouvait rien, et la bascule de la barre croyait toujours
+            // partir d'une note privée - donc disait toujours la même
+            // chose. La liste plate ne sert pas le sérialiseur, il faut
+            // lui nommer chaque colonne.
+            'sharedAt' => self::asAtom($row['sharedAt'] ?? null),
         ], $rows);
     }
 

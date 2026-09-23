@@ -132,6 +132,7 @@ notes:
         failed: Could not change the visibility.
         section: Visible to me
         badge: Visible to the team
+        via_folder: 'Visible to the team through the {folder} folder'
         by: 'By {name}'
         read_only: Read-only
       visibility:

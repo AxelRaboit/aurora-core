@@ -190,29 +190,6 @@ const previewBody = computed(() =>
  * gestes différents portaient le même mot, et il en manquait un là où on
  * l'attend.
  */
-const sharedWithTeam = computed(() => Boolean(selectedNote.value?.sharedAt));
-
-async function toggleTeamVisibility() {
-    if (!selectedId.value) return;
-
-    const etait = sharedWithTeam.value;
-    const { ok, reported } = await api.shareInternally(selectedId.value);
-
-    if (!ok) {
-        if (!reported) toast.error(t('notes.markdown.library.shared.failed'));
-
-        return;
-    }
-
-    toast.success(
-        etait
-            ? t('notes.markdown.library.shared.stopped')
-            : t('notes.markdown.library.shared.started'),
-    );
-
-    await refreshList();
-}
-
 const readHref = computed(() =>
     selectedId.value && props.readPath
         ? props.readPath.replace('__id__', String(selectedId.value))
@@ -315,6 +292,59 @@ const libraryRef = ref(null);
  * initiale : la bibliothèque navigue sans recharger.
  */
 const openFolderId = ref(props.folderId);
+
+const sharedWithTeam = computed(() => Boolean(selectedNote.value?.sharedAt));
+
+/**
+ * Le dossier qui rend cette note visible sans qu'elle porte rien.
+ *
+ * Une note rangée dans un dossier ouvert à l'équipe **est** visible, mais
+ * sa propre marque est vide : afficher « Rendre visible » sur une note que
+ * tout le monde voit déjà serait un mensonge. On remonte donc la chaîne
+ * des parents pour nommer le dossier responsable, et la bascule de la note
+ * s'efface devant lui - c'est là-bas que ça se change.
+ */
+const sharingFolder = computed(() => {
+    const parId = new Map(folders.value.map((one) => [Number(one.id), one]));
+
+    let dossier = parId.get(Number(selectedNote.value?.folderId));
+    const vus = new Set();
+
+    while (dossier && !vus.has(Number(dossier.id))) {
+        vus.add(Number(dossier.id));
+
+        if (dossier.sharedAt) return dossier;
+
+        dossier = parId.get(Number(dossier.parentId));
+    }
+
+    return null;
+});
+
+const visibleToTeam = computed(
+    () => sharedWithTeam.value || null !== sharingFolder.value,
+);
+
+async function toggleTeamVisibility() {
+    if (!selectedId.value) return;
+
+    const etait = sharedWithTeam.value;
+    const { ok, reported } = await api.shareInternally(selectedId.value);
+
+    if (!ok) {
+        if (!reported) toast.error(t('notes.markdown.library.shared.failed'));
+
+        return;
+    }
+
+    toast.success(
+        etait
+            ? t('notes.markdown.library.shared.stopped')
+            : t('notes.markdown.library.shared.started'),
+    );
+
+    await refreshList();
+}
 
 function folderUrlFor(id) {
     return props.folderPaths.show.replace('__id__', String(id));
@@ -655,6 +685,21 @@ onUnmounted(() => {
                              son filet et son anneau de focus, et les enlever
                              un par un en classes aurait laissé un composant
                              qui promet une apparence qu'il n'a plus. -->
+                        <!-- L'état, écrit, pas seulement une icône qui change
+                             de teinte. Une infobulle se survole et un message
+                             disparaît : ni l'un ni l'autre ne dit, en arrivant
+                             sur la note, si elle est sortie de chez soi. -->
+                        <span
+                            v-if="visibleToTeam"
+                            class="inline-flex shrink-0 items-center gap-1 rounded-full bg-accent-600/15 px-2 py-1 text-xs font-medium text-accent-400"
+                            :title="sharingFolder ? t('notes.markdown.library.shared.via_folder', { folder: sharingFolder.name || t('notes.markdown.folders.untitled') }) : undefined"
+                        >
+                            <Users class="h-3 w-3" :stroke-width="2" />
+                            {{ sharingFolder
+                                ? t('notes.markdown.library.shared.via_folder', { folder: sharingFolder.name || t('notes.markdown.folders.untitled') })
+                                : t('notes.markdown.library.shared.badge') }}
+                        </span>
+
                         <input
                             v-model="form.title"
                             type="text"
@@ -695,10 +740,12 @@ onUnmounted(() => {
                                  « partager » faisait hésiter, ce qui s'est
                                  vu tout de suite. -->
                             <AppIconButton
-                                :class="sharedWithTeam ? 'text-accent-400' : ''"
-                                :title="sharedWithTeam ? t('notes.markdown.library.shared.stop') : t('notes.markdown.library.shared.start')"
+                                :class="visibleToTeam ? 'text-accent-400' : ''"
+                                :title="sharingFolder
+                                    ? t('notes.markdown.library.shared.via_folder', { folder: sharingFolder.name || t('notes.markdown.folders.untitled') })
+                                    : sharedWithTeam ? t('notes.markdown.library.shared.stop') : t('notes.markdown.library.shared.start')"
                                 size="md"
-                                :disabled="!selectedId"
+                                :disabled="!selectedId || null !== sharingFolder"
                                 v-on:click="toggleTeamVisibility"
                             >
                                 <Users class="w-4 h-4" :stroke-width="2" />
