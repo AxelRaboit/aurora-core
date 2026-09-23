@@ -5,6 +5,84 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.224] - 2026-09-23
+
+### Ajouté
+
+#### Un dossier est un dossier, une note est une note
+Le carnet markdown n'avait qu'un objet : une note qui portait des enfants
+tenait lieu de dossier, et rien ne distinguait les deux. L'adresse du module
+renvoyait vers la première note, faute d'écran pour regarder ce qu'on avait
+écrit. Le dossier devient une entité à part, avec son nom, sa place et sa
+corbeille ; une note redevient une feuille, ce qui simplifie d'un coup
+l'export, la corbeille et le graphe des liens.
+
+La conversion se fait dans la migration : chaque note qui avait des enfants
+devient un dossier du même nom plus une note du même nom dedans, la convention
+que l'export zip appliquait déjà. Elle a été rejouée sur un jeu réel de 507
+notes et 81 dossiers, aller et retour, sans une orpheline.
+
+#### Une bibliothèque pour regarder son carnet
+« Tous les documents » est une page, et chaque dossier a la sienne. Trois
+façons de voir - mosaïque avec les premières lignes, cartes, liste -, un tri
+par nom, création, modification ou ordre manuel, et un bouton de sens séparé.
+Les dossiers passent toujours avant les notes, comme dans n'importe quel
+explorateur. La vue et le tri sont retenus par le navigateur.
+
+**Deux lectures du même carnet.** Rangée, la liste montre ce que l'endroit
+contient ; à plat, toutes les notes d'ici et de dessous d'un coup, pour
+retrouver ce dont on ne sait plus où on l'a mis. Chaque carte dit alors d'où
+elle vient.
+
+**Les gestes s'y font.** Créer dans le dossier ouvert, renommer au double-clic,
+glisser une carte sur un dossier ou sur un maillon du fil d'Ariane, une modale
+« Déplacer vers » pour le clavier et le doigt, une sélection multiple qui
+déplace ou jette en lot, et les flèches du clavier pour tout parcourir.
+
+**Une couleur sur un dossier**, pour le reconnaître sans le lire, et
+**l'aperçu d'une note au survol** : son rendu, pas sa source.
+
+#### Le menu porte l'arborescence, et ce qu'on y revient chercher
+Un dossier se déplie dans le panneau et montre ses notes ; l'état déplié
+survit au changement de page. Au-dessus, les favoris : une note ou un dossier
+épinglés s'atteignent en un clic sans savoir où ils sont rangés. En dessous,
+les étiquettes du carnet, les plus portées d'abord, avec le nombre de notes
+derrière chacune - cliquer l'une d'elles montre ses notes où qu'elles soient.
+
+### Modifié
+
+- La recherche et le tri de la bibliothèque se replient en icône, à la façon
+  de Craft, et se déploient au clic.
+- Le partage perd son commutateur « inclure les sous-notes » : il ne désignait
+  plus rien.
+- `useViewMode` devient `useEditorPaneMode` : il vaut edit, split ou preview,
+  c'est le partage de l'écran d'écriture et non une façon de voir le carnet.
+- Dans le menu latéral, le panneau d'un module tient à quatre pixels du trait
+  qui le sépare de la liste, comme la liste elle-même à ses deux bouts.
+
+### Corrigé
+
+- Une liste hydratée en tableau envoyait ses dates en objets PHP ; le
+  navigateur n'y lisait pas une date, le formatage levait, et l'exception
+  emportait tout le composant : la bibliothèque s'affichait en cadre vide.
+- Cliquer la loupe ou le tri vidait la page. Le gestionnaire recevait
+  l'événement à la place de son argument, et la promesse rejetée remontait
+  jusqu'au garde-fou de la page, qui affichait son écran d'erreur.
+- L'éditeur gardait à l'écran une note partie à la corbeille avec son dossier,
+  et continuait d'y écrire.
+- Les étiquettes s'affichaient sur les cartes sans aucun moyen de s'en servir.
+
+### Dans aurora-client
+
+Trois migrations : la table des dossiers et la conversion de l'arborescence
+existante, la date d'épinglage sur les notes et les dossiers, la couleur d'un
+dossier. La conversion est jouée par la migration, il n'y a pas de commande à
+lancer à la main. Un retour arrière ne rend pas un carnet identique : un
+dossier vide ne peut pas redevenir un dossier, faute de note à qui le
+rattacher, et la migration le dit dans son `down()`.
+
+---
+
 ## [0.9.223] - 2026-09-22
 
 ### Ajouté

@@ -9,7 +9,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 final readonly class MarkdownNoteReorderInput
 {
     /**
-     * @param list<array{id: int, parentId: ?int, position: int}> $entries
+     * @param list<array{id: int, folderId: ?int, position: int}> $entries
      */
     public function __construct(
         #[Assert\NotNull]

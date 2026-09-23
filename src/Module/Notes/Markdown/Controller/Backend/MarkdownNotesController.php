@@ -10,6 +10,8 @@ use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Storage\Access\UploadPolicyProvider;
 use Aurora\Core\Storage\Access\UploadRefusalEnum;
 use Aurora\Core\Validation\Service\PayloadValidator;
+use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
+use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
 use Aurora\Module\Notes\Markdown\Dto\MarkdownNoteInputFactoryInterface;
 use Aurora\Module\Notes\Markdown\Dto\MarkdownNoteReorderInputFactoryInterface;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
@@ -17,11 +19,9 @@ use Aurora\Module\Notes\Markdown\Manager\MarkdownNoteManagerInterface;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
 use Aurora\Module\Notes\Markdown\Serializer\MarkdownNoteSerializerInterface;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteArchive;
-use Aurora\Module\Notes\Markdown\Service\MarkdownNoteHierarchyService;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteImporter;
 use Aurora\Module\Notes\Markdown\View\MarkdownNotesViewBuilder;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
-use InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -40,8 +40,6 @@ use function is_numeric;
 use function preg_replace;
 use function sprintf;
 
-use const DATE_ATOM;
-
 #[Route('/backend/notes/markdown', name: 'backend_notes_markdown')]
 #[IsGranted('notes.markdown.use')]
 final class MarkdownNotesController extends AbstractController
@@ -57,21 +55,19 @@ final class MarkdownNotesController extends AbstractController
         private readonly MarkdownNoteReorderInputFactoryInterface $reorderInputFactory,
         private readonly PayloadValidator $payloadValidator,
         private readonly MarkdownNotesViewBuilder $viewBuilder,
-        private readonly MarkdownNoteHierarchyService $hierarchy,
+        private readonly NoteFolderRepository $folders,
         private readonly MarkdownNoteArchive $archive,
         private readonly MarkdownNoteImporter $importer,
         private readonly UploadPolicyProvider $uploadPolicies,
     ) {}
 
     /**
-     * Backend page render - mounts the Vue MarkdownNotesApp with the URL
-     * map preloaded by the view builder. Initial note list is fetched
-     * client-side via the JSON list endpoint.
-     */
-    /**
-     * Sends the reader to their first note, so a note has one address and the
-     * listing has none of its own. Renders the empty state when there is no
-     * note to send them to.
+     * Tous les documents : le carnet, à sa racine.
+     *
+     * L'adresse rendait la première note, faute de page à montrer. Le carnet
+     * a maintenant la sienne, et c'est elle qui accueille : ce qu'on cherche
+     * en arrivant est le plus souvent une note qu'on n'a pas sous les yeux,
+     * pas celle qu'on a ouverte en dernier.
      */
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
     public function index(): Response
@@ -79,19 +75,42 @@ final class MarkdownNotesController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        $notes = $this->repository->findFlatListForUser($user);
-        $first = $notes[0]['id'] ?? null;
-
-        if (null !== $first) {
-            return $this->redirectToRoute('backend_notes_markdown_show', ['id' => $first]);
-        }
-
         return $this->render('@Notes/backend/markdown/index.html.twig', $this->viewBuilder->indexView($user));
     }
 
     /**
-     * Flat list of all the current user's notes (no content). The Vue
-     * frontend rebuilds the tree from parent_id + position.
+     * Le contenu d'un dossier, à son adresse.
+     *
+     * Une adresse par dossier, comme une adresse par note : elle se
+     * transmet, le clic du milieu ouvre un onglet, et le fil d'Ariane est
+     * calculé côté serveur pour que le rechargement n'affiche pas la racine
+     * une fraction de seconde.
+     */
+    #[Route('/folder/{id}', name: '_folder', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Get->value])]
+    public function folder(int $id): Response
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        $folder = $this->folders->findOneByUserAndId($user, $id);
+
+        if (!$folder instanceof NoteFolderInterface || $folder->isTrashed()) {
+            throw $this->createNotFoundException();
+        }
+
+        return $this->render(
+            '@Notes/backend/markdown/index.html.twig',
+            $this->viewBuilder->indexView($user, folder: $folder),
+        );
+    }
+
+    /**
+     * Toutes les notes de la personne, à plat, sans leur texte.
+     *
+     * Avec leur premier paragraphe quand même : c'est ce que la vue en
+     * mosaïque montre sur une carte, et le faire ici évite une requête par
+     * carte. Le reste du corps ne quitte pas le serveur tant qu'une note
+     * n'est pas ouverte.
      */
     #[Route('/list', name: '_list', methods: [HttpMethodEnum::Get->value])]
     public function list(): JsonResponse
@@ -99,34 +118,14 @@ final class MarkdownNotesController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
+        $excerpts = $this->repository->findExcerptsForUser($user);
+
         return $this->jsonSuccess([
-            'notes' => $this->repository->findFlatListForUser($user),
+            'notes' => array_map(
+                static fn (array $note): array => [...$note, 'excerpt' => $excerpts[(int) $note['id']] ?? null],
+                $this->repository->findFlatListForUser($user),
+            ),
         ]);
-    }
-
-    /**
-     * The notes waiting in the trash.
-     *
-     * Titles only, and only the ones trashed on their own: a sub-note that
-     * fell with its parent comes back with it, and listing it separately would
-     * offer a restore that puts a page under a parent still deleted.
-     */
-    #[Route('/trash', name: '_trash', methods: [HttpMethodEnum::Get->value])]
-    public function trash(): JsonResponse
-    {
-        /** @var CoreUserInterface $user */
-        $user = $this->getUser();
-
-        $notes = array_map(
-            static fn (MarkdownNoteInterface $note): array => [
-                'id' => $note->getId(),
-                'title' => $note->getTitle(),
-                'deletedAt' => $note->getDeletedAt()?->format(DATE_ATOM),
-            ],
-            $this->repository->findTrashedRootsForUser($user),
-        );
-
-        return $this->jsonSuccess(['notes' => $notes]);
     }
 
     #[Route('/{id}/restore', name: '_restore', methods: [HttpMethodEnum::Post->value])]
@@ -244,7 +243,7 @@ final class MarkdownNotesController extends AbstractController
     /**
      * Des fichiers Markdown, ou un zip, remis en notes.
      *
-     * Sous le parent nommé, ou à la racine. Rien n'est écrasé : une note du
+     * Dans le dossier nommé, ou à la racine. Rien n'est écrasé : une note du
      * même nom donne une seconde note, parce que fusionner demanderait de
      * décider ce qui gagne et que personne ne l'a demandé ici.
      */
@@ -262,13 +261,13 @@ final class MarkdownNotesController extends AbstractController
             return $this->jsonInvalidInput(['files' => 'notes.markdown.import.errors.required']);
         }
 
-        $parentId = $request->request->get('parentId');
-        $parent = null;
+        $folderId = $request->request->get('folderId');
+        $folder = null;
 
-        if (is_numeric($parentId)) {
-            $parent = $this->repository->findOneByUserAndId($user, (int) $parentId);
+        if (is_numeric($folderId)) {
+            $folder = $this->folders->findOneByUserAndId($user, (int) $folderId);
 
-            if (!$parent instanceof MarkdownNoteInterface) {
+            if (!$folder instanceof NoteFolderInterface) {
                 return $this->jsonNotFound();
             }
         }
@@ -286,7 +285,7 @@ final class MarkdownNotesController extends AbstractController
                 }]);
             }
 
-            $created += $this->importer->import($user, $file, $parent);
+            $created += $this->importer->import($user, $file, $folder);
         }
 
         return $this->jsonSuccess(['created' => $created]);
@@ -379,23 +378,34 @@ final class MarkdownNotesController extends AbstractController
         }
 
         $data = $this->decodeJson($request);
-        $parentId = isset($data['parentId']) ? (int) $data['parentId'] : null;
+        $raw = $data['folderId'] ?? null;
 
-        $parent = null;
-        if (null !== $parentId) {
-            $parent = $this->repository->findOneByUserAndId($user, $parentId);
-            if (!$parent instanceof MarkdownNoteInterface) {
+        $folder = null;
+        if (null !== $raw && '' !== $raw) {
+            $folder = $this->folders->findOneByUserAndId($user, (int) $raw);
+            if (!$folder instanceof NoteFolderInterface) {
                 return $this->jsonNotFound();
-            }
-
-            if ($this->hierarchy->wouldCreateCycle($note, $parent)) {
-                return $this->jsonFailure('cycle', extra: ['message' => 'Cannot move a note under one of its descendants.']);
             }
         }
 
-        $this->manager->move($note, $parent);
+        $this->manager->move($note, $folder);
 
         return $this->jsonSuccess(['note' => $this->serializer->serializeListItem($note)]);
+    }
+
+    /** Épingler une note au menu, ou l'en décrocher. */
+    #[Route('/{id}/favorite', name: '_favorite', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Post->value])]
+    public function favorite(int $id): JsonResponse
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        $note = $this->repository->findOneByUserAndId($user, $id);
+        if (!$note instanceof MarkdownNoteInterface) {
+            return $this->jsonNotFound();
+        }
+
+        return $this->jsonSuccess(['favorite' => $this->manager->toggleFavorite($note)]);
     }
 
     #[Route('/{id}/backlinks', name: '_backlinks', methods: [HttpMethodEnum::Get->value])]
@@ -453,11 +463,7 @@ final class MarkdownNotesController extends AbstractController
 
         $input = $this->reorderInputFactory->fromArray($this->decodeJson($request));
 
-        try {
-            $this->manager->reorder($user, $input->entries);
-        } catch (InvalidArgumentException) {
-            return $this->jsonFailure('cycle', extra: ['message' => 'Reorder would create a cycle.']);
-        }
+        $this->manager->reorder($user, $input->entries);
 
         return $this->jsonSuccess();
     }
@@ -488,7 +494,13 @@ final class MarkdownNotesController extends AbstractController
                 throw $this->createNotFoundException();
             }
 
-            return $this->render('@Notes/backend/markdown/index.html.twig', $this->viewBuilder->indexView($user, $id));
+            // Le dossier de la note voyage avec elle : le fil d'Ariane le
+            // montre, et le retour à la bibliothèque rend l'endroit où la
+            // note est rangée plutôt que la racine.
+            return $this->render(
+                '@Notes/backend/markdown/index.html.twig',
+                $this->viewBuilder->indexView($user, $id, $note->getFolder()),
+            );
         }
 
         if (!$note instanceof MarkdownNoteInterface) {

@@ -30,6 +30,12 @@ backend:
           created: Note created
           updated: Note updated
           deleted: Note permanently deleted
+        folder:
+          created: Folder created
+          updated: Folder updated
+          trashed: Folder moved to the trash
+          restored: Folder restored
+          deleted: Folder permanently deleted
         share_link:
           created: Share link created
           revoked: Share link revoked
@@ -45,8 +51,6 @@ notes:
       page_heading: Shared note
       read_only: Read only
       tree_label: Notes in this share
-      include_descendants: Include the sub-notes
-      include_descendants_hint: The notes filed under this one, in the tree.
       include_linked: Include the linked notes
       include_linked_hint: Notes named by a [[…]] link, and the ones they name in turn.
       also_shared: '{count} other note will be shared:|{count} other notes will be shared:'
@@ -80,10 +84,95 @@ notes:
         subject: '%title% has been shared with you'
         title: A note has been shared with you
         intro: '%name% shared the note "%title%" with you.'
-        includes_descendants: Other notes connected to this one are included.
         open: Open the note
         expires: 'This link expires on %date%.'
         read_only: You can read this note, not edit it.
+    folders:
+      title: Folders
+      trash_label: Note folders
+      root: All documents
+      create: New folder
+      created: Folder created
+      rename: Rename
+      renamed: Folder renamed
+      name_placeholder: Folder name…
+      color: Colour
+      untitled: Untitled folder
+      delete: Delete the folder
+      confirm_delete: 'Send "{name}" to the trash, with what it holds?'
+      deleted: Folder moved to the trash
+      move_to: Move to…
+      move_root: All documents
+      moved: Item moved
+      open: Open the folder
+      contents: '{folders} folders · {notes} notes'
+      tree_empty: No folder yet.
+      errors:
+        move_refused: 'Move refused: a folder cannot be filed inside itself, nor deeper than {max} levels.'
+        bad_payload: Invalid payload.
+        bad_color: 'Invalid colour: it must look like #rrggbb.'
+        create_failed: Could not create the folder.
+        rename_failed: Could not rename the folder.
+        delete_failed: Could not delete the folder.
+        move_failed: Could not move the item.
+        load_failed: Could not load the folder.
+    library:
+      title: All documents
+      new_note: New note
+      recent: Recently changed
+      favorites: Favourites
+      pin: Pin to the menu
+      unpin: Remove from favourites
+      pin_failed: This item could not be pinned.
+      selected: '{count} selected'
+      select: Select
+      clear_selection: Clear the selection
+      some_refused: '{count} items could not be handled.'
+      confirm_delete_selection: 'Send the {count} selected items to the trash?'
+      new_folder: New folder
+      search_placeholder: Search the notes…
+      preview:
+        empty: This note is empty.
+      tag:
+        section: Tags
+        filter: 'See the notes tagged {tag}'
+        clear: Clear the filter
+        pin: Pin this tag
+        unpin: Unpin this tag
+        show_all: '+ {count} more'
+        none: No note carries this tag
+        none_description: 'Nothing is tagged "{tag}" any more.'
+      view:
+        label: View
+        mosaic: Mosaic
+        cards: Cards
+        list: List
+      scope:
+        flat: Show everything flat
+        grouped: Show folders
+        open_folder: 'Open the {folder} folder'
+      sort:
+        label: Sort
+        name: Name
+        created: Created
+        updated: Updated
+        manual: Manual order
+        move_up: Move up
+        move_down: Move down
+        asc: Ascending
+        desc: Descending
+      columns:
+        name: Name
+        tags: Tags
+        updated: Updated
+        location: Location
+      empty:
+        title: This folder is empty
+        description: Create a note or a folder, or drag one in here.
+      empty_root:
+        title: No document yet
+        description: Create your first note, or a folder to file things in.
+      count: '{count} items'
     image:
       upload_failed: The image could not be uploaded.
     title: Markdown notes
@@ -91,14 +180,13 @@ notes:
     delete: Delete
     cancel: Cancel
     saved: Note saved
-    delete_warning: This action cannot be undone. Child notes will be detached from this parent.
+    delete_warning: The note goes to the trash. You can restore it from there.
     untitled: Untitled
     title_placeholder: Note title…
-    search_placeholder: Search the tree…
+    search_placeholder: Search the notes…
     search_no_results: No results
     search_no_results_description: 'No note matches "{query}".'
     resize_handle: Drag to resize
-    drag_handle: Drag to reorder
     content_placeholder: "# Write markdown here\n\nLink to other notes with [[Title]]"
     create_root: New note
     export:
@@ -109,8 +197,7 @@ notes:
       done: "No note imported | 1 note imported | {count} notes imported"
       errors:
         required: Choose at least one file.
-    tree_empty: No note yet.
-    create_child: Add a child note
+    create_in_folder: New note in this folder
     confirm_delete: 'Permanently delete "{title}"?'
     confirm_discard_changes: You have unsaved changes. Discard them?
     wiki_link_not_found: 'No note matches "{title}".'
@@ -139,10 +226,11 @@ notes:
       no_results: No commands
     tags:
       add_placeholder: Add a tag…
+      summary: '{count} tag(s)'
       filter_label: Filter by tag
       clear: Clear all
       no_results: No notes for these tags
-      no_results_description: No note in the tree carries the selected tags.
+      no_results_description: No note carries the selected tags.
       errors:
         empty: Tag is required.
         sources_empty: Select at least one tag to merge.
@@ -192,13 +280,10 @@ notes:
     empty:
       title: No notes yet
       description: Click + to create your first note.
-    no_selection:
-      title: Select a note
-      description: Pick a note from the tree, or create a new one.
     errors:
       load_failed: Could not load the note.
+      crashed: This page could not be displayed
       create_failed: Could not create the note.
       save_failed: Could not save the note.
       delete_failed: Could not delete the note.
       reorder_failed: Could not reorder the notes.
-      reorder_cycle: Cannot move a note under one of its own descendants.

@@ -209,8 +209,8 @@ function chooseFile(event) {
 
         <AppNoData
             v-if="visible.length === 0"
-            :title="t(`backend.studio.space_files.empty_${tab}`)"
-            :description="t(`backend.studio.space_files.empty_${tab}_hint`)"
+            :message="t(`backend.studio.space_files.empty_${tab}`)"
+            :hint="t(`backend.studio.space_files.empty_${tab}_hint`)"
         />
 
         <!-- **Un fichier par ligne sur téléphone.** Deux colonnes sur trois

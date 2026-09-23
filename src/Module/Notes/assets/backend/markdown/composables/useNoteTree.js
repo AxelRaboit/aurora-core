@@ -2,93 +2,146 @@ import { ref, watchEffect } from "vue";
 import { buildTree as buildHierarchicalTree } from "@/shared/composables/tree/useHierarchicalTree.js";
 
 /**
- * Build a hierarchical tree from a flat list of notes (sorted by position).
- * Each node looks like { id, parentId, title, ..., children: [...] }.
+ * L'arborescence du menu : des dossiers, et ce qu'ils contiennent.
  *
- * Exposes a *writable* `tree` ref so VueDraggable can mutate the children
- * arrays directly. A watcher rebuilds the tree whenever any input ref
- * changes - that way `refreshList()` from the server still wins over
- * any local DnD mutation.
+ * Elle n'a porté que des dossiers pendant une version, ce qui était une
+ * demi-réponse : on voyait le rangement sans voir ce qui est rangé, et
+ * atteindre une note demandait d'ouvrir le dossier dans la bibliothèque. Un
+ * dossier se déplie ici et montre ses notes, comme dans n'importe quel
+ * explorateur - la différence avec l'ancien arbre étant qu'une note est une
+ * feuille, jamais un rangement.
  *
- * Filtering rules:
- *   - `queryRef` (free-text search) matches when the node's title, any
- *     of its tags, OR its server-resolved content match the query
- *     substring (case-insensitive). The content-match comes from
- *     `contentMatchIdsRef`, a Set populated by a debounced call to the
- *     `/search` backend endpoint (so we don't need to ship every
- *     decrypted note's body to the browser).
- *   - `selectedTagsRef` (pill filter) keeps only nodes carrying any
- *     selected tag (OR semantics).
- * Ancestors of matching nodes are preserved so the leaves stay attached
- * to the tree.
+ * Chaque nœud porte son `kind`, `folder` ou `note`, parce que les deux se
+ * ressemblent à l'écran et ne font pas la même chose : l'un s'ouvre, l'autre
+ * se lit. Les identifiants se recoupent d'une table à l'autre, donc les clés
+ * de rendu valent `kind:id`.
  *
- * Each kept node carries a `matched` flag for styling.
+ * **Le filtre garde les porteurs.** Un dossier dont le nom ne correspond pas
+ * reste affiché quand il contient un résultat, sinon le résultat n'aurait
+ * plus de branche à laquelle se rattacher. `contentMatchIdsRef` apporte les
+ * notes trouvées par leur texte, que le navigateur n'a pas : les corps sont
+ * chiffrés et restent au serveur.
  */
 export function useNoteTree(
-    notesRef,
+    foldersRef,
     queryRef = null,
-    selectedTagsRef = null,
+    notesRef = null,
     contentMatchIdsRef = null,
 ) {
     const tree = ref([]);
 
     watchEffect(() => {
         const query = (queryRef?.value ?? "").trim().toLowerCase();
-        const tags = selectedTagsRef?.value ?? [];
+        const notes = notesRef?.value ?? [];
         const contentIds = contentMatchIdsRef?.value ?? null;
-        const fullTree = buildHierarchicalTree(notesRef.value).map(decorate);
-        const hasFilter = query !== "" || tags.length > 0;
-        tree.value = hasFilter
-            ? filterTree(fullTree, query, tags, contentIds)
-            : fullTree;
+
+        const notesByFolder = new Map();
+        for (const note of notes) {
+            const key =
+                null === note.folderId || undefined === note.folderId
+                    ? 0
+                    : Number(note.folderId);
+
+            if (!notesByFolder.has(key)) notesByFolder.set(key, []);
+
+            notesByFolder.get(key).push({
+                ...note,
+                kind: "note",
+                key: `note:${note.id}`,
+                children: [],
+                matched: true,
+            });
+        }
+
+        const folders = buildHierarchicalTree(foldersRef.value).map((node) =>
+            decorate(node, notesByFolder),
+        );
+
+        // Les notes de la racine ferment la liste : elles sont à côté des
+        // dossiers, pas dedans, et les mettre en tête repousserait le
+        // rangement sous ce qui n'est pas rangé.
+        const full = [...folders, ...(notesByFolder.get(0) ?? [])];
+
+        tree.value = "" === query ? full : filterTree(full, query, contentIds);
     });
 
-    /** Annotate every node with `matched: true` for consistent template logic. */
-    function decorate(node) {
+    function decorate(node, notesByFolder) {
+        const children = (node.children ?? []).map((child) =>
+            decorate(child, notesByFolder),
+        );
+
         return {
             ...node,
+            kind: "folder",
+            key: `folder:${node.id}`,
             matched: true,
-            children: (node.children ?? []).map(decorate),
+            children: [
+                ...children,
+                ...(notesByFolder.get(Number(node.id)) ?? []),
+            ],
         };
     }
 
-    /**
-     * Free-text query match: title substring, any tag substring, OR
-     * an id present in `contentIds` (resolved server-side). Returns
-     * true for an empty query so the tag-pill filter can run alone.
-     */
-    function matchesQuery(node, query, contentIds) {
-        if (query === "") return true;
-        const title = (node.title ?? "").toLowerCase();
-        if (title.includes(query)) return true;
-        const nodeTags = node.tags ?? [];
-        if (nodeTags.some((t) => String(t).toLowerCase().includes(query))) {
-            return true;
+    function matches(node, query, contentIds) {
+        if ("folder" === node.kind) {
+            return String(node.name ?? "")
+                .toLowerCase()
+                .includes(query);
         }
-        if (contentIds && contentIds.has(node.id)) return true;
-        return false;
+
+        if (
+            String(node.title ?? "")
+                .toLowerCase()
+                .includes(query)
+        )
+            return true;
+
+        if (contentIds?.has(Number(node.id))) return true;
+
+        return (node.tags ?? []).some((tag) =>
+            String(tag).toLowerCase().includes(query),
+        );
     }
 
-    /** Tag-pill filter (different from the free-text query). OR semantics. */
-    function matchesTags(node, tags) {
-        if (tags.length === 0) return true;
-        const noteTags = node.tags ?? [];
-        return tags.some((tag) => noteTags.includes(tag));
-    }
-
-    function filterTree(nodes, query, tags, contentIds) {
+    function filterTree(nodes, query, contentIds) {
         const kept = [];
+
         for (const node of nodes) {
-            const children = filterTree(node.children, query, tags, contentIds);
-            const selfMatch =
-                matchesQuery(node, query, contentIds) &&
-                matchesTags(node, tags);
+            const children = filterTree(node.children ?? [], query, contentIds);
+            const selfMatch = matches(node, query, contentIds);
+
             if (selfMatch || children.length > 0) {
                 kept.push({ ...node, matched: selfMatch, children });
             }
         }
+
         return kept;
     }
 
     return { tree };
+}
+
+/**
+ * Les dossiers d'un arbre filtré, pour les déplier tous.
+ *
+ * Une recherche qui laisse les branches fermées ne montre rien : ce qu'elle
+ * a trouvé est justement ce qui est replié.
+ *
+ * @returns {Set<number>} les identifiants des dossiers rencontrés
+ */
+export function folderIdsIn(nodes) {
+    const ids = new Set();
+
+    const walk = (list) => {
+        for (const node of list) {
+            if ("folder" !== node.kind) continue;
+
+            ids.add(Number(node.id));
+            walk(node.children ?? []);
+        }
+    };
+
+    walk(nodes);
+
+    return ids;
 }

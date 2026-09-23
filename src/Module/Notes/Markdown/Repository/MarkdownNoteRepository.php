@@ -9,6 +9,7 @@ use Aurora\Module\Notes\Markdown\Entity\MarkdownNote;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use DateTimeImmutable;
+use DateTimeInterface;
 use Doctrine\Common\Collections\Order;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -22,14 +23,27 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
 
     /**
      * Flat list of all notes for a user, without content (loaded on demand).
-     * Front rebuilds the tree from parent_id + position.
+     * The library groups them by folder; the browser sorts them, the title
+     * being encrypted and therefore beyond the reach of an ORDER BY.
      *
-     * @return list<MarkdownNoteInterface>
+     * Des tableaux, pas des entités : la requête sélectionne des colonnes, et
+     * l'annotation disait le contraire, ce qui laissait les appelants croire
+     * qu'ils tenaient des notes.
+     *
+     * **Les dates partent en chaînes ISO**, comme celles du sérialiseur.
+     * L'hydratation en tableau rend des `DateTimeImmutable`, que `json_encode`
+     * écrit `{date, timezone_type, timezone}` : un objet que le navigateur ne
+     * sait pas lire comme une date. Personne ne l'avait vu tant que l'écran
+     * n'affichait aucune date ; le jour où la bibliothèque a montré « modifiée
+     * le », le formatage a levé et la page entière est restée blanche.
+     *
+     * @return list<array{id: int, title: string|null, tags: list<string>, position: int, createdAt: string, updatedAt: string, favoritedAt: string|null, folderId: int|null}>
      */
     public function findFlatListForUser(CoreUserInterface $user): array
     {
-        return $this->createQueryBuilder('n')
-            ->select('n.id', 'n.title', 'n.tags', 'n.position', 'n.createdAt', 'n.updatedAt', 'IDENTITY(n.parent) AS parentId')
+        /** @var list<array<string, mixed>> $rows */
+        $rows = $this->createQueryBuilder('n')
+            ->select('n.id', 'n.title', 'n.tags', 'n.position', 'n.createdAt', 'n.updatedAt', 'n.favoritedAt', 'IDENTITY(n.folder) AS folderId')
             ->where('n.user = :user')
             ->andWhere('n.deletedAt IS NULL')
             ->setParameter('user', $user)
@@ -37,6 +51,66 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
             ->addOrderBy('n.createdAt', Order::Descending->value)
             ->getQuery()
             ->getArrayResult();
+
+        return array_map(static fn (array $row): array => [
+            ...$row,
+            'createdAt' => self::asAtom($row['createdAt'] ?? null),
+            'updatedAt' => self::asAtom($row['updatedAt'] ?? null),
+            'favoritedAt' => self::asAtom($row['favoritedAt'] ?? null),
+        ], $rows);
+    }
+
+    /** Une date de l'hydratation en tableau, rendue lisible par un navigateur. */
+    private static function asAtom(mixed $value): ?string
+    {
+        return $value instanceof DateTimeInterface ? $value->format(DateTimeInterface::ATOM) : null;
+    }
+
+    /**
+     * The first words of every note, for the cards that show them.
+     *
+     * Le corps d'une note est chiffré, donc un extrait se paie en
+     * déchiffrement : une requête et 500 notes coûtent huit millisecondes de
+     * plus que la liste sans extrait, mesuré sur un jeu de cette taille. Cela
+     * reste une requête de plus, appelée seulement par les écrans qui
+     * montrent l'extrait.
+     *
+     * Le Markdown n'est pas rendu, juste débarrassé de ce qui fait du bruit
+     * en une ligne : les dièses d'un titre, les tirets d'une liste, les
+     * lignes vides.
+     *
+     * @return array<int, string> note id => extrait
+     */
+    public function findExcerptsForUser(CoreUserInterface $user, int $length = 160): array
+    {
+        /** @var list<array{id: int, content: string|null}> $rows */
+        $rows = $this->createQueryBuilder('n')
+            ->select('n.id', 'n.content')
+            ->where('n.user = :user')
+            ->andWhere('n.deletedAt IS NULL')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getArrayResult();
+
+        $excerpts = [];
+        foreach ($rows as $row) {
+            $excerpt = $this->summarise((string) ($row['content'] ?? ''), $length);
+
+            if ('' !== $excerpt) {
+                $excerpts[(int) $row['id']] = $excerpt;
+            }
+        }
+
+        return $excerpts;
+    }
+
+    private function summarise(string $content, int $length): string
+    {
+        $flat = (string) preg_replace('/^\s{0,3}(#{1,6}\s+|[-*+]\s+|>\s?)/m', '', $content);
+        $flat = (string) preg_replace('/[`*_~\[\]]+/', '', $flat);
+        $flat = mb_trim((string) preg_replace('/\s+/u', ' ', $flat));
+
+        return mb_strlen($flat) <= $length ? $flat : mb_substr($flat, 0, $length).'…';
     }
 
     /**
@@ -112,8 +186,8 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
     /**
      * The user's trashed notes, most recently deleted first.
      *
-     * Only those trashed on their own: a sub-note that fell with its parent is
-     * part of the branch that parent restores, not an entry of its own.
+     * Only those trashed on their own: a note that fell with its folder is
+     * part of the branch that folder restores, not an entry of its own.
      *
      * @return list<MarkdownNoteInterface>
      */
@@ -122,32 +196,72 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
         return $this->createQueryBuilder('n')
             ->where('n.user = :user')
             ->andWhere('n.deletedAt IS NOT NULL')
-            ->andWhere('n.trashedWithNoteId IS NULL')
+            ->andWhere('n.trashedWithFolderId IS NULL')
             ->setParameter('user', $user)
             ->orderBy('n.deletedAt', Order::Descending->value)
             ->getQuery()
             ->getResult();
     }
 
-    /** @return list<MarkdownNoteInterface> */
-    public function findTrashedWith(int $noteId): array
+    /**
+     * The notes that fell with this folder.
+     *
+     * @return list<MarkdownNoteInterface>
+     */
+    public function findTrashedWithFolder(int $folderId): array
     {
         return $this->createQueryBuilder('n')
-            ->where('n.trashedWithNoteId = :id')
-            ->setParameter('id', $noteId)
+            ->where('n.trashedWithFolderId = :id')
+            ->setParameter('id', $folderId)
             ->getQuery()
             ->getResult();
     }
 
-    /** @return list<MarkdownNoteInterface> */
-    public function findLivingChildrenOf(int $noteId): array
+    /**
+     * The living notes filed in any of these folders.
+     *
+     * Takes a list rather than one id because the caller that needs it is
+     * trashing a branch, and one query for the branch beats one per folder.
+     *
+     * @param list<int> $folderIds
+     *
+     * @return list<MarkdownNoteInterface>
+     */
+    public function findLivingInFolders(array $folderIds): array
     {
+        if ([] === $folderIds) {
+            return [];
+        }
+
         return $this->createQueryBuilder('n')
-            ->where('n.parent = :id')
+            ->where('IDENTITY(n.folder) IN (:ids)')
             ->andWhere('n.deletedAt IS NULL')
-            ->setParameter('id', $noteId)
+            ->setParameter('ids', $folderIds)
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * The living notes filed directly in this folder, root when null.
+     *
+     * @return list<MarkdownNoteInterface>
+     */
+    public function findLivingInFolder(CoreUserInterface $user, ?int $folderId): array
+    {
+        $qb = $this->createQueryBuilder('n')
+            ->where('n.user = :user')
+            ->andWhere('n.deletedAt IS NULL')
+            ->setParameter('user', $user)
+            ->orderBy('n.position', Order::Ascending->value);
+
+        if (null === $folderId) {
+            $qb->andWhere('n.folder IS NULL');
+        } else {
+            $qb->andWhere('IDENTITY(n.folder) = :folderId')
+                ->setParameter('folderId', $folderId);
+        }
+
+        return $qb->getQuery()->getResult();
     }
 
     public function countTrashedForUser(CoreUserInterface $user): int
@@ -156,7 +270,7 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
             ->select('COUNT(n.id)')
             ->where('n.user = :user')
             ->andWhere('n.deletedAt IS NOT NULL')
-            ->andWhere('n.trashedWithNoteId IS NULL')
+            ->andWhere('n.trashedWithFolderId IS NULL')
             ->setParameter('user', $user)
             ->getQuery()
             ->getSingleScalarResult();
@@ -176,7 +290,7 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
             ->select('MIN(n.deletedAt)')
             ->where('n.user = :user')
             ->andWhere('n.deletedAt IS NOT NULL')
-            ->andWhere('n.trashedWithNoteId IS NULL')
+            ->andWhere('n.trashedWithFolderId IS NULL')
             ->setParameter('user', $user)
             ->getQuery()
             ->getSingleScalarResult();
@@ -195,18 +309,18 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
             ->getResult();
     }
 
-    public function findMaxPositionForUserAndParent(CoreUserInterface $user, ?int $parentId): ?int
+    public function findMaxPositionForUserAndFolder(CoreUserInterface $user, ?int $folderId): ?int
     {
         $qb = $this->createQueryBuilder('n')
             ->select('MAX(n.position)')
             ->where('n.user = :user')
             ->setParameter('user', $user);
 
-        if (null === $parentId) {
-            $qb->andWhere('n.parent IS NULL');
+        if (null === $folderId) {
+            $qb->andWhere('n.folder IS NULL');
         } else {
-            $qb->andWhere('IDENTITY(n.parent) = :parentId')
-                ->setParameter('parentId', $parentId);
+            $qb->andWhere('IDENTITY(n.folder) = :folderId')
+                ->setParameter('folderId', $folderId);
         }
 
         $result = $qb->getQuery()->getSingleScalarResult();

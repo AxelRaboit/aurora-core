@@ -157,8 +157,8 @@ function close() {
 
             <AppNoData
                 v-else-if="!loading"
-                :title="query.trim() !== '' ? t('notes.markdown.tags.manage.search_empty') : t('notes.markdown.tags.manage.empty_title')"
-                :description="query.trim() !== '' ? t('notes.markdown.tags.manage.search_empty_description', { query }) : t('notes.markdown.tags.manage.empty_description')"
+                :message="query.trim() !== '' ? t('notes.markdown.tags.manage.search_empty') : t('notes.markdown.tags.manage.empty_title')"
+                :hint="query.trim() !== '' ? t('notes.markdown.tags.manage.search_empty_description', { query }) : t('notes.markdown.tags.manage.empty_description')"
                 :icon="Tag"
             />
 

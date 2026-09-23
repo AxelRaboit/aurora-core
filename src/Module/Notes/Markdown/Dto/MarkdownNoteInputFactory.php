@@ -13,7 +13,7 @@ class MarkdownNoteInputFactory implements MarkdownNoteInputFactoryInterface
     public function fromArray(array $data): MarkdownNoteInputInterface
     {
         return new MarkdownNoteInput(
-            parentId: isset($data['parentId']) ? (int) $data['parentId'] : null,
+            folderId: isset($data['folderId']) && '' !== $data['folderId'] ? (int) $data['folderId'] : null,
             title: Str::trimOrNullFromArray($data, 'title'),
             content: $this->stringOrNull($data, 'content'),
             tags: $this->stringList($data['tags'] ?? []),

@@ -11,8 +11,6 @@ final class NoteShareInput
     #[Assert\NotNull]
     public ?int $noteId = null;
 
-    public bool $includeDescendants = false;
-
     /** Followed transitively; see `SharedNoteScope` for why that is the risky one. */
     public bool $includeLinked = false;
 

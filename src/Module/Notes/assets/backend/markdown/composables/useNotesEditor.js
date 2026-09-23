@@ -1,4 +1,4 @@
-import { ref, computed, onMounted, onBeforeUnmount, watch } from "vue";
+import { ref, computed, onBeforeUnmount, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 import { useAutoSave } from "@/shared/composables/useAutoSave.js";
@@ -140,9 +140,9 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
         cancelAutoSave();
     }
 
-    async function createNote(parentId = null) {
+    async function createNote(folderId = null) {
         const { ok, reported, payload } = await api.create({
-            parentId,
+            folderId,
             title: "",
             content: "",
         });
@@ -170,7 +170,7 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
 
         saving.value = true;
         const noteId = selectedNote.value.id;
-        const parentId = selectedNote.value.parentId;
+        const folderId = selectedNote.value.folderId ?? null;
         const snapshot = {
             title: form.value.title,
             content: form.value.content,
@@ -180,7 +180,7 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
 
         try {
             const { ok } = await api.update(noteId, {
-                parentId,
+                folderId,
                 ...snapshot,
             });
             if (!ok) return false;
@@ -323,11 +323,20 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
     }
 
     // ── Lifecycle ──────────────────────────────────────────────────────────
-    onMounted(() => {
-        if (selectedId.value === null && notes.value.length > 0) {
-            selectNote(notes.value[0].id);
-        }
-    });
+    //
+    // Plus d'ouverture automatique de la première note.
+    //
+    // Elle datait du temps où cette page n'était qu'un éditeur : sans note
+    // ouverte il n'y avait rien à montrer, donc on en ouvrait une. Depuis
+    // que le carnet a une bibliothèque, cette ligne détournait tout :
+    // arriver sur « Tous les documents » ouvrait une note, entrer dans un
+    // dossier en ouvrait une aussi, et cliquer sur un dossier dans le menu
+    // semblait ne rien faire - la bibliothèque n'était jamais montée, donc
+    // le panneau parlait à une page absente et se rabattait sur une
+    // navigation qui rouvrait une note.
+    //
+    // C'est le serveur qui décide : une adresse de note ouvre cette note
+    // (cf. `useMarkdownNotesPage`), les autres montrent la bibliothèque.
 
     function beforeUnloadHandler(event) {
         event.preventDefault();

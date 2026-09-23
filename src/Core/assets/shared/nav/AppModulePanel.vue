@@ -29,7 +29,16 @@ const { t } = useI18n();
 </script>
 
 <template>
-    <section v-if="!failed" class="mt-2 border-t border-line pt-2">
+    <!-- `mt-1`, not `mt-2`: 4px is the clearance the menu gives a row on
+         either side of a border - the figure the nav's own `py-1` uses at
+         both ends of the list. At 8px the last link above sat visibly
+         lower in its space than the first one sat below the border above
+         it, and on a module whose panel follows a single highlighted card
+         the lopsidedness is the first thing the eye finds. The caller used
+         to pass `mt-1` here believing it applied; Tailwind emits `.mt-2`
+         after `.mt-1`, so the panel's own class won and the override was
+         dead. -->
+    <section v-if="!failed" class="mt-1 border-t border-line pt-2">
         <header class="flex items-center gap-1.5 px-3 pb-1">
             <h2
                 class="flex-1 truncate text-xs font-semibold uppercase tracking-wide text-muted"

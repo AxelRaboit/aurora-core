@@ -1,14 +1,11 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { Pencil, Eye, Columns } from "lucide-vue-next";
-import { useDebounce } from "@/shared/composables/useDebounce.js";
 import { useMediaQuery } from "@/shared/composables/useMediaQuery.js";
 import { useMarkdownNotesApi } from "@notes/backend/markdown/composables/useMarkdownNotesApi.js";
 import { useNotesEditor } from "@notes/backend/markdown/composables/useNotesEditor.js";
-import { useNoteTree } from "@notes/backend/markdown/composables/useNoteTree.js";
 import { useNoteTagFilter } from "@notes/backend/markdown/composables/useNoteTagFilter.js";
 import { useMarkdownTagsApi } from "@notes/backend/markdown/composables/useMarkdownTagsApi.js";
-import { useNoteDragDrop } from "@notes/backend/markdown/composables/useNoteDragDrop.js";
-import { useViewMode } from "@notes/backend/markdown/composables/useViewMode.js";
+import { useEditorPaneMode } from "@notes/backend/markdown/composables/useEditorPaneMode.js";
 import { useResizable } from "@shared/composables/useResizable.js";
 import { useRelativeTime } from "@shared/composables/useRelativeTime.js";
 import { useAutoSaveStatusDisplay } from "@shared/composables/useAutoSaveStatusDisplay.js";
@@ -61,67 +58,17 @@ export function useMarkdownNotesPage(props, t) {
     const sidePanelOpen = ref(false);
     const graphOpen = ref(false);
     const tagManagerOpen = ref(false);
-    const treeQuery = ref("");
 
     // ── Mobile / responsive state ──────────────────────────────────
     // Tailwind's md breakpoint is 768px. Below that, the editor turns
-    // into a single-column layout: sidebar slides in as a drawer, the
-    // split view-mode is disabled, and the side-panel renders as a
-    // fullscreen overlay (see MarkdownNotesApp.vue).
+    // into a single-column layout: the split view-mode is disabled and
+    // the side-panel renders as a fullscreen overlay.
     const { matches: isMobile } = useMediaQuery("(max-width: 767px)");
-    const sidebarOpen = ref(!isMobile.value);
-    watch(isMobile, (mobile) => {
-        // On desktop the sidebar is always visible; resetting to true
-        // here ensures resizing the window back up reveals it again.
-        sidebarOpen.value = !mobile;
-    });
 
-    // ── Tags + tree ────────────────────────────────────────────────
-    const {
-        availableTags,
-        selectedTags,
-        toggleTag,
-        clearTags,
-        pruneMissingTags,
-    } = useNoteTagFilter(notes);
-
-    // Server-side content search. The tree filter handles title + tags
-    // client-side (we already have those fields in the flat list), but
-    // note content isn't shipped to the browser - we have to round-trip
-    // a debounced fetch to the `/search` endpoint and merge its matching
-    // ids back in. Empty query short-circuits to an empty set so we
-    // don't hit the endpoint on the way back to "no filter".
-    const contentMatchIds = ref(new Set());
-    const contentSearchLoading = ref(false);
-    const runContentSearch = useDebounce(async (query) => {
-        if (!query) {
-            contentMatchIds.value = new Set();
-            contentSearchLoading.value = false;
-            return;
-        }
-        const { ok, payload } = await api.searchContent(query);
-        contentMatchIds.value = new Set(
-            ok ? (payload.ids ?? []).map((id) => Number(id)) : [],
-        );
-        contentSearchLoading.value = false;
-    }, 300);
-    watch(treeQuery, (q) => {
-        const trimmed = q.trim();
-        if (trimmed === "") {
-            contentMatchIds.value = new Set();
-            contentSearchLoading.value = false;
-            return;
-        }
-        contentSearchLoading.value = true;
-        runContentSearch(trimmed);
-    });
-
-    const { tree } = useNoteTree(
-        notes,
-        treeQuery,
-        selectedTags,
-        contentMatchIds,
-    );
+    // The tag filter's own list is gone with the tree it filtered - the
+    // library filters what it shows, and the panel searches the notebook.
+    // What is left of it is the pruning a global rename needs.
+    const { pruneMissingTags } = useNoteTagFilter(notes);
 
     /**
      * After a global tag rename / merge / delete, refresh the flat
@@ -133,17 +80,8 @@ export function useMarkdownNotesPage(props, t) {
         pruneMissingTags();
     }
 
-    // ── Drag-drop ──────────────────────────────────────────────────
-    // Drag-drop hierarchy editing is disabled while a filter is active,
-    // since the visible tree is then a subset of the real one and a
-    // drop would target a node hidden behind the filter.
-    const dragEnabled = computed(
-        () => treeQuery.value.trim() === "" && selectedTags.value.length === 0,
-    );
-    const dragDrop = useNoteDragDrop({ api, refreshList });
-
-    // ── View mode (edit / split / preview) ─────────────────────────
-    const { mode: viewMode } = useViewMode();
+    // ── Editor panes (edit / split / preview) ──────────────────────
+    const { mode: viewMode } = useEditorPaneMode();
     const viewModeOptions = computed(() => {
         const all = [
             {
@@ -178,15 +116,12 @@ export function useMarkdownNotesPage(props, t) {
         { immediate: true },
     );
 
-    // ── Mobile-aware wrappers around selectNote / createNote so the
-    //    sidebar drawer dismisses itself once the user picks something.
     async function selectNote(id) {
         await selectNoteRaw(id);
-        if (isMobile.value) sidebarOpen.value = false;
     }
-    async function createNote(parentId) {
-        await createNoteRaw(parentId);
-        if (isMobile.value) sidebarOpen.value = false;
+
+    async function createNote(folderId) {
+        await createNoteRaw(folderId);
     }
 
     /**
@@ -233,7 +168,6 @@ export function useMarkdownNotesPage(props, t) {
     return {
         // responsive
         isMobile,
-        sidebarOpen,
 
         // backend
         api,
@@ -259,24 +193,13 @@ export function useMarkdownNotesPage(props, t) {
         onCheckboxToggle,
         onImageResize,
 
-        // sidebar tree + tags
-        tree,
-        treeQuery,
-        contentSearchLoading,
-        availableTags,
-        selectedTags,
-        toggleTag,
-        clearTags,
+        // tags
         onTagsChanged,
 
         // overlays
         sidePanelOpen,
         graphOpen,
         tagManagerOpen,
-
-        // drag-drop
-        dragEnabled,
-        ...dragDrop,
 
         // view mode
         viewMode,

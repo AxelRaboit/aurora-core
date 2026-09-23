@@ -49,6 +49,10 @@ final class TrashOverviewPageTest extends IntegrationTestCase
         self::assertContains('ged_categories', $keys);
         self::assertContains('editorial_posts', $keys);
         self::assertContains('notes_markdown', $keys);
+        // Les dossiers de notes sont une source à part, comme ceux de la
+        // GED : un dossier supprimé se restaure avec son contenu, et cela
+        // ne se fait pas depuis la ligne des notes.
+        self::assertContains('notes_markdown_folders', $keys);
     }
 
     /**
