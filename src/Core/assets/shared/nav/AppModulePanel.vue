@@ -39,13 +39,24 @@ const { t } = useI18n();
          after `.mt-1`, so the panel's own class won and the override was
          dead. -->
     <section v-if="!failed" class="mt-1 border-t border-line pt-2">
-        <header class="flex items-center gap-1.5 px-3 pb-1">
+        <!-- Les commandes passent à la ligne quand elles ne tiennent pas.
+             
+             Le nom du module et quatre icônes sur une seule ligne, dans une
+             colonne de trois cents pixels, laissaient au nom de quoi écrire
+             « NOTES MARKDO… ». Une seconde ligne imposée à tout le monde
+             aurait coûté un rang à un panneau qui ne porte qu'une icône, et
+             ils n'ont pas tous le même nombre. D'où le repli : le titre
+             réclame dix rem, et les commandes descendent d'elles-mêmes
+             quand la place manque. -->
+        <header class="flex flex-wrap items-center gap-x-1.5 gap-y-1 px-3 pb-1">
             <h2
-                class="flex-1 truncate text-xs font-semibold uppercase tracking-wide text-muted"
+                class="min-w-0 flex-1 basis-40 truncate text-xs font-semibold uppercase tracking-wide text-muted"
             >
                 {{ title }}
             </h2>
-            <slot name="action" />
+            <div v-if="$slots.action" class="ml-auto flex shrink-0 items-center gap-0.5">
+                <slot name="action" />
+            </div>
         </header>
 
         <p v-if="loading" class="px-3 py-1 text-xs text-muted">
