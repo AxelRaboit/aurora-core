@@ -235,6 +235,71 @@ const SHOTS = [
             await page.waitForTimeout(1_500);
         },
     },
+    {
+        // La bibliothèque, à plat et en mosaïque : chaque note montre le
+        // début de son contenu en petit, comme sur une étagère. C'est la
+        // première chose qu'on voit en ouvrant le module, et la carte n'en
+        // montrait rien.
+        name: "tour-notes-bibliotheque",
+        path: "/backend/notes/markdown",
+        async prepare(page) {
+            await page.getByTitle("Tout afficher à plat").first().click();
+            await page.waitForTimeout(1_500);
+        },
+    },
+    {
+        // Le graphe, que le texte de la carte promet depuis le début sans
+        // l'avoir jamais montré. Il s'ouvre depuis le menu d'une note, donc
+        // il faut en ouvrir une d'abord.
+        name: "tour-notes-graphe",
+        path: "/backend/notes/markdown",
+        async prepare(page) {
+            await page.getByRole("link", { name: /^Sommaire des clients/ }).first().click();
+            await page.waitForTimeout(2_500);
+            await page.getByTitle(/^Actions pour/).first().click();
+            await page.waitForTimeout(700);
+            await page.getByRole("button", { name: "Ouvrir le graphe" }).first().click();
+            // La construction est animée : elle place les nœuds avant de se
+            // stabiliser, et photographier trop tôt donne une pelote.
+            await page.waitForTimeout(4_000);
+        },
+    },
+    {
+        // La page publique d'une note : l'autre promesse du texte, « montrer
+        // une note à quelqu'un qui n'a pas de compte ».
+        //
+        // L'adresse est demandée au serveur plutôt qu'écrite ici : le jeton
+        // est tiré au hasard à chaque chargement des fixtures, donc une
+        // adresse en dur serait morte au premier `make demo`.
+        name: "tour-notes-partage",
+        path: "/backend/notes/markdown",
+        async prepare(page) {
+            const url = await page.evaluate(async () => {
+                const r = await fetch("/backend/notes/markdown/shares/1", { headers: { Accept: "application/json" } });
+                const j = await r.json();
+
+                return j?.links?.[0]?.url ?? null;
+            });
+
+            if (!url) throw new Error("aucun lien de partage dans la démonstration");
+
+            await page.goto(url, { waitUntil: "networkidle" });
+            await page.waitForTimeout(2_000);
+        },
+    },
+    {
+        // Une note en lecture seule, avec son bandeau et son apparence : le
+        // module sait habiller une note, et aucune image ne le disait.
+        // « Sommaire des clients » porte le fond papier.
+        name: "tour-notes-apparence",
+        path: "/backend/notes/markdown",
+        async prepare(page) {
+            await page.getByRole("link", { name: /^Sommaire des clients/ }).first().click();
+            await page.waitForTimeout(2_500);
+            await page.getByTitle("Aperçu seul").first().click();
+            await page.waitForTimeout(1_500);
+        },
+    },
     { name: "tour-calendrier", path: "/backend/planning/calendar" },
 
     { name: "tour-contrats", path: "/backend/studio/contracts" },
