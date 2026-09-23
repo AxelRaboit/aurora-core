@@ -132,7 +132,11 @@ const lookClass = computed(() =>
                 </h2>
                 <!-- eslint-disable-next-line vue/no-v-html -- the renderer sanitises
                  through DOMPurify before this ever reaches the page. -->
-                <div class="note-preview" v-html="html" />
+                <!-- Les mêmes classes que l'aperçu de l'éditeur : sans
+                     `prose`, une liste perdait ses puces et son retrait, et
+                     la note lue en ligne ne ressemblait plus à la note
+                     écrite. Vu à 375 px sur la page partagée. -->
+                <div class="note-preview prose prose-sm dark:prose-invert max-w-none" v-html="html" />
 
                 <!-- Le retour, seulement quand on lit sa propre note : un invité
                  n'a pas d'éditeur où revenir. -->
