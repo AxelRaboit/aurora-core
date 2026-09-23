@@ -134,6 +134,10 @@ notes:
         mosaic: Mosaic
         cards: Cards
         list: List
+      scope:
+        flat: Show everything flat
+        grouped: Show folders
+        open_folder: 'Open the {folder} folder'
       sort:
         label: Sort
         name: Name

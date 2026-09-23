@@ -3,6 +3,7 @@ import { computed, ref } from "vue";
 const VIEW_KEY = "aurora.notes.library.view";
 const SORT_KEY = "aurora.notes.library.sort";
 const DIRECTION_KEY = "aurora.notes.library.direction";
+const FLAT_KEY = "aurora.notes.library.flat";
 
 export const VIEWS = ["mosaic", "cards", "list"];
 export const SORTS = ["name", "updated", "created", "manual"];
@@ -19,6 +20,14 @@ export const SORTS = ["name", "updated", "created", "manual"];
  * **Folders come first, always.** Whatever the sort, a folder is a place and
  * a note is a thing in it; every file browser ever written agrees, and Craft
  * does too.
+ *
+ * **Deux façons de regarder le même carnet.** Rangée, la liste montre ce
+ * que l'endroit contient : ses dossiers, puis ses notes, et le reste est
+ * derrière les dossiers. À plat, elle montre toutes les notes d'ici et de
+ * dessous d'un coup, comme s'il n'y avait pas de rangement - ce qu'on veut
+ * quand on cherche quelque chose dont on ne sait plus où on l'a mis. Les
+ * dossiers disparaissent alors de la liste : les afficher en plus des notes
+ * qu'ils contiennent montrerait deux fois la même chose.
  *
  * Navigation writes the real address with `pushState` rather than reloading:
  * the whole notebook is already in the page, so entering a folder is a filter
@@ -38,6 +47,7 @@ export function useNoteLibrary({
     const view = ref(readStored(VIEW_KEY, VIEWS, "mosaic"));
     const sort = ref(readStored(SORT_KEY, SORTS, "updated"));
     const direction = ref(readStored(DIRECTION_KEY, ["asc", "desc"], "desc"));
+    const flat = ref("1" === readStored(FLAT_KEY, ["0", "1"], "0"));
 
     // Seeded from the server so a reload does not flash the root while the
     // chain is recomputed; rebuilt from the folder list on every move after.
@@ -82,17 +92,59 @@ export function useNoteLibrary({
         return chain.length ? chain : serverBreadcrumb.value;
     });
 
+    /**
+     * Ce qui est ouvert, et tout ce qui se trouve dessous.
+     *
+     * Borné par le nombre de dossiers : une boucle dans les parents ne doit
+     * pas figer la page, pas plus ici que dans le fil d'Ariane.
+     */
+    const subtreeIds = computed(() => {
+        const ids = new Set([currentFolderId.value]);
+        const children = new Map();
+
+        for (const folder of folders.value) {
+            const parent = normaliseId(folder.parentId);
+            if (!children.has(parent)) children.set(parent, []);
+            children.get(parent).push(Number(folder.id));
+        }
+
+        const queue = [currentFolderId.value];
+
+        while (queue.length) {
+            for (const id of children.get(queue.shift()) ?? []) {
+                if (ids.has(id)) continue;
+
+                ids.add(id);
+                queue.push(id);
+            }
+        }
+
+        return ids;
+    });
+
+    // À plat, il n'y a pas de dossier à montrer : ils sont dépliés dans la
+    // liste des notes, et les redonner en cartes doublerait l'affichage.
     const childFolders = computed(() =>
-        folders.value.filter(
-            (folder) => normaliseId(folder.parentId) === currentFolderId.value,
-        ),
+        flat.value
+            ? []
+            : folders.value.filter(
+                  (folder) =>
+                      normaliseId(folder.parentId) === currentFolderId.value,
+              ),
     );
 
     const childNotes = computed(() =>
-        notes.value.filter(
-            (note) => normaliseId(note.folderId) === currentFolderId.value,
+        notes.value.filter((note) =>
+            flat.value
+                ? subtreeIds.value.has(normaliseId(note.folderId))
+                : normaliseId(note.folderId) === currentFolderId.value,
         ),
     );
+
+    /** Le nom du dossier qui contient une note, pour le dire sur sa carte. */
+    function folderNameOf(id) {
+        return foldersById.value.get(normaliseId(id))?.name ?? null;
+    }
 
     const sortedFolders = computed(() =>
         sorted(childFolders.value, (folder) => folder.name),
@@ -208,8 +260,28 @@ export function useNoteLibrary({
 
     function setSort(value) {
         if (!SORTS.includes(value)) return;
+
+        // L'ordre manuel appartient à un dossier : à plat, il n'a personne
+        // à qui appartenir.
+        if (flat.value && "manual" === value) return;
+
         sort.value = value;
         store(SORT_KEY, value);
+    }
+
+    /**
+     * Passer du rangé au tout-à-plat.
+     *
+     * L'ordre manuel n'a plus de sens à plat - deux notes de deux dossiers
+     * n'ont pas de position commune - donc on retombe sur la date, qui est
+     * le tri par défaut et le seul qui veuille dire quelque chose quand on
+     * mélange des endroits.
+     */
+    function toggleFlat() {
+        flat.value = !flat.value;
+        store(FLAT_KEY, flat.value ? "1" : "0");
+
+        if (flat.value && "manual" === sort.value) setSort("updated");
     }
 
     function toggleDirection() {
@@ -224,6 +296,7 @@ export function useNoteLibrary({
         view,
         sort,
         direction,
+        flat,
         folders: sortedFolders,
         notes: sortedNotes,
         isEmpty,
@@ -233,6 +306,8 @@ export function useNoteLibrary({
         setView,
         setSort,
         toggleDirection,
+        toggleFlat,
+        folderNameOf,
     };
 }
 

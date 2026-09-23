@@ -31,6 +31,8 @@ import {
     Folder,
     FolderInput,
     FolderPlus,
+    FolderTree,
+    Layers,
     LayoutGrid,
     List,
     Pencil,
@@ -114,6 +116,7 @@ const {
     view,
     sort,
     direction,
+    flat,
     folders: visibleFolders,
     notes: visibleNotes,
     isEmpty,
@@ -122,6 +125,8 @@ const {
     setView,
     setSort,
     toggleDirection,
+    toggleFlat,
+    folderNameOf,
 } = library;
 
 onMounted(() => window.addEventListener("popstate", onPopState));
@@ -196,7 +201,7 @@ const nothingShown = computed(
 const PAGE = 60;
 const shown = ref(PAGE);
 
-watch([currentFolderId, query, sort, direction], () => {
+watch([currentFolderId, query, sort, direction, flat], () => {
     shown.value = PAGE;
 });
 
@@ -252,12 +257,18 @@ function chooseSort(value) {
     foldSort();
 }
 
-const sortOptions = computed(() => [
-    { value: "name", label: t("notes.markdown.library.sort.name") },
-    { value: "updated", label: t("notes.markdown.library.sort.updated") },
-    { value: "created", label: t("notes.markdown.library.sort.created") },
-    { value: "manual", label: t("notes.markdown.library.sort.manual") },
-]);
+const sortOptions = computed(() =>
+    [
+        { value: "name", label: t("notes.markdown.library.sort.name") },
+        { value: "updated", label: t("notes.markdown.library.sort.updated") },
+        { value: "created", label: t("notes.markdown.library.sort.created") },
+        // L'ordre manuel se range dans un dossier ; à plat, deux notes de
+        // deux dossiers n'ont pas de position commune à comparer.
+        ...(flat.value
+            ? []
+            : [{ value: "manual", label: t("notes.markdown.library.sort.manual") }]),
+    ],
+);
 
 /** Le critère en vigueur, écrit, pour que l'icône puisse le dire. */
 const sortLabel = computed(
@@ -266,6 +277,23 @@ const sortLabel = computed(
 
 function folderLabel(folder) {
     return folder.name || t("notes.markdown.folders.untitled");
+}
+
+/**
+ * Où vit une note, dit sur sa carte - seulement quand la liste est à plat.
+ *
+ * Rangée, la réponse est le dossier qu'on vient d'ouvrir, et la répéter sur
+ * chaque carte serait du bruit. À plat, c'est l'information qui manque : on
+ * voit tout, et on ne sait plus d'où ça vient.
+ */
+function noteFolderLabel(note) {
+    if (!flat.value) return null;
+
+    const name = folderNameOf(note.folderId);
+
+    return null === name
+        ? null
+        : name || t("notes.markdown.folders.untitled");
 }
 
 function noteLabel(note) {
@@ -822,7 +850,7 @@ onMounted(() => window.addEventListener("keydown", onKeydown));
 onUnmounted(() => window.removeEventListener("keydown", onKeydown));
 
 // Ce qui était visé peut disparaître : changer de dossier, filtrer, trier.
-watch([currentFolderId, query, sort, direction], () => {
+watch([currentFolderId, query, sort, direction, flat], () => {
     focused.value = -1;
 });
 
@@ -841,7 +869,7 @@ watch([currentFolderId, query, sort, direction], () => {
  * dans une liste triée par date ne voudrait rien dire, puisque le tri la
  * remettrait où elle était.
  */
-const manualOrder = computed(() => "manual" === sort.value);
+const manualOrder = computed(() => "manual" === sort.value && !flat.value);
 
 async function nudge(kind, item, delta) {
     const list = "folder" === kind ? [...shownFolders.value] : [...shownNotes.value];
@@ -1144,7 +1172,7 @@ defineExpose({
                     v-if="!searchOpen"
                     :title="t('notes.markdown.library.search_placeholder')"
                     :aria-label="t('notes.markdown.library.search_placeholder')"
-                    v-on:click="openSearch"
+                    v-on:click="openSearch()"
                 >
                     <Search class="h-4 w-4" :stroke-width="2" />
                 </AppIconButton>
@@ -1163,6 +1191,21 @@ defineExpose({
                 </div>
 
                 <div class="flex items-center gap-3">
+                    <!-- Rangé ou tout à plat. Deux lectures du même carnet :
+                         ce que l'endroit contient, ou toutes les notes d'ici
+                         et de dessous d'un coup, pour retrouver ce dont on
+                         ne sait plus où on l'a mis. -->
+                    <AppIconButton
+                        :class="flat ? 'text-accent-400' : ''"
+                        :title="flat ? t('notes.markdown.library.scope.grouped') : t('notes.markdown.library.scope.flat')"
+                        :aria-label="flat ? t('notes.markdown.library.scope.grouped') : t('notes.markdown.library.scope.flat')"
+                        :aria-pressed="flat"
+                        v-on:click="toggleFlat"
+                    >
+                        <Layers v-if="flat" class="h-4 w-4" :stroke-width="2" />
+                        <FolderTree v-else class="h-4 w-4" :stroke-width="2" />
+                    </AppIconButton>
+
                     <div class="inline-flex overflow-hidden rounded-md border border-line">
                         <AppTab
                             v-for="opt in viewOptions"
@@ -1189,7 +1232,7 @@ defineExpose({
                             v-if="!sortOpen"
                             :title="`${t('notes.markdown.library.sort.label')} : ${sortLabel}`"
                             :aria-label="`${t('notes.markdown.library.sort.label')} : ${sortLabel}`"
-                            v-on:click="openSort"
+                            v-on:click="openSort()"
                         >
                             <ArrowUpDown class="h-4 w-4" :stroke-width="2" />
                         </AppIconButton>
@@ -1399,6 +1442,19 @@ defineExpose({
                                 {{ note.excerpt }}
                             </p>
 
+                            <!-- À plat, le dossier d'où la note vient, et
+                                 le chemin pour y aller. -->
+                            <button
+                                v-if="noteFolderLabel(note)"
+                                type="button"
+                                class="mt-2 flex w-fit items-center gap-1 text-xs text-muted transition-colors hover:text-accent-400"
+                                :title="t('notes.markdown.library.scope.open_folder', { folder: noteFolderLabel(note) })"
+                                v-on:click.stop="openFolder(note.folderId)"
+                            >
+                                <Folder class="h-3 w-3 shrink-0" :stroke-width="2" />
+                                <span class="truncate">{{ noteFolderLabel(note) }}</span>
+                            </button>
+
                             <div v-if="note.tags?.length" class="mt-2 flex flex-wrap gap-1">
                                 <AppBadge v-for="tag in note.tags" :key="tag" color="gray" size="xs">
                                     {{ tag }}
@@ -1482,6 +1538,17 @@ defineExpose({
                                         <FileText class="w-4 h-4 shrink-0 text-muted" :stroke-width="2" />
                                         <span class="truncate font-medium text-primary">{{ noteLabel(note) }}</span>
                                     </a>
+
+                                    <button
+                                        v-if="noteFolderLabel(note)"
+                                        type="button"
+                                        class="mt-0.5 flex items-center gap-1 pl-6 text-xs text-muted transition-colors hover:text-accent-400"
+                                        :title="t('notes.markdown.library.scope.open_folder', { folder: noteFolderLabel(note) })"
+                                        v-on:click.stop="openFolder(note.folderId)"
+                                    >
+                                        <Folder class="h-3 w-3 shrink-0" :stroke-width="2" />
+                                        <span class="truncate">{{ noteFolderLabel(note) }}</span>
+                                    </button>
                                 </td>
                                 <td class="hidden px-2 py-2 sm:table-cell">
                                     <div class="flex flex-wrap gap-1">

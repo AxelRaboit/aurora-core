@@ -677,6 +677,80 @@ describe("the library", () => {
         );
     });
 
+    /**
+     * Le carnet a deux lectures : ce que l'endroit contient, et tout ce
+     * qu'il y a dessous d'un coup. La seconde est celle qu'on veut quand
+     * on ne sait plus dans quel dossier on a rangé quelque chose.
+     */
+    describe("le tout-à-plat", () => {
+        function scopeButton(wrapper) {
+            return wrapper
+                .findAll("button")
+                .find((b) =>
+                    b
+                        .attributes("title")
+                        ?.startsWith("notes.markdown.library.scope"),
+                );
+        }
+
+        it("brings up what the folders hold, and drops the folder cards", async () => {
+            const wrapper = render();
+
+            await scopeButton(wrapper).trigger("click");
+
+            const cards = wrapper.findAll("article").map((one) => one.text());
+
+            // Les deux notes, celle de la racine et celle du dossier, et
+            // rien d'autre : un dossier montré en plus des notes qu'il
+            // contient afficherait deux fois la même chose. « Clients »
+            // reste lisible, mais sur la carte de la note qu'il range.
+            expect(cards).toHaveLength(2);
+            expect(cards.some((text) => text.includes("Devis"))).toBe(true);
+            expect(cards.some((text) => text.includes("À la racine"))).toBe(
+                true,
+            );
+            expect(
+                cards.some((text) =>
+                    text.includes("notes.markdown.folders.contents"),
+                ),
+            ).toBe(false);
+        });
+
+        it("says where a note lives, and takes the reader there", async () => {
+            const wrapper = render();
+
+            await scopeButton(wrapper).trigger("click");
+
+            const chip = wrapper
+                .findAll("button")
+                .find((b) =>
+                    b
+                        .attributes("title")
+                        ?.startsWith(
+                            "notes.markdown.library.scope.open_folder",
+                        ),
+                );
+
+            expect(chip, "la carte dit son dossier").toBeTruthy();
+
+            await chip.trigger("click");
+
+            expect(window.location.pathname).toBe(
+                "/backend/notes/markdown/folder/1",
+            );
+        });
+
+        it("keeps the folder name to itself when the list is filed", () => {
+            const titles = render()
+                .findAll("button")
+                .map((b) => b.attributes("title") ?? "");
+
+            expect(
+                titles.some((title) => title.includes("scope.open_folder")),
+            ).toBe(false);
+        });
+    });
+
     it("draws a table when the list view is picked", async () => {
         const wrapper = render();
 

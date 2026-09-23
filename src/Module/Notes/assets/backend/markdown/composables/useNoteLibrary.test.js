@@ -61,6 +61,16 @@ const NOTES = [
         updatedAt: "2026-09-15T10:00:00+00:00",
         createdAt: "2026-06-01T10:00:00+00:00",
     },
+    // Deux crans plus bas : ce que le mode à plat doit remonter et que le
+    // mode rangé doit laisser derrière son dossier.
+    {
+        id: 14,
+        folderId: 2,
+        title: "Lumen",
+        position: 0,
+        updatedAt: "2026-09-18T10:00:00+00:00",
+        createdAt: "2026-07-01T10:00:00+00:00",
+    },
 ];
 
 function build(initialFolderId = null) {
@@ -181,6 +191,84 @@ describe("useNoteLibrary", () => {
         library.toggleDirection();
 
         expect(library.notes.value.map((n) => n.id)).toEqual([11, 12]);
+    });
+
+    /**
+     * Le carnet, comme s'il n'y avait pas de rangement.
+     */
+    describe("à plat", () => {
+        it("shows every note of here and below, and no folder", () => {
+            const library = build();
+
+            library.toggleFlat();
+
+            expect(library.flat.value).toBe(true);
+            expect(library.folders.value).toEqual([]);
+            expect(library.notes.value.map((n) => n.id).sort()).toEqual([
+                11, 12, 13, 14,
+            ]);
+        });
+
+        it("stays inside the folder it is opened from", () => {
+            const library = build(1);
+
+            library.toggleFlat();
+
+            // 13 est dans « Clients », 14 dans « Studio Lumen » qui est
+            // dedans ; 11 et 12 sont à la racine et restent dehors.
+            expect(library.notes.value.map((n) => n.id).sort()).toEqual([
+                13, 14,
+            ]);
+        });
+
+        it("names the folder a note comes from", () => {
+            const library = build();
+
+            expect(library.folderNameOf(2)).toBe("Studio Lumen");
+            expect(library.folderNameOf(null)).toBeNull();
+        });
+
+        /**
+         * Deux notes de deux dossiers n'ont pas de position commune : à
+         * plat, l'ordre manuel classerait par un nombre qui ne veut rien
+         * dire d'un dossier à l'autre.
+         */
+        it("leaves the manual order behind", () => {
+            const library = build();
+
+            library.setSort("manual");
+            library.toggleFlat();
+
+            expect(library.sort.value).toBe("updated");
+
+            library.setSort("manual");
+
+            expect(library.sort.value).toBe("updated");
+        });
+
+        it("remembers the scope for the next visit", () => {
+            build().toggleFlat();
+
+            expect(build().flat.value).toBe(true);
+        });
+
+        it("survives a cycle in the folder chain rather than hanging", () => {
+            const library = useNoteLibrary({
+                folders: ref([
+                    { id: 1, parentId: 2, name: "A", position: 0 },
+                    { id: 2, parentId: 1, name: "B", position: 0 },
+                ]),
+                notes: ref([{ id: 31, folderId: 2, title: "Dedans" }]),
+                initialFolderId: 1,
+                breadcrumb: [],
+                urlFor: (id) => `/f/${id}`,
+                rootUrl: "/",
+            });
+
+            library.toggleFlat();
+
+            expect(library.notes.value.map((n) => n.id)).toEqual([31]);
+        });
     });
 
     it("remembers the view and the sort for the next visit", () => {

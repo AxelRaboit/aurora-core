@@ -134,6 +134,10 @@ notes:
         mosaic: Mosaïque
         cards: Cartes
         list: Liste
+      scope:
+        flat: Tout afficher à plat
+        grouped: Afficher par dossiers
+        open_folder: 'Ouvrir le dossier {folder}'
       sort:
         label: Trier
         name: Nom
