@@ -47,6 +47,12 @@ poser des images.
 
 ### Ajouté
 
+#### Le carnet de démonstration porte des images collées
+Deux notes en ont une, tirées du CDN de Pexels au chargement des fixtures :
+les photos ne sont pas dans le dépôt, et sans réseau la note garde son texte.
+Le module savait porter une image dans une note, et aucune n'en portait, donc
+rien ne le montrait.
+
 #### `aurora:notes:images:adopt`
 Reprend les images restées sur le disque et les range dans le stockage actif.
 Idempotente, ne supprime rien sans `--purge`. Sur une installation qui reste
