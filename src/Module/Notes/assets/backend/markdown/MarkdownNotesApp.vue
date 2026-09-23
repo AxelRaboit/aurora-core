@@ -19,11 +19,12 @@ import AppTagsInput from '@shared/components/form/select/AppTagsInput.vue';
 import AppModal from '@shared/components/overlay/AppModal.vue';
 import AppModalFooter from '@shared/components/overlay/AppModalFooter.vue';
 import AppTab from '@shared/components/nav/AppTab.vue';
-import { nextTick, onErrorCaptured, onMounted, onUnmounted, watch } from 'vue';
+import { computed, nextTick, onErrorCaptured, onMounted, onUnmounted, watch } from 'vue';
 import { onPanelRequest, tellPanels } from '@/shared/nav/modulePanelBridge.js';
-import { Trash2, FileDown, PanelRightOpen, PanelRightClose, TriangleAlert, X, Network, Share2 } from 'lucide-vue-next';
+import { Trash2, FileDown, PanelRightOpen, PanelRightClose, Tag, TriangleAlert, X, Network, Share2 } from 'lucide-vue-next';
 import AppNoData from '@shared/components/feedback/AppNoData.vue';
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
+import { useFoldable } from "@notes/backend/markdown/composables/useFoldable.js";
 
 const { formatDateTimeNumeric } = useDateFormat();
 
@@ -120,6 +121,55 @@ const {
 // sharing is opened from the toolbar and closed by the modal, and nothing in
 // the page composable reads it.
 const shareModalOpen = ref(false);
+
+/**
+ * Les étiquettes se replient en icône, comme la recherche de la
+ * bibliothèque.
+ *
+ * Elles occupaient une ligne entière de l'en-tête en permanence, c'est-à-dire
+ * une ligne de moins pour le texte, pour une chose qu'on touche une fois
+ * quand la note naît et plus jamais ensuite. Repliées, l'icône porte leur
+ * nombre et les nomme en infobulle : on sait qu'il y en a et lesquelles sans
+ * les avoir sous les yeux.
+ *
+ * Le repli à la perte du focus ne vaut que si le champ est vide, comme pour
+ * la recherche : refermer sous un mot à moitié tapé le ferait disparaître.
+ */
+const {
+    open: tagsOpen,
+    box: tagsBox,
+    reveal: openTags,
+    fold: foldTags,
+} = useFoldable();
+
+function toggleTags() {
+    if (tagsOpen.value) {
+        foldTags();
+
+        return;
+    }
+
+    void openTags();
+}
+
+function closeTagsIfIdle(event) {
+    const field = event.currentTarget?.querySelector('input');
+
+    if (field && '' !== field.value.trim()) return;
+
+    foldTags();
+}
+
+const tagsLabel = computed(() => {
+    // `form` est une `ref` : le modèle s'y lit par `.value`, là où le
+    // gabarit le déballe tout seul. Sans cela l'infobulle restait au
+    // texte du champ vide pendant que la pastille comptait juste.
+    const tags = form.value.tags ?? [];
+
+    return tags.length
+        ? `${t('notes.markdown.tags.summary', { count: tags.length })} : ${tags.join(', ')}`
+        : t('notes.markdown.tags.add_placeholder');
+});
 
 /**
  * Ce qui casse doit se voir.
@@ -498,6 +548,23 @@ onUnmounted(() => {
                              `graphOpen` n'était mis à vrai nulle part. La
                              fonction existait sans porte d'entrée. -->
                         <AppIconButton
+                            class="relative"
+                            :title="tagsLabel"
+                            :aria-label="tagsLabel"
+                            size="md"
+                            :variant="tagsOpen ? 'primary' : 'ghost'"
+                            v-on:click="toggleTags"
+                        >
+                            <Tag class="w-4 h-4" :stroke-width="2" />
+                            <span
+                                v-if="form.tags?.length"
+                                class="absolute -right-0.5 -top-0.5 min-w-3.5 rounded-full bg-accent-600 px-1 text-[0.625rem] font-semibold leading-3.5 text-white"
+                            >
+                                {{ form.tags.length }}
+                            </span>
+                        </AppIconButton>
+
+                        <AppIconButton
                             :title="t('notes.markdown.graph.open')"
                             size="md"
                             v-on:click="graphOpen = true"
@@ -555,10 +622,21 @@ onUnmounted(() => {
                         </div>
                     </div>
 
-                    <AppTagsInput
-                        v-model="form.tags"
-                        :placeholder="t('notes.markdown.tags.add_placeholder')"
-                    />
+                    <!-- Repliées en icône : voir la note s'écrire vaut mieux
+                         qu'une ligne d'étiquettes qu'on ne touche presque
+                         jamais. Le nombre est sur l'icône, les noms dans son
+                         infobulle. -->
+                    <div
+                        v-if="tagsOpen"
+                        ref="tagsBox"
+                        v-on:keyup.esc="foldTags"
+                        v-on:focusout="closeTagsIfIdle"
+                    >
+                        <AppTagsInput
+                            v-model="form.tags"
+                            :placeholder="t('notes.markdown.tags.add_placeholder')"
+                        />
+                    </div>
 
                     <!-- Editor form extension point. Scoped slot exposes
                          `form` (mutable reactive ref) so clients can wire

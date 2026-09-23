@@ -227,6 +227,7 @@ notes:
       no_results: Aucune commande
     tags:
       add_placeholder: Ajouter un tag…
+      summary: '{count} tag(s)'
       filter_label: Filtrer par tag
       clear: Tout effacer
       no_results: Aucune note pour ces tags

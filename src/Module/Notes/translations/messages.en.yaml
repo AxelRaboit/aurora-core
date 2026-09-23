@@ -226,6 +226,7 @@ notes:
       no_results: No commands
     tags:
       add_placeholder: Add a tag…
+      summary: '{count} tag(s)'
       filter_label: Filter by tag
       clear: Clear all
       no_results: No notes for these tags

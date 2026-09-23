@@ -145,6 +145,73 @@ describe("the notes page, once its tree moved to the menu", () => {
     });
 });
 
+describe("les étiquettes de l'éditeur", () => {
+    function tagsButton(wrapper) {
+        return wrapper
+            .findAll("button")
+            .find(
+                (b) =>
+                    b.attributes("title")?.includes("tags.add_placeholder") ||
+                    b.attributes("title")?.includes("tags.summary"),
+            );
+    }
+
+    /** L'éditeur n'est à l'écran qu'une fois une note ouverte. */
+    async function editing(tags = []) {
+        global.fetch = vi.fn().mockResolvedValue({
+            ok: true,
+            status: 200,
+            json: async () => ({
+                success: true,
+                notes: NOTES,
+                folders: FOLDERS,
+                note: { ...NOTES[0], tags },
+                tags: [],
+            }),
+        });
+
+        const wrapper = render();
+        await flushPromises();
+        askPage("notes:select", { args: [1] });
+        await flushPromises();
+
+        return wrapper;
+    }
+
+    /**
+     * Elles prenaient une ligne entière de l'en-tête en permanence, pour une
+     * chose qu'on touche quand la note naît et plus guère ensuite.
+     */
+    it("keeps its row out of the way until it is asked for", async () => {
+        const wrapper = await editing();
+
+        expect(
+            tagsButton(wrapper),
+            "l'icône des étiquettes est là",
+        ).toBeTruthy();
+        expect(wrapper.findComponent({ name: "AppTagsInput" }).exists()).toBe(
+            false,
+        );
+
+        await tagsButton(wrapper).trigger("click");
+        await flushPromises();
+
+        expect(wrapper.findComponent({ name: "AppTagsInput" }).exists()).toBe(
+            true,
+        );
+    });
+
+    /** Repliées, on doit savoir qu'il y en a, et lesquelles. */
+    it("carries the count, and names them in its tooltip", async () => {
+        const wrapper = await editing(["client", "photo"]);
+
+        expect(tagsButton(wrapper).text()).toBe("2");
+        expect(tagsButton(wrapper).attributes("title")).toContain(
+            "client, photo",
+        );
+    });
+});
+
 describe("what the page tells the panel", () => {
     /**
      * The bug the reader hit: a note created in the editor did not reach the
