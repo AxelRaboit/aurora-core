@@ -122,7 +122,7 @@ function urlOf(post) {
             <input
                 v-model="query"
                 type="search"
-                class="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-primary placeholder:text-muted focus:border-accent focus:outline-none"
+                class="aurora-card w-full px-3 py-2 text-sm text-primary placeholder:text-muted focus:border-accent focus:outline-none"
                 :placeholder="t('frontend.sequence.search.placeholder')"
                 :aria-label="t('frontend.sequence.search.placeholder')"
             >

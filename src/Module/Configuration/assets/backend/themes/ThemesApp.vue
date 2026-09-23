@@ -149,7 +149,7 @@ const pageActions = computed(() => {
             <div
                 v-for="theme in themeList"
                 :key="theme.id"
-                class="bg-surface border border-line rounded-xl p-3 sm:p-5 flex flex-col gap-4"
+                class="aurora-card p-3 sm:p-5 flex flex-col gap-4"
                 :class="theme.active ? 'border-accent-500/50 ring-1 ring-accent-500/30' : ''"
             >
                 <div class="flex items-start justify-between gap-2">
@@ -264,7 +264,7 @@ const pageActions = computed(() => {
                 />
                 <slot name="extra-form-fields" :form="editForm" :errors="editModal.errors" :theme="editModal.editing" />
 
-                <div class="space-y-1.5 pt-6 border-t border-line/60">
+                <div class="space-y-1.5 pt-6 border-t border-line">
                     <span class="block text-xs text-secondary uppercase tracking-wide font-semibold">{{ t('backend.themes.primary_color') }}</span>
                     <div class="flex items-center gap-3 bg-surface-2 rounded-lg px-3 py-2">
                         <AppColorSwatch
@@ -281,7 +281,7 @@ const pageActions = computed(() => {
                     </div>
                 </div>
 
-                <div class="space-y-1.5 pt-6 border-t border-line/60">
+                <div class="space-y-1.5 pt-6 border-t border-line">
                     <span class="block text-xs text-secondary uppercase tracking-wide font-semibold">{{ t('backend.themes.surfaces') }}</span>
                     <p class="text-xs text-muted">{{ t('backend.themes.surfaces_hint') }}</p>
                     <div class="grid grid-cols-1 gap-2 pt-1">
@@ -309,7 +309,7 @@ const pageActions = computed(() => {
                     </div>
                 </div>
 
-                <div v-for="section in CSS_SECTIONS" :key="section.key" class="space-y-1.5 pt-6 border-t border-line/60">
+                <div v-for="section in CSS_SECTIONS" :key="section.key" class="space-y-1.5 pt-6 border-t border-line">
                     <span class="block text-xs text-secondary uppercase tracking-wide font-semibold">{{ section.label }}</span>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <div v-for="cssVar in section.vars" :key="cssVar.key" class="flex items-center gap-3 bg-surface-2 rounded-lg px-3 py-2">

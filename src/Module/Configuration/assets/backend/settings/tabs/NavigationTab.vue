@@ -55,7 +55,7 @@ const {
     <div class="space-y-6">
         <p class="text-sm text-secondary">{{ t('backend.settings.tabs.navigation_description') }}</p>
 
-        <div class="bg-surface border border-line rounded-xl p-4 sm:p-6 space-y-4">
+        <div class="aurora-card p-4 sm:p-6 space-y-4">
             <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                 <div class="min-w-0">
                     <h3 class="text-sm font-semibold text-primary">{{ t('backend.settings.nav_aliases.title') }}</h3>

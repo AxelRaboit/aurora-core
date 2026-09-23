@@ -139,7 +139,7 @@ function isLast(resource) {
                     <li
                         v-for="resource in group.rows"
                         :key="resource.id"
-                        class="flex flex-col gap-3 rounded-xl border border-line/60 bg-surface p-3 sm:flex-row sm:items-start sm:gap-4"
+                        class="aurora-card flex flex-col gap-3 p-3 sm:flex-row sm:items-start sm:gap-4"
                     >
                         <div class="min-w-0 flex-1">
                             <SpaceResourceItem :resource="resource" />

@@ -86,7 +86,7 @@ const { sequenceSearch, paginatedSequences, sequencePage, sequenceTotalPages, go
 
             <!-- Generic field renderer for parameter-driven tabs -->
             <div v-for="groupName in genericGroups" :key="groupName">
-                <div class="bg-surface border border-line rounded-xl p-4 sm:p-6 space-y-6">
+                <div class="aurora-card p-4 sm:p-6 space-y-6">
                     <AppSearchInput
                         v-if="groupName === 'sequences'"
                         v-model="sequenceSearch"
@@ -143,7 +143,7 @@ const { sequenceSearch, paginatedSequences, sequencePage, sequenceTotalPages, go
                                         <Search class="w-3.5 h-3.5" :stroke-width="2" />
                                     </template>
                                 </AppInput>
-                                <div v-if="postPickerOpen[parameter.key] && postPickerResults[parameter.key]?.length" class="absolute z-20 left-0 right-0 mt-1 border border-line rounded-lg bg-surface shadow-lg overflow-hidden">
+                                <div v-if="postPickerOpen[parameter.key] && postPickerResults[parameter.key]?.length" class="aurora-card absolute z-20 left-0 right-0 mt-1 shadow-lg overflow-hidden">
                                     <AppListItemButton
                                         v-for="post in postPickerResults[parameter.key]"
                                         :key="post.id"

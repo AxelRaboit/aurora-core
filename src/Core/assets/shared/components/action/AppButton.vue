@@ -63,13 +63,13 @@ const variants = {
     // bouton pleine largeur sans fond ressemble à une ligne de texte - on ne
     // sait pas qu'on peut appuyer. Sous `sm` il porte donc une surface sourde
     // et un filet ; au-dessus, il redevient le fantôme qu'il doit être.
-    ghost: 'bg-surface-2 border border-line/60 text-secondary hover:bg-surface-2 hover:text-primary sm:border-transparent sm:bg-transparent',
+    ghost: 'bg-surface-2 border border-line text-secondary hover:bg-surface-2 hover:text-primary sm:border-transparent sm:bg-transparent',
     dashed: 'bg-transparent border-2 border-dashed border-line text-secondary hover:bg-surface-2 hover:text-primary',
     link: 'bg-transparent text-muted hover:text-secondary underline p-0 text-sm',
     'link-accent': 'bg-transparent text-accent hover:underline p-0 text-sm',
     icon: 'bg-transparent p-0',
     // Sidemenu list entry: full-width, left-aligned, surface card. Combine with `active` to highlight the selected row.
-    nav: '!justify-start text-left w-full bg-surface hover:bg-surface-2 text-primary border border-line/60',
+    nav: '!justify-start text-left w-full bg-surface hover:bg-surface-2 text-primary border border-line',
     // Frontend - use inside a parent that sets the text color via CSS variable
     'front-ghost': 'bg-transparent hover:opacity-80 transition-opacity',
     'front-primary': 'bg-transparent text-primary hover:opacity-80 transition-opacity',

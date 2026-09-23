@@ -97,7 +97,7 @@ onUnmounted(() => {
 
         <div
             v-if="open"
-            class="absolute right-0 top-full z-50 mt-1 w-64 overflow-hidden rounded-xl border border-line bg-surface py-1 shadow-xl"
+            class="aurora-card absolute right-0 top-full z-50 mt-1 w-64 overflow-hidden py-1 shadow-xl"
             role="menu"
         >
             <!-- Qui l'on est, en tête : la même information qu'en pied de

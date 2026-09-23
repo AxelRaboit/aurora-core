@@ -488,7 +488,7 @@ const actionsFor = useSpaceCardActions({
                  `max-w-full` borne le groupe à la largeur disponible ; les
                  onglets, eux, gardent leur taille et défilent. -->
             <div
-                class="flex max-w-full items-center gap-0.5 overflow-x-auto rounded-lg border border-line/60 bg-surface-2/40 p-0.5"
+                class="flex max-w-full items-center gap-0.5 overflow-x-auto rounded-lg border border-line bg-surface-2/40 p-0.5"
                 role="group"
                 :aria-label="t('backend.studio.space_content.view_label')"
             >
@@ -549,7 +549,7 @@ const actionsFor = useSpaceCardActions({
                      bouton cassé ; celui-ci revient avec la place. -->
                 <div
                     v-if="view === 'content' && !shapeOverruled"
-                    class="flex rounded-lg border border-line/60 p-0.5"
+                    class="flex rounded-lg border border-line p-0.5"
                 >
                     <AppIconButton
                         size="sm"

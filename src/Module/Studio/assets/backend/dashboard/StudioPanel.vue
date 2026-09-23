@@ -89,12 +89,12 @@ const byContractStatus = computed(() =>
             />
         </div>
 
-        <div v-if="hasAnyShare(byApproval)" class="space-y-4 rounded-xl border border-line bg-surface p-3 sm:p-5">
+        <div v-if="hasAnyShare(byApproval)" class="aurora-card space-y-4 p-3 sm:p-5">
             <h3 class="text-sm font-medium text-primary">{{ t("backend.stats.studio.by_approval") }}</h3>
             <AppShareBar :segments="byApproval" />
         </div>
 
-        <div v-if="hasAnyShare(byContractStatus)" class="space-y-4 rounded-xl border border-line bg-surface p-3 sm:p-5">
+        <div v-if="hasAnyShare(byContractStatus)" class="aurora-card space-y-4 p-3 sm:p-5">
             <h3 class="flex items-center gap-2 text-sm font-medium text-primary">
                 <FileSignature class="h-4 w-4 shrink-0" :stroke-width="2" />
                 {{ t("backend.stats.studio.by_contract_status") }}

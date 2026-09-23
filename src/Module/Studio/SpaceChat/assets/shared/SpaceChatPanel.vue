@@ -444,7 +444,7 @@ function onKeydown(event) {
 
 <template>
     <section
-        class="relative flex flex-col overflow-hidden rounded-lg border border-line/60 bg-surface-2/20 md:flex-row"
+        class="relative flex flex-col overflow-hidden rounded-lg border border-line bg-surface-2/20 md:flex-row"
         :class="fill ? 'h-full' : 'h-[32rem]'"
     >
         <SpaceChatChannels
@@ -465,7 +465,7 @@ function onKeydown(event) {
              long pousse la conversation au-delà de la boîte et c'est le rail
              qui se fait écraser. -->
         <div class="flex min-h-0 min-w-0 flex-1 flex-col">
-            <header class="flex items-center gap-2 border-b border-line/60 px-2 py-2.5 sm:px-4">
+            <header class="flex items-center gap-2 border-b border-line px-2 py-2.5 sm:px-4">
                 <!-- Sur téléphone le titre est la poignée du tiroir : c'est le
                      nom du salon qu'on touche pour en changer, ce qui économise
                      un bouton et dit où mène le geste. À partir de `md` il
@@ -640,7 +640,7 @@ function onKeydown(event) {
                 </div>
             </div>
 
-            <div v-if="canPost" class="space-y-2 border-t border-line/60 px-2 py-3 sm:px-4">
+            <div v-if="canPost" class="space-y-2 border-t border-line px-2 py-3 sm:px-4">
                 <!-- On the wrapper rather than on the field: `AppTextarea` is a
                  label, a control and a hint under one element, and hanging a
                  key handler on the component would rely on which of them

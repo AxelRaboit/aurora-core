@@ -222,7 +222,7 @@ function openedLabel(link) {
                 <p class="text-xs font-medium uppercase tracking-wide text-muted">
                     {{ t("notes.markdown.share.existing") }}
                 </p>
-                <div class="divide-y divide-line rounded-md border border-line">
+                <div class="divide-y divide-line/40 rounded-md border border-line">
                     <div
                         v-for="link in [...active, ...revoked]"
                         :key="link.id"

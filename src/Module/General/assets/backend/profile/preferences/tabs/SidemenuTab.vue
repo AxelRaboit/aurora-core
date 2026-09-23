@@ -82,7 +82,7 @@ const totalCustomisations = computed(() => prefs.hiddenCount.value + prefs.custo
             <div
                 v-for="section in prefs.filteredSections.value"
                 :key="section.id"
-                class="bg-surface border border-line rounded-xl overflow-hidden"
+                class="aurora-card overflow-hidden"
                 :class="{ 'opacity-60': prefs.isSectionHidden(section.id) }"
             >
                 <div class="flex flex-col gap-2 px-3 sm:px-4 py-3 bg-surface-alt/40">

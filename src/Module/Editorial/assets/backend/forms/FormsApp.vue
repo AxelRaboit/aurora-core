@@ -170,7 +170,7 @@ const pageActions = computed(() => {
         </div>
 
         <section v-if="selected" class="space-y-4">
-            <div class="bg-surface border border-line rounded-xl p-3 sm:p-5 space-y-3">
+            <div class="aurora-card p-3 sm:p-5 space-y-3">
                 <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0">
                         <h2 class="text-lg font-semibold text-primary truncate">{{ titleOf(selected) }}</h2>
@@ -187,7 +187,7 @@ const pageActions = computed(() => {
                 </div>
             </div>
 
-            <div class="bg-surface border border-line rounded-xl p-3 sm:p-5 space-y-3">
+            <div class="aurora-card p-3 sm:p-5 space-y-3">
                 <div class="flex items-center justify-between gap-3">
                     <h3 class="text-sm font-semibold text-primary">{{ t("backend.forms.fields.title") }}</h3>
                     <AppButton
@@ -231,7 +231,7 @@ const pageActions = computed(() => {
                 </div>
             </div>
 
-            <div class="bg-surface border border-line rounded-xl p-3 sm:p-5 space-y-3">
+            <div class="aurora-card p-3 sm:p-5 space-y-3">
                 <div class="flex items-center justify-between gap-3">
                     <h3 class="text-sm font-semibold text-primary">
                         {{ t("backend.forms.submissions.title") }}

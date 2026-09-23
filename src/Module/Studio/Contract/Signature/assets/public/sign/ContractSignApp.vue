@@ -235,7 +235,7 @@ async function sign() {
 </script>
 
 <template>
-    <section class="space-y-5 rounded-lg border border-line bg-surface p-3 sm:p-5">
+    <section class="aurora-card space-y-5 p-3 sm:p-5">
         <header class="space-y-1">
             <h2 class="flex items-center gap-2 font-medium text-primary">
                 <PenLine class="h-4 w-4 shrink-0" :stroke-width="2" />
@@ -311,7 +311,7 @@ async function sign() {
         <!-- The code, asked for when the signer says they are ready. Sending it
              with the link would mean it expires long before anybody has read
              the document. -->
-        <div class="space-y-3 rounded-lg border border-line/70 bg-surface-2/40 p-4">
+        <div class="space-y-3 rounded-lg border border-line bg-surface-2/40 p-4">
             <div v-if="codeSentTo === null" class="space-y-2">
                 <p class="text-sm text-secondary">
                     {{ t("studio.public.sign.code_intro") }}
@@ -404,7 +404,7 @@ async function sign() {
              weight: this page exists to be signed. Never disabled by the
              scroll gate - somebody who has decided not to sign should not
              have to scroll a document to say so. -->
-        <div class="border-t border-line/60 pt-4">
+        <div class="border-t border-line pt-4">
             <button
                 type="button"
                 class="text-xs text-muted underline underline-offset-2 hover:text-primary"

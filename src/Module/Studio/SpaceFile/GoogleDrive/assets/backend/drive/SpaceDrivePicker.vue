@@ -109,7 +109,7 @@ watch(
                 {{ t("backend.studio.drive.space.empty") }}
             </p>
 
-            <ul v-else class="max-h-80 divide-y divide-line/60 overflow-y-auto overflow-x-hidden rounded-lg border border-line">
+            <ul v-else class="max-h-80 divide-y divide-line/40 overflow-y-auto overflow-x-hidden rounded-lg border border-line">
                 <li v-for="entry in folders" :key="`folder:${entry.name}`">
                     <button
                         type="button"

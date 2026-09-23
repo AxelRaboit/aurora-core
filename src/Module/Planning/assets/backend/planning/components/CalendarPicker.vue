@@ -114,7 +114,7 @@ function create() {
     <div ref="root" class="relative">
         <button
             type="button"
-            class="flex cursor-pointer items-center gap-2 rounded-lg border border-line bg-surface px-2.5 py-1.5 text-sm text-secondary transition-colors hover:bg-surface-2"
+            class="aurora-card flex cursor-pointer items-center gap-2 px-2.5 py-1.5 text-sm text-secondary transition-colors hover:bg-surface-2"
             :aria-expanded="open"
             v-on:click="open = !open"
         >
@@ -147,7 +147,7 @@ function create() {
              which is a list rather than a filter by then. -->
         <div
             v-if="open"
-            class="absolute end-0 z-30 mt-1 max-h-80 w-64 overflow-y-auto rounded-xl border border-line bg-surface p-3 shadow-xl"
+            class="aurora-card absolute end-0 z-30 mt-1 max-h-80 w-64 overflow-y-auto p-3 shadow-xl"
         >
             <div class="mb-2 flex items-center gap-2">
                 <p class="text-2xs font-semibold uppercase tracking-wider text-muted">

@@ -256,7 +256,7 @@ const placementOptions = computed(() =>
                                  C'est la plus petite chose qui distingue deux
                                  thèmes sans les dessiner en entier. -->
                             <span
-                                class="flex h-8 w-8 shrink-0 flex-col justify-end gap-1 rounded border border-line/60 p-1"
+                                class="flex h-8 w-8 shrink-0 flex-col justify-end gap-1 rounded border border-line p-1"
                                 :style="{ background: option.palette.background }"
                             >
                                 <span

@@ -5,6 +5,95 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.228] - 2026-09-23
+
+### Modifié
+
+#### Les marges de l'application tiennent dans une seule valeur
+Chaque bord était écrit à la main là où il servait : `<main>` posait
+`px-2 py-2 sm:px-6 sm:py-8 lg:px-8`, le bandeau de titre sa propre version,
+le fil d'Ariane la même chaîne recopiée, et les quarante-six écrans
+empilaient là-dessus leurs propres cartes. Deux conséquences mesurées avant
+d'y toucher : sur téléphone le titre tombait à seize pixels du bord et le
+contenu à huit, donc l'un n'était jamais à la verticale de l'autre ; et un
+écran plein hauteur devait retrancher la marge à la main, avec un `4rem`
+écrit en dur qui devenait faux au premier changement.
+
+`--aurora-page-margin` la porte désormais seule, et **elle vaut dans les deux
+sens** : huit pixels sur téléphone, seize à partir de `sm`, vingt à partir de
+`lg`, sur les quatre bords. Trois utilitaires s'appuient dessus,
+`aurora-page`, `aurora-page-x` et `aurora-card`.
+
+L'échelle est écrite noir sur blanc dans `spacing.css` : quatre crans, tous
+multiples de quatre pixels, et la règle qui les ordonne - rien à l'intérieur
+ne dépasse la marge de la page, sinon l'œil ne sait plus ce qui contient
+quoi.
+
+#### Le bandeau de page rend vingt-quatre pixels au contenu
+Ses deux bandes passent de 64 et 40 pixels à 48 et 32, et le fil d'Ariane
+en petit puisque c'est une navigation secondaire. Quatre-vingts pixels au
+total contre cent quatre.
+
+#### Une seule carte, un seul tableau
+Cent cinq endroits réécrivaient la même coquille en Tailwind, avec trois
+arrondis et six opacités de bordure ; dix-huit fichiers roulaient leur propre
+tableau, avec cinq remplissages de cellule différents. Rien ne les
+distinguait : c'était la même carte et le même tableau, écrits par des mains
+différentes des mois d'écart.
+
+Cent quarante-cinq coquilles portent maintenant `aurora-card`, cent
+soixante-six cellules descendent à `px-4 py-2`, et les opacités de trait
+passent de six à deux : `border-line` pour le contour d'une chose,
+`border-line/40` pour une règle à l'intérieur. Les dix-sept coquilles qui
+restent sont les vraies exceptions, dont les cartes dont la bordure change à
+la sélection.
+
+#### Le bouton de création d'une note ressemble à son voisin
+C'était un bouton plein vert à côté du bouton d'icône qui crée un dossier.
+Deux gestes du même genre, à un pas l'un de l'autre, qui n'avaient pas l'air
+de la même famille.
+
+### Corrigé
+
+#### Passer d'une note à l'autre montrait la note qu'on venait de quitter
+Pendant une fraction de seconde, le texte de l'ancienne note s'affichait sous
+le nom de la nouvelle : une note qui n'a jamais existé. Le formulaire était
+bien marqué « non chargé », ce qui protégeait les données d'une sauvegarde
+croisée, mais rien ne disait à l'écran de cesser de le dessiner.
+
+Le formulaire est vidé sur-le-champ, et `bodyReady` dit si ce qui est affiché
+appartient à la note demandée. Le titre, lui, n'attend pas : il est déjà dans
+la liste, qui est ce sur quoi on vient de cliquer.
+
+#### Le bandeau d'une note partait et revenait à chaque changement
+L'entête mesurait 279 pixels, puis 119, puis 279 : un saut de cent soixante
+pixels sur la partie la plus lourde de l'écran, parce que rien ne savait si
+la note ouverte portait une image avant que son corps n'arrive. `coverUrl`,
+`coverPosition` et `appearance` voyagent maintenant avec la liste. Mesuré
+avec la réponse ralentie à 1200 ms : l'entête ne bouge plus, et l'image est
+déjà la bonne à 250 ms.
+
+#### Le trait entre deux lignes d'une liste était presque blanc
+Trouvé pendant l'unification des bordures, et causé par elle : une expression
+régulière a produit `divide-line/40/40` à trente-quatre endroits. Une classe
+que Tailwind ne connaît pas n'est pas une erreur, elle n'émet rien, et le
+`divide-y` retombait sur le gris clair par défaut. Vérifié cette fois dans la
+feuille compilée, et non dans les sources.
+
+#### La grille du site public perdait la moitié de sa gouttière sur téléphone
+`--aurora-gutter` appartenait déjà à la grille éditoriale, avec un repli à
+`1rem` que personne ne déclarait. Poser la même variable sur `:root` la
+faisait passer à huit pixels sur chaque zone de chaque page publique, sans
+qu'une ligne de la grille ait bougé. La marge de page a changé de nom.
+
+### Dans aurora-client
+
+Aucune migration. Les changements sont visuels et vivent dans les gabarits et
+les feuilles du bundle : un `make aurora-update` suivi d'une reconstruction
+des assets suffit.
+
+---
+
 ## [0.9.227] - 2026-09-23
 
 ### Ajouté

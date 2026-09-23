@@ -50,7 +50,7 @@
         {# What happens next, before the document rather than after it. Reading
            nineteen articles and only then discovering what is being asked is
            the wrong order. #}
-        <div class="rounded-lg border border-line bg-surface p-4 text-sm space-y-1">
+        <div class="aurora-card p-4 text-sm space-y-1">
             <p class="font-medium text-primary">
                 {{ 'studio.public.contract.to_sign'|trans({}, null, contract.locale) }}
             </p>
@@ -67,7 +67,7 @@
        byte for byte what the hash covers, which is the whole point of having
        sealed it. `raw` is safe here because the renderer that produced it
        sanitised every text and escaped every substituted value. #}
-    <article class="contract-document rounded-lg border border-line bg-surface p-6 sm:p-8">
+    <article class="aurora-card contract-document p-6 sm:p-8">
         {{ documentHtml|raw }}
     </article>
 

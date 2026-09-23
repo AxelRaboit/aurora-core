@@ -51,7 +51,7 @@ function timeOf(at) {
 </script>
 
 <template>
-    <div class="bg-surface border border-line rounded-xl">
+    <div class="aurora-card">
         <div class="flex items-center gap-2 border-b border-line px-3 py-2">
             <p class="min-w-0 truncate text-sm font-semibold text-primary first-letter:uppercase">
                 {{ heading }}

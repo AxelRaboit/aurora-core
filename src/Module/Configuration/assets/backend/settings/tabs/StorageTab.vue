@@ -337,7 +337,7 @@ defineExpose({ save, apply, canSwitchToR2 });
                 <div
                     v-for="disk in ['local', 'r2']"
                     :key="disk"
-                    class="rounded-lg border border-line/60 bg-surface-2/40 px-3 py-2"
+                    class="rounded-lg border border-line bg-surface-2/40 px-3 py-2"
                     :class="activeDisk === disk ? 'border-accent/60' : ''"
                 >
                     <p class="flex items-center gap-2 text-xs uppercase tracking-wide text-muted">

@@ -13,19 +13,31 @@ body {
 /**
  * La hauteur de la barre collée en haut d'une page d'administration.
  *
- * `page_header.html.twig` empile un bandeau de titre (`h-16`) et un fil
- * d'Ariane (`h-10`), et se colle en haut à partir de `lg`. Tout ce qui se colle
+ * `page_header.html.twig` empile un bandeau de titre (`h-12`) et un fil
+ * d'Ariane (`h-8`), et se colle en haut à partir de `lg`. Tout ce qui se colle
  * ensuite dans le contenu doit démarrer sous elle : `sticky top-4` plaçait le
  * sommaire d'une page de documentation à seize pixels du haut, c'est-à-dire
- * quatre-vingt-huit pixels sous la barre, et il n'en restait que la dernière
- * ligne à l'écran.
+ * sous la barre, et il n'en restait que la dernière ligne à l'écran.
  *
- * Une page sans fil d'Ariane a une barre plus courte de quarante pixels ; elle
- * gagne donc un peu d'air plutôt qu'un chevauchement, ce qui est le bon sens
- * de l'erreur.
+ * Elle valait 6.5rem quand les deux bandes faisaient 64 et 40 pixels. Elles
+ * ont été resserrées à 48 et 32, le fil passant en petit : vingt-quatre pixels
+ * de hauteur rendus au contenu sur chaque page.
+ *
+ * Elle dépend de la largeur, parce que la barre n'est pas la même en dessous
+ * de `lg` : le menu y est un tiroir dont la barre fixe fait 3.5rem, et le
+ * bandeau de page se réduit au fil d'Ariane, 2rem posés dessous. Ce qui se
+ * colle dans le contenu s'en sert comme décalage, et une hauteur plein écran
+ * comme retranchement - les deux veulent la même chose : ce que la page perd
+ * en haut.
  */
 :root {
-    --aurora-topbar: 6.5rem;
+    --aurora-topbar: 5.5rem;
+}
+
+@media (min-width: 1024px) {
+    :root {
+        --aurora-topbar: 5rem;
+    }
 }
 
 /**

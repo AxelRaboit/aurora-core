@@ -71,7 +71,7 @@ function onItemClick(entry) {
                 class="fixed inset-0 z-50 flex items-start justify-center pt-20 px-2 sm:px-4"
             >
                 <div class="absolute inset-0 bg-black/50" v-on:click="toggle" />
-                <div class="relative w-full max-w-2xl bg-surface border border-line rounded-xl shadow-2xl flex flex-col max-h-[70vh]">
+                <div class="aurora-card relative w-full max-w-2xl shadow-2xl flex flex-col max-h-[70vh]">
                     <div class="flex items-center justify-between px-4 py-3 border-b border-line shrink-0">
                         <span class="text-sm font-semibold text-primary">{{ t('backend.notifications.title') }}</span>
                         <div class="flex items-center gap-1">

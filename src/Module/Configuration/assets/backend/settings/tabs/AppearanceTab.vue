@@ -18,7 +18,7 @@ const colorPresets = useColorPickerPresets({ groups: props.groups, updatePath: p
 </script>
 
 <template>
-    <div class="bg-surface border border-line rounded-xl p-4 sm:p-6 space-y-6">
+    <div class="aurora-card p-4 sm:p-6 space-y-6">
         <div>
             <h3 class="text-sm font-semibold text-primary">{{ t('backend.settings.appearance.color_presets.title') }}</h3>
             <p class="text-xs text-muted mt-1">{{ t('backend.settings.appearance.color_presets.help') }}</p>

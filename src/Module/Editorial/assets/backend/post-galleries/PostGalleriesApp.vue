@@ -64,7 +64,7 @@ function editPath(post) {
             <div
                 v-for="post in items"
                 :key="post.id"
-                class="flex flex-col gap-2 rounded-xl border border-line bg-surface p-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3"
+                class="aurora-card flex flex-col gap-2 p-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3"
             >
                 <div class="min-w-0 flex-1">
                     <p class="truncate text-sm font-medium text-primary">

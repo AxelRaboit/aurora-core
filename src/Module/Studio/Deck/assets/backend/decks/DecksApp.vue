@@ -210,24 +210,24 @@ const deckUrl = (deck) => buildPath(props.showPath, { id: deck.id });
             :hint="t('backend.studio.decks.empty_description')"
         />
 
-        <div v-else-if="!isNarrow" class="overflow-x-auto rounded-xl border border-line bg-surface">
+        <div v-else-if="!isNarrow" class="aurora-card overflow-x-auto">
             <table class="w-full text-sm">
                 <thead>
                     <tr class="border-b border-line text-xs uppercase tracking-wide text-muted">
-                        <th class="px-6 py-3 text-left font-medium">{{ t("backend.studio.decks.title_column") }}</th>
-                        <th class="hidden px-6 py-3 text-left font-medium lg:table-cell">{{ t("backend.studio.decks.category") }}</th>
-                        <th class="hidden px-6 py-3 text-left font-medium lg:table-cell">{{ t("backend.studio.decks.customer") }}</th>
-                        <th class="px-6 py-3 text-right font-medium">{{ t("backend.studio.decks.slides") }}</th>
-                        <th class="px-6 py-3 text-right font-medium sticky right-0 bg-surface-2 border-l border-line/40">{{ t("shared.common.actions") }}</th>
+                        <th class="px-4 py-2 text-left font-medium">{{ t("backend.studio.decks.title_column") }}</th>
+                        <th class="hidden px-4 py-2 text-left font-medium lg:table-cell">{{ t("backend.studio.decks.category") }}</th>
+                        <th class="hidden px-4 py-2 text-left font-medium lg:table-cell">{{ t("backend.studio.decks.customer") }}</th>
+                        <th class="px-4 py-2 text-right font-medium">{{ t("backend.studio.decks.slides") }}</th>
+                        <th class="px-4 py-2 text-right font-medium sticky right-0 bg-surface-2 border-l border-line/40">{{ t("shared.common.actions") }}</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr
                         v-for="deck in filteredItems"
                         :key="deck.id"
-                        class="border-b border-line/60 last:border-0 hover:bg-surface-2/50"
+                        class="border-b border-line last:border-0 hover:bg-surface-2/50"
                     >
-                        <td class="px-6 py-3">
+                        <td class="px-4 py-2">
                             <!-- Le titre est le lien vers la page du deck : c'est
                                  ce qu'on vise pour composer les slides, et une
                                  action de plus dans le menu de ligne aurait mis
@@ -247,7 +247,7 @@ const deckUrl = (deck) => buildPath(props.showPath, { id: deck.id });
                             </span>
                             <span v-if="deck.description" class="block text-xs text-muted line-clamp-1">{{ deck.description }}</span>
                         </td>
-                        <td class="hidden px-6 py-3 lg:table-cell">
+                        <td class="hidden px-4 py-2 lg:table-cell">
                             <span
                                 v-if="deck.category"
                                 class="inline-flex items-center gap-1.5 rounded-full border border-line px-2 py-0.5 text-xs"
@@ -261,11 +261,11 @@ const deckUrl = (deck) => buildPath(props.showPath, { id: deck.id });
                             </span>
                             <span v-else class="text-xs text-muted">{{ t("backend.studio.decks.uncategorised") }}</span>
                         </td>
-                        <td class="hidden px-6 py-3 text-secondary lg:table-cell">
+                        <td class="hidden px-4 py-2 text-secondary lg:table-cell">
                             {{ deck.customer?.legalName ?? "—" }}
                         </td>
-                        <td class="px-6 py-3 text-right tabular-nums text-secondary">{{ deck.slideCount }}</td>
-                        <td class="px-6 py-3 text-right sticky right-0 bg-surface border-l border-line/40">
+                        <td class="px-4 py-2 text-right tabular-nums text-secondary">{{ deck.slideCount }}</td>
+                        <td class="px-4 py-2 text-right sticky right-0 bg-surface border-l border-line/40">
                             <AppRowActions :actions="actionsFor(deck)" :label="deck.title" />
                         </td>
                     </tr>
@@ -280,7 +280,7 @@ const deckUrl = (deck) => buildPath(props.showPath, { id: deck.id });
             <article
                 v-for="deck in filteredItems"
                 :key="deck.id"
-                class="rounded-lg border border-line bg-surface p-3 space-y-2.5"
+                class="aurora-card p-3 space-y-2.5"
             >
                 <div>
                     <a

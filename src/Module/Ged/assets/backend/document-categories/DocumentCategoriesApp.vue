@@ -99,7 +99,7 @@ const pageActions = computed(() => {
             <!-- Mobile cards -->
             <div class="sm:hidden space-y-2">
                 <AppNoData v-if="!items?.length" :message="t('backend.ged.categories.empty')" />
-                <div v-for="cat in items" :key="cat.id" class="bg-surface border border-line/60 rounded-xl overflow-hidden shadow-sm">
+                <div v-for="cat in items" :key="cat.id" class="aurora-card overflow-hidden">
                     <div class="px-4 py-3">
                         <p class="font-medium text-primary text-sm">{{ cat.name }}</p>
                         <p class="text-xs text-muted font-mono mt-0.5">{{ cat.slug }}</p>
@@ -115,22 +115,22 @@ const pageActions = computed(() => {
             </div>
 
             <!-- Desktop table -->
-            <div class="hidden sm:block bg-surface border border-line rounded-lg overflow-x-auto scrollbar-thin">
+            <div class="aurora-card hidden sm:block overflow-x-auto scrollbar-thin">
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="bg-surface-2/50 border-b border-line/40">
-                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t("backend.ged.categories.name") }}</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted hidden md:table-cell">{{ t("backend.ged.categories.slug") }}</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t("backend.ged.categories.name") }}</th>
+                            <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden md:table-cell">{{ t("backend.ged.categories.slug") }}</th>
                             <slot name="extra-headers" />
-                            <th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted">{{ t("shared.common.actions") }}</th>
+                            <th class="px-4 py-2 text-right text-xs font-medium uppercase tracking-wider text-muted">{{ t("shared.common.actions") }}</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-line/40">
                         <tr v-for="cat in items" :key="cat.id" class="group hover:bg-surface-2/40 transition-colors">
-                            <td class="px-6 py-3 font-medium text-primary">{{ cat.name }}</td>
-                            <td class="px-6 py-3 text-muted font-mono text-xs hidden md:table-cell">{{ cat.slug }}</td>
+                            <td class="px-4 py-2 font-medium text-primary">{{ cat.name }}</td>
+                            <td class="px-4 py-2 text-muted font-mono text-xs hidden md:table-cell">{{ cat.slug }}</td>
                             <slot name="extra-cells" :category="cat" />
-                            <td class="px-6 py-3">
+                            <td class="px-4 py-2">
                                 <div class="flex items-center justify-end gap-0.5">
                                     <AppRowActions :actions="actionsFor(cat)" :label="cat.name ?? cat.label ?? ''" />
                                 </div>

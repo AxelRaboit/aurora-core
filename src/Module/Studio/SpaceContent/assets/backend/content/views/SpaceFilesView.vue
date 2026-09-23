@@ -129,7 +129,7 @@ function chooseFile(event) {
             <!-- Deux rattachements, deux onglets, et le compte sur l'étiquette :
                  c'est lui qui rend l'autre visible. -->
             <div
-                class="flex items-center gap-0.5 rounded-lg border border-line/60 bg-surface-2/40 p-0.5"
+                class="flex items-center gap-0.5 rounded-lg border border-line bg-surface-2/40 p-0.5"
                 role="group"
                 :aria-label="t('backend.studio.space_files.label')"
             >
@@ -184,7 +184,7 @@ function chooseFile(event) {
                     </AppButton>
                 </template>
 
-                <div v-if="visible.length > 0" class="flex self-start rounded-lg border border-line/60 p-0.5 sm:self-auto">
+                <div v-if="visible.length > 0" class="flex self-start rounded-lg border border-line p-0.5 sm:self-auto">
                     <AppIconButton
                         size="sm"
                         variant="ghost"
@@ -227,7 +227,7 @@ function chooseFile(event) {
             <article
                 v-for="file in visible"
                 :key="file.id"
-                class="overflow-hidden rounded-lg border border-line/60 bg-surface transition-colors hover:border-accent-400"
+                class="aurora-card overflow-hidden transition-colors hover:border-accent-400"
             >
                 <!-- Un carré de trois cent soixante pixels mangerait l'écran
                      pour une seule vignette ; quatre tiers en laissent voir
@@ -274,7 +274,7 @@ function chooseFile(event) {
             </article>
         </div>
 
-        <ul v-else class="divide-y divide-line/60 rounded-lg border border-line/60">
+        <ul v-else class="divide-y divide-line/40 rounded-lg border border-line">
             <li
                 v-for="file in visible"
                 :key="file.id"
@@ -326,7 +326,7 @@ function chooseFile(event) {
 
                 <button
                     type="button"
-                    class="shrink-0 rounded-md border border-line/60 px-2.5 py-1.5 text-xs text-primary transition-colors hover:bg-surface-2"
+                    class="shrink-0 rounded-md border border-line px-2.5 py-1.5 text-xs text-primary transition-colors hover:bg-surface-2"
                     v-on:click="previewed = file"
                 >
                     {{ t("backend.studio.space_content.files_open") }}

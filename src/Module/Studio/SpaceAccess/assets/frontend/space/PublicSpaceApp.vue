@@ -538,7 +538,7 @@ function isLate(event) {
              déjà allé. -->
         <div
             v-if="views.length > 1"
-            class="flex max-w-full items-center gap-0.5 overflow-x-auto rounded-lg border border-line/60 bg-surface-2/40 p-0.5"
+            class="flex max-w-full items-center gap-0.5 overflow-x-auto rounded-lg border border-line bg-surface-2/40 p-0.5"
             role="group"
             :aria-label="t('studio.public.space.tabs_label')"
         >
@@ -612,7 +612,7 @@ function isLate(event) {
             <div ref="container" class="space-y-3">
                 <p
                     v-if="reviewOnly && !pendingEvents.length"
-                    class="rounded-xl border border-line/60 bg-surface px-3 py-3 text-xs text-muted"
+                    class="aurora-card px-3 py-3 text-xs text-muted"
                 >
                     {{ t("studio.public.space.nothing_awaiting") }}
                 </p>
@@ -633,7 +633,7 @@ function isLate(event) {
                      répondre et non naviguer entre les jours. -->
                 <section
                     v-if="reviewOnly && pendingEvents.length"
-                    class="rounded-xl border border-line/60 bg-surface"
+                    class="aurora-card"
                 >
                     <header class="flex flex-wrap items-center justify-between gap-2 border-b border-line/40 px-3 py-2">
                         <label class="flex items-center gap-2 text-sm text-primary">
@@ -696,7 +696,7 @@ function isLate(event) {
 
                 <!-- La grille dit quels jours portent quelque chose ; celle-ci dit
                  quoi. L'une sans l'autre est illisible sur un téléphone. -->
-                <section v-if="isNarrow && !reviewOnly" class="rounded-xl border border-line/60 bg-surface">
+                <section v-if="isNarrow && !reviewOnly" class="aurora-card">
                     <header class="flex items-baseline gap-2 border-b border-line/40 px-3 py-2">
                         <h3 class="text-sm font-medium capitalize text-primary">
                             {{ dayTitle }}
@@ -787,7 +787,7 @@ function isLate(event) {
                     <a
                         v-if="driveArchivePath"
                         :href="driveArchivePath"
-                        class="inline-flex w-full items-center justify-center gap-2 rounded-md border border-line/60 px-3 py-2 text-xs text-primary transition-colors hover:bg-surface-2 sm:w-auto"
+                        class="inline-flex w-full items-center justify-center gap-2 rounded-md border border-line px-3 py-2 text-xs text-primary transition-colors hover:bg-surface-2 sm:w-auto"
                     >
                         <Package class="h-3.5 w-3.5 shrink-0" :stroke-width="2" />
                         {{ t("studio.public.space.drive_archive") }}
@@ -798,7 +798,7 @@ function isLate(event) {
                  Un seul lien obligeait à ouvrir le fichier dans un onglet puis
                  à le réenregistrer depuis la visionneuse du navigateur, ce qui
                  pour une vidéo ou un gros PDF veut dire le charger deux fois. -->
-                <ul class="divide-y divide-line/60 rounded-lg border border-line/60">
+                <ul class="divide-y divide-line/40 rounded-lg border border-line">
                     <!-- Le nom seul sur sa ligne quand la place manque : un
                          chemin de dossier suivi d'un nom de fichier dépasse
                          trois cent soixante-quinze pixels bien avant d'avoir
@@ -821,7 +821,7 @@ function isLate(event) {
                             <span v-if="file.size" class="shrink-0 text-xs tabular-nums text-muted">{{ formatSize(file.size) }}</span>
                             <a
                                 :href="driveDownload(file)"
-                                class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-line/60 text-primary transition-colors hover:bg-surface-2"
+                                class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-line text-primary transition-colors hover:bg-surface-2"
                                 :title="t('studio.public.space.drive_download')"
                                 :aria-label="t('studio.public.space.drive_download')"
                             >
@@ -837,7 +837,7 @@ function isLate(event) {
                     {{ t("studio.public.space.files_title") }}
                 </h2>
 
-                <ul class="divide-y divide-line/60 rounded-lg border border-line/60">
+                <ul class="divide-y divide-line/40 rounded-lg border border-line">
                     <!-- En colonne sur téléphone, en ligne au-delà. Trois
                          choses sur une ligne de trois cent soixante-quinze
                          pixels tronquent toujours la même : le nom du fichier,
@@ -872,7 +872,7 @@ function isLate(event) {
                             :href="file.url"
                             target="_blank"
                             rel="noopener"
-                            class="block w-full shrink-0 rounded-md border border-line/60 px-2.5 py-2 text-center text-xs text-primary transition-colors hover:bg-surface-2 sm:w-auto sm:py-1.5"
+                            class="block w-full shrink-0 rounded-md border border-line px-2.5 py-2 text-center text-xs text-primary transition-colors hover:bg-surface-2 sm:w-auto sm:py-1.5"
                         >
                             {{ t("studio.public.space.files_open") }}
                         </a>
@@ -890,7 +890,7 @@ function isLate(event) {
                 <li
                     v-for="resource in resources"
                     :key="resource.id"
-                    class="rounded-xl border border-line/60 bg-surface p-3"
+                    class="aurora-card p-3"
                 >
                     <SpaceResourceItem :resource="resource" />
                 </li>
@@ -900,7 +900,7 @@ function isLate(event) {
         <!-- La fiche que le prestataire tient sur vous. Montrée au client
              parce que c'est de lui qu'elle parle : un SIRET mal recopié se
              voit par celui qui le connaît, et pas autrement. -->
-        <section v-if="'information' === view" class="rounded-xl border border-line/60 bg-surface p-4">
+        <section v-if="'information' === view" class="aurora-card p-4">
             <CustomerInformationCard :information="information" />
         </section>
 
@@ -908,7 +908,7 @@ function isLate(event) {
              forward" were separate paragraphs saying one thing between them:
              this address is yours, it does not last for ever, keep it. The
              date-less variant is what a link with no expiry gets. -->
-        <footer class="mt-auto border-t border-line/50 pt-3 text-xs text-muted">
+        <footer class="mt-auto border-t border-line pt-3 text-xs text-muted">
             <p>
                 {{
                     expiresAt
@@ -946,7 +946,7 @@ function isLate(event) {
                  and it has nothing to do with being allowed to add one.
                  Removing is never offered here - taking a file off a card is
                  the studio's call. -->
-            <div v-if="openItem" class="mt-4 border-t border-line/50 pt-4">
+            <div v-if="openItem" class="mt-4 border-t border-line pt-4">
                 <SpaceContentAttachments
                     :attachments="files"
                     :can-add="canUpload"
@@ -958,7 +958,7 @@ function isLate(event) {
 
             <!-- The same thread the studio reads, in the same component:
                  one conversation, not two renderings of it. -->
-            <div v-if="openItem" class="mt-4 border-t border-line/50 pt-4">
+            <div v-if="openItem" class="mt-4 border-t border-line pt-4">
                 <SpaceContentThread
                     :comments="thread"
                     :verdict="openItem?.approval ?? 'pending'"
@@ -975,7 +975,7 @@ function isLate(event) {
                  above, which is the only place on this page somebody types: a
                  second field beside the verdict was a second door to the same
                  message, and the reader had to guess which one counted. -->
-            <section v-if="canApprove" class="mt-4 space-y-2 border-t border-line/50 pt-4">
+            <section v-if="canApprove" class="mt-4 space-y-2 border-t border-line pt-4">
                 <p class="text-xs text-muted">
                     {{ t("studio.public.space.answer_hint") }}
                 </p>
