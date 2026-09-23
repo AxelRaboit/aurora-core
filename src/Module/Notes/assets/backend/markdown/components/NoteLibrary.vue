@@ -1929,6 +1929,31 @@ defineExpose({
     margin: 0.375rem 0;
 }
 
+/*
+ * Les cases à cocher : sans puce, avec de l'air, et inertes.
+ *
+ * La feuille de l'aperçu les traite déjà, mais elle vise `.note-preview`
+ * et la vignette n'en est pas : les lignes gardaient donc leur puce *et*
+ * leur case, collées au texte. Et une case dans une vignette ne doit pas
+ * se cocher - la carte ouvre la note, et cocher ici changerait un dessin
+ * sans rien écrire.
+ */
+.note-thumb :deep(.task-list-item) {
+    list-style: none;
+    margin-left: -0.9rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.35rem;
+}
+
+.note-thumb :deep(.task-checkbox) {
+    pointer-events: none;
+    flex-shrink: 0;
+    width: 0.7rem;
+    height: 0.7rem;
+    margin: 0;
+}
+
 /* Une table entière dans une vignette de quinze lignes ne dirait rien de
    plus qu'un bloc gris, et ferait déborder la carte en largeur. */
 .note-thumb :deep(table) {
