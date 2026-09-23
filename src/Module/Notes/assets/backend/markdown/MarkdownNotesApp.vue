@@ -337,6 +337,21 @@ const visibleToTeam = computed(
 const noteActions = computed(() => {
     const actions = [
         {
+            key: "read",
+            title: t('notes.markdown.read.open'),
+            icon: BookOpen,
+            href: readHref.value,
+        },
+        {
+            // Le compteur d'étiquettes était une pastille sur l'icône ;
+            // dans un menu, c'est le libellé qui les nomme, ce qui en dit
+            // plus qu'un chiffre.
+            key: "tags",
+            title: tagsLabel.value,
+            icon: Tag,
+            onSelect: () => toggleTags(),
+        },
+        {
             key: "cover",
             title: t('notes.markdown.cover.title'),
             icon: Image,
@@ -794,33 +809,16 @@ onUnmounted(() => {
                                  règle de la maison le dit déjà pour les
                                  cartes - au-delà de cinq, on garde la
                                  feuille. -->
-                            <AppIconButton
-                                v-if="readHref"
-                                :href="readHref"
-                                :title="t('notes.markdown.read.open')"
-                                :aria-label="t('notes.markdown.read.open')"
-                                size="md"
-                            >
-                                <BookOpen class="w-4 h-4" :stroke-width="2" />
-                            </AppIconButton>
+                            <AppRowActions
+                                :actions="noteActions"
+                                :label="form.title || t('notes.markdown.untitled')"
+                            />
 
-                            <AppIconButton
-                                class="relative"
-                                :title="tagsLabel"
-                                :aria-label="tagsLabel"
-                                size="md"
-                                :variant="tagsOpen ? 'primary' : 'ghost'"
-                                v-on:click="toggleTags"
-                            >
-                                <Tag class="w-4 h-4" :stroke-width="2" />
-                                <span
-                                    v-if="form.tags?.length"
-                                    class="absolute -right-0.5 -top-0.5 min-w-3.5 rounded-full bg-accent-600 px-1 text-[0.625rem] font-semibold leading-3.5 text-white"
-                                >
-                                    {{ form.tags.length }}
-                                </span>
-                            </AppIconButton>
-
+                            <!-- Le dépliant reste dehors, à droite du menu :
+                                 c'est le seul de ces gestes qui change ce
+                                 qu'on a sous les yeux pendant qu'on écrit,
+                                 et son état - ouvert ou fermé - doit se
+                                 lire sans ouvrir quoi que ce soit. -->
                             <AppIconButton
                                 :title="sidePanelOpen ? t('notes.markdown.links.close') : t('notes.markdown.links.open')"
                                 size="md"
@@ -830,11 +828,6 @@ onUnmounted(() => {
                                 <PanelRightClose v-if="sidePanelOpen" class="w-4 h-4" :stroke-width="2" />
                                 <PanelRightOpen v-else class="w-4 h-4" :stroke-width="2" />
                             </AppIconButton>
-
-                            <AppRowActions
-                                :actions="noteActions"
-                                :label="form.title || t('notes.markdown.untitled')"
-                            />
 
                             <!-- View mode toggle (edit / split / preview) - segmented AppTab control -->
                             <div class="inline-flex rounded-md border border-line overflow-hidden">

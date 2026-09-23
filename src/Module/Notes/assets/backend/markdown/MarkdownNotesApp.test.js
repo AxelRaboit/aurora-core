@@ -186,14 +186,19 @@ describe("le chemin de retour", () => {
 });
 
 describe("les étiquettes de l'éditeur", () => {
-    function tagsButton(wrapper) {
-        return wrapper
-            .findAll("button")
-            .find(
-                (b) =>
-                    b.attributes("title")?.includes("tags.add_placeholder") ||
-                    b.attributes("title")?.includes("tags.summary"),
-            );
+    /**
+     * Les étiquettes vivent dans le menu de la note depuis que la ligne du
+     * titre a été allégée : douze commandes ne laissaient plus de place au
+     * titre lui-même.
+     */
+    async function tagsEntry(wrapper) {
+        const entrees = await openNoteMenu(wrapper);
+
+        return entrees.find(
+            (node) =>
+                node.textContent.includes("tags.add_placeholder") ||
+                node.textContent.includes("tags.summary"),
+        );
     }
 
     /** L'éditeur n'est à l'écran qu'une fois une note ouverte. */
@@ -225,15 +230,15 @@ describe("les étiquettes de l'éditeur", () => {
     it("keeps its row out of the way until it is asked for", async () => {
         const wrapper = await editing();
 
-        expect(
-            tagsButton(wrapper),
-            "l'icône des étiquettes est là",
-        ).toBeTruthy();
         expect(wrapper.findComponent({ name: "AppTagsInput" }).exists()).toBe(
             false,
         );
 
-        await tagsButton(wrapper).trigger("click");
+        const entree = await tagsEntry(wrapper);
+
+        expect(entree, "l'entrée des étiquettes est là").toBeTruthy();
+
+        entree.click();
         await flushPromises();
 
         expect(wrapper.findComponent({ name: "AppTagsInput" }).exists()).toBe(
@@ -241,14 +246,15 @@ describe("les étiquettes de l'éditeur", () => {
         );
     });
 
-    /** Repliées, on doit savoir qu'il y en a, et lesquelles. */
-    it("carries the count, and names them in its tooltip", async () => {
+    /**
+     * Dans un menu, c'est le libellé qui nomme les étiquettes - ce qui en
+     * dit plus que le chiffre que portait l'icône.
+     */
+    it("names them in the entry itself", async () => {
         const wrapper = await editing(["client", "photo"]);
+        const entree = await tagsEntry(wrapper);
 
-        expect(tagsButton(wrapper).text()).toBe("2");
-        expect(tagsButton(wrapper).attributes("title")).toContain(
-            "client, photo",
-        );
+        expect(entree.textContent).toContain("client, photo");
     });
 });
 
