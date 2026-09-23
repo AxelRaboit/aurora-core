@@ -1,74 +1,198 @@
 {
-  "_": [
-    "Quelle capture va sur quelle carte du tour public.",
-    "",
-    "Cette table n'existait nulle part. Le scénario de capture affirmait que la",
-    "carte n'avait rien à savoir, parce qu'elle montre « un document nommé",
-    "tour-<nom>.png » - sauf que `aurora:ged:replace` change le nom stocké à",
-    "chaque remplacement, et que le nom d'origine ne se retrouve plus. Il",
-    "fallait donc connaître l'identifiant, et il ne vivait que dans la mémoire",
-    "de celui qui avait fait l'envoi la fois d'avant.",
-    "",
-    "`document` est l'identifiant d'une image que la publication `slug` affiche,",
-    "dans le type de contenu `aurora`.",
-    "",
-    "**Une carte porte souvent plusieurs images.** La première version de cette",
-    "table n'en connaissait qu'une par carte : les douze autres sont restées",
-    "sur place pendant que leurs voisines se refaisaient, et celle du côté",
-    "client montrait encore une page qui empilait tout et un invité signé de",
-    "son adresse e-mail, deux versions après que l'une et l'autre aient",
-    "disparu. Un envoi qui laisse une image sur trois périmée est pire qu'un",
-    "envoi qui n'a pas lieu : on croit la page à jour.",
-    "",
-    "Toute image du tour est donc ici, et plus aucune entrée ne vaut `null` :",
-    "les trois dernières - la liste des clients, et les deux onglets nouveaux -",
-    "ont reçu leur emplacement sur leur carte. Si une carte en gagne une, elle",
-    "vient s'ajouter à cette table le même jour, sans quoi elle vieillira seule."
-  ],
-  "cards": {
-    "tour-dashboard": { "document": 20, "slug": "tableau-de-bord" },
-    "tour-recherche": { "document": 94, "slug": "recherche-globale" },
-    "tour-publications": { "document": 19, "slug": "publier-programmer-archiver" },
-    "tour-grille": { "document": 17, "slug": "composer-une-page" },
-    "tour-entete": { "document": 18, "slug": "en-tete-de-page" },
-    "tour-seo": { "document": 21, "slug": "referencement" },
-    "tour-galerie": { "document": 33, "slug": "galeries" },
-    "tour-traductions": { "document": 35, "slug": "multilingue" },
-    "tour-types": { "document": 28, "slug": "types-de-contenu" },
-    "tour-taxonomies": { "document": 27, "slug": "taxonomies" },
-    "tour-menus": { "document": 26, "slug": "menus" },
-    "tour-commentaires": { "document": 25, "slug": "commentaires" },
-    "tour-formulaire-champs": { "document": 24, "slug": "formulaires" },
-
-    "tour-mediatheque-grille": { "document": 22, "slug": "mediatheque" },
-    "tour-mediatheque-document": { "document": 364, "slug": "mediatheque" },
-
-    "tour-notes": { "document": 31, "slug": "notes-markdown" },
-
-    "tour-calendrier": { "document": 32, "slug": "calendrier" },
-    "tour-calendrier-semaine": { "document": 363, "slug": "calendrier" },
-
-    "tour-contrats": { "document": 89, "slug": "clients-et-contrats" },
-    "tour-trames": { "document": 365, "slug": "clients-et-contrats" },
-    "tour-avenant-scelle": { "document": 362, "slug": "clients-et-contrats" },
-    "tour-clients": { "document": 420, "slug": "clients-et-contrats" },
-
-    "tour-espaces-clients": { "document": 411, "slug": "les-espaces-clients" },
-    "espace-calendrier": { "document": 410, "slug": "les-espaces-clients" },
-    "espace-discussion": { "document": 413, "slug": "les-espaces-clients" },
-    "espace-fichiers": { "document": 414, "slug": "les-espaces-clients" },
-    "espace-notes": { "document": 415, "slug": "les-espaces-clients" },
-    "espace-une-fiche": { "document": 416, "slug": "les-espaces-clients" },
-    "espaces-prospects": { "document": 417, "slug": "les-espaces-clients" },
-    "espace-cote-client": { "document": 412, "slug": "les-espaces-clients" },
-    "espace-informations": { "document": 418, "slug": "les-espaces-clients" },
-    "espace-liens": { "document": 419, "slug": "les-espaces-clients" },
-
-    "tour-utilisateurs": { "document": 23, "slug": "comptes-et-privileges" },
-    "tour-audit": { "document": 93, "slug": "securite-et-donnees" },
-    "tour-themes": { "document": 29, "slug": "theme-et-identite" },
-    "tour-reglages": { "document": 30, "slug": "reglages-et-modules" },
-    "tour-site-public": { "document": 34, "slug": "site-public" },
-    "tour-releases": { "document": 37, "slug": "livraison-et-mises-a-jour" }
-  }
+    "_": [
+        "Quelle capture va sur quelle carte du tour public.",
+        "",
+        "Cette table n'existait nulle part. Le scénario de capture affirmait que la",
+        "carte n'avait rien à savoir, parce qu'elle montre « un document nommé",
+        "tour-<nom>.png » - sauf que `aurora:ged:replace` change le nom stocké à",
+        "chaque remplacement, et que le nom d'origine ne se retrouve plus. Il",
+        "fallait donc connaître l'identifiant, et il ne vivait que dans la mémoire",
+        "de celui qui avait fait l'envoi la fois d'avant.",
+        "",
+        "`document` est l'identifiant d'une image que la publication `slug` affiche,",
+        "dans le type de contenu `aurora`.",
+        "",
+        "**Une carte porte souvent plusieurs images.** La première version de cette",
+        "table n'en connaissait qu'une par carte : les douze autres sont restées",
+        "sur place pendant que leurs voisines se refaisaient, et celle du côté",
+        "client montrait encore une page qui empilait tout et un invité signé de",
+        "son adresse e-mail, deux versions après que l'une et l'autre aient",
+        "disparu. Un envoi qui laisse une image sur trois périmée est pire qu'un",
+        "envoi qui n'a pas lieu : on croit la page à jour.",
+        "",
+        "Toute image du tour est donc ici, et plus aucune entrée ne vaut `null` :",
+        "les trois dernières - la liste des clients, et les deux onglets nouveaux -",
+        "ont reçu leur emplacement sur leur carte. Si une carte en gagne une, elle",
+        "vient s'ajouter à cette table le même jour, sans quoi elle vieillira seule."
+    ],
+    "cards": {
+        "tour-dashboard": {
+            "document": 20,
+            "slug": "tableau-de-bord"
+        },
+        "tour-recherche": {
+            "document": 94,
+            "slug": "recherche-globale"
+        },
+        "tour-publications": {
+            "document": 19,
+            "slug": "publier-programmer-archiver"
+        },
+        "tour-grille": {
+            "document": 17,
+            "slug": "composer-une-page"
+        },
+        "tour-entete": {
+            "document": 18,
+            "slug": "en-tete-de-page"
+        },
+        "tour-seo": {
+            "document": 21,
+            "slug": "referencement"
+        },
+        "tour-galerie": {
+            "document": 33,
+            "slug": "galeries"
+        },
+        "tour-traductions": {
+            "document": 35,
+            "slug": "multilingue"
+        },
+        "tour-types": {
+            "document": 28,
+            "slug": "types-de-contenu"
+        },
+        "tour-taxonomies": {
+            "document": 27,
+            "slug": "taxonomies"
+        },
+        "tour-menus": {
+            "document": 26,
+            "slug": "menus"
+        },
+        "tour-commentaires": {
+            "document": 25,
+            "slug": "commentaires"
+        },
+        "tour-formulaire-champs": {
+            "document": 24,
+            "slug": "formulaires"
+        },
+        "tour-mediatheque-grille": {
+            "document": 22,
+            "slug": "mediatheque"
+        },
+        "tour-mediatheque-document": {
+            "document": 364,
+            "slug": "mediatheque"
+        },
+        "tour-notes": {
+            "document": 31,
+            "slug": "notes-markdown"
+        },
+        "tour-calendrier": {
+            "document": 32,
+            "slug": "calendrier"
+        },
+        "tour-calendrier-semaine": {
+            "document": 363,
+            "slug": "calendrier"
+        },
+        "tour-contrats": {
+            "document": 89,
+            "slug": "clients-et-contrats"
+        },
+        "tour-trames": {
+            "document": 365,
+            "slug": "clients-et-contrats"
+        },
+        "tour-avenant-scelle": {
+            "document": 362,
+            "slug": "clients-et-contrats"
+        },
+        "tour-clients": {
+            "document": 420,
+            "slug": "clients-et-contrats"
+        },
+        "tour-espaces-clients": {
+            "document": 411,
+            "slug": "les-espaces-clients"
+        },
+        "espace-calendrier": {
+            "document": 410,
+            "slug": "les-espaces-clients"
+        },
+        "espace-discussion": {
+            "document": 413,
+            "slug": "les-espaces-clients"
+        },
+        "espace-fichiers": {
+            "document": 414,
+            "slug": "les-espaces-clients"
+        },
+        "espace-notes": {
+            "document": 415,
+            "slug": "les-espaces-clients"
+        },
+        "espace-une-fiche": {
+            "document": 416,
+            "slug": "les-espaces-clients"
+        },
+        "espaces-prospects": {
+            "document": 417,
+            "slug": "les-espaces-clients"
+        },
+        "espace-cote-client": {
+            "document": 412,
+            "slug": "les-espaces-clients"
+        },
+        "espace-informations": {
+            "document": 418,
+            "slug": "les-espaces-clients"
+        },
+        "espace-liens": {
+            "document": 419,
+            "slug": "les-espaces-clients"
+        },
+        "tour-utilisateurs": {
+            "document": 23,
+            "slug": "comptes-et-privileges"
+        },
+        "tour-audit": {
+            "document": 93,
+            "slug": "securite-et-donnees"
+        },
+        "tour-themes": {
+            "document": 29,
+            "slug": "theme-et-identite"
+        },
+        "tour-reglages": {
+            "document": 30,
+            "slug": "reglages-et-modules"
+        },
+        "tour-site-public": {
+            "document": 34,
+            "slug": "site-public"
+        },
+        "tour-releases": {
+            "document": 37,
+            "slug": "livraison-et-mises-a-jour"
+        },
+        "tour-notes-bibliotheque": {
+            "document": 443,
+            "slug": "notes-markdown"
+        },
+        "tour-notes-graphe": {
+            "document": 444,
+            "slug": "notes-markdown"
+        },
+        "tour-notes-partage": {
+            "document": 445,
+            "slug": "notes-markdown"
+        },
+        "tour-notes-apparence": {
+            "document": 446,
+            "slug": "notes-markdown"
+        }
+    }
 }

@@ -260,16 +260,35 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                 'cover' => 33714905,
                 'coverCredit' => 'Matheus Bertelli',
                 'appearance' => 'paper',
+                // Le sommaire sert deux images de la carte publique : la page
+                // de partage et la vue de lecture. Il tenait en quatre lignes,
+                // ce qui laissait les deux à moitié vides. Un vrai sommaire de
+                // dossier porte l'état de chaque client, ce qui est en attente
+                // et où l'on en est, donc c'est ce qu'il porte.
                 'content' => <<<'MD'
                     # Sommaire des clients
 
-                    La porte d'entrée du dossier : chaque client a sa note, et
-                    chaque note renvoie ici.
+                    La porte d'entrée du dossier : chaque client a sa note, et chaque note renvoie ici. Ce qui est contractuel part de [[Contrat type]].
 
-                    - [[Studio Lumen]] : photo, en cours
-                    - [[Cabinet Verrier]] : site vitrine, livré
+                    ## En cours
 
-                    Tout ce qui est contractuel part de [[Contrat type]].
+                    - [[Studio Lumen]] : deux séances par an, la prochaine en novembre. Devis signé, repérage fait.
+                    - [[Cabinet Verrier]] : site vitrine livré en mars, maintenance au forfait. Galerie en attente de photos.
+
+                    ## Le rythme
+
+                    | Client | Depuis | Ce qui revient |
+                    | --- | --- | --- |
+                    | Studio Lumen | 2024 | deux séances, un catalogue |
+                    | Cabinet Verrier | 2025 | maintenance mensuelle |
+
+                    ## À relancer
+
+                    - [x] Facture de septembre, Studio Lumen
+                    - [ ] Photos de la galerie, Cabinet Verrier
+                    - [ ] Proposer le format portraits à Lumen pour janvier
+
+                    Les tarifs pratiqués sont dans [[Tarifs 2024]], gardés pour mémoire : ils ont changé en janvier.
                     MD,
             ],
             'lumen' => [
@@ -295,13 +314,41 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                 'folder' => 'clients',
                 'cover' => 923307,
                 'coverCredit' => 'Julien Bachelet',
+                // La note la plus fournie de la démonstration, et c'est
+                // délibéré : c'est elle que la carte publique du module
+                // photographie, en vue partagée. Trois lignes remplissaient
+                // un quart du volet et laissaient le reste blanc, ce qui
+                // montre surtout que la note est vide. Une vraie fiche client
+                // tient une trentaine de lignes, avec ses sections, sa liste
+                // à cocher et son tableau : c'est ce que le module sert à
+                // faire, donc c'est ce qu'il faut montrer.
                 'content' => <<<'MD'
                     # Cabinet Verrier
 
-                    Trois architectes, un site qui montre les chantiers
-                    livrés. Livré en mars, maintenance au forfait.
+                    Trois architectes associés, un site vitrine qui montre les chantiers livrés. Mise en ligne en mars, maintenance au forfait depuis. Interlocuteur : Paul, qui relit tout.
 
-                    Le cadre est celui de [[Contrat type]].
+                    ## Où ça en est
+
+                    - [x] Refonte de la page d'accueil
+                    - [x] Reprise des fiches chantier, 24 au total
+                    - [ ] Galerie avant / après, en attente des photos
+                    - [ ] Formulaire de contact en trois langues
+
+                    ## Le forfait
+
+                    | Poste | Rythme | Montant |
+                    | --- | --- | --- |
+                    | Maintenance | mensuel | 180 € |
+                    | Sauvegardes | mensuel | inclus |
+                    | Petites évolutions | 2 h / mois | inclus |
+
+                    Au-delà des deux heures, c'est du temps facturé au tarif courant, annoncé avant d'être engagé.
+
+                    ## À ne pas oublier
+
+                    Paul veut être prévenu **avant** toute mise en ligne, même pour une correction de texte : le cabinet répond à des appels d'offres et le site sert de référence.
+
+                    Le cadre contractuel est celui de [[Contrat type]], et la fiche remonte au [[Sommaire des clients]].
                     MD,
             ],
             'contrat' => [
