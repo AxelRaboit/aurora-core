@@ -9,8 +9,10 @@ use Aurora\Fixtures\Core\CoreDemoFixtures;
 use Aurora\Module\Notes\Folder\Entity\NoteFolder;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNote;
 use Aurora\Module\Notes\Markdown\Enum\NoteAppearanceEnum;
+use Aurora\Module\Notes\Markdown\Service\MarkdownNoteImageService;
 use Aurora\Module\Notes\Share\Manager\MarkdownNoteShareLinkManagerInterface;
 use Aurora\Module\Notes\Share\Repository\MarkdownNoteShareLinkRepository;
+use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 use Aurora\Module\Platform\User\Repository\UserRepository;
@@ -21,6 +23,10 @@ use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ObjectManager;
 use RuntimeException;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Throwable;
 
 use function assert;
 
@@ -53,6 +59,9 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
         private readonly UserRepository $userRepository,
         private readonly MarkdownNoteShareLinkManagerInterface $shareLinks,
         private readonly MarkdownNoteShareLinkRepository $shareLinkRepository,
+        private readonly MarkdownNoteImageService $images,
+        private readonly HttpClientInterface $http,
+        private readonly Filesystem $filesystem = new Filesystem(),
     ) {}
 
     public static function getGroups(): array
@@ -133,7 +142,7 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
             $note
                 ->setUser($owner)
                 ->setTitle($definition['title'])
-                ->setContent($definition['content'])
+                ->setContent($this->withImages($definition, $note, $owner))
                 ->setTags($definition['tags'])
                 ->setPosition($position++)
                 ->setAppearance(NoteAppearanceEnum::fromNullable($definition['appearance'] ?? null))
@@ -233,6 +242,85 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
      * Le lien de crédit pointe la page de la photo : la licence demande de
      * nommer l'auteur, et c'est de là qu'on remonte à lui.
      */
+    /**
+     * Remplace les `{{image:0}}` du texte par de vraies images collées.
+     *
+     * Le carnet de démonstration montrait tout du module sauf ça : une note
+     * pouvait porter une image, mais aucune n'en portait, donc ni la vignette
+     * de la bibliothèque ni la capture du site public ne le disaient.
+     *
+     * **Les photos ne sont pas dans le dépôt.** Elles sont tirées du CDN de
+     * Pexels au chargement, comme les bandeaux tirent leur adresse du même
+     * endroit - à ceci près qu'ici il faut les octets, puisqu'une image collée
+     * est un fichier chez nous. Committer des photos dans un dépôt public
+     * pour décorer un jeu d'essai est un poids qu'on ne reprend jamais, et
+     * l'une d'elles portait dans ses métadonnées un « All Rights Reserved »
+     * qui n'a rien à faire là.
+     *
+     * **Sans réseau, la note garde son texte.** Un jeu de démonstration qui
+     * refuse de se charger parce qu'un CDN est lent est un jeu de
+     * démonstration cassé. Le marqueur disparaît, l'image avec, et le reste
+     * du carnet arrive.
+     *
+     * **Idempotente** : si la note porte déjà des images, on réutilise les
+     * fichiers qu'elle cite plutôt que d'en téléverser de nouveaux à chaque
+     * `make demo`. Sans ça, dix rechargements laisseraient dix copies de la
+     * même photo dans le stockage, sans que rien ne les réclame.
+     *
+     * @param array{content: string, images?: list<int>} $definition
+     */
+    private function withImages(array $definition, MarkdownNote $note, CoreUserInterface $owner): string
+    {
+        $content = $definition['content'];
+        $wanted = $definition['images'] ?? [];
+
+        if ([] === $wanted) {
+            return $content;
+        }
+
+        $already = $this->images->extractFilenames($note->getContent());
+
+        foreach ($wanted as $index => $photoId) {
+            $filename = $already[$index] ?? $this->fetchImage($photoId, $owner);
+
+            if (null === $filename) {
+                // Le marqueur part avec la ligne qui le porte : un
+                // `![légende]()` vide afficherait une icône cassée.
+                $content = (string) preg_replace('/^.*\{\{image:'.$index.'\}\}.*$\n?/m', '', $content);
+
+                continue;
+            }
+
+            $content = str_replace(
+                sprintf('{{image:%d}}', $index),
+                '/backend/notes/markdown/images/'.$filename,
+                $content,
+            );
+        }
+
+        return $content;
+    }
+
+    /** Une photo de Pexels, téléversée comme si on l'avait collée. */
+    private function fetchImage(int $photoId, CoreUserInterface $owner): ?string
+    {
+        $temporaire = (string) tempnam(sys_get_temp_dir(), 'aurora-demo-image-');
+
+        try {
+            $octets = $this->http->request('GET', $this->pexels($photoId))->getContent();
+            $this->filesystem->dumpFile($temporaire, $octets);
+
+            return $this->images->store(
+                new UploadedFile($temporaire, sprintf('pexels-%d.jpg', $photoId), null, null, true),
+                $owner,
+            );
+        } catch (Throwable) {
+            return null;
+        } finally {
+            $this->filesystem->remove($temporaire);
+        }
+    }
+
     private function pexels(int $id): string
     {
         return sprintf(
@@ -243,7 +331,7 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
     }
 
     /**
-     * @return array<string, array{title: string, content: string, tags: list<string>, folder?: string, cover?: int, coverCredit?: string, coverPosition?: int, appearance?: string, favorite?: bool, trashed?: bool}>
+     * @return array<string, array{title: string, content: string, tags: list<string>, folder?: string, cover?: int, coverCredit?: string, coverPosition?: int, appearance?: string, favorite?: bool, trashed?: bool, images?: list<int>}>
      */
     private function notes(): array
     {
@@ -268,12 +356,12 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                 'content' => <<<'MD'
                     # Sommaire des clients
 
-                    La porte d'entrée du dossier : chaque client a sa note, et chaque note renvoie ici. Ce qui est contractuel part de [[Contrat type]].
+                    Chaque client a sa note, et chaque note renvoie ici. Le contractuel part de [[Contrat type]].
 
                     ## En cours
 
-                    - [[Studio Lumen]] : deux séances par an, la prochaine en novembre. Devis signé, repérage fait.
-                    - [[Cabinet Verrier]] : site vitrine livré en mars, maintenance au forfait. Galerie en attente de photos.
+                    - [[Studio Lumen]] : deux séances par an, la prochaine en novembre.
+                    - [[Cabinet Verrier]] : site livré en mars, maintenance au forfait.
 
                     ## Le rythme
 
@@ -286,7 +374,6 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
 
                     - [x] Facture de septembre, Studio Lumen
                     - [ ] Photos de la galerie, Cabinet Verrier
-                    - [ ] Proposer le format portraits à Lumen pour janvier
 
                     Les tarifs pratiqués sont dans [[Tarifs 2024]], gardés pour mémoire : ils ont changé en janvier.
                     MD,
@@ -327,6 +414,8 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
 
                     Trois architectes associés, un site vitrine qui montre les chantiers livrés. Mise en ligne en mars, maintenance au forfait depuis. Interlocuteur : Paul, qui relit tout.
 
+                    ![La page d'accueil, version validée en février]({{image:0}})
+
                     ## Où ça en est
 
                     - [x] Refonte de la page d'accueil
@@ -350,6 +439,7 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
 
                     Le cadre contractuel est celui de [[Contrat type]], et la fiche remonte au [[Sommaire des clients]].
                     MD,
+                'images' => [3760067],
             ],
             'contrat' => [
                 'title' => 'Contrat type',
@@ -388,8 +478,11 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                     sans lien exprès pour voir ce que donne une mention non
                     liée.
 
+                    ![Le repérage de la veille, même heure]({{image:0}})
+
                     Matériel : voir [[Matériel]].
                     MD,
+                'images' => [1181244],
             ],
             'materiel' => [
                 'title' => 'Matériel',
