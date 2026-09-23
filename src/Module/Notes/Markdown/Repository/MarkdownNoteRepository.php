@@ -75,13 +75,13 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
      * reste une requête de plus, appelée seulement par les écrans qui
      * montrent l'extrait.
      *
-     * Le Markdown n'est pas rendu, juste débarrassé de ce qui fait du bruit
-     * en une ligne : les dièses d'un titre, les tirets d'une liste, les
-     * lignes vides.
+     * Ce qui sort est du Markdown, que la carte rend en petit : voir un
+     * titre, une liste ou une case cochée est ce qui fait reconnaître une
+     * note, là où un texte aplati les rendait toutes identiques.
      *
-     * @return array<int, string> note id => extrait
+     * @return array<int, string> note id => les premières lignes, en Markdown
      */
-    public function findExcerptsForUser(CoreUserInterface $user, int $length = 160): array
+    public function findExcerptsForUser(CoreUserInterface $user, int $length = 700): array
     {
         /** @var list<array{id: int, content: string|null}> $rows */
         $rows = $this->createQueryBuilder('n')
@@ -104,13 +104,30 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
         return $excerpts;
     }
 
+    /**
+     * Le début d'une note, tel qu'il se relira.
+     *
+     * **Du markdown, pas du texte aplati.** La mosaïque montre une vignette
+     * de la note, comme Craft : on y reconnaît un titre, une liste, une
+     * case cochée d'un coup d'œil, et c'est ce qui répond à « ah oui, c'est
+     * celle-là ». Aplati, tout se ressemblait.
+     *
+     * Deux précautions. Les images partent : une seule en `data:` pèserait
+     * plus que tout le reste de la liste, et une vignette n'a pas à la
+     * porter. Et une coupe au milieu d'un bloc de code laisserait une
+     * clôture manquante, qui ferait passer toute la suite pour du code :
+     * on la referme.
+     */
     private function summarise(string $content, int $length): string
     {
-        $flat = (string) preg_replace('/^\s{0,3}(#{1,6}\s+|[-*+]\s+|>\s?)/m', '', $content);
-        $flat = (string) preg_replace('/[`*_~\[\]]+/', '', $flat);
-        $flat = mb_trim((string) preg_replace('/\s+/u', ' ', $flat));
+        $text = (string) preg_replace('/!\[[^\]]*\]\([^)]*\)/', '', $content);
+        $text = mb_trim($text);
 
-        return mb_strlen($flat) <= $length ? $flat : mb_substr($flat, 0, $length).'…';
+        if (mb_strlen($text) > $length) {
+            $text = mb_substr($text, 0, $length).'…';
+        }
+
+        return 1 === mb_substr_count($text, '```') % 2 ? $text."\n```" : $text;
     }
 
     /**

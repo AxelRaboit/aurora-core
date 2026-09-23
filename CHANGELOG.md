@@ -5,6 +5,28 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.225] - 2026-09-23
+
+### Modifié
+
+#### La mosaïque des notes montre une vignette, pas une phrase
+Une carte affichait les premières lignes de la note aplaties en un
+paragraphe : les dièses, les tirets et les cases à cocher étaient retirés, et
+vingt cartes finissaient par se ressembler. Elle montre maintenant le début
+de la note **tel qu'il se relira** - un titre, une liste, une citation - en
+petit et coupé en bas par un dégradé. Le confort de lecture n'est pas le
+sujet à ce moment-là : on cherche « ah oui, c'est celle-là ».
+
+L'extrait part donc en Markdown plutôt qu'en texte, sur sept cents
+caractères au lieu de cent soixante. Les images en sont retirées - une seule
+en `data:` pèserait plus que toute la liste - et un bloc de code coupé au
+milieu est refermé, sans quoi la fin de la vignette passerait pour du code.
+
+Et la mosaïque tient sur **quatre colonnes** au-delà de 1280 px, au lieu de
+trois, comme le mur de cartes de Craft.
+
+---
+
 ## [0.9.224] - 2026-09-23
 
 ### Ajouté

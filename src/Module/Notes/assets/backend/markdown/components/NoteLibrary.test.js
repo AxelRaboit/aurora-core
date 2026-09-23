@@ -37,7 +37,8 @@ const NOTES = [
         id: 11,
         folderId: null,
         title: "À la racine",
-        excerpt: "Les premières lignes de la note, en clair.",
+        excerpt:
+            "## Repérage\n\n- lumière de fin de journée\n- une heure de battement",
         tags: ["essai"],
         position: 0,
         updatedAt: "2026-09-20T10:00:00+00:00",
@@ -261,7 +262,7 @@ describe("the library", () => {
     it("shows the first lines in the mosaic, and only there", async () => {
         const wrapper = render();
 
-        expect(wrapper.text()).toContain("Les premières lignes");
+        expect(wrapper.text()).toContain("lumière de fin de journée");
 
         await wrapper
             .findAll("button")
@@ -272,7 +273,7 @@ describe("the library", () => {
             )
             .trigger("click");
 
-        expect(wrapper.text()).not.toContain("Les premières lignes");
+        expect(wrapper.text()).not.toContain("lumière de fin de journée");
     });
 
     /**
@@ -881,6 +882,34 @@ describe("the library", () => {
         expect(cards.some((text) => text.includes("Clients"))).toBe(false);
         expect(cards.some((text) => text.includes("À la racine"))).toBe(true);
         expect(wrapper.text()).toContain("essai");
+    });
+
+    /**
+     * La mosaïque montre une vignette de la note, pas une phrase : c'est le
+     * rendu - un titre, une liste - qui fait reconnaître une note.
+     */
+    it("draws the first lines as they will read, not as flat text", () => {
+        const wrapper = render();
+        const thumb = wrapper.find(".note-thumb");
+
+        expect(thumb.exists()).toBe(true);
+        expect(thumb.html()).toContain("<h2");
+        expect(thumb.html()).toContain("<li");
+    });
+
+    it("keeps the thumbnail to the mosaic", async () => {
+        const wrapper = render();
+
+        await wrapper
+            .findAll("button")
+            .find(
+                (b) =>
+                    b.attributes("title") ===
+                    "notes.markdown.library.view.list",
+            )
+            .trigger("click");
+
+        expect(wrapper.find(".note-thumb").exists()).toBe(false);
     });
 
     it("draws a table when the list view is picked", async () => {
