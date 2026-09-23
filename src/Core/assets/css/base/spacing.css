@@ -15,7 +15,13 @@
  *   était la somme des `py-8` de `<main>` recopiée en dur. Changer la marge
  *   cassait la hauteur, en silence.
  *
- * **Une seule valeur, `--aurora-gutter`, et elle vaut dans les deux sens.**
+ * **Une seule valeur, `--aurora-page-margin`, et elle vaut dans les deux sens.**
+ *
+ * Le nom compte : `--aurora-gutter`, plus court, était déjà pris. La grille
+ * éditoriale s'en sert pour l'écart intérieur de ses colonnes, avec un repli
+ * à 1rem que personne ne déclarait - donc poser la même variable sur `:root`
+ * la faisait passer de seize pixels à huit sur téléphone, sur chaque zone de
+ * chaque page du site public, sans qu'une ligne de la grille ait bougé.
  * La première version en portait deux, une pour les côtés et une pour le haut
  * et le bas, vingt-quatre contre seize sur grand écran. Ça se voit : le coin
  * d'une carte n'est pas à la même distance du bord selon qu'on regarde à
@@ -30,32 +36,59 @@
  * Écrit le 23/09/2026.
  */
 :root {
-    --aurora-gutter: 0.5rem;
+    --aurora-page-margin: 0.5rem;
 }
 
 @media (min-width: 640px) {
     :root {
-        --aurora-gutter: 1rem;
+        --aurora-page-margin: 1rem;
     }
 }
 
 @media (min-width: 1024px) {
     :root {
-        --aurora-gutter: 1.25rem;
+        --aurora-page-margin: 1.25rem;
     }
 }
+
+/**
+ * **L'échelle, en quatre crans, tous multiples de quatre pixels.**
+ *
+ * Elle n'invente rien : ce sont les crans de Tailwind qui servaient déjà, mais
+ * choisis au lieu d'être pris au hasard. Le relevé d'avant en comptait seize
+ * différents pour la même sorte de distance, dont un `py-2.5` de dix pixels au
+ * milieu de voisins à huit et douze - l'écart se voit sans se nommer, et
+ * personne ne sait lequel est le bon.
+ *
+ *   8px  (`2`) - à l'intérieur d'un contrôle, entre deux frères d'une liste,
+ *                et la marge de page sur téléphone.
+ *   12px (`3`) - entre deux éléments d'un même bloc, et le remplissage d'une
+ *                carte dense : une tuile, un panneau d'atelier.
+ *   16px (`4`) - le remplissage d'une carte de contenu, et la marge de page à
+ *                partir de `sm`.
+ *   20px (`5`) - la marge de page à partir de `lg`, c'est-à-dire le plus grand
+ *                écart de la page. Rien ne doit le dépasser à l'intérieur :
+ *                une carte qui respire plus que la page où elle est posée
+ *                inverse la hiérarchie et l'œil ne sait plus ce qui contient
+ *                quoi.
+ *
+ * Vérifié sur les deux écrans témoins, en 375 et en 1440 : marge de page
+ * 8 puis 20, cartes 12, cellules de tableau 8 en haut et en bas, 16 sur les
+ * côtés. Aucune valeur hors échelle, hors les retouches d'un pictogramme dans
+ * son bouton, qui ne sont pas des espacements de mise en page.
+ */
 
 /**
  * Le contenu d'une page : la même marge sur les quatre bords. Posé sur
  * `<main>`, et sur lui seul.
  */
 @utility aurora-page {
-    padding: var(--aurora-gutter);
+    padding: var(--aurora-page-margin);
 }
 
 /**
- * La gouttière seule, pour ce qui borde la page sans être dedans : la bande
- * collée en haut, qui porte sa propre hauteur et sa propre bordure.
+ * La marge latérale seule, pour ce qui borde la page sans être dedans : la
+ * bande collée en haut, qui porte sa propre hauteur et sa propre bordure.
  *
  * Mesuré sur la liste des utilisateurs : en dessous de `lg`, où la bande ne
  * porte que le fil d'Ariane, celui-ci démarre exactement à la verticale de la
@@ -64,8 +97,8 @@
  * commence après elles ; c'est le bord de la bande qui s'aligne, pas son
  * contenu.
  */
-@utility aurora-gutter {
-    padding-inline: var(--aurora-gutter);
+@utility aurora-page-x {
+    padding-inline: var(--aurora-page-margin);
 }
 
 /**

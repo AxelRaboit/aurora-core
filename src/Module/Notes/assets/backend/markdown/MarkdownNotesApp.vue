@@ -724,7 +724,7 @@ onUnmounted(() => {
 <template>
     <!-- La hauteur est ce qui reste, dite avec les valeurs qui la font : la
          barre du haut porte la sienne dans `--aurora-topbar`, et la zone de
-         contenu ses marges haute et basse dans `--aurora-gutter`, la même
+         contenu ses marges haute et basse dans `--aurora-page-margin`, la même
          valeur que ses marges latérales. Le `8rem`
          écrit ici avant était une estimation, fausse de trois douzaines de
          pixels : la carte dépassait le bas de l'écran, donc la fin d'une note
@@ -753,7 +753,7 @@ onUnmounted(() => {
          à la note : il dit comment en sortir. `flex-1 min-h-0` sur la carte
          évite d'écrire sa hauteur en soustrayant celle du lien, un nombre
          qui serait faux au premier changement de taille de police. -->
-    <div class="flex h-[calc(100dvh-var(--aurora-topbar)-var(--aurora-gutter)*2)] flex-col gap-1.5">
+    <div class="flex h-[calc(100dvh-var(--aurora-topbar)-var(--aurora-page-margin)*2)] flex-col gap-1.5">
         <button
             v-if="selectedNote && !crashed"
             type="button"

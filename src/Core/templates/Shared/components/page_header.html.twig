@@ -1,30 +1,38 @@
 {#
-   Le bandeau d'une page : une seule bande, qui dit où l'on est.
+   Le bandeau d'une page, en deux bandes.
 
-   Il en portait deux, superposées et hautes de cent quatre pixels : un bandeau
-   de titre, puis le fil d'Ariane juste en dessous. Or le nom de la page est
-   déjà le dernier niveau du fil - l'ancien fichier le disait lui-même et
-   appelait ça « le moins cher des deux problèmes ». C'était payé cher : sur
-   chaque page du back-office, quarante-huit pixels de hauteur pour afficher un
-   mot deux fois.
+   Bande du haut : les commandes, et le nom de la page où l'on est. Bande du
+   bas : le chemin qui y mène. Une seule bande a porté les deux un moment, le
+   dernier niveau du fil servant de titre ; c'était plus court de quarante-huit
+   pixels, mais le nom de la page se lisait au milieu d'un chemin plutôt que
+   comme un titre.
 
-   Une bande, donc, et le dernier niveau du fil **est** le titre : mis en avant,
-   en `h2`, marqué comme la page courante. Le fil garde tous ses niveaux, donc
-   il reste un fil et pas une étiquette, et la page reste nommée.
+   Les deux bandes reviennent donc, mais serrées : quarante-huit pixels pour le
+   titre au lieu de soixante-quatre, trente-deux pour le fil au lieu de
+   quarante, et le fil passe en petit puisque c'est une navigation secondaire.
+   Quatre-vingts pixels au total contre cent quatre.
 
-   Une page qui veut un nom plus complet que son dernier niveau passe `title`,
-   et il l'emporte - « Modifier la publication » là où le fil dit « Modifier ».
+   **Le nom est pris au dernier niveau du fil, pas passé à part.** Le nom de
+   chaque page est déjà le dernier élément de son chemin ; demander aux dix-neuf
+   gabarits de le répéter dans un `title` serait la même chaîne écrite deux
+   fois, qui diverge à la première reformulation. Une page qui veut un nom plus
+   complet que son niveau ne le permet passe quand même `title`, et il gagne -
+   « Modifier la publication » là où le fil dit « Modifier ».
 
-   Les commandes encadrent le fil : à gauche ce qui replie le menu et la
-   navigation du navigateur, à droite la recherche, les notifications et le
-   compte. Tout cela est réservé aux grands écrans : en dessous, le menu est un
-   tiroir qui porte déjà sa propre barre avec le logo, la recherche et la
-   cloche, et il ne reste ici que le fil.
+   **Le fil garde tous ses niveaux, y compris la page où il est.** La première
+   version supprimait ce dernier niveau, au motif que la bande au-dessus le dit
+   déjà. C'était faux d'une manière que seule la page rendue montre : quatorze
+   pages sur dix-neuf ont exactement deux niveaux, donc le fil devenait un mot
+   unique - le nom de la section, que le menu latéral affiche déjà. Un fil d'un
+   seul élément n'est pas un fil, c'est une étiquette.
 
-   Les bords lisent `--aurora-gutter`, comme `<main>`. Sur téléphone, où la
-   bande ne porte que le fil, celui-ci tombe donc exactement à la verticale de
-   la première carte - c'est le décrochage que les deux fichiers entretenaient
-   chacun de son côté, seize pixels ici contre huit en dessous.
+   Le dernier niveau est marqué comme courant mais reste discret : la mise en
+   avant est le travail de la bande du dessus.
+
+   Les bords des deux bandes lisent `--aurora-page-margin`, comme `<main>`. Sur
+   téléphone, où il ne reste que le fil, celui-ci tombe donc exactement à la
+   verticale de la première carte - c'est le décrochage que les deux fichiers
+   entretenaient chacun de son côté, seize pixels ici contre huit en dessous.
 
    `strict_variables` est actif, donc la garde ci-dessous porte : demander
    `.label` à une liste vide lève une erreur au lieu de ne rien rendre.
@@ -33,15 +41,16 @@
 {% set pageTitle = title|default(trail ? (trail|last).label : '') %}
 
 <header class="lg:sticky lg:top-0 lg:z-20 shrink-0">
-    {# Sans fil d'Ariane il ne resterait, sous `lg`, qu'une bande vide de
-       quarante pixels avec sa bordure : la barre disparaît alors, et ne
-       réapparaît qu'au moment où elle porte les commandes. #}
-    <div class="aurora-gutter {% if trail %}flex{% else %}hidden lg:flex{% endif %} h-10 items-center gap-2 border-b border-line bg-surface lg:h-14 lg:gap-3">
+    {# Réservée aux grands écrans, toute entière : en dessous, le menu est un
+       tiroir qui porte sa propre barre avec le logo, la recherche et la
+       cloche, et cette bande n'y tiendrait qu'un titre entre deux groupes
+       cachés - quarante-huit pixels de bordure. #}
+    <div class="aurora-page-x hidden h-12 items-center gap-3 border-b border-line bg-surface lg:flex">
         {# La seule commande qui replie le menu, en haut à gauche de la page -
            pas dans le menu qu'elle cache. Un bouton qui vit dans ce qu'il cache
            demande une seconde copie ailleurs pour le faire revenir, ce qu'Aurora
            avait. Suivent les flèches du navigateur, amenées dans la page. #}
-        <div class="hidden shrink-0 items-center gap-1 lg:flex">
+        <div class="flex shrink-0 items-center gap-1">
             <div {{ vue_component('core/backend/sidemenu/AppSidemenuToggle', {
                 collapsedPath: path('backend_general_profile_sidemenu_collapsed'),
             }) }}></div>
@@ -54,37 +63,12 @@
            parlent - le titre d'un document, un intitulé de section à côté de
            son bouton Nouveau - et un second `h1` ici laisserait le plan du
            document avec deux sommets. #}
-        {% if trail %}
-            <nav class="flex min-w-0 flex-1 items-center gap-2 text-sm" aria-label="{{ 'backend.nav.breadcrumb'|trans }}">
-                {% for crumb in trail %}
-                    {# Sur téléphone, les niveaux du milieu s'effacent : il n'y a
-                       pas de seconde bande où se replier, et un chemin profond
-                       pousserait hors de l'écran la page qu'il nomme. #}
-                    {% set isNarrowVisible = loop.index >= (trail|length - 1) %}
-                    {% if not loop.first %}
-                        <span class="select-none shrink-0 text-muted {% if not isNarrowVisible %}hidden sm:inline{% endif %}">/</span>
-                    {% endif %}
-                    {% if loop.last %}
-                        <h2 class="min-w-0 truncate font-semibold leading-tight text-primary lg:text-base" aria-current="page">{{ pageTitle }}</h2>
-                    {% else %}
-                        <span class="min-w-0 {% if not isNarrowVisible %}hidden sm:inline{% endif %}">
-                            {% if crumb.href is defined and crumb.href %}
-                                <a href="{{ crumb.href }}" class="block truncate text-secondary transition-colors hover:text-primary">{{ crumb.label }}</a>
-                            {% else %}
-                                <span class="block truncate text-secondary">{{ crumb.label }}</span>
-                            {% endif %}
-                        </span>
-                    {% endif %}
-                {% endfor %}
-            </nav>
-        {% else %}
-            <span class="min-w-0 flex-1"></span>
-        {% endif %}
+        <h2 class="min-w-0 flex-1 truncate text-base font-semibold leading-tight text-primary">{{ pageTitle }}</h2>
 
         {# Recherche, notifications et compte, tout à droite. Ils vivaient dans
            le menu de navigation, au-dessus du filtre, ce qui mettait des
            commandes sans rapport avec la navigation dans ce qui navigue. #}
-        <div class="hidden shrink-0 items-center gap-1 lg:flex">
+        <div class="flex shrink-0 items-center gap-1">
             <div {{ vue_component('core/backend/sidemenu/AppTopbarActions', {
                 notificationsListPath: path('backend_notifications_list'),
                 notificationsMarkReadPath: path_template('backend_notifications_mark_read', {id: '__id__'}),
@@ -102,4 +86,28 @@
             }) }}></div>
         </div>
     </div>
+
+    {# Le fil, à toutes les tailles. Sur téléphone c'est tout le bandeau, et les
+       niveaux au-dessus des deux derniers s'effacent : il n'y a pas de seconde
+       bande où se replier, et un chemin profond pousserait hors de l'écran la
+       page qu'il nomme. #}
+    {% if trail %}
+        <nav class="aurora-page-x flex h-8 items-center gap-1.5 border-b border-line bg-surface text-xs" aria-label="{{ 'backend.nav.breadcrumb'|trans }}">
+            {% for crumb in trail %}
+                {% set isNarrowVisible = loop.index >= (trail|length - 1) %}
+                {% if not loop.first %}
+                    <span class="select-none shrink-0 text-muted {% if not isNarrowVisible %}hidden sm:inline{% endif %}">/</span>
+                {% endif %}
+                <span class="min-w-0 {% if not isNarrowVisible %}hidden sm:inline{% endif %}">
+                    {% if crumb.href is defined and crumb.href %}
+                        <a href="{{ crumb.href }}" class="block truncate text-secondary transition-colors hover:text-primary">{{ crumb.label }}</a>
+                    {% elseif loop.last %}
+                        <span class="block truncate font-medium text-secondary" aria-current="page">{{ crumb.label }}</span>
+                    {% else %}
+                        <span class="block truncate text-secondary">{{ crumb.label }}</span>
+                    {% endif %}
+                </span>
+            {% endfor %}
+        </nav>
+    {% endif %}
 </header>
