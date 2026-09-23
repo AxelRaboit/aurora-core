@@ -5,6 +5,53 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.229] - 2026-09-23
+
+### Modifié
+
+#### Le bouton de création d'une note ressemble à son voisin
+C'était un bouton plein vert posé à côté du bouton d'icône qui crée un
+dossier. Deux gestes du même genre, à un pas l'un de l'autre, qui n'avaient
+pas l'air de la même famille. Les deux sont maintenant des boutons d'icône du
+même dessin, et l'infobulle nomme chacun.
+
+#### Les notes de la démonstration ressemblent à des notes
+Deux d'entre elles tenaient en trois ou quatre lignes, ce qui remplissait un
+quart de l'écran et laissait le reste blanc : sur une capture, ça montre
+surtout que la note est vide. La fiche client et le sommaire portent
+désormais leurs sections, leur liste à cocher, leur tableau et leurs liens,
+comme une vraie note de travail. C'est aussi ce qui illustre le module sur le
+site public.
+
+### Corrigé
+
+#### Passer d'une note à l'autre montrait la note qu'on venait de quitter
+Pendant une fraction de seconde, le texte de l'ancienne note s'affichait sous
+le nom de la nouvelle : une note qui n'a jamais existé. Le formulaire était
+bien marqué « non chargé », ce qui protégeait les données d'une sauvegarde
+croisée, mais rien ne disait à l'écran de cesser de le dessiner.
+
+Le formulaire est vidé sur-le-champ, et un drapeau dérivé du même `loadedId`
+dit si ce qui est affiché appartient à la note demandée. Le titre, lui,
+n'attend pas : il est déjà dans la liste, qui est ce sur quoi on vient de
+cliquer.
+
+#### Le bandeau d'une note partait et revenait à chaque changement
+L'entête mesurait 279 pixels, puis 119, puis 279 : un saut de cent soixante
+pixels sur la partie la plus lourde de l'écran, parce que rien ne savait si
+la note ouverte portait une image avant que son corps n'arrive. `coverUrl`,
+`coverPosition` et `appearance` voyagent maintenant avec la liste à plat.
+Mesuré avec la réponse ralentie à 1200 ms : l'entête ne bouge plus, et
+l'image est déjà la bonne à 250 ms.
+
+### Dans aurora-client
+
+Aucune migration. Trois colonnes de plus sur la liste des notes, en clair et
+déjà présentes en base : un `make aurora-update` suivi d'une reconstruction
+des assets suffit.
+
+---
+
 ## [0.9.228] - 2026-09-23
 
 ### Modifié
