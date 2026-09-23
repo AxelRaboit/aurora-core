@@ -133,6 +133,7 @@ notes:
         section: Visible pour moi
         badge: Visible par l'équipe
         via_folder: 'Visible par l''équipe via le dossier {folder}'
+        change_on_folder: Ouvrir le dossier pour changer cela
         by: 'Par {name}'
         read_only: Lecture seule
       visibility:

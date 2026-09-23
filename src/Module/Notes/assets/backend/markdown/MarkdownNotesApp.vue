@@ -689,16 +689,26 @@ onUnmounted(() => {
                              de teinte. Une infobulle se survole et un message
                              disparaît : ni l'un ni l'autre ne dit, en arrivant
                              sur la note, si elle est sortie de chez soi. -->
-                        <span
+                        <!-- Quand c'est le dossier qui décide, la pastille
+                             est un lien vers lui : dire « ça vient de
+                             Clients » sans donner le moyen d'y aller
+                             laisserait le lecteur devant une porte fermée,
+                             et refermer le dossier depuis une seule de ses
+                             notes retirerait la visibilité à toutes les
+                             autres sans qu'il les voie. -->
+                        <component
+                            :is="sharingFolder ? 'a' : 'span'"
                             v-if="visibleToTeam"
-                            class="inline-flex shrink-0 items-center gap-1 rounded-full bg-accent-600/15 px-2 py-1 text-xs font-medium text-accent-400"
-                            :title="sharingFolder ? t('notes.markdown.library.shared.via_folder', { folder: sharingFolder.name || t('notes.markdown.folders.untitled') }) : undefined"
+                            :href="sharingFolder ? folderUrlFor(sharingFolder.id) : undefined"
+                            :title="sharingFolder ? t('notes.markdown.library.shared.change_on_folder') : undefined"
+                            class="inline-flex shrink-0 items-center gap-1 rounded-full bg-accent-600/15 px-2 py-1 text-xs font-medium text-accent-400 no-underline"
+                            :class="sharingFolder ? 'transition-colors hover:bg-accent-600/25' : ''"
                         >
                             <Users class="h-3 w-3" :stroke-width="2" />
                             {{ sharingFolder
                                 ? t('notes.markdown.library.shared.via_folder', { folder: sharingFolder.name || t('notes.markdown.folders.untitled') })
                                 : t('notes.markdown.library.shared.badge') }}
-                        </span>
+                        </component>
 
                         <input
                             v-model="form.title"
