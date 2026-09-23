@@ -173,12 +173,17 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
         // donc, une fraction de seconde, une note qui n'a jamais existé.
         form.value = blankForm();
 
-        // Le titre, lui, on le connaît déjà : il est dans la liste à plat, qui
-        // est ce sur quoi on vient de cliquer. L'afficher tout de suite évite
-        // de remplacer un mauvais titre par un champ vide, ce qui serait juste
-        // un clignotement de plus. Le reste attend la réponse.
+        // Le titre et l'entête, on les connaît déjà : ils sont dans la liste à
+        // plat, qui est ce sur quoi on vient de cliquer. Les poser tout de
+        // suite évite deux clignotements - un mauvais titre remplacé par un
+        // champ vide, et surtout le bandeau qui disparaissait puis revenait,
+        // cent soixante pixels de saut à chaque passage d'une note à bandeau à
+        // une autre. Seul le texte attend la réponse.
         const connue = notes.value.find((n) => n.id === id);
-        if (connue) form.value.title = connue.title ?? "";
+        if (connue) {
+            form.value.title = connue.title ?? "";
+            Object.assign(form.value, pickLook(connue));
+        }
 
         const { ok, reported, payload } = await api.show(id);
 
