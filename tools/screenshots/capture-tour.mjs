@@ -218,6 +218,19 @@ const SHOTS = [
             await page.waitForTimeout(2_500);
             await page.getByTitle("Édition + aperçu").first().click();
             await page.waitForTimeout(1_000);
+
+            // Le volet d'écriture est rétréci avant d'ouvrir les liens.
+            // Sa largeur est retenue d'une visite à l'autre, et la valeur
+            // par défaut laissait au rendu deux cent trente pixels une fois
+            // le panneau sorti : le tableau de la note y était coupé en
+            // plein milieu d'un en-tête, ce qui se lit comme un défaut
+            // d'affichage et non comme une colonne qui continue.
+            await page.evaluate(() => {
+                localStorage.setItem("aurora.notes.markdown.editorWidth", "380");
+            });
+            await page.reload({ waitUntil: "domcontentloaded" });
+            await page.waitForTimeout(2_500);
+
             await page.getByTitle("Afficher les liens entrants").first().click();
             await page.waitForTimeout(1_500);
         },

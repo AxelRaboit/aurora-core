@@ -295,13 +295,41 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                 'folder' => 'clients',
                 'cover' => 923307,
                 'coverCredit' => 'Julien Bachelet',
+                // La note la plus fournie de la démonstration, et c'est
+                // délibéré : c'est elle que la carte publique du module
+                // photographie, en vue partagée. Trois lignes remplissaient
+                // un quart du volet et laissaient le reste blanc, ce qui
+                // montre surtout que la note est vide. Une vraie fiche client
+                // tient une trentaine de lignes, avec ses sections, sa liste
+                // à cocher et son tableau : c'est ce que le module sert à
+                // faire, donc c'est ce qu'il faut montrer.
                 'content' => <<<'MD'
                     # Cabinet Verrier
 
-                    Trois architectes, un site qui montre les chantiers
-                    livrés. Livré en mars, maintenance au forfait.
+                    Trois architectes associés, un site vitrine qui montre les chantiers livrés. Mise en ligne en mars, maintenance au forfait depuis. Interlocuteur : Paul, qui relit tout.
 
-                    Le cadre est celui de [[Contrat type]].
+                    ## Où ça en est
+
+                    - [x] Refonte de la page d'accueil
+                    - [x] Reprise des fiches chantier, 24 au total
+                    - [ ] Galerie avant / après, en attente des photos
+                    - [ ] Formulaire de contact en trois langues
+
+                    ## Le forfait
+
+                    | Poste | Rythme | Montant |
+                    | --- | --- | --- |
+                    | Maintenance | mensuel | 180 € |
+                    | Sauvegardes | mensuel | inclus |
+                    | Petites évolutions | 2 h / mois | inclus |
+
+                    Au-delà des deux heures, c'est du temps facturé au tarif courant, annoncé avant d'être engagé.
+
+                    ## À ne pas oublier
+
+                    Paul veut être prévenu **avant** toute mise en ligne, même pour une correction de texte : le cabinet répond à des appels d'offres et le site sert de référence.
+
+                    Le cadre contractuel est celui de [[Contrat type]], et la fiche remonte au [[Sommaire des clients]].
                     MD,
             ],
             'contrat' => [
