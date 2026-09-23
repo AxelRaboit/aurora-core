@@ -72,6 +72,9 @@ const props = defineProps({
     readPath: { type: String, default: '' },
     /** Le relais vers Pexels pour le bandeau : aucune image n'entre en GED. */
     coversSearchPath: { type: String, default: '' },
+    /** Ce que les autres ont ouvert à tout le back-office. */
+    sharedPath: { type: String, default: '' },
+    shareInternallyPath: { type: String, default: '' },
     imageMaxEdge: { type: Number, default: 2048 },
     imageQuality: { type: Number, default: 0.85 },
     /**

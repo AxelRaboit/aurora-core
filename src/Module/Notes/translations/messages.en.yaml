@@ -124,6 +124,16 @@ notes:
       pin: Pin to the menu
       unpin: Remove from favourites
       pin_failed: This item could not be pinned.
+      shared:
+        start: Share with the team
+        stop: Stop sharing
+        started: Shared read-only with the back office
+        stopped: Sharing removed
+        failed: Could not change the sharing.
+        section: Shared with me
+        badge: Shared
+        by: 'By {name}'
+        read_only: Read-only
       selected: '{count} selected'
       select: Select
       clear_selection: Clear the selection

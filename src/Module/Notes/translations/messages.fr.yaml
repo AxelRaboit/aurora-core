@@ -124,6 +124,16 @@ notes:
       pin: Épingler au menu
       unpin: Retirer des favoris
       pin_failed: Impossible d'épingler cet élément.
+      shared:
+        start: Partager avec l'équipe
+        stop: Ne plus partager
+        started: Partagé en lecture avec le back-office
+        stopped: Partage retiré
+        failed: Impossible de changer le partage.
+        section: Partagé avec moi
+        badge: Partagé
+        by: 'Par {name}'
+        read_only: Lecture seule
       selected: '{count} sélectionné(s)'
       select: Sélectionner
       clear_selection: Tout désélectionner

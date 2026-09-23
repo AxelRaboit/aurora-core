@@ -62,6 +62,67 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
     }
 
     /**
+     * Les dossiers que les autres ont partagés.
+     *
+     * Ce sont les **racines** du partage : un dossier partagé entraîne ce
+     * qu'il contient, donc un sous-dossier d'un dossier déjà partagé n'a
+     * pas à porter sa propre date, et n'apparaît pas ici. Les siens sont
+     * exclus - on ne se voit pas partager avec soi-même.
+     *
+     * @return list<NoteFolderInterface>
+     */
+    public function findSharedByOthers(CoreUserInterface $user): array
+    {
+        return $this->createQueryBuilder('f')
+            ->where('f.user != :user')
+            ->andWhere('f.sharedAt IS NOT NULL')
+            ->andWhere('f.deletedAt IS NULL')
+            ->setParameter('user', $user)
+            ->orderBy('f.sharedAt', Order::Descending->value)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Tous les dossiers partagés, les siens compris.
+     *
+     * Sert à calculer une portée de lecture : pour savoir si une note est
+     * lisible, il faut connaître toute la chaîne de ses parents, et un
+     * dossier partagé peut appartenir à n'importe qui.
+     *
+     * @return list<NoteFolderInterface>
+     */
+    public function findAllShared(): array
+    {
+        return $this->createQueryBuilder('f')
+            ->where('f.sharedAt IS NOT NULL')
+            ->andWhere('f.deletedAt IS NULL')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Les dossiers d'une personne, quel que soit leur propriétaire.
+     *
+     * @param list<int> $ids
+     *
+     * @return list<NoteFolderInterface>
+     */
+    public function findLivingByIds(array $ids): array
+    {
+        if ([] === $ids) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('f')
+            ->where('f.id IN (:ids)')
+            ->andWhere('f.deletedAt IS NULL')
+            ->setParameter('ids', $ids)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * The living folders directly inside this one.
      *
      * @return list<NoteFolderInterface>

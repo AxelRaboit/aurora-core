@@ -33,6 +33,12 @@ interface MarkdownNoteManagerInterface
      *
      * @return bool whether it is pinned afterwards
      */
+    /**
+     * Ouvre ou referme cette note seule au reste du back-office, et rend
+     * son nouvel état.
+     */
+    public function toggleShared(MarkdownNoteInterface $note): bool;
+
     public function toggleFavorite(MarkdownNoteInterface $note): bool;
 
     /** Files a note in a folder, or at the root with null. */

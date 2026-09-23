@@ -43,7 +43,13 @@ function answerWith({
             ? { success: true, folders }
             : path.includes("/search")
               ? { success: true, ids }
-              : { success: true, notes };
+              : // Ce que les autres ont partagé est vide par défaut : sans
+                // cette branche, la même réponse servait les deux listes et
+                // le panneau affichait tout le carnet une seconde fois,
+                // dans la section « Partagé avec moi ».
+                path.includes("/shared")
+                ? { success: true, folders: [], notes: [] }
+                : { success: true, notes };
 
         return {
             ok,
@@ -93,6 +99,55 @@ afterEach(() => {
     while (mounted.length) mounted.pop().unmount();
     while (stops.length) stops.pop()();
     vi.restoreAllMocks();
+});
+
+describe("ce que les autres partagent", () => {
+    /** Une liste à part : ce qui n'est pas à soi ne se range pas chez soi. */
+    it("lists a shared folder and its notes, apart from one's own tree", async () => {
+        answerWith();
+        const partage = {
+            folders: [
+                { id: 9, name: "Équipe", parentId: null, ownerName: "Camille" },
+            ],
+            notes: [
+                {
+                    id: 91,
+                    title: "Compte rendu",
+                    folderId: 9,
+                    ownerName: "Camille",
+                },
+            ],
+        };
+        const fetchDeBase = global.fetch;
+        global.fetch = vi.fn().mockImplementation(async (url) => {
+            if (String(url).includes("/shared")) {
+                return {
+                    ok: true,
+                    status: 200,
+                    json: async () => ({ success: true, ...partage }),
+                };
+            }
+
+            return fetchDeBase(url);
+        });
+
+        const wrapper = await render();
+
+        expect(wrapper.text()).toContain("Équipe");
+
+        const lien = wrapper
+            .findAll("a")
+            .find((a) => a.attributes("href")?.endsWith("/91/read"));
+
+        expect(lien, "la note partagée mène à la vue de lecture").toBeTruthy();
+        expect(lien.text()).toContain("Compte rendu");
+    });
+
+    it("says nothing when nobody has shared anything", async () => {
+        const wrapper = await render();
+
+        expect(wrapper.text()).not.toContain("library.shared.section");
+    });
 });
 
 describe("les étiquettes du panneau", () => {

@@ -158,6 +158,66 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
     }
 
     /**
+     * Les notes que les autres ont partagées une par une.
+     *
+     * Celles qui sont dans un dossier partagé n'ont pas de date à elles :
+     * c'est le dossier qui décide. Cette requête ne rend donc que les
+     * notes partagées **seules**, typiquement à la racine.
+     *
+     * @return list<MarkdownNoteInterface>
+     */
+    public function findSharedByOthers(CoreUserInterface $user): array
+    {
+        return $this->createQueryBuilder('n')
+            ->where('n.user != :user')
+            ->andWhere('n.sharedAt IS NOT NULL')
+            ->andWhere('n.deletedAt IS NULL')
+            ->setParameter('user', $user)
+            ->orderBy('n.sharedAt', Order::Descending->value)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Les notes vivantes de ces dossiers, quel que soit leur propriétaire.
+     *
+     * @param list<int> $folderIds
+     *
+     * @return list<MarkdownNoteInterface>
+     */
+    public function findLivingInFoldersRegardlessOfOwner(array $folderIds): array
+    {
+        if ([] === $folderIds) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('n')
+            ->where('IDENTITY(n.folder) IN (:ids)')
+            ->andWhere('n.deletedAt IS NULL')
+            ->setParameter('ids', $folderIds)
+            ->orderBy('n.position', Order::Ascending->value)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Une note par son identifiant, sans regarder à qui elle est.
+     *
+     * La question du droit de lecture est posée ailleurs, par
+     * {@see NoteReadScope} : la mêler à la requête donnerait deux endroits
+     * qui décident de la même chose.
+     */
+    public function findOneLiving(int $id): ?MarkdownNoteInterface
+    {
+        return $this->createQueryBuilder('n')
+            ->where('n.id = :id')
+            ->andWhere('n.deletedAt IS NULL')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    /**
      * Histogram of tag → number of the user's notes carrying it.
      * Loads only the `tags` JSON column and aggregates in PHP; the volumes
      * involved (≤ a few hundred notes per user) keep this cheap and

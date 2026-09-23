@@ -42,6 +42,8 @@ import {
     Rows3,
     Search,
     Tag,
+    UserPlus,
+    Users,
     Trash2,
     X,
 } from "lucide-vue-next";
@@ -1046,6 +1048,52 @@ async function togglePin(kind, item) {
     emit("changed");
 }
 
+/**
+ * Ouvrir un dossier, ou une note, au reste du back-office.
+ *
+ * **Le partage se pose sur un endroit**, et ce qu'il contient suit : c'est
+ * pour ça que l'entrée se lit « Partager ce dossier » et non « partager
+ * ces notes ». Une note isolée se partage aussi, pour le document qui ne
+ * vit dans aucun dossier.
+ *
+ * En lecture seule, et l'infobulle le dit : tant que l'éditeur enregistre
+ * tout seul sans contrôle de concurrence, deux personnes sur une note
+ * seraient le dernier qui tape qui écrase l'autre.
+ */
+function shareAction(kind, item) {
+    const partage = Boolean(item.sharedAt);
+
+    return {
+        key: "share-internally",
+        title: partage
+            ? t("notes.markdown.library.shared.stop")
+            : t("notes.markdown.library.shared.start"),
+        icon: partage ? Users : UserPlus,
+        onSelect: () => toggleShared(kind, item),
+    };
+}
+
+async function toggleShared(kind, item) {
+    const { ok, reported } =
+        "folder" === kind
+            ? await props.foldersApi.share(item.id)
+            : await props.notesApi.shareInternally(item.id);
+
+    if (!ok) {
+        if (!reported) toast.error(t("notes.markdown.library.shared.failed"));
+
+        return;
+    }
+
+    toast.success(
+        item.sharedAt
+            ? t("notes.markdown.library.shared.stopped")
+            : t("notes.markdown.library.shared.started"),
+    );
+
+    emit("changed");
+}
+
 function orderActions(kind, item) {
     if (!manualOrder.value) return [];
 
@@ -1088,6 +1136,7 @@ function folderActions(folder) {
             onSelect: () => askToMove("folder", folder),
         },
         favoriteAction("folder", folder),
+        shareAction("folder", folder),
         ...orderActions("folder", folder),
         {
             key: "delete",
@@ -1115,6 +1164,7 @@ function noteActions(note) {
             onSelect: () => askToMove("note", note),
         },
         favoriteAction("note", note),
+        shareAction("note", note),
         ...orderActions("note", note),
         {
             key: "export",
