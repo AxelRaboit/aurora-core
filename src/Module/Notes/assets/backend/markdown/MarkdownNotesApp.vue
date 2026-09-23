@@ -100,6 +100,7 @@ const {
     selectedId,
     selectedNote,
     form,
+    bodyReady,
     deleting,
     lastSavedAt,
     pendingDelete,
@@ -969,7 +970,19 @@ onUnmounted(() => {
                      columns would be unusable even when they fit. `min-w-0` on
                      both panes lets them actually shrink: a flex item defaults
                      to `min-width: auto` and refuses to go below its content. -->
-                    <div class="flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden">
+                    <!-- Rien du corps tant qu'il n'est pas celui de cette
+                         note. Le titre est déjà là, il vient de la liste ; le
+                         texte, lui, arrive du serveur, et l'afficher avant
+                         revenait à montrer la note qu'on quittait sous le nom
+                         de celle qu'on ouvrait. Trois traits gris le temps de
+                         l'aller-retour valent mieux qu'une réponse fausse. -->
+                    <div v-if="!bodyReady" class="flex-1 min-h-0 space-y-3 p-3" aria-hidden="true">
+                        <div class="h-3 w-2/3 animate-pulse rounded bg-surface-2" />
+                        <div class="h-3 w-full animate-pulse rounded bg-surface-2" />
+                        <div class="h-3 w-5/6 animate-pulse rounded bg-surface-2" />
+                    </div>
+
+                    <div v-else class="flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden">
                         <div
                             v-if="viewMode !== 'preview'"
                             ref="editorPaneRef"
