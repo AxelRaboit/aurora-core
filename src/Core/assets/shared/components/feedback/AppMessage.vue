@@ -8,6 +8,15 @@ const props = defineProps({
 });
 
 const VARIANTS = {
+    // Expliquer n'est pas alerter.
+    //
+    // Les cinq autres variantes sont des couleurs d'état : il s'est passé
+    // quelque chose, et la couleur dit quoi. Une phrase qui explique comment
+    // marche l'écran qu'on a sous les yeux n'annonce rien, et une boîte bleue
+    // la fait crier plus fort qu'elle ne parle. La fiche client du workspace
+    // s'était écrit son propre bloc gris pour cette raison - à raison sur le
+    // fond, et seule de son espèce dans tout le code.
+    neutral: "border-line bg-surface-2/40 text-muted",
     info: "border-sky-300 bg-sky-50 text-sky-800 dark:border-sky-700 dark:bg-sky-950/40 dark:text-sky-300",
     success: "border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300",
     warning: "border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-300",
@@ -16,6 +25,7 @@ const VARIANTS = {
 };
 
 const DEFAULT_ICONS = {
+    neutral: Info,
     info: Info,
     success: CheckCircle2,
     warning: AlertTriangle,
