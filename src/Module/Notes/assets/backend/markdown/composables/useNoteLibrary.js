@@ -148,7 +148,10 @@ export function useNoteLibrary({
      * the same screen on a reload.
      */
     function openFolder(id, { push = true } = {}) {
-        const next = normaliseId(id);
+        // Zéro n'est pas un dossier : aucune séquence ne le distribue, donc
+        // un zéro qui arrive ici vient d'un `Number(null)` en chemin, et il
+        // veut dire la racine.
+        const next = normaliseId(id) || null;
         currentFolderId.value = next;
 
         if (!push) return;
@@ -218,7 +221,11 @@ function normaliseCrumb(folder) {
 }
 
 function normaliseId(value) {
-    return null === value || undefined === value ? null : Number(value);
+    if (null === value || undefined === value || "" === value) return null;
+
+    const id = Number(value);
+
+    return Number.isFinite(id) ? id : null;
 }
 
 function readStored(key, allowed, fallback) {

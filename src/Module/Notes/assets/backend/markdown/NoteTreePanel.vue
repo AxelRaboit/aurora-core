@@ -228,7 +228,10 @@ function onSelect(node) {
     selectedKey.value = node.key;
 
     if ("folder" === node.kind) {
-        forward("open-folder", Number(node.id));
+        // La racine n'a pas d'identifiant, et `Number(null)` vaut zéro :
+        // le panneau demandait donc le dossier 0, que la bibliothèque
+        // affichait vide et dont l'adresse rendait un 404.
+        forward("open-folder", null === node.id ? null : Number(node.id));
 
         return;
     }

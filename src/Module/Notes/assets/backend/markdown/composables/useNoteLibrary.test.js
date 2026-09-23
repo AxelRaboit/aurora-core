@@ -172,6 +172,16 @@ describe("useNoteLibrary", () => {
         expect(window.location.pathname).toBe("/backend/notes/markdown");
     });
 
+    /** Zéro n'est pas un dossier : c'est un `Number(null)` en chemin. */
+    it("reads a zero as the root rather than as a folder", () => {
+        const library = build(1);
+
+        library.openFolder(0);
+
+        expect(library.currentFolderId.value).toBeNull();
+        expect(window.location.pathname).toBe("/backend/notes/markdown");
+    });
+
     it("draws the chain from the root to here", () => {
         const library = build(2);
 

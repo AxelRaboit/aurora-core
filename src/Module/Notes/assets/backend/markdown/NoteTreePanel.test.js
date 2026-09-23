@@ -258,6 +258,24 @@ describe("the folders panel", () => {
     });
 });
 
+describe("la racine", () => {
+    /**
+     * `Number(null)` vaut zéro, et zéro n'est pas un dossier : le panneau
+     * demandait le dossier 0, la bibliothèque le montrait vide et l'adresse
+     * rendait un 404 - lequel renvoie un visiteur non connecté vers la page
+     * de connexion. Axel a vu les trois symptômes à la fois.
+     */
+    it("asks for the root, not for folder zero", async () => {
+        const handler = vi.fn();
+        stops.push(onPanelRequest("notes:open-folder", handler));
+
+        const wrapper = await render();
+        await wrapper.find("[data-root-row]").trigger("click");
+
+        expect(handler).toHaveBeenCalledWith({ args: [null] });
+    });
+});
+
 describe("les favoris", () => {
     /**
      * Craft ouvre son menu sur eux, et c'est le seul endroit d'où l'on
