@@ -41,6 +41,7 @@ import {
     Plus,
     Rows3,
     Search,
+    Tag,
     Trash2,
     X,
 } from "lucide-vue-next";
@@ -120,6 +121,7 @@ const {
     sort,
     direction,
     flat,
+    tag: activeTag,
     folders: visibleFolders,
     notes: visibleNotes,
     isEmpty,
@@ -129,6 +131,7 @@ const {
     setSort,
     toggleDirection,
     toggleFlat,
+    setTag,
     folderNameOf,
 } = library;
 
@@ -204,7 +207,7 @@ const nothingShown = computed(
 const PAGE = 60;
 const shown = ref(PAGE);
 
-watch([currentFolderId, query, sort, direction, flat], () => {
+watch([currentFolderId, query, sort, direction, flat, activeTag], () => {
     shown.value = PAGE;
 });
 
@@ -226,7 +229,13 @@ const hasMore = computed(
  * recherche : dans un dossier, ce qu'on cherche est le contenu du dossier.
  */
 const recent = computed(() => {
-    if (null !== currentFolderId.value || "" !== query.value.trim()) return [];
+    if (
+        null !== currentFolderId.value ||
+        null !== activeTag.value ||
+        "" !== query.value.trim()
+    ) {
+        return [];
+    }
 
     return [...props.notes]
         .sort((a, b) => Date.parse(b.updatedAt ?? 0) - Date.parse(a.updatedAt ?? 0))
@@ -308,7 +317,7 @@ function folderLabel(folder) {
  * voit tout, et on ne sait plus d'où ça vient.
  */
 function noteFolderLabel(note) {
-    if (!flat.value) return null;
+    if (!flat.value && null === activeTag.value) return null;
 
     const name = folderNameOf(note.folderId);
 
@@ -904,7 +913,7 @@ onMounted(() => window.addEventListener("keydown", onKeydown));
 onUnmounted(() => window.removeEventListener("keydown", onKeydown));
 
 // Ce qui était visé peut disparaître : changer de dossier, filtrer, trier.
-watch([currentFolderId, query, sort, direction, flat], () => {
+watch([currentFolderId, query, sort, direction, flat, activeTag], () => {
     focused.value = -1;
 });
 
@@ -1138,6 +1147,7 @@ function updatedLabel(item) {
  */
 defineExpose({
     openFolder,
+    filterByTag: (value) => setTag(value),
     askForFolderName,
     askToDelete: (folder) => askToDelete("folder", folder),
     dropInto: (folderId, event) => onDropOn(folderId, event),
@@ -1166,6 +1176,27 @@ defineExpose({
                     >
                         {{ t('notes.markdown.library.title') }}
                     </button>
+
+                    <!-- L'étiquette regardée prend la place du fil : elle
+                         traverse le carnet, donc le chemin d'un dossier ne
+                         décrit plus ce qui est à l'écran. La croix rend le
+                         dossier où l'on était, qui n'a pas bougé. -->
+                    <template v-if="null !== activeTag">
+                        <ChevronRight class="w-3.5 h-3.5 text-muted shrink-0" :stroke-width="2" />
+                        <span class="inline-flex items-center gap-1 rounded-full bg-accent-600/15 px-2 py-1 text-xs font-medium text-accent-400">
+                            <Tag class="h-3 w-3" :stroke-width="2" />
+                            {{ activeTag }}
+                            <button
+                                type="button"
+                                class="transition-colors hover:text-primary"
+                                :title="t('notes.markdown.library.tag.clear')"
+                                :aria-label="t('notes.markdown.library.tag.clear')"
+                                v-on:click="setTag(null)"
+                            >
+                                <X class="h-3 w-3" :stroke-width="2" />
+                            </button>
+                        </span>
+                    </template>
 
                     <template v-for="crumb in path" :key="crumb.id">
                         <ChevronRight class="w-3.5 h-3.5 text-muted shrink-0" :stroke-width="2" />
@@ -1352,8 +1383,17 @@ defineExpose({
             v-on:dragover="onDragOverCrumb(null, $event)"
             v-on:drop="onDropOn(null, $event)"
         >
+            <!-- Une étiquette sans note a son propre mot : « ce dossier est
+                 vide » serait faux, le dossier n'y est pour rien. -->
             <AppNoData
-                v-if="isEmpty"
+                v-if="null !== activeTag && isEmpty"
+                :title="t('notes.markdown.library.tag.none')"
+                :description="t('notes.markdown.library.tag.none_description', { tag: activeTag })"
+                :icon="Tag"
+            />
+
+            <AppNoData
+                v-else-if="isEmpty"
                 :title="null === currentFolderId ? t('notes.markdown.library.empty_root.title') : t('notes.markdown.library.empty.title')"
                 :description="null === currentFolderId ? t('notes.markdown.library.empty_root.description') : t('notes.markdown.library.empty.description')"
                 :icon="Folder"
@@ -1516,10 +1556,19 @@ defineExpose({
                                 <span class="truncate">{{ noteFolderLabel(note) }}</span>
                             </button>
 
+                            <!-- Une étiquette se clique : c'est le geste
+                                 qu'on tente en la voyant, et il n'existait
+                                 nulle part depuis la refonte. -->
                             <div v-if="note.tags?.length" class="mt-2 flex flex-wrap gap-1">
-                                <AppBadge v-for="tag in note.tags" :key="tag" color="gray" size="xs">
-                                    {{ tag }}
-                                </AppBadge>
+                                <button
+                                    v-for="one in note.tags"
+                                    :key="one"
+                                    type="button"
+                                    :title="t('notes.markdown.library.tag.filter', { tag: one })"
+                                    v-on:click.stop="setTag(one)"
+                                >
+                                    <AppBadge color="gray" size="xs">{{ one }}</AppBadge>
+                                </button>
                             </div>
 
                             <p class="mt-auto pt-2 text-xs text-muted">{{ updatedLabel(note) }}</p>
@@ -1619,9 +1668,15 @@ defineExpose({
                                 </td>
                                 <td class="hidden px-2 py-2 sm:table-cell">
                                     <div class="flex flex-wrap gap-1">
-                                        <AppBadge v-for="tag in note.tags ?? []" :key="tag" color="gray" size="xs">
-                                            {{ tag }}
-                                        </AppBadge>
+                                        <button
+                                            v-for="one in note.tags ?? []"
+                                            :key="one"
+                                            type="button"
+                                            :title="t('notes.markdown.library.tag.filter', { tag: one })"
+                                            v-on:click.stop="setTag(one)"
+                                        >
+                                            <AppBadge color="gray" size="xs">{{ one }}</AppBadge>
+                                        </button>
                                     </div>
                                 </td>
                                 <td class="hidden px-2 py-2 text-muted sm:table-cell">{{ updatedLabel(note) }}</td>

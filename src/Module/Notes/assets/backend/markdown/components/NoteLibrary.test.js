@@ -76,6 +76,18 @@ function apis() {
     };
 }
 
+/**
+ * Le menu d'une carte, visé par son libellé et non par sa place.
+ *
+ * Il a été « le dernier bouton de la carte » un temps, et les étiquettes
+ * cliquables ajoutées en dessous ont fait tomber trois cas d'un coup.
+ */
+function rowMenu(card) {
+    return card
+        .findAll("button")
+        .find((b) => b.attributes("title")?.startsWith("shared.actions.open"));
+}
+
 const mounted = [];
 
 function render(props = {}) {
@@ -302,9 +314,7 @@ describe("the library", () => {
             .findAll("article")
             .find((one) => one.text().includes("À la racine"));
 
-        // Le premier bouton d'une carte est sa case à cocher ; le menu est
-        // le dernier.
-        await first.findAll("button").at(-1).trigger("click");
+        await rowMenu(first).trigger("click");
         await flushPromises();
 
         const up = [...document.body.querySelectorAll("button")].find((b) =>
@@ -327,11 +337,7 @@ describe("the library", () => {
     it("keeps the order actions out of a sort that would undo them", async () => {
         const wrapper = render({ folders: [] });
 
-        await wrapper
-            .findAll("article")[0]
-            .findAll("button")
-            .at(-1)
-            .trigger("click");
+        await rowMenu(wrapper.findAll("article")[0]).trigger("click");
         await flushPromises();
 
         expect(document.body.textContent).not.toContain("sort.move_up");
@@ -349,11 +355,7 @@ describe("the library", () => {
         };
         const wrapper = render({ notesApi, folders: [] });
 
-        await wrapper
-            .findAll("article")[0]
-            .findAll("button")
-            .at(-1)
-            .trigger("click");
+        await rowMenu(wrapper.findAll("article")[0]).trigger("click");
         await flushPromises();
 
         const remove = [...document.body.querySelectorAll("button")].find((b) =>
@@ -518,11 +520,7 @@ describe("the library", () => {
         };
         const wrapper = render({ notesApi, folders: [] });
 
-        await wrapper
-            .findAll("article")[0]
-            .findAll("button")
-            .at(-1)
-            .trigger("click");
+        await rowMenu(wrapper.findAll("article")[0]).trigger("click");
         await flushPromises();
 
         const pin = [...document.body.querySelectorAll("button")].find((b) =>
@@ -859,6 +857,30 @@ describe("the library", () => {
 
             expect(show).not.toHaveBeenCalled();
         });
+    });
+
+    /**
+     * Cliquer une étiquette est le geste qu'on tente en la voyant, et il
+     * n'existait nulle part depuis la refonte.
+     */
+    it("shows a tag's notes when its badge is clicked, wherever they are filed", async () => {
+        const wrapper = render();
+
+        const badge = wrapper
+            .findAll("button")
+            .find((b) => b.attributes("title")?.includes("library.tag.filter"));
+
+        expect(badge, "l'étiquette se clique").toBeTruthy();
+
+        await badge.trigger("click");
+
+        // Le dossier « Clients » disparaît : une étiquette traverse le
+        // rangement, et un dossier n'en porte pas.
+        const cards = wrapper.findAll("article").map((one) => one.text());
+
+        expect(cards.some((text) => text.includes("Clients"))).toBe(false);
+        expect(cards.some((text) => text.includes("À la racine"))).toBe(true);
+        expect(wrapper.text()).toContain("essai");
     });
 
     it("draws a table when the list view is picked", async () => {

@@ -28,7 +28,7 @@
  */
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { Download, FileText, Folder, FolderPlus, Plus, Upload } from "lucide-vue-next";
+import { ChevronDown, ChevronRight, Download, FileText, Folder, FolderPlus, Pin, PinOff, Plus, Tag, Upload } from "lucide-vue-next";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppModulePanel from "@/shared/nav/AppModulePanel.vue";
@@ -46,6 +46,11 @@ const NOTES_ENDPOINT = "/backend/notes/markdown/list";
 const SEARCH_ENDPOINT = "/backend/notes/markdown/search";
 const LIBRARY_URL = "/backend/notes/markdown";
 const EXPANDED_KEY = "aurora.notes.panel.expanded";
+const PINNED_TAGS_KEY = "aurora.notes.panel.pinnedTags";
+const TAGS_OPEN_KEY = "aurora.notes.panel.tagsOpen";
+
+/** Combien d'étiquettes non épinglées on montre avant de replier. */
+const TAGS_SHOWN = 8;
 
 const { t } = useI18n();
 
@@ -193,6 +198,116 @@ const favorites = computed(() => {
         ...pinned(notes.value, "note"),
     ].sort((a, b) => Date.parse(b.favoritedAt) - Date.parse(a.favoritedAt));
 });
+
+// ── Les étiquettes ─────────────────────────────────────────────────
+
+/**
+ * Les étiquettes du carnet, les épinglées d'abord.
+ *
+ * **L'épinglage vit dans le navigateur, pas en base.** Une étiquette n'est
+ * pas une ligne dans Aurora : c'est une chaîne dans le tableau `tags` d'une
+ * note, sans identité propre. Lui donner une table serait la première dont
+ * les lignes ne désignent rien, et l'écran d'administration des étiquettes
+ * - qui renomme, fusionne et supprime - devrait la tenir à jour en trois
+ * endroits de plus. Ici, une étiquette disparue disparaît d'elle-même de la
+ * liste, puisqu'on n'affiche que celles qui existent encore.
+ *
+ * Les favoris, eux, sont en base : ils s'accrochent à une note ou à un
+ * dossier, c'est-à-dire à quelque chose qui a une ligne.
+ */
+const pinnedTags = ref(readStoredTags());
+const tagsOpen = ref("1" === readStored(TAGS_OPEN_KEY, "1"));
+const showAllTags = ref(false);
+
+function readStored(key, fallback) {
+    try {
+        return window.localStorage.getItem(key) ?? fallback;
+    } catch {
+        // Navigation privée, cadre restreint : la préférence est un
+        // confort, pas un état du carnet.
+        return fallback;
+    }
+}
+
+function readStoredTags() {
+    try {
+        const raw = JSON.parse(window.localStorage.getItem(PINNED_TAGS_KEY) ?? "[]");
+
+        return Array.isArray(raw) ? raw.filter((one) => "string" === typeof one) : [];
+    } catch {
+        return [];
+    }
+}
+
+function store(key, value) {
+    try {
+        window.localStorage.setItem(key, value);
+    } catch {
+        // Idem : rien à rattraper, la session continue sans mémoire.
+    }
+}
+
+/** Toutes les étiquettes portées par au moins une note, par fréquence. */
+const allTags = computed(() => {
+    const counts = new Map();
+
+    for (const note of notes.value) {
+        for (const one of note.tags ?? []) {
+            if ("string" !== typeof one || "" === one.trim()) continue;
+
+            counts.set(one, (counts.get(one) ?? 0) + 1);
+        }
+    }
+
+    return [...counts.entries()]
+        .map(([name, count]) => ({ name, count }))
+        .sort(
+            (a, b) =>
+                b.count - a.count ||
+                a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+        );
+});
+
+/**
+ * Ce qu'on affiche : les épinglées, puis les plus portées.
+ *
+ * Une étiquette épinglée qui n'existe plus - renommée, fusionnée, effacée
+ * depuis l'écran des étiquettes - tombe d'elle-même, puisque la liste part
+ * de ce que les notes portent réellement.
+ */
+const visibleTags = computed(() => {
+    if (searching.value) return [];
+
+    const pinned = pinnedTags.value;
+    const marked = allTags.value.map((one) => ({
+        ...one,
+        pinned: pinned.includes(one.name),
+    }));
+
+    const first = marked.filter((one) => one.pinned);
+    const rest = marked.filter((one) => !one.pinned);
+
+    return [...first, ...(showAllTags.value ? rest : rest.slice(0, TAGS_SHOWN))];
+});
+
+const hiddenTagCount = computed(() =>
+    showAllTags.value
+        ? 0
+        : Math.max(0, allTags.value.length - pinnedTags.value.length - TAGS_SHOWN),
+);
+
+function togglePinned(name) {
+    pinnedTags.value = pinnedTags.value.includes(name)
+        ? pinnedTags.value.filter((one) => one !== name)
+        : [...pinnedTags.value, name];
+
+    store(PINNED_TAGS_KEY, JSON.stringify(pinnedTags.value));
+}
+
+function toggleTagsSection() {
+    tagsOpen.value = !tagsOpen.value;
+    store(TAGS_OPEN_KEY, tagsOpen.value ? "1" : "0");
+}
 
 function labelOf(node) {
     if ("folder" === node.kind) {
@@ -434,5 +549,58 @@ onUnmounted(() => {
             v-on:drag-leave="onDragLeave"
             v-on:drop="onDrop"
         />
+        <!-- Les étiquettes, sous l'arborescence : elles traversent le
+             rangement, donc elles ne peuvent pas y tenir une place. Cliquer
+             l'une d'elles montre ses notes, où qu'elles soient. -->
+        <div v-if="allTags.length && !searching" class="mt-2 border-t border-line pt-2">
+            <button
+                type="button"
+                class="flex w-full items-center gap-1 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted transition-colors hover:text-primary"
+                v-on:click="toggleTagsSection"
+            >
+                <ChevronDown v-if="tagsOpen" class="h-3 w-3 shrink-0" :stroke-width="2" />
+                <ChevronRight v-else class="h-3 w-3 shrink-0" :stroke-width="2" />
+                {{ t('notes.markdown.library.tag.section') }}
+            </button>
+
+            <template v-if="tagsOpen">
+                <div
+                    v-for="one in visibleTags"
+                    :key="one.name"
+                    class="group flex min-w-0 items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-primary transition-colors hover:bg-surface-2"
+                >
+                    <button
+                        type="button"
+                        class="flex min-w-0 flex-1 items-center gap-2 text-left"
+                        :title="t('notes.markdown.library.tag.filter', { tag: one.name })"
+                        v-on:click="forward('filter-tag', one.name)"
+                    >
+                        <Tag class="h-3.5 w-3.5 shrink-0 text-muted" :stroke-width="2" />
+                        <span class="min-w-0 flex-1 truncate">{{ one.name }}</span>
+                        <span class="shrink-0 text-xs text-muted tabular-nums">{{ one.count }}</span>
+                    </button>
+
+                    <AppIconButton
+                        size="sm"
+                        class="shrink-0 sm:opacity-0 sm:group-hover:opacity-100"
+                        :class="one.pinned ? 'sm:opacity-100' : ''"
+                        :title="one.pinned ? t('notes.markdown.library.tag.unpin') : t('notes.markdown.library.tag.pin')"
+                        v-on:click.stop="togglePinned(one.name)"
+                    >
+                        <PinOff v-if="one.pinned" class="h-3 w-3" :stroke-width="2" />
+                        <Pin v-else class="h-3 w-3" :stroke-width="2" />
+                    </AppIconButton>
+                </div>
+
+                <button
+                    v-if="hiddenTagCount"
+                    type="button"
+                    class="px-3 py-1 text-xs text-muted transition-colors hover:text-primary"
+                    v-on:click="showAllTags = true"
+                >
+                    {{ t('notes.markdown.library.tag.show_all', { count: hiddenTagCount }) }}
+                </button>
+            </template>
+        </div>
     </AppModulePanel>
 </template>

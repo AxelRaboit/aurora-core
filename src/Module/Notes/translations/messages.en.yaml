@@ -133,6 +133,15 @@ notes:
       search_placeholder: Search the notes…
       preview:
         empty: This note is empty.
+      tag:
+        section: Tags
+        filter: 'See the notes tagged {tag}'
+        clear: Clear the filter
+        pin: Pin this tag
+        unpin: Unpin this tag
+        show_all: '+ {count} more'
+        none: No note carries this tag
+        none_description: 'Nothing is tagged "{tag}" any more.'
       view:
         label: View
         mosaic: Mosaic

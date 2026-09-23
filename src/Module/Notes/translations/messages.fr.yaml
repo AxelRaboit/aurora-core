@@ -133,6 +133,15 @@ notes:
       search_placeholder: Rechercher une note…
       preview:
         empty: Cette note est vide.
+      tag:
+        section: Étiquettes
+        filter: 'Voir les notes étiquetées {tag}'
+        clear: Retirer le filtre
+        pin: Épingler cette étiquette
+        unpin: Détacher cette étiquette
+        show_all: '+ {count} autres'
+        none: Aucune note avec cette étiquette
+        none_description: "Plus aucune note ne porte « {tag} »."
       view:
         label: Affichage
         mosaic: Mosaïque

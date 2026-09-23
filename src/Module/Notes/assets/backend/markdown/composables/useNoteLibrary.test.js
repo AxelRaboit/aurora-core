@@ -271,6 +271,67 @@ describe("useNoteLibrary", () => {
         });
     });
 
+    /**
+     * Une étiquette traverse le rangement : c'est la question qu'on pose en
+     * cliquant dessus.
+     */
+    describe("une étiquette", () => {
+        function withTags() {
+            return useNoteLibrary({
+                folders: ref(FOLDERS),
+                notes: ref([
+                    {
+                        id: 41,
+                        folderId: null,
+                        title: "Racine",
+                        tags: ["photo"],
+                    },
+                    {
+                        id: 42,
+                        folderId: 2,
+                        title: "Dedans",
+                        tags: ["photo", "essai"],
+                    },
+                    { id: 43, folderId: 1, title: "Sans", tags: [] },
+                ]),
+                initialFolderId: 1,
+                breadcrumb: [],
+                urlFor: (id) => `/f/${id}`,
+                rootUrl: "/",
+            });
+        }
+
+        it("looks through the whole notebook, not just the open folder", () => {
+            const library = withTags();
+
+            library.setTag("photo");
+
+            expect(library.notes.value.map((n) => n.id).sort()).toEqual([
+                41, 42,
+            ]);
+            expect(library.folders.value).toEqual([]);
+        });
+
+        it("gives the folder back when it is cleared", () => {
+            const library = withTags();
+
+            library.setTag("photo");
+            library.setTag(null);
+
+            expect(library.currentFolderId.value).toBe(1);
+            expect(library.notes.value.map((n) => n.id)).toEqual([43]);
+            expect(library.folders.value.map((f) => f.id)).toEqual([2]);
+        });
+
+        it("reads an empty string as no tag at all", () => {
+            const library = withTags();
+
+            library.setTag("");
+
+            expect(library.tag.value).toBeNull();
+        });
+    });
+
     it("remembers the view and the sort for the next visit", () => {
         const first = build();
 

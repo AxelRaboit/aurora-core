@@ -49,6 +49,15 @@ export function useNoteLibrary({
     const direction = ref(readStored(DIRECTION_KEY, ["asc", "desc"], "desc"));
     const flat = ref("1" === readStored(FLAT_KEY, ["0", "1"], "0"));
 
+    /**
+     * L'étiquette qu'on regarde, s'il y en a une.
+     *
+     * Pas retenue d'une visite à l'autre, contrairement à la vue et au tri :
+     * c'est une question qu'on pose, pas une façon de lire. Retrouver son
+     * carnet filtré le lendemain sans savoir pourquoi serait un piège.
+     */
+    const tag = ref(null);
+
     // Seeded from the server so a reload does not flash the root while the
     // chain is recomputed; rebuilt from the folder list on every move after.
     const serverBreadcrumb = ref(breadcrumb.map(normaliseCrumb));
@@ -122,10 +131,11 @@ export function useNoteLibrary({
         return ids;
     });
 
-    // À plat, il n'y a pas de dossier à montrer : ils sont dépliés dans la
-    // liste des notes, et les redonner en cartes doublerait l'affichage.
+    // À plat comme sous une étiquette, il n'y a pas de dossier à montrer :
+    // les notes sont déjà toutes là, et les redonner en cartes doublerait
+    // l'affichage. Un dossier ne porte d'ailleurs pas d'étiquette.
     const childFolders = computed(() =>
-        flat.value
+        flat.value || null !== tag.value
             ? []
             : folders.value.filter(
                   (folder) =>
@@ -133,13 +143,26 @@ export function useNoteLibrary({
               ),
     );
 
-    const childNotes = computed(() =>
-        notes.value.filter((note) =>
+    /**
+     * Une étiquette se cherche dans tout le carnet, pas dans un dossier.
+     *
+     * C'est la question qu'on pose en cliquant dessus : « où sont mes notes
+     * de repérage », pas « lesquelles de celles-ci ». La limiter au dossier
+     * ouvert rendrait le clic muet une fois sur deux.
+     */
+    const childNotes = computed(() => {
+        if (null !== tag.value) {
+            return notes.value.filter((note) =>
+                (note.tags ?? []).includes(tag.value),
+            );
+        }
+
+        return notes.value.filter((note) =>
             flat.value
                 ? subtreeIds.value.has(normaliseId(note.folderId))
                 : normaliseId(note.folderId) === currentFolderId.value,
-        ),
-    );
+        );
+    });
 
     /** Le nom du dossier qui contient une note, pour le dire sur sa carte. */
     function folderNameOf(id) {
@@ -284,6 +307,20 @@ export function useNoteLibrary({
         if (flat.value && "manual" === sort.value) setSort("updated");
     }
 
+    /**
+     * Regarder une étiquette, ou revenir à l'endroit où l'on était.
+     *
+     * Le dossier ouvert n'est pas perdu pendant ce temps : il est toujours
+     * dans l'adresse et dans le fil d'Ariane, et fermer l'étiquette y
+     * ramène sans naviguer.
+     */
+    function setTag(value) {
+        tag.value =
+            null === value || undefined === value || "" === value
+                ? null
+                : String(value);
+    }
+
     function toggleDirection() {
         direction.value = "asc" === direction.value ? "desc" : "asc";
         store(DIRECTION_KEY, direction.value);
@@ -297,6 +334,7 @@ export function useNoteLibrary({
         sort,
         direction,
         flat,
+        tag,
         folders: sortedFolders,
         notes: sortedNotes,
         isEmpty,
@@ -307,6 +345,7 @@ export function useNoteLibrary({
         setSort,
         toggleDirection,
         toggleFlat,
+        setTag,
         folderNameOf,
     };
 }

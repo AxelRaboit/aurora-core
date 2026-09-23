@@ -343,6 +343,13 @@ const PANEL_INTENTS = {
 
         await showLibrary(id);
     },
+    // Une étiquette traverse le rangement : elle se regarde dans la
+    // bibliothèque, jamais dans l'éditeur, donc on l'y ramène d'abord.
+    'filter-tag': async (tag) => {
+        if (!libraryRef.value) await showLibrary(null);
+
+        libraryRef.value?.filterByTag(tag);
+    },
     'create-folder': async (parentId) => {
         if (!libraryRef.value) await showLibrary(parentId ?? null);
 

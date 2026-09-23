@@ -95,6 +95,88 @@ afterEach(() => {
     vi.restoreAllMocks();
 });
 
+describe("les étiquettes du panneau", () => {
+    /** La ligne d'une étiquette, visée par son libellé. */
+    function tagRow(wrapper, name) {
+        return wrapper
+            .findAll("button")
+            .find(
+                (b) =>
+                    b.attributes("title")?.includes(`library.tag.filter`) &&
+                    b.text().includes(name),
+            );
+    }
+
+    beforeEach(() =>
+        window.localStorage.removeItem("aurora.notes.panel.pinnedTags"),
+    );
+
+    it("lists what the notes actually carry, and how many carry it", async () => {
+        const wrapper = await render();
+
+        expect(tagRow(wrapper, "perso")).toBeTruthy();
+        expect(tagRow(wrapper, "cuisine")).toBeTruthy();
+        expect(tagRow(wrapper, "perso").text()).toContain("1");
+    });
+
+    it("asks the page to show a tag rather than navigating", async () => {
+        const asked = [];
+        stops.push(
+            onPanelRequest("notes:filter-tag", ({ args }) => asked.push(args)),
+        );
+
+        const wrapper = await render();
+        await tagRow(wrapper, "cuisine").trigger("click");
+
+        expect(asked).toEqual([["cuisine"]]);
+    });
+
+    /**
+     * L'épinglage vit dans le navigateur : une étiquette n'est pas une ligne
+     * dans Aurora, c'est une chaîne dans le tableau d'une note.
+     */
+    it("remembers a pinned tag for the next visit", async () => {
+        const wrapper = await render();
+
+        const pin = wrapper
+            .findAll("button")
+            .find((b) => b.attributes("title")?.includes("library.tag.pin"));
+
+        await pin.trigger("click");
+
+        expect(
+            JSON.parse(
+                window.localStorage.getItem("aurora.notes.panel.pinnedTags"),
+            ),
+        ).toHaveLength(1);
+    });
+
+    /**
+     * Une étiquette renommée ou effacée depuis l'écran des étiquettes n'a
+     * aucune ligne à nettoyer : la liste part de ce que les notes portent.
+     */
+    it("drops a pinned tag that no note carries any more", async () => {
+        window.localStorage.setItem(
+            "aurora.notes.panel.pinnedTags",
+            JSON.stringify(["disparue"]),
+        );
+
+        const wrapper = await render();
+
+        expect(tagRow(wrapper, "disparue")).toBeFalsy();
+        expect(tagRow(wrapper, "perso")).toBeTruthy();
+    });
+
+    it("says nothing while a search is running", async () => {
+        const wrapper = await render();
+
+        await wrapper.find("input").setValue("journal");
+        await flushPromises();
+
+        expect(tagRow(wrapper, "perso")).toBeFalsy();
+    });
+});
+
 describe("the folders panel", () => {
     it("fetches its own lists, because the menu hands it no props", async () => {
         await render();
