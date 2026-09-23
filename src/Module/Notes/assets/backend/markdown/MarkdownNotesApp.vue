@@ -19,9 +19,10 @@ import AppTagsInput from '@shared/components/form/select/AppTagsInput.vue';
 import AppModal from '@shared/components/overlay/AppModal.vue';
 import AppModalFooter from '@shared/components/overlay/AppModalFooter.vue';
 import AppTab from '@shared/components/nav/AppTab.vue';
-import { onMounted, onUnmounted, watch } from 'vue';
+import { onErrorCaptured, onMounted, onUnmounted, watch } from 'vue';
 import { onPanelRequest, tellPanels } from '@/shared/nav/modulePanelBridge.js';
-import { Trash2, FileDown, PanelRightOpen, PanelRightClose, X, Network, Share2 } from 'lucide-vue-next';
+import { Trash2, FileDown, PanelRightOpen, PanelRightClose, TriangleAlert, X, Network, Share2 } from 'lucide-vue-next';
+import AppNoData from '@shared/components/feedback/AppNoData.vue';
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 
 const { formatDateTimeNumeric } = useDateFormat();
@@ -120,6 +121,27 @@ const {
 // sharing is opened from the toolbar and closed by the modal, and nothing in
 // the page composable reads it.
 const shareModalOpen = ref(false);
+
+/**
+ * Ce qui casse doit se voir.
+ *
+ * Une erreur dans un composant enfant vide sa zone sans un mot : Vue la
+ * consigne dans la console et rend du vide. Axel a eu deux fois un grand
+ * cadre blanc pour tout message, et la seule façon de savoir ce qui s'était
+ * passé était d'ouvrir les outils de développement. Une page qui échoue doit
+ * le dire à qui la regarde, et dire quoi.
+ */
+const crashed = ref(null);
+
+onErrorCaptured((error) => {
+    crashed.value = error;
+
+    // Consigné quand même : le message à l'écran sert la personne, la trace
+    // sert celui qui répare.
+    console.error('[notes] la page a échoué', error);
+
+    return false;
+});
 
 /**
  * Les dossiers, et le va-et-vient entre la bibliothèque et l'éditeur.
@@ -360,7 +382,15 @@ onUnmounted(() => {
              et la fin du texte sortait de l'écran. C'est le pendant vertical de
              ce que le commentaire des deux volets dit déjà pour la largeur. -->
         <section class="flex-1 flex flex-col min-w-0 min-h-0">
-            <div v-if="selectedNote" class="flex-1 flex flex-col min-h-0">
+            <div v-if="crashed" class="flex flex-1 items-center justify-center p-6">
+                <AppNoData
+                    :title="t('notes.markdown.errors.crashed')"
+                    :description="String(crashed?.message ?? crashed)"
+                    :icon="TriangleAlert"
+                />
+            </div>
+
+            <div v-else-if="selectedNote" class="flex-1 flex flex-col min-h-0">
                 <header class="p-2 border-b border-line flex flex-col gap-2 sm:p-4">
                     <!-- Le chemin de retour. Une note ouverte depuis la
                          bibliothèque doit pouvoir y revenir sans le bouton

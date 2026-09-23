@@ -274,6 +274,7 @@ notes:
       description: Choisissez une note dans la bibliothèque, ou créez-en une nouvelle.
     errors:
       load_failed: Impossible de charger la note.
+      crashed: Cette page n'a pas pu s'afficher
       create_failed: Impossible de créer la note.
       save_failed: Impossible d'enregistrer la note.
       delete_failed: Impossible de supprimer la note.

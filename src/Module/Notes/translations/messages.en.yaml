@@ -269,6 +269,7 @@ notes:
       description: Pick a note from the library, or create a new one.
     errors:
       load_failed: Could not load the note.
+      crashed: This page could not be displayed
       create_failed: Could not create the note.
       save_failed: Could not save the note.
       delete_failed: Could not delete the note.
