@@ -16,7 +16,7 @@
  * au clavier et au doigt, parce qu'un glisser-déposer n'existe pas sur un
  * téléphone.
  */
-import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 import {
@@ -37,6 +37,7 @@ import {
     PinOff,
     Plus,
     Rows3,
+    Search,
     Trash2,
     X,
 } from "lucide-vue-next";
@@ -131,6 +132,29 @@ onUnmounted(() => window.removeEventListener("popstate", onPopState));
 watch(currentFolderId, (id) => emit("folder-changed", id), { immediate: true });
 
 const query = ref("");
+
+/**
+ * La recherche se replie en loupe, comme chez Craft.
+ *
+ * Un champ vide qui occupe le tiers de la barre coûte cette place à tout le
+ * reste, et on ne cherche pas en permanence. L'icône l'ouvre, la barre
+ * oblique aussi, Échap la referme - mais seulement si elle est vide : un
+ * filtre actif et invisible ferait chercher pourquoi la liste est courte.
+ */
+const searchOpen = ref(false);
+const searchBox = ref(null);
+
+async function openSearch() {
+    searchOpen.value = true;
+    await nextTick();
+    searchBox.value?.querySelector("input")?.focus();
+}
+
+function closeSearch() {
+    if ("" !== query.value.trim()) return;
+
+    searchOpen.value = false;
+}
 
 /**
  * La recherche filtre ce qui est sous les yeux, pas le carnet entier.
@@ -745,6 +769,14 @@ function onKeydown(event) {
 
         return;
 
+    // La barre oblique ouvre la recherche : la convention est celle de
+    // GitHub et de Craft, et elle évite d'aller viser la loupe.
+    case "/":
+        event.preventDefault();
+        void openSearch();
+
+        return;
+
     case "n":
         event.preventDefault();
         emit("create-note", currentFolderId.value);
@@ -1006,105 +1038,132 @@ defineExpose({
         <header class="flex flex-col gap-3 border-b border-line p-3 sm:p-4">
             <!-- Le fil d'Ariane est aussi une cible : remonter d'un niveau se
                  fait en y glissant ce qu'on tient, sans ouvrir de modale. -->
-            <nav class="flex items-center gap-1 text-sm flex-wrap" :aria-label="t('notes.markdown.library.title')">
-                <button
-                    type="button"
-                    class="rounded px-2 py-1 transition-colors"
-                    :class="[
-                        null === currentFolderId ? 'font-semibold text-primary' : 'text-muted hover:text-primary',
-                        'crumb:root' === dragOverId ? 'bg-accent-500/15 ring-1 ring-accent-500' : '',
-                    ]"
-                    v-on:click="openFolder(null)"
-                    v-on:dragover="onDragOverCrumb(null, $event)"
-                    v-on:dragleave="dragOverId = null"
-                    v-on:drop="onDropOn(null, $event)"
-                >
-                    {{ t('notes.markdown.library.title') }}
-                </button>
-
-                <template v-for="crumb in path" :key="crumb.id">
-                    <ChevronRight class="w-3.5 h-3.5 text-muted shrink-0" :stroke-width="2" />
+            <!-- Première ligne : où l'on est, et ce qu'on peut y créer. -->
+            <div class="flex items-start justify-between gap-3">
+                <nav class="flex min-w-0 flex-1 flex-wrap items-center gap-1 text-sm" :aria-label="t('notes.markdown.library.title')">
                     <button
                         type="button"
                         class="rounded px-2 py-1 transition-colors"
                         :class="[
-                            crumb.id === currentFolderId ? 'font-semibold text-primary' : 'text-muted hover:text-primary',
-                            `crumb:${crumb.id}` === dragOverId ? 'bg-accent-500/15 ring-1 ring-accent-500' : '',
+                            null === currentFolderId ? 'font-semibold text-primary' : 'text-muted hover:text-primary',
+                            'crumb:root' === dragOverId ? 'bg-accent-500/15 ring-1 ring-accent-500' : '',
                         ]"
-                        v-on:click="openFolder(crumb.id)"
-                        v-on:dragover="onDragOverCrumb(crumb, $event)"
+                        v-on:click="openFolder(null)"
+                        v-on:dragover="onDragOverCrumb(null, $event)"
                         v-on:dragleave="dragOverId = null"
-                        v-on:drop="onDropOn(crumb.id, $event)"
+                        v-on:drop="onDropOn(null, $event)"
                     >
-                        {{ crumb.name || t('notes.markdown.folders.untitled') }}
+                        {{ t('notes.markdown.library.title') }}
                     </button>
-                </template>
-            </nav>
 
-            <div class="flex flex-wrap items-center gap-2">
-                <AppSearchInput
-                    v-model="query"
-                    :placeholder="t('notes.markdown.library.search_placeholder')"
-                    class="flex-1 min-w-[12rem]"
-                />
+                    <template v-for="crumb in path" :key="crumb.id">
+                        <ChevronRight class="w-3.5 h-3.5 text-muted shrink-0" :stroke-width="2" />
+                        <button
+                            type="button"
+                            class="rounded px-2 py-1 transition-colors"
+                            :class="[
+                                crumb.id === currentFolderId ? 'font-semibold text-primary' : 'text-muted hover:text-primary',
+                                `crumb:${crumb.id}` === dragOverId ? 'bg-accent-500/15 ring-1 ring-accent-500' : '',
+                            ]"
+                            v-on:click="openFolder(crumb.id)"
+                            v-on:dragover="onDragOverCrumb(crumb, $event)"
+                            v-on:dragleave="dragOverId = null"
+                            v-on:drop="onDropOn(crumb.id, $event)"
+                        >
+                            {{ crumb.name || t('notes.markdown.folders.untitled') }}
+                        </button>
+                    </template>
+                </nav>
 
-                <div class="inline-flex rounded-md border border-line overflow-hidden">
-                    <AppTab
-                        v-for="opt in viewOptions"
-                        :key="opt.value"
-                        size="sm"
-                        align="center"
-                        shape-class="rounded-none"
-                        :active="view === opt.value"
-                        :title="opt.label"
-                        v-on:click="setView(opt.value)"
-                    >
-                        <component :is="opt.icon" class="w-4 h-4" :stroke-width="2" />
-                    </AppTab>
-                </div>
-
-                <!-- Le sens est un bouton séparé du critère, comme chez Craft :
-                     changer d'ordre ne doit pas demander de rouvrir la liste
-                     des critères. -->
-                <div class="flex items-center gap-1">
-                    <AppSelect
-                        :model-value="sort"
-                        :options="sortOptions"
-                        class="min-w-[9rem]"
-                        v-on:update:model-value="setSort($event)"
-                    />
+                <!-- Icônes seules : le libellé prenait la moitié de la barre
+                     pour dire ce qu'un « + » dit aussi bien, et l'infobulle
+                     le nomme pour qui hésite. -->
+                <div class="flex shrink-0 items-center gap-1">
                     <AppIconButton
-                        :title="'asc' === direction ? t('notes.markdown.library.sort.asc') : t('notes.markdown.library.sort.desc')"
-                        size="md"
-                        variant="ghost"
-                        v-on:click="toggleDirection"
+                        color="accent"
+                        :title="t('notes.markdown.library.new_folder')"
+                        :aria-label="t('notes.markdown.library.new_folder')"
+                        v-on:click="askForFolderName()"
                     >
-                        <ArrowUpNarrowWide v-if="'asc' === direction" class="w-4 h-4" :stroke-width="2" />
-                        <ArrowDownWideNarrow v-else class="w-4 h-4" :stroke-width="2" />
+                        <FolderPlus class="h-4 w-4" :stroke-width="2" />
                     </AppIconButton>
+
+                    <AppButton
+                        variant="primary"
+                        size="md"
+                        class="min-h-11 !px-2.5 sm:min-h-0"
+                        :title="t('notes.markdown.library.new_note')"
+                        :aria-label="t('notes.markdown.library.new_note')"
+                        v-on:click="emit('create-note', currentFolderId)"
+                    >
+                        <Plus class="h-4 w-4" :stroke-width="2" />
+                    </AppButton>
+                </div>
+            </div>
+
+            <!-- Deuxième ligne : comment on regarde. Ce qui *crée* est
+                 monté d'un cran, à droite du fil d'Ariane, parce que ces
+                 gestes portent sur l'endroit où l'on est, pas sur la façon
+                 de le lire. Une barre unique les mélangeait, et huit
+                 contrôles collés se lisaient comme un mur. -->
+            <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <AppIconButton
+                    v-if="!searchOpen"
+                    :title="t('notes.markdown.library.search_placeholder')"
+                    :aria-label="t('notes.markdown.library.search_placeholder')"
+                    v-on:click="openSearch"
+                >
+                    <Search class="h-4 w-4" :stroke-width="2" />
+                </AppIconButton>
+
+                <div
+                    v-else
+                    ref="searchBox"
+                    class="min-w-[12rem] flex-1 sm:max-w-sm"
+                    v-on:keyup.esc="closeSearch"
+                    v-on:focusout="closeSearch"
+                >
+                    <AppSearchInput
+                        v-model="query"
+                        :placeholder="t('notes.markdown.library.search_placeholder')"
+                    />
                 </div>
 
-                <!-- Pleine largeur sur téléphone, libellé centré : la règle
-                     d'affichage mobile de la maison. -->
-                <AppButton
-                    variant="ghost"
-                    size="md"
-                    class="w-full justify-center sm:w-auto"
-                    v-on:click="askForFolderName()"
-                >
-                    <FolderPlus class="w-4 h-4" :stroke-width="2" />
-                    {{ t('notes.markdown.library.new_folder') }}
-                </AppButton>
+                <div class="ml-auto flex items-center gap-3">
+                    <div class="inline-flex overflow-hidden rounded-md border border-line">
+                        <AppTab
+                            v-for="opt in viewOptions"
+                            :key="opt.value"
+                            size="sm"
+                            align="center"
+                            shape-class="rounded-none"
+                            :active="view === opt.value"
+                            :title="opt.label"
+                            v-on:click="setView(opt.value)"
+                        >
+                            <component :is="opt.icon" class="h-4 w-4" :stroke-width="2" />
+                        </AppTab>
+                    </div>
 
-                <AppButton
-                    variant="primary"
-                    size="md"
-                    class="w-full justify-center sm:w-auto"
-                    v-on:click="emit('create-note', currentFolderId)"
-                >
-                    <Plus class="w-4 h-4" :stroke-width="2" />
-                    {{ t('notes.markdown.library.new_note') }}
-                </AppButton>
+                    <!-- Le sens est un bouton séparé du critère, comme chez
+                         Craft : changer d'ordre ne doit pas demander de
+                         rouvrir la liste des critères. -->
+                    <div class="flex items-center gap-1">
+                        <AppSelect
+                            :model-value="sort"
+                            :options="sortOptions"
+                            class="min-w-[8.5rem]"
+                            v-on:update:model-value="setSort($event)"
+                        />
+                        <AppIconButton
+                            :title="'asc' === direction ? t('notes.markdown.library.sort.asc') : t('notes.markdown.library.sort.desc')"
+                            v-on:click="toggleDirection"
+                        >
+                            <ArrowUpNarrowWide v-if="'asc' === direction" class="h-4 w-4" :stroke-width="2" />
+                            <ArrowDownWideNarrow v-else class="h-4 w-4" :stroke-width="2" />
+                        </AppIconButton>
+                    </div>
+                </div>
             </div>
         </header>
 
@@ -1131,7 +1190,6 @@ defineExpose({
                 <AppIconButton
                     :title="t('notes.markdown.library.clear_selection')"
                     size="sm"
-                    variant="ghost"
                     v-on:click="clearSelection"
                 >
                     <X class="w-4 h-4" :stroke-width="2" />

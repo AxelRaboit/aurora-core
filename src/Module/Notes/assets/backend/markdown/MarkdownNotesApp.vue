@@ -39,7 +39,6 @@ const props = defineProps({
     folderPaths: { type: Object, required: true },
     /** L'adresse de la bibliothèque, c'est-à-dire du carnet à sa racine. */
     libraryPath: { type: String, required: true },
-    browsePath: { type: String, default: '' },
     maxDepth: { type: Number, default: 8 },
     listPath: { type: String, required: true },
     showPath: { type: String, required: true },
@@ -424,7 +423,6 @@ onUnmounted(() => {
                         <AppIconButton
                             :title="t('notes.markdown.export.one')"
                             size="md"
-                            variant="ghost"
                             :disabled="!selectedId"
                             v-on:click="exportOne(selectedId)"
                         >
@@ -434,7 +432,6 @@ onUnmounted(() => {
                         <AppIconButton
                             :title="t('notes.markdown.share.button')"
                             size="md"
-                            variant="ghost"
                             :disabled="!selectedId"
                             v-on:click="shareModalOpen = true"
                         >
@@ -448,7 +445,6 @@ onUnmounted(() => {
                         <AppIconButton
                             :title="t('notes.markdown.graph.open')"
                             size="md"
-                            variant="ghost"
                             v-on:click="graphOpen = true"
                         >
                             <Network class="w-4 h-4" :stroke-width="2" />

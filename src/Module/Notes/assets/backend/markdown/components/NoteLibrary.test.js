@@ -173,9 +173,14 @@ describe("the library", () => {
     it("asks the page for a new note in the folder being looked at", async () => {
         const wrapper = render({ initialFolderId: 1 });
 
+        // Le bouton ne porte plus son libellé, seulement son icône : c'est
+        // son infobulle qui le nomme.
         await wrapper
             .findAll("button")
-            .find((b) => b.text().includes("new_note"))
+            .find(
+                (b) =>
+                    b.attributes("title") === "notes.markdown.library.new_note",
+            )
             .trigger("click");
 
         expect(wrapper.emitted("create-note")?.[0]).toEqual([1]);
@@ -475,7 +480,12 @@ describe("the library", () => {
          */
         it("keeps its hands off the keyboard while somebody types", async () => {
             const wrapper = render();
+
+            await press("/");
             const input = wrapper.find("input");
+            expect(input.exists(), "la barre oblique ouvre la recherche").toBe(
+                true,
+            );
 
             input.element.dispatchEvent(
                 new KeyboardEvent("keydown", { key: "n", bubbles: true }),
@@ -580,10 +590,64 @@ describe("the library", () => {
     it("does not open when the checkbox is pressed", async () => {
         const wrapper = render({ folders: [] });
 
-        await wrapper.findAll("article")[0].findAll("button")[0].trigger("click");
+        await wrapper
+            .findAll("article")[0]
+            .findAll("button")[0]
+            .trigger("click");
 
         expect(wrapper.emitted("open-note")).toBeUndefined();
         expect(wrapper.text()).toContain("library.selected");
+    });
+
+    /**
+     * Un champ vide qui prend le tiers de la barre coûte cette place à tout
+     * le reste, et on ne cherche pas en permanence.
+     */
+    it("keeps the search folded until it is asked for", async () => {
+        const wrapper = render();
+
+        console.log(
+            "INPUTS:",
+            wrapper
+                .findAll("input")
+                .map(
+                    (i) =>
+                        i.attributes("type") +
+                        "/" +
+                        (i.attributes("placeholder") ?? ""),
+                )
+                .join(" | "),
+        );
+        expect(wrapper.find("input").exists()).toBe(false);
+
+        await wrapper
+            .findAll("button")
+            .find(
+                (b) =>
+                    b.attributes("title") ===
+                    "notes.markdown.library.search_placeholder",
+            )
+            .trigger("click");
+
+        expect(wrapper.find("input").exists()).toBe(true);
+    });
+
+    /** Un filtre actif mais invisible ferait chercher pourquoi la liste est courte. */
+    it("stays open while something is typed in it", async () => {
+        const wrapper = render();
+
+        await wrapper
+            .findAll("button")
+            .find(
+                (b) =>
+                    b.attributes("title") ===
+                    "notes.markdown.library.search_placeholder",
+            )
+            .trigger("click");
+        await wrapper.find("input").setValue("racine");
+        await wrapper.find("input").trigger("keyup.esc");
+
+        expect(wrapper.find("input").exists()).toBe(true);
     });
 
     it("draws a table when the list view is picked", async () => {
@@ -605,6 +669,16 @@ describe("the library", () => {
 
     it("filters what is on screen on what the reader typed", async () => {
         const wrapper = render();
+
+        // La recherche est repliée en loupe tant qu'on ne cherche pas.
+        await wrapper
+            .findAll("button")
+            .find(
+                (b) =>
+                    b.attributes("title") ===
+                    "notes.markdown.library.search_placeholder",
+            )
+            .trigger("click");
 
         await wrapper.find("input").setValue("racine");
         await flushPromises();

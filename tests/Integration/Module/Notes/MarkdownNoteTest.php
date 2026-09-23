@@ -304,29 +304,6 @@ final class MarkdownNoteTest extends IntegrationTestCase
         );
     }
 
-    /** Ce qu'un dossier contient, en une requête. */
-    public function testBrowseAnswersWithTheFolderContents(): void
-    {
-        $folder = $this->folder($this->owner, 'Clients');
-        $inside = $this->folder($this->owner, 'Studio Lumen', $folder);
-        $note = $this->note($this->owner, 'Devis', $folder);
-        $elsewhere = $this->note($this->owner, 'Ailleurs');
-
-        $this->client->loginUser($this->owner, 'admin');
-        $this->client->request(
-            'GET',
-            $this->urlGenerator->generate('backend_notes_markdown_browse').'?folder='.$folder->getId(),
-        );
-
-        self::assertResponseIsSuccessful();
-
-        $body = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
-
-        self::assertSame([$inside->getId()], array_map(static fn (array $row): int => (int) $row['id'], $body['folders']));
-        self::assertSame([$note->getId()], array_map(static fn (array $row): int => (int) $row['id'], $body['notes']));
-        self::assertNotContains($elsewhere->getId(), array_map(static fn (array $row): int => (int) $row['id'], $body['notes']));
-    }
-
     /** Une note rangée porte son dossier dans la liste, pas un parent. */
     public function testTheFlatListCarriesTheFolder(): void
     {

@@ -94,7 +94,6 @@ final readonly class MarkdownNotesViewBuilder
         return [
             'listPath' => $this->urlGenerator->generate('backend_notes_markdown_list'),
             'libraryPath' => $this->urlGenerator->generate('backend_notes_markdown'),
-            'browsePath' => $this->urlGenerator->generate('backend_notes_markdown_browse'),
             'showPath' => $this->urlGenerator->generate('backend_notes_markdown_show', ['id' => '__id__']),
             'createPath' => $this->urlGenerator->generate('backend_notes_markdown_create'),
             'updatePath' => $this->urlGenerator->generate('backend_notes_markdown_update', ['id' => '__id__']),

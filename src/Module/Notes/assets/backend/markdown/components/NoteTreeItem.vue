@@ -110,7 +110,6 @@ const indentStyle = computed(() => ({ marginLeft: `${props.depth * 1}rem` }));
             <AppIconButton
                 v-if="isFolder && hasChildren"
                 size="sm"
-                variant="ghost"
                 class="-ml-1 shrink-0"
                 :title="isOpen ? $t('shared.common.collapse') : $t('shared.common.expand')"
                 v-on:click.stop="emit('toggle', node)"

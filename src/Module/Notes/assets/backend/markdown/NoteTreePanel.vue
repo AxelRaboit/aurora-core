@@ -331,7 +331,6 @@ onUnmounted(() => {
                  pas sur une note. -->
             <AppIconButton
                 size="sm"
-                variant="ghost"
                 :title="t('notes.markdown.import.button')"
                 v-on:click="forward('import')"
             >
@@ -339,7 +338,6 @@ onUnmounted(() => {
             </AppIconButton>
             <AppIconButton
                 size="sm"
-                variant="ghost"
                 :title="t('notes.markdown.export.all')"
                 v-on:click="forward('export')"
             >
@@ -347,7 +345,6 @@ onUnmounted(() => {
             </AppIconButton>
             <AppIconButton
                 size="sm"
-                variant="ghost"
                 :title="t('notes.markdown.folders.create')"
                 v-on:click="forward('create-folder', null)"
             >
@@ -355,7 +352,6 @@ onUnmounted(() => {
             </AppIconButton>
             <AppIconButton
                 size="sm"
-                variant="ghost"
                 :title="t('notes.markdown.create_root')"
                 v-on:click="forward('create', null)"
             >

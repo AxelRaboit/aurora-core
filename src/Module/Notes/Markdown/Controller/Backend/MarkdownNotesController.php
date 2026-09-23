@@ -12,7 +12,6 @@ use Aurora\Core\Storage\Access\UploadRefusalEnum;
 use Aurora\Core\Validation\Service\PayloadValidator;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
-use Aurora\Module\Notes\Folder\Serializer\NoteFolderSerializerInterface;
 use Aurora\Module\Notes\Markdown\Dto\MarkdownNoteInputFactoryInterface;
 use Aurora\Module\Notes\Markdown\Dto\MarkdownNoteReorderInputFactoryInterface;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
@@ -59,7 +58,6 @@ final class MarkdownNotesController extends AbstractController
         private readonly PayloadValidator $payloadValidator,
         private readonly MarkdownNotesViewBuilder $viewBuilder,
         private readonly NoteFolderRepository $folders,
-        private readonly NoteFolderSerializerInterface $folderSerializer,
         private readonly MarkdownNoteArchive $archive,
         private readonly MarkdownNoteImporter $importer,
         private readonly UploadPolicyProvider $uploadPolicies,
@@ -106,54 +104,6 @@ final class MarkdownNotesController extends AbstractController
             '@Notes/backend/markdown/index.html.twig',
             $this->viewBuilder->indexView($user, folder: $folder),
         );
-    }
-
-    /**
-     * Ce qu'un dossier contient, sous-dossiers et notes, en une requête.
-     *
-     * Le tri n'est pas fait ici : le titre d'une note et le nom d'un dossier
-     * sont chiffrés, donc aucune requête ne peut les ordonner. Le navigateur
-     * reçoit le contenu du dossier et le classe lui-même, ce qu'il fait déjà
-     * pour la recherche et le filtre par étiquette.
-     */
-    #[Route('/browse', name: '_browse', methods: [HttpMethodEnum::Get->value])]
-    public function browse(Request $request): JsonResponse
-    {
-        /** @var CoreUserInterface $user */
-        $user = $this->getUser();
-
-        $raw = $request->query->get('folder');
-        $folder = null;
-
-        if (is_numeric($raw)) {
-            $folder = $this->folders->findOneByUserAndId($user, (int) $raw);
-
-            if (!$folder instanceof NoteFolderInterface) {
-                return $this->jsonNotFound();
-            }
-        }
-
-        $folderId = $folder?->getId();
-
-        $children = array_values(array_filter(
-            $this->folders->findAllForUser($user),
-            static fn (NoteFolderInterface $one): bool => $one->getParent()?->getId() === $folderId,
-        ));
-
-        $serializer = $this->folderSerializer->withCounts(
-            $this->folders->countNotesPerFolderForUser($user),
-            $this->folders->countChildrenPerFolderForUser($user),
-        );
-
-        $noteSerializer = $this->serializer->withExcerpts($this->repository->findExcerptsForUser($user));
-
-        return $this->jsonSuccess([
-            'folders' => array_map($serializer->serialize(...), $children),
-            'notes' => array_map(
-                $noteSerializer->serializeListItem(...),
-                $this->repository->findLivingInFolder($user, $folderId),
-            ),
-        ]);
     }
 
     /**
