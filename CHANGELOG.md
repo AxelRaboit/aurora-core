@@ -5,6 +5,40 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.236] - 2026-09-24
+
+### Ajouté
+
+#### `aurora:editorial:reveal`
+L'effet d'apparition ne se met pas tout seul sur quarante pages publiées avant
+lui, et les ouvrir une par une pour changer un menu déroulant n'est pas un
+travail. La commande pose le réglage de page, par type de contenu ou sur tout,
+avec `--dry-run`.
+
+**Elle ne discute jamais avec une zone qui a un avis** : seules celles qui
+disent « comme la page » sont touchées, donc la relancer après qu'un auteur a
+réglé une zone à la main ne défait pas son travail.
+
+`--pairs` écrit ce que le réglage de page ne sait pas dire : deux zones qui
+partagent une ligne arrivent l'une par la gauche et l'autre par la droite, et
+se rejoignent au milieu. **La ligne se demande à `GridNormalizer::place()`,
+elle ne se devine pas.** Lire `newRow` paraissait suffisant : il dit qu'une
+zone *ouvre* une ligne, pas qu'elle en partage une, et une page peut n'en
+porter aucun tout en plaçant deux zones côte à côte par leurs seules largeurs.
+C'était le cas de toutes les pages de la démonstration, où la première version
+n'a rien trouvé à apparier.
+
+Tout passe par le normaliseur, donc aucune valeur inventée n'atteint la base :
+un attribut que la feuille de style ne sait pas lire laisserait une zone
+invisible sur le site public.
+
+### Dans aurora-client
+
+Aucune migration. Un `make aurora-update` suivi d'une reconstruction des
+assets.
+
+---
+
 ## [0.9.235] - 2026-09-24
 
 ### Ajouté
