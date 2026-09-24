@@ -483,6 +483,8 @@ backend:
         normal: Normal
         lead: Standfirst
         small: Fine print
+      sticky: "Stay put while scrolling"
+      sticky_hint: "The zone stays in view while its neighbour scrolls past. No effect on a phone, where everything is stacked, and none when nothing taller shares its row."
       full_bleed: Full width
       full_bleed_hint: "The zone leaves the column and spans the screen. Words stay centred at the page's width; a picture goes edge to edge."
       anchor: "Anchor"
