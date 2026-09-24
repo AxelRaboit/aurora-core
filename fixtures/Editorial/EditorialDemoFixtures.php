@@ -735,11 +735,19 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             'width' => 'full_aligned',
             'verticalAlign' => 'center',
             'fadeOut' => true,
+            // Les couleurs de la maison, pas l'émeraude pleine.
+            //
+            // `#059669` est l'accent d'Aurora à pleine saturation : posé sur
+            // toute une entête, il pèse une luminance de 116 là où le site
+            // public se tient entre 28 et 50, et il détonne au milieu des
+            // huit autres entêtes. Le même vert en version sourde, avec la
+            // même inclinaison que la production, met la démonstration dans
+            // la même famille visuelle que ce qu'elle sert à montrer.
             'background' => [
                 'type' => 'gradient',
-                'gradientFrom' => '#059669',
-                'gradientTo' => '#0b1120',
-                'gradientAngle' => 60,
+                'gradientFrom' => '#054634',
+                'gradientTo' => '#03261d',
+                'gradientAngle' => 160,
             ],
             'items' => [
                 [

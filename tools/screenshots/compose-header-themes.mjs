@@ -1,24 +1,45 @@
 /**
  * L'entête du sommaire, avec le tableau de bord dans ses deux thèmes.
  *
- * **L'entête existante sert de fond, elle n'est pas refabriquée.** Son
+ * **Deux panneaux, pas un seul coupé en deux.** Première version livrée avec
+ * une diagonale qui partageait un unique écran ; ce n'était pas la demande.
+ * Ce qu'il faut montrer, c'est le même tableau de bord deux fois, en sombre
+ * et en clair, le clair posé par-dessus, décalé.
+ *
+ * **Le fond peut être laissé transparent**, et c'est le meilleur choix : le
+ * gabarit pose le dégradé sur le conteneur du bandeau et l'image par-dessus,
+ * donc une image sans fond laisse passer le vert du bandeau lui-même. Rien
+ * n'est refabriqué, rien ne peut diverger, et les captures se détachent sur
+ * le vert au lieu du noir vers lequel l'ancienne image virait à droite.
+ * Passer `none` comme fond.
+ *
+ * **Sauf que le dégradé du bandeau vire au noir vers la droite**, et que
+ * c'est précisément là que sont les captures : transparente, l'image les
+ * laisse sur du sombre. `vert` fabrique donc un fond qui garde du vert d'un
+ * bout à l'autre, avec les couleurs du bandeau - même départ `#064e3b`, même
+ * inclinaison de 160 degrés - mais une arrivée verte sombre au lieu du quasi
+ * noir, plus une lueur douce derrière les panneaux. La densité visée est
+ * celle de la maison : luminance du vert entre 28 et 50, l'original mesurait
+ * 38.
+ *
+ * **Sinon l'entête existante sert de fond, elle n'est pas refabriquée.** Son
  * dégradé vert sombre est celui de la maison, et le reconstruire tomberait
  * droit dans le piège connu : estimer un fond par la couleur médiane par
  * anneau donne un halo, parce qu'au rayon zéro le sujet couvre tous les
- * pixels. Reprendre l'image telle quelle rend le dégradé exact, gratuitement.
+ * pixels. Reprendre l'image telle quelle rend le dégradé exact.
  *
- * Seul le panneau est redessiné, exactement dans sa boîte, mesurée au pixel
- * sur l'original : le panneau commence à 1240, à 60 du haut, et fait 561 de
- * haut, soit la capture 1600x1000 réduite à 56,1 %. Il déborde par la droite,
- * et c'est voulu - **le téléphone rogne les côtés** et ne garde que les 500
- * pixels centraux d'une toile de 1920, donc ce qui est posé à droite
- * disparaît sur petit écran, comme dans l'entête d'origine.
+ * Conséquence directe sur la géométrie : **le panneau sombre doit recouvrir
+ * entièrement celui de l'original**, sinon un bout de l'ancien dépasse par en
+ * dessous. L'original occupe 1240,60 sur 898x561 ; celui-ci part plus haut et
+ * descend au même endroit, ce qui l'efface.
  *
- * Le panneau est posé un pixel à l'intérieur de sa boîte pour que le filet
- * clair de l'original reste visible tout autour.
+ * Le panneau déborde par la droite, et c'est voulu : **le téléphone rogne les
+ * côtés** et ne garde que les 500 pixels centraux d'une toile de 1920. Rien
+ * de ce qui compte ne doit y être, et l'entête d'origine faisait déjà ce
+ * choix.
  *
  * Aucun texte dans l'image : le premier élément du bandeau porte déjà le
- * `h1` de la page, et l'écrire deux fois le dirait deux fois.
+ * `h1` de la page.
  *
  * Usage :
  *   node tools/screenshots/compose-header-themes.mjs <fond> <sombre> <clair> <sortie>
@@ -32,9 +53,11 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const here = dirname(fileURLToPath(import.meta.url));
 const shotsDir = resolve(here, "../../var/screenshots");
 
-const [base, dark, light, out] = process.argv.slice(2).filter((a) => !a.startsWith("--") && Number.isNaN(Number(a)));
+const [base, darkName, lightName, out] = process.argv
+    .slice(2)
+    .filter((a) => !a.startsWith("--") && Number.isNaN(Number(a)));
 
-if (!base || !dark || !light || !out) {
+if (!base || !darkName || !lightName || !out) {
     console.error(
         "Usage : node tools/screenshots/compose-header-themes.mjs <fond> <sombre> <clair> <sortie>",
     );
@@ -45,33 +68,58 @@ if (!base || !dark || !light || !out) {
 const WIDTH = 1920;
 const HEIGHT = 682;
 
-/** La boîte du panneau, relevée sur l'entête d'origine. */
-const PANEL = { left: 1240, top: 60, height: 561, radius: 12 };
-
-/** La capture source, et donc l'échelle que cette hauteur impose. */
-const SOURCE = { width: 1600, height: 1000 };
-const SCALE = PANEL.height / SOURCE.height;
-const PANEL_WIDTH = Math.round(SOURCE.width * SCALE);
-
 /**
- * La coupure, en pourcentage de la largeur du panneau.
+ * Les deux panneaux.
  *
- * Elle est placée au milieu de ce qui **reste visible** sur la toile, pas au
- * milieu du panneau : le panneau fait 898 de large et seuls ses 680 premiers
- * pixels tiennent dans les 1920. Une coupure à mi-panneau serait aux trois
- * quarts de ce qu'on voit, et le thème clair n'aurait plus qu'un liseré.
+ * Le sombre couvre l'empreinte de celui de l'original (1240,60, 898x561) :
+ * il part plus haut, garde le même bas, et il est donc plus grand. Le clair
+ * se pose dessus, rentré de tous les côtés, pour qu'on voie du sombre autour
+ * de lui : sa barre latérale à gauche, une bande en haut, un liseré en bas.
+ *
+ * Réglables, parce que la bonne place se juge sur le rendu et pas sur le
+ * papier.
  */
 const args = process.argv.slice(2);
 const at = (flag, fallback) =>
     args.includes(flag) ? Number(args[args.indexOf(flag) + 1]) : fallback;
 
-// Réglables, parce que la bonne position dépend de ce que l'écran contient :
-// le premier essai coupait « Tableau de bord » au milieu d'un mot, ce qui se
-// lit comme un défaut d'affichage et non comme un parti pris.
-const seamTop = Math.round((at("--seam-top", 460) / PANEL_WIDTH) * 100);
-const seamBottom = Math.round((at("--seam-bottom", 320) / PANEL_WIDTH) * 100);
+/** La capture source, dont l'échelle découle de la hauteur voulue. */
+const SOURCE = { width: 1600, height: 1000 };
+
+const RADIUS = 12;
+
+const dark = {
+    left: at("--dark-left", 1240),
+    top: at("--dark-top", 30),
+    height: at("--dark-height", 591),
+};
+
+const light = {
+    left: at("--light-left", 1500),
+    top: at("--light-top", 150),
+    height: at("--light-height", 450),
+};
+
+const sized = (panel) => ({
+    ...panel,
+    width: Math.round((SOURCE.width * panel.height) / SOURCE.height),
+});
+
+const DARK = sized(dark);
+const LIGHT = sized(light);
 
 const url = (name) => pathToFileURL(join(shotsDir, `${name}.png`)).href;
+
+const panel = (cls, name, box, shadow) => `
+    <div class="panel ${cls}" style="
+        left: ${box.left}px;
+        top: ${box.top}px;
+        width: ${box.width}px;
+        height: ${box.height}px;
+        ${shadow}
+    ">
+        <img src="${url(name)}" alt="">
+    </div>`;
 
 const html = `
 <!doctype html>
@@ -81,42 +129,36 @@ const html = `
     .canvas { position: relative; width: ${WIDTH}px; height: ${HEIGHT}px; overflow: hidden; }
     .canvas > img.base { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 
-    /* Un pixel à l'intérieur de la boîte : le filet clair de l'original fait
-       le tour du panneau, et le recouvrir le ferait disparaître. */
-    .panel {
-        position: absolute;
-        left: ${PANEL.left + 1}px;
-        top: ${PANEL.top + 1}px;
-        width: ${PANEL_WIDTH - 2}px;
-        height: ${PANEL.height - 2}px;
-        border-radius: ${PANEL.radius}px;
-        overflow: hidden;
-    }
-    .panel img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-    .panel .light { clip-path: polygon(${seamTop}% 0, 100% 0, 100% 100%, ${seamBottom}% 100%); }
-
-    /* La couture, dessinée avec le même polygone que la découpe et décalée de
-       deux pixels. Un dégradé incliné demanderait de calculer un angle, et un
-       angle faux trace un trait qui ne suit pas la coupure. */
-    .panel .seam {
+    /* Les couleurs du bandeau, mais une arrivée verte : le dégradé d'origine
+       finit en #030712, presque noir, et les captures tombent dedans. La
+       lueur est posée derrière elles, pas au centre de la toile. */
+    .ground {
         position: absolute;
         inset: 0;
-        background: rgba(255, 255, 255, 0.45);
-        clip-path: polygon(
-            ${seamTop}% 0,
-            calc(${seamTop}% + 2px) 0,
-            calc(${seamBottom}% + 2px) 100%,
-            ${seamBottom}% 100%
-        );
+        background:
+            radial-gradient(60% 90% at 78% 45%, rgba(6, 95, 70, 0.32), transparent 72%),
+            linear-gradient(160deg, #054634 0%, #04362a 55%, #03261d 100%);
     }
+
+    .panel {
+        position: absolute;
+        border-radius: ${RADIUS}px;
+        overflow: hidden;
+        /* Le même filet clair que l'original portait autour de son panneau. */
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
+    }
+    .panel img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 </style>
 <div class="canvas">
-    <img class="base" src="${url(base)}" alt="">
-    <div class="panel">
-        <img src="${url(dark)}" alt="">
-        <img class="light" src="${url(light)}" alt="">
-        <div class="seam"></div>
-    </div>
+    ${
+        "vert" === base
+            ? `<div class="base ground"></div>`
+            : "none" === base
+              ? ""
+              : `<img class="base" src="${url(base)}" alt="">`
+    }
+    ${panel("dark", darkName, DARK, "")}
+    ${panel("light", lightName, LIGHT, "box-shadow: 0 0 0 1px rgba(255,255,255,0.18), -26px 26px 64px rgba(0,0,0,0.72);")}
 </div>
 `;
 
@@ -140,11 +182,13 @@ await tab.evaluate(() =>
 );
 
 const target = join(shotsDir, `${out}.png`);
-await tab.screenshot({ path: target });
+await tab.screenshot({ path: target, omitBackground: "none" === base });
 
 await browser.close();
 await rm(work, { recursive: true, force: true });
 
 console.log(
-    `+ ${out} -> var/screenshots/${out}.png (panneau ${PANEL_WIDTH}x${PANEL.height} à ${PANEL.left},${PANEL.top}, coupure ${seamTop}% → ${seamBottom}%)`,
+    `+ ${out} -> var/screenshots/${out}.png ` +
+        `(sombre ${DARK.width}x${DARK.height} à ${DARK.left},${DARK.top} ; ` +
+        `clair ${LIGHT.width}x${LIGHT.height} à ${LIGHT.left},${LIGHT.top})`,
 );
