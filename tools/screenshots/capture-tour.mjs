@@ -215,6 +215,18 @@ const SHOTS = [
         },
     },
     {
+        // Les catégories : une par nature de document, celle qui décide où un
+        // fichier est rangé. La carte en parle et ne la montrait pas.
+        name: "tour-mediatheque-categories",
+        path: "/backend/ged/categories",
+    },
+    {
+        // Les étiquettes, qui traversent les catégories : un même document
+        // peut en porter autant qu'il veut, là où il n'a qu'une catégorie.
+        name: "tour-mediatheque-etiquettes",
+        path: "/backend/ged/tags",
+    },
+    {
         // La carte promet « le rendu à côté de la source », et son texte de
         // remplacement décrit « une note, son rendu à côté, ses étiquettes et
         // ses liens ». La prise montrait la bibliothèque : des dossiers et des
