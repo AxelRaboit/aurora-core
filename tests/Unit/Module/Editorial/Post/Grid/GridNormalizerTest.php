@@ -151,10 +151,57 @@ final class GridNormalizerTest extends TestCase
                 'display', 'columns', 'items', 'taxonomyId', 'deckId', 'postTypeId', 'termId', 'limit',
                 'cardVariant', 'formId', 'language', 'textSize', 'lineNumbers',
                 'visibleFrom', 'visibleUntil', 'audience', 'exclusiveOpen',
-                'surface', 'fullBleed', 'children',
+                'surface', 'reveal', 'fullBleed', 'children',
             ],
             array_keys($zone),
             'switching a zone type in the editor must not lose what was picked',
+        );
+    }
+
+    public function testAZoneArrivesWithoutAnEffectUnlessOneIsAsked(): void
+    {
+        $zone = $this->normalizer->normalizeLayout([
+            'zones' => [['id' => 'a1', 'type' => 'text']],
+        ])['zones'][0];
+
+        self::assertSame('none', $zone['reveal'], 'a page where every zone moves is a page where nothing stands out');
+    }
+
+    public function testAnEffectIsKeptAndAnInventedOneFallsBackToNone(): void
+    {
+        $zones = $this->normalizer->normalizeLayout([
+            'zones' => [
+                ['id' => 'a1', 'type' => 'text', 'reveal' => 'blur'],
+                ['id' => 'a2', 'type' => 'text', 'reveal' => 'explosion'],
+            ],
+        ])['zones'];
+
+        self::assertSame('blur', $zones[0]['reveal']);
+        self::assertSame(
+            'none',
+            $zones[1]['reveal'],
+            'an effect the stylesheet has no rule for would leave the zone hidden for good',
+        );
+    }
+
+    public function testAStackChildKeepsItsOwnEffect(): void
+    {
+        $stack = $this->normalizer->normalizeLayout([
+            'zones' => [[
+                'id' => 'a1',
+                'type' => 'stack',
+                'children' => [
+                    ['id' => 'b1', 'type' => 'text', 'reveal' => 'left'],
+                    ['id' => 'b2', 'type' => 'text', 'reveal' => 'right'],
+                ],
+            ]],
+        ])['zones'][0];
+
+        self::assertSame('left', $stack['children'][0]['reveal']);
+        self::assertSame(
+            'right',
+            $stack['children'][1]['reveal'],
+            'two halves meeting in the middle is the arrangement a stack exists to write',
         );
     }
 

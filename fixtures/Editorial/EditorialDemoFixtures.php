@@ -679,11 +679,18 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             // decided rather than inherited from its content - without it
             // "taller than its neighbours" is not something a picture can be
             // asked for.
-            ['id' => 'picture', 'type' => GridNormalizer::ZONE_MEDIA, 'span' => ['base' => 48, 'md' => null, 'lg' => 24], 'ratio' => '3x4', 'mediaId' => $picture->getId()],
+            // Les effets d'apparition se démontrent ici, et pas partout : la
+            // page en porte trois sur sept zones, ce qui est à peu près ce
+            // qu'une vraie page supporte. La photo et la pile arrivent l'une
+            // par la gauche et l'autre par la droite, deux moitiés qui se
+            // rejoignent - c'est l'arrangement que cette paire existe pour
+            // écrire, et le seul qu'un effet par zone permet de composer.
+            ['id' => 'picture', 'type' => GridNormalizer::ZONE_MEDIA, 'span' => ['base' => 48, 'md' => null, 'lg' => 24], 'ratio' => '3x4', 'reveal' => 'left', 'mediaId' => $picture->getId()],
             [
                 'id' => 'column',
                 'type' => GridNormalizer::ZONE_STACK,
                 'span' => ['base' => 48, 'md' => null, 'lg' => 24],
+                'reveal' => 'right',
                 // Halves that sum to 48, so the editor's fraction row reads
                 // "1/2" on each and is telling the truth. The stack takes its
                 // height from the row, which the picture beside it sets.
@@ -702,7 +709,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             // and stretching it across the page to fill the space would say
             // the grid cannot do anything else.
             ['id' => 'linked', 'type' => GridNormalizer::ZONE_POST, 'span' => ['base' => 48, 'md' => null, 'lg' => 16], 'postId' => $linked->getId()],
-            ['id' => 'outro', 'type' => GridNormalizer::ZONE_TEXT, 'span' => ['base' => 48, 'md' => null, 'lg' => 48]],
+            ['id' => 'outro', 'type' => GridNormalizer::ZONE_TEXT, 'span' => ['base' => 48, 'md' => null, 'lg' => 48], 'reveal' => 'up'],
         ];
 
         $welcome->setGridLayout($this->gridNormalizer->normalizeLayout([

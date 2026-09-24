@@ -382,6 +382,29 @@ final readonly class GridNormalizer
     public const array SURFACES = ['none', 'card', 'soft', 'accent'];
 
     /**
+     * How a zone arrives when the reader scrolls to it.
+     *
+     * Six effects and no effect, which is the default: a page where
+     * everything moves is a page where nothing stands out, and the point of
+     * choosing is to be able to choose once or twice.
+     *
+     * They are a deliberately small set, and each one answers a different
+     * question. `fade` is the quiet one. `up` is the classic, and reads as
+     * content arriving from below the fold, which is where it came from.
+     * `left` and `right` suit a zone that sits beside another: two halves
+     * meeting in the middle. `zoom` suits a picture. `blur` suits a title.
+     *
+     * Shared, like the surface above: an arrival is part of the arrangement,
+     * and a translated page does not move differently.
+     *
+     * **The motion itself lives in CSS and is opt-in at render** (see
+     * `css/base/reveal.css` and `shared/utils/scrollReveal.js`): nothing is
+     * hidden unless the script has said it is there to show it again, and a
+     * reader who asked for less motion gets the zone outright.
+     */
+    public const array REVEALS = ['none', 'fade', 'up', 'left', 'right', 'zoom', 'blur'];
+
+    /**
      * Enough for a process, a row of figures or a short FAQ, and few enough
      * that the list stays a list. Past this it is a page of its own.
      */
@@ -862,6 +885,10 @@ final readonly class GridNormalizer
                 // What the zone sits on. Every type can have one: a card of
                 // figures, a tinted FAQ, a call to action on accent.
                 'surface' => $this->values->oneOf($entry['surface'] ?? null, self::SURFACES, self::SURFACES[0]),
+                // How the zone arrives when the reader reaches it. Beside the
+                // surface because it is the same kind of decision - how this
+                // zone presents itself - and shared for the same reason.
+                'reveal' => $this->values->oneOf($entry['reveal'] ?? null, self::REVEALS, self::REVEALS[0]),
                 // Decided above, because the width depends on it.
                 'fullBleed' => $fullBleed,
                 // Present on every zone, empty unless it is a stack - same

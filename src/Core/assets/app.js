@@ -15,6 +15,7 @@ import "./shared/utils/navDrawer.js";
 import "./shared/utils/codeHighlight.js";
 import "./shared/utils/codeCopy.js";
 import "./shared/utils/compareSlider.js";
+import "./shared/utils/scrollReveal.js";
 import "./shared/utils/tabs.js";
 import "./css/app.css";
 

@@ -194,6 +194,9 @@ export const TEXT_SIZES = ["normal", "lead", "small"];
 /** Mirrors GridNormalizer::SURFACES - what a zone sits on. */
 export const SURFACES = ["none", "card", "soft", "accent"];
 
+/** Mirrors GridNormalizer::REVEALS - how a zone arrives on scroll. */
+export const REVEALS = ["none", "fade", "up", "left", "right", "zoom", "blur"];
+
 /**
  * How many zones a stack may hold. Mirrors GridNormalizer::MAX_STACK_CHILDREN:
  * a stack splits one cell in two or three, and six zones sharing a row's height
@@ -482,6 +485,10 @@ function newZone(type) {
         // Nothing behind it and inside its column: a zone arrives as part of
         // the page, and becomes a section only when someone says so.
         surface: "none",
+        // Still by default. A page where every zone moves is a page where
+        // nothing stands out, so the effect is something an author reaches
+        // for once or twice, not a setting they turn off.
+        reveal: "none",
         fullBleed: false,
         // Empty on every zone, filled only by a stack - the same reason every
         // other key is always present: switching a type back and forth in the
@@ -574,6 +581,7 @@ export function usePostGrid(layout, content) {
         cardVariant: labelled(CARD_VARIANTS, "card_variants"),
         textSize: labelled(TEXT_SIZES, "text_sizes"),
         surface: labelled(SURFACES, "surfaces"),
+        reveal: labelled(REVEALS, "reveals"),
         audience: labelled(AUDIENCES, "audiences"),
         // A language names itself; there is nothing to translate.
         language: CODE_LANGUAGES.map((value) => ({ value, label: value })),
@@ -1171,6 +1179,7 @@ export function usePostGrid(layout, content) {
                 audience: shared("audience"),
                 anchor: shared("anchor"),
                 surface: shared("surface"),
+                reveal: shared("reveal"),
                 fullBleed: shared("fullBleed"),
                 // The width control drives the large-screen span only. Below
                 // that a zone stays full width, which is what the stored

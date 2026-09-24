@@ -367,6 +367,18 @@ function resizeZone(index, columns) {
                         :hint="t('backend.posts.grid.surface_hint')"
                         :options="zoneChoices.surface"
                     />
+                    <!-- Comment la zone arrive quand le lecteur la
+                         rejoint. Ici, avec le fond et la largeur, parce que
+                         c'est la même question posée une troisième fois :
+                         comment cette zone se présente. Sans effet par
+                         défaut - une page où tout bouge est une page où rien
+                         ne ressort. -->
+                    <AppChoiceRow
+                        v-model="zoneFields(index).reveal.value"
+                        :label="t('backend.posts.grid.reveal')"
+                        :hint="t('backend.posts.grid.reveal_hint')"
+                        :options="zoneChoices.reveal"
+                    />
                     <AppToggle
                         v-model="zoneFields(index).fullBleed.value"
                         :label="t('backend.posts.grid.full_bleed')"

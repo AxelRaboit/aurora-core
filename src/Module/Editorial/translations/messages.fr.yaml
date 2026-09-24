@@ -497,6 +497,16 @@ backend:
         card: Carte
         soft: Teinté
         accent: Accent
+      reveal: "Effet d'apparition"
+      reveal_hint: "Comment la zone arrive quand le lecteur la rejoint. La direction est celle d'où elle vient. Jouée une seule fois, et jamais pour ce qui est déjà à l'écran."
+      reveals:
+        none: Aucun
+        fade: Fondu
+        up: Bas
+        left: Gauche
+        right: Droite
+        zoom: Zoom
+        blur: Flou
       code: Extrait
       code_placeholder: "function bonjour() { … }"
       code_language: Langage
