@@ -293,6 +293,10 @@
         "tour-permissions": {
             "document": 471,
             "slug": "securite-et-donnees"
+        },
+        "tour-release-notes": {
+            "document": 472,
+            "slug": "livraison-et-mises-a-jour"
         }
     }
 }

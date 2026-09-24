@@ -777,6 +777,21 @@ const SHOTS = [
         },
     },
     {
+        // Les notes d'une version, en français et du point de vue de ce qui
+        // change à l'écran : c'est ce que la carte promet, et la liste des
+        // versions ne le montre pas.
+        //
+        // Sans session, comme la liste : c'est GitHub, pas l'application.
+        name: "tour-release-notes",
+        url: "https://github.com/AxelRaboit/aurora-core/releases/latest",
+        anonymous: true,
+        async prepare(page) {
+            await page.waitForTimeout(2_500);
+            await page.getByRole("button", { name: /Accept|Reject|Refuser/ }).first().click().catch(() => {});
+            await page.waitForTimeout(1_500);
+        },
+    },
+    {
         // Les permissions, côté développeur : la carte parle de ce que
         // l'outil fait par défaut, et l'audit seul n'en montrait qu'une part.
         name: "tour-permissions",
