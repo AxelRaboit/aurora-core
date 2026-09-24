@@ -1,4 +1,5 @@
 <script setup>
+import AppBackLink from "@/shared/components/nav/AppBackLink.vue";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
@@ -110,9 +111,7 @@ function isPdf(mimeType) {
              more than once - the file block further down offers it beside the
              preview, where somebody looking at the document already is. -->
         <div class="flex flex-wrap items-center justify-between gap-4">
-            <a :href="backPath" class="flex items-center gap-1.5 text-sm text-muted hover:text-primary transition">
-                <ArrowLeft class="w-4 h-4" :stroke-width="2" /> {{ t("backend.ged.documents.back_to_list") }}
-            </a>
+            <AppBackLink :href="backPath" :label="t('backend.ged.documents.back_to_list')" />
             <div class="flex flex-wrap items-center gap-2">
                 <DocumentStorageChip
                     v-if="storageRelocationAvailable"

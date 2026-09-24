@@ -193,6 +193,42 @@
         "tour-notes-apparence": {
             "document": 446,
             "slug": "notes-markdown"
+        },
+        "tour-notes-vue-cartes": {
+            "document": 447,
+            "slug": "notes-markdown"
+        },
+        "tour-notes-vue-liste": {
+            "document": 448,
+            "slug": "notes-markdown"
+        },
+        "tour-notes-entete": {
+            "document": 449,
+            "slug": "notes-markdown"
+        },
+        "tour-mediatheque-categories": {
+            "document": 450,
+            "slug": "mediatheque"
+        },
+        "tour-mediatheque-etiquettes": {
+            "document": 451,
+            "slug": "mediatheque"
+        },
+        "tour-publications-parametrage": {
+            "document": 452,
+            "slug": "publier-programmer-archiver"
+        },
+        "tour-publications-corbeille": {
+            "document": 453,
+            "slug": "publier-programmer-archiver"
+        },
+        "tour-grille-palette": {
+            "document": 454,
+            "slug": "composer-une-page"
+        },
+        "tour-publications-historique": {
+            "document": 455,
+            "slug": "publier-programmer-archiver"
         }
     }
 }

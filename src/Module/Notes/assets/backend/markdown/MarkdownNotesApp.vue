@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 import { useMarkdownNotesPage } from '@notes/backend/markdown/composables/useMarkdownNotesPage.js';
 import { useNoteFoldersApi } from '@notes/backend/markdown/composables/useNoteFoldersApi.js';
+import AppBackLink from '@/shared/components/nav/AppBackLink.vue';
 import NoteLibrary from '@notes/backend/markdown/components/NoteLibrary.vue';
 import NotePreview from '@notes/backend/markdown/components/NotePreview.vue';
 import NoteSidePanel from '@notes/backend/markdown/components/NoteSidePanel.vue';
@@ -755,14 +756,12 @@ onUnmounted(() => {
          évite d'écrire sa hauteur en soustrayant celle du lien, un nombre
          qui serait faux au premier changement de taille de police. -->
     <div class="flex h-[calc(100dvh-var(--aurora-topbar)-var(--aurora-page-margin)*2)] flex-col gap-1.5">
-        <button
+        <AppBackLink
             v-if="selectedNote && !crashed"
-            type="button"
-            class="self-start text-xs text-muted transition-colors hover:text-primary"
-            v-on:click="backToLibrary"
-        >
-            ← {{ t('notes.markdown.library.title') }}
-        </button>
+            class="self-start"
+            :label="t('notes.markdown.library.title')"
+            v-on:back="backToLibrary"
+        />
 
         <div class="aurora-card relative flex min-h-0 flex-1 overflow-hidden">
             <!-- No tree column and no drawer of its own: the notes are in the
