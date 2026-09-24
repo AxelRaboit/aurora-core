@@ -910,6 +910,16 @@ final readonly class GridNormalizer
                 // surface because it is the same kind of decision - how this
                 // zone presents itself - and shared for the same reason.
                 'reveal' => $this->values->oneOf($entry['reveal'] ?? null, self::ZONE_REVEALS, self::ZONE_REVEALS[0]),
+                // Une zone courte qui reste en place pendant que sa voisine
+                // défile. Un booléen et pas un décalage réglable : la hauteur
+                // de l'entête du site est la même partout, et laisser choisir
+                // ouvre surtout la porte à des valeurs qui la recouvrent.
+                //
+                // Elle ne tient que là où il y a de la place au-dessous, donc
+                // sur grand écran et dans une ligne qu'une voisine plus haute
+                // allonge. En dessous, tout est empilé en pleine largeur et
+                // une zone collante n'aurait rien à laisser passer.
+                'sticky' => (bool) ($entry['sticky'] ?? false),
                 // Decided above, because the width depends on it.
                 'fullBleed' => $fullBleed,
                 // Present on every zone, empty unless it is a stack - same

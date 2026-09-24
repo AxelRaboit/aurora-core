@@ -497,6 +497,9 @@ function newZone(type) {
         // it one, so changing the page's moves everything that never
         // disagreed.
         reveal: "inherit",
+        // Personne ne colle une zone par défaut : c'est une décision de mise
+        // en page, pas un comportement.
+        sticky: false,
         fullBleed: false,
         // Empty on every zone, filled only by a stack - the same reason every
         // other key is always present: switching a type back and forth in the
@@ -1198,6 +1201,7 @@ export function usePostGrid(layout, content) {
                 anchor: shared("anchor"),
                 surface: shared("surface"),
                 reveal: shared("reveal"),
+                sticky: shared("sticky"),
                 fullBleed: shared("fullBleed"),
                 // The width control drives the large-screen span only. Below
                 // that a zone stays full width, which is what the stored

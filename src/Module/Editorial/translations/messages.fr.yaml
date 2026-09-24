@@ -483,6 +483,8 @@ backend:
         normal: Normal
         lead: Chapô
         small: Mentions
+      sticky: "Rester en place au défilement"
+      sticky_hint: "La zone reste visible pendant que sa voisine défile à côté. Sans effet sur téléphone, où tout est empilé, et sans effet si rien de plus haut ne l'accompagne sur sa ligne."
       full_bleed: Pleine largeur
       full_bleed_hint: "La zone sort de la colonne et traverse l'écran. Les mots restent centrés à la largeur de la page ; une image, elle, va d'un bord à l'autre."
       anchor: "Point d'ancrage"
