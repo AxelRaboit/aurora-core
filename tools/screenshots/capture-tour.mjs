@@ -356,13 +356,20 @@ const SHOTS = [
     {
         // Les demandes reçues par un formulaire : la carte parle de ce qu'un
         // formulaire sait faire et s'arrêtait à ses champs.
-        // Par l'adresse : les demandes ont la leur, et chercher un onglet qui
-        // s'appellerait « Réponses » a coûté trente secondes d'attente pour
-        // rien - il n'y en a pas, c'est une page.
+        // Les demandes vivent **sous** les champs, sur la page du
+        // formulaire.
+        //
+        // Deux erreurs avant d'y arriver, et la seconde est partie en
+        // production : chercher un onglet « Réponses » qui n'existe pas, puis
+        // viser `/submissions`, qui est l'API JSON et non un écran. La prise
+        // était un dump de JSON brut, et elle a illustré la carte publique
+        // pendant une heure. Une adresse qui répond n'est pas une page.
         name: "tour-formulaire-reponses",
-        path: "/backend/editorial/forms/1/submissions",
+        path: "/backend/editorial/forms/1",
         async prepare(page) {
-            await page.waitForTimeout(2_500);
+            await page.waitForTimeout(3_000);
+            await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+            await page.waitForTimeout(1_200);
         },
     },
     {
@@ -770,7 +777,7 @@ const SHOTS = [
         // celui de la démonstration est sombre. Il faudrait changer de thème
         // pour le montrer, ce qui est un autre sujet.
         name: "tour-site-public-contact",
-        path: "/fr/contact",
+        path: "/fr/page/contact",
         anonymous: true,
         async prepare(page) {
             await page.waitForTimeout(2_000);
@@ -895,6 +902,41 @@ async function anonymousPage() {
     return anonymous.newPage();
 }
 
+/**
+ * Refuser de photographier ce qui n'est pas la page attendue.
+ *
+ * Deux prises sont parties en production sans que personne ne s'en aperçoive :
+ * un dump de JSON brut, parce que `/submissions` est l'API et non un écran,
+ * et la trace d'exception Symfony d'un 404, chemin de disque compris, sur la
+ * carte qui présente le site public. Playwright réussit dans les deux cas :
+ * l'adresse répond, donc `goto` est content, et le fichier s'écrit.
+ *
+ * **Une adresse qui répond n'est pas une page.** On vérifie donc le code, le
+ * type de contenu, et la signature de la page d'erreur de Symfony, et on
+ * échoue avant d'écrire plutôt que de laisser relire l'image à quelqu'un.
+ */
+async function assertPage(target, response, address) {
+    const status = response?.status();
+
+    if (undefined !== status && status >= 400) {
+        throw new Error(`${address} répond ${status}`);
+    }
+
+    const type = response?.headers()["content-type"] ?? "";
+
+    if ("" !== type && !type.includes("text/html")) {
+        throw new Error(`${address} renvoie ${type.split(";")[0]}, pas une page`);
+    }
+
+    const symfony = await target.evaluate(
+        () => null !== document.querySelector(".exception-summary, #traces-text, .sf-reset .exception"),
+    );
+
+    if (symfony) {
+        throw new Error(`${address} affiche une exception Symfony`);
+    }
+}
+
 let failed = 0;
 
 for (const shot of shots) {
@@ -911,9 +953,11 @@ for (const shot of shots) {
         // `networkidle` attend un silence que GitHub n'offre jamais tout à
         // fait ; pour une adresse externe, le document chargé suffit et le
         // `prepare` fait le reste de l'attente.
-        await target.goto(address, {
+        const response = await target.goto(address, {
             waitUntil: undefined === shot.url ? "networkidle" : "domcontentloaded",
         });
+
+        await assertPage(target, response, address);
         await hideChrome(target);
 
         if (shot.prepare) {

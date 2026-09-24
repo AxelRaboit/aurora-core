@@ -339,6 +339,15 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                 'fr' => ['Bienvenue', 'bienvenue', 'La page d\'accueil de ce site de démonstration.'],
                 'en' => ['Welcome', 'welcome', 'The landing page of this demo site.'],
                 'es' => ['Bienvenida', 'bienvenida', 'La página de inicio de este sitio de demostración.'],
+                // Un onglet « Moteurs de recherche » vide ne montre pas que
+                // l'onglet existe : il montre un formulaire. La page d'accueil
+                // et le premier article le remplissent donc, dans les trois
+                // langues, avec ce qu'un auteur y mettrait vraiment.
+                'seo' => [
+                    'fr' => ['Bienvenue sur le site de démonstration Aurora', 'Découvrez Aurora en conditions réelles : publications, médias, formulaires et espaces clients, sur un site complet.', 'démonstration aurora'],
+                    'en' => ['Welcome to the Aurora demo site', 'See Aurora for real: posts, media, forms and client spaces, on a complete working site.', 'aurora demo'],
+                    'es' => ['Bienvenido al sitio de demostración de Aurora', 'Descubra Aurora en condiciones reales: publicaciones, medios, formularios y espacios de cliente.', 'demostración aurora'],
+                ],
             ],
             'first-steps' => [
                 'type' => $types['article'],
@@ -349,6 +358,11 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                 'fr' => ['Écrire son premier article', 'ecrire-premier-article', 'Du brouillon à la mise en ligne, en cinq minutes.'],
                 'en' => ['Writing your first post', 'writing-your-first-post', 'From draft to published, in five minutes.'],
                 'es' => ['Escribir su primer artículo', 'escribir-primer-articulo', 'Del borrador a la publicación, en cinco minutos.'],
+                'seo' => [
+                    'fr' => ['Écrire son premier article avec Aurora', 'Un guide en cinq minutes : créer un brouillon, composer la grille, relire, puis publier ou programmer la mise en ligne.', 'écrire un article'],
+                    'en' => ['Writing your first post with Aurora', 'A five-minute guide: create a draft, lay out the grid, review, then publish or schedule it.', 'writing a post'],
+                    'es' => ['Escribir su primer artículo con Aurora', 'Una guía de cinco minutos: crear un borrador, componer la cuadrícula, revisar y publicar o programar.', 'escribir un artículo'],
+                ],
             ],
             'blocks' => [
                 'type' => $types['article'],
@@ -554,6 +568,15 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                     ->setTitle($title)
                     ->setSlug($slug)
                     ->setDescription($description);
+
+                if (isset($def['seo'][$locale])) {
+                    [$metaTitle, $metaDescription, $focusKeyword] = $def['seo'][$locale];
+
+                    $translation
+                        ->setMetaTitle($metaTitle)
+                        ->setMetaDescription($metaDescription)
+                        ->setFocusKeyword($focusKeyword);
+                }
 
                 $translation->setGrid($this->gridNormalizer->normalizeContent([
                     'zones' => ['body' => ['blocks' => $this->blocks($title, $description, $locale)]],
