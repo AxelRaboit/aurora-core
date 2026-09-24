@@ -587,11 +587,52 @@ deploy-check: ## Post-deploy health check - boot, migrations, worker, queue, HTT
 # compiled container still holding the previous constructor signatures fails
 # with an ArgumentCountError before a single migration has run. The second one
 # warms it again once the assets have been built.
+# Deploy the tag that was just released, without having to remember the two
+# git commands that bring it in.
+#
+# `deploy-prod` deploys HEAD and nothing else. Run on its own the day after a
+# release, it reinstalls the *previous* version and ends with "All green" -
+# true and misleading at once, because every check it runs passes on the old
+# code. The version that matters is the one in composer.lock, and nothing was
+# looking at it.
+deploy-latest: ## Fetch the newest tag on master and deploy it
+	@set -e; \
+	git fetch --tags --quiet origin; \
+	latest=$$(git describe --tags --abbrev=0 origin/master 2>/dev/null); \
+	if [ -z "$$latest" ]; then \
+		echo "❌ No tag reachable from origin/master."; \
+		exit 1; \
+	fi; \
+	current=$$(git describe --exact-match --tags HEAD 2>/dev/null || echo "(no tag)"); \
+	if [ "$$current" = "$$latest" ]; then \
+		echo "ℹ️  Already on $$latest."; \
+	else \
+		if [ -n "$$(git status --porcelain --untracked-files=no)" ]; then \
+			echo "❌ The working tree has local changes; checking out $$latest would lose them:"; \
+			git status --short --untracked-files=no; \
+			exit 1; \
+		fi; \
+		echo "⬇️  $$current → $$latest"; \
+		git checkout --quiet "$$latest"; \
+	fi; \
+	make deploy-prod
+
 deploy-prod: ## Deploy to production (requires a git tag on HEAD)
 	@APP_VERSION=$$(git describe --exact-match --tags HEAD 2>/dev/null); \
 	if [ -z "$$APP_VERSION" ]; then \
 		echo "❌ HEAD has no exact git tag. Run: make tag VERSION=x.y.z"; \
 		exit 1; \
+	fi; \
+	if [ "$(ALLOW_OLDER)" != "1" ]; then \
+		git fetch --tags --quiet origin 2>/dev/null || true; \
+		latest=$$(git describe --tags --abbrev=0 origin/master 2>/dev/null); \
+		if [ -n "$$latest" ] && [ "$$latest" != "$$APP_VERSION" ]; then \
+			echo "❌ HEAD is on $$APP_VERSION, but origin/master carries $$latest."; \
+			echo "   Deploying now would reinstall the older version and still report All green."; \
+			echo "   → make deploy-latest"; \
+			echo "   To go back to an older version on purpose: ALLOW_OLDER=1 make deploy-prod"; \
+			exit 1; \
+		fi; \
 	fi; \
 	echo "🚀 Deploying version $$APP_VERSION..."; \
 	echo "$$APP_VERSION" > VERSION; \

@@ -5,6 +5,35 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.234] - 2026-09-24
+
+### Ajouté
+
+#### Un déploiement ne peut plus réinstaller la version précédente
+`make deploy-prod` déploie `HEAD`, et rien d'autre. Lancé seul le lendemain
+d'une release, il réinstalle la version d'avant et termine par « All green » :
+c'est vrai et trompeur à la fois, puisque chacune de ses vérifications passe
+sur l'ancien code. C'est arrivé le 24/09/2026, deux fois de suite, et rien ne
+l'a signalé - la version qui compte est celle de `composer.lock`, et personne
+ne la regardait.
+
+`deploy-prod` compare maintenant le tag de `HEAD` avec le dernier tag
+accessible depuis `origin/master`, refuse quand ils diffèrent, et nomme la
+commande à lancer. `ALLOW_OLDER=1` garde le retour en arrière volontaire
+possible, puisque c'est le seul cas où déployer un tag plus ancien est le but.
+
+`make deploy-latest` fait les deux commandes git que personne ne devrait avoir
+à retenir : récupérer les tags, aller sur le dernier, déployer. Il refuse de
+basculer par-dessus des modifications locales plutôt que de les perdre.
+
+### Dans aurora-client
+
+Aucune migration. `make aurora-update` régénère le Makefile depuis le gabarit,
+et c'est ce Makefile régénéré qui porte les deux cibles : il faut donc le
+committer avec le `composer.lock`.
+
+---
+
 ## [0.9.233] - 2026-09-24
 
 ### Corrigé
