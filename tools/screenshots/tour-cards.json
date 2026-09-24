@@ -213,6 +213,14 @@
         "tour-mediatheque-etiquettes": {
             "document": 451,
             "slug": "mediatheque"
+        },
+        "tour-publications-parametrage": {
+            "document": 452,
+            "slug": "publier-programmer-archiver"
+        },
+        "tour-publications-corbeille": {
+            "document": 453,
+            "slug": "publier-programmer-archiver"
         }
     }
 }

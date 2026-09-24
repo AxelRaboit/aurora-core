@@ -153,12 +153,46 @@ for (const carte of plan.cards) {
 // ---- la grille -------------------------------------------------------------
 
 const layout = JSON.parse(await sql(`SELECT grid_layout::text FROM core_posts WHERE id = ${postId}`));
-const modele = layout.zones.find((z) => "media" === z.type);
+/**
+ * La forme d'une zone média, telle que le normaliseur l'attend.
+ *
+ * Reprise de la page si elle en a déjà une, écrite ici sinon. Le cas « sinon »
+ * est devenu le cas courant le jour où le bandeau a été posé sur les
+ * vingt-quatre pages : il emporte la première image dans l'entête, et le
+ * corps se retrouve sans une seule zone média dont s'inspirer.
+ */
+const MODELE_MEDIA = {
+    anchor: "",
+    type: "media",
+    span: { base: 48, md: null, lg: 48 },
+    offset: 0,
+    newRow: false,
+    ratio: "natural",
+    scale: 100,
+    align: "center",
+    mediaId: null,
+    mediaUrl: null,
+    postId: null,
+    variant: "solid",
+    size: "md",
+    separatorStyle: "line",
+    display: "steps",
+    columns: 3,
+    items: [],
+    postTypeId: null,
+    termId: null,
+    limit: 3,
+    cardVariant: "full",
+    formId: null,
+    language: null,
+    textSize: "normal",
+    lineNumbers: false,
+    surface: "card",
+    fullBleed: false,
+    children: [],
+};
 
-if (undefined === modele) {
-    console.error("Cette publication n'a aucune zone média : il en faut une comme modèle.");
-    process.exit(1);
-}
+const modele = layout.zones.find((z) => "media" === z.type) ?? MODELE_MEDIA;
 
 const deja = new Set(layout.zones.filter((z) => "media" === z.type).map((z) => z.mediaId));
 const nouvelles = [];

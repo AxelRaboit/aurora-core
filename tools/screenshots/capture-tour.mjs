@@ -215,6 +215,34 @@ const SHOTS = [
         },
     },
     {
+        // Le paramétrage d'une publication : son statut, ses dates, son type
+        // et son adresse. La carte parle d'un cycle - brouillon, revue,
+        // programmation, publication, archivage - et ne montrait que la liste
+        // où le statut se lit, jamais l'endroit où il se décide.
+        name: "tour-publications-parametrage",
+        path: "/backend/editorial/posts/1/edit",
+        async prepare(page) {
+            // `domcontentloaded` ne suffit pas ici : l'onglet n'existe qu'une
+            // fois le composant monté, et l'éditeur garde une connexion
+            // ouverte en dev, donc `load` n'arrive jamais.
+            await page.waitForTimeout(4_000);
+            await page.getByRole("button", { name: "Paramétrage" }).first().click();
+            await page.waitForTimeout(1_500);
+        },
+    },
+    // Pas de prise de l'historique des versions, et c'est une absence
+    // délibérée : les fixtures écrivent les publications en direct, alors
+    // qu'une révision naît d'un `update` passé par le gestionnaire. La
+    // modale s'ouvre donc sur « Aucune version enregistrée pour le moment »,
+    // ce qui est exactement l'image qui réussit sans rien montrer. Il faut
+    // d'abord donner des révisions au jeu de démonstration.
+    {
+        // La corbeille, qui traverse les modules : supprimer n'efface pas
+        // tout de suite, et l'écran dit combien de temps il reste.
+        name: "tour-publications-corbeille",
+        path: "/backend/trash",
+    },
+    {
         // Les catégories : une par nature de document, celle qui décide où un
         // fichier est rangé. La carte en parle et ne la montrait pas.
         name: "tour-mediatheque-categories",
