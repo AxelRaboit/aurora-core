@@ -229,6 +229,14 @@
         "tour-publications-historique": {
             "document": 455,
             "slug": "publier-programmer-archiver"
+        },
+        "tour-privileges": {
+            "document": 456,
+            "slug": "comptes-et-privileges"
+        },
+        "tour-reglages-onglets": {
+            "document": 457,
+            "slug": "reglages-et-modules"
         }
     }
 }
