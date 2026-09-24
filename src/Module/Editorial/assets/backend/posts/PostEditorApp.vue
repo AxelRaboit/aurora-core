@@ -426,9 +426,17 @@ function termLabel(term) {
                     v-if="headerActions.length"
                     :actions="headerActions"
                     :busy="previewing || decidingReview"
+                    icon-only-on-phone
                 />
-                <AppButton variant="primary" size="md" :loading="saving" v-on:click="save(false)">
-                    <Save class="w-4 h-4" :stroke-width="2" /> {{ t("shared.common.save") }}
+                <AppButton
+                    variant="primary"
+                    size="md"
+                    :loading="saving"
+                    :title="t('shared.common.save')"
+                    v-on:click="save(false)"
+                >
+                    <Save class="w-4 h-4" :stroke-width="2" />
+                    <span class="sr-only sm:not-sr-only">{{ t("shared.common.save") }}</span>
                 </AppButton>
             </div>
         </div>

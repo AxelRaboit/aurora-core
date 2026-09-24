@@ -6,6 +6,7 @@ import { safeContractHtml } from "../shared/contractHtml.js";
 import { useContractTemplateEditor } from "./composables/useContractTemplateEditor.js";
 import ContractVariablePanel from "./components/ContractVariablePanel.vue";
 import AppBlockEditor from "@/shared/components/editor/AppBlockEditor.vue";
+import AppBackLink from "@/shared/components/nav/AppBackLink.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
@@ -230,14 +231,13 @@ const governingLabel = computed(
             </div>
 
             <div class="flex flex-wrap items-center gap-2">
-                <AppButton variant="ghost" size="md" :href="indexPath">
-                    {{ t("shared.common.back") }}
-                </AppButton>
+                <AppBackLink :href="indexPath" :label="t('shared.common.back')" />
                 <AppPageActions
                     :actions="templateActions"
                     :label="template.name"
                     variant="ghost"
                     :busy="preview.loading && !preview.open"
+                    icon-only-on-phone
                 />
                 <!-- Promoted from secondary: it is now the only button on the
                      row that does something to the draft. -->
@@ -246,10 +246,11 @@ const governingLabel = computed(
                     variant="primary"
                     size="md"
                     :loading="saving"
+                    :title="t('shared.common.save')"
                     v-on:click="save"
                 >
                     <Save class="w-3.5 h-3.5" :stroke-width="2" />
-                    {{ t("shared.common.save") }}
+                    <span class="sr-only sm:not-sr-only">{{ t("shared.common.save") }}</span>
                 </AppButton>
             </div>
         </div>
