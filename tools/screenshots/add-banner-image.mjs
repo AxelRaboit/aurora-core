@@ -11,8 +11,14 @@
  * colonnes que le reste, donc la largeur choisie décide aussi de ce qui reste
  * sur la ligne.
  *
+ * `--background` vise l'autre emplacement d'image d'un bandeau : le fond,
+ * derrière tout le reste, qui n'est pas un élément de la liste. C'est là que
+ * vit le visuel d'une entête ; `logoMediaId` rend une marque de 40 pixels en
+ * haut à gauche et n'est pas ce qu'on cherche.
+ *
  * Usage :
  *   node tools/screenshots/add-banner-image.mjs <postId> <capture> [--span 20] [--after <n>] [--dry-run]
+ *   node tools/screenshots/add-banner-image.mjs <postId> <capture> --background
  *
  * `--after` est l'indice, à partir de zéro, de l'élément derrière lequel se
  * glisser ; par défaut l'image suit le premier élément.
@@ -47,6 +53,7 @@ const dryRun = args.includes("--dry-run");
 const span = args.includes("--span") ? Number(args[args.indexOf("--span") + 1]) : 20;
 const after = args.includes("--after") ? Number(args[args.indexOf("--after") + 1]) : 0;
 const remove = args.includes("--remove") ? Number(args[args.indexOf("--remove") + 1]) : null;
+const asBackground = args.includes("--background");
 const plain = args.filter((a) => !a.startsWith("--"));
 const postId = Number(plain[0]);
 const capture = plain[1];
@@ -132,6 +139,28 @@ if (!dryRun) {
     }
 
     console.log(`  ${capture} → document #${mediaId}`);
+}
+
+if (asBackground) {
+    const before = layout.background?.mediaId ?? null;
+
+    console.log(`Fond : #${before ?? "aucun"} → ${dryRun ? "(import non joué en simulation)" : `#${mediaId}`}`);
+
+    // **Le `--dry-run` ne passe pas par ici sans cette garde.** La première
+    // version écrivait quand même, et comme l'import n'est pas joué en
+    // simulation le `mediaId` valait null : une simulation a effacé le fond
+    // de l'entête en production. Une simulation qui écrit n'est pas une
+    // simulation.
+    if (dryRun) {
+        console.log("Rien n'a été écrit.");
+        process.exit(0);
+    }
+
+    layout.background = { ...(layout.background ?? {}), mediaId };
+    console.log("  l'ancien document reste en médiathèque, le retour tient en une commande.");
+
+    await write(layout);
+    process.exit(0);
 }
 
 // Le modèle est un élément existant : ses clés sont celles que le
