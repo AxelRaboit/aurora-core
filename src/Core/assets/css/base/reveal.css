@@ -25,6 +25,31 @@
     --aurora-reveal-ease: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* Une zone qui vient de la droite est posée hors de sa boîte le temps
+   d'arriver, et un décalage vers la droite allonge la page : mesuré en
+   production à 481 pixels pour 457 de fenêtre, soit exactement le décalage,
+   et une barre de défilement horizontale sur un site public.
+
+   `clip` et non `hidden` : `hidden` fabrique un conteneur de défilement, ce
+   qui casse `position: sticky` chez les descendants et déplace l'ancrage du
+   défilement. `clip` coupe sans rien fabriquer.
+
+   **Sur les deux, et c'est le point.** Chacun seul laisse la page partir de
+   vingt-quatre pixels sur le côté, mesuré : sur la racine seule parce que la
+   valeur est propagée à la zone d'affichage et que la racine, elle, ne coupe
+   plus rien ; sur le corps seul parce qu'une racine `visible` lui prend sa
+   valeur pour la propager, et qu'il redevient `visible` à son tour. Les deux
+   ensemble : la zone d'affichage ne défile pas, et la boîte qui déborde est
+   coupée.
+
+   Sous un attribut posé par le script, et retiré par lui quand la dernière
+   zone est arrivée : la page n'est bridée que pendant qu'elle bouge. Une
+   règle permanente toucherait aussi le back-office, qui n'a rien demandé. */
+html[data-reveal-running],
+html[data-reveal-running] body {
+    overflow-x: clip;
+}
+
 [data-reveal].aurora-reveal-armed {
     opacity: 0;
 

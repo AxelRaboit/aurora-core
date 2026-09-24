@@ -35,6 +35,18 @@ const ARMED = "aurora-reveal-armed";
 const REVEALED = "aurora-revealed";
 
 /**
+ * Posé sur `<html>` tant qu'une zone attend son tour.
+ *
+ * Une zone qui vient de la droite est décalée hors de sa boîte, ce qui
+ * allonge la page et lui donne une barre de défilement horizontale - mesuré
+ * en production, vingt-quatre pixels, exactement le décalage. La feuille de
+ * style coupe ce dépassement sous cet attribut, et il s'en va avec la
+ * dernière zone : brider la page en permanence pour un mouvement qui dure
+ * sept dixièmes de seconde serait payer trop cher.
+ */
+const RUNNING = "data-reveal-running";
+
+/**
  * Assez de la zone pour que son arrivée se lise, et pas tant qu'une zone plus
  * haute que la fenêtre n'arrive jamais : d'où la marge basse, qui déclenche un
  * peu avant le bord plutôt que d'attendre une fraction qu'un grand bloc ne
@@ -43,7 +55,7 @@ const REVEALED = "aurora-revealed";
 const THRESHOLD = 0.08;
 const MARGIN = "0px 0px -8% 0px";
 
-function reveal(element) {
+function reveal(element, remaining) {
     element.classList.add(REVEALED);
 
     // Rendu une fois posée : `will-change` laissé sur trente zones réserve de
@@ -52,6 +64,11 @@ function reveal(element) {
         "transitionend",
         () => {
             element.classList.remove(ARMED, REVEALED);
+            remaining.delete(element);
+
+            if (0 === remaining.size) {
+                document.documentElement.removeAttribute(RUNNING);
+            }
         },
         { once: true },
     );
@@ -85,6 +102,9 @@ function arm() {
     }
 
     below.forEach((zone) => zone.classList.add(ARMED));
+    document.documentElement.setAttribute(RUNNING, "");
+
+    const remaining = new Set(below);
 
     const observer = new IntersectionObserver(
         (entries) => {
@@ -93,7 +113,7 @@ function arm() {
                     return;
                 }
 
-                reveal(entry.target);
+                reveal(entry.target, remaining);
                 observer.unobserve(entry.target);
             });
         },
