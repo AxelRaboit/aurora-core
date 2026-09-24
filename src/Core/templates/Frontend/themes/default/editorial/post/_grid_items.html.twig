@@ -48,7 +48,17 @@
         <dl class="m-0 grid grid-cols-1 gap-6 {{ columns[items.columns] }}">
             {% for entry in items.entries %}
                 <div class="aurora-card p-6">
-                    <dt class="m-0 text-3xl font-bold text-accent sm:text-4xl">{{ entry.title }}</dt>
+                    {# `data-count-up` porte la valeur finale, et le texte du
+                       `<dt>` aussi : le script lit l'une, compte, et repose
+                       l'autre. Sans lui - erreur de chargement, JavaScript
+                       coupé, moteur de recherche, lecteur d'écran - le chiffre
+                       juste est déjà là, écrit par le serveur. Partir de zéro
+                       dans le balisage aurait mis un faux chiffre sur la page
+                       pour tout ce qui ne joue pas l'animation. #}
+                    <dt
+                        data-count-up="{{ entry.title }}"
+                        class="m-0 text-3xl font-bold text-accent sm:text-4xl"
+                    >{{ entry.title }}</dt>
                     {% if entry.description %}<dd class="m-0 mt-1 text-sm text-secondary">{{ entry.description }}</dd>{% endif %}
                 </div>
             {% endfor %}
