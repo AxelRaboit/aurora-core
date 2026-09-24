@@ -151,7 +151,7 @@ final class GridNormalizerTest extends TestCase
                 'display', 'columns', 'items', 'taxonomyId', 'deckId', 'postTypeId', 'termId', 'limit',
                 'cardVariant', 'formId', 'language', 'textSize', 'lineNumbers',
                 'visibleFrom', 'visibleUntil', 'audience', 'exclusiveOpen',
-                'surface', 'reveal', 'fullBleed', 'children',
+                'surface', 'reveal', 'sticky', 'fullBleed', 'children',
             ],
             array_keys($zone),
             'switching a zone type in the editor must not lose what was picked',
@@ -247,6 +247,21 @@ final class GridNormalizerTest extends TestCase
             $stack['children'][1]['reveal'],
             'two halves meeting in the middle is the arrangement a stack exists to write',
         );
+    }
+
+    public function testNoZoneSticksUnlessItIsAsked(): void
+    {
+        $zones = $this->normalizer->normalizeLayout([
+            'zones' => [
+                ['id' => 'a1', 'type' => 'text'],
+                ['id' => 'a2', 'type' => 'text', 'sticky' => true],
+                ['id' => 'a3', 'type' => 'text', 'sticky' => 'oui'],
+            ],
+        ])['zones'];
+
+        self::assertFalse($zones[0]['sticky'], 'staying put is a layout decision, not a behaviour');
+        self::assertTrue($zones[1]['sticky']);
+        self::assertTrue($zones[2]['sticky'], 'whatever the client sent, the column is a boolean');
     }
 
     public function testAZoneThatSaysNothingIsFullWidthOnEveryBreakpoint(): void

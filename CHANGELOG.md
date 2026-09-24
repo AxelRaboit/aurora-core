@@ -5,6 +5,33 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.240] - 2026-09-24
+
+### Ajouté
+
+#### Une zone peut rester en place au défilement
+Un texte qui ne bouge pas pendant que l'image défile à côté de lui. C'est ce
+qui fait qu'une page se lit comme une suite plutôt que comme une liste, et
+c'est un interrupteur par zone, à côté de la pleine largeur.
+
+**Collant à l'intérieur de la cellule, pas sur la cellule.** Un item de grille
+s'étire déjà à la hauteur de sa ligne, donc il n'a nulle part où glisser :
+c'est lui qui fournit la course, et c'est son contenu qui la parcourt. Posé
+sur la cellule, le réglage n'aurait tenu nulle part.
+
+Sur grand écran seulement. En dessous, tout est empilé en pleine largeur et
+une zone collante n'aurait rien à laisser passer ; elle resterait accrochée
+au-dessus d'elle-même. Le décalage vaut la hauteur de l'entête fixe plus sa
+respiration, la même valeur que les ancres utilisent déjà.
+
+**Il ne fait quelque chose que là où la ligne a du jeu**, c'est-à-dire quand
+une voisine plus haute l'accompagne. L'aide du réglage le dit, et le jeu de
+démonstration ne l'active nulle part : la seule ligne qui s'y prêtait a sa
+zone la plus haute des deux, et un réglage qui ne montre rien apprend le
+contraire de ce qu'il fait.
+
+---
+
 ## [0.9.239] - 2026-09-24
 
 ### Ajouté

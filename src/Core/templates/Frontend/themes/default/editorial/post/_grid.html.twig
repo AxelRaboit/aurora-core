@@ -94,6 +94,21 @@
                 </div>
                 {% endset %}
                 {{ surface.wrap(zone, stackBody) }}
+            {% elseif zone.sticky|default(false) %}
+                {# **Collant à l'intérieur de la cellule, pas sur la cellule.**
+                   Un item de grille s'étire déjà à la hauteur de sa ligne, donc
+                   il n'a nulle part où glisser : c'est lui qui fournit la
+                   course, et c'est son contenu qui la parcourt.
+
+                   `lg:` seulement. En dessous, tout est empilé en pleine
+                   largeur et une zone collante n'aurait rien à laisser passer ;
+                   elle resterait accrochée au-dessus d'elle-même.
+
+                   `top-24` est la hauteur de l'entête fixe plus sa respiration,
+                   la même valeur que le `scroll-mt-24` des ancres au-dessus. #}
+                <div class="lg:sticky lg:top-24">
+                    {{ include('Frontend/themes/default/editorial/post/_grid_zone.html.twig', {zone: zone, locale: locale}) }}
+                </div>
             {% else %}
                 {{ include('Frontend/themes/default/editorial/post/_grid_zone.html.twig', {zone: zone, locale: locale}) }}
             {% endif %}

@@ -382,6 +382,11 @@ function resizeZone(index, columns) {
                         :options="zoneChoices.reveal"
                     />
                     <AppToggle
+                        v-model="zoneFields(index).sticky.value"
+                        :label="t('backend.posts.grid.sticky')"
+                        :hint="t('backend.posts.grid.sticky_hint')"
+                    />
+                    <AppToggle
                         v-model="zoneFields(index).fullBleed.value"
                         :label="t('backend.posts.grid.full_bleed')"
                         :hint="t('backend.posts.grid.full_bleed_hint')"
