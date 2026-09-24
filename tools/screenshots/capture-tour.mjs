@@ -180,6 +180,34 @@ const SPACES = "/backend/studio/spaces";
 const SHOTS = [
     { name: "tour-dashboard", path: "/backend" },
     {
+        // Le même écran en thème clair, pour la moitié droite du bandeau du
+        // sommaire.
+        //
+        // Le thème du back-office vit dans `localStorage` sous
+        // `aurora-theme`, et c'est `useTheme` qui le repose sur `<html>` au
+        // démarrage de l'application. On l'écrit donc **avant** le
+        // chargement : le poser après, sur le document, se ferait écraser par
+        // le composable une fraction de seconde plus tard.
+        name: "tour-dashboard-clair",
+        path: "/backend",
+        async prepare(page) {
+            await page.waitForTimeout(2_500);
+        },
+        async before(page) {
+            await page.addInitScript(() => {
+                window.localStorage.setItem("aurora-theme", "light");
+            });
+        },
+        async after(page) {
+            // Remis comme on l'a trouvé : toutes les autres prises sont en
+            // sombre, et une préférence qui survit ferait basculer la
+            // suivante sans prévenir.
+            await page.addInitScript(() => {
+                window.localStorage.setItem("aurora-theme", "dark");
+            });
+        },
+    },
+    {
         name: "tour-recherche",
         path: "/backend",
         async prepare(page) {
@@ -998,6 +1026,8 @@ for (const shot of shots) {
         // `networkidle` attend un silence que GitHub n'offre jamais tout à
         // fait ; pour une adresse externe, le document chargé suffit et le
         // `prepare` fait le reste de l'attente.
+        if (shot.before) await shot.before(target);
+
         const response = await target.goto(address, {
             waitUntil: undefined === shot.url ? "networkidle" : "domcontentloaded",
         });
@@ -1011,6 +1041,9 @@ for (const shot of shots) {
         }
 
         await target.screenshot({ path: file });
+
+        if (shot.after) await shot.after(target);
+
         console.log(`+ ${shot.name} -> var/screenshots/${shot.name}.png`);
     } catch (error) {
         failed += 1;
