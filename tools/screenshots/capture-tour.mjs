@@ -58,6 +58,24 @@ const VIEWPORT = { width: 1600, height: 1000 };
  * say what they do once something is on them.
  */
 /**
+ * Met la bibliothèque à plat, si elle ne l'est pas déjà.
+ *
+ * Le bouton porte le geste qu'il ferait, pas l'état où l'on est : « Tout
+ * afficher à plat » quand on est par dossiers, « Afficher par dossiers »
+ * quand on est à plat. Et l'état est retenu d'une visite à l'autre, donc le
+ * deuxième scénario cherchait un libellé que le premier venait de faire
+ * disparaître.
+ */
+async function flatten(page) {
+    const bouton = page.getByTitle("Tout afficher à plat").first();
+
+    if (await bouton.count() > 0) {
+        await bouton.click();
+        await page.waitForTimeout(1_200);
+    }
+}
+
+/**
  * Ouvre une publication de la démonstration.
  *
  * Par son adresse et non par un clic dans la liste : une ligne n'est pas un
@@ -243,8 +261,46 @@ const SHOTS = [
         name: "tour-notes-bibliotheque",
         path: "/backend/notes/markdown",
         async prepare(page) {
-            await page.getByTitle("Tout afficher à plat").first().click();
-            await page.waitForTimeout(1_500);
+            await flatten(page);
+        },
+    },
+    {
+        // La même bibliothèque en vue cartes : la grille dense, sans extrait.
+        // Trois façons de regarder le même carnet, et une seule était
+        // photographiée.
+        name: "tour-notes-vue-cartes",
+        path: "/backend/notes/markdown",
+        async prepare(page) {
+            await flatten(page);
+            await page.getByTitle("Cartes").first().click();
+            await page.waitForTimeout(1_200);
+        },
+    },
+    {
+        // Et en liste : titre, étiquettes, dossier, date. C'est la vue de
+        // celui qui cherche une note précise plutôt que de parcourir.
+        name: "tour-notes-vue-liste",
+        path: "/backend/notes/markdown",
+        async prepare(page) {
+            await flatten(page);
+            await page.getByTitle("Liste").first().click();
+            await page.waitForTimeout(1_200);
+        },
+    },
+    {
+        // L'habillage d'une note, où les deux choses se décident au même
+        // endroit : l'image d'entête, cherchée chez Pexels et recadrée à la
+        // molette, et les six apparences. Une seule fenêtre pour les deux,
+        // donc une seule image.
+        name: "tour-notes-entete",
+        path: "/backend/notes/markdown",
+        async prepare(page) {
+            await page.getByRole("link", { name: /^Sommaire des clients/ }).first().click();
+            await page.waitForTimeout(2_500);
+            await page.getByTitle(/^Actions pour/).first().click();
+            await page.waitForTimeout(800);
+            await page.getByRole("button", { name: "Image d'entête" }).first().click();
+            await page.waitForTimeout(2_000);
         },
     },
     {

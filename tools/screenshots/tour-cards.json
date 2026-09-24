@@ -193,6 +193,18 @@
         "tour-notes-apparence": {
             "document": 446,
             "slug": "notes-markdown"
+        },
+        "tour-notes-vue-cartes": {
+            "document": 447,
+            "slug": "notes-markdown"
+        },
+        "tour-notes-vue-liste": {
+            "document": 448,
+            "slug": "notes-markdown"
+        },
+        "tour-notes-entete": {
+            "document": 449,
+            "slug": "notes-markdown"
         }
     }
 }
