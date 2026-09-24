@@ -117,10 +117,15 @@ final readonly class SpaceActivityNotifier
         array $parameters,
         bool $coalesce = true,
     ): void {
+        // **Un chemin, pas une adresse absolue.** Ce lien reste dans
+        // l'application : le navigateur le résout contre l'hôte où se trouve la
+        // personne, quel qu'il soit. Gravé en absolu, il porte l'hôte du contexte
+        // de routage au moment où la notification est écrite - et celles-ci sont
+        // écrites par le worker, sans requête HTTP, donc le contexte retombe sur
+        // `localhost`. En local, cliquer dessus menait à un refus de connexion.
         $url = $this->urlGenerator->generate(
             'workspace_space_content',
-            ['id' => $space->getId()],
-            UrlGeneratorInterface::ABSOLUTE_URL,
+            ['id' => $space->getId()]
         );
 
         $title = $this->translator->trans($titleKey, $parameters);

@@ -61,13 +61,28 @@ final readonly class SpaceActivityDigestHandler
             return;
         }
 
+        // **Deux valeurs pour deux usages, et les confondre casse l'envoi.**
+        // La clé de recherche doit être exactement ce que la notification a
+        // enregistré, c'est-à-dire un chemin : une notification vit dans
+        // l'application, et une adresse absolue y graverait l'hôte du worker.
+        // Le lien de l'e-mail, lui, sort de l'application et doit porter
+        // l'hôte - sans quoi il n'est cliquable nulle part.
+        //
+        // Elles ont été la même un moment : la recherche cherchait en absolu
+        // ce qui était rangé en relatif, ne trouvait rien, et aucun e-mail ne
+        // partait. Deux cas l'ont dit tout de suite.
+        $path = $this->urlGenerator->generate(
+            'workspace_space_content',
+            ['id' => $space->getId()],
+        );
+
         $url = $this->urlGenerator->generate(
             'workspace_space_content',
             ['id' => $space->getId()],
             UrlGeneratorInterface::ABSOLUTE_URL,
         );
 
-        $unread = $this->notifications->findUnreadForUrl($recipient, $url);
+        $unread = $this->notifications->findUnreadForUrl($recipient, $path);
 
         if ([] === $unread) {
             // Read in the meantime. The delay did its job.

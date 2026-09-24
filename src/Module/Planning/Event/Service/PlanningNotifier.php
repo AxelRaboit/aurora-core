@@ -104,10 +104,15 @@ readonly class PlanningNotifier
             $this->translator->trans('backend.plannings.reminders.notification', [
                 '%calendar%' => $reminder->getPlanning()->getName(),
             ]),
+            // **Un chemin, pas une adresse absolue.** Ce lien reste dans
+            // l'application : le navigateur le résout contre l'hôte où se trouve la
+            // personne, quel qu'il soit. Gravé en absolu, il porte l'hôte du contexte
+            // de routage au moment où la notification est écrite - et celles-ci sont
+            // écrites par le worker, sans requête HTTP, donc le contexte retombe sur
+            // `localhost`. En local, cliquer dessus menait à un refus de connexion.
             $this->urlGenerator->generate(
                 'backend_planning_calendar',
-                ['view' => 'day', 'date' => $reminder->getDueAt()->format('Y-m-d')],
-                UrlGeneratorInterface::ABSOLUTE_URL,
+                ['view' => 'day', 'date' => $reminder->getDueAt()->format('Y-m-d')]
             ),
             ['reminderId' => $reminder->getId()],
         );
@@ -217,6 +222,12 @@ readonly class PlanningNotifier
 
     private function dayUrl(string $date): string
     {
+        // **Un chemin, pas une adresse absolue.** Ce lien reste dans
+        // l'application : le navigateur le résout contre l'hôte où se trouve la
+        // personne, quel qu'il soit. Gravé en absolu, il porte l'hôte du contexte
+        // de routage au moment où la notification est écrite - et celles-ci sont
+        // écrites par le worker, sans requête HTTP, donc le contexte retombe sur
+        // `localhost`. En local, cliquer dessus menait à un refus de connexion.
         return $this->urlGenerator->generate(
             'backend_planning_calendar',
             ['view' => 'day', 'date' => $date],
@@ -256,13 +267,18 @@ readonly class PlanningNotifier
                 '%calendar%' => $event->getPlanning()->getName(),
                 '%when%' => $this->localTime($event),
             ]),
+            // **Un chemin, pas une adresse absolue.** Ce lien reste dans
+            // l'application : le navigateur le résout contre l'hôte où se trouve la
+            // personne, quel qu'il soit. Gravé en absolu, il porte l'hôte du contexte
+            // de routage au moment où la notification est écrite - et celles-ci sont
+            // écrites par le worker, sans requête HTTP, donc le contexte retombe sur
+            // `localhost`. En local, cliquer dessus menait à un refus de connexion.
             $this->urlGenerator->generate(
                 'backend_planning_calendar',
                 // The day, not the month: a alert is about one event, and the
                 // day view is where it is the thing you are looking at rather
                 // than one chip among forty.
-                ['view' => 'day', 'date' => $event->getStartAt()->format('Y-m-d')],
-                UrlGeneratorInterface::ABSOLUTE_URL,
+                ['view' => 'day', 'date' => $event->getStartAt()->format('Y-m-d')]
             ),
             ['eventId' => $event->getId(), 'minutesBefore' => $alert->getMinutesBefore()],
         );
