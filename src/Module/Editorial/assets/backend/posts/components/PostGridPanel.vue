@@ -74,6 +74,8 @@ const {
     enabled,
     snap,
     snapOptions,
+    reveal,
+    revealOptions,
     typeOptions,
     leafTypeOptions,
     widthOptions,
@@ -367,6 +369,18 @@ function resizeZone(index, columns) {
                         :hint="t('backend.posts.grid.surface_hint')"
                         :options="zoneChoices.surface"
                     />
+                    <!-- Comment la zone arrive quand le lecteur la
+                         rejoint. Ici, avec le fond et la largeur, parce que
+                         c'est la même question posée une troisième fois :
+                         comment cette zone se présente. Sans effet par
+                         défaut - une page où tout bouge est une page où rien
+                         ne ressort. -->
+                    <AppChoiceRow
+                        v-model="zoneFields(index).reveal.value"
+                        :label="t('backend.posts.grid.reveal')"
+                        :hint="t('backend.posts.grid.reveal_hint')"
+                        :options="zoneChoices.reveal"
+                    />
                     <AppToggle
                         v-model="zoneFields(index).fullBleed.value"
                         :label="t('backend.posts.grid.full_bleed')"
@@ -566,6 +580,20 @@ function resizeZone(index, columns) {
                     v-on:set-compare="(slot, picked) => setCompareImage(index, slot, picked)"
                 />
             </div>
+
+            <!-- How the page's zones arrive, answered once. A zone can
+                 disagree, and one that never did follows this one for good -
+                 the choice is stored as "inherit" rather than copied down, so
+                 changing it here moves the whole page.
+
+                 Out in the open and not under "advanced": it is a design
+                 decision an author makes, not a lever they tune. -->
+            <AppSelect
+                v-model="reveal"
+                :label="t('backend.posts.grid.page_reveal')"
+                :hint="t('backend.posts.grid.page_reveal_hint')"
+                :options="revealOptions"
+            />
 
             <!-- The snap only governs the precise sliders now that fractions
                  carry the ordinary widths, so it sits with them rather than at

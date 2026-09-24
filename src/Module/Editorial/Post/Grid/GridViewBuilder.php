@@ -133,11 +133,18 @@ final readonly class GridViewBuilder
         $documents = $this->documents($layout);
         $posts = $this->posts($layout);
 
-        $resolve = function (array $zone) use (&$resolve, $content, $documents, $posts, $locale, $currentPostId, $forEditor, $depth): array {
+        $resolve = function (array $zone) use (&$resolve, $layout, $content, $documents, $posts, $locale, $currentPostId, $forEditor, $depth): array {
             $held = $content['zones'][$zone['id']];
 
             return [
                 ...$zone,
+                // Inheritance resolved here and nowhere else: the stored zone
+                // goes on saying `inherit`, so changing the page's answer
+                // moves every zone that never disagreed with it. A theme
+                // reads one value and has no rule to apply.
+                'reveal' => GridNormalizer::ZONE_REVEALS[0] === $zone['reveal']
+                    ? $layout['reveal']
+                    : $zone['reveal'],
                 'caption' => $held['caption'],
                 'spanStyle' => $this->values->spanStyle($zone['span']),
                 'ratioStyle' => $this->ratioStyle($zone['ratio']),

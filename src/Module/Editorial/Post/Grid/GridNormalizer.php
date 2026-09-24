@@ -382,6 +382,46 @@ final readonly class GridNormalizer
     public const array SURFACES = ['none', 'card', 'soft', 'accent'];
 
     /**
+     * How a zone arrives when the reader scrolls to it.
+     *
+     * Six effects and no effect, which is the default: a page where
+     * everything moves is a page where nothing stands out, and the point of
+     * choosing is to be able to choose once or twice.
+     *
+     * They are a deliberately small set, and each one answers a different
+     * question. `fade` is the quiet one. `up` is the classic, and reads as
+     * content arriving from below the fold, which is where it came from.
+     * `left` and `right` suit a zone that sits beside another: two halves
+     * meeting in the middle. `zoom` suits a picture. `blur` suits a title.
+     *
+     * Shared, like the surface above: an arrival is part of the arrangement,
+     * and a translated page does not move differently.
+     *
+     * **The motion itself lives in CSS and is opt-in at render** (see
+     * `css/base/reveal.css` and `shared/utils/scrollReveal.js`): nothing is
+     * hidden unless the script has said it is there to show it again, and a
+     * reader who asked for less motion gets the zone outright.
+     */
+    public const array REVEALS = ['none', 'fade', 'up', 'left', 'right', 'zoom', 'blur'];
+
+    /**
+     * The same list, plus the answer a zone gives by default: whatever the
+     * page says.
+     *
+     * Posing the effect once per publication is what makes it usable at all.
+     * A page is seven or ten zones, and asking an author to pick the same
+     * arrival ten times means they pick it twice and give up - which is how
+     * a page ends up animated in patches.
+     *
+     * **Inheritance is resolved when the view is built, never when it is
+     * stored.** A zone that has inherited keeps saying so, so changing the
+     * page's answer moves every zone that never disagreed with it. Writing
+     * the resolved value down would freeze today's default into ten zones and
+     * quietly break the setting for good.
+     */
+    public const array ZONE_REVEALS = ['inherit', ...self::REVEALS];
+
+    /**
      * Enough for a process, a row of figures or a short FAQ, and few enough
      * that the list stays a list. Past this it is a page of its own.
      */
@@ -570,6 +610,10 @@ final readonly class GridNormalizer
         return [
             'enabled' => (bool) ($data['enabled'] ?? false),
             'snap' => $this->snap($data['snap'] ?? null),
+            // How the page's zones arrive, unless one of them says otherwise.
+            // At the root because it is a decision about the page, and
+            // because it is the only place an author can make it once.
+            'reveal' => $this->values->oneOf($data['reveal'] ?? null, self::REVEALS, self::REVEALS[0]),
             'zones' => $this->zones($data),
         ];
     }
@@ -862,6 +906,10 @@ final readonly class GridNormalizer
                 // What the zone sits on. Every type can have one: a card of
                 // figures, a tinted FAQ, a call to action on accent.
                 'surface' => $this->values->oneOf($entry['surface'] ?? null, self::SURFACES, self::SURFACES[0]),
+                // How the zone arrives when the reader reaches it. Beside the
+                // surface because it is the same kind of decision - how this
+                // zone presents itself - and shared for the same reason.
+                'reveal' => $this->values->oneOf($entry['reveal'] ?? null, self::ZONE_REVEALS, self::ZONE_REVEALS[0]),
                 // Decided above, because the width depends on it.
                 'fullBleed' => $fullBleed,
                 // Present on every zone, empty unless it is a stack - same

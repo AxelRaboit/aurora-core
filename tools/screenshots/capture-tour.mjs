@@ -350,7 +350,16 @@ const SHOTS = [
         path: "/backend",
         async prepare(page) {
             await page.waitForTimeout(3_000);
-            await page.getByRole("button", { name: "GED", exact: true }).first().click();
+
+            // **Dans le contenu, pas dans la page entière.** « GED » nomme à
+            // la fois l'onglet du tableau de bord et une section du menu
+            // latéral, et `.first()` prenait la section : le menu se dépliait,
+            // se décalait, l'onglet Éditorial restait ouvert, et la prise
+            // montrait l'écran d'avant sous un nom qui promettait l'autre.
+            // `exact: true` n'y peut rien, les deux libellés sont identiques.
+            // Le menu vit hors du `<main>`, donc y limiter la recherche les
+            // départage pour de bon.
+            await page.locator("main").getByRole("button", { name: "GED", exact: true }).first().click();
             await page.waitForTimeout(1_500);
         },
     },

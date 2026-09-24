@@ -35,8 +35,18 @@
    summary already uses for its own sticky offset. #}
 <div class="aurora-grid aurora-grid-flush gap-y-8">
     {% for zone in grid.zones %}
+        {# `data-reveal` sur l'enveloppe et non à l'intérieur : elle contient
+           la zone *et* le fond sur lequel elle est posée, donc la carte arrive
+           avec son contenu au lieu que le texte glisse dans un cadre déjà là.
+
+           Émis seulement quand il y a un effet. Un attribut à `none` sur
+           chaque zone ferait travailler l'observateur pour rien, et
+           `|default('none')` couvre les grilles écrites avant que la clé
+           existe. #}
+        {% set reveal = zone.reveal|default('none') %}
         <div
             {% if zone.anchor|default('') %}id="{{ zone.anchor }}" class="scroll-mt-24"{% endif %}
+            {% if reveal != 'none' %}data-reveal="{{ reveal }}"{% endif %}
             style="{{ zone.spanStyle|raw }}{{ zone.startStyle|default('')|raw }}"
         >
             {% if zone.type == 'stack' %}
@@ -65,8 +75,16 @@
                        it does the opposite of what it says - the picture
                        imposes its natural height and its neighbours give way. #}
                     {% for child in zone.children %}
+                        {# Un enfant de pile a son propre effet, et c'est
+                           volontaire : deux moitiés qui se rejoignent, l'une
+                           par la gauche et l'autre par la droite, est
+                           précisément ce qu'une pile permet d'écrire. Si la
+                           pile en porte un elle-même, les deux se jouent, la
+                           sienne portant l'ensemble. #}
+                        {% set childReveal = child.reveal|default('none') %}
                         <div
                             {% if child.anchor|default('') %}id="{{ child.anchor }}"{% endif %}
+                            {% if childReveal != 'none' %}data-reveal="{{ childReveal }}"{% endif %}
                             class="min-w-0{{ child.ratio == 'fill' ? ' lg:min-h-0' : '' }}{{ child.anchor|default('') ? ' scroll-mt-24' : '' }}"
                             style="{{ child.shareStyle|raw }}"
                         >

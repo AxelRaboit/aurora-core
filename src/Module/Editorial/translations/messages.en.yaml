@@ -497,6 +497,19 @@ backend:
         card: Card
         soft: Tinted
         accent: Accent
+      page_reveal: "Page scroll effect"
+      page_reveal_hint: "How the zones arrive when the reader reaches them. Any zone can decide otherwise; the ones that say nothing follow this."
+      reveal: "Scroll effect"
+      reveal_hint: "How the zone arrives when the reader reaches it. The direction is where it comes from. Played once, and never for what is already on screen."
+      reveals:
+        inherit: "As the page"
+        none: None
+        fade: Fade
+        up: Below
+        left: Left
+        right: Right
+        zoom: Zoom
+        blur: Blur
       code: Snippet
       code_placeholder: "function hello() { … }"
       code_language: Language
