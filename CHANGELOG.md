@@ -5,6 +5,69 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.233] - 2026-09-24
+
+### Corrigé
+
+#### La carte du thème actif ne rogne plus son propre titre
+Le badge « Actif » était posé en face du nom du thème, `shrink-0`, donc il
+prenait cette largeur pour de bon. Dans une colonne de grille étroite, la
+carte active était la seule dont le nom était coupé, dont l'identifiant
+passait à la ligne et dont le résumé se lisait sur une mesure plus courte que
+celle de ses voisines : trois troncatures qu'aucune autre carte n'avait, sur
+celle qui est censée ressortir.
+
+Il descend au pied, où il prend la place d'un bouton « Activer » désactivé
+qui, à côté d'un badge disant « Actif », ne disait rien de plus.
+
+#### Un module sans permission ne s'affiche plus
+Un titre suivi d'« Aucune permission définie pour ce module » ne dit rien
+qu'un titre absent ne dirait. La recherche fonctionnait déjà ainsi : elle ne
+garde un module que si une permission survit au filtre. C'est donc la liste
+non filtrée qui était l'exception, et la section s'affichait jusqu'à ce qu'on
+tape un seul caractère, puis disparaissait.
+
+### Modifié
+
+#### Le jeu de démonstration montre ce qu'il prétend montrer
+Quatre écrans se photographiaient à vide ou en faux texte :
+
+- l'onglet « Moteurs de recherche » n'avait aucune donnée, donc il montrait un
+  formulaire et non la fonctionnalité. La page d'accueil et le premier article
+  portent leur titre méta, leur description et leur mot-clé, dans les trois
+  langues ;
+- la taxonomie « Catégories » avait deux termes, l'un sous l'autre, ce qui se
+  lit comme un accident plutôt que comme une arborescence. Six termes, deux
+  parents, deux niveaux ;
+- la page de contact parlait lorem ipsum, sur l'écran qui sert d'exemple de
+  site public ;
+- la version sous le logo vaut « dev » en local, et c'était la seule chose de
+  ces images disant à un lecteur qu'il regarde une machine de développement.
+  Elle porte `data-app-version`, et l'outil de capture la masque.
+
+### Outillage
+
+#### Une adresse qui répond n'est pas une page
+Deux captures étaient parties en production sans que rien ne les arrête : un
+dump de JSON brut, parce que l'adresse visée était l'API et non un écran, et
+la trace d'exception Symfony d'un 404, chemin de disque compris. Playwright
+réussit dans les deux cas. `assertPage()` vérifie le code de réponse, le type
+de contenu et la signature de la page d'erreur de Symfony, et **échoue avant
+d'écrire** : le scénario qui rate ne laisse pas de fichier, donc l'ancienne
+image reste en place.
+
+Un scénario tombait aussi dans la série complète tout en passant seul, ce qui
+est la signature d'un état partagé et non de la lenteur : la liste des espaces
+retient son onglet, et l'espace cherché n'était plus dedans. La série passe
+maintenant de bout en bout, 68 captures sans un échec.
+
+### Dans aurora-client
+
+Aucune migration. Un `make aurora-update` suivi d'une reconstruction des
+assets.
+
+---
+
 ## [0.9.232] - 2026-09-24
 
 ### Modifié
