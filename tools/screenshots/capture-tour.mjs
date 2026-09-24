@@ -281,6 +281,28 @@ const SHOTS = [
         path: "/backend/trash",
     },
     {
+        // Les privilèges d'un compte, écran par écran : c'est la promesse
+        // centrale de la carte, et elle ne montrait que la liste des comptes.
+        name: "tour-privileges",
+        path: "/backend/platform/users",
+        async prepare(page) {
+            await page.waitForTimeout(2_500);
+            await page.getByTitle(/^Actions pour Jean Martin/).first().click();
+            await page.waitForTimeout(1_000);
+            await page.getByRole("button", { name: /^Privilèges/ }).first().click();
+            await page.waitForTimeout(2_500);
+        },
+    },
+    {
+        // Les réglages et leurs onglets : la carte parle de ce qui se règle
+        // sans montrer où.
+        name: "tour-reglages-onglets",
+        path: "/backend/configuration/settings",
+        async prepare(page) {
+            await page.waitForTimeout(2_500);
+        },
+    },
+    {
         // Les catégories : une par nature de document, celle qui décide où un
         // fichier est rangé. La carte en parle et ne la montrait pas.
         name: "tour-mediatheque-categories",
