@@ -405,6 +405,23 @@ final readonly class GridNormalizer
     public const array REVEALS = ['none', 'fade', 'up', 'left', 'right', 'zoom', 'blur'];
 
     /**
+     * The same list, plus the answer a zone gives by default: whatever the
+     * page says.
+     *
+     * Posing the effect once per publication is what makes it usable at all.
+     * A page is seven or ten zones, and asking an author to pick the same
+     * arrival ten times means they pick it twice and give up - which is how
+     * a page ends up animated in patches.
+     *
+     * **Inheritance is resolved when the view is built, never when it is
+     * stored.** A zone that has inherited keeps saying so, so changing the
+     * page's answer moves every zone that never disagreed with it. Writing
+     * the resolved value down would freeze today's default into ten zones and
+     * quietly break the setting for good.
+     */
+    public const array ZONE_REVEALS = ['inherit', ...self::REVEALS];
+
+    /**
      * Enough for a process, a row of figures or a short FAQ, and few enough
      * that the list stays a list. Past this it is a page of its own.
      */
@@ -593,6 +610,10 @@ final readonly class GridNormalizer
         return [
             'enabled' => (bool) ($data['enabled'] ?? false),
             'snap' => $this->snap($data['snap'] ?? null),
+            // How the page's zones arrive, unless one of them says otherwise.
+            // At the root because it is a decision about the page, and
+            // because it is the only place an author can make it once.
+            'reveal' => $this->values->oneOf($data['reveal'] ?? null, self::REVEALS, self::REVEALS[0]),
             'zones' => $this->zones($data),
         ];
     }
@@ -888,7 +909,7 @@ final readonly class GridNormalizer
                 // How the zone arrives when the reader reaches it. Beside the
                 // surface because it is the same kind of decision - how this
                 // zone presents itself - and shared for the same reason.
-                'reveal' => $this->values->oneOf($entry['reveal'] ?? null, self::REVEALS, self::REVEALS[0]),
+                'reveal' => $this->values->oneOf($entry['reveal'] ?? null, self::ZONE_REVEALS, self::ZONE_REVEALS[0]),
                 // Decided above, because the width depends on it.
                 'fullBleed' => $fullBleed,
                 // Present on every zone, empty unless it is a stack - same

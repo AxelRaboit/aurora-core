@@ -158,16 +158,46 @@ final class GridNormalizerTest extends TestCase
         );
     }
 
-    public function testAZoneArrivesWithoutAnEffectUnlessOneIsAsked(): void
+    public function testAPageArrivesWithoutAnEffectUnlessOneIsAsked(): void
     {
-        $zone = $this->normalizer->normalizeLayout([
+        $layout = $this->normalizer->normalizeLayout([
             'zones' => [['id' => 'a1', 'type' => 'text']],
-        ])['zones'][0];
+        ]);
 
-        self::assertSame('none', $zone['reveal'], 'a page where every zone moves is a page where nothing stands out');
+        self::assertSame('none', $layout['reveal'], 'a page where every zone moves is a page where nothing stands out');
+        self::assertSame(
+            'inherit',
+            $layout['zones'][0]['reveal'],
+            'a zone carries its own answer only when an author gave it one',
+        );
     }
 
-    public function testAnEffectIsKeptAndAnInventedOneFallsBackToNone(): void
+    public function testAZoneThatInheritedGoesOnSayingSo(): void
+    {
+        $layout = $this->normalizer->normalizeLayout([
+            'reveal' => 'up',
+            'zones' => [['id' => 'a1', 'type' => 'text']],
+        ]);
+
+        self::assertSame('up', $layout['reveal']);
+        self::assertSame(
+            'inherit',
+            $layout['zones'][0]['reveal'],
+            'writing the resolved value down would freeze today default into the zone and break the setting for good',
+        );
+    }
+
+    public function testAPageCannotInheritFromItself(): void
+    {
+        $layout = $this->normalizer->normalizeLayout([
+            'reveal' => 'inherit',
+            'zones' => [['id' => 'a1', 'type' => 'text']],
+        ]);
+
+        self::assertSame('none', $layout['reveal'], 'there is nothing above the page to inherit from');
+    }
+
+    public function testAnEffectIsKeptAndAnInventedOneGoesBackToThePage(): void
     {
         $zones = $this->normalizer->normalizeLayout([
             'zones' => [
@@ -178,9 +208,23 @@ final class GridNormalizerTest extends TestCase
 
         self::assertSame('blur', $zones[0]['reveal']);
         self::assertSame(
-            'none',
+            'inherit',
             $zones[1]['reveal'],
-            'an effect the stylesheet has no rule for would leave the zone hidden for good',
+            'a value nobody can read is not an opinion, so the zone has none and follows the page',
+        );
+    }
+
+    public function testAnInventedPageEffectIsRefusedOutright(): void
+    {
+        $layout = $this->normalizer->normalizeLayout([
+            'reveal' => 'explosion',
+            'zones' => [['id' => 'a1', 'type' => 'text']],
+        ]);
+
+        self::assertSame(
+            'none',
+            $layout['reveal'],
+            'the page has nothing to fall back on, and an attribute the stylesheet cannot read must not reach the markup',
         );
     }
 

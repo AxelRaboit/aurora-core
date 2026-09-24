@@ -194,8 +194,15 @@ export const TEXT_SIZES = ["normal", "lead", "small"];
 /** Mirrors GridNormalizer::SURFACES - what a zone sits on. */
 export const SURFACES = ["none", "card", "soft", "accent"];
 
-/** Mirrors GridNormalizer::REVEALS - how a zone arrives on scroll. */
+/** Mirrors GridNormalizer::REVEALS - how the page's zones arrive on scroll. */
 export const REVEALS = ["none", "fade", "up", "left", "right", "zoom", "blur"];
+
+/**
+ * Mirrors GridNormalizer::ZONE_REVEALS - the same list, plus the answer a
+ * zone gives by default: whatever the page says. Asking for the same arrival
+ * ten times is how a page ends up animated in patches.
+ */
+export const ZONE_REVEALS = ["inherit", ...REVEALS];
 
 /**
  * How many zones a stack may hold. Mirrors GridNormalizer::MAX_STACK_CHILDREN:
@@ -485,10 +492,11 @@ function newZone(type) {
         // Nothing behind it and inside its column: a zone arrives as part of
         // the page, and becomes a section only when someone says so.
         surface: "none",
-        // Still by default. A page where every zone moves is a page where
-        // nothing stands out, so the effect is something an author reaches
-        // for once or twice, not a setting they turn off.
-        reveal: "none",
+        // Whatever the page says, which is still unless the page says
+        // otherwise. A zone only carries its own answer when an author gave
+        // it one, so changing the page's moves everything that never
+        // disagreed.
+        reveal: "inherit",
         fullBleed: false,
         // Empty on every zone, filled only by a stack - the same reason every
         // other key is always present: switching a type back and forth in the
@@ -555,6 +563,16 @@ export function usePostGrid(layout, content) {
         },
     );
 
+    // The page's own answer, which every zone inherits until one disagrees.
+    const reveal = writable(
+        () => layout.value.reveal,
+        (value) => {
+            layout.value.reveal = value;
+        },
+    );
+
+    const revealOptions = computed(() => labelled(REVEALS, "reveals"));
+
     const snapOptions = computed(() =>
         SNAPS.map((step) => ({
             value: step,
@@ -581,7 +599,7 @@ export function usePostGrid(layout, content) {
         cardVariant: labelled(CARD_VARIANTS, "card_variants"),
         textSize: labelled(TEXT_SIZES, "text_sizes"),
         surface: labelled(SURFACES, "surfaces"),
-        reveal: labelled(REVEALS, "reveals"),
+        reveal: labelled(ZONE_REVEALS, "reveals"),
         audience: labelled(AUDIENCES, "audiences"),
         // A language names itself; there is nothing to translate.
         language: CODE_LANGUAGES.map((value) => ({ value, label: value })),
@@ -1509,6 +1527,8 @@ export function usePostGrid(layout, content) {
         enabled,
         snap,
         snapOptions,
+        reveal,
+        revealOptions,
         typeOptions,
         leafTypeOptions,
         widthOptions,

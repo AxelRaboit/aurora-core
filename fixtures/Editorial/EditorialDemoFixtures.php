@@ -679,12 +679,13 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             // decided rather than inherited from its content - without it
             // "taller than its neighbours" is not something a picture can be
             // asked for.
-            // Les effets d'apparition se démontrent ici, et pas partout : la
-            // page en porte trois sur sept zones, ce qui est à peu près ce
-            // qu'une vraie page supporte. La photo et la pile arrivent l'une
-            // par la gauche et l'autre par la droite, deux moitiés qui se
-            // rejoignent - c'est l'arrangement que cette paire existe pour
-            // écrire, et le seul qu'un effet par zone permet de composer.
+            // Les effets d'apparition se démontrent ici, et l'héritage avec :
+            // la page dit « depuis le bas » une fois pour toutes (plus bas,
+            // à la racine), et deux zones seulement en décident autrement.
+            // La photo et la pile arrivent l'une par la gauche et l'autre par
+            // la droite, deux moitiés qui se rejoignent - c'est l'arrangement
+            // que cette paire existe pour écrire, et le seul qu'un effet par
+            // zone permet de composer.
             ['id' => 'picture', 'type' => GridNormalizer::ZONE_MEDIA, 'span' => ['base' => 48, 'md' => null, 'lg' => 24], 'ratio' => '3x4', 'reveal' => 'left', 'mediaId' => $picture->getId()],
             [
                 'id' => 'column',
@@ -709,12 +710,16 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             // and stretching it across the page to fill the space would say
             // the grid cannot do anything else.
             ['id' => 'linked', 'type' => GridNormalizer::ZONE_POST, 'span' => ['base' => 48, 'md' => null, 'lg' => 16], 'postId' => $linked->getId()],
-            ['id' => 'outro', 'type' => GridNormalizer::ZONE_TEXT, 'span' => ['base' => 48, 'md' => null, 'lg' => 48], 'reveal' => 'up'],
+            ['id' => 'outro', 'type' => GridNormalizer::ZONE_TEXT, 'span' => ['base' => 48, 'md' => null, 'lg' => 48]],
         ];
 
         $welcome->setGridLayout($this->gridNormalizer->normalizeLayout([
             'enabled' => true,
             'snap' => 4,
+            // Posé une fois pour la page. Les zones qui ne disent rien le
+            // suivent, y compris celles ajoutées plus tard : c'est ce que le
+            // réglage sert à démontrer, plus encore que l'effet lui-même.
+            'reveal' => 'up',
             'zones' => $zones,
         ]));
 
