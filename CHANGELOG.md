@@ -5,6 +5,37 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.241] - 2026-09-24
+
+### Corrigé
+
+#### Le profil, et vingt-huit autres écrans, étaient passés à travers l'échelle
+L'échelle d'espacement posée le 23/09 tient en quatre crans, 8, 12, 16 et 20,
+et elle dit une chose que la page de profil enfreignait cinq fois : **rien à
+l'intérieur d'une page ne dépasse sa propre marge**, qui vaut 20 à partir de
+`lg`. Une carte qui respire plus que la page où elle est posée inverse la
+hiérarchie, et l'œil ne sait plus ce qui contient quoi.
+
+Relevé avant d'y toucher : 22 `space-y-6`, 7 `p-6`, 3 `gap-6` dans le
+back-office, tous à 24 pixels. L'écran témoin, la liste des utilisateurs, ne
+sortait jamais de l'échelle ; le reste n'avait pas été repassé.
+
+Les écarts entre blocs descendent à 20, les remplissages de carte à 16. Le
+site public n'est pas touché : il a son propre dessin, et l'échelle porte sur
+les pages du back-office.
+
+Trois `mb-6` subsistent, sous le pictogramme rond d'un état vide. C'est une
+composition, pas un écart de mise en page, et la note de l'échelle réserve
+déjà ce cas.
+
+#### L'entête de démonstration était à l'accent plein
+`#059669` est l'émeraude d'Aurora à pleine saturation : étalée sur une entête
+elle pèse 116 de luminance là où le site public se tient entre 28 et 50, et
+elle détonnait au milieu des autres. Elle prend le vert sourd et la même
+inclinaison que la production.
+
+---
+
 ## [0.9.240] - 2026-09-24
 
 ### Ajouté

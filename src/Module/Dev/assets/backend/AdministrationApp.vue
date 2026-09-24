@@ -84,12 +84,12 @@ function initialDataFor(key) {
 </script>
 
 <template>
-    <div class="flex flex-col md:flex-row gap-6">
+    <div class="flex flex-col md:flex-row gap-5">
         <!-- No tab column and no mobile tab row: the side menu's module view
              lists the seven, and each one is already a route of its own. Two
              surfaces answering "which tab am I on" is one too many - the same
              call the settings page made in 0.9.29. -->
-        <div class="flex-1 min-w-0 space-y-6">
+        <div class="flex-1 min-w-0 space-y-5">
             <KeepAlive>
                 <DashboardOverview
                     v-if="tab === 'overview'"

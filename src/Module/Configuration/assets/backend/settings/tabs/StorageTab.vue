@@ -306,7 +306,7 @@ defineExpose({ save, apply, canSwitchToR2 });
 </script>
 
 <template>
-    <div class="relative space-y-6">
+    <div class="relative space-y-5">
         <AppLoader :active="loading" />
 
         <!-- First thing on the screen, because it answers the question that

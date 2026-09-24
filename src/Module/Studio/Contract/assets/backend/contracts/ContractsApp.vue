@@ -250,7 +250,7 @@ const pageActions = computed(() => {
 </script>
 
 <template>
-    <div ref="container" class="space-y-6">
+    <div ref="container" class="space-y-5">
         <AppListToolbar>
             <AppSearchInput
                 v-model="search"
@@ -628,7 +628,7 @@ const pageActions = computed(() => {
 
                 <article
                     v-else
-                    class="aurora-card p-4 sm:p-6 prose-contract max-h-[65vh] overflow-y-auto"
+                    class="aurora-card p-4 sm:p-4 prose-contract max-h-[65vh] overflow-y-auto"
                     v-html="previewHtml"
                 />
             </div>
