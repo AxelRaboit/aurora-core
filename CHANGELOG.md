@@ -5,6 +5,32 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.237] - 2026-09-24
+
+### Corrigé
+
+#### L'effet d'apparition donnait une barre de défilement horizontale
+Une zone qui vient de la droite est posée hors de sa boîte le temps
+d'arriver, et ce décalage allonge la page. Mesuré sur la production : 481
+pixels de contenu pour 457 de fenêtre, soit exactement le décalage, et un
+site public qui part de côté.
+
+Le dépassement est coupé, mais **seulement pendant que la page bouge** : le
+script pose un attribut sur la racine en armant, et le retire quand la
+dernière zone est arrivée. Brider la page en permanence pour un mouvement qui
+dure sept dixièmes de seconde, et brider le back-office avec, serait payer
+trop cher.
+
+`clip` et non `hidden`, parce que `hidden` fabrique un conteneur de
+défilement et casse `position: sticky` chez les descendants. **Et sur la
+racine *et* sur le corps** : chacun seul laisse la page partir de côté, l'un
+parce que sa valeur est propagée à la zone d'affichage et qu'il ne coupe donc
+plus rien lui-même, l'autre parce qu'une racine `visible` lui prend sa valeur
+pour la propager et qu'il redevient `visible` à son tour. Les deux ont été
+mesurés avant d'être écrits.
+
+---
+
 ## [0.9.236] - 2026-09-24
 
 ### Ajouté
