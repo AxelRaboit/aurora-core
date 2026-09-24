@@ -5,6 +5,52 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.235] - 2026-09-24
+
+### Ajouté
+
+#### Une zone peut arriver quand le lecteur la rejoint
+Six effets et pas d'effet, choisis par zone à côté du fond et de la largeur,
+parce que c'est la même question posée une troisième fois : comment cette zone
+se présente. Fondu, depuis le bas, depuis la gauche, depuis la droite, zoom,
+flou.
+
+**Et la réponse se donne une fois pour toute la page.** Demander à un auteur de
+choisir dix fois la même arrivée, c'est le voir choisir deux fois puis
+abandonner, ce qui donne une page animée par plaques. L'arrangement porte donc
+le réglage, et une zone dit « comme la page » tant que personne ne lui en donne
+un à elle. **L'héritage se résout à l'affichage, jamais à l'enregistrement** :
+une zone qui a hérité continue de le dire, donc changer la réponse de la page
+déplace tout ce qui ne l'a jamais contredite, y compris les zones ajoutées plus
+tard.
+
+Partagé par les langues, comme l'arrangement auquel il appartient : une page
+traduite ne bouge pas différemment. Un enfant de pile porte le sien, ce qui
+permet d'écrire deux moitiés qui se rejoignent, l'une par la gauche et l'autre
+par la droite.
+
+**Rien n'est caché par la feuille de style.** L'état de départ réclame une
+classe que le balisage ne porte jamais ; le script la pose, zone par zone, et
+seulement sur celles encore sous la fenêtre. Trois conséquences, toutes
+voulues : un script qui ne charge pas laisse la page lisible, un navigateur
+sans `IntersectionObserver` aussi, et le paquet qui arrive après le premier
+rendu - ce qui arrivera, sur une ligne lente - ne peut pas faire disparaître
+puis revenir ce que le lecteur regarde déjà. Animer l'entrée de ce qui est à
+l'écran depuis le début n'annonce rien de toute façon.
+
+Un lecteur qui demande moins de mouvement reçoit la zone, vérifié dans le
+script et redit en CSS pour que le réglage puisse changer en cours de lecture.
+Seules `opacity`, `transform` et `filter` bougent, donc le compositeur fait le
+travail, et `will-change` est retiré une fois l'arrivée jouée plutôt que laissé
+sur trente zones.
+
+### Dans aurora-client
+
+Aucune migration. Un `make aurora-update` suivi d'une reconstruction des
+assets.
+
+---
+
 ## [0.9.234] - 2026-09-24
 
 ### Ajouté
