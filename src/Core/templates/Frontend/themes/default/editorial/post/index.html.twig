@@ -99,7 +99,10 @@
        first, the pictures after. Null when there is no gallery, so a post
        without one gets nothing rather than an empty section. #}
     {% if gallery %}
-        {{ include('Frontend/themes/default/editorial/post/_gallery.html.twig', {gallery: gallery}) }}
+        {# L'effet de la page voyage jusqu'ici : une galerie n'est pas une zone
+           de grille et n'a donc pas de réglage à elle, mais elle appartient à
+           la publication et doit arriver comme le reste. #}
+        {{ include('Frontend/themes/default/editorial/post/_gallery.html.twig', {gallery: gallery, reveal: grid.reveal|default('none')}) }}
     {% endif %}
 
     {# Null for every type that is not read in sequence, which is all of them

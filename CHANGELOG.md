@@ -5,6 +5,31 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.239] - 2026-09-24
+
+### Ajouté
+
+#### Une galerie arrive en cascade
+Vingt photos qui franchissent le seuil ensemble ne se lisent pas comme vingt :
+elles se lisent comme un rectangle qui change d'opacité. Chaque photo porte
+maintenant l'effet de la page, et ce qui arrive dans le même lot se décale de
+soixante-dix millisecondes, dans l'ordre où l'œil le prend.
+
+**Le décalage se calcule à l'arrivée, jamais à l'écriture du HTML.** Un rang
+gravé dans le balisage ferait attendre la vingtième photo 1,4 seconde quand on
+la rejoint seule, en bas de page. Ici, ce qui arrive ensemble se décale, ce qui
+arrive seul n'attend pas. Plafonné à huit crans, parce qu'au-delà on n'observe
+plus une cascade, on attend la fin.
+
+L'ordre se recalcule de haut en bas puis de gauche à droite : **le navigateur
+ne promet rien sur l'ordre des entrées d'un même lot**, et une cascade qui part
+du bas se remarque tout de suite.
+
+Aucun réglage nouveau. Une galerie suit l'effet de sa publication, et le
+décalage est automatique dès que plusieurs zones arrivent ensemble.
+
+---
+
 ## [0.9.238] - 2026-09-24
 
 ### Corrigé

@@ -55,7 +55,68 @@ const RUNNING = "data-reveal-running";
 const THRESHOLD = 0.08;
 const MARGIN = "0px 0px -8% 0px";
 
-function reveal(element, remaining) {
+/**
+ * Le décalage entre deux arrivées d'un même groupe.
+ *
+ * Une galerie de vingt photos franchit le seuil d'un coup, et vingt zones qui
+ * apparaissent ensemble ne se lisent pas comme vingt : elles se lisent comme
+ * un bloc qui change d'opacité. Soixante-dix millisecondes suffisent à ce que
+ * l'œil suive la série sans que la dernière se fasse attendre.
+ *
+ * **Le décalage se calcule au moment de l'arrivée, pas à l'écriture du
+ * HTML.** Un rang gravé dans le balisage pénaliserait la vingtième photo même
+ * quand on la rejoint seule, en bas de page, un quart d'heure plus tard :
+ * elle attendrait 1,4 seconde pour rien. Ici, ce qui arrive ensemble se
+ * décale, ce qui arrive seul n'attend pas.
+ */
+const STAGGER = 70;
+
+/** Au-delà, on ne lit plus une cascade, on attend la fin. */
+const STAGGER_MAX = 8;
+
+/**
+ * L'ordre dans lequel un lot d'arrivées se joue.
+ *
+ * Extrait de la fermeture de l'observateur pour être vérifiable : c'est la
+ * seule logique de ce fichier qui décide de quelque chose, et un effet piloté
+ * par le défilement ne se teste pas dans un navigateur sans le regarder.
+ *
+ * De haut en bas, puis de gauche à droite, parce que **le navigateur ne
+ * promet rien sur l'ordre des entrées d'un même lot** et qu'une cascade qui
+ * part du bas ou du milieu se remarque tout de suite.
+ *
+ * @param {Array<{isIntersecting: boolean, target: Element}>} entries
+ *
+ * @returns {Array<Element>} ce qui arrive, dans l'ordre où l'œil le prend
+ */
+export function cascadeOrder(entries) {
+    return entries
+        .filter((entry) => entry.isIntersecting)
+        .map((entry) => ({
+            target: entry.target,
+            box: entry.target.getBoundingClientRect(),
+        }))
+        .sort((a, b) => a.box.top - b.box.top || a.box.left - b.box.left)
+        .map(({ target }) => target);
+}
+
+/**
+ * Le retard d'une arrivée selon son rang dans le lot, en millisecondes.
+ *
+ * Plafonné : au-delà de huit crans on ne lit plus une cascade, on attend la
+ * fin. Une galerie de quarante photos qui franchissent le seuil ensemble
+ * s'étalerait sinon sur près de trois secondes.
+ */
+export function cascadeDelay(rank) {
+    return Math.min(Math.max(rank, 0), STAGGER_MAX) * STAGGER;
+}
+
+function reveal(element, remaining, rank = 0) {
+    // Écrit en ligne plutôt qu'en CSS : le rang n'est connu qu'ici.
+    if (rank > 0) {
+        element.style.transitionDelay = `${cascadeDelay(rank)}ms`;
+    }
+
     element.classList.add(REVEALED);
 
     // Rendu une fois posée : `will-change` laissé sur trente zones réserve de
@@ -64,6 +125,7 @@ function reveal(element, remaining) {
         "transitionend",
         () => {
             element.classList.remove(ARMED, REVEALED);
+            element.style.transitionDelay = "";
             remaining.delete(element);
 
             if (0 === remaining.size) {
@@ -108,13 +170,9 @@ function arm() {
 
     const observer = new IntersectionObserver(
         (entries) => {
-            entries.forEach((entry) => {
-                if (!entry.isIntersecting) {
-                    return;
-                }
-
-                reveal(entry.target, remaining);
-                observer.unobserve(entry.target);
+            cascadeOrder(entries).forEach((target, rank) => {
+                reveal(target, remaining, rank);
+                observer.unobserve(target);
             });
         },
         { threshold: THRESHOLD, rootMargin: MARGIN },

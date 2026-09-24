@@ -46,7 +46,16 @@
 <section class="not-prose mt-10">
     <div class="{{ 'masonry' == gallery.layout ? masonry_columns[columns]|default(masonry_columns[3]) ~ ' gap-3' : 'grid ' ~ (grid_columns[columns]|default(grid_columns[3])) ~ ' gap-3' }}">
         {% for index, item in gallery.items %}
-            <figure class="m-0{{ 'masonry' == gallery.layout ? ' mb-3 break-inside-avoid' : '' }}">
+            {# **Sur chaque photo, pas sur la galerie.** Une galerie qui
+               arrive d'un bloc ne se lit pas comme vingt photos, elle se lit
+               comme un rectangle qui change d'opacité. Portées une par une,
+               elles franchissent le seuil ensemble et le script les décale
+               de soixante-dix millisecondes chacune, dans l'ordre où l'œil
+               les prend. #}
+            <figure
+                {% if reveal|default('none') != 'none' %}data-reveal="{{ reveal }}"{% endif %}
+                class="m-0{{ 'masonry' == gallery.layout ? ' mb-3 break-inside-avoid' : '' }}"
+            >
                 {# A button, not a link: it opens an overlay on this page rather
                    than going anywhere. Without the overlay's script it is a
                    button that does nothing, which is why the picture inside it
