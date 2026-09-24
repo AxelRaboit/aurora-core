@@ -121,6 +121,33 @@ function arm() {
     );
 
     below.forEach((zone) => observer.observe(zone));
+
+    // **Une page qui s'allonge après coup ne doit pas laisser du caché en
+    // vue.** Les positions sont mesurées au chargement du document, avant
+    // que les images ne se posent : une image sans dimensions occupe zéro
+    // pixel, la page est donc plus courte qu'elle ne sera, et une zone jugée
+    // « sous la fenêtre » peut se retrouver dedans une seconde plus tard
+    // sans que rien ne la croise à nouveau - l'observateur ne se redéclenche
+    // pas sur un élément qui n'a pas bougé par rapport à la fenêtre.
+    //
+    // La cause se corrige ailleurs, en écrivant `width` et `height` sur les
+    // images. Ceci est le filet : à `load`, tout ce qui est armé et
+    // désormais visible arrive, et le pire cas devient une zone qui apparaît
+    // sans effet plutôt qu'une zone qui n'apparaît pas.
+    window.addEventListener(
+        "load",
+        () => {
+            remaining.forEach((zone) => {
+                if (zone.getBoundingClientRect().top >= window.innerHeight) {
+                    return;
+                }
+
+                reveal(zone, remaining);
+                observer.unobserve(zone);
+            });
+        },
+        { once: true },
+    );
 }
 
 if ("loading" === document.readyState) {
