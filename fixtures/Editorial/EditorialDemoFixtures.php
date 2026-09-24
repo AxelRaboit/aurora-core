@@ -260,6 +260,35 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                 'en' => ['Getting started', 'getting-started'],
                 'es' => ['Primeros pasos', 'primeros-pasos'],
             ], SequencePrefixEnum::TaxonomyTerm->value.'-DEMO-2', $terms['guides']);
+
+            // Deux termes ne montrent pas une taxonomie : ils montrent une
+            // liste de deux lignes, dont une indentée, sur un écran vide aux
+            // deux tiers. Ce qui se voit ici, c'est l'imbrication, et il faut
+            // un second parent et un second niveau pour qu'elle se lise comme
+            // une arborescence plutôt que comme un accident.
+            $terms['layout'] = $this->term($em, $category, [
+                'fr' => ['Mise en page', 'mise-en-page'],
+                'en' => ['Layout', 'layout'],
+                'es' => ['Maquetación', 'maquetacion'],
+            ], SequencePrefixEnum::TaxonomyTerm->value.'-DEMO-5', $terms['guides']);
+
+            $terms['cases'] = $this->term($em, $category, [
+                'fr' => ['Études de cas', 'etudes-de-cas'],
+                'en' => ['Case studies', 'case-studies'],
+                'es' => ['Casos prácticos', 'casos-practicos'],
+            ], SequencePrefixEnum::TaxonomyTerm->value.'-DEMO-6');
+
+            $terms['showcase'] = $this->term($em, $category, [
+                'fr' => ['Sites vitrines', 'sites-vitrines'],
+                'en' => ['Showcase sites', 'showcase-sites'],
+                'es' => ['Sitios escaparate', 'sitios-escaparate'],
+            ], SequencePrefixEnum::TaxonomyTerm->value.'-DEMO-7', $terms['cases']);
+
+            $terms['shops'] = $this->term($em, $category, [
+                'fr' => ['Boutiques en ligne', 'boutiques-en-ligne'],
+                'en' => ['Online shops', 'online-shops'],
+                'es' => ['Tiendas en línea', 'tiendas-en-linea'],
+            ], SequencePrefixEnum::TaxonomyTerm->value.'-DEMO-8', $terms['cases']);
         }
 
         if ($tag instanceof TaxonomyInterface) {
@@ -274,6 +303,26 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                 'en' => ['Releases', 'releases'],
                 'es' => ['Novedades', 'novedades'],
             ], SequencePrefixEnum::TaxonomyTerm->value.'-DEMO-4');
+
+            // Les étiquettes sont à plat par nature : ce qui manquait ici,
+            // c'est seulement le nombre.
+            $terms['media'] = $this->term($em, $tag, [
+                'fr' => ['Médias', 'medias'],
+                'en' => ['Media', 'media'],
+                'es' => ['Medios', 'medios'],
+            ], SequencePrefixEnum::TaxonomyTerm->value.'-DEMO-9');
+
+            $terms['forms'] = $this->term($em, $tag, [
+                'fr' => ['Formulaires', 'formulaires'],
+                'en' => ['Forms', 'forms'],
+                'es' => ['Formularios', 'formularios'],
+            ], SequencePrefixEnum::TaxonomyTerm->value.'-DEMO-10');
+
+            $terms['a11y'] = $this->term($em, $tag, [
+                'fr' => ['Accessibilité', 'accessibilite'],
+                'en' => ['Accessibility', 'accessibility'],
+                'es' => ['Accesibilidad', 'accesibilidad'],
+            ], SequencePrefixEnum::TaxonomyTerm->value.'-DEMO-11');
         }
 
         return $terms;
@@ -354,7 +403,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                 'media' => 3,
                 'status' => PostStatusEnum::Published,
                 'publishedAt' => $now->modify('-12 days'),
-                'terms' => ['starters', 'editorial'],
+                'terms' => ['starters', 'editorial', 'forms'],
                 'fr' => ['Écrire son premier article', 'ecrire-premier-article', 'Du brouillon à la mise en ligne, en cinq minutes.'],
                 'en' => ['Writing your first post', 'writing-your-first-post', 'From draft to published, in five minutes.'],
                 'es' => ['Escribir su primer artículo', 'escribir-primer-articulo', 'Del borrador a la publicación, en cinco minutos.'],
@@ -369,7 +418,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                 'media' => 2,
                 'status' => PostStatusEnum::Published,
                 'publishedAt' => $now->modify('-3 days'),
-                'terms' => ['guides'],
+                'terms' => ['guides', 'layout', 'media'],
                 'fr' => ['Composer avec les blocs', 'composer-avec-les-blocs', 'Titres, listes, encadrés : ce que l\'éditeur sait faire.'],
                 'en' => ['Composing with blocks', 'composing-with-blocks', 'Headings, lists, callouts: what the editor can do.'],
                 'es' => ['Componer con bloques', 'componer-con-bloques', 'Títulos, listas, destacados: lo que sabe hacer el editor.'],
@@ -392,7 +441,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                 'media' => 1,
                 'status' => PostStatusEnum::PendingReview,
                 'publishedAt' => null,
-                'terms' => ['guides'],
+                'terms' => ['guides', 'a11y'],
                 'fr' => ['Relire avant de publier', 'relire-avant-de-publier', 'Envoyée en relecture : elle attend un avis.'],
                 'en' => ['Review before publishing', 'review-before-publishing', 'Sent for review: it is waiting for an opinion.'],
                 'es' => ['Revisar antes de publicar', 'revisar-antes-de-publicar', 'Enviada a revisión: espera una opinión.'],
@@ -441,9 +490,9 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                 'status' => PostStatusEnum::Published,
                 'publishedAt' => $now->modify('-28 days'),
                 'terms' => [],
-                'fr' => ['Contact', 'contact', $this->lorem(1, 1)],
-                'en' => ['Contact', 'contact', $this->lorem(1, 1)],
-                'es' => ['Contacto', 'contacto', $this->lorem(1, 1)],
+                'fr' => ['Contact', 'contact', 'Une question, un projet, un devis : écrivez-nous, on répond sous 48 heures.'],
+                'en' => ['Contact', 'contact', 'A question, a project, a quote: write to us and we answer within 48 hours.'],
+                'es' => ['Contacto', 'contacto', 'Una pregunta, un proyecto, un presupuesto: escríbanos, respondemos en 48 horas.'],
             ],
             'legal' => [
                 'type' => $types['page'],
@@ -1304,25 +1353,47 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             ],
         ]));
 
+        // Du vrai texte, et pas du lorem.
+        //
+        // Cette page illustre le site public sur le tour d'Aurora, et une
+        // capture où le premier paragraphe commence par « Totam rem aperiam »
+        // ne se lit pas comme une démonstration : elle se lit comme un site
+        // qu'on n'a pas fini. Le lorem reste bon pour une page de remplissage
+        // dont personne ne photographie le contenu.
         $headings = [
-            'fr' => ['Nous écrire', 'Nous joindre'],
-            'en' => ['Write to us', 'Reach us'],
-            'es' => ['Escríbanos', 'Cómo localizarnos'],
+            'fr' => [
+                'Nous écrire',
+                'Décrivez votre projet en quelques lignes : ce que vous faites, ce dont vous avez besoin, et sous quel délai. Un devis chiffré suit sous 48 heures, sans engagement.',
+                'Nous joindre',
+                ['contact@example.com', '+33 1 23 45 67 89', '12 rue des Lilas, 75011 Paris'],
+            ],
+            'en' => [
+                'Write to us',
+                'Describe your project in a few lines: what you do, what you need, and by when. A costed quote follows within 48 hours, with no commitment.',
+                'Reach us',
+                ['contact@example.com', '+33 1 23 45 67 89', '12 rue des Lilas, 75011 Paris'],
+            ],
+            'es' => [
+                'Escríbanos',
+                'Describa su proyecto en unas líneas: a qué se dedica, qué necesita y en qué plazo. Le enviamos un presupuesto en 48 horas, sin compromiso.',
+                'Cómo localizarnos',
+                ['contact@example.com', '+33 1 23 45 67 89', '12 rue des Lilas, 75011 Paris'],
+            ],
         ];
 
         foreach (LocaleEnum::values() as $locale) {
             $translation = $contact->translate($locale);
-            [$heading, $aside] = $headings[$locale];
+            [$heading, $lead, $aside, $details] = $headings[$locale];
 
             $translation->setGrid($this->gridNormalizer->normalizeContent([
                 'zones' => [
                     'intro' => ['blocks' => [
                         EditorBlocks::header($heading),
-                        EditorBlocks::paragraph($this->lorem(2, 5)),
+                        EditorBlocks::paragraph($lead),
                     ]],
                     'reach' => ['blocks' => [
                         EditorBlocks::header($aside, 3),
-                        EditorBlocks::list(['contact@example.com', '+33 1 23 45 67 89', 'Lorem ipsum 75001']),
+                        EditorBlocks::list($details),
                     ]],
                 ],
             ], $contact->getGridLayout()));

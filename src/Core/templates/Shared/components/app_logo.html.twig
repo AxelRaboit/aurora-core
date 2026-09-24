@@ -29,7 +29,7 @@
         <div class="{{ logoTextLayout }}">
             <span class="{{ logoTextClass }}">{{ logoLabel }}</span>
             {% if appVersion is defined and appVersion %}
-                <span class="{{ logoVersionClass }}">{{ appVersion }}</span>
+                <span data-app-version class="{{ logoVersionClass }}">{{ appVersion }}</span>
             {% endif %}
         </div>
     {% endif %}

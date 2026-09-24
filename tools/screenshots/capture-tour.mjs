@@ -847,6 +847,12 @@ async function hideChrome(page) {
     await page.addStyleTag({
         content: `
             .sf-toolbar, .sf-minitoolbar, #sfToolbarMainContent, #sfToolbarClearer { display: none !important; }
+            /* La version sous le logo. Sur une instance locale elle vaut
+               « dev », et c'est la seule chose de ces images qui dise à un
+               client qu'il regarde une machine de développement plutôt que
+               le produit. En production elle porterait un numéro, qui ne lui
+               apprend rien non plus. */
+            [data-app-version] { display: none !important; }
             *, *::before, *::after { caret-color: transparent !important; }
             :focus-visible { outline: none !important; }
         `,
