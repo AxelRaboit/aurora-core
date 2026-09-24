@@ -215,6 +215,30 @@ const SHOTS = [
         },
     },
     {
+        // La grille et sa palette : quarante-huit colonnes, les zones déjà
+        // posées, et en bas tout ce qu'on peut poser. La carte énumère dix
+        // sortes de zones et n'en montrait aucune.
+        name: "tour-grille-palette",
+        path: "/backend/editorial/posts/1/edit",
+        async prepare(page) {
+            await page.waitForTimeout(4_000);
+            // `exact`, sinon le menu latéral gagne : « Types de contenu » contient
+            // « contenu », et c'est lui que le premier résultat désigne. La
+            // capture sortait alors sur l'onglet Paramétrage, qui est celui
+            // d'à côté et qui ressemble assez pour qu'on ne le voie pas.
+            await page.getByRole("button", { name: "Contenu", exact: true }).first().click();
+            await page.waitForTimeout(2_000);
+        },
+    },
+    // Pas de prise de l'éditeur d'une zone, et j'ai essayé trois fois.
+    // L'éditeur s'ouvre sous la grille, et le défilement ne tient pas
+    // jusqu'à l'obturateur : la capture ressort sur la grille, c'est-à-dire
+    // en double de celle du dessus. Deux images identiques valent moins
+    // qu'une seule, et celle de la palette dit déjà ce que la carte promet -
+    // vingt-quatre sortes de zones à poser. À reprendre en visant le
+    // conteneur qui défile vraiment, qui n'est pas la fenêtre.
+
+    {
         // Le paramétrage d'une publication : son statut, ses dates, son type
         // et son adresse. La carte parle d'un cycle - brouillon, revue,
         // programmation, publication, archivage - et ne montrait que la liste

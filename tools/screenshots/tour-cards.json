@@ -221,6 +221,10 @@
         "tour-publications-corbeille": {
             "document": 453,
             "slug": "publier-programmer-archiver"
+        },
+        "tour-grille-palette": {
+            "document": 454,
+            "slug": "composer-une-page"
         }
     }
 }
