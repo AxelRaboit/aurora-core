@@ -220,6 +220,7 @@ notes:
       midnight: Midnight
       mint: Mint
     delete: Delete
+    rename: Rename the note
     cancel: Cancel
     saved: Note saved
     delete_warning: The note goes to the trash. You can restore it from there.

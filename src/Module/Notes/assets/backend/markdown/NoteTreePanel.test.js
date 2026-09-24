@@ -438,14 +438,27 @@ describe("les favoris", () => {
 });
 
 describe("what the panel kept from the aside", () => {
-    it("offers the row actions the tree used to have", async () => {
+    /**
+     * Le plus reste dehors, le reste passe dans la feuille.
+     *
+     * Avant, une ligne de dossier portait deux boutons - créer et supprimer -
+     * et une ligne de note n'en portait aucun : ni renommer, ni supprimer,
+     * alors que tout existait derrière. La règle de la maison veut qu'au-delà
+     * de deux gestes on empile, et une ligne d'arbre est trop étroite pour en
+     * aligner trois : la suppression et le renommage sont donc dans la
+     * feuille, et le plus d'un dossier - le seul qu'on répète - reste sous la
+     * main.
+     */
+    it("garde le plus dehors et passe le reste dans la feuille", async () => {
         const titles = (await render())
             .findAll("button")
             .map((b) => b.attributes("title"))
             .filter(Boolean);
 
         expect(titles.some((t) => t.includes("create_in_folder"))).toBe(true);
-        expect(titles.some((t) => t.includes("folders.delete"))).toBe(true);
+        expect(titles.some((t) => t.includes("shared.actions.open"))).toBe(
+            true,
+        );
     });
 
     it("lets a row be dragged", async () => {
@@ -470,6 +483,51 @@ describe("what the panel kept from the aside", () => {
      * up until the page was reloaded, because the panel had fetched its list
      * once on arrival and nothing ever told it otherwise.
      */
+    /**
+     * Le cas d'Axel : créer une note dans un dossier replié la laissait
+     * invisible. Le commentaire du panneau promettait pourtant que « son
+     * dossier s'ouvre », et rien ne le vérifiait.
+     */
+    it("ouvre le dossier d'une note quand la page l'annonce", async () => {
+        const wrapper = await render("/backend/notes/markdown", {
+            expanded: [],
+        });
+
+        expect(wrapper.text()).not.toContain("Journal de bord");
+
+        tellPanels("notes:changed", {
+            notes: NOTES,
+            folders: FOLDERS,
+            noteId: 11,
+        });
+        await flushPromises();
+
+        expect(wrapper.text()).toContain("Journal de bord");
+    });
+
+    /** Une note rangée profond n'est visible que si toute la chaîne s'ouvre. */
+    it("remonte toute la chaîne des dossiers, pas seulement le dernier", async () => {
+        const wrapper = await render("/backend/notes/markdown", {
+            expanded: [],
+        });
+
+        const profond = [
+            ...NOTES,
+            { id: 13, title: "Sous-note", folderId: 2, tags: [] },
+        ];
+
+        tellPanels("notes:changed", {
+            notes: profond,
+            folders: FOLDERS,
+            noteId: 13,
+        });
+        await flushPromises();
+
+        // « Lundi » est dans « Journal » : les deux doivent s'être ouverts.
+        expect(wrapper.text()).toContain("Lundi");
+        expect(wrapper.text()).toContain("Sous-note");
+    });
+
     it("takes the page's word for the list when it changes", async () => {
         const wrapper = await render("/backend/notes/markdown", {
             expanded: [1],

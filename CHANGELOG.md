@@ -5,6 +5,52 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.242] - 2026-09-24
+
+### Corrigé
+
+#### Une note n'avait aucune action, et rien ne pouvait être renommé
+Dans l'arbre latéral, le bloc d'actions était sous `v-if="isFolder"` et ne
+contenait que créer et supprimer : **une note ne proposait rien**, et ni une
+note ni un dossier ne pouvaient être renommés. Tout existait déjà derrière -
+la modale de renommage, son API, ses traductions, et jusqu'au `requestDelete`
+branché sur cet événement - il n'y avait simplement aucun bouton pour
+l'atteindre.
+
+Chaque ligne porte maintenant une feuille d'actions, renommer et supprimer,
+dossier comme note. Le plus d'un dossier reste dehors : c'est le geste qu'on
+répète. La règle de la maison veut qu'au-delà de deux gestes on empile, et une
+ligne d'arbre est trop étroite pour en aligner trois.
+
+Le champ titre d'une note était un `input` sans bordure ni fond, en 2xl : il
+se lisait comme le titre de la page, et on cherchait ailleurs de quoi
+renommer. Une surface sourde au survol et au focus dit qu'on peut écrire
+dedans, sans l'encadrer en permanence.
+
+La note se met aussi à la corbeille depuis ses propres actions, l'endroit le
+plus évident, où il n'y avait rien.
+
+#### Créer une note dans un dossier replié ne montrait rien
+La note était créée et sélectionnée, mais elle restait derrière une flèche
+fermée. Le commentaire du panneau promettait déjà que « son dossier s'ouvre » ;
+le code ne faisait que l'allumer. Toute la chaîne des dossiers parents s'ouvre
+désormais, pas seulement le dernier, et deux cas le vérifient.
+
+#### Les notifications menaient à `localhost`
+Quatre notifications gravaient une adresse absolue : rappel et alerte
+d'agenda, relecture d'une publication, activité d'un espace. Elles sont
+écrites par le worker, **sans requête HTTP**, donc le contexte de routage
+retombe sur `localhost` : en local, cliquer dessus donnait un refus de
+connexion. Un lien qui reste dans l'application est un chemin, que le
+navigateur résout contre l'hôte où se trouve la personne.
+
+Les liens d'e-mail restent absolus, eux sortent de l'application. Le digest
+d'un espace confondait les deux : il cherchait en absolu ce qui est rangé en
+relatif, ne trouvait rien, et n'envoyait plus rien. Deux cas l'ont dit tout
+de suite.
+
+---
+
 ## [0.9.241] - 2026-09-24
 
 ### Corrigé

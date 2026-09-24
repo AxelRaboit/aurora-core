@@ -135,6 +135,43 @@ const expanded = computed(() =>
     searching.value ? folderIdsIn(tree.value) : openedIds.value,
 );
 
+/**
+ * Déplier ce qu'il faut pour qu'une note soit visible.
+ *
+ * **Le commentaire d'à côté promettait déjà que « son dossier s'ouvre », et
+ * le code ne faisait que l'allumer.** On le voyait en créant une note dans un
+ * dossier replié : la note était bien créée et bien sélectionnée, mais elle
+ * restait cachée derrière une flèche fermée, et rien ne disait qu'il s'était
+ * passé quelque chose.
+ *
+ * Toute la chaîne, pas seulement le dossier direct : une note rangée à trois
+ * niveaux reste invisible si l'on n'ouvre que le dernier. La boucle se garde
+ * des cycles en comptant ses tours, parce qu'un parent qui se pointerait
+ * lui-même ferait tourner la page sans rien afficher.
+ */
+function revealNote(noteId) {
+    const note = announcedNotes.value.find((n) => Number(n.id) === Number(noteId));
+
+    if (!note?.folderId) return;
+
+    const parents = new Map(
+        announcedFolders.value.map((f) => [Number(f.id), Number(f.parentId) || null]),
+    );
+
+    const next = new Set(openedIds.value);
+    let id = Number(note.folderId);
+
+    for (let garde = 0; null !== id && garde <= parents.size; garde += 1) {
+        if (next.has(id)) break;
+
+        next.add(id);
+        id = parents.get(id) ?? null;
+    }
+
+    openedIds.value = next;
+    storeExpanded(next);
+}
+
 function toggle(node) {
     const id = Number(node.id);
     const next = new Set(openedIds.value);
@@ -490,6 +527,7 @@ onMounted(() => {
             // s'ouvre pour qu'elle soit visible.
             if (detail?.noteId) {
                 selectedKey.value = `note:${detail.noteId}`;
+                revealNote(detail.noteId);
 
                 return;
             }
@@ -616,7 +654,8 @@ onUnmounted(() => {
             v-on:select="onSelect"
             v-on:toggle="toggle"
             v-on:create-note="(id) => forward('create', id)"
-            v-on:delete="(folder) => forward('delete-folder', folder)"
+            v-on:rename="(node) => forward('folder' === node.kind ? 'rename-folder' : 'rename-note', node)"
+            v-on:delete="(node) => forward('folder' === node.kind ? 'delete-folder' : 'delete', node)"
             v-on:drag-start="onDragStart"
             v-on:drag-end="onDragEnd"
             v-on:drag-over="onDragOver"

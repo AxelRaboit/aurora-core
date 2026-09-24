@@ -220,6 +220,7 @@ notes:
       midnight: Nuit
       mint: Menthe
     delete: Supprimer
+    rename: Renommer la note
     cancel: Annuler
     saved: Note enregistrée
     delete_warning: La note part à la corbeille. Vous pourrez la restaurer depuis la corbeille.
