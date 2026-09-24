@@ -160,12 +160,6 @@ const pageActions = computed(() => {
                         </div>
                         <p v-if="theme.description" class="text-sm text-muted line-clamp-2">{{ theme.description }}</p>
                     </div>
-                    <div class="flex items-center gap-1 shrink-0">
-                        <AppBadge v-if="theme.active" color="emerald">
-                            <Check class="w-3 h-3" :stroke-width="2.5" />
-                            {{ t("backend.themes.active") }}
-                        </AppBadge>
-                    </div>
                 </div>
 
                 <div class="flex items-center gap-3">
@@ -180,12 +174,25 @@ const pageActions = computed(() => {
                     </div>
                 </div>
 
+                <!-- Le thème actif dit qu'il l'est, il ne propose pas de
+                     l'activer.
+                     Le badge était posé en face du titre, `shrink-0`, donc il
+                     mangeait sa largeur pour de bon : dans une colonne de
+                     grille étroite, la carte active était la seule dont le nom
+                     était coupé, dont l'identifiant passait à la ligne et dont
+                     le résumé se lisait sur une mesure plus courte que celle
+                     de ses voisines. Descendu au pied, il occupe la place d'un
+                     bouton « Activer » désactivé qui, à côté d'un badge
+                     « Actif », ne disait rien de plus. -->
                 <div class="flex items-center gap-2 mt-auto pt-2 border-t border-line">
+                    <AppBadge v-if="theme.active" color="emerald" class="flex-1 justify-center">
+                        <Check class="w-3 h-3" :stroke-width="2.5" />
+                        {{ t("backend.themes.active") }}
+                    </AppBadge>
                     <AppButton
-                        v-if="can('configuration.themes.manage')"
+                        v-else-if="can('configuration.themes.manage')"
                         size="sm"
-                        :variant="theme.active ? 'ghost' : 'secondary'"
-                        :disabled="theme.active"
+                        variant="secondary"
                         class="flex-1"
                         v-on:click="activateTheme(theme)"
                     >
