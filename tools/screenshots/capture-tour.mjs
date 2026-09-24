@@ -58,6 +58,24 @@ const VIEWPORT = { width: 1600, height: 1000 };
  * say what they do once something is on them.
  */
 /**
+ * Met la bibliothèque à plat, si elle ne l'est pas déjà.
+ *
+ * Le bouton porte le geste qu'il ferait, pas l'état où l'on est : « Tout
+ * afficher à plat » quand on est par dossiers, « Afficher par dossiers »
+ * quand on est à plat. Et l'état est retenu d'une visite à l'autre, donc le
+ * deuxième scénario cherchait un libellé que le premier venait de faire
+ * disparaître.
+ */
+async function flatten(page) {
+    const bouton = page.getByTitle("Tout afficher à plat").first();
+
+    if (await bouton.count() > 0) {
+        await bouton.click();
+        await page.waitForTimeout(1_200);
+    }
+}
+
+/**
  * Ouvre une publication de la démonstration.
  *
  * Par son adresse et non par un clic dans la liste : une ligne n'est pas un
@@ -197,6 +215,84 @@ const SHOTS = [
         },
     },
     {
+        // La grille et sa palette : quarante-huit colonnes, les zones déjà
+        // posées, et en bas tout ce qu'on peut poser. La carte énumère dix
+        // sortes de zones et n'en montrait aucune.
+        name: "tour-grille-palette",
+        path: "/backend/editorial/posts/1/edit",
+        async prepare(page) {
+            await page.waitForTimeout(4_000);
+            // `exact`, sinon le menu latéral gagne : « Types de contenu » contient
+            // « contenu », et c'est lui que le premier résultat désigne. La
+            // capture sortait alors sur l'onglet Paramétrage, qui est celui
+            // d'à côté et qui ressemble assez pour qu'on ne le voie pas.
+            await page.getByRole("button", { name: "Contenu", exact: true }).first().click();
+            await page.waitForTimeout(2_000);
+        },
+    },
+    // Pas de prise de l'éditeur d'une zone, et j'ai essayé trois fois.
+    // L'éditeur s'ouvre sous la grille, et le défilement ne tient pas
+    // jusqu'à l'obturateur : la capture ressort sur la grille, c'est-à-dire
+    // en double de celle du dessus. Deux images identiques valent moins
+    // qu'une seule, et celle de la palette dit déjà ce que la carte promet -
+    // vingt-quatre sortes de zones à poser. À reprendre en visant le
+    // conteneur qui défile vraiment, qui n'est pas la fenêtre.
+
+    {
+        // Le paramétrage d'une publication : son statut, ses dates, son type
+        // et son adresse. La carte parle d'un cycle - brouillon, revue,
+        // programmation, publication, archivage - et ne montrait que la liste
+        // où le statut se lit, jamais l'endroit où il se décide.
+        name: "tour-publications-parametrage",
+        path: "/backend/editorial/posts/1/edit",
+        async prepare(page) {
+            // `domcontentloaded` ne suffit pas ici : l'onglet n'existe qu'une
+            // fois le composant monté, et l'éditeur garde une connexion
+            // ouverte en dev, donc `load` n'arrive jamais.
+            await page.waitForTimeout(4_000);
+            await page.getByRole("button", { name: "Paramétrage" }).first().click();
+            await page.waitForTimeout(1_500);
+        },
+    },
+    {
+        // L'historique : ce qui a été enregistré avant est conservé et se
+        // compare. La carte le promet noir sur blanc.
+        //
+        // La prise n'a été possible qu'après avoir donné des révisions au
+        // jeu de démonstration : les fixtures écrivent les publications en
+        // direct, alors qu'une révision naît d'un enregistrement passé par
+        // le gestionnaire. La modale s'ouvrait donc sur « Aucune version
+        // enregistrée pour le moment », soit l'image qui réussit sans rien
+        // montrer.
+        name: "tour-publications-historique",
+        path: "/backend/editorial/posts/1/edit",
+        async prepare(page) {
+            await page.waitForTimeout(4_000);
+            await page.getByRole("button", { name: "Actions" }).first().click();
+            await page.waitForTimeout(800);
+            await page.getByRole("button", { name: "Historique" }).first().click();
+            await page.waitForTimeout(2_500);
+        },
+    },
+    {
+        // La corbeille, qui traverse les modules : supprimer n'efface pas
+        // tout de suite, et l'écran dit combien de temps il reste.
+        name: "tour-publications-corbeille",
+        path: "/backend/trash",
+    },
+    {
+        // Les catégories : une par nature de document, celle qui décide où un
+        // fichier est rangé. La carte en parle et ne la montrait pas.
+        name: "tour-mediatheque-categories",
+        path: "/backend/ged/categories",
+    },
+    {
+        // Les étiquettes, qui traversent les catégories : un même document
+        // peut en porter autant qu'il veut, là où il n'a qu'une catégorie.
+        name: "tour-mediatheque-etiquettes",
+        path: "/backend/ged/tags",
+    },
+    {
         // La carte promet « le rendu à côté de la source », et son texte de
         // remplacement décrit « une note, son rendu à côté, ses étiquettes et
         // ses liens ». La prise montrait la bibliothèque : des dossiers et des
@@ -243,8 +339,46 @@ const SHOTS = [
         name: "tour-notes-bibliotheque",
         path: "/backend/notes/markdown",
         async prepare(page) {
-            await page.getByTitle("Tout afficher à plat").first().click();
-            await page.waitForTimeout(1_500);
+            await flatten(page);
+        },
+    },
+    {
+        // La même bibliothèque en vue cartes : la grille dense, sans extrait.
+        // Trois façons de regarder le même carnet, et une seule était
+        // photographiée.
+        name: "tour-notes-vue-cartes",
+        path: "/backend/notes/markdown",
+        async prepare(page) {
+            await flatten(page);
+            await page.getByTitle("Cartes").first().click();
+            await page.waitForTimeout(1_200);
+        },
+    },
+    {
+        // Et en liste : titre, étiquettes, dossier, date. C'est la vue de
+        // celui qui cherche une note précise plutôt que de parcourir.
+        name: "tour-notes-vue-liste",
+        path: "/backend/notes/markdown",
+        async prepare(page) {
+            await flatten(page);
+            await page.getByTitle("Liste").first().click();
+            await page.waitForTimeout(1_200);
+        },
+    },
+    {
+        // L'habillage d'une note, où les deux choses se décident au même
+        // endroit : l'image d'entête, cherchée chez Pexels et recadrée à la
+        // molette, et les six apparences. Une seule fenêtre pour les deux,
+        // donc une seule image.
+        name: "tour-notes-entete",
+        path: "/backend/notes/markdown",
+        async prepare(page) {
+            await page.getByRole("link", { name: /^Sommaire des clients/ }).first().click();
+            await page.waitForTimeout(2_500);
+            await page.getByTitle(/^Actions pour/).first().click();
+            await page.waitForTimeout(800);
+            await page.getByRole("button", { name: "Image d'entête" }).first().click();
+            await page.waitForTimeout(2_000);
         },
     },
     {

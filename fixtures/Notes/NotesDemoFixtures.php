@@ -373,9 +373,7 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                     ## À relancer
 
                     - [x] Facture de septembre, Studio Lumen
-                    - [ ] Photos de la galerie, Cabinet Verrier
-
-                    Les tarifs pratiqués sont dans [[Tarifs 2024]], gardés pour mémoire : ils ont changé en janvier.
+                    - [ ] Photos de la galerie, Cabinet Verrier ; tarifs dans [[Tarifs 2024]]
                     MD,
             ],
             'lumen' => [
