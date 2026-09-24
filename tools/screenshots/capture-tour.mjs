@@ -320,7 +320,15 @@ const SHOTS = [
         name: "tour-publications-corbeille",
         path: "/backend/trash",
     },
-    postTabShot("tour-entete-reglages", "En-tête"),
+    // La carte promet les réglages de l'en-tête et la prise n'en montrait
+    // aucun : l'aperçu occupe toute la fenêtre et les contrôles - placement,
+    // hauteur, largeur, dégradé, fondu, boutons - commencent sous le pli. On
+    // descend donc jusqu'à « Hauteur », ce qui laisse le bas de l'aperçu en
+    // haut du cadre : on voit ce qu'on règle et ce que ça donne.
+    postTabShot("tour-entete-reglages", "En-tête", async (page) => {
+        await page.getByText("Hauteur", { exact: true }).first().scrollIntoViewIfNeeded();
+        await page.waitForTimeout(1_200);
+    }),
     postTabShot("tour-seo-onglet", "Moteurs de recherche"),
     postTabShot("tour-galerie-onglet", "Galerie"),
     {
