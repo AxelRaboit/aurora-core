@@ -225,6 +225,10 @@
         "tour-grille-palette": {
             "document": 454,
             "slug": "composer-une-page"
+        },
+        "tour-publications-historique": {
+            "document": 455,
+            "slug": "publier-programmer-archiver"
         }
     }
 }

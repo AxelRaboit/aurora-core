@@ -31,12 +31,15 @@ use Aurora\Module\Editorial\Menu\Repository\MenuRepository;
 use Aurora\Module\Editorial\Post\Banner\BannerNormalizer;
 use Aurora\Module\Editorial\Post\Entity\Post;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
+use Aurora\Module\Editorial\Post\Entity\PostRevision;
 use Aurora\Module\Editorial\Post\Entity\PostTranslationInterface;
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
 use Aurora\Module\Editorial\Post\Enum\ThumbnailFitEnum;
 use Aurora\Module\Editorial\Post\Gallery\GalleryNormalizer;
 use Aurora\Module\Editorial\Post\Grid\GridNormalizer;
+use Aurora\Module\Editorial\Post\Repository\PostRevisionRepository;
 use Aurora\Module\Editorial\Post\Service\EditorBlocks;
+use Aurora\Module\Editorial\Post\Service\PostSnapshot;
 use Aurora\Module\Editorial\Post\Service\PostTextExtractor;
 use Aurora\Module\Editorial\PostType\Entity\PostType;
 use Aurora\Module\Editorial\PostType\Entity\PostTypeField;
@@ -48,6 +51,8 @@ use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyTermInterface;
 use Aurora\Module\Editorial\Taxonomy\Repository\TaxonomyRepository;
 use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Platform\User\Entity\User;
+use Aurora\Module\Platform\User\Enum\UserTypeEnum;
+use Aurora\Module\Platform\User\Repository\UserRepository;
 use DateTimeImmutable;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -84,6 +89,9 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         private readonly SettingsService $settingsManager,
         private readonly FormManagerInterface $forms,
         private readonly FormTranslationRepository $formTranslationRepository,
+        private readonly PostSnapshot $snapshot,
+        private readonly PostRevisionRepository $revisionRepository,
+        private readonly UserRepository $userRepository,
     ) {}
 
     public static function getGroups(): array
@@ -137,6 +145,11 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
 
         $this->createComments($manager, $posts);
         $manager->flush();
+
+        // Après le dernier `flush` : une révision photographie la publication
+        // telle qu'elle est à cet instant, grille comprise, et la grille est
+        // posée plus haut.
+        $this->createRevisions($manager, $posts);
 
         $manager->flush();
 
@@ -1684,6 +1697,98 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
      *
      * @param array<string, PostInterface> $posts
      */
+    /**
+     * Deux révisions sur la page d'accueil, pour que l'historique montre
+     * quelque chose.
+     *
+     * Le module en produit une à chaque enregistrement, mais les fixtures
+     * écrivent leurs publications en direct : la modale « Historique des
+     * versions » s'ouvrait donc sur un écran vide, alors que c'est une des
+     * fonctions que la page publique du module met en avant.
+     *
+     * Le contenu de chaque révision est une **vraie** photographie de la
+     * publication, prise par le même service que le gestionnaire ; seuls le
+     * titre et le résumé sont remontés d'un cran, pour qu'une comparaison ait
+     * une différence à montrer. Autrement dit : ce sont deux états par
+     * lesquels cette page aurait pu passer, pas deux lignes inventées.
+     *
+     * Idempotente : une publication qui a déjà des révisions n'en reçoit pas
+     * de nouvelles à chaque `make demo`.
+     *
+     * @param array<string, PostInterface> $posts
+     */
+    private function createRevisions(ObjectManager $manager, array $posts): void
+    {
+        $post = $posts['welcome'] ?? null;
+
+        if (!$post instanceof PostInterface || [] !== $this->revisionRepository->findBy(['post' => $post])) {
+            return;
+        }
+
+        $etapes = [
+            ['jours' => 9, 'titre' => 'Accueil', 'resume' => "Page d'accueil."],
+            ['jours' => 3, 'titre' => 'Bienvenue', 'resume' => "La page d'accueil du site."],
+        ];
+
+        // Une version signée plutôt qu'« Auteur inconnu » deux fois : dans un
+        // historique, qui a enregistré fait partie de ce qu'on vient y lire.
+        $auteur = $this->userRepository->findOneBy([
+            'email' => 'dev@aurora.app',
+            'type' => UserTypeEnum::Backend->value,
+        ]);
+
+        $revisions = [];
+
+        foreach ($etapes as $rang => $etape) {
+            $snapshot = $this->snapshot->build($post);
+
+            foreach (array_keys($snapshot['translations']) as $locale) {
+                if ('fr' === $locale) {
+                    $snapshot['translations'][$locale]['title'] = $etape['titre'];
+                    $snapshot['translations'][$locale]['description'] = $etape['resume'];
+                }
+            }
+
+            $revision = new PostRevision();
+            $revision
+                ->setPost($post)
+                ->setPostVersion($rang + 1)
+                ->setStatus($post->getStatus())
+                ->setSnapshot($snapshot)
+                ->setAuthor($auteur);
+
+            $manager->persist($revision);
+            $revisions[] = [$revision, $etape['jours']];
+        }
+
+        $manager->flush();
+
+        // Les dates sont reculées après coup, en SQL.
+        //
+        // `TimestampableTrait` pose `createdAt` sur `PrePersist` et n'offre
+        // aucun accesseur : c'est voulu, une date de création qui se règle
+        // n'en est plus une. Ici on veut justement mentir un peu, pour qu'un
+        // historique de démonstration ne montre pas deux versions à la même
+        // seconde - ce qui n'apprend rien sur ce à quoi sert un historique.
+        // Le mensonge tient dans ces quatre lignes, visible, plutôt que dans
+        // un setter que tout le monde pourrait appeler.
+        // `ObjectManager` ne connaît pas `getConnection` : c'est l'interface
+        // de persistance, pas celle de Doctrine ORM. Le reste du fichier
+        // travaille déjà sur l'implémentation.
+        if (!$manager instanceof EntityManagerInterface) {
+            return;
+        }
+
+        $connection = $manager->getConnection();
+
+        foreach ($revisions as [$revision, $jours]) {
+            $connection->executeStatement(
+                'UPDATE core_post_revisions SET created_at = :date, updated_at = :date WHERE id = :id',
+                ['date' => new DateTimeImmutable(sprintf('-%d days', $jours))->format('Y-m-d H:i:s'), 'id' => $revision->getId()],
+            );
+        }
+    }
+
     private function createComments(EntityManagerInterface $em, array $posts): void
     {
         $post = $posts['first-steps'] ?? null;

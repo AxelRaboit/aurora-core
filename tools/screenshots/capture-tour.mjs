@@ -254,12 +254,26 @@ const SHOTS = [
             await page.waitForTimeout(1_500);
         },
     },
-    // Pas de prise de l'historique des versions, et c'est une absence
-    // délibérée : les fixtures écrivent les publications en direct, alors
-    // qu'une révision naît d'un `update` passé par le gestionnaire. La
-    // modale s'ouvre donc sur « Aucune version enregistrée pour le moment »,
-    // ce qui est exactement l'image qui réussit sans rien montrer. Il faut
-    // d'abord donner des révisions au jeu de démonstration.
+    {
+        // L'historique : ce qui a été enregistré avant est conservé et se
+        // compare. La carte le promet noir sur blanc.
+        //
+        // La prise n'a été possible qu'après avoir donné des révisions au
+        // jeu de démonstration : les fixtures écrivent les publications en
+        // direct, alors qu'une révision naît d'un enregistrement passé par
+        // le gestionnaire. La modale s'ouvrait donc sur « Aucune version
+        // enregistrée pour le moment », soit l'image qui réussit sans rien
+        // montrer.
+        name: "tour-publications-historique",
+        path: "/backend/editorial/posts/1/edit",
+        async prepare(page) {
+            await page.waitForTimeout(4_000);
+            await page.getByRole("button", { name: "Actions" }).first().click();
+            await page.waitForTimeout(800);
+            await page.getByRole("button", { name: "Historique" }).first().click();
+            await page.waitForTimeout(2_500);
+        },
+    },
     {
         // La corbeille, qui traverse les modules : supprimer n'efface pas
         // tout de suite, et l'écran dit combien de temps il reste.

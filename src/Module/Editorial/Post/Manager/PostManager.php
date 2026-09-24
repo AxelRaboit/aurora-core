@@ -26,6 +26,7 @@ use Aurora\Module\Editorial\Post\Repository\PostRepository;
 use Aurora\Module\Editorial\Post\Repository\PostRevisionRepository;
 use Aurora\Module\Editorial\Post\Repository\PostSlugHistoryRepository;
 use Aurora\Module\Editorial\Post\Security\PostVoter;
+use Aurora\Module\Editorial\Post\Service\PostSnapshot;
 use Aurora\Module\Editorial\Post\Service\PostTextExtractor;
 use Aurora\Module\Editorial\PostType\Repository\PostTypeRepository;
 use Aurora\Module\Editorial\Setting\EditorialSettingEnum;
@@ -44,8 +45,6 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
-
-use const DATE_ATOM;
 
 #[AsAlias(PostManagerInterface::class)]
 class PostManager implements PostManagerInterface
@@ -73,6 +72,7 @@ class PostManager implements PostManagerInterface
         protected readonly TranslatorInterface $translator,
         protected readonly AuditLogger $auditLogger,
         protected readonly SequenceGenerator $sequenceGenerator,
+        protected readonly PostSnapshot $snapshot,
         protected readonly BannerNormalizer $bannerNormalizer,
         protected readonly GridNormalizer $gridNormalizer,
         protected readonly GalleryNormalizer $galleryNormalizer,
@@ -527,7 +527,7 @@ class PostManager implements PostManagerInterface
         $revision->setPost($post);
         $revision->setPostVersion($post->getVersion());
         $revision->setStatus($post->getStatus());
-        $revision->setSnapshot($this->buildSnapshot($post));
+        $revision->setSnapshot($this->snapshot->build($post));
 
         $user = $this->security->getUser();
         if ($user instanceof CoreUserInterface) {
@@ -545,45 +545,6 @@ class PostManager implements PostManagerInterface
         if ($limit > 0) {
             $this->revisionRepository->pruneOlderThanLimit($post, $limit);
         }
-    }
-
-    /** @return array<string, mixed> */
-    private function buildSnapshot(PostInterface $post): array
-    {
-        $translations = [];
-        foreach ($post->getTranslations() as $locale => $translation) {
-            $translations[(string) $locale] = [
-                'title' => $translation->getTitle(),
-                'slug' => $translation->getSlug(),
-                // The body, which is a grid and lives in two halves: what each
-                // zone holds is here, the arrangement is on the post below.
-                // Taking one without the other restores words with nowhere to
-                // go, or an arrangement with nothing in it.
-                'grid' => $translation->getGrid(),
-                'description' => $translation->getDescription(),
-                'metaTitle' => $translation->getMetaTitle(),
-                'metaDescription' => $translation->getMetaDescription(),
-                'customFields' => $translation->getCustomFields(),
-                'ogImageMediaId' => $translation->getOgImage()?->getId(),
-                'canonicalUrl' => $translation->getCanonicalUrl(),
-                'noindex' => $translation->isNoindex(),
-                'focusKeyword' => $translation->getFocusKeyword(),
-                'jsonLd' => $translation->getJsonLd(),
-            ];
-        }
-
-        return [
-            'status' => $post->getStatus()->value,
-            'postTypeId' => $post->getPostType()->getId(),
-            'thumbnailId' => $post->getThumbnail()?->getId(),
-            'termIds' => array_values($post->getTerms()->map(static fn ($term): ?int => $term->getId())->toArray()),
-            'relatedPostIds' => array_values($post->getRelatedPosts()->map(static fn ($related): ?int => $related->getId())->toArray()),
-            'publishedAt' => $post->getPublishedAt()?->format(DATE_ATOM),
-            'scheduledAt' => $post->getScheduledAt()?->format(DATE_ATOM),
-            'gridLayout' => $post->getGridLayout(),
-            'bannerLayout' => $post->getBannerLayout(),
-            'translations' => $translations,
-        ];
     }
 
     /** @param array<string, mixed> $snapshot */
