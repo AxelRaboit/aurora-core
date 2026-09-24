@@ -41,7 +41,7 @@ const upcoming = computed(() =>
 </script>
 
 <template>
-    <div class="space-y-6">
+    <div class="space-y-5">
         <div class="grid grid-cols-2 gap-3">
             <div class="aurora-card p-4 flex items-center gap-3">
                 <CalendarDays class="w-4 h-4 shrink-0 text-muted" :stroke-width="2" />

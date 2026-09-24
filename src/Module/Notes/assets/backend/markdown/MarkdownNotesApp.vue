@@ -777,7 +777,7 @@ onUnmounted(() => {
              et la fin du texte sortait de l'écran. C'est le pendant vertical de
              ce que le commentaire des deux volets dit déjà pour la largeur. -->
             <section class="flex-1 flex flex-col min-w-0 min-h-0">
-                <div v-if="crashed" class="flex flex-1 items-center justify-center p-6">
+                <div v-if="crashed" class="flex flex-1 items-center justify-center p-4">
                     <AppNoData
                         :message="t('notes.markdown.errors.crashed')"
                         :hint="String(crashed?.message ?? crashed)"

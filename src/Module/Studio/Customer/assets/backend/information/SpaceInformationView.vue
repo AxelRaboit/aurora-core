@@ -154,10 +154,10 @@ async function save() {
 </script>
 
 <template>
-    <div class="space-y-6">
+    <div class="space-y-5">
         <AppMessage variant="neutral">{{ t("backend.studio.space_information.scope") }}</AppMessage>
 
-        <form v-if="editable" class="space-y-6" v-on:submit.prevent="save">
+        <form v-if="editable" class="space-y-5" v-on:submit.prevent="save">
             <!-- Une colonne sur téléphone, deux à partir de `sm` : deux
                  colonnes de champs sur 375 px donnent des libellés tronqués. -->
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">

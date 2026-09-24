@@ -136,7 +136,7 @@ const pageActions = computed(() => {
 </script>
 
 <template>
-    <div class="space-y-6">
+    <div class="space-y-5">
         <!-- No heading: `backend.themes.title` and `backend.nav.themes` are the
              same word, and the second is already in the topbar. What is left is
              the one control this row exists for, so it sits on its own at the

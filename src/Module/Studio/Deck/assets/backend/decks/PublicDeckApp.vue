@@ -33,7 +33,7 @@ const slides = props.deck.slides ?? [];
 </script>
 
 <template>
-    <div class="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-6 px-2 py-2 sm:p-8">
+    <div class="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-5 px-2 py-2 sm:p-8">
         <header class="flex flex-wrap items-start justify-between gap-3">
             <div class="min-w-0">
                 <h1 class="m-0 text-xl font-semibold text-primary">{{ deck.title }}</h1>

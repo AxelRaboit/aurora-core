@@ -538,7 +538,7 @@ const contractActions = computed(() => {
                  today's code produces rather than what was signed. Cleaned
                  once more on the way into the DOM, see documentHtml. -->
             <article
-                class="aurora-card p-4 sm:p-6 prose-contract"
+                class="aurora-card p-4 sm:p-4 prose-contract"
                 v-html="documentHtml"
             />
 
