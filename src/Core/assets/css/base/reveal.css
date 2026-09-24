@@ -1,0 +1,85 @@
+/* Comment une zone arrive quand le lecteur la rejoint.
+
+   Six effets, posés par `data-reveal` sur l'enveloppe d'une zone de grille
+   (voir `editorial/post/_grid.html.twig`), joués par
+   `shared/utils/scrollReveal.js`.
+
+   **Rien ici ne cache quoi que ce soit tout seul.** L'état de départ demande
+   `.aurora-reveal-armed`, et cette classe n'est jamais dans le HTML : le
+   script la pose, zone par zone, et seulement sur celles qui sont encore sous
+   la fenêtre. Sans script - erreur de chargement, JavaScript coupé, pas
+   d'IntersectionObserver - la page se lit normalement, et ce qui est déjà à
+   l'écran quand le paquet arrive n'est jamais escamoté puis remontré.
+
+   La distance et la durée sont des propriétés personnalisées pour qu'un thème
+   les reprenne sans réécrire les six effets. */
+
+:root {
+    --aurora-reveal-shift: 1.5rem;
+    --aurora-reveal-zoom: 0.96;
+    --aurora-reveal-blur: 6px;
+    --aurora-reveal-duration: 700ms;
+
+    /* Sortie franche puis fin de course longue : le mouvement se termine en se
+       posant plutôt qu'en s'arrêtant net. */
+    --aurora-reveal-ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-reveal].aurora-reveal-armed {
+    opacity: 0;
+
+    /* `opacity` et `transform` seulement : ce sont les deux propriétés qu'un
+       navigateur anime sans refaire la mise en page, donc les seules qui
+       tiennent soixante images par seconde sur une page longue. `filter` s'y
+       ajoute pour le seul effet qui en a besoin. */
+    transition:
+        opacity var(--aurora-reveal-duration) var(--aurora-reveal-ease),
+        transform var(--aurora-reveal-duration) var(--aurora-reveal-ease),
+        filter var(--aurora-reveal-duration) var(--aurora-reveal-ease);
+
+    /* Le script retire la classe une fois l'arrivée jouée, donc cette
+       réservation ne survit pas au mouvement qu'elle prépare. */
+    will-change: opacity, transform;
+}
+
+[data-reveal="up"].aurora-reveal-armed {
+    transform: translate3d(0, var(--aurora-reveal-shift), 0);
+}
+
+[data-reveal="left"].aurora-reveal-armed {
+    transform: translate3d(calc(-1 * var(--aurora-reveal-shift)), 0, 0);
+}
+
+[data-reveal="right"].aurora-reveal-armed {
+    transform: translate3d(var(--aurora-reveal-shift), 0, 0);
+}
+
+[data-reveal="zoom"].aurora-reveal-armed {
+    transform: scale3d(var(--aurora-reveal-zoom), var(--aurora-reveal-zoom), 1);
+}
+
+[data-reveal="blur"].aurora-reveal-armed {
+    filter: blur(var(--aurora-reveal-blur));
+}
+
+/* L'arrivée. Une seule règle pour les six, parce que l'état d'arrivée est le
+   même : la zone telle qu'elle serait sans tout ceci. */
+[data-reveal].aurora-reveal-armed.aurora-revealed {
+    opacity: 1;
+    filter: none;
+    transform: none;
+}
+
+/* Un lecteur qui demande moins de mouvement reçoit la zone, pas une version
+   ralentie du mouvement. Le script s'arrête déjà de lui-même sur ce réglage ;
+   la règle est ici pour le cas où il change d'avis en cours de lecture, après
+   que des zones ont été armées. */
+@media (prefers-reduced-motion: reduce) {
+    [data-reveal].aurora-reveal-armed {
+        opacity: 1;
+        filter: none;
+        transform: none;
+        transition: none;
+        will-change: auto;
+    }
+}

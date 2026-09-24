@@ -679,11 +679,19 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             // decided rather than inherited from its content - without it
             // "taller than its neighbours" is not something a picture can be
             // asked for.
-            ['id' => 'picture', 'type' => GridNormalizer::ZONE_MEDIA, 'span' => ['base' => 48, 'md' => null, 'lg' => 24], 'ratio' => '3x4', 'mediaId' => $picture->getId()],
+            // Les effets d'apparition se démontrent ici, et l'héritage avec :
+            // la page dit « depuis le bas » une fois pour toutes (plus bas,
+            // à la racine), et deux zones seulement en décident autrement.
+            // La photo et la pile arrivent l'une par la gauche et l'autre par
+            // la droite, deux moitiés qui se rejoignent - c'est l'arrangement
+            // que cette paire existe pour écrire, et le seul qu'un effet par
+            // zone permet de composer.
+            ['id' => 'picture', 'type' => GridNormalizer::ZONE_MEDIA, 'span' => ['base' => 48, 'md' => null, 'lg' => 24], 'ratio' => '3x4', 'reveal' => 'left', 'mediaId' => $picture->getId()],
             [
                 'id' => 'column',
                 'type' => GridNormalizer::ZONE_STACK,
                 'span' => ['base' => 48, 'md' => null, 'lg' => 24],
+                'reveal' => 'right',
                 // Halves that sum to 48, so the editor's fraction row reads
                 // "1/2" on each and is telling the truth. The stack takes its
                 // height from the row, which the picture beside it sets.
@@ -708,6 +716,10 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         $welcome->setGridLayout($this->gridNormalizer->normalizeLayout([
             'enabled' => true,
             'snap' => 4,
+            // Posé une fois pour la page. Les zones qui ne disent rien le
+            // suivent, y compris celles ajoutées plus tard : c'est ce que le
+            // réglage sert à démontrer, plus encore que l'effet lui-même.
+            'reveal' => 'up',
             'zones' => $zones,
         ]));
 

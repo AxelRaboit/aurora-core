@@ -151,10 +151,101 @@ final class GridNormalizerTest extends TestCase
                 'display', 'columns', 'items', 'taxonomyId', 'deckId', 'postTypeId', 'termId', 'limit',
                 'cardVariant', 'formId', 'language', 'textSize', 'lineNumbers',
                 'visibleFrom', 'visibleUntil', 'audience', 'exclusiveOpen',
-                'surface', 'fullBleed', 'children',
+                'surface', 'reveal', 'fullBleed', 'children',
             ],
             array_keys($zone),
             'switching a zone type in the editor must not lose what was picked',
+        );
+    }
+
+    public function testAPageArrivesWithoutAnEffectUnlessOneIsAsked(): void
+    {
+        $layout = $this->normalizer->normalizeLayout([
+            'zones' => [['id' => 'a1', 'type' => 'text']],
+        ]);
+
+        self::assertSame('none', $layout['reveal'], 'a page where every zone moves is a page where nothing stands out');
+        self::assertSame(
+            'inherit',
+            $layout['zones'][0]['reveal'],
+            'a zone carries its own answer only when an author gave it one',
+        );
+    }
+
+    public function testAZoneThatInheritedGoesOnSayingSo(): void
+    {
+        $layout = $this->normalizer->normalizeLayout([
+            'reveal' => 'up',
+            'zones' => [['id' => 'a1', 'type' => 'text']],
+        ]);
+
+        self::assertSame('up', $layout['reveal']);
+        self::assertSame(
+            'inherit',
+            $layout['zones'][0]['reveal'],
+            'writing the resolved value down would freeze today default into the zone and break the setting for good',
+        );
+    }
+
+    public function testAPageCannotInheritFromItself(): void
+    {
+        $layout = $this->normalizer->normalizeLayout([
+            'reveal' => 'inherit',
+            'zones' => [['id' => 'a1', 'type' => 'text']],
+        ]);
+
+        self::assertSame('none', $layout['reveal'], 'there is nothing above the page to inherit from');
+    }
+
+    public function testAnEffectIsKeptAndAnInventedOneGoesBackToThePage(): void
+    {
+        $zones = $this->normalizer->normalizeLayout([
+            'zones' => [
+                ['id' => 'a1', 'type' => 'text', 'reveal' => 'blur'],
+                ['id' => 'a2', 'type' => 'text', 'reveal' => 'explosion'],
+            ],
+        ])['zones'];
+
+        self::assertSame('blur', $zones[0]['reveal']);
+        self::assertSame(
+            'inherit',
+            $zones[1]['reveal'],
+            'a value nobody can read is not an opinion, so the zone has none and follows the page',
+        );
+    }
+
+    public function testAnInventedPageEffectIsRefusedOutright(): void
+    {
+        $layout = $this->normalizer->normalizeLayout([
+            'reveal' => 'explosion',
+            'zones' => [['id' => 'a1', 'type' => 'text']],
+        ]);
+
+        self::assertSame(
+            'none',
+            $layout['reveal'],
+            'the page has nothing to fall back on, and an attribute the stylesheet cannot read must not reach the markup',
+        );
+    }
+
+    public function testAStackChildKeepsItsOwnEffect(): void
+    {
+        $stack = $this->normalizer->normalizeLayout([
+            'zones' => [[
+                'id' => 'a1',
+                'type' => 'stack',
+                'children' => [
+                    ['id' => 'b1', 'type' => 'text', 'reveal' => 'left'],
+                    ['id' => 'b2', 'type' => 'text', 'reveal' => 'right'],
+                ],
+            ]],
+        ])['zones'][0];
+
+        self::assertSame('left', $stack['children'][0]['reveal']);
+        self::assertSame(
+            'right',
+            $stack['children'][1]['reveal'],
+            'two halves meeting in the middle is the arrangement a stack exists to write',
         );
     }
 
