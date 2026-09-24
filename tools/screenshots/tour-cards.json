@@ -237,6 +237,62 @@
         "tour-reglages-onglets": {
             "document": 457,
             "slug": "reglages-et-modules"
+        },
+        "tour-dashboard-modules": {
+            "document": 458,
+            "slug": "tableau-de-bord"
+        },
+        "tour-recherche-resultats": {
+            "document": 459,
+            "slug": "recherche-globale"
+        },
+        "tour-entete-reglages": {
+            "document": 460,
+            "slug": "en-tete-de-page"
+        },
+        "tour-seo-onglet": {
+            "document": 461,
+            "slug": "referencement"
+        },
+        "tour-galerie-onglet": {
+            "document": 462,
+            "slug": "galeries"
+        },
+        "tour-multilingue-en": {
+            "document": 463,
+            "slug": "multilingue"
+        },
+        "tour-commentaires-moderation": {
+            "document": 464,
+            "slug": "commentaires"
+        },
+        "tour-formulaire-reponses": {
+            "document": 465,
+            "slug": "formulaires"
+        },
+        "tour-menus-entrees": {
+            "document": 466,
+            "slug": "menus"
+        },
+        "tour-taxonomies-termes": {
+            "document": 467,
+            "slug": "taxonomies"
+        },
+        "tour-types-champs": {
+            "document": 468,
+            "slug": "types-de-contenu"
+        },
+        "tour-themes-palette": {
+            "document": 469,
+            "slug": "theme-et-identite"
+        },
+        "tour-site-public-contact": {
+            "document": 470,
+            "slug": "site-public"
+        },
+        "tour-permissions": {
+            "document": 471,
+            "slug": "securite-et-donnees"
         }
     }
 }

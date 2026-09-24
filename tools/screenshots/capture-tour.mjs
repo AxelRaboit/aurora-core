@@ -76,6 +76,32 @@ async function flatten(page) {
 }
 
 /**
+ * Une prise sur un onglet de l'éditeur de publication.
+ *
+ * Quatre cartes racontent chacune un onglet - l'entête, la galerie, le
+ * référencement, les langues - et montraient toutes la même liste de
+ * publications.
+ *
+ * `exact` sur le nom de l'onglet : « Types de contenu » vit dans le menu
+ * latéral et contient « Contenu », donc un nom approchant attrape le menu et
+ * la prise ressort sur l'onglet d'à côté - qui ressemble assez pour qu'on ne
+ * le voie pas.
+ */
+function postTabShot(name, tab, extra) {
+    return {
+        name,
+        path: "/backend/editorial/posts/1/edit",
+        async prepare(page) {
+            await page.waitForTimeout(4_000);
+            await page.getByRole("button", { name: tab, exact: true }).first().click();
+            await page.waitForTimeout(2_000);
+
+            if (extra) await extra(page);
+        },
+    };
+}
+
+/**
  * Ouvre une publication de la démonstration.
  *
  * Par son adresse et non par un clic dans la liste : une ligne n'est pas un
@@ -279,6 +305,110 @@ const SHOTS = [
         // tout de suite, et l'écran dit combien de temps il reste.
         name: "tour-publications-corbeille",
         path: "/backend/trash",
+    },
+    postTabShot("tour-entete-reglages", "En-tête"),
+    postTabShot("tour-seo-onglet", "Moteurs de recherche"),
+    postTabShot("tour-galerie-onglet", "Galerie"),
+    {
+        // La même publication dans une autre langue : même disposition,
+        // mots différents. La carte dit « un onglet par langue » et montrait
+        // une page en français.
+        name: "tour-multilingue-en",
+        path: "/backend/editorial/posts/1/edit",
+        async prepare(page) {
+            await page.waitForTimeout(4_000);
+            await page.getByRole("button", { name: "en", exact: true }).first().click();
+            await page.waitForTimeout(2_000);
+        },
+    },
+    {
+        // Le tableau de bord sur un autre module que l'éditorial : la carte
+        // promet « un panneau par module actif, chacun avec ses chiffres ».
+        name: "tour-dashboard-modules",
+        path: "/backend",
+        async prepare(page) {
+            await page.waitForTimeout(3_000);
+            await page.getByRole("button", { name: "GED", exact: true }).first().click();
+            await page.waitForTimeout(1_500);
+        },
+    },
+    {
+        // La recherche ouverte, avec ses résultats groupés par nature.
+        name: "tour-recherche-resultats",
+        path: "/backend",
+        async prepare(page) {
+            await page.waitForTimeout(3_000);
+            await page.keyboard.press("Control+K");
+            await page.waitForTimeout(1_200);
+            // « client » et non le mot par défaut : il touche trois natures à
+            // la fois - une entrée de navigation, un média, des événements -
+            // et c'est le groupement que la carte promet. « aurora » ne
+            // ramenait que des médias, soit une liste et pas une démonstration.
+            await page.keyboard.type("client", { delay: 60 });
+            await page.waitForTimeout(2_500);
+        },
+    },
+    {
+        // La modération des commentaires et ses trois états.
+        name: "tour-commentaires-moderation",
+        path: "/backend/editorial/comments",
+    },
+    {
+        // Les demandes reçues par un formulaire : la carte parle de ce qu'un
+        // formulaire sait faire et s'arrêtait à ses champs.
+        // Par l'adresse : les demandes ont la leur, et chercher un onglet qui
+        // s'appellerait « Réponses » a coûté trente secondes d'attente pour
+        // rien - il n'y en a pas, c'est une page.
+        name: "tour-formulaire-reponses",
+        path: "/backend/editorial/forms/1/submissions",
+        async prepare(page) {
+            await page.waitForTimeout(2_500);
+        },
+    },
+    {
+        // Un menu ouvert, avec ses entrées imbriquées : la carte décrit ce
+        // qu'une entrée peut viser et montrait la liste des menus.
+        name: "tour-menus-entrees",
+        path: "/backend/editorial/menus",
+        async prepare(page) {
+            await page.waitForTimeout(2_500);
+            await page.getByRole("link", { name: /Navigation principale/ }).first().click();
+            await page.waitForTimeout(2_500);
+        },
+    },
+    {
+        // Les termes d'une taxonomie : la carte oppose l'arbre des catégories
+        // et les étiquettes à plat, sans montrer ni l'un ni l'autre.
+        name: "tour-taxonomies-termes",
+        path: "/backend/editorial/taxonomies",
+        async prepare(page) {
+            await page.waitForTimeout(2_500);
+            await page.getByRole("link", { name: /Catégories/ }).first().click();
+            await page.waitForTimeout(2_500);
+        },
+    },
+    {
+        // Les champs d'un type de contenu : c'est ce que la carte détaille,
+        // et la liste des types n'en dit rien.
+        name: "tour-types-champs",
+        path: "/backend/editorial/post-types",
+        async prepare(page) {
+            await page.waitForTimeout(2_500);
+            await page.getByRole("link", { name: /Article/ }).first().click();
+            await page.waitForTimeout(2_500);
+        },
+    },
+    {
+        // La palette d'un thème : la carte parle de couleurs déduites et de
+        // contrastes, donc c'est là qu'il faut regarder.
+        name: "tour-themes-palette",
+        path: "/backend/configuration/themes",
+        async prepare(page) {
+            await page.waitForTimeout(2_500);
+            await page.getByRole("link", { name: /Modifier|Éditer/ }).first().click()
+                .catch(() => {});
+            await page.waitForTimeout(2_500);
+        },
     },
     {
         // Les privilèges d'un compte, écran par écran : c'est la promesse
@@ -627,6 +757,34 @@ const SHOTS = [
      * voit un visiteur.
      */
     { name: "tour-site-public", path: "/fr", anonymous: true },
+    {
+        // Une seconde page publique, celle qui porte le formulaire : elle
+        // montre une autre composition et le rendu d'un formulaire côté
+        // visiteur.
+        //
+        // J'ai d'abord voulu le même écran en mode clair, la carte promettant
+        // « un mode sombre et un mode clair ». Deux essais pour rien : le
+        // site public n'inclut pas le script d'amorçage du back-office, donc
+        // `aurora-theme` n'y est lu par personne, et il ne suit pas non plus
+        // `prefers-color-scheme` - la palette est celle du thème actif, et
+        // celui de la démonstration est sombre. Il faudrait changer de thème
+        // pour le montrer, ce qui est un autre sujet.
+        name: "tour-site-public-contact",
+        path: "/fr/contact",
+        anonymous: true,
+        async prepare(page) {
+            await page.waitForTimeout(2_000);
+        },
+    },
+    {
+        // Les permissions, côté développeur : la carte parle de ce que
+        // l'outil fait par défaut, et l'audit seul n'en montrait qu'une part.
+        name: "tour-permissions",
+        path: "/dev/dashboard/permissions",
+        async prepare(page) {
+            await page.waitForTimeout(2_500);
+        },
+    },
 
     /**
      * Les versions publiées, chez GitHub.
