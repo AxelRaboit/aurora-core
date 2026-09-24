@@ -176,6 +176,12 @@ final readonly class GalleryViewBuilder
             // describes the file.
             'alt' => '' !== $alt ? $alt : (string) $media->getAlt(),
             'focalPosition' => $this->documentUrlGenerator->focalPositionCss($media),
+            // Ce qui réserve la place avant que la photo arrive. Une galerie
+            // est l'endroit où l'omission coûte le plus : vingt images
+            // différées qui occupent zéro pixel, c'est une page qui
+            // s'allonge vingt fois sous le lecteur.
+            'width' => $media->getWidth(),
+            'height' => $media->getHeight(),
             // Null for anything we host ourselves. Present, and displayed by
             // the template, for a stock photo whose licence requires it.
             'credit' => $this->creditPresenter->present($media),

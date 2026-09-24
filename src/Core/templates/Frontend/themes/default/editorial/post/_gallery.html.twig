@@ -57,10 +57,20 @@
                     class="block w-full cursor-zoom-in appearance-none border-0 bg-transparent p-0 text-left"
                     aria-label="{{ 'frontend.gallery.open'|trans({'%position%': index + 1, '%total%': gallery.items|length}) }}"
                 >
+                    {# `width` et `height` réservent la hauteur avant que la
+                       photo arrive. Sans eux, vingt images différées occupent
+                       zéro pixel et la page s'allonge vingt fois sous le
+                       lecteur. Avec `h-auto` le navigateur n'en garde que le
+                       rapport et laisse la largeur au CSS. #}
                     <img
                         src="{{ item.url }}"
                         alt="{{ item.alt }}"
+                        {% if item.width|default(null) and item.height|default(null) %}
+                            width="{{ item.width }}"
+                            height="{{ item.height }}"
+                        {% endif %}
                         loading="lazy"
+                        decoding="async"
                         class="w-full h-auto rounded-lg object-cover"
                         style="object-position: {{ item.focalPosition }};{{ 'masonry' == gallery.layout ? '' : gallery.ratioStyle }}"
                     >
