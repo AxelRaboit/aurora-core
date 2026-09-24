@@ -5,6 +5,56 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.232] - 2026-09-24
+
+### Modifié
+
+#### Un retour n'est plus un bouton
+Le même geste existait sous quatre formes : un bouton fantôme sur l'éditeur de
+publication, une ancre à flèche dans la médiathèque, une ancre à chevron dont
+le libellé s'efface sur téléphone dans un espace client, et un bouton de texte
+dans les notes. Un seul des quatre était juste.
+
+Un retour est une **navigation, pas une action**. Un bouton, même fantôme, le
+met au même poids qu'« Enregistrer » posé à un centimètre, et sur téléphone où
+les deux se retrouvent empilés, l'écran perd sa hiérarchie. `AppBackLink` :
+chevron seul sous `sm`, libellé à partir de là, `aria-label` dans les deux
+cas. Pas d'option pour faire autrement, c'est ce que le composant vient
+corriger.
+
+#### Une barre d'entête se resserre sur téléphone
+`AppPageActions` porte `iconOnlyOnPhone`, et les deux éditeurs dont la barre
+reste horizontale s'en servent. Mesuré sur l'éditeur de publication à 375
+pixels : trois commandes sur une ligne de 34 pixels, contre quatre bandes
+empilées.
+
+**En option et non par défaut.** L'autre règle mobile de la maison veut qu'un
+bouton prenne la ligne entière ; privé de son libellé il devient une barre
+vide avec trois points au milieu, mesurée à 359 pixels sur la liste des
+utilisateurs. Les deux règles répondent à deux situations, et le composant dit
+dans laquelle il se trouve.
+
+### Ajouté
+
+#### `PostSnapshot`
+Ce qu'une révision retient d'une publication vivait dans une méthode privée du
+gestionnaire, seul endroit d'où une révision naissait. Le jeu de démonstration
+en a eu besoin : il écrit ses publications en direct, donc l'historique des
+versions s'ouvrait sur un écran vide. Deux définitions de ce qu'une révision
+contient auraient dérivé, et la dérive ne se serait vue qu'au moment d'une
+restauration.
+
+#### Le carnet de démonstration a un historique
+Deux révisions sur la page d'accueil, prises par le même service que le
+gestionnaire, datées et signées.
+
+### Dans aurora-client
+
+Aucune migration. Un `make aurora-update` suivi d'une reconstruction des
+assets.
+
+---
+
 ## [0.9.231] - 2026-09-23
 
 ### Ajouté
