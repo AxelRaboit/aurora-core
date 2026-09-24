@@ -77,10 +77,25 @@
                than as a frame. #}
             {% set framed = zone.surface|default('none') != 'none' and not zone.caption and not (zone.media.credit|default(null)) %}
             {% set picture %}
+                {# `width` et `height` réservent la hauteur avant que l'image
+                   arrive : avec `h-auto`, le navigateur n'en garde que le
+                   rapport et laisse la largeur au CSS. Sans eux, une image
+                   différée occupe zéro pixel, la page est courte puis
+                   s'allonge à chaque arrivée, et on regarde le contenu
+                   descendre par à-coups.
+
+                   `|default(null)` parce que six documents sur cent
+                   quatre-vingt-onze n'ont pas les leurs, et qu'un attribut
+                   vide vaut mieux qu'une page qui casse. #}
                 <img
                     src="{{ zone.media.url }}"
                     alt="{{ zone.media.alt }}"
+                    {% if zone.media.width|default(null) and zone.media.height|default(null) %}
+                        width="{{ zone.media.width }}"
+                        height="{{ zone.media.height }}"
+                    {% endif %}
                     loading="lazy"
+                    decoding="async"
                     class="w-full h-auto object-cover{{ framed ? '' : ' rounded-lg' }}{{ fills ? ' lg:min-h-0 lg:flex-1' : '' }}"
                     style="object-position: {{ zone.media.focalPosition }};{{ zone.ratioStyle }}"
                 >

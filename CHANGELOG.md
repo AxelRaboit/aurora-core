@@ -5,6 +5,37 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.238] - 2026-09-24
+
+### Corrigé
+
+#### Les images arrivaient une par une et faisaient sauter la page
+Un `<img>` en chargement différé sans `width` ni `height` occupe zéro pixel
+de haut tant qu'il n'est pas arrivé. La page est donc plus courte qu'elle ne
+sera, puis s'allonge à chaque image qui se pose, et le lecteur regarde le
+contenu descendre par à-coups. Sur la page photographie, trois images font
+toute la page.
+
+Les dimensions étaient déjà en base - 185 documents image sur 191 les portent
+- mais aucun gabarit ne les écrivait. Les zones média et les galeries les
+écrivent maintenant, avec `decoding="async"`. Elles viennent du document et
+l'adresse est celle d'une variante, ce qui est sans importance : le
+navigateur n'en tire qu'un rapport, et une variante est un
+redimensionnement.
+
+#### L'effet d'apparition ne se déclenchait pas sur une page d'images
+Même cause, conséquence invisible. Le script mesure les positions au
+chargement du document, avant que les images ne se posent : sur une page
+tassée, **toutes** les zones semblent déjà à l'écran, aucune n'est armée, et
+rien n'arrive jamais. Les dimensions ci-dessus suffisent à le corriger.
+
+Il reste un filet, parce qu'un décalage peut venir d'ailleurs : à `load`,
+toute zone encore armée et désormais visible arrive sans attendre. Le pire
+cas devient une zone qui apparaît sans effet, au lieu d'une zone qui
+n'apparaît pas.
+
+---
+
 ## [0.9.237] - 2026-09-24
 
 ### Corrigé

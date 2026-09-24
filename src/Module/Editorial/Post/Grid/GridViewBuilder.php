@@ -1568,6 +1568,20 @@ final readonly class GridViewBuilder
             // things in two places, and the document's alt describes the file.
             'alt' => '' !== $alt ? $alt : (string) $media->getAlt(),
             'focalPosition' => $this->documentUrlGenerator->focalPositionCss($media),
+            // **Ce qui réserve la place avant que l'image arrive.** Sans les
+            // deux, un `<img>` en chargement différé occupe zéro pixel de
+            // haut : la page est courte, puis s'allonge à chaque image qui
+            // se pose, et on voit le contenu descendre par à-coups. Mesuré
+            // sur la page photographie, où trois images font toute la page.
+            //
+            // Ce sont les dimensions du document et l'adresse est celle
+            // d'une variante, ce qui est sans importance : le navigateur
+            // n'en tire qu'un rapport, et une variante est un
+            // redimensionnement. Vérifié sur la production, où la variante
+            // « large » d'une photo mesure exactement ce que le document
+            // déclare.
+            'width' => $media->getWidth(),
+            'height' => $media->getHeight(),
             // Null for anything we host ourselves. Present, and displayed by
             // the template, for a stock photo whose licence requires it.
             'credit' => $this->creditPresenter->present($media),
