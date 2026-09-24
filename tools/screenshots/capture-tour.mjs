@@ -76,6 +76,32 @@ async function flatten(page) {
 }
 
 /**
+ * Une prise sur un onglet de l'éditeur de publication.
+ *
+ * Quatre cartes racontent chacune un onglet - l'entête, la galerie, le
+ * référencement, les langues - et montraient toutes la même liste de
+ * publications.
+ *
+ * `exact` sur le nom de l'onglet : « Types de contenu » vit dans le menu
+ * latéral et contient « Contenu », donc un nom approchant attrape le menu et
+ * la prise ressort sur l'onglet d'à côté - qui ressemble assez pour qu'on ne
+ * le voie pas.
+ */
+function postTabShot(name, tab, extra) {
+    return {
+        name,
+        path: "/backend/editorial/posts/1/edit",
+        async prepare(page) {
+            await page.waitForTimeout(4_000);
+            await page.getByRole("button", { name: tab, exact: true }).first().click();
+            await page.waitForTimeout(2_000);
+
+            if (extra) await extra(page);
+        },
+    };
+}
+
+/**
  * Ouvre une publication de la démonstration.
  *
  * Par son adresse et non par un clic dans la liste : une ligne n'est pas un
@@ -116,7 +142,21 @@ const spaceView = (view) => async (page) => {
     await page.waitForTimeout(2_000);
 };
 
+/**
+ * Ouvrir l'espace « Réseaux sociaux », d'où partent toutes les prises d'un
+ * espace.
+ *
+ * **L'onglet de la liste est retenu d'une visite à l'autre**, et `espaces-
+ * prospects` le laisse sur Prospects juste avant. L'espace cherché est chez
+ * un client, donc il n'est plus dans la liste, le clic expire au bout de
+ * trente secondes et le scénario suivant tombe - seul il passait, dans la
+ * série il ratait, ce qui est la signature d'un état partagé. On remet donc
+ * l'onglet sur Clients avant de chercher, sans se demander où il en est.
+ */
 async function openSpace(page) {
+    await page.getByRole("button", { name: /^Clients/ }).first().click();
+    await page.waitForTimeout(1_000);
+
     await page.getByRole("link", { name: /Réseaux sociaux/ }).first().click();
     await page.waitForTimeout(3_500);
 }
@@ -279,6 +319,147 @@ const SHOTS = [
         // tout de suite, et l'écran dit combien de temps il reste.
         name: "tour-publications-corbeille",
         path: "/backend/trash",
+    },
+    // La carte promet les réglages de l'en-tête et la prise n'en montrait
+    // aucun : l'aperçu occupe toute la fenêtre et les contrôles - placement,
+    // hauteur, largeur, dégradé, fondu, boutons - commencent sous le pli. On
+    // descend donc jusqu'à « Hauteur », ce qui laisse le bas de l'aperçu en
+    // haut du cadre : on voit ce qu'on règle et ce que ça donne.
+    postTabShot("tour-entete-reglages", "En-tête", async (page) => {
+        await page.getByText("Hauteur", { exact: true }).first().scrollIntoViewIfNeeded();
+        await page.waitForTimeout(1_200);
+    }),
+    postTabShot("tour-seo-onglet", "Moteurs de recherche"),
+    postTabShot("tour-galerie-onglet", "Galerie"),
+    {
+        // La même publication dans une autre langue : même disposition,
+        // mots différents. La carte dit « un onglet par langue » et montrait
+        // une page en français.
+        name: "tour-multilingue-en",
+        path: "/backend/editorial/posts/1/edit",
+        async prepare(page) {
+            await page.waitForTimeout(4_000);
+            await page.getByRole("button", { name: "en", exact: true }).first().click();
+            await page.waitForTimeout(2_000);
+        },
+    },
+    {
+        // Le tableau de bord sur un autre module que l'éditorial : la carte
+        // promet « un panneau par module actif, chacun avec ses chiffres ».
+        name: "tour-dashboard-modules",
+        path: "/backend",
+        async prepare(page) {
+            await page.waitForTimeout(3_000);
+            await page.getByRole("button", { name: "GED", exact: true }).first().click();
+            await page.waitForTimeout(1_500);
+        },
+    },
+    {
+        // La recherche ouverte, avec ses résultats groupés par nature.
+        name: "tour-recherche-resultats",
+        path: "/backend",
+        async prepare(page) {
+            await page.waitForTimeout(3_000);
+            await page.keyboard.press("Control+K");
+            await page.waitForTimeout(1_200);
+            // « client » et non le mot par défaut : il touche trois natures à
+            // la fois - une entrée de navigation, un média, des événements -
+            // et c'est le groupement que la carte promet. « aurora » ne
+            // ramenait que des médias, soit une liste et pas une démonstration.
+            await page.keyboard.type("client", { delay: 60 });
+            await page.waitForTimeout(2_500);
+        },
+    },
+    {
+        // La modération des commentaires et ses trois états.
+        name: "tour-commentaires-moderation",
+        path: "/backend/editorial/comments",
+    },
+    {
+        // Les demandes reçues par un formulaire : la carte parle de ce qu'un
+        // formulaire sait faire et s'arrêtait à ses champs.
+        // Les demandes vivent **sous** les champs, sur la page du
+        // formulaire.
+        //
+        // Deux erreurs avant d'y arriver, et la seconde est partie en
+        // production : chercher un onglet « Réponses » qui n'existe pas, puis
+        // viser `/submissions`, qui est l'API JSON et non un écran. La prise
+        // était un dump de JSON brut, et elle a illustré la carte publique
+        // pendant une heure. Une adresse qui répond n'est pas une page.
+        name: "tour-formulaire-reponses",
+        path: "/backend/editorial/forms/1",
+        async prepare(page) {
+            await page.waitForTimeout(3_000);
+            await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+            await page.waitForTimeout(1_200);
+        },
+    },
+    {
+        // Un menu ouvert, avec ses entrées imbriquées : la carte décrit ce
+        // qu'une entrée peut viser et montrait la liste des menus.
+        name: "tour-menus-entrees",
+        path: "/backend/editorial/menus",
+        async prepare(page) {
+            await page.waitForTimeout(2_500);
+            await page.getByRole("link", { name: /Navigation principale/ }).first().click();
+            await page.waitForTimeout(2_500);
+        },
+    },
+    {
+        // Les termes d'une taxonomie : la carte oppose l'arbre des catégories
+        // et les étiquettes à plat, sans montrer ni l'un ni l'autre.
+        name: "tour-taxonomies-termes",
+        path: "/backend/editorial/taxonomies",
+        async prepare(page) {
+            await page.waitForTimeout(2_500);
+            await page.getByRole("link", { name: /Catégories/ }).first().click();
+            await page.waitForTimeout(2_500);
+        },
+    },
+    {
+        // Les champs d'un type de contenu : c'est ce que la carte détaille,
+        // et la liste des types n'en dit rien.
+        name: "tour-types-champs",
+        path: "/backend/editorial/post-types",
+        async prepare(page) {
+            await page.waitForTimeout(2_500);
+            await page.getByRole("link", { name: /Article/ }).first().click();
+            await page.waitForTimeout(2_500);
+        },
+    },
+    {
+        // La palette d'un thème : la carte parle de couleurs déduites et de
+        // contrastes, donc c'est là qu'il faut regarder.
+        name: "tour-themes-palette",
+        path: "/backend/configuration/themes",
+        async prepare(page) {
+            await page.waitForTimeout(2_500);
+            await page.getByRole("link", { name: /Modifier|Éditer/ }).first().click()
+                .catch(() => {});
+            await page.waitForTimeout(2_500);
+        },
+    },
+    {
+        // Les privilèges d'un compte, écran par écran : c'est la promesse
+        // centrale de la carte, et elle ne montrait que la liste des comptes.
+        name: "tour-privileges",
+        path: "/backend/platform/users",
+        async prepare(page) {
+            await page.waitForTimeout(2_500);
+            await page.getByTitle(/^Actions pour Jean Martin/).first().click();
+            await page.waitForTimeout(1_000);
+            await page.getByRole("button", { name: /^Privilèges/ }).first().click();
+            await page.waitForTimeout(2_500);
+        },
+    },
+    {
+        // Les réglages et leurs onglets : la carte parle de ce qui se règle
+        // sans montrer où.
+        name: "tour-reglages-onglets",
+        path: "/backend/configuration/settings",
+        async prepare(page) {
+            await page.waitForTimeout(2_500);
+        },
     },
     {
         // Les catégories : une par nature de document, celle qui décide où un
@@ -550,9 +731,17 @@ const SHOTS = [
 
             const espace = new URL(page.url());
             await page.goto(`${espace.origin}${espace.pathname}/access`, { waitUntil: "networkidle" });
-            await page.waitForTimeout(1_500);
 
-            await page.getByRole("button", { name: "Créer un lien" }).first().click();
+            // Attendre le bouton plutôt que compter jusqu'à mille cinq cents.
+            //
+            // Ce scénario passait seul et tombait dans la série complète, sur
+            // un `click` expiré au bout de trente secondes : une pause fixe
+            // suffit sur une machine au repos et plus sur la même machine au
+            // soixante-huitième écran. L'attente porte donc sur ce qu'on
+            // attend vraiment, l'application montée et son bouton présent.
+            const ouvrir = page.getByRole("button", { name: "Créer un lien" }).first();
+            await ouvrir.waitFor({ state: "visible", timeout: 30_000 });
+            await ouvrir.click();
             await page.waitForTimeout(1_000);
 
             // Par l'exemple du champ et non par son libellé : les champs de
@@ -605,6 +794,49 @@ const SHOTS = [
      * voit un visiteur.
      */
     { name: "tour-site-public", path: "/fr", anonymous: true },
+    {
+        // Une seconde page publique, celle qui porte le formulaire : elle
+        // montre une autre composition et le rendu d'un formulaire côté
+        // visiteur.
+        //
+        // J'ai d'abord voulu le même écran en mode clair, la carte promettant
+        // « un mode sombre et un mode clair ». Deux essais pour rien : le
+        // site public n'inclut pas le script d'amorçage du back-office, donc
+        // `aurora-theme` n'y est lu par personne, et il ne suit pas non plus
+        // `prefers-color-scheme` - la palette est celle du thème actif, et
+        // celui de la démonstration est sombre. Il faudrait changer de thème
+        // pour le montrer, ce qui est un autre sujet.
+        name: "tour-site-public-contact",
+        path: "/fr/page/contact",
+        anonymous: true,
+        async prepare(page) {
+            await page.waitForTimeout(2_000);
+        },
+    },
+    {
+        // Les notes d'une version, en français et du point de vue de ce qui
+        // change à l'écran : c'est ce que la carte promet, et la liste des
+        // versions ne le montre pas.
+        //
+        // Sans session, comme la liste : c'est GitHub, pas l'application.
+        name: "tour-release-notes",
+        url: "https://github.com/AxelRaboit/aurora-core/releases/latest",
+        anonymous: true,
+        async prepare(page) {
+            await page.waitForTimeout(2_500);
+            await page.getByRole("button", { name: /Accept|Reject|Refuser/ }).first().click().catch(() => {});
+            await page.waitForTimeout(1_500);
+        },
+    },
+    {
+        // Les permissions, côté développeur : la carte parle de ce que
+        // l'outil fait par défaut, et l'audit seul n'en montrait qu'une part.
+        name: "tour-permissions",
+        path: "/dev/dashboard/permissions",
+        async prepare(page) {
+            await page.waitForTimeout(2_500);
+        },
+    },
 
     /**
      * Les versions publiées, chez GitHub.
@@ -645,6 +877,12 @@ async function hideChrome(page) {
     await page.addStyleTag({
         content: `
             .sf-toolbar, .sf-minitoolbar, #sfToolbarMainContent, #sfToolbarClearer { display: none !important; }
+            /* La version sous le logo. Sur une instance locale elle vaut
+               « dev », et c'est la seule chose de ces images qui dise à un
+               client qu'il regarde une machine de développement plutôt que
+               le produit. En production elle porterait un numéro, qui ne lui
+               apprend rien non plus. */
+            [data-app-version] { display: none !important; }
             *, *::before, *::after { caret-color: transparent !important; }
             :focus-visible { outline: none !important; }
         `,
@@ -700,6 +938,41 @@ async function anonymousPage() {
     return anonymous.newPage();
 }
 
+/**
+ * Refuser de photographier ce qui n'est pas la page attendue.
+ *
+ * Deux prises sont parties en production sans que personne ne s'en aperçoive :
+ * un dump de JSON brut, parce que `/submissions` est l'API et non un écran,
+ * et la trace d'exception Symfony d'un 404, chemin de disque compris, sur la
+ * carte qui présente le site public. Playwright réussit dans les deux cas :
+ * l'adresse répond, donc `goto` est content, et le fichier s'écrit.
+ *
+ * **Une adresse qui répond n'est pas une page.** On vérifie donc le code, le
+ * type de contenu, et la signature de la page d'erreur de Symfony, et on
+ * échoue avant d'écrire plutôt que de laisser relire l'image à quelqu'un.
+ */
+async function assertPage(target, response, address) {
+    const status = response?.status();
+
+    if (undefined !== status && status >= 400) {
+        throw new Error(`${address} répond ${status}`);
+    }
+
+    const type = response?.headers()["content-type"] ?? "";
+
+    if ("" !== type && !type.includes("text/html")) {
+        throw new Error(`${address} renvoie ${type.split(";")[0]}, pas une page`);
+    }
+
+    const symfony = await target.evaluate(
+        () => null !== document.querySelector(".exception-summary, #traces-text, .sf-reset .exception"),
+    );
+
+    if (symfony) {
+        throw new Error(`${address} affiche une exception Symfony`);
+    }
+}
+
 let failed = 0;
 
 for (const shot of shots) {
@@ -716,9 +989,11 @@ for (const shot of shots) {
         // `networkidle` attend un silence que GitHub n'offre jamais tout à
         // fait ; pour une adresse externe, le document chargé suffit et le
         // `prepare` fait le reste de l'attente.
-        await target.goto(address, {
+        const response = await target.goto(address, {
             waitUntil: undefined === shot.url ? "networkidle" : "domcontentloaded",
         });
+
+        await assertPage(target, response, address);
         await hideChrome(target);
 
         if (shot.prepare) {

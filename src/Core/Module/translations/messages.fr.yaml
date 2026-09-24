@@ -3,7 +3,6 @@ backend:
     intro: Gérez les droits d'accès des utilisateurs par module. Chaque permission peut être accordée individuellement.
     search_placeholder: Filtrer les modules…
     empty: Aucun module trouvé.
-    none: Aucune permission définie pour ce module.
     name: Permission
     key: Clé technique
     names:
