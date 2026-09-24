@@ -5,6 +5,83 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.242] - 2026-09-24
+
+### Corrigé
+
+#### Une note n'avait aucune action, et rien ne pouvait être renommé
+Dans l'arbre latéral, le bloc d'actions était sous `v-if="isFolder"` et ne
+contenait que créer et supprimer : **une note ne proposait rien**, et ni une
+note ni un dossier ne pouvaient être renommés. Tout existait déjà derrière -
+la modale de renommage, son API, ses traductions, et jusqu'au `requestDelete`
+branché sur cet événement - il n'y avait simplement aucun bouton pour
+l'atteindre.
+
+Chaque ligne porte maintenant une feuille d'actions, renommer et supprimer,
+dossier comme note. Le plus d'un dossier reste dehors : c'est le geste qu'on
+répète. La règle de la maison veut qu'au-delà de deux gestes on empile, et une
+ligne d'arbre est trop étroite pour en aligner trois.
+
+Le champ titre d'une note était un `input` sans bordure ni fond, en 2xl : il
+se lisait comme le titre de la page, et on cherchait ailleurs de quoi
+renommer. Une surface sourde au survol et au focus dit qu'on peut écrire
+dedans, sans l'encadrer en permanence.
+
+La note se met aussi à la corbeille depuis ses propres actions, l'endroit le
+plus évident, où il n'y avait rien.
+
+#### Créer une note dans un dossier replié ne montrait rien
+La note était créée et sélectionnée, mais elle restait derrière une flèche
+fermée. Le commentaire du panneau promettait déjà que « son dossier s'ouvre » ;
+le code ne faisait que l'allumer. Toute la chaîne des dossiers parents s'ouvre
+désormais, pas seulement le dernier, et deux cas le vérifient.
+
+#### Les notifications menaient à `localhost`
+Quatre notifications gravaient une adresse absolue : rappel et alerte
+d'agenda, relecture d'une publication, activité d'un espace. Elles sont
+écrites par le worker, **sans requête HTTP**, donc le contexte de routage
+retombe sur `localhost` : en local, cliquer dessus donnait un refus de
+connexion. Un lien qui reste dans l'application est un chemin, que le
+navigateur résout contre l'hôte où se trouve la personne.
+
+Les liens d'e-mail restent absolus, eux sortent de l'application. Le digest
+d'un espace confondait les deux : il cherchait en absolu ce qui est rangé en
+relatif, ne trouvait rien, et n'envoyait plus rien. Deux cas l'ont dit tout
+de suite.
+
+---
+
+## [0.9.241] - 2026-09-24
+
+### Corrigé
+
+#### Le profil, et vingt-huit autres écrans, étaient passés à travers l'échelle
+L'échelle d'espacement posée le 23/09 tient en quatre crans, 8, 12, 16 et 20,
+et elle dit une chose que la page de profil enfreignait cinq fois : **rien à
+l'intérieur d'une page ne dépasse sa propre marge**, qui vaut 20 à partir de
+`lg`. Une carte qui respire plus que la page où elle est posée inverse la
+hiérarchie, et l'œil ne sait plus ce qui contient quoi.
+
+Relevé avant d'y toucher : 22 `space-y-6`, 7 `p-6`, 3 `gap-6` dans le
+back-office, tous à 24 pixels. L'écran témoin, la liste des utilisateurs, ne
+sortait jamais de l'échelle ; le reste n'avait pas été repassé.
+
+Les écarts entre blocs descendent à 20, les remplissages de carte à 16. Le
+site public n'est pas touché : il a son propre dessin, et l'échelle porte sur
+les pages du back-office.
+
+Trois `mb-6` subsistent, sous le pictogramme rond d'un état vide. C'est une
+composition, pas un écart de mise en page, et la note de l'échelle réserve
+déjà ce cas.
+
+#### L'entête de démonstration était à l'accent plein
+`#059669` est l'émeraude d'Aurora à pleine saturation : étalée sur une entête
+elle pèse 116 de luminance là où le site public se tient entre 28 et 50, et
+elle détonnait au milieu des autres. Elle prend le vert sourd et la même
+inclinaison que la production.
+
+---
+
 ## [0.9.240] - 2026-09-24
 
 ### Ajouté

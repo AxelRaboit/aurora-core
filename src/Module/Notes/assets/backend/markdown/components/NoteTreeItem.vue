@@ -13,8 +13,10 @@
  * elle a trouvé quelque chose.
  */
 import { computed } from 'vue';
-import { ChevronRight, ChevronDown, FileText, Folder, FolderOpen, Plus, Trash2 } from 'lucide-vue-next';
+import { useI18n } from 'vue-i18n';
+import { ChevronRight, ChevronDown, FileText, Folder, FolderOpen, Pencil, Plus, Trash2 } from 'lucide-vue-next';
 import AppIconButton from '@shared/components/action/AppIconButton.vue';
+import AppRowActions from '@shared/components/action/AppRowActions.vue';
 
 const props = defineProps({
     node: { type: Object, required: true },
@@ -41,6 +43,7 @@ const emit = defineEmits([
     'select',
     'toggle',
     'create-note',
+    'rename',
     'delete',
     'drag-start',
     'drag-end',
@@ -49,7 +52,39 @@ const emit = defineEmits([
     'drop',
 ]);
 
+const { t } = useI18n();
+
 const isFolder = computed(() => 'folder' === props.node.kind);
+
+/**
+ * Ce qu'une ligne propose, dossier comme note.
+ *
+ * **Une note n'avait aucune action**, et aucun des deux ne pouvait être
+ * renommé : le bloc entier était sous `v-if="isFolder"` et ne contenait que
+ * créer et supprimer. Tout le reste existait déjà - la modale de renommage,
+ * l'API, les traductions, et jusqu'au `requestDelete` branché sur cet
+ * événement -, il n'y avait simplement pas de bouton pour l'atteindre.
+ *
+ * Dans une feuille et non en boutons alignés : la règle de la maison veut
+ * qu'au-delà de deux gestes on empile, et une ligne d'arbre est trop étroite
+ * pour en aligner trois. Le plus d'un dossier reste dehors, c'est celui qu'on
+ * répète.
+ */
+const rowActions = computed(() => [
+    {
+        key: 'rename',
+        title: isFolder.value ? t('notes.markdown.folders.rename') : t('notes.markdown.rename'),
+        icon: Pencil,
+        onSelect: () => emit('rename', props.node),
+    },
+    {
+        key: 'delete',
+        title: isFolder.value ? t('notes.markdown.folders.delete') : t('notes.markdown.delete'),
+        icon: Trash2,
+        color: 'rose',
+        onSelect: () => emit('delete', props.node),
+    },
+]);
 const children = computed(() => props.node.children ?? []);
 const hasChildren = computed(() => children.value.length > 0);
 const isOpen = computed(() => props.expanded.has(Number(props.node.id)));
@@ -166,8 +201,9 @@ const indentStyle = computed(() => ({ marginLeft: `${props.depth * 1}rem` }));
                  sits between the title and the hover action buttons. -->
             <slot name="extra-cells" :node="node" />
 
-            <div v-if="isFolder" class="sm:opacity-0 sm:group-hover:opacity-100 flex gap-0.5 transition-opacity shrink-0">
+            <div class="sm:opacity-0 sm:group-hover:opacity-100 flex gap-0.5 transition-opacity shrink-0">
                 <AppIconButton
+                    v-if="isFolder"
                     size="sm"
                     color="accent"
                     :title="$t('notes.markdown.create_in_folder')"
@@ -175,14 +211,11 @@ const indentStyle = computed(() => ({ marginLeft: `${props.depth * 1}rem` }));
                 >
                     <Plus class="w-3.5 h-3.5" :stroke-width="2" />
                 </AppIconButton>
-                <AppIconButton
+                <AppRowActions
+                    :actions="rowActions"
+                    :label="label || (isFolder ? $t('notes.markdown.folders.untitled') : $t('notes.markdown.untitled'))"
                     size="sm"
-                    color="rose"
-                    :title="$t('notes.markdown.folders.delete')"
-                    v-on:click.stop="emit('delete', node)"
-                >
-                    <Trash2 class="w-3.5 h-3.5" :stroke-width="2" />
-                </AppIconButton>
+                />
             </div>
         </div>
 
@@ -201,6 +234,7 @@ const indentStyle = computed(() => ({ marginLeft: `${props.depth * 1}rem` }));
                 v-on:select="(n) => emit('select', n)"
                 v-on:toggle="(n) => emit('toggle', n)"
                 v-on:create-note="(id) => emit('create-note', id)"
+                v-on:rename="(n) => emit('rename', n)"
                 v-on:delete="(n) => emit('delete', n)"
                 v-on:drag-start="(n, e) => emit('drag-start', n, e)"
                 v-on:drag-end="(e) => emit('drag-end', e)"

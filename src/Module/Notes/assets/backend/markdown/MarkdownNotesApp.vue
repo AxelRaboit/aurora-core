@@ -462,6 +462,16 @@ const noteActions = computed(() => {
             icon: FileDown,
             onSelect: () => exportOne(selectedId.value),
         },
+        // Mettre la note à la corbeille. Le geste existait et n'était
+        // atteignable que depuis la bibliothèque : depuis la note elle-même,
+        // l'endroit le plus évident, il n'y avait rien.
+        {
+            key: "delete",
+            title: t('notes.markdown.delete'),
+            icon: Trash2,
+            color: "rose",
+            onSelect: () => requestDelete(),
+        },
     ];
 
     return actions;
@@ -680,6 +690,22 @@ const PANEL_INTENTS = {
 
         libraryRef.value?.askToDelete(folder);
     },
+    // La modale de renommage est celle de la bibliothèque, pas une seconde :
+    // elle écrit aussi la couleur, et deux modales pour le même geste
+    // finissent par ne plus dire la même chose.
+    'rename-folder': async (folder) => {
+        if (!libraryRef.value) await showLibrary(folder?.parentId ?? null);
+
+        libraryRef.value?.askForFolderName(folder);
+    },
+    // Renommer une note, c'est écrire son titre : on l'ouvre et on met le
+    // curseur dedans. Pas de modale pour un champ qui est déjà sur la page.
+    'rename-note': async (note) => {
+        await openNote(note.id);
+
+        await nextTick();
+        document.querySelector('[data-note-title]')?.focus();
+    },
     // Le glisser du panneau : la cible est une ligne de dossier, et ce qui
     // est déplacé voyage dans le presse-papier de l'événement, donc la
     // bibliothèque sait quoi en faire sans qu'on le lui répète.
@@ -777,7 +803,7 @@ onUnmounted(() => {
              et la fin du texte sortait de l'écran. C'est le pendant vertical de
              ce que le commentaire des deux volets dit déjà pour la largeur. -->
             <section class="flex-1 flex flex-col min-w-0 min-h-0">
-                <div v-if="crashed" class="flex flex-1 items-center justify-center p-6">
+                <div v-if="crashed" class="flex flex-1 items-center justify-center p-4">
                     <AppNoData
                         :message="t('notes.markdown.errors.crashed')"
                         :hint="String(crashed?.message ?? crashed)"
@@ -849,12 +875,22 @@ onUnmounted(() => {
                                 : t('notes.markdown.library.shared.badge') }}
                         </span>
 
+                        <!-- **Un champ qui ressemble à un titre n'a pas
+                             l'air d'un champ.** Sans bordure, sans fond et en
+                             2xl, celui-ci se lisait comme le titre de la page,
+                             et on cherchait ailleurs de quoi renommer la note.
+                             Une surface sourde au survol et au focus suffit à
+                             dire qu'on peut écrire dedans, sans l'encadrer en
+                             permanence : le titre reste un titre tant qu'on ne
+                             le vise pas. -->
                         <input
                             v-model="form.title"
+                            data-note-title
                             type="text"
-                            class="min-w-0 flex-1 basis-60 border-0 bg-transparent p-0 text-2xl font-semibold text-primary placeholder:font-normal placeholder:text-muted focus:outline-none focus:ring-0"
+                            class="min-w-0 flex-1 basis-60 rounded-md border-0 bg-transparent px-2 py-0.5 -mx-2 text-2xl font-semibold text-primary transition-colors placeholder:font-normal placeholder:text-muted hover:bg-surface-2 focus:bg-surface-2 focus:outline-none focus:ring-0"
                             :placeholder="t('notes.markdown.title_placeholder')"
                             :aria-label="t('notes.markdown.title_placeholder')"
+                            :title="t('notes.markdown.rename')"
                         >
 
                         <div class="ml-auto flex shrink-0 flex-wrap items-center justify-end gap-2 md:gap-3">

@@ -181,7 +181,7 @@ function removeMember(userId) {
 </script>
 
 <template>
-    <div class="space-y-6">
+    <div class="space-y-5">
         <section class="space-y-4">
             <h3 class="text-xs font-medium uppercase tracking-wider text-muted">
                 {{ t("backend.studio.spaces.group_identity") }}

@@ -429,7 +429,7 @@ const governingLabel = computed(
 
                 <article
                     v-else
-                    class="aurora-card p-4 sm:p-6 prose-contract max-h-[65vh] overflow-y-auto"
+                    class="aurora-card p-4 sm:p-4 prose-contract max-h-[65vh] overflow-y-auto"
                     v-html="previewHtml"
                 />
             </div>

@@ -942,7 +942,7 @@ const pageActions = computed(() => {
             v-on:close="viewingDoc = null"
         >
             <template v-if="viewingDoc">
-                <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
+                <div class="grid grid-cols-1 lg:grid-cols-5 gap-5 items-start">
                     <div v-if="viewingDoc.fileUrl" class="lg:col-span-3 rounded-lg border border-line overflow-hidden">
                         <AppImagePreview v-if="viewingDoc.fileMime?.startsWith('image/')" :src="viewingDoc.fileUrl" :alt="viewingDoc.alt ?? viewingDoc.fileName" full />
                         <iframe

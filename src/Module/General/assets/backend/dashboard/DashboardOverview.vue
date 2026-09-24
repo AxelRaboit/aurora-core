@@ -27,7 +27,7 @@ const { activeModule, selectModule, visibleModules } = useDashboardModule(enable
 </script>
 
 <template>
-    <div class="space-y-6">
+    <div class="space-y-5">
         <div v-if="visibleModules.length === 0" class="flex flex-col items-center justify-center py-24 text-center text-secondary">
             <Package class="w-10 h-10 mb-3 opacity-30" :stroke-width="1.5" />
             <p class="text-sm">{{ t('backend.stats.no_module_enabled') }}</p>

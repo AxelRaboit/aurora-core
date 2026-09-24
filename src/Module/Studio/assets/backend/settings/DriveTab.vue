@@ -97,7 +97,7 @@ defineExpose({ save, apply, canEnable });
 </script>
 
 <template>
-    <div class="relative space-y-6">
+    <div class="relative space-y-5">
         <AppLoader :active="loading" />
 
         <section class="space-y-2">

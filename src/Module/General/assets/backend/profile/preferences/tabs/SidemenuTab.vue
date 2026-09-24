@@ -38,7 +38,7 @@ const totalCustomisations = computed(() => prefs.hiddenCount.value + prefs.custo
 
 <template>
     <div>
-        <header class="mb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
+        <header class="mb-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
             <p class="text-sm text-secondary min-w-0">
                 {{ t('backend.profile.sidemenu.subtitle') }}
             </p>

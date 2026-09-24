@@ -53,12 +53,12 @@ const { photoUrl, photoLoading, onPhotoSelected, removePhoto } = useProfilePhoto
 </script>
 
 <template>
-    <div class="max-w-5xl mx-auto space-y-6">
-        <div class="grid lg:grid-cols-2 gap-6 items-start">
+    <div class="max-w-5xl mx-auto space-y-5">
+        <div class="grid lg:grid-cols-2 gap-5 items-start">
             <!-- Left column: identity & security -->
-            <div class="space-y-6">
+            <div class="space-y-5">
                 <div class="aurora-card p-4">
-                    <header class="mb-6">
+                    <header class="mb-4">
                         <h2 class="text-lg font-semibold text-primary">{{ t('backend.profile.photo.title') }}</h2>
                         <p class="mt-1 text-sm text-secondary">{{ t('backend.profile.photo.subtitle') }}</p>
                     </header>
@@ -91,7 +91,7 @@ const { photoUrl, photoLoading, onPhotoSelected, removePhoto } = useProfilePhoto
                 </div>
 
                 <div class="aurora-card p-4">
-                    <header class="mb-6">
+                    <header class="mb-4">
                         <h2 class="text-lg font-semibold text-primary">{{ t('backend.profile.info.title') }}</h2>
                         <p class="mt-1 text-sm text-secondary">{{ t('backend.profile.info.subtitle') }}</p>
                     </header>
@@ -120,7 +120,7 @@ const { photoUrl, photoLoading, onPhotoSelected, removePhoto } = useProfilePhoto
                 </div>
 
                 <div class="aurora-card p-4">
-                    <header class="mb-6">
+                    <header class="mb-4">
                         <h2 class="text-lg font-semibold text-primary">{{ t('backend.profile.password.title') }}</h2>
                         <p class="mt-1 text-sm text-secondary">{{ t('backend.profile.password.subtitle') }}</p>
                     </header>
@@ -163,9 +163,9 @@ const { photoUrl, photoLoading, onPhotoSelected, removePhoto } = useProfilePhoto
             </div>
 
             <!-- Right column: personalization -->
-            <div class="space-y-6">
+            <div class="space-y-5">
                 <div class="aurora-card p-4">
-                    <header class="mb-6">
+                    <header class="mb-4">
                         <h2 class="text-lg font-semibold text-primary">{{ t('backend.profile.locale.title') }}</h2>
                         <p class="mt-1 text-sm text-secondary">{{ t('backend.profile.locale.subtitle') }}</p>
                     </header>
@@ -187,7 +187,7 @@ const { photoUrl, photoLoading, onPhotoSelected, removePhoto } = useProfilePhoto
                 />
 
                 <div class="aurora-card p-4">
-                    <header class="mb-6">
+                    <header class="mb-4">
                         <h2 class="text-lg font-semibold text-primary">{{ t('backend.profile.mood.title') }}</h2>
                         <p class="mt-1 text-sm text-secondary">{{ t('backend.profile.mood.subtitle') }}</p>
                     </header>
@@ -212,7 +212,7 @@ const { photoUrl, photoLoading, onPhotoSelected, removePhoto } = useProfilePhoto
                 </div>
 
                 <div class="aurora-card p-4">
-                    <header class="mb-6">
+                    <header class="mb-4">
                         <h2 class="text-lg font-semibold text-primary">{{ t('backend.profile.account.title') }}</h2>
                         <p class="mt-1 text-sm text-secondary">{{ t('backend.profile.account.subtitle') }}</p>
                     </header>
@@ -272,7 +272,7 @@ const { photoUrl, photoLoading, onPhotoSelected, removePhoto } = useProfilePhoto
 
         <!-- Full-width danger zone -->
         <div class="aurora-card border-rose-900/40 p-4">
-            <header class="mb-6">
+            <header class="mb-4">
                 <h2 class="text-lg font-semibold text-rose-400">{{ t('backend.profile.danger.title') }}</h2>
                 <p class="mt-1 text-sm text-secondary">{{ t('backend.profile.danger.description') }}</p>
             </header>
