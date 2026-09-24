@@ -142,7 +142,21 @@ const spaceView = (view) => async (page) => {
     await page.waitForTimeout(2_000);
 };
 
+/**
+ * Ouvrir l'espace « Réseaux sociaux », d'où partent toutes les prises d'un
+ * espace.
+ *
+ * **L'onglet de la liste est retenu d'une visite à l'autre**, et `espaces-
+ * prospects` le laisse sur Prospects juste avant. L'espace cherché est chez
+ * un client, donc il n'est plus dans la liste, le clic expire au bout de
+ * trente secondes et le scénario suivant tombe - seul il passait, dans la
+ * série il ratait, ce qui est la signature d'un état partagé. On remet donc
+ * l'onglet sur Clients avant de chercher, sans se demander où il en est.
+ */
 async function openSpace(page) {
+    await page.getByRole("button", { name: /^Clients/ }).first().click();
+    await page.waitForTimeout(1_000);
+
     await page.getByRole("link", { name: /Réseaux sociaux/ }).first().click();
     await page.waitForTimeout(3_500);
 }
@@ -709,9 +723,17 @@ const SHOTS = [
 
             const espace = new URL(page.url());
             await page.goto(`${espace.origin}${espace.pathname}/access`, { waitUntil: "networkidle" });
-            await page.waitForTimeout(1_500);
 
-            await page.getByRole("button", { name: "Créer un lien" }).first().click();
+            // Attendre le bouton plutôt que compter jusqu'à mille cinq cents.
+            //
+            // Ce scénario passait seul et tombait dans la série complète, sur
+            // un `click` expiré au bout de trente secondes : une pause fixe
+            // suffit sur une machine au repos et plus sur la même machine au
+            // soixante-huitième écran. L'attente porte donc sur ce qu'on
+            // attend vraiment, l'application montée et son bouton présent.
+            const ouvrir = page.getByRole("button", { name: "Créer un lien" }).first();
+            await ouvrir.waitFor({ state: "visible", timeout: 30_000 });
+            await ouvrir.click();
             await page.waitForTimeout(1_000);
 
             // Par l'exemple du champ et non par son libellé : les champs de
