@@ -2,7 +2,6 @@
 import { useI18n } from "vue-i18n";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
-import { Inbox } from "lucide-vue-next";
 import { usePermissions } from "./composables/usePermissions.js";
 import { usePermissionsFilter } from "./composables/usePermissionsFilter.js";
 
@@ -29,11 +28,7 @@ const { searchInput, filteredModules } = usePermissionsFilter(data);
             <div class="bg-surface-2 border-b border-line px-4 py-2.5">
                 <h3 class="text-sm font-semibold text-primary">{{ t(`backend.modules.${moduleEntry.id}`, moduleEntry.id) }}</h3>
             </div>
-            <p v-if="!moduleEntry.permissions.length" class="px-4 py-3 text-xs text-muted flex items-center gap-1.5">
-                <Inbox class="w-3.5 h-3.5 opacity-40" :stroke-width="1.5" />
-                {{ t('backend.permissions.none') }}
-            </p>
-            <table v-else class="w-full text-sm">
+            <table class="w-full text-sm">
                 <thead>
                     <tr class="bg-surface-2/50 border-b border-line/40">
                         <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">{{ t('backend.permissions.name') }}</th>

@@ -198,7 +198,7 @@ function openSearchFromMobile() {
                 <AppLogo v-else :size="32" class="shrink-0" />
                 <div class="flex flex-col min-w-0">
                     <span class="text-primary font-bold text-lg tracking-tight truncate leading-tight">{{ siteName }}</span>
-                    <span v-if="appVersion" class="text-xs text-muted/50 leading-none">{{ appVersion }}</span>
+                    <span v-if="appVersion" data-app-version class="text-xs text-muted/50 leading-none">{{ appVersion }}</span>
                 </div>
             </a>
         </div>
