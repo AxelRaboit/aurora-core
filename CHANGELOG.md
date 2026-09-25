@@ -5,6 +5,22 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.250] - 2026-09-25
+
+### Corrigé
+
+#### Les textes des zones restaient en français sur les pages en anglais et en espagnol
+Sur une page publique en anglais ou en espagnol, les petits textes que posent
+les zones elles-mêmes sortaient en français : « Agrandir l'image » sur une
+galerie, « Sur cette page » sur un sommaire, « Copier » sur un bloc de code,
+les légendes de la zone « Activité GitHub ». La langue de la page était bien
+prise dans son adresse, mais trop tard : les traductions avaient déjà été
+réglées sur la langue de la dernière session du back-office. Une page publique
+se traduit désormais dans la langue de son adresse, et le back-office garde
+celle de son utilisateur.
+
+---
+
 ## [0.9.249] - 2026-09-25
 
 ### Ajouté
