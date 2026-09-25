@@ -51,6 +51,30 @@ final class BannerFadeTest extends IntegrationTestCase
      * already travelled with every item; the text costume simply never drew
      * them.
      */
+    public function testAColouredTitleRendersItsSpanAndStaysTheHeading(): void
+    {
+        $html = $this->renderItems(
+            [['id' => 'a1', 'type' => 'text', 'titleFont' => 'playfair-display', 'descriptionSize' => 'xl', 'descriptionFont' => 'inter']],
+            ['a1' => ['title' => 'Dev <span class="cdx-text-color" style="color: var(--th-accent)">×</span> Photo', 'description' => 'Une phrase.']],
+        );
+
+        self::assertMatchesRegularExpression('#<h1[^>]*>Dev <span class="cdx-text-color" style="color: var\(--th-accent\)[^"]*">×</span> Photo</h1>#', $html);
+        self::assertStringContainsString('Playfair Display', $html);
+        self::assertStringContainsString('text-xl sm:text-2xl', $html);
+        self::assertStringContainsString('Inter', $html);
+    }
+
+    /** A title reduced to an empty colour span has no words to be a heading. */
+    public function testATitleWithOnlyAnEmptySpanIsNoHeading(): void
+    {
+        $banner = $this->bannerViewBuilder->build(
+            ['enabled' => true, 'items' => [['id' => 'a1', 'type' => 'text']]],
+            ['items' => ['a1' => ['title' => '<span class="cdx-text-color" style="color: #ff0000"> </span>']]],
+        );
+
+        self::assertNull($banner['headingIndex']);
+    }
+
     public function testATextCarriesItsOwnButton(): void
     {
         $html = $this->renderItems(

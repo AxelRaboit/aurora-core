@@ -50,7 +50,11 @@ final class ThemeFontEnumTest extends TestCase
     {
         $css = (string) file_get_contents(self::APP_CSS);
 
-        foreach (['400', '400-italic', '500', '500-italic', '600', '700'] as $weight) {
+        $weights = $font->hasItalic()
+            ? ['400', '400-italic', '500', '500-italic', '600', '700']
+            : ['400', '500', '600', '700'];
+
+        foreach ($weights as $weight) {
             self::assertStringContainsString(
                 sprintf('@import "@fontsource/%s/%s.css";', $font->value, $weight),
                 $css,

@@ -54,6 +54,8 @@ backend:
       work-sans: Grotesque, un peu plus large et plus chaleureuse qu'Inter.
       nunito: Arrondie. Le ton le moins institutionnel de la liste.
       lora: À empattements. Fait lire la page comme un texte plutôt qu'un écran.
+      playfair-display: "À empattements contrastés. Le ton éditorial et haut de gamme, pour la photographie ou le luxe."
+      space-grotesk: "Grotesque au dessin marqué. Des titres qui se remarquent, pour un ton moderne."
     slug_label: Slug
     header_media_hint: Trouvez l'ID dans Médias → ouvrez un média → champ ID.
     header_text_placeholder: Mon site

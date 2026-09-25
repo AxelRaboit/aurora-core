@@ -34,6 +34,18 @@ const WIDTHS = [
     { columns: 12, key: "quarter" },
 ];
 
+// Mirrors ThemeFontEnum: the families the site serves itself. Null follows
+// the theme's font, which is what every banner did before it could choose.
+const FONTS = [
+    { value: "poppins", label: "Poppins" },
+    { value: "inter", label: "Inter" },
+    { value: "work-sans", label: "Work Sans" },
+    { value: "nunito", label: "Nunito" },
+    { value: "lora", label: "Lora" },
+    { value: "playfair-display", label: "Playfair Display" },
+    { value: "space-grotesk", label: "Space Grotesk" },
+];
+
 function writable(get, set) {
     return computed({ get, set });
 }
@@ -81,6 +93,9 @@ function newItem(type) {
         descriptionColor: null,
         align: "start",
         titleSize: "md",
+        descriptionSize: "md",
+        titleFont: null,
+        descriptionFont: null,
         mediaId: null,
         media: null,
         buttonColor: null,
@@ -133,6 +148,18 @@ export function usePostBanner(layout, texts) {
             label: t(`backend.posts.banner.widths.${key}`),
         })),
     );
+
+    // On a tablet an item can keep the phone's full width (null, which the
+    // grid reads as "inherit") or take one of the same fractions.
+    const tabletWidthOptions = computed(() => [
+        { value: null, label: t("backend.posts.banner.widths.as_phone") },
+        ...widthOptions.value,
+    ]);
+
+    const fontOptions = computed(() => [
+        { value: null, label: t("backend.posts.banner.font_theme") },
+        ...FONTS,
+    ]);
 
     const items = computed(() => banner.value.items);
     const canAddItem = computed(() => banner.value.items.length < MAX_ITEMS);
@@ -411,6 +438,24 @@ export function usePostBanner(layout, texts) {
                 descriptionColor: scalar("descriptionColor"),
                 align: scalar("align"),
                 titleSize: scalar("titleSize"),
+                descriptionSize: writable(
+                    () => item()?.descriptionSize ?? "md",
+                    (value) => {
+                        item().descriptionSize = value;
+                    },
+                ),
+                titleFont: writable(
+                    () => item()?.titleFont ?? null,
+                    (value) => {
+                        item().titleFont = value || null;
+                    },
+                ),
+                descriptionFont: writable(
+                    () => item()?.descriptionFont ?? null,
+                    (value) => {
+                        item().descriptionFont = value || null;
+                    },
+                ),
                 buttonColor: scalar("buttonColor"),
                 buttonTextColor: scalar("buttonTextColor"),
                 // The width control drives the large-screen span only. Below
@@ -420,6 +465,13 @@ export function usePostBanner(layout, texts) {
                     () => item()?.span?.lg ?? COLUMNS,
                     (value) => {
                         item().span.lg = value;
+                    },
+                ),
+                // Tablet: null inherits the phone's full width.
+                tabletWidth: writable(
+                    () => item()?.span?.md ?? null,
+                    (value) => {
+                        item().span.md = value || null;
                     },
                 ),
                 media: writable(
@@ -440,6 +492,8 @@ export function usePostBanner(layout, texts) {
         verticalAlignOptions,
         titleSizeOptions,
         widthOptions,
+        tabletWidthOptions,
+        fontOptions,
         items,
         canAddItem,
         addItem,
