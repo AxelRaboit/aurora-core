@@ -10,6 +10,7 @@ use Aurora\Core\Validation\Dto\PaginationRequest;
 use Aurora\Module\Configuration\Storage\Setting\StorageSettings;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Document\Serializer\DocumentSerializerInterface;
+use Aurora\Module\Ged\Document\Service\DocumentUsageService;
 use Aurora\Module\Ged\DocumentCategory\Repository\DocumentCategoryRepository;
 use Aurora\Module\Ged\DocumentCategory\Serializer\DocumentCategorySerializerInterface;
 use Aurora\Module\Ged\DocumentFolder\Repository\DocumentFolderRepository;
@@ -18,6 +19,9 @@ use Aurora\Module\Ged\DocumentTag\Repository\DocumentTagRepository;
 use Aurora\Module\Ged\DocumentTag\Serializer\DocumentTagSerializerInterface;
 use Aurora\Module\Ged\Enum\DocumentStatusEnum;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+
+use function array_map;
+use function is_int;
 
 final readonly class DocumentsViewBuilder
 {
@@ -32,6 +36,7 @@ final readonly class DocumentsViewBuilder
         private DocumentFolderSerializerInterface $folderSerializer,
         private UrlGeneratorInterface $urlGenerator,
         private StorageSettings $storageSettings,
+        private DocumentUsageService $usageService,
     ) {}
 
     public function indexView(PaginationRequest $pagination): array
@@ -123,7 +128,9 @@ final readonly class DocumentsViewBuilder
 
         return [
             'success' => true,
-            'items' => array_map($this->documentSerializer->serialize(...), $result['items']),
+            'items' => $this->withUsageCounts(
+                array_map($this->documentSerializer->serialize(...), $result['items']),
+            ),
             'total' => $result['total'],
             'page' => $result['page'],
             'totalPages' => $result['totalPages'],
@@ -131,6 +138,49 @@ final readonly class DocumentsViewBuilder
             // to folder names stay in sync after moves / deletes / uploads.
             'folders' => $this->serializeFoldersWithCounts(),
         ];
+    }
+
+    /**
+     * Each row told whether anything is drawing it.
+     *
+     * The count travels with the listing rather than behind a second call, so
+     * the badge is there when the row is painted and no screen ever shows a
+     * document whose state is still loading.
+     *
+     * **One question for the whole page.** Asked row by row, a page of fifty
+     * would cost fifty lookups in each of the five modules, and the three that
+     * walk their source - posts, decks, space notes - would walk it fifty
+     * times over. {@see DocumentUsageService::countUsagesFor()} takes the page
+     * at once, and the providers that can answer in bulk do it in one query or
+     * one pass.
+     *
+     * @param list<array<string, mixed>> $items
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function withUsageCounts(array $items): array
+    {
+        $ids = [];
+
+        foreach ($items as $item) {
+            if (is_int($item['id'] ?? null)) {
+                $ids[] = $item['id'];
+            }
+        }
+
+        if ([] === $ids) {
+            return $items;
+        }
+
+        $counts = $this->usageService->countUsagesFor($ids);
+
+        return array_map(
+            static fn (array $item): array => [
+                ...$item,
+                'usageCount' => $counts[$item['id'] ?? null] ?? 0,
+            ],
+            $items,
+        );
     }
 
     /**

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\SpaceNote\Service;
 
-use Aurora\Module\Ged\Document\Contract\DocumentUsageProviderInterface;
+use Aurora\Module\Ged\Document\Contract\BatchDocumentUsageProviderInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\SpaceNote\Entity\SpaceNoteInterface;
 use Aurora\Module\Studio\SpaceNote\Repository\SpaceNoteRepository;
@@ -35,7 +35,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * n'en est pas l'auteur. Ce que l'écran a besoin de dire, c'est « quelque
  * chose s'en sert », pas quoi.
  */
-final readonly class SpaceNoteDocumentUsageProvider implements DocumentUsageProviderInterface
+final readonly class SpaceNoteDocumentUsageProvider implements BatchDocumentUsageProviderInterface
 {
     public function __construct(
         private SpaceNoteRepository $notes,
@@ -80,5 +80,17 @@ final readonly class SpaceNoteDocumentUsageProvider implements DocumentUsageProv
         }
 
         return $this->translator->trans('backend.studio.space_notes.someone_elses');
+    }
+
+    /**
+     * The same answer for a page of documents, in one narrowing and one read.
+     *
+     * @param list<int> $documentIds
+     *
+     * @return array<int, int>
+     */
+    public function countUsagesFor(array $documentIds): array
+    {
+        return $this->notes->countUsagesByDocument($documentIds);
     }
 }

@@ -819,4 +819,82 @@ class PostRepository extends ResolveTargetEntityRepository
             static fn (PostInterface $post): bool => $pictures->uses($post, $documentId),
         ));
     }
+
+    /**
+     * How many posts draw each of these documents, in one pass.
+     *
+     * {@see self::findUsingDocument()} answers about one picture, which is
+     * what the deletion screen asks. The library's listing asks about the
+     * fifty on the page, and calling that method fifty times would run fifty
+     * narrowings and load the candidates fifty times over.
+     *
+     * So the narrowing takes every id at once - one alternation, one scan -
+     * and the candidates are walked a single time, each post's pictures
+     * tallied against the ids that were asked for. A post drawing the same
+     * picture in its banner and its grid counts once, as it does there.
+     *
+     * @param list<int> $documentIds
+     *
+     * @return array<int, int>
+     */
+    public function countUsagesByDocument(array $documentIds): array
+    {
+        if ([] === $documentIds) {
+            return [];
+        }
+
+        $wanted = array_fill_keys($documentIds, true);
+        $metadata = $this->getClassMetadata();
+
+        $columns = array_map(
+            $metadata->getColumnName(...),
+            ['galleryLayout', 'bannerLayout', 'gridLayout'],
+        );
+
+        $sql = sprintf(
+            'SELECT id FROM %s WHERE %s',
+            $metadata->getTableName(),
+            implode(' OR ', array_map(
+                static fn (string $column): string => sprintf('%s::text ~ :pattern', $column),
+                $columns,
+            )),
+        );
+
+        $rows = $this->getEntityManager()->getConnection()->fetchFirstColumn(
+            $sql,
+            ['pattern' => sprintf(
+                '"(mediaId|mediaIds|logoMediaId)":\s*\[?[\s0-9,]*\m(%s)\M',
+                implode('|', array_map(static fn (int $id): string => (string) $id, $documentIds)),
+            )],
+            ['pattern' => ParameterType::STRING],
+        );
+
+        $candidates = array_map(static fn (mixed $id): int => (int) $id, $rows);
+
+        $builder = $this->createQueryBuilder('p')
+            ->leftJoin('p.translations', 't')
+            ->where('p.thumbnail IN (:documents)')
+            ->orWhere('t.ogImage IN (:documents)')
+            ->setParameter('documents', $documentIds)
+            ->orderBy('p.id', Order::Ascending->value);
+
+        if ([] !== $candidates) {
+            $builder->orWhere('p.id IN (:candidates)')->setParameter('candidates', $candidates);
+        }
+
+        /** @var list<PostInterface> $posts */
+        $posts = $builder->getQuery()->getResult();
+
+        $counts = [];
+
+        foreach ($posts as $post) {
+            foreach ($this->pictures->idsUsedBy($post) as $documentId) {
+                if (isset($wanted[$documentId])) {
+                    $counts[$documentId] = ($counts[$documentId] ?? 0) + 1;
+                }
+            }
+        }
+
+        return $counts;
+    }
 }

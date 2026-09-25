@@ -15,6 +15,14 @@ use Doctrine\Common\Collections\Order;
 use Doctrine\DBAL\ParameterType;
 use Doctrine\Persistence\ManagerRegistry;
 
+use function array_fill_keys;
+use function array_keys;
+use function array_map;
+use function implode;
+use function is_array;
+use function is_int;
+use function sprintf;
+
 /**
  * @extends ResolveTargetEntityRepository<SpaceNoteInterface>
  */
@@ -133,5 +141,87 @@ class SpaceNoteRepository extends ResolveTargetEntityRepository
         }
 
         return false;
+    }
+
+    /**
+     * How many notes carry each of these documents, in one pass.
+     *
+     * The library's listing asks about a page of documents at once; running
+     * {@see self::findUsingDocument()} per row would narrow and load the
+     * candidates once per row. One alternation narrows for all of them, and
+     * each candidate note is read a single time.
+     *
+     * @param list<int> $documentIds
+     *
+     * @return array<int, int>
+     */
+    public function countUsagesByDocument(array $documentIds): array
+    {
+        if ([] === $documentIds) {
+            return [];
+        }
+
+        $wanted = array_fill_keys($documentIds, true);
+        $metadata = $this->getClassMetadata();
+
+        $rows = $this->getEntityManager()->getConnection()->fetchFirstColumn(
+            sprintf(
+                'SELECT id FROM %s WHERE %s::text ~ :pattern',
+                $metadata->getTableName(),
+                $metadata->getColumnName('body'),
+            ),
+            ['pattern' => sprintf(
+                '"documentId":\s*\m(%s)\M',
+                implode('|', array_map(static fn (int $id): string => (string) $id, $documentIds)),
+            )],
+            ['pattern' => ParameterType::STRING],
+        );
+
+        if ([] === $rows) {
+            return [];
+        }
+
+        /** @var list<SpaceNoteInterface> $candidates */
+        $candidates = $this->createQueryBuilder('n')
+            ->where('n.id IN (:ids)')
+            ->setParameter('ids', array_map(static fn (mixed $id): int => (int) $id, $rows))
+            ->orderBy('n.id', Order::Ascending->value)
+            ->getQuery()
+            ->getResult();
+
+        $counts = [];
+
+        foreach ($candidates as $note) {
+            foreach ($this->documentIdsOf($note) as $documentId) {
+                if (isset($wanted[$documentId])) {
+                    $counts[$documentId] = ($counts[$documentId] ?? 0) + 1;
+                }
+            }
+        }
+
+        return $counts;
+    }
+
+    /**
+     * The documents one note carries, once each.
+     *
+     * A note embedding the same file twice is one note to open, so the set is
+     * deduplicated here rather than by the caller.
+     *
+     * @return list<int>
+     */
+    private function documentIdsOf(SpaceNoteInterface $note): array
+    {
+        $ids = [];
+
+        foreach ($note->getBody() as $block) {
+            $file = $block['data']['file'] ?? null;
+
+            if (is_array($file) && is_int($file['documentId'] ?? null)) {
+                $ids[$file['documentId']] = true;
+            }
+        }
+
+        return array_keys($ids);
     }
 }

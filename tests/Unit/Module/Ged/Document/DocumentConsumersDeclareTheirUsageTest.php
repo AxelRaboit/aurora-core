@@ -78,13 +78,19 @@ final class DocumentConsumersDeclareTheirUsageTest extends TestCase
         foreach (self::phpFilesIn($moduleDir) as $file) {
             $source = file_get_contents($file);
 
-            if (is_string($source) && 1 === preg_match('/implements\s+[^{]*\bDocumentUsageProviderInterface\b/', $source)) {
+            // Either interface answers the rule: the batch one extends the
+            // single-document one, so a provider declaring it answers the
+            // deletion screen as well as the library's listing. Matching only
+            // the longer name would have gone the other way and let a module
+            // that answers nothing through.
+            if (is_string($source) && 1 === preg_match('/implements\s+[^{]*\b(?:Batch)?DocumentUsageProviderInterface\b/', $source)) {
                 $providers[] = basename($file, '.php');
             }
         }
 
         self::assertNotSame([], $providers, sprintf(
-            'Module "%s" references a GED Document but provides no DocumentUsageProviderInterface. '
+            'Module "%s" references a GED Document but provides no DocumentUsageProviderInterface '
+            .'(or its batch variant). '
             .'Without one, deleting a document it holds reports no usage and breaks it silently.',
             $module,
         ));

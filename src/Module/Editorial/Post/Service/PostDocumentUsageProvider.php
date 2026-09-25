@@ -6,7 +6,7 @@ namespace Aurora\Module\Editorial\Post\Service;
 
 use Aurora\Core\Locale\Service\LocaleContextInterface;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
-use Aurora\Module\Ged\Document\Contract\DocumentUsageProviderInterface;
+use Aurora\Module\Ged\Document\Contract\BatchDocumentUsageProviderInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -22,7 +22,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * the first gallery item is one thing to know about, and the person deciding
  * whether to delete opens the post either way.
  */
-final readonly class PostDocumentUsageProvider implements DocumentUsageProviderInterface
+final readonly class PostDocumentUsageProvider implements BatchDocumentUsageProviderInterface
 {
     public function __construct(
         private PostRepository $posts,
@@ -53,5 +53,17 @@ final readonly class PostDocumentUsageProvider implements DocumentUsageProviderI
         }
 
         return $usages;
+    }
+
+    /**
+     * The same answer for a page of documents, in one narrowing and one walk.
+     *
+     * @param list<int> $documentIds
+     *
+     * @return array<int, int>
+     */
+    public function countUsagesFor(array $documentIds): array
+    {
+        return $this->posts->countUsagesByDocument($documentIds);
     }
 }

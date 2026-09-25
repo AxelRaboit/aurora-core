@@ -17,7 +17,9 @@ use Doctrine\ORM\EntityManagerInterface;
 use function array_column;
 use function array_merge;
 use function bin2hex;
+use function count;
 use function random_bytes;
+use function sprintf;
 
 /**
  * Deleting a picture says which posts were drawing it.
@@ -230,6 +232,45 @@ final class PostDocumentUsageTest extends IntegrationTestCase
     public function testAPictureNoPostDrawsIsReportedByNobody(): void
     {
         self::assertSame([], $this->usagesOf($this->givenDocument()));
+    }
+
+    /**
+     * The bulk answer says the same thing as asking one at a time.
+     *
+     * It is a second code path - one narrowing for every id, one walk over the
+     * candidates - so it can drift from the lookup it is meant to mirror. The
+     * listing draws its badge from this one, and a badge that disagrees with
+     * the panel underneath is worse than no badge.
+     */
+    public function testTheBulkCountAgreesWithTheOneByOneAnswer(): void
+    {
+        $drawn = $this->givenDocument();
+        $twice = $this->givenDocument();
+        $free = $this->givenDocument();
+
+        $this->givenPost('Une page qui dessine', static function (PostInterface $post) use ($drawn, $twice): void {
+            $post->setGridLayout(['zones' => [['id' => 'z1', 'type' => 'media', 'mediaId' => (int) $drawn->getId()]]]);
+            $post->setThumbnail($twice);
+        });
+
+        $this->givenPost('Une seconde page', static function (PostInterface $post) use ($twice): void {
+            $post->setBannerLayout(['items' => [['id' => 'b1', 'type' => 'image', 'mediaId' => (int) $twice->getId()]]]);
+        });
+
+        $ids = [(int) $drawn->getId(), (int) $twice->getId(), (int) $free->getId()];
+        $counts = static::getContainer()->get(DocumentUsageService::class)->countUsagesFor($ids);
+
+        foreach ($ids as $id) {
+            self::assertSame(
+                count($this->usagesOf($id)),
+                $counts[$id],
+                sprintf('document %d counted differently in bulk', $id),
+            );
+        }
+
+        self::assertSame(1, $counts[(int) $drawn->getId()]);
+        self::assertSame(2, $counts[(int) $twice->getId()]);
+        self::assertSame(0, $counts[(int) $free->getId()], 'a document nobody draws is answered with a zero, not left out');
     }
 
     /**
