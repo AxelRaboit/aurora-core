@@ -112,6 +112,12 @@ frontend:
       after: Después
       compare_handle: "Mover la separación entre las dos imágenes"
       get_in_touch: Contactar
+      github:
+        total: "{0}Ninguna contribución|{1}1 contribución|]1,Inf[%number% contribuciones"
+        day: "{0}Ninguna contribución el %date%|{1}1 contribución el %date%|]1,Inf[%number% contribuciones el %date%"
+        last_year: Últimos 12 meses
+        less: Menos
+        more: Más
     forms:
       submit: Enviar
       next: Siguiente

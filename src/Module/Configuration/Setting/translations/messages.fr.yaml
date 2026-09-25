@@ -28,8 +28,10 @@ backend:
       navigation_description: Personnalisez les noms des sections et des items du menu latéral.
       pexels: Pexels
       craft: Craft
+      github: GitHub
       drive: Google Drive
       drive_description: "Lire un dossier Drive partagé par un client : compte de service, clé, activation."
+      github_description: "La grille de contributions de vos comptes GitHub, à afficher dans une page : comptes et activation."
       craft_description: "Importer une note écrite dans Craft : adresse de la connexion, jeton, activation."
       pexels_description: 'Banque de photos gratuites : activation, clé d''API et acceptation des conditions.'
       captcha: Anti-robots

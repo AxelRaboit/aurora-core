@@ -105,6 +105,21 @@ backend:
     editorial_frontend: Editorial public site
     editorial_frontend_description: 'Serves the posts, listing pages and taxonomy pages to readers.'
   editorial:
+    github:
+      settings:
+        what_title: What this integration does
+        what_body: "It shows, in a « GitHub activity » zone placed on a page, the contributions grid of the accounts below: one cell per day over the last twelve months, as on a GitHub profile."
+        source_title: Where the data comes from
+        source_body: "From each profile's public page, the one any visitor can open: no key, no account to connect. The grids are read again every six hours. If GitHub does not answer, the last grid read stays on the page."
+        logins_label: GitHub accounts
+        logins_hint: "One username per line, in display order, four at most. The « @ » is optional."
+        enabled_label: Show GitHub activity
+        enabled_hint: "The « GitHub activity » zones of your pages show these accounts."
+        enabled_blocked: "Enter at least one account to turn the integration on."
+      errors:
+        invalid_login: "Invalid GitHub username: {logins}. Letters, digits and hyphens only."
+        too_many: "{max} accounts at most."
+        logins_required: "Enter at least one account to turn the integration on."
     bootstrap:
       post_types:
         page: Page
@@ -488,6 +503,7 @@ backend:
         form: Form
         code: Code
         toc: Contents
+        githubActivity: GitHub activity
         stack: Stack
       zone_form: "Form"
       zone_form_hint: "The form is drawn in the page and posts where its own page posts."
@@ -716,6 +732,7 @@ backend:
       zone_embed: Address to embed
       zone_embed_hint: "Paste the address of the page at the provider. An address none of the four claims is shown as a plain link rather than disappearing."
       embed_providers: "Four providers are recognised: Spotify, SoundCloud, CodePen and Calendly. Each one sees the visitors of the page you put the zone on."
+      github_activity_hint: "Shows the contributions grid of the GitHub accounts set in Settings > GitHub, one card per account. While the integration is off or no account is entered there, the zone draws nothing."
       comments_hint: "Nothing to set: the thread is this publication's. When this zone exists the foot of the page stops drawing it - one conversation per page, where you put it."
       zone_deck: Presentation
       zone_deck_none: "Choose a presentation…"
@@ -1095,6 +1112,12 @@ frontend:
       after: After
       compare_handle: "Move the divider between the two pictures"
       get_in_touch: Get in touch
+      github:
+        total: "{0}No contributions|{1}1 contribution|]1,Inf[%number% contributions"
+        day: "{0}No contributions on %date%|{1}1 contribution on %date%|]1,Inf[%number% contributions on %date%"
+        last_year: Last 12 months
+        less: Less
+        more: More
     forms:
       submit: Send
       next: Next
