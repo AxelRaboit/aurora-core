@@ -424,6 +424,12 @@ const displayHint = computed(() =>
             <p class="text-sm text-muted">{{ t("backend.posts.grid.comments_hint") }}</p>
         </template>
 
+        <template v-else-if="zone.type === 'githubActivity'">
+            <!-- Nothing to choose here either: the accounts are the site's,
+                 set once in the settings and the same on every page. -->
+            <p class="text-sm text-muted">{{ t("backend.posts.grid.github_activity_hint") }}</p>
+        </template>
+
         <template v-else-if="zone.type === 'deck'">
             <AppSelect
                 v-model="bound.deckId.value"

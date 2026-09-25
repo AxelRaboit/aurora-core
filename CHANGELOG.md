@@ -5,6 +5,33 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.249] - 2026-09-25
+
+### Ajouté
+
+#### Une zone « Activité GitHub » pour les pages
+Une nouvelle zone de grille affiche la grille de contributions GitHub des douze
+derniers mois, une carte par compte, avec le total, les mois dans la langue de
+la page et une infobulle par jour. Elle se lit sur téléphone : les cases
+prennent la largeur disponible, et un nom de mois sur deux suffit.
+
+Les comptes se règlent une fois pour tout le site, dans un nouvel onglet
+**Réglages > GitHub** : un identifiant par ligne, quatre au plus, et un
+interrupteur. L'intégration est éteinte par défaut, et une zone posée tant
+qu'elle l'est ne dessine rien.
+
+Les données viennent de la page publique de chaque profil, sans clé ni compte
+à brancher. Elles sont relues toutes les six heures ; si GitHub ne répond pas,
+la dernière grille lue reste affichée, et la page n'attend pas GitHub à chaque
+visite.
+
+### Dans aurora-client
+
+Rien à faire : aucune migration, un `make aurora-update` suivi de la
+reconstruction des assets.
+
+---
+
 ## [0.9.248] - 2026-09-25
 
 ### Corrigé

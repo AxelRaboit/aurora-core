@@ -224,6 +224,16 @@ final readonly class GridNormalizer
     public const string ZONE_DECK = 'deck';
 
     /**
+     * The contributions grid of the GitHub accounts named in the settings.
+     *
+     * The accounts live in the settings rather than on the zone: they are the
+     * site owner's, the same on every page that shows them, and the
+     * integration stays off until somebody turns it on there. A zone placed
+     * while it is off draws nothing, like a deck nobody shared.
+     */
+    public const string ZONE_GITHUB_ACTIVITY = 'githubActivity';
+
+    /**
      * Another publication's grid, drawn here.
      *
      * The one thing a CMS starts missing the moment a site passes ten pages:
@@ -580,6 +590,7 @@ final readonly class GridNormalizer
         self::ZONE_FORM,
         self::ZONE_CODE,
         self::ZONE_TOC,
+        self::ZONE_GITHUB_ACTIVITY,
     ];
 
     /**
