@@ -5,6 +5,19 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.248] - 2026-09-25
+
+### Corrigé
+
+#### Un bloc très haut ne restait plus invisible à l'apparition au défilement
+Une zone qui apparaît au défilement attendait que 8 % de sa hauteur soient à
+l'écran. Un bloc plus haut que douze fenêtres n'y arrivait jamais : sur
+téléphone, une longue liste de cartes empilées en une colonne restait
+transparente, en gardant sa place. Le déclenchement ne dépend plus que du
+moment où le haut de la zone entre dans la fenêtre, comme pour un bloc court.
+
+---
+
 ## [0.9.247] - 2026-09-25
 
 ### Ajouté
