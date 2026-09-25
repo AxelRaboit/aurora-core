@@ -1,0 +1,64 @@
+{# A chart drawn on the server: bars, a line, a growth curve or a ring. No
+   library in the page, and the figures stay readable as text - every value
+   is printed beside what draws it, so a screen reader and a reader who
+   cannot tell two shades apart both get the numbers. #}
+<figure class="not-prose m-0 rounded-xl border border-line bg-surface p-5">
+    {% if widget.title or widget.growth is defined %}
+        <div class="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+            {% if widget.title %}<p class="m-0 text-base font-semibold text-primary">{{ widget.title }}</p>{% endif %}
+            {% if widget.growth is defined %}
+                <p class="m-0 text-2xl font-bold tabular-nums {{ widget.growthUp ? 'text-emerald-500' : 'text-rose-500' }}">{{ widget.growth }}</p>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    {% if widget.type == 'bar' %}
+        <div class="flex h-56 items-end gap-2 sm:gap-3">
+            {% for row in widget.rows %}
+                <div class="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1.5">
+                    <span class="text-xs font-semibold tabular-nums text-primary">{{ row.valueLabel }}</span>
+                    <span class="block w-full rounded-t-md bg-accent-500" style="height: {{ max(row.share, 1) }}%;"></span>
+                    <span class="w-full truncate text-center text-xs text-muted" title="{{ row.label }}">{{ row.label }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    {% elseif widget.type in ['line', 'growth'] %}
+        <svg viewBox="0 0 600 240" class="block h-auto w-full overflow-visible" role="img" aria-label="{{ widget.title }}">
+            {% for y in [20, 70, 120, 170, 220] %}
+                <line x1="20" x2="580" y1="{{ y }}" y2="{{ y }}" class="stroke-line" stroke-width="1" />
+            {% endfor %}
+            <polygon points="{{ widget.area }}" class="fill-accent-500/15" />
+            <polyline points="{{ widget.polyline }}" fill="none" class="stroke-accent-500" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" />
+            {% for point in widget.points %}
+                <circle cx="{{ point.x }}" cy="{{ point.y }}" r="{{ loop.last ? 6 : 4 }}" class="fill-accent-500 stroke-surface" stroke-width="2"><title>{{ point.label }} : {{ point.valueLabel }}</title></circle>
+            {% endfor %}
+        </svg>
+        <div class="mt-2 flex justify-between gap-2 text-xs text-muted">
+            {% for point in widget.points %}
+                <span class="min-w-0 truncate text-center{{ loop.first ? ' text-left' : '' }}{{ loop.last ? ' text-right' : '' }}">{{ point.label }}<br><strong class="font-semibold tabular-nums text-primary">{{ point.valueLabel }}</strong></span>
+            {% endfor %}
+        </div>
+    {% else %}
+        {% set tones = ['stroke-accent-500', 'stroke-accent-300', 'stroke-accent-700', 'stroke-accent-200', 'stroke-accent-800', 'stroke-accent-400', 'stroke-accent-900', 'stroke-accent-100'] %}
+        {% set dots = ['bg-accent-500', 'bg-accent-300', 'bg-accent-700', 'bg-accent-200', 'bg-accent-800', 'bg-accent-400', 'bg-accent-900', 'bg-accent-100'] %}
+        <div class="flex flex-col items-center gap-5 sm:flex-row">
+            <svg viewBox="0 0 42 42" class="h-44 w-44 shrink-0 -rotate-90" role="img" aria-label="{{ widget.title }}">
+                {% for row in widget.rows %}
+                    <circle cx="21" cy="21" r="15.9155" fill="none" class="{{ tones[loop.index0 % 8] }}" stroke-width="6" stroke-dasharray="{{ row.dash }} {{ 100 - row.dash }}" stroke-dashoffset="{{ row.offset + 25 }}" />
+                {% endfor %}
+            </svg>
+            <ul class="m-0 w-full list-none space-y-1.5 p-0 text-sm">
+                {% for row in widget.rows %}
+                    <li class="flex items-center justify-between gap-3">
+                        <span class="flex min-w-0 items-center gap-2"><span class="h-2.5 w-2.5 shrink-0 rounded-full {{ dots[loop.index0 % 8] }}"></span><span class="truncate text-secondary">{{ row.label }}</span></span>
+                        <span class="tabular-nums text-primary"><strong class="font-semibold">{{ row.valueLabel }}</strong> <span class="text-muted">· {{ row.percent }}</span></span>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    {% if widget.note %}
+        <figcaption class="mt-4 text-sm text-muted">{{ widget.note }}</figcaption>
+    {% endif %}
+</figure>

@@ -160,6 +160,18 @@ abstract class AbstractDocument implements DocumentInterface
     #[ORM\Column(type: Types::JSON, options: ['default' => '{}'])]
     protected array $variants = [];
 
+    /**
+     * What the camera wrote in the photograph: body, lens, aperture, speed,
+     * sensitivity, focal length, date. Read at upload, **before** the variant
+     * generator re-encodes the JPEG and drops its metadata - after that the
+     * file no longer knows. Position is deliberately not kept: a picture
+     * published on a page should not say where its author lives.
+     *
+     * @var array<string, string>
+     */
+    #[ORM\Column(type: Types::JSON, options: ['default' => '{}'])]
+    protected array $exif = [];
+
     // ── Provenance ───────────────────────────────────────────────────────
     // Where a document came from, when it did not come from someone's disk.
     // Null for an upload, which is the ordinary case; set for a picture
@@ -486,6 +498,20 @@ abstract class AbstractDocument implements DocumentInterface
     public function setVariants(array $variants): static
     {
         $this->variants = $variants;
+
+        return $this;
+    }
+
+    /** @return array<string, string> */
+    public function getExif(): array
+    {
+        return $this->exif;
+    }
+
+    /** @param array<string, string> $exif */
+    public function setExif(array $exif): static
+    {
+        $this->exif = $exif;
 
         return $this;
     }

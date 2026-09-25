@@ -15,6 +15,12 @@ import {
     Contact,
     Heart,
     QrCode,
+    ChartColumn,
+    Smartphone,
+    CalendarDays,
+    Activity,
+    Receipt,
+    Vote,
     Image,
     Images,
     Columns2,
@@ -85,6 +91,12 @@ export const LEAF_ZONE_TYPES = [
     "contactCard",
     "socialPost",
     "qrCode",
+    "chart",
+    "videoWall",
+    "editorialCalendar",
+    "activityFeed",
+    "priceList",
+    "poll",
 ];
 
 /** Mirrors GridNormalizer::ZONE_TYPES - a stack is top level only. */
@@ -150,6 +162,13 @@ export const ZONE_ICONS = {
     // The counter every network puts under a post.
     socialPost: Heart,
     qrCode: QrCode,
+    chart: ChartColumn,
+    // A phone held upright: the shape of every film on the wall.
+    videoWall: Smartphone,
+    editorialCalendar: CalendarDays,
+    activityFeed: Activity,
+    priceList: Receipt,
+    poll: Vote,
     stack: Layers,
 };
 
@@ -168,6 +187,8 @@ export const GITHUB_MODES = ["activity", "repos", "releases"];
 export const AVAILABILITIES = ["available", "soon", "busy"];
 export const WEEKDAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
 export const SOCIAL_NETWORKS = ["instagram", "linkedin", "facebook", "x"];
+export const CHART_TYPES = ["bar", "line", "donut", "growth"];
+export const POLL_RESULTS = ["after", "always"];
 
 /**
  * What `options` holds on a new zone - every key, whatever the type, for the
@@ -203,6 +224,13 @@ export function defaultZoneOptions() {
         socialDate: null,
         qrLogoId: null,
         qrDownload: true,
+        chartType: "bar",
+        chartUnit: "",
+        showExif: false,
+        backgroundVideo: false,
+        calendarMonth: null,
+        feedGithub: false,
+        pollResults: "after",
     };
 }
 
@@ -691,6 +719,8 @@ export function usePostGrid(layout, content) {
         listLayout: labelled(LIST_LAYOUTS, "list_layouts"),
         githubMode: labelled(GITHUB_MODES, "github_modes"),
         availability: labelled(AVAILABILITIES, "availabilities"),
+        chartType: labelled(CHART_TYPES, "chart_types"),
+        pollResults: labelled(POLL_RESULTS, "poll_results_modes"),
         // A network names itself.
         socialNetwork: SOCIAL_NETWORKS.map((value) => ({
             value,

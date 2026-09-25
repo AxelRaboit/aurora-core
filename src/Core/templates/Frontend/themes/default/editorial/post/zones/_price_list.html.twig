@@ -1,0 +1,29 @@
+{# A menu or a price list: a section per heading, a line per item with its
+   price at the end of a dotted leader - the way a card on a table reads -
+   and small tags under the name. #}
+<section class="not-prose space-y-6 rounded-xl border border-line bg-surface p-5">
+    {% if widget.title %}<p class="m-0 text-lg font-semibold text-primary">{{ widget.title }}</p>{% endif %}
+    {% for section in widget.sections %}
+        <div>
+            {% if section.title %}<p class="m-0 mb-3 text-xs font-semibold uppercase tracking-widest text-accent">{{ section.title }}</p>{% endif %}
+            <ul class="m-0 list-none space-y-3 p-0">
+                {% for item in section.items %}
+                    <li>
+                        <div class="flex items-baseline gap-2">
+                            <span class="font-medium text-primary">{{ item.name }}</span>
+                            <span class="min-w-4 flex-1 border-b border-dotted border-line-strong" aria-hidden="true"></span>
+                            {% if item.price %}<span class="shrink-0 font-semibold tabular-nums text-primary">{{ item.price }}</span>{% endif %}
+                        </div>
+                        {% if item.detail or item.tags is not empty %}
+                            <p class="m-0 mt-0.5 flex flex-wrap items-center gap-1.5 text-sm text-secondary">
+                                {% for tag in item.tags %}<span class="rounded-full bg-accent-500/15 px-2 py-0.5 text-[11px] font-medium text-accent">{{ tag }}</span>{% endfor %}
+                                {% if item.detail %}<span>{{ item.detail }}</span>{% endif %}
+                            </p>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endfor %}
+    {% if widget.note %}<p class="m-0 text-xs text-muted">{{ widget.note }}</p>{% endif %}
+</section>

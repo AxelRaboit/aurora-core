@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Editorial\Post\Grid;
 
+use Aurora\Module\Editorial\Poll\Repository\PollVoteRepository;
 use Closure;
 use DateTimeImmutable;
 use DateTimeZone;
@@ -11,6 +12,7 @@ use IntlDateFormatter;
 use NumberFormatter;
 use Psr\Clock\ClockInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 use function array_filter;
@@ -50,6 +52,8 @@ final readonly class ZoneWidgetViews
         // a test pin "now". A project without it reads the system clock.
         private ?ClockInterface $clock = null,
         private ?RequestStack $requestStack = null,
+        private ?PollVoteRepository $pollVotes = null,
+        private ?UrlGeneratorInterface $urlGenerator = null,
     ) {}
 
     private function now(): DateTimeImmutable
@@ -64,7 +68,7 @@ final readonly class ZoneWidgetViews
      *
      * @return array<string, mixed>|null
      */
-    public function build(array $zone, array $held, string $locale, Closure $media): ?array
+    public function build(array $zone, array $held, string $locale, Closure $media, ?int $postId = null): ?array
     {
         $options = $zone['options'];
 
@@ -75,6 +79,17 @@ final readonly class ZoneWidgetViews
             GridNormalizer::ZONE_CONTACT_CARD => $this->contactCard($options, $held, $media($zone['mediaId'])),
             GridNormalizer::ZONE_SOCIAL_POST => $this->socialPost($options, $held, $locale, $media($zone['mediaId']), $media($options['socialAvatarId'])),
             GridNormalizer::ZONE_QR_CODE => $this->qrCode($zone, $options, $held, $media($options['qrLogoId'])),
+            GridNormalizer::ZONE_CHART => $this->chart($options, $held, $locale),
+            GridNormalizer::ZONE_EDITORIAL_CALENDAR => $this->editorialCalendar($options, $held, $locale),
+            GridNormalizer::ZONE_PRICE_LIST => $this->priceList($held),
+            GridNormalizer::ZONE_POLL => $this->poll($zone, $options, $held, $locale, $postId),
+            GridNormalizer::ZONE_AUDIO => $this->chapters($held),
+            // The button over a film playing behind a title. Its address is the
+            // one the zone would give a provider's player, free once a film
+            // of the library is picked instead.
+            GridNormalizer::ZONE_VIDEO => $options['backgroundVideo'] && '' !== $held['label'] && null !== $held['url']
+                ? ['label' => $held['label'], 'url' => $held['url']]
+                : null,
             default => null,
         };
     }
@@ -366,6 +381,310 @@ final readonly class ZoneWidgetViews
             'size' => $zone['size'],
             'fileName' => 'qr-code.png',
         ];
+    }
+
+    /** The lines of a table typed in the editor, blank ones dropped. */
+    private function lines(string $text): array
+    {
+        return array_values(array_filter(array_map(trim(...), preg_split('/\R/', $text) ?: []), static fn (string $line): bool => '' !== $line));
+    }
+
+    /** A cell split on `|` or `;`, trimmed. */
+    private function cells(string $line): array
+    {
+        return array_map(trim(...), preg_split('/\s*[|;]\s*/', $line) ?: []);
+    }
+
+    /** `1 234,5` or `1234.5` as a number; null when it is not one. */
+    private function number(string $value): ?float
+    {
+        $clean = str_replace([' ', "\u{a0}", "\u{202f}"], '', $value);
+
+        if (1 === preg_match('/^-?\d+,\d+$/', $clean)) {
+            $clean = str_replace(',', '.', $clean);
+        }
+
+        return is_numeric($clean) ? (float) $clean : null;
+    }
+
+    /**
+     * A chart drawn on the server as SVG geometry: no library in the page,
+     * and a reader without JavaScript still sees it.
+     *
+     * @param array<string, mixed> $options
+     * @param array<string, mixed> $held
+     *
+     * @return array<string, mixed>|null
+     */
+    private function chart(array $options, array $held, string $locale): ?array
+    {
+        $numbers = new NumberFormatter($locale, NumberFormatter::DECIMAL);
+        $numbers->setAttribute(NumberFormatter::MAX_FRACTION_DIGITS, 2);
+
+        $unit = $options['chartUnit'];
+        $rows = [];
+
+        foreach (array_slice($this->lines($held['code']), 0, 24) as $line) {
+            $cells = $this->cells($line);
+            $value = $this->number($cells[1] ?? '');
+            if ('' === ($cells[0] ?? '')) {
+                continue;
+            }
+
+            if (null === $value) {
+                continue;
+            }
+
+            $rows[] = ['label' => $cells[0], 'value' => $value, 'valueLabel' => $numbers->format($value).('' === $unit ? '' : "\u{202f}".$unit)];
+        }
+
+        if ([] === $rows) {
+            return null;
+        }
+
+        $values = array_column($rows, 'value');
+        $max = max(max($values), 0.0);
+        $min = min(min($values), 0.0);
+        $span = $max - $min ?: 1.0;
+        $type = $options['chartType'];
+
+        foreach ($rows as $index => $row) {
+            $rows[$index]['share'] = round(($row['value'] - $min) / $span * 100, 2);
+        }
+
+        $view = ['type' => $type, 'rows' => $rows, 'title' => $held['label'], 'note' => $held['caption']];
+
+        if (in_array($type, ['line', 'growth'], true)) {
+            // A 600 by 240 drawing, room left for the dots at the edges.
+            $count = count($rows);
+            $points = [];
+            foreach ($rows as $index => $row) {
+                $points[] = [
+                    'x' => round(20 + ($count > 1 ? $index / ($count - 1) : 0.5) * 560, 1),
+                    'y' => round(220 - ($row['value'] - $min) / $span * 200, 1),
+                    'label' => $row['label'],
+                    'valueLabel' => $row['valueLabel'],
+                ];
+            }
+
+            $view['points'] = $points;
+            $view['polyline'] = implode(' ', array_map(static fn (array $p): string => $p['x'].','.$p['y'], $points));
+            $view['area'] = '20,220 '.$view['polyline'].' '.end($points)['x'].',220';
+        }
+
+        if ('growth' === $type && count($rows) > 1 && 0.0 !== $rows[0]['value']) {
+            $change = ($rows[count($rows) - 1]['value'] - $rows[0]['value']) / abs($rows[0]['value']) * 100;
+            $view['growth'] = ($change >= 0 ? '+' : '').$numbers->format(round($change)).' %';
+            $view['growthUp'] = $change >= 0;
+        }
+
+        if ('donut' === $type) {
+            // A circle of circumference 100, so each share is its own dash.
+            $total = array_sum(array_map(abs(...), $values)) ?: 1.0;
+            $offset = 0.0;
+            foreach ($rows as $index => $row) {
+                $length = abs($row['value']) / $total * 100;
+                $rows[$index]['dash'] = round($length, 3);
+                $rows[$index]['offset'] = round(25 - $offset, 3);
+                $rows[$index]['percent'] = $numbers->format(round($length)).' %';
+                $offset += $length;
+            }
+
+            $view['rows'] = $rows;
+        }
+
+        return $view;
+    }
+
+    /**
+     * A month grid of planned posts, Monday first, with the list the phone
+     * shows instead.
+     *
+     * @param array<string, mixed> $options
+     * @param array<string, mixed> $held
+     *
+     * @return array<string, mixed>
+     */
+    private function editorialCalendar(array $options, array $held, string $locale): array
+    {
+        $entries = [];
+
+        foreach ($this->lines($held['code']) as $line) {
+            $cells = $this->cells($line);
+            if (1 !== preg_match('/^\d{4}-\d{2}-\d{2}$/', $cells[0] ?? '')) {
+                continue;
+            }
+
+            if (false === DateTimeImmutable::createFromFormat('!Y-m-d', $cells[0])) {
+                continue;
+            }
+
+            $entries[] = [
+                'date' => $cells[0],
+                'network' => $cells[1] ?? '',
+                'title' => implode(' | ', array_slice($cells, 2)),
+                'tone' => $this->networkTone($cells[1] ?? ''),
+            ];
+        }
+
+        $month = $options['calendarMonth'] ?? (null === ($entries[0]['date'] ?? null) ? $this->now()->format('Y-m') : mb_substr($entries[0]['date'], 0, 7));
+        $first = new DateTimeImmutable($month.'-01');
+        $start = $first->modify('-'.((int) $first->format('N') - 1).' days');
+        $today = $this->now()->format('Y-m-d');
+        $weekdays = new IntlDateFormatter($locale, IntlDateFormatter::NONE, IntlDateFormatter::NONE, 'UTC', null, 'EEE');
+        $monthName = new IntlDateFormatter($locale, IntlDateFormatter::NONE, IntlDateFormatter::NONE, 'UTC', null, 'LLLL y');
+
+        $weeks = [];
+        $day = $start;
+        do {
+            $week = [];
+            for ($i = 0; $i < 7; ++$i) {
+                $key = $day->format('Y-m-d');
+                $week[] = [
+                    'day' => (int) $day->format('j'),
+                    'inMonth' => $day->format('Y-m') === $month,
+                    'today' => $key === $today,
+                    'entries' => array_values(array_filter($entries, static fn (array $entry): bool => $entry['date'] === $key)),
+                ];
+                $day = $day->modify('+1 day');
+            }
+
+            $weeks[] = $week;
+        } while ($day->format('Y-m') === $month);
+
+        $inMonth = array_values(array_filter($entries, static fn (array $entry): bool => str_starts_with($entry['date'], $month)));
+        usort($inMonth, static fn (array $a, array $b): int => $a['date'] <=> $b['date']);
+
+        return [
+            'month' => $this->capitalise((string) $monthName->format($first)),
+            'weekdays' => array_map(fn (int $i): string => $this->capitalise(mb_rtrim((string) $weekdays->format(new DateTimeImmutable(sprintf('2024-01-%02d', $i + 1))), '.')), range(0, 6)),
+            'weeks' => $weeks,
+            'list' => array_map(fn (array $entry): array => [...$entry, 'dateLabel' => $this->longDate(new DateTimeImmutable($entry['date']), $locale)], $inMonth),
+            'title' => $held['label'],
+        ];
+    }
+
+    /** The colour a network is known by, so a month reads at a glance. */
+    private function networkTone(string $network): string
+    {
+        return match (true) {
+            str_contains(mb_strtolower($network), 'insta') => 'instagram',
+            str_contains(mb_strtolower($network), 'linkedin') => 'linkedin',
+            str_contains(mb_strtolower($network), 'facebook') => 'facebook',
+            str_contains(mb_strtolower($network), 'tiktok') => 'tiktok',
+            str_contains(mb_strtolower($network), 'youtube') => 'youtube',
+            default => 'other',
+        };
+    }
+
+    /**
+     * Sections and lines of a menu or a price list.
+     *
+     * `# Entrées` opens a section; a line is `Name | price | tags | detail`,
+     * the last two optional, the tags separated by commas.
+     *
+     * @param array<string, mixed> $held
+     *
+     * @return array<string, mixed>|null
+     */
+    private function priceList(array $held): ?array
+    {
+        $sections = [];
+        $current = null;
+
+        foreach ($this->lines($held['code']) as $line) {
+            if (str_starts_with($line, '#')) {
+                $sections[] = ['title' => mb_trim(mb_substr($line, 1)), 'items' => []];
+                $current = count($sections) - 1;
+
+                continue;
+            }
+
+            if (null === $current) {
+                $sections[] = ['title' => '', 'items' => []];
+                $current = 0;
+            }
+
+            $cells = $this->cells($line);
+            $sections[$current]['items'][] = [
+                'name' => $cells[0],
+                'price' => $cells[1] ?? '',
+                'tags' => array_values(array_filter(array_map(trim(...), explode(',', $cells[2] ?? '')))),
+                'detail' => $cells[3] ?? '',
+            ];
+        }
+
+        $sections = array_values(array_filter($sections, static fn (array $section): bool => [] !== $section['items']));
+
+        return [] === $sections ? null : ['sections' => $sections, 'title' => $held['label'], 'note' => $held['caption']];
+    }
+
+    /**
+     * @param array<string, mixed> $zone
+     * @param array<string, mixed> $options
+     * @param array<string, mixed> $held
+     *
+     * @return array<string, mixed>|null
+     */
+    private function poll(array $zone, array $options, array $held, string $locale, ?int $postId): ?array
+    {
+        $answers = array_slice($this->lines($held['code']), 0, 8);
+
+        if ('' === $held['label'] || count($answers) < 2) {
+            return null;
+        }
+
+        $tally = null !== $postId && $this->pollVotes instanceof PollVoteRepository ? $this->pollVotes->tally($postId, $zone['id']) : [];
+        $total = array_sum($tally);
+
+        return [
+            'question' => $held['label'],
+            'answers' => array_map(static fn (int $index, string $label): array => [
+                'index' => $index,
+                'label' => $label,
+                'votes' => $tally[$index] ?? 0,
+                'percent' => 0 === $total ? 0 : (int) round(($tally[$index] ?? 0) / $total * 100),
+            ], array_keys($answers), $answers),
+            'total' => $total,
+            'showResults' => 'always' === $options['pollResults'],
+            'endpoint' => null !== $postId && $this->urlGenerator instanceof UrlGeneratorInterface
+                ? $this->urlGenerator->generate('editorial_poll_vote', ['locale' => $locale, 'postId' => $postId, 'zoneId' => $zone['id']])
+                : null,
+            'zoneKey' => sprintf('%s-%s', $postId ?? 'preview', $zone['id']),
+        ];
+    }
+
+    /**
+     * Chapters above a line of three dashes, the transcript below it.
+     *
+     * `04:12 Le matériel` is a chapter at four minutes twelve; a line that
+     * does not start with a time is not one, and is ignored above the dashes.
+     *
+     * @param array<string, mixed> $held
+     *
+     * @return array<string, mixed>|null
+     */
+    private function chapters(array $held): ?array
+    {
+        if ('' === mb_trim($held['code'])) {
+            return null;
+        }
+
+        $parts = preg_split('/^\s*---\s*$/m', $held['code'], 2) ?: [$held['code']];
+        $chapters = [];
+
+        foreach ($this->lines($parts[0]) as $line) {
+            if (1 !== preg_match('/^(?:(\d{1,2}):)?(\d{1,2}):(\d{2})\s+(.+)$/', $line, $m)) {
+                continue;
+            }
+
+            $seconds = (int) $m[1] * 3600 + (int) $m[2] * 60 + (int) $m[3];
+            $chapters[] = ['seconds' => $seconds, 'time' => mb_trim(explode(' ', $line, 2)[0]), 'label' => mb_trim($m[4])];
+        }
+
+        $transcript = mb_trim($parts[1] ?? '');
+
+        return [] === $chapters && '' === $transcript ? null : ['chapters' => $chapters, 'transcript' => $transcript];
     }
 
     private function longDate(DateTimeImmutable $date, string $locale): string

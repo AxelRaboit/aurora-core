@@ -1077,13 +1077,22 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                 ['id' => 'change', 'type' => GridNormalizer::ZONE_CODE, 'span' => $half, 'language' => 'javascript', 'options' => ['codeStyle' => 'diff']],
                 ['id' => 'qr', 'type' => GridNormalizer::ZONE_QR_CODE, 'span' => $half, 'size' => 'md', 'options' => ['qrLogoId' => $media(1)]],
                 ['id' => 'index', 'type' => GridNormalizer::ZONE_POST_LIST, 'span' => $full, 'options' => ['listLayout' => 'index']],
+                ['id' => 'growth', 'type' => GridNormalizer::ZONE_CHART, 'span' => $half, 'options' => ['chartType' => 'growth']],
+                ['id' => 'bars', 'type' => GridNormalizer::ZONE_CHART, 'span' => $half, 'options' => ['chartType' => 'bar', 'chartUnit' => '%']],
+                ['id' => 'ring', 'type' => GridNormalizer::ZONE_CHART, 'span' => $half, 'options' => ['chartType' => 'donut']],
+                ['id' => 'vote', 'type' => GridNormalizer::ZONE_POLL, 'span' => $half],
+                ['id' => 'plan', 'type' => GridNormalizer::ZONE_EDITORIAL_CALENDAR, 'span' => $full, 'options' => ['calendarMonth' => new DateTimeImmutable('first day of next month')->format('Y-m')]],
+                ['id' => 'menu', 'type' => GridNormalizer::ZONE_PRICE_LIST, 'span' => $half],
+                ['id' => 'feed', 'type' => GridNormalizer::ZONE_ACTIVITY_FEED, 'span' => $half, 'limit' => 5],
+                ['id' => 'reels', 'type' => GridNormalizer::ZONE_VIDEO_WALL, 'span' => $full, 'mediaIds' => [$media(4), $media(4), $media(4), $media(4)]],
+                ['id' => 'hero-film', 'type' => GridNormalizer::ZONE_VIDEO, 'span' => $full, 'fullBleed' => true, 'mediaId' => $media(4), 'options' => ['backgroundVideo' => true]],
             ],
         ]));
 
         $words = [
-            'fr' => ['card' => 'Photographe', 'post' => "Lumière du matin sur le port, sans retouche.\nMerci à l'équipe du studio.", 'band' => 'Une image qui défile plus lentement que la page.', 'launch' => 'Ouverture de la boutique', 'after' => 'La boutique est ouverte.', 'hours' => 'Fermé les jours fériés.', 'qr' => 'Scannez pour ouvrir le site.'],
-            'en' => ['card' => 'Photographer', 'post' => "Morning light over the harbour, straight out of camera.\nThanks to the studio team.", 'band' => 'A picture that scrolls slower than the page.', 'launch' => 'The shop opens', 'after' => 'The shop is open.', 'hours' => 'Closed on public holidays.', 'qr' => 'Scan to open the site.'],
-            'es' => ['card' => 'Fotógrafa', 'post' => "Luz de la mañana sobre el puerto, sin retoques.\nGracias al equipo del estudio.", 'band' => 'Una imagen que se desplaza más despacio que la página.', 'launch' => 'Apertura de la tienda', 'after' => 'La tienda está abierta.', 'hours' => 'Cerrado los festivos.', 'qr' => 'Escanee para abrir el sitio.'],
+            'fr' => ['card' => 'Photographe', 'post' => "Lumière du matin sur le port, sans retouche.\nMerci à l'équipe du studio.", 'band' => 'Une image qui défile plus lentement que la page.', 'launch' => 'Ouverture de la boutique', 'after' => 'La boutique est ouverte.', 'hours' => 'Fermé les jours fériés.', 'qr' => 'Scannez pour ouvrir le site.', 'growth' => 'Abonnés Instagram', 'growthData' => "Janvier ; 1200\nFévrier ; 1480\nMars ; 1950\nAvril ; 2600\nMai ; 3400", 'bars' => "Taux d'engagement", 'barsData' => "Réels ; 6,8\nCarrousels ; 4,1\nPhotos ; 2,3\nStories ; 1,2", 'ring' => 'Trafic par réseau', 'vote' => 'Quel format préférez-vous ?', 'voteAnswers' => "Les réels\nLes carrousels\nLes stories", 'plan' => 'Planning du mois', 'planTitles' => ['Réel coulisses', 'Étude de cas', 'Carrousel conseils', 'Story sondage'], 'menu' => 'La carte', 'menuLines' => "# Entrées\nSoupe du jour | 8 € | végétarien | selon le marché\nBurrata | 12 €\n# Plats\nTartare de bœuf | 18 € | nouveau\nRisotto aux cèpes | 16 € | végétarien", 'film' => 'Un lieu à découvrir', 'filmButton' => 'Réserver'],
+            'en' => ['card' => 'Photographer', 'post' => "Morning light over the harbour, straight out of camera.\nThanks to the studio team.", 'band' => 'A picture that scrolls slower than the page.', 'launch' => 'The shop opens', 'after' => 'The shop is open.', 'hours' => 'Closed on public holidays.', 'qr' => 'Scan to open the site.', 'growth' => 'Instagram followers', 'growthData' => "January ; 1200\nFebruary ; 1480\nMarch ; 1950\nApril ; 2600\nMay ; 3400", 'bars' => 'Engagement rate', 'barsData' => "Reels ; 6.8\nCarousels ; 4.1\nPhotos ; 2.3\nStories ; 1.2", 'ring' => 'Traffic by network', 'vote' => 'Which format do you prefer?', 'voteAnswers' => "Reels\nCarousels\nStories", 'plan' => "This month's plan", 'planTitles' => ['Behind the scenes reel', 'Case study', 'Tips carousel', 'Poll story'], 'menu' => 'The menu', 'menuLines' => "# Starters\nSoup of the day | €8 | vegetarian | from the market\nBurrata | €12\n# Mains\nBeef tartare | €18 | new\nPorcini risotto | €16 | vegetarian", 'film' => 'A place to discover', 'filmButton' => 'Book'],
+            'es' => ['card' => 'Fotógrafa', 'post' => "Luz de la mañana sobre el puerto, sin retoques.\nGracias al equipo del estudio.", 'band' => 'Una imagen que se desplaza más despacio que la página.', 'launch' => 'Apertura de la tienda', 'after' => 'La tienda está abierta.', 'hours' => 'Cerrado los festivos.', 'qr' => 'Escanee para abrir el sitio.', 'growth' => 'Seguidores de Instagram', 'growthData' => "Enero ; 1200\nFebrero ; 1480\nMarzo ; 1950\nAbril ; 2600\nMayo ; 3400", 'bars' => 'Tasa de interacción', 'barsData' => "Reels ; 6,8\nCarruseles ; 4,1\nFotos ; 2,3\nStories ; 1,2", 'ring' => 'Tráfico por red', 'vote' => '¿Qué formato prefiere?', 'voteAnswers' => "Los reels\nLos carruseles\nLas stories", 'plan' => 'Planificación del mes', 'planTitles' => ['Reel entre bastidores', 'Caso práctico', 'Carrusel de consejos', 'Story encuesta'], 'menu' => 'La carta', 'menuLines' => "# Entrantes\nSopa del día | 8 € | vegetariano | según el mercado\nBurrata | 12 €\n# Principales\nTartar de ternera | 18 € | nuevo\nRisotto de setas | 16 € | vegetariano", 'film' => 'Un lugar por descubrir', 'filmButton' => 'Reservar'],
         ];
 
         foreach (LocaleEnum::values() as $locale) {
@@ -1098,6 +1107,13 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                     'launch' => ['label' => $said['launch'], 'caption' => $said['after']],
                     'hours' => ['caption' => $said['hours']],
                     'qr' => ['url' => '/'.$locale, 'label' => $said['qr']],
+                    'growth' => ['label' => $said['growth'], 'code' => $said['growthData']],
+                    'bars' => ['label' => $said['bars'], 'code' => $said['barsData']],
+                    'ring' => ['label' => $said['ring'], 'code' => "Instagram ; 58\nLinkedIn ; 27\nFacebook ; 15"],
+                    'vote' => ['label' => $said['vote'], 'code' => $said['voteAnswers']],
+                    'plan' => ['label' => $said['plan'], 'code' => $this->calendarLines($said['planTitles'])],
+                    'menu' => ['label' => $said['menu'], 'code' => $said['menuLines']],
+                    'hero-film' => ['caption' => $said['film'], 'label' => $said['filmButton'], 'url' => '/'.$locale],
                     'shell' => ['code' => "$ make demo\nDemo data loaded\n$ make ft\nAll green"],
                     'change' => ['code' => "-const THRESHOLD = 0.08;\n+const THRESHOLD = 0;\n const MARGIN = \"0px 0px -8% 0px\";"],
                 ],
@@ -1105,6 +1121,24 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
 
             $this->indexForSearch($translation);
         }
+    }
+
+    /**
+     * Four planned posts spread over next month, as the calendar zone reads them.
+     *
+     * @param list<string> $titles
+     */
+    private function calendarLines(array $titles): string
+    {
+        $month = new DateTimeImmutable('first day of next month');
+        $networks = ['Instagram', 'LinkedIn', 'Instagram', 'Facebook'];
+        $lines = [];
+
+        foreach ($titles as $index => $title) {
+            $lines[] = sprintf('%s | %s | %s', $month->modify(sprintf('+%d days', 2 + $index * 6))->format('Y-m-d'), $networks[$index], $title);
+        }
+
+        return implode("\n", $lines);
     }
 
     /**

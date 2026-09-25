@@ -117,6 +117,12 @@ interface DocumentInterface extends TimestampableInterface
     /** @param array<string, string> $variants */
     public function setVariants(array $variants): static;
 
+    /** @return array<string, string> the camera settings read from the file at upload */
+    public function getExif(): array;
+
+    /** @param array<string, string> $exif */
+    public function setExif(array $exif): static;
+
     public function getSourceUrl(): ?string;
 
     public function setSourceUrl(?string $sourceUrl): static;
