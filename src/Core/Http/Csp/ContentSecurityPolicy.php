@@ -46,6 +46,25 @@ use function sprintf;
  */
 final readonly class ContentSecurityPolicy
 {
+    /**
+     * What the anti-robot check of a form or a comment thread loads.
+     *
+     * Allowed whether or not a check is configured: the policy is built for
+     * every page without reading the settings, and without these the script
+     * is refused, the widget never appears, and every submission fails the
+     * check it could not show. Turnstile draws its challenge in a frame of its
+     * own origin; reCAPTCHA v3 pulls its code from gstatic.
+     */
+    private const array CAPTCHA_SCRIPT_ORIGINS = [
+        'https://challenges.cloudflare.com',
+        'https://www.google.com',
+        'https://www.gstatic.com',
+    ];
+
+    private const array CAPTCHA_FRAME_ORIGINS = [
+        'https://challenges.cloudflare.com',
+    ];
+
     public function __construct(
         private bool $devMode = false,
         private string $viteDevServer = 'http://localhost:5173',
@@ -60,7 +79,7 @@ final readonly class ContentSecurityPolicy
 
     public function header(?string $nonce): string
     {
-        $script = ["'self'"];
+        $script = ["'self'", ...self::CAPTCHA_SCRIPT_ORIGINS];
         $connect = ["'self'"];
         $font = ["'self'", 'data:'];
 
@@ -111,7 +130,7 @@ final readonly class ContentSecurityPolicy
             'font-src '.implode(' ', $font),
             "media-src 'self' blob:",
             'connect-src '.implode(' ', $connect),
-            'frame-src '.implode(' ', ["'self'", ...$this->embedOrigins()]),
+            'frame-src '.implode(' ', ["'self'", ...$this->embedOrigins(), ...self::CAPTCHA_FRAME_ORIGINS]),
             "worker-src 'self' blob:",
         ];
 
