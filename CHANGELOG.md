@@ -5,6 +5,30 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.245] - 2026-09-25
+
+### Corrigé
+
+#### Les images stockées sur R2 attendaient un aller-retour réseau à chaque affichage
+Pour savoir quel disque sert un fichier, `StoredFileLocator` regardait le
+disque du serveur, puis demandait à chaque disque distant si l'objet existait.
+Sur R2, cette question est une requête réseau, posée à chaque affichage de
+chaque image. Mesuré en production le 25/09/2026 : **environ 0,3 seconde
+d'attente par image**, contre 0,05 pour n'importe quelle autre route, et sur un
+site dont la médiathèque est presque entièrement sur R2, c'est chaque page qui
+attend.
+
+La médiathèque sait pourtant où elle range chaque document (`storageDisk`).
+Une nouvelle interface, `StoredDiskHintInterface` (étiquette
+`aurora.stored_disk_hint`), permet à un module de le dire au localisateur, qui
+fait alors confiance à la réponse au lieu d'interroger le disque distant. La
+médiathèque la fournit (`GedStoredDiskHint`), variantes comprises. Les autres
+espaces de stockage ne changent pas : sans indication, la recherche se fait
+comme avant.
+
+Le mode de livraison `presigned` en profite le plus : le serveur répond alors
+immédiatement par une redirection, sans toucher R2.
+
 ## [0.9.244] - 2026-09-25
 
 ### Ajouté
