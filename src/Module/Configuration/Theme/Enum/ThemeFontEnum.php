@@ -41,6 +41,10 @@ enum ThemeFontEnum: string
     /** À empattements. Fait lire la page comme un texte plutôt qu'un écran. */
     case Lora = 'lora';
 
+    case PlayfairDisplay = 'playfair-display';
+
+    case SpaceGrotesk = 'space-grotesk';
+
     /**
      * Les piles de secours servent deux fois : le temps que le fichier arrive,
      * et pour toujours si la requête échoue.
@@ -82,6 +86,8 @@ enum ThemeFontEnum: string
             self::WorkSans => "'Work Sans', ".self::SANS_FALLBACK,
             self::Nunito => "'Nunito', ".self::SANS_FALLBACK,
             self::Lora => "'Lora', ".self::SERIF_FALLBACK,
+            self::PlayfairDisplay => "'Playfair Display', ".self::SERIF_FALLBACK,
+            self::SpaceGrotesk => "'Space Grotesk', ".self::SANS_FALLBACK,
         };
     }
 
@@ -97,10 +103,21 @@ enum ThemeFontEnum: string
             self::WorkSans => 'Work Sans',
             self::Nunito => 'Nunito',
             self::Lora => 'Lora',
+            self::PlayfairDisplay => 'Playfair Display',
+            self::SpaceGrotesk => 'Space Grotesk',
         };
     }
 
     /** La ligne qui dit à quoi la famille ressemble, elle traduite. */
+    /**
+     * Space Grotesk is drawn without an italic: its package ships none, and
+     * the browser slants the upright when a page asks for one.
+     */
+    public function hasItalic(): bool
+    {
+        return self::SpaceGrotesk !== $this;
+    }
+
     public function descriptionKey(): string
     {
         return 'backend.themes.fonts.'.$this->value;

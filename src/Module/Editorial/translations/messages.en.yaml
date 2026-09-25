@@ -251,6 +251,7 @@ backend:
         button: Button
       width: Width on large screens
       widths:
+        as_phone: "As on phones"
         full: Full width
         three_quarters: Three quarters
         two_thirds: Two thirds
@@ -293,6 +294,15 @@ backend:
       background_color: Background colour
       background_image: Background image
       background_image_hint: Sits behind the content, cropped to its focal point.
+      tablet_width: "Width on tablets"
+      title_font: "Title font"
+      description_font: "Description font"
+      description_size: "Description size"
+      font_theme: "The theme's"
+      title_colour_hint: "Select words to colour them"
+      title_colour_accent: "Accent"
+      title_colour_custom: "Colour"
+      title_colour_clear: "Remove colour"
       mobile_background_image: Background image on phones
       mobile_background_image_hint: "Optional. Replaces the background image below 640 px wide, where the header keeps only the middle of a wide picture. Portrait works best, for example 1080 × 1440."
       local_background: "Background for this language only: {locale}"

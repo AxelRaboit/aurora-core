@@ -27,6 +27,7 @@ import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
 import BannerColorField from "./BannerColorField.vue";
+import BannerTitleInput from "./BannerTitleInput.vue";
 import { Plus, Trash2, ChevronUp, ChevronDown, Type, Image, MousePointerClick } from "lucide-vue-next";
 import { usePostBanner } from "../composables/usePostBanner.js";
 import { useServerPreview } from "@/shared/composables/http/backend/useServerPreview.js";
@@ -51,6 +52,8 @@ const {
     verticalAlignOptions,
     titleSizeOptions,
     widthOptions,
+    tabletWidthOptions,
+    fontOptions,
     items,
     canAddItem,
     addItem,
@@ -142,18 +145,25 @@ const { html: previewHtml, loading: previewLoading } = useServerPreview(
                         </AppIconButton>
                     </div>
 
-                    <AppSelect
-                        v-model="itemFields(index).width.value"
-                        :label="t('backend.posts.banner.width')"
-                        :options="widthOptions"
-                    />
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <AppSelect
+                            v-model="itemFields(index).width.value"
+                            :label="t('backend.posts.banner.width')"
+                            :options="widthOptions"
+                        />
+                        <AppSelect
+                            v-model="itemFields(index).tabletWidth.value"
+                            :label="t('backend.posts.banner.tablet_width')"
+                            :options="tabletWidthOptions"
+                        />
+                    </div>
 
                     <template v-if="item.type === 'text'">
                         <div class="rounded-lg border border-dashed border-line p-3 space-y-4">
                             <p class="text-xs uppercase tracking-wide text-muted">
                                 {{ t("backend.posts.banner.translated_fields", { locale }) }}
                             </p>
-                            <AppInput
+                            <BannerTitleInput
                                 v-model="itemFields(index).title.value"
                                 :label="t('backend.posts.banner.slot_title')"
                                 :placeholder="t('backend.posts.banner.slot_title_placeholder')"
@@ -186,6 +196,23 @@ const { html: previewHtml, loading: previewLoading } = useServerPreview(
                                 :options="titleSizeOptions"
                             />
                         </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <AppSelect
+                                v-model="itemFields(index).titleFont.value"
+                                :label="t('backend.posts.banner.title_font')"
+                                :options="fontOptions"
+                            />
+                            <AppSelect
+                                v-model="itemFields(index).descriptionSize.value"
+                                :label="t('backend.posts.banner.description_size')"
+                                :options="titleSizeOptions"
+                            />
+                        </div>
+                        <AppSelect
+                            v-model="itemFields(index).descriptionFont.value"
+                            :label="t('backend.posts.banner.description_font')"
+                            :options="fontOptions"
+                        />
                     </template>
 
                     <template v-else-if="item.type === 'button'">

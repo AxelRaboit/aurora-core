@@ -54,6 +54,8 @@ backend:
       work-sans: Grotesque, a little wider and warmer than Inter.
       nunito: Rounded. The least institutional tone of the list.
       lora: Serif. Makes the page read as a text rather than a screen.
+      playfair-display: "High-contrast serif. An editorial, upscale tone, for photography or luxury."
+      space-grotesk: "Grotesque with character. Headings that stand out, for a modern tone."
     slug_label: Slug
     header_media_hint: Find the ID in Media → open a media → ID field.
     header_text_placeholder: My site

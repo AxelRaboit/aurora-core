@@ -251,6 +251,7 @@ backend:
         button: Bouton
       width: Largeur sur grand écran
       widths:
+        as_phone: "Comme sur téléphone"
         full: Pleine largeur
         three_quarters: Trois quarts
         two_thirds: Deux tiers
@@ -293,6 +294,15 @@ backend:
       background_color: Couleur de fond
       background_image: Image de fond
       background_image_hint: Placée derrière le contenu, recadrée selon son point focal.
+      tablet_width: "Largeur sur tablette"
+      title_font: "Police du titre"
+      description_font: "Police de la description"
+      description_size: "Taille de la description"
+      font_theme: "Celle du thème"
+      title_colour_hint: "Sélectionnez des mots pour les colorer"
+      title_colour_accent: "Accent"
+      title_colour_custom: "Couleur"
+      title_colour_clear: "Retirer la couleur"
       mobile_background_image: Image de fond sur téléphone
       mobile_background_image_hint: "Facultative. Remplace l'image de fond sous 640 px de large, où l'en-tête ne garde que le centre d'une image large. Format portrait conseillé, par exemple 1080 × 1440."
       local_background: "Fond propre à cette langue : {locale}"

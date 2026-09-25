@@ -48,6 +48,15 @@
     xl: 'text-4xl sm:text-5xl md:text-6xl',
 } %}
 
+{# The description's four steps. `md` is the size every banner drew before
+   the choice existed: 16px on a phone, 18px from `sm`. #}
+{% set descriptionSizes = {
+    sm: 'text-sm sm:text-base',
+    md: 'text-base sm:text-lg',
+    lg: 'text-lg sm:text-xl',
+    xl: 'text-xl sm:text-2xl',
+} %}
+
 {# Three placements:
    - contained    - the banner sits in the article column, rounded like a card
    - full_aligned - background spans the viewport, content keeps the page's
@@ -187,12 +196,14 @@
                                 {% set titleTag = loop.index0 == banner.headingIndex ? 'h1' : 'p' %}
                                 <{{ titleTag }}
                                     class="{{ titleSizes[item.titleSize] }} font-bold leading-tight{{ overPhoto }}"
-                                    {% if item.titleColor %}style="color: {{ item.titleColor }};"{% endif %}
-                                >{{ item.title }}</{{ titleTag }}>
+                                    {% if item.titleColor or item.titleFontStack|default(null) %}style="{% if item.titleColor %}color: {{ item.titleColor }};{% endif %}{% if item.titleFontStack|default(null) %} font-family: {{ item.titleFontStack }};{% endif %}"{% endif %}
+                                {# Sanitised on the way in by BannerNormalizer: only
+                                   the colour spans of the editor survive, hence raw. #}
+                                >{{ item.title|raw }}</{{ titleTag }}>
                             {% endif %}
                             {% if item.description %}
-                                <p class="text-base sm:text-lg max-w-prose{{ overPhoto }}"
-                                   {% if item.descriptionColor %}style="color: {{ item.descriptionColor }};"{% endif %}
+                                <p class="{{ descriptionSizes[item.descriptionSize|default('md')] }} max-w-prose{{ overPhoto }}"
+                                   {% if item.descriptionColor or item.descriptionFontStack|default(null) %}style="{% if item.descriptionColor %}color: {{ item.descriptionColor }};{% endif %}{% if item.descriptionFontStack|default(null) %} font-family: {{ item.descriptionFontStack }};{% endif %}"{% endif %}
                                 >{{ item.description }}</p>
                             {% endif %}
                             {# A call to action belongs to the sentence that
