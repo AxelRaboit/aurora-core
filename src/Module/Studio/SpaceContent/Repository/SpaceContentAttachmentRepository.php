@@ -121,4 +121,40 @@ class SpaceContentAttachmentRepository extends ResolveTargetEntityRepository
 
         return $attachments;
     }
+
+    /**
+     * How many attachments carry each of these documents, in one query.
+     *
+     * Same reason as {@see SpaceFileRepository::countByDocument()}: the
+     * library's listing wants a badge per row, and one query per row is what
+     * this avoids. No join here - the badge is a number, and naming the card
+     * and its space is the single-document lookup's job.
+     *
+     * @param list<int> $documentIds
+     *
+     * @return array<int, int>
+     */
+    public function countByDocument(array $documentIds): array
+    {
+        if ([] === $documentIds) {
+            return [];
+        }
+
+        /** @var list<array{document: int, total: int}> $rows */
+        $rows = $this->createQueryBuilder('a')
+            ->select('IDENTITY(a.document) AS document', 'COUNT(a.id) AS total')
+            ->where('a.document IN (:documents)')
+            ->setParameter('documents', $documentIds)
+            ->groupBy('a.document')
+            ->getQuery()
+            ->getArrayResult();
+
+        $counts = [];
+
+        foreach ($rows as $row) {
+            $counts[(int) $row['document']] = (int) $row['total'];
+        }
+
+        return $counts;
+    }
 }

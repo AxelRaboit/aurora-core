@@ -564,7 +564,12 @@ const pageActions = computed(() => {
                                 <div v-if="doc.folderName" class="text-xs text-accent-400/80 truncate flex items-center gap-1">
                                     <Folder class="w-2.5 h-2.5 shrink-0" :stroke-width="2" />{{ doc.folderName }}
                                 </div>
-                                <div v-if="doc.tags?.length || storageRelocationAvailable" class="flex flex-wrap items-center gap-1 pt-0.5">
+                                <div v-if="doc.tags?.length || storageRelocationAvailable || 0 === doc.usageCount" class="flex flex-wrap items-center gap-1 pt-0.5">
+                                    <span
+                                        v-if="0 === doc.usageCount"
+                                        :title="t('backend.ged.documents.usage_unused_hint')"
+                                        class="text-xs px-1.5 py-0.5 rounded border border-amber-500/40 text-amber-600 dark:text-amber-400"
+                                    >{{ t("backend.ged.documents.usage_unused_badge") }}</span>
                                     <DocumentStorageChip
                                         v-if="storageRelocationAvailable"
                                         :disk="doc.storageDisk"
@@ -623,6 +628,18 @@ const pageActions = computed(() => {
                                                 <Folder class="w-3 h-3" :stroke-width="2" /> {{ doc.folderName }}
                                             </span>
                                             <DocumentTagChip v-for="tag in doc.tags" :key="tag.id" :tag="tag" />
+                                            <!-- **Seulement quand rien ne l'affiche.** Un compte sur
+                                                 chaque ligne remplirait la liste d'un chiffre qui ne
+                                                 sert à rien : ce qu'on cherche ici, c'est ce qu'on
+                                                 peut supprimer sans rien casser. Les documents
+                                                 utilisés ne portent donc aucune marque, et l'oeil
+                                                 tombe sur les autres. Le détail de qui l'utilise
+                                                 s'ouvre avec le document. -->
+                                            <span
+                                                v-if="0 === doc.usageCount"
+                                                :title="t('backend.ged.documents.usage_unused_hint')"
+                                                class="text-xs px-1.5 py-0.5 rounded border border-amber-500/40 text-amber-600 dark:text-amber-400"
+                                            >{{ t("backend.ged.documents.usage_unused_badge") }}</span>
                                         </div>
                                     </td>
                                     <td class="px-4 py-2 text-secondary hidden md:table-cell">{{ doc.categoryName ?? t("backend.ged.documents.no_category") }}</td>

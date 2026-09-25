@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\SpaceFile\Service;
 
-use Aurora\Module\Ged\Document\Contract\DocumentUsageProviderInterface;
+use Aurora\Module\Ged\Document\Contract\BatchDocumentUsageProviderInterface;
 use Aurora\Module\Studio\SpaceContent\Service\SpaceAttachmentDocumentUsageProvider;
 use Aurora\Module\Studio\SpaceFile\Repository\SpaceFileRepository;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -18,7 +18,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * supprimer le document ne noircit pas une vignette, il retire le fichier de
  * l'espace sans rien laisser derrière.
  */
-final readonly class SpaceFileDocumentUsageProvider implements DocumentUsageProviderInterface
+final readonly class SpaceFileDocumentUsageProvider implements BatchDocumentUsageProviderInterface
 {
     public function __construct(
         private SpaceFileRepository $files,
@@ -49,5 +49,17 @@ final readonly class SpaceFileDocumentUsageProvider implements DocumentUsageProv
         }
 
         return $usages;
+    }
+
+    /**
+     * The same answer for a page of documents, grouped in one query.
+     *
+     * @param list<int> $documentIds
+     *
+     * @return array<int, int>
+     */
+    public function countUsagesFor(array $documentIds): array
+    {
+        return $this->files->countByDocument($documentIds);
     }
 }
