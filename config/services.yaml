@@ -70,6 +70,8 @@ services:
             tags: [aurora.storage_adapter]
         Aurora\Core\Storage\Access\UploadAccessGuardInterface:
             tags: [aurora.upload_access_guard]
+        Aurora\Core\Storage\StoredDiskHintInterface:
+            tags: [aurora.stored_disk_hint]
         Aurora\Core\Storage\Orphan\ReferencedKeysProviderInterface:
             tags: [aurora.referenced_keys_provider]
 

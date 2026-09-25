@@ -15,6 +15,7 @@ use Aurora\Module\Ged\Document\Service\DocumentRelocator;
 use Aurora\Module\Ged\Enum\DocumentStatusEnum;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\Order;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /** @extends ResolveTargetEntityRepository<DocumentInterface> */
@@ -286,8 +287,32 @@ class DocumentRepository extends ResolveTargetEntityRepository
      */
     public function findStatusForPath(string $path): ?DocumentStatusEnum
     {
+        /** @var array{status: DocumentStatusEnum}|null $row */
+        $row = $this->pathQuery($path, 'd.status')->getQuery()->getOneOrNullResult();
+
+        return $row['status'] ?? null;
+    }
+
+    /**
+     * The disk holding a file of the library - its source or one of its
+     * variants - or null when no live document owns the path. Lets the file
+     * locator skip asking a remote disk whether the object exists.
+     */
+    public function findStorageDiskForPath(string $path): ?StorageDiskEnum
+    {
+        /** @var array{storageDisk: StorageDiskEnum}|null $row */
+        $row = $this->pathQuery($path, 'd.storageDisk')->getQuery()->getOneOrNullResult();
+
+        return $row['storageDisk'] ?? null;
+    }
+
+    /**
+     * The one document a stored path belongs to, selecting only what is asked.
+     */
+    private function pathQuery(string $path, string $select): QueryBuilder
+    {
         $queryBuilder = $this->createQueryBuilder('d')
-            ->select('d.status')
+            ->select($select)
             ->andWhere('d.deletedAt IS NULL')
             ->setMaxResults(1);
 
@@ -307,10 +332,7 @@ class DocumentRepository extends ResolveTargetEntityRepository
                 ->setParameter('pattern', $variantPattern);
         }
 
-        /** @var array{status: DocumentStatusEnum}|null $row */
-        $row = $queryBuilder->getQuery()->getOneOrNullResult();
-
-        return $row['status'] ?? null;
+        return $queryBuilder;
     }
 
     /**
