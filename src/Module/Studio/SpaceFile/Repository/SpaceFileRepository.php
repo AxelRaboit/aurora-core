@@ -62,6 +62,41 @@ class SpaceFileRepository extends ResolveTargetEntityRepository
             ->getResult();
     }
 
+    /**
+     * How many space files carry each of these documents, in one query.
+     *
+     * The listing of the library draws a badge per row, and asking
+     * {@see self::findUsingDocument()} once per row would be one query per
+     * document. Grouped here instead, so a page of fifty costs one.
+     *
+     * @param list<int> $documentIds
+     *
+     * @return array<int, int>
+     */
+    public function countByDocument(array $documentIds): array
+    {
+        if ([] === $documentIds) {
+            return [];
+        }
+
+        /** @var list<array{document: int, total: int}> $rows */
+        $rows = $this->createQueryBuilder('f')
+            ->select('IDENTITY(f.document) AS document', 'COUNT(f.id) AS total')
+            ->where('IDENTITY(f.document) IN (:documents)')
+            ->setParameter('documents', $documentIds)
+            ->groupBy('f.document')
+            ->getQuery()
+            ->getArrayResult();
+
+        $counts = [];
+
+        foreach ($rows as $row) {
+            $counts[(int) $row['document']] = (int) $row['total'];
+        }
+
+        return $counts;
+    }
+
     /** Whether this space already holds that document, so it is not filed twice. */
     public function has(CustomerSpaceInterface $space, DocumentInterface $document): bool
     {

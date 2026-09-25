@@ -5,6 +5,72 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.243] - 2026-09-25
+
+### Corrigé
+
+#### La médiathèque disait « aucun usage » sur la moitié de la bibliothèque
+L'écran de suppression d'un document demande aux modules qui l'utilise, et
+côté publications la réponse ne lisait que la galerie, la vignette et l'image
+sociale. Ni la **grille de contenu** ni le **bandeau** n'étaient regardés,
+c'est-à-dire précisément là où une page range ses images.
+
+Mesuré sur les données de production du 25/09/2026 : sur les **163 documents
+qu'une publication affichait, la recherche en voyait 73**. Les 90 autres
+étaient proposés à la suppression pendant qu'une page les dessinait, sans le
+moindre avertissement. Une vignette et une image sociale se vident en silence
+sur `SET NULL` ; un identifiant posé dans une colonne JSON ne se vide même
+pas, l'emplacement cesse simplement d'afficher quoi que ce soit.
+
+Un collecteur unique, `PostPictures`, sait maintenant où une publication range
+des images, et il y a six endroits : la vignette, l'image sociale de chaque
+traduction, les éléments de la galerie, le logo, le fond et les images du
+bandeau, et les zones de la grille. Les zones s'imbriquent, une pile contenant
+des zones, donc le parcours est récursif : une image dans une pile était
+invisible autrement.
+
+Le filtrage SQL passe des trois colonnes au lieu d'une, et ancre l'identifiant
+sur des frontières de mot (`\m`, `\M`), ce qui règle en base le cas où l'on
+cherchait 123 et où 1234 répondait. Coût mesuré sur 44 publications : 0,88 ms
+contre 0,19 ms, toujours négligeable.
+
+Cinq tests d'intégration ajoutés, un par source : zone de grille, image dans
+une pile, liste `mediaIds` d'une zone galerie, image de bandeau, fond et logo
+de bandeau.
+
+### Ajouté
+
+#### La médiathèque marque les documents que plus rien n'affiche
+Chaque ligne de la liste sait maintenant si quelque chose la dessine, et
+celles que rien n'utilise portent une pastille « Inutilisé ». Seules celles-là
+en portent une : un compte sur chaque ligne remplirait l'écran d'un chiffre
+sans usage, alors que ce qu'on cherche là, c'est ce qui peut être supprimé
+sans rien casser. Le détail de qui utilise un document reste dans le panneau
+qui s'ouvre avec lui.
+
+#### Une réponse pour toute une page, au lieu d'une par ligne
+Le service d'usage ne savait répondre que document par document, ce qui est la
+bonne forme pour l'écran de suppression et la mauvaise pour une liste : une
+page de cinquante documents aurait coûté cinquante recherches dans chacun des
+cinq modules, et les trois qui parcourent leur source - publications, decks,
+notes d'espace - l'auraient parcourue cinquante fois.
+
+`BatchDocumentUsageProviderInterface` permet à un fournisseur de répondre pour
+une page entière. Les cinq fournisseurs du bundle le font : les deux qui
+passent par une relation groupent en une requête, les trois qui parcourent
+lisent leur source une seule fois et comptent contre les identifiants
+demandés.
+
+**L'interface est facultative.** Un fournisseur qui n'implémente que
+l'ancienne continue d'être appelé en boucle, donc un module hors du bundle
+fonctionne sans changement, à un coût qu'il peut retirer quand il veut.
+
+Mesuré sur 50 documents et 40 publications : **31 ms en lot contre 105 ms un
+par un**, et l'écart grandit avec le nombre de publications, puisque le chemin
+un par un refait le parcours à chaque ligne.
+
+---
+
 ## [0.9.242] - 2026-09-24
 
 ### Corrigé

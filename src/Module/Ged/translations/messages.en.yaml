@@ -176,6 +176,8 @@ backend:
       status_archived: Archived
       usage_title: Usage
       usage_none: This document is not used anywhere
+      usage_unused_badge: Unused
+      usage_unused_hint: No page, deck or space is drawing it
       usage:
         billing_invoice: Invoice
         billing_ocr: OCR import

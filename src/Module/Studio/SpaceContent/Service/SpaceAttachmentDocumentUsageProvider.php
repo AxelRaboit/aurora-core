@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\SpaceContent\Service;
 
-use Aurora\Module\Ged\Document\Contract\DocumentUsageProviderInterface;
+use Aurora\Module\Ged\Document\Contract\BatchDocumentUsageProviderInterface;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentAttachmentRepository;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -22,7 +22,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * Joined rather than scanned, unlike {@see DeckDocumentUsageProvider}: the
  * relation is a typed FK, so the query is exact and survives a rename.
  */
-final readonly class SpaceAttachmentDocumentUsageProvider implements DocumentUsageProviderInterface
+final readonly class SpaceAttachmentDocumentUsageProvider implements BatchDocumentUsageProviderInterface
 {
     public function __construct(
         private SpaceContentAttachmentRepository $attachments,
@@ -56,5 +56,17 @@ final readonly class SpaceAttachmentDocumentUsageProvider implements DocumentUsa
         }
 
         return $usages;
+    }
+
+    /**
+     * The same answer for a page of documents, grouped in one query.
+     *
+     * @param list<int> $documentIds
+     *
+     * @return array<int, int>
+     */
+    public function countUsagesFor(array $documentIds): array
+    {
+        return $this->attachments->countByDocument($documentIds);
     }
 }

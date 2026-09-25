@@ -593,7 +593,12 @@ const SHOTS = [
         async prepare(page) {
             await page.getByRole("link", { name: /^Sommaire des clients/ }).first().click();
             await page.waitForTimeout(2_500);
-            await page.getByTitle(/^Actions pour/).first().click();
+            // **Dans le contenu, pas dans la page entière.** Depuis que
+            // chaque ligne de l'arbre porte sa propre feuille d'actions,
+            // « Actions pour… » existe aussi dans le menu latéral, et
+            // `.first()` y attrapait la première ligne au lieu de la note
+            // ouverte. L'arbre vit hors du `<main>`, ce qui les départage.
+            await page.locator("main").getByTitle(/^Actions pour/).first().click();
             await page.waitForTimeout(800);
             await page.getByRole("button", { name: "Image d'entête" }).first().click();
             await page.waitForTimeout(2_000);
@@ -608,7 +613,7 @@ const SHOTS = [
         async prepare(page) {
             await page.getByRole("link", { name: /^Sommaire des clients/ }).first().click();
             await page.waitForTimeout(2_500);
-            await page.getByTitle(/^Actions pour/).first().click();
+            await page.locator("main").getByTitle(/^Actions pour/).first().click();
             await page.waitForTimeout(700);
             await page.getByRole("button", { name: "Ouvrir le graphe" }).first().click();
             // La construction est animée : elle place les nœuds avant de se
