@@ -29,8 +29,11 @@ export function emptyBannerLayout() {
             gradientTo: null,
             gradientAngle: 180,
             mediaId: null,
+            // What a phone gets instead, rather than a crop of the wide one.
+            mobileMediaId: null,
             overlay: 0,
             media: null,
+            mobileMedia: null,
             fillStyle: null,
         },
         items: [],
@@ -39,7 +42,17 @@ export function emptyBannerLayout() {
 
 /** The words, keyed by the id of the layout item they belong to. */
 export function emptyBannerTexts() {
-    return { items: {} };
+    return {
+        items: {},
+        // A background of this language's own, for a picture with words in
+        // it. Null means "use the shared one".
+        background: {
+            mediaId: null,
+            mobileMediaId: null,
+            media: null,
+            mobileMedia: null,
+        },
+    };
 }
 
 /**
@@ -118,6 +131,12 @@ function translationFrom(source) {
     // array, would leave `items` undefined and every text field unbindable.
     translation.banner = {
         items: mapOf(translation.banner?.items),
+        // The language's own pictures, kept with their previews. Rebuilding
+        // the object without them would clear them on the next save.
+        background: {
+            ...emptyBannerTexts().background,
+            ...(translation.banner?.background ?? {}),
+        },
     };
 
     // Same guard as the banner above: a translation saved before the grid

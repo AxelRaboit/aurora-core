@@ -293,6 +293,10 @@ backend:
       background_color: Couleur de fond
       background_image: Image de fond
       background_image_hint: Placée derrière le contenu, recadrée selon son point focal.
+      mobile_background_image: Image de fond sur téléphone
+      mobile_background_image_hint: "Facultative. Remplace l'image de fond sous 640 px de large, où l'en-tête ne garde que le centre d'une image large. Format portrait conseillé, par exemple 1080 × 1440."
+      local_background: "Fond propre à cette langue : {locale}"
+      local_background_hint: "Facultatif. Pour une image qui contient du texte : elle remplace l'image commune dans cette langue seulement."
       overlay: 'Assombrissement : {percent} %'
       logo: Logo
       slot_type: Contenu

@@ -171,6 +171,20 @@ export function usePostBanner(layout, texts) {
 
     const background = () => banner.value.background;
 
+    // This language's own background, for a picture with words in it. Created
+    // on demand like an item's text: a translation saved before it existed
+    // arrives without one.
+    const localBackground = () => {
+        texts.value.background ??= {
+            mediaId: null,
+            mobileMediaId: null,
+            media: null,
+            mobileMedia: null,
+        };
+
+        return texts.value.background;
+    };
+
     const fields = {
         enabled: writable(
             () => banner.value.enabled,
@@ -248,9 +262,44 @@ export function usePostBanner(layout, texts) {
             () => pickerModel(banner.value, "logo", "logoMediaId"),
             (value) => applyPicked(banner.value, value, "logo", "logoMediaId"),
         ),
+        // What a phone gets instead of the wide picture, which it would
+        // otherwise crop to its middle.
+        mobileBackgroundMedia: writable(
+            () => pickerModel(background(), "mobileMedia", "mobileMediaId"),
+            (value) =>
+                applyPicked(
+                    background(),
+                    value,
+                    "mobileMedia",
+                    "mobileMediaId",
+                ),
+        ),
+        // Per language: each replaces its shared counterpart when set.
+        localBackgroundMedia: writable(
+            () => pickerModel(localBackground(), "media", "mediaId"),
+            (value) =>
+                applyPicked(localBackground(), value, "media", "mediaId"),
+        ),
+        localMobileBackgroundMedia: writable(
+            () =>
+                pickerModel(localBackground(), "mobileMedia", "mobileMediaId"),
+            (value) =>
+                applyPicked(
+                    localBackground(),
+                    value,
+                    "mobileMedia",
+                    "mobileMediaId",
+                ),
+        ),
     };
 
-    const hasBackgroundImage = computed(() => null !== background().media);
+    // Any picture behind the banner, shared or this language's: the darkening
+    // slider applies to whichever is drawn.
+    const hasBackgroundImage = computed(
+        () =>
+            Boolean(background().media) ||
+            Boolean(texts.value.background?.media),
+    );
     const isSolidFill = computed(() => "solid" === background().type);
     const isGradientFill = computed(() => "gradient" === background().type);
 

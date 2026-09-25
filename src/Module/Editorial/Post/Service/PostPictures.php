@@ -14,10 +14,11 @@ use function is_int;
 /**
  * Which pictures a post points at, wherever it keeps them.
  *
- * **One place that knows**, because there are now six slots and they are not
+ * **One place that knows**, because there are now seven slots and they are not
  * in one shape: two are typed relations - the cover and each translation's
- * social image - and four are ids buried in JSON, the gallery's items, the
- * banner's logo, backdrop and pictures, and the content grid.
+ * social image - and five are ids buried in JSON, the gallery's items, the
+ * banner's logo, backdrop and pictures, each translation's own banner
+ * backdrop, and the content grid.
  *
  * The grid is the one that bit. {@see PostRepository::findUsingDocument()}
  * read the gallery and the two relations and nothing else, so the library's
@@ -59,6 +60,8 @@ final readonly class PostPictures
             if (is_int($social)) {
                 $ids[$social] = true;
             }
+
+            $this->fromBackground($translation->getBanner()['background'] ?? null, $ids);
         }
 
         $this->fromGallery($post->getGalleryLayout(), $ids);
@@ -99,7 +102,7 @@ final readonly class PostPictures
     }
 
     /**
-     * The banner keeps three kinds at once: the logo, the picture behind the
+     * The banner keeps three kinds at once: the logo, the pictures behind the
      * whole thing, and one per item.
      *
      * @param array<string, mixed> $banner
@@ -108,12 +111,7 @@ final readonly class PostPictures
     private function fromBanner(array $banner, array &$ids): void
     {
         $this->keep($banner['logoMediaId'] ?? null, $ids);
-
-        $background = $banner['background'] ?? null;
-
-        if (is_array($background)) {
-            $this->keep($background['mediaId'] ?? null, $ids);
-        }
+        $this->fromBackground($banner['background'] ?? null, $ids);
 
         $items = $banner['items'] ?? null;
 
@@ -126,6 +124,23 @@ final readonly class PostPictures
                 $this->keep($item['mediaId'] ?? null, $ids);
             }
         }
+    }
+
+    /**
+     * A banner background names two pictures, the wide one and the one a
+     * phone gets instead. Shared by the layout and by each translation, which
+     * may bring a background of its own.
+     *
+     * @param array<int, true> $ids
+     */
+    private function fromBackground(mixed $background, array &$ids): void
+    {
+        if (!is_array($background)) {
+            return;
+        }
+
+        $this->keep($background['mediaId'] ?? null, $ids);
+        $this->keep($background['mobileMediaId'] ?? null, $ids);
     }
 
     /**

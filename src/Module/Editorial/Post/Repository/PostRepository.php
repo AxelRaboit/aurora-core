@@ -772,29 +772,7 @@ class PostRepository extends ResolveTargetEntityRepository
      */
     public function findUsingDocument(int $documentId): array
     {
-        $metadata = $this->getClassMetadata();
-
-        $columns = array_map(
-            $metadata->getColumnName(...),
-            ['galleryLayout', 'bannerLayout', 'gridLayout'],
-        );
-
-        $sql = sprintf(
-            'SELECT id FROM %s WHERE %s',
-            $metadata->getTableName(),
-            implode(' OR ', array_map(
-                static fn (string $column): string => sprintf('%s::text ~ :pattern', $column),
-                $columns,
-            )),
-        );
-
-        $rows = $this->getEntityManager()->getConnection()->fetchFirstColumn(
-            $sql,
-            ['pattern' => sprintf('"(mediaId|mediaIds|logoMediaId)":\s*\[?[\s0-9,]*\m%d\M', $documentId)],
-            ['pattern' => ParameterType::STRING],
-        );
-
-        $candidates = array_map(static fn (mixed $id): int => (int) $id, $rows);
+        $candidates = $this->postIdsMentioning([$documentId]);
 
         $builder = $this->createQueryBuilder('p')
             ->leftJoin('p.translations', 't')
@@ -844,32 +822,7 @@ class PostRepository extends ResolveTargetEntityRepository
         }
 
         $wanted = array_fill_keys($documentIds, true);
-        $metadata = $this->getClassMetadata();
-
-        $columns = array_map(
-            $metadata->getColumnName(...),
-            ['galleryLayout', 'bannerLayout', 'gridLayout'],
-        );
-
-        $sql = sprintf(
-            'SELECT id FROM %s WHERE %s',
-            $metadata->getTableName(),
-            implode(' OR ', array_map(
-                static fn (string $column): string => sprintf('%s::text ~ :pattern', $column),
-                $columns,
-            )),
-        );
-
-        $rows = $this->getEntityManager()->getConnection()->fetchFirstColumn(
-            $sql,
-            ['pattern' => sprintf(
-                '"(mediaId|mediaIds|logoMediaId)":\s*\[?[\s0-9,]*\m(%s)\M',
-                implode('|', array_map(static fn (int $id): string => (string) $id, $documentIds)),
-            )],
-            ['pattern' => ParameterType::STRING],
-        );
-
-        $candidates = array_map(static fn (mixed $id): int => (int) $id, $rows);
+        $candidates = $this->postIdsMentioning($documentIds);
 
         $builder = $this->createQueryBuilder('p')
             ->leftJoin('p.translations', 't')
@@ -896,5 +849,48 @@ class PostRepository extends ResolveTargetEntityRepository
         }
 
         return $counts;
+    }
+
+    /**
+     * The posts whose JSON columns name any of these documents - the
+     * narrowing both usage lookups start from, one scan whatever the count.
+     *
+     * Four columns, and the fourth is on another table: a translation may put
+     * a banner background of its own behind its page, for a picture with words
+     * in it. Leaving it out would answer "used by nobody" for a picture only
+     * the Spanish page shows.
+     *
+     * @param list<int> $documentIds
+     *
+     * @return list<int>
+     */
+    private function postIdsMentioning(array $documentIds): array
+    {
+        $metadata = $this->getClassMetadata();
+        $entityManager = $this->getEntityManager();
+        $translation = $entityManager->getClassMetadata($metadata->getAssociationTargetClass('translations'));
+
+        $conditions = array_map(
+            static fn (string $column): string => sprintf('%s::text ~ :pattern', $column),
+            array_map($metadata->getColumnName(...), ['galleryLayout', 'bannerLayout', 'gridLayout']),
+        );
+
+        $conditions[] = sprintf(
+            'id IN (SELECT %s FROM %s WHERE %s::text ~ :pattern)',
+            $translation->getSingleAssociationJoinColumnName('post'),
+            $translation->getTableName(),
+            $translation->getColumnName('banner'),
+        );
+
+        $rows = $entityManager->getConnection()->fetchFirstColumn(
+            sprintf('SELECT id FROM %s WHERE %s', $metadata->getTableName(), implode(' OR ', $conditions)),
+            ['pattern' => sprintf(
+                '"(mediaId|mediaIds|logoMediaId|mobileMediaId)":\s*\[?[\s0-9,]*\m(%s)\M',
+                implode('|', array_map(static fn (int $id): string => (string) $id, $documentIds)),
+            )],
+            ['pattern' => ParameterType::STRING],
+        );
+
+        return array_map(static fn (mixed $id): int => (int) $id, $rows);
     }
 }

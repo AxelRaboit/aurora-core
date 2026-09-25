@@ -153,6 +153,44 @@ describe("usePostBanner", () => {
         expect(layout.value.items[0].title).toBeUndefined();
     });
 
+    it("puts the phone picture on the layout and a language's own on its texts", () => {
+        const { layout, texts, api } = make();
+
+        api.fields.mobileBackgroundMedia.value = { id: 7, url: "/tall.webp" };
+        api.fields.localBackgroundMedia.value = { id: 8, url: "/fr.webp" };
+        api.fields.localMobileBackgroundMedia.value = {
+            id: 9,
+            url: "/fr-tall.webp",
+        };
+
+        expect(layout.value.background.mobileMediaId).toBe(7);
+        expect(layout.value.background.mobileMedia).toEqual({
+            url: "/tall.webp",
+        });
+        expect(texts.value.background.mediaId).toBe(8);
+        expect(texts.value.background.mobileMediaId).toBe(9);
+        // The shared wide picture is untouched by the language's own.
+        expect(layout.value.background.mediaId).toBeNull();
+    });
+
+    it("clears a language's picture back to the shared one", () => {
+        const { texts, api } = make();
+
+        api.fields.localBackgroundMedia.value = { id: 8, url: "/fr.webp" };
+        api.fields.localBackgroundMedia.value = null;
+
+        expect(texts.value.background.mediaId).toBeNull();
+        expect(texts.value.background.media).toBeNull();
+    });
+
+    it("offers the darkening slider for a language's picture too", () => {
+        const { api } = make();
+
+        expect(api.hasBackgroundImage.value).toBe(false);
+        api.fields.localBackgroundMedia.value = { id: 8, url: "/fr.webp" };
+        expect(api.hasBackgroundImage.value).toBe(true);
+    });
+
     it("treats a button's link as copy, not as layout", () => {
         const { layout, texts, api } = make();
         const { addItem, itemFields } = api;
