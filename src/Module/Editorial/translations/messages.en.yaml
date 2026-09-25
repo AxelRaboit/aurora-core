@@ -315,6 +315,7 @@ backend:
         md: Medium
         lg: Tall
         full: Full screen
+        image: "Match the image"
       slot_types:
         none: Empty
         text: Text

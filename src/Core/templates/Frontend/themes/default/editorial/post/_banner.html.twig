@@ -15,6 +15,7 @@
     md: 'min-h-72',
     lg: 'min-h-[32rem]',
     full: 'min-h-screen',
+    image: '',
 } %}
 
 {% set alignments = {
@@ -73,14 +74,27 @@
     full_aligned: 'w-full max-w-7xl mx-auto px-4 py-8 sm:py-12',
 } %}
 
+{# `image`: the banner takes its picture's proportions, and the phone
+   picture's below `sm`, so a picture with words in it is never cropped.
+   Falls back to the `lg` minimum when the file has no known size. Both
+   ratios travel as custom properties read by classes: an inline
+   `aspect-ratio` would outrank the phone's media query. #}
+{% set ratioMedia = banner.height == 'image' ? banner.background.media : null %}
+{% set ratioMobile = banner.height == 'image' ? banner.background.mobileMedia|default(null) : null %}
+{% set hasRatio = ratioMedia and ratioMedia.width|default(0) > 0 and ratioMedia.height|default(0) > 0 %}
+{% set hasMobileRatio = ratioMobile and ratioMobile.width|default(0) > 0 and ratioMobile.height|default(0) > 0 %}
+{% if banner.height == 'image' and not hasRatio %}{% set heights = heights|merge({image: heights.lg}) %}{% endif %}
+{% set headerStyle = (banner.background.fillStyle ?? '')
+    ~ (hasRatio ? ' --banner-ratio: ' ~ ratioMedia.width ~ ' / ' ~ ratioMedia.height ~ ';' : '')
+    ~ (hasMobileRatio ? ' --banner-mobile-ratio: ' ~ ratioMobile.width ~ ' / ' ~ ratioMobile.height ~ ';' : '') %}
 <header
     {# flex column, so the inner grid can claim the leftover height. `h-full`
        on it would not: the header's own height is auto, and a percentage
        height against min-height resolves to nothing. #}
-    class="relative isolate flex flex-col overflow-hidden not-prose {{ heights[banner.height] }} {{ isFull ? 'mb-8' : 'rounded-xl mb-8' }}"
+    class="relative isolate flex flex-col overflow-hidden not-prose {{ heights[banner.height] }} {{ isFull ? 'mb-8' : 'rounded-xl mb-8' }}{{ hasRatio ? ' [aspect-ratio:var(--banner-ratio)]' : '' }}{{ hasMobileRatio ? ' max-sm:[aspect-ratio:var(--banner-mobile-ratio)]' : '' }}"
     {# Already a CSS declaration built from hex-validated parts by
        BannerViewBuilder, so `raw` here is not a hole. #}
-    {% if banner.background.fillStyle %}style="{{ banner.background.fillStyle|raw }}"{% endif %}
+    {% if headerStyle|trim %}style="{{ headerStyle|trim|raw }}"{% endif %}
 >
     {% if banner.background.media %}
         {# A wide header keeps only its middle on a phone, so a picture

@@ -106,7 +106,14 @@ final readonly class BannerNormalizer
 
     private const array FILL_TYPES = [self::FILL_NONE, self::FILL_SOLID, self::FILL_GRADIENT];
 
-    private const array HEIGHTS = ['sm', 'md', 'lg', 'full'];
+    /**
+     * `image` sizes the banner to its background's own proportions, so the
+     * picture is never cropped: the only safe height for a picture with words
+     * set in it, which a cover crop cuts on a wide screen or a narrow phone.
+     */
+    public const string HEIGHT_IMAGE = 'image';
+
+    private const array HEIGHTS = ['sm', 'md', 'lg', 'full', self::HEIGHT_IMAGE];
 
     private const array WIDTHS = [self::WIDTH_CONTAINED, self::WIDTH_FULL_ALIGNED];
 
