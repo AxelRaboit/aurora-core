@@ -74,6 +74,11 @@ final class GridZoneOptions
 
     public const array SOCIAL_NETWORKS = ['instagram', 'linkedin', 'facebook', 'x'];
 
+    public const array CHART_TYPES = ['bar', 'line', 'donut', 'growth'];
+
+    /** When a poll shows its results: once the reader has voted, or from the start. */
+    public const array POLL_RESULTS = ['after', 'always'];
+
     /**
      * Every key, with the value a zone arrives with.
      *
@@ -109,6 +114,13 @@ final class GridZoneOptions
             'socialDate' => null,
             'qrLogoId' => null,
             'qrDownload' => true,
+            'chartType' => self::CHART_TYPES[0],
+            'chartUnit' => '',
+            'showExif' => false,
+            'backgroundVideo' => false,
+            'calendarMonth' => null,
+            'feedGithub' => false,
+            'pollResults' => self::POLL_RESULTS[0],
         ];
     }
 
@@ -161,6 +173,17 @@ final class GridZoneOptions
             // On unless switched off: a QR code on a page is most often there
             // to be printed somewhere else too.
             'qrDownload' => false !== ($data['qrDownload'] ?? true),
+            'chartType' => self::oneOf($data['chartType'] ?? null, self::CHART_TYPES),
+            // What follows every figure: « % », « € », « k ». Short, because
+            // it is printed beside each value.
+            'chartUnit' => self::line($data['chartUnit'] ?? null, 12),
+            // The camera line under a photograph, read from its file.
+            'showExif' => true === ($data['showExif'] ?? false),
+            // A film playing without sound behind a title, instead of a player.
+            'backgroundVideo' => true === ($data['backgroundVideo'] ?? false),
+            'calendarMonth' => self::month($data['calendarMonth'] ?? null),
+            'feedGithub' => true === ($data['feedGithub'] ?? false),
+            'pollResults' => self::oneOf($data['pollResults'] ?? null, self::POLL_RESULTS),
         ];
     }
 
@@ -215,6 +238,12 @@ final class GridZoneOptions
         $date = DateTimeImmutable::createFromFormat('!Y-m-d', $value);
 
         return false !== $date && $date->format('Y-m-d') === $value ? $value : null;
+    }
+
+    /** `2026-10`, as the month picker writes it. */
+    private static function month(mixed $value): ?string
+    {
+        return is_string($value) && 1 === preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $value) ? $value : null;
     }
 
     /**

@@ -510,6 +510,12 @@ backend:
         contactCard: Business card
         socialPost: Social post
         qrCode: QR code
+        chart: Chart
+        videoWall: Video wall
+        editorialCalendar: Editorial calendar
+        activityFeed: Latest activity
+        priceList: Menu and prices
+        poll: Poll
         stack: Stack
       zone_form: "Form"
       zone_form_hint: "The form is drawn in the page and posts where its own page posts."
@@ -825,6 +831,49 @@ backend:
       qr_url: QR code address
       qr_url_hint: "A full address, or a page of this site (/en/contact): it is completed with the site's address."
       qr_label: Text under the code
+      chart_type: Shape
+      chart_types:
+        bar: Bars
+        line: Line
+        donut: Ring
+        growth: Growth
+      chart_unit: Unit
+      chart_unit_hint: "Written after every value: %, €, k. Optional."
+      chart_title: Title
+      chart_data: Values
+      chart_data_hint: "One line per value: the name, a semicolon, the number. « Growth » also shows the change between the first and the last."
+      chart_note: Source or detail
+      video_wall_count: "{count} video of {max} | {count} videos of {max}"
+      video_wall_add: Add videos
+      video_wall_empty: "No video yet. Vertical formats (9:16) suit it best."
+      calendar_month: Month shown
+      calendar_month_hint: "Left empty, the calendar shows the month of the first post in the list."
+      calendar_title: Title
+      calendar_entries: Planned posts
+      calendar_entries_hint: "One line per post: the date (YYYY-MM-DD), the network, the title, separated by bars « | »."
+      feed_github: Add the GitHub releases
+      feed_github_hint: "Mixes the latest releases of the repositories below into the publications, when the GitHub integration is on."
+      price_title: Title
+      price_lines: Content
+      price_lines_hint: "« # Starters » opens a section. One line per item: the name | the price | tags separated by commas | a detail. The last two are optional."
+      price_note: Note at the bottom
+      poll_results: Results
+      poll_results_hint: "Votes are anonymous: one per visitor."
+      poll_results_modes:
+        after: "After voting"
+        always: "Right away"
+      poll_question: Question
+      poll_answers: Answers
+      poll_answers_hint: "One answer per line, two to eight."
+      background_video: Background video
+      background_video_hint: "The film plays without sound behind the title, instead of a player. For visitors who asked for less motion, the poster stays still."
+      background_video_title: Title over the video
+      background_video_button: Button text
+      background_video_link: Button link
+      episode_chapters: Chapters and transcript
+      episode_chapters_hint: "One line per chapter: the time then the title (« 04:12 The gear »). Under a line « --- », the transcript, folded under the player."
+      show_exif: Show the camera settings
+      show_exif_hint: "Body, lens, aperture, speed and ISO, read from the photo at upload. A photo uploaded before this feature no longer has them: upload it again."
       comments_hint: "Nothing to set: the thread is this publication's. When this zone exists the foot of the page stops drawing it - one conversation per page, where you put it."
       zone_deck: Presentation
       zone_deck_none: "Choose a presentation…"
@@ -1248,6 +1297,14 @@ frontend:
       qr:
         label: "QR code to %url%"
         download: Download the QR code
+      activity:
+        post: Post
+        release: New release
+      poll:
+        total: "Votes: %count%"
+        closed: This poll is closed.
+      episode:
+        transcript: Transcript
     forms:
       submit: Send
       next: Next

@@ -125,6 +125,20 @@ async function pickVideo() {
     }
 }
 
+/** Several films at once, for a wall: the gallery's controls do the rest. */
+async function pickWallVideos() {
+    const picked = await openDocumentPicker({ mimePrefix: "video/", multiple: true });
+
+    if (Array.isArray(picked) && picked.length > 0) {
+        emit("add-gallery", picked);
+    } else if (picked?.id) {
+        emit("add-gallery", [picked]);
+    }
+}
+
+/** Mirrors GridNormalizer::MAX_VIDEO_WALL. */
+const MAX_VIDEO_WALL = 12;
+
 /** The same, for a recording. */
 async function pickAudio() {
     const picked = await openDocumentPicker({ mimePrefix: "audio/" });
@@ -300,6 +314,11 @@ const displayHint = computed(() =>
                 v-model="bound.parallax.value"
                 :label="t('backend.posts.grid.parallax')"
                 :hint="t('backend.posts.grid.parallax_hint')"
+            />
+            <AppToggle
+                v-model="bound.showExif.value"
+                :label="t('backend.posts.grid.show_exif')"
+                :hint="t('backend.posts.grid.show_exif_hint')"
             />
             <!-- Only reached when nothing is picked above, which is the order
                  the renderer uses too. A document carries a focal point, a
@@ -691,6 +710,175 @@ const displayHint = computed(() =>
                     v-model="bound.label.value"
                     placeholder="Scannez pour voir le site"
                     :label="t('backend.posts.grid.qr_label')"
+                />
+            </div>
+        </template>
+
+        <template v-else-if="zone.type === 'chart'">
+            <AppChoiceRow
+                v-model="bound.chartType.value"
+                :label="t('backend.posts.grid.chart_type')"
+                :options="choices.chartType ?? []"
+            />
+            <AppInput
+                v-model="bound.chartUnit.value"
+                :label="t('backend.posts.grid.chart_unit')"
+                :hint="t('backend.posts.grid.chart_unit_hint')"
+                placeholder="%"
+            />
+            <div class="rounded-lg border border-dashed border-line p-3 space-y-2">
+                <p class="text-xs uppercase tracking-wide text-muted">
+                    {{ t("backend.posts.grid.translated_fields", { locale }) }}
+                </p>
+                <AppInput v-model="bound.label.value" :label="t('backend.posts.grid.chart_title')" placeholder="Abonnés Instagram" />
+                <AppTextarea
+                    v-model="bound.code.value"
+                    :label="t('backend.posts.grid.chart_data')"
+                    :hint="t('backend.posts.grid.chart_data_hint')"
+                    :placeholder="'Janvier ; 1200\nFévrier ; 1480\nMars ; 2100'"
+                    :rows="6"
+                />
+                <AppInput v-model="bound.caption.value" :label="t('backend.posts.grid.chart_note')" placeholder="Source : statistiques du compte" />
+            </div>
+        </template>
+
+        <template v-else-if="zone.type === 'videoWall'">
+            <div class="flex items-center justify-between gap-3">
+                <span class="text-sm text-secondary">
+                    {{ t("backend.posts.grid.video_wall_count", { count: galleryImages.length, max: MAX_VIDEO_WALL }) }}
+                </span>
+                <AppButton
+                    variant="secondary"
+                    size="sm"
+                    :disabled="galleryImages.length >= MAX_VIDEO_WALL"
+                    v-on:click="pickWallVideos"
+                >
+                    <Plus class="w-3.5 h-3.5" :stroke-width="2" />
+                    {{ t("backend.posts.grid.video_wall_add") }}
+                </AppButton>
+            </div>
+            <ul v-if="galleryImages.length" class="m-0 grid list-none grid-cols-3 gap-2 p-0">
+                <li
+                    v-for="(film, filmIndex) in galleryImages"
+                    :key="`${filmIndex}-${film.url}`"
+                    class="relative overflow-hidden rounded-lg border border-line bg-black"
+                >
+                    <video :src="film.url" muted preload="metadata" class="aspect-[9/16] w-full object-cover" />
+                    <div class="absolute inset-x-0 bottom-0 flex justify-between gap-1 bg-surface/90 p-1">
+                        <div class="flex gap-1">
+                            <AppIconButton
+                                :icon="ChevronUp"
+                                size="sm"
+                                :disabled="filmIndex === 0"
+                                :title="t('backend.posts.grid.item_move_up')"
+                                v-on:click="emit('move-gallery', filmIndex, -1)"
+                            />
+                            <AppIconButton
+                                :icon="ChevronDown"
+                                size="sm"
+                                :disabled="filmIndex === galleryImages.length - 1"
+                                :title="t('backend.posts.grid.item_move_down')"
+                                v-on:click="emit('move-gallery', filmIndex, 1)"
+                            />
+                        </div>
+                        <AppIconButton
+                            :icon="Trash2"
+                            size="sm"
+                            color="danger"
+                            :title="t('backend.posts.grid.gallery_remove')"
+                            v-on:click="emit('remove-gallery', filmIndex)"
+                        />
+                    </div>
+                </li>
+            </ul>
+            <p v-else class="text-sm text-muted">{{ t("backend.posts.grid.video_wall_empty") }}</p>
+        </template>
+
+        <template v-else-if="zone.type === 'editorialCalendar'">
+            <AppDatePicker
+                :model-value="bound.calendarMonth.value ?? ''"
+                :month-only="true"
+                :label="t('backend.posts.grid.calendar_month')"
+                :hint="t('backend.posts.grid.calendar_month_hint')"
+                v-on:update:model-value="(value) => (bound.calendarMonth.value = value || null)"
+            />
+            <div class="rounded-lg border border-dashed border-line p-3 space-y-2">
+                <p class="text-xs uppercase tracking-wide text-muted">
+                    {{ t("backend.posts.grid.translated_fields", { locale }) }}
+                </p>
+                <AppInput v-model="bound.label.value" :label="t('backend.posts.grid.calendar_title')" placeholder="Planning d'octobre" />
+                <AppTextarea
+                    v-model="bound.code.value"
+                    :label="t('backend.posts.grid.calendar_entries')"
+                    :hint="t('backend.posts.grid.calendar_entries_hint')"
+                    :placeholder="'2026-10-03 | Instagram | Réel coulisses\n2026-10-07 | LinkedIn | Étude de cas'"
+                    :rows="8"
+                />
+            </div>
+        </template>
+
+        <template v-else-if="zone.type === 'activityFeed'">
+            <AppSelect
+                v-model="bound.postTypeId.value"
+                :label="t('backend.posts.grid.list_post_type')"
+                :options="postTypeOptions"
+                :placeholder="t('backend.posts.grid.list_any')"
+            />
+            <AppSelect
+                v-model="bound.limit.value"
+                :label="t('backend.posts.grid.list_limit')"
+                :options="choices.limit ?? []"
+            />
+            <AppToggle
+                v-model="bound.feedGithub.value"
+                :label="t('backend.posts.grid.feed_github')"
+                :hint="t('backend.posts.grid.feed_github_hint')"
+            />
+            <AppTextarea
+                v-if="bound.feedGithub.value"
+                :model-value="(bound.githubRepos.value ?? []).join('\n')"
+                :label="t('backend.posts.grid.github_repos')"
+                :hint="t('backend.posts.grid.github_repos_hint')"
+                placeholder="AxelRaboit/aurora-core"
+                :rows="3"
+                v-on:update:model-value="(value) => (bound.githubRepos.value = parseLines(value))"
+            />
+        </template>
+
+        <template v-else-if="zone.type === 'priceList'">
+            <div class="rounded-lg border border-dashed border-line p-3 space-y-2">
+                <p class="text-xs uppercase tracking-wide text-muted">
+                    {{ t("backend.posts.grid.translated_fields", { locale }) }}
+                </p>
+                <AppInput v-model="bound.label.value" :label="t('backend.posts.grid.price_title')" placeholder="La carte" />
+                <AppTextarea
+                    v-model="bound.code.value"
+                    :label="t('backend.posts.grid.price_lines')"
+                    :hint="t('backend.posts.grid.price_lines_hint')"
+                    :placeholder="'# Entrées\nSoupe du jour | 8 € | végétarien | selon le marché\nTartare de bœuf | 14 €'"
+                    :rows="10"
+                />
+                <AppInput v-model="bound.caption.value" :label="t('backend.posts.grid.price_note')" placeholder="Prix nets, service compris" />
+            </div>
+        </template>
+
+        <template v-else-if="zone.type === 'poll'">
+            <AppChoiceRow
+                v-model="bound.pollResults.value"
+                :label="t('backend.posts.grid.poll_results')"
+                :options="choices.pollResults ?? []"
+            />
+            <div class="rounded-lg border border-dashed border-line p-3 space-y-2">
+                <p class="text-xs uppercase tracking-wide text-muted">
+                    {{ t("backend.posts.grid.translated_fields", { locale }) }}
+                </p>
+                <AppInput v-model="bound.label.value" :label="t('backend.posts.grid.poll_question')" placeholder="Quel format préférez-vous ?" />
+                <AppTextarea
+                    v-model="bound.code.value"
+                    :label="t('backend.posts.grid.poll_answers')"
+                    :hint="t('backend.posts.grid.poll_answers_hint')"
+                    :placeholder="'Les réels\nLes carrousels\nLes stories'"
+                    :rows="5"
                 />
             </div>
         </template>
@@ -1241,10 +1429,30 @@ const displayHint = computed(() =>
                 />
                 <AppInput
                     v-model="bound.caption.value"
-                    :label="t('backend.posts.grid.zone_caption')"
+                    :label="bound.backgroundVideo.value ? t('backend.posts.grid.background_video_title') : t('backend.posts.grid.zone_caption')"
                     :placeholder="t('backend.posts.caption_placeholder')"
                 />
+                <template v-if="bound.media.value?.id && bound.backgroundVideo.value">
+                    <AppInput
+                        v-model="bound.label.value"
+                        :label="t('backend.posts.grid.background_video_button')"
+                        placeholder="Découvrir le lieu"
+                    />
+                    <AppInput
+                        v-model="bound.url.value"
+                        :label="t('backend.posts.grid.background_video_link')"
+                        placeholder="/fr/page/contact"
+                    />
+                </template>
             </div>
+            <!-- Only for a film of the library: a provider's player cannot be
+                 made to play silently behind a title. -->
+            <AppToggle
+                v-if="bound.media.value?.id"
+                v-model="bound.backgroundVideo.value"
+                :label="t('backend.posts.grid.background_video')"
+                :hint="t('backend.posts.grid.background_video_hint')"
+            />
         </template>
 
         <template v-else-if="zone.type === 'audio'">
@@ -1277,6 +1485,13 @@ const displayHint = computed(() =>
                     v-model="bound.caption.value"
                     :label="t('backend.posts.grid.zone_caption')"
                     :placeholder="t('backend.posts.caption_placeholder')"
+                />
+                <AppTextarea
+                    v-model="bound.code.value"
+                    :label="t('backend.posts.grid.episode_chapters')"
+                    :hint="t('backend.posts.grid.episode_chapters_hint')"
+                    :placeholder="'00:00 Introduction\n04:12 Le matériel\n---\nTranscription…'"
+                    :rows="6"
                 />
             </div>
         </template>

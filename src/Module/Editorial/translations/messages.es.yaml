@@ -156,6 +156,14 @@ frontend:
       qr:
         label: "Código QR hacia %url%"
         download: Descargar el código QR
+      activity:
+        post: Publicación
+        release: Nueva versión
+      poll:
+        total: "Votos: %count%"
+        closed: Esta encuesta ya no está abierta.
+      episode:
+        transcript: Transcripción
     forms:
       submit: Enviar
       next: Siguiente

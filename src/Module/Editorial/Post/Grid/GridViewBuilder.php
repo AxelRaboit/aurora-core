@@ -35,6 +35,7 @@ use Aurora\Module\Studio\Deck\Repository\DeckRepository;
 use Aurora\Module\Studio\Deck\Share\Repository\DeckShareLinkRepository;
 use Collator;
 use DateTimeImmutable;
+use IntlDateFormatter;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
@@ -278,9 +279,17 @@ final readonly class GridViewBuilder
                 'compare' => GridNormalizer::ZONE_COMPARE === $zone['type']
                     ? $this->compareView($zone, $held, $documents)
                     : null,
-                'gallery' => GridNormalizer::ZONE_GALLERY === $zone['type']
-                    ? $this->galleryView($zone, $documents)
-                    : null,
+                'gallery' => match (true) {
+                    GridNormalizer::ZONE_GALLERY === $zone['type'] => $this->galleryView($zone, $documents),
+                    // The editor arranges a wall of films with the gallery's own
+                    // controls - add, remove, reorder - so it is handed the
+                    // films in the gallery's shape. The page reads `videoWall`.
+                    GridNormalizer::ZONE_VIDEO_WALL === $zone['type'] && $forEditor => ['items' => array_map(
+                        fn (int $id): array => ['url' => $this->videoFile($documents[$id] ?? null)['url'] ?? null],
+                        $zone['mediaIds'],
+                    )],
+                    default => null,
+                },
                 'map' => GridNormalizer::ZONE_MAP === $zone['type']
                     ? $this->mapView($held['label'], $held['caption'], $documents[$zone['mediaId']] ?? null)
                     : null,
@@ -301,7 +310,16 @@ final readonly class GridViewBuilder
                 'githubActivity' => GridNormalizer::ZONE_GITHUB_ACTIVITY === $zone['type']
                     ? $this->gitHubActivityView->build($locale, $zone['options'])
                     : null,
-                'widget' => $this->widgetViews->build($zone, $held, $locale, fn (?int $id): ?array => null === $id ? null : $this->mediaData($documents[$id] ?? null, $held['alt'])),
+                'videoWall' => GridNormalizer::ZONE_VIDEO_WALL === $zone['type']
+                    ? array_values(array_filter(array_map(
+                        fn (int $id): ?array => $this->videoFile($documents[$id] ?? null),
+                        $zone['mediaIds'],
+                    )))
+                    : null,
+                'activityFeed' => GridNormalizer::ZONE_ACTIVITY_FEED === $zone['type']
+                    ? $this->activityFeedView($zone, $locale, $currentPostId)
+                    : null,
+                'widget' => $this->widgetViews->build($zone, $held, $locale, fn (?int $id): ?array => null === $id ? null : $this->mediaData($documents[$id] ?? null, $held['alt']), $currentPostId),
             ];
         };
 
@@ -566,6 +584,65 @@ final readonly class GridViewBuilder
             'variant' => (string) $zone['cardVariant'],
             'cards' => $cards,
         ];
+    }
+
+    /**
+     * The newest publications, and the latest releases of the repositories the
+     * zone names when GitHub is switched on, in one list by date.
+     *
+     * Two sources and one order, because a reader of "what moved lately" does
+     * not care which module a change came from - only that it is recent.
+     *
+     * @param array<string, mixed> $zone
+     *
+     * @return list<array{kind: string, title: string, url: string, date: string, dateLabel: string, detail: string}>
+     */
+    private function activityFeedView(array $zone, string $locale, ?int $currentPostId): array
+    {
+        $dates = new IntlDateFormatter($locale, IntlDateFormatter::LONG, IntlDateFormatter::NONE);
+        $entries = [];
+
+        foreach ($this->postRepository->findLatestPublished($locale, (int) $zone['limit'], $zone['postTypeId'], null, $currentPostId) as $post) {
+            $card = $this->postCard($post, $locale);
+            $published = $post->getPublishedAt();
+            if (null === $card) {
+                continue;
+            }
+
+            if (null === $published) {
+                continue;
+            }
+
+            $entries[] = [
+                'kind' => 'post',
+                'title' => (string) $card['title'],
+                'url' => $this->urlGenerator->generate('editorial_post', ['locale' => $locale, 'postTypeSlug' => $card['postTypeSlug'], 'slug' => $card['slug']]),
+                'date' => $published->format(DATE_ATOM),
+                'dateLabel' => (string) $dates->format($published),
+                'detail' => (string) ($card['description'] ?? ''),
+            ];
+        }
+
+        if ($zone['options']['feedGithub'] ?? false) {
+            foreach ($this->gitHubActivityView->build($locale, ['githubMode' => 'releases', 'githubRepos' => $zone['options']['githubRepos'] ?? []])['releases'] ?? [] as $release) {
+                if ('' === $release['publishedAt']) {
+                    continue;
+                }
+
+                $entries[] = [
+                    'kind' => 'release',
+                    'title' => $release['repo'].' '.$release['name'],
+                    'url' => $release['url'],
+                    'date' => new DateTimeImmutable($release['publishedAt'])->format(DATE_ATOM),
+                    'dateLabel' => $release['dateLabel'],
+                    'detail' => $release['summary'],
+                ];
+            }
+        }
+
+        usort($entries, static fn (array $a, array $b): int => $b['date'] <=> $a['date']);
+
+        return array_slice($entries, 0, max(1, (int) $zone['limit']));
     }
 
     /**
@@ -1656,6 +1733,13 @@ final readonly class GridViewBuilder
             // things in two places, and the document's alt describes the file.
             'alt' => '' !== $alt ? $alt : (string) $media->getAlt(),
             'focalPosition' => $this->documentUrlGenerator->focalPositionCss($media),
+            // The camera line: « Canon EOS R6 · f/2.8 · 1/500 s · ISO 100 ».
+            // Empty for a picture uploaded before its settings were read, or
+            // one whose camera wrote nothing.
+            'exif' => implode(' · ', array_values(array_intersect_key(
+                $media->getExif(),
+                array_flip(['camera', 'lens', 'focal', 'aperture', 'shutter', 'iso']),
+            ))),
             // **Ce qui réserve la place avant que l'image arrive.** Sans les
             // deux, un `<img>` en chargement différé occupe zéro pixel de
             // haut : la page est courte, puis s'allonge à chaque image qui

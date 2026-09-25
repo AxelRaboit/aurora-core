@@ -431,7 +431,7 @@ describe("usePostGrid", () => {
         ]);
     });
 
-    it("offers the three steps and the thirty-one zone types", () => {
+    it("offers the three steps and the thirty-seven zone types", () => {
         const { snapOptions, typeOptions } = make().api;
 
         expect(snapOptions.value.map((o) => o.value)).toEqual([4, 2, 1]);
@@ -466,6 +466,12 @@ describe("usePostGrid", () => {
             "contactCard",
             "socialPost",
             "qrCode",
+            "chart",
+            "videoWall",
+            "editorialCalendar",
+            "activityFeed",
+            "priceList",
+            "poll",
             "stack",
         ]);
     });
@@ -503,6 +509,12 @@ describe("usePostGrid", () => {
             "contactCard",
             "socialPost",
             "qrCode",
+            "chart",
+            "videoWall",
+            "editorialCalendar",
+            "activityFeed",
+            "priceList",
+            "poll",
         ]);
     });
 
