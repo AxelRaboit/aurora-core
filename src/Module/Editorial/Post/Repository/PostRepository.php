@@ -775,7 +775,7 @@ class PostRepository extends ResolveTargetEntityRepository
         $metadata = $this->getClassMetadata();
 
         $columns = array_map(
-            static fn (string $field): string => $metadata->getColumnName($field),
+            $metadata->getColumnName(...),
             ['galleryLayout', 'bannerLayout', 'gridLayout'],
         );
 
