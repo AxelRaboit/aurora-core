@@ -1,0 +1,32 @@
+{# The week as a shop door prints it, today in bold, and above it the one
+   thing most visitors came for: open or not, and until when.
+
+   Worked out on the server in the zone's own timezone. A page cached for an
+   hour could say "open" ten minutes after closing, which is why the site has
+   no page cache: see GridViewBuilder. #}
+<section class="not-prose rounded-xl border border-line bg-surface p-5">
+    <p class="m-0 mb-4 flex items-center gap-2 text-sm font-semibold {{ widget.open ? 'text-emerald-500' : 'text-secondary' }}">
+        <span class="inline-block h-2 w-2 rounded-full {{ widget.open ? 'bg-emerald-500' : 'bg-zinc-400' }}" aria-hidden="true"></span>
+        {% if widget.closedToday %}{{ 'frontend.editorial.grid.hours.closed_today'|trans }} · {% endif %}{{ widget.status }}
+    </p>
+    <dl class="m-0 grid grid-cols-[auto_1fr] gap-x-6 gap-y-1.5 text-sm">
+        {% for day in widget.days %}
+            <dt class="{{ day.today ? 'font-semibold text-primary' : 'text-secondary' }}">{{ day.name }}</dt>
+            <dd class="m-0 text-right tabular-nums {{ day.today ? 'font-semibold text-primary' : 'text-secondary' }}">
+                {% if day.ranges is empty %}
+                    {{ 'frontend.editorial.grid.hours.closed_day'|trans }}
+                {% else %}
+                    {{ day.ranges|join(', ') }}
+                {% endif %}
+            </dd>
+        {% endfor %}
+    </dl>
+    {% if widget.closures is not empty %}
+        <p class="m-0 mt-4 text-sm text-secondary">
+            {{ 'frontend.editorial.grid.hours.closures'|trans }} {{ widget.closures|join(', ') }}
+        </p>
+    {% endif %}
+    {% if widget.note %}
+        <p class="m-0 mt-3 text-sm text-muted">{{ widget.note }}</p>
+    {% endif %}
+</section>

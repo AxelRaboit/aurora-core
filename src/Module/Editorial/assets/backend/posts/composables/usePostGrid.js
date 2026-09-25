@@ -9,6 +9,12 @@ import {
     Film,
     Frame,
     Github,
+    CircleDot,
+    Clock,
+    Timer,
+    Contact,
+    Heart,
+    QrCode,
     Image,
     Images,
     Columns2,
@@ -73,6 +79,12 @@ export const LEAF_ZONE_TYPES = [
     "code",
     "toc",
     "githubActivity",
+    "availability",
+    "openingHours",
+    "countdown",
+    "contactCard",
+    "socialPost",
+    "qrCode",
 ];
 
 /** Mirrors GridNormalizer::ZONE_TYPES - a stack is top level only. */
@@ -130,6 +142,14 @@ export const ZONE_ICONS = {
     // The one brand glyph in this map, because the zone is about one
     // brand's grid and nothing generic says so.
     githubActivity: Github,
+    // A dot, which is the whole of what the zone says before its sentence.
+    availability: CircleDot,
+    openingHours: Clock,
+    countdown: Timer,
+    contactCard: Contact,
+    // The counter every network puts under a post.
+    socialPost: Heart,
+    qrCode: QrCode,
     stack: Layers,
 };
 
@@ -138,6 +158,53 @@ export const BUTTON_VARIANTS = ["solid", "outline", "ghost"];
 
 /** Mirrors GridNormalizer::SIZES - shared by the button and the separator. */
 export const SIZES = ["sm", "md", "lg"];
+
+/** Mirrors GridZoneOptions: the settings one kind of zone has and no other. */
+export const GALLERY_LAYOUTS = ["grid", "carousel"];
+export const FRAMES = ["none", "laptop", "phone", "browser"];
+export const CODE_STYLES = ["plain", "terminal", "diff"];
+export const LIST_LAYOUTS = ["cards", "index"];
+export const GITHUB_MODES = ["activity", "repos", "releases"];
+export const AVAILABILITIES = ["available", "soon", "busy"];
+export const WEEKDAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+export const SOCIAL_NETWORKS = ["instagram", "linkedin", "facebook", "x"];
+
+/**
+ * What `options` holds on a new zone - every key, whatever the type, for the
+ * reason the top-level keys are all there: switching a zone's type and back
+ * must not lose what was set. Mirrors GridZoneOptions::defaults().
+ */
+export function defaultZoneOptions() {
+    return {
+        galleryLayout: "grid",
+        frame: "none",
+        parallax: false,
+        codeStyle: "plain",
+        listLayout: "cards",
+        githubMode: "activity",
+        githubRepos: [],
+        availability: "available",
+        availableFrom: null,
+        hours: Object.fromEntries(WEEKDAYS.map((day) => [day, []])),
+        closedDates: [],
+        timezone: "Europe/Paris",
+        countdownAt: null,
+        contactName: "",
+        contactPhone: "",
+        contactEmail: "",
+        contactWebsite: null,
+        socialNetwork: "instagram",
+        socialName: "",
+        socialHandle: "",
+        socialAvatarId: null,
+        socialLikes: 0,
+        socialComments: 0,
+        socialShares: 0,
+        socialDate: null,
+        qrLogoId: null,
+        qrDownload: true,
+    };
+}
 
 /** Mirrors GridNormalizer::SEPARATOR_STYLES. */
 export const SEPARATOR_STYLES = ["line", "space"];
@@ -491,6 +558,7 @@ function newZone(type) {
         visibleFrom: null,
         visibleUntil: null,
         audience: "everyone",
+        options: defaultZoneOptions(),
         // No name until someone means to link to the zone. An id on every
         // zone would be a page full of addresses nobody chose.
         anchor: "",
@@ -617,6 +685,22 @@ export function usePostGrid(layout, content) {
         })),
         // The figures are the same in every language, so they are their own label.
         columns: ITEM_COLUMNS.map((value) => ({ value, label: String(value) })),
+        galleryLayout: labelled(GALLERY_LAYOUTS, "gallery_layouts"),
+        frame: labelled(FRAMES, "frames"),
+        codeStyle: labelled(CODE_STYLES, "code_styles"),
+        listLayout: labelled(LIST_LAYOUTS, "list_layouts"),
+        githubMode: labelled(GITHUB_MODES, "github_modes"),
+        availability: labelled(AVAILABILITIES, "availabilities"),
+        // A network names itself.
+        socialNetwork: SOCIAL_NETWORKS.map((value) => ({
+            value,
+            label: {
+                instagram: "Instagram",
+                linkedin: "LinkedIn",
+                facebook: "Facebook",
+                x: "X",
+            }[value],
+        })),
     }));
 
     function labelled(values, group) {
@@ -1176,7 +1260,29 @@ export function usePostGrid(layout, content) {
                     },
                 );
 
+            // A setting of one kind of zone, under `options`. Replaced rather
+            // than mutated in place, so the whole object is a new value and
+            // anything watching the layout sees the change.
+            const option = (name) =>
+                writable(
+                    () => zone()?.options?.[name] ?? defaultZoneOptions()[name],
+                    (value) => {
+                        zone().options = {
+                            ...defaultZoneOptions(),
+                            ...(zone().options ?? {}),
+                            [name]: value,
+                        };
+                    },
+                );
+
             zoneFieldsCache.set(key, {
+                // Shared - the settings of one kind of zone.
+                ...Object.fromEntries(
+                    Object.keys(defaultZoneOptions()).map((name) => [
+                        name,
+                        option(name),
+                    ]),
+                ),
                 // Shared - the arrangement.
                 type: shared("type"),
                 postId: shared("postId"),

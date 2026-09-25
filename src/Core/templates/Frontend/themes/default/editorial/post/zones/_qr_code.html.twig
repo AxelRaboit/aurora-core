@@ -1,0 +1,25 @@
+{# A QR code, drawn in the page by qrCode.js from `data-qr-text`, with the
+   picture of `data-qr-logo` set in its middle. With a picture the code is
+   made at the highest error correction, which is what lets a scanner read
+   through the part the picture hides.
+
+   Without the script the address is still there, as a link: a code nobody
+   can draw is replaced by the thing it would have pointed at. #}
+{% set widths = {sm: 'max-w-[10rem]', md: 'max-w-[14rem]', lg: 'max-w-[20rem]'} %}
+<figure class="not-prose m-0 flex flex-col items-center gap-3 text-center" data-qr-code data-qr-text="{{ widget.text }}"{% if widget.logo %} data-qr-logo="{{ widget.logo.url }}"{% endif %}>
+    <div class="w-full {{ widths[widget.size]|default(widths.md) }} rounded-xl bg-white p-3 shadow-sm ring-1 ring-black/5">
+        <canvas class="block h-auto w-full" data-qr-canvas hidden role="img" aria-label="{{ 'frontend.editorial.grid.qr.label'|trans({'%url%': widget.text}) }}"></canvas>
+        <a href="{{ widget.text }}" class="block break-all p-2 text-sm text-black no-underline" data-qr-fallback>{{ widget.text }}</a>
+    </div>
+    {% if widget.label %}
+        <figcaption class="text-sm text-secondary">{{ widget.label }}</figcaption>
+    {% endif %}
+    {% if widget.download %}
+        <button
+            type="button"
+            class="rounded-lg border border-line px-3 py-1.5 text-sm text-primary transition-colors hover:border-accent hover:text-accent"
+            data-qr-download="{{ widget.fileName }}"
+            hidden
+        >{{ 'frontend.editorial.grid.qr.download'|trans }}</button>
+    {% endif %}
+</figure>

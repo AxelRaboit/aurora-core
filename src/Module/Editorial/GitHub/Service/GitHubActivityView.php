@@ -12,9 +12,12 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 use function array_fill;
 use function array_shift;
+use function array_slice;
+use function count;
 use function max;
 use function rawurlencode;
 use function sprintf;
+use function usort;
 
 /**
  * Ce que dessine la zone « Activité GitHub » : une carte par compte réglé.
@@ -37,15 +40,29 @@ final readonly class GitHubActivityView
         private GitHubSettings $settings,
         private GitHubContributions $contributions,
         private TranslatorInterface $translator,
+        private GitHubRepositories $repositories,
     ) {}
 
     /**
-     * @return array{accounts: list<array<string, mixed>>}|null
+     * @param array<string, mixed> $options the zone's options: which mode, which repositories
+     *
+     * @return array<string, mixed>|null
      */
-    public function build(string $locale): ?array
+    public function build(string $locale, array $options = []): ?array
     {
         if (!$this->settings->isEnabled()) {
             return null;
+        }
+
+        $mode = $options['githubMode'] ?? 'activity';
+        $repos = $options['githubRepos'] ?? [];
+
+        if ('repos' === $mode) {
+            return $this->repositoryCards($repos, $locale);
+        }
+
+        if ('releases' === $mode) {
+            return $this->releaseList($repos, $locale);
         }
 
         $accounts = [];
@@ -58,7 +75,67 @@ final readonly class GitHubActivityView
             }
         }
 
-        return [] === $accounts ? null : ['accounts' => $accounts];
+        return [] === $accounts ? null : ['mode' => 'activity', 'accounts' => $accounts];
+    }
+
+    /**
+     * One card per repository named on the zone, in its order.
+     *
+     * @param list<string> $repos
+     *
+     * @return array<string, mixed>|null
+     */
+    private function repositoryCards(array $repos, string $locale): ?array
+    {
+        $numbers = new NumberFormatter($locale, NumberFormatter::DECIMAL);
+        $dates = new IntlDateFormatter($locale, IntlDateFormatter::MEDIUM, IntlDateFormatter::NONE, 'UTC');
+        $cards = [];
+
+        foreach ($repos as $repo) {
+            $card = $this->repositories->repository($repo);
+
+            if (null === $card) {
+                continue;
+            }
+
+            $cards[] = [
+                ...$card,
+                'starsLabel' => (string) $numbers->format($card['stars']),
+                'forksLabel' => (string) $numbers->format($card['forks']),
+                'updatedLabel' => '' === $card['pushedAt']
+                    ? ''
+                    : $this->translator->trans('frontend.editorial.grid.github.updated', ['%date%' => $dates->format(new DateTimeImmutable($card['pushedAt']))], 'messages', $locale),
+            ];
+        }
+
+        return [] === $cards ? null : ['mode' => 'repos', 'repos' => $cards];
+    }
+
+    /**
+     * The latest releases of every repository named, newest first.
+     *
+     * @param list<string> $repos
+     *
+     * @return array<string, mixed>|null
+     */
+    private function releaseList(array $repos, string $locale): ?array
+    {
+        $dates = new IntlDateFormatter($locale, IntlDateFormatter::LONG, IntlDateFormatter::NONE, 'UTC');
+        $releases = [];
+
+        foreach ($repos as $repo) {
+            foreach ($this->repositories->releases($repo) ?? [] as $release) {
+                $releases[] = [
+                    ...$release,
+                    'repo' => $repo,
+                    'dateLabel' => '' === $release['publishedAt'] ? '' : (string) $dates->format(new DateTimeImmutable($release['publishedAt'])),
+                ];
+            }
+        }
+
+        usort($releases, static fn (array $a, array $b): int => $b['publishedAt'] <=> $a['publishedAt']);
+
+        return [] === $releases ? null : ['mode' => 'releases', 'releases' => array_slice($releases, 0, 6), 'multiple' => count($repos) > 1];
     }
 
     /**

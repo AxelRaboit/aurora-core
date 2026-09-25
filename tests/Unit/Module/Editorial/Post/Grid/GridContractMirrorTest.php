@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Tests\Unit\Module\Editorial\Post\Grid;
 
 use Aurora\Module\Editorial\Post\Grid\GridNormalizer;
+use Aurora\Module\Editorial\Post\Grid\GridZoneOptions;
 use Aurora\Tests\Unit\AuroraGridGutterTest;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -52,6 +53,27 @@ final class GridContractMirrorTest extends TestCase
         yield 'zone types' => [GridNormalizer::ZONE_TYPES, 'ZONE_TYPES'];
         yield 'surfaces' => [GridNormalizer::SURFACES, 'SURFACES'];
         yield 'item displays' => [GridNormalizer::ITEM_DISPLAYS, 'ITEM_DISPLAYS'];
+        yield 'gallery layouts' => [GridZoneOptions::GALLERY_LAYOUTS, 'GALLERY_LAYOUTS'];
+        yield 'frames' => [GridZoneOptions::FRAMES, 'FRAMES'];
+        yield 'code styles' => [GridZoneOptions::CODE_STYLES, 'CODE_STYLES'];
+        yield 'list layouts' => [GridZoneOptions::LIST_LAYOUTS, 'LIST_LAYOUTS'];
+        yield 'github modes' => [GridZoneOptions::GITHUB_MODES, 'GITHUB_MODES'];
+        yield 'availabilities' => [GridZoneOptions::AVAILABILITIES, 'AVAILABILITIES'];
+        yield 'weekdays' => [GridZoneOptions::WEEKDAYS, 'WEEKDAYS'];
+        yield 'social networks' => [GridZoneOptions::SOCIAL_NETWORKS, 'SOCIAL_NETWORKS'];
+    }
+
+    /**
+     * The options a new zone arrives with are the same on both sides: a zone
+     * created in the editor must not carry a key the server does not know, nor
+     * miss one it expects.
+     */
+    public function testANewZoneCarriesEveryOptionTheServerKeeps(): void
+    {
+        self::assertSame(1, preg_match('/export function defaultZoneOptions\(\) \{\s*return \{(.*?)\n    \};/s', $this->source(), $matches));
+        self::assertGreaterThan(0, preg_match_all('/^\s{8}([a-zA-Z]+):/m', $matches[1], $keys));
+
+        self::assertSame(array_keys(GridZoneOptions::defaults()), $keys[1]);
     }
 
     /**

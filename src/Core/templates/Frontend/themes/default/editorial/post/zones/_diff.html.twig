@@ -1,0 +1,9 @@
+{# A change, the way a diff prints it: removed lines on red, added lines on
+   green, the rest as context. The marks stay in the text - a reader who
+   cannot tell the colours apart still reads + and -. #}
+<div class="aurora-card not-prose overflow-hidden">
+    {% if zone.language %}
+        <div class="border-b border-line px-4 py-2 text-2xs uppercase tracking-wider text-muted">{{ zone.language }}</div>
+    {% endif %}
+    <pre class="m-0 overflow-x-auto py-3 font-mono text-sm leading-relaxed"><code>{% for line in zone.code|split('\n') %}{% if line starts with '+' %}<span class="block bg-emerald-500/15 px-4 text-primary">{{ line }}</span>{% elseif line starts with '-' %}<span class="block bg-rose-500/15 px-4 text-primary">{{ line }}</span>{% elseif line starts with '@@' %}<span class="block px-4 text-muted">{{ line }}</span>{% else %}<span class="block px-4 text-secondary">{{ line ?: ' ' }}</span>{% endif %}{% endfor %}</code></pre>
+</div>

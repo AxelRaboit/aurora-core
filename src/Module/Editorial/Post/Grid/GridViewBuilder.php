@@ -33,6 +33,7 @@ use Aurora\Module\Ged\Enum\DocumentStatusEnum;
 use Aurora\Module\Studio\Deck\Entity\DeckInterface;
 use Aurora\Module\Studio\Deck\Repository\DeckRepository;
 use Aurora\Module\Studio\Deck\Share\Repository\DeckShareLinkRepository;
+use Collator;
 use DateTimeImmutable;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -55,6 +56,9 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  */
 final readonly class GridViewBuilder
 {
+    /** How many publications an A to Z index lists at most. */
+    private const int INDEX_LIMIT = 300;
+
     public function __construct(
         private GridNormalizer $gridNormalizer,
         private ContentValueNormalizer $values,
@@ -76,6 +80,7 @@ final readonly class GridViewBuilder
         private DeckShareLinkRepository $deckShareLinkRepository,
         private Security $security,
         private GitHubActivityView $gitHubActivityView,
+        private ZoneWidgetViews $widgetViews,
     ) {}
 
     /**
@@ -294,8 +299,9 @@ final readonly class GridViewBuilder
                 // page is still being read.
                 'toc' => GridNormalizer::ZONE_TOC === $zone['type'] ? [] : null,
                 'githubActivity' => GridNormalizer::ZONE_GITHUB_ACTIVITY === $zone['type']
-                    ? $this->gitHubActivityView->build($locale)
+                    ? $this->gitHubActivityView->build($locale, $zone['options'])
                     : null,
+                'widget' => $this->widgetViews->build($zone, $held, $locale, fn (?int $id): ?array => null === $id ? null : $this->mediaData($documents[$id] ?? null, $held['alt'])),
             ];
         };
 
@@ -533,6 +539,10 @@ final readonly class GridViewBuilder
      */
     private function postListView(array $zone, string $locale, ?int $currentPostId): array
     {
+        if ('index' === ($zone['options']['listLayout'] ?? 'cards')) {
+            return $this->postIndexView($zone, $locale, $currentPostId);
+        }
+
         $posts = $this->postRepository->findLatestPublished(
             $locale,
             (int) $zone['limit'],
@@ -555,6 +565,67 @@ final readonly class GridViewBuilder
             'columns' => (int) $zone['columns'],
             'variant' => (string) $zone['cardVariant'],
             'cards' => $cards,
+        ];
+    }
+
+    /**
+     * Every publication the list would show, by letter, for an index.
+     *
+     * The count is not the zone's `limit`: an index that stops at twelve is
+     * not an index. It stops at INDEX_LIMIT instead, which is a documentation
+     * or a glossary of a good size, and past which a page of links wants a
+     * search rather than a longer page.
+     *
+     * Letters are read off the title with its accents removed, so « Écran »
+     * files under E; anything that does not start with a letter files under #.
+     *
+     * @param array<string, mixed> $zone
+     *
+     * @return array{columns: int, variant: string, cards: list<array<string, mixed>>, index: list<array{letter: string, entries: list<array{title: string, url: string}>}>}
+     */
+    private function postIndexView(array $zone, string $locale, ?int $currentPostId): array
+    {
+        $posts = $this->postRepository->findLatestPublished($locale, self::INDEX_LIMIT, $zone['postTypeId'], $zone['termId'], $currentPostId);
+        $collator = new Collator($locale);
+        $entries = [];
+
+        foreach ($posts as $post) {
+            $card = $this->postCard($post, $locale);
+
+            if (null !== $card && '' !== (string) $card['title']) {
+                $entries[] = [
+                    'title' => (string) $card['title'],
+                    'url' => $this->urlGenerator->generate('editorial_post', [
+                        'locale' => $locale,
+                        'postTypeSlug' => $card['postTypeSlug'],
+                        'slug' => $card['slug'],
+                    ]),
+                ];
+            }
+        }
+
+        usort($entries, static fn (array $a, array $b): int => (int) $collator->compare($a['title'], $b['title']));
+
+        $groups = [];
+        foreach ($entries as $entry) {
+            $first = mb_strtoupper(mb_substr((string) transliterator_transliterate('Any-Latin; Latin-ASCII', $entry['title']), 0, 1));
+            $letter = 1 === preg_match('/^[A-Z]$/', $first) ? $first : '#';
+            $groups[$letter][] = $entry;
+        }
+
+        // `#` last, the way a printed index puts figures after Z.
+        uksort($groups, static fn (string $a, string $b): int => ('#' === $a) <=> ('#' === $b) ?: $a <=> $b);
+
+        $index = [];
+        foreach ($groups as $letter => $list) {
+            $index[] = ['letter' => $letter, 'entries' => $list];
+        }
+
+        return [
+            'columns' => (int) $zone['columns'],
+            'variant' => (string) $zone['cardVariant'],
+            'cards' => [],
+            'index' => $index,
         ];
     }
 
@@ -1171,7 +1242,19 @@ final readonly class GridViewBuilder
                 GridNormalizer::ZONE_AUDIO,
                 GridNormalizer::ZONE_DOCUMENT,
                 GridNormalizer::ZONE_MAP,
+                GridNormalizer::ZONE_CONTACT_CARD,
+                GridNormalizer::ZONE_SOCIAL_POST,
             ], true);
+
+            // The face beside a social post, and the picture in the middle of a
+            // QR code: in the same query as everything else.
+            if (GridNormalizer::ZONE_SOCIAL_POST === $zone['type'] && null !== ($zone['options']['socialAvatarId'] ?? null)) {
+                $ids[] = $zone['options']['socialAvatarId'];
+            }
+
+            if (GridNormalizer::ZONE_QR_CODE === $zone['type'] && null !== ($zone['options']['qrLogoId'] ?? null)) {
+                $ids[] = $zone['options']['qrLogoId'];
+            }
 
             // A gallery names many at once, and they join the same query as
             // everything else: twenty-four photographs on a page should cost

@@ -7,6 +7,7 @@ namespace Aurora\Tests\Unit\Module\Editorial\GitHub\Service;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use Aurora\Module\Editorial\GitHub\Service\GitHubActivityView;
 use Aurora\Module\Editorial\GitHub\Service\GitHubContributions;
+use Aurora\Module\Editorial\GitHub\Service\GitHubRepositories;
 use Aurora\Module\Editorial\GitHub\Setting\GitHubSettingEnum;
 use Aurora\Module\Editorial\GitHub\Setting\GitHubSettings;
 use DateTimeImmutable;
@@ -74,6 +75,7 @@ final class GitHubActivityViewTest extends TestCase
             new GitHubSettings($repository),
             new GitHubContributions(new MockHttpClient(new MockResponse($cells)), new ArrayAdapter(), new NullLogger()),
             new IdentityTranslator(),
+            new GitHubRepositories(new MockHttpClient(), new ArrayAdapter(), new NullLogger()),
         );
     }
 }

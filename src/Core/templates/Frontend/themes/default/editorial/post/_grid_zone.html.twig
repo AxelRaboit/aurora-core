@@ -44,6 +44,35 @@
            anyway. #}
         {% set fills = zone.ratio == 'fill' %}
 
+        {# A device drawn around the picture: a site shown on the screen it was
+           built for. The frame decides the shape - a laptop screen is 16:10,
+           a phone 9:19.5 - so the zone's own ratio steps aside, and so do the
+           picture's rounded corners, which the frame now carries. #}
+        {% set device = zone.options.frame|default('none') %}
+        {% set deviceRatio = {laptop: 'aspect-ratio: 16 / 10;', phone: 'aspect-ratio: 9 / 19.5;', browser: 'aspect-ratio: 16 / 10;'}[device]|default(null) %}
+
+        {% if zone.options.parallax|default(false) %}
+            {# A band: the picture moves slower than the page behind a sentence
+               set over it. parallax.js drives the movement and stays still for
+               a reader who asked for less motion; without it the band is a
+               cropped picture with its sentence, which is all it needs to be. #}
+            <div class="not-prose relative isolate flex min-h-[55vh] items-center justify-center overflow-hidden{{ zone.fullBleed ? '' : ' rounded-lg' }}" data-parallax>
+                <img
+                    src="{{ zone.media.url }}"
+                    alt="{{ zone.media.alt }}"
+                    loading="lazy"
+                    decoding="async"
+                    class="absolute inset-x-0 -top-[15%] -z-10 h-[130%] w-full object-cover will-change-transform"
+                    style="object-position: {{ zone.media.focalPosition }};"
+                    data-parallax-layer
+                >
+                <span class="absolute inset-0 -z-10 bg-gradient-to-t from-black/60 via-black/25 to-black/10" aria-hidden="true"></span>
+                {% if zone.caption %}
+                    <p class="m-0 max-w-3xl px-6 text-center text-2xl font-semibold text-white text-balance sm:text-4xl">{{ zone.caption }}</p>
+                {% endif %}
+            </div>
+        {% else %}
+
         {# `scaleStyle` narrows the figure and says which side it sits on. The
            picture inside keeps `width: 100%`, so its height follows its own
            proportions and the author gets a smaller picture rather than a
@@ -96,10 +125,40 @@
                     {% endif %}
                     loading="lazy"
                     decoding="async"
-                    class="w-full h-auto object-cover{{ framed ? '' : ' rounded-lg' }}{{ fills ? ' lg:min-h-0 lg:flex-1' : '' }}"
-                    style="object-position: {{ zone.media.focalPosition }};{{ zone.ratioStyle }}"
+                    class="w-full h-auto object-cover{{ framed or device != 'none' ? '' : ' rounded-lg' }}{{ fills ? ' lg:min-h-0 lg:flex-1' : '' }}"
+                    style="object-position: {{ zone.media.focalPosition }};{{ deviceRatio ?? zone.ratioStyle }}"
                 >
             {% endset %}
+            {% if device != 'none' %}
+                {% set screen = picture %}
+                {% set picture %}
+                    {% if device == 'laptop' %}
+                        <span class="block">
+                            <span class="block rounded-t-2xl rounded-b-md bg-[#1f2328] p-[1.8%] pb-[2.6%] shadow-xl ring-1 ring-black/20">
+                                <span class="block overflow-hidden rounded-sm bg-black">{{ screen }}</span>
+                            </span>
+                            <span class="-mx-[6%] block h-2.5 rounded-b-2xl bg-gradient-to-b from-[#9aa0a6] to-[#3c4043] sm:h-3.5" aria-hidden="true"></span>
+                        </span>
+                    {% elseif device == 'phone' %}
+                        <span class="mx-auto block w-full max-w-[18rem] rounded-[2.4rem] bg-[#1f2328] p-2.5 shadow-xl ring-1 ring-black/20">
+                            <span class="relative block overflow-hidden rounded-[1.9rem] bg-black">
+                                <span class="absolute left-1/2 top-2 z-10 h-5 w-20 -translate-x-1/2 rounded-full bg-black" aria-hidden="true"></span>
+                                {{ screen }}
+                            </span>
+                        </span>
+                    {% else %}
+                        <span class="block overflow-hidden rounded-xl border border-line bg-surface shadow-lg">
+                            <span class="flex items-center gap-1.5 border-b border-line px-3 py-2" aria-hidden="true">
+                                <span class="h-2.5 w-2.5 rounded-full bg-[#ff5f57]"></span>
+                                <span class="h-2.5 w-2.5 rounded-full bg-[#febc2e]"></span>
+                                <span class="h-2.5 w-2.5 rounded-full bg-[#28c840]"></span>
+                                <span class="ml-3 h-5 flex-1 rounded-md bg-surface-2"></span>
+                            </span>
+                            {{ screen }}
+                        </span>
+                    {% endif %}
+                {% endset %}
+            {% endif %}
             {% if enlargeable %}
                 {# A column when it fills, and not only a flex item: the button
                    takes the height flex gives it, but a block child inside
@@ -121,13 +180,14 @@
                    above it is taking every pixel it can. #}
                 <figcaption class="mt-2 text-sm text-secondary{{ fills ? ' lg:shrink-0' : '' }}">{{ zone.caption }}</figcaption>
             {% endif %}
-            {% if zone.media.credit %}
+            {% if zone.media.credit|default(null) %}
                 {# Not decoration: a stock photo may only be shown with its
                    photographer named, so this line travels with the picture
                    wherever the zone is rendered. #}
                 {{ include('Frontend/themes/default/editorial/post/_media_credit.html.twig', {credit: zone.media.credit}, false) }}
             {% endif %}
         </figure>
+        {% endif %}
 
     {% elseif zone.type == 'audio' and zone.audio %}
         {# The browser's own player. No `preload="none"` here, unlike the film
@@ -385,6 +445,9 @@
             4: 'columns-1 sm:columns-3 lg:columns-4',
         } %}
 
+        {% if zone.options.galleryLayout|default('grid') == 'carousel' %}
+            {{ include('Frontend/themes/default/editorial/post/zones/_carousel.html.twig') }}
+        {% else %}
         <div class="not-prose">
             <div class="{{ flows ? flowColumns[zone.gallery.columns] ~ ' gap-3' : 'grid ' ~ gridColumns[zone.gallery.columns] ~ ' gap-3' }}">
                 {% for picture in zone.gallery.items %}
@@ -418,6 +481,7 @@
                 <p class="mt-3 mb-0 text-sm text-secondary">{{ zone.caption }}</p>
             {% endif %}
         </div>
+        {% endif %}
 
     {% elseif zone.type == 'map' and zone.map %}
         {# `<address>` because that is what this is - the element exists for
@@ -525,6 +589,9 @@
     {% elseif zone.type == 'items' and zone.items.entries is not empty %}
         {{ include('Frontend/themes/default/editorial/post/_grid_items.html.twig', {items: zone.items}) }}
 
+    {% elseif zone.type == 'postList' and zone.postList.index|default([]) is not empty %}
+        {{ include('Frontend/themes/default/editorial/post/zones/_post_index.html.twig') }}
+
     {% elseif zone.type == 'postList' and zone.postList.cards is not empty %}
         {# Written out literally: Tailwind only emits classes it can read in
            the source. A compact list stays one column - its whole point is a
@@ -561,6 +628,12 @@
                 captcha: public_captcha(),
             }) }}></div>
         </div>
+
+    {% elseif zone.type == 'code' and zone.code and zone.options.codeStyle|default('plain') == 'terminal' %}
+        {{ include('Frontend/themes/default/editorial/post/zones/_terminal.html.twig') }}
+
+    {% elseif zone.type == 'code' and zone.code and zone.options.codeStyle|default('plain') == 'diff' %}
+        {{ include('Frontend/themes/default/editorial/post/zones/_diff.html.twig') }}
 
     {% elseif zone.type == 'code' and zone.code %}
         {# Readable before any script runs, coloured once one does: the class
@@ -635,6 +708,11 @@
         </nav>
 
     {% elseif zone.type == 'githubActivity' and zone.githubActivity %}
+        {% if zone.githubActivity.mode|default('activity') == 'repos' %}
+            {{ include('Frontend/themes/default/editorial/post/zones/_github_repos.html.twig') }}
+        {% elseif zone.githubActivity.mode|default('activity') == 'releases' %}
+            {{ include('Frontend/themes/default/editorial/post/zones/_github_releases.html.twig') }}
+        {% else %}
         {# One card per account, weeks as columns of seven days, Sunday on top,
            the way GitHub draws it. The grid is decoration for the eye and a
            title per day for the pointer; a screen reader gets the total, which
@@ -690,6 +768,18 @@
                 </section>
             {% endfor %}
         </div>
+        {% endif %}
+
+    {% elseif zone.type in ['availability', 'openingHours', 'countdown', 'contactCard', 'socialPost', 'qrCode'] and zone.widget %}
+        {% set widget = zone.widget %}
+        {{ include('Frontend/themes/default/editorial/post/zones/_' ~ {
+            availability: 'availability',
+            openingHours: 'opening_hours',
+            countdown: 'countdown',
+            contactCard: 'contact_card',
+            socialPost: 'social_post',
+            qrCode: 'qr_code',
+        }[zone.type] ~ '.html.twig') }}
 
     {% elseif zone.type == 'video' %}
         {% if zone.file %}
