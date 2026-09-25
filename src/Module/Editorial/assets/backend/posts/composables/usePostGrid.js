@@ -8,6 +8,7 @@ import {
     FileText,
     Film,
     Frame,
+    Github,
     Image,
     Images,
     Columns2,
@@ -71,6 +72,7 @@ export const LEAF_ZONE_TYPES = [
     "form",
     "code",
     "toc",
+    "githubActivity",
 ];
 
 /** Mirrors GridNormalizer::ZONE_TYPES - a stack is top level only. */
@@ -125,6 +127,9 @@ export const ZONE_ICONS = {
     code: Code,
     // Headings, indented under one another - which is what a summary is.
     toc: ListTree,
+    // The one brand glyph in this map, because the zone is about one
+    // brand's grid and nothing generic says so.
+    githubActivity: Github,
     stack: Layers,
 };
 

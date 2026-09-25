@@ -13,6 +13,7 @@ use Aurora\Module\Editorial\Form\Entity\FormInterface;
 use Aurora\Module\Editorial\Form\Entity\FormTranslationInterface;
 use Aurora\Module\Editorial\Form\Repository\FormRepository;
 use Aurora\Module\Editorial\Form\Serializer\FormSerializer;
+use Aurora\Module\Editorial\GitHub\Service\GitHubActivityView;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Entity\PostTranslationInterface;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
@@ -74,6 +75,7 @@ final readonly class GridViewBuilder
         private DeckRepository $deckRepository,
         private DeckShareLinkRepository $deckShareLinkRepository,
         private Security $security,
+        private GitHubActivityView $gitHubActivityView,
     ) {}
 
     /**
@@ -291,6 +293,9 @@ final readonly class GridViewBuilder
                 // rendered: a summary of a page cannot be written while the
                 // page is still being read.
                 'toc' => GridNormalizer::ZONE_TOC === $zone['type'] ? [] : null,
+                'githubActivity' => GridNormalizer::ZONE_GITHUB_ACTIVITY === $zone['type']
+                    ? $this->gitHubActivityView->build($locale)
+                    : null,
             ];
         };
 

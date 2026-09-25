@@ -453,7 +453,7 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                     - Cession des droits à la livraison, usage précisé au cas
                       par cas
 
-                    Retour à [[Clients]].
+                    Retour au [[Sommaire des clients]].
                     MD,
             ],
             'seance' => [

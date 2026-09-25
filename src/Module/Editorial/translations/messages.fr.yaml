@@ -105,6 +105,21 @@ backend:
     editorial_frontend: Site public éditorial
     editorial_frontend_description: "Sert les publications, pages de liste et pages de taxonomie aux lecteurs."
   editorial:
+    github:
+      settings:
+        what_title: Ce que fait cette intégration
+        what_body: "Elle affiche, dans une zone « Activité GitHub » posée sur une page, la grille de contributions des comptes ci-dessous : une case par jour sur les douze derniers mois, comme sur un profil GitHub."
+        source_title: D'où viennent les données
+        source_body: "De la page publique de chaque profil, celle que n'importe quel visiteur peut ouvrir : aucune clé, aucun compte à brancher. Les grilles sont relues toutes les six heures. Si GitHub ne répond pas, la dernière grille lue reste affichée."
+        logins_label: Comptes GitHub
+        logins_hint: "Un identifiant par ligne, dans l'ordre d'affichage, quatre au plus. Le « @ » est facultatif."
+        enabled_label: Afficher l'activité GitHub
+        enabled_hint: "Les zones « Activité GitHub » des pages affichent ces comptes."
+        enabled_blocked: "Saisissez au moins un compte pour activer l'intégration."
+      errors:
+        invalid_login: "Identifiant GitHub invalide : {logins}. Lettres, chiffres et tirets seulement."
+        too_many: "{max} comptes au plus."
+        logins_required: "Saisissez au moins un compte pour activer l'intégration."
     bootstrap:
       post_types:
         page: Page
@@ -488,6 +503,7 @@ backend:
         form: Formulaire
         code: Code
         toc: Sommaire
+        githubActivity: Activité GitHub
         stack: Pile
       zone_form: "Formulaire"
       zone_form_hint: "Le formulaire s'affiche dans la page, et s'envoie au même endroit que sur sa propre page."
@@ -716,6 +732,7 @@ backend:
       zone_embed: Adresse à intégrer
       zone_embed_hint: "Collez l'adresse de la page chez le fournisseur. Une adresse qu'aucun des quatre ne revendique s'affiche en simple lien plutôt que de disparaître."
       embed_providers: "Quatre fournisseurs reconnus : Spotify, SoundCloud, CodePen et Calendly. Chacun voit passer les visiteurs de la page où vous posez la zone."
+      github_activity_hint: "Affiche la grille de contributions des comptes GitHub réglés dans Réglages > GitHub, un cadre par compte. Tant que l'intégration est éteinte ou qu'aucun compte n'y est saisi, la zone ne dessine rien."
       comments_hint: "Rien à régler : le fil est celui de cette publication. Quand cette zone existe, le pied de page ne le dessine plus - une conversation par page, là où vous l'avez mise."
       zone_deck: Présentation
       zone_deck_none: "Choisir une présentation…"
@@ -1095,6 +1112,12 @@ frontend:
       after: Après
       compare_handle: "Déplacer la séparation entre les deux images"
       get_in_touch: Écrire
+      github:
+        total: "{0}Aucune contribution|{1}1 contribution|]1,Inf[%number% contributions"
+        day: "{0}Aucune contribution le %date%|{1}1 contribution le %date%|]1,Inf[%number% contributions le %date%"
+        last_year: 12 derniers mois
+        less: Moins
+        more: Plus
     forms:
       submit: Envoyer
       next: Suivant
