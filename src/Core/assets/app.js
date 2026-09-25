@@ -18,6 +18,12 @@ import "./shared/utils/compareSlider.js";
 import "./shared/utils/scrollReveal.js";
 import "./shared/utils/countUp.js";
 import "./shared/utils/tabs.js";
+import "./shared/utils/carousel.js";
+import "./shared/utils/terminal.js";
+import "./shared/utils/countdown.js";
+import "./shared/utils/parallax.js";
+import "./shared/utils/contactCard.js";
+import "./shared/utils/qrCode.js";
 import "./css/app.css";
 
 // Module boot hooks: a module may ship `*.register.js` files (e.g. a settings

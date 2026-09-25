@@ -1,0 +1,17 @@
+{# The latest releases, newest first: a product that ships says so here. The
+   repository is named only when the zone follows more than one. #}
+<ol class="not-prose m-0 list-none space-y-3 p-0">
+    {% for release in zone.githubActivity.releases %}
+        <li class="rounded-xl border border-line bg-surface p-4">
+            <div class="flex flex-wrap items-baseline justify-between gap-2">
+                <a href="{{ release.url }}" rel="noopener" class="text-sm font-semibold text-primary no-underline hover:text-accent">
+                    {% if zone.githubActivity.multiple %}<span class="text-muted">{{ release.repo }}</span> · {% endif %}{{ release.name }}
+                </a>
+                {% if release.dateLabel %}<span class="text-xs text-muted">{{ release.dateLabel }}</span>{% endif %}
+            </div>
+            {% if release.summary %}
+                <p class="m-0 mt-1 text-sm text-secondary">{{ release.summary }}</p>
+            {% endif %}
+        </li>
+    {% endfor %}
+</ol>

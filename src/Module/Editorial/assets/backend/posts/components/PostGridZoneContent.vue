@@ -11,7 +11,7 @@
  * to the right half - shared on the post, or translated - so nothing here needs
  * to know that split exists.
  */
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import AppBlockEditor from "@/shared/components/editor/AppBlockEditor.vue";
 import AppChoiceRow from "@/shared/components/form/select/AppChoiceRow.vue";
@@ -21,10 +21,13 @@ import { MAX_GALLERY_IMAGES } from "../composables/usePostGrid.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
+import AppDatePicker from "@/shared/components/form/picker/AppDatePicker.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
 import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-vue-next";
+import OpeningHoursField from "./zones/OpeningHoursField.vue";
+import { parseLines } from "./zones/openingHours.js";
 
 const props = defineProps({
     /** The zone itself - read for its type, never written to. */
@@ -88,6 +91,30 @@ const { t } = useI18n();
  * same one handed a new object.
  */
 const bound = props.fields;
+
+/**
+ * The face beside a social post: an id under `options`, like every setting of
+ * one kind of zone. The picker wants `{id, url}`; the url is kept only for the
+ * preview until the next save, the page resolving it again from the id.
+ */
+const avatarPreview = ref(null);
+const logoPreview = ref(null);
+
+/** The picture in the middle of a QR code, the same way. */
+const qrLogo = computed({
+    get: () => ({ id: bound.qrLogoId.value ?? null, url: logoPreview.value }),
+    set: (picked) => {
+        bound.qrLogoId.value = picked?.id ?? null;
+        logoPreview.value = picked?.url ?? null;
+    },
+});
+const socialAvatar = computed({
+    get: () => ({ id: bound.socialAvatarId.value ?? null, url: avatarPreview.value }),
+    set: (picked) => {
+        bound.socialAvatarId.value = picked?.id ?? null;
+        avatarPreview.value = picked?.url ?? null;
+    },
+});
 
 /** Opens the library filtered to what a browser can play. */
 async function pickVideo() {
@@ -260,6 +287,20 @@ const displayHint = computed(() =>
                 v-model="bound.media.value"
                 :label="t('backend.posts.grid.zone_image')"
             />
+            <!-- A screen drawn around the picture, for a site shown on the
+                 device it was built for. The frame sets the shape, so the
+                 ratio below is set aside while one is chosen. -->
+            <AppChoiceRow
+                v-model="bound.frame.value"
+                :label="t('backend.posts.grid.frame')"
+                :hint="t('backend.posts.grid.frame_hint')"
+                :options="choices.frame ?? []"
+            />
+            <AppToggle
+                v-model="bound.parallax.value"
+                :label="t('backend.posts.grid.parallax')"
+                :hint="t('backend.posts.grid.parallax_hint')"
+            />
             <!-- Only reached when nothing is picked above, which is the order
                  the renderer uses too. A document carries a focal point, a
                  sized variant and an alt of its own; an address carries none of
@@ -425,9 +466,233 @@ const displayHint = computed(() =>
         </template>
 
         <template v-else-if="zone.type === 'githubActivity'">
-            <!-- Nothing to choose here either: the accounts are the site's,
-                 set once in the settings and the same on every page. -->
+            <!-- The accounts are the site's, set once in the settings. What a
+                 zone chooses is what it shows: their grid, or a few
+                 repositories and their releases. -->
             <p class="text-sm text-muted">{{ t("backend.posts.grid.github_activity_hint") }}</p>
+            <AppChoiceRow
+                v-model="bound.githubMode.value"
+                :label="t('backend.posts.grid.github_mode')"
+                :options="choices.githubMode ?? []"
+            />
+            <AppTextarea
+                v-if="bound.githubMode.value !== 'activity'"
+                :model-value="(bound.githubRepos.value ?? []).join('\n')"
+                :label="t('backend.posts.grid.github_repos')"
+                :hint="t('backend.posts.grid.github_repos_hint')"
+                placeholder="AxelRaboit/aurora-core"
+                :rows="3"
+                v-on:update:model-value="(value) => (bound.githubRepos.value = parseLines(value))"
+            />
+        </template>
+
+        <template v-else-if="zone.type === 'availability'">
+            <AppChoiceRow
+                v-model="bound.availability.value"
+                :label="t('backend.posts.grid.availability')"
+                :options="choices.availability ?? []"
+            />
+            <AppDatePicker
+                :model-value="bound.availableFrom.value ?? ''"
+                :label="t('backend.posts.grid.available_from')"
+                :hint="t('backend.posts.grid.available_from_hint')"
+                v-on:update:model-value="(value) => (bound.availableFrom.value = value || null)"
+            />
+            <div class="rounded-lg border border-dashed border-line p-3 space-y-2">
+                <p class="text-xs uppercase tracking-wide text-muted">
+                    {{ t("backend.posts.grid.translated_fields", { locale }) }}
+                </p>
+                <AppInput
+                    v-model="bound.label.value"
+                    placeholder="Disponible pour de nouveaux projets"
+                    :label="t('backend.posts.grid.availability_label')"
+                    :hint="t('backend.posts.grid.availability_label_hint')"
+                />
+                <AppInput
+                    v-model="bound.caption.value"
+                    placeholder="Réponse sous 48 h"
+                    :label="t('backend.posts.grid.availability_note')"
+                />
+            </div>
+        </template>
+
+        <template v-else-if="zone.type === 'openingHours'">
+            <OpeningHoursField v-model="bound.hours.value" />
+            <AppTextarea
+                :model-value="(bound.closedDates.value ?? []).join('\n')"
+                :label="t('backend.posts.grid.closed_dates')"
+                :hint="t('backend.posts.grid.closed_dates_hint')"
+                placeholder="2026-12-25"
+                :rows="3"
+                v-on:update:model-value="(value) => (bound.closedDates.value = parseLines(value))"
+            />
+            <AppInput
+                v-model="bound.timezone.value"
+                :label="t('backend.posts.grid.timezone')"
+                :hint="t('backend.posts.grid.timezone_hint')"
+                placeholder="Europe/Paris"
+            />
+            <div class="rounded-lg border border-dashed border-line p-3 space-y-2">
+                <p class="text-xs uppercase tracking-wide text-muted">
+                    {{ t("backend.posts.grid.translated_fields", { locale }) }}
+                </p>
+                <AppInput
+                    v-model="bound.caption.value"
+                    placeholder="Fermé les jours fériés"
+                    :label="t('backend.posts.grid.hours_note')"
+                />
+            </div>
+        </template>
+
+        <template v-else-if="zone.type === 'countdown'">
+            <AppDatePicker
+                :model-value="bound.countdownAt.value ?? ''"
+                :enable-time="true"
+                :label="t('backend.posts.grid.countdown_at')"
+                v-on:update:model-value="(value) => (bound.countdownAt.value = value || null)"
+            />
+            <AppInput
+                v-model="bound.timezone.value"
+                :label="t('backend.posts.grid.timezone')"
+                :hint="t('backend.posts.grid.timezone_hint')"
+                placeholder="Europe/Paris"
+            />
+            <div class="rounded-lg border border-dashed border-line p-3 space-y-2">
+                <p class="text-xs uppercase tracking-wide text-muted">
+                    {{ t("backend.posts.grid.translated_fields", { locale }) }}
+                </p>
+                <AppInput
+                    v-model="bound.label.value"
+                    placeholder="Ouverture de la boutique"
+                    :label="t('backend.posts.grid.countdown_title')"
+                />
+                <AppInput
+                    v-model="bound.caption.value"
+                    placeholder="La boutique est ouverte"
+                    :label="t('backend.posts.grid.countdown_after')"
+                    :hint="t('backend.posts.grid.countdown_after_hint')"
+                />
+            </div>
+        </template>
+
+        <template v-else-if="zone.type === 'contactCard'">
+            <AppImagePickerField v-model="bound.media.value" :label="t('backend.posts.grid.contact_photo')" />
+            <AppInput
+                v-model="bound.contactName.value"
+                placeholder="Axel Raboit"
+                :label="t('backend.posts.grid.contact_name')"
+            />
+            <AppInput
+                v-model="bound.contactPhone.value"
+                placeholder="+33 6 12 34 56 78"
+                type="tel"
+                :label="t('backend.posts.grid.contact_phone')"
+            />
+            <AppInput
+                v-model="bound.contactEmail.value"
+                placeholder="contact@exemple.fr"
+                type="email"
+                :label="t('backend.posts.grid.contact_email')"
+            />
+            <AppInput
+                :model-value="bound.contactWebsite.value ?? ''"
+                :label="t('backend.posts.grid.contact_website')"
+                placeholder="https://…"
+                v-on:update:model-value="(value) => (bound.contactWebsite.value = value || null)"
+            />
+            <div class="rounded-lg border border-dashed border-line p-3 space-y-2">
+                <p class="text-xs uppercase tracking-wide text-muted">
+                    {{ t("backend.posts.grid.translated_fields", { locale }) }}
+                </p>
+                <AppInput
+                    v-model="bound.caption.value"
+                    placeholder="Photographe"
+                    :label="t('backend.posts.grid.contact_role')"
+                />
+            </div>
+        </template>
+
+        <template v-else-if="zone.type === 'socialPost'">
+            <AppChoiceRow
+                v-model="bound.socialNetwork.value"
+                :label="t('backend.posts.grid.social_network')"
+                :options="choices.socialNetwork ?? []"
+            />
+            <AppInput
+                v-model="bound.socialName.value"
+                placeholder="Axel Raboit"
+                :label="t('backend.posts.grid.social_name')"
+            />
+            <AppInput v-model="bound.socialHandle.value" :label="t('backend.posts.grid.social_handle')" placeholder="@" />
+            <AppImagePickerField v-model="socialAvatar" :label="t('backend.posts.grid.social_avatar')" />
+            <AppImagePickerField v-model="bound.media.value" :label="t('backend.posts.grid.social_picture')" />
+            <div class="grid grid-cols-3 gap-2">
+                <AppInput
+                    placeholder="1284"
+                    :model-value="String(bound.socialLikes.value ?? 0)"
+                    type="number"
+                    :label="t('backend.posts.grid.social_likes')"
+                    v-on:update:model-value="(value) => (bound.socialLikes.value = Math.max(0, Number.parseInt(value, 10) || 0))"
+                />
+                <AppInput
+                    placeholder="46"
+                    :model-value="String(bound.socialComments.value ?? 0)"
+                    type="number"
+                    :label="t('backend.posts.grid.social_comments')"
+                    v-on:update:model-value="(value) => (bound.socialComments.value = Math.max(0, Number.parseInt(value, 10) || 0))"
+                />
+                <AppInput
+                    placeholder="12"
+                    :model-value="String(bound.socialShares.value ?? 0)"
+                    type="number"
+                    :label="t('backend.posts.grid.social_shares')"
+                    v-on:update:model-value="(value) => (bound.socialShares.value = Math.max(0, Number.parseInt(value, 10) || 0))"
+                />
+            </div>
+            <AppDatePicker
+                :model-value="bound.socialDate.value ?? ''"
+                :label="t('backend.posts.grid.social_date')"
+                v-on:update:model-value="(value) => (bound.socialDate.value = value || null)"
+            />
+            <div class="rounded-lg border border-dashed border-line p-3 space-y-2">
+                <p class="text-xs uppercase tracking-wide text-muted">
+                    {{ t("backend.posts.grid.translated_fields", { locale }) }}
+                </p>
+                <AppTextarea v-model="bound.caption.value" :label="t('backend.posts.grid.social_text')" :rows="5" placeholder="Lumière du matin sur le port, sans retouche." />
+            </div>
+        </template>
+
+        <template v-else-if="zone.type === 'qrCode'">
+            <!-- The picture in the middle is shared, the address is not: the
+                 English page's code should open the English page. -->
+            <AppImagePickerField v-model="qrLogo" :label="t('backend.posts.grid.qr_logo')" />
+            <p class="text-xs text-muted">{{ t("backend.posts.grid.qr_logo_hint") }}</p>
+            <AppChoiceRow
+                v-model="bound.size.value"
+                :label="t('backend.posts.grid.qr_size')"
+                :options="choices.size ?? []"
+            />
+            <AppToggle
+                v-model="bound.qrDownload.value"
+                :label="t('backend.posts.grid.qr_download')"
+                :hint="t('backend.posts.grid.qr_download_hint')"
+            />
+            <div class="rounded-lg border border-dashed border-line p-3 space-y-2">
+                <p class="text-xs uppercase tracking-wide text-muted">
+                    {{ t("backend.posts.grid.translated_fields", { locale }) }}
+                </p>
+                <AppInput
+                    v-model="bound.url.value"
+                    :label="t('backend.posts.grid.qr_url')"
+                    :hint="t('backend.posts.grid.qr_url_hint')"
+                    placeholder="https://…"
+                />
+                <AppInput
+                    v-model="bound.label.value"
+                    placeholder="Scannez pour voir le site"
+                    :label="t('backend.posts.grid.qr_label')"
+                />
+            </div>
         </template>
 
         <template v-else-if="zone.type === 'deck'">
@@ -479,6 +744,12 @@ const displayHint = computed(() =>
         </template>
 
         <template v-else-if="zone.type === 'code'">
+            <AppChoiceRow
+                v-model="bound.codeStyle.value"
+                :label="t('backend.posts.grid.code_style')"
+                :hint="t('backend.posts.grid.code_style_hint')"
+                :options="choices.codeStyle ?? []"
+            />
             <AppSelect
                 v-model="bound.language.value"
                 :label="t('backend.posts.grid.code_language')"
@@ -574,6 +845,12 @@ const displayHint = computed(() =>
         </template>
 
         <template v-else-if="zone.type === 'gallery'">
+            <AppChoiceRow
+                v-model="bound.galleryLayout.value"
+                :label="t('backend.posts.grid.gallery_layout')"
+                :hint="t('backend.posts.grid.gallery_layout_hint')"
+                :options="choices.galleryLayout ?? []"
+            />
             <div class="flex items-center justify-between gap-3">
                 <span class="text-sm text-secondary">
                     {{ t("backend.posts.grid.gallery_count", { count: galleryImages.length, max: MAX_GALLERY_IMAGES }) }}
@@ -710,6 +987,12 @@ const displayHint = computed(() =>
         </template>
 
         <template v-else-if="zone.type === 'postList'">
+            <AppChoiceRow
+                v-model="bound.listLayout.value"
+                :label="t('backend.posts.grid.list_layout')"
+                :hint="t('backend.posts.grid.list_layout_hint')"
+                :options="choices.listLayout ?? []"
+            />
             <!-- Both filters are optional and combine. Left alone, the zone
                  shows the newest publications of the whole site, which is the
                  answer that needs no setting up. -->

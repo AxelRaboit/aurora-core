@@ -118,6 +118,44 @@ frontend:
         last_year: Últimos 12 meses
         less: Menos
         more: Más
+        updated: "Actualizado el %date%"
+      availability:
+        available: Disponible para nuevos proyectos
+        soon: "Disponible a partir del %date%"
+        soon_undated: Disponible pronto
+        busy: Completo por ahora
+      hours:
+        open_until: "Abierto hasta las %time%"
+        opens_at: "Cerrado, abre a las %time%"
+        opens_tomorrow: "Cerrado, abre mañana a las %time%"
+        opens_on: "Cerrado, abre el %day% a las %time%"
+        closed: Cerrado
+        closed_today: Cierre excepcional hoy
+        closed_day: Cerrado
+        closures: "Próximos cierres:"
+        time: "%hh%:%mm%"
+      countdown:
+        days: días
+        hours: horas
+        minutes: minutos
+        seconds: segundos
+        passed: "Ya es la hora."
+      contact:
+        save: Guardar el contacto
+      social:
+        likes: me gusta
+        comments: comentarios
+        shares: compartidos
+      carousel:
+        label: Carrusel
+        slide: "Foto %index% de %count%"
+        previous: Foto anterior
+        next: Foto siguiente
+      index:
+        label: Índice alfabético
+      qr:
+        label: "Código QR hacia %url%"
+        download: Descargar el código QR
     forms:
       submit: Enviar
       next: Siguiente

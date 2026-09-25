@@ -1,0 +1,25 @@
+{# Rendered with the time left at the moment the page was made, then kept
+   ticking by countdown.js from `data-countdown-at`, an absolute instant:
+   the reader's own clock and timezone do not move the target. Without the
+   script the figures are simply those of the page load, which is still true
+   to the minute it was read.
+
+   Once passed, the figures give way to the sentence the author wrote for
+   afterwards - "the doors are open", "the offer has ended". #}
+<section
+    class="not-prose rounded-xl border border-line bg-surface p-5 text-center"
+    data-countdown-at="{{ widget.at }}"
+>
+    {% if widget.title %}
+        <p class="m-0 mb-4 text-base font-semibold text-primary">{{ widget.title }}</p>
+    {% endif %}
+    <div class="grid grid-cols-4 gap-2 sm:gap-4{{ widget.passed ? ' hidden' : '' }}" data-countdown-figures>
+        {% for unit in ['days', 'hours', 'minutes', 'seconds'] %}
+            <div class="rounded-lg bg-surface-2 px-1 py-3">
+                <span class="block text-2xl font-bold tabular-nums text-accent sm:text-4xl" data-countdown-unit="{{ unit }}">{{ unit == 'days' ? attribute(widget, unit) : '%02d'|format(attribute(widget, unit)) }}</span>
+                <span class="mt-1 block text-[11px] uppercase tracking-wider text-muted sm:text-xs">{{ ('frontend.editorial.grid.countdown.' ~ unit)|trans }}</span>
+            </div>
+        {% endfor %}
+    </div>
+    <p class="m-0 text-base text-secondary{{ widget.passed ? '' : ' hidden' }}" data-countdown-after>{{ widget.after ?: 'frontend.editorial.grid.countdown.passed'|trans }}</p>
+</section>

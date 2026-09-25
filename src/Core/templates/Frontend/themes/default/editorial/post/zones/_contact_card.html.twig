@@ -1,0 +1,48 @@
+{# A business card. The QR code and the saved contact carry the same vCard,
+   written on the server once: contactCard.js draws one and offers the other,
+   and both stay hidden without the script, which leaves the card itself -
+   name, trade, and links that work on their own. #}
+<section
+    class="not-prose flex flex-col gap-5 rounded-2xl border border-line bg-surface p-5 sm:flex-row sm:items-center"
+    data-contact-card
+    data-vcard="{{ widget.vcard }}"
+    data-vcard-file="{{ widget.fileName }}"
+>
+    <div class="flex min-w-0 flex-1 items-center gap-4">
+        {% if widget.photo %}
+            <img
+                src="{{ widget.photo.url }}"
+                alt=""
+                loading="lazy"
+                class="h-16 w-16 shrink-0 rounded-full object-cover sm:h-20 sm:w-20"
+                style="object-position: {{ widget.photo.focalPosition }};"
+            >
+        {% endif %}
+        <div class="min-w-0">
+            <p class="m-0 text-lg font-semibold text-primary">{{ widget.name }}</p>
+            {% if widget.role %}
+                <p class="m-0 text-sm text-secondary">{{ widget.role }}</p>
+            {% endif %}
+            <ul class="m-0 mt-3 list-none space-y-1 p-0 text-sm">
+                {% if widget.phone %}
+                    <li><a href="tel:{{ widget.phoneHref }}" class="text-primary no-underline hover:text-accent">{{ widget.phone }}</a></li>
+                {% endif %}
+                {% if widget.email %}
+                    <li><a href="mailto:{{ widget.email }}" class="break-all text-primary no-underline hover:text-accent">{{ widget.email }}</a></li>
+                {% endif %}
+                {% if widget.website %}
+                    <li><a href="{{ widget.website }}" class="break-all text-primary no-underline hover:text-accent" rel="noopener">{{ widget.websiteLabel }}</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+    <div class="flex items-center gap-4 sm:flex-col sm:items-center">
+        <div class="h-28 w-28 shrink-0 rounded-lg bg-white p-1.5" data-contact-qr hidden></div>
+        <button
+            type="button"
+            class="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+            data-contact-save
+            hidden
+        >{{ 'frontend.editorial.grid.contact.save'|trans }}</button>
+    </div>
+</section>
