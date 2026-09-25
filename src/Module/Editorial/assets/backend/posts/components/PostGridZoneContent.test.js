@@ -58,11 +58,18 @@ describe("PostGridZoneContent", () => {
         "contactCard",
         "socialPost",
         "qrCode",
+        "chart",
+        "editorialCalendar",
+        "activityFeed",
+        "priceList",
+        "poll",
     ])("offers the settings of a %s zone", (type) => {
         const { wrapper } = panelFor(type);
 
         expect(wrapper.html()).not.toBe("");
-        expect(wrapper.findAll("input").length).toBeGreaterThan(0);
+        expect(
+            wrapper.findAll("input, textarea, select, button").length,
+        ).toBeGreaterThan(0);
     });
 
     it("stores a day's opening hours as it understood them", async () => {

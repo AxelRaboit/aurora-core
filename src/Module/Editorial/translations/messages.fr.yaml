@@ -510,6 +510,12 @@ backend:
         contactCard: Carte de visite
         socialPost: Publication façon réseau
         qrCode: QR code
+        chart: Graphique
+        videoWall: Mur de vidéos
+        editorialCalendar: Calendrier éditorial
+        activityFeed: Dernière activité
+        priceList: Carte et tarifs
+        poll: Sondage
         stack: Pile
       zone_form: "Formulaire"
       zone_form_hint: "Le formulaire s'affiche dans la page, et s'envoie au même endroit que sur sa propre page."
@@ -825,6 +831,49 @@ backend:
       qr_url: Adresse du QR code
       qr_url_hint: "Une adresse complète, ou une page du site (/fr/contact) : elle est complétée avec l'adresse du site."
       qr_label: Texte sous le code
+      chart_type: Forme
+      chart_types:
+        bar: Barres
+        line: Courbe
+        donut: Anneau
+        growth: Croissance
+      chart_unit: Unité
+      chart_unit_hint: "Écrite après chaque valeur : %, €, k. Facultative."
+      chart_title: Titre
+      chart_data: Valeurs
+      chart_data_hint: "Une ligne par valeur : le nom, un point-virgule, le nombre. « Croissance » affiche en plus l'évolution entre la première et la dernière."
+      chart_note: Source ou précision
+      video_wall_count: "{count} vidéo sur {max} | {count} vidéos sur {max}"
+      video_wall_add: Ajouter des vidéos
+      video_wall_empty: "Aucune vidéo pour l'instant. Les formats verticaux (9:16) s'y prêtent le mieux."
+      calendar_month: Mois affiché
+      calendar_month_hint: "Laissé vide, le calendrier montre le mois de la première publication de la liste."
+      calendar_title: Titre
+      calendar_entries: Publications prévues
+      calendar_entries_hint: "Une ligne par publication : la date (AAAA-MM-JJ), le réseau, le titre, séparés par des barres « | »."
+      feed_github: Ajouter les versions GitHub
+      feed_github_hint: "Mêle aux publications les dernières versions des dépôts indiqués, si l'intégration GitHub est active."
+      price_title: Titre
+      price_lines: Contenu
+      price_lines_hint: "« # Entrées » ouvre une rubrique. Une ligne par article : le nom | le prix | des pastilles séparées par des virgules | une précision. Les deux derniers sont facultatifs."
+      price_note: Mention en bas
+      poll_results: Résultats
+      poll_results_hint: "Les votes sont anonymes : un par visiteur."
+      poll_results_modes:
+        after: "Après avoir voté"
+        always: "Tout de suite"
+      poll_question: Question
+      poll_answers: Réponses
+      poll_answers_hint: "Une réponse par ligne, de deux à huit."
+      background_video: Vidéo en fond
+      background_video_hint: "La vidéo tourne sans le son derrière le titre, au lieu d'un lecteur. Pour les visiteurs qui ont demandé moins d'animations, l'image d'aperçu reste fixe."
+      background_video_title: Titre posé sur la vidéo
+      background_video_button: Texte du bouton
+      background_video_link: Lien du bouton
+      episode_chapters: Chapitres et transcription
+      episode_chapters_hint: "Une ligne par chapitre : le minutage puis le titre (« 04:12 Le matériel »). Sous une ligne « --- », la transcription, repliée sous le lecteur."
+      show_exif: Afficher les réglages de l'appareil
+      show_exif_hint: "Boîtier, objectif, ouverture, vitesse et ISO, lus dans la photo au dépôt. Une photo déposée avant cette fonction ne les a plus : il faut la redéposer."
       comments_hint: "Rien à régler : le fil est celui de cette publication. Quand cette zone existe, le pied de page ne le dessine plus - une conversation par page, là où vous l'avez mise."
       zone_deck: Présentation
       zone_deck_none: "Choisir une présentation…"
@@ -1248,6 +1297,14 @@ frontend:
       qr:
         label: "QR code vers %url%"
         download: Télécharger le QR code
+      activity:
+        post: Publication
+        release: Nouvelle version
+      poll:
+        total: "Votes : %count%"
+        closed: "Ce sondage n'est plus ouvert."
+      episode:
+        transcript: Transcription
     forms:
       submit: Envoyer
       next: Suivant

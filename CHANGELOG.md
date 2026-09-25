@@ -5,6 +5,50 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.252] - 2026-09-25
+
+### Ajouté
+
+#### Six nouveaux blocs de page
+- **Graphique** : barres, courbe, anneau ou croissance, dessinés à partir de
+  lignes « nom ; valeur » saisies dans l'éditeur et traduites avec la page. La
+  croissance affiche en plus l'évolution entre la première et la dernière
+  valeur. Aucune bibliothèque dans la page : le dessin est fait sur le serveur.
+- **Mur de vidéos** : des vidéos verticales côte à côte, lancées sans le son
+  quand elles arrivent à l'écran et arrêtées hors champ ; un appui rend le son.
+- **Calendrier éditorial** : un mois de publications prévues, une ligne
+  « date | réseau | titre » chacune, en grille sur grand écran et en liste sur
+  téléphone.
+- **Dernière activité** : les dernières publications du site, et si on le
+  demande les dernières versions de dépôts GitHub, en une seule frise.
+- **Carte et tarifs** : rubriques, articles, prix et pastilles (végétarien,
+  nouveau…), avec les pointillés d'une carte de restaurant.
+- **Sondage** : une question, de deux à huit réponses, et les résultats après
+  le vote ou tout de suite. Les votes sont anonymes, un par visiteur.
+
+#### De nouvelles options sur les blocs existants
+- **Image** : la ligne des réglages de l'appareil sous la photo (boîtier,
+  objectif, ouverture, vitesse, ISO), lue dans le fichier au dépôt. La position
+  n'est jamais gardée.
+- **Vidéo** : la vidéo en fond, sans le son, derrière un titre et un bouton.
+- **Audio** : des chapitres qui placent le lecteur au bon moment, et une
+  transcription repliée sous lui.
+
+### Changé
+
+#### La médiathèque garde les réglages de l'appareil d'une photo
+Au dépôt, une photo JPEG est réencodée et perd ses métadonnées. Ses réglages
+(boîtier, objectif, ouverture, vitesse, ISO, focale, date) sont désormais lus
+juste avant et rangés avec le document. Une photo déposée avant cette version
+ne les a plus : la redéposer, ou la remplacer, les lit.
+
+### Dans aurora-client
+
+Une migration, jouée par le déploiement : la colonne des réglages de l'appareil
+sur les documents, et la table des votes des sondages. Rien d'autre à faire.
+
+---
+
 ## [0.9.251] - 2026-09-25
 
 ### Ajouté

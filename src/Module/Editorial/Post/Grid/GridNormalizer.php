@@ -276,6 +276,35 @@ final readonly class GridNormalizer
     public const string ZONE_QR_CODE = 'qrCode';
 
     /**
+     * Bars, a line, a ring or a growth curve, drawn from a small table typed
+     * in the editor - one `label ; value` per line, translated like any text,
+     * so the months are named in the page's language.
+     */
+    public const string ZONE_CHART = 'chart';
+
+    /** Vertical films side by side, playing without sound as they come into view. */
+    public const string ZONE_VIDEO_WALL = 'videoWall';
+
+    /** A month of planned posts, one `date | network | title` per line. */
+    public const string ZONE_EDITORIAL_CALENDAR = 'editorialCalendar';
+
+    /**
+     * What moved lately: the newest publications, and the latest releases of
+     * the repositories the zone names when GitHub is switched on.
+     */
+    public const string ZONE_ACTIVITY_FEED = 'activityFeed';
+
+    /** A menu or a price list: sections, lines, prices and small tags. */
+    public const string ZONE_PRICE_LIST = 'priceList';
+
+    /**
+     * One question, a few answers, and the results once the reader has voted.
+     * The only zone that writes: one vote per reader and per poll, kept in
+     * core_editorial_poll_votes.
+     */
+    public const string ZONE_POLL = 'poll';
+
+    /**
      * Another publication's grid, drawn here.
      *
      * The one thing a CMS starts missing the moment a site passes ten pages:
@@ -404,6 +433,9 @@ final readonly class GridNormalizer
      * it, and the eight that did not fit disappeared with nothing said.
      */
     public const int MAX_LIST_LIMIT = 24;
+
+    /** Films on one wall: past a dozen, a page plays more than anyone watches. */
+    public const int MAX_VIDEO_WALL = 12;
 
     /**
      * The languages the highlighter is built with. An unknown one is not an
@@ -639,6 +671,12 @@ final readonly class GridNormalizer
         self::ZONE_CONTACT_CARD,
         self::ZONE_SOCIAL_POST,
         self::ZONE_QR_CODE,
+        self::ZONE_CHART,
+        self::ZONE_VIDEO_WALL,
+        self::ZONE_EDITORIAL_CALENDAR,
+        self::ZONE_ACTIVITY_FEED,
+        self::ZONE_PRICE_LIST,
+        self::ZONE_POLL,
     ];
 
     /**
@@ -884,6 +922,7 @@ final readonly class GridNormalizer
                 'mediaIds' => match ($type) {
                     self::ZONE_GALLERY => $this->mediaIdList($entry['mediaIds'] ?? null, self::MAX_GALLERY_IMAGES),
                     self::ZONE_COMPARE => $this->mediaIdList($entry['mediaIds'] ?? null, self::COMPARE_IMAGES),
+                    self::ZONE_VIDEO_WALL => $this->mediaIdList($entry['mediaIds'] ?? null, self::MAX_VIDEO_WALL),
                     default => [],
                 },
                 // An address, for a picture that is not in the library - a

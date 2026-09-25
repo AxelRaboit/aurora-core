@@ -1,0 +1,44 @@
+{# A month of planned posts. The grid on a wide screen, where seven columns
+   have room; the same entries as a list on a phone, where a day is 45px wide
+   and a title would be three letters. #}
+{% set tones = {
+    instagram: 'bg-pink-500/15 text-pink-600',
+    linkedin: 'bg-sky-600/15 text-sky-700',
+    facebook: 'bg-blue-600/15 text-blue-700',
+    tiktok: 'bg-zinc-500/20 text-primary',
+    youtube: 'bg-red-600/15 text-red-600',
+    other: 'bg-accent-500/15 text-accent',
+} %}
+<section class="not-prose rounded-xl border border-line bg-surface p-4 sm:p-5">
+    <div class="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+        <p class="m-0 text-base font-semibold text-primary">{{ widget.title ?: widget.month }}</p>
+        {% if widget.title %}<p class="m-0 text-sm text-muted">{{ widget.month }}</p>{% endif %}
+    </div>
+    <div class="hidden sm:block">
+        <div class="grid grid-cols-7 gap-px overflow-hidden rounded-lg border border-line bg-line text-xs">
+            {% for name in widget.weekdays %}
+                <div class="bg-surface-2 px-2 py-1.5 font-semibold text-secondary">{{ name }}</div>
+            {% endfor %}
+            {% for week in widget.weeks %}
+                {% for day in week %}
+                    <div class="min-h-24 bg-surface p-1.5{{ day.inMonth ? '' : ' opacity-40' }}">
+                        <span class="mb-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] tabular-nums {{ day.today ? 'bg-accent font-semibold text-white' : 'text-muted' }}">{{ day.day }}</span>
+                        <ul class="m-0 list-none space-y-1 p-0">
+                            {% for entry in day.entries %}
+                                <li class="rounded px-1.5 py-1 leading-tight {{ tones[entry.tone] }}" title="{{ entry.network }}"><span class="block text-[10px] font-semibold uppercase tracking-wide opacity-80">{{ entry.network }}</span>{{ entry.title }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+        </div>
+    </div>
+    <ol class="m-0 list-none space-y-2 p-0 sm:hidden">
+        {% for entry in widget.list %}
+            <li class="flex items-start gap-3 rounded-lg border border-line p-3 text-sm">
+                <span class="shrink-0 rounded px-1.5 py-0.5 text-[11px] font-semibold uppercase {{ tones[entry.tone] }}">{{ entry.network }}</span>
+                <span class="min-w-0"><span class="block text-xs text-muted">{{ entry.dateLabel }}</span><span class="text-primary">{{ entry.title }}</span></span>
+            </li>
+        {% endfor %}
+    </ol>
+</section>

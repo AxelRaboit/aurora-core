@@ -24,6 +24,9 @@ import "./shared/utils/countdown.js";
 import "./shared/utils/parallax.js";
 import "./shared/utils/contactCard.js";
 import "./shared/utils/qrCode.js";
+import "./shared/utils/videoWall.js";
+import "./shared/utils/poll.js";
+import "./shared/utils/episode.js";
 import "./css/app.css";
 
 // Module boot hooks: a module may ship `*.register.js` files (e.g. a settings

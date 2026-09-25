@@ -98,6 +98,41 @@ final class GridWaveOneZonesTest extends IntegrationTestCase
         self::assertSame('', mb_trim(strip_tags($this->render(['type' => 'qrCode']))));
     }
 
+    public function testEveryChartShapeRenders(): void
+    {
+        foreach (['bar', 'line', 'donut', 'growth'] as $type) {
+            $html = $this->render(['type' => 'chart', 'options' => ['chartType' => $type]], ['label' => 'Abonnés', 'code' => "Janvier ; 1200\nMars ; 2100"]);
+
+            self::assertStringContainsString('Abonnés', $html, $type);
+            self::assertStringContainsString('2', $html, $type);
+        }
+    }
+
+    public function testACalendarPrintsItsMonthAndEntries(): void
+    {
+        $html = $this->render(['type' => 'editorialCalendar', 'options' => ['calendarMonth' => '2026-10']], ['code' => '2026-10-03 | Instagram | Réel coulisses']);
+
+        self::assertStringContainsString('Octobre 2026', $html);
+        self::assertStringContainsString('Réel coulisses', $html);
+    }
+
+    public function testAPriceListPrintsItsPrices(): void
+    {
+        $html = $this->render(['type' => 'priceList'], ['code' => "# Entrées\nSoupe du jour | 8 € | végétarien"]);
+
+        self::assertStringContainsString('Entrées', $html);
+        self::assertStringContainsString('8 €', $html);
+        self::assertStringContainsString('végétarien', $html);
+    }
+
+    public function testAPollOffersItsAnswers(): void
+    {
+        $html = $this->render(['type' => 'poll'], ['label' => 'Quel format ?', 'code' => "Réels\nCarrousels"]);
+
+        self::assertStringContainsString('Quel format ?', $html);
+        self::assertStringContainsString('data-poll-answer="1"', $html);
+    }
+
     public function testAPictureCanBecomeABandOrSitOnAScreen(): void
     {
         $band = $this->render(['type' => 'media', 'fullBleed' => true, 'mediaUrl' => 'https://picsum.photos/1600/900', 'options' => ['parallax' => true]], ['caption' => 'Une phrase']);

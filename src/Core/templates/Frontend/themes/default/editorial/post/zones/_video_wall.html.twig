@@ -1,0 +1,22 @@
+{# Vertical films side by side, the way a feed of reels is watched. They play
+   without sound while they are on screen and stop once they are not
+   (videoWall.js); a tap brings the sound and the controls. `preload="none"`
+   until then: a wall of twelve films must not fetch twelve films before the
+   reader has scrolled to it. #}
+<div class="not-prose grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 sm:gap-3" data-video-wall>
+    {% for film in zone.videoWall %}
+        <div class="relative overflow-hidden rounded-xl bg-black">
+            <video
+                class="block aspect-[9/16] w-full object-cover"
+                muted
+                loop
+                playsinline
+                preload="none"
+                {% if film.poster %}poster="{{ film.poster }}"{% endif %}
+                data-video-wall-film
+            >
+                <source src="{{ film.url }}" type="{{ film.mimeType }}">
+            </video>
+        </div>
+    {% endfor %}
+</div>

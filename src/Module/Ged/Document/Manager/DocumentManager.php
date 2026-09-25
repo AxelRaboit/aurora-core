@@ -9,6 +9,7 @@ use Aurora\Core\Storage\Adapter\StoredObject;
 use Aurora\Core\Storage\Enum\MimeTypeEnum;
 use Aurora\Core\Storage\Enum\StorageDiskEnum;
 use Aurora\Core\Storage\Service\ImageVariantGenerator;
+use Aurora\Core\Storage\Service\PhotoExifReader;
 use Aurora\Core\Storage\StorageManager;
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
@@ -47,6 +48,9 @@ class DocumentManager implements DocumentManagerInterface
         protected readonly GedDocumentUploader $uploader,
         protected readonly ImageVariantGenerator $variantGenerator,
         protected readonly StorageManager $storageManager,
+        // Last and optional, so a project that builds this manager by hand
+        // keeps working: without it, photographs simply carry no settings.
+        protected readonly ?PhotoExifReader $exifReader = null,
     ) {}
 
     public function create(DocumentInputInterface $input): DocumentInterface
@@ -575,6 +579,15 @@ class DocumentManager implements DocumentManagerInterface
         }
 
         $adapter = $this->storageManager->forDisk($document->getStorageDisk());
+
+        // Before the variants, which re-encode a JPEG and drop its metadata.
+        // A file that says nothing - a crop of an already re-encoded source -
+        // leaves the settings read from the original alone.
+        $exif = $this->exifReader?->read($adapter, $filePath, (string) $document->getMimeType()) ?? [];
+
+        if ([] !== $exif) {
+            $document->setExif($exif);
+        }
 
         $variants = $this->variantGenerator->generate(
             $adapter,

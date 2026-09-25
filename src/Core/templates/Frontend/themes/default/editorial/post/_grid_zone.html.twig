@@ -180,6 +180,10 @@
                    above it is taking every pixel it can. #}
                 <figcaption class="mt-2 text-sm text-secondary{{ fills ? ' lg:shrink-0' : '' }}">{{ zone.caption }}</figcaption>
             {% endif %}
+            {% if zone.options.showExif|default(false) and zone.media.exif|default('') %}
+                {# What the camera was set to, as a photographer would say it. #}
+                <p class="m-0 mt-1.5 font-mono text-xs text-muted{{ fills ? ' lg:shrink-0' : '' }}">{{ zone.media.exif }}</p>
+            {% endif %}
             {% if zone.media.credit|default(null) %}
                 {# Not decoration: a stock photo may only be shown with its
                    photographer named, so this line travels with the picture
@@ -196,11 +200,34 @@
            that cannot be aimed. `metadata` buys the duration for a few hundred
            bytes and leaves the audio itself unfetched. #}
         <div class="not-prose space-y-2">
-            <audio class="w-full" controls preload="metadata">
+            <audio class="w-full" controls preload="metadata"{{ zone.widget ? ' data-episode-player' : '' }}>
                 <source src="{{ zone.audio.url }}" type="{{ zone.audio.mimeType }}">
             </audio>
             {% if zone.caption %}
                 <p class="m-0 text-sm text-secondary">{{ zone.caption }}</p>
+            {% endif %}
+            {% if zone.widget %}
+                {# Chapters as buttons that move the player (episode.js), and
+                   the transcript folded under them: an hour of speech is a
+                   page nobody asked to scroll past. #}
+                {% if zone.widget.chapters is not empty %}
+                    <ol class="m-0 list-none divide-y divide-line rounded-lg border border-line p-0">
+                        {% for chapter in zone.widget.chapters %}
+                            <li>
+                                <button type="button" class="flex w-full items-baseline gap-3 px-3 py-2 text-left text-sm hover:bg-surface-2" data-episode-seek="{{ chapter.seconds }}">
+                                    <span class="shrink-0 font-mono text-xs tabular-nums text-accent">{{ chapter.time }}</span>
+                                    <span class="text-primary">{{ chapter.label }}</span>
+                                </button>
+                            </li>
+                        {% endfor %}
+                    </ol>
+                {% endif %}
+                {% if zone.widget.transcript %}
+                    <details class="rounded-lg border border-line">
+                        <summary class="cursor-pointer px-3 py-2 text-sm font-medium text-primary">{{ 'frontend.editorial.grid.episode.transcript'|trans }}</summary>
+                        <div class="whitespace-pre-line border-t border-line px-3 py-3 text-sm text-secondary">{{ zone.widget.transcript }}</div>
+                    </details>
+                {% endif %}
             {% endif %}
         </div>
 
@@ -770,7 +797,13 @@
         </div>
         {% endif %}
 
-    {% elseif zone.type in ['availability', 'openingHours', 'countdown', 'contactCard', 'socialPost', 'qrCode'] and zone.widget %}
+    {% elseif zone.type == 'videoWall' and zone.videoWall is not empty %}
+        {{ include('Frontend/themes/default/editorial/post/zones/_video_wall.html.twig') }}
+
+    {% elseif zone.type == 'activityFeed' and zone.activityFeed is not empty %}
+        {{ include('Frontend/themes/default/editorial/post/zones/_activity_feed.html.twig') }}
+
+    {% elseif zone.type in ['availability', 'openingHours', 'countdown', 'contactCard', 'socialPost', 'qrCode', 'chart', 'editorialCalendar', 'priceList', 'poll'] and zone.widget %}
         {% set widget = zone.widget %}
         {{ include('Frontend/themes/default/editorial/post/zones/_' ~ {
             availability: 'availability',
@@ -779,7 +812,45 @@
             contactCard: 'contact_card',
             socialPost: 'social_post',
             qrCode: 'qr_code',
+            chart: 'chart',
+            editorialCalendar: 'editorial_calendar',
+            priceList: 'price_list',
+            poll: 'poll',
         }[zone.type] ~ '.html.twig') }}
+
+    {% elseif zone.type == 'video' and zone.file and zone.options.backgroundVideo|default(false) %}
+        {# A film playing without sound behind a title and a button, instead of
+           a player: the moving picture is the atmosphere, not the content.
+           Muted, looped and inline because that is the only way a browser lets
+           a film start on its own - and a reader who asked for less motion
+           gets the poster, still (the `motion-reduce` class). #}
+        <div class="not-prose relative isolate flex min-h-[60vh] items-center justify-center overflow-hidden{{ zone.fullBleed ? '' : ' rounded-lg' }}">
+            <video
+                class="absolute inset-0 -z-10 h-full w-full object-cover motion-reduce:hidden"
+                autoplay
+                muted
+                loop
+                playsinline
+                preload="metadata"
+                {% if zone.file.poster %}poster="{{ zone.file.poster }}"{% endif %}
+                aria-hidden="true"
+                data-background-film
+            >
+                <source src="{{ zone.file.url }}" type="{{ zone.file.mimeType }}">
+            </video>
+            {% if zone.file.poster %}
+                <img src="{{ zone.file.poster }}" alt="" class="absolute inset-0 -z-10 hidden h-full w-full object-cover motion-reduce:block">
+            {% endif %}
+            <span class="absolute inset-0 -z-10 bg-black/45" aria-hidden="true"></span>
+            <div class="flex max-w-3xl flex-col items-center gap-5 px-6 text-center">
+                {% if zone.caption %}
+                    <p class="m-0 text-3xl font-bold text-white text-balance sm:text-5xl">{{ zone.caption }}</p>
+                {% endif %}
+                {% if zone.widget %}
+                    <a href="{{ zone.widget.url }}" class="rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-black no-underline transition-opacity hover:opacity-90">{{ zone.widget.label }}</a>
+                {% endif %}
+            </div>
+        </div>
 
     {% elseif zone.type == 'video' %}
         {% if zone.file %}
