@@ -628,15 +628,29 @@ const SHOTS = [
         // L'adresse est demandée au serveur plutôt qu'écrite ici : le jeton
         // est tiré au hasard à chaque chargement des fixtures, donc une
         // adresse en dur serait morte au premier `make demo`.
+        //
+        // La note aussi se retrouve par son titre. Le scénario demandait les
+        // partages de la note 1, qui était le sommaire tant que la démo
+        // n'avait jamais changé ; une démo rechargée par-dessus une ancienne
+        // garde l'ancienne note sous ce numéro, et la carte a publié quatre
+        // lignes sans image ni notes liées pendant que le vrai sommaire, sa
+        // couverture et son lien « avec les notes liées » restaient à côté.
         name: "tour-notes-partage",
         path: "/backend/notes/markdown",
         async prepare(page) {
-            const url = await page.evaluate(async () => {
-                const r = await fetch("/backend/notes/markdown/shares/1", { headers: { Accept: "application/json" } });
+            await page.getByRole("link", { name: /^Sommaire des clients/ }).first().click();
+            await page.waitForTimeout(2_500);
+
+            const id = /\/markdown\/(\d+)/.exec(page.url())?.[1];
+
+            if (undefined === id) throw new Error("la note ne s'est pas ouverte");
+
+            const url = await page.evaluate(async (noteId) => {
+                const r = await fetch(`/backend/notes/markdown/shares/${noteId}`, { headers: { Accept: "application/json" } });
                 const j = await r.json();
 
                 return j?.links?.[0]?.url ?? null;
-            });
+            }, id);
 
             if (!url) throw new Error("aucun lien de partage dans la démonstration");
 
