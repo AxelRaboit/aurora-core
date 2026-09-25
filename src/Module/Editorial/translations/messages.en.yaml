@@ -293,6 +293,10 @@ backend:
       background_color: Background colour
       background_image: Background image
       background_image_hint: Sits behind the content, cropped to its focal point.
+      mobile_background_image: Background image on phones
+      mobile_background_image_hint: "Optional. Replaces the background image below 640 px wide, where the header keeps only the middle of a wide picture. Portrait works best, for example 1080 × 1440."
+      local_background: "Background for this language only: {locale}"
+      local_background_hint: "Optional. For a picture with words in it: it replaces the shared one in this language only."
       overlay: 'Darkening: {percent}%'
       logo: Logo
       slot_type: Content

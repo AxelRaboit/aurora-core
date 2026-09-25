@@ -83,13 +83,26 @@
     {% if banner.background.fillStyle %}style="{{ banner.background.fillStyle|raw }}"{% endif %}
 >
     {% if banner.background.media %}
-        <img
-            src="{{ banner.background.media.url }}"
-            alt=""
-            aria-hidden="true"
-            class="absolute inset-0 -z-10 h-full w-full object-cover"
-            style="object-position: {{ banner.background.media.focalPosition }};"
-        >
+        {# A wide header keeps only its middle on a phone, so a picture
+           composed across the width - words set in it, a subject to one side -
+           can bring a version of its own for small screens. Below `sm`, as the
+           rest of the theme counts a phone. The `<img>` stays the fallback and
+           carries the classes: a `<source>` swaps the file, never the box. #}
+        {% set mobile = banner.background.mobileMedia|default(null) %}
+        <picture>
+            {% if mobile %}
+                <source media="(max-width: 639px)" srcset="{{ mobile.url }}">
+            {% endif %}
+            {# Each picture keeps its own focal point: the phone one is framed
+               for a narrow box and would be thrown off by the wide one's. #}
+            <img
+                src="{{ banner.background.media.url }}"
+                alt=""
+                aria-hidden="true"
+                class="absolute inset-0 -z-10 h-full w-full object-cover{{ mobile ? ' max-sm:[object-position:var(--banner-mobile-focal)]' : '' }}"
+                style="object-position: {{ banner.background.media.focalPosition }};{% if mobile %} --banner-mobile-focal: {{ mobile.focalPosition }};{% endif %}"
+            >
+        </picture>
         {% if banner.background.overlay > 0 %}
             {# Darkens the picture so item text stays readable over it. #}
             <div class="absolute inset-0 -z-10 bg-black" style="opacity: {{ banner.background.overlay / 100 }};"></div>

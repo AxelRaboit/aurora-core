@@ -326,6 +326,90 @@ final class BannerViewBuilderTest extends IntegrationTestCase
     }
 
     /**
+     * A header with words set in its picture reads in one language, so each
+     * translation may bring its own. The shared one is what every other
+     * language keeps showing.
+     */
+    public function testALanguageBackgroundReplacesTheSharedOne(): void
+    {
+        $shared = $this->document('image/jpeg', 'ged/2026/09/partage.jpg');
+        $french = $this->document('image/jpeg', 'ged/2026/09/francais.jpg');
+        $layout = ['enabled' => true, 'background' => ['mediaId' => $shared]];
+
+        $inFrench = $this->bannerViewBuilder->build($layout, ['background' => ['mediaId' => $french]]);
+        $inEnglish = $this->bannerViewBuilder->build($layout, []);
+
+        self::assertStringContainsString('francais.jpg', (string) $inFrench['background']['media']['url']);
+        self::assertStringContainsString('partage.jpg', (string) $inEnglish['background']['media']['url']);
+    }
+
+    /**
+     * Without a phone picture the template lets the phone crop the wide one,
+     * as it always has; with one, it hands it a picture of its own.
+     */
+    public function testAPhonePictureIsResolvedOnlyWhenOneIsSet(): void
+    {
+        $wide = $this->document('image/jpeg', 'ged/2026/09/large.jpg');
+        $tall = $this->document('image/jpeg', 'ged/2026/09/portrait.jpg');
+
+        $without = $this->bannerViewBuilder->build(['enabled' => true, 'background' => ['mediaId' => $wide]], []);
+        $with = $this->bannerViewBuilder->build(
+            ['enabled' => true, 'background' => ['mediaId' => $wide, 'mobileMediaId' => $tall]],
+            [],
+        );
+
+        self::assertNull($without['background']['mobileMedia']);
+        self::assertStringContainsString('portrait.jpg', (string) $with['background']['mobileMedia']['url']);
+    }
+
+    /**
+     * Field by field: a language may bring only its phone picture and keep
+     * the shared wide one.
+     */
+    public function testALanguageMayOverrideOnlyThePhonePicture(): void
+    {
+        $wide = $this->document('image/jpeg', 'ged/2026/09/large.jpg');
+        $tall = $this->document('image/jpeg', 'ged/2026/09/portrait-fr.jpg');
+
+        $banner = $this->bannerViewBuilder->build(
+            ['enabled' => true, 'background' => ['mediaId' => $wide]],
+            ['background' => ['mobileMediaId' => $tall]],
+        );
+
+        self::assertStringContainsString('large.jpg', (string) $banner['background']['media']['url']);
+        self::assertStringContainsString('portrait-fr.jpg', (string) $banner['background']['mobileMedia']['url']);
+    }
+
+    /**
+     * A banner whose only picture is the language's own still renders: the
+     * shared layout has none, and that must not switch the header off.
+     */
+    public function testALanguagePictureAloneKeepsTheBannerOn(): void
+    {
+        $french = $this->document('image/jpeg', 'ged/2026/09/francais.jpg');
+
+        self::assertNotNull($this->bannerViewBuilder->build(
+            ['enabled' => true],
+            ['background' => ['mediaId' => $french]],
+        ));
+    }
+
+    public function testTheEditorGetsTheLanguagePicturesWithTheirPreviews(): void
+    {
+        $french = $this->document('image/jpeg', 'ged/2026/09/francais.jpg');
+
+        $texts = $this->bannerViewBuilder->textsForEditor(
+            ['items' => [['id' => 'a1', 'type' => 'text']]],
+            ['items' => ['a1' => ['title' => 'Bonjour']], 'background' => ['mediaId' => $french]],
+        );
+
+        self::assertSame('Bonjour', $texts['items']['a1']['title']);
+        self::assertSame($french, $texts['background']['mediaId']);
+        self::assertStringContainsString('francais.jpg', (string) $texts['background']['media']['url']);
+        self::assertNull($texts['background']['mobileMedia']);
+    }
+
+    /**
      * Flushed rather than only persisted: the builder resolves ids through the
      * repository, so the row has to exist and to have an id.
      */

@@ -11,8 +11,8 @@ use Aurora\Core\Content\ContentValueNormalizer;
  *
  * The **layout** lives on the post and is shared by every language: the
  * arrangement, the widths, the colours, the pictures. The **texts** live on
- * each translation: the words, their alt text, and the link a button points
- * at. Writing the banner once and translating only the copy is the whole
+ * each translation: the words, their alt text, the link a button points at,
+ * and - optionally - a background of its own, for a picture with words in it. Writing the banner once and translating only the copy is the whole
  * point of the split - the previous shape kept everything per translation, so
  * a second language meant rebuilding the design by hand, and the two could
  * drift apart with nothing to say which was right.
@@ -197,7 +197,10 @@ final readonly class BannerNormalizer
             ];
         }
 
-        return ['items' => $texts];
+        return [
+            'items' => $texts,
+            'background' => $this->localBackground(is_array($data['background'] ?? null) ? $data['background'] : []),
+        ];
     }
 
     /** An empty layout - what a post starts life with. */
@@ -209,7 +212,30 @@ final readonly class BannerNormalizer
     /** Empty texts - what a translation starts life with. */
     public function emptyTexts(): array
     {
-        return ['items' => []];
+        return ['items' => [], 'background' => $this->localBackground([])];
+    }
+
+    /**
+     * The pictures one language puts behind its banner instead of the shared
+     * ones.
+     *
+     * A picture is design, and design lives on the layout - except when the
+     * picture carries words. A header with its title set in the image reads in
+     * one language only, and showing the French one on the Spanish page is the
+     * mistake this exists to prevent. Each field overrides its layout
+     * counterpart and is null by default, so a translation that sets nothing
+     * shows exactly what it always has.
+     *
+     * @param array<string, mixed> $data
+     *
+     * @return array{mediaId: ?int, mobileMediaId: ?int}
+     */
+    private function localBackground(array $data): array
+    {
+        return [
+            'mediaId' => $this->values->id($data['mediaId'] ?? null),
+            'mobileMediaId' => $this->values->id($data['mobileMediaId'] ?? null),
+        ];
     }
 
     /** @param array<string, mixed> $data */
@@ -231,6 +257,12 @@ final readonly class BannerNormalizer
             // Degrees, the CSS sense: 0 points up, 180 down.
             'gradientAngle' => max(0, min(360, (int) ($data['gradientAngle'] ?? 180))),
             'mediaId' => $this->values->id($data['mediaId'] ?? null),
+            // The picture a phone gets instead. A wide header keeps only its
+            // middle third on a narrow screen, so anything composed across the
+            // width - words set in the picture, a subject off to one side - is
+            // cut away there. Optional: without it the phone crops the main
+            // picture, as it always has.
+            'mobileMediaId' => $this->values->id($data['mobileMediaId'] ?? null),
             // Percentage, so a background image can be darkened enough for
             // text to stay readable over it.
             'overlay' => max(0, min(100, (int) ($data['overlay'] ?? 0))),

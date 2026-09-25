@@ -105,6 +105,12 @@ final class AuditPublicDocumentsCommand extends Command
                 if ($ogImage instanceof DocumentInterface && null !== $ogImage->getId()) {
                     $referencedBy[$ogImage->getId()][] = $label.' (og:image)';
                 }
+
+                // A language may put a banner background of its own behind
+                // the page, for a picture with words in it.
+                foreach ($this->documentIdsIn($translation->getBanner()) as $id) {
+                    $referencedBy[$id][] = sprintf('%s (bandeau %s)', $label, $translation->getLocale());
+                }
             }
 
             foreach ([

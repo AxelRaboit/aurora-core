@@ -186,6 +186,47 @@ final class PostDocumentUsageTest extends IntegrationTestCase
     }
 
     /**
+     * The phone picture sits beside the wide one, under its own key - which
+     * the SQL narrowing has to name too, or it never reaches the exact check.
+     */
+    public function testABannerPhonePictureIsReportedAsAUsage(): void
+    {
+        $phone = $this->givenDocument();
+
+        $this->givenPost('Une page avec une image téléphone', static function (PostInterface $post) use ($phone): void {
+            $post->setBannerLayout(['background' => ['mobileMediaId' => (int) $phone->getId()], 'items' => []]);
+        });
+
+        self::assertCount(1, $this->usagesOf($phone));
+    }
+
+    /**
+     * A picture only one language shows lives on the translation, a table the
+     * narrowing did not read. "Used by nobody" there would let someone delete
+     * the Spanish header.
+     */
+    public function testALanguageBannerBackgroundIsReportedAsAUsage(): void
+    {
+        $wide = $this->givenDocument();
+        $phone = $this->givenDocument();
+
+        $this->givenPost('Une page à bandeau traduit', static function (PostInterface $post) use ($wide, $phone): void {
+            $post->translate('fr')->setBanner([
+                'items' => [],
+                'background' => ['mediaId' => (int) $wide->getId(), 'mobileMediaId' => (int) $phone->getId()],
+            ]);
+        });
+
+        self::assertCount(1, $this->usagesOf($wide));
+        self::assertCount(1, $this->usagesOf($phone));
+
+        $counts = static::getContainer()->get(DocumentUsageService::class)->countUsagesFor([(int) $wide->getId(), (int) $phone->getId()]);
+
+        self::assertSame(1, $counts[(int) $wide->getId()]);
+        self::assertSame(1, $counts[(int) $phone->getId()]);
+    }
+
+    /**
      * A post that uses the same picture twice is reported once.
      *
      * The three pointers are independent, so a cover reused as the first

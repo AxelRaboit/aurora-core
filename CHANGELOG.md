@@ -5,6 +5,39 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [Unreleased]
+
+### Ajouté
+
+#### Un fond de bandeau par langue, et une image pour les téléphones
+Le fond d'un bandeau vivait sur la mise en page, commune à toutes les langues.
+C'est juste tant que l'image est un décor, et faux dès qu'elle porte du texte :
+un en-tête dont le titre est écrit dans l'image affichait le français sur les
+pages anglaise et espagnole.
+
+Chaque traduction peut maintenant apporter **son propre fond**, image large et
+image téléphone, chacune facultative et prioritaire sur son équivalent commun,
+champ par champ. Une traduction qui ne renseigne rien affiche exactement ce
+qu'elle affichait avant. Dans l'éditeur, un encadré « Fond propre à cette
+langue » s'ajoute sous l'image de fond, sur le modèle des textes traduits.
+
+La mise en page gagne aussi une **image téléphone** (`mobileMediaId`). Sous
+640 px, un bandeau large ne garde que le centre de son image : tout ce qui est
+composé sur la largeur, un texte, un sujet décalé, disparaît. Le gabarit sert
+désormais le fond dans un `<picture>` dont la source téléphone remplace le
+fichier sous `sm`, avec son propre point focal ; sans image téléphone, rien ne
+change.
+
+Les nouveaux emplacements comptent comme des usages dans la médiathèque. Le
+filtrage SQL lit désormais aussi la colonne `banner` des traductions et la clé
+`mobileMediaId`, sans quoi une image affichée par une seule langue était
+proposée à la suppression. `aurora:ged:audit-public-documents` les lit aussi.
+
+Tests ajoutés : normalisation des deux nouveaux champs, priorité de la langue
+sur le commun, image téléphone résolue seulement quand elle existe, usage d'une
+image téléphone et d'un fond de traduction, et côté éditeur l'écriture de
+chaque sélecteur dans la bonne moitié et sa conservation au chargement.
+
 ## [0.9.243] - 2026-09-25
 
 ### Corrigé

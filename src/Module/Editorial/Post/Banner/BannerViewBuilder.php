@@ -78,6 +78,34 @@ final readonly class BannerViewBuilder
     }
 
     /**
+     * One language's texts as the editor needs them: normalised, so a
+     * translation saved before its own background existed arrives complete,
+     * and with that background's pictures resolved so the pickers can preview
+     * what they hold rather than just an id.
+     *
+     * @param array<string, mixed> $rawLayout the post's raw column value, which says which items exist
+     * @param array<string, mixed> $rawTexts  the translation's raw column value
+     *
+     * @return array<string, mixed>
+     */
+    public function textsForEditor(array $rawLayout, array $rawTexts): array
+    {
+        $layout = $this->bannerNormalizer->normalizeLayout($rawLayout);
+        $texts = $this->bannerNormalizer->normalizeTexts($rawTexts, $layout);
+        $local = $texts['background'];
+        $documents = $this->documentsById([$local['mediaId'], $local['mobileMediaId']]);
+
+        return [
+            ...$texts,
+            'background' => [
+                ...$local,
+                'media' => $this->mediaData($documents[$local['mediaId']] ?? null, ''),
+                'mobileMedia' => $this->mediaData($documents[$local['mobileMediaId']] ?? null, ''),
+            ],
+        ];
+    }
+
+    /**
      * @param array<string, mixed> $rawLayout
      * @param array<string, mixed> $rawTexts
      *
@@ -87,7 +115,15 @@ final readonly class BannerViewBuilder
     {
         $layout = $this->bannerNormalizer->normalizeLayout($rawLayout);
         $texts = $this->bannerNormalizer->normalizeTexts($rawTexts, $layout);
-        $documents = $this->documents($layout);
+
+        // The language's own picture wins over the shared one, field by field:
+        // a translation may bring only a phone picture and keep the shared
+        // wide one, or the reverse.
+        $local = $texts['background'];
+        $backgroundId = $local['mediaId'] ?? $layout['background']['mediaId'];
+        $mobileId = $local['mobileMediaId'] ?? $layout['background']['mobileMediaId'];
+
+        $documents = $this->documents($layout, [$backgroundId, $mobileId]);
 
         $items = array_map(
             function (array $item) use ($texts, $documents): array {
@@ -122,7 +158,10 @@ final readonly class BannerViewBuilder
             'items' => $items,
             'background' => [
                 ...$layout['background'],
-                'media' => $this->mediaData($documents[$layout['background']['mediaId']] ?? null, ''),
+                'media' => $this->mediaData($documents[$backgroundId] ?? null, ''),
+                // Null when no phone picture is set, and the template then
+                // lets the phone crop the main one, as it always has.
+                'mobileMedia' => $this->mediaData($documents[$mobileId] ?? null, ''),
                 // Built here rather than in Twig so one place knows how a fill
                 // becomes CSS. Safe to assemble as a string: the normaliser has
                 // already reduced every part to a hex colour or an integer.
@@ -148,16 +187,29 @@ final readonly class BannerViewBuilder
 
     /**
      * @param array<string, mixed> $layout
+     * @param list<?int>           $backgroundIds the pictures actually drawn behind the banner
      *
      * @return array<int, DocumentInterface>
      */
-    private function documents(array $layout): array
+    private function documents(array $layout, array $backgroundIds): array
     {
-        $ids = [$layout['logoMediaId'], $layout['background']['mediaId']];
+        $ids = [$layout['logoMediaId'], ...$backgroundIds];
         foreach ($layout['items'] as $item) {
             $ids[] = $item['mediaId'];
         }
 
+        return $this->documentsById($ids);
+    }
+
+    /**
+     * Every document named, in one query.
+     *
+     * @param list<?int> $ids
+     *
+     * @return array<int, DocumentInterface>
+     */
+    private function documentsById(array $ids): array
+    {
         $ids = array_values(array_unique(array_filter($ids, static fn (?int $id): bool => null !== $id)));
 
         if ([] === $ids) {
