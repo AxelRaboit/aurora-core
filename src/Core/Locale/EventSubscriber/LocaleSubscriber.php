@@ -13,6 +13,8 @@ use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Security\Http\Event\InteractiveLoginEvent;
 use Symfony\Component\Security\Http\SecurityEvents;
 
+use function is_string;
+
 final readonly class LocaleSubscriber implements EventSubscriberInterface
 {
     public function __construct(
@@ -47,6 +49,22 @@ final readonly class LocaleSubscriber implements EventSubscriberInterface
         }
 
         $request = $event->getRequest();
+
+        // A public page carries its language in its address - `/es/page/...`
+        // - under `locale`, the route parameter of every public controller.
+        // It wins over the session, which holds the language of whoever last
+        // logged in to the back office: the controller did set the page's
+        // locale itself, but only once the translator had already been given
+        // the session's, so every string a template translated came out in
+        // French on the English and Spanish pages. Read here, before
+        // Symfony hands the request's locale to the translator.
+        $routeLocale = $request->attributes->get('locale');
+
+        if (is_string($routeLocale) && LocaleEnum::isSupported($routeLocale)) {
+            $request->setLocale($routeLocale);
+
+            return;
+        }
 
         if ($this->localeContext->isSingleLocaleMode()) {
             $request->setLocale($this->localeContext->getDefaultLocale());
