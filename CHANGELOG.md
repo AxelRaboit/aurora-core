@@ -5,6 +5,17 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.253] - 2026-09-25
+
+### Corrigé
+
+- **L'anti-robot des formulaires et des commentaires s'affiche enfin.** La
+  politique de sécurité du site bloquait le script de Cloudflare Turnstile (et
+  celui de reCAPTCHA) : une fois la vérification activée dans les réglages, le
+  widget ne se dessinait jamais et chaque envoi était refusé faute de jeton.
+
+---
+
 ## [0.9.252] - 2026-09-25
 
 ### Ajouté
