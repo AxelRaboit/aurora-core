@@ -5,6 +5,52 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.251] - 2026-09-25
+
+### Ajouté
+
+#### Six nouveaux blocs de page
+- **Disponibilité** : un point de couleur et une phrase (« Disponible à partir
+  du 1er novembre »), changés en un clic.
+- **Horaires** : la semaine, les fermetures exceptionnelles, et « Ouvert
+  jusqu'à 19h00 » ou « Fermé, ouvre demain à 9h00 », calculé dans le fuseau du
+  lieu et non dans celui du visiteur. Les plages se saisissent comme sur une
+  porte : « 9h-12h, 14h-18h30 ».
+- **Compte à rebours** : jours, heures, minutes et secondes jusqu'à une date,
+  puis la phrase prévue pour après.
+- **Carte de visite** : nom, métier, téléphone, e-mail, site, un QR code et un
+  bouton qui fait enregistrer le contact dans le téléphone.
+- **Publication façon réseau** : une publication Instagram, LinkedIn, Facebook
+  ou X recréée telle que la plateforme l'affiche, saisie dans l'éditeur plutôt
+  que capturée en image.
+- **QR code** : pour une adresse, traduite selon la langue de la page, avec une
+  image facultative au centre et un bouton pour le télécharger en PNG. Avec une
+  image, le code passe en correction d'erreur maximale.
+
+#### De nouvelles façons d'afficher les blocs existants
+- **Galerie** : une disposition en carrousel, qui défile au doigt, au clavier
+  et aux flèches.
+- **Image** : un écran autour de la photo (ordinateur portable, téléphone,
+  fenêtre de navigateur), et un bandeau qui défile plus lentement que la page
+  avec la légende posée dessus.
+- **Code** : un terminal qui tape ses commandes quand il arrive à l'écran, et
+  un affichage avant / après qui colore les lignes ajoutées et retirées.
+- **Liste automatique** : un index de A à Z, les lettres en haut pour sauter.
+- **Activité GitHub** : deux modes de plus, les dépôts choisis (description,
+  langage, étoiles) et leurs dernières versions.
+
+Les réglages propres à chaque sorte de bloc sont regroupés sous `options`,
+présents sur toutes les zones comme les autres réglages : changer le type
+d'une zone et revenir ne perd rien. Une page de démonstration, « Nouveaux
+blocs », les montre tous remplis.
+
+### Dans aurora-client
+
+Rien à faire : aucune migration, un `make aurora-update` suivi de la
+reconstruction des assets.
+
+---
+
 ## [0.9.250] - 2026-09-25
 
 ### Corrigé

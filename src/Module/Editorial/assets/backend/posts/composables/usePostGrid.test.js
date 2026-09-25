@@ -431,7 +431,7 @@ describe("usePostGrid", () => {
         ]);
     });
 
-    it("offers the three steps and the twenty-five zone types", () => {
+    it("offers the three steps and the thirty-one zone types", () => {
         const { snapOptions, typeOptions } = make().api;
 
         expect(snapOptions.value.map((o) => o.value)).toEqual([4, 2, 1]);
@@ -460,6 +460,12 @@ describe("usePostGrid", () => {
             "code",
             "toc",
             "githubActivity",
+            "availability",
+            "openingHours",
+            "countdown",
+            "contactCard",
+            "socialPost",
+            "qrCode",
             "stack",
         ]);
     });
@@ -491,6 +497,12 @@ describe("usePostGrid", () => {
             "code",
             "toc",
             "githubActivity",
+            "availability",
+            "openingHours",
+            "countdown",
+            "contactCard",
+            "socialPost",
+            "qrCode",
         ]);
     });
 

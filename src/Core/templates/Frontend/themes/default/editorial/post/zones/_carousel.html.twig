@@ -1,0 +1,51 @@
+{# One photograph at a time, swiped on a phone and stepped with the arrows
+   elsewhere. The sliding is the browser's own scroll snapping, so it works
+   with a finger, a trackpad and the keyboard before any script runs;
+   carousel.js only adds the arrows and the counter, and keeps them in step
+   with the scroll. Every picture still opens the page's lightbox. #}
+<div class="not-prose relative" data-carousel>
+    <div
+        class="flex snap-x snap-mandatory overflow-x-auto scroll-smooth rounded-lg [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        data-carousel-track
+        tabindex="0"
+        role="region"
+        aria-roledescription="carousel"
+        aria-label="{{ 'frontend.editorial.grid.carousel.label'|trans }}"
+    >
+        {% for item in zone.gallery.items %}
+            <figure class="m-0 w-full shrink-0 snap-center" aria-roledescription="slide" aria-label="{{ 'frontend.editorial.grid.carousel.slide'|trans({'%index%': loop.index, '%count%': zone.gallery.items|length}) }}">
+                <button
+                    type="button"
+                    data-grid-image-open="{{ item.lightboxIndex|default('') }}"
+                    class="block w-full cursor-zoom-in appearance-none border-0 bg-transparent p-0"
+                    aria-label="{{ 'frontend.gallery.enlarge'|trans }}"
+                >
+                    <img
+                        src="{{ item.url }}"
+                        alt="{{ item.alt }}"
+                        {% if item.width|default(null) and item.height|default(null) %}width="{{ item.width }}" height="{{ item.height }}"{% endif %}
+                        loading="{{ loop.first ? 'eager' : 'lazy' }}"
+                        decoding="async"
+                        class="block w-full object-cover{{ zone.gallery.ratioStyle is empty ? ' aspect-[3/2]' : '' }}"
+                        style="object-position: {{ item.focalPosition }};{{ zone.gallery.ratioStyle }}"
+                    >
+                </button>
+                {% if item.credit %}
+                    {{ include('Frontend/themes/default/editorial/post/_media_credit.html.twig', {credit: item.credit}, false) }}
+                {% endif %}
+            </figure>
+        {% endfor %}
+    </div>
+    {% if zone.gallery.items|length > 1 %}
+        <div class="mt-3 flex items-center justify-between gap-3" data-carousel-controls hidden>
+            <span class="text-sm tabular-nums text-muted" data-carousel-counter aria-live="polite">1 / {{ zone.gallery.items|length }}</span>
+            <span class="flex gap-2">
+                <button type="button" class="flex h-9 w-9 items-center justify-center rounded-full border border-line text-primary hover:border-accent hover:text-accent" data-carousel-prev aria-label="{{ 'frontend.editorial.grid.carousel.previous'|trans }}">‹</button>
+                <button type="button" class="flex h-9 w-9 items-center justify-center rounded-full border border-line text-primary hover:border-accent hover:text-accent" data-carousel-next aria-label="{{ 'frontend.editorial.grid.carousel.next'|trans }}">›</button>
+            </span>
+        </div>
+    {% endif %}
+    {% if zone.caption %}
+        <p class="mt-3 mb-0 text-sm text-secondary">{{ zone.caption }}</p>
+    {% endif %}
+</div>

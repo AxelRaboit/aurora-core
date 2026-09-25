@@ -234,6 +234,48 @@ final readonly class GridNormalizer
     public const string ZONE_GITHUB_ACTIVITY = 'githubActivity';
 
     /**
+     * A freelancer's or a shop's status: available, soon, busy, with a date.
+     *
+     * The dot and the date are what a visitor reads first; changing them
+     * should be one click, not an edit of a sentence buried in a paragraph.
+     */
+    public const string ZONE_AVAILABILITY = 'availability';
+
+    /**
+     * The week's opening hours, with closed days and "open now".
+     *
+     * "Open now" is worked out in the zone's own timezone, not the server's
+     * or the reader's: a shop in Lyon is open when it is open in Lyon.
+     */
+    public const string ZONE_OPENING_HOURS = 'openingHours';
+
+    /** Days, hours and minutes to a moment, then a sentence once it has passed. */
+    public const string ZONE_COUNTDOWN = 'countdown';
+
+    /**
+     * A business card: name, trade, phone, email, a QR code and a contact file
+     * the phone can save in one tap.
+     */
+    public const string ZONE_CONTACT_CARD = 'contactCard';
+
+    /**
+     * A social post redrawn the way the network shows it.
+     *
+     * Typed in, not fetched: a case study needs the post it is about, and a
+     * screenshot of one is blurry, untranslatable and unreadable on a phone.
+     */
+    public const string ZONE_SOCIAL_POST = 'socialPost';
+
+    /**
+     * A QR code for an address, with an optional picture in its middle and a
+     * button to save it as an image for print.
+     *
+     * The address is translated, like a button's: a page in English points
+     * the English reader at the English page.
+     */
+    public const string ZONE_QR_CODE = 'qrCode';
+
+    /**
      * Another publication's grid, drawn here.
      *
      * The one thing a CMS starts missing the moment a site passes ten pages:
@@ -591,6 +633,12 @@ final readonly class GridNormalizer
         self::ZONE_CODE,
         self::ZONE_TOC,
         self::ZONE_GITHUB_ACTIVITY,
+        self::ZONE_AVAILABILITY,
+        self::ZONE_OPENING_HOURS,
+        self::ZONE_COUNTDOWN,
+        self::ZONE_CONTACT_CARD,
+        self::ZONE_SOCIAL_POST,
+        self::ZONE_QR_CODE,
     ];
 
     /**
@@ -933,6 +981,11 @@ final readonly class GridNormalizer
                 'sticky' => (bool) ($entry['sticky'] ?? false),
                 // Decided above, because the width depends on it.
                 'fullBleed' => $fullBleed,
+                // What one kind of zone needs and no other does: the layout of
+                // a gallery, the frame around a picture, opening hours, a
+                // social post's counters. One object on every zone, for the
+                // same reason as the keys above; see GridZoneOptions.
+                'options' => GridZoneOptions::normalize($entry['options'] ?? null),
                 // Present on every zone, empty unless it is a stack - same
                 // reasoning as the keys above, so nothing has to guard the read.
                 'children' => self::ZONE_STACK === $type

@@ -1,0 +1,42 @@
+{# A post redrawn in the network's own arrangement - avatar and handle on
+   top, the picture, the counters, the text - rather than a screenshot: it
+   stays sharp, readable on a phone and translatable. Neutral colours and no
+   logo: it reads as "a post on Instagram", not as Instagram's own page. #}
+{% set networks = {instagram: 'Instagram', linkedin: 'LinkedIn', facebook: 'Facebook', x: 'X'} %}
+<article class="not-prose mx-auto w-full max-w-md overflow-hidden rounded-xl border border-line bg-surface">
+    <header class="flex items-center gap-3 px-4 py-3">
+        {% if widget.avatar %}
+            <img src="{{ widget.avatar.url }}" alt="" loading="lazy" class="h-9 w-9 shrink-0 rounded-full object-cover" style="object-position: {{ widget.avatar.focalPosition }};">
+        {% else %}
+            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-surface-2 text-sm font-semibold text-secondary" aria-hidden="true">{{ widget.name|first|upper }}</span>
+        {% endif %}
+        <div class="min-w-0 flex-1 leading-tight">
+            <p class="m-0 truncate text-sm font-semibold text-primary">{{ widget.name }}</p>
+            <p class="m-0 truncate text-xs text-muted">{% if widget.handle %}@{{ widget.handle }} · {% endif %}{{ networks[widget.network] }}</p>
+        </div>
+    </header>
+    {% if widget.picture %}
+        <img
+            src="{{ widget.picture.url }}"
+            alt="{{ widget.picture.alt }}"
+            loading="lazy"
+            class="block w-full object-cover {{ widget.network == 'instagram' ? 'aspect-square' : 'h-auto' }}"
+            style="object-position: {{ widget.picture.focalPosition }};"
+        >
+    {% endif %}
+    <div class="space-y-2 px-4 py-3">
+        <p class="m-0 flex flex-wrap gap-x-4 gap-y-1 text-sm text-secondary">
+            <span><strong class="font-semibold text-primary">{{ widget.likes }}</strong> {{ 'frontend.editorial.grid.social.likes'|trans }}</span>
+            <span><strong class="font-semibold text-primary">{{ widget.comments }}</strong> {{ 'frontend.editorial.grid.social.comments'|trans }}</span>
+            {% if widget.network != 'instagram' %}
+                <span><strong class="font-semibold text-primary">{{ widget.shares }}</strong> {{ 'frontend.editorial.grid.social.shares'|trans }}</span>
+            {% endif %}
+        </p>
+        {% if widget.text %}
+            <p class="m-0 whitespace-pre-line text-sm text-primary">{% if widget.network == 'instagram' and widget.handle %}<strong class="font-semibold">{{ widget.handle }}</strong> {% endif %}{{ widget.text }}</p>
+        {% endif %}
+        {% if widget.date %}
+            <p class="m-0 text-xs uppercase tracking-wide text-muted">{{ widget.date }}</p>
+        {% endif %}
+    </div>
+</article>

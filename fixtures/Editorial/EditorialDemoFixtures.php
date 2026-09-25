@@ -133,6 +133,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         $this->layOutAboutPage($posts, $types);
         $this->layOutServicePages($posts);
         $this->layOutProjectPages($posts);
+        $this->layOutShowcasePage($posts);
         $this->addGalleries($posts);
         $this->relatePosts($posts);
 
@@ -553,6 +554,17 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                 'fr' => ['Projet Atlas', 'projet-atlas', $this->lorem(1, 7)],
                 'en' => ['Atlas project', 'atlas-project', $this->lorem(1, 7)],
                 'es' => ['Proyecto Atlas', 'proyecto-atlas', $this->lorem(1, 7)],
+            ],
+            // Last, so that adding it moves no other publication's reference.
+            'showcase' => [
+                'type' => $types['page'],
+                'media' => 2,
+                'status' => PostStatusEnum::Published,
+                'publishedAt' => $now->modify('-1 day'),
+                'terms' => [],
+                'fr' => ['Nouveaux blocs', 'nouveaux-blocs', 'Disponibilité, horaires, compte à rebours, carte de visite, publication, carrousel, écran, terminal et index.'],
+                'en' => ['New blocks', 'new-blocks', 'Availability, opening hours, countdown, business card, social post, carousel, screen, terminal and index.'],
+                'es' => ['Nuevos bloques', 'nuevos-bloques', 'Disponibilidad, horarios, cuenta atrás, tarjeta de visita, publicación, carrusel, pantalla, terminal e índice.'],
             ],
         ];
 
@@ -1027,6 +1039,69 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                     'explain' => ['blocks' => $content[$locale]['explain']],
                 ],
             ], $article->getGridLayout()));
+
+            $this->indexForSearch($translation);
+        }
+    }
+
+    /**
+     * Une page qui pose, l'un sous l'autre, les blocs arrivés ensemble : c'est
+     * elle que les captures du tour photographient, et c'est là qu'un auteur
+     * voit à quoi chacun ressemble rempli plutôt que vide.
+     *
+     * @param array<string, PostInterface> $posts
+     */
+    private function layOutShowcasePage(array $posts): void
+    {
+        $page = $posts['showcase'];
+        $media = fn (int $index): ?int => $this->getReference(GedDemoFixtures::mediaRef($index), Document::class)->getId();
+        $full = ['base' => 48, 'md' => null, 'lg' => 48];
+        $half = ['base' => 48, 'md' => null, 'lg' => 24];
+
+        $page->setGridLayout($this->gridNormalizer->normalizeLayout([
+            'enabled' => true,
+            'snap' => 4,
+            'zones' => [
+                ['id' => 'available', 'type' => GridNormalizer::ZONE_AVAILABILITY, 'span' => $half, 'options' => ['availability' => 'soon', 'availableFrom' => new DateTimeImmutable('first day of next month')->format('Y-m-d')]],
+                ['id' => 'launch', 'type' => GridNormalizer::ZONE_COUNTDOWN, 'span' => $half, 'options' => ['countdownAt' => new DateTimeImmutable('+12 days')->format('Y-m-d').'T18:30']],
+                ['id' => 'hours', 'type' => GridNormalizer::ZONE_OPENING_HOURS, 'span' => $half, 'options' => ['hours' => [
+                    'mon' => [], 'tue' => [['09:00', '12:30'], ['14:00', '19:00']], 'wed' => [['09:00', '12:30'], ['14:00', '19:00']],
+                    'thu' => [['09:00', '12:30'], ['14:00', '19:00']], 'fri' => [['09:00', '19:00']], 'sat' => [['09:00', '17:00']], 'sun' => [],
+                ], 'closedDates' => [new DateTimeImmutable('+20 days')->format('Y-m-d')]]],
+                ['id' => 'card', 'type' => GridNormalizer::ZONE_CONTACT_CARD, 'span' => $half, 'mediaId' => $media(1), 'options' => ['contactName' => 'Camille Laurent', 'contactPhone' => '+33 6 12 34 56 78', 'contactEmail' => 'camille@studio-lumen.fr', 'contactWebsite' => 'https://studio-lumen.fr']],
+                ['id' => 'post', 'type' => GridNormalizer::ZONE_SOCIAL_POST, 'span' => $half, 'mediaId' => $media(3), 'options' => ['socialNetwork' => 'instagram', 'socialName' => 'Studio Lumen', 'socialHandle' => 'studiolumen', 'socialAvatarId' => $media(1), 'socialLikes' => 1284, 'socialComments' => 46, 'socialDate' => new DateTimeImmutable('-3 days')->format('Y-m-d')]],
+                ['id' => 'screen', 'type' => GridNormalizer::ZONE_MEDIA, 'span' => $half, 'mediaId' => $media(2), 'options' => ['frame' => 'laptop']],
+                ['id' => 'slides', 'type' => GridNormalizer::ZONE_GALLERY, 'span' => $full, 'mediaIds' => [$media(0), $media(1), $media(2), $media(3)], 'ratio' => '16x9', 'options' => ['galleryLayout' => 'carousel']],
+                ['id' => 'band', 'type' => GridNormalizer::ZONE_MEDIA, 'span' => $full, 'fullBleed' => true, 'mediaId' => $media(0), 'options' => ['parallax' => true]],
+                ['id' => 'shell', 'type' => GridNormalizer::ZONE_CODE, 'span' => $half, 'options' => ['codeStyle' => 'terminal']],
+                ['id' => 'change', 'type' => GridNormalizer::ZONE_CODE, 'span' => $half, 'language' => 'javascript', 'options' => ['codeStyle' => 'diff']],
+                ['id' => 'qr', 'type' => GridNormalizer::ZONE_QR_CODE, 'span' => $half, 'size' => 'md', 'options' => ['qrLogoId' => $media(1)]],
+                ['id' => 'index', 'type' => GridNormalizer::ZONE_POST_LIST, 'span' => $full, 'options' => ['listLayout' => 'index']],
+            ],
+        ]));
+
+        $words = [
+            'fr' => ['card' => 'Photographe', 'post' => "Lumière du matin sur le port, sans retouche.\nMerci à l'équipe du studio.", 'band' => 'Une image qui défile plus lentement que la page.', 'launch' => 'Ouverture de la boutique', 'after' => 'La boutique est ouverte.', 'hours' => 'Fermé les jours fériés.', 'qr' => 'Scannez pour ouvrir le site.'],
+            'en' => ['card' => 'Photographer', 'post' => "Morning light over the harbour, straight out of camera.\nThanks to the studio team.", 'band' => 'A picture that scrolls slower than the page.', 'launch' => 'The shop opens', 'after' => 'The shop is open.', 'hours' => 'Closed on public holidays.', 'qr' => 'Scan to open the site.'],
+            'es' => ['card' => 'Fotógrafa', 'post' => "Luz de la mañana sobre el puerto, sin retoques.\nGracias al equipo del estudio.", 'band' => 'Una imagen que se desplaza más despacio que la página.', 'launch' => 'Apertura de la tienda', 'after' => 'La tienda está abierta.', 'hours' => 'Cerrado los festivos.', 'qr' => 'Escanee para abrir el sitio.'],
+        ];
+
+        foreach (LocaleEnum::values() as $locale) {
+            $translation = $page->translate($locale);
+            $said = $words[$locale];
+
+            $translation->setGrid($this->gridNormalizer->normalizeContent([
+                'zones' => [
+                    'card' => ['caption' => $said['card']],
+                    'post' => ['caption' => $said['post']],
+                    'band' => ['caption' => $said['band'], 'alt' => ''],
+                    'launch' => ['label' => $said['launch'], 'caption' => $said['after']],
+                    'hours' => ['caption' => $said['hours']],
+                    'qr' => ['url' => '/'.$locale, 'label' => $said['qr']],
+                    'shell' => ['code' => "$ make demo\nDemo data loaded\n$ make ft\nAll green"],
+                    'change' => ['code' => "-const THRESHOLD = 0.08;\n+const THRESHOLD = 0;\n const MARGIN = \"0px 0px -8% 0px\";"],
+                ],
+            ], $page->getGridLayout()));
 
             $this->indexForSearch($translation);
         }

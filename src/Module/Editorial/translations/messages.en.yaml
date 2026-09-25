@@ -504,6 +504,12 @@ backend:
         code: Code
         toc: Contents
         githubActivity: GitHub activity
+        availability: Availability
+        openingHours: Opening hours
+        countdown: Countdown
+        contactCard: Business card
+        socialPost: Social post
+        qrCode: QR code
         stack: Stack
       zone_form: "Form"
       zone_form_hint: "The form is drawn in the page and posts where its own page posts."
@@ -732,7 +738,93 @@ backend:
       zone_embed: Address to embed
       zone_embed_hint: "Paste the address of the page at the provider. An address none of the four claims is shown as a plain link rather than disappearing."
       embed_providers: "Four providers are recognised: Spotify, SoundCloud, CodePen and Calendly. Each one sees the visitors of the page you put the zone on."
-      github_activity_hint: "Shows the contributions grid of the GitHub accounts set in Settings > GitHub, one card per account. While the integration is off or no account is entered there, the zone draws nothing."
+      github_activity_hint: "The accounts are those of Settings > GitHub. While the integration is off, the zone draws nothing."
+      gallery_layout: Layout
+      gallery_layout_hint: "The grid shows every photo; the carousel shows them one at a time, swiped on a phone and stepped with arrows elsewhere."
+      gallery_layouts:
+        grid: Grid
+        carousel: Carousel
+      frame: Screen around the picture
+      frame_hint: "To show a site on the device it was built for. The screen sets the picture's shape, so the crop below is set aside."
+      frames:
+        none: None
+        laptop: Laptop
+        phone: Phone
+        browser: Browser window
+      parallax: Band that scrolls slower
+      parallax_hint: "The picture becomes a band that scrolls slower than the page, with the caption set over it. Combine with « Full width » for a real band."
+      code_style: Presentation
+      code_style_hint: "Terminal: a line starting with « $ » is a command, typed on screen; the others are what it prints. Before / after: lines starting with + and - are coloured."
+      code_styles:
+        plain: Code
+        terminal: Animated terminal
+        diff: Before / after
+      list_layout: Presentation
+      list_layout_hint: "The index files every publication by letter, with the letters on top to jump; it ignores the count below and shows up to 300."
+      list_layouts:
+        cards: Cards
+        index: A to Z index
+      github_mode: What the zone shows
+      github_modes:
+        activity: Contributions grid
+        repos: Repositories
+        releases: Latest releases
+      github_repos: Repositories
+      github_repos_hint: "One repository per line, as owner/name, six at most."
+      availability: Status
+      availabilities:
+        available: Available
+        soon: Available soon
+        busy: Fully booked
+      available_from: From
+      available_from_hint: "Optional. With « Available soon », the sentence gives the date."
+      availability_label: Sentence shown
+      availability_label_hint: "Left empty, the zone writes the sentence of the chosen status."
+      availability_note: Detail
+      hours_label: Weekly hours
+      hours_hint: "One line per day, ranges separated by commas: « 9-12, 14-18:30 ». Empty means closed."
+      hours_placeholder: "9-12, 14-18"
+      weekdays:
+        mon: Monday
+        tue: Tuesday
+        wed: Wednesday
+        thu: Thursday
+        fri: Friday
+        sat: Saturday
+        sun: Sunday
+      closed_dates: Exceptional closures
+      closed_dates_hint: "One date per line, as YYYY-MM-DD. The next three are announced under the hours."
+      timezone: Time zone
+      timezone_hint: "The place's own: it decides whether it is open now, not the visitor's."
+      hours_note: Detail
+      countdown_at: Target date and time
+      countdown_title: Title above
+      countdown_after: Sentence once passed
+      countdown_after_hint: "Replaces the figures at the set time: « The doors are open », « The offer has ended »."
+      contact_photo: Photo
+      contact_name: Name
+      contact_phone: Phone
+      contact_email: Email
+      contact_website: Website
+      contact_role: Trade
+      social_network: Network
+      social_name: Account name
+      social_handle: Handle
+      social_avatar: Account picture
+      social_picture: Post picture
+      social_likes: Likes
+      social_comments: Comments
+      social_shares: Shares
+      social_date: Date
+      social_text: Post text
+      qr_logo: Picture in the middle
+      qr_logo_hint: "Optional: a logo or a photo, cropped square. The code is then made sturdier so it still scans through what the picture hides."
+      qr_size: Size
+      qr_download: Button to download the QR code
+      qr_download_hint: "A sharp PNG image, for a flyer, a card or a shop window."
+      qr_url: QR code address
+      qr_url_hint: "A full address, or a page of this site (/en/contact): it is completed with the site's address."
+      qr_label: Text under the code
       comments_hint: "Nothing to set: the thread is this publication's. When this zone exists the foot of the page stops drawing it - one conversation per page, where you put it."
       zone_deck: Presentation
       zone_deck_none: "Choose a presentation…"
@@ -1118,6 +1210,44 @@ frontend:
         last_year: Last 12 months
         less: Less
         more: More
+        updated: "Updated %date%"
+      availability:
+        available: Available for new projects
+        soon: "Available from %date%"
+        soon_undated: Available soon
+        busy: Fully booked for now
+      hours:
+        open_until: "Open until %time%"
+        opens_at: "Closed, opens at %time%"
+        opens_tomorrow: "Closed, opens tomorrow at %time%"
+        opens_on: "Closed, opens %day% at %time%"
+        closed: Closed
+        closed_today: Exceptionally closed today
+        closed_day: Closed
+        closures: "Upcoming closures:"
+        time: "%hh%:%mm%"
+      countdown:
+        days: days
+        hours: hours
+        minutes: minutes
+        seconds: seconds
+        passed: "It's time."
+      contact:
+        save: Save contact
+      social:
+        likes: likes
+        comments: comments
+        shares: shares
+      carousel:
+        label: Slideshow
+        slide: "Photo %index% of %count%"
+        previous: Previous photo
+        next: Next photo
+      index:
+        label: Alphabetical index
+      qr:
+        label: "QR code to %url%"
+        download: Download the QR code
     forms:
       submit: Send
       next: Next

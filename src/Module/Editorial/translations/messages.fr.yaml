@@ -504,6 +504,12 @@ backend:
         code: Code
         toc: Sommaire
         githubActivity: Activité GitHub
+        availability: Disponibilité
+        openingHours: Horaires
+        countdown: Compte à rebours
+        contactCard: Carte de visite
+        socialPost: Publication façon réseau
+        qrCode: QR code
         stack: Pile
       zone_form: "Formulaire"
       zone_form_hint: "Le formulaire s'affiche dans la page, et s'envoie au même endroit que sur sa propre page."
@@ -732,7 +738,93 @@ backend:
       zone_embed: Adresse à intégrer
       zone_embed_hint: "Collez l'adresse de la page chez le fournisseur. Une adresse qu'aucun des quatre ne revendique s'affiche en simple lien plutôt que de disparaître."
       embed_providers: "Quatre fournisseurs reconnus : Spotify, SoundCloud, CodePen et Calendly. Chacun voit passer les visiteurs de la page où vous posez la zone."
-      github_activity_hint: "Affiche la grille de contributions des comptes GitHub réglés dans Réglages > GitHub, un cadre par compte. Tant que l'intégration est éteinte ou qu'aucun compte n'y est saisi, la zone ne dessine rien."
+      github_activity_hint: "Les comptes sont ceux de Réglages > GitHub. Tant que l'intégration est éteinte, la zone ne dessine rien."
+      gallery_layout: Disposition
+      gallery_layout_hint: "La grille montre toutes les photos ; le carrousel les fait défiler une à une, au doigt sur téléphone et aux flèches ailleurs."
+      gallery_layouts:
+        grid: Grille
+        carousel: Carrousel
+      frame: Écran autour de l'image
+      frame_hint: "Pour montrer un site sur l'appareil pour lequel il a été fait. L'écran choisit la forme de l'image, le recadrage ci-dessous est alors ignoré."
+      frames:
+        none: Aucun
+        laptop: Ordinateur portable
+        phone: Téléphone
+        browser: Fenêtre de navigateur
+      parallax: Bandeau qui défile plus lentement
+      parallax_hint: "L'image devient un bandeau qui défile plus lentement que la page, avec la légende posée dessus. À combiner avec « Pleine largeur » pour un vrai bandeau."
+      code_style: Présentation
+      code_style_hint: "Terminal : une ligne qui commence par « $ » est une commande, tapée à l'écran ; les autres sont ce qu'elle affiche. Avant / après : les lignes qui commencent par + et - sont colorées."
+      code_styles:
+        plain: Code
+        terminal: Terminal animé
+        diff: Avant / après
+      list_layout: Présentation
+      list_layout_hint: "L'index range toutes les publications par lettre, avec les lettres en haut pour sauter ; il ignore le nombre ci-dessous et en affiche jusqu'à 300."
+      list_layouts:
+        cards: Cartes
+        index: Index de A à Z
+      github_mode: Ce que montre la zone
+      github_modes:
+        activity: Grille de contributions
+        repos: Dépôts
+        releases: Dernières versions
+      github_repos: Dépôts
+      github_repos_hint: "Un dépôt par ligne, sous la forme propriétaire/nom, six au plus."
+      availability: Statut
+      availabilities:
+        available: Disponible
+        soon: Bientôt disponible
+        busy: Complet
+      available_from: À partir du
+      available_from_hint: "Facultatif. Avec « Bientôt disponible », la phrase donne la date."
+      availability_label: Phrase affichée
+      availability_label_hint: "Laissée vide, la zone écrit la phrase du statut choisi."
+      availability_note: Précision
+      hours_label: Horaires de la semaine
+      hours_hint: "Une ligne par jour, les plages séparées par des virgules : « 9h-12h, 14h-18h30 ». Vide, le jour est fermé."
+      hours_placeholder: "9h-12h, 14h-18h"
+      weekdays:
+        mon: Lundi
+        tue: Mardi
+        wed: Mercredi
+        thu: Jeudi
+        fri: Vendredi
+        sat: Samedi
+        sun: Dimanche
+      closed_dates: Fermetures exceptionnelles
+      closed_dates_hint: "Une date par ligne, sous la forme AAAA-MM-JJ. Les trois prochaines sont annoncées sous les horaires."
+      timezone: Fuseau horaire
+      timezone_hint: "Celui du lieu : c'est lui qui décide si c'est ouvert maintenant, pas celui du visiteur."
+      hours_note: Précision
+      countdown_at: Date et heure visées
+      countdown_title: Titre au-dessus
+      countdown_after: Phrase une fois l'heure passée
+      countdown_after_hint: "Remplace les chiffres à l'heure dite : « Les portes sont ouvertes », « L'offre est terminée »."
+      contact_photo: Photo
+      contact_name: Nom
+      contact_phone: Téléphone
+      contact_email: E-mail
+      contact_website: Site
+      contact_role: Métier
+      social_network: Réseau
+      social_name: Nom du compte
+      social_handle: Identifiant
+      social_avatar: Photo du compte
+      social_picture: Image de la publication
+      social_likes: J'aime
+      social_comments: Commentaires
+      social_shares: Partages
+      social_date: Date
+      social_text: Texte de la publication
+      qr_logo: Image au centre
+      qr_logo_hint: "Facultative : un logo ou une photo, recadrée au carré. Le code est alors fait plus robuste pour rester lisible malgré ce qu'elle cache."
+      qr_size: Taille
+      qr_download: Bouton pour télécharger le QR code
+      qr_download_hint: "Une image PNG nette, à mettre sur un flyer, une carte ou une vitrine."
+      qr_url: Adresse du QR code
+      qr_url_hint: "Une adresse complète, ou une page du site (/fr/contact) : elle est complétée avec l'adresse du site."
+      qr_label: Texte sous le code
       comments_hint: "Rien à régler : le fil est celui de cette publication. Quand cette zone existe, le pied de page ne le dessine plus - une conversation par page, là où vous l'avez mise."
       zone_deck: Présentation
       zone_deck_none: "Choisir une présentation…"
@@ -1118,6 +1210,44 @@ frontend:
         last_year: 12 derniers mois
         less: Moins
         more: Plus
+        updated: "Mis à jour le %date%"
+      availability:
+        available: Disponible pour de nouveaux projets
+        soon: "Disponible à partir du %date%"
+        soon_undated: Bientôt disponible
+        busy: Complet pour le moment
+      hours:
+        open_until: "Ouvert jusqu'à %time%"
+        opens_at: "Fermé, ouvre à %time%"
+        opens_tomorrow: "Fermé, ouvre demain à %time%"
+        opens_on: "Fermé, ouvre %day% à %time%"
+        closed: Fermé
+        closed_today: "Fermeture exceptionnelle aujourd'hui"
+        closed_day: Fermé
+        closures: "Fermetures à venir :"
+        time: "%h%h%mm%"
+      countdown:
+        days: jours
+        hours: heures
+        minutes: minutes
+        seconds: secondes
+        passed: "C'est l'heure."
+      contact:
+        save: Enregistrer le contact
+      social:
+        likes: "J'aime"
+        comments: commentaires
+        shares: partages
+      carousel:
+        label: Diaporama
+        slide: "Photo %index% sur %count%"
+        previous: Photo précédente
+        next: Photo suivante
+      index:
+        label: Index alphabétique
+      qr:
+        label: "QR code vers %url%"
+        download: Télécharger le QR code
     forms:
       submit: Envoyer
       next: Suivant
