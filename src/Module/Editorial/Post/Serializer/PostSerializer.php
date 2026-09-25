@@ -193,8 +193,13 @@ class PostSerializer implements PostSerializerInterface
             'slug' => $translation->getSlug(),
             // Only the words. The design is serialised once on the post, so
             // switching locale in the editor swaps the copy and leaves the
-            // layout standing - which is the whole point of the split.
-            'banner' => $translation->getBanner(),
+            // layout standing - which is the whole point of the split. The
+            // one exception, a background of the language's own, comes back
+            // resolved so its pickers can preview what they hold.
+            'banner' => $this->bannerViewBuilder->textsForEditor(
+                $translation->getPost()->getBannerLayout(),
+                $translation->getBanner(),
+            ),
             'grid' => $translation->getGrid(),
             'gallery' => $translation->getGallery(),
             'description' => $translation->getDescription(),

@@ -40,11 +40,42 @@ final class ImageVariantGeneratorTest extends TestCase
 
         $variants = $this->generator->generate($this->adapter, $relative, 'image/png');
 
-        self::assertSame(['thumbnail', 'medium', 'large'], array_keys($variants));
+        // Past 1920 the full resolution is kept as `xlarge`, never upscaled.
+        self::assertSame(['thumbnail', 'medium', 'large', 'xlarge'], array_keys($variants));
         foreach ($variants as $name => $variantPath) {
             self::assertFileExists(Path::join($this->sandbox, $variantPath), "variant {$name} not written");
             self::assertStringContainsString('variants/'.$name.'/', $variantPath);
         }
+    }
+
+    public function testAVeryWideSourceAlsoGetsAnExtraLargeVariant(): void
+    {
+        // What a full-width banner draws on a high-density screen: more
+        // pixels than `large` holds, so a variant of its own - and only
+        // because the source has them.
+        $relative = $this->createPngFixture('wide.png', 4000, 1400);
+
+        $variants = $this->generator->generate($this->adapter, $relative, 'image/png');
+
+        self::assertSame(['thumbnail', 'medium', 'large', 'xlarge'], array_keys($variants));
+        [$width] = getimagesize(Path::join($this->sandbox, $variants['xlarge']));
+        self::assertSame(3840, $width);
+    }
+
+    public function testASourceExactlyThatWideStillGetsItsExtraLargeVariant(): void
+    {
+        // A banner rendered at twice 1920 is 3840 wide: it fits inside the
+        // variant, and still needs it, since `large` would halve it.
+        $relative = $this->createPngFixture('retina.png', 3840, 1364);
+
+        $variants = $this->generator->generate($this->adapter, $relative, 'image/png');
+
+        self::assertArrayHasKey('xlarge', $variants);
+        self::assertArrayNotHasKey('xlarge', $this->generator->generate(
+            $this->adapter,
+            $this->createPngFixture('plain.png', 1920, 682),
+            'image/png',
+        ));
     }
 
     public function testStillGeneratesLargeVariantWhenSourceIsSmaller(): void

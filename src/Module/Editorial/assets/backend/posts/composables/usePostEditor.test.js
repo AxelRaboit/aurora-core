@@ -294,6 +294,41 @@ describe("usePostEditor keyed maps", () => {
         expect(Array.isArray(fr.grid.zones)).toBe(false);
     });
 
+    it("keeps a language's own banner background, preview included", () => {
+        const { form } = usePostEditor(
+            withTranslation({
+                banner: {
+                    items: {},
+                    background: {
+                        mediaId: 8,
+                        mobileMediaId: null,
+                        media: { url: "/fr.webp" },
+                        mobileMedia: null,
+                    },
+                },
+            }),
+        );
+
+        const background = form.value.translations.fr.banner.background;
+
+        expect(background.mediaId).toBe(8);
+        expect(background.media).toEqual({ url: "/fr.webp" });
+        expect(background.mobileMediaId).toBeNull();
+    });
+
+    it("gives a translation saved before it an empty background", () => {
+        const { form } = usePostEditor(
+            withTranslation({ banner: { items: [] } }),
+        );
+
+        expect(form.value.translations.fr.banner.background).toEqual({
+            mediaId: null,
+            mobileMediaId: null,
+            media: null,
+            mobileMedia: null,
+        });
+    });
+
     it("keeps a map that actually holds something", () => {
         const { form } = usePostEditor(
             withTranslation({

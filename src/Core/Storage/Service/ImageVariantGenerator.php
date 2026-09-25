@@ -16,7 +16,19 @@ final readonly class ImageVariantGenerator
         'thumbnail' => 256,
         'medium' => 800,
         'large' => 1920,
+        // For a picture that spans a high-density screen - a full-width
+        // banner on a 1440px Retina display draws 2880 device pixels, and
+        // `large` stretched that far goes visibly soft. Only made when the
+        // source actually has the pixels: an upscale would cost the storage
+        // and add nothing.
+        'xlarge' => 3840,
     ];
+
+    /**
+     * The variant that always exists, whatever the source's size, so the
+     * public path never falls back to the raw file.
+     */
+    private const string ALWAYS = 'large';
 
     public function __construct(
         private LocalWorkspace $workspace,
@@ -76,14 +88,12 @@ final readonly class ImageVariantGenerator
         }
 
         $generated = [];
-        $largestSize = max(self::VARIANT_SIZES);
         foreach (self::VARIANT_SIZES as $variantName => $maxSide) {
-            // Skip downscale when source is already smaller - EXCEPT for the
-            // largest size: we always want a re-encoded "large" variant so the
+            // Skip downscale when source is already smaller - EXCEPT for
+            // `large`: we always want a re-encoded "large" variant so the
             // public download path (web) never falls back to the raw source,
             // which would leak EXIF (geo/camera) on PNG/WebP originals.
-            $isLargest = $maxSide === $largestSize;
-            if (!$isLargest && $sourceWidth <= $maxSide && $sourceHeight <= $maxSide) {
+            if (self::ALWAYS !== $variantName && $this->fitsBelow($variantName, $sourceWidth, $sourceHeight)) {
                 continue;
             }
 
@@ -110,6 +120,22 @@ final readonly class ImageVariantGenerator
         imagedestroy($source);
 
         return $generated;
+    }
+
+    /**
+     * Whether the source is too small for this variant to add anything.
+     *
+     * A shrinking variant is pointless once the source fits inside it. The
+     * extra-large one is different: it exists to carry more pixels than
+     * `large`, so it is worth making as soon as the source outgrows `large` -
+     * a 3840px source fits inside 3840 exactly, and skipping it there would
+     * leave the one picture that needs it without it.
+     */
+    private function fitsBelow(string $variantName, int $width, int $height): bool
+    {
+        $threshold = 'xlarge' === $variantName ? self::VARIANT_SIZES[self::ALWAYS] : self::VARIANT_SIZES[$variantName];
+
+        return $width <= $threshold && $height <= $threshold;
     }
 
     /**

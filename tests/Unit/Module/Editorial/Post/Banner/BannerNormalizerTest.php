@@ -378,7 +378,41 @@ final class BannerNormalizerTest extends TestCase
 
     public function testAnEmptyLayoutIsAnAcceptableArgument(): void
     {
-        self::assertSame(['items' => []], $this->normalizer->normalizeTexts(['items' => ['a' => []]], []));
+        self::assertSame(
+            ['items' => [], 'background' => ['mediaId' => null, 'mobileMediaId' => null]],
+            $this->normalizer->normalizeTexts(['items' => ['a' => []]], []),
+        );
+    }
+
+    public function testTheLayoutKeepsAPhonePicture(): void
+    {
+        $layout = $this->normalizer->normalizeLayout(['background' => ['mediaId' => 4, 'mobileMediaId' => 9]]);
+
+        self::assertSame(4, $layout['background']['mediaId']);
+        self::assertSame(9, $layout['background']['mobileMediaId']);
+        self::assertNull($this->normalizer->emptyLayout()['background']['mobileMediaId']);
+    }
+
+    public function testATranslationMayBringABackgroundOfItsOwn(): void
+    {
+        $texts = $this->normalizer->normalizeTexts(
+            ['items' => [], 'background' => ['mediaId' => 12, 'mobileMediaId' => 13, 'media' => ['url' => '/x.webp']]],
+            $this->normalizer->emptyLayout(),
+        );
+
+        // The ids survive; the preview the editor sent back does not.
+        self::assertSame(['mediaId' => 12, 'mobileMediaId' => 13], $texts['background']);
+    }
+
+    public function testATranslationBackgroundRejectsWhatIsNotAnId(): void
+    {
+        $texts = $this->normalizer->normalizeTexts(
+            ['background' => ['mediaId' => 'twelve', 'mobileMediaId' => -3]],
+            $this->normalizer->emptyLayout(),
+        );
+
+        self::assertSame(['mediaId' => null, 'mobileMediaId' => null], $texts['background']);
+        self::assertSame($texts['background'], $this->normalizer->emptyTexts()['background']);
     }
 
     public function testNormalizingTwiceChangesNothing(): void

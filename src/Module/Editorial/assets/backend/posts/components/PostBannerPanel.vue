@@ -355,6 +355,29 @@ const { html: previewHtml, loading: previewLoading } = useServerPreview(
                     :hint="t('backend.posts.banner.background_image_hint')"
                 />
 
+                <AppImagePickerField
+                    v-model="fields.mobileBackgroundMedia.value"
+                    :label="t('backend.posts.banner.mobile_background_image')"
+                    :hint="t('backend.posts.banner.mobile_background_image_hint')"
+                />
+
+                <!-- Per language, and marked as such like an item's words: a
+                     picture with a title set in it reads in one language. -->
+                <div class="rounded-lg border border-dashed border-line p-3 space-y-4">
+                    <p class="text-xs uppercase tracking-wide text-muted">
+                        {{ t("backend.posts.banner.local_background", { locale }) }}
+                    </p>
+                    <p class="text-sm text-secondary">{{ t("backend.posts.banner.local_background_hint") }}</p>
+                    <AppImagePickerField
+                        v-model="fields.localBackgroundMedia.value"
+                        :label="t('backend.posts.banner.background_image')"
+                    />
+                    <AppImagePickerField
+                        v-model="fields.localMobileBackgroundMedia.value"
+                        :label="t('backend.posts.banner.mobile_background_image')"
+                    />
+                </div>
+
                 <div v-if="hasBackgroundImage">
                     <p class="text-sm text-secondary mb-1">
                         {{ t("backend.posts.banner.overlay", { percent: fields.overlay.value }) }}
