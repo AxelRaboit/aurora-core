@@ -9,7 +9,7 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ### Ajouté
 
-#### Un fond de bandeau par langue, et une image pour les téléphones
+#### Un fond de bandeau par langue, une image pour les téléphones, et net en haute densité
 Le fond d'un bandeau vivait sur la mise en page, commune à toutes les langues.
 C'est juste tant que l'image est un décor, et faux dès qu'elle porte du texte :
 un en-tête dont le titre est écrit dans l'image affichait le français sur les
@@ -27,6 +27,15 @@ composé sur la largeur, un texte, un sujet décalé, disparaît. Le gabarit ser
 désormais le fond dans un `<picture>` dont la source téléphone remplace le
 fichier sous `sm`, avec son propre point focal ; sans image téléphone, rien ne
 change.
+
+Le fond d'un bandeau est aussi **net sur un écran haute densité**. Un bandeau
+pleine largeur sur un écran Retina de 1440 px dessine 2880 pixels, et la
+variante `large` s'arrête à 1920 : étirée d'un facteur 1,5, elle devenait
+floue. La médiathèque produit maintenant une variante **`xlarge`** (3840 px de
+côté au plus) dès que l'original dépasse 1920 px, sans jamais agrandir, et le
+bandeau propose les deux largeurs dans un `srcset` : un écran ordinaire garde
+`large`, un écran haute densité reçoit `xlarge`. Les documents existants ne
+l'ont pas tant qu'on ne remplace pas leur fichier (`aurora:ged:replace`).
 
 Les nouveaux emplacements comptent comme des usages dans la médiathèque. Le
 filtrage SQL lit désormais aussi la colonne `banner` des traductions et la clé

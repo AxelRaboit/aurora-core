@@ -6,6 +6,7 @@ namespace Aurora\Module\Editorial\Post\Banner;
 
 use Aurora\Core\Content\ContentValueNormalizer;
 use Aurora\Core\Storage\Enum\MimeGroupEnum;
+use Aurora\Core\Storage\Service\ImageVariantGenerator;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Document\Service\DocumentCreditPresenter;
@@ -225,6 +226,38 @@ final readonly class BannerViewBuilder
     }
 
     /**
+     * The two widths a banner picture comes in, for a browser to pick from.
+     *
+     * A full-width banner on a 1440px Retina screen draws 2880 device pixels;
+     * `large` stops at 1920, and stretched that far it goes visibly soft. The
+     * `xlarge` variant only exists when the source had the pixels, so without
+     * it there is nothing to offer and the plain `src` is the whole answer.
+     *
+     * Width descriptors rather than `2x`: the banner's width is the viewport's,
+     * not a fixed box, so the browser needs the real widths to choose.
+     */
+    private function srcset(DocumentInterface $media, string $largeUrl): ?string
+    {
+        $xlarge = $this->documentUrlGenerator->variantUrl($media, 'xlarge');
+        $width = $media->getWidth();
+        $height = $media->getHeight();
+
+        if (in_array(null, [$xlarge, $width, $height], true) || $width <= 0 || $height <= 0) {
+            return null;
+        }
+
+        $fit = static fn (int $maxSide): int => (int) round($width * min(1, $maxSide / max($width, $height)));
+
+        return sprintf(
+            '%s %dw, %s %dw',
+            $largeUrl,
+            $fit(ImageVariantGenerator::VARIANT_SIZES['large']),
+            $xlarge,
+            $fit(ImageVariantGenerator::VARIANT_SIZES['xlarge']),
+        );
+    }
+
+    /**
      * @param array<string, mixed> $background
      *
      * @return string|null the CSS declaration, or null when nothing is filled
@@ -298,6 +331,7 @@ final readonly class BannerViewBuilder
 
         return [
             'url' => $url,
+            'srcset' => $this->srcset($media, $url),
             // The item's own alt wins: the same picture can mean different
             // things in two banners, and the document's alt describes the file.
             'alt' => '' !== $alt ? $alt : (string) $media->getAlt(),

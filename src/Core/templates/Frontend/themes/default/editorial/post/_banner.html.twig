@@ -91,12 +91,15 @@
         {% set mobile = banner.background.mobileMedia|default(null) %}
         <picture>
             {% if mobile %}
-                <source media="(max-width: 639px)" srcset="{{ mobile.url }}">
+                <source media="(max-width: 639px)" srcset="{{ mobile.srcset ?? mobile.url }}" sizes="100vw">
             {% endif %}
             {# Each picture keeps its own focal point: the phone one is framed
                for a narrow box and would be thrown off by the wide one's. #}
             <img
                 src="{{ banner.background.media.url }}"
+                {# A high-density screen gets the extra-large variant when the
+                   source had the pixels; the banner is as wide as the window. #}
+                {% if banner.background.media.srcset %}srcset="{{ banner.background.media.srcset }}" sizes="100vw"{% endif %}
                 alt=""
                 aria-hidden="true"
                 class="absolute inset-0 -z-10 h-full w-full object-cover{{ mobile ? ' max-sm:[object-position:var(--banner-mobile-focal)]' : '' }}"
