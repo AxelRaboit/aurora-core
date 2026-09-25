@@ -6,7 +6,9 @@ namespace Aurora\Core\Storage;
 
 use Aurora\Core\Storage\Adapter\StorageAdapterInterface;
 use Aurora\Core\Storage\Enum\StorageDiskEnum;
+use Aurora\Core\Storage\Exception\StorageException;
 use Aurora\Core\Storage\Workspace\LocalPathAware;
+use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 
 /**
  * Which backend holds the bytes behind a `/uploads/{path}` request.
@@ -36,8 +38,13 @@ use Aurora\Core\Storage\Workspace\LocalPathAware;
  */
 final readonly class StoredFileLocator
 {
+    /**
+     * @param iterable<StoredDiskHintInterface> $hints
+     */
     public function __construct(
         private StorageManager $storageManager,
+        #[AutowireIterator('aurora.stored_disk_hint')]
+        private iterable $hints = [],
     ) {}
 
     /**
@@ -52,6 +59,14 @@ final readonly class StoredFileLocator
         // some other backend implements LocalPathAware.
         if ($local instanceof LocalPathAware && is_file($local->localPath($key))) {
             return $local;
+        }
+
+        // A module that recorded where it put the file saves the existence
+        // check below, which on a remote disk is a network round trip.
+        $hinted = $this->hinted($key);
+
+        if ($hinted instanceof StorageAdapterInterface) {
+            return $hinted;
         }
 
         foreach ($this->storageManager->all() as $adapter) {
@@ -72,6 +87,36 @@ final readonly class StoredFileLocator
             if ($adapter->exists($key)) {
                 return $adapter;
             }
+        }
+
+        return null;
+    }
+
+    /**
+     * The remote disk a hint names for this key, if it is ready. Trusted
+     * without asking the disk: that is the whole point. A local answer is
+     * not taken here, since the local disk was already checked for real.
+     */
+    private function hinted(string $key): ?StorageAdapterInterface
+    {
+        foreach ($this->hints as $hint) {
+            if (!$hint->supports($key)) {
+                continue;
+            }
+
+            $disk = $hint->diskFor($key);
+
+            if (null === $disk || StorageDiskEnum::Local === $disk) {
+                return null;
+            }
+
+            try {
+                $adapter = $this->storageManager->forDisk($disk);
+            } catch (StorageException) {
+                return null;
+            }
+
+            return $adapter->isReady() ? $adapter : null;
         }
 
         return null;

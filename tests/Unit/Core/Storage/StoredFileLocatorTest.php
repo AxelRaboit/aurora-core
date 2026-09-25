@@ -9,6 +9,7 @@ use Aurora\Core\Storage\Adapter\LocalStorageAdapter;
 use Aurora\Core\Storage\Adapter\StorageAdapterInterface;
 use Aurora\Core\Storage\Enum\StorageDiskEnum;
 use Aurora\Core\Storage\StorageManager;
+use Aurora\Core\Storage\StoredDiskHintInterface;
 use Aurora\Core\Storage\StoredFileLocator;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Filesystem\Filesystem;
@@ -105,6 +106,71 @@ final class StoredFileLocatorTest extends TestCase
         self::assertSame([], $remote->existsCalls);
     }
 
+    /**
+     * The cost this exists to remove: a module that recorded the disk spares
+     * the remote existence check, a network round trip on every request.
+     * Measured on 2026-09-25 as most of 0.3 seconds per picture.
+     */
+    public function testAHintedRemoteFileIsServedWithoutAskingTheBackend(): void
+    {
+        $remote = $this->remote();
+        $remote->objects['ged/photo.webp'] = 'bytes';
+
+        $locator = $this->locator([$this->local(), $remote], StorageDiskEnum::R2, [$this->hint(StorageDiskEnum::R2)]);
+
+        self::assertSame($remote, $locator->locate('ged/photo.webp'));
+        self::assertSame([], $remote->existsCalls);
+    }
+
+    /**
+     * A hint only answers for the keys it claims; the rest are still looked
+     * for, which keeps every other area working exactly as before.
+     */
+    public function testAKeyNoHintClaimsIsStillLookedFor(): void
+    {
+        $remote = $this->remote();
+        $remote->objects['notes/image.webp'] = 'bytes';
+
+        $locator = $this->locator([$this->local(), $remote], StorageDiskEnum::R2, [$this->hint(StorageDiskEnum::R2)]);
+
+        self::assertSame($remote, $locator->locate('notes/image.webp'));
+        self::assertSame(['notes/image.webp'], $remote->existsCalls);
+    }
+
+    /**
+     * No document owns the path, or its disk is not ready: fall back to
+     * looking rather than answering with a backend that cannot serve it.
+     */
+    public function testAnUnknownOrUnreadyHintFallsBackToLooking(): void
+    {
+        $remote = $this->remote();
+        $remote->objects['ged/orphan.webp'] = 'bytes';
+
+        $unknown = $this->locator([$this->local(), $remote], StorageDiskEnum::R2, [$this->hint(null)]);
+        self::assertSame($remote, $unknown->locate('ged/orphan.webp'));
+
+        $remote->ready = false;
+        $unready = $this->locator([$this->local(), $remote], StorageDiskEnum::R2, [$this->hint(StorageDiskEnum::R2)]);
+        self::assertNull($unready->locate('ged/orphan.webp'));
+    }
+
+    private function hint(?StorageDiskEnum $disk): StoredDiskHintInterface
+    {
+        return new class($disk) implements StoredDiskHintInterface {
+            public function __construct(private readonly ?StorageDiskEnum $disk) {}
+
+            public function supports(string $key): bool
+            {
+                return str_starts_with($key, 'ged/');
+            }
+
+            public function diskFor(string $key): ?StorageDiskEnum
+            {
+                return $this->disk;
+            }
+        };
+    }
+
     private function local(): LocalStorageAdapter
     {
         return new LocalStorageAdapter(new Filesystem(), $this->workDir.'/local');
@@ -115,8 +181,11 @@ final class StoredFileLocatorTest extends TestCase
         return new InMemoryStorageAdapter(StorageDiskEnum::R2);
     }
 
-    /** @param list<StorageAdapterInterface> $adapters */
-    private function locator(array $adapters, StorageDiskEnum $active): StoredFileLocator
+    /**
+     * @param list<StorageAdapterInterface> $adapters
+     * @param list<StoredDiskHintInterface> $hints
+     */
+    private function locator(array $adapters, StorageDiskEnum $active, array $hints = []): StoredFileLocator
     {
         $provider = new class($active) implements ActiveStorageDiskProviderInterface {
             public function __construct(private readonly StorageDiskEnum $disk) {}
@@ -127,6 +196,6 @@ final class StoredFileLocatorTest extends TestCase
             }
         };
 
-        return new StoredFileLocator(new StorageManager($adapters, $provider));
+        return new StoredFileLocator(new StorageManager($adapters, $provider), $hints);
     }
 }
