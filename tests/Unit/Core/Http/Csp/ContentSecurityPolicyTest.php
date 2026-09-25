@@ -115,6 +115,22 @@ final class ContentSecurityPolicyTest extends TestCase
         self::assertStringContainsString('ws://localhost:5173', $this->directive($development, 'connect-src'));
     }
 
+    /**
+     * A configured check that the policy refuses fails every submission.
+     *
+     * Measured on 2026-09-25: Turnstile was switched on with valid keys, its
+     * script was blocked here, the widget never drew, and the contact form
+     * could not send a token the server would accept.
+     */
+    public function testTheCaptchaScriptAndFrameAreAllowed(): void
+    {
+        $header = new ContentSecurityPolicy()->header('abc');
+
+        self::assertStringContainsString('https://challenges.cloudflare.com', $this->directive($header, 'script-src'));
+        self::assertStringContainsString('https://challenges.cloudflare.com', $this->directive($header, 'frame-src'));
+        self::assertStringContainsString('https://www.gstatic.com', $this->directive($header, 'script-src'));
+    }
+
     public function testThePageCannotBeFramedAndHasNoPluginSurface(): void
     {
         $header = new ContentSecurityPolicy()->header(null);
