@@ -47,12 +47,17 @@ const REVEALED = "aurora-revealed";
 const RUNNING = "data-reveal-running";
 
 /**
- * Assez de la zone pour que son arrivée se lise, et pas tant qu'une zone plus
- * haute que la fenêtre n'arrive jamais : d'où la marge basse, qui déclenche un
- * peu avant le bord plutôt que d'attendre une fraction qu'un grand bloc ne
- * franchira pas.
+ * Le moindre pixel suffit : c'est la marge basse qui décide du moment, en
+ * déclenchant quand le haut de la zone franchit 92 % de la fenêtre.
+ *
+ * Un seuil en fraction de la zone ne tient pas pour un grand bloc. Il valait
+ * 0,08 jusqu'au 25/09/2026, et sur téléphone la liste des vingt-quatre sujets
+ * du tour Aurora, empilés en une colonne, faisait près de 10 000 px : la
+ * fenêtre n'en montre jamais plus de 7 %, la zone restait armée, invisible,
+ * en gardant sa place. Sur ordinateur les trois colonnes la rendaient trois
+ * fois plus courte, et le défaut ne se voyait pas.
  */
-const THRESHOLD = 0.08;
+const THRESHOLD = 0;
 const MARGIN = "0px 0px -8% 0px";
 
 /**
