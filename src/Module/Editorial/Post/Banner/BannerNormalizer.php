@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Editorial\Post\Banner;
 
+use Aurora\Core\Content\BlockHtmlSanitizer;
 use Aurora\Core\Content\ContentValueNormalizer;
+use Aurora\Module\Configuration\Theme\Enum\ThemeFontEnum;
 
 /**
  * Normalises the banner, which is stored in two halves.
@@ -40,7 +42,7 @@ use Aurora\Core\Content\ContentValueNormalizer;
  * than being invented twice.
  *
  * @phpstan-type BannerSpan array{base: int, md: ?int, lg: ?int}
- * @phpstan-type BannerLayoutItem array{id: string, type: string, span: BannerSpan, titleColor: ?string, descriptionColor: ?string, align: string, titleSize: string, mediaId: ?int, buttonColor: ?string, buttonTextColor: ?string}
+ * @phpstan-type BannerLayoutItem array{id: string, type: string, span: BannerSpan, titleColor: ?string, descriptionColor: ?string, align: string, titleSize: string, descriptionSize: string, titleFont: ?string, descriptionFont: ?string, mediaId: ?int, buttonColor: ?string, buttonTextColor: ?string}
  * @phpstan-type BannerItemText array{title: string, description: string, alt: string, label: string, url: ?string}
  */
 final readonly class BannerNormalizer
@@ -121,6 +123,7 @@ final readonly class BannerNormalizer
 
     public function __construct(
         private ContentValueNormalizer $values,
+        private BlockHtmlSanitizer $sanitizer = new BlockHtmlSanitizer(),
     ) {}
 
     /**
@@ -196,7 +199,7 @@ final readonly class BannerNormalizer
             $entry = is_array($stored[$id] ?? null) ? $stored[$id] : [];
 
             $texts[$id] = [
-                'title' => $this->values->text($entry['title'] ?? null),
+                'title' => $this->title($entry['title'] ?? null),
                 'description' => $this->values->text($entry['description'] ?? null),
                 'alt' => $this->values->text($entry['alt'] ?? null),
                 'label' => $this->values->text($entry['label'] ?? null),
@@ -317,6 +320,13 @@ final readonly class BannerNormalizer
                 'descriptionColor' => $this->values->color($entry['descriptionColor'] ?? null),
                 'align' => $this->values->oneOf($entry['align'] ?? null, self::ALIGNMENTS, 'start'),
                 'titleSize' => $this->values->oneOf($entry['titleSize'] ?? null, self::TITLE_SIZES, 'md'),
+                // Same four steps as the title. `md` is what every banner
+                // drew before the choice existed.
+                'descriptionSize' => $this->values->oneOf($entry['descriptionSize'] ?? null, self::TITLE_SIZES, 'md'),
+                // Null follows the theme's font, which is what a banner did
+                // before it could choose.
+                'titleFont' => $this->font($entry['titleFont'] ?? null),
+                'descriptionFont' => $this->font($entry['descriptionFont'] ?? null),
                 'mediaId' => $this->values->id($entry['mediaId'] ?? null),
                 'buttonColor' => $this->values->color($entry['buttonColor'] ?? null),
                 'buttonTextColor' => $this->values->color($entry['buttonTextColor'] ?? null),
@@ -416,6 +426,29 @@ final readonly class BannerNormalizer
         }
 
         return $this->values->oneOf($value, self::WIDTHS, self::WIDTH_CONTAINED);
+    }
+
+    /**
+     * A title may colour some of its words, and nothing else: the only markup
+     * kept is the colour span the editor's tool writes, whose value the
+     * sanitiser reduces to a hex colour or the theme accent. Everything else
+     * - a stray tag, a link, a script - is dropped before it is stored.
+     */
+    private function title(mixed $value): string
+    {
+        $text = $this->values->text($value);
+
+        if (!str_contains($text, '<')) {
+            return $text;
+        }
+
+        return mb_trim($this->sanitizer->safe(strip_tags($text, '<span>')));
+    }
+
+    /** A font the theme can load, or null for the theme's own. */
+    private function font(mixed $value): ?string
+    {
+        return is_string($value) ? ThemeFontEnum::tryFrom($value)?->value : null;
     }
 
     private function fillType(array $data): string

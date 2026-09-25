@@ -5,6 +5,32 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.247] - 2026-09-25
+
+### Ajouté
+
+#### Un bandeau plus réglable : taille de la description, polices, titre en couleur, largeur sur tablette
+Un élément texte du bandeau choisit désormais :
+
+- la **taille de sa description**, sur les quatre crans du titre (`md`, la
+  taille d'avant, par défaut) ;
+- la **police de son titre** et celle de **sa description**, parmi les
+  familles que le site sert lui-même, ou celle du thème par défaut ;
+- sa **largeur sur tablette**, en plus de celle du grand écran (les données
+  la portaient déjà, l'éditeur ne la proposait pas).
+
+Le **titre peut colorer une partie de ses mots**. Le champ devient une ligne
+éditable avec trois gestes : la couleur d'accent du thème en un clic, une
+couleur libre au sélecteur, et retirer la couleur. Seul le `<span
+class="cdx-text-color">` survit, au stockage comme à chaque rendu, sa valeur
+réduite par `BlockHtmlSanitizer` à un hexadécimal ou à l'accent ; le `<h1>` se
+décide sur le texte nu.
+
+`ThemeFontEnum` gagne **Playfair Display** et **Space Grotesk**, proposées aux
+thèmes comme au bandeau, auto-hébergées comme les autres. Space Grotesk n'a
+pas d'italique : `hasItalic()` le dit, et le test d'embarquement n'en réclame
+que pour les familles qui en ont.
+
 ## [0.9.246] - 2026-09-25
 
 ### Ajouté

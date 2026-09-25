@@ -7,6 +7,7 @@ namespace Aurora\Module\Editorial\Post\Banner;
 use Aurora\Core\Content\ContentValueNormalizer;
 use Aurora\Core\Storage\Enum\MimeGroupEnum;
 use Aurora\Core\Storage\Service\ImageVariantGenerator;
+use Aurora\Module\Configuration\Theme\Enum\ThemeFontEnum;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Document\Service\DocumentCreditPresenter;
@@ -138,6 +139,10 @@ final readonly class BannerViewBuilder
                     // between 1 and 48 chosen at runtime, and Tailwind only
                     // emits classes it can read in the source.
                     'spanStyle' => $this->values->spanStyle($item['span']),
+                    // The CSS stack, built from the enum so the template never
+                    // writes a font name it was sent.
+                    'titleFontStack' => ThemeFontEnum::tryFrom((string) $item['titleFont'])?->stack(),
+                    'descriptionFontStack' => ThemeFontEnum::tryFrom((string) $item['descriptionFont'])?->stack(),
                 ];
             },
             $layout['items'],
@@ -178,7 +183,9 @@ final readonly class BannerViewBuilder
     private function headingIndex(array $items): ?int
     {
         foreach ($items as $index => $item) {
-            if (BannerNormalizer::ITEM_TEXT === $item['type'] && '' !== $item['title']) {
+            // A title can carry colour spans: what counts is whether any
+            // words are left once they are gone.
+            if (BannerNormalizer::ITEM_TEXT === $item['type'] && '' !== mb_trim(strip_tags($item['title']))) {
                 return $index;
             }
         }

@@ -384,6 +384,52 @@ final class BannerNormalizerTest extends TestCase
         );
     }
 
+    public function testATextChoosesItsDescriptionSizeAndItsFonts(): void
+    {
+        $item = $this->normalizer->normalizeLayout(['items' => [[
+            'id' => 'a1', 'type' => 'text', 'descriptionSize' => 'xl', 'titleFont' => 'playfair-display', 'descriptionFont' => 'comic-sans',
+        ]]])['items'][0];
+
+        self::assertSame('xl', $item['descriptionSize']);
+        self::assertSame('playfair-display', $item['titleFont']);
+        // A font the site does not serve falls back to the theme's.
+        self::assertNull($item['descriptionFont']);
+    }
+
+    public function testAnItemSavedBeforeTheChoiceKeepsItsLook(): void
+    {
+        $item = $this->normalizer->normalizeLayout(['items' => [['id' => 'a1', 'type' => 'text']]])['items'][0];
+
+        self::assertSame('md', $item['descriptionSize']);
+        self::assertNull($item['titleFont']);
+        self::assertNull($item['descriptionFont']);
+    }
+
+    public function testATitleKeepsItsColourSpansAndNothingElse(): void
+    {
+        $texts = $this->normalizer->normalizeTexts(
+            ['items' => ['a1' => ['title' => 'Développeur <span class="cdx-text-color" style="color: var(--th-accent)">×</span> <b>Photo</b><script>alert(1)</script>'
+                .' <span class="cdx-text-color" style="color: #ff00aa; font-size: 90px">rose</span> <a href="https://x.test">lien</a>']]],
+            ['items' => [['id' => 'a1', 'type' => 'text']]],
+        );
+        $title = $texts['items']['a1']['title'];
+
+        self::assertStringContainsString('<span class="cdx-text-color" style="color: var(--th-accent)', $title);
+        self::assertStringContainsString('color: #ff00aa', $title);
+        self::assertStringNotContainsString('font-size', $title);
+        self::assertStringNotContainsString('<b>', $title);
+        self::assertStringNotContainsString('<a', $title);
+        self::assertStringNotContainsString('<script', $title);
+        self::assertStringContainsString('Photo', $title);
+    }
+
+    public function testAPlainTitleIsLeftAlone(): void
+    {
+        $texts = $this->normalizer->normalizeTexts(['items' => ['a1' => ['title' => '  Q&A : tout savoir  ']]], ['items' => [['id' => 'a1', 'type' => 'text']]]);
+
+        self::assertSame('Q&A : tout savoir', $texts['items']['a1']['title']);
+    }
+
     public function testTheImageHeightIsKept(): void
     {
         self::assertSame('image', $this->normalizer->normalizeLayout(['height' => 'image'])['height']);
