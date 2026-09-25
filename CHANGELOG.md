@@ -5,6 +5,41 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.243] - 2026-09-25
+
+### Corrigé
+
+#### La médiathèque disait « aucun usage » sur la moitié de la bibliothèque
+L'écran de suppression d'un document demande aux modules qui l'utilise, et
+côté publications la réponse ne lisait que la galerie, la vignette et l'image
+sociale. Ni la **grille de contenu** ni le **bandeau** n'étaient regardés,
+c'est-à-dire précisément là où une page range ses images.
+
+Mesuré sur les données de production du 25/09/2026 : sur les **163 documents
+qu'une publication affichait, la recherche en voyait 73**. Les 90 autres
+étaient proposés à la suppression pendant qu'une page les dessinait, sans le
+moindre avertissement. Une vignette et une image sociale se vident en silence
+sur `SET NULL` ; un identifiant posé dans une colonne JSON ne se vide même
+pas, l'emplacement cesse simplement d'afficher quoi que ce soit.
+
+Un collecteur unique, `PostPictures`, sait maintenant où une publication range
+des images, et il y a six endroits : la vignette, l'image sociale de chaque
+traduction, les éléments de la galerie, le logo, le fond et les images du
+bandeau, et les zones de la grille. Les zones s'imbriquent, une pile contenant
+des zones, donc le parcours est récursif : une image dans une pile était
+invisible autrement.
+
+Le filtrage SQL passe des trois colonnes au lieu d'une, et ancre l'identifiant
+sur des frontières de mot (`\m`, `\M`), ce qui règle en base le cas où l'on
+cherchait 123 et où 1234 répondait. Coût mesuré sur 44 publications : 0,88 ms
+contre 0,19 ms, toujours négligeable.
+
+Cinq tests d'intégration ajoutés, un par source : zone de grille, image dans
+une pile, liste `mediaIds` d'une zone galerie, image de bandeau, fond et logo
+de bandeau.
+
+---
+
 ## [0.9.242] - 2026-09-24
 
 ### Corrigé
