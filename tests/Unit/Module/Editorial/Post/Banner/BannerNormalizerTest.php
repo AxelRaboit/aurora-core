@@ -384,6 +384,11 @@ final class BannerNormalizerTest extends TestCase
         );
     }
 
+    public function testTheImageHeightIsKept(): void
+    {
+        self::assertSame('image', $this->normalizer->normalizeLayout(['height' => 'image'])['height']);
+    }
+
     public function testTheLayoutKeepsAPhonePicture(): void
     {
         $layout = $this->normalizer->normalizeLayout(['background' => ['mediaId' => 4, 'mobileMediaId' => 9]]);

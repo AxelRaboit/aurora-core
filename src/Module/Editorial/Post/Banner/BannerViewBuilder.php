@@ -332,6 +332,10 @@ final readonly class BannerViewBuilder
         return [
             'url' => $url,
             'srcset' => $this->srcset($media, $url),
+            // The file's own size, for a banner that takes its picture's
+            // proportions instead of cropping it.
+            'width' => $media->getWidth(),
+            'height' => $media->getHeight(),
             // The item's own alt wins: the same picture can mean different
             // things in two banners, and the document's alt describes the file.
             'alt' => '' !== $alt ? $alt : (string) $media->getAlt(),

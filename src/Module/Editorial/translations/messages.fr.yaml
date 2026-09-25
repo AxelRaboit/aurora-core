@@ -315,6 +315,7 @@ backend:
         md: Moyenne
         lg: Haute
         full: Plein écran
+        image: "Celle de l'image"
       slot_types:
         none: Vide
         text: Texte
