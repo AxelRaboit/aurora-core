@@ -108,7 +108,12 @@ export function usePostBanner(layout, texts) {
             })),
         );
 
-    const heightOptions = options(["sm", "md", "lg", "full"], "heights");
+    // `image` follows the background's proportions: nothing is cropped, which
+    // is what a picture with words set in it needs.
+    const heightOptions = options(
+        ["sm", "md", "lg", "full", "image"],
+        "heights",
+    );
     const alignOptions = options(["start", "center", "end"], "aligns");
     const fillOptions = options(["none", "solid", "gradient"], "fills");
     const widthModeOptions = options(

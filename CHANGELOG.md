@@ -5,6 +5,24 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.246] - 2026-09-25
+
+### Ajouté
+
+#### Une hauteur de bandeau qui suit les proportions de l'image
+Un bandeau affiche son fond en `object-cover` : l'image remplit la boîte et ce
+qui dépasse est rogné. Pour une photo, c'est le bon réglage ; pour une image
+qui porte du texte, c'est le texte qui part. La hauteur `lg` a un minimum de
+32rem : sur un écran de 2560 px l'image est agrandie de 1,33 et perd environ
+200 px en haut et en bas, sur un téléphone étroit elle perd les côtés.
+
+La nouvelle hauteur **« Celle de l'image »** (`image`) donne au bandeau les
+proportions de son image de fond, et celles de l'image téléphone sous `sm`,
+si elle existe : rien n'est jamais rogné. Les deux rapports passent par des
+propriétés personnalisées lues par des classes, un `aspect-ratio` en ligne
+l'emportant sur la requête média du téléphone. Un fichier dont la taille est
+inconnue retombe sur la hauteur `lg`. Les bandeaux existants ne changent pas.
+
 ## [0.9.245] - 2026-09-25
 
 ### Corrigé

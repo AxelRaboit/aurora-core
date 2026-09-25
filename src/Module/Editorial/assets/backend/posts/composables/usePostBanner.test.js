@@ -64,7 +64,7 @@ describe("usePostBanner", () => {
         const api = make().api;
 
         const lists = {
-            heightOptions: 4,
+            heightOptions: 5,
             alignOptions: 3,
             fillOptions: 3,
             // Two since 2026-08-09: the full-bleed placement was retired.
