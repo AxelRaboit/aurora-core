@@ -90,7 +90,7 @@ final class DocumentRelocatorTest extends IntegrationTestCase
 
         self::assertTrue($relocation->ok);
         self::assertFalse($relocation->alreadyThere);
-        self::assertSame(5, $relocation->filesMoved, 'the file, its thumbnail and its three variants');
+        self::assertSame(5, $relocation->filesMoved, 'the file, its thumbnail and its three renditions');
         self::assertSame(StorageDiskEnum::R2, $document->getStorageDisk());
 
         foreach ($this->keysOf($document) as $key) {
@@ -224,9 +224,9 @@ final class DocumentRelocatorTest extends IntegrationTestCase
     {
         $base = 'ged/2026/09/reloc-'.bin2hex(random_bytes(5));
 
-        $variants = [];
+        $renditions = [];
         foreach (['thumbnail', 'medium', 'large'] as $name) {
-            $variants[$name] = sprintf('%s/variants/%s.webp', dirname($base), $name.'-'.basename($base));
+            $renditions[$name] = sprintf('%s/variants/%s.webp', dirname($base), $name.'-'.basename($base));
         }
 
         $document = new Document();
@@ -234,7 +234,7 @@ final class DocumentRelocatorTest extends IntegrationTestCase
             ->setReference('RELOC-'.bin2hex(random_bytes(3)))
             ->setFilePath($base.'.png')
             ->setThumbnailPath($base.'-thumb.jpg')
-            ->setVariants($variants)
+            ->setRenditions($renditions)
             ->setMimeType('image/png')
             ->setSize(20);
 

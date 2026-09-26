@@ -22,7 +22,7 @@ use Aurora\Core\Storage\Enum\StorageAreaEnum;
  * keeps doing until it declares otherwise.
  *
  * A guard answers about a **key**, not an entity: the endpoint receives a
- * path and nothing else, and a key can belong to a derived file (a variant, a
+ * path and nothing else, and a key can belong to a derived file (a rendition, a
  * rendered thumbnail) whose owner has to be found before the question can be
  * answered at all.
  */

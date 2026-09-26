@@ -436,18 +436,18 @@ final class BannerViewBuilderTest extends IntegrationTestCase
      * 1920 pixels. When the source had them, both widths are offered, and
      * measured - the browser picks by width, since the banner is the window's.
      */
-    public function testAPictureWithAnExtraLargeVariantOffersBothWidths(): void
+    public function testAPictureWithAnExtraLargeRenditionOffersBothWidths(): void
     {
         $wide = $this->document('image/png', 'ged/2026/09/entete.png');
         $plain = $this->document('image/png', 'ged/2026/09/simple.png');
 
         $document = $this->entityManager->find(Document::class, $wide);
-        $document->setWidth(3840)->setHeight(1364)->setVariants([
+        $document->setWidth(3840)->setHeight(1364)->setRenditions([
             'large' => 'ged/2026/09/variants/large/entete.webp',
             'xlarge' => 'ged/2026/09/variants/xlarge/entete.webp',
         ]);
         $this->entityManager->find(Document::class, $plain)
-            ->setWidth(1920)->setHeight(682)->setVariants(['large' => 'ged/2026/09/variants/large/simple.webp']);
+            ->setWidth(1920)->setHeight(682)->setRenditions(['large' => 'ged/2026/09/variants/large/simple.webp']);
         $this->entityManager->flush();
 
         $withPixels = $this->bannerViewBuilder->build(['enabled' => true, 'background' => ['mediaId' => $wide]], []);

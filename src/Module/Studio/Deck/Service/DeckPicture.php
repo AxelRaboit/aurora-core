@@ -93,7 +93,7 @@ final readonly class DeckPicture
             return null;
         }
 
-        $url = $this->documentUrls->variantUrl($document, 'large')
+        $url = $this->documentUrls->renditionUrl($document, 'large')
             ?? $this->documentUrls->publicUrl($document);
 
         if (null === $url) {

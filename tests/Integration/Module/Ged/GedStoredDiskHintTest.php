@@ -34,7 +34,7 @@ final class GedStoredDiskHintTest extends IntegrationTestCase
         $entityManager->flush();
     }
 
-    public function testASourceAndItsVariantsAnswerTheirDocumentsDisk(): void
+    public function testASourceAndItsRenditionsAnswerTheirDocumentsDisk(): void
     {
         self::assertTrue($this->hint->supports('ged/2026/09/distante-4f2a.png'));
         self::assertSame(StorageDiskEnum::R2, $this->hint->diskFor('ged/2026/09/distante-4f2a.png'));

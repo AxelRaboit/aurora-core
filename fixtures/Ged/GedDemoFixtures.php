@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Fixtures\Ged;
 
 use Aurora\Core\Storage\Enum\MimeTypeEnum;
-use Aurora\Core\Storage\Service\ImageVariantGenerator;
+use Aurora\Core\Storage\Service\ImageRenditionGenerator;
 use Aurora\Core\Storage\Service\PdfThumbnailGenerator;
 use Aurora\Core\Storage\StorageManager;
 use Aurora\Fixtures\Core\AppFixtures;
@@ -42,7 +42,7 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
         #[Autowire(param: 'app.upload_dir')]
         private readonly string $uploadDir,
         private readonly PdfThumbnailGenerator $pdfThumbnailGenerator,
-        private readonly ImageVariantGenerator $variants,
+        private readonly ImageRenditionGenerator $renditions,
         private readonly StorageManager $storageManager,
         private readonly SettingsService $settingsManager,
         private readonly Filesystem $fs = new Filesystem(),
@@ -151,7 +151,7 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
                 $document->setTitle($def['original'])
                     ->setOriginalName($def['original'])
                     ->setStatus(DocumentStatusEnum::Published)
-                    ->setVariants([]);
+                    ->setRenditions([]);
 
                 $em->persist($document);
                 $media[] = $document;
@@ -183,7 +183,7 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
                 // Left empty, every demo page served the full-size original
                 // to a phone - and the one claim the library makes about
                 // itself was the one thing the demo did not do.
-                ->setVariants($this->variants->generate($this->storageManager->active(), 'ged/'.$month.'/'.$def['name'], $def['mime']));
+                ->setRenditions($this->renditions->generate($this->storageManager->active(), 'ged/'.$month.'/'.$def['name'], $def['mime']));
 
             if ($def['w'] > 0) {
                 $document->setWidth($def['w'])->setHeight($def['h']);
@@ -492,7 +492,7 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
                         $d->setWidth($dimensions[0])->setHeight($dimensions[1]);
                     }
 
-                    $d->setVariants($this->variants->generate($this->storageManager->active(), 'ged/'.$gedMonth.'/'.$fileName, $mimeType));
+                    $d->setRenditions($this->renditions->generate($this->storageManager->active(), 'ged/'.$gedMonth.'/'.$fileName, $mimeType));
                 }
             }
 

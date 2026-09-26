@@ -107,23 +107,23 @@ final class UploadsServeAccessTest extends IntegrationTestCase
 
     // ── Derived files ────────────────────────────────────────────────────
     //
-    // The interesting half. A variant and a rendered thumbnail have their own
+    // The interesting half. A rendition and a rendered thumbnail have their own
     // keys, in their own directories, and neither is the path the row was
     // found by - so a check written against `filePath` alone would withhold a
     // picture while handing out a legible copy of it.
 
-    public function testTheResponsiveVariantOfADraftIsWithheld(): void
+    public function testTheResponsiveRenditionOfADraftIsWithheld(): void
     {
         $document = $this->document(DocumentStatusEnum::Draft);
 
-        $this->assertWithheld($document->getVariants()['medium']);
+        $this->assertWithheld($document->getRenditions()['medium']);
     }
 
-    public function testTheResponsiveVariantOfAPublishedDocumentIsServed(): void
+    public function testTheResponsiveRenditionOfAPublishedDocumentIsServed(): void
     {
         $document = $this->document(DocumentStatusEnum::Published);
 
-        $this->assertServed($document->getVariants()['medium']);
+        $this->assertServed($document->getRenditions()['medium']);
     }
 
     public function testTheRenderedThumbnailOfADraftIsWithheld(): void
@@ -243,12 +243,12 @@ final class UploadsServeAccessTest extends IntegrationTestCase
         self::assertStringNotContainsString('must-revalidate', $cacheControl);
     }
 
-    /** A variant is embedded in the same pages, and must be as cacheable. */
-    public function testTheVariantOfAPublishedDocumentIsPubliclyCacheableToo(): void
+    /** A rendition is embedded in the same pages, and must be as cacheable. */
+    public function testTheRenditionOfAPublishedDocumentIsPubliclyCacheableToo(): void
     {
         $document = $this->document(DocumentStatusEnum::Published);
 
-        $this->request($document->getVariants()['medium']);
+        $this->request($document->getRenditions()['medium']);
         $cacheControl = (string) $this->client->getResponse()->headers->get('Cache-Control');
 
         self::assertStringContainsString('public', $cacheControl);
@@ -361,20 +361,20 @@ final class UploadsServeAccessTest extends IntegrationTestCase
         $stem = 'photo-'.uniqid();
         $filePath = sprintf('ged/1999/03/%s.png', $stem);
         $thumbnailPath = sprintf('ged/thumbnails/1999/03/%s.png', $stem);
-        // The key ImageVariantGenerator writes: the source's own directory,
+        // The key ImageRenditionGenerator writes: the source's own directory,
         // plus `variants/<size>/`, re-encoded to WebP.
-        $variantPath = sprintf('ged/1999/03/variants/medium/%s.webp', $stem);
+        $renditionPath = sprintf('ged/1999/03/variants/medium/%s.webp', $stem);
 
         $this->write($filePath);
         $this->write($thumbnailPath);
-        $this->write($variantPath);
+        $this->write($renditionPath);
 
         $document = new Document();
         $document->setTitle('Pièce '.$stem)
             ->setStatus($status)
             ->setFilePath($filePath)
             ->setThumbnailPath($thumbnailPath)
-            ->setVariants(['medium' => $variantPath])
+            ->setRenditions(['medium' => $renditionPath])
             ->setMimeType('image/png')
             ->setSize(18);
 

@@ -10,7 +10,7 @@ use Aurora\Core\Storage\ActiveStorageDiskProviderInterface;
 use Aurora\Core\Storage\Adapter\LocalStorageAdapter;
 use Aurora\Core\Storage\Enum\StorageDiskEnum;
 use Aurora\Core\Storage\Service\ImageCropper;
-use Aurora\Core\Storage\Service\ImageVariantGenerator;
+use Aurora\Core\Storage\Service\ImageRenditionGenerator;
 use Aurora\Core\Storage\Service\PdfThumbnailGenerator;
 use Aurora\Core\Storage\Service\VideoPosterGenerator;
 use Aurora\Core\Storage\StorageManager;
@@ -99,7 +99,7 @@ final class DocumentManagerTest extends TestCase
                 $storageManager,
                 $workspace,
             ),
-            new ImageVariantGenerator($workspace),
+            new ImageRenditionGenerator($workspace),
             $storageManager,
         );
     }

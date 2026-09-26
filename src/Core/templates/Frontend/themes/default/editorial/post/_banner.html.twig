@@ -141,7 +141,7 @@
                for a narrow box and would be thrown off by the wide one's. #}
             <img
                 src="{{ banner.background.media.url }}"
-                {# A high-density screen gets the extra-large variant when the
+                {# A high-density screen gets the extra-large rendition when the
                    source had the pixels; the banner is as wide as the window. #}
                 {% if banner.background.media.srcset %}srcset="{{ banner.background.media.srcset }}" sizes="100vw"{% endif %}
                 alt=""

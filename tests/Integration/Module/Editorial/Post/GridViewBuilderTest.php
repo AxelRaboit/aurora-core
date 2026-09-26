@@ -330,7 +330,7 @@ final class GridViewBuilderTest extends IntegrationTestCase
 
     /**
      * The library wins whenever it has an answer: a document carries a focal
-     * point, a variant sized for the slot and an alt of its own, and an address
+     * point, a rendition sized for the slot and an alt of its own, and an address
      * carries none of that. It stands in rather than competing.
      */
     public function testAPickedDocumentIsPreferredToAnAddress(): void

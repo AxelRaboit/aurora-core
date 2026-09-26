@@ -16,7 +16,7 @@ use Symfony\Component\Filesystem\Filesystem;
  * The claim this command makes is that a file imported from the shell is
  * indistinguishable from one dropped in the médiathèque. That is the claim
  * worth testing, so the assertions are about the things a hand-written INSERT
- * would have left empty: the reference, the responsive variants, the stored
+ * would have left empty: the reference, the responsive renditions, the stored
  * bytes.
  */
 final class ImportDocumentsCommandTest extends IntegrationTestCase
@@ -55,7 +55,7 @@ final class ImportDocumentsCommandTest extends IntegrationTestCase
         self::assertSame(DocumentStatusEnum::Published, $document->getStatus());
         self::assertSame('AXL00594-Modifier.png', $document->getOriginalName());
         self::assertNotNull($document->getReference(), 'An imported document is numbered like any other.');
-        self::assertNotEmpty($document->getVariants(), 'An imported image carries its responsive variants.');
+        self::assertNotEmpty($document->getRenditions(), 'An imported image carries its responsive renditions.');
         self::assertSame(24, $document->getWidth());
         self::assertSame(16, $document->getHeight());
 

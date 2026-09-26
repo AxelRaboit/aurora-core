@@ -29,7 +29,7 @@ import {
 export const HelpKind = Object.freeze({
     /** How a field or a control behaves. The default, and the common case. */
     Field: "field",
-    /** A notion the screen assumes: what a disk is, what a variant is. */
+    /** A notion the screen assumes: what a disk is, what a rendition is. */
     Concept: "concept",
     /** Who can read or write what, and what leaves the server. */
     Security: "security",

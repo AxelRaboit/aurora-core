@@ -95,7 +95,7 @@ backend:
         delete_description: Supprime le document et son fichier. Sans retour possible.
         relocate_to_remote: Envoyer vers le stockage distant
         relocate_to_local: Rapatrier sur le serveur
-        relocate_description: "Déplace le fichier, ses variantes et son historique. Son adresse ne change pas."
+        relocate_description: "Déplace le fichier, ses tailles générées et son historique. Son adresse ne change pas."
         relocate_pending: Un déplacement est déjà en cours pour ce document.
       storage:
         column: Stockage

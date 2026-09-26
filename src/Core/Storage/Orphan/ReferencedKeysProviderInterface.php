@@ -11,7 +11,7 @@ use Aurora\Core\Storage\Enum\StorageAreaEnum;
  *
  * The sweep that removes unreferenced files knows how to list an area and
  * nothing about what a row is. Each module answers for its own: the GED names
- * a document's file, its still, its variants and every version's snapshot; the
+ * a document's file, its still, its renditions and every version's snapshot; the
  * platform names the photo on each account.
  *
  * **An area with no provider is never swept**, and that is the safe direction:

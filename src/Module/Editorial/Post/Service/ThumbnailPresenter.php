@@ -31,12 +31,12 @@ final readonly class ThumbnailPresenter
     /**
      * @return array{url: ?string, fit: string, objectFitClass: string, focalPosition: string}
      */
-    public function present(PostInterface $post, string $variant = 'medium'): array
+    public function present(PostInterface $post, string $rendition = 'medium'): array
     {
         $thumbnail = $post->getThumbnail();
 
         return [
-            'url' => $this->documentUrlGenerator->variantUrl($thumbnail, $variant)
+            'url' => $this->documentUrlGenerator->renditionUrl($thumbnail, $rendition)
                 ?? $this->documentUrlGenerator->publicUrl($thumbnail),
             'fit' => $post->getThumbnailFit()->value,
             // The class rather than the raw value: Tailwind only emits classes

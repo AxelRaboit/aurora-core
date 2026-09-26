@@ -21,7 +21,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  *
  * The same {@see PexelsImporter} the browser calls, which is the whole point.
  * A document that arrived through here is indistinguishable from one somebody
- * clicked: same download width, same store, same variants, same
+ * clicked: same download width, same store, same renditions, same
  * "médias éditoriaux" category, and - the part that is easy to lose when this
  * is reimplemented by hand - the same `sourceUrl` and attribution columns, from
  * which the credit under the picture is rendered. Pexels asks for that credit,

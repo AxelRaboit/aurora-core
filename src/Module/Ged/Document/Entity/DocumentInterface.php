@@ -112,10 +112,10 @@ interface DocumentInterface extends TimestampableInterface
     public function setFocalY(?float $focalY): static;
 
     /** @return array<string, string> */
-    public function getVariants(): array;
+    public function getRenditions(): array;
 
-    /** @param array<string, string> $variants */
-    public function setVariants(array $variants): static;
+    /** @param array<string, string> $renditions */
+    public function setRenditions(array $renditions): static;
 
     /** @return array<string, string> the camera settings read from the file at upload */
     public function getExif(): array;

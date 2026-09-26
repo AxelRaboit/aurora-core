@@ -32,7 +32,7 @@ use function str_starts_with;
  * here, it is the only place the question can be asked at all.
  *
  * **By key, not by id.** One route then covers a document's own file, its
- * rendered still, each responsive variant and the snapshot every previous
+ * rendered still, each responsive rendition and the snapshot every previous
  * version points at, without the caller having to say which kind it holds.
  * `DocumentUrlGenerator` swaps this route in for the catch-all and changes
  * nothing else, so no consumer learns that a second address exists.

@@ -13,7 +13,7 @@ use Doctrine\DBAL\Connection;
  * **Lu sur la table des documents, pas sur le disque.** Ce qui intéresse celui
  * qui regarde, c'est ce que l'application a rangé quelque part et dont elle
  * répond. Un `du` compterait aussi les restes d'un import raté et les
- * variantes qu'une purge n'a pas encore ramassées, ce qui donne un nombre plus
+ * tailles générées qu'une purge n'a pas encore ramassées, ce qui donne un nombre plus
  * grand et moins vrai.
  *
  * Une requête agrégée plutôt qu'un chargement : l'inventaire peut faire des

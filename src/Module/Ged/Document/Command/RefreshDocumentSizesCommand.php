@@ -23,12 +23,12 @@ use function sprintf;
  *
  * **Pourquoi ils divergent.** Le poids est relevé à l'arrivée du fichier, et
  * une source JPEG est ré-encodée en place à la qualité 85 - métadonnées
- * comprises - au moment où ses variantes sont fabriquées. Le nombre cessait
+ * comprises - au moment où ses tailles générées sont fabriquées. Le nombre cessait
  * donc d'être vrai une ligne plus tard, et la médiathèque affichait un poids
  * sans rapport avec ce qui est stocké. Mesuré sur un import : un million et
  * demi d'octets annoncés pour deux cent mille sur le disque.
  *
- * {@see DocumentManager::regenerateVariantsIfImage()} le relit désormais après
+ * {@see DocumentManager::regenerateRenditionsIfImage()} le relit désormais après
  * coup, donc rien de nouveau n'entre faux. Cette commande est pour ce qui est
  * déjà là.
  *

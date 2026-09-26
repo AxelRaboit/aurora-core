@@ -32,7 +32,7 @@ class DocumentInput implements DocumentInputInterface
         public readonly array $tagIds = [],
         public readonly ?int $folderId = null,
         // Focal point - normalized [0, 1] coordinates from the editor's
-        // click-on-image picker. `null` = center. Variants stay server-owned
+        // click-on-image picker. `null` = center. Renditions stay server-owned
         // (regenerated on upload/crop), so they are NOT carried by the DTO.
         public readonly ?float $focalX = null,
         public readonly ?float $focalY = null,

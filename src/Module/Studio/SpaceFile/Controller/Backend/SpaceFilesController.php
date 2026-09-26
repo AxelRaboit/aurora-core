@@ -196,7 +196,7 @@ class SpaceFilesController extends AbstractController
     private function keyOf(DocumentInterface $document, string $variant): string
     {
         $key = 'preview' === $variant
-            ? ($document->getVariants()['thumbnail'] ?? $document->getThumbnailPath())
+            ? ($document->getRenditions()['thumbnail'] ?? $document->getThumbnailPath())
             : $document->getFilePath();
 
         if (null === $key || '' === $key) {

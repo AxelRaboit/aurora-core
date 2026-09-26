@@ -29,7 +29,7 @@ use function str_starts_with;
 /**
  * The camera settings a photograph carries, in words a caption can print.
  *
- * Read before anything re-encodes the file: {@see ImageVariantGenerator}
+ * Read before anything re-encodes the file: {@see ImageRenditionGenerator}
  * rewrites a JPEG at quality 85 and its metadata goes with it. Only the
  * settings are kept - body, lens, aperture, speed, sensitivity, focal length
  * and the date - never the position, which would publish where a photographer

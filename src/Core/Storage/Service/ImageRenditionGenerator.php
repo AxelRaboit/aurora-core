@@ -10,9 +10,9 @@ use Aurora\Core\Storage\Workspace\LocalWorkspace;
 use GdImage;
 use Symfony\Component\Filesystem\Path;
 
-final readonly class ImageVariantGenerator
+final readonly class ImageRenditionGenerator
 {
-    public const array VARIANT_SIZES = [
+    public const array RENDITION_SIZES = [
         'thumbnail' => 256,
         'medium' => 800,
         'large' => 1920,
@@ -25,7 +25,7 @@ final readonly class ImageVariantGenerator
     ];
 
     /**
-     * The variant that always exists, whatever the source's size, so the
+     * The rendition that always exists, whatever the source's size, so the
      * public path never falls back to the raw file.
      */
     private const string ALWAYS = 'large';
@@ -35,11 +35,11 @@ final readonly class ImageVariantGenerator
     ) {}
 
     /**
-     * Generate all variants for a given source image.
-     * Variants are generated as WebP when supported (better compression, universal browser support).
+     * Generate all renditions for a given source image.
+     * Renditions are generated as WebP when supported (better compression, universal browser support).
      * GIFs keep their original format to preserve animation.
      *
-     * @return array<string, string> variant name → key of the stored variant
+     * @return array<string, string> rendition name → key of the stored rendition
      */
     public function generate(StorageAdapterInterface $adapter, string $sourceKey, string $mimeType): array
     {
@@ -79,8 +79,8 @@ final readonly class ImageVariantGenerator
         $baseName = pathinfo($sourceKey, PATHINFO_FILENAME);
 
         $useWebP = function_exists('imagewebp') && !$mime->supportsAnimation();
-        $variantMime = $useWebP ? MimeTypeEnum::Webp : $mime;
-        $variantExtension = $useWebP ? 'webp' : $extension;
+        $renditionMime = $useWebP ? MimeTypeEnum::Webp : $mime;
+        $renditionExtension = $useWebP ? 'webp' : $extension;
 
         // Re-encode JPEG at quality 85 to strip metadata and reduce file size.
         if ($mime->isJpeg()) {
@@ -88,12 +88,12 @@ final readonly class ImageVariantGenerator
         }
 
         $generated = [];
-        foreach (self::VARIANT_SIZES as $variantName => $maxSide) {
+        foreach (self::RENDITION_SIZES as $renditionName => $maxSide) {
             // Skip downscale when source is already smaller - EXCEPT for
-            // `large`: we always want a re-encoded "large" variant so the
+            // `large`: we always want a re-encoded "large" rendition so the
             // public download path (web) never falls back to the raw source,
             // which would leak EXIF (geo/camera) on PNG/WebP originals.
-            if (self::ALWAYS !== $variantName && $this->fitsBelow($variantName, $sourceWidth, $sourceHeight)) {
+            if (self::ALWAYS !== $renditionName && $this->fitsBelow($renditionName, $sourceWidth, $sourceHeight)) {
                 continue;
             }
 
@@ -103,18 +103,21 @@ final readonly class ImageVariantGenerator
                 : [$sourceWidth, $sourceHeight];
 
             $targetImage = imagecreatetruecolor($targetWidth, $targetHeight);
-            $this->preserveTransparency($targetImage, $variantMime);
+            $this->preserveTransparency($targetImage, $renditionMime);
 
             imagecopyresampled($targetImage, $source, 0, 0, 0, 0, $targetWidth, $targetHeight, $sourceWidth, $sourceHeight);
 
-            $variantKey = Path::join(dirname($sourceKey), 'variants', $variantName, sprintf('%s.%s', $baseName, $variantExtension));
+            // The directory keeps its historical name: every file stored
+            // before the rename lives under `variants/`, and
+            // `DocumentRepository::renditionSourcePattern()` reads it back.
+            $renditionKey = Path::join(dirname($sourceKey), 'variants', $renditionName, sprintf('%s.%s', $baseName, $renditionExtension));
 
-            $this->workspace->target($adapter, $variantKey, function (string $output) use ($targetImage, $variantMime): void {
-                $this->save($targetImage, $output, $variantMime);
+            $this->workspace->target($adapter, $renditionKey, function (string $output) use ($targetImage, $renditionMime): void {
+                $this->save($targetImage, $output, $renditionMime);
             });
             imagedestroy($targetImage);
 
-            $generated[$variantName] = $variantKey;
+            $generated[$renditionName] = $renditionKey;
         }
 
         imagedestroy($source);
@@ -123,29 +126,29 @@ final readonly class ImageVariantGenerator
     }
 
     /**
-     * Whether the source is too small for this variant to add anything.
+     * Whether the source is too small for this rendition to add anything.
      *
-     * A shrinking variant is pointless once the source fits inside it. The
+     * A shrinking rendition is pointless once the source fits inside it. The
      * extra-large one is different: it exists to carry more pixels than
      * `large`, so it is worth making as soon as the source outgrows `large` -
      * a 3840px source fits inside 3840 exactly, and skipping it there would
      * leave the one picture that needs it without it.
      */
-    private function fitsBelow(string $variantName, int $width, int $height): bool
+    private function fitsBelow(string $renditionName, int $width, int $height): bool
     {
-        $threshold = 'xlarge' === $variantName ? self::VARIANT_SIZES[self::ALWAYS] : self::VARIANT_SIZES[$variantName];
+        $threshold = 'xlarge' === $renditionName ? self::RENDITION_SIZES[self::ALWAYS] : self::RENDITION_SIZES[$renditionName];
 
         return $width <= $threshold && $height <= $threshold;
     }
 
     /**
-     * @param array<string, string> $variants
+     * @param array<string, string> $renditions
      */
-    public function deleteVariants(StorageAdapterInterface $adapter, array $variants): void
+    public function deleteRenditions(StorageAdapterInterface $adapter, array $renditions): void
     {
-        // One call rather than one per variant: a backend that bills per
+        // One call rather than one per rendition: a backend that bills per
         // request charges for each, and every deleted document has three.
-        $adapter->deleteMany(array_values($variants));
+        $adapter->deleteMany(array_values($renditions));
     }
 
     /** @return array{0: int, 1: int} */

@@ -95,7 +95,7 @@ backend:
         delete_description: Removes the document and its file. There is no undo.
         relocate_to_remote: Move to remote storage
         relocate_to_local: Bring back to the server
-        relocate_description: "Moves the file, its variants and its history. Its address does not change."
+        relocate_description: "Moves the file, its resized copies and its history. Its address does not change."
         relocate_pending: A move is already under way for this document.
       storage:
         column: Storage

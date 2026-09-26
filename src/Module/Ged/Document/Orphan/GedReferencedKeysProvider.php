@@ -12,7 +12,7 @@ use Aurora\Module\Ged\Document\Repository\DocumentVersionRepository;
 /**
  * Every key the document library still names.
  *
- * A document's own file, the still rendered from it, each responsive variant,
+ * A document's own file, the still rendered from it, each responsive rendition,
  * and the snapshot every previous version points at. Extracted from the
  * command that used to hold it when the sweep grew to cover more than one
  * area.
@@ -31,9 +31,9 @@ final readonly class GedReferencedKeysProvider implements ReferencedKeysProvider
 
     public function referencedKeys(): iterable
     {
-        /** @var list<array{filePath: string|null, thumbnailPath: string|null, variants: array<string, string>}> $documents */
+        /** @var list<array{filePath: string|null, thumbnailPath: string|null, renditions: array<string, string>}> $documents */
         $documents = $this->documentRepository->createQueryBuilder('d')
-            ->select('d.filePath', 'd.thumbnailPath', 'd.variants')
+            ->select('d.filePath', 'd.thumbnailPath', 'd.renditions')
             ->getQuery()
             ->getResult();
 
@@ -44,9 +44,9 @@ final readonly class GedReferencedKeysProvider implements ReferencedKeysProvider
                 }
             }
 
-            foreach ($document['variants'] as $variant) {
-                if ('' !== $variant) {
-                    yield $variant;
+            foreach ($document['renditions'] as $rendition) {
+                if ('' !== $rendition) {
+                    yield $rendition;
                 }
             }
         }

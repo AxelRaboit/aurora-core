@@ -14,7 +14,7 @@ use function str_starts_with;
 /**
  * The disk a media library file lives on, read from its document.
  *
- * A document is written to one disk and its `storageDisk` says which, variants
+ * A document is written to one disk and its `storageDisk` says which, renditions
  * included: they are generated next to their source and move with it. One
  * query on a few hundred rows is far cheaper than asking a remote bucket
  * whether the object exists.

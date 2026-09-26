@@ -79,28 +79,28 @@ class DocumentSerializer implements DocumentSerializerInterface
             'tags' => $document->getTags()->map(static fn ($tag): array => ['id' => $tag->getId(), 'name' => $tag->getName(), 'color' => $tag->getColor()])->toArray(),
             'folderId' => $folder?->getId(),
             'folderName' => $folder?->getName(),
-            // Focal point + responsive variant URLs (raster images only).
-            // Variants is a map { thumbnail|medium|large => /uploads/... }
+            // Focal point + responsive rendition URLs (raster images only).
+            // Renditions is a map { thumbnail|medium|large => /uploads/... }
             // so consumers can build a srcset without re-knowing the size
             // labels. `focalPositionCss` is precomputed so the front can
             // drop it straight into `style="object-position: ..."`.
             'focalX' => $document->getFocalX(),
             'focalY' => $document->getFocalY(),
             'focalPositionCss' => $this->documentUrlGenerator->focalPositionCss($document),
-            'variants' => $this->buildVariantUrls($document),
+            'renditions' => $this->buildRenditionUrls($document),
             'createdAt' => $document->getCreatedAt()->format(DateTimeInterface::ATOM),
             'updatedAt' => $document->getUpdatedAt()->format(DateTimeInterface::ATOM),
         ];
     }
 
     /** @return array<string, string> */
-    private function buildVariantUrls(DocumentInterface $document): array
+    private function buildRenditionUrls(DocumentInterface $document): array
     {
         $urls = [];
-        foreach (array_keys($document->getVariants()) as $variantName) {
-            $url = $this->documentUrlGenerator->variantUrl($document, $variantName);
+        foreach (array_keys($document->getRenditions()) as $renditionName) {
+            $url = $this->documentUrlGenerator->renditionUrl($document, $renditionName);
             if (null !== $url) {
-                $urls[$variantName] = $url;
+                $urls[$renditionName] = $url;
             }
         }
 

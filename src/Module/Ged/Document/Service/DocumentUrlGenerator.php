@@ -9,9 +9,9 @@ use Aurora\Module\Ged\Enum\DocumentStatusEnum;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
- * Turns a {@see DocumentInterface} (or one of its responsive variants) into
+ * Turns a {@see DocumentInterface} (or one of its responsive renditions) into
  * the user-facing URL pointing at the `/uploads/{path}` catch-all, plus
- * presentation helpers (focal-point CSS, best-variant cascade).
+ * presentation helpers (focal-point CSS, best-rendition cascade).
  *
  * Lives here rather than on `AbstractDocument` so the entity stays a pure
  * domain object - URL building requires `UrlGeneratorInterface`, a
@@ -48,7 +48,7 @@ final readonly class DocumentUrlGenerator
      * The route that will actually answer for this document's files.
      *
      * Read from the document rather than from the key, because the key of a
-     * variant says nothing about the status of the picture it was made from.
+     * rendition says nothing about the status of the picture it was made from.
      */
     private function routeFor(?DocumentInterface $document): string
     {
@@ -103,13 +103,13 @@ final readonly class DocumentUrlGenerator
         return $this->urlGenerator->generate($this->routeFor($document), ['path' => $path]);
     }
 
-    public function variantUrl(?DocumentInterface $document, string $variant): ?string
+    public function renditionUrl(?DocumentInterface $document, string $rendition): ?string
     {
         if (!$document instanceof DocumentInterface) {
             return null;
         }
 
-        $path = $document->getVariants()[$variant] ?? null;
+        $path = $document->getRenditions()[$rendition] ?? null;
 
         return null === $path
             ? null
@@ -117,7 +117,7 @@ final readonly class DocumentUrlGenerator
     }
 
     /**
-     * Best variant for thumbnail-size display: tries `medium` first, falls
+     * Best rendition for thumbnail-size display: tries `medium` first, falls
      * back to `large`, finally to the original. Matches the cascade most
      * consumers do inline against MediaUrlGenerator.
      */
@@ -127,8 +127,8 @@ final readonly class DocumentUrlGenerator
             return null;
         }
 
-        return $this->variantUrl($document, 'medium')
-            ?? $this->variantUrl($document, 'large')
+        return $this->renditionUrl($document, 'medium')
+            ?? $this->renditionUrl($document, 'large')
             ?? $this->publicUrl($document);
     }
 

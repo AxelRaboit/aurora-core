@@ -52,7 +52,7 @@ final class DocumentsController extends AbstractController
     /**
      * Above this, a move goes to a worker rather than holding the request.
      *
-     * Chosen so the common case stays instant: an image and its variants sit
+     * Chosen so the common case stays instant: an image and its renditions sit
      * far below, a scanned contract usually too. It is a video, or a document
      * with a long history of versions, that crosses it.
      */

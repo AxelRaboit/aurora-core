@@ -25,7 +25,7 @@ use function time;
  * Lists, and on `--force` removes, the stored files no database row points at.
  *
  * Two things leave files behind. Until v0.8.1 deleting a GED document erased
- * only its image variants, so its file, its thumbnail and every version file
+ * only its image renditions, so its file, its thumbnail and every version file
  * stayed on disk forever - and since version rows disappear through an
  * `ON DELETE CASCADE`, nothing was left to even name them. That is fixed, but
  * the files from past deletions are still there.

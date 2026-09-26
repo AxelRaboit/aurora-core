@@ -55,25 +55,25 @@ final class PruneOrphanFilesCommandTest extends IntegrationTestCase
         self::assertFileExists($absolute);
     }
 
-    public function testAVariantOfALiveDocumentIsNeverTouched(): void
+    public function testARenditionOfALiveDocumentIsNeverTouched(): void
     {
         $relative = 'ged/9990/03/source-'.uniqid().'.png';
-        $variant = 'ged/9990/03/variants/medium/source.webp';
+        $rendition = 'ged/9990/03/variants/medium/source.webp';
         $this->writeFile($relative, ancient: true);
-        $variantFile = $this->writeFile($variant, ancient: true);
+        $renditionFile = $this->writeFile($rendition, ancient: true);
 
         $entityManager = static::getContainer()->get(EntityManagerInterface::class);
         $document = new Document();
-        $document->setTitle('With variants')
+        $document->setTitle('With renditions')
             ->setStatus(DocumentStatusEnum::Draft)
             ->setFilePath($relative)
-            ->setVariants(['medium' => $variant]);
+            ->setRenditions(['medium' => $rendition]);
         $entityManager->persist($document);
         $entityManager->flush();
 
         $this->runCommand(['--force' => true])->assertCommandIsSuccessful();
 
-        self::assertFileExists($variantFile);
+        self::assertFileExists($renditionFile);
     }
 
     public function testARecentUnreferencedFileIsSpared(): void

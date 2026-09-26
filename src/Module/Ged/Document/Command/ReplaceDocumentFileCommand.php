@@ -46,7 +46,7 @@ use function sprintf;
  *
  * Same road as the browser's edit form: {@see GedDocumentUploader} writes the
  * bytes through the active disk, {@see DocumentManagerInterface::update()}
- * drops the old variants, builds the new ones, records the version and writes
+ * drops the old renditions, builds the new ones, records the version and writes
  * the audit line.
  */
 #[AsCommand(

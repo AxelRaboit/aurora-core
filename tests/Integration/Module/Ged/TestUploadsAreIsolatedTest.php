@@ -11,7 +11,7 @@ use Aurora\Tests\Integration\IntegrationTestCase;
  * serves from.
  *
  * It did, for months. Every run of the image upload contract left a
- * `pixel-*.png` and its variants behind in `var/uploads/ged/`, and nothing
+ * `pixel-*.png` and its renditions behind in `var/uploads/ged/`, and nothing
  * removed them: 1184 files had accumulated, discovered only because the
  * orphan sweep reported them.
  */

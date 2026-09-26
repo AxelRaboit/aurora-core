@@ -29,13 +29,13 @@ use Throwable;
  * wrong way in for a folder of eighty photographs, for the contents of a
  * previous site being moved over, or for anything a script produced - and
  * until now those had no way in at all short of writing rows by hand, which
- * skips the reference, the variants, the version history and the audit trail,
+ * skips the reference, the renditions, the version history and the audit trail,
  * and gets the storage disk wrong the day the installation stops writing to
  * the local one.
  *
  * So this takes exactly the same road as an upload: the uploader stores the
  * bytes through the active disk, the manager stamps the reference, builds the
- * responsive variants, records the first version and writes the audit line.
+ * responsive renditions, records the first version and writes the audit line.
  * A document imported here is indistinguishable from one dropped in the
  * browser, which is the whole point.
  *

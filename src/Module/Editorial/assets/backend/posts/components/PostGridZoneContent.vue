@@ -333,7 +333,7 @@ const displayHint = computed(() =>
             />
             <!-- Only reached when nothing is picked above, which is the order
                  the renderer uses too. A document carries a focal point, a
-                 sized variant and an alt of its own; an address carries none of
+                 sized rendition and an alt of its own; an address carries none of
                  that, so it stands in rather than competes. -->
             <AppInput
                 v-if="!bound.media.value?.id"

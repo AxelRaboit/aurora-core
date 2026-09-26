@@ -28,18 +28,18 @@ final class DocumentUrlGeneratorTest extends TestCase
      * `uploads_serve` means: the public route is what a *published* document
      * gets. The draft case has its own tests at the end.
      *
-     * @param array<string, string> $variants
+     * @param array<string, string> $renditions
      */
     private function makeDocument(
         ?string $filePath,
-        array $variants = [],
+        array $renditions = [],
         ?float $focalX = null,
         ?float $focalY = null,
         DocumentStatusEnum $status = DocumentStatusEnum::Published,
     ): DocumentInterface {
         $document = $this->createMock(DocumentInterface::class);
         $document->method('getFilePath')->willReturn($filePath);
-        $document->method('getVariants')->willReturn($variants);
+        $document->method('getRenditions')->willReturn($renditions);
         $document->method('getFocalX')->willReturn($focalX);
         $document->method('getFocalY')->willReturn($focalY);
         $document->method('getStatus')->willReturn($status);
@@ -88,20 +88,20 @@ final class DocumentUrlGeneratorTest extends TestCase
         self::assertSame('https://aurora.test/uploads/ged/2026/05/contract.pdf', $url);
     }
 
-    public function testVariantUrlReturnsNullWhenDocumentIsNull(): void
+    public function testRenditionUrlReturnsNullWhenDocumentIsNull(): void
     {
-        self::assertNull($this->documentUrlGenerator->variantUrl(null, 'medium'));
+        self::assertNull($this->documentUrlGenerator->renditionUrl(null, 'medium'));
     }
 
-    public function testVariantUrlReturnsNullWhenVariantIsMissing(): void
+    public function testRenditionUrlReturnsNullWhenRenditionIsMissing(): void
     {
         $document = $this->makeDocument('ged/2026/05/photo.webp', ['thumbnail' => 'ged/.../photo.thumbnail.webp']);
         $this->urlGenerator->expects(self::never())->method('generate');
 
-        self::assertNull($this->documentUrlGenerator->variantUrl($document, 'medium'));
+        self::assertNull($this->documentUrlGenerator->renditionUrl($document, 'medium'));
     }
 
-    public function testVariantUrlGeneratesWithTheVariantPath(): void
+    public function testRenditionUrlGeneratesWithTheRenditionPath(): void
     {
         $document = $this->makeDocument('ged/2026/05/photo.webp', [
             'medium' => 'ged/2026/05/variants/medium/photo.webp',
@@ -113,7 +113,7 @@ final class DocumentUrlGeneratorTest extends TestCase
 
         self::assertSame(
             '/uploads/ged/2026/05/variants/medium/photo.webp',
-            $this->documentUrlGenerator->variantUrl($document, 'medium'),
+            $this->documentUrlGenerator->renditionUrl($document, 'medium'),
         );
     }
 
@@ -150,9 +150,9 @@ final class DocumentUrlGeneratorTest extends TestCase
         );
     }
 
-    public function testThumbUrlFallsBackToOriginalWhenNoVariantExists(): void
+    public function testThumbUrlFallsBackToOriginalWhenNoRenditionExists(): void
     {
-        // Non-image documents (PDF, SVG) - no variant was produced, so the
+        // Non-image documents (PDF, SVG) - no rendition was produced, so the
         // thumb cascade must end on the original public path.
         $document = $this->makeDocument('ged/2026/05/contract.pdf');
         $this->urlGenerator->expects(self::once())
@@ -210,11 +210,11 @@ final class DocumentUrlGeneratorTest extends TestCase
     }
 
     /**
-     * A variant follows the status of the picture it was made from, not the
+     * A rendition follows the status of the picture it was made from, not the
      * shape of its own key. Withholding an image while serving a legible
      * copy of it would be the whole hole, reopened one directory down.
      */
-    public function testTheVariantOfADraftIsAddressedThroughTheGatedRoute(): void
+    public function testTheRenditionOfADraftIsAddressedThroughTheGatedRoute(): void
     {
         $this->urlGenerator->expects(self::once())
             ->method('generate')
@@ -229,7 +229,7 @@ final class DocumentUrlGeneratorTest extends TestCase
 
         self::assertSame(
             '/backend/ged/files/ged/2026/05/variants/medium/photo.webp',
-            $this->documentUrlGenerator->variantUrl($document, 'medium'),
+            $this->documentUrlGenerator->renditionUrl($document, 'medium'),
         );
     }
 }

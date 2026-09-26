@@ -150,7 +150,7 @@ abstract class AbstractDocument implements DocumentInterface
     protected ?float $focalY = null;
 
     /**
-     * Map of variant name → relative path under var/uploads/ (e.g.
+     * Map of rendition name → relative path under var/uploads/ (e.g.
      * `['thumbnail' => 'ged/.../variants/thumbnail/foo.webp', 'medium' => …]`).
      * Generated server-side at upload / crop for raster images. Empty for
      * non-image documents.
@@ -158,11 +158,11 @@ abstract class AbstractDocument implements DocumentInterface
      * @var array<string, string>
      */
     #[ORM\Column(type: Types::JSON, options: ['default' => '{}'])]
-    protected array $variants = [];
+    protected array $renditions = [];
 
     /**
      * What the camera wrote in the photograph: body, lens, aperture, speed,
-     * sensitivity, focal length, date. Read at upload, **before** the variant
+     * sensitivity, focal length, date. Read at upload, **before** the rendition
      * generator re-encodes the JPEG and drops its metadata - after that the
      * file no longer knows. Position is deliberately not kept: a picture
      * published on a page should not say where its author lives.
@@ -489,15 +489,15 @@ abstract class AbstractDocument implements DocumentInterface
     }
 
     /** @return array<string, string> */
-    public function getVariants(): array
+    public function getRenditions(): array
     {
-        return $this->variants;
+        return $this->renditions;
     }
 
-    /** @param array<string, string> $variants */
-    public function setVariants(array $variants): static
+    /** @param array<string, string> $renditions */
+    public function setRenditions(array $renditions): static
     {
-        $this->variants = $variants;
+        $this->renditions = $renditions;
 
         return $this;
     }

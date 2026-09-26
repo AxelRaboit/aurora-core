@@ -1799,7 +1799,7 @@ final readonly class GridViewBuilder
     private function mediaData(?DocumentInterface $media, string $alt, ?string $url = null): ?array
     {
         // The library wins whenever it has an answer: a document carries a
-        // focal point, a variant sized for this slot and an alt of its own,
+        // focal point, a rendition sized for this slot and an alt of its own,
         // and none of that can be read off an address. The address is what an
         // author has while a page is being drafted, not a second way of doing
         // the same thing.
@@ -1831,7 +1831,7 @@ final readonly class GridViewBuilder
             return null;
         }
 
-        $url = $this->documentUrlGenerator->variantUrl($media, 'large')
+        $url = $this->documentUrlGenerator->renditionUrl($media, 'large')
             ?? $this->documentUrlGenerator->publicUrl($media);
 
         // A document can carry no file at all - the demo library keeps three
@@ -1862,9 +1862,9 @@ final readonly class GridViewBuilder
             // sur la page photographie, où trois images font toute la page.
             //
             // Ce sont les dimensions du document et l'adresse est celle
-            // d'une variante, ce qui est sans importance : le navigateur
-            // n'en tire qu'un rapport, et une variante est un
-            // redimensionnement. Vérifié sur la production, où la variante
+            // d'une taille générée, ce qui est sans importance : le navigateur
+            // n'en tire qu'un rapport, et une taille générée est un
+            // redimensionnement. Vérifié sur la production, où la taille
             // « large » d'une photo mesure exactement ce que le document
             // déclare.
             'width' => $media->getWidth(),
