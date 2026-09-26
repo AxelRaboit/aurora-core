@@ -381,7 +381,12 @@ function resizeZone(index, columns) {
                         class="space-y-3 rounded-lg border border-dashed border-line p-3"
                     >
                         <div class="flex items-end gap-3">
-                            <AppSelect
+                            <!-- A row of buttons rather than a native select,
+                                 like `surface` itself just above: three named
+                                 options are all on screen already, and a
+                                 dropdown would hide two of them behind a click
+                                 for no reason. -->
+                            <AppChoiceRow
                                 v-model="zoneFields(index).fillType.value"
                                 :label="t('backend.posts.grid.fill')"
                                 :options="zoneChoices.fillType"
