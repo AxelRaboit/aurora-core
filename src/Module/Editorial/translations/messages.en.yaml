@@ -1073,6 +1073,7 @@ backend:
       color: Colour
       url: Address
       url_hint: "https:// or mailto:. {url} and {title} are replaced by the page's address and title, which makes it a real share link."
+      url_invalid: "This link will be dropped on save: its address must start with https:// or mailto:."
       add: Add a link
     field_title: Title
     field_slug: Slug
@@ -1473,6 +1474,7 @@ frontend:
       poll:
         total: "Votes: %count%"
         closed: This poll is closed.
+        too_many: Too many votes from this address, try again later.
       episode:
         transcript: Transcript
       reviews:

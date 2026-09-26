@@ -317,9 +317,14 @@ final class ThemeContext
             return '';
         }
 
+        // Filtré à la lecture, faute de l'être à l'écriture : un nom de
+        // propriété personnalisée, et une valeur qui ne peut ni fermer la
+        // déclaration, ni la règle, ni la balise `<style>` qui la porte.
         $parts = [];
         foreach ($config as $key => $value) {
-            if (is_string($value) && str_starts_with($key, '--')) {
+            if (is_string($value)
+                && 1 === preg_match('/^--[A-Za-z0-9_-]+$/', (string) $key)
+                && 0 === preg_match('/[;{}<>\\\\]|\/\*/', $value)) {
                 $parts[] = $key.': '.$value.';';
             }
         }
@@ -356,8 +361,10 @@ final class ThemeContext
      * La substitution se fait surface par surface, et pas en bloc : une
      * publication qui ne choisit que sa topbar garde le fond et le pied du
      * thème, ce qui est le seul sens qui rende `null` utilisable comme
-     * « hérite ». Les couleurs arrivent déjà validées par la frontière
-     * d'écriture, ici on ne fait que refuser le vide.
+     * « hérite ». Celles d'une publication sont validées à l'écriture
+     * (`PostInputFactory::colorOrNull`), mais pas celles du thème, dont la
+     * config n'est contrôlée nulle part en entrée : le filtre hexadécimal de
+     * `surfaceColor()` est donc la seule garde avant le `<style>` public.
      *
      * @param array<string, string|null> $overrides couleurs par clé de surface, cf. self::SURFACES
      */
@@ -415,7 +422,13 @@ final class ThemeContext
         return $selector.'{'.implode('', $declarations).'}';
     }
 
-    /** Une couleur de surface utilisable, ou null - le vide n'en est pas une. */
+    /**
+     * Une couleur de surface utilisable, ou null.
+     *
+     * Hexadécimal strict, comme les couleurs de survol : la valeur finit dans
+     * un `<style>` servi à tous les visiteurs, et une chaîne libre y fermerait
+     * la règle pour écrire la suite de la page.
+     */
     private function surfaceColor(mixed $raw): ?string
     {
         if (!is_string($raw)) {
@@ -424,6 +437,6 @@ final class ThemeContext
 
         $color = mb_trim($raw);
 
-        return '' !== $color ? $color : null;
+        return 1 === preg_match(self::HEX_COLOR, $color) ? $color : null;
     }
 }

@@ -7,10 +7,10 @@ namespace Aurora\Module\Editorial\Booking\Controller\Frontend;
 use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
+use Aurora\Core\Http\PageScriptRequestTrait;
 use Aurora\Module\Editorial\Booking\Service\BookingSlotFinder;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Grid\GridNormalizer;
-use Aurora\Module\Editorial\Post\Grid\GridZoneOptions;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
 use Aurora\Module\Planning\Event\Entity\PlanningEvent;
 use Aurora\Module\Planning\Event\Enum\PlanningEventStatusEnum;
@@ -27,11 +27,12 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 use function filter_var;
 use function implode;
-use function in_array;
 use function is_string;
+use function mb_strlen;
 use function mb_substr;
 use function mb_trim;
 use function sprintf;
+use function str_starts_with;
 
 use const FILTER_VALIDATE_EMAIL;
 
@@ -47,6 +48,7 @@ final class BookingController extends AbstractController
 {
     use JsonRequestTrait;
     use JsonResponseTrait;
+    use PageScriptRequestTrait;
 
     public function __construct(
         private readonly PostRepository $postRepository,
@@ -60,6 +62,10 @@ final class BookingController extends AbstractController
     #[Route('/{locale}/booking/{postId}/{zoneId}', name: 'editorial_booking_reserve', requirements: ['locale' => '[a-z]{2}', 'postId' => '\d+', 'zoneId' => '[A-Za-z0-9_-]{1,36}'], methods: [HttpMethodEnum::Post->value], priority: 12)]
     public function reserve(string $locale, int $postId, string $zoneId, Request $request): JsonResponse
     {
+        if (!$this->isFromThisPage($request)) {
+            return $this->jsonFailure('frontend.editorial.grid.booking.unavailable', 404);
+        }
+
         if (!$this->editorialBookingLimiter->create($request->getClientIp())->consume()->isAccepted()) {
             return $this->jsonFailure('frontend.editorial.grid.booking.too_many', 429);
         }
@@ -78,7 +84,9 @@ final class BookingController extends AbstractController
 
         $payload = $this->decodeJson($request);
         $at = is_string($payload['at'] ?? null) ? $payload['at'] : null;
-        $name = mb_trim((string) ($payload['name'] ?? ''));
+        // The name becomes the event's title and its source label, both 255
+        // characters wide: cut here rather than let a long one fail the write.
+        $name = mb_substr(mb_trim((string) ($payload['name'] ?? '')), 0, 120);
         $email = mb_trim((string) ($payload['email'] ?? ''));
         $phone = mb_trim((string) ($payload['phone'] ?? ''));
         $message = mb_substr(mb_trim((string) ($payload['message'] ?? '')), 0, 1000);
@@ -97,10 +105,10 @@ final class BookingController extends AbstractController
         $start = $start->setTimezone($timezone);
         $end = $start->modify(sprintf('+%d minutes', (int) $options['slotDuration']));
 
-        // Only a slot the grid could have offered - the same bounds `days()`
-        // draws from, checked here so a forged instant cannot book a Tuesday
-        // at 3 a.m. because nothing said it could not.
-        if ($start < (new DateTimeImmutable('+59 minutes')) || !$this->withinHours($start, $options)) {
+        // Only a slot the grid could have offered, asked of the service that
+        // draws the grid, so a forged instant cannot book a Tuesday at 3 a.m.
+        // - or at 10:17, or past closing - because nothing said it could not.
+        if (!$this->slots->isOffered($options, $start)) {
             return $this->jsonFailure('frontend.editorial.grid.booking.invalid');
         }
 
@@ -117,12 +125,26 @@ final class BookingController extends AbstractController
         $event->setSpan($start, $end);
         $event->setStatus(PlanningEventStatusEnum::Tentative);
         $event->setSource('editorial.booking', $postId, $name);
-        $event->setSourceUrl($request->headers->get('Referer'));
+        $event->setSourceUrl($this->pageAddress($request));
 
         $this->entityManager->persist($event);
         $this->entityManager->flush();
 
         return $this->jsonSuccess(['label' => new IntlDateFormatter($locale, IntlDateFormatter::FULL, IntlDateFormatter::SHORT, $timezone)->format($start)]);
+    }
+
+    /**
+     * The page the booking was made from, as the back office links to it.
+     *
+     * Kept only when it is this site's own address: the header is the
+     * browser's word, and a link in the back office should not point
+     * wherever a visitor's browser was told to say it came from.
+     */
+    private function pageAddress(Request $request): ?string
+    {
+        $referer = (string) $request->headers->get('Referer', '');
+
+        return str_starts_with($referer, $request->getSchemeAndHttpHost().'/') && mb_strlen($referer) <= 255 ? $referer : null;
     }
 
     private function summary(string $email, string $phone, string $message): string
@@ -139,25 +161,6 @@ final class BookingController extends AbstractController
         }
 
         return implode("\n", $lines);
-    }
-
-    /** @param array<string, mixed> $options */
-    private function withinHours(DateTimeImmutable $start, array $options): bool
-    {
-        if (in_array($start->format('Y-m-d'), $options['closedDates'], true)) {
-            return false;
-        }
-
-        $key = GridZoneOptions::WEEKDAYS[(int) $start->format('N') - 1];
-        $clock = $start->format('H:i');
-
-        foreach ($options['hours'][$key] as [$open, $close]) {
-            if ($clock >= $open && $clock < $close) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /** @return array<string, mixed>|null */

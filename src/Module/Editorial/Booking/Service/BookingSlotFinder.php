@@ -16,6 +16,7 @@ use DateTimeZone;
 use IntlDateFormatter;
 use Psr\Clock\ClockInterface;
 
+use function array_any;
 use function array_filter;
 use function array_map;
 use function array_values;
@@ -85,29 +86,12 @@ final readonly class BookingSlotFinder
         $days = [];
 
         for ($day = $from; $day < $to; $day = $day->modify('+1 day')) {
-            $key = $this->weekday($day);
-            $ranges = $options['hours'][$key];
-            if ([] === $ranges) {
-                continue;
-            }
-
-            if (in_array($day->format('Y-m-d'), $options['closedDates'], true)) {
-                continue;
-            }
-
             $slots = [];
-            foreach ($ranges as [$open, $close]) {
-                $slot = $this->atClock($day, $open, $timezone);
-                $end = $this->atClock($day, $close, $timezone);
+            foreach ($this->gridOf($day, $options, $timezone, $duration) as $slot) {
+                $slotEnd = $slot->add(new DateInterval(sprintf('PT%dM', $duration)));
 
-                while ($slot->add(new DateInterval(sprintf('PT%dM', $duration))) <= $end) {
-                    $slotEnd = $slot->add(new DateInterval(sprintf('PT%dM', $duration)));
-
-                    if ($slot >= $earliest && !$this->overlaps($slot, $slotEnd, $busy)) {
-                        $slots[] = ['at' => $slot->format(DATE_ATOM), 'label' => (string) $timeFormat->format($slot)];
-                    }
-
-                    $slot = $slotEnd;
+                if ($slot >= $earliest && !$this->overlaps($slot, $slotEnd, $busy)) {
+                    $slots[] = ['at' => $slot->format(DATE_ATOM), 'label' => (string) $timeFormat->format($slot)];
                 }
             }
 
@@ -117,6 +101,36 @@ final readonly class BookingSlotFinder
         }
 
         return $days;
+    }
+
+    /**
+     * Whether the grid could have offered this start at all: inside the
+     * booking window, far enough ahead, on the slot grid of an open day.
+     *
+     * Asked before `isFree()`, so a forged instant - 10:17, a start that
+     * would end after closing, a date years ahead - is refused even when the
+     * calendar happens to be empty then.
+     *
+     * @param array<string, mixed> $options a zone's normalised options
+     */
+    public function isOffered(array $options, DateTimeImmutable $start): bool
+    {
+        $timezone = new DateTimeZone($options['timezone']);
+        $now = ($this->clock?->now() ?? new DateTimeImmutable())->setTimezone($timezone);
+        $start = $start->setTimezone($timezone);
+        $from = $now->setTime(0, 0);
+        $to = $from->modify(sprintf('+%d days', max(1, (int) $options['bookingWindowDays'])));
+
+        if ($start < $now->modify(sprintf('+%d minutes', self::LEAD_MINUTES)) || $start >= $to) {
+            return false;
+        }
+
+        $duration = max(5, (int) $options['slotDuration']);
+
+        return array_any(
+            $this->gridOf($start->setTime(0, 0), $options, $timezone, $duration),
+            static fn (DateTimeImmutable $slot): bool => $slot->getTimestamp() === $start->getTimestamp(),
+        );
     }
 
     /**
@@ -132,6 +146,34 @@ final readonly class BookingSlotFinder
         );
 
         return [] === $busy;
+    }
+
+    /**
+     * Every slot start of one day, busy or not: the opening hours cut into
+     * slots that end before closing. Empty on a closed day.
+     *
+     * @param array<string, mixed> $options
+     *
+     * @return list<DateTimeImmutable>
+     */
+    private function gridOf(DateTimeImmutable $day, array $options, DateTimeZone $timezone, int $duration): array
+    {
+        if (in_array($day->format('Y-m-d'), $options['closedDates'], true)) {
+            return [];
+        }
+
+        $starts = [];
+        foreach ($options['hours'][$this->weekday($day)] as [$open, $close]) {
+            $slot = $this->atClock($day, $open, $timezone);
+            $end = $this->atClock($day, $close, $timezone);
+
+            while ($slot->add(new DateInterval(sprintf('PT%dM', $duration))) <= $end) {
+                $starts[] = $slot;
+                $slot = $slot->add(new DateInterval(sprintf('PT%dM', $duration)));
+            }
+        }
+
+        return $starts;
     }
 
     private function atClock(DateTimeImmutable $day, string $clock, DateTimeZone $timezone): DateTimeImmutable

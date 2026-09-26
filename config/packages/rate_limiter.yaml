@@ -70,10 +70,15 @@ framework:
             limit: 5
             interval: '1 hour'
 
-        # The public newsletter and booking endpoints, keyed on the client IP
-        # like the ones above. Newsletter and poll writes stay outer-wall only,
-        # like the two limiters at the top; the booking one guards a write
-        # that also asks a real calendar whether the slot is free.
+        # The public newsletter, booking and poll endpoints, keyed on the client
+        # IP like the ones above. The booking one also guards a write that asks
+        # a real calendar whether the slot is free. The poll one is looser: a
+        # vote is already one per reader, and a household behind one address
+        # may vote on several polls of a page.
+        editorial_poll_vote:
+            policy: sliding_window
+            limit: 30
+            interval: '1 hour'
         newsletter_subscription:
             policy: sliding_window
             limit: 10

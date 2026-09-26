@@ -541,6 +541,9 @@ class AuroraBundle extends AbstractBundle
                 // gardées par IP.
                 'newsletter_subscription' => ['policy' => 'sliding_window', 'limit' => 10, 'interval' => '1 hour'],
                 'editorial_booking' => ['policy' => 'sliding_window', 'limit' => 10, 'interval' => '1 hour'],
+                // Le vote d'un sondage : un par lecteur déjà, plus large pour
+                // un foyer derrière une seule adresse.
+                'editorial_poll_vote' => ['policy' => 'sliding_window', 'limit' => 30, 'interval' => '1 hour'],
             ],
         ]);
 

@@ -7,8 +7,10 @@ namespace Aurora\Module\Editorial\Poll\Controller\Frontend;
 use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
+use Aurora\Core\Http\PageScriptRequestTrait;
 use Aurora\Module\Editorial\Poll\Entity\PollVote;
 use Aurora\Module\Editorial\Poll\Repository\PollVoteRepository;
+use Aurora\Module\Editorial\Poll\Service\PollAnswers;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Grid\GridNormalizer;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
@@ -18,20 +20,13 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
-use function array_filter;
-use function array_keys;
-use function array_map;
-use function array_slice;
-use function array_sum;
-use function array_values;
 use function count;
 use function hash_hmac;
 use function is_int;
 use function is_string;
-use function preg_split;
-use function round;
 
 /**
  * Where a reader's answer to a poll zone lands.
@@ -49,6 +44,7 @@ final class PollVoteController extends AbstractController
 {
     use JsonRequestTrait;
     use JsonResponseTrait;
+    use PageScriptRequestTrait;
 
     public function __construct(
         private readonly PostRepository $postRepository,
@@ -57,11 +53,21 @@ final class PollVoteController extends AbstractController
         private readonly GridNormalizer $gridNormalizer,
         #[Autowire(param: 'kernel.secret')]
         private readonly string $secret,
+        private readonly RateLimiterFactoryInterface $editorialPollVoteLimiter,
+        private readonly PollAnswers $pollAnswers,
     ) {}
 
     #[Route('/{locale}/poll/{postId}/{zoneId}', name: 'editorial_poll_vote', requirements: ['locale' => '[a-z]{2}', 'postId' => '\d+', 'zoneId' => '[A-Za-z0-9_-]{1,36}'], methods: [HttpMethodEnum::Post->value], priority: 12)]
     public function vote(string $locale, int $postId, string $zoneId, Request $request): JsonResponse
     {
+        if (!$this->isFromThisPage($request)) {
+            return $this->jsonFailure('frontend.editorial.grid.poll.closed', 404);
+        }
+
+        if (!$this->editorialPollVoteLimiter->create($request->getClientIp())->consume()->isAccepted()) {
+            return $this->jsonFailure('frontend.editorial.grid.poll.too_many', 429);
+        }
+
         $post = $this->postRepository->find($postId);
 
         if (!$post instanceof PostInterface || !$post->isPublished()) {
@@ -86,16 +92,7 @@ final class PollVoteController extends AbstractController
             }
         }
 
-        $tally = $this->votes->tally($postId, $zoneId);
-        $total = array_sum($tally);
-
-        return $this->jsonSuccess([
-            'total' => $total,
-            'answers' => array_map(static fn (int $index): array => [
-                'votes' => $tally[$index] ?? 0,
-                'percent' => 0 === $total ? 0 : (int) round(($tally[$index] ?? 0) / $total * 100),
-            ], array_keys($answers)),
-        ]);
+        return $this->jsonSuccess($this->pollAnswers->results($answers, $this->votes->tally($postId, $zoneId)));
     }
 
     /**
@@ -120,9 +117,11 @@ final class PollVoteController extends AbstractController
         }
 
         $content = $this->gridNormalizer->normalizeContent($post->translate($locale)->getGrid(), $layout);
-        $code = $content['zones'][$zoneId]['code'] ?? '';
-        $lines = is_string($code) ? array_values(array_filter(array_map(trim(...), preg_split('/\R/', $code) ?: []))) : [];
+        $held = $content['zones'][$zoneId] ?? [];
 
-        return count($lines) >= 2 ? array_slice($lines, 0, 8) : null;
+        return $this->pollAnswers->of(
+            is_string($held['label'] ?? null) ? $held['label'] : '',
+            is_string($held['code'] ?? null) ? $held['code'] : '',
+        );
     }
 }
