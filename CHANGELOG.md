@@ -5,6 +5,44 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.264] - 2026-09-26
+
+### Ajouté
+
+- **Survols et repères bloc par bloc.** Chaque bloc de la grille d'une page
+  choisit la couleur de ses survols et des repères de ses cartes : comme la
+  page (par défaut), couleur principale, neutres ou personnalisée. Le bloc
+  passe devant la page, qui passe devant le thème.
+- **Le repère de la page active dans la barre de navigation** se règle dans
+  l'écran Thème, sur les mêmes trois modes que les survols : couleur
+  principale (par défaut), neutre ou personnalisée.
+- **Le bouton sous le texte d'une entête se règle dans l'éditeur** : libellé,
+  lien, couleur du bouton et couleur de son texte. La page savait le dessiner,
+  mais l'éditeur n'offrait aucun moyen de le remplir.
+
+### Modifié
+
+- **Les liens de partage par défaut** sont désormais copier le lien, LinkedIn
+  et Facebook : WhatsApp quitte la liste par défaut et reste disponible page
+  par page.
+
+### Corrigé
+
+#### Les entêtes sur tablette
+- **Les cadrages téléphone et tablette ne s'appliquaient pas.** Le point de
+  cadrage de l'image large était écrit directement sur l'image et l'emportait
+  sur les deux autres : une image téléphone ou tablette était toujours cadrée
+  sur son centre, quoi qu'on ait réglé. Chaque image suit désormais son propre
+  point de cadrage.
+- **Une entête passe en colonnes dès 640 px**, comme ses images : entre 640 et
+  767 px (un iPad mini tenu droit fait 744 px), une image composée pour la
+  tablette tombait sous un texte encore étalé sur toute la largeur. Les
+  largeurs « tablette » d'une entête s'appliquent maintenant de 640 à 1023 px ;
+  les grilles du contenu gardent leurs paliers.
+- **Les titres d'entête prennent leur plus grande taille à 1024 px**, et non
+  plus à 768 : en deux colonnes, un mot long comme « personnelles » débordait
+  sur le visuel voisin. Rien ne change sur téléphone ni au-delà de 1024 px.
+
 ## [0.9.263] - 2026-09-26
 
 ### Ajouté

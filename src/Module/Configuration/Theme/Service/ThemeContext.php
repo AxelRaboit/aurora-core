@@ -162,25 +162,12 @@ final class ThemeContext
      */
     public function highlight(): string
     {
-        $value = $this->activeTheme()?->getConfig()['highlight'] ?? '';
-
-        if ('custom' === $value) {
-            return null !== $this->highlightColor() ? 'custom' : 'accent';
-        }
-
-        return in_array($value, self::HIGHLIGHTS, true) ? $value : 'accent';
+        return $this->colorMode('highlight', 'highlight_color');
     }
 
-    /**
-     * Hexadécimal strict et rien d'autre : la valeur part dans une balise
-     * `<style>`, et la configuration du thème n'est validée nulle part à
-     * l'écriture.
-     */
     public function highlightColor(): ?string
     {
-        $value = $this->activeTheme()?->getConfig()['highlight_color'] ?? null;
-
-        return is_string($value) && 1 === preg_match(self::HEX_COLOR, $value) ? $value : null;
+        return $this->hexSetting('highlight_color');
     }
 
     /**
@@ -214,6 +201,59 @@ final class ThemeContext
         $color = 'custom' === $this->highlight() ? $this->highlightColor() : null;
 
         return null !== $color ? 'html[data-theme]{--th-highlight: '.$color.';}' : '';
+    }
+
+    /**
+     * The mark under the active entry of the top bar: the primary colour,
+     * the text colour of the bar, or a colour of its own. Same three modes
+     * as the hovers, and the same fallback when a custom colour is missing.
+     *
+     * @return 'accent'|'neutral'|'custom'
+     */
+    public function menuActive(): string
+    {
+        return $this->colorMode('menu_active', 'menu_active_color');
+    }
+
+    public function menuActiveColor(): ?string
+    {
+        return $this->hexSetting('menu_active_color');
+    }
+
+    public function menuActiveCss(): string
+    {
+        $color = 'custom' === $this->menuActive() ? $this->menuActiveColor() : null;
+
+        return null !== $color ? 'html[data-theme]{--th-menu-active: '.$color.';}' : '';
+    }
+
+    /**
+     * A mode among self::HIGHLIGHTS read from the theme, falling back to the
+     * accent - including for `custom` without a usable colour, which would
+     * otherwise draw in no colour at all.
+     *
+     * @return 'accent'|'neutral'|'custom'
+     */
+    private function colorMode(string $key, string $colorKey): string
+    {
+        $value = $this->activeTheme()?->getConfig()[$key] ?? '';
+
+        if ('custom' === $value) {
+            return null !== $this->hexSetting($colorKey) ? 'custom' : 'accent';
+        }
+
+        return in_array($value, self::HIGHLIGHTS, true) ? $value : 'accent';
+    }
+
+    /**
+     * Strict hex and nothing else: the value lands in a `<style>`, and the
+     * theme's configuration is not validated anywhere on the way in.
+     */
+    private function hexSetting(string $key): ?string
+    {
+        $value = $this->activeTheme()?->getConfig()[$key] ?? null;
+
+        return is_string($value) && 1 === preg_match(self::HEX_COLOR, $value) ? $value : null;
     }
 
     public function primaryColor(): string

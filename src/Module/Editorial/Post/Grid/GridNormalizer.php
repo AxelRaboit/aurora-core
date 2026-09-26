@@ -540,6 +540,9 @@ final readonly class GridNormalizer
      */
     public const array ZONE_CONTRASTS = ['auto', 'light', 'dark'];
 
+    /** Hovers and card markers of a zone: the page's, or a choice of its own. */
+    public const array ZONE_HIGHLIGHTS = ['inherit', 'accent', 'neutral', 'custom'];
+
     /**
      * How a zone arrives when the reader scrolls to it.
      *
@@ -1096,6 +1099,10 @@ final readonly class GridNormalizer
                 // regardless of the page's own. 'auto' - the default - means
                 // exactly what it means everywhere else here: follow the page.
                 'contrast' => $this->values->oneOf($entry['contrast'] ?? null, self::ZONE_CONTRASTS, self::ZONE_CONTRASTS[0]),
+                // The colour of this zone's hovers and card markers, over the
+                // page's and the theme's. `inherit` - the default - follows them.
+                'highlight' => $this->values->oneOf($entry['highlight'] ?? null, self::ZONE_HIGHLIGHTS, self::ZONE_HIGHLIGHTS[0]),
+                'highlightColor' => $this->values->color($entry['highlightColor'] ?? null),
                 // How the zone arrives when the reader reaches it. Beside the
                 // surface because it is the same kind of decision - how this
                 // zone presents itself - and shared for the same reason.

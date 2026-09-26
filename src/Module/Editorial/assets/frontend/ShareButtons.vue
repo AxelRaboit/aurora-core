@@ -9,7 +9,7 @@ import { resolveShareLinks } from "./shareLinks.js";
  *
  * Its links are the page's own when an editor chose them - which ones, in
  * which order, with which words and colours - and otherwise the default row
- * of copy, LinkedIn, WhatsApp and Facebook.
+ * of copy, LinkedIn and Facebook.
  */
 const props = defineProps({
     url: { type: String, required: true },

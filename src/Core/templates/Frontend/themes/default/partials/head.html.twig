@@ -110,7 +110,7 @@
     <style>{{ surfacesCss|raw }}</style>
 {% endif %}
 
-{% set highlightCss = themeContext.highlightCss() %}
+{% set highlightCss = themeContext.highlightCss() ~ themeContext.menuActiveCss() %}
 {% if highlightCss %}
     <style>{{ highlightCss|raw }}</style>
 {% endif %}

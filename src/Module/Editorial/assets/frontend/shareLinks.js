@@ -24,7 +24,6 @@ export const MAX_SHARE_LINKS = 12;
 export const DEFAULT_SHARE_LINKS = [
     { type: "copy", label: null, url: null, color: null },
     { type: "linkedin", label: null, url: null, color: null },
-    { type: "whatsapp", label: null, url: null, color: null },
     { type: "facebook", label: null, url: null, color: null },
 ];
 

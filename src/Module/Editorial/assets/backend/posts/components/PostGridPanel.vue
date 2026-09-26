@@ -491,6 +491,21 @@ function resizeZone(index, columns) {
                         :options="zoneChoices.contrast"
                     />
 
+                    <!-- Hovers and card markers of this zone, over the page's
+                         and the theme's: a band of colour can ask for neutral
+                         hovers while the rest of the page keeps its accent. -->
+                    <AppChoiceRow
+                        v-model="zoneFields(index).highlight.value"
+                        :label="t('backend.posts.grid.highlight')"
+                        :hint="t('backend.posts.grid.highlight_hint')"
+                        :options="zoneChoices.highlight"
+                    />
+                    <BannerColorField
+                        v-if="zoneFields(index).highlight.value === 'custom'"
+                        v-model="zoneFields(index).highlightColor.value"
+                        :label="t('backend.posts.grid.highlight_color')"
+                    />
+
                     <!-- Comment la zone arrive quand le lecteur la
                          rejoint. Ici, avec le fond et la largeur, parce que
                          c'est la même question posée une troisième fois :

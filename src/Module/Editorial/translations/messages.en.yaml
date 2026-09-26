@@ -362,6 +362,7 @@ backend:
         lg: Large
         xl: Extra large
       add_button: Add a button
+      text_button_label: Button under the text (optional)
       button_label: Button label
       button_label_placeholder: Learn more
       button_url: Link
@@ -628,6 +629,14 @@ backend:
         custom: Custom
       contrast: Forced theme
       contrast_hint: "Forces this zone into the light or dark token set regardless of the page's own. \"Same as the page\" just follows the theme."
+      highlight: Hovers and markers
+      highlight_hint: "The colour of this block's hovers and card markers, over the page's and the theme's."
+      highlight_color: Hover colour
+      highlights:
+        inherit: Same as the page
+        accent: Primary colour
+        neutral: Neutral
+        custom: Custom
       contrasts:
         auto: Same as the page
         light: Light
@@ -1053,7 +1062,7 @@ backend:
     comments_enabled: Comments open
     share_enabled: Share buttons at the bottom of the page
     share_links:
-      default_hint: "Default links: copy link, LinkedIn, WhatsApp, Facebook. Change one to compose this page's own."
+      default_hint: "Default links: copy link, LinkedIn, Facebook. Change one to compose this page's own."
       hint: This page's links, in order. Drag the handle to reorder them.
       reset: Default links
       empty: No link, the block is not shown.
