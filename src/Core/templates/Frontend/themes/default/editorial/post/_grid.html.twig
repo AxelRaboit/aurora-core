@@ -47,7 +47,8 @@
         <div
             {% if zone.anchor|default('') %}id="{{ zone.anchor }}" class="scroll-mt-24"{% endif %}
             {% if reveal != 'none' %}data-reveal="{{ reveal }}"{% endif %}
-            style="{{ zone.spanStyle|raw }}{{ zone.startStyle|default('')|raw }}"
+            {% if zone.highlight|default(null) %}data-zone-highlight="{{ zone.highlight }}"{% endif %}
+            style="{{ zone.spanStyle|raw }}{{ zone.startStyle|default('')|raw }}{{ zone.highlightStyle|default('')|raw }}"
         >
             {% if zone.type == 'stack' %}
                 {# Captured and wrapped like a leaf zone, so a stack can sit on
@@ -85,8 +86,9 @@
                         <div
                             {% if child.anchor|default('') %}id="{{ child.anchor }}"{% endif %}
                             {% if childReveal != 'none' %}data-reveal="{{ childReveal }}"{% endif %}
+                            {% if child.highlight|default(null) %}data-zone-highlight="{{ child.highlight }}"{% endif %}
                             class="min-w-0{{ child.ratio == 'fill' ? ' lg:min-h-0' : '' }}{{ child.anchor|default('') ? ' scroll-mt-24' : '' }}"
-                            style="{{ child.shareStyle|raw }}"
+                            style="{{ child.shareStyle|raw }}{{ child.highlightStyle|default('')|raw }}"
                         >
                             {{ include('Frontend/themes/default/editorial/post/_grid_zone.html.twig', {zone: child, locale: locale}) }}
                         </div>

@@ -132,6 +132,8 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
     const contentWidth = ref("narrow");
     const highlight = ref("accent");
     const highlightColor = ref(DEFAULT_PRIMARY_COLOR);
+    const menuActive = ref("accent");
+    const menuActiveColor = ref(DEFAULT_PRIMARY_COLOR);
     const fontFamily = ref(DEFAULT_FONT_FAMILY);
     const primaryColor = ref(DEFAULT_PRIMARY_COLOR);
 
@@ -160,6 +162,10 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
         if (highlight.value !== "accent") result["highlight"] = highlight.value;
         if (highlight.value === "custom")
             result["highlight_color"] = highlightColor.value;
+        if (menuActive.value !== "accent")
+            result["menu_active"] = menuActive.value;
+        if (menuActive.value === "custom")
+            result["menu_active_color"] = menuActiveColor.value;
         if (fontFamily.value !== DEFAULT_FONT_FAMILY)
             result["font_family"] = fontFamily.value;
         if (headerMode.value === "image" && headerLogoMediaId.value.trim()) {
@@ -211,6 +217,9 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
             theme.config?.["primary_color"] ?? DEFAULT_PRIMARY_COLOR;
         highlightColor.value =
             theme.config?.["highlight_color"] ?? primaryColor.value;
+        menuActive.value = theme.config?.["menu_active"] ?? "accent";
+        menuActiveColor.value =
+            theme.config?.["menu_active_color"] ?? primaryColor.value;
         for (const key of SURFACE_KEYS) {
             surfaceColors[key] = theme.config?.[key] ?? "";
         }
@@ -252,6 +261,8 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
         contentWidth,
         highlight,
         highlightColor,
+        menuActive,
+        menuActiveColor,
         fontFamily,
         CSS_SECTIONS,
         DEFAULTS,

@@ -167,6 +167,12 @@ final readonly class GridViewBuilder
                 // override the page - the template then poses no style at
                 // all, exactly as before this existed.
                 'contrastStyle' => 'auto' !== $zone['contrast'] ? $this->contrastStyle($zone['contrast']) : '',
+                // Null when the zone follows the page, which is every zone
+                // written before this existed - the template then adds nothing.
+                'highlight' => $this->zoneHighlight($zone['highlight'] ?? 'inherit', $zone['highlightColor'] ?? null),
+                'highlightStyle' => 'custom' === $this->zoneHighlight($zone['highlight'] ?? 'inherit', $zone['highlightColor'] ?? null)
+                    ? '--zone-highlight: '.$zone['highlightColor'].';'
+                    : '',
                 'spanStyle' => $this->values->spanStyle($zone['span']),
                 'ratioStyle' => $this->ratioStyle($zone['ratio']),
                 // Empty at full width, which is every zone that has not asked
@@ -1911,6 +1917,20 @@ final readonly class GridViewBuilder
      * same shape as the surface's own `fillStyle`, so the template poses it
      * the same way, in a `style` attribute rather than a class.
      */
+    /**
+     * The mode a zone's hovers take, or null to follow the page. A custom
+     * mode without a colour follows the page too: the normaliser already
+     * refused anything that was not a hex colour.
+     */
+    private function zoneHighlight(string $mode, ?string $color): ?string
+    {
+        if ('inherit' === $mode || ('custom' === $mode && null === $color)) {
+            return null;
+        }
+
+        return $mode;
+    }
+
     private function contrastStyle(string $scheme): string
     {
         $declarations = [];

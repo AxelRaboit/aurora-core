@@ -54,6 +54,7 @@ final class GridContractMirrorTest extends TestCase
         yield 'surfaces' => [GridNormalizer::SURFACES, 'SURFACES'];
         yield 'zone fill types' => [GridNormalizer::ZONE_FILL_TYPES, 'ZONE_FILL_TYPES'];
         yield 'zone contrasts' => [GridNormalizer::ZONE_CONTRASTS, 'ZONE_CONTRASTS'];
+        yield 'zone highlights' => [GridNormalizer::ZONE_HIGHLIGHTS, 'ZONE_HIGHLIGHTS'];
         yield 'separator styles' => [GridNormalizer::SEPARATOR_STYLES, 'SEPARATOR_STYLES'];
         yield 'item displays' => [GridNormalizer::ITEM_DISPLAYS, 'ITEM_DISPLAYS'];
         yield 'gallery layouts' => [GridZoneOptions::GALLERY_LAYOUTS, 'GALLERY_LAYOUTS'];

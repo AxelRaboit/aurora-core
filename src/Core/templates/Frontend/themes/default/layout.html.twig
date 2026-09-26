@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ locale }}" data-theme{% if themeContext.highlight() == 'neutral' %} data-highlight="neutral"{% endif %}>
+<html lang="{{ locale }}" data-theme{% if themeContext.highlight() == 'neutral' %} data-highlight="neutral"{% endif %}{% if themeContext.menuActive() == 'neutral' %} data-menu-active="neutral"{% endif %}>
 <head>
     {% set alternates = alternates|default([]) %}
     {# Passerelles override `seo_define` to call `{% do seo({...}) %}` - must render before head include. #}

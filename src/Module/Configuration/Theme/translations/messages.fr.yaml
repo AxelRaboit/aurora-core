@@ -16,6 +16,9 @@ backend:
     highlight_custom: Personnalisée
     highlight_color: Couleur des survols et repères
     highlight_hint: "Liserés et titres au survol, catégorie et flèche des cartes. En neutre, ils prennent la couleur du texte ; en personnalisée, la couleur de votre choix, sur tout le site."
+    menu_active: Page active dans le menu
+    menu_active_color: Couleur du repère
+    menu_active_hint: "Le trait sous l'entrée de la barre de navigation qui correspond à la page affichée."
     surfaces: Couleurs du site public
     surfaces_hint: "Une couleur par surface. La couleur du texte, des libellés et des bordures en est déduite automatiquement, en clair ou en sombre selon ce qui reste lisible."
     surface_background: Fond des pages

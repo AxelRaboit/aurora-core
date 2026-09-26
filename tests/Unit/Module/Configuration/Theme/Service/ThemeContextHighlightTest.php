@@ -69,6 +69,21 @@ final class ThemeContextHighlightTest extends TestCase
         self::assertSame('html[data-theme]{--th-highlight: #c2410c;}', $context->highlightCss());
     }
 
+    /** The active entry of the top bar: the same three modes, read from their own keys. */
+    public function testTheMenuMarkerHasItsOwnSetting(): void
+    {
+        self::assertSame('accent', $this->contextWithConfig([])->menuActive());
+        self::assertSame('', $this->contextWithConfig([])->menuActiveCss());
+        self::assertSame('neutral', $this->contextWithConfig(['menu_active' => 'neutral', 'highlight' => 'custom'])->menuActive());
+
+        $custom = $this->contextWithConfig(['menu_active' => 'custom', 'menu_active_color' => '#f59e0b']);
+        self::assertSame('html[data-theme]{--th-menu-active: #f59e0b;}', $custom->menuActiveCss());
+
+        $bad = $this->contextWithConfig(['menu_active' => 'custom', 'menu_active_color' => 'red;}</style>']);
+        self::assertSame('accent', $bad->menuActive());
+        self::assertSame('', $bad->menuActiveCss());
+    }
+
     public function testAPublicationThatInheritsEmitsNothing(): void
     {
         $context = $this->contextWithConfig([]);

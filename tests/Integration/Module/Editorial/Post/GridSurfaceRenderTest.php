@@ -406,6 +406,45 @@ final class GridSurfaceRenderTest extends IntegrationTestCase
         return $grid['zones'][0];
     }
 
+    // ── Hovers and card markers, zone by zone ──────────────────────────────
+
+    public function testAZoneCanChooseItsOwnHoverColour(): void
+    {
+        $custom = $this->renderGrid(['highlight' => 'custom', 'highlightColor' => '#f59e0b']);
+        $neutral = $this->renderGrid(['highlight' => 'neutral']);
+
+        self::assertStringContainsString('data-zone-highlight="custom"', $custom);
+        self::assertStringContainsString('--zone-highlight: #f59e0b;', $custom);
+        self::assertStringContainsString('data-zone-highlight="neutral"', $neutral);
+    }
+
+    /**
+     * A zone that follows the page adds nothing, and so does one whose choice
+     * cannot be honoured: an unknown mode, or a custom one without a real
+     * colour - which also keeps anything but a hex out of the style attribute.
+     */
+    public function testAZoneThatFollowsThePageAddsNothing(): void
+    {
+        foreach ([[], ['highlight' => 'bogus'], ['highlight' => 'custom', 'highlightColor' => 'red;}</style>']] as $overrides) {
+            $html = $this->renderGrid($overrides);
+
+            self::assertStringNotContainsString('data-zone-highlight', $html);
+            self::assertStringNotContainsString('--zone-highlight', $html);
+        }
+    }
+
+    /** @param array<string, mixed> $overrides */
+    private function renderGrid(array $overrides): string
+    {
+        $grid = $this->gridViewBuilder->build(
+            ['enabled' => true, 'zones' => [['id' => 'z1', 'type' => 'text', ...$overrides]]],
+            ['zones' => ['z1' => ['blocks' => [['type' => 'paragraph', 'data' => ['text' => 'Une phrase.']]]]]],
+            'fr',
+        );
+
+        return $this->twig->render('Frontend/themes/default/editorial/post/_grid.html.twig', ['grid' => $grid, 'locale' => 'fr']);
+    }
+
     /** @param array<string, mixed> $zone */
     private function render(array $zone): string
     {

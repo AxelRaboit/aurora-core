@@ -105,6 +105,21 @@
     }
 }
 
+/*
+ * A banner's tablet columns start at `sm`, not `md`. Its pictures already
+ * switch there - phone below 640px, tablet from 640px - and between 640 and
+ * 767px a picture composed for two columns sat under a text still spread
+ * across the full width. That range is also a real tablet: an iPad mini held
+ * upright is 744px wide. Content grids keep their own breakpoints.
+ */
+@media (min-width: 640px) and (max-width: 767.98px) {
+    .aurora-grid-banner > * {
+        grid-row: var(--row-md, var(--row-base, auto));
+        grid-column: var(--start-md, var(--start-base, auto)) /
+            span var(--span-md, var(--span-base, 48));
+    }
+}
+
 @media (min-width: 1024px) {
     .aurora-grid > * {
         grid-row: var(--row-lg, var(--row-md, var(--row-base, auto)));

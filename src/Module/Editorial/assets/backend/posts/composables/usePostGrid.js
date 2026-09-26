@@ -326,6 +326,9 @@ export const ZONE_FILL_TYPES = ["none", "solid", "gradient"];
 /** Mirrors GridNormalizer::ZONE_CONTRASTS - forces a zone's own text/border scheme. */
 export const ZONE_CONTRASTS = ["auto", "light", "dark"];
 
+/** Mirrors GridNormalizer::ZONE_HIGHLIGHTS - the colour of a zone's hovers and card markers. */
+export const ZONE_HIGHLIGHTS = ["inherit", "accent", "neutral", "custom"];
+
 /** Mirrors GridNormalizer::REVEALS - how the page's zones arrive on scroll. */
 export const REVEALS = ["none", "fade", "up", "left", "right", "zoom", "blur"];
 
@@ -641,6 +644,9 @@ function newZone(type) {
         },
         // Whatever the page says, like `reveal` beside it.
         contrast: "auto",
+        // Hovers and card markers: the page's own, unless this zone chooses.
+        highlight: "inherit",
+        highlightColor: null,
         // Whatever the page says, which is still unless the page says
         // otherwise. A zone only carries its own answer when an author gave
         // it one, so changing the page's moves everything that never
@@ -753,6 +759,7 @@ export function usePostGrid(layout, content) {
         surface: labelled(SURFACES, "surfaces"),
         fillType: labelled(ZONE_FILL_TYPES, "fill_types"),
         contrast: labelled(ZONE_CONTRASTS, "contrasts"),
+        highlight: labelled(ZONE_HIGHLIGHTS, "highlights"),
         reveal: labelled(ZONE_REVEALS, "reveals"),
         audience: labelled(AUDIENCES, "audiences"),
         // A language names itself; there is nothing to translate.
@@ -1498,6 +1505,8 @@ export function usePostGrid(layout, content) {
                     return null;
                 }),
                 contrast: shared("contrast"),
+                highlight: shared("highlight"),
+                highlightColor: shared("highlightColor"),
                 reveal: shared("reveal"),
                 sticky: shared("sticky"),
                 fullBleed: shared("fullBleed"),

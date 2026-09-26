@@ -64,6 +64,32 @@ final class BannerImageHeightTest extends IntegrationTestCase
         self::assertStringNotContainsString('--banner-mobile-ratio', $html);
     }
 
+    /**
+     * Every focal point travels as a custom property read by a class. An
+     * inline `object-position` for the wide picture outranked the phone and
+     * tablet classes, and their pictures were always framed on the centre.
+     */
+    public function testNoFocalPointIsWrittenInline(): void
+    {
+        $html = $this->render([
+            'mediaId' => $this->picture(3840, 1364),
+            'mobileMediaId' => $this->picture(2160, 2960),
+            'tabletMediaId' => $this->picture(2048, 1240),
+        ]);
+
+        self::assertStringNotContainsString('style="object-position', $html);
+        self::assertStringContainsString('[object-position:var(--banner-focal)]', $html);
+        self::assertStringContainsString('--banner-focal:', $html);
+        self::assertStringContainsString('max-sm:[object-position:var(--banner-mobile-focal)]', $html);
+        self::assertStringContainsString('sm:max-lg:[object-position:var(--banner-tablet-focal)]', $html);
+    }
+
+    /** From 640px a banner lays out in columns: its grid carries the class that says so. */
+    public function testTheBannerGridTakesItsTabletColumnsFromSm(): void
+    {
+        self::assertStringContainsString('aurora-grid-banner', $this->render(['mediaId' => $this->picture(3840, 1364)]));
+    }
+
     public function testWithoutATabletPictureTheTabletKeepsTheWideOne(): void
     {
         $html = $this->render(['mediaId' => $this->picture(3840, 1364)]);
