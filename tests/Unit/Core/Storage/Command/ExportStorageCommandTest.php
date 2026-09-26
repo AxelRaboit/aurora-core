@@ -95,6 +95,30 @@ final class ExportStorageCommandTest extends TestCase
         self::assertFalse(is_file($this->workDir.'/copy/ged/a.png'));
     }
 
+    /** A file rewritten at the same length is still fetched again. */
+    public function testASameSizeRewriteIsFetchedAgain(): void
+    {
+        $this->source->write('ged/a.png', 'aaa');
+        $this->export(['target' => $this->workDir.'/copy', '--disk' => 'local']);
+
+        // The copy is older than the source now, and just as long.
+        touch($this->workDir.'/copy/ged/a.png', time() - 3600);
+        file_put_contents($this->workDir.'/copy/ged/a.png', 'zzz');
+        touch($this->workDir.'/copy/ged/a.png', time() - 3600);
+
+        $this->export(['target' => $this->workDir.'/copy', '--disk' => 'local']);
+
+        self::assertSame('aaa', file_get_contents($this->workDir.'/copy/ged/a.png'));
+    }
+
+    /** `/` trims to nothing: every key would pass the guard and land at the root. */
+    public function testTheRootDirectoryIsRefusedAsATarget(): void
+    {
+        $this->source->write('ged/a.png', 'aaa');
+
+        self::assertSame(Command::INVALID, $this->export(['target' => '/', '--disk' => 'local'])->getStatusCode());
+    }
+
     public function testAnUnknownDiskIsRefused(): void
     {
         self::assertSame(Command::INVALID, $this->export(['target' => $this->workDir.'/copy', '--disk' => 'floppy'])->getStatusCode());
