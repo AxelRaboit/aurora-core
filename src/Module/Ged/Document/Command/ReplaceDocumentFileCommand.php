@@ -138,6 +138,14 @@ final class ReplaceDocumentFileCommand extends Command
             folderId: $document->getFolder()?->getId(),
             focalX: $document->getFocalX(),
             focalY: $document->getFocalY(),
+            // Everything the file swap does not touch travels as it is:
+            // an input rebuilt without these would clear them.
+            sourceUrl: $document->getSourceUrl(),
+            attributionName: $document->getAttributionName(),
+            attributionUrl: $document->getAttributionUrl(),
+            kept: $document->isKept(),
+            originalId: $document->getOriginal()?->getId(),
+            alternateLabel: $document->getAlternateLabel(),
         ));
 
         $io->success(sprintf(

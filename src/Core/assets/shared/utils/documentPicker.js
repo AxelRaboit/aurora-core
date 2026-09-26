@@ -15,12 +15,16 @@ import DocumentPickerModal from "@ged/backend/documents/components/DocumentPicke
  * `mimePrefix` does the same for any other family - `video/` for a film.
  * `mimeFilter` is the more granular knob (single MIME, e.g.
  * "application/pdf") and is forwarded to the modal directly.
+ *
+ * `query` adds to the listing's parameters, or lifts one with an empty
+ * string: `{ originalsOnly: "1", status: "" }` lists every original.
  */
 export function openDocumentPicker({
     imagesOnly = false,
     mimeFilter = null,
     mimePrefix = null,
     multiple = false,
+    query = {},
     listPath = "/backend/ged/documents/list",
 } = {}) {
     return new Promise((resolve) => {
@@ -55,6 +59,7 @@ export function openDocumentPicker({
                     mimeFilter,
                     mimePrefix: mimePrefix ?? (imagesOnly ? "image/" : null),
                     multiple,
+                    query,
                     onClose: () => finish(multiple ? [] : null),
                     onSelect: (item) => finish(item),
                 });

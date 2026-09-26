@@ -40,11 +40,15 @@ class DocumentRepository extends ResolveTargetEntityRepository
         bool $rootOnly = false,
         ?StorageDiskEnum $storageDisk = null,
         bool $trashed = false,
+        bool $originalsOnly = false,
     ): array {
+        // The original rides along: an alternate names it on its row, and
+        // reading it lazily would cost one query per alternate on the page.
         $qb = $this->createQueryBuilder('d')
             ->leftJoin('d.category', 'c')
             ->leftJoin('d.folder', 'folder')
-            ->addSelect('c', 'folder')
+            ->leftJoin('d.original', 'original')
+            ->addSelect('c', 'folder', 'original')
             ->orderBy($trashed ? 'd.deletedAt' : 'd.createdAt', Order::Descending->value);
         $countQb = $this->createQueryBuilder('d')->select('COUNT(d.id)');
 
@@ -95,6 +99,13 @@ class DocumentRepository extends ResolveTargetEntityRepository
         if ($storageDisk instanceof StorageDiskEnum) {
             $qb->andWhere('d.storageDisk = :storageDisk')->setParameter('storageDisk', $storageDisk);
             $countQb->andWhere('d.storageDisk = :storageDisk')->setParameter('storageDisk', $storageDisk);
+        }
+
+        // A family shown as its original alone: the alternates are one click
+        // away on it, and the listing stops showing three times one visual.
+        if ($originalsOnly) {
+            $qb->andWhere('d.original IS NULL');
+            $countQb->andWhere('d.original IS NULL');
         }
 
         $result = $this->paginate($qb, $countQb, $page, $limit);
@@ -487,6 +498,53 @@ class DocumentRepository extends ResolveTargetEntityRepository
         return $this->createQueryBuilder('d')
             ->where('d.trashedWithFolderId = :id')
             ->setParameter('id', $folderId)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * How many living alternates each of these documents has, in one query.
+     *
+     * @param list<int> $ids
+     *
+     * @return array<int, int> original id => count, absent when none
+     */
+    public function countAlternatesFor(array $ids): array
+    {
+        if ([] === $ids) {
+            return [];
+        }
+
+        $rows = $this->createQueryBuilder('d')
+            ->select('IDENTITY(d.original) AS originalId', 'COUNT(d.id) AS total')
+            ->where('d.original IN (:ids)')
+            ->andWhere('d.deletedAt IS NULL')
+            ->groupBy('d.original')
+            ->setParameter('ids', $ids)
+            ->getQuery()
+            ->getArrayResult();
+
+        $counts = [];
+        foreach ($rows as $row) {
+            $counts[(int) $row['originalId']] = (int) $row['total'];
+        }
+
+        return $counts;
+    }
+
+    /**
+     * The living alternates of a document, by label.
+     *
+     * @return list<Document>
+     */
+    public function findAlternatesOf(DocumentInterface $original): array
+    {
+        return $this->createQueryBuilder('d')
+            ->where('d.original = :original')
+            ->andWhere('d.deletedAt IS NULL')
+            ->setParameter('original', $original)
+            ->orderBy('d.alternateLabel', Order::Ascending->value)
+            ->addOrderBy('d.title', Order::Ascending->value)
             ->getQuery()
             ->getResult();
     }

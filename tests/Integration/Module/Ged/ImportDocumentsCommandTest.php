@@ -112,6 +112,49 @@ final class ImportDocumentsCommandTest extends IntegrationTestCase
         self::assertSame(0, $this->countTitled('whatever'));
     }
 
+    /** A yellow copy imported from the shell lands in its family, kept. */
+    public function testAnAlternateIsImportedIntoItsFamily(): void
+    {
+        $this->writeImage('vert.png');
+        $this->runImport([$this->sourceDir.'/vert.png'])->assertCommandIsSuccessful();
+        $original = $this->lastDocument();
+        self::assertNotNull($original);
+
+        $this->writeImage('jaune.png');
+        $this->runImport([$this->sourceDir.'/jaune.png'], [
+            '--original' => (string) $original->getId(),
+            '--label' => 'jaune',
+            '--kept' => true,
+        ])->assertCommandIsSuccessful();
+
+        $alternate = $this->lastDocument();
+        self::assertNotNull($alternate);
+        self::assertSame($original->getId(), $alternate->getOriginal()?->getId());
+        self::assertSame('jaune', $alternate->getAlternateLabel());
+        self::assertTrue($alternate->isKept());
+    }
+
+    /** The screen's rule holds in the shell: no alternate of an alternate. */
+    public function testAnAlternateIsRefusedAsAnOriginalBeforeAnythingIsStored(): void
+    {
+        $this->writeImage('vert.png');
+        $this->runImport([$this->sourceDir.'/vert.png'])->assertCommandIsSuccessful();
+        $original = $this->lastDocument();
+        self::assertNotNull($original);
+
+        $this->writeImage('jaune.png');
+        $this->runImport([$this->sourceDir.'/jaune.png'], ['--original' => (string) $original->getId()])->assertCommandIsSuccessful();
+        $alternate = $this->lastDocument();
+        self::assertNotNull($alternate);
+
+        $this->writeImage('orange.png');
+        $before = $this->documentCount();
+        $tester = $this->runImport([$this->sourceDir.'/orange.png'], ['--original' => (string) $alternate->getId()]);
+
+        self::assertNotSame(0, $tester->getStatusCode());
+        self::assertSame($before, $this->documentCount());
+    }
+
     /**
      * @param list<string>               $paths
      * @param array<string, bool|string> $options

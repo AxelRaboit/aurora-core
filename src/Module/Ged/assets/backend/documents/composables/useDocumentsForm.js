@@ -38,6 +38,18 @@ function emptyForm() {
         // Image-only metadata (alt for a11y/SEO, caption shown alongside).
         alt: "",
         caption: "",
+        // Where the picture is cropped around. Set elsewhere (the focal
+        // picker), but the update replaces it with whatever it is sent, so
+        // the form carries it back or every save recentres the picture.
+        focalX: null,
+        focalY: null,
+        // Unused on purpose: the "À conserver" badge.
+        kept: false,
+        // The document this one is declined from, and what sets it apart.
+        // `originalTitle` is for the screen only; the server reads the id.
+        originalId: null,
+        originalTitle: null,
+        alternateLabel: "",
     };
 }
 
@@ -196,6 +208,12 @@ export function useDocumentsForm(
             thumbnailPath: doc.thumbnailPath ?? null,
             alt: doc.alt ?? "",
             caption: doc.caption ?? "",
+            focalX: doc.focalX ?? null,
+            focalY: doc.focalY ?? null,
+            kept: doc.kept ?? false,
+            originalId: doc.originalId ?? null,
+            originalTitle: doc.originalTitle ?? null,
+            alternateLabel: doc.alternateLabel ?? "",
         };
         clearEdit();
         showEdit.value = true;

@@ -203,6 +203,29 @@ abstract class AbstractDocument implements DocumentInterface
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     protected ?DocumentFolderInterface $folder = null;
 
+    /**
+     * Unused on purpose. The library flags a document nothing points at, and
+     * this says the flag is known and the file stays: an alternate kept in
+     * reserve, a picture waiting for its page. Nothing purges on it; it keeps
+     * a person from tidying away what someone meant to keep.
+     */
+    #[ORM\Column(options: ['default' => false])]
+    protected bool $kept = false;
+
+    /**
+     * The document this one is declined from: the green visual a yellow copy
+     * was made of. One level only - an original is never an alternate itself,
+     * so a family reads as one original and its alternates, never a chain.
+     * Deleting the original leaves its alternates standing on their own.
+     */
+    #[ORM\ManyToOne(targetEntity: DocumentInterface::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    protected ?DocumentInterface $original = null;
+
+    /** What sets an alternate apart from its original, in a word: « jaune ». */
+    #[ORM\Column(length: 40, nullable: true)]
+    protected ?string $alternateLabel = null;
+
     public function __construct()
     {
         $this->tags = new ArrayCollection();
@@ -460,6 +483,42 @@ abstract class AbstractDocument implements DocumentInterface
     public function setFolder(?DocumentFolderInterface $folder): static
     {
         $this->folder = $folder;
+
+        return $this;
+    }
+
+    public function isKept(): bool
+    {
+        return $this->kept;
+    }
+
+    public function setKept(bool $kept): static
+    {
+        $this->kept = $kept;
+
+        return $this;
+    }
+
+    public function getOriginal(): ?DocumentInterface
+    {
+        return $this->original;
+    }
+
+    public function setOriginal(?DocumentInterface $original): static
+    {
+        $this->original = $original;
+
+        return $this;
+    }
+
+    public function getAlternateLabel(): ?string
+    {
+        return $this->alternateLabel;
+    }
+
+    public function setAlternateLabel(?string $alternateLabel): static
+    {
+        $this->alternateLabel = $alternateLabel;
 
         return $this;
     }

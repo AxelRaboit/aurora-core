@@ -42,6 +42,15 @@ class DocumentInput implements DocumentInputInterface
         public readonly ?string $sourceUrl = null,
         public readonly ?string $attributionName = null,
         public readonly ?string $attributionUrl = null,
+        // Unused on purpose: keeps the "unused" flag from reading as an
+        // invitation to delete. See `AbstractDocument::$kept`.
+        public readonly bool $kept = false,
+        // The document this one is declined from, and the word that sets it
+        // apart. The label means nothing without an original, so the
+        // manager drops it when there is none.
+        public readonly ?int $originalId = null,
+        #[Assert\Length(max: 40)]
+        public readonly ?string $alternateLabel = null,
     ) {}
 
     public function getTitle(): string
@@ -132,6 +141,21 @@ class DocumentInput implements DocumentInputInterface
     public function getFocalY(): ?float
     {
         return $this->focalY;
+    }
+
+    public function isKept(): bool
+    {
+        return $this->kept;
+    }
+
+    public function getOriginalId(): ?int
+    {
+        return $this->originalId;
+    }
+
+    public function getAlternateLabel(): ?string
+    {
+        return $this->alternateLabel;
     }
 
     public function getSourceUrl(): ?string

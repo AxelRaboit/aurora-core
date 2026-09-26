@@ -25,6 +25,7 @@ class DocumentSerializer implements DocumentSerializerInterface
     {
         $category = $document->getCategory();
         $folder = $document->getFolder();
+        $original = $document->getOriginal();
 
         return [
             'id' => $document->getId(),
@@ -88,6 +89,12 @@ class DocumentSerializer implements DocumentSerializerInterface
             'focalY' => $document->getFocalY(),
             'focalPositionCss' => $this->documentUrlGenerator->focalPositionCss($document),
             'renditions' => $this->buildRenditionUrls($document),
+            'kept' => $document->isKept(),
+            // An alternate names its original, so its row can say whose
+            // variant it is without a second request.
+            'originalId' => $original?->getId(),
+            'originalTitle' => $original?->getTitle(),
+            'alternateLabel' => $document->getAlternateLabel(),
             'createdAt' => $document->getCreatedAt()->format(DateTimeInterface::ATOM),
             'updatedAt' => $document->getUpdatedAt()->format(DateTimeInterface::ATOM),
         ];

@@ -38,6 +38,9 @@ class DocumentInputFactory implements DocumentInputFactoryInterface
             sourceUrl: Str::trimOrNullFromArray($data, 'sourceUrl'),
             attributionName: Str::trimOrNullFromArray($data, 'attributionName'),
             attributionUrl: Str::trimOrNullFromArray($data, 'attributionUrl'),
+            kept: filter_var($data['kept'] ?? false, FILTER_VALIDATE_BOOLEAN),
+            originalId: isset($data['originalId']) && '' !== $data['originalId'] ? (int) $data['originalId'] : null,
+            alternateLabel: Str::trimOrNullFromArray($data, 'alternateLabel'),
         );
     }
 }

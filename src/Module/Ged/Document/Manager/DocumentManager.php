@@ -551,6 +551,12 @@ class DocumentManager implements DocumentManagerInterface
 
         $document->setFocalX($input->getFocalX());
         $document->setFocalY($input->getFocalY());
+
+        $document->setKept($input->isKept());
+
+        $original = null !== $input->getOriginalId() ? $this->documentRepository->find($input->getOriginalId()) : null;
+        $document->setOriginal($original);
+        $document->setAlternateLabel($original instanceof DocumentInterface ? $input->getAlternateLabel() : null);
     }
 
     /**

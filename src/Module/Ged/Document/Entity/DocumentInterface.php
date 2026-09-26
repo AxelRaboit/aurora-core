@@ -103,6 +103,18 @@ interface DocumentInterface extends TimestampableInterface
 
     public function setFolder(?DocumentFolderInterface $folder): static;
 
+    public function isKept(): bool;
+
+    public function setKept(bool $kept): static;
+
+    public function getOriginal(): ?DocumentInterface;
+
+    public function setOriginal(?DocumentInterface $original): static;
+
+    public function getAlternateLabel(): ?string;
+
+    public function setAlternateLabel(?string $alternateLabel): static;
+
     public function getFocalX(): ?float;
 
     public function setFocalX(?float $focalX): static;
