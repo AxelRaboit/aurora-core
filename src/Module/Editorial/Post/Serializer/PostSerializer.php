@@ -64,6 +64,7 @@ class PostSerializer implements PostSerializerInterface
             'trashed' => $post->isTrashed(),
             'commentsEnabled' => $post->isCommentsEnabled(),
             'shareEnabled' => $post->isShareEnabled(),
+            'shareLinks' => $post->getShareLinks(),
             'titleVisible' => $post->isTitleVisible(),
             'position' => $post->getPosition(),
             'createdAt' => $post->getCreatedAt()->format(DateTimeInterface::ATOM),

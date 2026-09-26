@@ -56,6 +56,12 @@ interface PostInterface
 
     public function setShareEnabled(bool $shareEnabled): static;
 
+    /** @return list<array{type: string, label: ?string, url: ?string, color: ?string}>|null */
+    public function getShareLinks(): ?array;
+
+    /** @param list<array{type: string, label: ?string, url: ?string, color: ?string}>|null $shareLinks */
+    public function setShareLinks(?array $shareLinks): static;
+
     public function isTitleVisible(): bool;
 
     public function setTitleVisible(bool $titleVisible): static;

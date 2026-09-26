@@ -1052,6 +1052,19 @@ backend:
     thumbnail_focal_hint: "Ce qui reste visible quand une photo large doit tenir dans un cadre étroit. Sans réglage, celui du document s'applique."
     comments_enabled: Commentaires ouverts
     share_enabled: Boutons de partage en bas de page
+    share_links:
+      default_hint: "Liens par défaut : copier le lien, LinkedIn, WhatsApp, Facebook. Modifiez-en un pour composer ceux de cette page."
+      hint: Les liens de cette page, dans l'ordre. Glissez la poignée pour les réordonner.
+      reset: Liens par défaut
+      empty: Aucun lien, le bloc ne s'affiche pas.
+      move: Déplacer
+      type: Type de lien
+      remove: Retirer
+      label: Libellé
+      color: Couleur
+      url: Adresse
+      url_hint: "https:// ou mailto:. {url} et {title} sont remplacés par l'adresse et le titre de la page, ce qui en fait un vrai lien de partage."
+      add: Ajouter un lien
     field_title: Titre
     field_slug: Slug
     slug_hint: "Laissé vide, il est déduit du titre. Le modifier garde l'ancienne URL fonctionnelle."
@@ -1384,6 +1397,11 @@ frontend:
       copied: Lien copié
       linkedin: LinkedIn
       whatsapp: WhatsApp
+      x: X
+      facebook: Facebook
+      bluesky: Bluesky
+      email: E-mail
+      custom: Lien
     grid:
       recommended: Recommandé
       choose: Choisir cette offre

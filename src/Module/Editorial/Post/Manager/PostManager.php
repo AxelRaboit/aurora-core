@@ -327,6 +327,7 @@ class PostManager implements PostManagerInterface
         $post->setThumbnailFocal($input->getThumbnailFocalX(), $input->getThumbnailFocalY());
         $post->setCommentsEnabled($input->isCommentsEnabled());
         $post->setShareEnabled($input->isShareEnabled());
+        $post->setShareLinks($input->getShareLinks());
         $post->setTitleVisible($input->isTitleVisible());
         $post->setPosition($input->getPosition());
 

@@ -35,6 +35,8 @@ class PostInput implements PostInputInterface
         public readonly bool $force = false,
         public readonly bool $commentsEnabled = true,
         public readonly bool $shareEnabled = true,
+        /** @var list<array{type: string, label: ?string, url: ?string, color: ?string}>|null */
+        public readonly ?array $shareLinks = null,
         public readonly bool $titleVisible = true,
         public readonly array $bannerLayout = [],
         public readonly array $gridLayout = [],
@@ -69,6 +71,7 @@ class PostInput implements PostInputInterface
             force: $this->force,
             commentsEnabled: $this->commentsEnabled,
             shareEnabled: $this->shareEnabled,
+            shareLinks: $this->shareLinks,
             titleVisible: $this->titleVisible,
             bannerLayout: $this->bannerLayout,
             gridLayout: $this->gridLayout,
@@ -159,6 +162,11 @@ class PostInput implements PostInputInterface
     public function isShareEnabled(): bool
     {
         return $this->shareEnabled;
+    }
+
+    public function getShareLinks(): ?array
+    {
+        return $this->shareLinks;
     }
 
     public function isTitleVisible(): bool

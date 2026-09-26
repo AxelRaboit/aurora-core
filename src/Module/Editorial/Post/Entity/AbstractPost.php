@@ -71,6 +71,15 @@ abstract class AbstractPost implements PostInterface
     protected bool $shareEnabled = true;
 
     /**
+     * The links of the share block, in order. Null means never configured,
+     * and the page shows the default row; an empty list shows nothing.
+     *
+     * @var list<array{type: string, label: ?string, url: ?string, color: ?string}>|null
+     */
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    protected ?array $shareLinks = null;
+
+    /**
      * Whether the published page prints its own title and summary.
      *
      * Shared rather than per translation, by the same argument as a span: this
@@ -403,6 +412,18 @@ abstract class AbstractPost implements PostInterface
     public function setShareEnabled(bool $shareEnabled): static
     {
         $this->shareEnabled = $shareEnabled;
+
+        return $this;
+    }
+
+    public function getShareLinks(): ?array
+    {
+        return $this->shareLinks;
+    }
+
+    public function setShareLinks(?array $shareLinks): static
+    {
+        $this->shareLinks = $shareLinks;
 
         return $this;
     }

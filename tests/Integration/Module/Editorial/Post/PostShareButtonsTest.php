@@ -13,6 +13,7 @@ use Aurora\Tests\Integration\IntegrationTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 
+use function array_column;
 use function array_reverse;
 
 /**
@@ -71,6 +72,42 @@ final class PostShareButtonsTest extends IntegrationTestCase
 
         self::assertResponseIsSuccessful();
         self::assertStringNotContainsString('ShareButtons', (string) $this->client->getResponse()->getContent());
+    }
+
+    /** A page nobody configured hands the buttons no list: they draw the default row. */
+    public function testAnUnconfiguredPageSendsNoLinks(): void
+    {
+        $post = $this->published('Page par défaut', []);
+
+        self::assertNull($post->getShareLinks());
+
+        $this->client->request('GET', '/fr/share-type/page-par-defaut');
+
+        self::assertResponseIsSuccessful();
+        self::assertStringContainsString('&quot;links&quot;:null', (string) $this->client->getResponse()->getContent());
+    }
+
+    /**
+     * The page's own links reach the buttons in order, and an address that is
+     * not https or mailto never gets that far.
+     */
+    public function testChosenLinksReachThePageAndBadAddressesDoNot(): void
+    {
+        $post = $this->published('Page liens choisis', ['shareLinks' => [
+            ['type' => 'copy', 'label' => 'Copier', 'color' => '#0f766e'],
+            ['type' => 'custom', 'label' => 'Piège', 'url' => 'javascript:alert(1)'],
+            ['type' => 'custom', 'label' => 'Mon partage', 'url' => 'https://share.example/?u={url}'],
+        ]]);
+
+        self::assertSame(['copy', 'custom'], array_column((array) $post->getShareLinks(), 'type'));
+
+        $this->client->request('GET', '/fr/share-type/page-liens-choisis');
+
+        self::assertResponseIsSuccessful();
+        $html = (string) $this->client->getResponse()->getContent();
+        self::assertStringContainsString('Mon partage', $html);
+        self::assertStringContainsString('#0f766e', $html);
+        self::assertStringNotContainsString('javascript:alert', $html);
     }
 
     /** @param array<string, mixed> $fields */
