@@ -18,7 +18,31 @@
    `isolate` a picture needs to sit behind) is Tailwind, only the colour is
    inline. #}
 {% macro backdrop(zone) %}
-    {% if zone.background is not null and zone.background.media %}
+    {% if zone.background is not null and zone.background.video %}
+        {# Same constraints as the dedicated background-video zone: muted,
+           looped and inline is the only way a browser starts a film on its
+           own, and a reader who asked for less motion gets the poster
+           instead (`motion-reduce`). #}
+        <video
+            class="absolute inset-0 -z-10 h-full w-full object-cover motion-reduce:hidden"
+            autoplay
+            muted
+            loop
+            playsinline
+            preload="metadata"
+            {% if zone.background.video.poster %}poster="{{ zone.background.video.poster }}"{% endif %}
+            aria-hidden="true"
+            data-background-film
+        >
+            <source src="{{ zone.background.video.url }}" type="{{ zone.background.video.mimeType }}">
+        </video>
+        {% if zone.background.video.poster %}
+            <img src="{{ zone.background.video.poster }}" alt="" class="absolute inset-0 -z-10 hidden h-full w-full object-cover motion-reduce:block">
+        {% endif %}
+        {% if zone.background.overlay > 0 %}
+            <div class="absolute inset-0 -z-10 bg-black" style="opacity: {{ zone.background.overlay / 100 }};"></div>
+        {% endif %}
+    {% elseif zone.background is not null and zone.background.media %}
         <img
             src="{{ zone.background.media.url }}"
             alt=""
@@ -71,6 +95,10 @@
     {# Read once: built from validated hex colours by GridViewBuilder, so
        `raw` here is not a hole - same reasoning as the banner's own style. #}
     {% set customStyle = surface == 'custom' ? zone.background.fillStyle|default('') : '' %}
+    {# Independent of the surface above: a zone forced light or dark still
+       needs its own text/border tokens whatever background it sits on, or
+       sits on none at all. Built the same validated way in GridViewBuilder. #}
+    {% set combinedStyle = customStyle ~ zone.contrastStyle|default('') %}
 
     {% if zone.fullBleed|default(false) %}
         {# Viewport units and a negative margin rather than `100vw`, which
@@ -79,7 +107,7 @@
            A picture is the content and spans edge to edge; anything else is
            words, and words at the width of a screen are unreadable - so
            everything but a picture is held to the same box `<main>` uses. #}
-        <div class="w-screen max-w-none relative left-1/2 -translate-x-1/2 {{ bleedSurfaces[surface] }}"{% if customStyle %} style="{{ customStyle|raw }}"{% endif %}>
+        <div class="w-screen max-w-none relative left-1/2 -translate-x-1/2 {{ bleedSurfaces[surface] }}"{% if combinedStyle %} style="{{ combinedStyle|raw }}"{% endif %}>
             {{ this.backdrop(zone) }}
             {% if zone.type == 'media' %}
                 {{ body }}
@@ -88,10 +116,15 @@
             {% endif %}
         </div>
     {% elseif surface != 'none' %}
-        <div class="{{ framed ? frames[surface] : surfaces[surface] }}"{% if customStyle %} style="{{ customStyle|raw }}"{% endif %}>
+        <div class="{{ framed ? frames[surface] : surfaces[surface] }}"{% if combinedStyle %} style="{{ combinedStyle|raw }}"{% endif %}>
             {{ this.backdrop(zone) }}
             {{ body }}
         </div>
+    {% elseif zone.contrastStyle|default('') %}
+        {# No surface at all, but a forced scheme still needs a box to carry
+           it - the one case this macro draws an element the author never
+           asked a surface for. #}
+        <div style="{{ zone.contrastStyle|raw }}">{{ body }}</div>
     {% else %}
         {{ body }}
     {% endif %}

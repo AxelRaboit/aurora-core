@@ -205,6 +205,7 @@ export function usePostEditor(props) {
         headerColor: props.post?.headerColor ?? null,
         footerColor: props.post?.footerColor ?? null,
         backgroundColor: props.post?.backgroundColor ?? null,
+        accentColor: props.post?.accentColor ?? null,
         termIds: [...(props.post?.termIds ?? [])],
         relatedPostIds: [...(props.post?.relatedPostIds ?? [])],
         translations: Object.fromEntries(

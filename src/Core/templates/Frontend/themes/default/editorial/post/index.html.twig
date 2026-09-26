@@ -25,7 +25,21 @@
 {% endblock %}
 
 {% block body %}
-<article class="prose max-w-none">
+{# Outside <article>: a fixed bar pinned to the viewport, not to the flow of
+   the page it measures. #}
+<div {{ vue_component('editorial/frontend/ReadingProgress', {}) }}></div>
+
+{# Scoped to this article rather than `:root`: choosing ocre for the
+   photography page must never repaint the topbar or the footer, which stay
+   the theme's. A full-width banner sits outside this element (rendered by
+   `frontend_banner` above, before the layout's own header even finishes) and
+   so keeps the theme's accent regardless - the trade-off of scoping to the
+   one wrapper every other case already needs. #}
+{% if postData.accentColor|default(null) %}
+    <style>{{ themeContext.postAccentCss('.aurora-post-accent', postData.accentColor)|raw }}</style>
+{% endif %}
+
+<article class="prose max-w-none{{ postData.accentColor|default(null) ? ' aurora-post-accent' : '' }}">
     {% if banner and not (banner.width starts with 'full') %}
         {{ include('Frontend/themes/default/editorial/post/_banner.html.twig', {banner: banner}) }}
     {% endif %}
@@ -76,6 +90,14 @@
         {% if hasSummary %}
             <p class="mt-0 text-secondary">{{ translationData.description }}</p>
         {% endif %}
+
+        {# Zero means nothing to time - a post with no grid at all - and the
+           template says nothing rather than printing "0 min de lecture". #}
+        {% if readingTimeMinutes %}
+            <p class="mt-0 text-sm text-muted not-prose">
+                {{ 'frontend.editorial.reading_time'|trans({'%minutes%': readingTimeMinutes}) }}
+            </p>
+        {% endif %}
     {% endif %}
 
     {# The thumbnail is not printed here any more. It is what stands for this
@@ -122,6 +144,14 @@
         </footer>
     {% endif %}
 </article>
+
+{# The reader's own address, resolved once by `seo_define` above and read
+   back here rather than rebuilt: two computations of the same canonical URL
+   is two places that could disagree about it. #}
+<div {{ vue_component('editorial/frontend/ShareButtons', {
+    url: seo_current().canonical,
+    title: translationData.title,
+}) }} class="not-prose mt-8"></div>
 
 {# Quiet when the grid has placed the thread itself: one conversation per
    page, where the author put it. #}

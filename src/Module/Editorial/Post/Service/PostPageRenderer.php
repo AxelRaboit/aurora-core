@@ -43,6 +43,7 @@ final readonly class PostPageRenderer
         private GridViewBuilder $gridViewBuilder,
         private GalleryViewBuilder $galleryViewBuilder,
         private PostSequenceBuilder $sequenceBuilder,
+        private ReadingTimeCalculator $readingTimeCalculator,
     ) {}
 
     public function render(PostInterface $post, string $locale): Response
@@ -54,6 +55,10 @@ final readonly class PostPageRenderer
             throw new LogicException(sprintf('Post #%d has no translation for locale "%s".', $post->getId(), $locale));
         }
 
+        // Read once: the reading time is counted off the same resolved zones
+        // the page is about to render, so the two can never disagree.
+        $grid = $this->gridViewBuilder->build($post->getGridLayout(), $translation->getGrid(), $locale, $post->getId());
+
         $body = $this->twig->render($this->themeResolver->resolve('editorial/post/index'), [
             'locale' => $locale,
             'context' => $this->context,
@@ -63,6 +68,7 @@ final readonly class PostPageRenderer
                 'publishedAt' => $post->getPublishedAt()?->format(DateTimeInterface::ATOM),
                 'postType' => ['slug' => $post->getPostType()->getSlug()],
                 'postTypeSlug' => $post->getPostType()->getSlug(),
+                'accentColor' => $post->getAccentColor(),
             ],
             'translationData' => $this->translationData($translation, $post->getThumbnail()),
             // null when the banner is off or empty, which is what the template
@@ -70,7 +76,11 @@ final readonly class PostPageRenderer
             'banner' => $this->bannerViewBuilder->build($post->getBannerLayout(), $translation->getBanner()),
             // Null when the post has no grid, which is what makes the template
             // fall back to the plain block column it has always rendered.
-            'grid' => $this->gridViewBuilder->build($post->getGridLayout(), $translation->getGrid(), $locale, $post->getId()),
+            'grid' => $grid,
+            // Zero when there is nothing to time - the grid is off, empty, or
+            // resolved to nothing - which the template reads as "say
+            // nothing" rather than printing "0 min de lecture".
+            'readingTimeMinutes' => null !== $grid ? $this->readingTimeCalculator->minutesFor($translation->getGrid()) : 0,
             // Null when the gallery is off or has nothing to show, so the
             // template leaves the section out rather than printing an empty one.
             'gallery' => $this->galleryViewBuilder->build($post->getGalleryLayout(), $translation->getGallery()),

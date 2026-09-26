@@ -139,6 +139,62 @@ final class PostSurfaceColorsTest extends IntegrationTestCase
         self::assertStringNotContainsString('.aurora-surface-header{', (string) $this->client->getResponse()->getContent());
     }
 
+    // ── The accent colour, scoped rather than global ───────────────────────
+
+    /** Sans accent choisi, la page ne porte aucune règle scopée. */
+    public function testAPublicationWithoutAnAccentEmitsNoScopedRule(): void
+    {
+        $this->published('Page sans accent');
+
+        $this->client->request('GET', '/fr/surface-type/page-sans-accent');
+
+        self::assertResponseIsSuccessful();
+        self::assertStringNotContainsString('.aurora-post-accent{', (string) $this->client->getResponse()->getContent());
+    }
+
+    /**
+     * La couleur d'accent d'une publication atteint sa page, sous son propre
+     * sélecteur plutôt que `:root` - pour ne jamais repeindre la topbar ou le
+     * pied de page partagés.
+     */
+    public function testTheAccentColourReachesItsOwnSelector(): void
+    {
+        $this->published('Page ocre', ['accentColor' => '#b45309']);
+
+        $this->client->request('GET', '/fr/surface-type/page-ocre');
+
+        self::assertResponseIsSuccessful();
+        $html = (string) $this->client->getResponse()->getContent();
+
+        self::assertStringContainsString('.aurora-post-accent{', $html);
+        self::assertStringContainsString('--th-accent-500:', $html);
+    }
+
+    /** L'accent d'une publication ne fuit pas sur une autre. */
+    public function testTheAccentStaysOnItsOwnPublication(): void
+    {
+        $this->published('Page accentuée', ['accentColor' => '#b45309']);
+        $this->published('Page voisine bis');
+
+        $this->client->request('GET', '/fr/surface-type/page-voisine-bis');
+
+        self::assertResponseIsSuccessful();
+        self::assertStringNotContainsString('.aurora-post-accent{', (string) $this->client->getResponse()->getContent());
+    }
+
+    /** Une couleur d'accent qui n'est pas un `#rrggbb` n'atteint pas la page. */
+    public function testAMalformedAccentIsRefusedAtTheWriteBoundary(): void
+    {
+        $post = $this->published('Page accent douteux', ['accentColor' => 'red; background: url(x)']);
+
+        self::assertNull($post->getAccentColor());
+
+        $this->client->request('GET', '/fr/surface-type/page-accent-douteux');
+
+        self::assertResponseIsSuccessful();
+        self::assertStringNotContainsString('.aurora-post-accent{', (string) $this->client->getResponse()->getContent());
+    }
+
     /**
      * @param array<string, string> $colours
      */

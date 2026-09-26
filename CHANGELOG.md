@@ -5,6 +5,30 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.257] - 2026-09-26
+
+### Ajouté
+
+- **Les huit dernières idées du chantier visuel Aurora, en un seul lot.**
+  - Une zone peut forcer son propre thème clair ou sombre, indépendamment de
+    la page et du fond choisi.
+  - Le fond personnalisé d'une zone (0.9.255) porte maintenant aussi une
+    vidéo, muette et en boucle, en plus de l'image et de la couleur.
+  - Le séparateur gagne trois formes - vague, diagonale, biseau - à côté du
+    filet et de l'espace.
+  - La galerie d'une publication peut se disposer en rangées justifiées, à
+    la Flickr : chaque image garde ses proportions et les rangées atteignent
+    les deux bords.
+  - Chaque article affiche son temps de lecture estimé.
+  - Une barre de progression de lecture, en haut de la fenêtre.
+  - Des boutons de partage en pied d'article : copier le lien, LinkedIn,
+    WhatsApp.
+  - Une publication peut choisir sa propre couleur d'accent, par-dessus
+    celle du thème, sans jamais repeindre la topbar ou le pied de page
+    partagés.
+
+---
+
 ## [0.9.256] - 2026-09-26
 
 ### Corrigé

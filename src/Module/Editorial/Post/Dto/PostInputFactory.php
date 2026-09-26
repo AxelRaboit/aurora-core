@@ -41,6 +41,7 @@ class PostInputFactory implements PostInputFactoryInterface
             headerColor: $this->colorOrNull($data['headerColor'] ?? null),
             footerColor: $this->colorOrNull($data['footerColor'] ?? null),
             backgroundColor: $this->colorOrNull($data['backgroundColor'] ?? null),
+            accentColor: $this->colorOrNull($data['accentColor'] ?? null),
             // Un champ vidé arrive en chaîne vide, et vide veut dire "aucune
             // position" - pas la position zéro, que l'entité refuse de toute
             // façon.

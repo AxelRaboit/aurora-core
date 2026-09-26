@@ -423,10 +423,11 @@ backend:
       layout: Layout
       columns: Columns
       ratio: Ratio
-      ratio_ignored: "In a masonry layout each picture keeps its own proportions."
+      ratio_ignored: "No effect in masonry or justified layout: each picture keeps its own proportions."
       layouts:
         grid: Grid
         masonry: Masonry
+        justified: Justified
       pictures: Pictures
       empty: "No picture yet. Add one below."
       add: Add a picture
@@ -543,6 +544,12 @@ backend:
         soft: Tinted
         accent: Accent
         custom: Custom
+      contrast: Forced theme
+      contrast_hint: "Forces this zone into the light or dark token set regardless of the page's own. \"Same as the page\" just follows the theme."
+      contrasts:
+        auto: Same as the page
+        light: Light
+        dark: Dark
       fill: Background type
       fill_types:
         none: None
@@ -554,6 +561,8 @@ backend:
       gradient_angle: 'Direction: {degrees}°'
       background_image: Background image
       background_image_hint: Sits behind the zone, cropped to its focal point.
+      zone_background_video: Background video
+      zone_background_video_hint: "Muted and looped behind the zone. The picture above still shows while it loads, or if autoplay is refused."
       overlay: 'Darkening: {percent}%'
       page_reveal: "Page scroll effect"
       page_reveal_hint: "How the zones arrive when the reader reaches them. Any zone can decide otherwise; the ones that say nothing follow this."
@@ -604,6 +613,9 @@ backend:
       separator_styles:
         line: Rule
         space: Space
+        wave: Wave
+        diagonal: Diagonal
+        bevel: Bevel
       item_display: Display
       item_display_hint: "The same list, drawn differently. Switching display keeps what is written."
       item_display_hint_faq: "Each entry folds away. Good for questions, and for anything else read on demand: what is included, the guarantees, the small print."
@@ -996,6 +1008,9 @@ backend:
       surface_background: Page background
       surface_header: Topbar
       surface_footer: Footer
+      accent_title: Accent
+      accent_hint: "The colour of this publication's own buttons, links and accents, over the theme's. Left empty, it keeps the theme's colour."
+      accent_color: Accent colour
   taxonomies:
     title: Taxonomies
     empty: No taxonomy yet.
@@ -1254,6 +1269,13 @@ frontend:
     previous: Previous picture
     next: Next picture
   editorial:
+    reading_time: '%minutes% min read'
+    share:
+      label: Share
+      copy_link: Copy link
+      copied: Link copied
+      linkedin: LinkedIn
+      whatsapp: WhatsApp
     grid:
       recommended: Recommended
       choose: Choose this plan

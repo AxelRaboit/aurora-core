@@ -235,7 +235,7 @@ export function defaultZoneOptions() {
 }
 
 /** Mirrors GridNormalizer::SEPARATOR_STYLES. */
-export const SEPARATOR_STYLES = ["line", "space"];
+export const SEPARATOR_STYLES = ["line", "space", "wave", "diagonal", "bevel"];
 
 /** Mirrors GridNormalizer::ITEM_DISPLAYS - the eight costumes of an item list. */
 export const ITEM_DISPLAYS = [
@@ -296,6 +296,9 @@ export const SURFACES = ["none", "card", "soft", "accent", "custom"];
 
 /** Mirrors GridNormalizer::ZONE_FILL_TYPES - a zone's own background, read only under `custom`. */
 export const ZONE_FILL_TYPES = ["none", "solid", "gradient"];
+
+/** Mirrors GridNormalizer::ZONE_CONTRASTS - forces a zone's own text/border scheme. */
+export const ZONE_CONTRASTS = ["auto", "light", "dark"];
 
 /** Mirrors GridNormalizer::REVEALS - how the page's zones arrive on scroll. */
 export const REVEALS = ["none", "fade", "up", "left", "right", "zoom", "blur"];
@@ -606,8 +609,12 @@ function newZone(type) {
             gradientAngle: 180,
             mediaId: null,
             media: null,
+            videoId: null,
+            video: null,
             overlay: 0,
         },
+        // Whatever the page says, like `reveal` beside it.
+        contrast: "auto",
         // Whatever the page says, which is still unless the page says
         // otherwise. A zone only carries its own answer when an author gave
         // it one, so changing the page's moves everything that never
@@ -719,6 +726,7 @@ export function usePostGrid(layout, content) {
         textSize: labelled(TEXT_SIZES, "text_sizes"),
         surface: labelled(SURFACES, "surfaces"),
         fillType: labelled(ZONE_FILL_TYPES, "fill_types"),
+        contrast: labelled(ZONE_CONTRASTS, "contrasts"),
         reveal: labelled(ZONE_REVEALS, "reveals"),
         audience: labelled(AUDIENCES, "audiences"),
         // A language names itself; there is nothing to translate.
@@ -1305,6 +1313,8 @@ export function usePostGrid(layout, content) {
                     gradientAngle: 180,
                     mediaId: null,
                     media: null,
+                    videoId: null,
+                    video: null,
                     overlay: 0,
                 };
 
@@ -1407,6 +1417,21 @@ export function usePostGrid(layout, content) {
                             : null;
                     },
                 ),
+                // Muted and looped behind the zone's content - independent
+                // of the still picture above, which stays the fallback while
+                // it loads or once autoplay is refused.
+                backgroundVideo: writable(
+                    () => ({
+                        id: background().videoId ?? null,
+                        url: background().video?.url ?? null,
+                    }),
+                    (picked) => {
+                        background().videoId = picked?.id ?? null;
+                        background().video = picked?.id
+                            ? { url: picked.url ?? null }
+                            : null;
+                    },
+                ),
                 // Mirrors usePostBanner's own three - the panel shows one
                 // editor for both, so it needs the same three questions
                 // answered per zone rather than once for the whole post.
@@ -1434,6 +1459,7 @@ export function usePostGrid(layout, content) {
 
                     return null;
                 }),
+                contrast: shared("contrast"),
                 reveal: shared("reveal"),
                 sticky: shared("sticky"),
                 fullBleed: shared("fullBleed"),

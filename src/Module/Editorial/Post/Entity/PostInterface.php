@@ -106,6 +106,11 @@ interface PostInterface
 
     public function setBackgroundColor(?string $backgroundColor): static;
 
+    /** This publication's own accent colour, or null to keep the theme's. */
+    public function getAccentColor(): ?string;
+
+    public function setAccentColor(?string $accentColor): static;
+
     public function getPostType(): PostTypeInterface;
 
     public function setPostType(PostTypeInterface $postType): static;

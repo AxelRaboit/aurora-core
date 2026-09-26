@@ -172,6 +172,29 @@ final class ThemeContext
         return ':root{'.implode('', $declarations).'}';
     }
 
+    /**
+     * A publication's own accent, under a selector scoped to its own content
+     * rather than `:root` - so choosing ocre for the photography page never
+     * touches the topbar or the footer, which stay the theme's.
+     *
+     * Empty when the post sets nothing: the theme's own `:root` rule, always
+     * present, is then the whole answer, exactly as before this existed.
+     */
+    public function postAccentCss(string $selector, ?string $accentColor): string
+    {
+        if (null === $accentColor || '' === mb_trim($accentColor)) {
+            return '';
+        }
+
+        $palette = $this->primaryColorPalette->generate($accentColor);
+        $declarations = [];
+        foreach ($palette as $stop => $value) {
+            $declarations[] = sprintf('--th-accent-%s: %s;', $stop, $value);
+        }
+
+        return $selector.'{'.implode('', $declarations).'}';
+    }
+
     public function cssVariableOverrides(): string
     {
         $config = $this->activeTheme()?->getConfig() ?? [];
