@@ -66,6 +66,8 @@ final class GridContractMirrorTest extends TestCase
         yield 'social networks' => [GridZoneOptions::SOCIAL_NETWORKS, 'SOCIAL_NETWORKS'];
         yield 'chart types' => [GridZoneOptions::CHART_TYPES, 'CHART_TYPES'];
         yield 'poll results' => [GridZoneOptions::POLL_RESULTS, 'POLL_RESULTS'];
+        yield 'slot durations' => [GridZoneOptions::SLOT_DURATIONS, 'SLOT_DURATIONS'];
+        yield 'booking windows' => [GridZoneOptions::BOOKING_WINDOWS, 'BOOKING_WINDOWS'];
     }
 
     /**

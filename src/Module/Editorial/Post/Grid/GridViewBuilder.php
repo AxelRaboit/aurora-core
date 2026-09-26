@@ -300,6 +300,10 @@ final readonly class GridViewBuilder
                         fn (int $id): array => ['url' => $this->videoFile($documents[$id] ?? null)['url'] ?? null],
                         $zone['mediaIds'],
                     )],
+                    GridNormalizer::ZONE_TRAVEL_MAP === $zone['type'] && $forEditor => ['items' => array_map(
+                        fn (int $id): array => ['url' => $this->mediaData($documents[$id] ?? null, '')['url'] ?? null],
+                        $zone['mediaIds'],
+                    )],
                     default => null,
                 },
                 'map' => GridNormalizer::ZONE_MAP === $zone['type']
@@ -330,6 +334,9 @@ final readonly class GridViewBuilder
                     : null,
                 'activityFeed' => GridNormalizer::ZONE_ACTIVITY_FEED === $zone['type']
                     ? $this->activityFeedView($zone, $locale, $currentPostId)
+                    : null,
+                'travelMap' => GridNormalizer::ZONE_TRAVEL_MAP === $zone['type']
+                    ? $this->travelMapView($zone, $held, $documents)
                     : null,
                 'widget' => $this->widgetViews->build($zone, $held, $locale, fn (?int $id): ?array => null === $id ? null : $this->mediaData($documents[$id] ?? null, $held['alt']), $currentPostId),
             ];
@@ -1307,6 +1314,76 @@ final readonly class GridViewBuilder
         }
 
         return $items;
+    }
+
+    /**
+     * A trip's stops, paired by position with the gallery of photos the
+     * author picked - the same pairing a compare zone makes between its two
+     * slots, extended to as many as there are.
+     *
+     * A line the parser cannot read (not exactly three parts, or a latitude
+     * or longitude that is not a plain number) is dropped rather than
+     * guessed: a pin planted at 0°N 0°E from a typo is worse than a pin
+     * missing.
+     *
+     * @param array<string, mixed>          $zone
+     * @param array<string, mixed>          $held
+     * @param array<int, DocumentInterface> $documents
+     *
+     * @return array{stops: list<array<string, mixed>>}|null
+     */
+    private function travelMapView(array $zone, array $held, array $documents): ?array
+    {
+        $stops = [];
+
+        foreach (explode("\n", (string) $held['code']) as $index => $line) {
+            $parts = array_map(trim(...), explode('|', $line));
+            if (3 !== count($parts)) {
+                continue;
+            }
+
+            if (!is_numeric($parts[1])) {
+                continue;
+            }
+
+            if (!is_numeric($parts[2])) {
+                continue;
+            }
+
+            if ('' === $parts[0]) {
+                continue;
+            }
+
+            $lat = (float) $parts[1];
+            $lng = (float) $parts[2];
+            if ($lat < -90) {
+                continue;
+            }
+
+            if ($lat > 90) {
+                continue;
+            }
+
+            if ($lng < -180) {
+                continue;
+            }
+
+            if ($lng > 180) {
+                continue;
+            }
+
+            $mediaId = $zone['mediaIds'][$index] ?? null;
+            $photo = null !== $mediaId ? $this->mediaData($documents[$mediaId] ?? null, $parts[0]) : null;
+
+            $stops[] = [
+                'label' => $parts[0],
+                'lat' => $lat,
+                'lng' => $lng,
+                'photo' => $photo,
+            ];
+        }
+
+        return [] === $stops ? null : ['stops' => $stops];
     }
 
     /**

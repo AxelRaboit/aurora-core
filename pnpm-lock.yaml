@@ -107,6 +107,9 @@ importers:
       highlight.js:
         specifier: ^11.12.0
         version: 11.12.0
+      leaflet:
+        specifier: ^1.9.4
+        version: 1.9.4
       lucide-vue-next:
         specifier: ^1.0.0
         version: 1.0.0(vue@3.5.42)
@@ -1411,6 +1414,9 @@ packages:
 
   keyv@5.6.0:
     resolution: {integrity: sha512-CYDD3SOtsHtyXeEORYRx2qBtpDJFjRTGXUtmNEMGyzYOKj1TE3tycdlho7kA1Ufx9OYWZzg52QFBGALTirzDSw==}
+
+  leaflet@1.9.4:
+    resolution: {integrity: sha512-nxS1ynzJOmOlHp+iL3FyWqK89GtNL8U8rvlMOsQdTTssxZwCXh8N2NB3GDQOL+YR3XnWyZAxwQixURb+FA74PA==}
 
   levn@0.4.1:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}
@@ -3327,6 +3333,8 @@ snapshots:
   keyv@5.6.0:
     dependencies:
       '@keyv/serialize': 1.1.1
+
+  leaflet@1.9.4: {}
 
   levn@0.4.1:
     dependencies:
