@@ -29,9 +29,15 @@ backend:
       pexels: Pexels
       craft: Craft
       github: GitHub
+      instagram: Instagram
+      google_reviews: Avis Google
+      newsletter: Lettre d'information
       drive: Google Drive
       drive_description: "Lire un dossier Drive partagé par un client : compte de service, clé, activation."
       github_description: "La grille de contributions de vos comptes GitHub, à afficher dans une page : comptes et activation."
+      instagram_description: "Le fil de vos publications Instagram, à afficher dans une page : compte et jeton d'accès."
+      google_reviews_description: "Votre note et vos derniers avis Google, à afficher dans une page : fiche d'établissement et clé."
+      newsletter_description: "L'inscription à votre lettre d'information (Brevo ou Mailchimp), à poser dans une page : fournisseur, clé et liste."
       craft_description: "Importer une note écrite dans Craft : adresse de la connexion, jeton, activation."
       pexels_description: 'Banque de photos gratuites : activation, clé d''API et acceptation des conditions.'
       captcha: Anti-robots

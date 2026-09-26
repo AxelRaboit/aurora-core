@@ -66,6 +66,8 @@ describe("PostGridZoneContent", () => {
         "travelMap",
         "quoteEstimator",
         "appointmentBooking",
+        "instagramFeed",
+        "newsletterSignup",
     ])("offers the settings of a %s zone", (type) => {
         const { wrapper } = panelFor(type);
 
@@ -73,6 +75,15 @@ describe("PostGridZoneContent", () => {
         expect(
             wrapper.findAll("input, textarea, select, button").length,
         ).toBeGreaterThan(0);
+    });
+
+    it("has nothing to choose for a google reviews zone: it is the account that decides", () => {
+        const { wrapper } = panelFor("googleReviews");
+
+        expect(wrapper.text()).not.toBe("");
+        expect(wrapper.findAll("input, textarea, select, button").length).toBe(
+            0,
+        );
     });
 
     it("stores a day's opening hours as it understood them", async () => {

@@ -498,7 +498,7 @@ class AuroraBundle extends AbstractBundle
         ]);
 
         /*
-         * Les sept limiteurs que les contrôleurs d'aurora-core câblent par leur
+         * Les neuf limiteurs que les contrôleurs d'aurora-core câblent par leur
          * nom.
          *
          * La liste se relit par `grep -oE '\$[a-zA-Z]+Limiter' src/` : en
@@ -536,6 +536,11 @@ class AuroraBundle extends AbstractBundle
                 // chaque fichier est téléchargé chez Google et le zip est
                 // construit en entier avant le premier octet envoyé.
                 'space_guest_archive' => ['policy' => 'sliding_window', 'limit' => 5, 'interval' => '1 hour'],
+                // L'inscription à la lettre d'information et la prise d'un
+                // rendez-vous, sur le même mur extérieur que les autres,
+                // gardées par IP.
+                'newsletter_subscription' => ['policy' => 'sliding_window', 'limit' => 10, 'interval' => '1 hour'],
+                'editorial_booking' => ['policy' => 'sliding_window', 'limit' => 10, 'interval' => '1 hour'],
             ],
         ]);
 

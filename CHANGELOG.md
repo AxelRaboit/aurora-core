@@ -5,6 +5,33 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.258] - 2026-09-26
+
+### Ajouté
+
+- **Les trois intégrations tierces du chantier des nouveaux blocs : fil
+  Instagram, avis Google, inscription à une lettre d'information.** Chacune
+  est désactivée par défaut et se branche sur le compte du client, jamais
+  celui d'Axel - jetons et clés saisis et acceptés dans Réglages, jamais en
+  dur. Une zone posée avant que le client n'ait rempli ses réglages ne dessine
+  rien, comme un deck que personne n'a encore partagé.
+  - Le fil Instagram lit les publications récentes du compte professionnel du
+    client (Meta Graph API), avec un choix du nombre affiché.
+  - Les avis Google affichent la note et les derniers avis d'une fiche
+    d'établissement (Places API), avec un lien vers la fiche complète.
+  - L'inscription à la lettre ajoute l'adresse d'un visiteur à la liste du
+    client chez Brevo ou Mailchimp, protégée par une limite de dix envois par
+    heure et par IP - la même limite protège désormais aussi la prise de
+    rendez-vous (0.9.253).
+
+### Dans aurora-client
+
+Rien à faire : aucune migration, les deux nouveaux limiteurs de débit arrivent
+avec le paquet. Un `make aurora-update` suivi de la reconstruction des assets
+suffit.
+
+---
+
 ## [0.9.257] - 2026-09-26
 
 ### Ajouté

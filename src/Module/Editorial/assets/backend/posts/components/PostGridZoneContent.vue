@@ -982,6 +982,24 @@ const displayHint = computed(() =>
             </div>
         </template>
 
+        <template v-else-if="zone.type === 'instagramFeed'">
+            <p class="text-sm text-muted">{{ t("backend.posts.grid.instagram_feed_hint") }}</p>
+            <AppChoiceRow v-model="bound.feedCount.value" :label="t('backend.posts.grid.feed_count')" :options="choices.feedCount ?? []" />
+        </template>
+
+        <template v-else-if="zone.type === 'googleReviews'">
+            <p class="text-sm text-muted">{{ t("backend.posts.grid.google_reviews_hint") }}</p>
+        </template>
+
+        <template v-else-if="zone.type === 'newsletterSignup'">
+            <p class="text-sm text-muted">{{ t("backend.posts.grid.newsletter_hint") }}</p>
+            <div class="rounded-lg border border-dashed border-line p-3 space-y-2">
+                <p class="text-xs uppercase tracking-wide text-muted">{{ t("backend.posts.grid.translated_fields", { locale }) }}</p>
+                <AppInput v-model="bound.label.value" :label="t('backend.posts.grid.newsletter_title')" placeholder="Recevez les prochaines dates" />
+                <AppInput v-model="bound.caption.value" :label="t('backend.posts.grid.newsletter_note')" placeholder="Une fois par mois, jamais de spam" />
+            </div>
+        </template>
+
         <template v-else-if="zone.type === 'deck'">
             <AppSelect
                 v-model="bound.deckId.value"
