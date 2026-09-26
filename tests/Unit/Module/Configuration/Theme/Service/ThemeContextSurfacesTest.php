@@ -236,4 +236,26 @@ final class ThemeContextSurfacesTest extends TestCase
         // page falls back to - nothing to override here either.
         self::assertSame('', $this->contextWithConfig([])->previewSurfaceCss('.aurora-banner-preview[data-theme]'));
     }
+
+    // ── A publication's own accent, scoped to its own selector ────────────────
+
+    public function testNoAccentColourEmitsNothing(): void
+    {
+        self::assertSame('', $this->contextWithConfig([])->postAccentCss('.aurora-post-accent', null));
+    }
+
+    public function testABlankAccentColourEmitsNothingToo(): void
+    {
+        self::assertSame('', $this->contextWithConfig([])->postAccentCss('.aurora-post-accent', '   '));
+    }
+
+    public function testAnAccentColourGeneratesTheFullScaleUnderItsOwnSelector(): void
+    {
+        $css = $this->contextWithConfig([])->postAccentCss('.aurora-post-accent', '#b45309');
+
+        self::assertStringStartsWith('.aurora-post-accent{', $css);
+        self::assertStringContainsString('--th-accent-500:', $css);
+        self::assertStringContainsString('--th-accent-50:', $css);
+        self::assertStringContainsString('--th-accent-950:', $css);
+    }
 }

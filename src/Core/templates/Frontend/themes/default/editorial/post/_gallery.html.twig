@@ -43,9 +43,21 @@
     5: 'columns-1 sm:columns-3 lg:columns-5',
 } %}
 
+{# `justified` is neither a grid nor CSS columns - it is a single flex row that
+   wraps, each picture kept at its own proportions rather than cropped.
+   `flex-grow` set to the picture's own width/height ratio and `flex-basis` to
+   that ratio times a fixed row height is the same trick a bookshelf-style
+   gallery is usually built with: a wide picture claims more of the row than a
+   tall one, every row reaches the far edge, and nothing but CSS is needed -
+   no script measuring the container, no row computed in PHP against a width
+   the server does not know. The one thing it does not do is justify the very
+   last row, which is the trade-off every CSS-only version of this makes. #}
+{% set justifiedRowHeight = 220 %}
+
 <section class="not-prose mt-10">
-    <div class="{{ 'masonry' == gallery.layout ? masonry_columns[columns]|default(masonry_columns[3]) ~ ' gap-3' : 'grid ' ~ (grid_columns[columns]|default(grid_columns[3])) ~ ' gap-3' }}">
+    <div class="{{ 'masonry' == gallery.layout ? masonry_columns[columns]|default(masonry_columns[3]) ~ ' gap-3' : ('justified' == gallery.layout ? 'flex flex-wrap gap-3' : 'grid ' ~ (grid_columns[columns]|default(grid_columns[3])) ~ ' gap-3') }}">
         {% for index, item in gallery.items %}
+            {% set justifiedRatio = ('justified' == gallery.layout and item.height|default(0) > 0) ? (item.width|default(item.height) / item.height) : 1 %}
             {# **Sur chaque photo, pas sur la galerie.** Une galerie qui
                arrive d'un bloc ne se lit pas comme vingt photos, elle se lit
                comme un rectangle qui change d'opacité. Portées une par une,
@@ -54,7 +66,10 @@
                les prend. #}
             <figure
                 {% if reveal|default('none') != 'none' %}data-reveal="{{ reveal }}"{% endif %}
-                class="m-0{{ 'masonry' == gallery.layout ? ' mb-3 break-inside-avoid' : '' }}"
+                class="{{ 'justified' == gallery.layout ? 'm-0 overflow-hidden rounded-lg' : 'm-0' ~ ('masonry' == gallery.layout ? ' mb-3 break-inside-avoid' : '') }}"
+                {% if 'justified' == gallery.layout %}
+                    style="height: {{ justifiedRowHeight }}px; flex-grow: {{ justifiedRatio }}; flex-basis: {{ (justifiedRatio * justifiedRowHeight)|round }}px;"
+                {% endif %}
             >
                 {# A button, not a link: it opens an overlay on this page rather
                    than going anywhere. Without the overlay's script it is a
@@ -63,14 +78,16 @@
                 <button
                     type="button"
                     data-gallery-open="{{ index }}"
-                    class="block w-full cursor-zoom-in appearance-none border-0 bg-transparent p-0 text-left"
+                    class="block {{ 'justified' == gallery.layout ? 'h-full w-full' : 'w-full' }} cursor-zoom-in appearance-none border-0 bg-transparent p-0 text-left"
                     aria-label="{{ 'frontend.gallery.open'|trans({'%position%': index + 1, '%total%': gallery.items|length}) }}"
                 >
                     {# `width` et `height` réservent la hauteur avant que la
                        photo arrive. Sans eux, vingt images différées occupent
                        zéro pixel et la page s'allonge vingt fois sous le
                        lecteur. Avec `h-auto` le navigateur n'en garde que le
-                       rapport et laisse la largeur au CSS. #}
+                       rapport et laisse la largeur au CSS - sauf en
+                       disposition justifiée, où c'est l'inverse : la hauteur
+                       est fixe et `h-full` la lui donne. #}
                     <img
                         src="{{ item.url }}"
                         alt="{{ item.alt }}"
@@ -80,8 +97,8 @@
                         {% endif %}
                         loading="lazy"
                         decoding="async"
-                        class="w-full h-auto rounded-lg object-cover"
-                        style="object-position: {{ item.focalPosition }};{{ 'masonry' == gallery.layout ? '' : gallery.ratioStyle }}"
+                        class="{{ 'justified' == gallery.layout ? 'h-full w-full' : 'w-full h-auto' }} rounded-lg object-cover"
+                        style="object-position: {{ item.focalPosition }};{{ 'grid' == gallery.layout ? gallery.ratioStyle : '' }}"
                     >
                 </button>
                 {% if item.caption %}

@@ -37,7 +37,15 @@ final class GalleryNormalizer
      */
     public const string LAYOUT_MASONRY = 'masonry';
 
-    public const array LAYOUTS = [self::LAYOUT_GRID, self::LAYOUT_MASONRY];
+    /**
+     * Rows of equal height, no gaps - each picture kept at its own aspect
+     * ratio rather than cropped. Neither `ratio` nor `columns` mean anything
+     * here: a row's picture count follows from the width available, not from
+     * a fixed number, and there is no shape to crop to.
+     */
+    public const string LAYOUT_JUSTIFIED = 'justified';
+
+    public const array LAYOUTS = [self::LAYOUT_GRID, self::LAYOUT_MASONRY, self::LAYOUT_JUSTIFIED];
 
     /**
      * Ratios, borrowed verbatim from the grid's media zone.

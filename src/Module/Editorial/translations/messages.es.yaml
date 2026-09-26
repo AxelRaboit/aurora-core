@@ -100,6 +100,13 @@ frontend:
     previous: Imagen anterior
     next: Imagen siguiente
   editorial:
+    reading_time: '%minutes% min de lectura'
+    share:
+      label: Compartir
+      copy_link: Copiar enlace
+      copied: Enlace copiado
+      linkedin: LinkedIn
+      whatsapp: WhatsApp
     grid:
       recommended: Recomendado
       choose: Elegir esta oferta

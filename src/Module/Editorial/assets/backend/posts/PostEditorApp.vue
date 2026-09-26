@@ -524,6 +524,12 @@ function termLabel(term) {
                             />
                         </div>
                     </div>
+
+                    <div class="aurora-card p-3 sm:p-5 space-y-4">
+                        <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.appearance.accent_title") }}</h3>
+                        <p class="text-xs text-muted">{{ t("backend.posts.appearance.accent_hint") }}</p>
+                        <BannerColorField v-model="form.accentColor" :label="t('backend.posts.appearance.accent_color')" />
+                    </div>
                 </div>
 
                 <!-- v-show, not v-if: the block editor holds its own state,

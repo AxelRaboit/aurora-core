@@ -9,6 +9,7 @@ use Aurora\Core\Content\EmbedResolver;
 use Aurora\Core\Content\VideoEmbedResolver;
 use Aurora\Core\Storage\Enum\MimeGroupEnum;
 use Aurora\Core\Storage\Enum\MimeTypeEnum;
+use Aurora\Module\Configuration\Theme\Service\SurfaceContrast;
 use Aurora\Module\Editorial\Form\Entity\FormInterface;
 use Aurora\Module\Editorial\Form\Entity\FormTranslationInterface;
 use Aurora\Module\Editorial\Form\Repository\FormRepository;
@@ -82,6 +83,7 @@ final readonly class GridViewBuilder
         private Security $security,
         private GitHubActivityView $gitHubActivityView,
         private ZoneWidgetViews $widgetViews,
+        private SurfaceContrast $surfaceContrast,
     ) {}
 
     /**
@@ -160,6 +162,10 @@ final readonly class GridViewBuilder
                 'background' => GridNormalizer::SURFACE_CUSTOM === $zone['surface']
                     ? $this->zoneBackgroundView($zone['background'], $documents)
                     : null,
+                // Empty for 'auto', which is every zone that never asked to
+                // override the page - the template then poses no style at
+                // all, exactly as before this existed.
+                'contrastStyle' => 'auto' !== $zone['contrast'] ? $this->contrastStyle($zone['contrast']) : '',
                 'spanStyle' => $this->values->spanStyle($zone['span']),
                 'ratioStyle' => $this->ratioStyle($zone['ratio']),
                 // Empty at full width, which is every zone that has not asked
@@ -1345,6 +1351,10 @@ final readonly class GridViewBuilder
                 $ids[] = $zone['background']['mediaId'];
             }
 
+            if (null !== ($zone['background']['videoId'] ?? null)) {
+                $ids[] = $zone['background']['videoId'];
+            }
+
             // A gallery names many at once, and they join the same query as
             // everything else: twenty-four photographs on a page should cost
             // one lookup, which is the whole reason this prefetch exists.
@@ -1800,7 +1810,27 @@ final readonly class GridViewBuilder
                 default => null,
             },
             'media' => $this->mediaData($documents[$background['mediaId']] ?? null, ''),
+            // Reuses the dedicated video zone's own resolver: the mime is
+            // checked here rather than trusted from the layout, the same
+            // reasoning as there - a file can be replaced after the zone was
+            // configured.
+            'video' => $this->videoFile($documents[$background['videoId']] ?? null),
             'overlay' => $background['overlay'],
         ];
+    }
+
+    /**
+     * The full token set for a forced scheme, as one CSS declaration string -
+     * same shape as the surface's own `fillStyle`, so the template poses it
+     * the same way, in a `style` attribute rather than a class.
+     */
+    private function contrastStyle(string $scheme): string
+    {
+        $declarations = [];
+        foreach ($this->surfaceContrast->tokensForScheme($scheme) as $token => $value) {
+            $declarations[] = $token.': '.$value.';';
+        }
+
+        return implode('', $declarations);
     }
 }

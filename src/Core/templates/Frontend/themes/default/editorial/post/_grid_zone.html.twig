@@ -609,8 +609,29 @@
         {# A rule, or the same room with nothing drawn in it. Both are the
            point: a page needs to breathe as often as it needs dividing. #}
         {% set separatorSizes = {sm: 'py-2', md: 'py-6', lg: 'py-12'} %}
+        {# The three shapes share a canvas wide enough that the stroke never
+           looks stretched, and `preserveAspectRatio="none"` is what lets each
+           one fill any width without keeping its own proportions - the point
+           of a full-width shape is that it reaches both edges, not that it
+           tiles. `currentColor` is `text-line`, so a shape agrees with the
+           thin rule it replaces in both themes without a colour of its own. #}
+        {% set separatorShapeHeights = {sm: 'h-4', md: 'h-8', lg: 'h-14'} %}
         <div class="not-prose {{ separatorSizes[zone.size] }}" aria-hidden="true">
-            {% if zone.separatorStyle == 'line' %}<hr class="m-0 border-t border-line">{% endif %}
+            {% if zone.separatorStyle == 'line' %}
+                <hr class="m-0 border-t border-line">
+            {% elseif zone.separatorStyle == 'wave' %}
+                <svg viewBox="0 0 1200 40" preserveAspectRatio="none" class="w-full {{ separatorShapeHeights[zone.size] }} text-line">
+                    <path d="M0,20 C150,0 350,40 600,20 C850,0 1050,40 1200,20" fill="none" stroke="currentColor" stroke-width="2" />
+                </svg>
+            {% elseif zone.separatorStyle == 'diagonal' %}
+                <svg viewBox="0 0 1200 40" preserveAspectRatio="none" class="w-full {{ separatorShapeHeights[zone.size] }} text-line">
+                    <line x1="0" y1="40" x2="1200" y2="0" stroke="currentColor" stroke-width="2" />
+                </svg>
+            {% elseif zone.separatorStyle == 'bevel' %}
+                <svg viewBox="0 0 1200 40" preserveAspectRatio="none" class="w-full {{ separatorShapeHeights[zone.size] }} text-line">
+                    <polyline points="0,0 600,40 1200,0" fill="none" stroke="currentColor" stroke-width="2" />
+                </svg>
+            {% endif %}
         </div>
 
     {% elseif zone.type == 'items' and zone.items.entries is not empty %}

@@ -145,6 +145,7 @@ class PostSerializer implements PostSerializerInterface
             'headerColor' => $post->getHeaderColor(),
             'footerColor' => $post->getFooterColor(),
             'backgroundColor' => $post->getBackgroundColor(),
+            'accentColor' => $post->getAccentColor(),
             // What the last review decided, so the editor can show the author what
             // to change rather than leaving them to guess why it came back.
             'reviewNote' => $post->getReviewNote(),
