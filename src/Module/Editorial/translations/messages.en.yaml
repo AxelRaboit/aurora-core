@@ -542,6 +542,19 @@ backend:
         card: Card
         soft: Tinted
         accent: Accent
+        custom: Custom
+      fill: Background type
+      fill_types:
+        none: None
+        solid: Solid colour
+        gradient: Gradient
+      background_color: Background colour
+      gradient_from: From
+      gradient_to: To
+      gradient_angle: 'Direction: {degrees}°'
+      background_image: Background image
+      background_image_hint: Sits behind the zone, cropped to its focal point.
+      overlay: 'Darkening: {percent}%'
       page_reveal: "Page scroll effect"
       page_reveal_hint: "How the zones arrive when the reader reaches them. Any zone can decide otherwise; the ones that say nothing follow this."
       reveal: "Scroll effect"
