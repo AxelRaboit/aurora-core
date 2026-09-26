@@ -1,0 +1,26 @@
+{# A calculator: the base price, then a box a reader ticks for each option,
+   the total re-summed in the browser as they go (quoteEstimator.js). The
+   total means nothing kept only here - the script also writes a recap into
+   the first free-text field of the next form on the page, which is why an
+   author is told to follow this zone with one. #}
+<section class="not-prose rounded-xl border border-line bg-surface p-5" data-quote data-quote-currency="{{ widget.currency }}" data-quote-base="{{ widget.base }}">
+    {% if widget.title %}<p class="m-0 mb-4 text-base font-semibold text-primary">{{ widget.title }}</p>{% endif %}
+    <ul class="m-0 list-none space-y-2 p-0">
+        {% for item in widget.items %}
+            <li>
+                <label class="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-line px-4 py-2.5 text-sm has-[:checked]:border-accent has-[:checked]:bg-accent-500/10">
+                    <span class="flex items-center gap-3">
+                        <input type="checkbox" class="h-4 w-4 accent-current text-accent" data-quote-price="{{ item.price }}" data-quote-label="{{ item.label }}">
+                        <span class="text-primary">{{ item.label }}</span>
+                    </span>
+                    <span class="shrink-0 tabular-nums text-secondary">+{{ item.price }}{{ widget.currency }}</span>
+                </label>
+            </li>
+        {% endfor %}
+    </ul>
+    <div class="mt-4 flex items-baseline justify-between border-t border-line pt-4">
+        <span class="text-sm font-medium text-secondary">{{ 'frontend.editorial.grid.quote.total'|trans }}</span>
+        <span class="text-2xl font-bold tabular-nums text-primary" data-quote-total>{{ widget.base }}{{ widget.currency }}</span>
+    </div>
+    {% if widget.note %}<p class="m-0 mt-3 text-xs text-muted">{{ widget.note }}</p>{% endif %}
+</section>

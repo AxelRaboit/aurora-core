@@ -112,6 +112,40 @@
             {% endfor %}
         </ol>
 
+    {% elseif items.display == 'scrolly' %}
+        {# A photo stays put while its chapter's words scroll past beside it,
+           then gives way to the next one - pure CSS: `lg:sticky` pins the
+           picture inside its own chapter, so it can only stick as long as that
+           chapter is tall, and unsticks into the next one's picture on its own.
+           `py-24` is what gives the words room to scroll while the picture
+           holds still; a short chapter would leave nothing to read against a
+           picture that never moves.
+
+           Stacked plainly on a phone: there is no side for a sticky picture to
+           hold, so it flows above its text like any other photo. #}
+        <div class="not-prose space-y-16 lg:space-y-24">
+            {% for entry in items.entries %}
+                <section class="lg:grid lg:grid-cols-2 lg:items-start lg:gap-12">
+                    <div class="lg:sticky lg:top-24">
+                        {% if entry.media %}
+                            <img
+                                src="{{ entry.media.url }}"
+                                alt=""
+                                loading="lazy"
+                                class="aspect-[4/5] w-full rounded-xl object-cover lg:aspect-auto lg:h-[calc(100vh-8rem)]"
+                                style="object-position: {{ entry.media.focalPosition }};"
+                            >
+                        {% endif %}
+                    </div>
+                    <div class="py-6 lg:py-24">
+                        <span class="text-sm font-semibold uppercase tracking-wider text-accent">{{ entry.position }}<span aria-hidden="true"> / {{ items.entries|length }}</span></span>
+                        {% if entry.title %}<h3 class="m-0 mt-2 text-2xl font-bold text-primary text-balance sm:text-3xl">{{ entry.title }}</h3>{% endif %}
+                        {% if entry.description %}<p class="mt-4 mb-0 whitespace-pre-line text-lg leading-relaxed text-secondary">{{ entry.description }}</p>{% endif %}
+                    </div>
+                </section>
+            {% endfor %}
+        </div>
+
     {% elseif items.display == 'offers' %}
         {# What each card has to answer, in the order it is asked: what is this,
            what does it cost, what do I get, how do I start.

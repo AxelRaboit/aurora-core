@@ -517,6 +517,9 @@ backend:
         activityFeed: Dernière activité
         priceList: Carte et tarifs
         poll: Sondage
+        travelMap: Carte de voyage
+        quoteEstimator: Simulateur de devis
+        appointmentBooking: Prise de rendez-vous
         stack: Pile
       zone_form: "Formulaire"
       zone_form_hint: "Le formulaire s'affiche dans la page, et s'envoie au même endroit que sur sa propre page."
@@ -630,6 +633,7 @@ backend:
         timeline: Chronologie
         offers: Cartes d'offres
         people: Équipe
+        scrolly: Récit en images
       item_columns: Colonnes
       item_number: "Entrée {number}"
       item_add: Ajouter une entrée
@@ -890,6 +894,21 @@ backend:
       poll_question: Question
       poll_answers: Réponses
       poll_answers_hint: "Une réponse par ligne, de deux à huit."
+      travel_photo_count: "{count} photo sur {max} | {count} photos sur {max}"
+      travel_photo_add: Ajouter des photos
+      travel_stops: Étapes du voyage
+      travel_stops_hint: "Une ligne par étape, dans l'ordre des photos ci-dessus : le nom, la latitude, la longitude, séparés par des barres « | »."
+      quote_currency: Devise
+      quote_title: Titre
+      quote_options: Options et prix
+      quote_options_hint: "« = 90 » fixe le prix de base. Une ligne par option ensuite : le nom | le prix, que le visiteur coche pour l'ajouter au total."
+      quote_note: Précision sous le total
+      slot_duration: Durée d'un créneau
+      minutes: "{count} minute | {count} minutes"
+      booking_window: Réservable jusqu'à
+      days_count: "{count} jour | {count} jours"
+      booking_title: Titre
+      booking_note: Précision
       background_video: Vidéo en fond
       background_video_hint: "La vidéo tourne sans le son derrière le titre, au lieu d'un lecteur. Pour les visiteurs qui ont demandé moins d'animations, l'image d'aperçu reste fixe."
       background_video_title: Titre posé sur la vidéo
@@ -1340,6 +1359,20 @@ frontend:
         closed: "Ce sondage n'est plus ouvert."
       episode:
         transcript: Transcription
+      quote:
+        total: Total
+      booking:
+        calendar_name: Réservations en ligne
+        none: Aucun créneau disponible pour le moment.
+        name: Votre nom
+        email: Votre e-mail
+        phone: Téléphone (facultatif)
+        message: Message (facultatif)
+        confirm: Confirmer le rendez-vous
+        success: Rendez-vous confirmé pour
+        taken: "Ce créneau vient d'être pris. Choisissez-en un autre."
+        invalid: Une information manque ou n'est pas valide.
+        unavailable: Cette prise de rendez-vous n'est plus disponible.
     forms:
       submit: Envoyer
       next: Suivant

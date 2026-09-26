@@ -517,6 +517,9 @@ backend:
         activityFeed: Latest activity
         priceList: Menu and prices
         poll: Poll
+        travelMap: Travel map
+        quoteEstimator: Quote estimator
+        appointmentBooking: Appointment booking
         stack: Stack
       zone_form: "Form"
       zone_form_hint: "The form is drawn in the page and posts where its own page posts."
@@ -630,6 +633,7 @@ backend:
         timeline: Timeline
         offers: Plan cards
         people: Team
+        scrolly: Photo story
       item_columns: Columns
       item_number: "Entry {number}"
       item_add: Add an entry
@@ -890,6 +894,21 @@ backend:
       poll_question: Question
       poll_answers: Answers
       poll_answers_hint: "One answer per line, two to eight."
+      travel_photo_count: "{count} photo of {max} | {count} photos of {max}"
+      travel_photo_add: Add photos
+      travel_stops: Trip stops
+      travel_stops_hint: "One line per stop, in the order of the photos above: the name, the latitude, the longitude, separated by bars « | »."
+      quote_currency: Currency
+      quote_title: Title
+      quote_options: Options and prices
+      quote_options_hint: "« = 90 » sets the base price. One line per option after that: the name | the price, which a visitor ticks to add to the total."
+      quote_note: Detail under the total
+      slot_duration: Slot length
+      minutes: "{count} minute | {count} minutes"
+      booking_window: Bookable up to
+      days_count: "{count} day | {count} days"
+      booking_title: Title
+      booking_note: Detail
       background_video: Background video
       background_video_hint: "The film plays without sound behind the title, instead of a player. For visitors who asked for less motion, the poster stays still."
       background_video_title: Title over the video
@@ -1340,6 +1359,20 @@ frontend:
         closed: This poll is closed.
       episode:
         transcript: Transcript
+      quote:
+        total: Total
+      booking:
+        calendar_name: Online bookings
+        none: No slot available for now.
+        name: Your name
+        email: Your email
+        phone: Phone (optional)
+        message: Message (optional)
+        confirm: Confirm the appointment
+        success: Appointment confirmed for
+        taken: This slot was just taken. Choose another one.
+        invalid: Something is missing or not valid.
+        unavailable: This booking form is no longer available.
     forms:
       submit: Send
       next: Next

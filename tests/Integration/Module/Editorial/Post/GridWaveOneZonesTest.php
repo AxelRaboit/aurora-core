@@ -133,6 +133,44 @@ final class GridWaveOneZonesTest extends IntegrationTestCase
         self::assertStringContainsString('data-poll-answer="1"', $html);
     }
 
+    public function testATravelMapPairsStopsWithTheirPhotos(): void
+    {
+        $html = $this->render(['type' => 'travelMap'], ['code' => "Monument Valley | 36.9989 | -110.098\nLondres | 51.5072 | -0.1276"]);
+
+        self::assertStringContainsString('data-travel-map', $html);
+        self::assertStringContainsString('Monument Valley', $html);
+        self::assertStringContainsString('36.9989', $html);
+    }
+
+    public function testATravelMapDropsAnUnreadableLine(): void
+    {
+        $html = $this->render(['type' => 'travelMap'], ['code' => "Pas assez de colonnes\nLondres | 51.5072 | -0.1276"]);
+
+        self::assertStringContainsString('Londres', $html);
+        self::assertStringNotContainsString('Pas assez', $html);
+    }
+
+    public function testAQuoteEstimatorSumsItsBaseAndItsOptions(): void
+    {
+        $html = $this->render(['type' => 'quoteEstimator'], ['label' => 'Estimez', 'code' => "= 90\nDrone | 40\nAlbum | 60"]);
+
+        self::assertStringContainsString('Estimez', $html);
+        self::assertStringContainsString('Drone', $html);
+        self::assertStringContainsString('data-quote-base="90"', $html);
+    }
+
+    public function testAScrollyDisplayReadsAsAStoryOfChapters(): void
+    {
+        $html = $this->render(
+            ['type' => 'items', 'display' => 'scrolly', 'items' => [['id' => 'c1']]],
+            ['items' => ['c1' => ['title' => 'Le départ', 'description' => 'Premiers kilomètres.']]],
+        );
+
+        self::assertStringContainsString('Le départ', $html);
+        self::assertStringContainsString('Premiers kilomètres.', $html);
+        self::assertStringContainsString('lg:sticky', $html);
+    }
+
     public function testAPictureCanBecomeABandOrSitOnAScreen(): void
     {
         $band = $this->render(['type' => 'media', 'fullBleed' => true, 'mediaUrl' => 'https://picsum.photos/1600/900', 'options' => ['parallax' => true]], ['caption' => 'Une phrase']);

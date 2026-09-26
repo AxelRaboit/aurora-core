@@ -1,0 +1,19 @@
+{# A trip's stops on a map, each pin opening the photo taken there. The map
+   itself (Leaflet, OpenStreetMap tiles) is drawn by travelMap.js from the
+   JSON in `data-travel-stops` - no key, no account, tiles anyone may ask
+   for. Without the script, the stops still read as a plain list under
+   where the map would be. #}
+<div class="not-prose">
+    <div
+        class="aspect-[4/3] w-full overflow-hidden rounded-xl border border-line bg-surface-2 sm:aspect-video"
+        data-travel-map
+        data-travel-stops="{{ zone.travelMap.stops|json_encode }}"
+    ></div>
+    <noscript>
+        <ul class="m-0 mt-3 list-none space-y-1 p-0 text-sm text-secondary">
+            {% for stop in zone.travelMap.stops %}
+                <li>{{ stop.label }}</li>
+            {% endfor %}
+        </ul>
+    </noscript>
+</div>

@@ -74,6 +74,34 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.253] - 2026-09-26
+
+### Ajouté
+
+#### Quatre nouveaux blocs de page
+- **Récit en images** : une nouvelle présentation de la zone Liste, où la
+  photo de chaque chapitre reste à l'écran pendant que son texte défile à
+  côté, puis cède la place à la suivante. Pur CSS, empilé simplement sur
+  téléphone.
+- **Carte de voyage** : les étapes d'un déplacement sur une carte OpenStreetMap
+  (aucune clé, aucun compte), chaque repère ouvrant la photo prise là, choisie
+  dans une galerie d'images posée avec la zone.
+- **Simulateur de devis** : un prix de base et des options à cocher, le total
+  recalculé à chaque case, puis écrit dans le premier champ de texte libre du
+  formulaire posé juste après.
+- **Prise de rendez-vous** : les mêmes horaires que le bloc Horaires, mais
+  proposés en créneaux à réserver. Un rendez-vous atterrit, en attente de
+  confirmation, sur un calendrier partagé que le back-office voit déjà. Le
+  créneau est revérifié à l'envoi, jamais pris deux fois.
+
+### Dans aurora-client
+
+Rien à faire : aucune migration, les rendez-vous vivent dans le module
+Planning déjà en place. Un `make aurora-update` suivi de la reconstruction des
+assets suffit.
+
+---
+
 ## [0.9.252] - 2026-09-25
 
 ### Ajouté

@@ -305,6 +305,31 @@ final readonly class GridNormalizer
     public const string ZONE_POLL = 'poll';
 
     /**
+     * A trip's stops on a map, each with the picture taken there - typed as
+     * `Label ; lat ; lng` lines, paired by position with a gallery of photos
+     * so an author never has to know a photograph's internal id.
+     */
+    public const string ZONE_TRAVEL_MAP = 'travelMap';
+
+    /**
+     * A calculator: options an author priced, a reader ticks, a total that
+     * adds itself up. It answers no question by itself - the total is meant
+     * to land in a form placed after it on the same page.
+     */
+    public const string ZONE_QUOTE_ESTIMATOR = 'quoteEstimator';
+
+    /**
+     * A slot on the zone's own calendar, booked by a visitor with no account.
+     *
+     * The calendar is one shared, ownerless planning the whole site books
+     * into - {@see ModuleCalendarProvider} - so every appointment shows up
+     * where the back office already looks for one. A booking lands
+     * `Tentative`: it holds the slot, and it is a person, not a script, who
+     * confirms it.
+     */
+    public const string ZONE_APPOINTMENT_BOOKING = 'appointmentBooking';
+
+    /**
      * Another publication's grid, drawn here.
      *
      * The one thing a CMS starts missing the moment a site passes ten pages:
@@ -414,7 +439,7 @@ final readonly class GridNormalizer
      * written. New ones go at the end: the first is the default, and moving it
      * would restyle every list already published.
      */
-    public const array ITEM_DISPLAYS = ['steps', 'stats', 'faq', 'quotes', 'logos', 'timeline', 'offers', 'people'];
+    public const array ITEM_DISPLAYS = ['steps', 'stats', 'faq', 'quotes', 'logos', 'timeline', 'offers', 'people', 'scrolly'];
 
     /**
      * How densely a publication card is drawn. The same publication either
@@ -436,6 +461,9 @@ final readonly class GridNormalizer
 
     /** Films on one wall: past a dozen, a page plays more than anyone watches. */
     public const int MAX_VIDEO_WALL = 12;
+
+    /** Stops on one trip: a map busier than this reads as noise. */
+    public const int MAX_TRAVEL_STOPS = 20;
 
     /**
      * The languages the highlighter is built with. An unknown one is not an
@@ -704,6 +732,9 @@ final readonly class GridNormalizer
         self::ZONE_ACTIVITY_FEED,
         self::ZONE_PRICE_LIST,
         self::ZONE_POLL,
+        self::ZONE_TRAVEL_MAP,
+        self::ZONE_QUOTE_ESTIMATOR,
+        self::ZONE_APPOINTMENT_BOOKING,
     ];
 
     /**
@@ -950,6 +981,7 @@ final readonly class GridNormalizer
                     self::ZONE_GALLERY => $this->mediaIdList($entry['mediaIds'] ?? null, self::MAX_GALLERY_IMAGES),
                     self::ZONE_COMPARE => $this->mediaIdList($entry['mediaIds'] ?? null, self::COMPARE_IMAGES),
                     self::ZONE_VIDEO_WALL => $this->mediaIdList($entry['mediaIds'] ?? null, self::MAX_VIDEO_WALL),
+                    self::ZONE_TRAVEL_MAP => $this->mediaIdList($entry['mediaIds'] ?? null, self::MAX_TRAVEL_STOPS),
                     default => [],
                 },
                 // An address, for a picture that is not in the library - a

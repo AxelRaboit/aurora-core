@@ -21,6 +21,9 @@ import {
     Activity,
     Receipt,
     Vote,
+    Map as MapIcon,
+    Calculator,
+    CalendarCheck,
     Image,
     Images,
     Columns2,
@@ -97,6 +100,9 @@ export const LEAF_ZONE_TYPES = [
     "activityFeed",
     "priceList",
     "poll",
+    "travelMap",
+    "quoteEstimator",
+    "appointmentBooking",
 ];
 
 /** Mirrors GridNormalizer::ZONE_TYPES - a stack is top level only. */
@@ -169,6 +175,9 @@ export const ZONE_ICONS = {
     activityFeed: Activity,
     priceList: Receipt,
     poll: Vote,
+    travelMap: MapIcon,
+    quoteEstimator: Calculator,
+    appointmentBooking: CalendarCheck,
     stack: Layers,
 };
 
@@ -189,6 +198,8 @@ export const WEEKDAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
 export const SOCIAL_NETWORKS = ["instagram", "linkedin", "facebook", "x"];
 export const CHART_TYPES = ["bar", "line", "donut", "growth"];
 export const POLL_RESULTS = ["after", "always"];
+export const SLOT_DURATIONS = [15, 30, 45, 60, 90];
+export const BOOKING_WINDOWS = [7, 14, 21, 30, 45];
 
 /**
  * What `options` holds on a new zone - every key, whatever the type, for the
@@ -231,13 +242,16 @@ export function defaultZoneOptions() {
         calendarMonth: null,
         feedGithub: false,
         pollResults: "after",
+        quoteCurrency: "€",
+        slotDuration: 15,
+        bookingWindowDays: 7,
     };
 }
 
 /** Mirrors GridNormalizer::SEPARATOR_STYLES. */
 export const SEPARATOR_STYLES = ["line", "space", "wave", "diagonal", "bevel"];
 
-/** Mirrors GridNormalizer::ITEM_DISPLAYS - the eight costumes of an item list. */
+/** Mirrors GridNormalizer::ITEM_DISPLAYS - the nine costumes of an item list. */
 export const ITEM_DISPLAYS = [
     "steps",
     "stats",
@@ -247,6 +261,7 @@ export const ITEM_DISPLAYS = [
     "timeline",
     "offers",
     "people",
+    "scrolly",
 ];
 
 /** Mirrors GridNormalizer::ITEM_COLUMNS. */
@@ -745,6 +760,14 @@ export function usePostGrid(layout, content) {
         availability: labelled(AVAILABILITIES, "availabilities"),
         chartType: labelled(CHART_TYPES, "chart_types"),
         pollResults: labelled(POLL_RESULTS, "poll_results_modes"),
+        slotDuration: SLOT_DURATIONS.map((value) => ({
+            value,
+            label: t("backend.posts.grid.minutes", { count: value }),
+        })),
+        bookingWindowDays: BOOKING_WINDOWS.map((value) => ({
+            value,
+            label: t("backend.posts.grid.days_count", { count: value }),
+        })),
         // A network names itself.
         socialNetwork: SOCIAL_NETWORKS.map((value) => ({
             value,
