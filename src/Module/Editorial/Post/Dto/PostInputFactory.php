@@ -6,6 +6,7 @@ namespace Aurora\Module\Editorial\Post\Dto;
 
 use Aurora\Core\Support\Arr;
 use Aurora\Core\Support\Str;
+use Aurora\Module\Configuration\Theme\Service\ThemeContext;
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
 use Aurora\Module\Editorial\Post\Enum\ThumbnailFitEnum;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
@@ -42,6 +43,8 @@ class PostInputFactory implements PostInputFactoryInterface
             footerColor: $this->colorOrNull($data['footerColor'] ?? null),
             backgroundColor: $this->colorOrNull($data['backgroundColor'] ?? null),
             accentColor: $this->colorOrNull($data['accentColor'] ?? null),
+            highlight: $this->highlightOrNull($data['highlight'] ?? null, $data['highlightColor'] ?? null),
+            highlightColor: $this->colorOrNull($data['highlightColor'] ?? null),
             // Un champ vidé arrive en chaîne vide, et vide veut dire "aucune
             // position" - pas la position zéro, que l'entité refuse de toute
             // façon.
@@ -92,6 +95,19 @@ class PostInputFactory implements PostInputFactoryInterface
     /**
      * A hex color must be exactly 7 characters: #RRGGBB.
      */
+    /**
+     * Un mode inconnu hérite du thème, et un « custom » sans couleur valable
+     * aussi : il rendrait sinon des survols sans couleur.
+     */
+    private function highlightOrNull(mixed $raw, mixed $color): ?string
+    {
+        if (!is_string($raw) || !in_array($raw, ThemeContext::HIGHLIGHTS, true)) {
+            return null;
+        }
+
+        return 'custom' === $raw && null === $this->colorOrNull($color) ? null : $raw;
+    }
+
     private function colorOrNull(mixed $raw): ?string
     {
         $value = Str::trimOrNull((string) ($raw ?? ''));

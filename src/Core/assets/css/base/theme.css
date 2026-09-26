@@ -51,6 +51,12 @@
     --color-accent-900: var(--th-accent-900);
     --color-accent-950: var(--th-accent-950);
 
+    /* Survols du site public et reperes des cartes. Sans --th-highlight c'est
+       l'accent, au pixel pres ; le repli est resolu la ou la classe s'applique,
+       donc l'accent propre a une publication reste respecte. */
+    --color-highlight:     var(--th-highlight, var(--th-accent));
+    --color-highlight-500: var(--th-highlight, var(--th-accent-500));
+
     --color-danger:       var(--th-danger);
     --color-danger-soft:  var(--th-danger-soft);
     --color-success:      var(--th-success);
@@ -194,6 +200,14 @@
  * donc sur le fond de leur topbar et non sur celui de la page. */
 .aurora-surface {
     background-color: var(--th-surface-bg, transparent);
+}
+
+/* Mode neutre des survols (ThemeContext::highlight). Pose sur chaque element
+ * et non sur `html` : resolu a la racine, var(--th-primary) figerait le texte
+ * de la page, et un lien survole dans une topbar coloree prendrait une couleur
+ * que la surface a justement remplacee. */
+html[data-highlight="neutral"] * {
+    --th-highlight: var(--th-primary);
 }
 
 /* Le plugin Tailwind Typography peint `.prose` avec ses propres variables, des

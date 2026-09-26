@@ -9,7 +9,7 @@
             {% endfor %}
         </span>
         <span class="text-lg font-semibold text-primary">{{ zone.googleReviews.ratingLabel }}</span>
-        <a href="{{ zone.googleReviews.url }}" target="_blank" rel="noopener" class="text-sm text-secondary no-underline hover:text-accent">{{ 'frontend.editorial.grid.reviews.count'|trans({'%count%': zone.googleReviews.total}) }}</a>
+        <a href="{{ zone.googleReviews.url }}" target="_blank" rel="noopener" class="text-sm text-secondary no-underline hover:text-highlight">{{ 'frontend.editorial.grid.reviews.count'|trans({'%count%': zone.googleReviews.total}) }}</a>
     </div>
     <div class="grid gap-4 sm:grid-cols-2">
         {% for review in zone.googleReviews.reviews|slice(0, 4) %}

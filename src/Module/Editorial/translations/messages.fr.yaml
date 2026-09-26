@@ -1113,6 +1113,9 @@ backend:
       accent_title: Accent
       accent_hint: "La couleur des boutons, des liens et des accents de cette publication, par-dessus celle du thème. Laissée vide, elle garde la couleur du thème."
       accent_color: Couleur d'accent
+      highlight: Survols et repères des cartes
+      highlight_inherit: Comme le thème
+      highlight_hint: "Liserés et titres au survol, catégorie et flèche des cartes, pour le contenu de cette page seulement. La barre de navigation et le pied de page gardent le réglage du thème."
   taxonomies:
     title: Taxonomies
     empty: Aucune taxonomie.

@@ -25,13 +25,13 @@
             {% endif %}
             <ul class="m-0 mt-3 list-none space-y-1 p-0 text-sm">
                 {% if widget.phone %}
-                    <li><a href="tel:{{ widget.phoneHref }}" class="text-primary no-underline hover:text-accent">{{ widget.phone }}</a></li>
+                    <li><a href="tel:{{ widget.phoneHref }}" class="text-primary no-underline hover:text-highlight">{{ widget.phone }}</a></li>
                 {% endif %}
                 {% if widget.email %}
-                    <li><a href="mailto:{{ widget.email }}" class="break-all text-primary no-underline hover:text-accent">{{ widget.email }}</a></li>
+                    <li><a href="mailto:{{ widget.email }}" class="break-all text-primary no-underline hover:text-highlight">{{ widget.email }}</a></li>
                 {% endif %}
                 {% if widget.website %}
-                    <li><a href="{{ widget.website }}" class="break-all text-primary no-underline hover:text-accent" rel="noopener">{{ widget.websiteLabel }}</a></li>
+                    <li><a href="{{ widget.website }}" class="break-all text-primary no-underline hover:text-highlight" rel="noopener">{{ widget.websiteLabel }}</a></li>
                 {% endif %}
             </ul>
         </div>

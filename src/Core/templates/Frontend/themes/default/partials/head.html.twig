@@ -110,6 +110,11 @@
     <style>{{ surfacesCss|raw }}</style>
 {% endif %}
 
+{% set highlightCss = themeContext.highlightCss() %}
+{% if highlightCss %}
+    <style>{{ highlightCss|raw }}</style>
+{% endif %}
+
 {% set cssOverrides = themeContext.cssVariableOverrides() %}
 {% if cssOverrides %}
     <style>html[data-theme] { {{ cssOverrides|raw }} }</style>

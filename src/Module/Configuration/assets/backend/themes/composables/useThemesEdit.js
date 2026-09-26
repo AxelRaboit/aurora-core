@@ -130,6 +130,8 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
     const headerCustomText = ref("");
     const headerMode = ref("default");
     const contentWidth = ref("narrow");
+    const highlight = ref("accent");
+    const highlightColor = ref(DEFAULT_PRIMARY_COLOR);
     const fontFamily = ref(DEFAULT_FONT_FAMILY);
     const primaryColor = ref(DEFAULT_PRIMARY_COLOR);
 
@@ -155,6 +157,9 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
         // spelling out every default.
         if (contentWidth.value !== "narrow")
             result["content_width"] = contentWidth.value;
+        if (highlight.value !== "accent") result["highlight"] = highlight.value;
+        if (highlight.value === "custom")
+            result["highlight_color"] = highlightColor.value;
         if (fontFamily.value !== DEFAULT_FONT_FAMILY)
             result["font_family"] = fontFamily.value;
         if (headerMode.value === "image" && headerLogoMediaId.value.trim()) {
@@ -193,6 +198,7 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
         }
         footerText.value = theme.config?.["footer_text"] ?? "";
         contentWidth.value = theme.config?.["content_width"] ?? "narrow";
+        highlight.value = theme.config?.["highlight"] ?? "accent";
         fontFamily.value = theme.config?.["font_family"] ?? DEFAULT_FONT_FAMILY;
         headerLogoMediaId.value = theme.config?.["header_logo_media_id"] ?? "";
         headerCustomText.value = theme.config?.["header_custom_text"] ?? "";
@@ -203,6 +209,8 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
               : "default";
         primaryColor.value =
             theme.config?.["primary_color"] ?? DEFAULT_PRIMARY_COLOR;
+        highlightColor.value =
+            theme.config?.["highlight_color"] ?? primaryColor.value;
         for (const key of SURFACE_KEYS) {
             surfaceColors[key] = theme.config?.[key] ?? "";
         }
@@ -242,6 +250,8 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
 
     return {
         contentWidth,
+        highlight,
+        highlightColor,
         fontFamily,
         CSS_SECTIONS,
         DEFAULTS,

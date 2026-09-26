@@ -45,6 +45,8 @@ class PostInput implements PostInputInterface
         public readonly ?string $footerColor = null,
         public readonly ?string $backgroundColor = null,
         public readonly ?string $accentColor = null,
+        public readonly ?string $highlight = null,
+        public readonly ?string $highlightColor = null,
         // Where this publication sits in a deliberate reading order. Null is
         // the answer for almost everything, and means the date decides.
         #[Assert\Positive(message: 'backend.posts.errors.position_invalid')]
@@ -76,6 +78,8 @@ class PostInput implements PostInputInterface
             footerColor: $this->footerColor,
             backgroundColor: $this->backgroundColor,
             accentColor: $this->accentColor,
+            highlight: $this->highlight,
+            highlightColor: $this->highlightColor,
             position: $this->position,
         );
     }
@@ -194,6 +198,16 @@ class PostInput implements PostInputInterface
     public function getAccentColor(): ?string
     {
         return $this->accentColor;
+    }
+
+    public function getHighlight(): ?string
+    {
+        return $this->highlight;
+    }
+
+    public function getHighlightColor(): ?string
+    {
+        return $this->highlightColor;
     }
 
     /**

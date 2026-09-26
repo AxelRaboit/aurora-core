@@ -6,7 +6,7 @@
         <li class="relative">
             <span class="absolute -left-[1.84rem] top-1.5 h-3 w-3 rounded-full border-2 border-surface {{ entry.kind == 'release' ? 'bg-accent-300' : 'bg-accent-500' }}" aria-hidden="true"></span>
             <p class="m-0 text-xs uppercase tracking-wide text-muted">{{ entry.dateLabel }} · {{ ('frontend.editorial.grid.activity.' ~ entry.kind)|trans }}</p>
-            <a href="{{ entry.url }}" class="mt-0.5 block text-base font-semibold text-primary no-underline hover:text-accent"{% if entry.kind == 'release' %} rel="noopener"{% endif %}>{{ entry.title }}</a>
+            <a href="{{ entry.url }}" class="mt-0.5 block text-base font-semibold text-primary no-underline hover:text-highlight"{% if entry.kind == 'release' %} rel="noopener"{% endif %}>{{ entry.title }}</a>
             {% if entry.detail %}<p class="m-0 mt-0.5 line-clamp-2 text-sm text-secondary">{{ entry.detail }}</p>{% endif %}
         </li>
     {% endfor %}
