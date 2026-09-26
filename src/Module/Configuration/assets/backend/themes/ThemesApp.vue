@@ -19,9 +19,11 @@ import { useThemesActivate } from "@configuration/backend/themes/composables/use
 import { useThemesCreate } from "@configuration/backend/themes/composables/useThemesCreate.js";
 import { useThemesEdit } from "@configuration/backend/themes/composables/useThemesEdit.js";
 import { useThemesDelete } from "@configuration/backend/themes/composables/useThemesDelete.js";
+import { highlightModeOptions } from "@configuration/backend/themes/highlightModes.js";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 
 const { t } = useI18n();
+const highlightOptions = computed(() => highlightModeOptions(t));
 const { can } = usePrivileges();
 
 const props = defineProps({
@@ -290,11 +292,7 @@ const pageActions = computed(() => {
                         <AppSelect
                             v-model="highlight"
                             :label="t('backend.themes.highlight')"
-                            :options="[
-                                { value: 'accent', label: t('backend.themes.highlight_accent') },
-                                { value: 'neutral', label: t('backend.themes.highlight_neutral') },
-                                { value: 'custom', label: t('backend.themes.highlight_custom') },
-                            ]"
+                            :options="highlightOptions"
                         />
                         <div v-if="highlight === 'custom'" class="flex items-center gap-3 bg-surface-2 rounded-lg px-3 py-2">
                             <AppColorSwatch
@@ -311,11 +309,7 @@ const pageActions = computed(() => {
                         <AppSelect
                             v-model="menuActive"
                             :label="t('backend.themes.menu_active')"
-                            :options="[
-                                { value: 'accent', label: t('backend.themes.highlight_accent') },
-                                { value: 'neutral', label: t('backend.themes.highlight_neutral') },
-                                { value: 'custom', label: t('backend.themes.highlight_custom') },
-                            ]"
+                            :options="highlightOptions"
                         />
                         <div v-if="menuActive === 'custom'" class="flex items-center gap-3 bg-surface-2 rounded-lg px-3 py-2">
                             <AppColorSwatch

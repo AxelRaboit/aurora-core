@@ -128,7 +128,20 @@ final class ContentSecurityPolicyTest extends TestCase
 
         self::assertStringContainsString('https://challenges.cloudflare.com', $this->directive($header, 'script-src'));
         self::assertStringContainsString('https://challenges.cloudflare.com', $this->directive($header, 'frame-src'));
-        self::assertStringContainsString('https://www.gstatic.com', $this->directive($header, 'script-src'));
+        self::assertStringContainsString('https://www.gstatic.com/recaptcha/', $this->directive($header, 'script-src'));
+        self::assertStringContainsString('https://www.google.com/recaptcha/', $this->directive($header, 'script-src'));
+    }
+
+    /**
+     * Google's origin as a whole answers JSONP: allowing it would let an
+     * injected `<script src>` run without the nonce.
+     */
+    public function testGoogleIsAllowedOnlyUnderTheRecaptchaPath(): void
+    {
+        $sources = explode(' ', $this->directive(new ContentSecurityPolicy()->header('abc'), 'script-src'));
+
+        self::assertNotContains('https://www.google.com', $sources);
+        self::assertNotContains('https://www.gstatic.com', $sources);
     }
 
     public function testThePageCannotBeFramedAndHasNoPluginSurface(): void

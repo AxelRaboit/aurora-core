@@ -1925,20 +1925,6 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
     }
 
     /**
-     * Des commentaires, dans les trois états, avec un fil et des réactions.
-     *
-     * L'écran de modération et la page publique d'un article s'ouvraient tous
-     * les deux sur « Aucun commentaire » : on y voyait où la fonction se
-     * trouve, et rien de ce qu'elle fait. Les trois statuts sont là parce que
-     * c'est entre eux que l'écran sert à choisir, et le fil parce qu'une
-     * réponse ne se range pas comme un commentaire de premier niveau.
-     *
-     * Idempotent sur la référence : `make demo` deux fois ne doit pas en
-     * laisser six.
-     *
-     * @param array<string, PostInterface> $posts
-     */
-    /**
      * Deux révisions sur la page d'accueil, pour que l'historique montre
      * quelque chose.
      *
@@ -2030,6 +2016,20 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         }
     }
 
+    /**
+     * Des commentaires, dans les trois états, avec un fil et des réactions.
+     *
+     * L'écran de modération et la page publique d'un article s'ouvraient tous
+     * les deux sur « Aucun commentaire » : on y voyait où la fonction se
+     * trouve, et rien de ce qu'elle fait. Les trois statuts sont là parce que
+     * c'est entre eux que l'écran sert à choisir, et le fil parce qu'une
+     * réponse ne se range pas comme un commentaire de premier niveau.
+     *
+     * Idempotent sur la référence : `make demo` deux fois ne doit pas en
+     * laisser six.
+     *
+     * @param array<string, PostInterface> $posts
+     */
     private function createComments(EntityManagerInterface $em, array $posts): void
     {
         $post = $posts['first-steps'] ?? null;

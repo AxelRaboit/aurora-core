@@ -103,9 +103,12 @@ class DocumentRepository extends ResolveTargetEntityRepository
 
         // A family shown as its original alone: the alternates are one click
         // away on it, and the listing stops showing three times one visual.
+        // An alternate whose original is in the trash stands on its own
+        // until the original comes back: hidden here, it would be shown
+        // nowhere at all.
         if ($originalsOnly) {
-            $qb->andWhere('d.original IS NULL');
-            $countQb->andWhere('d.original IS NULL');
+            $qb->andWhere('d.original IS NULL OR original.deletedAt IS NOT NULL');
+            $countQb->leftJoin('d.original', 'original')->andWhere('d.original IS NULL OR original.deletedAt IS NOT NULL');
         }
 
         $result = $this->paginate($qb, $countQb, $page, $limit);
@@ -509,20 +512,23 @@ class DocumentRepository extends ResolveTargetEntityRepository
      *
      * @return array<int, int> original id => count, absent when none
      */
-    public function countAlternatesFor(array $ids): array
+    public function countAlternatesFor(array $ids, bool $includeTrashed = false): array
     {
         if ([] === $ids) {
             return [];
         }
 
-        $rows = $this->createQueryBuilder('d')
+        $qb = $this->createQueryBuilder('d')
             ->select('IDENTITY(d.original) AS originalId', 'COUNT(d.id) AS total')
             ->where('d.original IN (:ids)')
-            ->andWhere('d.deletedAt IS NULL')
             ->groupBy('d.original')
-            ->setParameter('ids', $ids)
-            ->getQuery()
-            ->getArrayResult();
+            ->setParameter('ids', $ids);
+
+        if (!$includeTrashed) {
+            $qb->andWhere('d.deletedAt IS NULL');
+        }
+
+        $rows = $qb->getQuery()->getArrayResult();
 
         $counts = [];
         foreach ($rows as $row) {
@@ -539,7 +545,11 @@ class DocumentRepository extends ResolveTargetEntityRepository
      */
     public function findAlternatesOf(DocumentInterface $original): array
     {
-        return $this->createQueryBuilder('d')
+        /** @var list<Document> $alternates */
+        $alternates = $this->createQueryBuilder('d')
+            ->leftJoin('d.category', 'c')
+            ->leftJoin('d.folder', 'folder')
+            ->addSelect('c', 'folder')
             ->where('d.original = :original')
             ->andWhere('d.deletedAt IS NULL')
             ->setParameter('original', $original)
@@ -547,6 +557,10 @@ class DocumentRepository extends ResolveTargetEntityRepository
             ->addOrderBy('d.title', Order::Ascending->value)
             ->getQuery()
             ->getResult();
+
+        $this->hydrateDocumentTags($alternates);
+
+        return $alternates;
     }
 
     /** @return list<Document> */

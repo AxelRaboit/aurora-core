@@ -8,6 +8,7 @@ use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Enum\HttpStatusEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
+use Aurora\Core\Http\PageScriptRequestTrait;
 use Aurora\Core\Storage\Access\UploadPolicy;
 use Aurora\Core\Storage\Access\UploadPolicyProvider;
 use Aurora\Core\Storage\Access\UploadRefusalEnum;
@@ -73,6 +74,7 @@ final class PublicSpaceController extends AbstractController
 {
     use JsonRequestTrait;
     use JsonResponseTrait;
+    use PageScriptRequestTrait;
 
     public function __construct(
         private readonly SpaceAccessLinkManagerInterface $links,
@@ -831,7 +833,7 @@ final class PublicSpaceController extends AbstractController
      */
     private function assertFromThisPage(Request $request): void
     {
-        if (!$request->isXmlHttpRequest()) {
+        if (!$this->isFromThisPage($request)) {
             throw $this->createNotFoundException();
         }
     }

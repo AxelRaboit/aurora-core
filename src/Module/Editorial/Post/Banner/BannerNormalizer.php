@@ -278,7 +278,7 @@ final readonly class BannerNormalizer
             // header grows there to fit its title, and a picture composed across
             // the width loses its sides. Optional, like the phone one.
             'tabletMediaId' => $this->values->id($data['tabletMediaId'] ?? null),
-            // Percentage), so a background image can be darkened enough for
+            // Percentage, so a background image can be darkened enough for
             // text to stay readable over it.
             'overlay' => max(0, min(100, (int) ($data['overlay'] ?? 0))),
         ];

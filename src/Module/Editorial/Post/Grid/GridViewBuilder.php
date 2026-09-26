@@ -605,6 +605,7 @@ final readonly class GridViewBuilder
             // among them.
             $currentPostId,
         );
+        $this->postRepository->warmCards($posts);
 
         $cards = [];
         foreach ($posts as $post) {
@@ -637,7 +638,12 @@ final readonly class GridViewBuilder
         $dates = new IntlDateFormatter($locale, IntlDateFormatter::LONG, IntlDateFormatter::NONE);
         $entries = [];
 
-        foreach ($this->postRepository->findLatestPublished($locale, (int) $zone['limit'], $zone['postTypeId'], null, $currentPostId) as $post) {
+        $posts = $this->postRepository->findLatestPublished($locale, (int) $zone['limit'], $zone['postTypeId'], null, $currentPostId);
+        // Thumbnails and terms for the whole list at once, as the archive
+        // pages do: read card by card, a feed of twelve cost twelve queries.
+        $this->postRepository->warmCards($posts);
+
+        foreach ($posts as $post) {
             $card = $this->postCard($post, $locale);
             $published = $post->getPublishedAt();
             if (null === $card) {
@@ -698,6 +704,7 @@ final readonly class GridViewBuilder
     private function postIndexView(array $zone, string $locale, ?int $currentPostId): array
     {
         $posts = $this->postRepository->findLatestPublished($locale, self::INDEX_LIMIT, $zone['postTypeId'], $zone['termId'], $currentPostId);
+        $this->postRepository->warmCards($posts);
         $collator = new Collator($locale);
         $entries = [];
 
@@ -1913,11 +1920,6 @@ final readonly class GridViewBuilder
     }
 
     /**
-     * The full token set for a forced scheme, as one CSS declaration string -
-     * same shape as the surface's own `fillStyle`, so the template poses it
-     * the same way, in a `style` attribute rather than a class.
-     */
-    /**
      * The mode a zone's hovers take, or null to follow the page. A custom
      * mode without a colour follows the page too: the normaliser already
      * refused anything that was not a hex colour.
@@ -1931,6 +1933,11 @@ final readonly class GridViewBuilder
         return $mode;
     }
 
+    /**
+     * The full token set for a forced scheme, as one CSS declaration string -
+     * same shape as the surface's own `fillStyle`, so the template poses it
+     * the same way, in a `style` attribute rather than a class.
+     */
     private function contrastStyle(string $scheme): string
     {
         $declarations = [];

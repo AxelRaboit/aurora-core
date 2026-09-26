@@ -44,6 +44,7 @@ import { tmpdir } from "node:os";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
+import { remote, tourPostIdQuery } from "./lib/remote.mjs";
 
 const run = promisify(execFile);
 
@@ -52,8 +53,7 @@ const root = resolve(here, "../..");
 const shotsDir = resolve(root, "var/screenshots");
 const cardsFile = resolve(here, "tour-cards.json");
 
-const HOST = process.env.TOUR_SSH_HOST ?? "vps";
-const REMOTE_DIR = process.env.TOUR_REMOTE_DIR ?? "/var/www/aurora-client";
+const { host: HOST, dir: REMOTE_DIR } = remote();
 const REMOTE_TMP = "/tmp/aurora-tour";
 const LOCALES = ["fr", "en", "es"];
 
@@ -68,12 +68,22 @@ if (undefined === planPath) {
 const plan = JSON.parse(await readFile(resolve(planPath), "utf8"));
 const registry = JSON.parse(await readFile(cardsFile, "utf8"));
 
-/** Une requête SQL sur la base de production, rendue en texte brut. */
+/**
+ * Une requête SQL sur la base de production, rendue en texte brut.
+ *
+ * La requête voyage par fichier, comme dans les autres scripts : passée en
+ * argument, elle traversait le shell distant entre guillemets doubles, où
+ * `$(…)` et les accents graves s'exécutent.
+ */
 async function sql(query) {
+    const local = resolve(tmpdir(), `tour-q-${randomBytes(4).toString("hex")}.sql`);
+    await writeFile(local, query);
+    await run("ssh", [HOST, `mkdir -p ${REMOTE_TMP}`]);
+    await run("sh", ["-c", `ssh ${HOST} 'cat > ${REMOTE_TMP}/q.sql' < ${JSON.stringify(local)}`]);
     const { stdout } = await run("ssh", [
         HOST,
         `cd ${REMOTE_DIR} && db=$(grep -oP 'DATABASE_URL=.*/\\K[^?"]+' .env.local | head -1); ` +
-        `sudo -u postgres psql -At -d $db -c ${JSON.stringify(query)}`,
+        `sudo -u postgres psql -At -d $db -f ${REMOTE_TMP}/q.sql`,
     ]);
 
     return stdout.trim();
@@ -95,9 +105,7 @@ for (const carte of plan.cards) {
     }
 }
 
-const postId = await sql(
-    `SELECT post_id FROM core_post_translations WHERE slug = '${plan.slug}' LIMIT 1`,
-);
+const postId = await sql(tourPostIdQuery(plan.slug));
 
 if ("" === postId) problemes.push(`publication introuvable : ${plan.slug}`);
 

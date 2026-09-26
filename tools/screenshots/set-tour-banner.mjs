@@ -34,11 +34,11 @@ import { randomBytes } from "node:crypto";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { promisify } from "node:util";
+import { remote, tourPostIdQuery } from "./lib/remote.mjs";
 
 const run = promisify(execFile);
 
-const HOST = process.env.TOUR_SSH_HOST ?? "vps";
-const REMOTE_DIR = process.env.TOUR_REMOTE_DIR ?? "/var/www/aurora-client";
+const { host: HOST, dir: REMOTE_DIR } = remote();
 const REMOTE_TMP = "/tmp/aurora-tour";
 const LOCALES = ["fr", "en", "es"];
 
@@ -68,7 +68,7 @@ async function sql(query) {
 
 await run("ssh", [HOST, `mkdir -p ${REMOTE_TMP}`]);
 
-const postId = await sql(`SELECT post_id FROM core_post_translations WHERE slug = '${slug}' LIMIT 1;`);
+const postId = await sql(tourPostIdQuery(slug));
 
 if ("" === postId) {
     console.error(`Publication introuvable : ${slug}`);

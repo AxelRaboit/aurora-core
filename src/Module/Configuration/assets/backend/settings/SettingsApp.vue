@@ -86,7 +86,7 @@ const { sequenceSearch, paginatedSequences, sequencePage, sequenceTotalPages, go
 
             <!-- Generic field renderer for parameter-driven tabs -->
             <div v-for="groupName in genericGroups" :key="groupName">
-                <div class="aurora-card p-4 sm:p-4 space-y-5">
+                <div class="aurora-card p-4 space-y-5">
                     <AppSearchInput
                         v-if="groupName === 'sequences'"
                         v-model="sequenceSearch"

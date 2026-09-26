@@ -56,6 +56,9 @@ use Throwable;
 )]
 final class ImportDocumentsCommand extends Command
 {
+    /** The width of `alternate_label`, as `DocumentInput` constrains it. */
+    private const int MAX_LABEL_LENGTH = 40;
+
     public function __construct(
         private readonly GedDocumentUploader $uploader,
         private readonly DocumentManagerInterface $documentManager,
@@ -109,6 +112,27 @@ final class ImportDocumentsCommand extends Command
         $label = '' !== $label ? $label : null;
 
         $kept = (bool) $input->getOption('kept');
+
+        // The shell has no form to validate against, so the options are
+        // checked here, before a single byte is stored: a label the column
+        // cannot hold used to fail the insert after the file was written.
+        if (null !== $originalOption && null === $originalId) {
+            $io->error(sprintf('--original expects a document id, got "%s".', (string) $originalOption));
+
+            return Command::INVALID;
+        }
+
+        if (null !== $label && null === $originalId) {
+            $io->error('--label names what sets an alternate apart: it needs --original.');
+
+            return Command::INVALID;
+        }
+
+        if (null !== $label && mb_strlen($label) > self::MAX_LABEL_LENGTH) {
+            $io->error(sprintf('--label is %d characters long; %d at most.', mb_strlen($label), self::MAX_LABEL_LENGTH));
+
+            return Command::INVALID;
+        }
 
         // Checked before a single byte is stored: the same rule as the
         // screen, so a family built from the shell has the screen's shape.

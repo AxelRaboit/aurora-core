@@ -37,6 +37,15 @@ const TEMPLATES = {
 };
 
 /**
+ * Whether a custom link's address is one the server keeps: `https://` or
+ * `mailto:`, then no whitespace. Anything else is dropped on save, so the
+ * editor says so while the author is still typing.
+ */
+export function isShareAddress(value) {
+    return /^(https:\/\/|mailto:)\S+$/i.test(value ?? "");
+}
+
+/**
  * The address a link opens, with `{url}` and `{title}` filled in, or null.
  * Only `https://` and `mailto:` survive: the server already refuses anything
  * else, and this keeps a stored value from an older rule out of an `href`.
