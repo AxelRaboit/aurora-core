@@ -11,12 +11,35 @@
    Written out literally rather than assembled: Tailwind only emits classes it
    can read in the source, and `bg-{{ surface }}` is one it never sees. #}
 
+{# `custom` carries its own colour, gradient or picture - resolved server-side
+   into `zone.background.fillStyle`/`media`/`overlay` by GridViewBuilder, the
+   same split BannerViewBuilder makes for the banner. The three maps below
+   still need an entry for it: the shape (rounded corners, padding, the
+   `isolate` a picture needs to sit behind) is Tailwind, only the colour is
+   inline. #}
+{% macro backdrop(zone) %}
+    {% if zone.background is not null and zone.background.media %}
+        <img
+            src="{{ zone.background.media.url }}"
+            alt=""
+            aria-hidden="true"
+            class="absolute inset-0 -z-10 h-full w-full object-cover"
+            style="object-position: {{ zone.background.media.focalPosition }};"
+        >
+        {% if zone.background.overlay > 0 %}
+            <div class="absolute inset-0 -z-10 bg-black" style="opacity: {{ zone.background.overlay / 100 }};"></div>
+        {% endif %}
+    {% endif %}
+{% endmacro %}
+
 {% macro wrap(zone, body) %}
+    {% import _self as this %}
     {% set surfaces = {
         none: '',
         card: 'rounded-xl border border-line bg-surface p-6 sm:p-8',
         soft: 'rounded-xl bg-surface-2 p-6 sm:p-8',
         accent: 'rounded-xl border border-accent-500/30 bg-accent-500/10 p-6 sm:p-8',
+        custom: 'relative isolate overflow-hidden rounded-xl p-6 sm:p-8',
     } %}
     {# Across the viewport the corners go: a band with rounded ends reads as a
        very wide card that has overflowed, which is not what it is. #}
@@ -25,6 +48,7 @@
         card: 'border-y border-line bg-surface py-10 sm:py-14',
         soft: 'bg-surface-2 py-10 sm:py-14',
         accent: 'border-y border-accent-500/30 bg-accent-500/10 py-10 sm:py-14',
+        custom: 'relative isolate overflow-hidden py-10 sm:py-14',
     } %}
     {% set surface = zone.surface|default('none') %}
 
@@ -41,7 +65,12 @@
         card: 'overflow-hidden rounded-xl border border-line bg-surface',
         soft: 'overflow-hidden rounded-xl bg-surface-2',
         accent: 'overflow-hidden rounded-xl border border-accent-500/30 bg-accent-500/10',
+        custom: 'relative isolate overflow-hidden rounded-xl',
     } %}
+
+    {# Read once: built from validated hex colours by GridViewBuilder, so
+       `raw` here is not a hole - same reasoning as the banner's own style. #}
+    {% set customStyle = surface == 'custom' ? zone.background.fillStyle|default('') : '' %}
 
     {% if zone.fullBleed|default(false) %}
         {# Viewport units and a negative margin rather than `100vw`, which
@@ -50,7 +79,8 @@
            A picture is the content and spans edge to edge; anything else is
            words, and words at the width of a screen are unreadable - so
            everything but a picture is held to the same box `<main>` uses. #}
-        <div class="w-screen max-w-none relative left-1/2 -translate-x-1/2 {{ bleedSurfaces[surface] }}">
+        <div class="w-screen max-w-none relative left-1/2 -translate-x-1/2 {{ bleedSurfaces[surface] }}"{% if customStyle %} style="{{ customStyle|raw }}"{% endif %}>
+            {{ this.backdrop(zone) }}
             {% if zone.type == 'media' %}
                 {{ body }}
             {% else %}
@@ -58,7 +88,10 @@
             {% endif %}
         </div>
     {% elseif surface != 'none' %}
-        <div class="{{ framed ? frames[surface] : surfaces[surface] }}">{{ body }}</div>
+        <div class="{{ framed ? frames[surface] : surfaces[surface] }}"{% if customStyle %} style="{{ customStyle|raw }}"{% endif %}>
+            {{ this.backdrop(zone) }}
+            {{ body }}
+        </div>
     {% else %}
         {{ body }}
     {% endif %}

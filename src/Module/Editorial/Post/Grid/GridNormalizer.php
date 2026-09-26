@@ -460,10 +460,26 @@ final readonly class GridNormalizer
      * a card lifts one out, a tint groups several, an accent says "this is
      * the one to act on".
      *
+     * `custom` is the fifth and only one with a field of its own to show for
+     * it - see `background` below. Kept apart from the other four rather than
+     * replacing them: every page published today names one of the first four,
+     * and a fifth option costs them nothing.
+     *
      * Shared, like the width beside it - a translated page does not repaint
      * its own sections.
      */
-    public const array SURFACES = ['none', 'card', 'soft', 'accent'];
+    public const array SURFACES = ['none', 'card', 'soft', 'accent', 'custom'];
+
+    public const string SURFACE_CUSTOM = 'custom';
+
+    /** Mirrors BannerNormalizer::FILL_* - a colour, a gradient, or nothing. */
+    public const string ZONE_FILL_NONE = 'none';
+
+    public const string ZONE_FILL_SOLID = 'solid';
+
+    public const string ZONE_FILL_GRADIENT = 'gradient';
+
+    public const array ZONE_FILL_TYPES = [self::ZONE_FILL_NONE, self::ZONE_FILL_SOLID, self::ZONE_FILL_GRADIENT];
 
     /**
      * How a zone arrives when the reader scrolls to it.
@@ -1004,6 +1020,12 @@ final readonly class GridNormalizer
                 // What the zone sits on. Every type can have one: a card of
                 // figures, a tinted FAQ, a call to action on accent.
                 'surface' => $this->values->oneOf($entry['surface'] ?? null, self::SURFACES, self::SURFACES[0]),
+                // A colour, a gradient or a picture of the author's own
+                // choosing - read only when `surface` above is `custom`, but
+                // normalised unconditionally like the banner's own background:
+                // switching a zone away from `custom` and back must not have
+                // lost what was set.
+                'background' => $this->zoneBackground(is_array($entry['background'] ?? null) ? $entry['background'] : []),
                 // How the zone arrives when the reader reaches it. Beside the
                 // surface because it is the same kind of decision - how this
                 // zone presents itself - and shared for the same reason.
@@ -1106,6 +1128,32 @@ final readonly class GridNormalizer
         }
 
         return false === strtotime($value) ? null : $value;
+    }
+
+    /**
+     * A zone's own background, read only when its surface is `custom`.
+     *
+     * Mirrors {@see BannerNormalizer::background()} on purpose - a colour, a
+     * gradient or a picture, plus how dark an overlay sits on top of it. The
+     * two are not merged into one shared normaliser because a banner also
+     * carries a mobile picture and a fade at its foot, which a zone has
+     * neither use nor room for.
+     *
+     * @param array<string, mixed> $data
+     *
+     * @return array{type: string, color: ?string, gradientFrom: ?string, gradientTo: ?string, gradientAngle: int, mediaId: ?int, overlay: int}
+     */
+    private function zoneBackground(array $data): array
+    {
+        return [
+            'type' => $this->values->oneOf($data['type'] ?? null, self::ZONE_FILL_TYPES, self::ZONE_FILL_NONE),
+            'color' => $this->values->color($data['color'] ?? null),
+            'gradientFrom' => $this->values->color($data['gradientFrom'] ?? null),
+            'gradientTo' => $this->values->color($data['gradientTo'] ?? null),
+            'gradientAngle' => max(0, min(360, (int) ($data['gradientAngle'] ?? 180))),
+            'mediaId' => $this->values->id($data['mediaId'] ?? null),
+            'overlay' => max(0, min(100, (int) ($data['overlay'] ?? 0))),
+        ];
     }
 
     /**

@@ -34,6 +34,7 @@ import { useGridSelection } from "../composables/useGridSelection.js";
 import PostGridCanvas from "./PostGridCanvas.vue";
 import PostGridZoneContent from "./PostGridZoneContent.vue";
 import AppDatePicker from "@/shared/components/form/picker/AppDatePicker.vue";
+import BannerColorField from "./BannerColorField.vue";
 
 const props = defineProps({
     /** The arrangement, shared by every language. */
@@ -369,6 +370,73 @@ function resizeZone(index, columns) {
                         :hint="t('backend.posts.grid.surface_hint')"
                         :options="zoneChoices.surface"
                     />
+
+                    <!-- The one surface with a field of its own: a colour, a
+                         gradient or a picture, exactly what the banner's own
+                         editor already offers - so this reuses its fields
+                         rather than inventing a second vocabulary for the
+                         same choice. -->
+                    <div
+                        v-if="zoneFields(index).surface.value === 'custom'"
+                        class="space-y-3 rounded-lg border border-dashed border-line p-3"
+                    >
+                        <div class="flex items-end gap-3">
+                            <AppSelect
+                                v-model="zoneFields(index).fillType.value"
+                                :label="t('backend.posts.grid.fill')"
+                                :options="zoneChoices.fillType"
+                                class="flex-1"
+                            />
+                            <!-- Live swatch, same reasoning as the banner's
+                                 own: the panel has no preview of the zone
+                                 itself, and a gradient's direction is not
+                                 something to discover after saving. -->
+                            <span
+                                v-if="zoneFields(index).fillPreviewStyle.value"
+                                class="h-9 w-16 shrink-0 rounded-md border border-line"
+                                :style="zoneFields(index).fillPreviewStyle.value"
+                            />
+                        </div>
+
+                        <BannerColorField
+                            v-if="zoneFields(index).isSolidFill.value"
+                            v-model="zoneFields(index).backgroundColor.value"
+                            :label="t('backend.posts.grid.background_color')"
+                        />
+
+                        <template v-if="zoneFields(index).isGradientFill.value">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <BannerColorField
+                                    v-model="zoneFields(index).gradientFrom.value"
+                                    :label="t('backend.posts.grid.gradient_from')"
+                                />
+                                <BannerColorField
+                                    v-model="zoneFields(index).gradientTo.value"
+                                    :label="t('backend.posts.grid.gradient_to')"
+                                />
+                            </div>
+                            <div>
+                                <p class="text-sm text-secondary mb-1">
+                                    {{ t('backend.posts.grid.gradient_angle', { degrees: zoneFields(index).gradientAngle.value }) }}
+                                </p>
+                                <AppRange v-model="zoneFields(index).gradientAngle.value" :min="0" :max="360" :step="15" />
+                            </div>
+                        </template>
+
+                        <AppImagePickerField
+                            v-model="zoneFields(index).backgroundMedia.value"
+                            :label="t('backend.posts.grid.background_image')"
+                            :hint="t('backend.posts.grid.background_image_hint')"
+                        />
+
+                        <div v-if="zoneFields(index).backgroundMedia.value?.id">
+                            <p class="text-sm text-secondary mb-1">
+                                {{ t('backend.posts.grid.overlay', { percent: zoneFields(index).overlay.value }) }}
+                            </p>
+                            <AppRange v-model="zoneFields(index).overlay.value" :min="0" :max="100" :step="5" />
+                        </div>
+                    </div>
+
                     <!-- Comment la zone arrive quand le lecteur la
                          rejoint. Ici, avec le fond et la largeur, parce que
                          c'est la même question posée une troisième fois :

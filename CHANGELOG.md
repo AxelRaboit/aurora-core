@@ -5,6 +5,18 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.255] - 2026-09-26
+
+### Ajouté
+
+- **Une zone peut maintenant s'asseoir sur un dégradé ou une image.** À côté
+  des quatre fonds plats existants (aucun, carte, teinté, accent), un
+  cinquième - personnalisé - ouvre le même éditeur de couleur, de dégradé,
+  d'image et de fondu que le bandeau d'une page. De quoi composer une section
+  héros au milieu d'une page sans en sortir la mise en page en bandeau.
+
+---
+
 ## [0.9.254] - 2026-09-26
 
 ### Corrigé

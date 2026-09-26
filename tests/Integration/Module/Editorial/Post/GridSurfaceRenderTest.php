@@ -139,6 +139,63 @@ final class GridSurfaceRenderTest extends IntegrationTestCase
         self::assertStringContainsString('Une légende.', $html);
     }
 
+    // ── The `custom` surface's own background ──────────────────────────────
+
+    public function testACustomSolidSurfaceDrawsItsOwnColour(): void
+    {
+        $html = $this->render($this->zone([
+            'surface' => 'custom',
+            'background' => ['type' => 'solid', 'color' => '#123456'],
+        ]));
+
+        self::assertStringContainsString('background-color: #123456;', $html);
+    }
+
+    public function testACustomGradientSurfaceDrawsBothStopsAndTheAngle(): void
+    {
+        $html = $this->render($this->zone([
+            'surface' => 'custom',
+            'background' => [
+                'type' => 'gradient',
+                'gradientFrom' => '#111111',
+                'gradientTo' => '#222222',
+                'gradientAngle' => 45,
+            ],
+        ]));
+
+        self::assertStringContainsString('linear-gradient(45deg, #111111, #222222)', $html);
+    }
+
+    /** No colour, no gradient, no picture: the same "nothing chosen" a fresh zone starts with. */
+    public function testACustomSurfaceWithNothingSetDrawsNoStyleAtAll(): void
+    {
+        $html = $this->render($this->zone(['surface' => 'custom']));
+
+        self::assertStringNotContainsString('style=""', $html);
+        self::assertStringNotContainsString('background-', $html);
+    }
+
+    public function testACustomSurfacesPictureSitsBehindTheContentWithItsOverlay(): void
+    {
+        $document = new Document();
+        $document->setTitle('Fond');
+        $document->setMimeType('image/png');
+        $document->setFilePath('ged/2026/09/fond.png');
+
+        $this->entityManager->persist($document);
+        $this->entityManager->flush();
+        $this->created[] = (int) $document->getId();
+
+        $html = $this->render($this->zone([
+            'surface' => 'custom',
+            'background' => ['mediaId' => $document->getId(), 'overlay' => 40],
+        ]));
+
+        self::assertStringContainsString('<img', $html);
+        self::assertStringContainsString('-z-10', $html);
+        self::assertStringContainsString('opacity: 0.4;', $html);
+    }
+
     /**
      * A film the library holds is played by the browser, not by a provider.
      *

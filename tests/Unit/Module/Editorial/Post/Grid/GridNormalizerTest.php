@@ -151,7 +151,7 @@ final class GridNormalizerTest extends TestCase
                 'display', 'columns', 'items', 'taxonomyId', 'deckId', 'postTypeId', 'termId', 'limit',
                 'cardVariant', 'formId', 'language', 'textSize', 'lineNumbers',
                 'visibleFrom', 'visibleUntil', 'audience', 'exclusiveOpen',
-                'surface', 'reveal', 'sticky', 'fullBleed', 'options', 'children',
+                'surface', 'background', 'reveal', 'sticky', 'fullBleed', 'options', 'children',
             ],
             array_keys($zone),
             'switching a zone type in the editor must not lose what was picked',
@@ -1100,5 +1100,65 @@ final class GridNormalizerTest extends TestCase
         ])['zones'];
 
         self::assertSame(['', '', ''], array_column($zones, 'anchor'));
+    }
+
+    // ── The `custom` surface's own background ──────────────────────────────
+
+    /** Normalised whatever the surface, like the banner's own background. */
+    public function testAZoneBackgroundIsPresentEvenOnANoneSurface(): void
+    {
+        $zone = $this->normalizer->normalizeLayout([
+            'zones' => [['id' => 'a1', 'type' => 'text']],
+        ])['zones'][0];
+
+        self::assertSame('none', $zone['surface']);
+        self::assertSame('none', $zone['background']['type']);
+    }
+
+    public function testTheZoneFillTypeIsWhitelistedAndDefaultsToNone(): void
+    {
+        $zone = $this->normalizer->normalizeLayout([
+            'zones' => [['id' => 'a1', 'type' => 'text', 'surface' => 'custom', 'background' => ['type' => 'radial']]],
+        ])['zones'][0];
+
+        self::assertSame('none', $zone['background']['type'], 'an unknown fill is refused rather than persisted');
+    }
+
+    public function testTheZoneGradientStopsAreColoursAndTheAngleIsClamped(): void
+    {
+        $background = $this->normalizer->normalizeLayout([
+            'zones' => [['id' => 'a1', 'type' => 'text', 'surface' => 'custom', 'background' => [
+                'type' => 'gradient',
+                'gradientFrom' => '#112233',
+                'gradientTo' => 'rgb(0,0,0)',
+                'gradientAngle' => 900,
+            ]]],
+        ])['zones'][0]['background'];
+
+        self::assertSame('#112233', $background['gradientFrom']);
+        self::assertNull($background['gradientTo'], 'only hex is accepted, as for every other colour');
+        self::assertSame(360, $background['gradientAngle']);
+    }
+
+    public function testTheZoneOverlayIsClampedToAPercentage(): void
+    {
+        $zones = $this->normalizer->normalizeLayout([
+            'zones' => [
+                ['id' => 'a1', 'type' => 'text', 'surface' => 'custom', 'background' => ['overlay' => -10]],
+                ['id' => 'a2', 'type' => 'text', 'surface' => 'custom', 'background' => ['overlay' => 250]],
+            ],
+        ])['zones'];
+
+        self::assertSame(0, $zones[0]['background']['overlay']);
+        self::assertSame(100, $zones[1]['background']['overlay']);
+    }
+
+    public function testTheZoneBackgroundPictureIsAnId(): void
+    {
+        $zone = $this->normalizer->normalizeLayout([
+            'zones' => [['id' => 'a1', 'type' => 'text', 'surface' => 'custom', 'background' => ['mediaId' => '7']]],
+        ])['zones'][0];
+
+        self::assertSame(7, $zone['background']['mediaId']);
     }
 }
