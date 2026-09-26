@@ -18,7 +18,7 @@
         {% for day in widget.days %}
             <div class="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4" data-booking-slots="{{ day.date }}"{{ loop.first ? '' : ' hidden' }}>
                 {% for slot in day.slots %}
-                    <button type="button" class="rounded-lg border border-line px-2 py-2 text-sm tabular-nums text-primary hover:border-accent" data-booking-slot="{{ slot.at }}">{{ slot.label }}</button>
+                    <button type="button" class="rounded-lg border border-line px-2 py-2 text-sm tabular-nums text-primary hover:border-highlight" data-booking-slot="{{ slot.at }}">{{ slot.label }}</button>
                 {% endfor %}
             </div>
         {% endfor %}

@@ -29,6 +29,10 @@ final class ThemeContext
     /** @var list<string> */
     public const array CONTENT_WIDTHS = ['narrow', 'wide', 'full'];
 
+    public const array HIGHLIGHTS = ['accent', 'neutral', 'custom'];
+
+    private const string HEX_COLOR = '/^#[0-9a-fA-F]{6}$/';
+
     public function __construct(
         private readonly ThemeRepository $themeRepository,
         private readonly DocumentRepository $documentRepository,
@@ -147,6 +151,71 @@ final class ThemeContext
         return ':root{--th-font-sans: '.$font->stack().';}';
     }
 
+    /**
+     * Ce que prennent les survols du site public et les repères des cartes
+     * (catégorie, flèche) : la couleur principale, ou le texte de la surface
+     * sur laquelle ils sont posés. Le neutre sert aux pages qui jouent déjà
+     * leurs propres couleurs et qu'un survol vert viendrait contredire. Le
+     * personnalisé sans couleur exploitable retombe sur l'accent.
+     *
+     * @return 'accent'|'neutral'|'custom'
+     */
+    public function highlight(): string
+    {
+        $value = $this->activeTheme()?->getConfig()['highlight'] ?? '';
+
+        if ('custom' === $value) {
+            return null !== $this->highlightColor() ? 'custom' : 'accent';
+        }
+
+        return in_array($value, self::HIGHLIGHTS, true) ? $value : 'accent';
+    }
+
+    /**
+     * Hexadécimal strict et rien d'autre : la valeur part dans une balise
+     * `<style>`, et la configuration du thème n'est validée nulle part à
+     * l'écriture.
+     */
+    public function highlightColor(): ?string
+    {
+        $value = $this->activeTheme()?->getConfig()['highlight_color'] ?? null;
+
+        return is_string($value) && 1 === preg_match(self::HEX_COLOR, $value) ? $value : null;
+    }
+
+    /**
+     * Le choix d'une publication, borné à son contenu comme son accent.
+     *
+     * Posé sur le conteneur **et** chacun de ses descendants, sous
+     * `html[data-theme]` : le mode neutre du thème se pose élément par élément,
+     * et seule une règle plus spécifique au même niveau le remplace. `initial`
+     * efface la valeur du thème, et le repli sur l'accent reprend la main.
+     */
+    public function postHighlightCss(string $selector, ?string $highlight, ?string $color): string
+    {
+        $value = match ($highlight) {
+            'accent' => 'initial',
+            'neutral' => 'var(--th-primary)',
+            'custom' => null !== $color && 1 === preg_match(self::HEX_COLOR, $color) ? $color : null,
+            default => null,
+        };
+
+        if (null === $value) {
+            return '';
+        }
+
+        $scope = 'html[data-theme] '.$selector;
+
+        return $scope.','.$scope.' *{--th-highlight: '.$value.';}';
+    }
+
+    public function highlightCss(): string
+    {
+        $color = 'custom' === $this->highlight() ? $this->highlightColor() : null;
+
+        return null !== $color ? 'html[data-theme]{--th-highlight: '.$color.';}' : '';
+    }
+
     public function primaryColor(): string
     {
         $value = $this->activeTheme()?->getConfig()['primary_color'] ?? '';
@@ -192,7 +261,13 @@ final class ThemeContext
             $declarations[] = sprintf('--th-accent-%s: %s;', $stop, $value);
         }
 
-        return $selector.'{'.implode('', $declarations).'}';
+        // --th-accent est résolu une fois sur :root et hérité tel quel : sans
+        // le reposer ici, `text-accent` et `bg-accent` gardaient la couleur du
+        // thème au milieu d'une page qui en avait choisi une autre.
+        $declarations[] = '--th-accent: var(--th-accent-500);--th-accent-hover: var(--th-accent-600);';
+
+        return $selector.'{'.implode('', $declarations).'}'
+            .'.dark '.$selector.'{--th-accent: var(--th-accent-400);--th-accent-hover: var(--th-accent-500);}';
     }
 
     public function cssVariableOverrides(): string

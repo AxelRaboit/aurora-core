@@ -243,13 +243,13 @@
            readers want from a plaquette. #}
         <a
             href="{{ zone.document.url }}"
-            class="aurora-card not-prose flex items-center gap-4 p-4 no-underline transition-colors hover:border-accent"
+            class="aurora-card not-prose flex items-center gap-4 p-4 no-underline transition-colors hover:border-highlight"
         >
             {# The extension rather than an icon per format: a set of glyphs
                would need one per type the library accepts, and "PDF" in a box
                is read faster than a picture of a document anyway. #}
             <span
-                class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-accent-500/10 text-2xs font-bold uppercase tracking-wider text-accent"
+                class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-highlight-500/10 text-2xs font-bold uppercase tracking-wider text-highlight"
                 aria-hidden="true"
             >{{ zone.document.extension }}</span>
             <span class="min-w-0 flex-1">
@@ -265,7 +265,7 @@
                     <span class="mt-1 block text-sm text-secondary">{{ zone.caption }}</span>
                 {% endif %}
             </span>
-            <span class="shrink-0 text-accent" aria-hidden="true">&darr;</span>
+            <span class="shrink-0 text-highlight" aria-hidden="true">&darr;</span>
         </a>
 
     {% elseif zone.type == 'embed' %}
@@ -570,7 +570,7 @@
                     <li class="m-0">
                         <a
                             href="{{ entry.url }}"
-                            class="inline-block rounded-full border border-line px-4 py-1.5 text-sm text-secondary no-underline transition-colors hover:border-accent hover:text-accent"
+                            class="inline-block rounded-full border border-line px-4 py-1.5 text-sm text-secondary no-underline transition-colors hover:border-highlight hover:text-highlight"
                         >{{ entry.label }}</a>
                     </li>
                 {% endfor %}
@@ -748,7 +748,7 @@
                     <li class="{{ heading.level == 3 ? 'pl-4' : '' }}">
                         <a
                             href="#{{ heading.id }}"
-                            class="text-secondary no-underline transition-colors hover:text-accent"
+                            class="text-secondary no-underline transition-colors hover:text-highlight"
                         >{{ heading.text }}</a>
                     </li>
                 {% endfor %}
@@ -781,7 +781,7 @@
                 <section class="rounded-xl border border-line bg-surface p-4 sm:p-5" aria-labelledby="{{ zone.id }}-github-{{ loop.index }}">
                     <header class="mb-3 flex flex-wrap items-baseline justify-between gap-2">
                         <h3 id="{{ zone.id }}-github-{{ loop.index }}" class="m-0 text-sm font-semibold text-primary">
-                            <a href="{{ account.url }}" class="text-primary no-underline hover:text-accent" rel="noopener">@{{ account.login }}</a>
+                            <a href="{{ account.url }}" class="text-primary no-underline hover:text-highlight" rel="noopener">@{{ account.login }}</a>
                         </h3>
                         <p class="m-0 text-sm font-medium text-accent">{{ account.totalLabel }}</p>
                     </header>

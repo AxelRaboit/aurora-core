@@ -39,7 +39,13 @@
     <style>{{ themeContext.postAccentCss('.aurora-post-accent', postData.accentColor)|raw }}</style>
 {% endif %}
 
-<article class="prose max-w-none{{ postData.accentColor|default(null) ? ' aurora-post-accent' : '' }}">
+{# Même portée pour les survols : la topbar et le pied gardent ceux du thème. #}
+{% set postHighlightCss = themeContext.postHighlightCss('.aurora-post-highlight', postData.highlight|default(null), postData.highlightColor|default(null)) %}
+{% if postHighlightCss %}
+    <style>{{ postHighlightCss|raw }}</style>
+{% endif %}
+
+<article class="prose max-w-none{{ postData.accentColor|default(null) ? ' aurora-post-accent' : '' }}{{ postHighlightCss ? ' aurora-post-highlight' : '' }}">
     {% if banner and not (banner.width starts with 'full') %}
         {{ include('Frontend/themes/default/editorial/post/_banner.html.twig', {banner: banner}) }}
     {% endif %}

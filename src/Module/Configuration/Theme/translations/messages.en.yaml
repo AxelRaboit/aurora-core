@@ -10,6 +10,12 @@ backend:
     primary_color: Primary color
     primary_color_label: Accent colour
     primary_color_hint: 'Used for buttons, links, badges and the logo. The full palette is generated automatically.'
+    highlight: Hovers and card markers
+    highlight_accent: Primary colour
+    highlight_neutral: Neutral
+    highlight_custom: Custom
+    highlight_color: Hover and marker colour
+    highlight_hint: "Hover outlines and titles, card category and arrow. Neutral uses the text colour; custom uses a colour of your choice, across the whole site."
     surfaces: Public site colours
     surfaces_hint: "One colour per surface. Text, labels and borders are derived from it, light or dark depending on what stays readable."
     surface_background: Page background
@@ -26,7 +32,7 @@ backend:
       footer: Footer
     vars:
       accent: Primary color
-      accent_hover: Primary color (hover)
+      accent_hover: Solid button hover
       bg: Background
       surface: Surface
       surface2: Secondary surface

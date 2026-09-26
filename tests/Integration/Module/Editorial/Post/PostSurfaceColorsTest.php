@@ -195,6 +195,68 @@ final class PostSurfaceColorsTest extends IntegrationTestCase
         self::assertStringNotContainsString('.aurora-post-accent{', (string) $this->client->getResponse()->getContent());
     }
 
+    // ── Hovers and card markers, scoped like the accent ───────────────────
+
+    /** Sans choix, la page hérite du thème et ne porte aucune règle. */
+    public function testAPublicationWithoutAHighlightEmitsNoScopedRule(): void
+    {
+        $this->published('Page survol hérité');
+
+        $this->client->request('GET', '/fr/surface-type/page-survol-herite');
+
+        self::assertResponseIsSuccessful();
+        self::assertStringNotContainsString('aurora-post-highlight', (string) $this->client->getResponse()->getContent());
+    }
+
+    /**
+     * Le neutre d'une publication atteint sa page sous son propre sélecteur,
+     * descendants compris : c'est ce qui le fait passer devant le réglage du
+     * thème, posé lui aussi élément par élément.
+     */
+    public function testANeutralHighlightReachesItsOwnSelector(): void
+    {
+        $this->published('Page survol neutre', ['highlight' => 'neutral']);
+
+        $this->client->request('GET', '/fr/surface-type/page-survol-neutre');
+
+        self::assertResponseIsSuccessful();
+        $html = (string) $this->client->getResponse()->getContent();
+
+        self::assertStringContainsString('html[data-theme] .aurora-post-highlight,html[data-theme] .aurora-post-highlight *{--th-highlight: var(--th-primary);}', $html);
+        self::assertStringContainsString('aurora-post-highlight"', $html);
+    }
+
+    public function testACustomHighlightCarriesItsColour(): void
+    {
+        $post = $this->published('Page survol ocre', ['highlight' => 'custom', 'highlightColor' => '#b45309']);
+
+        self::assertSame('custom', $post->getHighlight());
+
+        $this->client->request('GET', '/fr/surface-type/page-survol-ocre');
+
+        self::assertResponseIsSuccessful();
+        self::assertStringContainsString('--th-highlight: #b45309;', (string) $this->client->getResponse()->getContent());
+    }
+
+    /**
+     * Un mode inconnu, ou un « custom » sans couleur valable, hérite du thème
+     * dès l'écriture plutôt que de rendre des survols sans couleur.
+     */
+    public function testAnUnusableHighlightIsRefusedAtTheWriteBoundary(): void
+    {
+        $unknown = $this->published('Page survol inconnu', ['highlight' => 'grey']);
+        $colourless = $this->published('Page survol sans couleur', ['highlight' => 'custom', 'highlightColor' => 'red;}</style>']);
+
+        self::assertNull($unknown->getHighlight());
+        self::assertNull($colourless->getHighlight());
+        self::assertNull($colourless->getHighlightColor());
+
+        $this->client->request('GET', '/fr/surface-type/page-survol-sans-couleur');
+
+        self::assertResponseIsSuccessful();
+        self::assertStringNotContainsString('aurora-post-highlight', (string) $this->client->getResponse()->getContent());
+    }
+
     /**
      * @param array<string, string> $colours
      */

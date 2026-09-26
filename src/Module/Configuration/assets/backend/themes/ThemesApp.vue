@@ -49,7 +49,7 @@ const props = defineProps({
 const { themeList, accentColor } = useThemesList(props.themes);
 const { activateTheme } = useThemesActivate(themeList, props.activatePath);
 const { createModal, createForm, openCreate, submitCreate } = useThemesCreate(themeList, props.createPath, { extraFields: props.extraFields });
-const { CSS_SECTIONS, DEFAULTS, editModal, editForm, colorFields, contentWidth, fontFamily, footerText, headerLogoMediaId, headerCustomText, headerMode, primaryColor, surfaceColors, openEdit, resetPrimaryColor, submitEdit } = useThemesEdit(themeList, props.updatePath, { extraFields: props.extraFields });
+const { CSS_SECTIONS, DEFAULTS, editModal, editForm, colorFields, contentWidth, highlight, highlightColor, fontFamily, footerText, headerLogoMediaId, headerCustomText, headerMode, primaryColor, surfaceColors, openEdit, resetPrimaryColor, submitEdit } = useThemesEdit(themeList, props.updatePath, { extraFields: props.extraFields });
 
 const fontOptions = computed(() => props.fonts.map((font) => ({ value: font.value, label: font.label })));
 const selectedFont = computed(() => props.fonts.find((font) => font.value === fontFamily.value) ?? null);
@@ -285,6 +285,27 @@ const pageActions = computed(() => {
                         </div>
                         <span class="text-xs font-mono text-muted">{{ primaryColor }}</span>
                         <AppTextLinkButton color="muted" size="xs" :title="t('backend.themes.reset_color')" v-on:click="resetPrimaryColor">↺</AppTextLinkButton>
+                    </div>
+                    <div class="space-y-1 pt-2">
+                        <AppSelect
+                            v-model="highlight"
+                            :label="t('backend.themes.highlight')"
+                            :options="[
+                                { value: 'accent', label: t('backend.themes.highlight_accent') },
+                                { value: 'neutral', label: t('backend.themes.highlight_neutral') },
+                                { value: 'custom', label: t('backend.themes.highlight_custom') },
+                            ]"
+                        />
+                        <div v-if="highlight === 'custom'" class="flex items-center gap-3 bg-surface-2 rounded-lg px-3 py-2">
+                            <AppColorSwatch
+                                :model-value="highlightColor"
+                                size="sm"
+                                v-on:update:model-value="highlightColor = $event"
+                            />
+                            <span class="text-xs font-medium text-primary flex-1">{{ t('backend.themes.highlight_color') }}</span>
+                            <span class="text-xs font-mono text-muted">{{ highlightColor }}</span>
+                        </div>
+                        <p class="text-xs text-muted">{{ t('backend.themes.highlight_hint') }}</p>
                     </div>
                 </div>
 

@@ -80,6 +80,11 @@ interface PostInputInterface
     /** Likewise for the accent colour. */
     public function getAccentColor(): ?string;
 
+    /** Likewise for hovers and card markers: `accent`, `neutral` or `custom`. */
+    public function getHighlight(): ?string;
+
+    public function getHighlightColor(): ?string;
+
     /** Returns a copy with a different status, leaving everything else alone. */
     public function withStatus(string $status): self;
 }
