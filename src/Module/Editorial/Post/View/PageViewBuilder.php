@@ -217,6 +217,8 @@ final readonly class PageViewBuilder
      */
     public function pageData(array $result, string $locale): array
     {
+        $this->postRepository->warmCards($result['items']);
+
         return [
             'posts' => array_map(
                 fn (PostInterface $post): array => $this->postSerializer->serializeCard($post, $locale),

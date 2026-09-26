@@ -52,6 +52,10 @@ interface PostInterface
 
     public function setCommentsEnabled(bool $commentsEnabled): static;
 
+    public function isShareEnabled(): bool;
+
+    public function setShareEnabled(bool $shareEnabled): static;
+
     public function isTitleVisible(): bool;
 
     public function setTitleVisible(bool $titleVisible): static;

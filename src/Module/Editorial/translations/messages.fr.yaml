@@ -1049,6 +1049,7 @@ backend:
     thumbnail_focal: Point de recadrage
     thumbnail_focal_hint: "Ce qui reste visible quand une photo large doit tenir dans un cadre étroit. Sans réglage, celui du document s'applique."
     comments_enabled: Commentaires ouverts
+    share_enabled: Boutons de partage en bas de page
     field_title: Titre
     field_slug: Slug
     slug_hint: "Laissé vide, il est déduit du titre. Le modifier garde l'ancienne URL fonctionnelle."

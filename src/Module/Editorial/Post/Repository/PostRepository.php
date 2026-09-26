@@ -494,6 +494,58 @@ class PostRepository extends ResolveTargetEntityRepository
     }
 
     /**
+     * These publications with what a card or a link reads from them - their
+     * translations, their type and their thumbnail - in one query, rather
+     * than one per publication for each as the page renders.
+     *
+     * @param list<int> $ids
+     *
+     * @return list<PostInterface>
+     */
+    public function findForDisplay(array $ids): array
+    {
+        if ([] === $ids) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('p')
+            ->leftJoin('p.translations', 't')
+            ->leftJoin('p.postType', 'pt')
+            ->leftJoin('p.thumbnail', 'th')
+            ->addSelect('t', 'pt', 'th')
+            ->where('p.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Loads, in one query, what a listing card reads from publications that
+     * are already loaded: their terms with translations and taxonomy, and
+     * their thumbnail. Doctrine fills the managed entities in place, so the
+     * cards then render without a query each.
+     *
+     * @param list<PostInterface> $posts
+     */
+    public function warmCards(array $posts): void
+    {
+        if ([] === $posts) {
+            return;
+        }
+
+        $this->createQueryBuilder('p')
+            ->leftJoin('p.terms', 'te')
+            ->leftJoin('te.translations', 'tt')
+            ->leftJoin('te.taxonomy', 'tx')
+            ->leftJoin('p.thumbnail', 'th')
+            ->addSelect('te', 'tt', 'tx', 'th')
+            ->where('p IN (:posts)')
+            ->setParameter('posts', $posts)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * How many pictures each of these publications has in its gallery.
      *
      * For the gallery screen, where the useful question about a row is whether it

@@ -41,6 +41,8 @@ interface PostInputInterface
 
     public function isCommentsEnabled(): bool;
 
+    public function isShareEnabled(): bool;
+
     public function isTitleVisible(): bool;
 
     public function getPosition(): ?int;
