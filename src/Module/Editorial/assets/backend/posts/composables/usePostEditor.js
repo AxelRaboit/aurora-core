@@ -187,6 +187,7 @@ export function usePostEditor(props) {
         thumbnailFocalY: props.post?.thumbnailFocalY ?? null,
         commentsEnabled: props.post?.commentsEnabled ?? true,
         shareEnabled: props.post?.shareEnabled ?? true,
+        shareLinks: props.post?.shareLinks ?? null,
         // Whether the page prints its own title and summary. On the post like
         // the banner below, for the same reason: it is design, written once.
         titleVisible: props.post?.titleVisible ?? true,

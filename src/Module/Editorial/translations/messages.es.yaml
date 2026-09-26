@@ -107,6 +107,11 @@ frontend:
       copied: Enlace copiado
       linkedin: LinkedIn
       whatsapp: WhatsApp
+      x: X
+      facebook: Facebook
+      bluesky: Bluesky
+      email: Correo
+      custom: Enlace
     grid:
       recommended: Recomendado
       choose: Elegir esta oferta

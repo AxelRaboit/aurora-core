@@ -5,6 +5,35 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.263] - 2026-09-26
+
+### Ajouté
+
+#### Des liens de partage au choix, page par page
+Le bloc « Partager » en bas d'une publication se compose désormais dans
+l'éditeur, sous la case qui l'active : une liste de liens à réordonner en les
+glissant, chacun avec son type (copier le lien, LinkedIn, WhatsApp, X,
+Facebook, Bluesky, e-mail ou lien personnalisé), son libellé et sa couleur.
+Un lien personnalisé prend une adresse `https://` ou `mailto:` où `{url}` et
+`{title}` sont remplacés par l'adresse et le titre de la page ; sans ces
+marqueurs, c'est un simple lien (vers un profil, par exemple). Toute autre
+adresse est refusée à l'enregistrement.
+
+Une page jamais configurée affiche les liens par défaut, qui gagnent Facebook :
+copier le lien, LinkedIn, WhatsApp et Facebook. Un bouton de l'éditeur ramène
+une page personnalisée à ces liens par défaut.
+
+### Corrigé
+
+#### La cloche des notifications comptait jusqu'à 9
+Au-delà de neuf notifications non lues, la pastille de la barre du haut
+affichait « 9+ ». Elle compte désormais jusqu'à 99, comme la plupart des
+applications, puis affiche « 99+ », et s'élargit pour tenir ces chiffres.
+
+### Dans aurora-client
+
+Une migration ajoute une colonne à `core_posts` ; `make deploy-prod` la joue.
+
 ## [0.9.262] - 2026-09-26
 
 ### Ajouté

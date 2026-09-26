@@ -43,6 +43,9 @@ interface PostInputInterface
 
     public function isShareEnabled(): bool;
 
+    /** @return list<array{type: string, label: ?string, url: ?string, color: ?string}>|null */
+    public function getShareLinks(): ?array;
+
     public function isTitleVisible(): bool;
 
     public function getPosition(): ?int;

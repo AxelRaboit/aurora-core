@@ -1052,6 +1052,19 @@ backend:
     thumbnail_focal_hint: "What stays visible when a wide photo has to fit a narrow frame. Left unset, the document's own point applies."
     comments_enabled: Comments open
     share_enabled: Share buttons at the bottom of the page
+    share_links:
+      default_hint: "Default links: copy link, LinkedIn, WhatsApp, Facebook. Change one to compose this page's own."
+      hint: This page's links, in order. Drag the handle to reorder them.
+      reset: Default links
+      empty: No link, the block is not shown.
+      move: Move
+      type: Link type
+      remove: Remove
+      label: Label
+      color: Colour
+      url: Address
+      url_hint: "https:// or mailto:. {url} and {title} are replaced by the page's address and title, which makes it a real share link."
+      add: Add a link
     field_title: Title
     field_slug: Slug
     slug_hint: 'Left blank, it is derived from the title. Changing it keeps the old URL working.'
@@ -1384,6 +1397,11 @@ frontend:
       copied: Link copied
       linkedin: LinkedIn
       whatsapp: WhatsApp
+      x: X
+      facebook: Facebook
+      bluesky: Bluesky
+      email: Email
+      custom: Link
     grid:
       recommended: Recommended
       choose: Choose this plan

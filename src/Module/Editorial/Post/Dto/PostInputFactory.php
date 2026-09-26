@@ -9,6 +9,7 @@ use Aurora\Core\Support\Str;
 use Aurora\Module\Configuration\Theme\Service\ThemeContext;
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
 use Aurora\Module\Editorial\Post\Enum\ThumbnailFitEnum;
+use Aurora\Module\Editorial\Post\Share\ShareLinksNormalizer;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
 #[AsAlias(PostInputFactoryInterface::class)]
@@ -32,6 +33,7 @@ class PostInputFactory implements PostInputFactoryInterface
             force: (bool) ($data['force'] ?? false),
             commentsEnabled: (bool) ($data['commentsEnabled'] ?? true),
             shareEnabled: (bool) ($data['shareEnabled'] ?? true),
+            shareLinks: new ShareLinksNormalizer()->normalize($data['shareLinks'] ?? null),
             titleVisible: (bool) ($data['titleVisible'] ?? true),
             // On the post, not the translation: one design for every language.
             bannerLayout: is_array($data['bannerLayout'] ?? null) ? $data['bannerLayout'] : [],
