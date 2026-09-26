@@ -714,6 +714,7 @@ function termLabel(term) {
                             :error="errors.unpublishAt"
                         />
                         <AppToggle v-model="form.commentsEnabled" :label="t('backend.posts.comments_enabled')" />
+                        <AppToggle v-model="form.shareEnabled" :label="t('backend.posts.share_enabled')" />
                     </div>
 
                     <div v-if="supportsThumbnail" class="aurora-card p-3 sm:p-5 space-y-4">
