@@ -31,9 +31,12 @@ export function emptyBannerLayout() {
             mediaId: null,
             // What a phone gets instead, rather than a crop of the wide one.
             mobileMediaId: null,
+            // And what a tablet gets, between the phone and the wide screen.
+            tabletMediaId: null,
             overlay: 0,
             media: null,
             mobileMedia: null,
+            tabletMedia: null,
             fillStyle: null,
         },
         items: [],
@@ -49,8 +52,10 @@ export function emptyBannerTexts() {
         background: {
             mediaId: null,
             mobileMediaId: null,
+            tabletMediaId: null,
             media: null,
             mobileMedia: null,
+            tabletMedia: null,
         },
     };
 }

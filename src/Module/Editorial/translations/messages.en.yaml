@@ -394,6 +394,8 @@ backend:
       title_colour_clear: "Remove colour"
       mobile_background_image: Background image on phones
       mobile_background_image_hint: "Optional. Replaces the background image below 640 px wide, where the header keeps only the middle of a wide picture. Portrait works best, for example 1080 × 1440."
+      tablet_background_image: Background image on tablets
+      tablet_background_image_hint: "Optional. Replaces the background image between 640 and 1023 px wide, where the header grows to hold its title and a wide picture loses its sides. Roughly 5:3 recommended, for example 2048 × 1240."
       local_background: "Background for this language only: {locale}"
       local_background_hint: "Optional. For a picture with words in it: it replaces the shared one in this language only."
       overlay: 'Darkening: {percent}%'

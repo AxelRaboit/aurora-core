@@ -95,7 +95,7 @@ final readonly class BannerViewBuilder
         $layout = $this->bannerNormalizer->normalizeLayout($rawLayout);
         $texts = $this->bannerNormalizer->normalizeTexts($rawTexts, $layout);
         $local = $texts['background'];
-        $documents = $this->documentsById([$local['mediaId'], $local['mobileMediaId']]);
+        $documents = $this->documentsById([$local['mediaId'], $local['mobileMediaId'], $local['tabletMediaId']]);
 
         return [
             ...$texts,
@@ -103,6 +103,7 @@ final readonly class BannerViewBuilder
                 ...$local,
                 'media' => $this->mediaData($documents[$local['mediaId']] ?? null, ''),
                 'mobileMedia' => $this->mediaData($documents[$local['mobileMediaId']] ?? null, ''),
+                'tabletMedia' => $this->mediaData($documents[$local['tabletMediaId']] ?? null, ''),
             ],
         ];
     }
@@ -124,8 +125,9 @@ final readonly class BannerViewBuilder
         $local = $texts['background'];
         $backgroundId = $local['mediaId'] ?? $layout['background']['mediaId'];
         $mobileId = $local['mobileMediaId'] ?? $layout['background']['mobileMediaId'];
+        $tabletId = $local['tabletMediaId'] ?? $layout['background']['tabletMediaId'];
 
-        $documents = $this->documents($layout, [$backgroundId, $mobileId]);
+        $documents = $this->documents($layout, [$backgroundId, $mobileId, $tabletId]);
 
         $items = array_map(
             function (array $item) use ($texts, $documents): array {
@@ -168,6 +170,7 @@ final readonly class BannerViewBuilder
                 // Null when no phone picture is set, and the template then
                 // lets the phone crop the main one, as it always has.
                 'mobileMedia' => $this->mediaData($documents[$mobileId] ?? null, ''),
+                'tabletMedia' => $this->mediaData($documents[$tabletId] ?? null, ''),
                 // Built here rather than in Twig so one place knows how a fill
                 // becomes CSS. Safe to assemble as a string: the normaliser has
                 // already reduced every part to a hex colour or an integer.

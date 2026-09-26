@@ -363,6 +363,28 @@ final class BannerViewBuilderTest extends IntegrationTestCase
     }
 
     /**
+     * The tablet picture resolves like the phone one, and a language's own
+     * wins over the shared one.
+     */
+    public function testATabletPictureResolvesAndALanguageMayReplaceIt(): void
+    {
+        $wide = $this->document('image/jpeg', 'ged/2026/09/large.jpg');
+        $mid = $this->document('image/jpeg', 'ged/2026/09/mid.jpg');
+        $midFr = $this->document('image/jpeg', 'ged/2026/09/mid-fr.jpg');
+
+        $shared = $this->bannerViewBuilder->build(['enabled' => true, 'background' => ['mediaId' => $wide, 'tabletMediaId' => $mid]], []);
+        $local = $this->bannerViewBuilder->build(
+            ['enabled' => true, 'background' => ['mediaId' => $wide, 'tabletMediaId' => $mid]],
+            ['background' => ['tabletMediaId' => $midFr]],
+        );
+        $none = $this->bannerViewBuilder->build(['enabled' => true, 'background' => ['mediaId' => $wide]], []);
+
+        self::assertStringContainsString('mid.jpg', (string) $shared['background']['tabletMedia']['url']);
+        self::assertStringContainsString('mid-fr.jpg', (string) $local['background']['tabletMedia']['url']);
+        self::assertNull($none['background']['tabletMedia']);
+    }
+
+    /**
      * Field by field: a language may bring only its phone picture and keep
      * the shared wide one.
      */

@@ -141,6 +141,7 @@ final readonly class PostPictures
 
         $this->keep($background['mediaId'] ?? null, $ids);
         $this->keep($background['mobileMediaId'] ?? null, $ids);
+        $this->keep($background['tabletMediaId'] ?? null, $ids);
     }
 
     /**
