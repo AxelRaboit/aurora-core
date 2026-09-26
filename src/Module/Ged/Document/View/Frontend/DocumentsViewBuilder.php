@@ -17,6 +17,13 @@ final readonly class DocumentsViewBuilder
 {
     private const int PAGE_SIZE = 20;
 
+    /**
+     * Back-office bookkeeping the public library has no use for. The family
+     * keys name the original, which may be a draft or in the trash: its title
+     * is not the public's to read just because one of its variants is out.
+     */
+    private const array BACKOFFICE_ONLY = ['kept', 'originalId', 'originalTitle', 'alternateLabel'];
+
     public function __construct(
         private DocumentRepository $documentRepository,
         private DocumentSerializerInterface $documentSerializer,
@@ -56,7 +63,10 @@ final readonly class DocumentsViewBuilder
         );
 
         return [
-            'items' => array_map($this->documentSerializer->serialize(...), $result['items']),
+            'items' => array_map(
+                fn ($document): array => array_diff_key($this->documentSerializer->serialize($document), array_flip(self::BACKOFFICE_ONLY)),
+                $result['items'],
+            ),
             'page' => $result['page'],
             'totalPages' => $result['totalPages'],
             'total' => $result['total'],

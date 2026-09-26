@@ -7,7 +7,10 @@ namespace Aurora\Tests\Integration\Module\Ged;
 use Aurora\Core\Validation\Dto\PaginationRequest;
 use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
+use Aurora\Module\Ged\Document\Manager\DocumentManagerInterface;
 use Aurora\Module\Ged\Document\View\DocumentsViewBuilder;
+use Aurora\Module\Ged\Document\View\Frontend\DocumentsViewBuilder as PublicDocumentsViewBuilder;
+use Aurora\Module\Ged\Enum\DocumentStatusEnum;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Tests\Integration\IntegrationTestCase;
@@ -15,7 +18,9 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 
 use function array_column;
+use function array_filter;
 use function array_reverse;
+use function array_values;
 use function bin2hex;
 use function json_decode;
 use function json_encode;
@@ -174,6 +179,71 @@ final class DocumentFamiliesTest extends IntegrationTestCase
         $reloaded = $this->entityManager->find(Document::class, $yellow->getId());
         self::assertInstanceOf(Document::class, $reloaded);
         self::assertNull($reloaded->getOriginal());
+    }
+
+    /**
+     * The one-level rule survives the trash: with its only alternate away, an
+     * original is still an original, or restoring the alternate would hang
+     * it two levels down.
+     */
+    public function testAnOriginalWhoseAlternateIsInTheTrashStaysAnOriginal(): void
+    {
+        $green = $this->givenDocument('Visuel');
+        $yellow = $this->givenDocument('Visuel jaune', $green, 'jaune');
+        $other = $this->givenDocument('Autre');
+        $this->manager()->delete($yellow);
+
+        $response = $this->update($green, ['originalId' => $other->getId()]);
+
+        self::assertFalse($response['success']);
+        self::assertArrayHasKey('originalId', $response['errors']);
+    }
+
+    /**
+     * An original sent to the trash does not lock its alternates: they are
+     * still saved, link untouched, and still listed when families fold.
+     */
+    public function testAnAlternateOfATrashedOriginalCanStillBeEditedAndFound(): void
+    {
+        $green = $this->givenDocument('Visuel');
+        $yellow = $this->givenDocument('Visuel jaune', $green, 'jaune');
+        $this->manager()->delete($green);
+
+        $response = $this->update($yellow, ['title' => 'Visuel jaune retouché', 'originalId' => $green->getId(), 'alternateLabel' => 'jaune']);
+
+        self::assertTrue($response['success'] ?? false, json_encode($response) ?: '');
+        self::assertArrayHasKey((int) $yellow->getId(), $this->listing(originalsOnly: true), 'folded, it would otherwise show nowhere');
+    }
+
+    /** Pointing a document at a trashed original, though, is refused. */
+    public function testATrashedOriginalCannotBeChosen(): void
+    {
+        $green = $this->givenDocument('Visuel');
+        $other = $this->givenDocument('Autre');
+        $this->manager()->delete($green);
+
+        self::assertArrayHasKey('originalId', $this->update($other, ['originalId' => $green->getId()])['errors'] ?? []);
+    }
+
+    /** The public library says nothing of a published variant's family. */
+    public function testThePublicLibraryLeavesTheFamilyOut(): void
+    {
+        $draft = $this->givenDocument('Brouillon secret');
+        $published = $this->givenDocument('Variante publiée', $draft, 'jaune');
+        $published->setStatus(DocumentStatusEnum::Published);
+        $this->entityManager->flush();
+
+        $items = static::getContainer()->get(PublicDocumentsViewBuilder::class)->pageData(1, 'Variante publiée')['items'];
+        $row = array_values(array_filter($items, static fn (array $item): bool => $item['id'] === $published->getId()))[0] ?? null;
+
+        self::assertNotNull($row);
+        self::assertArrayNotHasKey('originalTitle', $row);
+        self::assertArrayNotHasKey('originalId', $row);
+    }
+
+    private function manager(): DocumentManagerInterface
+    {
+        return static::getContainer()->get(DocumentManagerInterface::class);
     }
 
     /**

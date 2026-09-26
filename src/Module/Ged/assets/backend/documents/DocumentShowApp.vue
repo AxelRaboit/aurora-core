@@ -18,7 +18,7 @@ import AppMultiselect from "@/shared/components/form/select/AppMultiselect.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
-import { Pencil, Trash2, ArrowLeft, Download, FileText, Folder, Tag, Save, X, Paperclip, Crop } from "lucide-vue-next";
+import { Pencil, Trash2, Download, FileText, Folder, Tag, Save, X, Paperclip, Crop } from "lucide-vue-next";
 import AppImagePreview from "@/shared/components/display/AppImagePreview.vue";
 import ImageCropperModal from "@/shared/components/overlay/ImageCropperModal.vue";
 import DocumentTagChip from "@ged/backend/documents/components/DocumentTagChip.vue";
