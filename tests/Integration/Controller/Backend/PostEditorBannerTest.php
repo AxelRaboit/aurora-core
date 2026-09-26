@@ -148,4 +148,34 @@ final class PostEditorBannerTest extends IntegrationTestCase
 
         self::assertStringNotContainsString('javascript:', $payload['html']);
     }
+
+    /**
+     * The regression this preview exists for: a title with no colour of its
+     * own drew in the backend's ambient text colour, not the one the public
+     * page renders it in - because the preview never carried the theme's own
+     * page background rule.
+     *
+     * The fixture theme carries no configured colour, so `previewSurfaceCss`
+     * has nothing to emit ({@see ThemeContextSurfacesTest} covers the
+     * configured case) - this only proves the response wraps a `<style>` tag
+     * around the preview's own selector on every request, ready for whatever
+     * the theme screen sets.
+     */
+    public function testThePreviewWrapsAThemeStyleBlockAroundTheMarkup(): void
+    {
+        $this->client->request(
+            'POST',
+            '/backend/editorial/posts/banner-preview',
+            server: ['CONTENT_TYPE' => 'application/json'],
+            content: json_encode([
+                'layout' => ['enabled' => true, 'items' => []],
+                'texts' => [],
+            ], JSON_THROW_ON_ERROR),
+        );
+
+        $payload = json_decode((string) $this->client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+
+        self::assertStringStartsWith('<style>', $payload['html']);
+        self::assertStringContainsString('</style>', $payload['html']);
+    }
 }
