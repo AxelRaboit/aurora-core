@@ -182,6 +182,21 @@ const { html: previewHtml, loading: previewLoading } = useServerPreview(
                                 :label="t('backend.posts.banner.slot_description')"
                                 :placeholder="t('backend.posts.banner.slot_description_placeholder')"
                             />
+                            <!-- The call to action under the words. The page
+                                 already drew it from these two fields; only the
+                                 editor had no way to fill them. -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <AppInput
+                                    v-model="itemFields(index).label.value"
+                                    :label="t('backend.posts.banner.text_button_label')"
+                                    :placeholder="t('backend.posts.banner.button_label_placeholder')"
+                                />
+                                <AppInput
+                                    v-model="itemFields(index).url.value"
+                                    :label="t('backend.posts.banner.button_url')"
+                                    :placeholder="t('backend.posts.banner.button_url_placeholder')"
+                                />
+                            </div>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <BannerColorField
@@ -191,6 +206,14 @@ const { html: previewHtml, loading: previewLoading } = useServerPreview(
                             <BannerColorField
                                 v-model="itemFields(index).descriptionColor.value"
                                 :label="t('backend.posts.banner.slot_description_color')"
+                            />
+                            <BannerColorField
+                                v-model="itemFields(index).buttonColor.value"
+                                :label="t('backend.posts.banner.button_color')"
+                            />
+                            <BannerColorField
+                                v-model="itemFields(index).buttonTextColor.value"
+                                :label="t('backend.posts.banner.button_text_color')"
                             />
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">

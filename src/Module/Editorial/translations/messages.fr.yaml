@@ -362,6 +362,7 @@ backend:
         lg: Grande
         xl: Très grande
       add_button: Ajouter un bouton
+      text_button_label: Bouton sous le texte (facultatif)
       button_label: Libellé du bouton
       button_label_placeholder: Découvrir
       button_url: Lien
@@ -628,6 +629,14 @@ backend:
         custom: Personnalisé
       contrast: Thème forcé
       contrast_hint: "Impose le jeu de couleurs clair ou sombre à cette zone, quel que soit celui de la page. « Comme la page » suit le thème normalement."
+      highlight: Survols et repères
+      highlight_hint: "La couleur des survols et des repères des cartes de ce bloc, par-dessus celle de la page et du thème."
+      highlight_color: Couleur des survols
+      highlights:
+        inherit: Comme la page
+        accent: Couleur principale
+        neutral: Neutres
+        custom: Personnalisée
       contrasts:
         auto: Comme la page
         light: Clair
@@ -1053,7 +1062,7 @@ backend:
     comments_enabled: Commentaires ouverts
     share_enabled: Boutons de partage en bas de page
     share_links:
-      default_hint: "Liens par défaut : copier le lien, LinkedIn, WhatsApp, Facebook. Modifiez-en un pour composer ceux de cette page."
+      default_hint: "Liens par défaut : copier le lien, LinkedIn, Facebook. Modifiez-en un pour composer ceux de cette page."
       hint: Les liens de cette page, dans l'ordre. Glissez la poignée pour les réordonner.
       reset: Liens par défaut
       empty: Aucun lien, le bloc ne s'affiche pas.

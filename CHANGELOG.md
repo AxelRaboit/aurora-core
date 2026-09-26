@@ -7,6 +7,25 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ## [0.9.264] - 2026-09-26
 
+### Ajouté
+
+- **Survols et repères bloc par bloc.** Chaque bloc de la grille d'une page
+  choisit la couleur de ses survols et des repères de ses cartes : comme la
+  page (par défaut), couleur principale, neutres ou personnalisée. Le bloc
+  passe devant la page, qui passe devant le thème.
+- **Le repère de la page active dans la barre de navigation** se règle dans
+  l'écran Thème, sur les mêmes trois modes que les survols : couleur
+  principale (par défaut), neutre ou personnalisée.
+- **Le bouton sous le texte d'une entête se règle dans l'éditeur** : libellé,
+  lien, couleur du bouton et couleur de son texte. La page savait le dessiner,
+  mais l'éditeur n'offrait aucun moyen de le remplir.
+
+### Modifié
+
+- **Les liens de partage par défaut** sont désormais copier le lien, LinkedIn
+  et Facebook : WhatsApp quitte la liste par défaut et reste disponible page
+  par page.
+
 ### Corrigé
 
 #### Les entêtes sur tablette

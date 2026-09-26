@@ -12,7 +12,7 @@
 
 {% macro linkClass(item, hoverGroup) %}
     {%- if item.isActive -%}
-        text-primary font-medium underline decoration-accent decoration-2 underline-offset-8
+        text-primary font-medium underline decoration-menu-active decoration-2 underline-offset-8
     {%- else -%}
         text-secondary {{ hoverGroup ? 'group-hover:text-primary' : 'hover:text-primary' }}
     {%- endif -%}

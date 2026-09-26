@@ -57,6 +57,9 @@
     --color-highlight:     var(--th-highlight, var(--th-accent));
     --color-highlight-500: var(--th-highlight, var(--th-accent-500));
 
+    /* The mark under the active entry of the top bar, same three modes. */
+    --color-menu-active: var(--th-menu-active, var(--th-accent));
+
     --color-danger:       var(--th-danger);
     --color-danger-soft:  var(--th-danger-soft);
     --color-success:      var(--th-success);
@@ -208,6 +211,29 @@
  * que la surface a justement remplacee. */
 html[data-highlight="neutral"] * {
     --th-highlight: var(--th-primary);
+}
+
+/* Same reason, for the active entry of the top bar: resolved on each element,
+ * so a coloured bar gives it its own text colour rather than the page's. */
+html[data-menu-active="neutral"] * {
+    --th-menu-active: var(--th-primary);
+}
+
+/* A grid zone's own choice, over the page's and the theme's. On the zone and
+ * every descendant, and one attribute selector more specific than the
+ * publication's rule (html[data-theme] .aurora-post-highlight *), which is set
+ * element by element too. `initial` brings the accent fallback back. */
+html[data-theme] [data-zone-highlight][data-zone-highlight="accent"],
+html[data-theme] [data-zone-highlight][data-zone-highlight="accent"] * {
+    --th-highlight: initial;
+}
+html[data-theme] [data-zone-highlight][data-zone-highlight="neutral"],
+html[data-theme] [data-zone-highlight][data-zone-highlight="neutral"] * {
+    --th-highlight: var(--th-primary);
+}
+html[data-theme] [data-zone-highlight][data-zone-highlight="custom"],
+html[data-theme] [data-zone-highlight][data-zone-highlight="custom"] * {
+    --th-highlight: var(--zone-highlight);
 }
 
 /* Le plugin Tailwind Typography peint `.prose` avec ses propres variables, des
