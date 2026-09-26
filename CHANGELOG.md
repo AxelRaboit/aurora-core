@@ -5,6 +5,21 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.260] - 2026-09-26
+
+### Ajouté
+
+#### Exporter les fichiers d'un stockage vers un dossier
+`aurora:storage:export <dossier>` copie chaque objet d'un stockage (R2 par
+défaut, `--disk=local` pour le disque du serveur) dans un dossier ordinaire,
+chaque clé devenant un chemin : le résultat a exactement la forme de
+`var/uploads`, et peut servir tel quel à une autre installation. La commande ne
+fait que lire, un fichier déjà présent à la même taille est sauté (une seconde
+passe ne relit que ce qui a changé), `--prefix` restreint à un dossier et
+`--dry-run` compte et pèse sans rien écrire. De quoi copier la médiathèque
+d'une production vers un poste de développement, sans que les identifiants du
+bucket quittent le serveur.
+
 ## [0.9.259] - 2026-09-26
 
 ### Ajouté
