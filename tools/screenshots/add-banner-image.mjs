@@ -29,6 +29,7 @@ import { randomBytes } from "node:crypto";
 import { tmpdir } from "node:os";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { remote } from "./lib/remote.mjs";
 
 const run = promisify(execFile);
 
@@ -44,8 +45,7 @@ function promisify(fn) {
 const here = dirname(fileURLToPath(import.meta.url));
 const shotsDir = resolve(here, "../../var/screenshots");
 
-const HOST = process.env.TOUR_SSH_HOST ?? "vps";
-const REMOTE_DIR = process.env.TOUR_REMOTE_DIR ?? "/var/www/aurora-client";
+const { host: HOST, dir: REMOTE_DIR } = remote();
 const REMOTE_TMP = "/tmp/aurora-tour";
 
 const args = process.argv.slice(2);

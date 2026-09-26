@@ -71,7 +71,7 @@ Un Caddyfile minimal pour Aurora :
 
 ```caddy
 aurora.example.com {
-    root * /var/www/aurora-client/public
+    root * /var/www/<projet>/public
     php_fastcgi unix//run/php/php8.4-fpm.sock
     file_server
 }
