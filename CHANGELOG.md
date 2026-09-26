@@ -23,6 +23,13 @@ Une page jamais configurée affiche les liens par défaut, qui gagnent Facebook 
 copier le lien, LinkedIn, WhatsApp et Facebook. Un bouton de l'éditeur ramène
 une page personnalisée à ces liens par défaut.
 
+### Corrigé
+
+#### La cloche des notifications comptait jusqu'à 9
+Au-delà de neuf notifications non lues, la pastille de la barre du haut
+affichait « 9+ ». Elle compte désormais jusqu'à 99, comme la plupart des
+applications, puis affiche « 99+ », et s'élargit pour tenir ces chiffres.
+
 ### Dans aurora-client
 
 Une migration ajoute une colonne à `core_posts` ; `make deploy-prod` la joue.
