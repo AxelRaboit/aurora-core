@@ -83,6 +83,8 @@ final class GridZoneOptions
 
     public const array BOOKING_WINDOWS = [7, 14, 21, 30, 45];
 
+    public const array FEED_COUNTS = [6, 9, 12];
+
     /**
      * Every key, with the value a zone arrives with.
      *
@@ -128,6 +130,7 @@ final class GridZoneOptions
             'quoteCurrency' => '€',
             'slotDuration' => self::SLOT_DURATIONS[0],
             'bookingWindowDays' => self::BOOKING_WINDOWS[0],
+            'feedCount' => self::FEED_COUNTS[0],
         ];
     }
 
@@ -196,6 +199,7 @@ final class GridZoneOptions
             'quoteCurrency' => self::line($data['quoteCurrency'] ?? null, 6) ?: '€',
             'slotDuration' => self::intOneOf($data['slotDuration'] ?? null, self::SLOT_DURATIONS),
             'bookingWindowDays' => self::intOneOf($data['bookingWindowDays'] ?? null, self::BOOKING_WINDOWS),
+            'feedCount' => self::intOneOf($data['feedCount'] ?? null, self::FEED_COUNTS),
         ];
     }
 

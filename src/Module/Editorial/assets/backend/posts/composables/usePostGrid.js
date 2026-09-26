@@ -24,6 +24,9 @@ import {
     Map as MapIcon,
     Calculator,
     CalendarCheck,
+    Instagram,
+    Star,
+    Mail,
     Image,
     Images,
     Columns2,
@@ -103,6 +106,9 @@ export const LEAF_ZONE_TYPES = [
     "travelMap",
     "quoteEstimator",
     "appointmentBooking",
+    "instagramFeed",
+    "googleReviews",
+    "newsletterSignup",
 ];
 
 /** Mirrors GridNormalizer::ZONE_TYPES - a stack is top level only. */
@@ -178,6 +184,9 @@ export const ZONE_ICONS = {
     travelMap: MapIcon,
     quoteEstimator: Calculator,
     appointmentBooking: CalendarCheck,
+    instagramFeed: Instagram,
+    googleReviews: Star,
+    newsletterSignup: Mail,
     stack: Layers,
 };
 
@@ -200,6 +209,7 @@ export const CHART_TYPES = ["bar", "line", "donut", "growth"];
 export const POLL_RESULTS = ["after", "always"];
 export const SLOT_DURATIONS = [15, 30, 45, 60, 90];
 export const BOOKING_WINDOWS = [7, 14, 21, 30, 45];
+export const FEED_COUNTS = [6, 9, 12];
 
 /**
  * What `options` holds on a new zone - every key, whatever the type, for the
@@ -245,6 +255,7 @@ export function defaultZoneOptions() {
         quoteCurrency: "€",
         slotDuration: 15,
         bookingWindowDays: 7,
+        feedCount: 6,
     };
 }
 
@@ -767,6 +778,10 @@ export function usePostGrid(layout, content) {
         bookingWindowDays: BOOKING_WINDOWS.map((value) => ({
             value,
             label: t("backend.posts.grid.days_count", { count: value }),
+        })),
+        feedCount: FEED_COUNTS.map((value) => ({
+            value,
+            label: String(value),
         })),
         // A network names itself.
         socialNetwork: SOCIAL_NETWORKS.map((value) => ({

@@ -1,0 +1,13 @@
+{# One field, one button: newsletterSignup.js sends the address and swaps the
+   form for a thank-you line. Without it the form still works the plain way,
+   a full page reload included - it posts to the same address either way. #}
+<form class="not-prose rounded-xl border border-line bg-surface p-5" data-newsletter data-newsletter-endpoint="{{ zone.newsletterSignup.endpoint }}" action="{{ zone.newsletterSignup.endpoint }}" method="post">
+    {% if zone.newsletterSignup.title %}<p class="m-0 mb-1 text-base font-semibold text-primary">{{ zone.newsletterSignup.title }}</p>{% endif %}
+    {% if zone.newsletterSignup.note %}<p class="m-0 mb-4 text-sm text-secondary">{{ zone.newsletterSignup.note }}</p>{% endif %}
+    <div class="flex flex-col gap-2 sm:flex-row">
+        <input type="email" name="email" required placeholder="{{ 'frontend.editorial.grid.newsletter.placeholder'|trans }}" class="w-full flex-1 rounded-lg border border-line bg-transparent px-3 py-2 text-sm text-primary" data-newsletter-email>
+        <button type="submit" class="shrink-0 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90" data-newsletter-submit>{{ 'frontend.editorial.grid.newsletter.submit'|trans }}</button>
+    </div>
+    <p class="m-0 mt-2 hidden text-sm text-emerald-600" data-newsletter-success>{{ 'frontend.editorial.grid.newsletter.success'|trans }}</p>
+    <p class="m-0 mt-2 hidden text-sm text-rose-500" data-newsletter-error>{{ 'frontend.editorial.grid.newsletter.failed'|trans }}</p>
+</form>

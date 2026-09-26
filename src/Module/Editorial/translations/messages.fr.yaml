@@ -32,6 +32,102 @@ backend:
           create: Créer des formulaires
           edit: Modifier les formulaires
           delete: Supprimer les formulaires
+  modules:
+    editorial: Éditorial
+    editorial_backend: Éditorial
+    editorial_backend_description: "Active la section Éditorial dans l'administration."
+    editorial_frontend: Site public éditorial
+    editorial_frontend_description: "Sert les publications, pages de liste et pages de taxonomie aux lecteurs."
+  editorial:
+    github:
+      settings:
+        what_title: Ce que fait cette intégration
+        what_body: "Elle affiche, dans une zone « Activité GitHub » posée sur une page, la grille de contributions des comptes ci-dessous : une case par jour sur les douze derniers mois, comme sur un profil GitHub."
+        source_title: D'où viennent les données
+        source_body: "De la page publique de chaque profil, celle que n'importe quel visiteur peut ouvrir : aucune clé, aucun compte à brancher. Les grilles sont relues toutes les six heures. Si GitHub ne répond pas, la dernière grille lue reste affichée."
+        logins_label: Comptes GitHub
+        logins_hint: "Un identifiant par ligne, dans l'ordre d'affichage, quatre au plus. Le « @ » est facultatif."
+        enabled_label: Afficher l'activité GitHub
+        enabled_hint: "Les zones « Activité GitHub » des pages affichent ces comptes."
+        enabled_blocked: "Saisissez au moins un compte pour activer l'intégration."
+      errors:
+        invalid_login: "Identifiant GitHub invalide : {logins}. Lettres, chiffres et tirets seulement."
+        too_many: "{max} comptes au plus."
+        logins_required: "Saisissez au moins un compte pour activer l'intégration."
+    instagram:
+      settings:
+        what_title: Ce que fait cette intégration
+        what_body: "Elle affiche, dans une zone « Fil Instagram » posée sur une page, les publications récentes du compte professionnel du client."
+        how_title: Comment l'ouvrir
+        how_step_business: "Le compte Instagram doit être un compte professionnel ou créateur, relié à une page Facebook."
+        how_step_app: "Dans Meta for Developers, créez une application et ajoutez-lui le produit « Instagram API »."
+        how_step_token: "Générez un jeton d'accès longue durée pour ce compte, depuis cette application."
+        how_step_paste: "Copiez l'identifiant du compte professionnel et le jeton, et collez-les ci-dessous."
+        how_link: Documentation Meta
+        terms_label: J'ai lu et j'accepte les conditions de la plateforme Meta
+        terms_hint: "Le fil affiche des publications qui restent la propriété du compte : rien n'est copié ni republié ailleurs."
+        terms_link: Conditions de la plateforme Meta
+        accepted_on: "Accepté le {date} par {user}."
+        business_id_label: Identifiant du compte professionnel
+        business_id_hint: "Le numéro Instagram Business Account, pas le nom d'utilisateur."
+        token_label: Jeton d'accès
+        token_stored: Un jeton est enregistré.
+        token_hint: Collez ici le jeton longue durée généré pour ce compte.
+        enabled_label: Afficher le fil Instagram
+        enabled_hint: "Les zones « Fil Instagram » des pages affichent ce compte."
+        enabled_blocked: "Renseignez le compte, le jeton et acceptez les conditions pour activer l'intégration."
+      errors:
+        terms_required: "Vous devez accepter les conditions de la plateforme Meta pour activer l'intégration."
+        account_required: "Saisissez l'identifiant du compte et le jeton d'accès pour activer l'intégration."
+    google_reviews:
+      settings:
+        what_title: Ce que fait cette intégration
+        what_body: "Elle affiche, dans une zone « Avis Google » posée sur une page, la note et les derniers avis de la fiche d'établissement du client."
+        how_title: Comment l'ouvrir
+        how_step_console: "Créez une clé d'API dans la Google Cloud Console du client, restreinte à l'API Places."
+        how_step_key: "Copiez cette clé et collez-la ci-dessous."
+        how_step_place: "Retrouvez l'identifiant de la fiche d'établissement (Place ID) et collez-le aussi."
+        how_link: Trouver un Place ID
+        terms_label: J'ai lu et j'accepte les conditions de Google Maps Platform
+        terms_hint: "Les avis affichés restent ceux de la fiche Google : rien n'est copié ni modifié."
+        terms_link: Conditions de Google Maps Platform
+        accepted_on: "Accepté le {date} par {user}."
+        place_label: Identifiant de la fiche (Place ID)
+        place_hint: "Celui de l'établissement du client, jamais un autre."
+        key_label: Clé d'API
+        key_stored: Une clé est enregistrée.
+        key_hint: Collez ici la clé Places API du client.
+        enabled_label: Afficher les avis Google
+        enabled_hint: "Les zones « Avis Google » des pages affichent cette fiche."
+        enabled_blocked: "Renseignez la fiche, la clé et acceptez les conditions pour activer l'intégration."
+      errors:
+        terms_required: "Vous devez accepter les conditions de Google Maps Platform pour activer l'intégration."
+        place_required: "Saisissez l'identifiant de la fiche et la clé d'API pour activer l'intégration."
+    newsletter:
+      settings:
+        what_title: Ce que fait cette intégration
+        what_body: "Elle ajoute, depuis une zone « Inscription à la lettre » posée sur une page, l'adresse d'un visiteur à la liste du client chez Brevo ou Mailchimp."
+        provider_label: Fournisseur
+        providers:
+          brevo: Brevo
+          mailchimp: Mailchimp
+        how_title: Comment l'ouvrir
+        how_brevo: "Dans Brevo, la clé d'API se trouve dans Paramètres du compte > Clés API. L'identifiant de la liste est visible sur la page de la liste elle-même."
+        how_mailchimp: "Dans Mailchimp, la clé d'API se crée dans Compte > Extras > Clés API. L'identifiant de l'audience (liste) se trouve dans ses paramètres."
+        terms_label: J'ai lu et j'accepte les conditions du fournisseur choisi
+        terms_hint: "L'adresse d'un visiteur est envoyée au fournisseur choisi, sous son propre compte."
+        accepted_on: "Accepté le {date} par {user}."
+        list_label_brevo: Identifiant de la liste
+        list_label_mailchimp: Identifiant de l'audience
+        key_label: Clé d'API
+        key_stored: Une clé est enregistrée.
+        key_hint: Collez ici la clé du compte du client.
+        enabled_label: Afficher l'inscription à la lettre
+        enabled_hint: "Les zones « Inscription à la lettre » des pages ajoutent une adresse à cette liste."
+        enabled_blocked: "Renseignez la liste, la clé et acceptez les conditions pour activer l'intégration."
+      errors:
+        terms_required: "Vous devez accepter les conditions du fournisseur pour activer l'intégration."
+        list_required: "Saisissez l'identifiant de la liste et la clé d'API pour activer l'intégration."
   audit:
     actions:
       editorial:
@@ -98,28 +194,6 @@ backend:
     editorial_form_submission_prefix:
       label: Préfixe de référence des soumissions
       description: "Préfixe de la référence générée pour chaque soumission."
-  modules:
-    editorial: Éditorial
-    editorial_backend: Éditorial
-    editorial_backend_description: "Active la section Éditorial dans l'administration."
-    editorial_frontend: Site public éditorial
-    editorial_frontend_description: "Sert les publications, pages de liste et pages de taxonomie aux lecteurs."
-  editorial:
-    github:
-      settings:
-        what_title: Ce que fait cette intégration
-        what_body: "Elle affiche, dans une zone « Activité GitHub » posée sur une page, la grille de contributions des comptes ci-dessous : une case par jour sur les douze derniers mois, comme sur un profil GitHub."
-        source_title: D'où viennent les données
-        source_body: "De la page publique de chaque profil, celle que n'importe quel visiteur peut ouvrir : aucune clé, aucun compte à brancher. Les grilles sont relues toutes les six heures. Si GitHub ne répond pas, la dernière grille lue reste affichée."
-        logins_label: Comptes GitHub
-        logins_hint: "Un identifiant par ligne, dans l'ordre d'affichage, quatre au plus. Le « @ » est facultatif."
-        enabled_label: Afficher l'activité GitHub
-        enabled_hint: "Les zones « Activité GitHub » des pages affichent ces comptes."
-        enabled_blocked: "Saisissez au moins un compte pour activer l'intégration."
-      errors:
-        invalid_login: "Identifiant GitHub invalide : {logins}. Lettres, chiffres et tirets seulement."
-        too_many: "{max} comptes au plus."
-        logins_required: "Saisissez au moins un compte pour activer l'intégration."
     bootstrap:
       post_types:
         page: Page
@@ -520,6 +594,9 @@ backend:
         travelMap: Carte de voyage
         quoteEstimator: Simulateur de devis
         appointmentBooking: Prise de rendez-vous
+        instagramFeed: Fil Instagram
+        googleReviews: Avis Google
+        newsletterSignup: Inscription à la lettre
         stack: Pile
       zone_form: "Formulaire"
       zone_form_hint: "Le formulaire s'affiche dans la page, et s'envoie au même endroit que sur sa propre page."
@@ -909,6 +986,12 @@ backend:
       days_count: "{count} jour | {count} jours"
       booking_title: Titre
       booking_note: Précision
+      instagram_feed_hint: "Affiche le fil réglé dans Réglages > Instagram, une seule fois pour tout le site. Tant que l'intégration est éteinte, la zone ne dessine rien."
+      feed_count: Publications affichées
+      google_reviews_hint: "Affiche la fiche réglée dans Réglages > Avis Google, une seule fois pour tout le site. Tant que l'intégration est éteinte, la zone ne dessine rien."
+      newsletter_hint: "Envoie l'adresse à la liste réglée dans Réglages > Lettre d'information. Tant que l'intégration est éteinte, la zone ne dessine rien."
+      newsletter_title: Titre
+      newsletter_note: Précision
       background_video: Vidéo en fond
       background_video_hint: "La vidéo tourne sans le son derrière le titre, au lieu d'un lecteur. Pour les visiteurs qui ont demandé moins d'animations, l'image d'aperçu reste fixe."
       background_video_title: Titre posé sur la vidéo
@@ -1359,6 +1442,17 @@ frontend:
         closed: "Ce sondage n'est plus ouvert."
       episode:
         transcript: Transcription
+      reviews:
+        count: "{count} avis | {count} avis"
+        write: Laisser un avis
+      newsletter:
+        placeholder: Votre adresse e-mail
+        submit: S'inscrire
+        success: Merci, votre inscription est confirmée.
+        failed: L'inscription n'a pas abouti. Réessayez dans un instant.
+        invalid: Adresse e-mail invalide.
+        unavailable: Cette inscription n'est plus disponible.
+        too_many: Trop de tentatives, réessayez plus tard.
       quote:
         total: Total
       booking:
@@ -1372,6 +1466,7 @@ frontend:
         success: Rendez-vous confirmé pour
         taken: "Ce créneau vient d'être pris. Choisissez-en un autre."
         invalid: Une information manque ou n'est pas valide.
+        too_many: Trop de tentatives, réessayez plus tard.
         unavailable: Cette prise de rendez-vous n'est plus disponible.
     forms:
       submit: Envoyer

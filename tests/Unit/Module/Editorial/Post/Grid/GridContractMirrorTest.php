@@ -68,6 +68,7 @@ final class GridContractMirrorTest extends TestCase
         yield 'poll results' => [GridZoneOptions::POLL_RESULTS, 'POLL_RESULTS'];
         yield 'slot durations' => [GridZoneOptions::SLOT_DURATIONS, 'SLOT_DURATIONS'];
         yield 'booking windows' => [GridZoneOptions::BOOKING_WINDOWS, 'BOOKING_WINDOWS'];
+        yield 'feed counts' => [GridZoneOptions::FEED_COUNTS, 'FEED_COUNTS'];
     }
 
     /**

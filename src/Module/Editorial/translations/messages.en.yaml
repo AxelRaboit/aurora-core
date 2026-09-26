@@ -32,6 +32,102 @@ backend:
           create: Create forms
           edit: Edit forms
           delete: Delete forms
+  modules:
+    editorial: Editorial
+    editorial_backend: Editorial
+    editorial_backend_description: 'Enables the Editorial section in the admin.'
+    editorial_frontend: Editorial public site
+    editorial_frontend_description: 'Serves the posts, listing pages and taxonomy pages to readers.'
+  editorial:
+    github:
+      settings:
+        what_title: What this integration does
+        what_body: "It shows, in a « GitHub activity » zone placed on a page, the contributions grid of the accounts below: one cell per day over the last twelve months, as on a GitHub profile."
+        source_title: Where the data comes from
+        source_body: "From each profile's public page, the one any visitor can open: no key, no account to connect. The grids are read again every six hours. If GitHub does not answer, the last grid read stays on the page."
+        logins_label: GitHub accounts
+        logins_hint: "One username per line, in display order, four at most. The « @ » is optional."
+        enabled_label: Show GitHub activity
+        enabled_hint: "The « GitHub activity » zones of your pages show these accounts."
+        enabled_blocked: "Enter at least one account to turn the integration on."
+      errors:
+        invalid_login: "Invalid GitHub username: {logins}. Letters, digits and hyphens only."
+        too_many: "{max} accounts at most."
+        logins_required: "Enter at least one account to turn the integration on."
+    instagram:
+      settings:
+        what_title: What this integration does
+        what_body: "It shows, in an « Instagram feed » zone placed on a page, the recent posts of the client's own business account."
+        how_title: How to open it
+        how_step_business: "The Instagram account must be a business or creator account, linked to a Facebook page."
+        how_step_app: "In Meta for Developers, create an app and add the « Instagram API » product to it."
+        how_step_token: "Generate a long-lived access token for that account, from this app."
+        how_step_paste: "Copy the business account id and the token, and paste them below."
+        how_link: Meta documentation
+        terms_label: I have read and accept Meta's platform terms
+        terms_hint: "The feed shows posts that stay the account's own: nothing is copied or republished elsewhere."
+        terms_link: Meta platform terms
+        accepted_on: "Accepted on {date} by {user}."
+        business_id_label: Business account id
+        business_id_hint: "The Instagram Business Account number, not the username."
+        token_label: Access token
+        token_stored: A token is stored.
+        token_hint: Paste the long-lived token generated for this account here.
+        enabled_label: Show the Instagram feed
+        enabled_hint: "The « Instagram feed » zones of your pages show this account."
+        enabled_blocked: "Enter the account, the token and accept the terms to turn the integration on."
+      errors:
+        terms_required: "You must accept Meta's platform terms to turn the integration on."
+        account_required: "Enter the account id and the access token to turn the integration on."
+    google_reviews:
+      settings:
+        what_title: What this integration does
+        what_body: "It shows, in a « Google reviews » zone placed on a page, the rating and latest reviews of the client's own business listing."
+        how_title: How to open it
+        how_step_console: "Create an API key in the client's own Google Cloud Console, restricted to the Places API."
+        how_step_key: "Copy that key and paste it below."
+        how_step_place: "Find the business listing's Place ID and paste that too."
+        how_link: Find a Place ID
+        terms_label: I have read and accept the Google Maps Platform terms
+        terms_hint: "The reviews shown stay the ones on the Google listing: nothing is copied or edited."
+        terms_link: Google Maps Platform terms
+        accepted_on: "Accepted on {date} by {user}."
+        place_label: Listing id (Place ID)
+        place_hint: "The client's own business, never another one."
+        key_label: API key
+        key_stored: A key is stored.
+        key_hint: Paste the client's Places API key here.
+        enabled_label: Show Google reviews
+        enabled_hint: "The « Google reviews » zones of your pages show this listing."
+        enabled_blocked: "Enter the listing, the key and accept the terms to turn the integration on."
+      errors:
+        terms_required: "You must accept the Google Maps Platform terms to turn the integration on."
+        place_required: "Enter the listing id and the API key to turn the integration on."
+    newsletter:
+      settings:
+        what_title: What this integration does
+        what_body: "It adds, from a « Newsletter signup » zone placed on a page, a visitor's address to the client's own list at Brevo or Mailchimp."
+        provider_label: Provider
+        providers:
+          brevo: Brevo
+          mailchimp: Mailchimp
+        how_title: How to open it
+        how_brevo: "In Brevo, the API key is under Account settings > API keys. The list id shows on the list's own page."
+        how_mailchimp: "In Mailchimp, the API key is created under Account > Extras > API keys. The audience (list) id is in its settings."
+        terms_label: I have read and accept the chosen provider's terms
+        terms_hint: "A visitor's address is sent to the chosen provider, under their own account."
+        accepted_on: "Accepted on {date} by {user}."
+        list_label_brevo: List id
+        list_label_mailchimp: Audience id
+        key_label: API key
+        key_stored: A key is stored.
+        key_hint: Paste the client's own account key here.
+        enabled_label: Show the newsletter signup
+        enabled_hint: "The « Newsletter signup » zones of your pages add an address to this list."
+        enabled_blocked: "Enter the list, the key and accept the terms to turn the integration on."
+      errors:
+        terms_required: "You must accept the provider's terms to turn the integration on."
+        list_required: "Enter the list id and the API key to turn the integration on."
   audit:
     actions:
       editorial:
@@ -98,28 +194,6 @@ backend:
     editorial_form_submission_prefix:
       label: Submission reference prefix
       description: 'Prefix of the reference generated for each submission.'
-  modules:
-    editorial: Editorial
-    editorial_backend: Editorial
-    editorial_backend_description: 'Enables the Editorial section in the admin.'
-    editorial_frontend: Editorial public site
-    editorial_frontend_description: 'Serves the posts, listing pages and taxonomy pages to readers.'
-  editorial:
-    github:
-      settings:
-        what_title: What this integration does
-        what_body: "It shows, in a « GitHub activity » zone placed on a page, the contributions grid of the accounts below: one cell per day over the last twelve months, as on a GitHub profile."
-        source_title: Where the data comes from
-        source_body: "From each profile's public page, the one any visitor can open: no key, no account to connect. The grids are read again every six hours. If GitHub does not answer, the last grid read stays on the page."
-        logins_label: GitHub accounts
-        logins_hint: "One username per line, in display order, four at most. The « @ » is optional."
-        enabled_label: Show GitHub activity
-        enabled_hint: "The « GitHub activity » zones of your pages show these accounts."
-        enabled_blocked: "Enter at least one account to turn the integration on."
-      errors:
-        invalid_login: "Invalid GitHub username: {logins}. Letters, digits and hyphens only."
-        too_many: "{max} accounts at most."
-        logins_required: "Enter at least one account to turn the integration on."
     bootstrap:
       post_types:
         page: Page
@@ -520,6 +594,9 @@ backend:
         travelMap: Travel map
         quoteEstimator: Quote estimator
         appointmentBooking: Appointment booking
+        instagramFeed: Instagram feed
+        googleReviews: Google reviews
+        newsletterSignup: Newsletter signup
         stack: Stack
       zone_form: "Form"
       zone_form_hint: "The form is drawn in the page and posts where its own page posts."
@@ -909,6 +986,12 @@ backend:
       days_count: "{count} day | {count} days"
       booking_title: Title
       booking_note: Detail
+      instagram_feed_hint: "Shows the feed set in Settings > Instagram, once for the whole site. While the integration is off, the zone draws nothing."
+      feed_count: Posts shown
+      google_reviews_hint: "Shows the listing set in Settings > Google reviews, once for the whole site. While the integration is off, the zone draws nothing."
+      newsletter_hint: "Sends the address to the list set in Settings > Newsletter. While the integration is off, the zone draws nothing."
+      newsletter_title: Title
+      newsletter_note: Detail
       background_video: Background video
       background_video_hint: "The film plays without sound behind the title, instead of a player. For visitors who asked for less motion, the poster stays still."
       background_video_title: Title over the video
@@ -1359,6 +1442,17 @@ frontend:
         closed: This poll is closed.
       episode:
         transcript: Transcript
+      reviews:
+        count: "{count} review | {count} reviews"
+        write: Leave a review
+      newsletter:
+        placeholder: Your email address
+        submit: Subscribe
+        success: Thanks, your subscription is confirmed.
+        failed: The subscription did not go through. Try again in a moment.
+        invalid: Invalid email address.
+        unavailable: This signup is no longer available.
+        too_many: Too many attempts, try again later.
       quote:
         total: Total
       booking:
@@ -1372,6 +1466,7 @@ frontend:
         success: Appointment confirmed for
         taken: This slot was just taken. Choose another one.
         invalid: Something is missing or not valid.
+        too_many: Too many attempts, try again later.
         unavailable: This booking form is no longer available.
     forms:
       submit: Send

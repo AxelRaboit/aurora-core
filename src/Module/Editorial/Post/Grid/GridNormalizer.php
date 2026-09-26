@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Editorial\Post\Grid;
 
 use Aurora\Core\Content\ContentValueNormalizer;
+use Aurora\Module\Editorial\Instagram\Setting\InstagramSettings;
 
 /**
  * Normalises the content grid, which is stored in two halves like the banner.
@@ -328,6 +329,25 @@ final readonly class GridNormalizer
      * confirms it.
      */
     public const string ZONE_APPOINTMENT_BOOKING = 'appointmentBooking';
+
+    /**
+     * The client's own recent Instagram posts, read with their own Graph API
+     * token - see {@see InstagramSettings}.
+     * A zone placed while the integration is off draws nothing.
+     */
+    public const string ZONE_INSTAGRAM_FEED = 'instagramFeed';
+
+    /**
+     * A business's rating and its most recent Google reviews, read with the
+     * client's own Places API key.
+     */
+    public const string ZONE_GOOGLE_REVIEWS = 'googleReviews';
+
+    /**
+     * An email field that adds its visitor to the client's own Brevo or
+     * Mailchimp list.
+     */
+    public const string ZONE_NEWSLETTER_SIGNUP = 'newsletterSignup';
 
     /**
      * Another publication's grid, drawn here.
@@ -735,6 +755,9 @@ final readonly class GridNormalizer
         self::ZONE_TRAVEL_MAP,
         self::ZONE_QUOTE_ESTIMATOR,
         self::ZONE_APPOINTMENT_BOOKING,
+        self::ZONE_INSTAGRAM_FEED,
+        self::ZONE_GOOGLE_REVIEWS,
+        self::ZONE_NEWSLETTER_SIGNUP,
     ];
 
     /**

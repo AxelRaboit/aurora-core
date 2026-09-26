@@ -84,6 +84,7 @@ final readonly class GridViewBuilder
         private GitHubActivityView $gitHubActivityView,
         private ZoneWidgetViews $widgetViews,
         private SurfaceContrast $surfaceContrast,
+        private IntegrationZoneViews $integrationViews,
     ) {}
 
     /**
@@ -338,7 +339,16 @@ final readonly class GridViewBuilder
                 'travelMap' => GridNormalizer::ZONE_TRAVEL_MAP === $zone['type']
                     ? $this->travelMapView($zone, $held, $documents)
                     : null,
+                'instagramFeed' => GridNormalizer::ZONE_INSTAGRAM_FEED === $zone['type']
+                    ? $this->integrationViews->instagramFeed($zone['options'])
+                    : null,
+                'googleReviews' => GridNormalizer::ZONE_GOOGLE_REVIEWS === $zone['type']
+                    ? $this->integrationViews->googleReviews($locale)
+                    : null,
                 'widget' => $this->widgetViews->build($zone, $held, $locale, fn (?int $id): ?array => null === $id ? null : $this->mediaData($documents[$id] ?? null, $held['alt']), $currentPostId),
+                'newsletterSignup' => GridNormalizer::ZONE_NEWSLETTER_SIGNUP === $zone['type']
+                    ? $this->integrationViews->newsletterSignup($held, $locale)
+                    : null,
             ];
         };
 

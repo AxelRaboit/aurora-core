@@ -21,6 +21,7 @@ use IntlDateFormatter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -53,11 +54,16 @@ final class BookingController extends AbstractController
         private readonly BookingSlotFinder $slots,
         private readonly EntityManagerInterface $entityManager,
         private readonly TranslatorInterface $translator,
+        private readonly RateLimiterFactoryInterface $editorialBookingLimiter,
     ) {}
 
     #[Route('/{locale}/booking/{postId}/{zoneId}', name: 'editorial_booking_reserve', requirements: ['locale' => '[a-z]{2}', 'postId' => '\d+', 'zoneId' => '[A-Za-z0-9_-]{1,36}'], methods: [HttpMethodEnum::Post->value], priority: 12)]
     public function reserve(string $locale, int $postId, string $zoneId, Request $request): JsonResponse
     {
+        if (!$this->editorialBookingLimiter->create($request->getClientIp())->consume()->isAccepted()) {
+            return $this->jsonFailure('frontend.editorial.grid.booking.too_many', 429);
+        }
+
         $post = $this->postRepository->find($postId);
 
         if (!$post instanceof PostInterface || !$post->isPublished()) {

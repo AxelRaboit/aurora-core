@@ -824,6 +824,15 @@
     {% elseif zone.type == 'travelMap' and zone.travelMap %}
         {{ include('Frontend/themes/default/editorial/post/zones/_travel_map.html.twig') }}
 
+    {% elseif zone.type == 'instagramFeed' and zone.instagramFeed %}
+        {{ include('Frontend/themes/default/editorial/post/zones/_instagram_feed.html.twig') }}
+
+    {% elseif zone.type == 'googleReviews' and zone.googleReviews %}
+        {{ include('Frontend/themes/default/editorial/post/zones/_google_reviews.html.twig') }}
+
+    {% elseif zone.type == 'newsletterSignup' and zone.newsletterSignup %}
+        {{ include('Frontend/themes/default/editorial/post/zones/_newsletter_signup.html.twig') }}
+
     {% elseif zone.type == 'activityFeed' and zone.activityFeed is not empty %}
         {{ include('Frontend/themes/default/editorial/post/zones/_activity_feed.html.twig') }}
 
