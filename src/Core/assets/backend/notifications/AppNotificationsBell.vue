@@ -59,9 +59,9 @@ function onItemClick(entry) {
             <Bell class="w-5 h-5" :stroke-width="2" />
             <span
                 v-if="unreadCount > 0"
-                class="absolute -top-1 -right-1 inline-flex items-center justify-center w-4 h-4 rounded-full bg-rose-500 text-white text-[10px] font-bold"
+                class="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-4 h-4 px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold tabular-nums"
             >
-                {{ unreadCount > 9 ? "9+" : unreadCount }}
+                {{ unreadCount > 99 ? "99+" : unreadCount }}
             </span>
         </AppIconButton>
 
