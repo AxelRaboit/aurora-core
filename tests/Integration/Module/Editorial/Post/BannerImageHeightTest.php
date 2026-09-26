@@ -49,6 +49,29 @@ final class BannerImageHeightTest extends IntegrationTestCase
         self::assertStringNotContainsString('min-h-[32rem]', $html);
     }
 
+    /**
+     * Between `sm` and `lg` a tablet picture brings its own file, proportions
+     * and focal point, and stays out of the phone's and the wide screen's way.
+     */
+    public function testATabletPictureTakesOverBetweenThePhoneAndTheWideScreen(): void
+    {
+        $html = $this->render(['mediaId' => $this->picture(3840, 1364), 'tabletMediaId' => $this->picture(2048, 1240)]);
+
+        self::assertStringContainsString('--banner-tablet-ratio: 2048 / 1240;', $html);
+        self::assertStringContainsString('sm:max-lg:[aspect-ratio:var(--banner-tablet-ratio)]', $html);
+        self::assertStringContainsString('media="(min-width: 640px) and (max-width: 1023px)"', $html);
+        self::assertStringContainsString('--banner-tablet-focal:', $html);
+        self::assertStringNotContainsString('--banner-mobile-ratio', $html);
+    }
+
+    public function testWithoutATabletPictureTheTabletKeepsTheWideOne(): void
+    {
+        $html = $this->render(['mediaId' => $this->picture(3840, 1364)]);
+
+        self::assertStringNotContainsString('--banner-tablet', $html);
+        self::assertStringNotContainsString('(min-width: 640px) and (max-width: 1023px)', $html);
+    }
+
     public function testWithoutAPhonePictureThePhoneKeepsTheWideRatio(): void
     {
         $html = $this->render(['mediaId' => $this->picture(1920, 682)]);

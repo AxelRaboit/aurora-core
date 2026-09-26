@@ -238,13 +238,14 @@ final readonly class BannerNormalizer
      *
      * @param array<string, mixed> $data
      *
-     * @return array{mediaId: ?int, mobileMediaId: ?int}
+     * @return array{mediaId: ?int, mobileMediaId: ?int, tabletMediaId: ?int}
      */
     private function localBackground(array $data): array
     {
         return [
             'mediaId' => $this->values->id($data['mediaId'] ?? null),
             'mobileMediaId' => $this->values->id($data['mobileMediaId'] ?? null),
+            'tabletMediaId' => $this->values->id($data['tabletMediaId'] ?? null),
         ];
     }
 
@@ -273,7 +274,11 @@ final readonly class BannerNormalizer
             // cut away there. Optional: without it the phone crops the main
             // picture, as it always has.
             'mobileMediaId' => $this->values->id($data['mobileMediaId'] ?? null),
-            // Percentage, so a background image can be darkened enough for
+            // The same for a tablet, between the phone and the wide screen: the
+            // header grows there to fit its title, and a picture composed across
+            // the width loses its sides. Optional, like the phone one.
+            'tabletMediaId' => $this->values->id($data['tabletMediaId'] ?? null),
+            // Percentage), so a background image can be darkened enough for
             // text to stay readable over it.
             'overlay' => max(0, min(100, (int) ($data['overlay'] ?? 0))),
         ];

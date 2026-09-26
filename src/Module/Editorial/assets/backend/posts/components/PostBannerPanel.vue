@@ -397,6 +397,12 @@ const { html: previewHtml, loading: previewLoading } = useServerPreview(
                     :hint="t('backend.posts.banner.mobile_background_image_hint')"
                 />
 
+                <AppImagePickerField
+                    v-model="fields.tabletBackgroundMedia.value"
+                    :label="t('backend.posts.banner.tablet_background_image')"
+                    :hint="t('backend.posts.banner.tablet_background_image_hint')"
+                />
+
                 <!-- Per language, and marked as such like an item's words: a
                      picture with a title set in it reads in one language. -->
                 <div class="rounded-lg border border-dashed border-line p-3 space-y-4">
@@ -411,6 +417,10 @@ const { html: previewHtml, loading: previewLoading } = useServerPreview(
                     <AppImagePickerField
                         v-model="fields.localMobileBackgroundMedia.value"
                         :label="t('backend.posts.banner.mobile_background_image')"
+                    />
+                    <AppImagePickerField
+                        v-model="fields.localTabletBackgroundMedia.value"
+                        :label="t('backend.posts.banner.tablet_background_image')"
                     />
                 </div>
 

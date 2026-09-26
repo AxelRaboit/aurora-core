@@ -379,7 +379,7 @@ final class BannerNormalizerTest extends TestCase
     public function testAnEmptyLayoutIsAnAcceptableArgument(): void
     {
         self::assertSame(
-            ['items' => [], 'background' => ['mediaId' => null, 'mobileMediaId' => null]],
+            ['items' => [], 'background' => ['mediaId' => null, 'mobileMediaId' => null, 'tabletMediaId' => null]],
             $this->normalizer->normalizeTexts(['items' => ['a' => []]], []),
         );
     }
@@ -444,25 +444,34 @@ final class BannerNormalizerTest extends TestCase
         self::assertNull($this->normalizer->emptyLayout()['background']['mobileMediaId']);
     }
 
+    public function testTheLayoutKeepsATabletPicture(): void
+    {
+        $layout = $this->normalizer->normalizeLayout(['background' => ['mediaId' => 4, 'tabletMediaId' => 11]]);
+
+        self::assertSame(11, $layout['background']['tabletMediaId']);
+        self::assertNull($this->normalizer->emptyLayout()['background']['tabletMediaId']);
+        self::assertNull($this->normalizer->normalizeLayout(['background' => ['tabletMediaId' => 'wide']])['background']['tabletMediaId']);
+    }
+
     public function testATranslationMayBringABackgroundOfItsOwn(): void
     {
         $texts = $this->normalizer->normalizeTexts(
-            ['items' => [], 'background' => ['mediaId' => 12, 'mobileMediaId' => 13, 'media' => ['url' => '/x.webp']]],
+            ['items' => [], 'background' => ['mediaId' => 12, 'mobileMediaId' => 13, 'tabletMediaId' => 14, 'media' => ['url' => '/x.webp']]],
             $this->normalizer->emptyLayout(),
         );
 
         // The ids survive; the preview the editor sent back does not.
-        self::assertSame(['mediaId' => 12, 'mobileMediaId' => 13], $texts['background']);
+        self::assertSame(['mediaId' => 12, 'mobileMediaId' => 13, 'tabletMediaId' => 14], $texts['background']);
     }
 
     public function testATranslationBackgroundRejectsWhatIsNotAnId(): void
     {
         $texts = $this->normalizer->normalizeTexts(
-            ['background' => ['mediaId' => 'twelve', 'mobileMediaId' => -3]],
+            ['background' => ['mediaId' => 'twelve', 'mobileMediaId' => -3, 'tabletMediaId' => 0]],
             $this->normalizer->emptyLayout(),
         );
 
-        self::assertSame(['mediaId' => null, 'mobileMediaId' => null], $texts['background']);
+        self::assertSame(['mediaId' => null, 'mobileMediaId' => null, 'tabletMediaId' => null], $texts['background']);
         self::assertSame($texts['background'], $this->normalizer->emptyTexts()['background']);
     }
 

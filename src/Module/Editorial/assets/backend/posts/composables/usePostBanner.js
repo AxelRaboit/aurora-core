@@ -210,8 +210,10 @@ export function usePostBanner(layout, texts) {
         texts.value.background ??= {
             mediaId: null,
             mobileMediaId: null,
+            tabletMediaId: null,
             media: null,
             mobileMedia: null,
+            tabletMedia: null,
         };
 
         return texts.value.background;
@@ -306,6 +308,18 @@ export function usePostBanner(layout, texts) {
                     "mobileMediaId",
                 ),
         ),
+        // And what a tablet gets, where the header grows to hold its title
+        // and a wide picture loses its sides.
+        tabletBackgroundMedia: writable(
+            () => pickerModel(background(), "tabletMedia", "tabletMediaId"),
+            (value) =>
+                applyPicked(
+                    background(),
+                    value,
+                    "tabletMedia",
+                    "tabletMediaId",
+                ),
+        ),
         // Per language: each replaces its shared counterpart when set.
         localBackgroundMedia: writable(
             () => pickerModel(localBackground(), "media", "mediaId"),
@@ -321,6 +335,17 @@ export function usePostBanner(layout, texts) {
                     value,
                     "mobileMedia",
                     "mobileMediaId",
+                ),
+        ),
+        localTabletBackgroundMedia: writable(
+            () =>
+                pickerModel(localBackground(), "tabletMedia", "tabletMediaId"),
+            (value) =>
+                applyPicked(
+                    localBackground(),
+                    value,
+                    "tabletMedia",
+                    "tabletMediaId",
                 ),
         ),
     };

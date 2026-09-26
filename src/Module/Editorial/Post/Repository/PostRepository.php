@@ -937,7 +937,7 @@ class PostRepository extends ResolveTargetEntityRepository
         $rows = $entityManager->getConnection()->fetchFirstColumn(
             sprintf('SELECT id FROM %s WHERE %s', $metadata->getTableName(), implode(' OR ', $conditions)),
             ['pattern' => sprintf(
-                '"(mediaId|mediaIds|logoMediaId|mobileMediaId)":\s*\[?[\s0-9,]*\m(%s)\M',
+                '"(mediaId|mediaIds|logoMediaId|mobileMediaId|tabletMediaId)":\s*\[?[\s0-9,]*\m(%s)\M',
                 implode('|', array_map(static fn (int $id): string => (string) $id, $documentIds)),
             )],
             ['pattern' => ParameterType::STRING],
