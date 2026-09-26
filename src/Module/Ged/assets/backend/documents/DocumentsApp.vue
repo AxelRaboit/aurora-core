@@ -49,6 +49,9 @@ import AppOverlayIconButton from "@/shared/components/action/AppOverlayIconButto
 import AppSelectionCheck from "@/shared/components/feedback/AppSelectionCheck.vue";
 import DocumentTagChip from "@ged/backend/documents/components/DocumentTagChip.vue";
 import DocumentStorageChip from "@ged/backend/documents/components/DocumentStorageChip.vue";
+import DocumentStateBadges from "@ged/backend/documents/components/DocumentStateBadges.vue";
+import DocumentFamilyFields from "@ged/backend/documents/components/DocumentFamilyFields.vue";
+import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
 
 const { t } = useI18n();
 const { can } = usePrivileges();
@@ -64,6 +67,7 @@ const props = defineProps({
     showPath: { type: String, default: "" },
     versionsPath: { type: String, default: "" },
     usagePath: { type: String, default: "" },
+    alternatesPath: { type: String, default: "" },
     createPath: { type: String, required: true },
     updatePath: { type: String, required: true },
     deletePath: { type: String, required: true },
@@ -100,7 +104,7 @@ function permalinkFor(doc) {
 }
 
 const {
-    filterCategoryId, filterTagId, filterStatus, filterMimeGroup,
+    filterCategoryId, filterTagId, filterStatus, filterMimeGroup, filterOriginalsOnly,
     hasActiveFilter, extraParams: filterExtraParams, applyFilter, resetFilters,
     // The arrow defers the read: `reset` comes from useListPage, which needs
     // these refs to exist before it is called.
@@ -403,6 +407,13 @@ const pageActions = computed(() => {
                         class="w-full sm:w-auto sm:min-w-44"
                         v-on:update:model-value="applyFilter"
                     />
+                    <AppCheckbox
+                        v-model="filterOriginalsOnly"
+                        :label="t('backend.ged.documents.originals_only')"
+                        :title="t('backend.ged.documents.originals_only_hint')"
+                        class="self-center"
+                        v-on:update:model-value="applyFilter"
+                    />
                     <AppButton
                         v-if="hasActiveFilter"
                         variant="ghost"
@@ -564,12 +575,8 @@ const pageActions = computed(() => {
                                 <div v-if="doc.folderName" class="text-xs text-accent-400/80 truncate flex items-center gap-1">
                                     <Folder class="w-2.5 h-2.5 shrink-0" :stroke-width="2" />{{ doc.folderName }}
                                 </div>
-                                <div v-if="doc.tags?.length || storageRelocationAvailable || 0 === doc.usageCount" class="flex flex-wrap items-center gap-1 pt-0.5">
-                                    <span
-                                        v-if="0 === doc.usageCount"
-                                        :title="t('backend.ged.documents.usage_unused_hint')"
-                                        class="text-xs px-1.5 py-0.5 rounded border border-amber-500/40 text-amber-600 dark:text-amber-400"
-                                    >{{ t("backend.ged.documents.usage_unused_badge") }}</span>
+                                <div v-if="doc.tags?.length || storageRelocationAvailable || 0 === doc.usageCount || doc.kept || doc.alternateCount || doc.originalId" class="flex flex-wrap items-center gap-1 pt-0.5">
+                                    <DocumentStateBadges :doc="doc" />
                                     <DocumentStorageChip
                                         v-if="storageRelocationAvailable"
                                         :disk="doc.storageDisk"
@@ -635,11 +642,7 @@ const pageActions = computed(() => {
                                                  utilisés ne portent donc aucune marque, et l'oeil
                                                  tombe sur les autres. Le détail de qui l'utilise
                                                  s'ouvre avec le document. -->
-                                            <span
-                                                v-if="0 === doc.usageCount"
-                                                :title="t('backend.ged.documents.usage_unused_hint')"
-                                                class="text-xs px-1.5 py-0.5 rounded border border-amber-500/40 text-amber-600 dark:text-amber-400"
-                                            >{{ t("backend.ged.documents.usage_unused_badge") }}</span>
+                                            <DocumentStateBadges :doc="doc" />
                                         </div>
                                     </td>
                                     <td class="px-4 py-2 text-secondary hidden md:table-cell">{{ doc.categoryName ?? t("backend.ged.documents.no_category") }}</td>
@@ -872,6 +875,17 @@ const pageActions = computed(() => {
                         </AppFileInput>
                         <span v-if="editForm.fileName" class="text-sm text-muted flex items-center gap-1"><FileText class="w-4 h-4" :stroke-width="2" /> {{ editForm.fileName }}</span>
                     </div>
+                    <DocumentFamilyFields
+                        v-model:kept="editForm.kept"
+                        v-model:original-id="editForm.originalId"
+                        v-model:original-title="editForm.originalTitle"
+                        v-model:label="editForm.alternateLabel"
+                        :doc="editingDoc"
+                        :alternates-path="alternatesPath"
+                        :show-path="showPath"
+                        :error="editErrors.originalId"
+                        v-on:open="openEdit"
+                    />
                 </div>
             </div>
             <template #footer>

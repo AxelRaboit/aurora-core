@@ -22,7 +22,7 @@ use function uniqid;
  * Le rattrapage des poids déjà enregistrés.
  *
  * Le poids d'un document est relevé à l'arrivée du fichier, et une source
- * JPEG est ré-encodée en place quand ses variantes sont fabriquées : le
+ * JPEG est ré-encodée en place quand ses tailles générées sont fabriquées : le
  * nombre cessait d'être vrai une ligne plus tard. Le manager le relit
  * désormais, donc rien de neuf n'entre faux ; cette commande est pour ce qui
  * est déjà là, et une bibliothèque pleine de poids faux est une bibliothèque

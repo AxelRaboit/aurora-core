@@ -47,6 +47,10 @@ const props = defineProps({
     // Mirrors MediaPickerModal's `multiple` so callers like Gallery's
     // addPhotos flow can keep their existing array-shaped contract.
     multiple: { type: Boolean, default: false },
+    // Extra query parameters for the listing, over the defaults. An empty
+    // string drops a default: `{ status: "" }` lifts the published-only
+    // filter for a caller that wants drafts too.
+    query: { type: Object, default: () => ({}) },
     pexelsSearchPath: { type: String, default: "/backend/ged/pexels/search" },
     pexelsImportPath: { type: String, default: "/backend/ged/pexels/import" },
 });
@@ -99,6 +103,10 @@ async function load() {
             page: String(page.value),
             status: "published",
         });
+        for (const [key, value] of Object.entries(props.query)) {
+            if ("" === value || null === value) params.delete(key);
+            else params.set(key, String(value));
+        }
         if (search.value) params.set("search", search.value);
         const res = await fetch(`${props.listPath}?${params}`, {
             headers: { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" },

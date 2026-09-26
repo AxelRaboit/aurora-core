@@ -82,7 +82,7 @@ contenu : la première bannière écrite pointait vers `/fr/page/premiers-pas`.
 `mediaUrl` (2026-08-09) est du même côté que `mediaId`, et pour la même raison -
 c'est la même image dans toutes les langues. Elle sert de repli, jamais de
 concurrente : dès qu'un document est choisi, c'est lui qui rend, parce que lui
-seul porte un point focal, une variante à la bonne taille et un alt à lui.
+seul porte un point focal, une taille générée pour son emplacement et un alt à lui.
 L'adresse existe pour le visuel provisoire - une maquette, une démo - et le
 normaliseur ne laisse passer que `/`, `http://` et `https://` : la valeur finit
 dans un `src` que le navigateur suit.

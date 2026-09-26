@@ -159,7 +159,7 @@ final readonly class GalleryViewBuilder
             return null;
         }
 
-        $url = $this->documentUrlGenerator->variantUrl($media, 'large')
+        $url = $this->documentUrlGenerator->renditionUrl($media, 'large')
             ?? $this->documentUrlGenerator->publicUrl($media);
 
         // A document can carry no file at all - the demo library keeps three

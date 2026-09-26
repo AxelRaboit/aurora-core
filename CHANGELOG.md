@@ -5,6 +5,46 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.265] - 2026-09-26
+
+### Ajouté
+
+- **Un original et ses variantes dans la médiathèque.** Un document peut être
+  déclaré variante d'un autre (« Variante de », dans la fenêtre d'édition),
+  avec un mot qui la distingue : jaune, rouge, sans texte. L'original porte un
+  badge « 2 variantes » et les liste dans sa fenêtre d'édition, chacune à un
+  clic ; une variante porte « Variante · jaune ». La case « Regrouper les
+  variantes » n'affiche que les originaux. Un seul niveau : une variante n'a
+  pas de variantes, et supprimer l'original laisse ses variantes en place.
+- **Le badge « À conserver ».** Un interrupteur dans la fenêtre d'édition dit
+  qu'un document reste, même inutilisé : une variante gardée en réserve, une
+  image qui attend sa page. Il s'affiche à côté de « Inutilisé », qui reste,
+  et un espace client ne propose plus de supprimer un document ainsi marqué.
+- **`aurora:ged:import` range une variante dans sa famille** : `--original`,
+  `--label` et `--kept`, avec la même règle que l'écran.
+
+### Modifié
+
+- **Les tailles d'image générées s'appellent désormais `renditions`** dans le
+  code, la base et la réponse JSON d'un document (`variants` jusqu'ici) : le
+  mot « variante » désigne maintenant la déclinaison d'un document. Les
+  fichiers déjà stockés ne bougent pas, leur dossier garde son nom.
+
+### Corrigé
+
+- **Enregistrer un document remettait son point de cadrage au centre.** La
+  fenêtre d'édition ne renvoyait pas le point choisi, et l'enregistrement le
+  remplaçait par rien : chaque retouche d'un titre recentrait l'image sur
+  toutes les pages qui la recadrent.
+
+### Dans aurora-client
+
+- Rien à faire après `make aurora-update` : les deux migrations
+  s'appliquent au déploiement. Un code client qui lisait `getVariants()`,
+  `variantUrl()` ou la clé `variants` d'un document doit passer à
+  `getRenditions()`, `renditionUrl()` et `renditions` (aurora-client n'en
+  contient aucun).
+
 ## [0.9.264] - 2026-09-26
 
 ### Ajouté

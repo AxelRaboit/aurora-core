@@ -46,7 +46,7 @@ use function sprintf;
  *
  * Same road as the browser's edit form: {@see GedDocumentUploader} writes the
  * bytes through the active disk, {@see DocumentManagerInterface::update()}
- * drops the old variants, builds the new ones, records the version and writes
+ * drops the old renditions, builds the new ones, records the version and writes
  * the audit line.
  */
 #[AsCommand(
@@ -138,6 +138,14 @@ final class ReplaceDocumentFileCommand extends Command
             folderId: $document->getFolder()?->getId(),
             focalX: $document->getFocalX(),
             focalY: $document->getFocalY(),
+            // Everything the file swap does not touch travels as it is:
+            // an input rebuilt without these would clear them.
+            sourceUrl: $document->getSourceUrl(),
+            attributionName: $document->getAttributionName(),
+            attributionUrl: $document->getAttributionUrl(),
+            kept: $document->isKept(),
+            originalId: $document->getOriginal()?->getId(),
+            alternateLabel: $document->getAlternateLabel(),
         ));
 
         $io->success(sprintf(

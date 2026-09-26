@@ -45,6 +45,12 @@ interface DocumentInputInterface
 
     public function getFocalY(): ?float;
 
+    public function isKept(): bool;
+
+    public function getOriginalId(): ?int;
+
+    public function getAlternateLabel(): ?string;
+
     public function getSourceUrl(): ?string;
 
     public function getAttributionName(): ?string;

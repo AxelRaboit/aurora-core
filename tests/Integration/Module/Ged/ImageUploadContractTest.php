@@ -138,7 +138,7 @@ final class ImageUploadContractTest extends IntegrationTestCase
      * Le poids enregistré est celui du fichier rangé, pas celui reçu.
      *
      * Une source JPEG est ré-encodée en place à la qualité 85 et perd ses
-     * métadonnées au moment où ses variantes sont fabriquées. Le nombre relevé
+     * métadonnées au moment où ses tailles générées sont fabriquées. Le nombre relevé
      * à l'arrivée cesse donc d'être vrai une ligne plus tard, et la
      * médiathèque affichait un poids sans rapport avec ce qui est stocké -
      * mesuré sur un import réel : un million et demi d'octets annoncés pour

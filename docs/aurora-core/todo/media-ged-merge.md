@@ -10,7 +10,7 @@
 > **Décision (2026-05-25)** : supprimer la médiathèque (`/backend/media/media`) et
 > tout câbler sur la GED. `Document` (GED) devient **l'unique entité fichier**.
 > Choix assumé malgré le compromis (cf. « Risques » plus bas) : `Document`
-> portera à la fois des champs de *rendu* (variants/focal) et de *records*
+> portera à la fois des champs de *rendu* (renditions/focal) et de *records*
 > (statut/OCR/catégorie/versions).
 >
 > **Mode d'exécution : par phases, chacune verte et livrable.** Tant que la
@@ -45,8 +45,8 @@ Photo (Gallery), Platform (UserProfilePhotoUrlGenerator), Configuration
 `AppImagePickerField` (form partagé), `PostFeaturedImagePanel`, `PostSeoPanel`,
 `useGalleryEditItems`, util `shared/utils/mediaPicker.js`.
 
-**Ce que GED ne sait pas (encore) faire** : variants (thumbnail/medium/large,
-WebP, srcset), focal point, pipeline d'URL de variants. À bâtir en Phase 1.
+**Ce que GED ne sait pas (encore) faire** : renditions (thumbnail/medium/large,
+WebP, srcset), focal point, pipeline d'URL de renditions. À bâtir en Phase 1.
 
 ---
 
@@ -55,18 +55,18 @@ WebP, srcset), focal point, pipeline d'URL de variants. À bâtir en Phase 1.
 Socle obligatoire : `Document` doit savoir rendre des images frontend avant
 qu'un seul consommateur puisse migrer.
 
-- [ ] Déplacer `ImageVariantGenerator` de `Module/Media/Library/Service/` →
+- [ ] Déplacer `ImageRenditionGenerator` de `Module/Media/Library/Service/` →
       `Core/Storage/Service/` (même move que `ImageCropper` / `MimeTypeEnum`).
       Mettre à jour les imports Media.
 - [ ] Ajouter à `AbstractDocument` : `focalX`/`focalY` (float nullable) +
-      `variants` (json). `width`/`height`/`alt`/`caption` existent déjà.
-- [ ] Générer les variants à l'upload GED (`GedDocumentUploader`) + au crop
-      (`DocumentManager::cropImage`) ; stocker dans `variants`.
-- [ ] Créer `DocumentUrlGenerator` (Core ou Ged) : `publicUrl`, `variantUrl`,
+      `renditions` (json). `width`/`height`/`alt`/`caption` existent déjà.
+- [ ] Générer les renditions à l'upload GED (`GedDocumentUploader`) + au crop
+      (`DocumentManager::cropImage`) ; stocker dans `renditions`.
+- [ ] Créer `DocumentUrlGenerator` (Core ou Ged) : `publicUrl`, `renditionUrl`,
       `focalPositionCss` - calqué sur `MediaUrlGenerator`.
-- [ ] Exposer variants/focal dans `DocumentSerializer`.
+- [ ] Exposer renditions/focal dans `DocumentSerializer`.
 - [ ] Migration : `ALTER TABLE core_ged_documents ADD focal_x, focal_y, variants`.
-- [ ] Tests : variants générés à l'upload/crop, URLs de variants.
+- [ ] Tests : renditions générés à l'upload/crop, URLs de renditions.
 - **Risque : nul** (aucun consommateur touché, Media intact).
 
 ## Phase 2 - Migrer les consommateurs FK (un module à la fois) ✅ DONE 2026-05-30
@@ -115,7 +115,7 @@ Une fois TOUTES les données migrées et vérifiées :
 
 ## Risques / compromis assumés
 
-1. **Entité bi-domaine** : `Document` mélange rendu (variants/focal) et records
+1. **Entité bi-domaine** : `Document` mélange rendu (renditions/focal) et records
    (statut/OCR/catégorie). C'est l'inverse de la séparation propre bâtie en
    début de session - accepté pour avoir un seul stockage.
 2. **Migrations de données irréversibles** : faire des backups avant Phase 2/3.
@@ -123,7 +123,7 @@ Une fois TOUTES les données migrées et vérifiées :
 3. **Clients (aurora-welding, aurora-client)** : si un client référence
    `MediaInterface`, sa migration devra suivre. Auditer côté client avant
    Phase 5.
-4. **Frontend** : tout `srcset`/`og:image`/`variantUrl` doit continuer à
+4. **Frontend** : tout `srcset`/`og:image`/`renditionUrl` doit continuer à
    marcher après bascule - tests de rendu (PostPageRenderer, SEO) indispensables.
 
 ## Point de départ

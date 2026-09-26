@@ -308,7 +308,7 @@ sert, redirige vers un lien signé ou vers un domaine public selon le réglage.
 **Ce que le catch-all sert dépend de l'aire.** Chaque requête passe par
 `UploadAccessDecider` ; une aire pose sa règle en enregistrant un
 `UploadAccessGuardInterface` (tag `aurora.upload_access_guard`). Aujourd'hui :
-`ged/` ne sert anonymement que les documents `published` (variants et
+`ged/` ne sert anonymement que les documents `published` (tailles générées et
 vignettes compris), `contracts/` ne sert rien, et toute aire non réclamée
 reste anonyme - le défaut qui évite de casser un client qui stocke sous son
 propre préfixe.

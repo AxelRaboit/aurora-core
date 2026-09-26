@@ -31,13 +31,13 @@ sous `var/uploads` à n'importe qui. Conséquences mesurées le 13/09/2026 :
    `admin` est `^/(backend|dev)` ; sur `/uploads/…` aucune identité backend
    n'existe, la question a toujours la même réponse. Le personnel lit par une
    route sous `/backend` - `backend_ged_files` pour la GED.
-4. **Couvrir les fichiers dérivés.** Un variant
+4. **Couvrir les fichiers dérivés.** Une taille générée
    (`<dir>/variants/<taille>/<stem>.webp`) et une vignette
    (`ged/thumbnails/Y/m/…`) ont leurs propres clés. `filterPathsInUse()` ne
    regarde que `filePath` et `thumbnailPath` : construire un contrôle dessus
-   laisserait les variants ouverts, c'est-à-dire une copie lisible de chaque
+   laisserait les tailles générées ouvertes, c'est-à-dire une copie lisible de chaque
    image retenue. `DocumentRepository::findStatusForPath()` couvre les trois
-   formes, les variants par dérivation du chemin source.
+   formes, les tailles générées par dérivation du chemin source.
 5. **`Anonymous` n'est cachable que grâce à une opt-out explicite.** Le
    `SessionListener` de Symfony réécrit `Cache-Control` à la fin de toute
    requête qui *lit* la session - la condition est `getUsageIndex() !== 0`,
@@ -89,5 +89,5 @@ capacité (`SupportsDirectLinks`), ou couvrir sous `make test-r2` avec un vrai
 bucket.
 
 Tests : `tests/Integration/Controller/UploadsServeAccessTest.php` (22 cas,
-dont draft/published, variants, vignettes, corbeille, permalink, contrats et
+dont draft/published, tailles générées, vignettes, corbeille, permalink, contrats et
 les trois cas restreints).

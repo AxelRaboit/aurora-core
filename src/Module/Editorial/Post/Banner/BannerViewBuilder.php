@@ -6,7 +6,7 @@ namespace Aurora\Module\Editorial\Post\Banner;
 
 use Aurora\Core\Content\ContentValueNormalizer;
 use Aurora\Core\Storage\Enum\MimeGroupEnum;
-use Aurora\Core\Storage\Service\ImageVariantGenerator;
+use Aurora\Core\Storage\Service\ImageRenditionGenerator;
 use Aurora\Module\Configuration\Theme\Enum\ThemeFontEnum;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
@@ -240,7 +240,7 @@ final readonly class BannerViewBuilder
      *
      * A full-width banner on a 1440px Retina screen draws 2880 device pixels;
      * `large` stops at 1920, and stretched that far it goes visibly soft. The
-     * `xlarge` variant only exists when the source had the pixels, so without
+     * `xlarge` rendition only exists when the source had the pixels, so without
      * it there is nothing to offer and the plain `src` is the whole answer.
      *
      * Width descriptors rather than `2x`: the banner's width is the viewport's,
@@ -248,7 +248,7 @@ final readonly class BannerViewBuilder
      */
     private function srcset(DocumentInterface $media, string $largeUrl): ?string
     {
-        $xlarge = $this->documentUrlGenerator->variantUrl($media, 'xlarge');
+        $xlarge = $this->documentUrlGenerator->renditionUrl($media, 'xlarge');
         $width = $media->getWidth();
         $height = $media->getHeight();
 
@@ -261,9 +261,9 @@ final readonly class BannerViewBuilder
         return sprintf(
             '%s %dw, %s %dw',
             $largeUrl,
-            $fit(ImageVariantGenerator::VARIANT_SIZES['large']),
+            $fit(ImageRenditionGenerator::RENDITION_SIZES['large']),
             $xlarge,
-            $fit(ImageVariantGenerator::VARIANT_SIZES['xlarge']),
+            $fit(ImageRenditionGenerator::RENDITION_SIZES['xlarge']),
         );
     }
 
@@ -326,7 +326,7 @@ final readonly class BannerViewBuilder
             return null;
         }
 
-        $url = $this->documentUrlGenerator->variantUrl($media, 'large')
+        $url = $this->documentUrlGenerator->renditionUrl($media, 'large')
             ?? $this->documentUrlGenerator->publicUrl($media);
 
         // A document can carry no file at all - the demo library keeps three

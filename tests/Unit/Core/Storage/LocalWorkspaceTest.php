@@ -109,7 +109,7 @@ final class LocalWorkspaceTest extends TestCase
 
     /**
      * Re-encoding that dies half way must not replace a good file with half of
-     * one. `ImageVariantGenerator` rewrites JPEG sources in place, so this is
+     * one. `ImageRenditionGenerator` rewrites JPEG sources in place, so this is
      * the exact shape of the risk.
      */
     public function testWritableStoresNothingWhenTheWorkThrows(): void
