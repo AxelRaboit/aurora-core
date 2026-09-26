@@ -239,15 +239,42 @@ final class ThemeContext
                 continue;
             }
 
-            $declarations = ['--th-surface-bg: '.$color.';', '--th-bg: '.$color.';'];
-            foreach ($this->surfaceContrast->tokensFor($color) as $token => $value) {
-                $declarations[] = $token.': '.$value.';';
-            }
-
-            $rules[] = $selector.'{'.implode('', $declarations).'}';
+            $rules[] = $this->surfaceRule($selector, $color);
         }
 
         return implode('', $rules);
+    }
+
+    /**
+     * The page's own background rule, under a selector the caller chooses
+     * instead of `html[data-theme]`.
+     *
+     * Written for the banner preview in the post editor: that preview is a
+     * Twig fragment injected into the backend's own DOM, which never carries
+     * `html[data-theme]` - so a title with no colour of its own rendered in
+     * whatever the backend's light or dark mode happened to be, not the one
+     * the public page actually shows. Scoped to a class the preview's own
+     * wrapper carries, so it never leaks onto the rest of the admin screen.
+     *
+     * Empty when the theme sets no page background - the preview then falls
+     * back to the backend's own colours, which is what an unconfigured public
+     * page does too.
+     */
+    public function previewSurfaceCss(string $selector): string
+    {
+        $color = $this->surfaceColor($this->activeTheme()?->getConfig()['background_color'] ?? null);
+
+        return null !== $color ? $this->surfaceRule($selector, $color) : '';
+    }
+
+    private function surfaceRule(string $selector, string $color): string
+    {
+        $declarations = ['--th-surface-bg: '.$color.';', '--th-bg: '.$color.';'];
+        foreach ($this->surfaceContrast->tokensFor($color) as $token => $value) {
+            $declarations[] = $token.': '.$value.';';
+        }
+
+        return $selector.'{'.implode('', $declarations).'}';
     }
 
     /** Une couleur de surface utilisable, ou null - le vide n'en est pas une. */

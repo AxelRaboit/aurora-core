@@ -96,8 +96,17 @@ const { html: previewHtml, loading: previewLoading } = useServerPreview(
             <div class="relative space-y-2">
                 <p class="text-sm font-medium text-primary">{{ t("backend.posts.banner.preview") }}</p>
                 <!-- Rendered by the server from the same Twig the public page
-                     uses, so what shows here is what gets published. -->
-                <div class="rounded-lg border border-line overflow-hidden bg-surface-2/30 p-3">
+                     uses, so what shows here is what gets published.
+
+                     `aurora-banner-preview` and `data-theme` are what the
+                     response's own <style> targets to repaint this box in the
+                     theme's page background: without them a title with no
+                     colour of its own drew in the backend's ambient text
+                     colour, not the one the public page shows it in. `bg-bg`
+                     is the fallback for a theme with no background configured
+                     - the same "light page, dark text" default the public
+                     page falls back to. -->
+                <div class="aurora-banner-preview bg-bg rounded-lg border border-line overflow-hidden p-3" data-theme>
                     <div v-html="previewHtml" />
                 </div>
                 <AppLoader :active="previewLoading" />

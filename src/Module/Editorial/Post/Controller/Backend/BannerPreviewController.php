@@ -7,6 +7,7 @@ namespace Aurora\Module\Editorial\Post\Controller\Backend;
 use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
+use Aurora\Module\Configuration\Theme\Service\ThemeContext;
 use Aurora\Module\Configuration\Theme\Service\ThemeResolver;
 use Aurora\Module\Editorial\Post\Banner\BannerViewBuilder;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -34,9 +35,17 @@ final class BannerPreviewController extends AbstractController
     use JsonRequestTrait;
     use JsonResponseTrait;
 
+    /**
+     * Matches the class the panel's own preview wrapper carries - see
+     * PostBannerPanel.vue. Kept out of the public `html[data-theme]` selector
+     * so this rule never reaches past its own box.
+     */
+    private const string PREVIEW_SELECTOR = '.aurora-banner-preview[data-theme]';
+
     public function __construct(
         private readonly BannerViewBuilder $bannerViewBuilder,
         private readonly ThemeResolver $themeResolver,
+        private readonly ThemeContext $themeContext,
     ) {}
 
     #[Route('/banner-preview', name: '_banner_preview', methods: [HttpMethodEnum::Post->value])]
@@ -57,10 +66,15 @@ final class BannerPreviewController extends AbstractController
 
         return $this->json([
             'success' => true,
-            'html' => $this->renderView(
-                $this->themeResolver->resolve('editorial/post/_banner'),
-                ['banner' => $banner],
-            ),
+            // The theme's own page background, under the preview's own
+            // selector rather than `html[data-theme]`: without it a title
+            // carrying no colour of its own drew in the backend's ambient
+            // text colour instead of the one the public page renders it in.
+            'html' => '<style>'.$this->themeContext->previewSurfaceCss(self::PREVIEW_SELECTOR).'</style>'
+                .$this->renderView(
+                    $this->themeResolver->resolve('editorial/post/_banner'),
+                    ['banner' => $banner],
+                ),
         ]);
     }
 }

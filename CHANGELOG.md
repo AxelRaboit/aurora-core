@@ -5,6 +5,17 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.254] - 2026-09-26
+
+### Corrigé
+
+- **L'aperçu de la bannière dans l'éditeur prend enfin les couleurs du thème
+  public.** Un titre sans couleur choisie explicitement se dessinait dans la
+  couleur ambiante du back-office plutôt que celle de la page publique : blanc
+  sur le site, noir dans l'éditeur dès que le thème avait un fond sombre.
+
+---
+
 ## [0.9.253] - 2026-09-25
 
 ### Corrigé
