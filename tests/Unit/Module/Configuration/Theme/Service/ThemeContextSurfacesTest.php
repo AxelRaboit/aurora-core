@@ -258,4 +258,16 @@ final class ThemeContextSurfacesTest extends TestCase
         self::assertStringContainsString('--th-accent-50:', $css);
         self::assertStringContainsString('--th-accent-950:', $css);
     }
+
+    /**
+     * `--th-accent` est résolu sur :root puis hérité comme une valeur : la
+     * palette seule laissait `text-accent` et `bg-accent` à la couleur du thème.
+     */
+    public function testAnAccentColourAlsoRepointsTheUnnumberedAccent(): void
+    {
+        $css = $this->contextWithConfig([])->postAccentCss('.aurora-post-accent', '#b45309');
+
+        self::assertStringContainsString('--th-accent: var(--th-accent-500);', $css);
+        self::assertStringContainsString('.dark .aurora-post-accent{--th-accent: var(--th-accent-400);', $css);
+    }
 }

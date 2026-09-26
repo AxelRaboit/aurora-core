@@ -2,8 +2,8 @@
    when it last moved - the four things a visitor weighs a project by. #}
 <div class="not-prose grid gap-4 sm:grid-cols-2">
     {% for repo in zone.githubActivity.repos %}
-        <a href="{{ repo.url }}" rel="noopener" class="group flex flex-col gap-2 rounded-xl border border-line bg-surface p-4 no-underline transition-colors hover:border-accent">
-            <span class="text-sm font-semibold text-primary group-hover:text-accent">{{ repo.fullName }}</span>
+        <a href="{{ repo.url }}" rel="noopener" class="group flex flex-col gap-2 rounded-xl border border-line bg-surface p-4 no-underline transition-colors hover:border-highlight">
+            <span class="text-sm font-semibold text-primary group-hover:text-highlight">{{ repo.fullName }}</span>
             {% if repo.description %}
                 <span class="text-sm text-secondary">{{ repo.description }}</span>
             {% endif %}

@@ -167,6 +167,16 @@ abstract class AbstractPost implements PostInterface
     protected ?string $accentColor = null;
 
     /**
+     * Survols et repères des cartes de cette publication : `accent`, `neutral`
+     * ou `custom`. Null hérite du thème.
+     */
+    #[ORM\Column(length: 16, nullable: true)]
+    protected ?string $highlight = null;
+
+    #[ORM\Column(length: 7, nullable: true)]
+    protected ?string $highlightColor = null;
+
+    /**
      * Why the last review decision went the way it did.
      *
      * Kept on the post rather than in a revision: it is about the *current* state
@@ -652,6 +662,30 @@ abstract class AbstractPost implements PostInterface
     public function setAccentColor(?string $accentColor): static
     {
         $this->accentColor = $accentColor;
+
+        return $this;
+    }
+
+    public function getHighlight(): ?string
+    {
+        return $this->highlight;
+    }
+
+    public function setHighlight(?string $highlight): static
+    {
+        $this->highlight = $highlight;
+
+        return $this;
+    }
+
+    public function getHighlightColor(): ?string
+    {
+        return $this->highlightColor;
+    }
+
+    public function setHighlightColor(?string $highlightColor): static
+    {
+        $this->highlightColor = $highlightColor;
 
         return $this;
     }

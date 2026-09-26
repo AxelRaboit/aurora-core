@@ -529,6 +529,22 @@ function termLabel(term) {
                         <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.appearance.accent_title") }}</h3>
                         <p class="text-xs text-muted">{{ t("backend.posts.appearance.accent_hint") }}</p>
                         <BannerColorField v-model="form.accentColor" :label="t('backend.posts.appearance.accent_color')" />
+                        <AppSelect
+                            v-model="form.highlight"
+                            :label="t('backend.posts.appearance.highlight')"
+                            :options="[
+                                { value: '', label: t('backend.posts.appearance.highlight_inherit') },
+                                { value: 'accent', label: t('backend.themes.highlight_accent') },
+                                { value: 'neutral', label: t('backend.themes.highlight_neutral') },
+                                { value: 'custom', label: t('backend.themes.highlight_custom') },
+                            ]"
+                        />
+                        <BannerColorField
+                            v-if="form.highlight === 'custom'"
+                            v-model="form.highlightColor"
+                            :label="t('backend.themes.highlight_color')"
+                        />
+                        <p class="text-xs text-muted">{{ t("backend.posts.appearance.highlight_hint") }}</p>
                     </div>
                 </div>
 

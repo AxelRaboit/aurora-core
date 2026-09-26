@@ -5,6 +5,38 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.259] - 2026-09-26
+
+### Ajouté
+
+#### Survols et repères des cartes : couleur principale, neutres ou personnalisés
+Sur le site public, le liseré et le titre d'une carte au survol, sa catégorie et
+sa flèche, et tous les survols de liens et de bordures des blocs prenaient la
+couleur principale, sans moyen d'en sortir : sur une page qui joue ses propres
+couleurs, un survol vert venait tout contredire. Un réglage « Survols et repères
+des cartes » apparaît sous la couleur principale, dans l'écran Thème, avec trois
+choix : couleur principale (le comportement actuel, par défaut, au pixel près),
+neutres (la couleur du texte de la zone survolée) ou personnalisée (une couleur
+au choix). Les boutons gardent leur couleur, et la topbar ne change pas.
+
+Le même réglage existe par publication, dans l'onglet Apparence, sous la couleur
+d'accent. Il ne s'applique qu'au contenu de la page, passe devant celui du thème,
+et « Comme le thème » est la valeur par défaut. L'ancien champ « Couleur
+principale (hover) » de l'écran Thème s'appelle désormais « Survol des boutons
+pleins », ce qui est tout ce qu'il a jamais fait.
+
+### Corrigé
+
+#### La couleur d'accent d'une publication n'atteignait pas ses boutons
+Choisir un accent ocre pour une page repeignait les nuances de la palette, mais
+pas la couleur d'accent elle-même : les boutons pleins, les liens et les textes
+en `text-accent` ou `bg-accent` gardaient la couleur du thème au milieu d'une
+page qui en avait choisi une autre. Ils suivent maintenant la page.
+
+### Dans aurora-client
+
+Une migration ajoute deux colonnes à `core_posts` ; `make deploy-prod` la joue.
+
 ## [0.9.258] - 2026-09-26
 
 ### Ajouté

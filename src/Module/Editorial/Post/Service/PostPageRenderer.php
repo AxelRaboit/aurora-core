@@ -69,6 +69,8 @@ final readonly class PostPageRenderer
                 'postType' => ['slug' => $post->getPostType()->getSlug()],
                 'postTypeSlug' => $post->getPostType()->getSlug(),
                 'accentColor' => $post->getAccentColor(),
+                'highlight' => $post->getHighlight(),
+                'highlightColor' => $post->getHighlightColor(),
             ],
             'translationData' => $this->translationData($translation, $post->getThumbnail()),
             // null when the banner is off or empty, which is what the template

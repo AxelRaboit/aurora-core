@@ -111,6 +111,15 @@ interface PostInterface
 
     public function setAccentColor(?string $accentColor): static;
 
+    /** `accent`, `neutral` or `custom` for this publication, or null to keep the theme's. */
+    public function getHighlight(): ?string;
+
+    public function setHighlight(?string $highlight): static;
+
+    public function getHighlightColor(): ?string;
+
+    public function setHighlightColor(?string $highlightColor): static;
+
     public function getPostType(): PostTypeInterface;
 
     public function setPostType(PostTypeInterface $postType): static;

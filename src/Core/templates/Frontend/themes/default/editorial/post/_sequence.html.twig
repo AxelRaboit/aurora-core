@@ -74,16 +74,16 @@
        left where the previous one belongs. #}
     <nav class="not-prose mt-8 flex flex-wrap gap-3 border-t border-line pt-6" aria-label="{{ 'frontend.sequence.pagination'|trans }}">
         {% if sequence.previous %}
-            <a class="aurora-card group flex max-w-[20rem] flex-col gap-0.5 px-4 py-3 no-underline transition-colors hover:border-accent-500/60" href="{{ sequence.previous.url }}" rel="prev">
+            <a class="aurora-card group flex max-w-[20rem] flex-col gap-0.5 px-4 py-3 no-underline transition-colors hover:border-highlight-500/60" href="{{ sequence.previous.url }}" rel="prev">
                 <span class="text-xs uppercase tracking-wide text-muted">{{ 'frontend.sequence.previous'|trans }}</span>
-                <span class="text-sm font-medium text-primary transition-colors group-hover:text-accent">{{ sequence.previous.title }}</span>
+                <span class="text-sm font-medium text-primary transition-colors group-hover:text-highlight">{{ sequence.previous.title }}</span>
             </a>
         {% endif %}
 
         {% if sequence.next %}
-            <a class="aurora-card group ml-auto flex max-w-[20rem] flex-col items-end gap-0.5 px-4 py-3 text-right no-underline transition-colors hover:border-accent-500/60" href="{{ sequence.next.url }}" rel="next">
+            <a class="aurora-card group ml-auto flex max-w-[20rem] flex-col items-end gap-0.5 px-4 py-3 text-right no-underline transition-colors hover:border-highlight-500/60" href="{{ sequence.next.url }}" rel="next">
                 <span class="text-xs uppercase tracking-wide text-muted">{{ 'frontend.sequence.next'|trans }}</span>
-                <span class="text-sm font-medium text-primary transition-colors group-hover:text-accent">{{ sequence.next.title }}</span>
+                <span class="text-sm font-medium text-primary transition-colors group-hover:text-highlight">{{ sequence.next.title }}</span>
             </a>
         {% endif %}
     </nav>

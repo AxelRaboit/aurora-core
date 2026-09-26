@@ -1113,6 +1113,9 @@ backend:
       accent_title: Accent
       accent_hint: "The colour of this publication's own buttons, links and accents, over the theme's. Left empty, it keeps the theme's colour."
       accent_color: Accent colour
+      highlight: Hovers and card markers
+      highlight_inherit: Same as the theme
+      highlight_hint: "Hover outlines and titles, card category and arrow, for this page's content only. The navigation bar and the footer keep the theme's setting."
   taxonomies:
     title: Taxonomies
     empty: No taxonomy yet.
