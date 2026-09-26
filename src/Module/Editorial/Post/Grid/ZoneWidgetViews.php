@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Editorial\Post\Grid;
 
+use Aurora\Module\Editorial\Booking\Service\BookingSlotFinder;
 use Aurora\Module\Editorial\Poll\Repository\PollVoteRepository;
 use Closure;
 use DateTimeImmutable;
@@ -54,6 +55,7 @@ final readonly class ZoneWidgetViews
         private ?RequestStack $requestStack = null,
         private ?PollVoteRepository $pollVotes = null,
         private ?UrlGeneratorInterface $urlGenerator = null,
+        private ?BookingSlotFinder $bookingSlots = null,
     ) {}
 
     private function now(): DateTimeImmutable
@@ -84,6 +86,8 @@ final readonly class ZoneWidgetViews
             GridNormalizer::ZONE_PRICE_LIST => $this->priceList($held),
             GridNormalizer::ZONE_POLL => $this->poll($zone, $options, $held, $locale, $postId),
             GridNormalizer::ZONE_AUDIO => $this->chapters($held),
+            GridNormalizer::ZONE_QUOTE_ESTIMATOR => $this->quoteEstimator($options, $held),
+            GridNormalizer::ZONE_APPOINTMENT_BOOKING => $this->appointmentBooking($zone, $options, $held, $locale, $postId),
             // The button over a film playing behind a title. Its address is the
             // one the zone would give a provider's player, free once a film
             // of the library is picked instead.
@@ -617,6 +621,90 @@ final readonly class ZoneWidgetViews
         $sections = array_values(array_filter($sections, static fn (array $section): bool => [] !== $section['items']));
 
         return [] === $sections ? null : ['sections' => $sections, 'title' => $held['label'], 'note' => $held['caption']];
+    }
+
+    /**
+     * The days and slots a visitor may book, and where an answer goes.
+     *
+     * `null` outside a real page (no post id, the preview an author is
+     * editing) rather than a booking form nobody can submit - there is
+     * nothing wrong to say, there is simply no calendar to check yet.
+     *
+     * @param array<string, mixed> $zone
+     * @param array<string, mixed> $options
+     * @param array<string, mixed> $held
+     *
+     * @return array<string, mixed>|null
+     */
+    private function appointmentBooking(array $zone, array $options, array $held, string $locale, ?int $postId): ?array
+    {
+        if (in_array(null, [$this->bookingSlots, $postId, $this->urlGenerator], true)) {
+            return null;
+        }
+
+        $planning = $this->bookingSlots->calendar($this->translator->trans('frontend.editorial.grid.booking.calendar_name', [], 'messages', $locale));
+        $days = $this->bookingSlots->days($options, $planning, $locale);
+
+        return [
+            'title' => $held['label'],
+            'note' => $held['caption'],
+            'duration' => $options['slotDuration'],
+            'days' => $days,
+            'endpoint' => $this->urlGenerator->generate('editorial_booking_reserve', ['locale' => $locale, 'postId' => $postId, 'zoneId' => $zone['id']]),
+        ];
+    }
+
+    /**
+     * A calculator: a base price, options an author priced, and the total a
+     * reader's ticks add up to - worked out again in the browser as each box
+     * is ticked, so the server only has to say what each thing costs.
+     *
+     * `= 250` sets the base; any other non-empty line is `Label | price`, an
+     * option a reader may tick. A price is read loosely (spaces, a comma for
+     * the decimal point) and a line that is not one of the two shapes is
+     * dropped, never guessed at.
+     *
+     * @param array<string, mixed> $options
+     * @param array<string, mixed> $held
+     *
+     * @return array<string, mixed>|null
+     */
+    private function quoteEstimator(array $options, array $held): ?array
+    {
+        $base = 0.0;
+        $items = [];
+
+        foreach (self::lines($held['code']) as $line) {
+            if (str_starts_with($line, '=')) {
+                $base = self::number(mb_trim(mb_substr($line, 1))) ?? $base;
+
+                continue;
+            }
+
+            $cells = self::cells($line);
+            $price = self::number($cells[1] ?? '');
+            if ('' === ($cells[0] ?? '')) {
+                continue;
+            }
+
+            if (null === $price) {
+                continue;
+            }
+
+            $items[] = ['label' => $cells[0], 'price' => $price];
+        }
+
+        if ([] === $items && 0.0 === $base) {
+            return null;
+        }
+
+        return [
+            'title' => $held['label'],
+            'note' => $held['caption'],
+            'base' => $base,
+            'currency' => $options['quoteCurrency'],
+            'items' => $items,
+        ];
     }
 
     /**

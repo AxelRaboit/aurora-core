@@ -171,6 +171,20 @@ frontend:
         closed: Esta encuesta ya no está abierta.
       episode:
         transcript: Transcripción
+      quote:
+        total: Total
+      booking:
+        calendar_name: Reservas en línea
+        none: No hay ningún horario disponible por ahora.
+        name: Su nombre
+        email: Su correo electrónico
+        phone: Teléfono (opcional)
+        message: Mensaje (opcional)
+        confirm: Confirmar la cita
+        success: Cita confirmada para
+        taken: Este horario acaba de reservarse. Elija otro.
+        invalid: Falta información o no es válida.
+        unavailable: Esta reserva ya no está disponible.
     forms:
       submit: Enviar
       next: Siguiente

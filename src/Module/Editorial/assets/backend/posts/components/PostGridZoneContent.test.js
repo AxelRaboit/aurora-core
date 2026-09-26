@@ -63,6 +63,9 @@ describe("PostGridZoneContent", () => {
         "activityFeed",
         "priceList",
         "poll",
+        "travelMap",
+        "quoteEstimator",
+        "appointmentBooking",
     ])("offers the settings of a %s zone", (type) => {
         const { wrapper } = panelFor(type);
 

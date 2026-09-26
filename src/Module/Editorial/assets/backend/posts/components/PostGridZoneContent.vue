@@ -139,6 +139,17 @@ async function pickWallVideos() {
 /** Mirrors GridNormalizer::MAX_VIDEO_WALL. */
 const MAX_VIDEO_WALL = 12;
 
+/** Mirrors GridNormalizer::MAX_TRAVEL_STOPS. */
+const MAX_TRAVEL_STOPS = 20;
+
+async function pickTravelPhotos() {
+    const picked = await openDocumentPicker({ imagesOnly: true, multiple: true });
+
+    if (Array.isArray(picked) && picked.length > 0) {
+        emit("add-gallery", picked);
+    }
+}
+
 /** The same, for a recording. */
 async function pickAudio() {
     const picked = await openDocumentPicker({ mimePrefix: "audio/" });
@@ -880,6 +891,94 @@ const displayHint = computed(() =>
                     :placeholder="'Les réels\nLes carrousels\nLes stories'"
                     :rows="5"
                 />
+            </div>
+        </template>
+
+        <template v-else-if="zone.type === 'travelMap'">
+            <div class="flex items-center justify-between gap-3">
+                <span class="text-sm text-secondary">
+                    {{ t("backend.posts.grid.travel_photo_count", { count: galleryImages.length, max: MAX_TRAVEL_STOPS }) }}
+                </span>
+                <AppButton variant="secondary" size="sm" :disabled="galleryImages.length >= MAX_TRAVEL_STOPS" v-on:click="pickTravelPhotos">
+                    <Plus class="w-3.5 h-3.5" :stroke-width="2" />
+                    {{ t("backend.posts.grid.travel_photo_add") }}
+                </AppButton>
+            </div>
+            <ul v-if="galleryImages.length" class="m-0 grid list-none grid-cols-4 gap-2 p-0">
+                <li v-for="(photo, photoIndex) in galleryImages" :key="`${photoIndex}-${photo.url}`" class="relative overflow-hidden rounded-lg border border-line">
+                    <img :src="photo.url" alt="" class="aspect-square w-full object-cover">
+                    <div class="absolute inset-x-0 bottom-0 flex justify-between gap-1 bg-surface/90 p-1">
+                        <div class="flex gap-1">
+                            <AppIconButton
+                                :icon="ChevronUp"
+                                size="sm"
+                                :disabled="photoIndex === 0"
+                                :title="t('backend.posts.grid.item_move_up')"
+                                v-on:click="emit('move-gallery', photoIndex, -1)"
+                            />
+                            <AppIconButton
+                                :icon="ChevronDown"
+                                size="sm"
+                                :disabled="photoIndex === galleryImages.length - 1"
+                                :title="t('backend.posts.grid.item_move_down')"
+                                v-on:click="emit('move-gallery', photoIndex, 1)"
+                            />
+                        </div>
+                        <AppIconButton
+                            :icon="Trash2"
+                            size="sm"
+                            color="danger"
+                            :title="t('backend.posts.grid.gallery_remove')"
+                            v-on:click="emit('remove-gallery', photoIndex)"
+                        />
+                    </div>
+                </li>
+            </ul>
+            <div class="rounded-lg border border-dashed border-line p-3 space-y-2">
+                <p class="text-xs uppercase tracking-wide text-muted">{{ t("backend.posts.grid.translated_fields", { locale }) }}</p>
+                <AppTextarea
+                    v-model="bound.code.value"
+                    :label="t('backend.posts.grid.travel_stops')"
+                    :hint="t('backend.posts.grid.travel_stops_hint')"
+                    :placeholder="'Monument Valley | 36.9989 | -110.0980\nLondres | 51.5072 | -0.1276'"
+                    :rows="6"
+                />
+            </div>
+        </template>
+
+        <template v-else-if="zone.type === 'quoteEstimator'">
+            <AppInput v-model="bound.quoteCurrency.value" :label="t('backend.posts.grid.quote_currency')" placeholder="€" />
+            <div class="rounded-lg border border-dashed border-line p-3 space-y-2">
+                <p class="text-xs uppercase tracking-wide text-muted">{{ t("backend.posts.grid.translated_fields", { locale }) }}</p>
+                <AppInput v-model="bound.label.value" :label="t('backend.posts.grid.quote_title')" placeholder="Estimez votre séance" />
+                <AppTextarea
+                    v-model="bound.code.value"
+                    :label="t('backend.posts.grid.quote_options')"
+                    :hint="t('backend.posts.grid.quote_options_hint')"
+                    :placeholder="'= 90\nDrone | 40\nAlbum photo | 60'"
+                    :rows="6"
+                />
+                <AppInput v-model="bound.caption.value" :label="t('backend.posts.grid.quote_note')" placeholder="Devis indicatif, confirmé après échange" />
+            </div>
+        </template>
+
+        <template v-else-if="zone.type === 'appointmentBooking'">
+            <OpeningHoursField v-model="bound.hours.value" />
+            <AppTextarea
+                :model-value="(bound.closedDates.value ?? []).join('\n')"
+                :label="t('backend.posts.grid.closed_dates')"
+                :hint="t('backend.posts.grid.closed_dates_hint')"
+                placeholder="2026-12-25"
+                :rows="3"
+                v-on:update:model-value="(value) => (bound.closedDates.value = parseLines(value))"
+            />
+            <AppInput v-model="bound.timezone.value" :label="t('backend.posts.grid.timezone')" :hint="t('backend.posts.grid.timezone_hint')" placeholder="Europe/Paris" />
+            <AppChoiceRow v-model="bound.slotDuration.value" :label="t('backend.posts.grid.slot_duration')" :options="choices.slotDuration ?? []" />
+            <AppChoiceRow v-model="bound.bookingWindowDays.value" :label="t('backend.posts.grid.booking_window')" :options="choices.bookingWindowDays ?? []" />
+            <div class="rounded-lg border border-dashed border-line p-3 space-y-2">
+                <p class="text-xs uppercase tracking-wide text-muted">{{ t("backend.posts.grid.translated_fields", { locale }) }}</p>
+                <AppInput v-model="bound.label.value" :label="t('backend.posts.grid.booking_title')" placeholder="Réserver une séance" />
+                <AppInput v-model="bound.caption.value" :label="t('backend.posts.grid.booking_note')" placeholder="Une réponse sous 24 h" />
             </div>
         </template>
 

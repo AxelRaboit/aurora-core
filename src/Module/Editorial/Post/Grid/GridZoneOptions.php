@@ -79,6 +79,10 @@ final class GridZoneOptions
     /** When a poll shows its results: once the reader has voted, or from the start. */
     public const array POLL_RESULTS = ['after', 'always'];
 
+    public const array SLOT_DURATIONS = [15, 30, 45, 60, 90];
+
+    public const array BOOKING_WINDOWS = [7, 14, 21, 30, 45];
+
     /**
      * Every key, with the value a zone arrives with.
      *
@@ -121,6 +125,9 @@ final class GridZoneOptions
             'calendarMonth' => null,
             'feedGithub' => false,
             'pollResults' => self::POLL_RESULTS[0],
+            'quoteCurrency' => '€',
+            'slotDuration' => self::SLOT_DURATIONS[0],
+            'bookingWindowDays' => self::BOOKING_WINDOWS[0],
         ];
     }
 
@@ -184,6 +191,11 @@ final class GridZoneOptions
             'calendarMonth' => self::month($data['calendarMonth'] ?? null),
             'feedGithub' => true === ($data['feedGithub'] ?? false),
             'pollResults' => self::oneOf($data['pollResults'] ?? null, self::POLL_RESULTS),
+            // Printed straight after the number, so an ordinary currency sign
+            // needs no space of its own; a longer word can carry its own.
+            'quoteCurrency' => self::line($data['quoteCurrency'] ?? null, 6) ?: '€',
+            'slotDuration' => self::intOneOf($data['slotDuration'] ?? null, self::SLOT_DURATIONS),
+            'bookingWindowDays' => self::intOneOf($data['bookingWindowDays'] ?? null, self::BOOKING_WINDOWS),
         ];
     }
 
@@ -193,6 +205,14 @@ final class GridZoneOptions
     private static function oneOf(mixed $value, array $allowed): string
     {
         return is_string($value) && in_array($value, $allowed, true) ? $value : $allowed[0];
+    }
+
+    /** @param list<int> $allowed */
+    private static function intOneOf(mixed $value, array $allowed): int
+    {
+        $int = is_numeric($value) ? (int) $value : null;
+
+        return null !== $int && in_array($int, $allowed, true) ? $int : $allowed[0];
     }
 
     private static function line(mixed $value, int $max): string

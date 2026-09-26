@@ -821,10 +821,13 @@
     {% elseif zone.type == 'videoWall' and zone.videoWall is not empty %}
         {{ include('Frontend/themes/default/editorial/post/zones/_video_wall.html.twig') }}
 
+    {% elseif zone.type == 'travelMap' and zone.travelMap %}
+        {{ include('Frontend/themes/default/editorial/post/zones/_travel_map.html.twig') }}
+
     {% elseif zone.type == 'activityFeed' and zone.activityFeed is not empty %}
         {{ include('Frontend/themes/default/editorial/post/zones/_activity_feed.html.twig') }}
 
-    {% elseif zone.type in ['availability', 'openingHours', 'countdown', 'contactCard', 'socialPost', 'qrCode', 'chart', 'editorialCalendar', 'priceList', 'poll'] and zone.widget %}
+    {% elseif zone.type in ['availability', 'openingHours', 'countdown', 'contactCard', 'socialPost', 'qrCode', 'chart', 'editorialCalendar', 'priceList', 'poll', 'quoteEstimator', 'appointmentBooking'] and zone.widget %}
         {% set widget = zone.widget %}
         {{ include('Frontend/themes/default/editorial/post/zones/_' ~ {
             availability: 'availability',
@@ -837,6 +840,8 @@
             editorialCalendar: 'editorial_calendar',
             priceList: 'price_list',
             poll: 'poll',
+            quoteEstimator: 'quote_estimator',
+            appointmentBooking: 'appointment_booking',
         }[zone.type] ~ '.html.twig') }}
 
     {% elseif zone.type == 'video' and zone.file and zone.options.backgroundVideo|default(false) %}
