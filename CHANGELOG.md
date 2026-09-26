@@ -5,6 +5,25 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.264] - 2026-09-26
+
+### Corrigé
+
+#### Les entêtes sur tablette
+- **Les cadrages téléphone et tablette ne s'appliquaient pas.** Le point de
+  cadrage de l'image large était écrit directement sur l'image et l'emportait
+  sur les deux autres : une image téléphone ou tablette était toujours cadrée
+  sur son centre, quoi qu'on ait réglé. Chaque image suit désormais son propre
+  point de cadrage.
+- **Une entête passe en colonnes dès 640 px**, comme ses images : entre 640 et
+  767 px (un iPad mini tenu droit fait 744 px), une image composée pour la
+  tablette tombait sous un texte encore étalé sur toute la largeur. Les
+  largeurs « tablette » d'une entête s'appliquent maintenant de 640 à 1023 px ;
+  les grilles du contenu gardent leurs paliers.
+- **Les titres d'entête prennent leur plus grande taille à 1024 px**, et non
+  plus à 768 : en deux colonnes, un mot long comme « personnelles » débordait
+  sur le visuel voisin. Rien ne change sur téléphone ni au-delà de 1024 px.
+
 ## [0.9.263] - 2026-09-26
 
 ### Ajouté

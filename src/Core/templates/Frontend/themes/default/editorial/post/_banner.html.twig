@@ -41,11 +41,15 @@
    `contained` one leaves - the tightest combination there is. Breaking the
    words would be the other fix and it is worse: a title split mid-word reads
    as damage, where a smaller one just reads. #}
+{# One step per banner regime - phone, tablet from 640px, wide from 1024px -
+   and each a notch below what a full-width column could take: from 640px a
+   banner lays out in two columns (`aurora-grid-banner`), and at the full
+   size a long word such as « personnelles » ran into the picture beside it. #}
 {% set titleSizes = {
-    sm: 'text-lg sm:text-xl md:text-2xl',
-    md: 'text-2xl sm:text-3xl md:text-4xl',
-    lg: 'text-3xl sm:text-4xl md:text-5xl',
-    xl: 'text-4xl sm:text-5xl md:text-6xl',
+    sm: 'text-lg md:text-xl lg:text-2xl',
+    md: 'text-2xl md:text-3xl lg:text-4xl',
+    lg: 'text-3xl md:text-4xl lg:text-5xl',
+    xl: 'text-4xl md:text-5xl lg:text-6xl',
 } %}
 
 {# The description's four steps. `md` is the size every banner drew before
@@ -142,8 +146,11 @@
                 {% if banner.background.media.srcset %}srcset="{{ banner.background.media.srcset }}" sizes="100vw"{% endif %}
                 alt=""
                 aria-hidden="true"
-                class="absolute inset-0 -z-10 h-full w-full object-cover{{ mobile ? ' max-sm:[object-position:var(--banner-mobile-focal)]' : '' }}{{ tablet ? ' sm:max-lg:[object-position:var(--banner-tablet-focal)]' : '' }}"
-                style="object-position: {{ banner.background.media.focalPosition }};{% if mobile %} --banner-mobile-focal: {{ mobile.focalPosition }};{% endif %}{% if tablet %} --banner-tablet-focal: {{ tablet.focalPosition }};{% endif %}"
+                {# Every focal point through a class, the wide one included: an
+                   inline `object-position` outranked the phone and tablet
+                   classes, so their pictures were always framed on the centre. #}
+                class="absolute inset-0 -z-10 h-full w-full object-cover [object-position:var(--banner-focal)]{{ mobile ? ' max-sm:[object-position:var(--banner-mobile-focal)]' : '' }}{{ tablet ? ' sm:max-lg:[object-position:var(--banner-tablet-focal)]' : '' }}"
+                style="--banner-focal: {{ banner.background.media.focalPosition }};{% if mobile %} --banner-mobile-focal: {{ mobile.focalPosition }};{% endif %}{% if tablet %} --banner-tablet-focal: {{ tablet.focalPosition }};{% endif %}"
             >
         </picture>
         {% if banner.background.overlay > 0 %}
@@ -201,7 +208,7 @@
         {# Row gap only. The column axis belongs to `.aurora-grid`, which spaces
            items with padding: a column-gap here would be 47 gutters across the
            48 tracks and push the last item out of the banner. #}
-        <div class="aurora-grid aurora-grid-flush flex-1 gap-y-8">
+        <div class="aurora-grid aurora-grid-flush aurora-grid-banner flex-1 gap-y-8">
             {% for item in banner.items %}
                 <div style="{{ item.spanStyle|raw }}">
                     {% if item.type == 'text' %}
