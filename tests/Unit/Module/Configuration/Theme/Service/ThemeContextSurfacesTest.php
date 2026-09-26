@@ -200,4 +200,40 @@ final class ThemeContextSurfacesTest extends TestCase
 
         self::assertSame($withNone, $withEmpty);
     }
+
+    // ── The post editor's own preview, under its own selector ─────────────────
+
+    /**
+     * The regression this method exists for: a banner preview rendered in
+     * whatever colour the backend's own theme happened to be, not the one the
+     * public page actually shows a title with no colour of its own.
+     */
+    public function testThePreviewRuleCarriesThePageBackgroundUnderItsOwnSelector(): void
+    {
+        $css = $this->contextWithConfig(['background_color' => '#0f172a'])
+            ->previewSurfaceCss('.aurora-banner-preview[data-theme]');
+
+        self::assertStringStartsWith('.aurora-banner-preview[data-theme]{', $css);
+        self::assertStringContainsString('--th-bg: #0f172a;', $css);
+        self::assertStringContainsString('--th-primary: rgb(243 244 246);', $css);
+    }
+
+    public function testThePreviewRuleIgnoresTheHeaderAndFooterSurfaces(): void
+    {
+        // The banner is the page's own background, not the topbar or the
+        // footer - a preview scoped to the wrong surface would still be wrong.
+        $css = $this->contextWithConfig([
+            'header_color' => '#111827',
+            'footer_color' => '#1f2937',
+        ])->previewSurfaceCss('.aurora-banner-preview[data-theme]');
+
+        self::assertSame('', $css);
+    }
+
+    public function testAnUnconfiguredThemeEmitsNoPreviewRule(): void
+    {
+        // The same "light page, dark text" default an unconfigured public
+        // page falls back to - nothing to override here either.
+        self::assertSame('', $this->contextWithConfig([])->previewSurfaceCss('.aurora-banner-preview[data-theme]'));
+    }
 }
