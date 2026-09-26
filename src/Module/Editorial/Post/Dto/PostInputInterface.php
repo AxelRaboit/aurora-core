@@ -77,6 +77,9 @@ interface PostInputInterface
     /** Likewise for the page background. */
     public function getBackgroundColor(): ?string;
 
+    /** Likewise for the accent colour. */
+    public function getAccentColor(): ?string;
+
     /** Returns a copy with a different status, leaving everything else alone. */
     public function withStatus(string $status): self;
 }

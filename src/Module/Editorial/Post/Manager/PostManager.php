@@ -333,6 +333,7 @@ class PostManager implements PostManagerInterface
         $post->setHeaderColor($input->getHeaderColor());
         $post->setFooterColor($input->getFooterColor());
         $post->setBackgroundColor($input->getBackgroundColor());
+        $post->setAccentColor($input->getAccentColor());
 
         // Normalised here rather than in the DTO: this is the write boundary,
         // and it is the only place guaranteed to run whatever built the input.

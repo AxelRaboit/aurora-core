@@ -423,10 +423,11 @@ backend:
       layout: Disposition
       columns: Colonnes
       ratio: Rapport
-      ratio_ignored: "En mosaïque, chaque image garde ses propres proportions."
+      ratio_ignored: "Sans effet en mosaïque ou en disposition justifiée : chaque image garde ses propres proportions."
       layouts:
         grid: Grille
         masonry: Mosaïque
+        justified: Justifiée
       pictures: Images
       empty: "Aucune image. Ajoutez-en une ci-dessous."
       add: Ajouter une image
@@ -543,6 +544,12 @@ backend:
         soft: Teinté
         accent: Accent
         custom: Personnalisé
+      contrast: Thème forcé
+      contrast_hint: "Impose le jeu de couleurs clair ou sombre à cette zone, quel que soit celui de la page. « Comme la page » suit le thème normalement."
+      contrasts:
+        auto: Comme la page
+        light: Clair
+        dark: Sombre
       fill: Type de fond
       fill_types:
         none: Aucun
@@ -554,6 +561,8 @@ backend:
       gradient_angle: 'Orientation : {degrees}°'
       background_image: Image de fond
       background_image_hint: Placée derrière la zone, recadrée selon son point focal.
+      zone_background_video: Vidéo de fond
+      zone_background_video_hint: "Muette et en boucle derrière la zone. L'image ci-dessus reste affichée tant qu'elle charge, ou si la lecture automatique est refusée."
       overlay: 'Assombrissement : {percent} %'
       page_reveal: "Effet d'apparition de la page"
       page_reveal_hint: "Comment les zones arrivent quand le lecteur les rejoint. Chaque zone peut en décider autrement ; celles qui ne disent rien suivent ce choix."
@@ -604,6 +613,9 @@ backend:
       separator_styles:
         line: Filet
         space: Espace
+        wave: Vague
+        diagonal: Diagonale
+        bevel: Biseau
       item_display: Présentation
       item_display_hint: "La même liste, dessinée autrement. Changer de présentation ne perd pas ce qui est écrit."
       item_display_hint_faq: "Chaque entrée se replie. Bon pour des questions, mais aussi pour tout ce qui se lit au besoin : ce qui est compris, les garanties, les mentions."
@@ -996,6 +1008,9 @@ backend:
       surface_background: Fond de page
       surface_header: Topbar
       surface_footer: Pied de page
+      accent_title: Accent
+      accent_hint: "La couleur des boutons, des liens et des accents de cette publication, par-dessus celle du thème. Laissée vide, elle garde la couleur du thème."
+      accent_color: Couleur d'accent
   taxonomies:
     title: Taxonomies
     empty: Aucune taxonomie.
@@ -1254,6 +1269,13 @@ frontend:
     previous: Image précédente
     next: Image suivante
   editorial:
+    reading_time: '%minutes% min de lecture'
+    share:
+      label: Partager
+      copy_link: Copier le lien
+      copied: Lien copié
+      linkedin: LinkedIn
+      whatsapp: WhatsApp
     grid:
       recommended: Recommandé
       choose: Choisir cette offre

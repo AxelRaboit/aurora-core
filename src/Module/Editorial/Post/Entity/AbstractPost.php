@@ -161,6 +161,12 @@ abstract class AbstractPost implements PostInterface
     protected ?string $backgroundColor = null;
 
     /**
+     * Accent color override for this post. Null means inherit from theme.
+     */
+    #[ORM\Column(length: 7, nullable: true)]
+    protected ?string $accentColor = null;
+
+    /**
      * Why the last review decision went the way it did.
      *
      * Kept on the post rather than in a revision: it is about the *current* state
@@ -634,6 +640,18 @@ abstract class AbstractPost implements PostInterface
     public function setBackgroundColor(?string $backgroundColor): static
     {
         $this->backgroundColor = $backgroundColor;
+
+        return $this;
+    }
+
+    public function getAccentColor(): ?string
+    {
+        return $this->accentColor;
+    }
+
+    public function setAccentColor(?string $accentColor): static
+    {
+        $this->accentColor = $accentColor;
 
         return $this;
     }
