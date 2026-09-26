@@ -5,6 +5,34 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.261] - 2026-09-26
+
+### Ajouté
+
+#### Retirer le bloc « Partager » d'une page
+Chaque page de publication se terminait par un bloc « Partager » (copier le
+lien, LinkedIn, WhatsApp), sans moyen de l'enlever. Une case « Boutons de
+partage en bas de page » apparaît dans l'éditeur, à côté de « Commentaires
+ouverts ». Elle est cochée pour toutes les publications existantes, qui gardent
+donc leur bloc : à décocher sur les pages où il n'a pas sa place (accueil,
+présentation, contact).
+
+### Corrigé
+
+#### Des requêtes répétées sur chaque page du site public
+Le menu redemandait, entrée par entrée, ses sous-entrées, ses libellés et le
+titre des publications vers lesquelles il pointe, et chaque menu de la page
+était lu à part. Les cartes de publication d'une grille chargeaient ensuite
+leur traduction, leur type et leur miniature une par une, et les cartes d'une
+page de liste leurs catégories et leur miniature. Tout est désormais chargé en
+une fois : sur une page d'accueil mesurée, 52 requêtes deviennent 13, sans
+aucune répétition, et une page de liste passe de 23 à 14. Le rendu est
+identique, au caractère près.
+
+### Dans aurora-client
+
+Une migration ajoute une colonne à `core_posts` ; `make deploy-prod` la joue.
+
 ## [0.9.260] - 2026-09-26
 
 ### Ajouté

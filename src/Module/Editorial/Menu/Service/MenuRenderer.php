@@ -43,6 +43,14 @@ final class MenuRenderer
     /** @var array<int, PostTypeInterface|null> */
     private array $postTypes = [];
 
+    /**
+     * Every menu, keyed by location, read once: a page renders three or four
+     * of them, and one query per location was one query too many each time.
+     *
+     * @var array<string, MenuInterface>|null
+     */
+    private ?array $menus = null;
+
     public function __construct(
         private readonly MenuRepository $menuRepository,
         private readonly PostRepository $postRepository,
@@ -68,15 +76,29 @@ final class MenuRenderer
             return $this->rendered[$key];
         }
 
-        $menu = $this->menuRepository->findOneByLocation($location);
+        if (null === $this->menus) {
+            $this->menus = [];
+            foreach ($this->menuRepository->findAllWithItems() as $loaded) {
+                $this->menus[$loaded->getLocation()] = $loaded;
+            }
+        }
+
+        $menu = $this->menus[$location] ?? null;
         if (!$menu instanceof MenuInterface) {
             return $this->rendered[$key] = [];
         }
 
+        // Children are read from the entries already loaded, not from each
+        // entry's own collection: that one is lazy, and asking it cost a
+        // query per entry on every page.
         $roots = [];
+        $childrenByParent = [];
         foreach ($menu->getItems() as $item) {
-            if (null === $item->getParent()) {
+            $parent = $item->getParent();
+            if (null === $parent) {
                 $roots[] = $item;
+            } else {
+                $childrenByParent[(int) $parent->getId()][] = $item;
             }
         }
 
@@ -89,7 +111,7 @@ final class MenuRenderer
 
         $tree = [];
         foreach ($roots as $item) {
-            $resolved = $this->resolveItem($item, $locale, $authenticated, $currentPath, $currentSection);
+            $resolved = $this->resolveItem($item, $childrenByParent, $locale, $authenticated, $currentPath, $currentSection);
             if (null !== $resolved) {
                 $tree[] = $resolved;
             }
@@ -101,8 +123,12 @@ final class MenuRenderer
         return $this->rendered[$key] = $tree;
     }
 
-    /** @return array<string, mixed>|null */
-    private function resolveItem(MenuItemInterface $item, string $locale, bool $authenticated, ?string $currentPath, ?string $currentSection = null): ?array
+    /**
+     * @param array<int, list<MenuItemInterface>> $childrenByParent
+     *
+     * @return array<string, mixed>|null
+     */
+    private function resolveItem(MenuItemInterface $item, array $childrenByParent, string $locale, bool $authenticated, ?string $currentPath, ?string $currentSection = null): ?array
     {
         if (!$item->getVisibility()->isVisibleTo($authenticated)) {
             return null;
@@ -114,8 +140,8 @@ final class MenuRenderer
         }
 
         $children = [];
-        foreach ($item->getChildren() as $child) {
-            $resolved = $this->resolveItem($child, $locale, $authenticated, $currentPath, $currentSection);
+        foreach ($childrenByParent[(int) $item->getId()] ?? [] as $child) {
+            $resolved = $this->resolveItem($child, $childrenByParent, $locale, $authenticated, $currentPath, $currentSection);
             if (null !== $resolved) {
                 $children[] = $resolved;
             }
@@ -336,7 +362,7 @@ final class MenuRenderer
 
         $missing = $this->missing($ids[MenuItemTargetTypeEnum::Post->value] ?? [], $this->posts);
         if ([] !== $missing) {
-            foreach ($this->postRepository->findBy(['id' => $missing]) as $post) {
+            foreach ($this->postRepository->findForDisplay($missing) as $post) {
                 $this->posts[(int) $post->getId()] = $post;
             }
 

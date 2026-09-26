@@ -1502,7 +1502,7 @@ final readonly class GridViewBuilder
         }
 
         $posts = [];
-        foreach ($this->postRepository->findBy(['id' => $ids]) as $post) {
+        foreach ($this->postRepository->findForDisplay($ids) as $post) {
             $posts[(int) $post->getId()] = $post;
         }
 
