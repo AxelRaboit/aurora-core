@@ -30,6 +30,7 @@ import AppLoader from "@/shared/components/feedback/AppLoader.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import { useServerPreview } from "@/shared/composables/http/backend/useServerPreview.js";
 import { usePostGrid, ZONE_ICONS } from "../composables/usePostGrid.js";
+import { openDocumentPicker } from "@/shared/utils/documentPicker.js";
 import { useGridSelection } from "../composables/useGridSelection.js";
 import PostGridCanvas from "./PostGridCanvas.vue";
 import PostGridZoneContent from "./PostGridZoneContent.vue";
@@ -124,6 +125,13 @@ const { html: previewHtml, loading: previewLoading } = useServerPreview(
     props.previewPath,
     { enabled: () => showPreview.value },
 );
+
+/** Opens the library filtered to what a browser can play, like the video zone's own picker. */
+async function pickBackgroundVideo(index) {
+    const picked = await openDocumentPicker({ mimePrefix: "video/" });
+
+    if (picked) zoneFields(index).backgroundVideo.value = picked;
+}
 
 
 // Which zone the canvas and the card below it are both pointing at, and what
@@ -434,13 +442,54 @@ function resizeZone(index, columns) {
                             :hint="t('backend.posts.grid.background_image_hint')"
                         />
 
-                        <div v-if="zoneFields(index).backgroundMedia.value?.id">
+                        <!-- Muted and looped behind the content once picked -
+                             independent of the still picture above, which
+                             stays the fallback while it loads. -->
+                        <div class="space-y-1">
+                            <p class="text-xs uppercase tracking-wide text-muted">
+                                {{ t('backend.posts.grid.zone_background_video') }}
+                            </p>
+                            <div class="flex items-center gap-3">
+                                <span class="min-w-0 flex-1 truncate text-sm text-secondary">
+                                    {{ zoneFields(index).backgroundVideo.value?.id
+                                        ? t('backend.posts.grid.zone_video_file_chosen')
+                                        : t('backend.posts.grid.zone_video_file_none') }}
+                                </span>
+                                <AppTextLinkButton size="xs" v-on:click="pickBackgroundVideo(index)">
+                                    {{ zoneFields(index).backgroundVideo.value?.id
+                                        ? t('shared.media.change')
+                                        : t('backend.posts.grid.zone_video_file') }}
+                                </AppTextLinkButton>
+                                <AppTextLinkButton
+                                    v-if="zoneFields(index).backgroundVideo.value?.id"
+                                    color="danger"
+                                    size="xs"
+                                    v-on:click="zoneFields(index).backgroundVideo.value = null"
+                                >
+                                    {{ t('shared.common.remove') }}
+                                </AppTextLinkButton>
+                            </div>
+                            <p class="text-xs text-muted">{{ t('backend.posts.grid.zone_background_video_hint') }}</p>
+                        </div>
+
+                        <div v-if="zoneFields(index).backgroundMedia.value?.id || zoneFields(index).backgroundVideo.value?.id">
                             <p class="text-sm text-secondary mb-1">
                                 {{ t('backend.posts.grid.overlay', { percent: zoneFields(index).overlay.value }) }}
                             </p>
                             <AppRange v-model="zoneFields(index).overlay.value" :min="0" :max="100" :step="5" />
                         </div>
                     </div>
+
+                    <!-- Indépendant du fond : une carte ou une teinte garde
+                         son intérêt sur une zone qui demande en plus le
+                         schéma opposé, donc ce réglage vit à côté de
+                         « Fond » plutôt que dans son panneau personnalisé. -->
+                    <AppChoiceRow
+                        v-model="zoneFields(index).contrast.value"
+                        :label="t('backend.posts.grid.contrast')"
+                        :hint="t('backend.posts.grid.contrast_hint')"
+                        :options="zoneChoices.contrast"
+                    />
 
                     <!-- Comment la zone arrive quand le lecteur la
                          rejoint. Ici, avec le fond et la largeur, parce que

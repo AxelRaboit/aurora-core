@@ -196,6 +196,31 @@ final class GridSurfaceRenderTest extends IntegrationTestCase
         self::assertStringContainsString('opacity: 0.4;', $html);
     }
 
+    // ── A forced light/dark scheme, independent of the surface ─────────────
+
+    public function testAForcedDarkZoneCarriesItsWholeTokenSet(): void
+    {
+        $html = $this->render($this->zone(['contrast' => 'dark']));
+
+        self::assertStringContainsString('--th-primary: rgb(243 244 246);', $html);
+        self::assertStringContainsString('--color-border: rgb(55 65 81);', $html);
+    }
+
+    /** No surface at all is still a valid case: the wrapper appears just to carry the style. */
+    public function testAForcedSchemeDrawsAWrapperEvenWithNoSurface(): void
+    {
+        $html = $this->render($this->zone(['surface' => 'none', 'contrast' => 'light']));
+
+        self::assertStringContainsString('--th-primary: rgb(17 24 39);', $html);
+    }
+
+    public function testTheDefaultContrastPosesNoStyleAtAll(): void
+    {
+        $html = $this->render($this->zone());
+
+        self::assertStringNotContainsString('--th-primary:', $html);
+    }
+
     /**
      * A film the library holds is played by the browser, not by a provider.
      *
@@ -261,6 +286,49 @@ final class GridSurfaceRenderTest extends IntegrationTestCase
         self::assertStringContainsString('justify-center', $this->render($this->buttonZone('center')));
         self::assertStringContainsString('justify-start', $this->render($this->buttonZone('left')));
         self::assertStringContainsString('justify-end', $this->render($this->buttonZone('right')));
+    }
+
+    // ── The separator's shapes ──────────────────────────────────────────────
+
+    public function testALineSeparatorDrawsAnHr(): void
+    {
+        self::assertStringContainsString('<hr', $this->render($this->separatorZone('line')));
+    }
+
+    public function testASpaceSeparatorDrawsNothing(): void
+    {
+        $html = $this->render($this->separatorZone('space'));
+
+        self::assertStringNotContainsString('<hr', $html);
+        self::assertStringNotContainsString('<svg', $html);
+    }
+
+    public function testAWaveSeparatorDrawsACurvedPath(): void
+    {
+        self::assertStringContainsString('<path', $this->render($this->separatorZone('wave')));
+    }
+
+    public function testADiagonalSeparatorDrawsAStraightLine(): void
+    {
+        self::assertStringContainsString('<line', $this->render($this->separatorZone('diagonal')));
+    }
+
+    public function testABevelSeparatorDrawsAPolyline(): void
+    {
+        self::assertStringContainsString('<polyline', $this->render($this->separatorZone('bevel')));
+    }
+
+    private function separatorZone(string $style): array
+    {
+        $grid = $this->gridViewBuilder->build(
+            ['enabled' => true, 'zones' => [['id' => 's1', 'type' => 'separator', 'separatorStyle' => $style]]],
+            ['zones' => ['s1' => []]],
+            'fr',
+        );
+
+        self::assertNotNull($grid);
+
+        return $grid['zones'][0];
     }
 
     private function buttonZone(string $align): array

@@ -101,29 +101,51 @@ final class SurfaceContrast
      */
     public function tokensFor(string $backgroundHex): array
     {
-        return $this->needsLightText($backgroundHex)
-            ? [
-                '--th-primary' => self::DARK_PRIMARY,
-                '--th-secondary' => 'rgb(156 163 175)',
-                '--th-muted' => 'rgb(107 114 128)',
-                '--th-subtle' => 'rgb(75 85 99)',
-                '--th-surface' => 'rgb(17 24 39)',
-                '--th-surface-2' => 'rgb(31 41 55)',
-                '--th-surface-3' => 'rgb(55 65 81)',
-                '--color-border' => 'rgb(55 65 81)',
-                '--color-border-strong' => 'rgb(75 85 99)',
-            ]
-            : [
-                '--th-primary' => self::LIGHT_PRIMARY,
-                '--th-secondary' => 'rgb(107 114 128)',
-                '--th-muted' => 'rgb(156 163 175)',
-                '--th-subtle' => 'rgb(209 213 219)',
-                '--th-surface' => 'rgb(255 255 255)',
-                '--th-surface-2' => 'rgb(243 244 246)',
-                '--th-surface-3' => 'rgb(229 231 235)',
-                '--color-border' => 'rgb(229 231 235)',
-                '--color-border-strong' => 'rgb(209 213 219)',
-            ];
+        return $this->needsLightText($backgroundHex) ? $this->darkTokens() : $this->lightTokens();
+    }
+
+    /**
+     * The same two token sets, named rather than derived from a colour - for
+     * a zone whose author picked "light" or "dark" outright instead of a
+     * background to contrast against.
+     *
+     * @return array<string, string> nom de variable CSS => valeur
+     */
+    public function tokensForScheme(string $scheme): array
+    {
+        return 'dark' === $scheme ? $this->darkTokens() : $this->lightTokens();
+    }
+
+    /** @return array<string, string> */
+    private function darkTokens(): array
+    {
+        return [
+            '--th-primary' => self::DARK_PRIMARY,
+            '--th-secondary' => 'rgb(156 163 175)',
+            '--th-muted' => 'rgb(107 114 128)',
+            '--th-subtle' => 'rgb(75 85 99)',
+            '--th-surface' => 'rgb(17 24 39)',
+            '--th-surface-2' => 'rgb(31 41 55)',
+            '--th-surface-3' => 'rgb(55 65 81)',
+            '--color-border' => 'rgb(55 65 81)',
+            '--color-border-strong' => 'rgb(75 85 99)',
+        ];
+    }
+
+    /** @return array<string, string> */
+    private function lightTokens(): array
+    {
+        return [
+            '--th-primary' => self::LIGHT_PRIMARY,
+            '--th-secondary' => 'rgb(107 114 128)',
+            '--th-muted' => 'rgb(156 163 175)',
+            '--th-subtle' => 'rgb(209 213 219)',
+            '--th-surface' => 'rgb(255 255 255)',
+            '--th-surface-2' => 'rgb(243 244 246)',
+            '--th-surface-3' => 'rgb(229 231 235)',
+            '--color-border' => 'rgb(229 231 235)',
+            '--color-border-strong' => 'rgb(209 213 219)',
+        ];
     }
 
     private function ratioAgainstWhite(string $hex): float

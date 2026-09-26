@@ -403,7 +403,7 @@ final readonly class GridNormalizer
     public const array SIZES = ['sm', 'md', 'lg'];
 
     /** A rule, or the same room with nothing drawn in it. */
-    public const array SEPARATOR_STYLES = ['line', 'space'];
+    public const array SEPARATOR_STYLES = ['line', 'space', 'wave', 'diagonal', 'bevel'];
 
     /**
      * The costumes of an item list.
@@ -480,6 +480,17 @@ final readonly class GridNormalizer
     public const string ZONE_FILL_GRADIENT = 'gradient';
 
     public const array ZONE_FILL_TYPES = [self::ZONE_FILL_NONE, self::ZONE_FILL_SOLID, self::ZONE_FILL_GRADIENT];
+
+    /**
+     * Forces a zone's text and border tokens to one theme regardless of the
+     * page's own - a light band in the middle of a dark page, or the reverse.
+     *
+     * Independent of `surface`: a card or a tint is still worth having on a
+     * zone that also asks for the opposite scheme, so this is not one more
+     * value under `background` - it is a question every zone can answer, like
+     * `reveal` beside it.
+     */
+    public const array ZONE_CONTRASTS = ['auto', 'light', 'dark'];
 
     /**
      * How a zone arrives when the reader scrolls to it.
@@ -1026,6 +1037,10 @@ final readonly class GridNormalizer
                 // switching a zone away from `custom` and back must not have
                 // lost what was set.
                 'background' => $this->zoneBackground(is_array($entry['background'] ?? null) ? $entry['background'] : []),
+                // Forces this zone's text/border tokens to one scheme
+                // regardless of the page's own. 'auto' - the default - means
+                // exactly what it means everywhere else here: follow the page.
+                'contrast' => $this->values->oneOf($entry['contrast'] ?? null, self::ZONE_CONTRASTS, self::ZONE_CONTRASTS[0]),
                 // How the zone arrives when the reader reaches it. Beside the
                 // surface because it is the same kind of decision - how this
                 // zone presents itself - and shared for the same reason.
@@ -1152,6 +1167,10 @@ final readonly class GridNormalizer
             'gradientTo' => $this->values->color($data['gradientTo'] ?? null),
             'gradientAngle' => max(0, min(360, (int) ($data['gradientAngle'] ?? 180))),
             'mediaId' => $this->values->id($data['mediaId'] ?? null),
+            // A film from the library, muted and looped behind the zone's
+            // content - independent of `mediaId` above, which stays the
+            // still picture shown while it loads or once autoplay is refused.
+            'videoId' => $this->values->id($data['videoId'] ?? null),
             'overlay' => max(0, min(100, (int) ($data['overlay'] ?? 0))),
         ];
     }
