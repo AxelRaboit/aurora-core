@@ -1,0 +1,16 @@
+{# The client's own recent posts, each thumbnail opening the real post on
+   Instagram - the account and the token are theirs, so the traffic and the
+   engagement land on their own profile, not on this page pretending to be
+   one. #}
+<div class="not-prose grid grid-cols-3 gap-1 sm:gap-2">
+    {% for post in zone.instagramFeed.posts %}
+        <a href="{{ post.permalink }}" target="_blank" rel="noopener" class="group relative block aspect-square overflow-hidden rounded-md bg-surface-2">
+            <img src="{{ post.thumbnail }}" alt="{{ post.caption|slice(0, 140) }}" loading="lazy" class="h-full w-full object-cover transition-transform group-hover:scale-105">
+            {% if post.isVideo %}
+                <span class="absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-black/50 text-white" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" class="h-3 w-3" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                </span>
+            {% endif %}
+        </a>
+    {% endfor %}
+</div>

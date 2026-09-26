@@ -171,6 +171,17 @@ frontend:
         closed: Esta encuesta ya no está abierta.
       episode:
         transcript: Transcripción
+      reviews:
+        count: "{count} opinión | {count} opiniones"
+        write: Dejar una opinión
+      newsletter:
+        placeholder: Su correo electrónico
+        submit: Suscribirse
+        success: Gracias, su suscripción está confirmada.
+        failed: La suscripción no se ha realizado. Inténtelo de nuevo en un momento.
+        invalid: Correo electrónico no válido.
+        unavailable: Esta suscripción ya no está disponible.
+        too_many: Demasiados intentos, inténtelo más tarde.
       quote:
         total: Total
       booking:
@@ -184,6 +195,7 @@ frontend:
         success: Cita confirmada para
         taken: Este horario acaba de reservarse. Elija otro.
         invalid: Falta información o no es válida.
+        too_many: Demasiados intentos, inténtelo más tarde.
         unavailable: Esta reserva ya no está disponible.
     forms:
       submit: Enviar

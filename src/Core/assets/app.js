@@ -30,6 +30,7 @@ import "./shared/utils/episode.js";
 import "./shared/utils/travelMap.js";
 import "./shared/utils/quoteEstimator.js";
 import "./shared/utils/bookingForm.js";
+import "./shared/utils/newsletterSignup.js";
 import "./css/app.css";
 
 // Module boot hooks: a module may ship `*.register.js` files (e.g. a settings
