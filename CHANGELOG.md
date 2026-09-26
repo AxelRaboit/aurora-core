@@ -5,6 +5,17 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.256] - 2026-09-26
+
+### Corrigé
+
+- **Le type de fond personnalisé d'une zone (0.9.255) se choisit maintenant en
+  boutons, pas dans un menu déroulant natif.** Trois options nommées n'ont pas
+  besoin d'être cachées derrière un clic - la même raison qui a mis le fond de
+  la zone lui-même en boutons juste au-dessus.
+
+---
+
 ## [0.9.255] - 2026-09-26
 
 ### Ajouté
