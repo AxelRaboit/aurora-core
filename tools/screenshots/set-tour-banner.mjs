@@ -126,8 +126,11 @@ const bannerLayout = {
         overlay: 0,
     },
     items: [
-        { ...gabaritItem, id: idTexte, type: "text", span: { base: 48, md: null, lg: 22 } },
-        { ...gabaritItem, id: idImage, type: "image", span: { base: 48, md: null, lg: 26 }, titleSize: "md", mediaId: media },
+        // `md` is the tablet width, from 640px on a banner: without it the text
+        // and the capture stack there, and the capture falls below the fold.
+        // 26/22 rather than 24/24 so « référencement, » fits its column.
+        { ...gabaritItem, id: idTexte, type: "text", span: { base: 48, md: 26, lg: 22 } },
+        { ...gabaritItem, id: idImage, type: "image", span: { base: 48, md: 22, lg: 26 }, titleSize: "md", mediaId: media },
     ],
 };
 
