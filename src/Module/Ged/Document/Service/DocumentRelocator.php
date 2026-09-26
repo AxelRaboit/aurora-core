@@ -25,7 +25,7 @@ use function sprintf;
  * Moves one document's bytes from one backend to the other.
  *
  * **The unit is the document, not the file.** Its own bytes, its thumbnail,
- * its three generated variants, and the file of every version it kept. A
+ * its three generated renditions, and the file of every version it kept. A
  * document with half of itself on each side would have a column that lies, and
  * nothing downstream is prepared for that.
  *
@@ -118,9 +118,9 @@ final readonly class DocumentRelocator
             }
         }
 
-        foreach ($document->getVariants() as $variant) {
-            if ('' !== $variant) {
-                $keys[$variant] = true;
+        foreach ($document->getRenditions() as $rendition) {
+            if ('' !== $rendition) {
+                $keys[$rendition] = true;
             }
         }
 

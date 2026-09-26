@@ -65,7 +65,7 @@ final class ReplaceDocumentFileCommandTest extends IntegrationTestCase
         self::assertSame('La discussion d\'un espace, en direct.', $fresh->getAlt());
         self::assertSame('La discussion : ce qui ne tient sur aucune fiche', $fresh->getCaption());
         self::assertSame(DocumentStatusEnum::Published, $fresh->getStatus());
-        self::assertNotEmpty($fresh->getVariants(), 'The variants are rebuilt for the new file.');
+        self::assertNotEmpty($fresh->getRenditions(), 'The renditions are rebuilt for the new file.');
 
         $versions = $this->entityManager()->getRepository(DocumentVersion::class)
             ->findBy(['document' => $fresh]);

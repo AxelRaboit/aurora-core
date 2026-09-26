@@ -75,6 +75,11 @@ final readonly class SpaceOrphanedDocumentFinder
                 continue;
             }
 
+            // Someone said this one stays, unused or not.
+            if ($document->isKept()) {
+                continue;
+            }
+
             if (0 !== $this->usageService->findUsages($id)['total']) {
                 continue;
             }

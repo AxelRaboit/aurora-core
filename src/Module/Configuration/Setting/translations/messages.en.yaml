@@ -90,7 +90,7 @@ backend:
       usage_title: What is stored
       usage_active: receiving
       usage_files: "No file | 1 file | {count} files"
-      usage_hint: "The weight of the library's documents, trash excluded. Leftovers from a failed import and variants a purge has not swept are not counted."
+      usage_hint: "The weight of the library's documents, trash excluded. Leftovers from a failed import and resized copies a purge has not swept are not counted."
       disk_r2: Cloudflare R2
       switch_blocked: Test the connection before switching.
       switch_hint: "Only affects files from now on. The ones already stored do not move."

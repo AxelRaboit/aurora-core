@@ -6,6 +6,7 @@ namespace Aurora\Module\Ged\Document\Command;
 
 use Aurora\Module\Ged\Document\Dto\DocumentInput;
 use Aurora\Module\Ged\Document\Manager\DocumentManagerInterface;
+use Aurora\Module\Ged\Document\Service\DocumentFamilyRule;
 use Aurora\Module\Ged\Document\Service\GedDocumentUploader;
 use Aurora\Module\Ged\Enum\DocumentStatusEnum;
 use SplFileInfo;
@@ -29,13 +30,13 @@ use Throwable;
  * wrong way in for a folder of eighty photographs, for the contents of a
  * previous site being moved over, or for anything a script produced - and
  * until now those had no way in at all short of writing rows by hand, which
- * skips the reference, the variants, the version history and the audit trail,
+ * skips the reference, the renditions, the version history and the audit trail,
  * and gets the storage disk wrong the day the installation stops writing to
  * the local one.
  *
  * So this takes exactly the same road as an upload: the uploader stores the
  * bytes through the active disk, the manager stamps the reference, builds the
- * responsive variants, records the first version and writes the audit line.
+ * responsive renditions, records the first version and writes the audit line.
  * A document imported here is indistinguishable from one dropped in the
  * browser, which is the whole point.
  *
@@ -58,6 +59,7 @@ final class ImportDocumentsCommand extends Command
     public function __construct(
         private readonly GedDocumentUploader $uploader,
         private readonly DocumentManagerInterface $documentManager,
+        private readonly DocumentFamilyRule $familyRule,
     ) {
         parent::__construct();
     }
@@ -79,6 +81,9 @@ final class ImportDocumentsCommand extends Command
         );
 
         $this->addOption('folder', null, InputOption::VALUE_REQUIRED, 'Id of the folder to file them under.');
+        $this->addOption('original', null, InputOption::VALUE_REQUIRED, 'Id of the document these files are alternates of.');
+        $this->addOption('label', null, InputOption::VALUE_REQUIRED, 'What sets these alternates apart from their original, e.g. "jaune".');
+        $this->addOption('kept', null, InputOption::VALUE_NONE, 'Mark them as kept on purpose, used or not.');
         $this->addOption('dry-run', null, InputOption::VALUE_NONE, 'List what would be imported and stop.');
     }
 
@@ -97,6 +102,23 @@ final class ImportDocumentsCommand extends Command
 
         $folderOption = $input->getOption('folder');
         $folderId = is_numeric($folderOption) ? (int) $folderOption : null;
+
+        $originalOption = $input->getOption('original');
+        $originalId = is_numeric($originalOption) ? (int) $originalOption : null;
+        $label = mb_trim((string) $input->getOption('label'));
+        $label = '' !== $label ? $label : null;
+
+        $kept = (bool) $input->getOption('kept');
+
+        // Checked before a single byte is stored: the same rule as the
+        // screen, so a family built from the shell has the screen's shape.
+        $familyErrors = $this->familyRule->errors(null, new DocumentInput(originalId: $originalId));
+
+        if ([] !== $familyErrors) {
+            $io->error(sprintf('Original #%d cannot take alternates: %s', (int) $originalId, implode(', ', $familyErrors)));
+
+            return Command::INVALID;
+        }
 
         /** @var list<string> $paths */
         $paths = (array) $input->getArgument('paths');
@@ -145,6 +167,9 @@ final class ImportDocumentsCommand extends Command
                 height: $metadata['height'],
                 thumbnailPath: $metadata['thumbnailPath'],
                 folderId: $folderId,
+                kept: $kept,
+                originalId: $originalId,
+                alternateLabel: $label,
             ));
 
             ++$imported;

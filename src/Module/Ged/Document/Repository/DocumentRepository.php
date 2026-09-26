@@ -8,7 +8,7 @@ use Aurora\Core\Repository\ResolveTargetEntityRepository;
 use Aurora\Core\Repository\Trait\PaginationTrait;
 use Aurora\Core\Storage\Enum\MimeGroupEnum;
 use Aurora\Core\Storage\Enum\StorageDiskEnum;
-use Aurora\Core\Storage\Service\ImageVariantGenerator;
+use Aurora\Core\Storage\Service\ImageRenditionGenerator;
 use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Service\DocumentRelocator;
@@ -40,11 +40,15 @@ class DocumentRepository extends ResolveTargetEntityRepository
         bool $rootOnly = false,
         ?StorageDiskEnum $storageDisk = null,
         bool $trashed = false,
+        bool $originalsOnly = false,
     ): array {
+        // The original rides along: an alternate names it on its row, and
+        // reading it lazily would cost one query per alternate on the page.
         $qb = $this->createQueryBuilder('d')
             ->leftJoin('d.category', 'c')
             ->leftJoin('d.folder', 'folder')
-            ->addSelect('c', 'folder')
+            ->leftJoin('d.original', 'original')
+            ->addSelect('c', 'folder', 'original')
             ->orderBy($trashed ? 'd.deletedAt' : 'd.createdAt', Order::Descending->value);
         $countQb = $this->createQueryBuilder('d')->select('COUNT(d.id)');
 
@@ -95,6 +99,13 @@ class DocumentRepository extends ResolveTargetEntityRepository
         if ($storageDisk instanceof StorageDiskEnum) {
             $qb->andWhere('d.storageDisk = :storageDisk')->setParameter('storageDisk', $storageDisk);
             $countQb->andWhere('d.storageDisk = :storageDisk')->setParameter('storageDisk', $storageDisk);
+        }
+
+        // A family shown as its original alone: the alternates are one click
+        // away on it, and the listing stops showing three times one visual.
+        if ($originalsOnly) {
+            $qb->andWhere('d.original IS NULL');
+            $countQb->andWhere('d.original IS NULL');
         }
 
         $result = $this->paginate($qb, $countQb, $page, $limit);
@@ -269,14 +280,14 @@ class DocumentRepository extends ResolveTargetEntityRepository
      * Asked by the serving endpoint, which receives a key and nothing else,
      * to decide whether a visitor with no session may read it. Three kinds of
      * key reach it and all three must resolve, because a picture that is
-     * withheld while its `medium` variant is not has been published by
+     * withheld while its `medium` rendition is not has been published by
      * accident:
      *
      *  - the document's own file, matched on `filePath`;
      *  - its rendered still (a PDF's first page, a film's poster), matched on
      *    `thumbnailPath`, which is a column like the other;
-     *  - one of its responsive variants, which live in a JSON column and so
-     *    are matched by shape instead - see {@see variantSourcePattern()}.
+     *  - one of its responsive renditions, which live in a JSON column and so
+     *    are matched by shape instead - see {@see renditionSourcePattern()}.
      *
      * Null for a key no row claims, which covers an orphan file left behind
      * by a deletion and the snapshot of a previous version: neither is a
@@ -295,7 +306,7 @@ class DocumentRepository extends ResolveTargetEntityRepository
 
     /**
      * The disk holding a file of the library - its source or one of its
-     * variants - or null when no live document owns the path. Lets the file
+     * renditions - or null when no live document owns the path. Lets the file
      * locator skip asking a remote disk whether the object exists.
      */
     public function findStorageDiskForPath(string $path): ?StorageDiskEnum
@@ -316,20 +327,20 @@ class DocumentRepository extends ResolveTargetEntityRepository
             ->andWhere('d.deletedAt IS NULL')
             ->setMaxResults(1);
 
-        $variantPattern = $this->variantSourcePattern($path);
+        $renditionPattern = $this->renditionSourcePattern($path);
 
-        if (null === $variantPattern) {
+        if (null === $renditionPattern) {
             $queryBuilder
                 ->andWhere('d.filePath = :path OR d.thumbnailPath = :path')
                 ->setParameter('path', $path);
         } else {
-            // A variant carries its source's basename but not its extension
+            // A rendition carries its source's basename but not its extension
             // (everything is re-encoded to WebP), so the source is matched on
             // its stem. `ESCAPE` is set because a stem is slugged and could
             // in principle be made to carry a wildcard.
             $queryBuilder
                 ->andWhere("d.filePath LIKE :pattern ESCAPE '!'")
-                ->setParameter('pattern', $variantPattern);
+                ->setParameter('pattern', $renditionPattern);
         }
 
         return $queryBuilder;
@@ -337,15 +348,15 @@ class DocumentRepository extends ResolveTargetEntityRepository
 
     /**
      * `ged/2026/05/variants/medium/photo-a1b2.webp` → `ged/2026/05/photo-a1b2.%`,
-     * and null for any key that is not shaped like a variant.
+     * and null for any key that is not shaped like a rendition.
      *
-     * Mirrors the key {@see ImageVariantGenerator}
+     * Mirrors the key {@see ImageRenditionGenerator}
      * writes, which is the source's own directory plus `variants/<size>/`.
-     * The coupling is real and is pinned by a test: change how a variant is
+     * The coupling is real and is pinned by a test: change how a rendition is
      * named and this stops finding its owner, which fails open onto the
      * privilege check rather than onto the public.
      */
-    private function variantSourcePattern(string $path): ?string
+    private function renditionSourcePattern(string $path): ?string
     {
         if (1 !== preg_match('#^(?P<dir>.+)/variants/[^/]+/(?P<stem>[^/]+)\.[^/.]+$#', $path, $matches)) {
             return null;
@@ -487,6 +498,53 @@ class DocumentRepository extends ResolveTargetEntityRepository
         return $this->createQueryBuilder('d')
             ->where('d.trashedWithFolderId = :id')
             ->setParameter('id', $folderId)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * How many living alternates each of these documents has, in one query.
+     *
+     * @param list<int> $ids
+     *
+     * @return array<int, int> original id => count, absent when none
+     */
+    public function countAlternatesFor(array $ids): array
+    {
+        if ([] === $ids) {
+            return [];
+        }
+
+        $rows = $this->createQueryBuilder('d')
+            ->select('IDENTITY(d.original) AS originalId', 'COUNT(d.id) AS total')
+            ->where('d.original IN (:ids)')
+            ->andWhere('d.deletedAt IS NULL')
+            ->groupBy('d.original')
+            ->setParameter('ids', $ids)
+            ->getQuery()
+            ->getArrayResult();
+
+        $counts = [];
+        foreach ($rows as $row) {
+            $counts[(int) $row['originalId']] = (int) $row['total'];
+        }
+
+        return $counts;
+    }
+
+    /**
+     * The living alternates of a document, by label.
+     *
+     * @return list<Document>
+     */
+    public function findAlternatesOf(DocumentInterface $original): array
+    {
+        return $this->createQueryBuilder('d')
+            ->where('d.original = :original')
+            ->andWhere('d.deletedAt IS NULL')
+            ->setParameter('original', $original)
+            ->orderBy('d.alternateLabel', Order::Ascending->value)
+            ->addOrderBy('d.title', Order::Ascending->value)
             ->getQuery()
             ->getResult();
     }

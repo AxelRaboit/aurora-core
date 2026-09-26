@@ -54,7 +54,7 @@ final class ShareImageTest extends IntegrationTestCase
         parent::tearDown();
     }
 
-    public function testTheShareImageIsAVariantRatherThanTheOriginal(): void
+    public function testTheShareImageIsARenditionRatherThanTheOriginal(): void
     {
         $slug = $this->publish([
             'large' => 'ged/2026/09/variants/large/photo.webp',
@@ -70,8 +70,8 @@ final class ShareImageTest extends IntegrationTestCase
         self::assertStringNotContainsString('content="https://localhost/uploads/ged/2026/09/photo.png"', $html);
     }
 
-    /** A document with no variants still gets shared, with what it has. */
-    public function testAPictureWithNoVariantFallsBackToTheOriginal(): void
+    /** A document with no renditions still gets shared, with what it has. */
+    public function testAPictureWithNoRenditionFallsBackToTheOriginal(): void
     {
         $slug = $this->publish([]);
 
@@ -84,8 +84,8 @@ final class ShareImageTest extends IntegrationTestCase
         );
     }
 
-    /** @param array<string, string> $variants */
-    private function publish(array $variants): string
+    /** @param array<string, string> $renditions */
+    private function publish(array $renditions): string
     {
         $suffix = bin2hex(random_bytes(4));
 
@@ -103,7 +103,7 @@ final class ShareImageTest extends IntegrationTestCase
         $document->setTitle('Photo '.$suffix)
             ->setMimeType('image/png')
             ->setFilePath('ged/2026/09/photo.png')
-            ->setVariants($variants);
+            ->setRenditions($renditions);
 
         $this->entityManager->persist($document);
 

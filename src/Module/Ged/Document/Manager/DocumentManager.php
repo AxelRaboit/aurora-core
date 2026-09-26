@@ -8,7 +8,7 @@ use Aurora\Core\Sequence\SequenceGenerator;
 use Aurora\Core\Storage\Adapter\StoredObject;
 use Aurora\Core\Storage\Enum\MimeTypeEnum;
 use Aurora\Core\Storage\Enum\StorageDiskEnum;
-use Aurora\Core\Storage\Service\ImageVariantGenerator;
+use Aurora\Core\Storage\Service\ImageRenditionGenerator;
 use Aurora\Core\Storage\Service\PhotoExifReader;
 use Aurora\Core\Storage\StorageManager;
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
@@ -46,7 +46,7 @@ class DocumentManager implements DocumentManagerInterface
         protected readonly DocumentVersionRepository $versionRepository,
         protected readonly DocumentRepository $documentRepository,
         protected readonly GedDocumentUploader $uploader,
-        protected readonly ImageVariantGenerator $variantGenerator,
+        protected readonly ImageRenditionGenerator $renditionGenerator,
         protected readonly StorageManager $storageManager,
         // Last and optional, so a project that builds this manager by hand
         // keeps working: without it, photographs simply carry no settings.
@@ -60,10 +60,10 @@ class DocumentManager implements DocumentManagerInterface
         $document->setReference($this->sequenceGenerator->next($prefix));
         $this->applyInput($document, $input);
         // The uploader wrote these bytes moments ago, so they are wherever the
-        // active disk is. Stamped before the variants, which are generated
+        // active disk is. Stamped before the renditions, which are generated
         // alongside the source and therefore land on the same backend.
         $document->setStorageDisk($this->storageManager->activeDisk());
-        $this->regenerateVariantsIfImage($document);
+        $this->regenerateRenditionsIfImage($document);
         $this->entityManager->persist($document);
         $this->entityManager->flush();
 
@@ -85,7 +85,7 @@ class DocumentManager implements DocumentManagerInterface
         // relative path on a new upload (timestamped + unique slug), so a
         // string compare is enough to detect a swap.
         $fileChanged = null !== $newFilePath && $newFilePath !== $currentFilePath;
-        $previousVariants = $document->getVariants();
+        $previousRenditions = $document->getRenditions();
 
         $this->applyInput($document, $input);
 
@@ -96,13 +96,13 @@ class DocumentManager implements DocumentManagerInterface
             $previousDisk = $document->getStorageDisk();
             $document->setStorageDisk($this->storageManager->activeDisk());
 
-            // Old variants belong to the old file, and possibly to the old
+            // Old renditions belong to the old file, and possibly to the old
             // backend. Dropped through that one rather than the active one.
-            $this->variantGenerator->deleteVariants(
+            $this->renditionGenerator->deleteRenditions(
                 $this->storageManager->forDisk($previousDisk),
-                $previousVariants,
+                $previousRenditions,
             );
-            $this->regenerateVariantsIfImage($document);
+            $this->regenerateRenditionsIfImage($document);
         }
 
         $this->entityManager->flush();
@@ -149,7 +149,7 @@ class DocumentManager implements DocumentManagerInterface
     /**
      * Deletes a document for good, bytes included.
      *
-     * The variants go through the disk that holds them, and the original file
+     * The renditions go through the disk that holds them, and the original file
      * only if no other row still points at it: a document can share its file
      * with another after a copy, and one deletion must not blank the other.
      */
@@ -158,13 +158,13 @@ class DocumentManager implements DocumentManagerInterface
         $this->auditDeleted($document);
 
         $owned = $this->collectOwnedFiles([$document]);
-        $variants = $document->getVariants();
+        $renditions = $document->getRenditions();
         $disk = $document->getStorageDisk();
 
         $this->entityManager->remove($document);
         $this->entityManager->flush();
 
-        $this->variantGenerator->deleteVariants($this->storageManager->forDisk($disk), $variants);
+        $this->renditionGenerator->deleteRenditions($this->storageManager->forDisk($disk), $renditions);
         $this->deleteUnreferencedFiles($owned, $disk);
     }
 
@@ -279,7 +279,7 @@ class DocumentManager implements DocumentManagerInterface
             return 0;
         }
 
-        $variantsByDisk = [];
+        $renditionsByDisk = [];
         $pathsByDisk = [];
 
         // Deux passes, et c'est tout l'objet de la correction. `auditDeleted()`
@@ -299,7 +299,7 @@ class DocumentManager implements DocumentManagerInterface
         foreach ($documents as $document) {
             $this->auditDeleted($document);
             $disk = $document->getStorageDisk()->value;
-            $variantsByDisk[$disk] = array_merge($variantsByDisk[$disk] ?? [], $document->getVariants());
+            $renditionsByDisk[$disk] = array_merge($renditionsByDisk[$disk] ?? [], $document->getRenditions());
             $pathsByDisk[$disk] = array_merge($pathsByDisk[$disk] ?? [], $this->collectOwnedFiles([$document]));
         }
 
@@ -309,10 +309,10 @@ class DocumentManager implements DocumentManagerInterface
 
         $this->entityManager->flush();
 
-        foreach ($variantsByDisk as $disk => $variants) {
-            $this->variantGenerator->deleteVariants(
+        foreach ($renditionsByDisk as $disk => $renditions) {
+            $this->renditionGenerator->deleteRenditions(
                 $this->storageManager->forDisk(StorageDiskEnum::from($disk)),
-                $variants,
+                $renditions,
             );
         }
 
@@ -348,7 +348,7 @@ class DocumentManager implements DocumentManagerInterface
             return;
         }
 
-        $previousVariants = $document->getVariants();
+        $previousRenditions = $document->getRenditions();
 
         $document->setFilePath($result['filePath']);
         $document->setFileName($result['fileName']);
@@ -363,11 +363,11 @@ class DocumentManager implements DocumentManagerInterface
         $previousDisk = $document->getStorageDisk();
         $document->setStorageDisk($this->storageManager->activeDisk());
 
-        // Old variants point at the pre-crop file path, on the disk that held
+        // Old renditions point at the pre-crop file path, on the disk that held
         // it - drop them there, then regenerate so srcset consumers stay in
         // sync.
-        $this->variantGenerator->deleteVariants($this->storageManager->forDisk($previousDisk), $previousVariants);
-        $this->regenerateVariantsIfImage($document);
+        $this->renditionGenerator->deleteRenditions($this->storageManager->forDisk($previousDisk), $previousRenditions);
+        $this->regenerateRenditionsIfImage($document);
 
         $this->entityManager->flush();
         $this->recordVersion($document);
@@ -551,16 +551,22 @@ class DocumentManager implements DocumentManagerInterface
 
         $document->setFocalX($input->getFocalX());
         $document->setFocalY($input->getFocalY());
+
+        $document->setKept($input->isKept());
+
+        $original = null !== $input->getOriginalId() ? $this->documentRepository->find($input->getOriginalId()) : null;
+        $document->setOriginal($original);
+        $document->setAlternateLabel($original instanceof DocumentInterface ? $input->getAlternateLabel() : null);
     }
 
     /**
-     * Regenerates the responsive variants (thumbnail/medium/large in WebP)
+     * Regenerates the responsive renditions (thumbnail/medium/large in WebP)
      * for raster image documents. No-op for non-images, PDFs and missing
      * files. Called after every filePath swap (create / update / crop).
      *
      * **And re-reads the size afterwards.** The size on the record is the one
      * the upload measured, and for a JPEG that number stops being true one
-     * line later: {@see ImageVariantGenerator} re-encodes the source in place
+     * line later: {@see ImageRenditionGenerator} re-encodes the source in place
      * at quality 85 and strips its metadata. Measured on a real import, a
      * 1,532,467 byte photograph is 213,901 on disk once filed - so the
      * library was showing a weight seven times the truth, and every quota or
@@ -569,18 +575,18 @@ class DocumentManager implements DocumentManagerInterface
      * Asked of the adapter rather than of the local file: the source may live
      * in object storage, where the only honest answer comes from a stat.
      */
-    protected function regenerateVariantsIfImage(DocumentInterface $document): void
+    protected function regenerateRenditionsIfImage(DocumentInterface $document): void
     {
         $filePath = $document->getFilePath();
         if (null === $filePath) {
-            $document->setVariants([]);
+            $document->setRenditions([]);
 
             return;
         }
 
         $adapter = $this->storageManager->forDisk($document->getStorageDisk());
 
-        // Before the variants, which re-encode a JPEG and drop its metadata.
+        // Before the renditions, which re-encode a JPEG and drop its metadata.
         // A file that says nothing - a crop of an already re-encoded source -
         // leaves the settings read from the original alone.
         $exif = $this->exifReader?->read($adapter, $filePath, (string) $document->getMimeType()) ?? [];
@@ -589,12 +595,12 @@ class DocumentManager implements DocumentManagerInterface
             $document->setExif($exif);
         }
 
-        $variants = $this->variantGenerator->generate(
+        $renditions = $this->renditionGenerator->generate(
             $adapter,
             $filePath,
             (string) $document->getMimeType(),
         );
-        $document->setVariants($variants);
+        $document->setRenditions($renditions);
 
         $stored = $adapter->stat($filePath);
 

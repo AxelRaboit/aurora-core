@@ -1,7 +1,7 @@
 # The test suite uploads real files. Pointed at `var/uploads` - the value
 # `config/services.yaml` sets for every environment - it wrote them into the
 # directory a developer's own install serves from, and nothing removed them:
-# 1184 `pixel-*.png` and their variants had piled up there before anybody
+# 1184 `pixel-*.png` and their renditions had piled up there before anybody
 # looked, and they surfaced as orphans in the very command written to find
 # orphans.
 #

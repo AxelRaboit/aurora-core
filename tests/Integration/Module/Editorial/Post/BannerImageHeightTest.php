@@ -136,7 +136,7 @@ final class BannerImageHeightTest extends IntegrationTestCase
         $document = new Document();
         $document->setTitle('Entête')->setMimeType('image/png')->setFilePath("ged/2026/09/{$name}.png")
             ->setWidth($width)->setHeight($height)
-            ->setVariants(['large' => "ged/2026/09/variants/large/{$name}.webp"]);
+            ->setRenditions(['large' => "ged/2026/09/variants/large/{$name}.webp"]);
         $this->entityManager->persist($document);
         $this->entityManager->flush();
 

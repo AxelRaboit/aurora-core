@@ -95,7 +95,7 @@ backend:
         delete_description: Supprime le document et son fichier. Sans retour possible.
         relocate_to_remote: Envoyer vers le stockage distant
         relocate_to_local: Rapatrier sur le serveur
-        relocate_description: "Déplace le fichier, ses variantes et son historique. Son adresse ne change pas."
+        relocate_description: "Déplace le fichier, ses tailles générées et son historique. Son adresse ne change pas."
         relocate_pending: Un déplacement est déjà en cours pour ce document.
       storage:
         column: Stockage
@@ -178,6 +178,29 @@ backend:
       usage_none: Ce document n'est utilisé nulle part
       usage_unused_badge: Inutilisé
       usage_unused_hint: Aucune page, aucun deck et aucun espace ne l'affiche
+      kept_badge: À conserver
+      kept_hint: Inutilisé volontairement, à ne pas supprimer
+      alternates_badge: "Aucune variante | 1 variante | {count} variantes"
+      alternate_badge: Variante
+      alternate_badge_labelled: "Variante · {label}"
+      alternate_of: "Variante de « {title} »"
+      family:
+        section: Variantes et conservation
+        kept: À conserver
+        kept_hint: "Même inutilisé, ce document reste : une variante gardée en réserve, une image qui attend sa page."
+        original: Variante de
+        original_none: Ce document n'est la variante d'aucun autre.
+        original_choose: Choisir l'original
+        original_change: Changer
+        original_remove: Retirer
+        original_locked: "Ce document a ses propres variantes : il reste un original."
+        label: Ce qui la distingue
+        label_placeholder: "jaune, rouge, sans texte…"
+        alternates: Ses variantes
+        alternates_empty: Aucune variante pour l'instant.
+        open_original: Ouvrir l'original
+      originals_only: Regrouper les variantes
+      originals_only_hint: "N'afficher que les originaux ; leurs variantes s'ouvrent depuis chacun."
       usage:
         billing_invoice: Facture
         billing_ocr: Import OCR
@@ -210,6 +233,10 @@ backend:
       move: Déplacer
       errors:
         title_required: Le titre est obligatoire
+        original_self: Un document ne peut pas être sa propre variante.
+        original_not_found: Cet original n'existe plus.
+        original_is_alternate: Cet original est lui-même une variante ; choisissez le document d'origine.
+        original_has_alternates: Ce document a ses propres variantes et ne peut pas devenir une variante.
         upload_required: Aucun fichier reçu
         image_required: Ce champ n'accepte que des images.
         upload_too_large: "Ce fichier dépasse 100 Mo. Réduisez-le ou déposez-le autrement."

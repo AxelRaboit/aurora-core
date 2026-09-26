@@ -150,7 +150,7 @@ abstract class AbstractDocument implements DocumentInterface
     protected ?float $focalY = null;
 
     /**
-     * Map of variant name → relative path under var/uploads/ (e.g.
+     * Map of rendition name → relative path under var/uploads/ (e.g.
      * `['thumbnail' => 'ged/.../variants/thumbnail/foo.webp', 'medium' => …]`).
      * Generated server-side at upload / crop for raster images. Empty for
      * non-image documents.
@@ -158,11 +158,11 @@ abstract class AbstractDocument implements DocumentInterface
      * @var array<string, string>
      */
     #[ORM\Column(type: Types::JSON, options: ['default' => '{}'])]
-    protected array $variants = [];
+    protected array $renditions = [];
 
     /**
      * What the camera wrote in the photograph: body, lens, aperture, speed,
-     * sensitivity, focal length, date. Read at upload, **before** the variant
+     * sensitivity, focal length, date. Read at upload, **before** the rendition
      * generator re-encodes the JPEG and drops its metadata - after that the
      * file no longer knows. Position is deliberately not kept: a picture
      * published on a page should not say where its author lives.
@@ -202,6 +202,29 @@ abstract class AbstractDocument implements DocumentInterface
     #[ORM\ManyToOne(targetEntity: DocumentFolderInterface::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     protected ?DocumentFolderInterface $folder = null;
+
+    /**
+     * Unused on purpose. The library flags a document nothing points at, and
+     * this says the flag is known and the file stays: an alternate kept in
+     * reserve, a picture waiting for its page. Nothing purges on it; it keeps
+     * a person from tidying away what someone meant to keep.
+     */
+    #[ORM\Column(options: ['default' => false])]
+    protected bool $kept = false;
+
+    /**
+     * The document this one is declined from: the green visual a yellow copy
+     * was made of. One level only - an original is never an alternate itself,
+     * so a family reads as one original and its alternates, never a chain.
+     * Deleting the original leaves its alternates standing on their own.
+     */
+    #[ORM\ManyToOne(targetEntity: DocumentInterface::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    protected ?DocumentInterface $original = null;
+
+    /** What sets an alternate apart from its original, in a word: « jaune ». */
+    #[ORM\Column(length: 40, nullable: true)]
+    protected ?string $alternateLabel = null;
 
     public function __construct()
     {
@@ -464,6 +487,42 @@ abstract class AbstractDocument implements DocumentInterface
         return $this;
     }
 
+    public function isKept(): bool
+    {
+        return $this->kept;
+    }
+
+    public function setKept(bool $kept): static
+    {
+        $this->kept = $kept;
+
+        return $this;
+    }
+
+    public function getOriginal(): ?DocumentInterface
+    {
+        return $this->original;
+    }
+
+    public function setOriginal(?DocumentInterface $original): static
+    {
+        $this->original = $original;
+
+        return $this;
+    }
+
+    public function getAlternateLabel(): ?string
+    {
+        return $this->alternateLabel;
+    }
+
+    public function setAlternateLabel(?string $alternateLabel): static
+    {
+        $this->alternateLabel = $alternateLabel;
+
+        return $this;
+    }
+
     public function getFocalX(): ?float
     {
         return $this->focalX;
@@ -489,15 +548,15 @@ abstract class AbstractDocument implements DocumentInterface
     }
 
     /** @return array<string, string> */
-    public function getVariants(): array
+    public function getRenditions(): array
     {
-        return $this->variants;
+        return $this->renditions;
     }
 
-    /** @param array<string, string> $variants */
-    public function setVariants(array $variants): static
+    /** @param array<string, string> $renditions */
+    public function setRenditions(array $renditions): static
     {
-        $this->variants = $variants;
+        $this->renditions = $renditions;
 
         return $this;
     }

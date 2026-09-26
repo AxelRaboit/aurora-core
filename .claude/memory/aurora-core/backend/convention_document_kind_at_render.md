@@ -62,7 +62,7 @@ private function mediaData(?DocumentInterface $media, string $alt): ?array
         return null;
     }
 
-    $url = $this->documentUrlGenerator->variantUrl($media, 'large')
+    $url = $this->documentUrlGenerator->renditionUrl($media, 'large')
         ?? $this->documentUrlGenerator->publicUrl($media);
 
     // Un document peut n'avoir aucun fichier - la démo GED en garde trois

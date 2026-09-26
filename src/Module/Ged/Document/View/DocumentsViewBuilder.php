@@ -63,6 +63,7 @@ final readonly class DocumentsViewBuilder
             'showPath' => $this->urlGenerator->generate('backend_ged_documents_show', ['id' => '__id__']),
             'versionsPath' => $this->urlGenerator->generate('backend_ged_documents_versions', ['id' => '__id__']),
             'usagePath' => $this->urlGenerator->generate('backend_ged_documents_usage', ['id' => '__id__']),
+            'alternatesPath' => $this->urlGenerator->generate('backend_ged_documents_alternates', ['id' => '__id__']),
             'updatePath' => $this->urlGenerator->generate('backend_ged_documents_update', ['id' => '__id__']),
             'deletePath' => $this->urlGenerator->generate('backend_ged_documents_delete', ['id' => '__id__']),
             'cropPath' => $this->urlGenerator->generate('backend_ged_documents_crop', ['id' => '__id__']),
@@ -112,6 +113,7 @@ final readonly class DocumentsViewBuilder
         bool $rootOnly = false,
         ?StorageDiskEnum $storageDisk = null,
         bool $trashed = false,
+        bool $originalsOnly = false,
     ): array {
         $result = $this->documentRepository->findPaginated(
             $pagination->page,
@@ -124,6 +126,7 @@ final readonly class DocumentsViewBuilder
             rootOnly: $rootOnly,
             storageDisk: $storageDisk,
             trashed: $trashed,
+            originalsOnly: $originalsOnly,
         );
 
         return [
@@ -173,11 +176,15 @@ final readonly class DocumentsViewBuilder
         }
 
         $counts = $this->usageService->countUsagesFor($ids);
+        // Same page, one more question: which rows are originals, and of how
+        // many alternates. The badge says so before the row is opened.
+        $alternates = $this->documentRepository->countAlternatesFor($ids);
 
         return array_map(
             static fn (array $item): array => [
                 ...$item,
                 'usageCount' => $counts[$item['id'] ?? null] ?? 0,
+                'alternateCount' => $alternates[$item['id'] ?? null] ?? 0,
             ],
             $items,
         );

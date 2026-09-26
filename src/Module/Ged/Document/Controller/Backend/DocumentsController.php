@@ -24,6 +24,7 @@ use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Document\Repository\DocumentVersionRepository;
 use Aurora\Module\Ged\Document\Serializer\DocumentSerializerInterface;
 use Aurora\Module\Ged\Document\Serializer\DocumentVersionSerializerInterface;
+use Aurora\Module\Ged\Document\Service\DocumentFamilyRule;
 use Aurora\Module\Ged\Document\Service\DocumentRelocator;
 use Aurora\Module\Ged\Document\Service\DocumentUsageService;
 use Aurora\Module\Ged\Document\Service\GedDocumentUploader;
@@ -52,7 +53,7 @@ final class DocumentsController extends AbstractController
     /**
      * Above this, a move goes to a worker rather than holding the request.
      *
-     * Chosen so the common case stays instant: an image and its variants sit
+     * Chosen so the common case stays instant: an image and its renditions sit
      * far below, a scanned contract usually too. It is a video, or a document
      * with a long history of versions, that crosses it.
      */
@@ -76,6 +77,7 @@ final class DocumentsController extends AbstractController
         private readonly StorageSettings $storageSettings,
         private readonly DocumentRepository $documentRepository,
         private readonly UploadPolicyProvider $uploadPolicies,
+        private readonly DocumentFamilyRule $familyRule,
     ) {}
 
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
@@ -107,7 +109,11 @@ final class DocumentsController extends AbstractController
         // inside it, and there is one payload shape to keep in sync.
         $trashed = $request->query->getBoolean('trashed');
 
-        return $this->json($this->viewBuilder->buildListPayload($pagination, $categoryId, $tagId, $folderId, $status, $mimeGroup, $rootOnly, $storageDisk, $trashed));
+        // Families folded to their original, for a listing that wants each
+        // visual once and for the picker that chooses an original.
+        $originalsOnly = $request->query->getBoolean('originalsOnly');
+
+        return $this->json($this->viewBuilder->buildListPayload($pagination, $categoryId, $tagId, $folderId, $status, $mimeGroup, $rootOnly, $storageDisk, $trashed, $originalsOnly));
     }
 
     /**
@@ -157,6 +163,15 @@ final class DocumentsController extends AbstractController
         ]);
     }
 
+    /** The alternates declined from this document, for its edit screen. */
+    #[Route('/{id}/alternates', name: '_alternates', methods: [HttpMethodEnum::Get->value])]
+    public function alternates(Document $document): JsonResponse
+    {
+        return $this->jsonSuccess([
+            'alternates' => array_map($this->serializer->serialize(...), $this->documentRepository->findAlternatesOf($document)),
+        ]);
+    }
+
     #[Route('/{id}/usage', name: '_usage', methods: [HttpMethodEnum::Get->value])]
     public function usage(Document $document): JsonResponse
     {
@@ -168,7 +183,7 @@ final class DocumentsController extends AbstractController
     public function create(Request $request): JsonResponse
     {
         $input = $this->inputFactory->fromArray($this->decodeJson($request));
-        $errors = $this->payloadValidator->errors($input);
+        $errors = $this->payloadValidator->errors($input) + $this->familyRule->errors(null, $input);
         if ([] !== $errors) {
             return $this->jsonInvalidInput($errors);
         }
@@ -183,7 +198,7 @@ final class DocumentsController extends AbstractController
     public function update(Document $document, Request $request): JsonResponse
     {
         $input = $this->inputFactory->fromArray($this->decodeJson($request));
-        $errors = $this->payloadValidator->errors($input);
+        $errors = $this->payloadValidator->errors($input) + $this->familyRule->errors($document, $input);
         if ([] !== $errors) {
             return $this->jsonInvalidInput($errors);
         }

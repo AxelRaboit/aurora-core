@@ -9,6 +9,9 @@ export function useDocumentFilters(reload) {
     // Only ever set on installations with a second backend; the screen hides
     // the control otherwise, and an unset filter costs nothing here.
     const filterStorageDisk = ref(null);
+    // Families folded to their original: each visual once, its variants a
+    // click away on it.
+    const filterOriginalsOnly = ref(false);
     const hasActiveFilter = computed(
         () =>
             !!(
@@ -17,7 +20,8 @@ export function useDocumentFilters(reload) {
                 filterFolderId.value ||
                 filterStatus.value ||
                 filterMimeGroup.value ||
-                filterStorageDisk.value
+                filterStorageDisk.value ||
+                filterOriginalsOnly.value
             ),
     );
 
@@ -28,6 +32,7 @@ export function useDocumentFilters(reload) {
         status: filterStatus.value || undefined,
         mimeGroup: filterMimeGroup.value || undefined,
         storageDisk: filterStorageDisk.value || undefined,
+        originalsOnly: filterOriginalsOnly.value ? 1 : undefined,
     });
 
     function applyFilter() {
@@ -41,6 +46,7 @@ export function useDocumentFilters(reload) {
         filterStatus.value = null;
         filterMimeGroup.value = null;
         filterStorageDisk.value = null;
+        filterOriginalsOnly.value = false;
         reload();
     }
 
@@ -51,6 +57,7 @@ export function useDocumentFilters(reload) {
         filterStatus,
         filterMimeGroup,
         filterStorageDisk,
+        filterOriginalsOnly,
         hasActiveFilter,
         extraParams,
         applyFilter,

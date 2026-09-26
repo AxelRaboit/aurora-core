@@ -95,7 +95,7 @@ backend:
         delete_description: Removes the document and its file. There is no undo.
         relocate_to_remote: Move to remote storage
         relocate_to_local: Bring back to the server
-        relocate_description: "Moves the file, its variants and its history. Its address does not change."
+        relocate_description: "Moves the file, its resized copies and its history. Its address does not change."
         relocate_pending: A move is already under way for this document.
       storage:
         column: Storage
@@ -178,6 +178,29 @@ backend:
       usage_none: This document is not used anywhere
       usage_unused_badge: Unused
       usage_unused_hint: No page, deck or space is drawing it
+      kept_badge: Keep
+      kept_hint: Unused on purpose, do not delete
+      alternates_badge: "No variant | 1 variant | {count} variants"
+      alternate_badge: Variant
+      alternate_badge_labelled: "Variant · {label}"
+      alternate_of: "Variant of “{title}”"
+      family:
+        section: Variants and keeping
+        kept: Keep
+        kept_hint: "Unused or not, this document stays: a variant held in reserve, a picture waiting for its page."
+        original: Variant of
+        original_none: This document is not a variant of another one.
+        original_choose: Choose the original
+        original_change: Change
+        original_remove: Remove
+        original_locked: "This document has variants of its own: it stays an original."
+        label: What sets it apart
+        label_placeholder: "yellow, red, no text…"
+        alternates: Its variants
+        alternates_empty: No variant yet.
+        open_original: Open the original
+      originals_only: Group variants
+      originals_only_hint: "Show originals only; their variants open from each one."
       usage:
         billing_invoice: Invoice
         billing_ocr: OCR import
@@ -210,6 +233,10 @@ backend:
       move: Move
       errors:
         title_required: Title is required
+        original_self: A document cannot be its own variant.
+        original_not_found: That original no longer exists.
+        original_is_alternate: That original is itself a variant; choose the document it comes from.
+        original_has_alternates: This document has variants of its own and cannot become one.
         upload_required: No file received
         image_required: This field only accepts images.
         upload_too_large: "That file is over 100 MB. Shrink it or file it another way."
