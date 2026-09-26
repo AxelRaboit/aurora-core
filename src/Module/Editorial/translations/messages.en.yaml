@@ -1049,6 +1049,7 @@ backend:
     thumbnail_focal: Crop point
     thumbnail_focal_hint: "What stays visible when a wide photo has to fit a narrow frame. Left unset, the document's own point applies."
     comments_enabled: Comments open
+    share_enabled: Share buttons at the bottom of the page
     field_title: Title
     field_slug: Slug
     slug_hint: 'Left blank, it is derived from the title. Changing it keeps the old URL working.'

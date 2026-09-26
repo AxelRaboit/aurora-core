@@ -66,6 +66,10 @@ abstract class AbstractPost implements PostInterface
     #[ORM\Column(options: ['default' => true])]
     protected bool $commentsEnabled = true;
 
+    /** Whether the page ends with its share buttons. */
+    #[ORM\Column(options: ['default' => true])]
+    protected bool $shareEnabled = true;
+
     /**
      * Whether the published page prints its own title and summary.
      *
@@ -387,6 +391,18 @@ abstract class AbstractPost implements PostInterface
     public function setCommentsEnabled(bool $commentsEnabled): static
     {
         $this->commentsEnabled = $commentsEnabled;
+
+        return $this;
+    }
+
+    public function isShareEnabled(): bool
+    {
+        return $this->shareEnabled;
+    }
+
+    public function setShareEnabled(bool $shareEnabled): static
+    {
+        $this->shareEnabled = $shareEnabled;
 
         return $this;
     }

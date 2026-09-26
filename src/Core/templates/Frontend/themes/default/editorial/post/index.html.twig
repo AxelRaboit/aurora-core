@@ -154,10 +154,12 @@
 {# The reader's own address, resolved once by `seo_define` above and read
    back here rather than rebuilt: two computations of the same canonical URL
    is two places that could disagree about it. #}
-<div {{ vue_component('editorial/frontend/ShareButtons', {
-    url: seo_current().canonical,
-    title: translationData.title,
-}) }} class="not-prose mt-8"></div>
+{% if shareEnabled ?? true %}
+    <div {{ vue_component('editorial/frontend/ShareButtons', {
+        url: seo_current().canonical,
+        title: translationData.title,
+    }) }} class="not-prose mt-8"></div>
+{% endif %}
 
 {# Quiet when the grid has placed the thread itself: one conversation per
    page, where the author put it. #}
