@@ -5,6 +5,28 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.262] - 2026-09-26
+
+### Ajouté
+
+#### Une image d'entête pour la tablette
+À côté de l'image de fond et de l'image pour téléphone, une entête accepte une
+**image pour tablette**, utilisée entre 640 et 1023 px de large. Facultative :
+sans elle, la tablette affiche l'image large, comme avant. Elle se règle pour
+toutes les langues ou par langue, comme l'image pour téléphone, avec son propre
+point de cadrage et, en hauteur « image », ses propres proportions. Elle sert
+aux entêtes composées sur toute la largeur, qui perdent leurs côtés sur
+tablette.
+
+### Corrigé
+
+#### Le titre d'une entête coupé sur tablette
+En hauteur « image », l'entête prenait les proportions de son image, et le
+titre qui passait sur une ligne de plus, entre 640 et 1100 px de large
+environ, était coupé en bas. L'entête s'agrandit désormais pour contenir son
+texte ; les proportions de l'image restent un minimum. Rien ne change aux
+largeurs où le texte tenait déjà.
+
 ## [0.9.261] - 2026-09-26
 
 ### Ajouté

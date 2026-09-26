@@ -173,6 +173,23 @@ describe("usePostBanner", () => {
         expect(layout.value.background.mediaId).toBeNull();
     });
 
+    it("puts the tablet picture on the layout and a language's own on its texts", () => {
+        const { layout, texts, api } = make();
+
+        api.fields.tabletBackgroundMedia.value = { id: 10, url: "/mid.webp" };
+        api.fields.localTabletBackgroundMedia.value = {
+            id: 11,
+            url: "/fr-mid.webp",
+        };
+
+        expect(layout.value.background.tabletMediaId).toBe(10);
+        expect(layout.value.background.tabletMedia).toEqual({
+            url: "/mid.webp",
+        });
+        expect(texts.value.background.tabletMediaId).toBe(11);
+        expect(layout.value.background).not.toHaveProperty("mobileMediaId");
+    });
+
     it("clears a language's picture back to the shared one", () => {
         const { texts, api } = make();
 

@@ -324,8 +324,10 @@ describe("usePostEditor keyed maps", () => {
         expect(form.value.translations.fr.banner.background).toEqual({
             mediaId: null,
             mobileMediaId: null,
+            tabletMediaId: null,
             media: null,
             mobileMedia: null,
+            tabletMedia: null,
         });
     });
 
