@@ -176,13 +176,14 @@ async function onFiles(files) {
                     v-model.number="columns"
                     :label="t('backend.posts.gallery.columns')"
                     :options="columnOptions"
+                    :disabled="'justified' === mode"
                 />
                 <AppSelect
                     v-model="ratio"
                     :label="t('backend.posts.gallery.ratio')"
                     :options="ratioOptions"
-                    :hint="'masonry' === mode ? t('backend.posts.gallery.ratio_ignored') : ''"
-                    :disabled="'masonry' === mode"
+                    :hint="'grid' !== mode ? t('backend.posts.gallery.ratio_ignored') : ''"
+                    :disabled="'grid' !== mode"
                 />
             </div>
         </div>

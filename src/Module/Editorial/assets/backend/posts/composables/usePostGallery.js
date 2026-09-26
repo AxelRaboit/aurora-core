@@ -18,7 +18,7 @@ function writable(get, set) {
 }
 
 /** Kept in step with GalleryNormalizer::LAYOUTS. */
-export const GALLERY_LAYOUTS = ["grid", "masonry"];
+export const GALLERY_LAYOUTS = ["grid", "masonry", "justified"];
 
 /** Kept in step with GalleryNormalizer::RATIOS. */
 export const GALLERY_RATIOS = ["natural", "16x9", "4x3", "1x1", "3x4"];
