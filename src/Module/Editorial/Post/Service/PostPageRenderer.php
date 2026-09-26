@@ -97,6 +97,7 @@ final readonly class PostPageRenderer
             // changes between two readers of the same cached HTML.
             'commentsEnabled' => $this->commentManager->areCommentsEnabled($post),
             'shareEnabled' => $post->isShareEnabled(),
+            'shareLinks' => $post->getShareLinks(),
             // Whether the page prints its own title and summary. Shared, not
             // per translation: it is a decision about the design.
             'titleVisible' => $post->isTitleVisible(),

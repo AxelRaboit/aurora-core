@@ -158,6 +158,7 @@
     <div {{ vue_component('editorial/frontend/ShareButtons', {
         url: seo_current().canonical,
         title: translationData.title,
+        links: shareLinks ?? null,
     }) }} class="not-prose mt-8"></div>
 {% endif %}
 
