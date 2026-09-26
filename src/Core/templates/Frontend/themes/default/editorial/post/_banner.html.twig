@@ -30,21 +30,20 @@
     end: 'justify-end',
 } %}
 
-{# Three steps rather than two, because the first one was not a phone step.
-   `xl` started at 48px below `sm`, and a banner title is the one string on the
-   page nobody can shorten. Measured on a live page, a three-segment title
-   filled 343px of a 343px column: it fits a 375px phone by luck and overflows
-   a narrower one.
+{# Three sizes per title: the base one up to 767px, then `md` from 768px and
+   `lg` from 1024px, each a notch below what a full-width column could take.
 
-   At the new base step that same title's widest word measures 238px, which
+   The base size holds from 640 to 767px on purpose, although the banner
+   already lays out in two columns there (`aurora-grid-banner`): its text
+   column is at its narrowest then, and at the `md` size a long word such as
+   « personnelles » ran into the picture beside it.
+
+   The base step itself is sized for the narrowest phone. Measured on a live
+   page, a three-segment title's widest word takes 238px at that size, which
    fits both the 288px a full-width banner offers at 320px and the 256px a
-   `contained` one leaves - the tightest combination there is. Breaking the
-   words would be the other fix and it is worse: a title split mid-word reads
-   as damage, where a smaller one just reads. #}
-{# One step per banner regime - phone, tablet from 640px, wide from 1024px -
-   and each a notch below what a full-width column could take: from 640px a
-   banner lays out in two columns (`aurora-grid-banner`), and at the full
-   size a long word such as « personnelles » ran into the picture beside it. #}
+   `contained` one leaves. Breaking the words would be the other fix and it is
+   worse: a title split mid-word reads as damage, where a smaller one just
+   reads. #}
 {% set titleSizes = {
     sm: 'text-lg md:text-xl lg:text-2xl',
     md: 'text-2xl md:text-3xl lg:text-4xl',

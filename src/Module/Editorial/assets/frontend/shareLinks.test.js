@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
     DEFAULT_SHARE_LINKS,
+    isShareAddress,
     resolveShareLinks,
     shareHref,
 } from "./shareLinks.js";
@@ -75,5 +76,21 @@ describe("shareLinks", () => {
             ["whatsapp", "Envoyer", "#25d366"],
             ["copy", null, null],
         ]);
+    });
+});
+
+describe("isShareAddress", () => {
+    // The same rule as ShareLinksNormalizer: what fails here is dropped on save.
+    it("keeps https and mailto addresses", () => {
+        expect(isShareAddress("https://example.com/share?u={url}")).toBe(true);
+        expect(isShareAddress("mailto:?body={url}")).toBe(true);
+    });
+
+    it("refuses what the server would drop", () => {
+        expect(isShareAddress("http://example.com")).toBe(false);
+        expect(isShareAddress("www.example.com")).toBe(false);
+        expect(isShareAddress("https://example.com/a b")).toBe(false);
+        expect(isShareAddress("")).toBe(false);
+        expect(isShareAddress(null)).toBe(false);
     });
 });

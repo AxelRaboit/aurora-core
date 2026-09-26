@@ -26,9 +26,16 @@ import PostBannerPanel from "./components/PostBannerPanel.vue";
 import PostGridPanel from "./components/PostGridPanel.vue";
 import PostGalleryPanel from "./components/PostGalleryPanel.vue";
 import PostRevisionsModal from "./components/PostRevisionsModal.vue";
-import { Save, ArrowLeft, AlertTriangle, Check, Eye, History, RefreshCw, X } from "lucide-vue-next";
+import { Save, AlertTriangle, Check, Eye, History, RefreshCw, X } from "lucide-vue-next";
+import { highlightModeOptions } from "@configuration/backend/themes/highlightModes.js";
 
 const { t, d } = useI18n();
+// The page's own choice first, then the theme's modes - the same list the
+// theme screen offers, from the one place that mirrors the server's.
+const highlightOptions = computed(() => [
+    { value: "", label: t("backend.posts.appearance.highlight_inherit") },
+    ...highlightModeOptions(t),
+]);
 
 const props = defineProps({
     post: { type: Object, default: null },
@@ -533,12 +540,7 @@ function termLabel(term) {
                         <AppSelect
                             v-model="form.highlight"
                             :label="t('backend.posts.appearance.highlight')"
-                            :options="[
-                                { value: '', label: t('backend.posts.appearance.highlight_inherit') },
-                                { value: 'accent', label: t('backend.themes.highlight_accent') },
-                                { value: 'neutral', label: t('backend.themes.highlight_neutral') },
-                                { value: 'custom', label: t('backend.themes.highlight_custom') },
-                            ]"
+                            :options="highlightOptions"
                         />
                         <BannerColorField
                             v-if="form.highlight === 'custom'"

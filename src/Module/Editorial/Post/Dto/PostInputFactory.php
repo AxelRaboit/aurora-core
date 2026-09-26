@@ -96,9 +96,6 @@ class PostInputFactory implements PostInputFactoryInterface
     }
 
     /**
-     * A hex color must be exactly 7 characters: #RRGGBB.
-     */
-    /**
      * Un mode inconnu hérite du thème, et un « custom » sans couleur valable
      * aussi : il rendrait sinon des survols sans couleur.
      */
@@ -111,6 +108,9 @@ class PostInputFactory implements PostInputFactoryInterface
         return 'custom' === $raw && null === $this->colorOrNull($color) ? null : $raw;
     }
 
+    /**
+     * A hex color must be exactly 7 characters: #RRGGBB.
+     */
     private function colorOrNull(mixed $raw): ?string
     {
         $value = Str::trimOrNull((string) ($raw ?? ''));
