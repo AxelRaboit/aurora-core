@@ -929,6 +929,89 @@ describe("usePostGrid", () => {
 
         expect(api.zoneItems(0)).toHaveLength(1);
     });
+
+    describe("the custom surface's own background", () => {
+        it("starts with no fill and no preview", () => {
+            const { api } = make();
+            api.addZone("text");
+
+            const fields = api.zoneFields(0);
+
+            expect(fields.fillType.value).toBe("none");
+            expect(fields.fillPreviewStyle.value).toBeNull();
+        });
+
+        it("previews a solid colour once one is picked", () => {
+            const { api } = make();
+            api.addZone("text");
+            const fields = api.zoneFields(0);
+
+            fields.fillType.value = "solid";
+            fields.backgroundColor.value = "#123456";
+
+            expect(fields.isSolidFill.value).toBe(true);
+            expect(fields.fillPreviewStyle.value).toEqual({
+                backgroundColor: "#123456",
+            });
+        });
+
+        it("previews a gradient only once both stops are set", () => {
+            const { api } = make();
+            api.addZone("text");
+            const fields = api.zoneFields(0);
+
+            fields.fillType.value = "gradient";
+            fields.gradientFrom.value = "#111111";
+
+            expect(fields.fillPreviewStyle.value).toBeNull();
+
+            fields.gradientTo.value = "#222222";
+
+            expect(fields.isGradientFill.value).toBe(true);
+            expect(fields.fillPreviewStyle.value.backgroundImage).toContain(
+                "linear-gradient(180deg, #111111, #222222)",
+            );
+        });
+
+        /**
+         * A zone switched away from `custom` and back must not have lost
+         * what was picked - the same guarantee `surface` itself already
+         * gives every other field.
+         */
+        it("keeps its colour after the surface is switched away and back", () => {
+            const { layout, api } = make();
+            api.addZone("text");
+            const fields = api.zoneFields(0);
+
+            fields.surface.value = "custom";
+            fields.backgroundColor.value = "#123456";
+            fields.surface.value = "card";
+            fields.surface.value = "custom";
+
+            expect(layout.value.zones[0].background.color).toBe("#123456");
+        });
+
+        it("picks and clears the background picture through the same shape as a media zone", () => {
+            const { layout, api } = make();
+            api.addZone("text");
+            const fields = api.zoneFields(0);
+
+            fields.backgroundMedia.value = {
+                id: 9,
+                url: "https://example.test/fond.jpg",
+            };
+
+            expect(layout.value.zones[0].background.mediaId).toBe(9);
+            expect(layout.value.zones[0].background.media).toEqual({
+                url: "https://example.test/fond.jpg",
+            });
+
+            fields.backgroundMedia.value = null;
+
+            expect(layout.value.zones[0].background.mediaId).toBeNull();
+            expect(layout.value.zones[0].background.media).toBeNull();
+        });
+    });
 });
 
 describe("placeZones", () => {

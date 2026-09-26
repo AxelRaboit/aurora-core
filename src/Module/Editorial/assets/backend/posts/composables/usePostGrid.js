@@ -292,7 +292,10 @@ export const AUDIENCES = ["everyone", "members"];
 export const TEXT_SIZES = ["normal", "lead", "small"];
 
 /** Mirrors GridNormalizer::SURFACES - what a zone sits on. */
-export const SURFACES = ["none", "card", "soft", "accent"];
+export const SURFACES = ["none", "card", "soft", "accent", "custom"];
+
+/** Mirrors GridNormalizer::ZONE_FILL_TYPES - a zone's own background, read only under `custom`. */
+export const ZONE_FILL_TYPES = ["none", "solid", "gradient"];
 
 /** Mirrors GridNormalizer::REVEALS - how the page's zones arrive on scroll. */
 export const REVEALS = ["none", "fade", "up", "left", "right", "zoom", "blur"];
@@ -593,6 +596,18 @@ function newZone(type) {
         // Nothing behind it and inside its column: a zone arrives as part of
         // the page, and becomes a section only when someone says so.
         surface: "none",
+        // Read only under `custom`, but present on every zone like `surface`
+        // itself - switching away and back must not lose what was picked.
+        background: {
+            type: "none",
+            color: null,
+            gradientFrom: null,
+            gradientTo: null,
+            gradientAngle: 180,
+            mediaId: null,
+            media: null,
+            overlay: 0,
+        },
         // Whatever the page says, which is still unless the page says
         // otherwise. A zone only carries its own answer when an author gave
         // it one, so changing the page's moves everything that never
@@ -703,6 +718,7 @@ export function usePostGrid(layout, content) {
         cardVariant: labelled(CARD_VARIANTS, "card_variants"),
         textSize: labelled(TEXT_SIZES, "text_sizes"),
         surface: labelled(SURFACES, "surfaces"),
+        fillType: labelled(ZONE_FILL_TYPES, "fill_types"),
         reveal: labelled(ZONE_REVEALS, "reveals"),
         audience: labelled(AUDIENCES, "audiences"),
         // A language names itself; there is nothing to translate.
@@ -1274,6 +1290,35 @@ export function usePostGrid(layout, content) {
                 return undefined === target ? {} : heldFor(target);
             };
 
+            // The zone's own background, read only under `custom`. Created on
+            // demand like a banner translation's local picture: a zone built
+            // before this existed arrives without one.
+            const background = () => {
+                const target = zone();
+                if (undefined === target) return {};
+
+                target.background ??= {
+                    type: "none",
+                    color: null,
+                    gradientFrom: null,
+                    gradientTo: null,
+                    gradientAngle: 180,
+                    mediaId: null,
+                    media: null,
+                    overlay: 0,
+                };
+
+                return target.background;
+            };
+
+            const backgroundField = (key) =>
+                writable(
+                    () => background()[key],
+                    (value) => {
+                        background()[key] = value;
+                    },
+                );
+
             const shared = (key) =>
                 writable(
                     () => zone()?.[key],
@@ -1341,6 +1386,54 @@ export function usePostGrid(layout, content) {
                 audience: shared("audience"),
                 anchor: shared("anchor"),
                 surface: shared("surface"),
+                // Read only when `surface` above is `custom` - see
+                // PostGridPanel.vue - but always present, like the other
+                // fields here.
+                fillType: backgroundField("type"),
+                backgroundColor: backgroundField("color"),
+                gradientFrom: backgroundField("gradientFrom"),
+                gradientTo: backgroundField("gradientTo"),
+                gradientAngle: backgroundField("gradientAngle"),
+                overlay: backgroundField("overlay"),
+                backgroundMedia: writable(
+                    () => ({
+                        id: background().mediaId ?? null,
+                        url: background().media?.url ?? null,
+                    }),
+                    (picked) => {
+                        background().mediaId = picked?.id ?? null;
+                        background().media = picked?.id
+                            ? { url: picked.url ?? null }
+                            : null;
+                    },
+                ),
+                // Mirrors usePostBanner's own three - the panel shows one
+                // editor for both, so it needs the same three questions
+                // answered per zone rather than once for the whole post.
+                isSolidFill: computed(() => "solid" === background().type),
+                isGradientFill: computed(
+                    () => "gradient" === background().type,
+                ),
+                fillPreviewStyle: computed(() => {
+                    const {
+                        type,
+                        color,
+                        gradientFrom,
+                        gradientTo,
+                        gradientAngle,
+                    } = background();
+
+                    if ("solid" === type && color)
+                        return { backgroundColor: color };
+
+                    if ("gradient" === type && gradientFrom && gradientTo) {
+                        return {
+                            backgroundImage: `linear-gradient(${gradientAngle}deg, ${gradientFrom}, ${gradientTo})`,
+                        };
+                    }
+
+                    return null;
+                }),
                 reveal: shared("reveal"),
                 sticky: shared("sticky"),
                 fullBleed: shared("fullBleed"),

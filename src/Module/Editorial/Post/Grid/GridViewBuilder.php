@@ -154,6 +154,12 @@ final readonly class GridViewBuilder
                     ? $layout['reveal']
                     : $zone['reveal'],
                 'caption' => $held['caption'],
+                // Resolved only when the zone actually uses it: a picture
+                // behind a section is the one case here that costs a document
+                // lookup, and ninety-five of every hundred zones name none.
+                'background' => GridNormalizer::SURFACE_CUSTOM === $zone['surface']
+                    ? $this->zoneBackgroundView($zone['background'], $documents)
+                    : null,
                 'spanStyle' => $this->values->spanStyle($zone['span']),
                 'ratioStyle' => $this->ratioStyle($zone['ratio']),
                 // Empty at full width, which is every zone that has not asked
@@ -1333,6 +1339,12 @@ final readonly class GridViewBuilder
                 $ids[] = $zone['options']['qrLogoId'];
             }
 
+            // A custom surface's own picture, whatever the zone's type -
+            // it sits behind the zone rather than inside it.
+            if (null !== ($zone['background']['mediaId'] ?? null)) {
+                $ids[] = $zone['background']['mediaId'];
+            }
+
             // A gallery names many at once, and they join the same query as
             // everything else: twenty-four photographs on a page should cost
             // one lookup, which is the whole reason this prefetch exists.
@@ -1757,6 +1769,38 @@ final readonly class GridViewBuilder
             // Null for anything we host ourselves. Present, and displayed by
             // the template, for a stock photo whose licence requires it.
             'credit' => $this->creditPresenter->present($media),
+        ];
+    }
+
+    /**
+     * A `custom` surface's colour, gradient or picture, ready for the
+     * template - mirrors {@see BannerViewBuilder::fillStyle()} and its own
+     * `mediaData`, one call site rather than two renderers.
+     *
+     * @param array<string, mixed>          $background a normalised zone background
+     * @param array<int, DocumentInterface> $documents  every document this render already fetched
+     *
+     * @return array{fillStyle: ?string, media: ?array<string, mixed>, overlay: int}
+     */
+    private function zoneBackgroundView(array $background, array $documents): array
+    {
+        return [
+            'fillStyle' => match ($background['type']) {
+                GridNormalizer::ZONE_FILL_SOLID => null !== $background['color']
+                    ? sprintf('background-color: %s;', $background['color'])
+                    : null,
+                GridNormalizer::ZONE_FILL_GRADIENT => null !== $background['gradientFrom'] && null !== $background['gradientTo']
+                    ? sprintf(
+                        'background-image: linear-gradient(%ddeg, %s, %s);',
+                        $background['gradientAngle'],
+                        $background['gradientFrom'],
+                        $background['gradientTo'],
+                    )
+                    : null,
+                default => null,
+            },
+            'media' => $this->mediaData($documents[$background['mediaId']] ?? null, ''),
+            'overlay' => $background['overlay'],
         ];
     }
 }
