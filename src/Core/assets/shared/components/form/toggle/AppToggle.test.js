@@ -13,6 +13,13 @@ describe("AppToggle", () => {
         expect(wrapper.find("button").classes()).toContain("bg-surface-3");
     });
 
+    // On a phone the switch grows a hit area through its padding. The colour
+    // must stay on the drawn track, or the pill swells into a squashed disc.
+    it("keeps its colour off the hit area it gains on a phone", () => {
+        const wrapper = mount(AppToggle, { props: { modelValue: true } });
+        expect(wrapper.find("button").classes()).toContain("bg-clip-content");
+    });
+
     it("applies disabled state and opacity class when disabled=true", () => {
         const wrapper = mount(AppToggle, {
             props: { modelValue: false, disabled: true },

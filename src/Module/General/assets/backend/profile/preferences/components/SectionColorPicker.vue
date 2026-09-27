@@ -50,7 +50,7 @@ function clear() {
             v-for="colour in PALETTE"
             :key="colour.name"
             type="button"
-            class="w-6 h-6 rounded ring-offset-2 ring-offset-surface transition-all hover:scale-110 shrink-0 box-content py-[0.1875rem] -my-[0.1875rem] px-[0.1875rem] -mx-[0.1875rem] sm:box-border sm:p-0 sm:m-0"
+            class="w-6 h-6 rounded ring-offset-2 ring-offset-surface transition-all hover:scale-110 shrink-0 box-content bg-clip-content py-[0.1875rem] -my-[0.1875rem] px-[0.1875rem] -mx-[0.1875rem] sm:box-border sm:p-0 sm:m-0"
             :class="[colour.swatch, modelValue === colour.name ? 'ring-2 ring-white scale-110' : 'opacity-60 hover:opacity-100']"
             :title="colour.name"
             v-on:click="pick(colour.name)"

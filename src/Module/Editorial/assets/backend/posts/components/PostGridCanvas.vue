@@ -339,36 +339,58 @@ const fillTypes = computed(() =>
                         }"
                     >
                         <div
-                            class="flex h-20 flex-wrap items-center justify-center gap-1 rounded-md border border-dashed border-line transition"
+                            class="relative flex h-20 items-center justify-center rounded-md border border-dashed border-line transition"
                             :class="
                                 picking === `gap-${gap.row}-${gap.start}`
-                                    ? 'border-accent bg-accent/5 opacity-100'
+                                    ? 'border-accent bg-accent/5 text-accent opacity-100'
                                     : 'text-muted opacity-40 hover:border-accent hover:bg-accent/10 hover:text-accent hover:opacity-100'
                             "
                             v-on:keydown.esc="picking = null"
                         >
-                            <template v-if="picking === `gap-${gap.row}-${gap.start}`">
-                                <AppIconButton
-                                    v-for="option in fillTypes"
-                                    :key="option.value"
-                                    color="default"
-                                    :title="option.label"
-                                    v-on:click="emit('fillGap', option.value, gap.target, gap.start, gap.width); picking = null"
-                                >
-                                    <component :is="ZONE_ICONS[option.value]" class="w-4 h-4" :stroke-width="2" />
-                                </AppIconButton>
-                            </template>
                             <button
-                                v-else
                                 type="button"
                                 class="flex h-full w-full items-center justify-center rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
                                 :title="t('backend.posts.grid.fill_gap')"
+                                :aria-expanded="picking === `gap-${gap.row}-${gap.start}`"
                                 :disabled="!canAdd"
                                 v-on:click="openPicker(`gap-${gap.row}-${gap.start}`)"
                             >
                                 <Plus class="w-4 h-4" :stroke-width="2" />
                                 <span class="sr-only">{{ t("backend.posts.grid.fill_gap") }}</span>
                             </button>
+
+                            <!-- The types float over the canvas rather than
+                                 filling the hole. A hole is one row high and
+                                 often a third of it wide: fifty types poured
+                                 into it spilled down over the rows below, with
+                                 nothing behind them, and read as part of the
+                                 zones they covered. A panel of its own scrolls
+                                 instead, lined up on the side of the hole that
+                                 is nearer the middle - the other side is the
+                                 edge of the screen on a phone.
+                                 The veil behind it closes it on a click
+                                 anywhere else. -->
+                            <template v-if="picking === `gap-${gap.row}-${gap.start}`">
+                                <div class="fixed inset-0 z-20" aria-hidden="true" v-on:click="picking = null" />
+                                <div
+                                    class="absolute top-full z-30 mt-1 w-64 max-w-[calc(100vw-2rem)] rounded-lg border border-line bg-surface p-2 shadow-xl"
+                                    :class="gap.start + gap.width / 2 >= COLUMNS / 2 ? 'right-0' : 'left-0'"
+                                    role="menu"
+                                >
+                                    <div class="grid max-h-72 grid-cols-6 gap-1 overflow-y-auto">
+                                        <AppIconButton
+                                            v-for="option in fillTypes"
+                                            :key="option.value"
+                                            color="default"
+                                            role="menuitem"
+                                            :title="option.label"
+                                            v-on:click="emit('fillGap', option.value, gap.target, gap.start, gap.width); picking = null"
+                                        >
+                                            <component :is="ZONE_ICONS[option.value]" class="w-4 h-4" :stroke-width="2" />
+                                        </AppIconButton>
+                                    </div>
+                                </div>
+                            </template>
                         </div>
                     </div>
 
