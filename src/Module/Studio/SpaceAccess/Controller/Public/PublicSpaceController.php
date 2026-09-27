@@ -456,33 +456,22 @@ final class PublicSpaceController extends AbstractController
         );
     }
 
-    /**
-     * `chatHide` est partie avec les conversations privées.
-     *
-     * Elle ne savait ranger qu'un canal direct, et un lien n'en voit plus
-     * aucun : elle répondait donc 404 à tout coup. C'était par ailleurs la
-     * seule écriture d'invité sans limite de débit, ce qui se remarque quand
-     * on la retire plutôt que quand on la garde.
-     */
-
-    /**
-     * Il n'y a plus de conversation privée sans compte.
-     *
-     * **Une route est partie d'ici, et c'est une décision de fond.** Un
-     * invité pouvait ouvrir une conversation avec n'importe quel membre de
-     * l'équipe, et recevait pour cela l'annuaire nominatif de l'espace. Le
-     * droit qui l'autorisait était « peut commenter » : cocher une case pour
-     * permettre une remarque sous une publication ouvrait en réalité une
-     * messagerie vers les salariés et donnait leurs noms.
-     *
-     * Ce qu'un client a à dire passe donc par un canal, que le studio ouvre
-     * quand il le décide. Le studio garde ses conversations privées entre
-     * collaborateurs : seul le côté invité est fermé.
-     *
-     * La garde qui compte n'est pas cette absence mais
-     * {@see SpaceChatChannelRepository::findForLink()}, qui ne rend plus aucun
-     * canal direct à un lien - y compris ceux ouverts avant ce changement.
-     */
+    // Il n'y a plus de conversation privée sans compte.
+    //
+    // **Une route est partie d'ici, et c'est une décision de fond.** Un
+    // invité pouvait ouvrir une conversation avec n'importe quel membre de
+    // l'équipe, et recevait pour cela l'annuaire nominatif de l'espace. Le
+    // droit qui l'autorisait était « peut commenter » : cocher une case pour
+    // permettre une remarque sous une publication ouvrait en réalité une
+    // messagerie vers les salariés et donnait leurs noms.
+    //
+    // Ce qu'un client a à dire passe donc par un canal, que le studio ouvre
+    // quand il le décide. Le studio garde ses conversations privées entre
+    // collaborateurs : seul le côté invité est fermé.
+    //
+    // La garde qui compte n'est pas cette absence mais
+    // {@see SpaceChatChannelRepository::findForLink()}, qui ne rend plus aucun
+    // canal direct à un lien - y compris ceux ouverts avant ce changement.
 
     /**
      * The room behind an id, or a 404.
@@ -802,27 +791,6 @@ final class PublicSpaceController extends AbstractController
     }
 
     /**
-     * L'écriture vient bien de la page, et non d'un autre site.
-     *
-     * **Ce qui protège cette page est un secret dans son adresse**, et une
-     * adresse se transfère, se colle dans un message, finit dans un
-     * presse-papier. Qui la connaît peut, depuis n'importe quel site, faire
-     * poster le navigateur d'un client vers ces routes : un formulaire
-     * inter-site part sans demander la permission, du moment que son type de
-     * contenu est ordinaire. Le dépôt de fichier, en `multipart`, est
-     * exactement ce cas ; les routes JSON, elles, sont déjà retenues par le
-     * contrôle préalable que le navigateur impose à un type de contenu qui
-     * n'est pas ordinaire.
-     *
-     * L'en-tête maison referme le trou restant, et ne coûte rien : un
-     * formulaire ne peut pas le poser, et un `fetch` qui le pose déclenche ce
-     * même contrôle préalable. Toutes les écritures passent par le même
-     * composant côté navigateur, qui l'envoie déjà.
-     *
-     * Le 404 des autres refus, pour la même raison : ne rien apprendre à qui
-     * tâtonne.
-     */
-    /**
      * A card this link shows, or a 404.
      *
      * **The page's own sieve, asked again at each write.** A card in a column
@@ -846,6 +814,27 @@ final class PublicSpaceController extends AbstractController
         return $item->getSpace()->getId() === $link->getSpace()->getId() && $item->isShownToClient();
     }
 
+    /**
+     * L'écriture vient bien de la page, et non d'un autre site.
+     *
+     * **Ce qui protège cette page est un secret dans son adresse**, et une
+     * adresse se transfère, se colle dans un message, finit dans un
+     * presse-papier. Qui la connaît peut, depuis n'importe quel site, faire
+     * poster le navigateur d'un client vers ces routes : un formulaire
+     * inter-site part sans demander la permission, du moment que son type de
+     * contenu est ordinaire. Le dépôt de fichier, en `multipart`, est
+     * exactement ce cas ; les routes JSON, elles, sont déjà retenues par le
+     * contrôle préalable que le navigateur impose à un type de contenu qui
+     * n'est pas ordinaire.
+     *
+     * L'en-tête maison referme le trou restant, et ne coûte rien : un
+     * formulaire ne peut pas le poser, et un `fetch` qui le pose déclenche ce
+     * même contrôle préalable. Toutes les écritures passent par le même
+     * composant côté navigateur, qui l'envoie déjà.
+     *
+     * Le 404 des autres refus, pour la même raison : ne rien apprendre à qui
+     * tâtonne.
+     */
     private function assertFromThisPage(Request $request): void
     {
         if (!$this->isFromThisPage($request)) {

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\CustomerSpace\Service;
 
-use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
 use Aurora\Core\Notification\Manager\NotificationManagerInterface;
 use Aurora\Core\Notification\Repository\NotificationRepository;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Message\SpaceActivityDigestMessage;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Stamp\DelayStamp;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -142,7 +142,7 @@ final readonly class SpaceActivityNotifier
         // vue utilisée envoyait chercher la carte à la main.
         $url = $this->urlGenerator->generate(
             'workspace_space_content',
-            ['id' => $space->getId(), ...(null === $item ? [] : ['item' => $item->getId()]), ...$query],
+            ['id' => $space->getId(), ...($item instanceof SpaceContentItemInterface ? ['item' => $item->getId()] : []), ...$query],
         );
 
         $title = $this->translator->trans($titleKey, $parameters);

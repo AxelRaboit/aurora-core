@@ -6,14 +6,14 @@ namespace Aurora\Module\Studio\Customer\View;
 
 use Aurora\Module\Studio\Contract\Entity\ContractInterface;
 use Aurora\Module\Studio\Contract\Repository\ContractRepository;
+use Aurora\Module\Studio\Customer\Serializer\CustomerInformationSerializerInterface;
+use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Security\SpaceVisibility;
 use Aurora\Module\Studio\Deck\Entity\DeckInterface;
 use Aurora\Module\Studio\Deck\Repository\DeckRepository;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
-use Aurora\Module\Studio\Customer\Serializer\CustomerInformationSerializerInterface;
-use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 use function array_filter;
 use function array_map;

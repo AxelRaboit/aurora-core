@@ -7,8 +7,7 @@ namespace Aurora\Module\Studio\CustomerSpace\Twig;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Security\SpaceVisibility;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Twig\Extension\AbstractExtension;
-use Twig\TwigFunction;
+use Twig\Attribute\AsTwigFunction;
 
 use function array_filter;
 use function array_map;
@@ -21,7 +20,7 @@ use function array_values;
  * The header now lists the spaces the reader may open - the same rule as the
  * list, archived ones left out - on the same tab they are on.
  */
-final class SpaceSwitchExtension extends AbstractExtension
+final class SpaceSwitchExtension
 {
     /** Tab of a space → the route that opens it. */
     private const array TAB_ROUTES = [
@@ -34,12 +33,8 @@ final class SpaceSwitchExtension extends AbstractExtension
         private readonly UrlGeneratorInterface $urlGenerator,
     ) {}
 
-    public function getFunctions(): array
-    {
-        return [new TwigFunction('studio_other_spaces', $this->otherSpaces(...))];
-    }
-
     /** @return list<array{name: string, customerName: string, colourSlot: int|null, url: string}> */
+    #[AsTwigFunction(name: 'studio_other_spaces')]
     public function otherSpaces(int $currentId, string $tab = 'content'): array
     {
         $route = self::TAB_ROUTES[$tab] ?? self::TAB_ROUTES['content'];

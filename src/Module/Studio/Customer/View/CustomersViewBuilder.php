@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\Customer\View;
 
-use Aurora\Module\Studio\CustomerSpace\Security\SpaceVisibility;
 use Aurora\Core\Money\Enum\CurrencyEnum;
 use Aurora\Core\Routing\PathTemplateGenerator;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
@@ -13,6 +12,7 @@ use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\Customer\Repository\CustomerRepository;
 use Aurora\Module\Studio\Customer\Serializer\CustomerSerializerInterface;
+use Aurora\Module\Studio\CustomerSpace\Security\SpaceVisibility;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final readonly class CustomersViewBuilder

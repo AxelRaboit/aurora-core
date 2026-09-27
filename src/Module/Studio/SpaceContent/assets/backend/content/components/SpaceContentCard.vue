@@ -135,7 +135,6 @@ const answered = computed(() => "pending" !== props.item.approval);
                         ? 'bg-emerald-500/10 text-emerald-500'
                         : 'bg-amber-500/10 text-amber-500'
                 "
-                :title="item.approvalNote || undefined"
             >
                 <Check
                     v-if="item.approval === 'approved'"

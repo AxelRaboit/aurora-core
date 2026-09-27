@@ -233,8 +233,8 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
      *
      * The producer knows nothing about calendars: it says so into core, and if
      * Planning is absent or switched off nobody is listening. That is the same
-     * contract Editorial's posts use, and it is why a space does not draw an
-     * agenda of its own.
+     * contract Editorial's posts use: the space draws its own month, and the
+     * calendar module shows the same dates beside everything else.
      *
      * **One source type for every space, not one per space.** A per-space
      * source would make `ModuleCalendarProvider` create a shared, ownerless

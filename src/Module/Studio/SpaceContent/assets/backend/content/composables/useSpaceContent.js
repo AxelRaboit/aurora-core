@@ -79,7 +79,9 @@ export function useSpaceContent(initial, paths) {
 
     const shown = computed(() =>
         stateFilter.value
-            ? items.value.filter((item) => (item.states ?? []).includes(stateFilter.value))
+            ? items.value.filter((item) =>
+                  (item.states ?? []).includes(stateFilter.value),
+              )
             : items.value,
     );
 
@@ -201,7 +203,9 @@ export function useSpaceContent(initial, paths) {
 
     /** The steps in a new order, moved at once so the board does not snap back. */
     async function reorderColumns(columnIds) {
-        const byId = new Map(columns.value.map((column) => [column.id, column]));
+        const byId = new Map(
+            columns.value.map((column) => [column.id, column]),
+        );
         columns.value = columnIds.map((id) => byId.get(id)).filter(Boolean);
 
         applyContent(await request(paths.columnReorderPath, { columnIds }));

@@ -4,20 +4,6 @@ import { toast } from "vue-sonner";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 
 /**
- * The deck's look: a theme, and what this deck changes about it.
- *
- * **Two shapes for the same thing, and both are needed.** `style` is what
- * somebody chose, where an absent key means "whatever the theme says";
- * `appearance` is the answer after the merge, which is what the frames draw.
- * Keeping only the merged one would make the panel unable to tell a deliberate
- * choice of the theme's own blue from no choice at all, and a theme changed
- * later would stop reaching the deck.
- *
- * The panel writes on close rather than on every keystroke: a colour is picked
- * by dragging through a hundred of them, and a request per hue would be a
- * hundred writes for one decision.
- */
-/**
  * Ce qu'un style envoie au serveur, derive de sa forme et non d'une liste.
  *
  * **La liste ecrite a la main est exactement ce qui a casse.** Sept reglages
@@ -63,6 +49,20 @@ export function stylePayload(style, shape) {
     return written;
 }
 
+/**
+ * The deck's look: a theme, and what this deck changes about it.
+ *
+ * **Two shapes for the same thing, and both are needed.** `style` is what
+ * somebody chose, where an absent key means "whatever the theme says";
+ * `appearance` is the answer after the merge, which is what the frames draw.
+ * Keeping only the merged one would make the panel unable to tell a deliberate
+ * choice of the theme's own blue from no choice at all, and a theme changed
+ * later would stop reaching the deck.
+ *
+ * The panel writes on close rather than on every keystroke: a colour is picked
+ * by dragging through a hundred of them, and a request per hue would be a
+ * hundred writes for one decision.
+ */
 export function useDeckAppearance(props) {
     const { t } = useI18n();
     const { request } = useRequest();

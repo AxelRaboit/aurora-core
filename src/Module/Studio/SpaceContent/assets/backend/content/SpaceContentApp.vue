@@ -131,9 +131,9 @@ const props = defineProps({
     /** Combien de cartes datées et visibles du client attendent sa réponse. */
     awaitingApproval: { type: Number, default: 0 },
     /** Combien d'entre elles ont dépassé leur échéance de relecture. */
+    lateForReview: { type: Number, default: 0 },
     /** Les contrats, présentations et autres espaces du même client. */
     related: { type: Object, default: () => ({}) },
-    lateForReview: { type: Number, default: 0 },
     chatMessages: { type: Array, default: () => [] },
     /** Null when no hub is running, and then the panel never connects. */
     chatStreamUrl: { type: String, default: null },
@@ -218,13 +218,6 @@ const VIEWS = [
 ];
 
 /**
- * One key for every space, deliberately.
- *
- * Somebody who opens a space to read its conversation does that for one client
- * and for the next. A per-space key would make them choose again on every
- * space they open, which is the thing this exists to stop.
- */
-/**
  * Ce que la barre montre vraiment.
  *
  * Le Drive n'y est que si l'installation a une clé de compte de service : une
@@ -240,6 +233,13 @@ const views = computed(() =>
     }),
 );
 
+/**
+ * One key for every space, deliberately.
+ *
+ * Somebody who opens a space to read its conversation does that for one client
+ * and for the next. A per-space key would make them choose again on every
+ * space they open, which is the thing this exists to stop.
+ */
 const { choice: view } = usePersistedChoice(
     "studio.space_content.view",
     "content",

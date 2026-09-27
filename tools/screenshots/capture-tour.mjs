@@ -755,7 +755,7 @@ const SHOTS = [
     { name: "espace-discussion", path: SPACES, prepare: spaceView("Discussion") },
     { name: "espace-notes", path: SPACES, prepare: spaceView("Notes") },
     { name: "espace-informations", path: SPACES, prepare: spaceView("Informations") },
-    { name: "espace-liens", path: SPACES, prepare: spaceView("Liens") },
+    { name: "espace-liens", path: SPACES, prepare: spaceView("Ressources") },
 
     /** Une fiche ouverte : le titre, la date, ses fichiers et son fil. */
     {

@@ -71,13 +71,6 @@ class SpaceAccessController extends AbstractController
     }
 
     /**
-     * Mints an address, and hands it back exactly once.
-     *
-     * The response is the only place the secret ever exists in readable form.
-     * Nothing stores it, so nothing can show it again: the screen has to make
-     * the reader copy it now, and says so.
-     */
-    /**
      * Ouvre la page du client, telle que ce lien la rend.
      *
      * **Un vrai lien temporaire, et non une page fabriquée.** Le jeton en clair
@@ -109,6 +102,13 @@ class SpaceAccessController extends AbstractController
         ]);
     }
 
+    /**
+     * Mints an address, and hands it back exactly once.
+     *
+     * The response is the only place the secret ever exists in readable form.
+     * Nothing stores it, so nothing can show it again: the screen has to make
+     * the reader copy it now, and says so.
+     */
     #[Route('/issue', name: '_issue', methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.spaces.share')]
     public function issue(CustomerSpace $space, Request $request): JsonResponse

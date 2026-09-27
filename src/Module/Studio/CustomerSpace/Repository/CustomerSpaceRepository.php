@@ -123,13 +123,6 @@ class CustomerSpaceRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * How many spaces name this customer.
-     *
-     * Asked before a customer is deleted, so the refusal can say how many
-     * spaces stand in the way instead of letting the foreign key answer with a
-     * driver exception.
-     */
-    /**
      * Combien d'espaces par état.
      *
      * Groupé plutôt qu'un compte par état : le tableau de bord les affiche
@@ -156,6 +149,13 @@ class CustomerSpaceRepository extends ResolveTargetEntityRepository
         return $counts;
     }
 
+    /**
+     * How many spaces name this customer.
+     *
+     * Asked before a customer is deleted, so the refusal can say how many
+     * spaces stand in the way instead of letting the foreign key answer with a
+     * driver exception.
+     */
     public function countForCustomer(CustomerInterface $customer): int
     {
         return (int) $this->createQueryBuilder('s')

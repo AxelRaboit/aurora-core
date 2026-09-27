@@ -41,18 +41,18 @@ interface ContractManagerInterface
     public function retentionYears(): int;
 
     /**
-     * Seals the document: reference, snapshot, rendered HTML and hash, in one
-     * call, before the link goes out.
-     *
-     * @throws FrozenContractIsImmutableException when already frozen
-     * @throws FieldException                     when the wording cannot produce a document
-     */
-    /**
      * The contract as it will read, before anything is sealed.
      *
      * @return array{html: string, unknownTokens: list<string>}
      */
     public function preview(ContractInterface $contract): array;
 
+    /**
+     * Seals the document: reference, snapshot, rendered HTML and hash, in one
+     * call, before the link goes out.
+     *
+     * @throws FrozenContractIsImmutableException when already frozen
+     * @throws FieldException                     when the wording cannot produce a document
+     */
     public function freeze(ContractInterface $contract): void;
 }

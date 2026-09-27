@@ -550,14 +550,6 @@ class SpaceContentController extends AbstractController
     }
 
     /**
-     * A 404 and not a 403, deliberately.
-     *
-     * Telling somebody that the card they asked for exists but is not theirs
-     * says more than refusing to answer does. The screen cannot reach this
-     * either way: it only ever sends ids it was given.
-     */
-
-    /**
      * The numeric ids of a payload list, and nothing else.
      *
      * @return list<int>
