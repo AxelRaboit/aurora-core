@@ -233,6 +233,8 @@ const ITEM_LABELS = {
     // Same field, so an author who tries the quotes costume and comes back
     // still has the roles they typed.
     people: { title: "person_name", description: "person_bio", caption: "person_role", url: "person_url" },
+    // A numbered entry like a step: the number is drawn, only the words are typed.
+    editorial: { title: "step_title", description: "step_text", caption: null, url: null },
 };
 
 const itemLabels = computed(() => ITEM_LABELS[bound.display.value] ?? ITEM_LABELS.steps);
@@ -244,7 +246,7 @@ const itemHasMedia = computed(() =>
 
 /** Only the displays that lay their entries in a row have a count to choose. */
 const itemHasColumns = computed(() =>
-    ["stats", "quotes", "offers", "people"].includes(bound.display.value),
+    ["stats", "quotes", "offers", "people", "editorial"].includes(bound.display.value),
 );
 
 /**

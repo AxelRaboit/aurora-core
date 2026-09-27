@@ -5,6 +5,18 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.276] - 2026-09-27
+
+### Ajouté
+
+#### Un affichage « Liste éditoriale » pour les zones Liste
+Une zone Liste peut désormais se présenter comme une page de magazine : pas de
+cartes, un filet au-dessus de chaque entrée et son numéro sur deux chiffres
+(01, 02...) dans la couleur d'accent, en deux, trois ou quatre colonnes. Pour
+quelques éléments de même poids (ce qu'une offre couvre, ce qu'on propose)
+là où des cartes à pictogramme donnaient à chacun l'allure d'un produit. Il se
+choisit dans l'éditeur de la zone, avec le titre et le texte de chaque entrée.
+
 ## [0.9.275] - 2026-09-27
 
 ### Corrigé

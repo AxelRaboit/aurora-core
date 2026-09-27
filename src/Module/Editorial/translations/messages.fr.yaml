@@ -735,6 +735,7 @@ backend:
         offers: Cartes d'offres
         people: Équipe
         scrolly: Récit en images
+        editorial: Liste éditoriale
       item_columns: Colonnes
       item_number: "Entrée {number}"
       item_add: Ajouter une entrée

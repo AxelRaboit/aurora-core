@@ -735,6 +735,7 @@ backend:
                 offers: 'Fichas de ofertas'
                 people: Equipo
                 scrolly: 'Relato en imágenes'
+                editorial: 'Lista editorial'
             item_columns: Columnas
             item_number: 'Entrada {number}'
             item_add: 'Añadir una entrada'
