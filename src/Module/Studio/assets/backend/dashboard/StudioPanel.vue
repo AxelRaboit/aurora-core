@@ -62,13 +62,20 @@ function scopeHref(scope) {
 
 <template>
     <div class="space-y-5">
-        <div v-if="stats.hasScopeChoice" class="flex items-center gap-1 text-sm" role="group" :aria-label="t('backend.stats.studio.scope_label')">
+        <!-- Les mêmes onglets de portée que la liste des espaces et le
+             calendrier éditorial. -->
+        <div
+            v-if="stats.hasScopeChoice"
+            class="flex w-fit items-center gap-0.5 rounded-lg border border-line bg-surface-2/40 p-0.5"
+            role="group"
+            :aria-label="t('backend.stats.studio.scope_label')"
+        >
             <a
                 v-for="scope in ['mine', 'all']"
                 :key="scope"
                 :href="scopeHref(scope)"
-                class="rounded-md px-2.5 py-1 transition-colors"
-                :class="scope === stats.scope ? 'bg-surface-2 text-primary font-medium' : 'text-secondary hover:text-primary'"
+                class="flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm transition-colors"
+                :class="scope === stats.scope ? 'bg-surface font-medium text-primary shadow-sm' : 'text-muted hover:text-primary'"
                 :aria-current="scope === stats.scope ? 'true' : undefined"
             >
                 {{ t(`backend.stats.studio.scopes.${scope}`) }}

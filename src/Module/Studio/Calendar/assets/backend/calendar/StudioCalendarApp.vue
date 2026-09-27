@@ -17,7 +17,11 @@ import { useI18n } from "vue-i18n";
 import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-vue-next";
 import CalendarMonth from "@/shared/components/calendar/CalendarMonth.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
+import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
+import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
+import AppListToolbar from "@/shared/components/list/AppListToolbar.vue";
+import AppLoader from "@/shared/components/feedback/AppLoader.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import { gridWindow, monthGrid, sameDay } from "@/shared/composables/calendar/monthGrid.js";
 import { useNarrowContainer } from "@/shared/composables/list/useNarrowContainer.js";
@@ -60,23 +64,27 @@ const failed = ref(false);
 
 const spacesById = computed(() => new Map(props.spaces.map((space) => [space.id, space])));
 
-const customerOptions = computed(() => [
-    { value: "", label: t("backend.studio.calendar.all_customers") },
-    ...[...new Set(props.spaces.map((space) => space.customerName))].sort().map((name) => ({ value: name, label: name })),
-]);
+/** Sans option « tous » : c'est le placeholder qui la porte, comme sur les autres listes. */
+const customerOptions = computed(() =>
+    [...new Set(props.spaces.map((space) => space.customerName))].sort().map((name) => ({ value: name, label: name })),
+);
 
-const stateOptions = computed(() => [
-    { value: "", label: t("backend.studio.calendar.all_states") },
-    ...STATES.map((entry) => ({ value: entry.value, label: t(entry.labelKey) })),
-]);
+const stateOptions = computed(() => STATES.map((entry) => ({ value: entry.value, label: t(entry.labelKey) })));
+
+const VIEWS = ["month", "list"];
+
+const search = ref("");
 
 const visible = computed(() =>
     items.value.filter((item) => {
         const space = spacesById.value.get(item.spaceId);
 
         if (customer.value && space?.customerName !== customer.value) return false;
+        if (state.value && !item.states.includes(state.value)) return false;
 
-        return !state.value || item.states.includes(state.value);
+        const needle = search.value.trim().toLowerCase();
+
+        return !needle || item.title.toLowerCase().includes(needle) || (space?.name ?? "").toLowerCase().includes(needle);
     }),
 );
 
@@ -160,50 +168,70 @@ function spaceName(item) {
 </script>
 
 <template>
-    <div ref="container" class="space-y-4">
-        <div class="flex flex-wrap items-end justify-between gap-3">
-            <div class="flex flex-wrap items-end gap-3">
-                <div v-if="hasScopeChoice" class="flex items-center gap-1 text-sm" role="group" :aria-label="t('backend.studio.calendar.scope_label')">
-                    <a
-                        v-for="option in ['mine', 'all']"
-                        :key="option"
-                        :href="scopeHref(option)"
-                        class="rounded-md px-2.5 py-1 transition-colors"
-                        :class="option === scope ? 'bg-surface-2 text-primary font-medium' : 'text-secondary hover:text-primary'"
-                        :aria-current="option === scope ? 'true' : undefined"
-                    >
-                        {{ t(`backend.studio.calendar.scopes.${option}`) }}
-                    </a>
-                </div>
-                <AppSelect v-model="customer" class="w-full sm:w-56" :label="t('backend.studio.calendar.customer')" :options="customerOptions" />
-                <AppSelect v-model="state" class="w-full sm:w-56" :label="t('backend.studio.calendar.state')" :options="stateOptions" />
-            </div>
-            <div class="flex items-center gap-1 text-sm" role="group" :aria-label="t('backend.studio.calendar.view_label')">
-                <button
-                    v-for="option in ['month', 'list']"
-                    :key="option"
-                    type="button"
-                    class="rounded-md px-2.5 py-1 transition-colors"
-                    :class="option === view ? 'bg-surface-2 text-primary font-medium' : 'text-secondary hover:text-primary'"
-                    :aria-pressed="option === view"
-                    v-on:click="view = option"
-                >
-                    {{ t(`backend.studio.calendar.views.${option}`) }}
-                </button>
-            </div>
+    <div ref="container" class="relative space-y-3">
+        <AppLoader :active="loading" />
+
+        <!-- Les onglets de portée, comme ceux de la liste des espaces : la
+             portée change les espaces comptés, donc la page se recharge. -->
+        <div
+            v-if="hasScopeChoice"
+            class="flex w-fit items-center gap-0.5 rounded-lg border border-line bg-surface-2/40 p-0.5"
+            role="group"
+            :aria-label="t('backend.studio.calendar.scope_label')"
+        >
+            <a
+                v-for="option in ['mine', 'all']"
+                :key="option"
+                :href="scopeHref(option)"
+                class="flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm transition-colors"
+                :class="option === scope ? 'bg-surface font-medium text-primary shadow-sm' : 'text-muted hover:text-primary'"
+                :aria-current="option === scope ? 'true' : undefined"
+            >
+                {{ t(`backend.studio.calendar.scopes.${option}`) }}
+            </a>
         </div>
 
-        <div class="flex flex-wrap items-center justify-between gap-3">
-            <div class="flex items-center gap-1">
-                <button type="button" class="rounded-md p-1.5 text-muted hover:bg-surface-2 hover:text-primary" :aria-label="t('shared.common.previous')" v-on:click="goToMonth(-1)">
-                    <ChevronLeft class="h-4 w-4" :stroke-width="2" />
-                </button>
-                <button type="button" class="rounded-md p-1.5 text-muted hover:bg-surface-2 hover:text-primary" :aria-label="t('shared.common.next')" v-on:click="goToMonth(1)">
-                    <ChevronRight class="h-4 w-4" :stroke-width="2" />
-                </button>
-                <h2 class="ml-2 text-sm font-medium capitalize text-primary">{{ monthTitle }}</h2>
+        <!-- La barre des listes : la recherche, et les filtres à côté d'elle
+             plutôt qu'en champs étiquetés sur une ligne à part. -->
+        <AppListToolbar>
+            <AppSearchInput v-model="search" :placeholder="t('backend.studio.calendar.search_placeholder')" />
+            <template #inline>
+                <AppSelect v-model="customer" :options="customerOptions" :placeholder="t('backend.studio.calendar.all_customers')" />
+                <AppSelect v-model="state" :options="stateOptions" :placeholder="t('backend.studio.calendar.all_states')" />
+            </template>
+        </AppListToolbar>
+
+        <!-- La barre du module Calendrier, à l'identique : un mois se
+             parcourt partout de la même façon. -->
+        <div class="flex flex-wrap items-center gap-2">
+            <AppIconButton :title="t('shared.common.previous')" v-on:click="goToMonth(-1)">
+                <ChevronLeft class="h-4 w-4" :stroke-width="2" />
+            </AppIconButton>
+            <AppIconButton :title="t('shared.common.next')" v-on:click="goToMonth(1)">
+                <ChevronRight class="h-4 w-4" :stroke-width="2" />
+            </AppIconButton>
+            <h2 class="min-w-0 truncate text-sm font-semibold text-primary first-letter:uppercase sm:text-base">
+                {{ monthTitle }}
+            </h2>
+
+            <div class="flex w-full items-center gap-2 sm:ml-auto sm:w-auto">
+                <div class="flex flex-1 overflow-hidden rounded-lg border border-line sm:flex-none" role="group" :aria-label="t('backend.studio.calendar.view_label')">
+                    <button
+                        v-for="option in VIEWS"
+                        :key="option"
+                        type="button"
+                        class="flex-1 cursor-pointer border-r border-line px-2.5 py-1 text-xs transition-colors last:border-r-0 min-h-7.5 sm:min-h-0 sm:flex-none"
+                        :class="view === option ? 'bg-accent-600 text-white font-medium' : 'text-secondary hover:bg-surface-2'"
+                        :aria-pressed="view === option"
+                        v-on:click="view = option"
+                    >
+                        {{ t(`backend.studio.calendar.views.${option}`) }}
+                    </button>
+                </div>
+                <AppButton variant="ghost" size="sm" v-on:click="goToToday">
+                    {{ t("backend.studio.calendar.today") }}
+                </AppButton>
             </div>
-            <AppButton variant="ghost" size="sm" v-on:click="goToToday">{{ t("backend.studio.calendar.today") }}</AppButton>
         </div>
 
         <p v-if="failed" class="text-sm text-red-500">{{ t("backend.studio.calendar.errors.load") }}</p>
@@ -230,7 +258,7 @@ function spaceName(item) {
         </template>
 
         <div v-else class="space-y-4">
-            <p v-if="!loading && !byDay.length" class="text-sm text-muted">{{ t("backend.studio.calendar.empty_month") }}</p>
+            <AppNoData v-if="!loading && !byDay.length" :message="t('backend.studio.calendar.empty_month')" />
             <section v-for="day in byDay" :key="day.date.toDateString()" class="space-y-1">
                 <h3 class="text-xs font-medium uppercase tracking-wide text-secondary">
                     {{ d(day.date, { weekday: "long", day: "numeric", month: "long" }) }}
