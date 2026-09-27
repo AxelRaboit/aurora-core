@@ -235,6 +235,7 @@ final readonly class ThemeStyleRenderer
         if (null !== $figure = $this->surfaceColor($config['figure_color'] ?? null)) {
             $declarations[] = '--th-figure: '.$figure.';';
         }
+
         if (null !== $icon = $this->themeContext->iconColor()) {
             $declarations[] = '--th-icon: '.$icon.';';
         }
