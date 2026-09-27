@@ -40,7 +40,47 @@ class FormSubmissionRepository extends ResolveTargetEntityRepository
             ->where('s.form = :form')
             ->setParameter('form', $form);
 
+        $this->warmForm($form);
+
         return $this->paginate($items, $count, $page, $limit);
+    }
+
+    /**
+     * One submission with its form, the form's fields and every label, for
+     * the worker that mails and posts it.
+     */
+    public function findForDelivery(int $id): ?FormSubmissionInterface
+    {
+        return $this->createQueryBuilder('s')
+            ->innerJoin('s.form', 'f')
+            ->leftJoin('f.translations', 't')
+            ->leftJoin('f.fields', 'field')
+            ->leftJoin('field.translations', 'ft')
+            ->addSelect('f', 't', 'field', 'ft')
+            ->where('s.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    /**
+     * The form's translations, fields and field labels, filled in place.
+     *
+     * Every row of a list or an export is labelled from the same form, and
+     * the labeler read each field's translations on its own.
+     */
+    private function warmForm(FormInterface $form): void
+    {
+        $this->getEntityManager()->createQueryBuilder()
+            ->select('f', 't', 'field', 'ft')
+            ->from($this->getClassMetadata()->getAssociationTargetClass('form'), 'f')
+            ->leftJoin('f.translations', 't')
+            ->leftJoin('f.fields', 'field')
+            ->leftJoin('field.translations', 'ft')
+            ->where('f = :form')
+            ->setParameter('form', $form)
+            ->getQuery()
+            ->getResult();
     }
 
     /**
@@ -50,6 +90,8 @@ class FormSubmissionRepository extends ResolveTargetEntityRepository
      */
     public function findAllByForm(FormInterface $form): array
     {
+        $this->warmForm($form);
+
         return $this->createQueryBuilder('s')
             ->where('s.form = :form')
             ->setParameter('form', $form)

@@ -206,6 +206,39 @@ final class ContractsControllerTest extends IntegrationTestCase
         self::assertSame($withTwo, $withFour, 'two more contracts, not one more query');
     }
 
+    /**
+     * The template picker costs the same queries for two templates or four.
+     *
+     * Each template loaded all its versions to find the latest published one,
+     * then that version's wording to list the blanks it asks for.
+     */
+    public function testTheTemplatePickerDoesNotGrowWithTheTemplates(): void
+    {
+        $this->publishedTemplate();
+        $this->publishedTemplate();
+        $this->queriesForTheForm();
+        $withTwo = $this->queriesForTheForm();
+
+        $this->publishedTemplate();
+        $this->publishedTemplate();
+        $withFour = $this->queriesForTheForm();
+
+        self::assertSame($withTwo, $withFour, 'two more templates, not one more query');
+    }
+
+    private function queriesForTheForm(): int
+    {
+        $container = static::getContainer();
+        $container->get(EntityManagerInterface::class)->clear();
+        $holder = $container->get('doctrine.debug_data_holder');
+        $holder->reset();
+
+        $view = $container->get(ContractsViewBuilder::class)->indexView();
+        self::assertNotEmpty($view['bodies']);
+
+        return count($holder->getData()['default'] ?? []);
+    }
+
     private function queriesForTheList(): int
     {
         $container = static::getContainer();

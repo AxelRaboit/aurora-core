@@ -24,6 +24,7 @@ use Aurora\Module\Studio\SpaceChat\Manager\SpaceChatMessageManagerInterface;
 use Aurora\Module\Studio\SpaceChat\Repository\SpaceChatChannelRepository;
 use Aurora\Module\Studio\SpaceChat\Service\SpaceChatHub;
 use Aurora\Module\Studio\SpaceChat\View\SpaceChatViewBuilder;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentAttachmentInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
 use Aurora\Module\Studio\SpaceContent\Enum\SpaceContentApprovalEnum;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentAttachmentManagerInterface;
@@ -135,9 +136,12 @@ final class PublicSpaceController extends AbstractController
 
         $this->links->markOpened($link);
 
+        // Read once, for the page and for the hub's cookie below.
+        $rooms = $this->chatViewBuilder->roomsForLink($link);
+
         $response = $this->privately($this->render('@Studio/public/space.html.twig', [
             ...$this->viewBuilder->view($link, $token),
-            ...$this->chatViewBuilder->publicView($link, $token),
+            ...$this->chatViewBuilder->publicView($link, $token, $rooms),
             ...$this->filesViewBuilder->publicView($link, $token),
         ]));
 
@@ -148,7 +152,7 @@ final class PublicSpaceController extends AbstractController
         // to this space's topic and to subscribing only, in a cookie the
         // browser sends nowhere but the hub. Revoking the link stops this page
         // being served, and the cookie runs out on its own.
-        $cookie = $this->chatHub->subscriptionCookie($request, $this->chatChannels->findForLink($link->getSpace(), $link));
+        $cookie = $this->chatHub->subscriptionCookie($request, $rooms);
 
         if ($cookie instanceof Cookie) {
             $response->headers->setCookie($cookie);
@@ -761,14 +765,12 @@ final class PublicSpaceController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-        $attachment = $this->attachmentRepository->find($attachmentId);
-
         // The card the file hangs on has to belong to the space this link
-        // opens. Without this line the id in the address reaches every file of
-        // every client.
-        if (null === $attachment
-            || $attachment->getItem()->getSpace()->getId() !== $link->getSpace()->getId()
-        ) {
+        // opens - checked in the query itself. Without it the id in the
+        // address reaches every file of every client.
+        $attachment = $this->attachmentRepository->findForGuest($attachmentId, $link->getSpace());
+
+        if (!$attachment instanceof SpaceContentAttachmentInterface) {
             throw $this->createNotFoundException();
         }
 

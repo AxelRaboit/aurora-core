@@ -11,6 +11,7 @@ use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceStatusEnum;
 use Doctrine\Common\Collections\Order;
+use Doctrine\ORM\PersistentCollection;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -156,6 +157,32 @@ class CustomerSpaceRepository extends ResolveTargetEntityRepository
      * spaces stand in the way instead of letting the foreign key answer with a
      * driver exception.
      */
+    /**
+     * A space's team and each member's account, filled in place, unless they
+     * are loaded already.
+     *
+     * A space opened on its own read its members, then each member's user:
+     * a query per person, on every screen of the space and on every write of
+     * its client, which tells the team. The list of spaces joins them already
+     * and pays nothing here.
+     */
+    public function warmTeam(CustomerSpaceInterface $space): void
+    {
+        $members = $space->getMembers();
+        if (!$members instanceof PersistentCollection || $members->isInitialized()) {
+            return;
+        }
+
+        $this->createQueryBuilder('s')
+            ->leftJoin('s.members', 'm')
+            ->leftJoin('m.user', 'u')
+            ->addSelect('m', 'u')
+            ->where('s = :space')
+            ->setParameter('space', $space)
+            ->getQuery()
+            ->getResult();
+    }
+
     public function countForCustomer(CustomerInterface $customer): int
     {
         return (int) $this->createQueryBuilder('s')

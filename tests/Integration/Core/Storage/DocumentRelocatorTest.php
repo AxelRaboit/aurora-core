@@ -99,6 +99,29 @@ final class DocumentRelocatorTest extends IntegrationTestCase
         }
     }
 
+    /**
+     * A move reads the document's versions once.
+     *
+     * It read them to list the files to copy, then again to re-point the
+     * rows, on top of the read a caller makes to weigh the document first.
+     */
+    public function testAMoveReadsTheVersionsOnce(): void
+    {
+        $document = $this->makeDocument();
+        $holder = self::getContainer()->get('doctrine.debug_data_holder');
+        $holder->reset();
+
+        $this->relocator->relocate($document, StorageDiskEnum::R2);
+
+        $versionReads = array_filter(
+            $holder->getData()['default'] ?? [],
+            static fn (array $query): bool => str_starts_with((string) $query['sql'], 'SELECT')
+                && str_contains((string) $query['sql'], 'FROM core_ged_document_versions')
+                && str_contains((string) $query['sql'], 'document_id = ?'),
+        );
+        self::assertCount(1, $versionReads, 'the versions of the document, read once');
+    }
+
     public function testTheBytesArriveIntact(): void
     {
         $document = $this->makeDocument();

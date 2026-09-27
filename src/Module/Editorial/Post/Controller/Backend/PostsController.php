@@ -17,6 +17,7 @@ use Aurora\Module\Editorial\Post\Bulk\PostBulkActioner;
 use Aurora\Module\Editorial\Post\Dto\PostInputFactoryInterface;
 use Aurora\Module\Editorial\Post\Duplicate\PostDuplicator;
 use Aurora\Module\Editorial\Post\Entity\Post;
+use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
 use Aurora\Module\Editorial\Post\Manager\PostManagerInterface;
 use Aurora\Module\Editorial\Post\Preview\Manager\PostPreviewTokenManagerInterface;
@@ -120,7 +121,7 @@ class PostsController extends AbstractController
         // Two callers, one endpoint: the picker searches by text, and re-opening
         // a saved post resolves the ids it already holds.
         $posts = [] !== $ids
-            ? $this->postRepository->findBy(['id' => $ids])
+            ? $this->inOrder($this->postRepository->findForDisplay($ids), $ids)
             : ('' === $query
                 ? []
                 : $this->postRepository->findPaginated(
@@ -131,6 +132,28 @@ class PostsController extends AbstractController
                 )['items']);
 
         return $this->jsonSuccess(['posts' => array_map($this->postSerializer->serializeReference(...), $posts)]);
+    }
+
+    /**
+     * Posts in the order their ids were asked for.
+     *
+     * The picker re-opens a saved selection in the order it was saved;
+     * `findForDisplay()` loads them with their titles in one query and in no
+     * particular order.
+     *
+     * @param list<PostInterface> $posts
+     * @param list<int>           $ids
+     *
+     * @return list<PostInterface>
+     */
+    private function inOrder(array $posts, array $ids): array
+    {
+        $byId = [];
+        foreach ($posts as $post) {
+            $byId[(int) $post->getId()] = $post;
+        }
+
+        return array_values(array_filter(array_map(static fn (int $id): ?PostInterface => $byId[$id] ?? null, $ids)));
     }
 
     #[Route('/{id}', name: '_show', requirements: ['id' => '\\d+'], methods: [HttpMethodEnum::Get->value])]

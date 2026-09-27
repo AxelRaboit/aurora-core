@@ -11,6 +11,7 @@ use Aurora\Core\Storage\Exception\StorageException;
 use Aurora\Core\Storage\StorageManager;
 use Aurora\Core\Storage\Workspace\LocalWorkspace;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
+use Aurora\Module\Ged\Document\Entity\DocumentVersionInterface;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Document\Repository\DocumentVersionRepository;
 use Aurora\Module\Ged\Enum\DocumentTransferStateEnum;
@@ -106,10 +107,14 @@ final readonly class DocumentRelocator
      * Versions share the live file's path by design, so the same key can be
      * named several times; copying it twice would work and cost twice.
      *
+     * @param list<DocumentVersionInterface>|null $versions the document's versions when the
+     *                                                      caller has them already
+     *
      * @return list<string>
      */
-    public function keysOf(DocumentInterface $document): array
+    public function keysOf(DocumentInterface $document, ?array $versions = null): array
     {
+        $versions ??= $this->versionRepository->findByDocument($document);
         $keys = [];
 
         foreach ([$document->getFilePath(), $document->getThumbnailPath()] as $path) {
@@ -124,7 +129,7 @@ final readonly class DocumentRelocator
             }
         }
 
-        foreach ($this->versionRepository->findByDocument($document) as $version) {
+        foreach ($versions as $version) {
             if ('' !== $version->getFilePath()) {
                 $keys[$version->getFilePath()] = true;
             }
@@ -140,7 +145,9 @@ final readonly class DocumentRelocator
     ): DocumentRelocation {
         $from = $this->storageManager->forDisk($source);
         $to = $this->storageManager->forDisk($target);
-        $keys = $this->keysOf($document);
+        // Read once, for the keys to copy and for the rows to re-point after.
+        $versions = $this->versionRepository->findByDocument($document);
+        $keys = $this->keysOf($document, $versions);
 
         $moved = 0;
         $bytes = 0;
@@ -167,7 +174,7 @@ final readonly class DocumentRelocator
         // Recorded only once every byte is on the other side and verified.
         $document->setStorageDisk($target);
 
-        foreach ($this->versionRepository->findByDocument($document) as $version) {
+        foreach ($versions as $version) {
             if ($version->getStorageDisk() === $source && in_array($version->getFilePath(), $keys, true)) {
                 $version->setStorageDisk($target);
             }

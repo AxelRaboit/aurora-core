@@ -389,19 +389,13 @@ class PlanningEventManager implements PlanningEventManagerInterface
             $this->entityManager->remove($existing);
         }
 
-        foreach ($ids as $id) {
-            if (in_array($id, $kept, true)) {
-                continue;
-            }
+        $new = array_values(array_diff($ids, $kept));
 
-            $user = $this->users->find($id);
-            // An id that names nobody is dropped rather than refused: it means a
-            // stale list or a hand-written request, and failing the save of an
-            // otherwise valid event over it would be the wrong trade.
-            if (!$user instanceof CoreUserInterface) {
-                continue;
-            }
-
+        // Everybody new in one query rather than one each. An id that names
+        // nobody is dropped rather than refused: it means a stale list or a
+        // hand-written request, and failing the save of an otherwise valid
+        // event over it would be the wrong trade.
+        foreach ([] === $new ? [] : $this->users->findBy(['id' => $new]) as $user) {
             $attendee = new PlanningEventAttendee();
             $attendee->setUser($user);
             $event->addAttendee($attendee);
@@ -422,9 +416,16 @@ class PlanningEventManager implements PlanningEventManagerInterface
         $invited = $this->newlyInvited;
         $this->newlyInvited = [];
 
+        if ([] === $invited) {
+            return;
+        }
+
         foreach ($invited as $user) {
             $this->inviteNotification($user, $event);
         }
+
+        // One write for every invitation, not one each.
+        $this->entityManager->flush();
     }
 
     private function inviteNotification(CoreUserInterface $user, PlanningEventInterface $event): void
@@ -441,6 +442,7 @@ class PlanningEventManager implements PlanningEventManagerInterface
                 'date' => $event->getStartAt()->format('Y-m-d'),
             ]),
             ['eventId' => $event->getId()],
+            flush: false,
         );
     }
 

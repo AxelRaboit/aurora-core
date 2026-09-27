@@ -17,11 +17,23 @@ use DateTimeImmutable;
 use Doctrine\Common\Collections\Order;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Contracts\Service\ResetInterface;
 
 /** @extends ResolveTargetEntityRepository<DocumentInterface> */
-class DocumentRepository extends ResolveTargetEntityRepository
+class DocumentRepository extends ResolveTargetEntityRepository implements ResetInterface
 {
     use PaginationTrait;
+
+    /**
+     * What a stored path resolved to, for the rest of the request.
+     *
+     * Serving one file asks twice about the same row: the access guard for its
+     * status, the locator for its disk. Kept for one request and one worker
+     * message, see {@see self::reset()}.
+     *
+     * @var array<string, array{status: DocumentStatusEnum, storageDisk: StorageDiskEnum}|null>
+     */
+    private array $pathRows = [];
 
     public function __construct(ManagerRegistry $registry)
     {
@@ -301,10 +313,7 @@ class DocumentRepository extends ResolveTargetEntityRepository
      */
     public function findStatusForPath(string $path): ?DocumentStatusEnum
     {
-        /** @var array{status: DocumentStatusEnum}|null $row */
-        $row = $this->pathQuery($path, 'd.status')->getQuery()->getOneOrNullResult();
-
-        return $row['status'] ?? null;
+        return $this->pathRow($path)['status'] ?? null;
     }
 
     /**
@@ -314,10 +323,25 @@ class DocumentRepository extends ResolveTargetEntityRepository
      */
     public function findStorageDiskForPath(string $path): ?StorageDiskEnum
     {
-        /** @var array{storageDisk: StorageDiskEnum}|null $row */
-        $row = $this->pathQuery($path, 'd.storageDisk')->getQuery()->getOneOrNullResult();
+        return $this->pathRow($path)['storageDisk'] ?? null;
+    }
 
-        return $row['storageDisk'] ?? null;
+    /** Forgets the paths resolved so far, between two messages of a worker. */
+    public function reset(): void
+    {
+        $this->pathRows = [];
+    }
+
+    /** @return array{status: DocumentStatusEnum, storageDisk: StorageDiskEnum}|null */
+    private function pathRow(string $path): ?array
+    {
+        if (!array_key_exists($path, $this->pathRows)) {
+            /** @var array{status: DocumentStatusEnum, storageDisk: StorageDiskEnum}|null $row */
+            $row = $this->pathQuery($path, 'd.status, d.storageDisk')->getQuery()->getOneOrNullResult();
+            $this->pathRows[$path] = $row;
+        }
+
+        return $this->pathRows[$path];
     }
 
     /**

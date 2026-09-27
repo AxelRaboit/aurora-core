@@ -619,8 +619,11 @@ final class DocumentManagerTest extends TestCase
             }
         );
 
-        // create() with a file records a version, which triggers pruning.
-        $this->manager->create($this->makeInput(
+        // A new file on an existing document records a version, which prunes.
+        // Not create(): a document born a moment ago has nothing to prune,
+        // and it no longer asks.
+        $document = $this->makeImageDocument('ged/2026/05/previous.pdf');
+        $this->manager->update($document, $this->makeInput(
             filePath: 'ged/2026/05/current.pdf',
             fileName: 'current.pdf',
             originalName: 'Current.pdf',

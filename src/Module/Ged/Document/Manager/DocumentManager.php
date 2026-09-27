@@ -65,11 +65,17 @@ class DocumentManager implements DocumentManagerInterface
         $document->setStorageDisk($this->storageManager->activeDisk());
         $this->regenerateRenditionsIfImage($document);
         $this->entityManager->persist($document);
-        $this->entityManager->flush();
 
+        // The first version goes in with the document, in the same flush. A
+        // document born a moment ago has no history, so its version is the
+        // first and there is nothing to prune: asking the database for either,
+        // then flushing again, cost two queries and a flush per file of an
+        // import.
         if (null !== $document->getFilePath()) {
-            $this->recordVersion($document);
+            $this->entityManager->persist($this->versionOf($document, 1));
         }
+
+        $this->entityManager->flush();
 
         $this->auditCreated($document);
 
@@ -460,6 +466,15 @@ class DocumentManager implements DocumentManagerInterface
      */
     protected function recordVersion(DocumentInterface $document): void
     {
+        $this->entityManager->persist($this->versionOf($document, $this->versionRepository->getNextVersionNumber($document)));
+        $this->entityManager->flush();
+
+        $this->pruneVersions($document);
+    }
+
+    /** A version row pointing at the document's current file. */
+    protected function versionOf(DocumentInterface $document, int $number): DocumentVersionInterface
+    {
         $version = $this->createDocumentVersion();
         $version->setDocument($document)
             ->setFilePath((string) $document->getFilePath())
@@ -471,11 +486,9 @@ class DocumentManager implements DocumentManagerInterface
             // at the same backend. They diverge later, when the document moves
             // and its history stays where it was.
             ->setStorageDisk($document->getStorageDisk())
-            ->setVersionNumber($this->versionRepository->getNextVersionNumber($document));
-        $this->entityManager->persist($version);
-        $this->entityManager->flush();
+            ->setVersionNumber($number);
 
-        $this->pruneVersions($document);
+        return $version;
     }
 
     /**

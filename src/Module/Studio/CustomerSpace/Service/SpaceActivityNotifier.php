@@ -9,6 +9,7 @@ use Aurora\Core\Notification\Repository\NotificationRepository;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Message\SpaceActivityDigestMessage;
+use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -60,6 +61,7 @@ final readonly class SpaceActivityNotifier
         private TranslatorInterface $translator,
         private MessageBusInterface $bus,
         private EntityManagerInterface $entityManager,
+        private CustomerSpaceRepository $spaces,
     ) {}
 
     public function clientWroteInChat(CustomerSpaceInterface $space, string $author): void
@@ -175,9 +177,12 @@ final readonly class SpaceActivityNotifier
         // written before it can run, and a flush per member rewrote the whole
         // unit of work once for each of them.
         $told = [];
+        $recipients = $this->recipients($space);
+        // Asked for the whole team at once rather than person by person.
+        $unread = $coalesce ? $this->repository->recipientsWithUnread($recipients, $type, $url) : [];
 
-        foreach ($this->recipients($space) as $recipient) {
-            if ($coalesce && $this->repository->hasUnread($recipient, $type, $url)) {
+        foreach ($recipients as $recipient) {
+            if (isset($unread[(int) $recipient->getId()])) {
                 continue;
             }
 
@@ -228,6 +233,7 @@ final readonly class SpaceActivityNotifier
      */
     private function recipients(CustomerSpaceInterface $space): array
     {
+        $this->spaces->warmTeam($space);
         $users = [];
 
         foreach ($space->getMembers() as $member) {

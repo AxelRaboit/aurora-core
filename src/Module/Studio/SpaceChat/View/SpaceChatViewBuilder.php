@@ -53,13 +53,39 @@ final readonly class SpaceChatViewBuilder
      *
      * @return array<string, mixed>
      */
-    public function view(CustomerSpaceInterface $space, CoreUserInterface $user): array
+    /**
+     * The rooms this person reads, the main one made sure of first.
+     *
+     * Before the list, and on every load: a space seeded before rooms existed
+     * has none, and the conversation must not open on nothing. Public so the
+     * page asks once and hands the same list to the view and to the hub's
+     * cookie, which both need it.
+     *
+     * @return list<SpaceChatChannelInterface>
+     */
+    public function roomsForUser(CustomerSpaceInterface $space, CoreUserInterface $user): array
     {
-        // Before the list, and on every load: a space seeded before rooms
-        // existed has none, and the conversation must not open on nothing.
         $this->channelManager->ensureMain($space);
 
-        $rooms = $this->channels->findForUser($space, $user);
+        return $this->channels->findForUser($space, $user);
+    }
+
+    /**
+     * The rooms this address reads, as {@see self::roomsForUser()}.
+     *
+     * @return list<SpaceChatChannelInterface>
+     */
+    public function roomsForLink(SpaceAccessLinkInterface $link): array
+    {
+        $this->channelManager->ensureMain($link->getSpace());
+
+        return $this->channels->findForLink($link->getSpace(), $link);
+    }
+
+    /** @param list<SpaceChatChannelInterface>|null $rooms from roomsForUser(), when the caller has them */
+    public function view(CustomerSpaceInterface $space, CoreUserInterface $user, ?array $rooms = null): array
+    {
+        $rooms ??= $this->roomsForUser($space, $user);
         $open = $rooms[0] ?? null;
 
         return [
@@ -116,17 +142,15 @@ final readonly class SpaceChatViewBuilder
      * a checkbox nobody could explain, on a screen that already asks the studio
      * to make three decisions per link.
      *
-     * @param string $token the secret half, which only the request that carried
-     *                      it can supply
+     * @param string                               $token the secret half, which only the request that carried
+     *                                                    it can supply
+     * @param list<SpaceChatChannelInterface>|null $rooms from roomsForLink(), when the caller has them
      *
      * @return array<string, mixed>
      */
-    public function publicView(SpaceAccessLinkInterface $link, string $token): array
+    public function publicView(SpaceAccessLinkInterface $link, string $token, ?array $rooms = null): array
     {
-        $space = $link->getSpace();
-        $this->channelManager->ensureMain($space);
-
-        $rooms = $this->channels->findForLink($space, $link);
+        $rooms ??= $this->roomsForLink($link);
         $open = $rooms[0] ?? null;
 
         return [
@@ -178,6 +202,8 @@ final readonly class SpaceChatViewBuilder
      */
     private function channels(array $rooms, ?CoreUserInterface $user, ?SpaceAccessLinkInterface $link): array
     {
+        $this->channels->warmMembers($rooms);
+
         return array_map(
             fn (SpaceChatChannelInterface $room): array => $this->channelSerializer->serializeFor($room, $user, $link),
             $rooms,
