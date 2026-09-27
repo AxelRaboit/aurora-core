@@ -5,6 +5,55 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.271] - 2026-09-27
+
+### Sécurité
+
+- **Créer un espace ne permet plus de le confier à d'autres sans y être.** La
+  création acceptait n'importe quelle équipe et n'importe quels rôles. Qui crée
+  un espace sans voir tous les espaces en devient désormais le chef, quelle que
+  soit l'équipe envoyée.
+- **La règle « l'équipe se change par le chef » vit dans le gestionnaire des
+  espaces**, et plus seulement dans un contrôleur : toute façon d'enregistrer un
+  espace y passe.
+- **Le tableau de bord n'affiche plus un panneau inconnu du serveur.**
+  L'interrupteur et le droit de chaque module tiennent dans une seule table, et
+  l'écran ne montre que ce qu'elle autorise : un module oublié dans la liste des
+  droits s'affichait sans verrou.
+- **La recherche du Planning vérifie que le module est allumé.**
+
+### Corrigé
+
+- Un rappel « journée entière » du jour apparaît dans « À venir » : il n'était
+  ni en retard ni à venir, donc nulle part.
+- Un lien vers une fiche ou un état sans vue ouvre le contenu de l'espace, et
+  plus la dernière vue utilisée ; `?view=content` est respecté.
+- Le badge « en retard » d'une fiche suit la même règle que les compteurs :
+  une fiche d'étape interne, hors calendrier ou publiée n'attend pas le client.
+- Les tuiles du tableau de bord ouvrent la liste du calendrier éditorial avec
+  toutes les fiches de l'état, tous mois confondus et sans date comprises : les
+  parutions manquées des mois passés n'y figuraient pas.
+- Retirer un fichier envoyé par le client ne fait plus tomber sa réponse.
+- Les liens « autour du client » suivent les interrupteurs de Studio : un
+  module coupé n'y apparaît plus.
+- **Plus aucun menu déroulant natif dans le back-office.** `AppSelect`
+  rendait le `<select>` du navigateur, qui ne suit ni le thème ni la police :
+  le filtre d'état d'un espace, et environ 150 autres choix, passent au
+  sélecteur maison, sans aucun changement chez les appelants. La recherche
+  apparaît au-delà de dix entrées, et un select désactivé l'est enfin pour de
+  vrai (l'attribut tombait sur l'enveloppe). Un test échoue désormais si un
+  `<select>` natif revient ; seul le formulaire public du site en garde un,
+  pour le sélecteur du téléphone.
+- Ménage : commentaires qui décrivaient un autre code réécrits, et
+  `PlanningEventManager::update()` et `move()`, qui n'avaient plus d'appelant,
+  retirés (les versions « à la portée choisie » les remplacent).
+
+### Dans aurora-client
+
+Rien à faire après `make aurora-update`. Une classe qui étendrait
+`PlanningEventManager` en appelant `update()` ou `move()` passerait par
+`updateAtScope()` et `moveAtScope()` ; le projet client n'en a pas.
+
 ## [0.9.270] - 2026-09-27
 
 Le plan Studio du 27/09, en entier (lots 0 à 6) : d'abord les failles

@@ -176,6 +176,9 @@ backend:
             today: Today
             no_spaces: No space to show.
             empty_month: Nothing scheduled this month.
+            empty_state: "No card in this state."
+            undated: "No date"
+            all_months: "All months"
             states:
                 missed: Missed publication
                 late_review: Review overdue

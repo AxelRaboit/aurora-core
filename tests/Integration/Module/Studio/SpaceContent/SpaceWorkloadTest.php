@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Tests\Integration\Module\Studio\SpaceContent;
 
 use Aurora\Core\Notification\Entity\Notification;
+use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\Customer\Entity\Customer;
@@ -14,11 +15,13 @@ use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceMemberRoleEnum;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceStatusEnum;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLink;
 use Aurora\Module\Studio\SpaceAccess\Manager\SpaceAccessLinkManagerInterface;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentAttachment;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumn;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumnInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItem;
 use Aurora\Module\Studio\SpaceContent\Enum\SpaceContentApprovalEnum;
 use Aurora\Module\Studio\SpaceContent\Enum\SpaceContentColumnRoleEnum;
+use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentAttachmentManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Message\NotifyLateReviewsMessage;
 use Aurora\Module\Studio\SpaceContent\MessageHandler\NotifyLateReviewsHandler;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentColumnRepository;
@@ -60,7 +63,7 @@ final class SpaceWorkloadTest extends IntegrationTestCase
     {
         $this->entityManager->createQuery(sprintf("DELETE FROM %s n WHERE n.type = 'studio.space.late_review'", Notification::class))->execute();
 
-        foreach ([SpaceContentItem::class, SpaceContentColumn::class, SpaceAccessLink::class, CustomerSpaceMember::class, CustomerSpace::class, Customer::class] as $class) {
+        foreach ([SpaceContentAttachment::class, SpaceContentItem::class, SpaceContentColumn::class, SpaceAccessLink::class, CustomerSpaceMember::class, CustomerSpace::class, Customer::class] as $class) {
             $this->entityManager->createQuery(sprintf('DELETE FROM %s', $class))->execute();
         }
 
@@ -150,6 +153,33 @@ final class SpaceWorkloadTest extends IntegrationTestCase
         self::assertCount(1, $notifications, 'not repeated while unread');
         self::assertSame(sprintf('/workspace/%d?state=late_review', $space->getId()), $notifications[0]->getUrl());
         self::assertSame('Une relecture en retard', $notifications[0]->getTitle());
+    }
+
+    /**
+     * Taking the client's own file off a card leaves their answer: it is part
+     * of how they answered, not something the studio changed under them.
+     */
+    public function testRemovingTheClientsFileKeepsTheirAnswer(): void
+    {
+        $space = $this->givenSpace('Fichier du client');
+        $item = new SpaceContentItem();
+        $item->setSpace($space)->setColumn($this->column($space, SpaceContentColumnRoleEnum::Review))->setTitle('Carte')->setScheduledAt(new DateTimeImmutable('+2 days'));
+        $link = static::getContainer()->get(SpaceAccessLinkManagerInterface::class)->issue($space, 'client@example.test', null, 30, true, true);
+
+        $document = new Document();
+        $document->setTitle('Photo du client')->setFilePath('ged/2026/09/client.jpg')->setFileName('client.jpg')->setOriginalName('client.jpg')->setMimeType('image/jpeg')->setSize(1024);
+        $attachment = new SpaceContentAttachment();
+        $attachment->setItem($item)->setDocument($document)->setPosition(0)->addedByClient($link);
+        $item->answer(SpaceContentApprovalEnum::Approved, $link, new DateTimeImmutable());
+
+        foreach ([$item, $document, $attachment] as $entity) {
+            $this->entityManager->persist($entity);
+        }
+        $this->entityManager->flush();
+
+        static::getContainer()->get(SpaceContentAttachmentManagerInterface::class)->detach($attachment);
+
+        self::assertSame(SpaceContentApprovalEnum::Approved, $item->getApproval());
     }
 
     private function givenSpace(string $name): CustomerSpace

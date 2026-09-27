@@ -17,6 +17,8 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Throwable;
 
+use function in_array;
+
 /**
  * The editorial calendar: every client's publications on one month.
  *
@@ -29,6 +31,9 @@ use Throwable;
 final class StudioCalendarController extends AbstractController
 {
     use JsonResponseTrait;
+
+    /** The states `SpaceWorkload::statesOf()` names. */
+    private const array STATES = ['upcoming', 'with_client', 'late_review', 'changes_requested', 'missed', 'published'];
 
     public function __construct(
         private readonly StudioCalendarViewBuilder $viewBuilder,
@@ -43,11 +48,19 @@ final class StudioCalendarController extends AbstractController
     #[Route('/items', name: '_items', methods: [HttpMethodEnum::Get->value])]
     public function items(Request $request): JsonResponse
     {
+        $scope = SpaceScopeEnum::fromRequest($request->query->get('scope'));
+        $state = $request->query->getString('state');
+
+        // One state, every month: what a tile of the dashboard opens.
+        if (in_array($state, self::STATES, true) && '' === $request->query->getString('from')) {
+            return $this->jsonSuccess(['items' => $this->viewBuilder->itemsInState($scope, $state)]);
+        }
+
         $from = $this->instant($request->query->getString('from'));
         $to = $this->instant($request->query->getString('to'));
         $items = !$from instanceof DateTimeImmutable || !$to instanceof DateTimeImmutable
             ? null
-            : $this->viewBuilder->items(SpaceScopeEnum::fromRequest($request->query->get('scope')), $from, $to);
+            : $this->viewBuilder->items($scope, $from, $to);
 
         if (null === $items) {
             return $this->jsonInvalidInput(['window' => 'backend.studio.calendar.errors.window']);

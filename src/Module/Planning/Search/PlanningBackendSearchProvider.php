@@ -8,6 +8,7 @@ use Aurora\Core\Search\BackendSearchProviderInterface;
 use Aurora\Module\Planning\Event\Repository\PlanningEventRepository;
 use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
 use Aurora\Module\Planning\Planning\Repository\PlanningRepository;
+use Aurora\Module\Planning\PlanningContext;
 use Aurora\Module\Planning\Reminder\Repository\PlanningReminderRepository;
 use Aurora\Module\Planning\Sync\Access\ModuleEventVisibility;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
@@ -39,6 +40,7 @@ final readonly class PlanningBackendSearchProvider implements BackendSearchProvi
         private Security $security,
         private UrlGeneratorInterface $urlGenerator,
         private ModuleEventVisibility $moduleEvents,
+        private PlanningContext $planningContext,
     ) {}
 
     public function search(string $query): array
@@ -47,10 +49,11 @@ final readonly class PlanningBackendSearchProvider implements BackendSearchProvi
         // palette because one module's query failed is worse than one section
         // missing.
         try {
-            // The right to look at calendars, as every calendar screen asks:
-            // the search used to answer anybody signed in.
+            // The module switched on and the right to look at calendars, as
+            // every calendar screen asks: the search used to answer anybody
+            // signed in, calendar off or not.
             $user = $this->security->getUser();
-            if (!$user instanceof CoreUserInterface || !$this->security->isGranted('planning.calendars.view')) {
+            if (!$user instanceof CoreUserInterface || !$this->planningContext->isBackendEnabled() || !$this->security->isGranted('planning.calendars.view')) {
                 return [];
             }
 

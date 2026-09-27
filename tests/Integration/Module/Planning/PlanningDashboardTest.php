@@ -201,4 +201,27 @@ final class PlanningDashboardTest extends IntegrationTestCase
         self::assertContains('En cours', $titles);
         self::assertNotContains('Annulé', $titles);
     }
+
+    /**
+     * A whole-day reminder for today is still to come, not late and not
+     * gone: it used to fall between the two lists.
+     */
+    public function testTodaysWholeDayReminderIsStillComing(): void
+    {
+        $mine = new Planning();
+        $mine->setName('Aujourd\'hui')->setOwner($this->admin)->setTimezone('UTC');
+        $this->entityManager->persist($mine);
+
+        $today = new PlanningReminder();
+        $today->setPlanning($mine)->setTitle('Rappel du jour')->setAllDay(true)->setDueAt(new DateTimeImmutable('today midnight'));
+        $this->entityManager->persist($today);
+        $this->entityManager->flush();
+        $this->created[] = [PlanningReminder::class, (int) $today->getId()];
+        $this->created[] = [Planning::class, (int) $mine->getId()];
+
+        $this->client->loginUser($this->admin, 'admin');
+        $stats = $this->provider->getStats()['planning'];
+
+        self::assertContains('Rappel du jour', array_column($stats['upcoming'], 'title'));
+    }
 }

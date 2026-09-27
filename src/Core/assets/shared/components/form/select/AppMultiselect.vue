@@ -15,6 +15,9 @@ const props = defineProps({
     /** Help text under the control - explains the field, unlike `error` which reports it. */
     hint: { type: String, default: "" },
     required: { type: Boolean, default: false },
+    /** Topic id from `helpTopics.js`, surfaced next to the label. */
+    help: { type: String, default: "" },
+    disabled: { type: Boolean, default: false },
     multiple: { type: Boolean, default: false },
     searchable: { type: Boolean, default: true },
     allowEmpty: { type: Boolean, default: false },
@@ -54,7 +57,7 @@ function onSelect(value) {
 
 <template>
     <div class="flex flex-col gap-1.5">
-        <AppFieldLabel :label="label" :required="required" />
+        <AppFieldLabel :label="label" :required="required" :help="help" />
         <Multiselect
             :model-value="selectedOption"
             :options="options"
@@ -62,6 +65,7 @@ function onSelect(value) {
             :track-by="trackBy"
             :multiple="multiple"
             :searchable="searchable"
+            :disabled="disabled"
             :allow-empty="allowEmpty"
             :open-direction="openDirection"
             :placeholder="placeholder || t('shared.common.select_placeholder')"

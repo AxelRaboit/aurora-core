@@ -176,6 +176,9 @@ backend:
             today: Hoy
             no_spaces: 'Ningún espacio que mostrar.'
             empty_month: 'Nada programado este mes.'
+            empty_state: "Ninguna ficha en este estado."
+            undated: "Sin fecha"
+            all_months: "Todos los meses"
             states:
                 missed: 'Publicación no realizada'
                 late_review: 'Revisión atrasada'

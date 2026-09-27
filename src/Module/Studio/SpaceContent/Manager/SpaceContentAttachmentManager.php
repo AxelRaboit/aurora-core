@@ -113,7 +113,12 @@ class SpaceContentAttachmentManager implements SpaceContentAttachmentManagerInte
     public function detach(SpaceContentAttachmentInterface $attachment): void
     {
         $this->auditDetached($attachment);
-        $this->clearApprovalOf($attachment->getItem());
+
+        // A file the client sent is theirs, and part of how they answered:
+        // taking it off the card does not change what they were shown.
+        if (!$attachment->isFromClient()) {
+            $this->clearApprovalOf($attachment->getItem());
+        }
 
         $this->entityManager->remove($attachment);
         $this->entityManager->flush();
