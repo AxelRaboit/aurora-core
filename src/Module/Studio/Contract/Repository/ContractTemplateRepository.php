@@ -52,7 +52,8 @@ class ContractTemplateRepository extends ResolveTargetEntityRepository
      */
     public function findSelectable(ContractTemplateKindEnum $kind): array
     {
-        return $this->createQueryBuilder('t')
+        /** @var list<ContractTemplateInterface> $templates */
+        $templates = $this->createQueryBuilder('t')
             ->innerJoin('t.versions', 'v')
             ->andWhere('t.kind = :kind')
             ->andWhere('t.archivedAt IS NULL')
@@ -61,5 +62,23 @@ class ContractTemplateRepository extends ResolveTargetEntityRepository
             ->orderBy('t.name', Order::Ascending->value)
             ->getQuery()
             ->getResult();
+
+        // The picker reads each template's latest published version and the
+        // blanks its wording asks for. The join above filters and cannot
+        // carry them - a filtered collection would pass for the whole one -
+        // so every version and its translations come in a second query rather
+        // than two queries per template.
+        if ([] !== $templates) {
+            $this->createQueryBuilder('t')
+                ->leftJoin('t.versions', 'everyVersion')
+                ->leftJoin('everyVersion.translations', 'tr')
+                ->addSelect('everyVersion', 'tr')
+                ->where('t IN (:templates)')
+                ->setParameter('templates', $templates)
+                ->getQuery()
+                ->getResult();
+        }
+
+        return $templates;
     }
 }

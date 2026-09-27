@@ -65,6 +65,29 @@ class SpaceContentAttachmentRepository extends ResolveTargetEntityRepository
      * is uploaded last is the newest, and a carousel that reorders itself on
      * every upload is one nobody can arrange.
      */
+    /**
+     * One attachment of this space, with what serving it to a guest reads.
+     *
+     * Its card, the card's column - which says whether the client may see it
+     * - and the document, in one query, and the space checked in the query:
+     * a file of another space is simply not found. Each thumbnail of the
+     * client page is a request of its own, and it cost five.
+     */
+    public function findForGuest(int $id, CustomerSpaceInterface $space): ?SpaceContentAttachmentInterface
+    {
+        return $this->createQueryBuilder('a')
+            ->innerJoin('a.item', 'i')
+            ->innerJoin('i.column', 'c')
+            ->innerJoin('a.document', 'd')
+            ->addSelect('i', 'c', 'd')
+            ->where('a.id = :id')
+            ->andWhere('i.space = :space')
+            ->setParameter('id', $id)
+            ->setParameter('space', $space)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     public function nextPosition(SpaceContentItemInterface $item): int
     {
         $highest = $this->createQueryBuilder('a')

@@ -155,6 +155,45 @@ Quatrième lot, les points moyens restants :
 - **Sitemap** : les termes qui ont un article publié sont trouvés en une
   requête, sans charger les articles de chaque terme.
 
+Cinquième lot, tout ce qui restait de l'audit :
+
+- **Import d'un carnet zip** : les notes sont écrites ensemble, avec une
+  requête de position par dossier et un seul enregistrement. Note par note,
+  chaque enregistrement rechiffrait tout ce qui était déjà importé, et un gros
+  coffre Obsidian pouvait expirer à mi-chemin.
+- **Imports de la médiathèque** (`aurora:ged:import`, Pexels compris) : un
+  document neuf reçoit sa première version dans le même enregistrement, sans
+  chercher de numéro ni d'élagage, et la mémoire est vidée entre deux
+  fichiers.
+- **Images servies depuis R2** : la ligne du document est lue une fois par
+  requête au lieu de deux.
+- **Déplacement vers R2 ou en local** : la sélection est lue en une requête et
+  les versions de chaque document une seule fois.
+- **Mise à la corbeille d'un dossier** (médiathèque et notes) : une requête par
+  niveau de l'arbre au lieu d'une par dossier, et plus de double parcours
+  (14 requêtes avant pour une branche de 7 dossiers, 3 désormais).
+- **Vignettes de la page client Studio** : une requête par vignette au lieu
+  de cinq.
+- **Équipe d'un espace Studio** : les membres et leurs comptes sont lus en une
+  fois, et les notifications non lues de toute l'équipe en une requête.
+- **Salons de discussion** : lus une fois par page au lieu de deux, avec
+  leurs membres.
+- **Sélecteur de modèles de contrat** : versions et textes de tous les
+  modèles en une requête.
+- **Page du Planning** : partages, personnes et calendriers des liens viennent
+  avec les calendriers ; inviter plusieurs personnes les trouve en une
+  requête et écrit leurs notifications ensemble.
+- **Formulaires** : les réponses sont libellées à partir d'un formulaire lu
+  une fois (liste, export CSV, envoi) ; aller sur `/forms` ne charge plus tous
+  les formulaires pour trouver le premier.
+- **Sélecteur d'articles** : une sélection enregistrée revient dans son ordre,
+  titres compris, en une requête.
+- **Divers** : le tableau de bord compte les taxonomies sans les charger, la
+  médiathèque compte ses dossiers une fois au premier rendu, la recherche
+  d'images orphelines compte les usages en une passe, et la commande
+  `ged:audit-public-documents` lit les publications avec leurs traductions
+  (et ignore celles qui sont à la corbeille, qui n'ont plus de page).
+
 Au passage, **le chiffrement des colonnes est branché dès le démarrage** et
 plus seulement à la première requête : un traitement qui lisait une note
 chiffrée avant toute requête HTTP ou commande échouait sur un ordre de
@@ -179,6 +218,7 @@ paramètre facultatif `?array $replyCounts`. Une migration ajoute deux index à
 `MenuSerializerInterface::serializeItem()` prend un second paramètre facultatif,
 et `ContractSerializerInterface` gagne `serializeMany()` : une implémentation
 écrite à part devrait les ajouter. Le projet client n'en a pas.
+`MarkdownNoteManagerInterface` gagne `createMany()`, avec la même remarque.
 
 ## [0.9.270] - 2026-09-27
 

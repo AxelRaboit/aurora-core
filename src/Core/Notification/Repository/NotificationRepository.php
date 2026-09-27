@@ -46,6 +46,35 @@ class NotificationRepository extends ResolveTargetEntityRepository
      *
      * Read, and it rings again: the previous one has been acted on.
      */
+    /**
+     * Which of these people still have an unread notification of this type
+     * and address, in one query, keyed by user id.
+     *
+     * @param list<CoreUserInterface> $recipients
+     *
+     * @return array<int, true>
+     */
+    public function recipientsWithUnread(array $recipients, string $type, string $url): array
+    {
+        if ([] === $recipients) {
+            return [];
+        }
+
+        $ids = $this->createQueryBuilder('n')
+            ->select('DISTINCT IDENTITY(n.recipient)')
+            ->andWhere('n.recipient IN (:recipients)')
+            ->andWhere('n.type = :type')
+            ->andWhere('n.url = :url')
+            ->andWhere('n.readAt IS NULL')
+            ->setParameter('recipients', $recipients)
+            ->setParameter('type', $type)
+            ->setParameter('url', $url)
+            ->getQuery()
+            ->getSingleColumnResult();
+
+        return array_fill_keys(array_map(intval(...), $ids), true);
+    }
+
     public function hasUnread(CoreUserInterface $recipient, string $type, string $url): bool
     {
         return 0 < (int) $this->createQueryBuilder('n')

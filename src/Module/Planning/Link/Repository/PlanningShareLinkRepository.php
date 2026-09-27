@@ -48,9 +48,15 @@ class PlanningShareLinkRepository extends ResolveTargetEntityRepository
     public function findForOwner(CoreUserInterface $owner): array
     {
         /** @var list<PlanningShareLinkInterface> $result */
+        // `c` filters on the owner and cannot carry the collection - a link
+        // may reach a calendar of somebody else too - so every calendar of
+        // each link comes through a second, unfiltered join. The screen names
+        // them all, and loaded link by link it was a query per link.
+        // No `DISTINCT` either: Doctrine returns each link once.
         $result = $this->createQueryBuilder('l')
-            ->distinct()
             ->innerJoin('l.calendars', 'c')
+            ->leftJoin('l.calendars', 'every')
+            ->addSelect('every')
             ->where('c.owner = :owner')
             ->setParameter('owner', $owner)
             // Newest first: the one just created is the one being looked for.

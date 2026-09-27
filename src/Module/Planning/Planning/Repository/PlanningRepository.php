@@ -25,9 +25,9 @@ class PlanningRepository extends ResolveTargetEntityRepository
      *
      * Three ways in: you own it, it is shared with everybody who can reach the
      * module, or somebody shared it with you by name. The third is a left join
-     * rather than a second query, so a page load stays one round trip - and
-     * `DISTINCT` because a calendar shared with you *and* shared broadly would
-     * otherwise arrive twice and appear twice in the sidebar.
+     * rather than a second query, so a page load stays one round trip. A
+     * calendar shared with you *and* shared broadly spans several rows and is
+     * still returned once: Doctrine collapses them into one entity.
      *
      * Ordered by name and not by id: this list is a sidebar somebody reads,
      * and creation order means nothing to them.
@@ -37,9 +37,19 @@ class PlanningRepository extends ResolveTargetEntityRepository
     public function findVisibleTo(CoreUserInterface $user): array
     {
         /** @var list<PlanningInterface> $result */
+        // `s` only decides visibility, so it is restricted to this person and
+        // cannot carry the collection. The shares the screen lists, with their
+        // people and the owner, come through joins of their own: loaded
+        // calendar by calendar, they cost a query each, twice.
+        //
+        // No `DISTINCT`: the rows carry the users' JSON columns, which
+        // Postgres cannot compare, and it is not needed - see above.
         $result = $this->createQueryBuilder('p')
-            ->distinct()
             ->leftJoin('p.shares', 's', Join::WITH, 's.user = :owner')
+            ->leftJoin('p.owner', 'o')
+            ->leftJoin('p.shares', 'everyShare')
+            ->leftJoin('everyShare.user', 'shareUser')
+            ->addSelect('o', 'everyShare', 'shareUser')
             ->where('p.owner = :owner OR p.visibility = :shared OR s.id IS NOT NULL')
             ->setParameter('owner', $user)
             ->setParameter('shared', 'shared')

@@ -26,11 +26,14 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
+use function array_filter;
+use function array_values;
 use function basename;
 use function dirname;
 use function explode;
 use function json_decode;
 use function parse_url;
+use function preg_match;
 use function sprintf;
 
 use const PHP_URL_PATH;
@@ -308,6 +311,37 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
         $this->asGuest()->request('GET', sprintf('/spaces/%s/%s/attachments/%d/file', $selector, $token, $attachmentId));
 
         self::assertSame(404, $this->client->getResponse()->getStatusCode());
+    }
+
+    /**
+     * A thumbnail is served from one read of its attachment.
+     *
+     * The attachment, then its card, the space, the column and the document
+     * were each loaded on their own: five queries for each picture of the
+     * client page, which draws them all.
+     */
+    public function testAFileIsServedWithoutLoadingItsParentsOneByOne(): void
+    {
+        [$mine, $myUrl] = $this->givenLinkedSpace(canUpload: true);
+        $myItem = $this->givenItem($mine);
+        $this->upload($myUrl, $myItem['id'], $this->aFile('photo.jpg'));
+        $myFileUrl = (string) parse_url($this->payload()['attachments'][$myItem['id']][0]['url'], PHP_URL_PATH);
+
+        $guest = $this->asGuest();
+        $guest->disableReboot();
+        static::getContainer()->get(EntityManagerInterface::class)->clear();
+        $holder = static::getContainer()->get('doctrine.debug_data_holder');
+        $holder->reset();
+
+        $guest->request('GET', $myFileUrl);
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        // `t0` is the alias of Doctrine's one-row loads.
+        $oneByOne = array_filter(
+            $holder->getData()['default'] ?? [],
+            static fn (array $query): bool => 1 === preg_match('/FROM (core_studio_space_content_attachments|core_studio_space_content_items|core_studio_space_content_columns|core_ged_documents) t0 /', (string) $query['sql']),
+        );
+        self::assertSame([], array_values($oneByOne));
     }
 
     private function asGuest(): KernelBrowser
