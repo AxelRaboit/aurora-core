@@ -1352,6 +1352,12 @@ final readonly class GridViewBuilder
      * guessed: a pin planted at 0°N 0°E from a typo is worse than a pin
      * missing.
      *
+     * **Photos pair with stops, not with raw lines.** A blank line is layout
+     * and takes no photo; it used to, and one stray blank line in a
+     * translation moved every later photo onto the wrong stop. A line that
+     * is written but unreadable still counts as a stop, dropped or not, so a
+     * typo does not shift the photos after it either.
+     *
      * @param array<string, mixed>          $zone
      * @param array<string, mixed>          $held
      * @param array<int, DocumentInterface> $documents
@@ -1361,8 +1367,14 @@ final readonly class GridViewBuilder
     private function travelMapView(array $zone, array $held, array $documents): ?array
     {
         $stops = [];
+        $position = -1;
 
-        foreach (explode("\n", (string) $held['code']) as $index => $line) {
+        foreach (explode("\n", (string) $held['code']) as $line) {
+            if ('' === trim($line)) {
+                continue;
+            }
+
+            ++$position;
             $parts = array_map(trim(...), explode('|', $line));
             if (3 !== count($parts)) {
                 continue;
@@ -1398,7 +1410,7 @@ final readonly class GridViewBuilder
                 continue;
             }
 
-            $mediaId = $zone['mediaIds'][$index] ?? null;
+            $mediaId = $zone['mediaIds'][$position] ?? null;
             $photo = null !== $mediaId ? $this->mediaData($documents[$mediaId] ?? null, $parts[0]) : null;
 
             $stops[] = [
