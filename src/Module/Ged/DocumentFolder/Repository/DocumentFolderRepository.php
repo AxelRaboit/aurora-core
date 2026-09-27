@@ -79,6 +79,28 @@ class DocumentFolderRepository extends ResolveTargetEntityRepository
             ->getResult();
     }
 
+    /**
+     * The living children of several folders at once, for walking a tree a
+     * level at a time: one query per depth rather than one per node.
+     *
+     * @param list<int> $folderIds
+     *
+     * @return list<DocumentFolderInterface>
+     */
+    public function findLivingChildrenOfAny(array $folderIds): array
+    {
+        if ([] === $folderIds) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('f')
+            ->andWhere('IDENTITY(f.parent) IN (:ids)')
+            ->andWhere('f.deletedAt IS NULL')
+            ->setParameter('ids', $folderIds)
+            ->getQuery()
+            ->getResult();
+    }
+
     /** @return list<DocumentFolderInterface> */
     public function findChildrenOf(int $folderId, bool $trashed = false): array
     {

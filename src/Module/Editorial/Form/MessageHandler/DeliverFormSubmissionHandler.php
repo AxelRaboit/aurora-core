@@ -40,7 +40,7 @@ final readonly class DeliverFormSubmissionHandler
 
     public function __invoke(DeliverFormSubmissionMessage $message): void
     {
-        $submission = $this->submissionRepository->find($message->submissionId);
+        $submission = $this->submissionRepository->findForDelivery($message->submissionId);
 
         if (!$submission instanceof FormSubmissionInterface) {
             // Gone between the visitor pressing send and a worker picking this

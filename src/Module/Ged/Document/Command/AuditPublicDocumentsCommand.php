@@ -7,7 +7,6 @@ namespace Aurora\Module\Ged\Document\Command;
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
-use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
@@ -174,7 +173,10 @@ final class AuditPublicDocumentsCommand extends Command
     /** @return iterable<PostInterface> */
     private function publishedPosts(): iterable
     {
-        return $this->postRepository->findBy(['status' => PostStatusEnum::Published]);
+        // The public ones, translations joined: read post by post, each
+        // publication's languages cost a query. A trashed publication keeps
+        // its status but no longer has a page, so it is not listed.
+        return $this->postRepository->findAllPublishedForSitemap();
     }
 
     /**

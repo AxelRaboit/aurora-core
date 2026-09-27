@@ -54,7 +54,7 @@ final readonly class SpaceOrphanedDocumentFinder
             return [];
         }
 
-        $orphaned = [];
+        $candidates = [];
         $seen = [];
 
         foreach ($documents as $document) {
@@ -80,11 +80,18 @@ final readonly class SpaceOrphanedDocumentFinder
                 continue;
             }
 
-            if (0 !== $this->usageService->findUsages($id)['total']) {
-                continue;
-            }
+            $candidates[$id] = $document;
+        }
 
-            $orphaned[] = ['id' => $id, 'title' => $document->getTitle()];
+        // Counted for all of them in one pass. Asked one by one, each walked
+        // every usage provider, the deck provider reading every deck.
+        $usages = $this->usageService->countUsagesFor(array_keys($candidates));
+
+        $orphaned = [];
+        foreach ($candidates as $id => $document) {
+            if (0 === ($usages[$id] ?? 0)) {
+                $orphaned[] = ['id' => $id, 'title' => $document->getTitle()];
+            }
         }
 
         return $orphaned;

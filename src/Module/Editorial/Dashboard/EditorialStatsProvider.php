@@ -50,7 +50,7 @@ final readonly class EditorialStatsProvider implements DashboardStatsProviderInt
                 'byStatus' => $statuses,
                 'trashed' => $this->postRepository->countTrashed(),
                 'postTypes' => count($this->postTypeRepository->findAllWithRelations()),
-                'taxonomies' => count($this->taxonomyRepository->findAllForIndex()),
+                'taxonomies' => $this->taxonomyRepository->count([]),
                 // `countByStatus()` already fills every status with a zero, for
                 // the reason the posts one does: a panel whose rows come and go
                 // is harder to read than one with a steady shape.

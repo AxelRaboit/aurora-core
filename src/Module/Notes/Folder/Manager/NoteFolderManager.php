@@ -289,15 +289,26 @@ class NoteFolderManager implements NoteFolderManagerInterface
      */
     protected function descendantsOf(NoteFolderInterface $folder): array
     {
+        // A level per query: asking each node for its children cost one query
+        // per folder of the branch, leaves included.
         $found = [];
-        $queue = [$folder];
+        $level = [(int) $folder->getId()];
+        $seen = [(int) $folder->getId() => true];
 
-        while ([] !== $queue) {
-            $current = array_shift($queue);
-            foreach ($this->folderRepository->findLivingChildrenOf((int) $current->getId()) as $child) {
+        while ([] !== $level) {
+            $next = [];
+            foreach ($this->folderRepository->findLivingChildrenOfAny($level) as $child) {
+                $id = (int) $child->getId();
+                if (isset($seen[$id])) {
+                    continue;
+                }
+
+                $seen[$id] = true;
                 $found[] = $child;
-                $queue[] = $child;
+                $next[] = $id;
             }
+
+            $level = $next;
         }
 
         return $found;
@@ -307,15 +318,14 @@ class NoteFolderManager implements NoteFolderManagerInterface
     protected function branchHeight(NoteFolderInterface $folder): int
     {
         $height = 1;
-        $level = [$folder];
+        $level = [(int) $folder->getId()];
 
+        // A level per query, as in descendantsOf().
         while ([] !== $level) {
-            $next = [];
-            foreach ($level as $node) {
-                foreach ($this->folderRepository->findLivingChildrenOf((int) $node->getId()) as $child) {
-                    $next[] = $child;
-                }
-            }
+            $next = array_map(
+                static fn (NoteFolderInterface $child): int => (int) $child->getId(),
+                $this->folderRepository->findLivingChildrenOfAny($level),
+            );
 
             if ([] !== $next) {
                 ++$height;

@@ -27,9 +27,7 @@ final readonly class FormsViewBuilder
     /** The form a bare `/forms` should send the reader to, or null when there is none. */
     public function firstId(): ?int
     {
-        $forms = $this->formRepository->findAllForIndex();
-
-        return [] === $forms ? null : $forms[0]->getId();
+        return $this->formRepository->firstId();
     }
 
     /** @param ?int $activeId the form the address names */

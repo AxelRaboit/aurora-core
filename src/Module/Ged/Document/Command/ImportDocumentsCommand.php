@@ -9,6 +9,7 @@ use Aurora\Module\Ged\Document\Manager\DocumentManagerInterface;
 use Aurora\Module\Ged\Document\Service\DocumentFamilyRule;
 use Aurora\Module\Ged\Document\Service\GedDocumentUploader;
 use Aurora\Module\Ged\Enum\DocumentStatusEnum;
+use Doctrine\ORM\EntityManagerInterface;
 use SplFileInfo;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -63,6 +64,7 @@ final class ImportDocumentsCommand extends Command
         private readonly GedDocumentUploader $uploader,
         private readonly DocumentManagerInterface $documentManager,
         private readonly DocumentFamilyRule $familyRule,
+        private readonly EntityManagerInterface $entityManager,
     ) {
         parent::__construct();
     }
@@ -198,6 +200,11 @@ final class ImportDocumentsCommand extends Command
 
             ++$imported;
             $io->writeln(sprintf('  ✓ #%d <info>%s</info> (%s)', $document->getId(), $document->getTitle(), basename($path)));
+
+            // Each document stays in the unit of work once written, and every
+            // later flush walks all of them: a folder of five hundred files
+            // got slower with each one. Nothing below reads them again.
+            $this->entityManager->clear();
         }
 
         $io->success(sprintf('Done. Imported: %d  Failed: %d', $imported, $failed));

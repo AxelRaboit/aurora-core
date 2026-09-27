@@ -107,6 +107,8 @@ final readonly class MarkdownNoteImporter
         /** @var array<string, NoteFolderInterface> $byPath */
         $byPath = [];
         $created = 0;
+        /** @var list<MarkdownNoteInput> $notes written together once the folders exist */
+        $notes = [];
 
         // Les images d'abord, parce qu'une note qui en cite une a besoin de
         // sa nouvelle adresse au moment où on l'écrit.
@@ -154,11 +156,13 @@ final readonly class MarkdownNoteImporter
                 continue;
             }
 
-            $this->createNote($user, $under, $this->titleOf($fileName), $this->relink((string) $zip->getFromIndex($i), $imported));
+            $notes[] = $this->noteInput($under, $this->titleOf($fileName), $this->relink((string) $zip->getFromIndex($i), $imported));
             ++$created;
         }
 
         $zip->close();
+
+        $this->notes->createMany($user, $notes);
 
         return $created;
     }
@@ -286,14 +290,19 @@ final readonly class MarkdownNoteImporter
         string $title,
         string $raw,
     ): void {
+        $this->notes->create($user, $this->noteInput($folder, $title, $raw));
+    }
+
+    private function noteInput(?NoteFolderInterface $folder, string $title, string $raw): MarkdownNoteInput
+    {
         [$tags, $content] = $this->split($raw);
 
-        $this->notes->create($user, new MarkdownNoteInput(
+        return new MarkdownNoteInput(
             folderId: $folder?->getId(),
             title: $title,
             content: $content,
             tags: $tags,
-        ));
+        );
     }
 
     /**
