@@ -139,27 +139,41 @@
     {% if sequence %}
         {{ include('Frontend/themes/default/editorial/post/_sequence.html.twig', {sequence: sequence}) }}
     {% endif %}
-
-    {% if terms is not empty %}
-        <footer class="flex flex-wrap gap-1.5 not-prose border-t border-line pt-4 mt-8">
-            {% for taxonomySlug, names in terms %}
-                {% for name in names %}
-                    <span class="px-2 py-0.5 text-xs rounded-md bg-surface-2 text-secondary">{{ name }}</span>
-                {% endfor %}
-            {% endfor %}
-        </footer>
-    {% endif %}
 </article>
 
-{# The reader's own address, resolved once by `seo_define` above and read
-   back here rather than rebuilt: two computations of the same canonical URL
-   is two places that could disagree about it. #}
-{% if shareEnabled ?? true %}
-    <div {{ vue_component('editorial/frontend/ShareButtons', {
-        url: seo_current().canonical,
-        title: translationData.title,
-        links: shareLinks ?? null,
-    }) }} class="not-prose mt-8"></div>
+{# The foot of the page: what it is filed under, where else to go, and how to
+   pass it on. One rule over the three rather than one each, and every row
+   opens with a word that says what it holds - « Compétences », « Liens
+   utiles », « Partager » - so they read as one block rather than three
+   strips of chips. A share list emptied on purpose is not a row. #}
+{% set usefulLinks = usefulLinks|default([]) %}
+{% set shareShown = (shareEnabled ?? true) and ((shareLinks ?? null) is null or shareLinks is not empty) %}
+{% if terms is not empty or usefulLinks is not empty or shareShown %}
+    <footer class="not-prose mt-8 space-y-3 border-t border-line pt-4">
+        {% for taxonomySlug, group in terms %}
+            <div class="flex flex-wrap items-center gap-2">
+                {% if group.label %}<span class="text-sm text-secondary">{{ group.label }}</span>{% endif %}
+                {% for name in group.names %}
+                    <span class="inline-flex items-center rounded-md border border-line px-2.5 py-1.5 text-sm text-secondary">{{ name }}</span>
+                {% endfor %}
+            </div>
+        {% endfor %}
+
+        {% if usefulLinks is not empty %}
+            {{ include('Frontend/themes/default/editorial/post/_useful_links.html.twig', {links: usefulLinks}) }}
+        {% endif %}
+
+        {# The reader's own address, resolved once by `seo_define` above and
+           read back here rather than rebuilt: two computations of the same
+           canonical URL is two places that could disagree about it. #}
+        {% if shareShown %}
+            <div {{ vue_component('editorial/frontend/ShareButtons', {
+                url: seo_current().canonical,
+                title: translationData.title,
+                links: shareLinks ?? null,
+            }) }}></div>
+        {% endif %}
+    </footer>
 {% endif %}
 
 {# Quiet when the grid has placed the thread itself: one conversation per

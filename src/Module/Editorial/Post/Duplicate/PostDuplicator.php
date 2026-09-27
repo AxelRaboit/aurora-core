@@ -76,6 +76,8 @@ final readonly class PostDuplicator
             'commentsEnabled' => $source->isCommentsEnabled(),
             'shareEnabled' => $source->isShareEnabled(),
             'shareLinks' => $source->getShareLinks(),
+            'usefulLinksEnabled' => $source->isUsefulLinksEnabled(),
+            'usefulLinks' => $source->getUsefulLinks(),
             'titleVisible' => $source->isTitleVisible(),
             // Pas la position de l'originale : deux publications au même rang
             // se départagent par la date, et la copie passerait devant.

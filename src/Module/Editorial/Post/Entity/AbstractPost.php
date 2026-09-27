@@ -80,6 +80,24 @@ abstract class AbstractPost implements PostInterface
     protected ?array $shareLinks = null;
 
     /**
+     * Whether the page ends with its useful links: where else to find the
+     * author, the product, the code. Off by default - unlike sharing, no page
+     * had it before the box existed.
+     */
+    #[ORM\Column(options: ['default' => false])]
+    protected bool $usefulLinksEnabled = false;
+
+    /**
+     * The useful links, in order, each with its own words, address and
+     * optional colour. Stored whether or not the block is shown, so turning
+     * it off and on again does not lose them.
+     *
+     * @var list<array{label: string, url: string, color: ?string}>
+     */
+    #[ORM\Column(type: Types::JSON, options: ['default' => '[]'])]
+    protected array $usefulLinks = [];
+
+    /**
      * Whether the published page prints its own title and summary.
      *
      * Shared rather than per translation, by the same argument as a span: this
@@ -424,6 +442,30 @@ abstract class AbstractPost implements PostInterface
     public function setShareLinks(?array $shareLinks): static
     {
         $this->shareLinks = $shareLinks;
+
+        return $this;
+    }
+
+    public function isUsefulLinksEnabled(): bool
+    {
+        return $this->usefulLinksEnabled;
+    }
+
+    public function setUsefulLinksEnabled(bool $usefulLinksEnabled): static
+    {
+        $this->usefulLinksEnabled = $usefulLinksEnabled;
+
+        return $this;
+    }
+
+    public function getUsefulLinks(): array
+    {
+        return $this->usefulLinks;
+    }
+
+    public function setUsefulLinks(array $usefulLinks): static
+    {
+        $this->usefulLinks = $usefulLinks;
 
         return $this;
     }

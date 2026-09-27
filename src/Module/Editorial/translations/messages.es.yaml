@@ -1148,6 +1148,18 @@ backend:
             url_hint: 'https:// o mailto:. {url} y {title} se sustituyen por la dirección y el título de la página, lo que lo convierte en un verdadero enlace para compartir.'
             url_invalid: 'Este enlace se eliminará al guardar: su dirección debe empezar por https:// o mailto:.'
             add: 'Añadir un enlace'
+        useful_links_enabled: 'Enlaces útiles al pie de la página'
+        useful_links:
+            hint: 'Los enlaces de esta página, en orden: dónde encontrar al autor, el producto, el código. Arrastre el tirador para reordenarlos.'
+            empty: 'Ningún enlace, el bloque no se muestra.'
+            move: Mover
+            remove: Quitar
+            label: Texto
+            color: Color
+            url: Dirección
+            url_hint: 'https:// o mailto:.'
+            url_invalid: 'Este enlace se eliminará al guardar: necesita un texto y una dirección que empiece por https:// o mailto:.'
+            add: 'Añadir un enlace'
         field_title: Título
         field_slug: Slug
         slug_hint: 'Si se deja vacío, se deduce del título. Al editarlo, la URL anterior sigue funcionando.'
@@ -1474,6 +1486,8 @@ frontend:
         next: 'Imagen siguiente'
     editorial:
         reading_time: '%minutes% min de lectura'
+        useful_links:
+            label: 'Enlaces útiles'
         share:
             label: Compartir
             copy_link: 'Copiar enlace'
