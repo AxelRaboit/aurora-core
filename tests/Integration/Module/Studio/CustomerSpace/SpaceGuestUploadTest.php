@@ -425,6 +425,9 @@ final class SpaceGuestUploadTest extends IntegrationTestCase
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/create', $space->getId()), [
             'title' => 'Un contenu à illustrer',
             'columnId' => $column->getId(),
+            // Datée : la page du client ne montre que son calendrier, et
+            // n'accepte de fichier que sur ce qu'elle montre.
+            'scheduledAt' => '2026-12-01T10:00',
         ]);
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());

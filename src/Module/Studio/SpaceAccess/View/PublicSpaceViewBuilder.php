@@ -287,16 +287,10 @@ final readonly class PublicSpaceViewBuilder
      */
     private function visibleItemIds(CustomerSpaceInterface $space): array
     {
-        $columns = [];
-
-        foreach ($this->visibleColumns($space) as $column) {
-            $columns[(int) $column->getId()] = true;
-        }
-
         $items = [];
 
         foreach ($this->items->findForSpace($space) as $item) {
-            if (isset($columns[(int) $item->getColumn()->getId()])) {
+            if ($item->isShownToClient()) {
                 $items[(int) $item->getId()] = true;
             }
         }

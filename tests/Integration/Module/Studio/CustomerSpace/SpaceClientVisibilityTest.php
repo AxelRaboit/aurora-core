@@ -204,6 +204,41 @@ final class SpaceClientVisibilityTest extends IntegrationTestCase
     }
 
     /**
+     * Une fiche que la page ne montre pas ne se valide pas, ne se commente
+     * pas et ne reçoit pas de fichier. Les trois écritures vérifiaient
+     * l'espace et non l'étape : un numéro de fiche suffisait pour répondre
+     * sur un travail que le studio n'avait pas montré.
+     */
+    public function testACardOfAnInternalStepCannotBeAnsweredOrCommented(): void
+    {
+        $space = $this->givenSpace();
+        $internal = $this->columns->findForSpace($space)[1];
+        $this->givenItem($space, $internal, 'Brouillon interne');
+        $item = $this->entityManager->getRepository(SpaceContentItem::class)->findOneBy(['title' => 'Brouillon interne']);
+        self::assertInstanceOf(SpaceContentItem::class, $item);
+
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/columns/%d/update', $space->getId(), $internal->getId()), [
+            'name' => $internal->getName(),
+            'visibleToClient' => false,
+        ]);
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $link = $this->givenLink($space);
+        $base = sprintf('/spaces/%s/%s/content', $link->getSelector(), (string) $link->getPlainToken());
+        $fromThePage = ['HTTP_X-Requested-With' => 'XMLHttpRequest'];
+
+        $this->client->jsonRequest('POST', sprintf('%s/%d/answer', $base, $item->getId()), ['approval' => 'approved'], $fromThePage);
+        self::assertSame(404, $this->client->getResponse()->getStatusCode(), 'approving');
+
+        $this->client->jsonRequest('POST', sprintf('%s/%d/comments', $base, $item->getId()), ['body' => 'Vu'], $fromThePage);
+        self::assertSame(404, $this->client->getResponse()->getStatusCode(), 'commenting');
+
+        $this->client->jsonRequest('POST', $base.'/approve', ['ids' => [$item->getId()]], $fromThePage);
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+        self::assertSame(0, json_decode((string) $this->client->getResponse()->getContent(), true)['approved'], 'approving in bulk');
+    }
+
+    /**
      * Le droit de voir le Drive, sur les trois routes qui le servent.
      *
      * Le même 404 qu'un lien inconnu, et pas un refus explicite : dire « vous
@@ -345,6 +380,8 @@ final class SpaceClientVisibilityTest extends IntegrationTestCase
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/create', $space->getId()), [
             'title' => $title,
             'columnId' => $column->getId(),
+            // Datée : la page du client ne montre que son calendrier.
+            'scheduledAt' => '2026-12-01T10:00',
         ]);
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());

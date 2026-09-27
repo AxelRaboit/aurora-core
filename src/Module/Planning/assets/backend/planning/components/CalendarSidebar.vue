@@ -28,7 +28,18 @@ const props = defineProps({
     countsByCalendar: { type: Object, required: true },
     canCreateEvents: { type: Boolean, default: false },
     canManageCalendars: { type: Boolean, default: false },
+    /**
+     * Who is reading. Renaming and sharing a calendar are its owner's
+     * decisions, not everyone's who holds the right to manage calendars: the
+     * server refuses them on anybody else's, and the row stops offering them.
+     */
+    currentUserId: { type: [Number, null], default: null },
 });
+
+/** Whether this row offers its edit and share buttons. */
+function ownsCalendar(calendar) {
+    return props.canManageCalendars && null !== props.currentUserId && calendar.ownerId === props.currentUserId;
+}
 
 const emit = defineEmits([
     "set-zone",
@@ -114,7 +125,7 @@ const zoneOptions = computed(() =>
                 :calendar="calendar"
                 :hidden="hidden.has(calendar.id)"
                 :count="countsByCalendar[calendar.id] ?? 0"
-                :can-manage="canManageCalendars"
+                :can-manage="ownsCalendar(calendar)"
                 v-on:toggle="emit('toggle-calendar', $event)"
                 v-on:edit="emit('edit-calendar', $event)"
                 v-on:share="emit('share-calendar', $event)"

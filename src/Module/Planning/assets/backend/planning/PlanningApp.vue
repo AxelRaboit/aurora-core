@@ -284,6 +284,7 @@ function announce() {
         countsByCalendar: countsByCalendar.value,
         canCreateEvents: canCreateEvents.value,
         canManageCalendars: canManageCalendars.value,
+        currentUserId: props.currentUserId,
         zone: zone.value,
         timezones: props.timezones ?? [],
     });

@@ -16,6 +16,7 @@ use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannel;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannelMember;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatMessage;
+use Aurora\Module\Studio\SpaceChat\Enum\SpaceChatChannelKindEnum;
 use Aurora\Module\Studio\SpaceChat\Manager\SpaceChatChannelManagerInterface;
 use Aurora\Module\Studio\SpaceChat\Manager\SpaceChatMessageManagerInterface;
 use Aurora\Module\Studio\SpaceChat\Repository\SpaceChatChannelRepository;
@@ -79,6 +80,7 @@ class SpaceChatController extends AbstractController
         SpaceChatChannel $channel,
     ): JsonResponse {
         $this->assertOwned($space, $channel->getSpace()->getId());
+        $this->assertInRoom($channel);
 
         return $this->jsonSuccess($this->viewBuilder->payload($channel));
     }
@@ -98,6 +100,7 @@ class SpaceChatController extends AbstractController
         int $beforeId,
     ): JsonResponse {
         $this->assertOwned($space, $channel->getSpace()->getId());
+        $this->assertInRoom($channel);
 
         return $this->jsonSuccess($this->viewBuilder->olderPayload($channel, $beforeId));
     }
@@ -111,6 +114,7 @@ class SpaceChatController extends AbstractController
         SpaceChatChannel $channel,
     ): JsonResponse {
         $this->assertOwned($space, $channel->getSpace()->getId());
+        $this->assertInRoom($channel);
 
         $me = $this->security->getUser();
 
@@ -136,6 +140,7 @@ class SpaceChatController extends AbstractController
         Request $request,
     ): JsonResponse {
         $this->assertOwned($space, $channel->getSpace()->getId());
+        $this->assertInRoom($channel);
 
         $body = Str::trimFromArray($this->decodeJson($request), 'body');
 
@@ -169,7 +174,14 @@ class SpaceChatController extends AbstractController
         SpaceChatMessage $message,
     ): JsonResponse {
         $this->assertOwned($space, $channel->getSpace()->getId());
+        $this->assertInRoom($channel);
         $this->assertOwned($space, $message->getSpace()->getId());
+
+        // Un message d'un autre salon, nommé sous celui-ci : l'appartenance au
+        // salon de l'adresse ne dirait rien de celui du message.
+        if ($message->getChannel()->getId() !== $channel->getId()) {
+            throw $this->createNotFoundException();
+        }
 
         try {
             $this->messages->delete($message);
@@ -214,6 +226,7 @@ class SpaceChatController extends AbstractController
         Request $request,
     ): JsonResponse {
         $this->assertOwned($space, $channel->getSpace()->getId());
+        $this->assertInRoom($channel);
 
         try {
             $this->channels->rename($channel, Str::trimFromArray($this->decodeJson($request), 'name'));
@@ -234,6 +247,7 @@ class SpaceChatController extends AbstractController
         Request $request,
     ): JsonResponse {
         $this->assertOwned($space, $channel->getSpace()->getId());
+        $this->assertInRoom($channel);
 
         try {
             $this->channels->setOpenToClient($channel, (bool) ($this->decodeJson($request)['openToClient'] ?? false));
@@ -252,6 +266,7 @@ class SpaceChatController extends AbstractController
         SpaceChatChannel $channel,
     ): JsonResponse {
         $this->assertOwned($space, $channel->getSpace()->getId());
+        $this->assertInRoom($channel);
 
         try {
             $this->channels->delete($channel);
@@ -278,6 +293,7 @@ class SpaceChatController extends AbstractController
         Request $request,
     ): JsonResponse {
         $this->assertOwned($space, $channel->getSpace()->getId());
+        $this->assertInRoom($channel);
 
         $userId = (int) ($this->decodeJson($request)['userId'] ?? 0);
         $user = $userId > 0 ? $this->users->find($userId) : null;
@@ -320,6 +336,7 @@ class SpaceChatController extends AbstractController
         SpaceChatChannelMember $member,
     ): JsonResponse {
         $this->assertOwned($space, $channel->getSpace()->getId());
+        $this->assertInRoom($channel);
 
         // Le membre d'un autre salon nommé sous celui-ci : deux entités que
         // l'URL apporte séparément, donc deux vérifications.
@@ -381,6 +398,34 @@ class SpaceChatController extends AbstractController
                 : $this->channelRepository->findForSpace($space),
             $user instanceof CoreUserInterface ? $user : null,
         );
+    }
+
+    /**
+     * Only a room the reader is in: the main one, which everybody on the
+     * space shares, or one they were invited into.
+     *
+     * The list already said so and the routes did not: any member of the
+     * space who knew a room's number could read a private conversation, post
+     * in it, or invite themselves in. A 404, like a room of another space, so
+     * a number does not tell whether the room exists.
+     */
+    private function assertInRoom(SpaceChatChannel $channel): void
+    {
+        if (SpaceChatChannelKindEnum::Main === $channel->getKind()) {
+            return;
+        }
+
+        $me = $this->security->getUser();
+
+        if ($me instanceof CoreUserInterface) {
+            foreach ($channel->getMembers() as $member) {
+                if ($member->getUser()?->getId() === $me->getId()) {
+                    return;
+                }
+            }
+        }
+
+        throw $this->createNotFoundException();
     }
 
     private function isOnTheTeam(CustomerSpace $space, CoreUserInterface $user): bool

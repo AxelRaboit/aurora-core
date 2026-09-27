@@ -32,6 +32,8 @@ const props = defineProps({
     attachments: { type: Array, default: () => [] },
     attachmentLoading: { type: Boolean, default: false },
     canPickDrive: { type: Boolean, default: false },
+    /** Whether the reader may browse the media library the picker lists. */
+    canPickDocuments: { type: Boolean, default: false },
     /**
      * A reader who may see the space but not edit it.
      *
@@ -157,7 +159,7 @@ function set(field, value) {
             :loading="attachmentLoading"
             :can-add="!readonly"
             :can-remove="!readonly"
-            :can-pick="!readonly"
+            :can-pick="!readonly && canPickDocuments"
             :can-pick-drive="canPickDrive"
             v-on:upload="emit('upload-attachment', $event)"
             v-on:pick="emit('pick-attachment')"

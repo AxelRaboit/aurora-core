@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\CustomerSpace\Controller\Backend;
 
 use Aurora\Core\Enum\HttpMethodEnum;
+use Aurora\Core\Enum\HttpStatusEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
@@ -14,11 +15,13 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 use function mb_trim;
 use function preg_match;
+use function sprintf;
 
 /**
  * Les réglages d'un espace, ouverts au référent.
@@ -50,6 +53,7 @@ final class SpaceSettingsController extends AbstractController
         private readonly SpaceVisibility $visibility,
         private readonly DriveLock $lock,
         private readonly EntityManagerInterface $entityManager,
+        private readonly RateLimiterFactoryInterface $spaceDriveUnlockLimiter,
     ) {}
 
     /** L'état des réglages, sans jamais rendre le mot de passe lui-même. */
@@ -201,6 +205,13 @@ final class SpaceSettingsController extends AbstractController
         // de passe, ce qui est exactement ce qu'un mot de passe veut dire.
         if (!$this->visibility->canSee($space)) {
             throw $this->createNotFoundException();
+        }
+
+        $user = $this->getUser();
+        $attempts = $this->spaceDriveUnlockLimiter->create(sprintf('%s-%d', $user?->getUserIdentifier() ?? 'anonymous', (int) $space->getId()));
+
+        if (!$attempts->consume()->isAccepted()) {
+            return $this->jsonFailure('backend.studio.spaces.settings.errors.too_many_attempts', HttpStatusEnum::TooManyRequests->value);
         }
 
         $password = (string) ($this->decodeJson($request)['password'] ?? '');

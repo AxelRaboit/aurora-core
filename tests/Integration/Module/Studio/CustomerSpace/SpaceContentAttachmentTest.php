@@ -9,9 +9,13 @@ use Aurora\Module\Ged\Document\Service\DocumentUsageService;
 use Aurora\Module\Ged\DocumentCategory\Entity\DocumentCategory;
 use Aurora\Module\Ged\DocumentFolder\Entity\DocumentFolder;
 use Aurora\Module\Platform\User\Entity\User;
+use Aurora\Module\Platform\User\Enum\UserRoleEnum;
+use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\Customer\Entity\Customer;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
+use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceMember;
+use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceMemberRoleEnum;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentAttachment;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumn;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItem;
@@ -450,6 +454,45 @@ final class SpaceContentAttachmentTest extends IntegrationTestCase
         $this->client->request('POST', sprintf('/workspace/%d/content/%d/delete', $space->getId(), $item['id']));
 
         self::assertCount(1, $this->payload()['orphanedDocuments']);
+    }
+
+    /**
+     * Taking a document out of the media library asks for the right to browse
+     * it. A studio member without it used to fetch any document by number -
+     * a contract, an invoice - and show it to the client on a card.
+     */
+    public function testADocumentIsNotTakenByNumberWithoutTheRightToBrowseTheLibrary(): void
+    {
+        $space = $this->givenSpace();
+        $item = $this->givenItem($space, 'Un contenu');
+        $document = $this->givenDocument('Contrat confidentiel', 'application/pdf');
+
+        $teammate = new User();
+        $teammate->setEmail('sans-ged@example.test')->setName('Équipier')->setType(UserTypeEnum::Backend)
+            ->setRoles([UserRoleEnum::User->value])->setPassword('x')
+            ->setPrivileges(['studio.spaces.view', 'studio.spaces.edit']);
+        $this->entityManager->persist($teammate);
+        $member = new CustomerSpaceMember();
+        $member->setSpace($this->entityManager->find(CustomerSpace::class, $space->getId()))->setUser($teammate)->setRole(CustomerSpaceMemberRoleEnum::Lead);
+        $this->entityManager->persist($member);
+        $this->entityManager->flush();
+
+        try {
+            $this->client->loginUser($teammate, 'admin');
+
+            $this->attach($space, $item['id'], (int) $document->getId());
+            self::assertSame(422, $this->client->getResponse()->getStatusCode());
+            self::assertSame('backend.studio.space_content.errors.attachment_unknown', $this->payload()['errors']['documentId'] ?? null);
+
+            $this->client->jsonRequest('POST', sprintf('/workspace/%d/files/attach', $space->getId()), ['documentId' => $document->getId()]);
+            self::assertSame(422, $this->client->getResponse()->getStatusCode());
+            self::assertSame('backend.studio.space_files.errors.unknown', $this->payload()['errors']['documentId'] ?? null);
+
+            self::assertSame([], $this->attachments->findBy(['document' => $document]));
+        } finally {
+            $this->entityManager->createQuery(sprintf('DELETE FROM %s', CustomerSpaceMember::class))->execute();
+            $this->entityManager->createQuery(sprintf("DELETE FROM %s u WHERE u.email = 'sans-ged@example.test'", User::class))->execute();
+        }
     }
 
     private function upload(CustomerSpace $space, int $itemId, string $name): void

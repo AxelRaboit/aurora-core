@@ -21,6 +21,7 @@ use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
 
+use function array_map;
 use function base64_decode;
 use function json_decode;
 use function json_encode;
@@ -88,6 +89,7 @@ final class SpaceDriveImportTest extends IntegrationTestCase
 
         $this->givenDrive([
             $this->token(),
+            $this->listing('fichier-1'),
             new MockResponse((string) json_encode(['name' => 'Brief octobre.png', 'mimeType' => 'image/png']), [
                 'response_headers' => ['content-type' => 'application/json'],
             ]),
@@ -104,6 +106,22 @@ final class SpaceDriveImportTest extends IntegrationTestCase
     }
 
     /**
+     * Un fichier que le dossier de l'espace ne contient pas n'est pas rangé,
+     * même si le compte de service peut le lire : il appartient peut-être au
+     * Drive d'un autre client.
+     */
+    public function testAFileOutsideTheSpacesFolderIsNotImported(): void
+    {
+        $space = $this->givenSpaceWithDrive();
+        $this->givenDrive([$this->token(), $this->listing('fichier-1')]);
+
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/drive/fichier-d-un-autre/import', $space->getId()));
+
+        self::assertNotSame(200, $this->client->getResponse()->getStatusCode());
+        self::assertSame([], $this->entityManager->getRepository(Document::class)->findAll());
+    }
+
+    /**
      * Un document Google n'a pas d'octets à télécharger.
      *
      * Refusé avec un message plutôt qu'avec un document vide : c'est le seul
@@ -116,6 +134,7 @@ final class SpaceDriveImportTest extends IntegrationTestCase
 
         $this->givenDrive([
             $this->token(),
+            $this->listing('fichier-1'),
             new MockResponse((string) json_encode(['name' => 'Compte rendu', 'mimeType' => 'application/vnd.google-apps.document']), [
                 'response_headers' => ['content-type' => 'application/json'],
             ]),
@@ -138,6 +157,15 @@ final class SpaceDriveImportTest extends IntegrationTestCase
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/drive/fichier-1/import', $space->getId()));
 
         self::assertSame(404, $this->client->getResponse()->getStatusCode());
+    }
+
+    /** Le dossier de l'espace tel que Google le liste. */
+    private function listing(string ...$ids): MockResponse
+    {
+        return new MockResponse((string) json_encode(['files' => array_map(
+            static fn (string $id): array => ['id' => $id, 'name' => $id, 'mimeType' => 'image/png', 'parents' => ['dossier']],
+            $ids,
+        )]), ['response_headers' => ['content-type' => 'application/json']]);
     }
 
     private function token(): MockResponse

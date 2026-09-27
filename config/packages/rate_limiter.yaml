@@ -70,6 +70,15 @@ framework:
             limit: 5
             interval: '1 hour'
 
+        # Le mot de passe qui ouvre l'onglet Drive d'un espace. Il n'avait
+        # aucune limite : un équipier qui voit l'espace pouvait l'essayer sans
+        # fin. Compté par personne et par espace plutôt que par IP, parce que
+        # la route est derrière une session : c'est la personne qui essaie.
+        space_drive_unlock:
+            policy: sliding_window
+            limit: 10
+            interval: '15 minutes'
+
         # The public newsletter, booking and poll endpoints, keyed on the client
         # IP like the ones above. The booking one also guards a write that asks
         # a real calendar whether the slot is free. The poll one is looser: a

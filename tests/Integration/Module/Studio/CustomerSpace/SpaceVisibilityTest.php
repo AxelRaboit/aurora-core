@@ -117,6 +117,39 @@ final class SpaceVisibilityTest extends IntegrationTestCase
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
     }
 
+    /**
+     * L'équipe et ses rôles sont l'affaire du chef de l'espace. Le droit de
+     * modifier un espace suffisait : un simple membre se renvoyait lui-même
+     * avec le rôle de chef, et le devenait.
+     */
+    public function testAMemberCannotMakeThemselvesLeadButCanStillRenameTheSpace(): void
+    {
+        $space = $this->givenSpace('Mon espace', 'portee-a@example.test', '73282932000074');
+        $teammate = $this->givenTeammate('portee-equipier@example.test');
+        $this->givenMembership($space, $teammate, CustomerSpaceMemberRoleEnum::Member);
+
+        $this->client->loginUser($teammate, 'admin');
+        $update = fn (string $name, string $role): array => [
+            'name' => $name,
+            'customerId' => $space->getCustomer()->getId(),
+            'timezone' => 'Europe/Paris',
+            'members' => [['userId' => $teammate->getId(), 'role' => $role]],
+        ];
+
+        $this->client->jsonRequest('POST', sprintf('/backend/studio/spaces/%d/update', $space->getId()), $update('Mon espace', CustomerSpaceMemberRoleEnum::Lead->value));
+        self::assertSame(422, $this->client->getResponse()->getStatusCode());
+        self::assertSame('backend.studio.spaces.errors.team_lead_only', $this->payload()['errors']['members'] ?? null);
+
+        $this->client->jsonRequest('POST', sprintf('/backend/studio/spaces/%d/update', $space->getId()), $update('Renommé', CustomerSpaceMemberRoleEnum::Member->value));
+        self::assertSame(200, $this->client->getResponse()->getStatusCode(), 'the same team, a new name');
+
+        $this->entityManager->clear();
+        $stored = $this->entityManager->find(CustomerSpace::class, $space->getId());
+        self::assertInstanceOf(CustomerSpace::class, $stored);
+        self::assertSame('Renommé', $stored->getName());
+        self::assertSame(CustomerSpaceMemberRoleEnum::Member, $stored->getMembers()->first()->getRole());
+    }
+
     /** @return array<string, mixed> */
     private function payload(): array
     {

@@ -118,7 +118,10 @@ class SpaceFilesController extends AbstractController
             return $this->jsonInvalidInput(['documentId' => 'backend.studio.space_files.errors.required']);
         }
 
-        $document = $this->documents->find((int) $documentId);
+        // Pris seulement par qui peut parcourir la médiathèque : un numéro se
+        // devine aussi bien qu'il se choisit, et un fichier rattaché à
+        // l'espace se montre au client. Même réponse qu'un numéro inconnu.
+        $document = $this->isGranted('ged.documents.view') ? $this->documents->find((int) $documentId) : null;
 
         if (!$document instanceof DocumentInterface) {
             return $this->jsonInvalidInput(['documentId' => 'backend.studio.space_files.errors.unknown']);

@@ -536,6 +536,10 @@ class AuroraBundle extends AbstractBundle
                 // chaque fichier est téléchargé chez Google et le zip est
                 // construit en entier avant le premier octet envoyé.
                 'space_guest_archive' => ['policy' => 'sliding_window', 'limit' => 5, 'interval' => '1 hour'],
+                // Le mot de passe qui ouvre le Drive d'un espace, par personne
+                // et par espace : dix essais le quart d'heure suffisent à qui
+                // l'a mal tapé, pas à qui le cherche.
+                'space_drive_unlock' => ['policy' => 'sliding_window', 'limit' => 10, 'interval' => '15 minutes'],
                 // L'inscription à la lettre d'information et la prise d'un
                 // rendez-vous, sur le même mur extérieur que les autres,
                 // gardées par IP.
