@@ -50,7 +50,7 @@ final readonly class SpaceAttachmentDocumentUsageProvider implements BatchDocume
                 ),
                 'href' => $this->urlGenerator->generate(
                     'workspace_space_content',
-                    ['id' => $item->getSpace()->getId()],
+                    ['id' => $item->getSpace()->getId(), 'item' => $item->getId()],
                 ),
             ];
         }

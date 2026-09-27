@@ -10,7 +10,7 @@ import { useI18n } from "vue-i18n";
 import { VueDraggable } from "vue-draggable-plus";
 import SpaceContentCard from "../components/SpaceContentCard.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
-import { Pencil, Plus, Trash2 } from "lucide-vue-next";
+import { GripVertical, Pencil, Plus, Trash2 } from "lucide-vue-next";
 
 defineProps({
     grouped: { type: Array, default: () => [] },
@@ -26,6 +26,7 @@ const emit = defineEmits([
     "add-item",
     "edit-column",
     "delete-column",
+    "reorder-columns",
 ]);
 
 const { t } = useI18n();
@@ -42,7 +43,17 @@ const { t } = useI18n();
              its columns shrink to fit stops being scannable at the fourth one,
              and a client's steps are theirs to add. -->
         <div class="overflow-x-auto pb-2 scrollbar-thin">
-            <div class="flex items-start gap-3">
+            <!-- Les étapes se réordonnent par la poignée de leur en-tête : la
+                 route existait, l'écran ne l'appelait pas, et une étape
+                 ajoutée restait pour toujours au bout du tableau. -->
+            <VueDraggable
+                :model-value="grouped"
+                handle=".column-drag-handle"
+                :animation="150"
+                :disabled="!editable"
+                class="flex items-start gap-3"
+                v-on:update:model-value="emit('reorder-columns', $event.map((group) => group.column.id))"
+            >
                 <section
                     v-for="group in grouped"
                     :key="group.column.id"
@@ -59,6 +70,12 @@ const { t } = useI18n();
                         }"
                     />
                     <header class="flex items-center gap-2 border-b border-line/40 px-3 py-2">
+                        <GripVertical
+                            v-if="editable"
+                            class="column-drag-handle h-3.5 w-3.5 shrink-0 cursor-grab text-muted"
+                            :stroke-width="2"
+                            :aria-label="t('backend.studio.space_content.move_column')"
+                        />
                         <h3 class="min-w-0 flex-1 truncate text-sm font-medium text-primary">
                             {{ group.column.name }}
                         </h3>
@@ -118,7 +135,7 @@ const { t } = useI18n();
                         {{ t("backend.studio.space_content.add_item") }}
                     </button>
                 </section>
-            </div>
+            </VueDraggable>
         </div>
     </div>
 </template>

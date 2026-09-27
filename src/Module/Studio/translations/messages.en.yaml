@@ -969,7 +969,7 @@ backend:
             updated: Space updated.
             deleted: Space deleted.
             delete_confirm: 'Delete {name}?'
-            delete_warning: The space and its team list go. The customer, their contracts and their documents stay where they are.
+            delete_warning: "The space goes with everything in it: its content, their threads and attachments, its conversations, its notes and its access links. Its dates leave the calendar. The client, their contracts and the media library's documents stay."
             show_archived: Show archived spaces
             sort_by_urgency: Sort by urgency
             archived_badge: Archived
@@ -1295,6 +1295,10 @@ backend:
         space_information:
             scope: "This sheet belongs to the customer, not to this project. Editing it here edits it in every space of theirs, deliberately: a SIRET is a company's."
             what_the_client_sees: What the client sees
+            related_contracts: "This client's contracts"
+            related_decks: "This client's decks"
+            related_spaces: "This client's other spaces"
+            draft_contract: "Draft"
             saved: Sheet saved.
             legal_name: Company name
             legal_name_placeholder: 'e.g. Atelier Dupont'
@@ -1388,6 +1392,7 @@ backend:
             upload: '%who% sent a file on "%item%"'
             approved: '%who% approved "%item%"'
             changes_requested: '%who% asked for a rewrite of "%item%"'
+            late_review: '{1}One review overdue|]1,Inf[%count% reviews overdue'
         space_chat:
             channels:
                 main_name: General
@@ -1444,6 +1449,7 @@ backend:
                 delete_description: Delete this content
             calendar_name: Client content
             back_to_spaces: Back to spaces
+            switch_space: "Switch space"
             add_item: Add content
             create_item: New content
             edit_item: 'Edit {title}'
@@ -1488,6 +1494,8 @@ backend:
                 nobody_to_write_to: 'No link on this space can answer. Issue an access with the right to approve from the Access tab.'
                 late: '{count} late'
                 late_hint: 'These have passed the date you needed an answer by. Nothing is blocked because of it.'
+                due: "Answer by {date}"
+                late_since: "Answer was due {date}"
             show_on_calendar: Show on the calendar
             show_on_calendar_hint: "Unchecked, the card keeps its date and stays on the board, but appears neither on your calendar nor on the client's."
             scheduled_at_placeholder: '22/09/2026 09:00'
@@ -1496,6 +1504,7 @@ backend:
             add_column: Add a step
             create_column: New step
             edit_column: Rename the step
+            move_column: "Move the step"
             column_name: Step name
             column_name_placeholder: 'To review, Live…'
             column_colour: Colour

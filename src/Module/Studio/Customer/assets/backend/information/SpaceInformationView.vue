@@ -32,7 +32,18 @@ import CustomerInformationCard from "../../shared/CustomerInformationCard.vue";
 const props = defineProps({
     information: { type: Object, required: true },
     savePath: { type: String, required: true },
+    /** Ses contrats, ses présentations, ses autres espaces : null pour ce que le lecteur ne peut pas ouvrir. */
+    related: { type: Object, default: () => ({}) },
 });
+
+/** Les trois listes qui ont quelque chose à montrer, dans l'ordre où on les consulte. */
+const relatedGroups = computed(() =>
+    [
+        { key: "contracts", titleKey: "backend.studio.space_information.related_contracts", rows: props.related?.contracts },
+        { key: "decks", titleKey: "backend.studio.space_information.related_decks", rows: props.related?.decks },
+        { key: "spaces", titleKey: "backend.studio.space_information.related_spaces", rows: props.related?.spaces },
+    ].filter((group) => Array.isArray(group.rows) && group.rows.length),
+);
 
 const emit = defineEmits(["saved"]);
 
@@ -293,6 +304,21 @@ async function save() {
                 {{ t("backend.studio.space_information.what_the_client_sees") }}
             </p>
             <CustomerInformationCard :information="saved" />
+        </div>
+
+        <!-- Autour de ce client : ce qui le relie au reste du Studio. -->
+        <div v-if="relatedGroups.length" class="aurora-card space-y-4 p-4">
+            <section v-for="group in relatedGroups" :key="group.key" class="space-y-1.5">
+                <h3 class="text-xs uppercase tracking-wide text-muted">{{ t(group.titleKey) }}</h3>
+                <ul class="divide-y divide-line/60">
+                    <li v-for="row in group.rows" :key="row.url">
+                        <a :href="row.url" class="flex items-center justify-between gap-3 py-1.5 text-sm text-primary hover:text-accent-500 hover:underline">
+                            <span class="min-w-0 truncate">{{ row.label }}</span>
+                            <span v-if="row.detail" class="shrink-0 text-xs text-muted">{{ row.detail }}</span>
+                        </a>
+                    </li>
+                </ul>
+            </section>
         </div>
     </div>
 </template>

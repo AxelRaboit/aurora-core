@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\CustomerSpace\Service;
 
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
 use Aurora\Core\Notification\Manager\NotificationManagerInterface;
 use Aurora\Core\Notification\Repository\NotificationRepository;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
@@ -66,20 +67,20 @@ final readonly class SpaceActivityNotifier
         ]);
     }
 
-    public function clientCommented(CustomerSpaceInterface $space, string $author, string $itemTitle): void
+    public function clientCommented(SpaceContentItemInterface $item, string $author): void
     {
-        $this->announce($space, 'studio.space.comment', 'backend.studio.space_notifications.comment', [
+        $this->announce($item->getSpace(), 'studio.space.comment', 'backend.studio.space_notifications.comment', [
             '%who%' => $author,
-            '%item%' => $itemTitle,
-        ]);
+            '%item%' => $item->getTitle(),
+        ], item: $item);
     }
 
-    public function clientUploaded(CustomerSpaceInterface $space, string $author, string $itemTitle): void
+    public function clientUploaded(SpaceContentItemInterface $item, string $author): void
     {
-        $this->announce($space, 'studio.space.upload', 'backend.studio.space_notifications.upload', [
+        $this->announce($item->getSpace(), 'studio.space.upload', 'backend.studio.space_notifications.upload', [
             '%who%' => $author,
-            '%item%' => $itemTitle,
-        ]);
+            '%item%' => $item->getTitle(),
+        ], item: $item);
     }
 
     /**
@@ -90,25 +91,42 @@ final readonly class SpaceActivityNotifier
      * looking at "a reprise was asked for" when the card has since been
      * approved.
      */
-    public function clientAnswered(
-        CustomerSpaceInterface $space,
-        string $author,
-        string $itemTitle,
-        bool $approved,
-    ): void {
+    public function clientAnswered(SpaceContentItemInterface $item, string $author, bool $approved): void
+    {
         $this->announce(
-            $space,
+            $item->getSpace(),
             'studio.space.answer',
             $approved
                 ? 'backend.studio.space_notifications.approved'
                 : 'backend.studio.space_notifications.changes_requested',
-            ['%who%' => $author, '%item%' => $itemTitle],
+            ['%who%' => $author, '%item%' => $item->getTitle()],
             coalesce: false,
+            item: $item,
+        );
+    }
+
+    /**
+     * Reviews past their deadline, told to the space's team.
+     *
+     * The one piece of news here that is not something the client did: it is
+     * something the client did not do, and chasing it is the studio's call.
+     * Folded like the rest while unread, so a daily run does not stack bells;
+     * the link opens the space on those cards.
+     */
+    public function reviewsLate(CustomerSpaceInterface $space, int $count): void
+    {
+        $this->announce(
+            $space,
+            'studio.space.late_review',
+            'backend.studio.space_notifications.late_review',
+            ['%count%' => (string) $count],
+            query: ['state' => 'late_review'],
         );
     }
 
     /**
      * @param array<string, string> $parameters
+     * @param array<string, string> $query      where in the space the link opens
      */
     private function announce(
         CustomerSpaceInterface $space,
@@ -116,11 +134,15 @@ final readonly class SpaceActivityNotifier
         string $titleKey,
         array $parameters,
         bool $coalesce = true,
+        ?SpaceContentItemInterface $item = null,
+        array $query = [],
     ): void {
         // Un chemin, pas une adresse absolue : cf. NotificationManagerInterface::notify().
+        // Sur la fiche quand il y en a une : ouvrir l'espace sur la dernière
+        // vue utilisée envoyait chercher la carte à la main.
         $url = $this->urlGenerator->generate(
             'workspace_space_content',
-            ['id' => $space->getId()]
+            ['id' => $space->getId(), ...(null === $item ? [] : ['item' => $item->getId()]), ...$query],
         );
 
         $title = $this->translator->trans($titleKey, $parameters);

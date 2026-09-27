@@ -19,6 +19,7 @@ use Aurora\Module\Studio\SpaceAccess\Repository\SpaceAccessLinkRepository;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannelInterface;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatMessage;
 use Aurora\Module\Studio\SpaceChat\Repository\SpaceChatChannelRepository;
+use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentColumnRepository;
 use Aurora\Tests\Integration\Concern\ResetsRateLimiters;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use DateTimeImmutable;
@@ -348,6 +349,35 @@ final class SpaceChatTest extends IntegrationTestCase
         $this->client->jsonRequest('POST', $url.'/chat/'.$this->mainChannelOfLink($url), ['body' => 'Et une relance.']);
         $this->runDigest($space);
 
+        self::assertCount(1, $this->mailerMessages());
+    }
+
+    /**
+     * News about a card points at the card, and still reaches the email
+     * about the space: the email looks for everything under the space's
+     * address, the card's included.
+     */
+    public function testNewsAboutACardOpensTheCardAndReachesTheEmail(): void
+    {
+        [$space, $url] = $this->givenLinkedSpace(canComment: true);
+        $this->givenMember($space);
+
+        $column = static::getContainer()->get(SpaceContentColumnRepository::class)->findForSpace($space)[0];
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/create', $space->getId()), [
+            'title' => 'Visuel de rentrée',
+            'columnId' => $column->getId(),
+            'scheduledAt' => '2026-12-01T10:00',
+        ]);
+        $itemId = $this->payload()['items'][0]['id'];
+
+        $this->client->jsonRequest('POST', sprintf('%s/content/%d/comments', $url, $itemId), ['body' => 'Plus de rouge ?']);
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $notification = $this->entityManager->getRepository(Notification::class)->findOneBy(['type' => 'studio.space.comment']);
+        self::assertInstanceOf(Notification::class, $notification);
+        self::assertSame(sprintf('/workspace/%d?item=%d', $space->getId(), $itemId), $notification->getUrl());
+
+        $this->runDigest($space);
         self::assertCount(1, $this->mailerMessages());
     }
 

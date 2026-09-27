@@ -15,6 +15,7 @@ import { useI18n } from "vue-i18n";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import { CalendarClock, Check, MessageSquare, Plus } from "lucide-vue-next";
+import SpaceReviewDeadline from "../components/SpaceReviewDeadline.vue";
 
 const props = defineProps({
     grouped: { type: Array, default: () => [] },
@@ -161,6 +162,7 @@ function when(item) {
                             <CalendarClock class="h-3 w-3 shrink-0" :stroke-width="2" />
                             {{ when(card) }}
                         </span>
+                        <SpaceReviewDeadline :item="card" />
                     </div>
 
                     <AppRowActions

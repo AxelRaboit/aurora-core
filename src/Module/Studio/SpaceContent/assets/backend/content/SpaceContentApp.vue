@@ -34,10 +34,11 @@
  * hand everything back as events. That is what lets a card edited in one of
  * them be right in the others.
  */
-import { computed, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { usePersistedChoice } from "@/shared/composables/usePersistedChoice.js";
+import { useQueryState } from "@/shared/composables/useQueryState.js";
 import { useSpaceCardActions } from "./composables/useSpaceCardActions.js";
 import { useSpaceContent } from "./composables/useSpaceContent.js";
 import { useSpaceContentShape } from "./composables/useSpaceContentShape.js";
@@ -130,6 +131,8 @@ const props = defineProps({
     /** Combien de cartes datées et visibles du client attendent sa réponse. */
     awaitingApproval: { type: Number, default: 0 },
     /** Combien d'entre elles ont dépassé leur échéance de relecture. */
+    /** Les contrats, présentations et autres espaces du même client. */
+    related: { type: Object, default: () => ({}) },
     lateForReview: { type: Number, default: 0 },
     chatMessages: { type: Array, default: () => [] },
     /** Null when no hub is running, and then the panel never connects. */
@@ -243,6 +246,35 @@ const { choice: view } = usePersistedChoice(
     VIEWS.map((entry) => entry.key),
 );
 
+/**
+ * La vue et la fiche ouvertes, dans l'adresse.
+ *
+ * **L'adresse d'abord, la préférence ensuite.** La vue mémorisée est un goût
+ * de lecteur ; une notification, le tableau de bord ou le calendrier
+ * éditorial désignent un endroit précis, et l'ouvrir sur la dernière vue
+ * utilisée envoyait chercher la carte à la main. Un lien envoyé à un collègue
+ * ouvre maintenant ce qu'il montre.
+ */
+const viewInUrl = useQueryState("view", { defaultValue: "content", valid: VIEWS.map((entry) => entry.key) });
+const itemInUrl = useQueryState("item");
+
+if ("content" !== viewInUrl.value.value) view.value = viewInUrl.value.value;
+
+/**
+ * Une vue mémorisée que cet espace n'offre pas - le Drive sans compte de
+ * service, les réglages pour qui ne configure pas - retombait sur un écran
+ * vide sans rien dire. Elle revient au contenu.
+ */
+watch(
+    views,
+    (available) => {
+        if (!available.some((entry) => entry.key === view.value)) view.value = "content";
+    },
+    { immediate: true },
+);
+
+watch(view, (next) => viewInUrl.set(next), { immediate: true });
+
 const {
     shape,
     storedShape,
@@ -268,6 +300,8 @@ const {
     moveEvent,
     openEvent,
     addOn,
+    stateFilter,
+    reorderColumns,
     showItemForm,
     editingItem,
     itemForm,
@@ -470,6 +504,34 @@ const actionsFor = useSpaceCardActions({
     open: openItemEdit,
     confirmDelete: confirmItemDelete,
 });
+
+/** La fiche désignée par l'adresse, ouverte une fois la page montée. */
+onMounted(() => {
+    const id = Number(itemInUrl.value.value);
+    const item = id ? liveItems.value.find((entry) => entry.id === id) : null;
+
+    if (item) openItemEdit(item);
+});
+
+watch(editingItem, (item) => itemInUrl.set(item?.id ? String(item.id) : ""));
+watch(showItemForm, (open) => {
+    if (!open) itemInUrl.set("");
+});
+
+/** Les états qu'une fiche peut porter, dans l'ordre d'urgence du tableau de bord. */
+const stateOptions = computed(() =>
+    ["missed", "late_review", "changes_requested", "with_client", "upcoming", "published"].map((value) => ({
+        value,
+        label: t(`backend.studio.calendar.states.${value}`),
+    })),
+);
+
+const stateInUrl = useQueryState("state", {
+    valid: ["missed", "late_review", "changes_requested", "with_client", "upcoming", "published"],
+});
+
+stateFilter.value = stateInUrl.value.value;
+watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
 </script>
 
 <template>
@@ -547,6 +609,17 @@ const actionsFor = useSpaceCardActions({
                     </span>
                 </AppButton>
 
+                <!-- Les mêmes états que le tableau de bord et le calendrier
+                     éditorial, dans l'adresse : un lien « en retard » ouvre
+                     l'espace déjà filtré. -->
+                <AppSelect
+                    v-if="'content' === view || 'calendar' === view"
+                    v-model="stateFilter"
+                    class="w-44"
+                    :options="stateOptions"
+                    :placeholder="t('backend.studio.calendar.all_states')"
+                />
+
                 <!-- The shape of one entry, so it sits with the actions rather
                      than inside the switcher: two segmented groups side by side
                      would read as one control with seven choices.
@@ -597,10 +670,13 @@ const actionsFor = useSpaceCardActions({
         <!-- The container and not the window decides the shape: bound here,
              around both drawings, so a narrow panel gets the list. -->
         <div v-if="view === 'content'" ref="shapeContainer">
+            <!-- Filtrées, les colonnes n'ont plus toutes leurs cartes : un
+                 glisser-déposer y réécrirait l'ordre d'une partie seulement.
+                 Le tri se refait sans filtre. -->
             <SpaceBoardView
                 v-if="shape === 'board'"
                 :grouped="grouped"
-                :editable="editable"
+                :editable="editable && !stateFilter"
                 :actions-for="actionsFor"
                 :files-of="filesOf"
                 :is-empty="isEmpty"
@@ -609,12 +685,13 @@ const actionsFor = useSpaceCardActions({
                 v-on:add-item="openItemCreate({ columnId: $event })"
                 v-on:edit-column="openColumnEdit"
                 v-on:delete-column="confirmColumnDelete"
+                v-on:reorder-columns="reorderColumns"
             />
 
             <SpaceListView
                 v-else
                 :grouped="grouped"
-                :editable="editable"
+                :editable="editable && !stateFilter"
                 :actions-for="actionsFor"
                 :files-of="filesOf"
                 :is-empty="isEmpty"
@@ -656,6 +733,7 @@ const actionsFor = useSpaceCardActions({
             v-else-if="view === 'information'"
             :information="informationNow"
             :save-path="informationSavePath"
+            :related="related"
             v-on:saved="informationNow = $event"
         />
 

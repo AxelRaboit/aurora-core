@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Integration\Module\Studio\CustomerSpace;
 
+use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\Customer\Entity\Customer;
@@ -162,6 +163,41 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
         // An approval is of a wording. Keeping it after a rewrite would tell
         // the board a client agreed to something they never read.
         self::assertSame('pending', $stored->getApproval()->value);
+    }
+
+    /**
+     * The date and the visual are what the client approved as much as the
+     * text: a card approved for Tuesday and moved to Friday, or given another
+     * picture, still read « validé ».
+     */
+    public function testMovingTheDateOrChangingTheVisualClearsTheAnswer(): void
+    {
+        $space = $this->givenSpace();
+        $item = $this->givenItem($space, 'Visuel de rentrée');
+        $answer = fn () => $this->asGuest()->jsonRequest('POST', $this->answerPathFor($space, $item['id']), ['approval' => 'approved']);
+        $stored = function () use ($item): string {
+            $this->entityManager->clear();
+
+            return $this->items->find($item['id'])->getApproval()->value;
+        };
+
+        $answer();
+        self::assertSame('approved', $stored());
+        $this->loginAdmin();
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/%d/schedule', $space->getId(), $item['id']), ['scheduledAt' => '2026-12-04T10:00']);
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+        self::assertSame('pending', $stored(), 'a new date');
+
+        $answer();
+        self::assertSame('approved', $stored());
+        $this->loginAdmin();
+        $document = new Document();
+        $document->setTitle('Autre visuel')->setFilePath('ged/2026/09/autre.jpg')->setFileName('autre.jpg')->setOriginalName('autre.jpg')->setMimeType('image/jpeg')->setSize(1024);
+        $this->entityManager->persist($document);
+        $this->entityManager->flush();
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/%d/attachments/attach', $space->getId(), $item['id']), ['documentId' => $document->getId()]);
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+        self::assertSame('pending', $stored(), 'a new visual');
     }
 
     public function testRewritingTheTextKeepsWhatTheClientWrote(): void

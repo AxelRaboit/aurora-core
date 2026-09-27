@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\Customer\View;
 
+use Aurora\Module\Studio\CustomerSpace\Security\SpaceVisibility;
 use Aurora\Core\Money\Enum\CurrencyEnum;
 use Aurora\Core\Routing\PathTemplateGenerator;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
@@ -22,6 +23,7 @@ final readonly class CustomersViewBuilder
         private UserRepository $userRepository,
         private PathTemplateGenerator $pathTemplates,
         private UrlGeneratorInterface $urlGenerator,
+        private SpaceVisibility $visibility,
     ) {}
 
     /**
@@ -51,8 +53,23 @@ final readonly class CustomersViewBuilder
     /** @return list<array<string, mixed>> */
     public function customers(): array
     {
+        // Ses espaces avec lui, ceux que le lecteur voit : une fiche client
+        // ne disait pas quels projets tournaient pour lui.
+        $spacesByCustomer = [];
+        foreach ($this->visibility->visibleSpaces() as $space) {
+            $spacesByCustomer[(int) $space->getCustomer()->getId()][] = [
+                'id' => $space->getId(),
+                'name' => $space->getName(),
+                'archived' => $space->isArchived(),
+                'url' => $this->urlGenerator->generate('workspace_space_content', ['id' => $space->getId()]),
+            ];
+        }
+
         return array_map(
-            $this->customerSerializer->serialize(...),
+            fn (CustomerInterface $customer): array => [
+                ...$this->customerSerializer->serialize($customer),
+                'spaces' => $spacesByCustomer[(int) $customer->getId()] ?? [],
+            ],
             $this->customerRepository->findAllOrdered(),
         );
     }
