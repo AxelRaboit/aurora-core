@@ -13,7 +13,8 @@ clients, le tableau de bord qui s'en sert, un calendrier éditorial pour tous
 les espaces, le parcours dans un espace, un Planning qui dit vrai, et du
 ménage. Les quatre décisions du plan ont été tranchées : rôle facultatif sur
 les colonnes, « mes espaces » par défaut, contenus clients gardés dans le
-Planning mais filtrés par membre, relance au studio d'abord.
+Planning mais filtrés par membre, relance au studio d'abord. Et le back-office
+parle maintenant espagnol en entier.
 
 ### Ajouté
 
@@ -95,6 +96,15 @@ urgence.
 - La recherche vérifie le droit de consulter le calendrier.
 - La synchronisation des dates ne dépend plus des modules que l'utilisateur
   connecté a masqués pour lui-même.
+
+### Le back-office en espagnol
+
+Le back-office retombait sur le français en espagnol : 4 183 des 5 312 clés
+n'existaient qu'en français. Elles sont toutes traduites, dans les 21
+catalogues, en vouvoiement comme les pages publiques déjà traduites, avec un
+glossaire commun (ficha, etapa, mediateca, sellar…). Un test,
+`SpanishTranslationCompletenessTest`, refuse désormais une clé ajoutée en
+français sans son équivalent espagnol, ou dont les variables diffèrent.
 
 ### Ménage (lot 6)
 

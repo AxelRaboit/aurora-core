@@ -1,0 +1,88 @@
+backend:
+    audit:
+        intro: 'Historial de las acciones realizadas por los usuarios de la administración.'
+        module: Módulo
+        action: Acción
+        user: Usuario
+        date: Fecha
+        empty: 'No hay entradas de auditoría.'
+        actions:
+            core:
+                auth:
+                    login: 'Inicio de sesión'
+                    login_failed: 'Inicio de sesión fallido'
+                    logout: 'Cierre de sesión'
+                settings:
+                    updated: 'Ajuste editado'
+                menu:
+                    created: 'Menú creado'
+                    updated: 'Menú editado'
+                    deleted: 'Menú eliminado'
+                    item:
+                        created: 'Elemento de menú añadido'
+                        updated: 'Elemento de menú editado'
+                        deleted: 'Elemento de menú eliminado'
+                user:
+                    created: 'Usuario creado'
+                    updated: 'Usuario editado'
+                    deleted: 'Usuario eliminado'
+                    registered: 'Usuario registrado'
+                    invited: 'Usuario invitado'
+                    invitation_resent: 'Invitación reenviada'
+                    invitation_consumed: 'Invitación aceptada'
+                    email_verified: 'Dirección de correo electrónico verificada'
+                    password_changed: 'Contraseña cambiada'
+                    role_updated: 'Rol actualizado'
+                    dev_role_toggled: 'Rol de desarrollador cambiado'
+                    privileges_updated: 'Permisos actualizados'
+                    disabled_toggled: 'Cuenta activada o desactivada'
+                    disabled_modules_updated: 'Módulos desactivados actualizados'
+                    sidemenu_preferences_updated: 'Preferencias del menú lateral actualizadas'
+                    sidemenu_preferences_reset: 'Preferencias del menú lateral restablecidas'
+                frontend_user:
+                    profile_updated: 'Perfil actualizado'
+                    account_deleted: 'Cuenta eliminada'
+                password_reset:
+                    link_requested: 'Restablecimiento solicitado'
+                    completed: 'Contraseña restablecida'
+                access_request:
+                    created: 'Solicitud de acceso enviada'
+                    approved: 'Solicitud de acceso aprobada'
+                    rejected: 'Solicitud de acceso rechazada'
+                theme:
+                    created: 'Tema creado'
+                    updated: 'Tema editado'
+                    deleted: 'Tema eliminado'
+                    activated: 'Tema activado'
+                mount_point:
+                    created: 'Punto de montaje creado'
+                    updated: 'Punto de montaje editado'
+                    deleted: 'Punto de montaje eliminado'
+            ged:
+                document:
+                    created: 'Documento creado'
+                    updated: 'Documento editado'
+                    trashed: 'Documento movido a la papelera'
+                    restored: 'Documento restaurado'
+                    deleted: 'Documento eliminado definitivamente'
+                    cropped: 'Documento recortado'
+                    moved: 'Documento movido'
+                folder:
+                    trashed: 'Carpeta movida a la papelera'
+                    restored: 'Carpeta restaurada'
+                    created: 'Carpeta creada'
+                    updated: 'Carpeta editada'
+                    deleted: 'Carpeta eliminada'
+                category:
+                    trashed: 'Categoría movida a la papelera'
+                    restored: 'Categoría restaurada'
+                    created: 'Categoría creada'
+                    updated: 'Categoría editada'
+                    deleted: 'Categoría eliminada definitivamente'
+                tag:
+                    created: 'Etiqueta creada'
+                    updated: 'Etiqueta editada'
+                    deleted: 'Etiqueta eliminada'
+            users:
+                photo_uploaded: 'Foto de perfil subida'
+                photo_removed: 'Foto de perfil eliminada'

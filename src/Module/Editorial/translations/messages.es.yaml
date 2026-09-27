@@ -1,292 +1,1655 @@
 backend:
-  editorial:
-    bootstrap:
-      post_types:
-        page: Página
-        article: Artículo
-      taxonomies:
-        category: Categorías
-        tag: Etiquetas
-  posts:
-    usage_detail: Publicación
-    usage_untitled: Publicación sin título
-    grid:
-      zone_video_file: Elegir un vídeo
-      item_display_hint_faq: "Cada entrada se pliega. Sirve para preguntas, y también para todo lo que se lee cuando hace falta: lo que se incluye, las garantías, el aviso legal."
-      item_exclusive_open: Una sola entrada abierta a la vez
-      item_exclusive_open_hint: "Abrir una entrada cierra la anterior. Útil en una lista larga; déjelo desactivado si el lector debe comparar dos respuestas."
-      zone_video_file_chosen: Vídeo de la mediateca
-      zone_video_file_none: Ningún vídeo elegido
-      zone_audio_file: Elegir un archivo de sonido
-      zone_audio_file_chosen: Sonido de la mediateca
-      zone_audio_file_none: Ningún sonido elegido
-      zone_document_file: Elegir un documento
-      zone_document_chosen: Documento de la mediateca
-      zone_document_none: Ningún documento elegido
-      zone_document_published_hint: "Solo se muestra en el sitio un documento publicado. Un borrador deja la zona vacía, sin aviso: la mediateca también guarda los papeles internos."
-      zone_document_label: Texto del enlace
-      zone_document_label_placeholder: "Nuestro folleto 2026"
-      terms_taxonomy: Taxonomía
-      terms_taxonomy_hint: "Se muestran todos sus términos, en el orden del back-office, cada uno hacia su página. Un término añadido después aparece solo."
-      terms_taxonomy_none: "Elegir una taxonomía…"
-      terms_caption: Título encima
-      terms_caption_placeholder: "Nuestros ámbitos"
-      map_image: Foto del lugar
-      map_image_hint: "Opcional. Una fachada dice más sobre cómo encontrar la puerta que un punto en un rectángulo gris."
-      map_name: Nombre del lugar
-      map_name_placeholder: "Nuestro taller"
-      map_address: Dirección
-      map_address_hint: "Una línea por línea, como en un sobre. Es lo que alimenta el enlace de itinerario."
-      map_address_placeholder: "12 rue des Lilas\n69004 Lyon\nFrancia"
-      gallery_add: Añadir imágenes
-      gallery_remove: Quitar esta imagen
-      gallery_empty: "Ninguna imagen. Añada varias de una vez: para eso existe la galería."
-      gallery_count: "{count} imagen de {max} | {count} imágenes de {max}"
-      gallery_ratio_hint: "«Naturales» deja cada imagen con sus proporciones y las hace fluir en columnas. Una forma las recorta todas igual, en una cuadrícula que se lee de izquierda a derecha."
-      compare_before: Antes
-      compare_after: Después
-      compare_pick: "Elegir una imagen"
-      compare_before_label: "Palabra bajo la imagen de la izquierda"
-      compare_after_label: "Palabra bajo la imagen de la derecha"
-      zone_shared: Bloque a reutilizar
-      zone_shared_hint: "La cuadrícula de esa publicación se dibuja aquí. Modifíquela una vez y cambian todas las páginas que la reutilizan. Un bloque que reutiliza un bloque no se dibuja: la profundidad se detiene en uno."
-      search_post_type: Buscar en
-      search_post_type_hint: "Sin nada aquí, el campo busca en todo el sitio."
-      tabs_hint: "Cada panel tiene su rótulo y su propio texto. Sin JavaScript todo se muestra desplegado."
-      tabs_number: "Panel {number}"
-      tabs_add: Añadir un panel
-      tabs_remove: Quitar este panel
-      tabs_label: Rótulo de la pestaña
-      tabs_label_placeholder: "Plan básico"
-      zone_embed: Dirección a integrar
-      zone_embed_hint: "Pegue la dirección de la página del proveedor. Una dirección que ninguno de los cuatro reclama se muestra como enlace simple."
-      embed_providers: "Cuatro proveedores reconocidos: Spotify, SoundCloud, CodePen y Calendly. Cada uno ve pasar a los visitantes de la página."
-      comments_hint: "Nada que ajustar: el hilo es el de esta publicación. Cuando existe esta zona, el pie de página deja de dibujarlo."
-      zone_deck: Presentación
-      zone_deck_none: "Elegir una presentación…"
-      zone_deck_hint: "Se muestra en la página mediante su enlace para compartir. Una presentación sin enlace activo, revocado, caducado o protegido por contraseña no dibuja nada."
-      visibility: "Cuándo y para quién"
-      visibility_hint: "Sin nada aquí, la zona se ve siempre y para todos. Es lo que ya hace una zona que no dice nada."
-      visible_from: Desde el
-      visible_until: Hasta el
-      visible_any: Sin límite
-      audience: Público
-      audience_hint: "«Miembros» dibuja la zona solo para un visitante conectado. El panel se la sigue mostrando a usted."
-      audiences:
-        everyone: Todo el mundo
-        members: Miembros conectados
-      zone_document_label_hint: "Lo que lee el visitante en la tarjeta. Vacío, se usa el título del documento en la mediateca."
-      zone_form_none: "Elegir un formulario…"
-      anchor: "Ancla"
-      anchor_placeholder: "donde-encontrarme"
-      anchor_hint: "Un nombre al que un enlace puede apuntar directamente. Vacío, la zona no tiene dirección."
-      anchor_hint_set: "Un enlace a esta página seguido de #{anchor} baja hasta aquí."
-      full_bleed_width_note: "El ancho y el desplazamiento se fijan a la fila entera: una banda que cruza la pantalla se centra en su contenedor, y solo queda en el medio si ese contenedor es la fila."
-  post_types:
-    archive_shows_list: "Listar las publicaciones bajo el contenido"
-    archive_shows_list_hint: "La página de listado también toma la cuadrícula de esa publicación. Desmárquelo cuando esa cuadrícula ya coloca cada publicación: si no, aparecen dos veces, una ordenada y otra como tarjeta."
-  menus:
-    section: Sección que encabeza esta entrada
-    no_section: Ninguna
-    section_hint: "La entrada sigue resaltada en las publicaciones de ese tipo, aunque sus direcciones no estén bajo la suya."
-frontend:
-  sequence:
-    search:
-      placeholder: Buscar en la documentación…
-      loading: Buscando…
-      count: '1 página encontrada | {count} páginas encontradas'
-      empty: "Nada coincide con «{query}»."
-      clear: Borrar
-    summary: Sumario
-    pagination: Página anterior y siguiente
-    previous: Página anterior
-    next: Página siguiente
-  gallery:
-    enlarge: "Ampliar la imagen"
-    open: "Ampliar la imagen %position% de %total%"
-    close: Cerrar
-    previous: Imagen anterior
-    next: Imagen siguiente
-  editorial:
-    reading_time: '%minutes% min de lectura'
-    share:
-      label: Compartir
-      copy_link: Copiar enlace
-      copied: Enlace copiado
-      linkedin: LinkedIn
-      whatsapp: WhatsApp
-      x: X
-      facebook: Facebook
-      bluesky: Bluesky
-      email: Correo
-      custom: Enlace
-    grid:
-      recommended: Recomendado
-      choose: Elegir esta oferta
-      copy: Copiar
-      copied: Copiado
-      on_this_page: En esta página
-      terms: Términos
-      directions: Cómo llegar
-      before: Antes
-      after: Después
-      compare_handle: "Mover la separación entre las dos imágenes"
-      get_in_touch: Contactar
-      github:
-        total: "{0}Ninguna contribución|{1}1 contribución|]1,Inf[%number% contribuciones"
-        day: "{0}Ninguna contribución el %date%|{1}1 contribución el %date%|]1,Inf[%number% contribuciones el %date%"
-        last_year: Últimos 12 meses
-        less: Menos
-        more: Más
-        updated: "Actualizado el %date%"
-      availability:
-        available: Disponible para nuevos proyectos
-        soon: "Disponible a partir del %date%"
-        soon_undated: Disponible pronto
-        busy: Completo por ahora
-      hours:
-        open_until: "Abierto hasta las %time%"
-        opens_at: "Cerrado, abre a las %time%"
-        opens_tomorrow: "Cerrado, abre mañana a las %time%"
-        opens_on: "Cerrado, abre el %day% a las %time%"
-        closed: Cerrado
-        closed_today: Cierre excepcional hoy
-        closed_day: Cerrado
-        closures: "Próximos cierres:"
-        time: "%hh%:%mm%"
-      countdown:
-        days: días
-        hours: horas
-        minutes: minutos
-        seconds: segundos
-        passed: "Ya es la hora."
-      contact:
-        save: Guardar el contacto
-      social:
-        likes: me gusta
-        comments: comentarios
-        shares: compartidos
-      carousel:
-        label: Carrusel
-        slide: "Foto %index% de %count%"
-        previous: Foto anterior
-        next: Foto siguiente
-      index:
-        label: Índice alfabético
-      qr:
-        label: "Código QR hacia %url%"
-        download: Descargar el código QR
-      activity:
-        post: Publicación
-        release: Nueva versión
-      poll:
-        total: "Votos: %count%"
-        closed: Esta encuesta ya no está abierta.
-        too_many: Demasiados votos desde esta dirección, inténtelo más tarde.
-      episode:
-        transcript: Transcripción
-      reviews:
-        count: "{count} opinión | {count} opiniones"
-        write: Dejar una opinión
-      newsletter:
-        placeholder: Su correo electrónico
-        submit: Suscribirse
-        success: Gracias, su suscripción está confirmada.
-        failed: La suscripción no se ha realizado. Inténtelo de nuevo en un momento.
-        invalid: Correo electrónico no válido.
-        unavailable: Esta suscripción ya no está disponible.
-        too_many: Demasiados intentos, inténtelo más tarde.
-        success_confirm: "Casi listo: confirme su suscripción con el enlace que acabamos de enviarle por correo."
-        consent: "Acepto recibir el boletín por correo electrónico."
-        notice: "Su dirección solo se usa para enviarle este boletín; se transmite a %provider%, nuestro proveedor de envíos. Puede darse de baja en cualquier momento con el enlace de cada envío."
-        privacy_link: Política de privacidad
-        consent_required: "Marque la casilla para confirmar su suscripción."
-      newsletter_privacy:
-        title: Boletín
-        brevo: "Si se suscribe a nuestro boletín, su dirección de correo electrónico solo se utiliza para enviárselo. Este tratamiento se basa en su consentimiento, otorgado al marcar la casilla del formulario y, en su caso, al confirmar su suscripción por correo. Su dirección se confía a Brevo (Sendinblue SAS, empresa francesa), nuestro proveedor de envíos, que la aloja en la Unión Europea. Se conserva mientras permanezca suscrito."
-        mailchimp: "Si se suscribe a nuestro boletín, su dirección de correo electrónico solo se utiliza para enviárselo. Este tratamiento se basa en su consentimiento, otorgado al marcar la casilla del formulario y, en su caso, al confirmar su suscripción por correo. Su dirección se confía a Mailchimp, servicio de la empresa Intuit Inc., nuestro proveedor de envíos, establecida en Estados Unidos: sus datos se transfieren por tanto allí. Esta transferencia está amparada por el Marco de Privacidad de Datos UE-EE. UU. (Data Privacy Framework), al que Intuit está adherida, y por las cláusulas contractuales tipo de la Comisión Europea. Se conserva mientras permanezca suscrito."
-        rights: "Puede darse de baja en cualquier momento con el enlace de cada envío. También tiene derecho de acceso, rectificación y supresión de sus datos, y puede presentar una reclamación ante la autoridad de protección de datos (la CNIL en Francia)."
-      quote:
-        total: Total
-      booking:
-        calendar_name: Reservas en línea
-        none: No hay ningún horario disponible por ahora.
-        name: Su nombre
-        email: Su correo electrónico
-        phone: Teléfono (opcional)
-        message: Mensaje (opcional)
-        confirm: Confirmar la cita
-        success: Cita confirmada para
-        taken: Este horario acaba de reservarse. Elija otro.
-        invalid: Falta información o no es válida.
-        too_many: Demasiados intentos, inténtelo más tarde.
-        unavailable: Esta reserva ya no está disponible.
-    forms:
-      submit: Enviar
-      next: Siguiente
-      previous: Anterior
-      step: 'Paso {number}'
-      sent: Gracias, su mensaje se ha enviado correctamente.
-      errors:
-        required: Este campo es obligatorio.
-        email_invalid: Esta dirección de correo no es válida.
-        number_invalid: Este valor debe ser un número.
-        date_invalid: Esta fecha no se puede leer.
-        choice_invalid: Esta opción no figura entre las propuestas.
-        too_many: "Demasiados envíos recientes. Vuelva a intentarlo dentro de un momento."
+    permissions:
+        names:
+            editorial:
+                post_types:
+                    view: 'Ver los tipos de contenido'
+                    create: 'Crear tipos de contenido'
+                    edit: 'Editar los tipos de contenido'
+                    delete: 'Eliminar los tipos de contenido'
+                posts:
+                    view: 'Ver las publicaciones'
+                    create: 'Crear publicaciones'
+                    edit: 'Editar las publicaciones'
+                    delete: 'Eliminar las publicaciones'
+                    manage: 'Gestionar sus propias publicaciones'
+                    gallery: 'Gestionar solo las galerías de las publicaciones'
+                    publish: 'Publicar y revisar las publicaciones'
+                taxonomies:
+                    view: 'Ver las taxonomías'
+                    create: 'Crear taxonomías'
+                    edit: 'Editar las taxonomías'
+                    delete: 'Eliminar las taxonomías'
+                menus:
+                    view: 'Ver los menús'
+                    edit: 'Editar los menús'
+                comments:
+                    view: 'Ver los comentarios'
+                    moderate: 'Moderar los comentarios'
+                    delete: 'Eliminar los comentarios'
+                forms:
+                    view: 'Ver los formularios'
+                    create: 'Crear formularios'
+                    edit: 'Editar los formularios'
+                    delete: 'Eliminar los formularios'
+    modules:
+        editorial: Editorial
+        editorial_backend: Editorial
+        editorial_backend_description: 'Activa la sección Editorial en la administración.'
+        editorial_frontend: 'Sitio público editorial'
+        editorial_frontend_description: 'Sirve a los lectores las publicaciones, las páginas de lista y las páginas de taxonomía.'
+    editorial:
+        bootstrap:
+            post_types:
+                page: Página
+                article: Artículo
+            taxonomies:
+                category: Categorías
+                tag: Etiquetas
+        github:
+            settings:
+                what_title: 'Qué hace esta integración'
+                what_body: 'Muestra, en una zona «Actividad de GitHub» colocada en una página, la cuadrícula de contribuciones de las cuentas indicadas abajo: una casilla por día durante los últimos doce meses, como en un perfil de GitHub.'
+                source_title: 'De dónde proceden los datos'
+                source_body: 'De la página pública de cada perfil, la que cualquier visitante puede abrir: ninguna clave, ninguna cuenta que conectar. Las cuadrículas se vuelven a leer cada seis horas. Si GitHub no responde, se sigue mostrando la última cuadrícula leída.'
+                logins_label: 'Cuentas de GitHub'
+                logins_hint: 'Un identificador por línea, en orden de visualización, cuatro como máximo. La «@» es opcional.'
+                enabled_label: 'Mostrar la actividad de GitHub'
+                enabled_hint: 'Las zonas «Actividad de GitHub» de las páginas muestran estas cuentas.'
+                enabled_blocked: 'Introduzca al menos una cuenta para activar la integración.'
+            errors:
+                invalid_login: 'Identificador de GitHub no válido: {logins}. Solo letras, cifras y guiones.'
+                too_many: '{max} cuentas como máximo.'
+                logins_required: 'Introduzca al menos una cuenta para activar la integración.'
+        instagram:
+            settings:
+                what_title: 'Qué hace esta integración'
+                what_body: 'Muestra, en una zona «Feed de Instagram» colocada en una página, las publicaciones recientes de la cuenta profesional del cliente.'
+                how_title: 'Cómo activarla'
+                how_step_business: 'La cuenta de Instagram debe ser una cuenta profesional o de creador, vinculada a una página de Facebook.'
+                how_step_app: 'En Meta for Developers, cree una aplicación y añádale el producto «Instagram API».'
+                how_step_token: 'Genere un token de acceso de larga duración para esta cuenta desde esa aplicación.'
+                how_step_paste: 'Copie el identificador de la cuenta profesional y el token, y péguelos abajo.'
+                how_link: 'Documentación de Meta'
+                terms_label: 'He leído y acepto las condiciones de la plataforma Meta'
+                terms_hint: 'El feed muestra publicaciones que siguen siendo propiedad de la cuenta: no se copia ni se republica nada en otro lugar.'
+                terms_link: 'Condiciones de la plataforma Meta'
+                accepted_on: 'Aceptado el {date} por {user}.'
+                business_id_label: 'Identificador de la cuenta profesional'
+                business_id_hint: 'El número de Instagram Business Account, no el nombre de usuario.'
+                token_label: 'Token de acceso'
+                token_stored: 'Hay un token guardado.'
+                token_hint: 'Pegue aquí el token de larga duración generado para esta cuenta.'
+                enabled_label: 'Mostrar el feed de Instagram'
+                enabled_hint: 'Las zonas «Feed de Instagram» de las páginas muestran esta cuenta.'
+                enabled_blocked: 'Indique la cuenta y el token, y acepte las condiciones, para activar la integración.'
+            errors:
+                terms_required: 'Debe aceptar las condiciones de la plataforma Meta para activar la integración.'
+                account_required: 'Introduzca el identificador de la cuenta y el token de acceso para activar la integración.'
+        google_reviews:
+            settings:
+                what_title: 'Qué hace esta integración'
+                what_body: 'Muestra, en una zona «Reseñas de Google» colocada en una página, la valoración y las últimas reseñas de la ficha de empresa del cliente.'
+                how_title: 'Cómo activarla'
+                how_step_console: 'Cree una clave de API en la Google Cloud Console del cliente, restringida a la API Places.'
+                how_step_key: 'Copie esa clave y péguela abajo.'
+                how_step_place: 'Busque el identificador de la ficha de empresa (Place ID) y péguelo también.'
+                how_link: 'Encontrar un Place ID'
+                terms_label: 'He leído y acepto las condiciones de Google Maps Platform'
+                terms_hint: 'Las reseñas mostradas siguen siendo las de la ficha de Google: no se copia ni se modifica nada.'
+                terms_link: 'Condiciones de Google Maps Platform'
+                accepted_on: 'Aceptado el {date} por {user}.'
+                place_label: 'Identificador de la ficha (Place ID)'
+                place_hint: 'El de la empresa del cliente, nunca otro.'
+                key_label: 'Clave de API'
+                key_stored: 'Hay una clave guardada.'
+                key_hint: 'Pegue aquí la clave de Places API del cliente.'
+                enabled_label: 'Mostrar las reseñas de Google'
+                enabled_hint: 'Las zonas «Reseñas de Google» de las páginas muestran esta ficha.'
+                enabled_blocked: 'Indique la ficha y la clave, y acepte las condiciones, para activar la integración.'
+            errors:
+                terms_required: 'Debe aceptar las condiciones de Google Maps Platform para activar la integración.'
+                place_required: 'Introduzca el identificador de la ficha y la clave de API para activar la integración.'
+        newsletter:
+            settings:
+                what_title: 'Qué hace esta integración'
+                what_body: 'Desde una zona «Suscripción al boletín» colocada en una página, añade la dirección de un visitante a la lista del cliente en Brevo o Mailchimp.'
+                provider_label: Proveedor
+                providers:
+                    brevo: Brevo
+                    mailchimp: Mailchimp
+                how_title: 'Cómo activarla'
+                how_brevo: 'En Brevo, la clave de API se encuentra en Ajustes de la cuenta > Claves API. El identificador de la lista aparece en la propia página de la lista.'
+                how_mailchimp: 'En Mailchimp, la clave de API se crea en Cuenta > Extras > Claves API. El identificador de la audiencia (lista) se encuentra en sus ajustes.'
+                terms_label: 'He leído y acepto las condiciones del proveedor elegido'
+                terms_hint: 'La dirección de un visitante se envía al proveedor elegido, con la cuenta propia del cliente.'
+                accepted_on: 'Aceptado el {date} por {user}.'
+                list_label_brevo: 'Identificador de la lista'
+                list_label_mailchimp: 'Identificador de la audiencia'
+                key_label: 'Clave de API'
+                key_stored: 'Hay una clave guardada.'
+                key_hint: 'Pegue aquí la clave de la cuenta del cliente.'
+                enabled_label: 'Mostrar la suscripción al boletín'
+                enabled_hint: 'Las zonas «Suscripción al boletín» de las páginas añaden una dirección a esta lista.'
+                enabled_blocked: 'Indique la lista, la clave y la política de privacidad, y acepte las condiciones, para activar la integración.'
+                compliance_title: 'Cumplimiento (RGPD)'
+                compliance_body: 'El formulario siempre pide al visitante que marque una casilla de consentimiento y le indica, bajo el campo, para qué sirve su dirección, a quién se transmite y cómo darse de baja.'
+                double_opt_in_label: 'Confirmación por correo electrónico (recomendado)'
+                double_opt_in_hint: 'El visitante recibe un correo electrónico y solo se añade a la lista después de hacer clic en el enlace. Nadie puede suscribir la dirección de otra persona, y el proveedor conserva la prueba del consentimiento.'
+                brevo_template_label: 'Plantilla de correo de confirmación (Brevo)'
+                brevo_template_hint: 'Brevo la exige para enviar la confirmación: cree una plantilla en Campañas > Plantillas, con la etiqueta «optin» y el enlace de confirmación «doubleoptin» que propone Brevo, y luego indique aquí su número.'
+                privacy_label: 'Dirección de la política de privacidad'
+                privacy_hint: 'Obligatorio: el enlace aparece bajo el formulario. Una dirección https:// o una ruta del sitio, por ejemplo /fr/page/confidentialite. Debe mencionar al proveedor de envío.'
+            errors:
+                terms_required: 'Debe aceptar las condiciones del proveedor para activar la integración.'
+                list_required: 'Introduzca el identificador de la lista y la clave de API para activar la integración.'
+                privacy_required: 'Indique la dirección de su política de privacidad para activar la integración: el RGPD obliga a informar al visitante allí donde se recoge su dirección.'
+                privacy_url_invalid: 'La dirección de la política debe empezar por https:// o por / (una ruta del sitio).'
+                template_required: 'Con Brevo, la confirmación por correo electrónico requiere el número de una plantilla de correo de confirmación.'
+                template_invalid: 'El número de la plantilla de Brevo debe ser un número.'
+    audit:
+        actions:
+            editorial:
+                post_type:
+                    created: 'Tipo de contenido creado'
+                    updated: 'Tipo de contenido editado'
+                    deleted: 'Tipo de contenido eliminado'
+                post:
+                    created: 'Publicación creada'
+                    updated: 'Publicación editada'
+                    deleted: 'Publicación movida a la papelera'
+                    restored: 'Publicación restaurada desde la papelera'
+                    force_deleted: 'Publicación eliminada definitivamente'
+                    gallery_updated: 'Galería editada'
+                    revision_restored: 'Revisión restaurada'
+                    published_on_schedule: 'Publicación puesta en línea a la hora prevista'
+                    unpublished_on_schedule: 'Publicación despublicada en la fecha prevista'
+                    purged: 'Publicación purgada automáticamente de la papelera'
+                    review_requested: 'Publicación enviada a revisión'
+                    review_approved: 'Publicación aprobada'
+                    review_rejected: 'Publicación devuelta al autor'
+                taxonomy:
+                    created: 'Taxonomía creada'
+                    updated: 'Taxonomía editada'
+                    deleted: 'Taxonomía eliminada'
+                    term:
+                        created: 'Término creado'
+                        updated: 'Término editado'
+                        deleted: 'Término eliminado'
+                menu:
+                    updated: 'Menú editado'
+                    item:
+                        created: 'Entrada de menú creada'
+                        updated: 'Entrada de menú editada'
+                        deleted: 'Entrada de menú eliminada'
+                        reordered: 'Menú reorganizado'
+                form:
+                    created: 'Formulario creado'
+                    updated: 'Formulario editado'
+                    deleted: 'Formulario eliminado'
+                form_submission:
+                    purged: 'Envío borrado por la política de conservación'
+                comment:
+                    submitted: 'Comentario enviado'
+                    approved: 'Comentario aprobado'
+                    spam: 'Comentario marcado como no deseado'
+                    deleted: 'Comentario eliminado'
+    parameters:
+        editorial_post_prefix:
+            label: 'Prefijo de referencia de las publicaciones'
+            description: 'Prefijo de la referencia generada para cada publicación.'
+        editorial_taxonomy_term_prefix:
+            label: 'Prefijo de referencia de los términos'
+            description: 'Prefijo de la referencia generada para cada término de taxonomía.'
+        editorial_comment_prefix:
+            label: 'Prefijo de referencia de los comentarios'
+            description: 'Prefijo de la referencia generada para cada comentario.'
+        editorial_form_prefix:
+            label: 'Prefijo de referencia de los formularios'
+            description: 'Prefijo de la referencia generada para cada formulario.'
+        editorial_form_field_prefix:
+            label: 'Prefijo de referencia de los campos'
+            description: 'Prefijo de la referencia generada para cada campo de formulario.'
+        editorial_form_submission_prefix:
+            label: 'Prefijo de referencia de los envíos'
+            description: 'Prefijo de la referencia generada para cada envío.'
+    stats:
+        editorial:
+            posts: Publicaciones
+            post_types: 'Tipos de contenido'
+            taxonomies: Taxonomías
+            trashed: 'En la papelera'
+            by_status: 'Distribución por estado'
+            comments_by_status: 'Comentarios por estado'
+            published_per_month: 'Publicaciones por mes'
+    post_galleries:
+        search_placeholder: 'Buscar una publicación'
+        empty: 'Ninguna publicación'
+        untitled: 'Sin título'
+        edit: Galería
+        back: 'Todas las publicaciones'
+        locales: Idiomas
+        saved: Guardado
+        no_photos: 'Ninguna foto'
+        photo_count: '1 foto | {count} fotos'
+    nav:
+        sections:
+            editorial: Editorial
+        posts: Publicaciones
+        posts_description: 'Redactar y publicar el contenido del sitio, en cada uno de sus idiomas.'
+        post_galleries: Galerías
+        post_galleries_description: 'Añadir fotos a una publicación y ponerles pie de foto, sin tocar nada más.'
+        post_types: 'Tipos de contenido'
+        post_types_description: 'Definir los tipos de contenido del sitio y los campos que lleva cada uno.'
+        taxonomies: Taxonomías
+        taxonomies_description: 'Agrupar los contenidos por etiquetas y categorías, planas o anidadas.'
+        menus: Menús
+        menus_description: 'Componer la navegación del sitio público: encabezado, pie de página, cuenta.'
+        seo: Posicionamiento
+        seo_description: 'Publicar el sitemap, el robots.txt y el feed RSS del sitio público.'
+        forms: Formularios
+        forms_description: 'Componer formularios públicos y revisar sus envíos.'
+        comments: Comentarios
+        comments_description: 'Moderar los comentarios de los lectores y descartar los no deseados.'
+    post_types:
+        title: 'Tipos de contenido'
+        empty: 'Ningún tipo de contenido.'
+        created: 'Tipo de contenido creado.'
+        updated: 'Tipo de contenido actualizado.'
+        deleted: 'Tipo de contenido eliminado.'
+        create: 'Nuevo tipo de contenido'
+        edit: 'Editar el tipo de contenido'
+        delete_confirm: '¿Eliminar el tipo de contenido «{label}»?'
+        built_in: Nativo
+        slug: Slug
+        slug_locked: 'Un tipo nativo conserva su slug: las rutas y los contenidos existentes apuntan a él.'
+        label: Etiqueta
+        icon: Icono
+        has_archive: 'Tiene una página de lista'
+        has_archive_hint: 'Publica una página de lista para este tipo en el sitio público.'
+        archive_title: 'Título de la página de lista'
+        archive_title_hint: 'La etiqueta nombra una publicación; la página que las lista todas se llama de otra forma. Si se deja vacío, toma la etiqueta.'
+        archive_title_placeholder: Servicios
+        archive_post: 'Encabezado prestado'
+        archive_shows_list: 'Listar las publicaciones bajo el contenido'
+        archive_shows_list_hint: 'La página de listado también toma la cuadrícula de esa publicación. Desmárquelo cuando esa cuadrícula ya coloca cada publicación: si no, aparecen dos veces, una ordenada y otra como tarjeta.'
+        archive_post_hint: 'La página de lista retoma el banner de esta publicación, con sus ajustes y sus textos en cada idioma. Esa publicación conserva también su propia dirección: recuerde marcar «No indexar» en ella.'
+        archive_post_placeholder: 'Elegir una publicación'
+        supports: Capacidades
+        supports_blocks: 'Contenido en bloques'
+        supports_thumbnail: 'Imagen destacada'
+        supports_sequence: 'Lectura en secuencia'
+        fields:
+            row_actions:
+                edit_description: 'Etiqueta, tipo, obligatorio o no, opciones.'
+                delete_description: 'Elimina el campo. Las respuestas ya recibidas lo conservan.'
+            title: 'Campos personalizados'
+            empty: 'Ningún campo personalizado.'
+            created: 'Campo añadido.'
+            updated: 'Campo actualizado.'
+            deleted: 'Campo eliminado.'
+            create: 'Añadir un campo'
+            edit: 'Editar el campo'
+            delete_confirm: '¿Eliminar el campo «{label}»?'
+            name: 'Nombre interno'
+            label: Etiqueta
+            type: Tipo
+            required: Obligatorio
+            translatable: 'Por idioma'
+            choices: Opciones
+            choices_hint: 'Una por línea.'
+            types:
+                text: Texto
+                textarea: 'Texto largo'
+                number: Número
+                date: Fecha
+                select: 'Lista de opciones'
+                checkbox: 'Casilla de verificación'
+                url: URL
+                email: 'Correo electrónico'
+            label_placeholder: Autor
+            name_placeholder: autor
+        errors:
+            slug_required: 'Se requiere un slug.'
+            slug_format: 'El slug solo puede contener letras minúsculas, números y guiones bajos.'
+            slug_taken: 'El slug «{slug}» ya está en uso.'
+            label_required: 'Se requiere una etiqueta.'
+            builtin_protected: 'Un tipo de contenido nativo no se puede eliminar.'
+            has_posts: 'Este tipo de contenido aún tiene publicaciones, incluidas las de la papelera.'
+            field_name_required: 'Se requiere un nombre interno.'
+            field_name_format: 'El nombre interno solo puede contener letras minúsculas, números y guiones bajos.'
+            field_name_taken: 'El campo «{name}» ya existe en este tipo.'
+            field_label_required: 'Se requiere una etiqueta.'
+            field_type_invalid: 'Tipo de campo desconocido.'
+        label_placeholder: Artículo
+        description: Descripción
+        description_placeholder: 'Para qué sirve este tipo de contenido, en una frase.'
+        icon_placeholder: file-text
+    posts:
+        usage_detail: Publicación
+        usage_untitled: 'Publicación sin título'
+        banner:
+            title: 'Encabezado personalizado'
+            enabled: 'Mostrar un encabezado personalizado'
+            width_mode: Ubicación
+            width_modes:
+                contained: 'En la columna'
+                full_aligned: 'Ancho completo'
+            height: Altura
+            fill_needs_color: 'Elija un color; de lo contrario, el encabezado no dibujará fondo.'
+            fill_needs_both_stops: 'Un degradado necesita sus dos colores. Mientras falte uno, el encabezado no dibuja ningún fondo y un texto blanco se pierde en él.'
+            color_unset: 'ningún color'
+            clear_color: 'Borrar el color'
+            empty: 'Ningún elemento. Añada un texto o una imagen.'
+            add_text: 'Añadir un texto'
+            add_image: 'Añadir una imagen'
+            remove_item: 'Eliminar este elemento'
+            move_up: Subir
+            move_down: Bajar
+            item_types:
+                text: Texto
+                image: Imagen
+                button: Botón
+            width: 'Ancho en pantalla grande'
+            widths:
+                as_phone: 'Como en el teléfono'
+                full: 'Ancho completo'
+                three_quarters: 'Tres cuartos'
+                two_thirds: 'Dos tercios'
+                half: Mitad
+                third: 'Un tercio'
+                quarter: 'Un cuarto'
+            disabled_hint: 'Desactivado: la publicación conserva su título habitual. La maquetación es común a todos los idiomas; solo se traducen los textos.'
+            translated_fields: 'Textos: {locale}'
+            preview: 'Vista previa'
+            vertical_align: 'Posición vertical'
+            verticals:
+                start: Arriba
+                center: 'En el centro'
+                end: Abajo
+            title_size: 'Tamaño del título'
+            title_sizes:
+                sm: Pequeño
+                md: Normal
+                lg: Grande
+                xl: 'Muy grande'
+            add_button: 'Añadir un botón'
+            text_button_label: 'Botón bajo el texto (opcional)'
+            button_label: 'Texto del botón'
+            button_label_placeholder: Descubrir
+            button_url: Enlace
+            button_url_placeholder: /fr/a-propos
+            button_color: 'Color del botón'
+            button_text_color: 'Color del texto del botón'
+            appearance: Apariencia
+            logo_hint: 'Se muestra arriba a la izquierda, sobre el fondo.'
+            fade_out: 'Fundido hacia abajo'
+            fade_out_hint: 'La parte inferior del encabezado se funde con la página en lugar de cortarse en seco.'
+            fill: 'Tipo de fondo'
+            fills:
+                none: Ninguno
+                solid: 'Color sólido'
+                gradient: Degradado
+            gradient_from: 'Color inicial'
+            gradient_to: 'Color final'
+            gradient_angle: 'Orientación: {degrees}°'
+            background_color: 'Color de fondo'
+            background_image: 'Imagen de fondo'
+            background_image_hint: 'Colocada detrás del contenido, recortada según su punto focal.'
+            tablet_width: 'Ancho en tableta'
+            title_font: 'Fuente del título'
+            description_font: 'Fuente de la descripción'
+            description_size: 'Tamaño de la descripción'
+            font_theme: 'La del tema'
+            title_colour_hint: 'Seleccione palabras para colorearlas'
+            title_colour_accent: Acento
+            title_colour_custom: Color
+            title_colour_clear: 'Quitar el color'
+            mobile_background_image: 'Imagen de fondo en teléfono'
+            mobile_background_image_hint: 'Opcional. Sustituye la imagen de fondo por debajo de 640 px de ancho, donde el encabezado solo conserva el centro de una imagen ancha. Se recomienda formato vertical, por ejemplo 1080 × 1440.'
+            tablet_background_image: 'Imagen de fondo en tableta'
+            tablet_background_image_hint: 'Opcional. Sustituye la imagen de fondo entre 640 y 1023 px de ancho, donde el encabezado se amplía para contener su título y una imagen ancha pierde sus laterales. Se recomienda un formato cercano a 5:3, por ejemplo 2048 × 1240.'
+            local_background: 'Fondo propio de este idioma: {locale}'
+            local_background_hint: 'Opcional. Para una imagen que contiene texto: sustituye la imagen común solo en este idioma.'
+            overlay: 'Oscurecimiento: {percent} %'
+            logo: Logotipo
+            slot_type: Contenido
+            slot_title: Título
+            slot_title_placeholder: Bienvenido
+            slot_description: Descripción
+            slot_description_placeholder: 'Una frase que resume la página.'
+            slot_title_color: 'Color del título'
+            slot_description_color: 'Color de la descripción'
+            slot_align: Alineación
+            slot_image: Imagen
+            slot_alt: 'Texto alternativo'
+            slot_alt_placeholder: 'Lo que muestra la imagen, para los lectores de pantalla.'
+            heights:
+                sm: Baja
+                md: Media
+                lg: Alta
+                full: 'Pantalla completa'
+                image: 'La de la imagen'
+            slot_types:
+                none: Vacío
+                text: Texto
+                image: Imagen
+            aligns:
+                start: 'A la izquierda'
+                center: Centrado
+                end: 'A la derecha'
+        title: Publicaciones
+        create: 'Nueva publicación'
+        edit: 'Editar la publicación'
+        empty: 'Ninguna publicación.'
+        untitled: '(sin título)'
+        deleted: 'Publicación enviada a la papelera.'
+        delete_confirm: '¿Enviar «{title}» a la papelera?'
+        delete_hint: 'Desaparece de las listas, pero sigue siendo recuperable.'
+        search_placeholder: 'Buscar un título, un slug o pegar una URL…'
+        total: '{count} publicaciones'
+        created: 'Publicación creada.'
+        updated: 'Publicación guardada.'
+        row_actions:
+            preview_description: 'Abre la página tal como la ve el visitante, en una pestaña.'
+            edit_description: 'Abrir el editor: contenido, encabezado, disposición.'
+            duplicate_description: 'Crea un borrador idéntico, para retocar.'
+            delete_description: 'La envía a la papelera, recuperable mientras no se vacíe.'
+        back_to_list: 'Volver a la lista'
+        revisions:
+            title: 'Historial de versiones'
+            open: Historial
+            empty: 'Todavía no hay ninguna versión guardada.'
+            this_version: 'Esta versión'
+            current_version: 'Versión actual'
+            body: Contenido
+            no_author: 'Autor desconocido'
+            no_translation: 'Esta versión no contenía este idioma.'
+            restore: 'Restaurar esta versión'
+            restore_now: 'Confirmar la restauración'
+            restore_confirm: 'El contenido actual se sustituirá. Se convierte a su vez en una versión, así que se puede volver atrás.'
+            restored: 'Versión restaurada.'
+        review:
+            waiting: 'Pendiente de revisión'
+            note_label: 'Comentarios de revisión'
+            note_placeholder: 'Falta la fuente de la cifra en el segundo párrafo.'
+            approve: 'Aprobar y publicar'
+            reject: 'Devolver al autor'
+            reject_title: 'Devolver al autor'
+            reject_hint: 'Indique qué hay que cambiar. El autor solo verá esto.'
+            notification_submitted: 'Enviado a revisión por %author%.'
+            notification_approved: 'Aprobado y publicado por %reviewer%.'
+            notification_rejected: 'Devuelto por %reviewer%.'
+            errors:
+                note_required: 'Indique qué hay que cambiar.'
+        bulk:
+            selected: '1 seleccionada | {count} seleccionadas'
+            select_all: 'Seleccionar todo en esta página'
+            clear: 'Anular la selección'
+            result: '{done} modificada(s), {skipped} omitida(s).'
+            action_publish: Publicar
+            action_draft: 'Volver a borrador'
+            action_trash: 'Enviar a la papelera'
+            errors:
+                unknown_action: 'Acción desconocida.'
+                nothing_selected: 'Ninguna publicación seleccionada.'
+        duplicate:
+            action: Duplicar
+            suffix: (copia)
+        translations:
+            column: Idiomas
+            translated: 'Traducido al {locale}'
+            missing: 'Aún no traducido al {locale}'
+            untranslated: 'Nada escrito en este idioma'
+        preview:
+            open: 'Vista previa'
+        content: Contenido
+        content_placeholder: 'Escriba, o pulse Tab para un bloque…'
+        custom_fields: 'Campos personalizados'
+        gallery:
+            title: 'Galería de imágenes'
+            hint: 'Una serie de imágenes colocada bajo el contenido de la página. Para un artículo compuesto sobre todo de fotografías, es preferible a veinte zonas que colocar una a una.'
+            layout: Disposición
+            columns: Columnas
+            ratio: Proporción
+            ratio_ignored: 'Sin efecto en mosaico o en disposición justificada: cada imagen conserva sus propias proporciones.'
+            layouts:
+                grid: Cuadrícula
+                masonry: Mosaico
+                justified: Justificada
+            pictures: Imágenes
+            empty: 'Ninguna imagen. Añada una a continuación.'
+            add: 'Añadir una imagen'
+            import: 'Importar imágenes'
+            import_drop: 'Suelte sus imágenes aquí'
+            import_progress: 'Importando {done} de {total}…'
+            import_hint: 'Varias imágenes a la vez. Se envían una a una y aparecen a medida que llegan.'
+            import_skipped: '{added} añadida(s), {skipped} descartada(s): ya presentes, rechazadas o por encima del máximo.'
+            full: 'Se ha alcanzado el máximo de imágenes.'
+            alt: 'Texto alternativo ({locale})'
+            alt_hint: 'Lo que muestra la imagen, para quien no la ve. Si está vacío, se usa el de la mediateca.'
+            caption: 'Pie de foto ({locale})'
+            words: 'Texto de la imagen'
+            words_locale: 'Idioma del texto'
+            move_up: Subir
+            move_down: Bajar
+        grid:
+            title: 'Cuadrícula de contenido'
+            enabled: 'Usar una cuadrícula de contenido'
+            disabled_hint: 'Desactivada: la publicación conserva su columna de contenido habitual. Al activarla, se sustituye por zonas colocadas en una cuadrícula de 48 columnas.'
+            preview: 'Vista previa'
+            canvas: Disposición
+            canvas_empty: 'Ninguna zona: añada una más abajo y aparecerá aquí.'
+            pick_zone: 'Haga clic en una zona de arriba para editar su contenido.'
+            canvas_hint: 'Arrastre cualquiera de los bordes de una zona para redimensionarla; las flechas hacen lo mismo con el teclado. Estos ajustes son los de pantalla grande; por debajo, una zona ocupa siempre todo el ancho.'
+            resize_zone: 'Ancho de la zona «{zone}»'
+            snap: 'Paso de ajuste'
+            snap_hint: 'La precisión con la que se ajusta un ancho. Cambiar el paso no mueve las zonas ya colocadas.'
+            snaps:
+                4: 'Doceavos (4 columnas)'
+                2: 'Veinticuatroavos (2 columnas)'
+                1: 'Columna a columna'
+            width: Ancho
+            width_label: '{columns} columnas de {total}'
+            precise: 'Ancho preciso'
+            advanced: 'Ajustes avanzados'
+            fractions:
+                quarter: 'Un cuarto'
+                third: 'Un tercio'
+                half: 'La mitad'
+                two_thirds: 'Dos tercios'
+                three_quarters: 'Tres cuartos'
+                full: 'Ancho completo'
+            translated_fields: 'Contenido: {locale}'
+            zone_type: 'Tipo de zona'
+            stack_children: 'Zonas apiladas'
+            stack_empty: 'Vacío: añada una zona a continuación. Se repartirán la altura de la fila.'
+            stack_share: 'Proporción de altura'
+            stack_share_effective: 'Es decir, el {percent} % de la altura de la pila.'
+            type_drops_text: 'El texto de esta zona se eliminará al guardar. Vuelva a poner la zona en Texto para conservarlo.'
+            move_hint: 'Agarre una zona por el centro y arrástrela a donde deba ir; entre dos filas, ocupa una fila propia.'
+            swap_hint: 'Arrastre una zona sobre otra para intercambiar sus posiciones.'
+            zone_types:
+                text: Texto
+                media: Imagen
+                post: Publicación
+                video: Vídeo
+                audio: Audio
+                document: Documento
+                terms: Términos
+                map: Dirección
+                gallery: Galería
+                compare: 'Antes / después'
+                shared: 'Bloque compartido'
+                embed: Integración
+                tabs: Pestañas
+                search: Búsqueda
+                comments: Comentarios
+                deck: Presentación
+                button: Botón
+                separator: Separador
+                items: Lista
+                postList: 'Lista automática'
+                form: Formulario
+                code: Código
+                toc: Índice
+                githubActivity: 'Actividad de GitHub'
+                availability: Disponibilidad
+                openingHours: Horarios
+                countdown: 'Cuenta atrás'
+                contactCard: 'Tarjeta de visita'
+                socialPost: 'Publicación estilo red social'
+                qrCode: 'Código QR'
+                chart: Gráfico
+                videoWall: 'Muro de vídeos'
+                editorialCalendar: 'Calendario editorial'
+                activityFeed: 'Última actividad'
+                priceList: 'Carta y tarifas'
+                poll: Encuesta
+                travelMap: 'Mapa de viaje'
+                quoteEstimator: 'Simulador de presupuesto'
+                appointmentBooking: 'Reserva de citas'
+                instagramFeed: 'Feed de Instagram'
+                googleReviews: 'Reseñas de Google'
+                newsletterSignup: 'Suscripción al boletín'
+                newsletterPrivacy: 'Aviso RGPD del boletín'
+                stack: Pila
+            zone_form: Formulario
+            zone_form_hint: 'El formulario se muestra en la página y se envía al mismo destino que en su propia página.'
+            zone_form_none: 'Elegir un formulario…'
+            text_size: Formato
+            text_size_hint: 'La entradilla agranda el primer párrafo; las menciones son más pequeñas y discretas.'
+            text_sizes:
+                normal: Normal
+                lead: Entradilla
+                small: Menciones
+            sticky: 'Fijar al desplazarse'
+            sticky_hint: 'La zona sigue visible mientras su vecina se desplaza al lado. Sin efecto en el teléfono, donde todo se apila, ni si nada más alto la acompaña en su fila.'
+            full_bleed: 'Ancho completo'
+            full_bleed_hint: 'La zona sale de la columna y atraviesa la pantalla. Los textos siguen centrados al ancho de la página; una imagen, en cambio, va de un borde a otro.'
+            anchor: Ancla
+            anchor_placeholder: donde-encontrarme
+            anchor_hint: 'Un nombre al que un enlace puede apuntar directamente. Vacío, la zona no tiene dirección.'
+            anchor_hint_set: 'Un enlace a esta página seguido de #{anchor} baja hasta aquí.'
+            full_bleed_width_note: 'El ancho y el desplazamiento se fijan a la fila entera: una banda que cruza la pantalla se centra en su contenedor, y solo queda en el medio si ese contenedor es la fila.'
+            surface: Fondo
+            surface_hint: 'Aquello sobre lo que se coloca la zona. Es lo que hace que una serie de zonas se lea como secciones.'
+            surfaces:
+                none: Ninguno
+                card: Tarjeta
+                soft: Tintado
+                accent: Acento
+                custom: Personalizado
+            contrast: 'Tema forzado'
+            contrast_hint: 'Impone la combinación de colores clara u oscura a esta zona, sea cual sea la de la página. «Como la página» sigue el tema con normalidad.'
+            highlight: 'Resaltados y marcas'
+            highlight_hint: 'El color de los resaltados al pasar el ratón y de las marcas de las tarjetas de este bloque, por encima del de la página y del tema.'
+            highlight_color: 'Color al pasar el ratón'
+            highlights:
+                inherit: 'Como la página'
+                accent: 'Color principal'
+                neutral: Neutros
+                custom: Personalizado
+            contrasts:
+                auto: 'Como la página'
+                light: Claro
+                dark: Oscuro
+            fill: 'Tipo de fondo'
+            fill_types:
+                none: Ninguno
+                solid: 'Color sólido'
+                gradient: Degradado
+            background_color: 'Color de fondo'
+            gradient_from: 'Color inicial'
+            gradient_to: 'Color final'
+            gradient_angle: 'Orientación: {degrees}°'
+            background_image: 'Imagen de fondo'
+            background_image_hint: 'Colocada detrás de la zona, recortada según su punto focal.'
+            zone_background_video: 'Vídeo de fondo'
+            zone_background_video_hint: 'Sin sonido y en bucle detrás de la zona. La imagen de arriba sigue visible mientras carga, o si se rechaza la reproducción automática.'
+            overlay: 'Oscurecimiento: {percent} %'
+            page_reveal: 'Efecto de aparición de la página'
+            page_reveal_hint: 'Cómo llegan las zonas cuando el lector las alcanza. Cada zona puede decidir otra cosa; las que no indican nada siguen esta elección.'
+            reveal: 'Efecto de aparición'
+            reveal_hint: 'Cómo llega la zona cuando el lector la alcanza. La dirección es aquella de la que viene. Se reproduce una sola vez, y nunca para lo que ya está en pantalla.'
+            reveals:
+                inherit: 'Como la página'
+                none: Ninguno
+                fade: Fundido
+                up: Abajo
+                left: Izquierda
+                right: Derecha
+                zoom: Zoom
+                blur: Desenfoque
+            code: Fragmento
+            code_placeholder: 'function hola() { … }'
+            code_language: Lenguaje
+            code_language_hint: 'Sirve para el resaltado. Si se deja vacío, el fragmento se muestra tal cual.'
+            code_language_none: Ninguno
+            code_line_numbers: 'Números de línea'
+            code_line_numbers_hint: 'Una columna de números a la izquierda del fragmento. No se incluyen al copiar.'
+            card_variant: 'Densidad de la ficha'
+            card_variants:
+                full: Completa
+                compact: Compacta
+                horizontal: Horizontal
+            list_post_type: 'Tipo de contenido'
+            list_post_type_hint: 'Si se deja vacío, la lista toma de todo el sitio.'
+            list_term: Término
+            list_term_hint: 'Para mostrar solo las publicaciones clasificadas en este término.'
+            list_any: Todos
+            list_limit: 'Cuántas mostrar'
+            button_variant: Estilo
+            button_variants:
+                solid: Relleno
+                outline: Contorno
+                ghost: Discreto
+            sizes:
+                sm: Pequeño
+                md: Mediano
+                lg: Grande
+            size: Tamaño
+            button_label: 'Texto del botón'
+            button_label_placeholder: 'Ver los servicios'
+            button_url: Destino
+            separator_style: Separador
+            separator_style_hint: 'Una línea marca una ruptura; un espacio solo deja respirar.'
+            separator_styles:
+                line: Línea
+                space: Espacio
+                wave: Onda
+                diagonal: Diagonal
+                bevel: Bisel
+            item_display: Presentación
+            item_display_hint: 'La misma lista, dibujada de otra forma. Cambiar de presentación no pierde lo escrito.'
+            item_display_hint_faq: 'Cada entrada se pliega. Sirve para preguntas, y también para todo lo que se lee cuando hace falta: lo que se incluye, las garantías, el aviso legal.'
+            item_exclusive_open: 'Una sola entrada abierta a la vez'
+            item_exclusive_open_hint: 'Abrir una entrada cierra la anterior. Útil en una lista larga; déjelo desactivado si el lector debe comparar dos respuestas.'
+            item_displays:
+                steps: 'Pasos numerados'
+                stats: 'Cifras clave'
+                faq: 'Preguntas frecuentes'
+                quotes: Testimonios
+                logos: Logotipos
+                timeline: Cronología
+                offers: 'Fichas de ofertas'
+                people: Equipo
+                scrolly: 'Relato en imágenes'
+            item_columns: Columnas
+            item_number: 'Entrada {number}'
+            item_add: 'Añadir una entrada'
+            item_remove: 'Quitar esta entrada'
+            item_move_up: Subir
+            item_move_down: Bajar
+            item_image: Imagen
+            step_title: 'Título del paso'
+            step_text: Descripción
+            stat_value: Cifra
+            stat_label: 'Lo que mide'
+            faq_question: Pregunta
+            faq_answer: Respuesta
+            quote_text: Cita
+            quote_author: 'Quién habla'
+            quote_role: 'Su cargo'
+            logo_name: Nombre
+            logo_url: Enlace
+            step_title_placeholder: Descubrimiento
+            stat_value_placeholder: '+40'
+            faq_question_placeholder: '¿Cuánto tiempo se necesita?'
+            quote_author_placeholder: 'Camille Martin'
+            logo_name_placeholder: 'Nombre del cliente'
+            logo_url_placeholder: 'https://ejemplo.es'
+            step_text_placeholder: 'Lo que se hace en este paso, en una frase.'
+            stat_label_placeholder: 'proyectos entregados'
+            faq_answer_placeholder: 'Cuente tres semanas entre la primera conversación y la puesta en línea.'
+            quote_text_placeholder: 'Lo que se ha dicho de su trabajo.'
+            quote_role_placeholder: 'Fundadora, Studio Nord'
+            timeline_date: Fecha
+            timeline_title: 'Lo que ocurrió'
+            timeline_text: Detalle
+            timeline_date_placeholder: '2024'
+            timeline_title_placeholder: 'Apertura del estudio'
+            timeline_text_placeholder: 'Lo que cambió, en una frase.'
+            offer_name: 'Nombre de la oferta'
+            offer_price: Precio
+            offer_lines: 'Lo que incluye'
+            offer_lines_hint: 'Una línea por elemento: cada una se convierte en una viñeta de la ficha.'
+            offer_url: 'Enlace del botón'
+            offer_featured: Recomendada
+            offer_featured_hint: 'La ficha destacada. Solo una, si no ninguna resalta.'
+            offer_name_placeholder: 'Sitio corporativo'
+            offer_price_placeholder: 'desde 1500 €'
+            offer_lines_placeholder: |-
+                Cinco páginas
+                Un formulario de contacto
+                Puesta en línea incluida
+            offer_url_placeholder: 'https://ejemplo.es/contact'
+            person_name: Nombre
+            person_name_placeholder: 'Camille Rousseau'
+            person_role: Cargo
+            person_role_placeholder: 'Directora artística'
+            person_bio: Presentación
+            person_bio_placeholder: 'Dos líneas sobre lo que hace en el equipo.'
+            person_url: Enlace
+            person_url_placeholder: 'mailto:camille@ejemplo.es'
+            scale: 'Tamaño de la imagen'
+            scale_hint: 'Parte del ancho de la zona que ocupa la imagen. Se mantienen las proporciones, así que una imagen al 50 % también es la mitad de alta. La zona, en cambio, no se mueve.'
+            scales:
+                full: 'Ancho completo'
+            align: Alineación
+            alignments:
+                center: Centrada
+                left: 'A la izquierda'
+                right: 'A la derecha'
+            ratio: Proporciones
+            ratio_hint: 'Recorta la imagen a esta forma. «Naturales» la deja con sus propias proporciones. «Rellenar» le da toda la altura que queda en la pila: las demás zonas toman la suya, esta toma el resto, y eso es lo que cierra el hueco bajo un texto corto.'
+            ratios:
+                natural: Naturales
+                16x9: '16:9'
+                4x3: '4:3'
+                1x1: Cuadrado
+                3x4: Vertical
+                fill: Rellenar
+            zone_image: 'Imagen de la zona'
+            fill_gap: 'Añadir una zona en este espacio'
+            add_row: 'Añadir una fila aquí'
+            resize_start_zone: 'Redimensionar la zona {zone} por la izquierda'
+            start_label: 'Empieza en la columna {columns} de {total}'
+            offset: 'Desplazamiento a la izquierda'
+            offset_hint: 'Columnas que se dejan vacías antes de la zona, en pantalla grande. Sirve para colocar una zona a la derecha de una fila por lo demás vacía.'
+            offset_zone: 'Desplazar la zona {zone}'
+            offset_label: '{columns} columnas vacías de {total}'
+            offsets:
+                none: Ninguno
+            new_row: 'Empezar una nueva fila'
+            new_row_hint: 'Baja la zona debajo de la anterior, aunque cupiera a su lado.'
+            zone_image_url: 'Dirección de la imagen'
+            zone_image_url_hint: 'Solo se usa si no se elige ninguna imagen arriba. Práctico para un visual provisional; una imagen alojada en otro sitio puede desaparecer, y su proveedor ve pasar a sus visitantes.'
+            zone_alt: 'Texto alternativo'
+            zone_caption: Leyenda
+            zone_post: 'Publicación que mostrar'
+            zone_post_hint: 'Elegida entre las publicaciones relacionadas. Se muestra en el idioma de la página, así que esta elección vale para todos.'
+            zone_video: 'Dirección del vídeo'
+            zone_video_file: 'Elegir un vídeo'
+            zone_video_file_chosen: 'Vídeo de la mediateca'
+            zone_video_file_none: 'Ningún vídeo elegido'
+            zone_audio_file: 'Elegir un archivo de sonido'
+            zone_audio_file_chosen: 'Sonido de la mediateca'
+            zone_audio_file_none: 'Ningún sonido elegido'
+            zone_document_file: 'Elegir un documento'
+            zone_document_chosen: 'Documento de la mediateca'
+            zone_document_none: 'Ningún documento elegido'
+            zone_document_published_hint: 'Solo se muestra en el sitio un documento publicado. Un borrador deja la zona vacía, sin aviso: la mediateca también guarda los papeles internos.'
+            zone_document_label: 'Texto del enlace'
+            zone_document_label_placeholder: 'Nuestro folleto 2026'
+            terms_taxonomy: Taxonomía
+            terms_taxonomy_hint: 'Se muestran todos sus términos, en el orden del back-office, cada uno hacia su página. Un término añadido después aparece solo.'
+            terms_taxonomy_none: 'Elegir una taxonomía…'
+            terms_caption: 'Título encima'
+            terms_caption_placeholder: 'Nuestros ámbitos'
+            map_image: 'Foto del lugar'
+            map_image_hint: 'Opcional. Una fachada dice más sobre cómo encontrar la puerta que un punto en un rectángulo gris.'
+            map_name: 'Nombre del lugar'
+            map_name_placeholder: 'Nuestro taller'
+            map_address: Dirección
+            map_address_hint: 'Una línea por línea, como en un sobre. Es lo que alimenta el enlace de itinerario.'
+            map_address_placeholder: |-
+                12 rue des Lilas
+                69004 Lyon
+                Francia
+            gallery_add: 'Añadir imágenes'
+            gallery_remove: 'Quitar esta imagen'
+            gallery_empty: 'Ninguna imagen. Añada varias de una vez: para eso existe la galería.'
+            gallery_count: '{count} imagen de {max} | {count} imágenes de {max}'
+            gallery_ratio_hint: '«Naturales» deja cada imagen con sus proporciones y las hace fluir en columnas. Una forma las recorta todas igual, en una cuadrícula que se lee de izquierda a derecha.'
+            compare_before: Antes
+            compare_after: Después
+            compare_pick: 'Elegir una imagen'
+            compare_before_label: 'Palabra bajo la imagen de la izquierda'
+            compare_after_label: 'Palabra bajo la imagen de la derecha'
+            zone_shared: 'Bloque a reutilizar'
+            zone_shared_hint: 'La cuadrícula de esa publicación se dibuja aquí. Modifíquela una vez y cambian todas las páginas que la reutilizan. Un bloque que reutiliza un bloque no se dibuja: la profundidad se detiene en uno.'
+            search_post_type: 'Buscar en'
+            search_post_type_hint: 'Sin nada aquí, el campo busca en todo el sitio.'
+            tabs_hint: 'Cada panel tiene su rótulo y su propio texto. Sin JavaScript todo se muestra desplegado.'
+            tabs_number: 'Panel {number}'
+            tabs_add: 'Añadir un panel'
+            tabs_remove: 'Quitar este panel'
+            tabs_label: 'Rótulo de la pestaña'
+            tabs_label_placeholder: 'Plan básico'
+            zone_embed: 'Dirección a integrar'
+            zone_embed_hint: 'Pegue la dirección de la página del proveedor. Una dirección que ninguno de los cuatro reclama se muestra como enlace simple.'
+            embed_providers: 'Cuatro proveedores reconocidos: Spotify, SoundCloud, CodePen y Calendly. Cada uno ve pasar a los visitantes de la página.'
+            github_activity_hint: 'Las cuentas son las de Ajustes > GitHub. Mientras la integración esté desactivada, la zona no dibuja nada.'
+            gallery_layout: Disposición
+            gallery_layout_hint: 'La cuadrícula muestra todas las fotos; el carrusel las pasa una a una, con el dedo en el teléfono y con flechas en los demás dispositivos.'
+            gallery_layouts:
+                grid: Cuadrícula
+                carousel: Carrusel
+            frame: 'Pantalla alrededor de la imagen'
+            frame_hint: 'Para mostrar un sitio en el dispositivo para el que se hizo. La pantalla determina la forma de la imagen, por lo que se ignora el recorte de abajo.'
+            frames:
+                none: Ninguna
+                laptop: Portátil
+                phone: Teléfono
+                browser: 'Ventana de navegador'
+            parallax: 'Banda que se desplaza más despacio'
+            parallax_hint: 'La imagen se convierte en una banda que se desplaza más despacio que la página, con la leyenda encima. Combínelo con «Ancho completo» para obtener una verdadera banda.'
+            code_style: Presentación
+            code_style_hint: 'Terminal: una línea que empieza por «$» es un comando, tecleado en pantalla; las demás son lo que muestra. Antes / después: las líneas que empiezan por + y - se colorean.'
+            code_styles:
+                plain: Código
+                terminal: 'Terminal animado'
+                diff: 'Antes / después'
+            list_layout: Presentación
+            list_layout_hint: 'El índice ordena todas las publicaciones por letra, con las letras arriba para saltar; ignora el número de abajo y muestra hasta 300.'
+            list_layouts:
+                cards: Fichas
+                index: 'Índice de la A a la Z'
+            github_mode: 'Lo que muestra la zona'
+            github_modes:
+                activity: 'Cuadrícula de contribuciones'
+                repos: Repositorios
+                releases: 'Últimas versiones'
+            github_repos: Repositorios
+            github_repos_hint: 'Un repositorio por línea, con la forma propietario/nombre, seis como máximo.'
+            availability: Estado
+            availabilities:
+                available: Disponible
+                soon: 'Disponible pronto'
+                busy: Completo
+            available_from: 'A partir del'
+            available_from_hint: 'Opcional. Con «Disponible pronto», la frase indica la fecha.'
+            availability_label: 'Frase mostrada'
+            availability_label_hint: 'Si se deja vacía, la zona escribe la frase del estado elegido.'
+            availability_note: Detalle
+            hours_label: 'Horario semanal'
+            hours_hint: 'Una línea por día, con las franjas separadas por comas: «9h-12h, 14h-18h30». Vacío, el día está cerrado.'
+            hours_placeholder: '9:00-12:00, 14:00-18:00'
+            weekdays:
+                mon: Lunes
+                tue: Martes
+                wed: Miércoles
+                thu: Jueves
+                fri: Viernes
+                sat: Sábado
+                sun: Domingo
+            closed_dates: 'Cierres excepcionales'
+            closed_dates_hint: 'Una fecha por línea, con la forma AAAA-MM-DD. Las tres próximas se anuncian bajo el horario.'
+            timezone: 'Zona horaria'
+            timezone_hint: 'La del lugar: es ella la que decide si está abierto ahora, no la del visitante.'
+            hours_note: Detalle
+            countdown_at: 'Fecha y hora objetivo'
+            countdown_title: 'Título encima'
+            countdown_after: 'Frase una vez pasada la hora'
+            countdown_after_hint: 'Sustituye las cifras a la hora indicada: «Las puertas están abiertas», «La oferta ha terminado».'
+            contact_photo: Foto
+            contact_name: Nombre
+            contact_phone: Teléfono
+            contact_email: 'Correo electrónico'
+            contact_website: 'Sitio web'
+            contact_role: Profesión
+            social_network: Red
+            social_name: 'Nombre de la cuenta'
+            social_handle: Identificador
+            social_avatar: 'Foto de la cuenta'
+            social_picture: 'Imagen de la publicación'
+            social_likes: 'Me gusta'
+            social_comments: Comentarios
+            social_shares: Compartidos
+            social_date: Fecha
+            social_text: 'Texto de la publicación'
+            qr_logo: 'Imagen en el centro'
+            qr_logo_hint: 'Opcional: un logotipo o una foto, recortada en cuadrado. El código se hace entonces más robusto para seguir siendo legible pese a lo que ella oculta.'
+            qr_size: Tamaño
+            qr_download: 'Botón para descargar el código QR'
+            qr_download_hint: 'Una imagen PNG nítida, para un folleto, una tarjeta o un escaparate.'
+            qr_url: 'Dirección del código QR'
+            qr_url_hint: 'Una dirección completa, o una página del sitio (/fr/contact): se completa con la dirección del sitio.'
+            qr_label: 'Texto bajo el código'
+            chart_type: Forma
+            chart_types:
+                bar: Barras
+                line: Curva
+                donut: Anillo
+                growth: Crecimiento
+            chart_unit: Unidad
+            chart_unit_hint: 'Se escribe tras cada valor: %, €, k. Opcional.'
+            chart_title: Título
+            chart_data: Valores
+            chart_data_hint: 'Una línea por valor: el nombre, un punto y coma, el número. «Crecimiento» muestra además la evolución entre el primero y el último.'
+            chart_note: 'Fuente o detalle'
+            video_wall_count: '{count} vídeo de {max} | {count} vídeos de {max}'
+            video_wall_add: 'Añadir vídeos'
+            video_wall_empty: 'Todavía no hay vídeos. Los formatos verticales (9:16) son los más adecuados.'
+            calendar_month: 'Mes mostrado'
+            calendar_month_hint: 'Si se deja vacío, el calendario muestra el mes de la primera publicación de la lista.'
+            calendar_title: Título
+            calendar_entries: 'Publicaciones previstas'
+            calendar_entries_hint: 'Una línea por publicación: la fecha (AAAA-MM-DD), la red, el título, separados por barras «|».'
+            feed_github: 'Añadir las versiones de GitHub'
+            feed_github_hint: 'Mezcla con las publicaciones las últimas versiones de los repositorios indicados, si la integración con GitHub está activa.'
+            price_title: Título
+            price_lines: Contenido
+            price_lines_hint: '«# Entrantes» abre una sección. Una línea por artículo: el nombre | el precio | etiquetas separadas por comas | un detalle. Los dos últimos son opcionales.'
+            price_note: 'Mención al pie'
+            poll_results: Resultados
+            poll_results_hint: 'Los votos son anónimos: uno por visitante.'
+            poll_results_modes:
+                after: 'Tras votar'
+                always: 'De inmediato'
+            poll_question: Pregunta
+            poll_answers: Respuestas
+            poll_answers_hint: 'Una respuesta por línea, de dos a ocho.'
+            travel_photo_count: '{count} foto de {max} | {count} fotos de {max}'
+            travel_photo_add: 'Añadir fotos'
+            travel_stops: 'Etapas del viaje'
+            travel_stops_hint: 'Una línea por etapa, en el orden de las fotos de arriba: el nombre, la latitud, la longitud, separados por barras «|».'
+            quote_currency: Moneda
+            quote_title: Título
+            quote_options: 'Opciones y precios'
+            quote_options_hint: '«= 90» fija el precio base. Después, una línea por opción: el nombre | el precio, que el visitante marca para añadirla al total.'
+            quote_note: 'Detalle bajo el total'
+            slot_duration: 'Duración de una franja'
+            minutes: '{count} minuto | {count} minutos'
+            booking_window: 'Reservable hasta'
+            days_count: '{count} día | {count} días'
+            booking_title: Título
+            booking_note: Detalle
+            instagram_feed_hint: 'Muestra el feed configurado en Ajustes > Instagram, una sola vez para todo el sitio. Mientras la integración esté desactivada, la zona no dibuja nada.'
+            feed_count: 'Publicaciones mostradas'
+            google_reviews_hint: 'Muestra la ficha configurada en Ajustes > Reseñas de Google, una sola vez para todo el sitio. Mientras la integración esté desactivada, la zona no dibuja nada.'
+            newsletter_hint: 'Envía la dirección a la lista configurada en Ajustes > Boletín. Mientras la integración esté desactivada, la zona no dibuja nada.'
+            newsletter_title: Título
+            newsletter_note: Detalle
+            examples:
+                availability_label: 'Disponible para nuevos proyectos'
+                availability_note: 'Respuesta en 48 h'
+                hours_note: 'Cerrado los días festivos'
+                countdown_title: 'Apertura de la tienda'
+                countdown_done: 'La tienda está abierta'
+                person_name: 'Camille Martin'
+                contact_email: contact@ejemplo.es
+                contact_role: Fotógrafa
+                social_text: 'Luz de la mañana sobre el puerto, sin retoques.'
+                qr_caption: 'Escanee para ver el sitio'
+                chart_title: 'Seguidores de Instagram'
+                chart_data: |-
+                    Enero ; 1200
+                    Febrero ; 1480
+                    Marzo ; 2100
+                chart_source: 'Fuente: estadísticas de la cuenta'
+                calendar_title: 'Planificación de octubre'
+                calendar_data: |-
+                    2026-10-03 {'|'} Instagram {'|'} Reel entre bastidores
+                    2026-10-07 {'|'} LinkedIn {'|'} Caso práctico
+                price_title: 'La carta'
+                price_data: |-
+                    # Entrantes
+                    Sopa del día {'|'} 8 € {'|'} vegetariano {'|'} según el mercado
+                    Tartar de ternera {'|'} 14 €
+                price_note: 'Precios netos, servicio incluido'
+                poll_question: '¿Qué formato prefiere?'
+                poll_answers: |-
+                    Los reels
+                    Los carruseles
+                    Las stories
+                travel_stops: |-
+                    Monument Valley {'|'} 36.9989 {'|'} -110.0980
+                    Londres {'|'} 51.5072 {'|'} -0.1276
+                quote_title: 'Calcule el precio de su sesión'
+                quote_data: |-
+                    = 90
+                    Dron {'|'} 40
+                    Álbum de fotos {'|'} 60
+                quote_note: 'Presupuesto orientativo, confirmado tras hablarlo'
+                booking_title: 'Reservar una sesión'
+                booking_note: 'Respuesta en 24 h'
+                newsletter_title: 'Reciba las próximas fechas'
+                newsletter_note: 'Una vez al mes, nunca spam'
+                cta_label: 'Descubrir el lugar'
+                chapters: |-
+                    00:00 Introducción
+                    04:12 El material
+                    ---
+                    Transcripción…
+            newsletter_privacy_hint: 'El párrafo del boletín para su política de privacidad: a quién se confía la dirección, dónde y cómo darse de baja, redactado según el proveedor configurado. Mientras el boletín esté desactivado, la zona no dibuja nada.'
+            background_video: 'Vídeo de fondo'
+            background_video_hint: 'El vídeo se reproduce sin sonido detrás del título, en lugar de un reproductor. Para los visitantes que han pedido menos animaciones, la imagen de vista previa queda fija.'
+            background_video_title: 'Título sobre el vídeo'
+            background_video_button: 'Texto del botón'
+            background_video_link: 'Enlace del botón'
+            episode_chapters: 'Capítulos y transcripción'
+            episode_chapters_hint: 'Una línea por capítulo: el minutaje y luego el título («04:12 El material»). Bajo una línea «---», la transcripción, plegada bajo el reproductor.'
+            show_exif: 'Mostrar los ajustes de la cámara'
+            show_exif_hint: 'Cuerpo, objetivo, apertura, velocidad e ISO, leídos de la foto al subirla. Una foto subida antes de esta función ya no los tiene: hay que volver a subirla.'
+            comments_hint: 'Nada que ajustar: el hilo es el de esta publicación. Cuando existe esta zona, el pie de página deja de dibujarlo.'
+            zone_deck: Presentación
+            zone_deck_none: 'Elegir una presentación…'
+            zone_deck_hint: 'Se muestra en la página mediante su enlace para compartir. Una presentación sin enlace activo, revocado, caducado o protegido por contraseña no dibuja nada.'
+            visibility: 'Cuándo y para quién'
+            visibility_hint: 'Sin nada aquí, la zona se ve siempre y para todos. Es lo que ya hace una zona que no dice nada.'
+            visible_from: 'Desde el'
+            visible_until: 'Hasta el'
+            visible_any: 'Sin límite'
+            audience: Público
+            audience_hint: '«Miembros» dibuja la zona solo para un visitante conectado. El panel se la sigue mostrando a usted.'
+            audiences:
+                everyone: 'Todo el mundo'
+                members: 'Miembros conectados'
+            zone_document_label_hint: 'Lo que lee el visitante en la tarjeta. Vacío, se usa el título del documento en la mediateca.'
+            zone_video_hint: 'YouTube, Vimeo o Dailymotion. Cualquier otra dirección se mostrará como enlace en lugar de reproductor.'
+            move_up: Subir
+            move_down: Bajar
+            remove_zone: 'Eliminar la zona'
+        title_visible: 'Mostrar el título y el resumen en la página'
+        title_visible_hint: 'Si se desmarca, la página no muestra ni uno ni otro: resérvelo para las páginas cuyo encabezado o primera zona ya dice de qué se trata. El título sigue en el documento para los lectores de pantalla y los motores de búsqueda.'
+        position: 'Orden de lectura'
+        position_placeholder: '3'
+        position_hint: 'Déjelo vacío para ordenar por fecha, de la más reciente a la más antigua. Un orden a partir de 1 coloca la publicación al principio de las listas, siguiendo ese orden. Es lo que mantiene una documentación en el orden en que se lee.'
+        identity_hint: 'Sirven para encontrar la publicación en la lista y en las fichas que la presentan. También encabezan la página, pero solo si el encabezado personalizado no tiene título.'
+        seo: 'Motores de búsqueda'
+        tabs:
+            content: Contenido
+            header: Encabezado
+            settings: Ajustes
+            appearance: Apariencia
+            seo: 'Motores de búsqueda'
+            gallery: Galería
+        terms: Términos
+        related_posts: 'Publicaciones relacionadas'
+        related_posts_hint: 'Otras publicaciones que esta puede citar, por ejemplo para proponerlas en una zona «Publicación» de su cuadrícula.'
+        related_posts_empty: 'Todavía no hay publicaciones relacionadas.'
+        thumbnail: Miniatura
+        thumbnail_hint: 'La imagen que representa esta publicación allí donde aparece listada: una ficha de lista, una zona de cuadrícula que apunta a ella, la vista previa de un enlace compartido.'
+        thumbnail_image: Imagen
+        thumbnail_fit: Encuadre
+        thumbnail_fits:
+            cover: 'Rellenar el marco (recorta)'
+            contain: 'Contener por completo (deja espacio vacío)'
+            fill: 'Estirar al marco (deforma)'
+        thumbnail_focal: 'Punto de recorte'
+        thumbnail_focal_hint: 'Lo que sigue visible cuando una foto ancha debe caber en un marco estrecho. Sin ajuste, se aplica el del documento.'
+        comments_enabled: 'Comentarios abiertos'
+        share_enabled: 'Botones para compartir al pie de la página'
+        share_links:
+            default_hint: 'Enlaces por defecto: copiar el enlace, LinkedIn, Facebook. Edite uno para componer los de esta página.'
+            hint: 'Los enlaces de esta página, en orden. Arrastre el tirador para reordenarlos.'
+            reset: 'Enlaces por defecto'
+            empty: 'Ningún enlace, el bloque no se muestra.'
+            move: Mover
+            type: 'Tipo de enlace'
+            remove: Quitar
+            label: Texto
+            color: Color
+            url: Dirección
+            url_hint: 'https:// o mailto:. {url} y {title} se sustituyen por la dirección y el título de la página, lo que lo convierte en un verdadero enlace para compartir.'
+            url_invalid: 'Este enlace se eliminará al guardar: su dirección debe empezar por https:// o mailto:.'
+            add: 'Añadir un enlace'
+        field_title: Título
+        field_slug: Slug
+        slug_hint: 'Si se deja vacío, se deduce del título. Al editarlo, la URL anterior sigue funcionando.'
+        field_description: Resumen
+        field_post_type: 'Tipo de contenido'
+        field_status: Estado
+        field_scheduled_at: 'Publicar el'
+        field_unpublish_at: 'Despublicar el'
+        unpublish_at_placeholder: Nunca
+        unpublish_at_hint: 'La publicación pasará a archivada en esta fecha. Vacío: sigue en línea.'
+        meta_title: Metatítulo
+        meta_description: Metadescripción
+        meta_description_hint: 'El extracto que muestran los buscadores, cortado hacia los 160 caracteres.'
+        focus_keyword: 'Palabra clave principal'
+        canonical_url: 'URL canónica'
+        noindex: 'Pedir a los buscadores que no indexen'
+        noindex_hint: 'La página sigue accesible; solo pide no aparecer en los resultados.'
+        conflict_title: 'Alguien ha guardado antes que usted'
+        conflict_body: 'Esta publicación ha cambiado desde que la abrió. Recargue para ver su versión, o sobrescríbala con la suya.'
+        conflict_reload: 'Recargar la suya'
+        conflict_overwrite: 'Guardar la mía'
+        filters: Filtros
+        clear_filters: Borrar
+        filter_type: 'Tipo de contenido'
+        filter_status: Estado
+        filter_term: Término
+        no_terms: 'Ningún término definido.'
+        title_column: Título
+        type_column: Tipo
+        status_column: Estado
+        updated_column: Editada
+        status:
+            draft: Borrador
+            pending_review: 'Pendiente de revisión'
+            scheduled: Programada
+            published: Publicada
+            archived: Archivada
+        errors:
+            position_invalid: 'El orden de lectura debe ser un número entero mayor que cero. Déjelo vacío para ordenar por fecha.'
+            post_type_required: 'Se requiere un tipo de contenido.'
+            post_type_not_found: 'El tipo de contenido {id} no existe.'
+            status_required: 'Se requiere un estado.'
+            status_invalid: 'Estado desconocido.'
+            scheduled_at_required: 'Una publicación programada necesita una fecha.'
+            scheduled_at_invalid: 'Esta fecha no es legible.'
+            scheduled_at_in_past: 'La fecha de programación debe estar en el futuro.'
+            unpublish_at_invalid: 'Esta fecha no es legible.'
+            unpublish_at_in_past: 'Esta fecha ya ha pasado.'
+        focus_keyword_placeholder: 'una palabra o una expresión'
+        meta_title_placeholder: '60 caracteres aproximadamente'
+        meta_description_placeholder: '155 caracteres aproximadamente'
+        scheduled_at_placeholder: 'DD/MM/AAAA HH:MM'
+        calendar_name: Publicaciones
+        alt_placeholder: 'Lo que muestra la imagen'
+        caption_placeholder: 'Una línea bajo la imagen'
+        appearance:
+            surfaces_title: Colores
+            surfaces_hint: 'Aplicados solo a esta publicación, por encima de lo que pinta el tema activo. Una superficie dejada vacía conserva el color del tema. El texto de cada una se elige por contraste, como en la pantalla del tema.'
+            surface_background: 'Fondo de página'
+            surface_header: 'Barra superior'
+            surface_footer: 'Pie de página'
+            accent_title: Acento
+            accent_hint: 'El color de los botones, los enlaces y los acentos de esta publicación, por encima del del tema. Si se deja vacío, conserva el color del tema.'
+            accent_color: 'Color de acento'
+            highlight: 'Efectos al pasar el cursor y marcas de las fichas'
+            highlight_inherit: 'Como el tema'
+            highlight_hint: 'Bordes y títulos al pasar el cursor, categoría y flecha de las fichas, solo para el contenido de esta página. La barra de navegación y el pie de página conservan el ajuste del tema.'
+    taxonomies:
+        title: Taxonomías
+        empty: 'Ninguna taxonomía.'
+        create: 'Nueva taxonomía'
+        edit: 'Editar la taxonomía'
+        created: 'Taxonomía creada.'
+        updated: 'Taxonomía actualizada.'
+        deleted: 'Taxonomía eliminada.'
+        delete_confirm: '¿Eliminar la taxonomía «{slug}»? Sus términos se eliminarán con ella.'
+        built_in: Nativa
+        slug: Slug
+        slug_locked: 'Una taxonomía nativa conserva su slug y su forma.'
+        hierarchical: 'Términos anidados'
+        hierarchical_hint: 'Anidada, se comporta como categorías; plana, como etiquetas.'
+        label: Etiqueta
+        description: Descripción
+        post_types: 'Se aplica a'
+        post_types_hint: 'Los tipos de contenido cuyas publicaciones pueden llevar estos términos.'
+        terms:
+            row_actions:
+                edit_description: 'Renombrar el término y cambiar su slug.'
+                delete_description: 'Elimina el término. Los contenidos que lo llevaban dejarán de tenerlo.'
+            title: Términos
+            empty: 'Ningún término.'
+            create: 'Añadir un término'
+            edit: 'Editar el término'
+            created: 'Término añadido.'
+            updated: 'Término actualizado.'
+            deleted: 'Término eliminado.'
+            delete_confirm: '¿Eliminar el término «{name}»? Sus hijos suben un nivel.'
+            name: Nombre
+            slug: Slug
+            slug_hint: 'Si se deja vacío, se deduce del nombre.'
+            description: Descripción
+            parent: Padre
+            no_parent: 'Primer nivel'
+            reference: Referencia
+            move_up: Subir
+            move_down: Bajar
+        errors:
+            slug_required: 'Se requiere un slug.'
+            slug_format: 'El slug solo puede contener letras minúsculas, cifras, guiones y guiones bajos.'
+            slug_taken: 'El slug «{slug}» ya está en uso.'
+            translations_required: 'Debe completarse al menos un idioma.'
+            builtin_protected: 'Una taxonomía nativa no se puede eliminar.'
+            term_self_nested: 'Un término no puede colocarse bajo sí mismo ni bajo uno de sus hijos.'
+            term_slug_taken: 'La dirección «{slug}» ya la usa el término «{term}» de esta taxonomía.'
+            parent_wrong_taxonomy: 'El término {parentId} no pertenece a la taxonomía «{taxonomy}».'
+            reorder_cycle: 'Este desplazamiento colocaría el término {id} dentro de su propia descendencia.'
+        label_placeholder: Categorías
     comments:
-      title: Comentarios
-      empty: Todavía no hay comentarios. Empiece la conversación.
-      closed: Los comentarios están cerrados en esta publicación.
-      submit: Publicar
-      reply: Responder
-      cancel_reply: Cancelar
-      replying_to: 'En respuesta a {name}'
-      name: Su nombre
-      name_placeholder: Camila Durán
-      email: Su correo electrónico
-      email_placeholder: nombre.apellido@ejemplo.es
-      email_hint: "Nunca se muestra públicamente."
-      content: Su comentario
-      content_placeholder: "Lo que le parece, en unas líneas."
-      sent: Gracias, su comentario ya está en línea.
-      pending: "Gracias, su comentario será visible una vez revisado."
-      reactions:
-        like: Me gusta
-        love: Me encanta
-        haha: Ja, ja
-        wow: Vaya
-        sad: Triste
-        angry: Enfadado
-      errors:
-        name_required: Hace falta un nombre.
-        name_too_long: Este nombre es demasiado largo.
-        email_invalid: Esta dirección de correo no es válida.
-        content_required: Un comentario no puede estar vacío.
-        content_too_long: "Este comentario supera los 2000 caracteres."
-        closed: Los comentarios están cerrados en esta publicación.
-        too_many: "Demasiados comentarios enviados recientemente. Vuelva a intentarlo dentro de un momento."
-    no_posts: Todavía no hay nada publicado.
-    latest_posts: Publicaciones
-    pagination: Páginas
+        title: Comentarios
+        empty: 'Ningún comentario.'
+        search_placeholder: 'Buscar un autor, una dirección, un texto…'
+        all: Todos
+        author: Autor
+        on_post: En
+        in_reply_to: 'En respuesta a {name}'
+        approve: Aprobar
+        row_actions:
+            approve_description: 'El comentario pasa a ser visible en el sitio.'
+            spam_description: 'Lo retira del sitio y lo marca como no deseado.'
+            delete_description: 'Elimina el comentario definitivamente.'
+        approved: 'Comentario aprobado.'
+        spam: 'No deseado'
+        marked_spam: 'Comentario marcado como no deseado.'
+        delete_confirm: '¿Eliminar este comentario de {name}? Sus respuestas suben un nivel.'
+        deleted: 'Comentario eliminado.'
+        replies: '{count} respuestas'
+        reactions: '{count} reacciones'
+        status:
+            pending: Pendiente
+            approved: Aprobado
+            spam: 'No deseado'
+    forms:
+        title: Formularios
+        empty: 'Ningún formulario.'
+        create: 'Nuevo formulario'
+        edit: 'Editar el formulario'
+        created: 'Formulario creado.'
+        updated: 'Formulario guardado.'
+        deleted: 'Formulario eliminado.'
+        delete_confirm: '¿Eliminar el formulario «{title}»? Sus envíos se eliminarán con él.'
+        title_label: Título
+        slug: Slug
+        slug_hint: 'Si se deja vacío, se deduce del título. Forma la URL pública.'
+        description: Descripción
+        active: Publicado
+        active_hint: 'Un formulario no publicado responde 404: es un borrador.'
+        notify_email: 'Avisar a'
+        notify_email_hint: 'Si se deja vacío, los envíos van al administrador del sitio.'
+        webhook_url: Webhook
+        webhook_url_hint: 'Cada envío se remite ahí, firmado con el secreto de la aplicación.'
+        crm_sync: 'Notificar el contacto'
+        standalone_page_indexed: 'Indexar la página del formulario'
+        standalone_page_indexed_hint: 'La página del formulario sigue accesible en todos los casos. Si se desmarca, pide a los buscadores que no la indexen, para no competir con la página donde está colocado el formulario.'
+        public_url: 'URL pública'
+        fields:
+            row_actions:
+                edit_description: 'Etiqueta, tipo, obligatorio o no, condiciones de visualización.'
+                delete_description: 'Elimina el campo. Las respuestas ya recibidas lo conservan.'
+            title: Campos
+            empty: 'Ningún campo.'
+            create: 'Añadir un campo'
+            edit: 'Editar el campo'
+            created: 'Campo añadido.'
+            updated: 'Campo actualizado.'
+            deleted: 'Campo eliminado.'
+            delete_confirm: '¿Eliminar el campo «{label}»? Se retirarán las condiciones que lo mencionan.'
+            label: Etiqueta
+            placeholder: 'Texto indicativo'
+            type: Tipo
+            required: Obligatorio
+            options: Opciones
+            options_hint: 'Una por línea.'
+            step: Paso
+            conditions: 'Condiciones de visualización'
+            conditions_hint: 'El campo solo aparece si se dan estas respuestas.'
+            condition_field: Campo
+            condition_value: Vale
+            add_condition: 'Añadir una condición'
+            move_up: Subir
+            move_down: Bajar
+            step_placeholder: '1'
+            label_placeholder: 'Su nombre'
+        steps:
+            title: Pasos
+            hint: 'Sin pasos, el formulario cabe en una página.'
+            add: 'Añadir un paso'
+            remove: Quitar
+            name: 'Nombre del paso'
+        submissions:
+            title: Envíos
+            empty: 'Ningún envío.'
+            export: 'Exportar en CSV'
+            submitted_at: 'Recibido el'
+            reference: Referencia
+        field_types:
+            text: Texto
+            email: 'Correo electrónico'
+            textarea: 'Texto largo'
+            select: 'Lista desplegable'
+            checkbox: 'Casillas de verificación'
+            radio: 'Botones de opción'
+            number: Número
+            date: Fecha
+            tel: Teléfono
+        condition_logic:
+            and: 'Todas las condiciones'
+            or: 'Al menos una condición'
+        errors:
+            step_below_one: 'Los pasos se cuentan a partir de 1.'
+            step_out_of_range: 'Este formulario tiene {count} paso(s).'
+            translations_required: 'Debe completarse al menos un idioma.'
+            field_translations_required: 'Debe completarse al menos un idioma.'
+            slug_taken: 'El slug «{slug}» ya está en uso.'
+            notify_email_invalid: 'Esta dirección de correo electrónico no es válida.'
+            webhook_url_invalid: 'Esta URL no es legible.'
+            options_required: 'Un campo de opciones necesita al menos una opción.'
+            field_type_invalid: 'Tipo de campo desconocido.'
+            condition_logic_invalid: 'Lógica de condición desconocida.'
+    menus:
+        row_actions:
+            edit_description: 'Cambiar la etiqueta, el destino y la apertura del enlace.'
+            delete_description: 'Quita la entrada del menú. Sus hijos suben un nivel.'
+        title: Menús
+        empty: 'Ningún menú.'
+        empty_hint: 'Los menús se crean en la instalación, uno por ubicación del tema.'
+        updated: 'Menú actualizado.'
+        name: Nombre
+        location: Ubicación
+        description: Descripción
+        items: Entradas
+        items_empty: 'Ninguna entrada en este menú.'
+        add_item: 'Añadir una entrada'
+        edit_item: 'Editar la entrada'
+        item_created: 'Entrada añadida.'
+        item_updated: 'Entrada actualizada.'
+        item_deleted: 'Entrada eliminada.'
+        item_delete_confirm: '¿Eliminar la entrada «{label}»? Sus subentradas se eliminarán con ella.'
+        reordered: 'Menú reorganizado.'
+        label: Etiqueta
+        label_hint: 'Si se deja vacía, la entrada toma el título del destino y sigue sus traducciones.'
+        target_type: Destino
+        target: 'Elemento de destino'
+        custom_url: URL
+        custom_url_placeholder: 'https://ejemplo.es/page'
+        open_in_new_tab: 'Abrir en una pestaña nueva'
+        css_class: 'Clase CSS'
+        visibility: Visibilidad
+        parent: 'Subentrada de'
+        section: 'Sección que encabeza esta entrada'
+        no_section: Ninguna
+        section_hint: 'La entrada sigue resaltada en las publicaciones de ese tipo, aunque sus direcciones no estén bajo la suya.'
+        no_parent: 'Primer nivel'
+        move_up: Subir
+        move_down: Bajar
+        heading_hint: 'Sin enlace resoluble pero con subentradas, esta entrada se muestra como un título.'
+        unresolved: 'Destino no encontrado: esta entrada no se muestra en el sitio.'
+        locations:
+            primary: 'Navegación principal'
+            primary_description: 'Mostrada en el encabezado, en todas las páginas del sitio público.'
+            footer: 'Pie de página'
+            footer_description: 'Mostrada al final de la página, bajo el contenido.'
+            account: Cuenta
+            account_description: 'Enlaces de inicio de sesión y de espacio personal, según si el visitante está identificado.'
+        defaults:
+            home: Inicio
+            login: 'Iniciar sesión'
+            logout: 'Cerrar sesión'
+        target_types:
+            post: Publicación
+            term: Término
+            post_type_archive: 'Lista de un tipo de contenido'
+            home: Inicio
+            custom_url: 'URL libre'
+            frontend_login: 'Iniciar sesión'
+            frontend_register: Registro
+            frontend_account: 'Mi cuenta'
+            frontend_logout: 'Cerrar sesión'
+        visibilities:
+            always: 'Todo el mundo'
+            guests_only: 'Visitantes no conectados'
+            authenticated_only: 'Visitantes conectados'
+            hidden: Oculta
+        errors:
+            name_required: 'Se requiere un nombre.'
+            target_type_required: 'Se requiere un destino.'
+            target_type_invalid: 'Tipo de destino desconocido.'
+            target_required: 'Este destino requiere un elemento al que apuntar.'
+            target_not_found: 'El elemento de destino {id} no existe.'
+            custom_url_required: 'Se requiere una URL.'
+            custom_url_invalid: 'Esta URL no es legible.'
+            visibility_invalid: 'Visibilidad desconocida.'
+            parent_wrong_menu: 'La entrada padre no pertenece a este menú.'
+            self_nested: 'Una entrada no puede colocarse bajo sí misma ni bajo una de sus subentradas.'
+            reorder_cycle: 'Este desplazamiento colocaría la entrada {id} dentro de su propia descendencia.'
+        css_class_placeholder: menu-item--mis-en-avant
+        label_placeholder: Inicio
+frontend:
+    sequence:
+        search:
+            placeholder: 'Buscar en la documentación…'
+            loading: Buscando…
+            count: '1 página encontrada | {count} páginas encontradas'
+            empty: 'Nada coincide con «{query}».'
+            clear: Borrar
+        summary: Sumario
+        pagination: 'Página anterior y siguiente'
+        previous: 'Página anterior'
+        next: 'Página siguiente'
+    gallery:
+        enlarge: 'Ampliar la imagen'
+        open: 'Ampliar la imagen %position% de %total%'
+        close: Cerrar
+        previous: 'Imagen anterior'
+        next: 'Imagen siguiente'
+    editorial:
+        reading_time: '%minutes% min de lectura'
+        share:
+            label: Compartir
+            copy_link: 'Copiar enlace'
+            copied: 'Enlace copiado'
+            linkedin: LinkedIn
+            whatsapp: WhatsApp
+            x: X
+            facebook: Facebook
+            bluesky: Bluesky
+            email: Correo
+            custom: Enlace
+        grid:
+            recommended: Recomendado
+            choose: 'Elegir esta oferta'
+            copy: Copiar
+            copied: Copiado
+            on_this_page: 'En esta página'
+            terms: Términos
+            directions: 'Cómo llegar'
+            before: Antes
+            after: Después
+            compare_handle: 'Mover la separación entre las dos imágenes'
+            get_in_touch: Contactar
+            github:
+                total: '{0}Ninguna contribución|{1}1 contribución|]1,Inf[%number% contribuciones'
+                day: '{0}Ninguna contribución el %date%|{1}1 contribución el %date%|]1,Inf[%number% contribuciones el %date%'
+                last_year: 'Últimos 12 meses'
+                less: Menos
+                more: Más
+                updated: 'Actualizado el %date%'
+            availability:
+                available: 'Disponible para nuevos proyectos'
+                soon: 'Disponible a partir del %date%'
+                soon_undated: 'Disponible pronto'
+                busy: 'Completo por ahora'
+            hours:
+                open_until: 'Abierto hasta las %time%'
+                opens_at: 'Cerrado, abre a las %time%'
+                opens_tomorrow: 'Cerrado, abre mañana a las %time%'
+                opens_on: 'Cerrado, abre el %day% a las %time%'
+                closed: Cerrado
+                closed_today: 'Cierre excepcional hoy'
+                closed_day: Cerrado
+                closures: 'Próximos cierres:'
+                time: '%hh%:%mm%'
+            countdown:
+                days: días
+                hours: horas
+                minutes: minutos
+                seconds: segundos
+                passed: 'Ya es la hora.'
+            contact:
+                save: 'Guardar el contacto'
+            social:
+                likes: 'me gusta'
+                comments: comentarios
+                shares: compartidos
+            carousel:
+                label: Carrusel
+                slide: 'Foto %index% de %count%'
+                previous: 'Foto anterior'
+                next: 'Foto siguiente'
+            index:
+                label: 'Índice alfabético'
+            qr:
+                label: 'Código QR hacia %url%'
+                download: 'Descargar el código QR'
+            activity:
+                post: Publicación
+                release: 'Nueva versión'
+            poll:
+                total: 'Votos: %count%'
+                closed: 'Esta encuesta ya no está abierta.'
+                too_many: 'Demasiados votos desde esta dirección, inténtelo más tarde.'
+            episode:
+                transcript: Transcripción
+            reviews:
+                count: '{count} opinión | {count} opiniones'
+                write: 'Dejar una opinión'
+            newsletter:
+                placeholder: 'Su correo electrónico'
+                submit: Suscribirse
+                success: 'Gracias, su suscripción está confirmada.'
+                failed: 'La suscripción no se ha realizado. Inténtelo de nuevo en un momento.'
+                invalid: 'Correo electrónico no válido.'
+                unavailable: 'Esta suscripción ya no está disponible.'
+                too_many: 'Demasiados intentos, inténtelo más tarde.'
+                success_confirm: 'Casi listo: confirme su suscripción con el enlace que acabamos de enviarle por correo.'
+                consent: 'Acepto recibir el boletín por correo electrónico.'
+                notice: 'Su dirección solo se usa para enviarle este boletín; se transmite a %provider%, nuestro proveedor de envíos. Puede darse de baja en cualquier momento con el enlace de cada envío.'
+                privacy_link: 'Política de privacidad'
+                consent_required: 'Marque la casilla para confirmar su suscripción.'
+            newsletter_privacy:
+                title: Boletín
+                brevo: 'Si se suscribe a nuestro boletín, su dirección de correo electrónico solo se utiliza para enviárselo. Este tratamiento se basa en su consentimiento, otorgado al marcar la casilla del formulario y, en su caso, al confirmar su suscripción por correo. Su dirección se confía a Brevo (Sendinblue SAS, empresa francesa), nuestro proveedor de envíos, que la aloja en la Unión Europea. Se conserva mientras permanezca suscrito.'
+                mailchimp: 'Si se suscribe a nuestro boletín, su dirección de correo electrónico solo se utiliza para enviárselo. Este tratamiento se basa en su consentimiento, otorgado al marcar la casilla del formulario y, en su caso, al confirmar su suscripción por correo. Su dirección se confía a Mailchimp, servicio de la empresa Intuit Inc., nuestro proveedor de envíos, establecida en Estados Unidos: sus datos se transfieren por tanto allí. Esta transferencia está amparada por el Marco de Privacidad de Datos UE-EE. UU. (Data Privacy Framework), al que Intuit está adherida, y por las cláusulas contractuales tipo de la Comisión Europea. Se conserva mientras permanezca suscrito.'
+                rights: 'Puede darse de baja en cualquier momento con el enlace de cada envío. También tiene derecho de acceso, rectificación y supresión de sus datos, y puede presentar una reclamación ante la autoridad de protección de datos (la CNIL en Francia).'
+            quote:
+                total: Total
+            booking:
+                calendar_name: 'Reservas en línea'
+                none: 'No hay ningún horario disponible por ahora.'
+                name: 'Su nombre'
+                email: 'Su correo electrónico'
+                phone: 'Teléfono (opcional)'
+                message: 'Mensaje (opcional)'
+                confirm: 'Confirmar la cita'
+                success: 'Cita confirmada para'
+                taken: 'Este horario acaba de reservarse. Elija otro.'
+                invalid: 'Falta información o no es válida.'
+                too_many: 'Demasiados intentos, inténtelo más tarde.'
+                unavailable: 'Esta reserva ya no está disponible.'
+        forms:
+            submit: Enviar
+            next: Siguiente
+            previous: Anterior
+            step: 'Paso {number}'
+            sent: 'Gracias, su mensaje se ha enviado correctamente.'
+            errors:
+                required: 'Este campo es obligatorio.'
+                email_invalid: 'Esta dirección de correo no es válida.'
+                number_invalid: 'Este valor debe ser un número.'
+                date_invalid: 'Esta fecha no se puede leer.'
+                choice_invalid: 'Esta opción no figura entre las propuestas.'
+                too_many: 'Demasiados envíos recientes. Vuelva a intentarlo dentro de un momento.'
+        comments:
+            title: Comentarios
+            empty: 'Todavía no hay comentarios. Empiece la conversación.'
+            closed: 'Los comentarios están cerrados en esta publicación.'
+            submit: Publicar
+            reply: Responder
+            cancel_reply: Cancelar
+            replying_to: 'En respuesta a {name}'
+            name: 'Su nombre'
+            name_placeholder: 'Camila Durán'
+            email: 'Su correo electrónico'
+            email_placeholder: nombre.apellido@ejemplo.es
+            email_hint: 'Nunca se muestra públicamente.'
+            content: 'Su comentario'
+            content_placeholder: 'Lo que le parece, en unas líneas.'
+            sent: 'Gracias, su comentario ya está en línea.'
+            pending: 'Gracias, su comentario será visible una vez revisado.'
+            reactions:
+                like: 'Me gusta'
+                love: 'Me encanta'
+                haha: 'Ja, ja'
+                wow: Vaya
+                sad: Triste
+                angry: Enfadado
+            errors:
+                name_required: 'Hace falta un nombre.'
+                name_too_long: 'Este nombre es demasiado largo.'
+                email_invalid: 'Esta dirección de correo no es válida.'
+                content_required: 'Un comentario no puede estar vacío.'
+                content_too_long: 'Este comentario supera los 2000 caracteres.'
+                closed: 'Los comentarios están cerrados en esta publicación.'
+                too_many: 'Demasiados comentarios enviados recientemente. Vuelva a intentarlo dentro de un momento.'
+        no_posts: 'Todavía no hay nada publicado.'
+        latest_posts: Publicaciones
+        pagination: Páginas
 editorial:
-  mail:
-    comment:
-      subject_pending: Nuevo comentario por revisar
-      subject_approved: Nuevo comentario en su publicación
-      pending_heading: Un comentario espera su revisión
-      pending_intro: "{name} acaba de dejar un comentario. No será visible hasta que se apruebe."
-      approved_heading: Nuevo comentario
-      approved_intro: "Hola {author}, acaba de publicarse un comentario en una de sus publicaciones."
-      author: Autor
-      from: De
-      cta_moderate: Abrir la moderación
-    form:
-      subject_admin: 'Nuevo envío: {form}'
-      subject_confirmation: 'Su mensaje: {form}'
-      admin_heading: Nuevo envío
-      admin_intro: "El formulario «{form}» acaba de rellenarse."
-      admin_language: Idioma
-      cta_open: Abrir en el back-office
-      confirmation_heading: Mensaje recibido
-      confirmation_intro: "Gracias, hemos recibido su mensaje enviado a través de «{form}»."
+    mail:
+        comment:
+            subject_pending: 'Nuevo comentario por revisar'
+            subject_approved: 'Nuevo comentario en su publicación'
+            pending_heading: 'Un comentario espera su revisión'
+            pending_intro: '{name} acaba de dejar un comentario. No será visible hasta que se apruebe.'
+            approved_heading: 'Nuevo comentario'
+            approved_intro: 'Hola {author}, acaba de publicarse un comentario en una de sus publicaciones.'
+            author: Autor
+            from: De
+            cta_moderate: 'Abrir la moderación'
+        form:
+            subject_admin: 'Nuevo envío: {form}'
+            subject_confirmation: 'Su mensaje: {form}'
+            admin_heading: 'Nuevo envío'
+            admin_intro: 'El formulario «{form}» acaba de rellenarse.'
+            admin_language: Idioma
+            cta_open: 'Abrir en el back-office'
+            confirmation_heading: 'Mensaje recibido'
+            confirmation_intro: 'Gracias, hemos recibido su mensaje enviado a través de «{form}».'

@@ -1,0 +1,4 @@
+backend:
+    migrations:
+        pending:
+            banner: '{count} migración(es) pendiente(s) en la base de desarrollo. Ejecute el comando para sincronizar:'

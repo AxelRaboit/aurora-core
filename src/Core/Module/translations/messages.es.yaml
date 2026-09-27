@@ -1,0 +1,44 @@
+backend:
+    permissions:
+        intro: 'Gestione los permisos de acceso de los usuarios por módulo. Cada permiso puede concederse de forma individual.'
+        search_placeholder: 'Filtrar módulos…'
+        empty: 'No se ha encontrado ningún módulo.'
+        name: Permiso
+        key: 'Clave técnica'
+        names:
+            general:
+                dashboard:
+                    view: 'Acceder al panel'
+                search:
+                    view: 'Usar la búsqueda global'
+                trash:
+                    view: 'Ver la papelera global'
+            platform:
+                users:
+                    manage: 'Gestionar los usuarios'
+                    module_access:
+                        manage: 'Gestionar el acceso de los usuarios a los módulos'
+            configuration:
+                settings:
+                    manage: 'Gestionar los ajustes'
+                themes:
+                    manage: 'Gestionar los temas'
+        role: 'Rol requerido'
+    nav:
+        sections:
+            general: General
+    modules:
+        media: Medios
+        users: Usuarios
+        hr: 'RR. HH.'
+        planning: Planificación
+        project: Proyecto
+        core: Núcleo
+        general: General
+        general_backend: General
+        general_backend_description: 'Panel y página de inicio tras iniciar sesión.'
+        platform: Plataforma
+        platform_backend: Plataforma
+        platform_backend_description: 'Sección técnica del back-office.'
+        configuration: Configuración
+        configuration_description: 'Configuración global de la aplicación y personalización visual.'
