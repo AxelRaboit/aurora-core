@@ -5,6 +5,24 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.272] - 2026-09-27
+
+### Corrigé
+
+#### Le déploiement de la 0.9.271 mettait le site en panne
+Le bundle réclamait à son démarrage un service que les conteneurs compilés par
+les versions précédentes n'exposent pas. Or `cache:clear` démarre l'application
+sur le conteneur déjà en cache avant d'en construire un nouveau : au premier
+déploiement de la 0.9.271, la commande s'arrêtait là, le cache n'était jamais
+reconstruit et le site répondait 500. Il ne réclame plus ce service que si le
+conteneur le propose ; sinon le chiffrement est branché à la première commande
+ou requête, comme avant.
+
+### Dans aurora-client
+
+Rien à faire après `make aurora-update`. La 0.9.271 ne doit pas être déployée
+seule : passer directement à la 0.9.272.
+
 ## [0.9.271] - 2026-09-27
 
 ### Sécurité

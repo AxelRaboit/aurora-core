@@ -192,7 +192,17 @@ class AuroraBundle extends AbstractBundle
     public function boot(): void
     {
         parent::boot();
-        $this->container?->get(EncryptedTypeBootstrapper::class);
+
+        // Only when the container offers it. A container compiled by an older
+        // version of the bundle has it private and inlined, and asking for it
+        // there throws - which is exactly the container `cache:clear` boots
+        // with on the first deployment of a new version, before it can build
+        // the new one. The 0.9.271 deployment stopped on that, with the site
+        // down. Without it here, the subscriber wires the types on the first
+        // command or request, as it always did.
+        if ($this->container?->has(EncryptedTypeBootstrapper::class)) {
+            $this->container->get(EncryptedTypeBootstrapper::class);
+        }
     }
 
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
