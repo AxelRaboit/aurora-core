@@ -74,6 +74,8 @@ services:
             tags: [aurora.stored_disk_hint]
         Aurora\Core\Storage\Orphan\ReferencedKeysProviderInterface:
             tags: [aurora.referenced_keys_provider]
+        Aurora\Core\Scheduling\Access\ScheduledSourceAccessInterface:
+            tags: [aurora.scheduled_source_access]
 
     Aurora\Core\Scheduler\MainSchedule:
         arguments:
