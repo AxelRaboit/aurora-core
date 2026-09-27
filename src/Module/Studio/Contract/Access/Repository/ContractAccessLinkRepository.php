@@ -60,6 +60,41 @@ class ContractAccessLinkRepository extends ResolveTargetEntityRepository
             ->getResult();
     }
 
+    /**
+     * The link that still opens each of these contracts, keyed by contract id.
+     *
+     * One query for a list, where the list asked `findActiveFor()` row by row.
+     * The newest wins, as it does there.
+     *
+     * @param list<ContractInterface> $contracts
+     *
+     * @return array<int, ContractAccessLinkInterface>
+     */
+    public function findActiveForContracts(array $contracts): array
+    {
+        if ([] === $contracts) {
+            return [];
+        }
+
+        /** @var list<ContractAccessLinkInterface> $links */
+        $links = $this->createQueryBuilder('l')
+            ->andWhere('l.contract IN (:contracts)')
+            ->andWhere('l.revokedAt IS NULL')
+            ->andWhere('l.expiresAt > :now')
+            ->setParameter('contracts', $contracts)
+            ->setParameter('now', new DateTimeImmutable())
+            ->orderBy('l.createdAt', Order::Descending->value)
+            ->getQuery()
+            ->getResult();
+
+        $byContract = [];
+        foreach ($links as $link) {
+            $byContract[(int) $link->getContract()->getId()] ??= $link;
+        }
+
+        return $byContract;
+    }
+
     /** The link that still opens this contract, if there is one. */
     public function findActiveFor(ContractInterface $contract): ?ContractAccessLinkInterface
     {

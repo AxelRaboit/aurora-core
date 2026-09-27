@@ -36,8 +36,12 @@ final readonly class ContractsViewBuilder
     /** @return array<string, mixed> */
     public function indexView(): array
     {
+        // Read once for the rows and for the choice of a parent to amend,
+        // which both walk every contract.
+        $all = $this->contractRepository->findAllForIndex();
+
         return [
-            'contracts' => $this->contracts(),
+            'contracts' => $this->serializer->serializeMany($all),
             'customers' => $this->customerOptions(),
             // Only what can actually produce a document: live templates with
             // something published. Offering the rest means offering a dead end.
@@ -63,7 +67,7 @@ final readonly class ContractsViewBuilder
             // What an amendment may be attached to. Only concluded, running,
             // non-amendment contracts, so the picker cannot offer a choice the
             // manager would refuse a second later.
-            'amendable' => $this->amendable(),
+            'amendable' => $this->amendable($all),
         ];
     }
 
@@ -95,13 +99,15 @@ final readonly class ContractsViewBuilder
      * amendment, not terminated. The customer travels with each entry, because
      * choosing a parent decides the customer rather than the other way round.
      *
+     * @param list<ContractInterface> $contracts
+     *
      * @return list<array<string, mixed>>
      */
-    private function amendable(): array
+    private function amendable(array $contracts): array
     {
         $amendable = [];
 
-        foreach ($this->contractRepository->findAllForIndex() as $contract) {
+        foreach ($contracts as $contract) {
             if (!$contract->getStatus()->isConcluded()) {
                 continue;
             }
@@ -140,7 +146,7 @@ final readonly class ContractsViewBuilder
     /** @return list<array<string, mixed>> */
     public function contracts(): array
     {
-        return array_map($this->serializer->serialize(...), $this->contractRepository->findAllForIndex());
+        return $this->serializer->serializeMany($this->contractRepository->findAllForIndex());
     }
 
     /** @return array<string, mixed> */

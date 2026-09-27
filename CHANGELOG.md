@@ -133,6 +133,28 @@ Troisième lot, les écritures en masse :
   annonces d'un espace Studio à son équipe, sont enregistrés en une fois.
 - La corbeille générale lit le dossier parent avec chaque dossier.
 
+Quatrième lot, les points moyens restants :
+
+- **Page d'un terme** (publique) : le terme est trouvé par une requête et ses
+  sous-termes par une autre, au lieu de parcourir toute la taxonomie puis
+  chaque nœud. Le coût ne grandit plus avec la taxonomie, 404 compris, et le
+  terme n'est plus cherché deux fois quand l'adresse passe d'abord par la
+  route d'un article.
+- **Menu du back-office Editorial** : le nombre d'articles de chaque type est
+  compté par la base au lieu de charger tous les articles, sur chaque page
+  Editorial.
+- **Écran des menus** : les cibles des entrées sont chargées par type, en une
+  requête chacune, au lieu de deux requêtes par entrée.
+- **Liste des contrats** : liens de signature, versions et modèles lus pour
+  toute la liste en trois requêtes (9 pour 2 contrats et 17 pour 4 avant) ;
+  la liste n'est plus lue deux fois par la page.
+- **Badges d'usage de la médiathèque** : les diaporamas sont lus avec leurs
+  diapositives, au lieu d'une requête par diaporama.
+- **« Partagé avec moi »** dans les notes : une requête par niveau de
+  l'arbre partagé, au lieu d'une par dossier.
+- **Sitemap** : les termes qui ont un article publié sont trouvés en une
+  requête, sans charger les articles de chaque terme.
+
 Au passage, **le chiffrement des colonnes est branché dès le démarrage** et
 plus seulement à la première requête : un traitement qui lisait une note
 chiffrée avant toute requête HTTP ou commande échouait sur un ordre de
@@ -154,6 +176,9 @@ signature. Le projet client n'en a pas.
 Idem pour `CommentSerializerInterface::serialize()`, qui prend un troisième
 paramètre facultatif `?array $replyCounts`. Une migration ajoute deux index à
 `core_ged_documents` ; `make deploy-prod` la passe.
+`MenuSerializerInterface::serializeItem()` prend un second paramètre facultatif,
+et `ContractSerializerInterface` gagne `serializeMany()` : une implémentation
+écrite à part devrait les ajouter. Le projet client n'en a pas.
 
 ## [0.9.270] - 2026-09-27
 
