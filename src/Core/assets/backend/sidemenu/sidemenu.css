@@ -43,6 +43,31 @@
     transition: transform 200ms ease, visibility 0s linear 200ms;
 }
 
+/* Peeking: a folded menu called back by the left edge of the screen
+ * (useSidemenuPeek). It comes over the page rather than pushing it - the page
+ * keeps the width it was given when the menu was put away - so it sits above
+ * the content, with a shadow to say it is on top. */
+.sidemenu-edge { display: none; }
+
+@media (min-width: 1024px) {
+    .sidemenu-collapsed .sidemenu-edge {
+        display: block;
+        position: fixed;
+        inset-block: 0;
+        left: 0;
+        width: 6px;
+        z-index: 31;
+    }
+
+    .sidemenu-collapsed.sidemenu-peek #sidemenu {
+        transform: none;
+        visibility: visible;
+        transition: transform 200ms ease, visibility 0s;
+        z-index: 40;
+        box-shadow: 0 10px 40px rgb(0 0 0 / 0.35);
+    }
+}
+
 /* Disable the transitions while the user is actively resizing so the handle
    tracks the cursor 1:1 instead of trailing behind. */
 .sidemenu-resizing #sidemenu,
