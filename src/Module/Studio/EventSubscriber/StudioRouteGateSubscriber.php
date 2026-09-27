@@ -38,6 +38,7 @@ final readonly class StudioRouteGateSubscriber extends AbstractModuleRouteGateSu
             'backend_studio_contract' => $this->studioContext->areContractsEnabled(),
             'backend_studio_deck' => $this->studioContext->areDecksEnabled(),
             'backend_studio_spaces' => $this->studioContext->areSpacesEnabled(),
+            'backend_studio_calendar' => $this->studioContext->areSpacesEnabled(),
             'workspace_' => $backend && $this->studioContext->areSpacesEnabled(),
             'public_space' => $backend && $this->studioContext->areSpacesEnabled(),
             'public_contract' => $backend && $this->studioContext->areContractsEnabled(),

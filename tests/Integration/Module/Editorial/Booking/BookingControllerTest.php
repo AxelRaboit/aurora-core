@@ -11,6 +11,9 @@ use Aurora\Module\Editorial\PostType\Entity\PostType;
 use Aurora\Module\Planning\Event\Entity\PlanningEventInterface;
 use Aurora\Module\Planning\Event\Enum\PlanningEventStatusEnum;
 use Aurora\Module\Planning\Event\Repository\PlanningEventRepository;
+use Aurora\Module\Platform\User\Entity\User;
+use Aurora\Module\Platform\User\Enum\UserRoleEnum;
+use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 use Aurora\Tests\Integration\Concern\ResetsRateLimiters;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use DateTimeImmutable;
@@ -87,6 +90,33 @@ final class BookingControllerTest extends IntegrationTestCase
         self::assertSame(PlanningEventStatusEnum::Tentative, $events[0]->getStatus());
         self::assertFalse($events[0]->isReadOnly());
         self::assertStringContainsString('sacha@example.com', (string) $events[0]->getDescription());
+    }
+
+    /**
+     * A booking carries a name, an email and a phone number, and lands in a
+     * calendar everybody who uses the calendar sees. Only the people who run
+     * the pages get it.
+     */
+    public function testABookingIsHiddenFromCalendarUsersWhoDoNotRunThePages(): void
+    {
+        self::assertTrue($this->book($this->page(), $this->tomorrowAt('13:00'), 'Alix', 'alix@example.com')['success'] ?? false);
+
+        $reader = new User();
+        $reader->setEmail('agenda-seul@example.test')->setName('Agenda')->setType(UserTypeEnum::Backend)
+            ->setRoles([UserRoleEnum::User->value])->setPassword('x')->setPrivileges(['planning.calendars.view']);
+        $this->entityManager->persist($reader);
+        $this->entityManager->flush();
+
+        try {
+            $this->client->loginUser($reader, 'admin');
+            $window = sprintf('from=%s&to=%s', urlencode(new DateTimeImmutable('now')->format(DATE_ATOM)), urlencode(new DateTimeImmutable('+3 days')->format(DATE_ATOM)));
+            $this->client->request('GET', '/backend/planning/events?'.$window);
+            self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+            self::assertNotContains('Alix', array_column(json_decode((string) $this->client->getResponse()->getContent(), true)['events'], 'title'));
+        } finally {
+            $this->entityManager->createQuery(sprintf("DELETE FROM %s u WHERE u.email = 'agenda-seul@example.test'", User::class))->execute();
+        }
     }
 
     public function testAnInvalidEmailIsRefused(): void

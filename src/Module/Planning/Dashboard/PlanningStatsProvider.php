@@ -9,6 +9,7 @@ use Aurora\Module\Planning\Event\Repository\PlanningEventRepository;
 use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
 use Aurora\Module\Planning\Planning\Repository\PlanningRepository;
 use Aurora\Module\Planning\Reminder\Repository\PlanningReminderRepository;
+use Aurora\Module\Planning\Sync\Access\ModuleEventVisibility;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use DateTimeImmutable;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -39,6 +40,7 @@ final readonly class PlanningStatsProvider implements DashboardStatsProviderInte
         private PlanningReminderRepository $reminders,
         private Security $security,
         private UrlGeneratorInterface $urlGenerator,
+        private ModuleEventVisibility $moduleEvents,
     ) {}
 
     public function getModuleKey(): string
@@ -93,7 +95,9 @@ final readonly class PlanningStatsProvider implements DashboardStatsProviderInte
     {
         $rows = [];
 
-        foreach ($this->events->findUpcoming($ids, $now, self::UPCOMING) as $event) {
+        // Asked for more than shown, then filtered: a module event the reader
+        // may not see must not take one of the few places either.
+        foreach (array_slice($this->moduleEvents->filter($this->events->findUpcoming($ids, $now, self::UPCOMING * 4)), 0, self::UPCOMING) as $event) {
             $rows[] = [
                 'kind' => 'event',
                 'id' => $event->getId(),

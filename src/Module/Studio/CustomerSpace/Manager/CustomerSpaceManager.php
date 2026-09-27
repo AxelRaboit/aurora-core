@@ -21,6 +21,7 @@ use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceMemberRoleEnum;
 use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
 use Aurora\Module\Studio\SpaceChat\Manager\SpaceChatChannelManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentColumnManagerInterface;
+use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentItemManagerInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -39,6 +40,7 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
         protected readonly SpaceContentColumnManagerInterface $columnManager,
         protected readonly SpaceChatChannelManagerInterface $chatChannels,
         protected readonly TranslatorInterface $translator,
+        protected readonly SpaceContentItemManagerInterface $contentItems,
     ) {}
 
     public function create(CustomerSpaceInputInterface $input): CustomerSpaceInterface
@@ -72,6 +74,10 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
         $this->applyInput($space, $input);
         $this->entityManager->flush();
 
+        // Its dates carry its name and colour, and leave the calendar when it
+        // is archived: they follow it rather than keep the old version.
+        $this->contentItems->announceSpace($space);
+
         $this->auditUpdated($space);
     }
 
@@ -86,6 +92,7 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
     public function delete(CustomerSpaceInterface $space): void
     {
         $this->auditDeleted($space);
+        $this->contentItems->unscheduleSpace($space);
 
         $this->entityManager->remove($space);
         $this->entityManager->flush();

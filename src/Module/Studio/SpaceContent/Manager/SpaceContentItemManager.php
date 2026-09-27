@@ -31,7 +31,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 class SpaceContentItemManager implements SpaceContentItemManagerInterface
 {
     /** What the calendar files these dates under. Part of the schema of `core_planning_events`. */
-    protected const string SCHEDULE_SOURCE = 'studio.space_content';
+    public const string SCHEDULE_SOURCE = 'studio.space_content';
 
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
@@ -95,6 +95,34 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
         // After the row is gone, not before: an announcement that fails must
         // not leave a card deleted from the calendar and present on the board.
         $this->eventDispatcher->dispatch(new EntityUnscheduledEvent(static::SCHEDULE_SOURCE, $id));
+    }
+
+    /**
+     * Says every card of this space again, after the space itself changed.
+     *
+     * The calendar entry carries the space's name and colour, and an archived
+     * space's cards leave the calendar: renaming, recolouring or archiving a
+     * space left the old version on every one of its dates.
+     */
+    public function announceSpace(CustomerSpaceInterface $space): void
+    {
+        foreach ($this->itemRepository->findForSpace($space) as $item) {
+            $this->announceSchedule($item);
+        }
+    }
+
+    /**
+     * Takes every card of this space off the calendar, before the space goes.
+     *
+     * Deleting a space removes its cards by cascade, which no announcement
+     * follows: their dates stayed on the calendar, pointing at a space that
+     * no longer exists.
+     */
+    public function unscheduleSpace(CustomerSpaceInterface $space): void
+    {
+        foreach ($this->itemRepository->findForSpace($space) as $item) {
+            $this->eventDispatcher->dispatch(new EntityUnscheduledEvent(static::SCHEDULE_SOURCE, (int) $item->getId()));
+        }
     }
 
     /** @param list<int> $itemIds */
@@ -223,7 +251,9 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
         // studio ferait mentir la case : « ne pas afficher dans le
         // calendrier » se lit comme valant pour tous les calendriers, et
         // c'est le seul endroit où cette règle peut être dite une fois.
-        if (!$scheduledAt instanceof DateTimeImmutable || !$item->appearsOnCalendar()) {
+        // Et une carte d'un espace archivé non plus : son travail est fini, et
+        // elle encombrerait l'agenda de ceux qui s'occupent des autres.
+        if (!$scheduledAt instanceof DateTimeImmutable || !$item->appearsOnCalendar() || $space->isArchived()) {
             $this->eventDispatcher->dispatch(new EntityUnscheduledEvent(static::SCHEDULE_SOURCE, $id));
 
             return;

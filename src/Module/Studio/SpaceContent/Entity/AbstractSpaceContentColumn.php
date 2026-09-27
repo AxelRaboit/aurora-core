@@ -7,6 +7,7 @@ namespace Aurora\Module\Studio\SpaceContent\Entity;
 use Aurora\Core\Support\ChartPalette;
 use Aurora\Core\Timestampable\TimestampableTrait;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\SpaceContent\Enum\SpaceContentColumnRoleEnum;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -83,6 +84,15 @@ abstract class AbstractSpaceContentColumn implements SpaceContentColumnInterface
     #[ORM\Column(options: ['default' => true])]
     protected bool $visibleToClient = true;
 
+    /**
+     * Which shared stage this step stands for, or none.
+     *
+     * Null is a real answer: a step called « Chez Marc » is no stage of the
+     * common vocabulary, and forcing one on it would make the counts lie.
+     */
+    #[ORM\Column(length: 20, nullable: true, enumType: SpaceContentColumnRoleEnum::class)]
+    protected ?SpaceContentColumnRoleEnum $role = null;
+
     abstract public function getId(): ?int;
 
     public function getSpace(): CustomerSpaceInterface
@@ -129,6 +139,18 @@ abstract class AbstractSpaceContentColumn implements SpaceContentColumnInterface
     public function setVisibleToClient(bool $visibleToClient): static
     {
         $this->visibleToClient = $visibleToClient;
+
+        return $this;
+    }
+
+    public function getRole(): ?SpaceContentColumnRoleEnum
+    {
+        return $this->role;
+    }
+
+    public function setRole(?SpaceContentColumnRoleEnum $role): static
+    {
+        $this->role = $role;
 
         return $this;
     }

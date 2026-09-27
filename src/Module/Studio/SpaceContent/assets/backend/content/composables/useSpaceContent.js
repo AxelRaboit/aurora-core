@@ -222,6 +222,7 @@ export function useSpaceContent(initial, paths) {
         name: "",
         colourSlot: null,
         visibleToClient: true,
+        role: "",
     });
 
     const {
@@ -264,6 +265,7 @@ export function useSpaceContent(initial, paths) {
             name: "",
             colourSlot: null,
             visibleToClient: true,
+            role: "",
         };
         clearColumnErrors();
         showColumnForm.value = true;
@@ -275,6 +277,7 @@ export function useSpaceContent(initial, paths) {
             name: column.name,
             colourSlot: column.colourSlot ?? null,
             visibleToClient: false !== column.visibleToClient,
+            role: column.role ?? "",
         };
         clearColumnErrors();
         showColumnForm.value = true;

@@ -29,6 +29,8 @@ import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
 import CustomerSpaceTeamModal from "./components/CustomerSpaceTeamModal.vue";
 import CustomerSpaceTeamCell from "./components/CustomerSpaceTeamCell.vue";
+import SpaceWorkloadBadges from "../../../../SpaceContent/assets/shared/SpaceWorkloadBadges.vue";
+import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
 import { PanelsTopLeft, Pencil, Plus, Save, Trash2, X } from "lucide-vue-next";
 
@@ -153,6 +155,34 @@ function boardHref(space) {
  */
 const teamOf = ref(null);
 
+const { formatDate } = useDateFormat();
+
+/**
+ * Le plus urgent en haut, sur demande : parutions manquées, relectures en
+ * retard, contenus à reprendre, puis ce qui attend le client. Sans la case,
+ * l'ordre reste celui des noms, qu'on parcourt pour retrouver un espace.
+ */
+const byUrgency = ref(false);
+
+function urgencyOf(space) {
+    const w = space.workload ?? {};
+
+    return [w.missed ?? 0, w.lateReview ?? 0, w.changesRequested ?? 0, w.withClient ?? 0];
+}
+
+const rows = computed(() => {
+    if (!byUrgency.value) return visibleItems.value;
+
+    return [...visibleItems.value].sort((a, b) => {
+        const [x, y] = [urgencyOf(a), urgencyOf(b)];
+        for (let i = 0; i < x.length; i += 1) {
+            if (x[i] !== y[i]) return y[i] - x[i];
+        }
+
+        return 0;
+    });
+});
+
 const pageActions = computed(() => {
     if (!can("studio.spaces.create")) {
         return [];
@@ -224,6 +254,7 @@ const pageActions = computed(() => {
             v-model="showArchived"
             :label="t('backend.studio.spaces.show_archived')"
         />
+        <AppCheckbox v-model="byUrgency" :label="t('backend.studio.spaces.sort_by_urgency')" />
 
         <!-- Mobile cards -->
         <div v-if="isNarrow" class="space-y-2">
@@ -233,7 +264,7 @@ const pageActions = computed(() => {
                 :hint="t('backend.studio.spaces.empty_hint')"
             />
             <div
-                v-for="space in visibleItems"
+                v-for="space in rows"
                 :key="space.id"
                 class="aurora-card overflow-hidden"
             >
@@ -255,6 +286,10 @@ const pageActions = computed(() => {
                             </span>
                         </p>
                         <p class="text-xs text-secondary">{{ space.customerName }}</p>
+                        <p v-if="space.workload?.nextPublication" class="text-xs text-muted">
+                            {{ t("backend.studio.workload.next_publication", { date: formatDate(space.workload.nextPublication) }) }}
+                        </p>
+                        <SpaceWorkloadBadges :workload="space.workload" />
                         <CustomerSpaceTeamCell
                             :members="space.members"
                             v-on:open="teamOf = space"
@@ -288,6 +323,11 @@ const pageActions = computed(() => {
                             {{ t("backend.studio.spaces.col_customer") }}
                         </th>
                         <th
+                            class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden md:table-cell"
+                        >
+                            {{ t("backend.studio.spaces.col_workload") }}
+                        </th>
+                        <th
                             class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell"
                         >
                             {{ t("backend.studio.spaces.col_team") }}
@@ -311,7 +351,7 @@ const pageActions = computed(() => {
                 </thead>
                 <tbody class="divide-y divide-line/40">
                     <tr
-                        v-for="space in visibleItems"
+                        v-for="space in rows"
                         :key="space.id"
                         class="group hover:bg-surface-2/40 transition-colors"
                         :class="space.archived ? 'opacity-60' : ''"
@@ -341,6 +381,14 @@ const pageActions = computed(() => {
                             </div>
                         </td>
                         <td class="px-4 py-2 text-primary">{{ space.customerName }}</td>
+                        <td class="px-4 py-2 hidden md:table-cell">
+                            <div class="space-y-1">
+                                <SpaceWorkloadBadges :workload="space.workload" />
+                                <p v-if="space.workload?.nextPublication" class="text-xs text-muted whitespace-nowrap">
+                                    {{ t("backend.studio.workload.next_publication", { date: formatDate(space.workload.nextPublication) }) }}
+                                </p>
+                            </div>
+                        </td>
                         <td class="px-4 py-2 hidden lg:table-cell">
                             <CustomerSpaceTeamCell
                                 :members="space.members"
@@ -376,7 +424,7 @@ const pageActions = computed(() => {
                         </td>
                     </tr>
                     <tr v-if="!visibleItems.length">
-                        <td :colspan="5">
+                        <td :colspan="6">
                             <AppNoData
                                 :message="t('backend.studio.spaces.empty')"
                                 :hint="t('backend.studio.spaces.empty_hint')"

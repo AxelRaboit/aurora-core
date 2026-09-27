@@ -70,6 +70,8 @@ import SpaceInformationView from "../../../../Customer/assets/backend/informatio
 import SpaceResourcesView from "../../../../SpaceResource/assets/backend/resources/SpaceResourcesView.vue";
 import SpaceDrivePicker from "../../../../SpaceFile/GoogleDrive/assets/backend/drive/SpaceDrivePicker.vue";
 import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
+import AppSelect from "@/shared/components/form/select/AppSelect.vue";
+import { COLUMN_ROLES } from "../../shared/columnRoles.js";
 import AppColourSlotPicker from "@/shared/components/form/picker/AppColourSlotPicker.vue";
 import {
     CalendarDays,
@@ -96,6 +98,12 @@ import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 
 const { t } = useI18n();
 const { can } = usePrivileges();
+
+/** Aucun rôle d'abord : c'est la réponse d'une étape nommée librement. */
+const columnRoleOptions = computed(() => [
+    { value: "", label: t("backend.studio.space_content.column_role_none") },
+    ...COLUMN_ROLES.map((role) => ({ value: role.value, label: t(role.labelKey) })),
+]);
 
 const props = defineProps({
     space: { type: Object, required: true },
@@ -882,6 +890,16 @@ const actionsFor = useSpaceCardActions({
                     :hint="t('backend.studio.space_content.column_colour_hint')"
                     :error="columnErrors.colourSlot"
                     v-on:update:model-value="columnForm = { ...columnForm, colourSlot: $event }"
+                />
+                <!-- Facultatif : l'étape garde son nom, le rôle dit seulement
+                     laquelle des étapes communes elle représente, pour que
+                     les compteurs de tous les espaces se calculent. -->
+                <AppSelect
+                    :model-value="columnForm.role ?? ''"
+                    :options="columnRoleOptions"
+                    :label="t('backend.studio.space_content.column_role')"
+                    :hint="t('backend.studio.space_content.column_role_hint')"
+                    v-on:update:model-value="columnForm = { ...columnForm, role: $event }"
                 />
 
                 <!-- Sur l'étape et non sur la fiche : un tableau dit déjà

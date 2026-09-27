@@ -1,105 +1,125 @@
 <script setup>
 /**
- * Le panneau du Studio : ce qui tourne, et ce qui attend quelqu'un.
+ * Le panneau du Studio : ce qui m'attend chez mes clients aujourd'hui.
  *
  * Même forme que les autres panneaux, délibérément : une rangée de chiffres
- * puis des compositions. Un tableau de bord dont chaque onglet invente sa mise
- * en page oblige à la réapprendre à chaque fois.
+ * puis le détail. Un tableau de bord dont chaque onglet invente sa mise en
+ * page oblige à la réapprendre à chaque fois.
  *
- * **Deux chiffres sont mis en avant plutôt que tous.** « En attente du client »
- * et « signature attendue » sont les seuls sur lesquels on agit en arrivant :
- * les autres situent. Une nuance sur ces deux-là seulement, parce qu'un écran
- * où tout est coloré ne désigne plus rien.
+ * **Chaque chiffre mène quelque part**, et la liste nomme les espaces. Un
+ * compte sans destination oblige à ouvrir les espaces un par un pour trouver
+ * celui qui attend ; une ligne par espace, la plus urgente en haut, dit chez
+ * qui aller.
+ *
+ * Les chiffres viennent de `SpaceWorkload`, comme ceux de l'espace et du
+ * calendrier éditorial : le même mot compte la même chose partout.
  */
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { CalendarClock, FileSignature, FolderKanban, Presentation } from "lucide-vue-next";
-import AppShareBar from "@/shared/components/chart/AppShareBar.vue";
+import { AlarmClock, CalendarClock, CalendarX, FileSignature, MessageSquareWarning, Presentation, UserRoundCheck } from "lucide-vue-next";
 import AppStatTile from "@/shared/components/display/AppStatTile.vue";
-import { hasAnyShare } from "@/shared/utils/data/hasAnyShare.js";
+import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
+import SpaceWorkloadBadges from "../../../SpaceContent/assets/shared/SpaceWorkloadBadges.vue";
 
 const props = defineProps({
     stats: { type: Object, default: () => ({}) },
 });
 
 const { t } = useI18n();
+const { formatDate } = useDateFormat();
 
-const totals = computed(() => [
-    {
-        key: "spaces",
-        icon: FolderKanban,
-        value: props.stats.activeSpaces ?? 0,
-    },
-    {
-        key: "awaiting_client",
-        icon: CalendarClock,
-        value: props.stats.awaitingClient ?? 0,
-        tone: (props.stats.awaitingClient ?? 0) > 0 ? "attention" : "default",
-    },
-    {
-        key: "upcoming",
-        icon: CalendarClock,
-        value: props.stats.upcoming ?? 0,
-    },
-    {
-        key: "decks",
-        icon: Presentation,
-        value: props.stats.decks ?? 0,
-    },
-]);
+/** Le calendrier éditorial, filtré sur un état, pour une tuile qui y mène. */
+function calendarFor(state) {
+    const path = props.stats.calendarPath;
 
-/** Les verdicts, dans l'ordre où une carte les traverse. */
-const APPROVALS = ["pending", "changes_requested", "approved"];
+    return path ? `${path}?scope=${props.stats.scope ?? "mine"}&state=${state}` : null;
+}
 
-const byApproval = computed(() =>
-    APPROVALS.filter((key) => key in (props.stats.itemsByApproval ?? {})).map((key) => ({
-        key,
-        label: t(`backend.studio.space_content.approvals.${key}`),
-        value: props.stats.itemsByApproval[key],
-    })),
+const tiles = computed(() =>
+    [
+        { key: "missed", icon: CalendarX, value: props.stats.missed ?? 0, href: calendarFor("missed"), urgent: true },
+        { key: "late_review", icon: AlarmClock, value: props.stats.lateReview ?? 0, href: calendarFor("late_review"), urgent: true },
+        { key: "changes_requested", icon: MessageSquareWarning, value: props.stats.changesRequested ?? 0, href: calendarFor("changes_requested"), urgent: true },
+        { key: "with_client", icon: UserRoundCheck, value: props.stats.withClient ?? 0, href: calendarFor("with_client") },
+        { key: "upcoming", icon: CalendarClock, value: props.stats.upcoming ?? 0, href: calendarFor("upcoming") },
+        { key: "awaiting_signature", icon: FileSignature, value: props.stats.awaitingSignature, href: props.stats.contractsPath },
+        { key: "decks", icon: Presentation, value: props.stats.decks },
+    ]
+        // Null : un chiffre que ce lecteur n'a pas le droit d'ouvrir.
+        .filter((tile) => null !== tile.value && undefined !== tile.value)
+        .map((tile) => ({ ...tile, tone: tile.urgent && tile.value > 0 ? "attention" : "default" })),
 );
 
-/**
- * Les états d'un contrat, ceux qui existent seulement.
- *
- * Neuf colonnes dont sept à zéro diraient surtout que la barre a neuf
- * couleurs.
- */
-const byContractStatus = computed(() =>
-    Object.entries(props.stats.contractsByStatus ?? {})
-        .filter(([, count]) => count > 0)
-        .map(([key, value]) => ({
-            key,
-            label: t(`backend.studio.contracts.status.${key}`),
-            value,
-        })),
-);
+/** La même adresse, l'autre portée : le panneau se recalcule côté serveur. */
+function scopeHref(scope) {
+    const params = new URLSearchParams(window.location.search);
+    params.set("module", "studio");
+    params.set("studioScope", scope);
+
+    return `?${params.toString()}`;
+}
 </script>
 
 <template>
     <div class="space-y-5">
+        <div v-if="stats.hasScopeChoice" class="flex items-center gap-1 text-sm" role="group" :aria-label="t('backend.stats.studio.scope_label')">
+            <a
+                v-for="scope in ['mine', 'all']"
+                :key="scope"
+                :href="scopeHref(scope)"
+                class="rounded-md px-2.5 py-1 transition-colors"
+                :class="scope === stats.scope ? 'bg-surface-2 text-primary font-medium' : 'text-secondary hover:text-primary'"
+                :aria-current="scope === stats.scope ? 'true' : undefined"
+            >
+                {{ t(`backend.stats.studio.scopes.${scope}`) }}
+            </a>
+        </div>
+
         <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <AppStatTile
-                v-for="total in totals"
-                :key="total.key"
-                :icon="total.icon"
-                :label="t(`backend.stats.studio.${total.key}`)"
-                :value="total.value"
-                :tone="total.tone ?? 'default'"
-            />
+            <component
+                :is="tile.href ? 'a' : 'div'"
+                v-for="tile in tiles"
+                :key="tile.key"
+                :href="tile.href ?? undefined"
+                class="block rounded-xl"
+                :class="tile.href ? 'transition-shadow hover:ring-1 hover:ring-accent/40' : ''"
+            >
+                <AppStatTile
+                    class="h-full"
+                    :icon="tile.icon"
+                    :label="t(`backend.stats.studio.${tile.key}`)"
+                    :value="tile.value"
+                    :tone="tile.tone"
+                />
+            </component>
         </div>
 
-        <div v-if="hasAnyShare(byApproval)" class="aurora-card space-y-4 p-3 sm:p-5">
-            <h3 class="text-sm font-medium text-primary">{{ t("backend.stats.studio.by_approval") }}</h3>
-            <AppShareBar :segments="byApproval" />
-        </div>
+        <div class="aurora-card p-3 sm:p-5">
+            <h3 class="mb-3 text-sm font-medium text-primary">{{ t("backend.stats.studio.attention_title") }}</h3>
 
-        <div v-if="hasAnyShare(byContractStatus)" class="aurora-card space-y-4 p-3 sm:p-5">
-            <h3 class="flex items-center gap-2 text-sm font-medium text-primary">
-                <FileSignature class="h-4 w-4 shrink-0" :stroke-width="2" />
-                {{ t("backend.stats.studio.by_contract_status") }}
-            </h3>
-            <AppShareBar :segments="byContractStatus" />
+            <p v-if="!(stats.attention ?? []).length" class="text-sm text-muted">
+                {{ t("backend.stats.studio.attention_empty") }}
+            </p>
+
+            <ul v-else class="divide-y divide-line/60">
+                <li v-for="space in stats.attention" :key="space.id">
+                    <a
+                        :href="space.path"
+                        class="flex flex-col gap-1.5 py-2.5 sm:flex-row sm:items-center sm:gap-3 hover:bg-surface-2/40 rounded-md px-1.5 -mx-1.5"
+                    >
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-medium text-primary">{{ space.name }}</span>
+                            <span class="block truncate text-xs text-muted">
+                                {{ space.customerName }}
+                                <template v-if="space.nextPublication">
+                                    · {{ t("backend.studio.workload.next_publication", { date: formatDate(space.nextPublication) }) }}
+                                </template>
+                            </span>
+                        </span>
+                        <SpaceWorkloadBadges :workload="space" />
+                    </a>
+                </li>
+            </ul>
         </div>
     </div>
 </template>

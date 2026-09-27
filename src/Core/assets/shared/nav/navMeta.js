@@ -14,6 +14,7 @@
  * reads the icon names out of the PHP modules and fails if one is missing.
  */
 import {
+    CalendarRange,
     Presentation,
     LayoutDashboard,
     LayoutTemplate,
@@ -111,6 +112,7 @@ export const ICON_MAP = {
     "folder-tree": FolderTree,
     folder: Folder,
     "calendar-days": CalendarDays,
+    "calendar-range": CalendarRange,
     "kanban-square": KanbanSquare,
     "key-round": KeyRound,
     vault: Lock,

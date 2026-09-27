@@ -93,6 +93,7 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
             // Before the customer list, and not alphabetically: a space is
             // opened every day and a legal identity block is filled in once.
             $items[] = $this->spacesNavItem();
+            $items[] = $this->calendarNavItem();
         }
 
         if ($this->studioContext->areCustomersEnabled()) {
@@ -121,6 +122,7 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
     {
         return [new NavSection('studio', [
             $this->spacesNavItem(),
+            $this->calendarNavItem(),
             $this->customersNavItem(),
             $this->contractsNavItem(),
             $this->contractTemplatesNavItem(),
@@ -180,6 +182,18 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
             'panels-top-left',
             requiredPrivilege: 'studio.spaces.view',
             descriptionKey: 'backend.nav.studio_spaces_description',
+        );
+    }
+
+    /** Next to the spaces it reads from: the same work, laid on one month. */
+    private function calendarNavItem(): NavItem
+    {
+        return new NavItem(
+            'backend_studio_calendar',
+            'backend.nav.studio_calendar',
+            'calendar-range',
+            requiredPrivilege: 'studio.spaces.view',
+            descriptionKey: 'backend.nav.studio_calendar_description',
         );
     }
 

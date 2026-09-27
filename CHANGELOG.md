@@ -7,9 +7,61 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ## [0.9.270] - 2026-09-27
 
-Le lot 0 du plan Studio : les failles relevées par l'audit du 27/09, avant
-tout nouveau développement. Chacune est fermée côté serveur et prouvée par un
-test.
+Le plan Studio du 27/09, lots 0 à 3 : d'abord les failles relevées par
+l'audit, puis un seul vocabulaire pour ce qui attend chez les clients, le
+tableau de bord qui s'en sert, et un calendrier éditorial pour tous les
+espaces. Les quatre décisions du plan ont été tranchées : rôle facultatif sur
+les colonnes, « mes espaces » par défaut, contenus clients gardés dans le
+Planning mais filtrés par membre, relance au studio d'abord (lot 4).
+
+### Ajouté
+
+#### Un rôle pour les étapes d'un tableau
+Chaque colonne d'un espace peut dire quelle étape commune elle représente :
+idée, production, relecture, programmé, publié. Facultatif, et la colonne
+garde son nom. Les colonnes créées par défaut le reçoivent, et une migration
+le pose sur les colonnes existantes qui portent encore leur nom d'origine.
+
+#### Cinq états, comptés une seule fois
+`SpaceWorkload` calcule pour chaque espace : à paraître sous 7 jours, chez le
+client, relecture en retard, à reprendre, parution manquée, et la prochaine
+parution. Le tableau de bord, la liste des espaces, l'en-tête d'un espace, le
+courriel de relecture et le calendrier éditorial s'en servent tous. Le
+tableau de bord annonçait 13 contenus « en attente du client » là où l'espace
+en comptait 6 : il comptait les idées, les brouillons, les contenus publiés,
+les étapes internes et les espaces archivés.
+
+#### L'onglet Studio du tableau de bord
+Il répond à « qu'est-ce qui m'attend chez mes clients aujourd'hui » : des
+tuiles qui mènent au calendrier éditorial filtré, les contrats à signer, et une
+liste « À traiter » avec une ligne par espace qui attend quelque chose, la plus
+urgente en haut. Par défaut, les espaces dont on est membre ; un
+administrateur peut basculer sur tous. Un administrateur membre d'aucun espace
+les voit tous.
+
+#### Le calendrier éditorial
+Nouvelle page Studio, « Calendrier éditorial » : tous les espaces visibles sur
+un mois ou en liste, une couleur par espace, des filtres par client et par
+état. En lecture seule : un clic ouvre l'espace de la carte.
+
+#### La liste des espaces dit ce qui attend
+Une colonne « À traiter » (pastilles et prochaine parution), et un tri par
+urgence.
+
+### Modifié
+
+- **Le Planning ne montre les contenus d'un client qu'aux membres de son
+  espace**, dans la grille, le panneau du tableau de bord et la recherche ; il
+  les montrait à tous ses utilisateurs. Les rendez-vous des visiteurs ne sont
+  visibles que de ceux qui peuvent modifier les pages. Le point d'extension du
+  cœur gagne `ScheduledSourceAccessInterface`, que chaque module implémente
+  pour ses propres dates.
+- **Les dates d'un espace le suivent** : renommer ou recolorer un espace met à
+  jour ses événements, l'archiver les retire du calendrier, le supprimer aussi.
+- **Le tableau de bord masque un panneau dont le lecteur n'a pas le droit de
+  consultation**, pour tous les modules. Seul le Planning le faisait.
+- Le courriel de relecture et le bouton « Envoyer à relire » ne comptent plus
+  que ce que la page du client montre.
 
 ### Sécurité
 

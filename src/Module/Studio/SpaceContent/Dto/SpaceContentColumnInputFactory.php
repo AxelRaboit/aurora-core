@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\SpaceContent\Dto;
 
 use Aurora\Core\Support\Str;
+use Aurora\Module\Studio\SpaceContent\Enum\SpaceContentColumnRoleEnum;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
 use function is_numeric;
@@ -23,6 +24,9 @@ class SpaceContentColumnInputFactory implements SpaceContentColumnInputFactoryIn
             // colour" rather than "slot zero".
             colourSlot: is_numeric($slot) ? (int) $slot : null,
             visibleToClient: false !== ($data['visibleToClient'] ?? true),
+            // An unknown value is no role rather than an error: the field is
+            // optional, and a select cleared by hand sends an empty string.
+            role: SpaceContentColumnRoleEnum::tryFrom(Str::trimFromArray($data, 'role')),
         );
     }
 }

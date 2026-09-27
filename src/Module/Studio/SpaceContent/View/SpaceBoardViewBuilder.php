@@ -15,7 +15,7 @@ use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentAttachmentSerialize
 use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentColumnSerializerInterface;
 use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentCommentSerializerInterface;
 use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentItemSerializerInterface;
-use DateTimeImmutable;
+use Aurora\Module\Studio\SpaceContent\Workload\SpaceWorkload;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final readonly class SpaceBoardViewBuilder
@@ -32,6 +32,7 @@ final readonly class SpaceBoardViewBuilder
         private CustomerSpaceSerializerInterface $spaceSerializer,
         private PathTemplateGenerator $pathTemplates,
         private UrlGeneratorInterface $urlGenerator,
+        private SpaceWorkload $workload,
     ) {}
 
     /**
@@ -47,6 +48,8 @@ final readonly class SpaceBoardViewBuilder
      */
     public function contentView(CustomerSpaceInterface $space): array
     {
+        $workload = $this->workload->forSpace($space);
+
         return [
             'space' => $this->spaceSerializer->serialize($space),
             'columns' => $this->columns($space),
@@ -60,11 +63,13 @@ final readonly class SpaceBoardViewBuilder
             // le studio se trouve quand son lot est prêt, même si la route
             // appartient aux accès : ce qu'elle fait, c'est émettre des liens.
             'reviewPath' => $this->urlGenerator->generate('workspace_space_access_review', ['id' => $space->getId()]),
-            'awaitingApproval' => $this->itemRepository->countAwaitingApproval($space),
             // Combien, et depuis combien de temps c'est dû : « trois en
             // attente » et « trois en attente dont deux en retard » ne
-            // décrivent pas la même journée.
-            'lateForReview' => $this->itemRepository->countLateForReview($space, new DateTimeImmutable()),
+            // décrivent pas la même journée. Comptés comme partout ailleurs,
+            // par `SpaceWorkload` : ce que la page du client montre et
+            // attend, étapes internes exclues.
+            'awaitingApproval' => $workload->withClient,
+            'lateForReview' => $workload->lateReview,
             'itemCreatePath' => $this->urlGenerator->generate('workspace_space_content_item_create', ['id' => $space->getId()]),
             'itemUpdatePath' => $this->pathTemplates->generate('workspace_space_content_item_update', ['id' => $space->getId(), 'itemId' => '__id__']),
             'itemDeletePath' => $this->pathTemplates->generate('workspace_space_content_item_delete', ['id' => $space->getId(), 'itemId' => '__id__']),

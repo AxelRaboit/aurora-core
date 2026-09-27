@@ -6,6 +6,7 @@ namespace Aurora\Module\General\Dashboard\View;
 
 use Aurora\Core\Module\Service\ModuleAccessChecker;
 use Aurora\Module\General\Dashboard\Service\StatsService;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 /**
  * Builds the Twig payload for the backend dashboard.
@@ -46,9 +47,27 @@ final readonly class DashboardViewBuilder
         'studio' => 'modules_studio_backend',
     ];
 
+    /**
+     * Module id → the privilege that lets somebody look at what it counts.
+     *
+     * A module switched on is not a module everybody may read: the panel's
+     * figures describe screens the reader might not be allowed to open, and
+     * only Planning used to check. One entry per module of MODULE_TOGGLES.
+     *
+     * @var array<string, string>
+     */
+    private const array MODULE_PRIVILEGES = [
+        'editorial' => 'editorial.posts.view',
+        'ged' => 'ged.documents.view',
+        'platform' => 'platform.users.manage',
+        'planning' => 'planning.calendars.view',
+        'studio' => 'studio.spaces.view',
+    ];
+
     public function __construct(
         private StatsService $statsService,
         private ModuleAccessChecker $moduleAccessChecker,
+        private AuthorizationCheckerInterface $authorizationChecker,
     ) {}
 
     /**
@@ -58,7 +77,8 @@ final readonly class DashboardViewBuilder
     {
         $enabledModules = [];
         foreach (self::MODULE_TOGGLES as $moduleId => $toggle) {
-            $enabledModules[$moduleId] = $this->moduleAccessChecker->isEnabled($toggle);
+            $enabledModules[$moduleId] = $this->moduleAccessChecker->isEnabled($toggle)
+                && $this->authorizationChecker->isGranted(self::MODULE_PRIVILEGES[$moduleId]);
         }
 
         return [
