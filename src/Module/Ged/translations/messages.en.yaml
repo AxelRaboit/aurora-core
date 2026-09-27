@@ -176,6 +176,8 @@ backend:
       status_archived: Archived
       usage_title: Usage
       usage_none: This document is not used anywhere
+      select_mode: Select
+      stop_selecting: Stop selecting
       usage_unused_badge: Unused
       usage_unused_hint: No page, deck or space is drawing it
       kept_badge: Keep
