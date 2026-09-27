@@ -134,12 +134,12 @@ class NoteFolderManager implements NoteFolderManagerInterface
             $this->noteManager->forceDelete($note);
         }
 
-        foreach ($this->folderRepository->findTrashedWith($folderId) as $descendant) {
-            $this->auditDeleted($descendant);
+        $descendants = $this->folderRepository->findTrashedWith($folderId);
+        $this->auditDeletedMany([...$descendants, $folder]);
+
+        foreach ($descendants as $descendant) {
             $this->entityManager->remove($descendant);
         }
-
-        $this->auditDeleted($folder);
 
         $this->entityManager->remove($folder);
         $this->entityManager->flush();
@@ -161,8 +161,9 @@ class NoteFolderManager implements NoteFolderManagerInterface
             return 0;
         }
 
+        $this->auditDeletedMany($folders);
+
         foreach ($folders as $folder) {
-            $this->auditDeleted($folder);
             $this->entityManager->remove($folder);
         }
 
@@ -371,6 +372,21 @@ class NoteFolderManager implements NoteFolderManagerInterface
     protected function auditRestored(NoteFolderInterface $folder): void
     {
         $this->auditLogger->log('notes_markdown', 'folder.restored', 'NoteFolder', $folder->getId(), $this->auditPayload($folder));
+    }
+
+    /**
+     * The same lines as `auditDeleted()`, written together before any row
+     * goes: audited one by one inside the loop, each line's flush also
+     * executed the removal queued before it, one row at a time.
+     *
+     * @param list<NoteFolderInterface> $folders
+     */
+    protected function auditDeletedMany(array $folders): void
+    {
+        $this->auditLogger->logMany('notes_markdown', 'folder.deleted', 'NoteFolder', array_map(
+            fn (NoteFolderInterface $folder): array => ['id' => $folder->getId(), 'data' => $this->auditPayload($folder)],
+            $folders,
+        ));
     }
 
     protected function auditDeleted(NoteFolderInterface $folder): void

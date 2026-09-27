@@ -110,6 +110,8 @@ readonly class PlanningNotifier
                 ['view' => 'day', 'date' => $reminder->getDueAt()->format('Y-m-d')]
             ),
             ['reminderId' => $reminder->getId()],
+            // Flushed once for the whole run by sendDue().
+            flush: false,
         );
     }
 
@@ -269,6 +271,8 @@ readonly class PlanningNotifier
                 ['view' => 'day', 'date' => $event->getStartAt()->format('Y-m-d')]
             ),
             ['eventId' => $event->getId(), 'minutesBefore' => $alert->getMinutesBefore()],
+            // Flushed once for the whole run by sendDue().
+            flush: false,
         );
     }
 }

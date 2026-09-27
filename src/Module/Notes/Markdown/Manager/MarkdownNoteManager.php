@@ -141,8 +141,14 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
             return 0;
         }
 
+        // The audit lines together, before any row goes: inside the loop each
+        // line's flush also ran the removal queued before it.
+        $this->auditLogger->logMany('notes_markdown', 'note.deleted', 'MarkdownNote', array_map(
+            fn (MarkdownNoteInterface $note): array => ['id' => $note->getId(), 'data' => $this->auditPayload($note)],
+            $notes,
+        ));
+
         foreach ($notes as $note) {
-            $this->auditDeleted($note);
             $this->cleanupOrphanedImages($note->getUser(), $note->getContent(), null);
             $this->entityManager->remove($note);
         }

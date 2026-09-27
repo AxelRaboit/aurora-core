@@ -32,6 +32,40 @@ class DocumentVersionRepository extends ResolveTargetEntityRepository
     }
 
     /**
+     * The file paths of every version of these documents, in one query.
+     *
+     * Scalars, not entities: the caller is about to remove the documents,
+     * and version rows loaded into the unit of work beside them would still
+     * point at a document leaving it.
+     *
+     * @param list<DocumentInterface> $documents
+     *
+     * @return array<int, list<string>> keyed by document id
+     */
+    public function findFilePathsByDocument(array $documents): array
+    {
+        if ([] === $documents) {
+            return [];
+        }
+
+        $rows = $this->createQueryBuilder('v')
+            ->select('IDENTITY(v.document) AS documentId', 'v.filePath AS filePath')
+            ->andWhere('v.document IN (:documents)')
+            ->setParameter('documents', $documents)
+            ->getQuery()
+            ->getArrayResult();
+
+        $paths = [];
+        foreach ($rows as $row) {
+            if (is_string($row['filePath']) && '' !== $row['filePath']) {
+                $paths[(int) $row['documentId']][] = $row['filePath'];
+            }
+        }
+
+        return $paths;
+    }
+
+    /**
      * Versions beyond the most recent $limit (oldest first to delete), so the
      * caller can drop their rows and physical files. Empty when limit <= 0.
      *

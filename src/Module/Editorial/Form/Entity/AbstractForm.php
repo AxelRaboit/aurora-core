@@ -64,8 +64,15 @@ abstract class AbstractForm implements FormInterface
     #[ORM\OrderBy(['position' => Order::Ascending->value])]
     protected Collection $fields;
 
-    /** @var Collection<int, FormSubmissionInterface> */
-    #[ORM\OneToMany(targetEntity: FormSubmissionInterface::class, mappedBy: 'form', cascade: ['remove'])]
+    /**
+     * The answers, which go with the form through the database's cascade.
+     *
+     * Not a Doctrine cascade: that one loaded every answer the form ever
+     * received, to delete them a row at a time.
+     *
+     * @var Collection<int, FormSubmissionInterface>
+     */
+    #[ORM\OneToMany(targetEntity: FormSubmissionInterface::class, mappedBy: 'form')]
     protected Collection $submissions;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]

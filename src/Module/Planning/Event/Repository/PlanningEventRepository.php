@@ -7,6 +7,7 @@ namespace Aurora\Module\Planning\Event\Repository;
 use Aurora\Core\Repository\ResolveTargetEntityRepository;
 use Aurora\Module\Planning\Event\Entity\PlanningEvent;
 use Aurora\Module\Planning\Event\Entity\PlanningEventInterface;
+use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
 use DateTimeImmutable;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -135,6 +136,16 @@ class PlanningEventRepository extends ResolveTargetEntityRepository
             ->getResult();
 
         return $result;
+    }
+
+    public function countForPlanning(PlanningInterface $planning): int
+    {
+        return (int) $this->createQueryBuilder('e')
+            ->select('COUNT(e.id)')
+            ->where('e.planning = :planning')
+            ->setParameter('planning', $planning)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     public function findBySource(string $sourceType, int $sourceId): ?PlanningEventInterface

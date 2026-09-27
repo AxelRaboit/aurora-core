@@ -433,10 +433,9 @@ final class DocumentManagerTest extends TestCase
         $current = $this->writeSourceImage('ged/2026/05/draft-v2.png', 10, 10);
         $document = $this->makeImageDocument('ged/2026/05/draft-v2.png');
 
-        $this->versionRepository->method('findByDocument')->willReturn([
-            $this->makeVersion('ged/2026/05/draft-v2.png'),
-            $this->makeVersion('ged/2026/04/draft-v1.png'),
-        ]);
+        $this->versionRepository->method('findFilePathsByDocument')->willReturnCallback(
+            static fn (array $documents): array => [(int) $documents[0]->getId() => ['ged/2026/05/draft-v2.png', 'ged/2026/04/draft-v1.png']],
+        );
 
         $this->manager->forceDelete($document);
 

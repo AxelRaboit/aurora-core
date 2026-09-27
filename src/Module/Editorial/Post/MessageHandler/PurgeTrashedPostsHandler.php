@@ -7,6 +7,7 @@ namespace Aurora\Module\Editorial\Post\MessageHandler;
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
+use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Message\PurgeTrashedPostsMessage;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
 use DateTimeImmutable;
@@ -45,12 +46,17 @@ final readonly class PurgeTrashedPostsHandler
             return;
         }
 
-        foreach ($purgeable as $post) {
-            // Logged before removal: afterwards there is no id to record.
-            $this->auditLogger->log('editorial', 'post.purged', 'Post', $post->getId(), [
+        // Logged before removal, since afterwards there is no id to record,
+        // and all together: one line's flush inside the loop also executed the
+        // removal queued before it, a row at a time.
+        $this->auditLogger->logMany('editorial', 'post.purged', 'Post', array_map(
+            static fn (PostInterface $post): array => ['id' => $post->getId(), 'data' => [
                 'trashedAt' => $post->getDeletedAt()?->format(DATE_ATOM),
-            ]);
+            ]],
+            $purgeable,
+        ));
 
+        foreach ($purgeable as $post) {
             $this->entityManager->remove($post);
         }
 

@@ -24,6 +24,9 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ### Corrigé
 
+- Mettre à la corbeille ou restaurer une sélection de documents écrivait une
+  ligne d'audit pour chaque document sélectionné, y compris ceux qui étaient
+  déjà dans cet état.
 - Un rappel « journée entière » du jour apparaît dans « À venir » : il n'était
   ni en retard ni à venir, donc nulle part.
 - Un lien vers une fiche ou un état sans vue ouvre le contenu de l'espace, et
@@ -90,6 +93,27 @@ Deuxième lot, les chemins publics lourds :
 - **Page client de Studio** : le tableau est lu une fois par chargement, au
   lieu de quatre.
 
+Troisième lot, les écritures en masse :
+
+- **Journal d'audit par lots.** Une opération sur beaucoup de lignes (vider
+  une corbeille, déplacer ou restaurer des documents, les purges planifiées
+  d'articles, de notes, de dossiers, de catégories et de réponses de
+  formulaire, la publication programmée) écrivait chaque ligne d'audit avec
+  son propre numéro et son propre enregistrement, et chaque enregistrement
+  recalculait tout ce qui était déjà chargé : un coût qui croissait au carré.
+  Les lignes restent une par élément, mais leurs numéros sont réservés d'un
+  coup et elles partent ensemble (4 réservations pour 4 documents, 1
+  désormais).
+- **Vider la corbeille de la médiathèque** lit les versions de tous les
+  documents en une requête, au lieu d'une par document.
+- **Supprimer un calendrier** ne charge plus ses événements, invités, alertes
+  et rappels pour les effacer un par un : la base les efface d'elle-même. Son
+  enregistrement ne charge plus non plus tous ses événements pour les compter.
+- **Supprimer un formulaire** ne charge plus toutes ses réponses.
+- **Notifications en série** : les alertes et rappels du Planning, et les
+  annonces d'un espace Studio à son équipe, sont enregistrés en une fois.
+- La corbeille générale lit le dossier parent avec chaque dossier.
+
 Au passage, **le chiffrement des colonnes est branché dès le démarrage** et
 plus seulement à la première requête : un traitement qui lisait une note
 chiffrée avant toute requête HTTP ou commande échouait sur un ordre de
@@ -105,6 +129,9 @@ De même, `SharedNoteScope::noteInScope()` et `titleIndex()` prennent désormais
 la portée déjà calculée (`notesFor()`) plutôt que le lien, et une classe qui
 implémenterait `SpaceContentItemManagerInterface` sans étendre le gestionnaire
 aurait à écrire `approveMany()`. Le projet client ne fait ni l'un ni l'autre.
+`NotificationManagerInterface::notify()` prend un dernier paramètre facultatif
+`bool $flush = true` : une implémentation écrite à part devrait l'ajouter à sa
+signature. Le projet client n'en a pas.
 
 ## [0.9.270] - 2026-09-27
 
