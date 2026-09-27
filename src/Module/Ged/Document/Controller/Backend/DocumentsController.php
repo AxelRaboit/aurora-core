@@ -81,9 +81,29 @@ final class DocumentsController extends AbstractController
     ) {}
 
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
-    public function index(PaginationRequest $pagination): Response
+    public function index(Request $request, PaginationRequest $pagination): Response
     {
-        return $this->render('@Ged/backend/documents/index.html.twig', $this->viewBuilder->indexView($pagination));
+        [$sort, $direction] = $this->sortOf($request);
+
+        // Families are folded unless the address says otherwise (`familles=0`),
+        // the way the screen reads it.
+        return $this->render('@Ged/backend/documents/index.html.twig', $this->viewBuilder->indexView(
+            $pagination,
+            originalsOnly: '0' !== $request->query->getString('familles'),
+            sort: $sort,
+            direction: $direction,
+        ));
+    }
+
+    /** @return array{string, string} */
+    private function sortOf(Request $request): array
+    {
+        $sort = $request->query->getString('sort', 'date');
+
+        return [
+            in_array($sort, DocumentRepository::SORTS, true) ? $sort : 'date',
+            'asc' === ($request->query->getString('direction') ?: $request->query->getString('dir')) ? 'asc' : 'desc',
+        ];
     }
 
     #[Route('/list', name: '_list', methods: [HttpMethodEnum::Get->value])]
@@ -113,7 +133,11 @@ final class DocumentsController extends AbstractController
         // visual once and for the picker that chooses an original.
         $originalsOnly = $request->query->getBoolean('originalsOnly');
 
-        return $this->json($this->viewBuilder->buildListPayload($pagination, $categoryId, $tagId, $folderId, $status, $mimeGroup, $rootOnly, $storageDisk, $trashed, $originalsOnly));
+        // Sorted by the server, on the whole listing: sorting the page in the
+        // browser only ever reordered twenty rows out of three hundred.
+        [$sort, $direction] = $this->sortOf($request);
+
+        return $this->json($this->viewBuilder->buildListPayload($pagination, $categoryId, $tagId, $folderId, $status, $mimeGroup, $rootOnly, $storageDisk, $trashed, $originalsOnly, sort: $sort, direction: $direction));
     }
 
     /**
@@ -149,6 +173,8 @@ final class DocumentsController extends AbstractController
             'listPath' => $this->urlGenerator->generate('backend_ged_documents'),
             'storagePath' => $this->urlGenerator->generate('backend_ged_documents_storage', ['id' => $document->getId()]),
             'storageRelocationAvailable' => $this->storageSettings->isRelocationAvailable(),
+            'alternatesPath' => $this->urlGenerator->generate('backend_ged_documents_alternates', ['id' => '__id__']),
+            'showPath' => $this->urlGenerator->generate('backend_ged_documents_show', ['id' => '__id__']),
         ]);
     }
 
@@ -168,6 +194,9 @@ final class DocumentsController extends AbstractController
     public function alternates(Document $document): JsonResponse
     {
         return $this->jsonSuccess([
+            // The original too, so a screen showing a family from any of its
+            // members draws it whole with one request.
+            'original' => $this->serializer->serialize($document),
             'alternates' => array_map($this->serializer->serialize(...), $this->documentRepository->findAlternatesOf($document)),
         ]);
     }
@@ -208,10 +237,28 @@ final class DocumentsController extends AbstractController
         return $this->jsonSuccess(['document' => $this->serializer->serialize($document)]);
     }
 
+    private function withAlternates(Request $request): bool
+    {
+        if ('' === $request->getContent()) {
+            return false;
+        }
+
+        return true === ($this->decodeJson($request)['withAlternates'] ?? false);
+    }
+
     #[Route('/{id}/delete', name: '_delete', methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('ged.documents.delete')]
-    public function delete(Document $document): JsonResponse
+    public function delete(Document $document, Request $request): JsonResponse
     {
+        // "With its alternates": an original thrown away alone leaves its
+        // copies behind as orphans of a trashed visual. Asked on the screen,
+        // answered here in one go.
+        if ($this->withAlternates($request)) {
+            $this->manager->bulkDelete([(int) $document->getId(), ...$this->documentRepository->findAlternateIdsOf([(int) $document->getId()])]);
+
+            return $this->jsonSuccess();
+        }
+
         $this->manager->delete($document);
 
         return $this->jsonSuccess();
@@ -286,6 +333,10 @@ final class DocumentsController extends AbstractController
     {
         $payload = $this->decodeJson($request);
         $ids = array_values(array_filter(array_map(intval(...), (array) ($payload['ids'] ?? []))));
+        if (true === ($payload['withAlternates'] ?? false)) {
+            $ids = array_values(array_unique([...$ids, ...$this->documentRepository->findAlternateIdsOf($ids)]));
+        }
+
         $count = $this->manager->bulkDelete($ids);
 
         return $this->jsonSuccess(['deleted' => $count]);
@@ -299,7 +350,13 @@ final class DocumentsController extends AbstractController
         $folderId = isset($data['folderId']) && (int) $data['folderId'] > 0 ? (int) $data['folderId'] : null;
         $folder = null !== $folderId ? $this->folderRepository->find($folderId) : null;
 
-        $this->manager->move($document, $folder);
+        // A family moves together when asked: a variant filed away from its
+        // original is a variant nobody finds.
+        if (true === ($data['withAlternates'] ?? false)) {
+            $this->manager->bulkMove([(int) $document->getId(), ...$this->documentRepository->findAlternateIdsOf([(int) $document->getId()])], $folder);
+        } else {
+            $this->manager->move($document, $folder);
+        }
 
         return $this->jsonSuccess(['document' => $this->serializer->serialize($document)]);
     }
@@ -310,6 +367,10 @@ final class DocumentsController extends AbstractController
     {
         $data = $this->decodeJson($request);
         $ids = array_values(array_filter(array_map(intval(...), (array) ($data['ids'] ?? []))));
+        if (true === ($data['withAlternates'] ?? false)) {
+            $ids = array_values(array_unique([...$ids, ...$this->documentRepository->findAlternateIdsOf($ids)]));
+        }
+
         $folderId = isset($data['folderId']) && (int) $data['folderId'] > 0 ? (int) $data['folderId'] : null;
         $folder = null !== $folderId ? $this->folderRepository->find($folderId) : null;
 

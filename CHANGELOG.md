@@ -5,6 +5,53 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.274] - 2026-09-27
+
+### Ajouté
+
+#### Le thème règle aussi le texte, les traits, les cartes, les titres, les coches, les chiffres et les pictogrammes
+L'écran Thème ne réglait que les fonds de page, d'entête et de pied. Il règle
+désormais, dans la section des couleurs du site public : le texte (les gris
+plus discrets en sont déduits dans la même teinte), les traits et bordures, le
+contour des cartes, le fond des cartes, les titres du contenu, la couleur de
+validation des coches, les chiffres clés (statistiques, prix des offres) et la
+couleur des pictogrammes SVG des cartes (d'origine, couleur principale ou
+personnalisée : le fichier sert de forme, un seul SVG vaut pour tous les
+thèmes). Chaque réglage vide garde le rendu d'avant.
+
+#### Les fonds de cartes suivent le fond du thème
+Cartes, panneaux et bordures étaient figés en gris ardoise sur un fond sombre,
+quel que soit ce fond. Ils en sont désormais déduits, dans sa teinte, un cran
+plus clair à chaque niveau. Sur l'ancien fond bleu nuit, le calcul redonne
+l'ardoise d'avant.
+
+#### Les familles de la médiathèque
+La liste montre chaque visuel une fois, avec ses variantes : regroupée par
+défaut (`familles=0` dans l'adresse pour la vue à plat), une pile et une puce
+par variante sur la carte (pastille si l'étiquette nomme une couleur, texte
+sinon), badges qui ouvrent la famille, bandeau « Famille » dans l'aperçu et sur
+la page d'un document avec « Ajouter une variante ». Le tri se fait sur le
+serveur et garde chaque famille d'un seul tenant ; une variante qui répond à
+une recherche ramène son original. Le sélecteur d'image des pages est regroupé
+et choisit une variante d'un clic. Supprimer, déplacer et glisser un original
+emmènent ses variantes (proposé, oui par défaut).
+
+#### Retirer la couleur posée à la main sur des titres
+`aurora:editorial:headings:clear-colour [--colour=...] [--dry-run]` retire la
+couleur d'un titre coloré d'un bout à l'autre, pour que le réglage « Titres du
+contenu » s'applique. Un mot coloré dans une phrase n'est pas touché.
+
+### Corrigé
+
+#### Un original dont les variantes sont à la corbeille
+L'écran le prenait pour un document seul et proposait « Variante de », que le
+serveur refusait ensuite.
+
+### Modifié
+
+- Les coches des cartes d'offre suivent la couleur de validation (verte par
+  défaut) et non plus la couleur principale.
+
 ## [0.9.273] - 2026-09-27
 
 ### Ajouté

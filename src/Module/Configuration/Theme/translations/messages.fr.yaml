@@ -29,6 +29,26 @@ backend:
     surface_dark_text: texte sombre
     surface_ratio: "contraste %ratio%:1"
     surface_below_aaa: lisible, mais en dessous du confort AAA
+    ink_text: Texte du site public
+    ink_line: Traits et bordures
+    ink_card_line: Contour des cartes
+    ink_card_unset: "Non définie, suit les traits"
+    ink_card: 'Fond des cartes'
+    ink_card_bg_unset: 'Non défini, déduit du fond'
+    ink_heading: 'Titres du contenu'
+    ink_heading_unset: 'Non définie, couleur du texte'
+    ink_success: 'Validation (coches)'
+    ink_success_unset: 'Non définie, vert par défaut'
+    ink_figure: 'Chiffres clés (statistiques, prix)'
+    ink_figure_unset: 'Non définie, couleur principale'
+    icon: 'Pictogrammes des cartes'
+    icon_original: 'Couleur d''origine du fichier'
+    icon_accent: 'Couleur principale'
+    icon_custom: 'Couleur personnalisée'
+    icon_color: 'Couleur des pictogrammes'
+    icon_hint: 'Pour les pictogrammes SVG des cartes : seule leur forme compte, un même fichier sert à tous les thèmes.'
+    ink_set: "Remplace la couleur déduite, là où elle reste lisible"
+    ink_unset: "Non définie, déduite du fond"
     sections:
       general: Général
       header: En-tête

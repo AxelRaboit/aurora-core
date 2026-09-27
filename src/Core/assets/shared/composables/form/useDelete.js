@@ -28,8 +28,14 @@ export function useDelete(deletePath, onSuccess, successMessageKey) {
         pendingDelete.value = item;
     }
 
-    async function submit() {
+    /**
+     * @param {object|null} [body] sent with the request when the deletion
+     *                             carries a choice (e.g. `withAlternates`);
+     *                             a click event passed by a template is ignored.
+     */
+    async function submit(body = null) {
         if (loading.value || !pendingDelete.value) return;
+        const payload = body && !(body instanceof Event) ? body : null;
         loading.value = true;
         try {
             const url = buildPath(resolve(deletePath), {
@@ -38,7 +44,7 @@ export function useDelete(deletePath, onSuccess, successMessageKey) {
             // `noGuard` because this composable keeps its own `loading` and has
             // already returned above when one delete is in flight; the shared
             // guard would be a second one over the same state.
-            const data = await request(url, null, { noGuard: true });
+            const data = await request(url, payload, { noGuard: true });
 
             // Null is transport or 5xx, and `request` has already toasted it.
             if (data === null) return;

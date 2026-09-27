@@ -53,6 +53,16 @@ final class PrimaryColorPalette
         return $palette;
     }
 
+    /**
+     * A hex colour in OKLCH: lightness 0..1, chroma, hue in degrees.
+     *
+     * @return array{float, float, float}
+     */
+    public function toOklch(string $hex): array
+    {
+        return $this->rgbToOklch(...$this->hexToRgb($hex));
+    }
+
     /** @return array{int, int, int} */
     private function hexToRgb(string $hex): array
     {

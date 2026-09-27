@@ -265,9 +265,12 @@ export function useFolderPanelActions({ folders, allFlatFolders, onChanged }) {
     }
 
     async function moveDocumentInto(documentId, folderId) {
+        // A dragged original takes its alternates with it: a family filed in
+        // two folders is one nobody finds whole.
         const data = await moveRequest(DOCUMENT_BULK_MOVE, {
             ids: [Number(documentId)],
             folderId,
+            withAlternates: true,
         });
         if (!data?.success) return;
 

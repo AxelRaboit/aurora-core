@@ -2,7 +2,7 @@
    repository is named only when the zone follows more than one. #}
 <ol class="not-prose m-0 list-none space-y-3 p-0">
     {% for release in zone.githubActivity.releases %}
-        <li class="rounded-xl border border-line bg-surface p-4">
+        <li class="rounded-xl border border-card-line bg-surface p-4">
             <div class="flex flex-wrap items-baseline justify-between gap-2">
                 <a href="{{ release.url }}" rel="noopener" class="text-sm font-semibold text-primary no-underline hover:text-highlight">
                     {% if zone.githubActivity.multiple %}<span class="text-muted">{{ release.repo }}</span> · {% endif %}{{ release.name }}

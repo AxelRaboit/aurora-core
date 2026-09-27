@@ -14,14 +14,17 @@ use Aurora\Module\Ged\Enum\DocumentStatusEnum;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Tests\Integration\IntegrationTestCase;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 
 use function array_column;
 use function array_filter;
+use function array_keys;
 use function array_reverse;
 use function array_values;
 use function bin2hex;
+use function in_array;
 use function json_decode;
 use function json_encode;
 use function random_bytes;
@@ -103,6 +106,71 @@ final class DocumentFamiliesTest extends IntegrationTestCase
         self::assertArrayHasKey((int) $green->getId(), $folded);
         self::assertArrayNotHasKey((int) $yellow->getId(), $folded, 'folded, a family shows its original alone');
         self::assertArrayNotHasKey((int) $red->getId(), $folded);
+    }
+
+    /**
+     * Imported a week after their original, three alternates used to open the
+     * listing on their own, pages away from it. Sorted on the family's date,
+     * they follow it.
+     */
+    public function testAFlatListingKeepsEachFamilyInOnePiece(): void
+    {
+        $green = $this->givenDocument('Entête large', createdAt: '-3 days');
+        $loner = $this->givenDocument('Sans famille', createdAt: '-2 days');
+        $blue = $this->givenDocument('Entête large bleue', $green, 'bleu', createdAt: '-1 hour');
+        $yellow = $this->givenDocument('Entête large jaune', $green, 'jaune', createdAt: '-1 hour');
+
+        $order = array_values(array_filter(
+            array_keys($this->listing(originalsOnly: false)),
+            fn (int $id): bool => in_array($id, [$green->getId(), $loner->getId(), $blue->getId(), $yellow->getId()], true),
+        ));
+
+        self::assertSame([$loner->getId(), $green->getId(), $blue->getId(), $yellow->getId()], $order);
+    }
+
+    public function testAFoldedSearchFindsAFamilyThroughItsAlternate(): void
+    {
+        $green = $this->givenDocument('Carte photographie');
+        $this->givenDocument('Carte photographie variante', $green, 'bleu-arc');
+
+        $rows = $this->listing(originalsOnly: true, search: 'bleu-arc');
+
+        self::assertArrayHasKey((int) $green->getId(), $rows, 'an alternate that answers a search brings its original');
+    }
+
+    public function testAnOriginalCarriesItsMembersAndIsLockedByATrashedOne(): void
+    {
+        $green = $this->givenDocument('Pictogramme');
+        $violet = $this->givenDocument('Pictogramme violet', $green, 'violet');
+        $lonely = $this->givenDocument('Pictogramme seul');
+        $withTrash = $this->givenDocument('Pictogramme corbeille');
+        $trashed = $this->givenDocument('Pictogramme corbeille rouge', $withTrash, 'rouge');
+        static::getContainer()->get(DocumentManagerInterface::class)->delete($trashed);
+
+        $rows = $this->listing(originalsOnly: true);
+
+        self::assertSame([$violet->getId()], array_column($rows[(int) $green->getId()]['alternates'], 'id'));
+        self::assertSame('violet', $rows[(int) $green->getId()]['alternates'][0]['label']);
+        self::assertFalse($rows[(int) $lonely->getId()]['familyLocked']);
+        self::assertSame(0, $rows[(int) $withTrash->getId()]['alternateCount']);
+        self::assertTrue($rows[(int) $withTrash->getId()]['familyLocked'], 'a trashed alternate still makes it an original');
+    }
+
+    public function testAnOriginalMovesAndIsTrashedWithItsAlternatesWhenAsked(): void
+    {
+        $green = $this->givenDocument('Bannière');
+        $red = $this->givenDocument('Bannière rouge', $green, 'rouge');
+
+        $this->client->request(
+            'POST',
+            sprintf('/backend/ged/documents/%d/delete', $green->getId()),
+            server: ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'],
+            content: json_encode(['withAlternates' => true]) ?: '{}',
+        );
+        self::assertResponseIsSuccessful();
+
+        $this->entityManager->clear();
+        self::assertNotNull($this->entityManager->find(Document::class, $red->getId())?->getDeletedAt(), 'the alternate went with it');
     }
 
     public function testTheAlternatesEndpointListsThemByLabel(): void
@@ -270,10 +338,10 @@ final class DocumentFamiliesTest extends IntegrationTestCase
     }
 
     /** @return array<int, array<string, mixed>> */
-    private function listing(bool $originalsOnly): array
+    private function listing(bool $originalsOnly, ?string $search = null): array
     {
         $payload = static::getContainer()->get(DocumentsViewBuilder::class)->buildListPayload(
-            new PaginationRequest(page: 1, limit: 200, search: null),
+            new PaginationRequest(page: 1, limit: 200, search: $search),
             originalsOnly: $originalsOnly,
         );
 
@@ -285,7 +353,7 @@ final class DocumentFamiliesTest extends IntegrationTestCase
         return $rows;
     }
 
-    private function givenDocument(string $title, ?DocumentInterface $original = null, ?string $label = null): DocumentInterface
+    private function givenDocument(string $title, ?DocumentInterface $original = null, ?string $label = null, ?string $createdAt = null): DocumentInterface
     {
         $document = new Document();
         $document
@@ -298,6 +366,16 @@ final class DocumentFamiliesTest extends IntegrationTestCase
 
         $this->entityManager->persist($document);
         $this->entityManager->flush();
+
+        // The creation date is stamped on persist; a test about order sets
+        // it afterwards, the way an import a week later would have.
+        if (null !== $createdAt) {
+            $this->entityManager->createQuery(sprintf('UPDATE %s d SET d.createdAt = :at WHERE d.id = :id', Document::class))
+                ->setParameter('at', new DateTimeImmutable($createdAt))
+                ->setParameter('id', $document->getId())
+                ->execute();
+            $this->entityManager->refresh($document);
+        }
 
         $this->created[] = $document;
 

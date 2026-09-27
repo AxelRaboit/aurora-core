@@ -134,6 +134,11 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
     const highlightColor = ref(DEFAULT_PRIMARY_COLOR);
     const menuActive = ref("accent");
     const menuActiveColor = ref(DEFAULT_PRIMARY_COLOR);
+    // Pictogrammes des cartes : `original` garde chaque SVG dans sa couleur
+    // (rien n'est stocke), `accent` suit la couleur principale, `custom` prend
+    // iconColor. Stocke en une seule cle, `icon_color` = "accent" ou un hex.
+    const iconMode = ref("original");
+    const iconColor = ref(DEFAULT_PRIMARY_COLOR);
     const fontFamily = ref(DEFAULT_FONT_FAMILY);
     const primaryColor = ref(DEFAULT_PRIMARY_COLOR);
 
@@ -141,7 +146,21 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
     // point : une surface sans couleur n'emet aucune regle CSS, donc garde
     // l'apparence historique. Cote serveur, SurfaceContrast deduit de chacune
     // le jeu de texte et de bordures qui la rend lisible.
-    const SURFACE_KEYS = ["background_color", "header_color", "footer_color"];
+    // text_color et line_color ne sont pas des surfaces mais s'y appliquent :
+    // la couleur du texte et des traits, posee par-dessus ce que chaque
+    // surface en deduit. Meme stockage, meme vide par defaut.
+    const SURFACE_KEYS = [
+        "background_color",
+        "header_color",
+        "footer_color",
+        "text_color",
+        "line_color",
+        "card_line_color",
+        "card_color",
+        "heading_color",
+        "success_color",
+        "figure_color",
+    ];
     const surfaceColors = reactive(
         Object.fromEntries(SURFACE_KEYS.map((k) => [k, ""])),
     );
@@ -166,6 +185,8 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
             result["menu_active"] = menuActive.value;
         if (menuActive.value === "custom")
             result["menu_active_color"] = menuActiveColor.value;
+        if (iconMode.value === "accent") result["icon_color"] = "accent";
+        if (iconMode.value === "custom") result["icon_color"] = iconColor.value;
         if (fontFamily.value !== DEFAULT_FONT_FAMILY)
             result["font_family"] = fontFamily.value;
         if (headerMode.value === "image" && headerLogoMediaId.value.trim()) {
@@ -223,6 +244,15 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
         for (const key of SURFACE_KEYS) {
             surfaceColors[key] = theme.config?.[key] ?? "";
         }
+        const storedIcon = theme.config?.["icon_color"] ?? "";
+        iconMode.value =
+            storedIcon === "accent"
+                ? "accent"
+                : /^#[0-9a-fA-F]{6}$/.test(storedIcon)
+                  ? "custom"
+                  : "original";
+        iconColor.value =
+            iconMode.value === "custom" ? storedIcon : primaryColor.value;
         editModal.open = true;
     }
 
@@ -276,6 +306,8 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
         primaryColor,
         surfaceColors,
         SURFACE_KEYS,
+        iconMode,
+        iconColor,
         openEdit,
         resetPrimaryColor,
         submitEdit,

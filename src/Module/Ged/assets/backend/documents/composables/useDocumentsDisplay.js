@@ -8,8 +8,10 @@ import { useListSort } from "@/shared/composables/list/useListSort.js";
  *   - sort by name | size | date (persisted, asc/desc toggle on re-click)
  *
  * Pass the raw items list reactively; consumers get a `displayedItems`
- * computed they iterate directly. Sorting is purely client-side - the
- * pagination already came from the server.
+ * computed they iterate directly. The sort itself is the server's: sorting
+ * here only ever reordered the twenty rows of the page on screen, and it
+ * pulled a family apart that the server keeps together. `sortParams()`
+ * hands the choice to the listing request.
  */
 export const DOCUMENT_SORT_FIELDS = [
     { key: "date", labelKey: "shared.common.dates" },
@@ -30,21 +32,11 @@ export function useDocumentsDisplay(items) {
         dirParam: "dir",
     });
 
-    const displayedItems = computed(() => {
-        const dir = sortDir.value === "asc" ? 1 : -1;
-        const list = [...items.value];
-        list.sort((a, b) => {
-            if (sortBy.value === "name") {
-                return dir * (a.title ?? "").localeCompare(b.title ?? "");
-            }
-            if (sortBy.value === "size") {
-                return dir * ((a.fileSize ?? 0) - (b.fileSize ?? 0));
-            }
-            return (
-                dir * (new Date(a.createdAt ?? 0) - new Date(b.createdAt ?? 0))
-            );
-        });
-        return list;
+    const displayedItems = computed(() => items.value);
+
+    const sortParams = () => ({
+        sort: sortBy.value,
+        direction: sortDir.value,
     });
 
     return {
@@ -56,6 +48,7 @@ export function useDocumentsDisplay(items) {
         sortBy,
         sortDir,
         setSort,
+        sortParams,
         displayedItems,
     };
 }

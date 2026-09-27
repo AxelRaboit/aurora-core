@@ -39,7 +39,7 @@ final readonly class DocumentsViewBuilder
         private DocumentUsageService $usageService,
     ) {}
 
-    public function indexView(PaginationRequest $pagination): array
+    public function indexView(PaginationRequest $pagination, bool $originalsOnly = true, string $sort = 'date', string $direction = 'desc'): array
     {
         $categories = array_map(
             $this->categorySerializer->serialize(...),
@@ -55,7 +55,9 @@ final readonly class DocumentsViewBuilder
 
         return [
             // The folders already counted above, rather than counted again.
-            'documents' => $this->buildListPayload($pagination, folders: $folders),
+            // Painted with the same families and order the screen will ask for
+            // on its first reload, or the page would jump once loaded.
+            'documents' => $this->buildListPayload($pagination, originalsOnly: $originalsOnly, folders: $folders, sort: $sort, direction: $direction),
             'categories' => $categories,
             'tags' => $tags,
             'folders' => $folders,
@@ -65,6 +67,7 @@ final readonly class DocumentsViewBuilder
             'versionsPath' => $this->urlGenerator->generate('backend_ged_documents_versions', ['id' => '__id__']),
             'usagePath' => $this->urlGenerator->generate('backend_ged_documents_usage', ['id' => '__id__']),
             'alternatesPath' => $this->urlGenerator->generate('backend_ged_documents_alternates', ['id' => '__id__']),
+            'alternateLabels' => $this->documentRepository->findAlternateLabels(),
             'updatePath' => $this->urlGenerator->generate('backend_ged_documents_update', ['id' => '__id__']),
             'deletePath' => $this->urlGenerator->generate('backend_ged_documents_delete', ['id' => '__id__']),
             'cropPath' => $this->urlGenerator->generate('backend_ged_documents_crop', ['id' => '__id__']),
@@ -117,6 +120,8 @@ final readonly class DocumentsViewBuilder
         bool $trashed = false,
         bool $originalsOnly = false,
         ?array $folders = null,
+        string $sort = 'date',
+        string $direction = 'desc',
     ): array {
         $result = $this->documentRepository->findPaginated(
             $pagination->page,
@@ -130,6 +135,8 @@ final readonly class DocumentsViewBuilder
             storageDisk: $storageDisk,
             trashed: $trashed,
             originalsOnly: $originalsOnly,
+            sort: $sort,
+            direction: $direction,
         );
 
         return [
@@ -178,17 +185,45 @@ final readonly class DocumentsViewBuilder
             return $items;
         }
 
-        $counts = $this->usageService->countUsagesFor($ids);
-        // Same page, one more question: which rows are originals, and of how
-        // many alternates. The badge says so before the row is opened.
-        $alternates = $this->documentRepository->countAlternatesFor($ids);
+        // Same page, one more question: which rows are originals, and with
+        // which alternates. The card shows one chip per member before the row
+        // is opened, and a chip can say whether that member is used.
+        $family = $this->documentRepository->findAlternatesForOriginals($ids);
+        $alternateIds = [];
+        foreach ($family as $members) {
+            foreach ($members as $member) {
+                $alternateIds[] = (int) $member->getId();
+            }
+        }
+
+        $counts = $this->usageService->countUsagesFor([...$ids, ...$alternateIds]);
+        // Trashed alternates count here: the family rule refuses to make an
+        // original of them an alternate, so the screen must not offer it.
+        $withTrashed = $this->documentRepository->countAlternatesFor($ids, includeTrashed: true);
 
         return array_map(
-            static fn (array $item): array => [
-                ...$item,
-                'usageCount' => $counts[$item['id'] ?? null] ?? 0,
-                'alternateCount' => $alternates[$item['id'] ?? null] ?? 0,
-            ],
+            function (array $item) use ($counts, $family, $withTrashed): array {
+                $id = $item['id'] ?? null;
+                // Whole documents, not summaries: a picker that chooses the
+                // yellow copy from its original's card hands it to the page
+                // editor, which needs its address and size like any pick.
+                $members = array_map(
+                    fn ($member): array => [
+                        ...$this->documentSerializer->serialize($member),
+                        'label' => $member->getAlternateLabel(),
+                        'usageCount' => $counts[$member->getId()] ?? 0,
+                    ],
+                    $family[$id] ?? [],
+                );
+
+                return [
+                    ...$item,
+                    'usageCount' => $counts[$id] ?? 0,
+                    'alternateCount' => count($members),
+                    'alternates' => $members,
+                    'familyLocked' => ($withTrashed[$id] ?? 0) > 0,
+                ];
+            },
             $items,
         );
     }

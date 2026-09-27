@@ -147,7 +147,7 @@
                             </span>
                         </span>
                     {% else %}
-                        <span class="block overflow-hidden rounded-xl border border-line bg-surface shadow-lg">
+                        <span class="block overflow-hidden rounded-xl border border-card-line bg-surface shadow-lg">
                             <span class="flex items-center gap-1.5 border-b border-line px-3 py-2" aria-hidden="true">
                                 <span class="h-2.5 w-2.5 rounded-full bg-[#ff5f57]"></span>
                                 <span class="h-2.5 w-2.5 rounded-full bg-[#febc2e]"></span>
@@ -737,7 +737,7 @@
            zone is full width like every other, and a bar that sticks on a
            phone is a bar that eats the screen. #}
         <nav
-            class="not-prose rounded-xl border border-line bg-surface p-5{{ zone.span.lg is defined and zone.span.lg < 48 ? ' lg:sticky lg:top-24' : '' }}"
+            class="not-prose rounded-xl border border-card-line bg-surface p-5{{ zone.span.lg is defined and zone.span.lg < 48 ? ' lg:sticky lg:top-24' : '' }}"
             aria-labelledby="{{ zone.id }}-toc"
         >
             <p id="{{ zone.id }}-toc" class="m-0 mb-3 text-xs font-semibold uppercase tracking-wider text-muted">
@@ -778,7 +778,7 @@
         } %}
         <div class="not-prose grid gap-4">
             {% for account in zone.githubActivity.accounts %}
-                <section class="rounded-xl border border-line bg-surface p-4 sm:p-5" aria-labelledby="{{ zone.id }}-github-{{ loop.index }}">
+                <section class="rounded-xl border border-card-line bg-surface p-4 sm:p-5" aria-labelledby="{{ zone.id }}-github-{{ loop.index }}">
                     <header class="mb-3 flex flex-wrap items-baseline justify-between gap-2">
                         <h3 id="{{ zone.id }}-github-{{ loop.index }}" class="m-0 text-sm font-semibold text-primary">
                             <a href="{{ account.url }}" class="text-primary no-underline hover:text-highlight" rel="noopener">@{{ account.login }}</a>

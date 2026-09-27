@@ -22,6 +22,7 @@ import { Pencil, Trash2, Download, FileText, Folder, Tag, Save, X, Paperclip, Cr
 import AppImagePreview from "@/shared/components/display/AppImagePreview.vue";
 import ImageCropperModal from "@/shared/components/overlay/ImageCropperModal.vue";
 import DocumentTagChip from "@ged/backend/documents/components/DocumentTagChip.vue";
+import DocumentFamilyStrip from "@ged/backend/documents/components/DocumentFamilyStrip.vue";
 
 const { t } = useI18n();
 const { can } = usePrivileges();
@@ -36,7 +37,14 @@ const props = defineProps({
     listPath: { type: String, required: true },
     storagePath: { type: String, default: "" },
     storageRelocationAvailable: { type: Boolean, default: false },
+    alternatesPath: { type: String, default: "" },
+    showPath: { type: String, default: "" },
 });
+
+// A member of the family opens on its own page, like this one.
+function openMember(member) {
+    if (props.showPath) window.location.href = buildPath(props.showPath, { id: member.id });
+}
 
 const doc = ref({ ...props.document });
 
@@ -226,6 +234,13 @@ function isPdf(mimeType) {
         </div>
 
         <!-- Edit modal -->
+        <DocumentFamilyStrip
+            class="border-t border-line/40 pt-4"
+            :doc="doc"
+            :alternates-path="alternatesPath"
+            v-on:open="openMember"
+        />
+
         <AppModal
             :show="showEdit"
             :title="t('backend.ged.documents.edit', { title: editingDoc?.title ?? '' })"

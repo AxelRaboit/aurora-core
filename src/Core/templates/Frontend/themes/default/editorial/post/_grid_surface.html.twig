@@ -60,7 +60,7 @@
     {% import _self as this %}
     {% set surfaces = {
         none: '',
-        card: 'rounded-xl border border-line bg-surface p-6 sm:p-8',
+        card: 'rounded-xl border border-card-line bg-surface p-6 sm:p-8',
         soft: 'rounded-xl bg-surface-2 p-6 sm:p-8',
         accent: 'rounded-xl border border-accent-500/30 bg-accent-500/10 p-6 sm:p-8',
         custom: 'relative isolate overflow-hidden rounded-xl p-6 sm:p-8',
@@ -69,7 +69,7 @@
        very wide card that has overflowed, which is not what it is. #}
     {% set bleedSurfaces = {
         none: '',
-        card: 'border-y border-line bg-surface py-10 sm:py-14',
+        card: 'border-y border-card-line bg-surface py-10 sm:py-14',
         soft: 'bg-surface-2 py-10 sm:py-14',
         accent: 'border-y border-accent-500/30 bg-accent-500/10 py-10 sm:py-14',
         custom: 'relative isolate overflow-hidden py-10 sm:py-14',
@@ -86,7 +86,7 @@
     {% set framed = zone.type == 'media' and not zone.caption and not (zone.media.credit|default(null)) %}
     {% set frames = {
         none: '',
-        card: 'overflow-hidden rounded-xl border border-line bg-surface',
+        card: 'overflow-hidden rounded-xl border border-card-line bg-surface',
         soft: 'overflow-hidden rounded-xl bg-surface-2',
         accent: 'overflow-hidden rounded-xl border border-accent-500/30 bg-accent-500/10',
         custom: 'relative isolate overflow-hidden rounded-xl',

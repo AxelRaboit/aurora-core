@@ -199,6 +199,31 @@ final class ThemeContext
         return is_string($value) && 1 === preg_match(self::HEX_COLOR, $value) ? $value : null;
     }
 
+    /**
+     * How the pictograms of the cards are coloured: `accent` follows the
+     * theme's main colour, `custom` the colour the theme gives them, and null
+     * leaves every SVG in the colour it was drawn in - which is what a site
+     * that never touched the setting keeps.
+     *
+     * @return 'accent'|'custom'|null
+     */
+    public function iconTint(): ?string
+    {
+        $value = $this->activeTheme()?->getConfig()['icon_color'] ?? null;
+
+        if ('accent' === $value) {
+            return 'accent';
+        }
+
+        return null !== $this->hexSetting('icon_color') ? 'custom' : null;
+    }
+
+    /** The pictograms' own colour, when the theme gives them one. */
+    public function iconColor(): ?string
+    {
+        return $this->hexSetting('icon_color');
+    }
+
     public function primaryColor(): string
     {
         $value = $this->activeTheme()?->getConfig()['primary_color'] ?? '';
