@@ -24,8 +24,11 @@ export function useDocumentBulkActions(
 
     async function doBulkDelete() {
         if (!props.bulkDeletePath || selectedIds.value.size === 0) return;
+        // An original goes to the trash with its alternates, which the trash
+        // gives back together: left behind, they would be copies of nothing.
         const res = await bulkDeleteRequest(props.bulkDeletePath, {
             ids: [...selectedIds.value],
+            withAlternates: true,
         });
         if (!res) return;
         if (!res.success) {
@@ -42,12 +45,15 @@ export function useDocumentBulkActions(
 
     const bulkMoveTargetId = ref(null);
     const openBulkMove = ref(false);
+    // Asked in the move dialog when the selection holds an original.
+    const bulkMoveWithAlternates = ref(true);
 
     async function bulkMove() {
         if (!selectedIds.value.size) return;
         const res = await bulkMoveRequest(props.bulkMovePath, {
             ids: [...selectedIds.value],
             folderId: bulkMoveTargetId.value,
+            withAlternates: bulkMoveWithAlternates.value,
         });
         if (!res) return;
         if (!res.success) {
@@ -124,6 +130,7 @@ export function useDocumentBulkActions(
     return {
         doBulkDelete,
         bulkMoveTargetId,
+        bulkMoveWithAlternates,
         openBulkMove,
         bulkMove,
         bulkRelocate,

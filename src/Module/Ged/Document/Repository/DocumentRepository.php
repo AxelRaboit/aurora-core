@@ -53,6 +53,8 @@ class DocumentRepository extends ResolveTargetEntityRepository implements ResetI
         ?StorageDiskEnum $storageDisk = null,
         bool $trashed = false,
         bool $originalsOnly = false,
+        string $sort = 'date',
+        string $direction = 'desc',
     ): array {
         // The original rides along: an alternate names it on its row, and
         // reading it lazily would cost one query per alternate on the page.
@@ -60,8 +62,8 @@ class DocumentRepository extends ResolveTargetEntityRepository implements ResetI
             ->leftJoin('d.category', 'c')
             ->leftJoin('d.folder', 'folder')
             ->leftJoin('d.original', 'original')
-            ->addSelect('c', 'folder', 'original')
-            ->orderBy($trashed ? 'd.deletedAt' : 'd.createdAt', Order::Descending->value);
+            ->addSelect('c', 'folder', 'original');
+        $this->orderByFamily($qb, $trashed, $sort, $direction);
         $countQb = $this->createQueryBuilder('d')->select('COUNT(d.id)');
 
         // The trash is the same listing with the condition flipped, not a
@@ -73,8 +75,20 @@ class DocumentRepository extends ResolveTargetEntityRepository implements ResetI
 
         if (null !== $search && '' !== $search) {
             $pattern = '%'.mb_strtolower($search).'%';
-            $qb->andWhere('LOWER(d.title) LIKE :search OR LOWER(d.reference) LIKE :search')->setParameter('search', $pattern);
-            $countQb->andWhere('LOWER(d.title) LIKE :search OR LOWER(d.reference) LIKE :search')->setParameter('search', $pattern);
+            $match = 'LOWER(d.title) LIKE :search OR LOWER(d.reference) LIKE :search';
+
+            // Folded, an alternate is not a row of its own: a search that only
+            // it answers would come back empty. Its original answers for it,
+            // and the row says which member matched.
+            if ($originalsOnly) {
+                $match .= sprintf(
+                    ' OR EXISTS (SELECT 1 FROM %s searched WHERE searched.original = d AND searched.deletedAt IS NULL AND (LOWER(searched.title) LIKE :search OR LOWER(searched.alternateLabel) LIKE :search))',
+                    $this->getEntityName(),
+                );
+            }
+
+            $qb->andWhere($match)->setParameter('search', $pattern);
+            $countQb->andWhere($match)->setParameter('search', $pattern);
         }
 
         if (null !== $categoryId) {
@@ -527,6 +541,131 @@ class DocumentRepository extends ResolveTargetEntityRepository implements ResetI
             ->setParameter('id', $folderId)
             ->getQuery()
             ->getResult();
+    }
+
+    /** The sort keys the listing accepts, as the screen names them. */
+    public const array SORTS = ['date', 'name', 'size'];
+
+    /**
+     * The listing's order, with each family kept in one piece.
+     *
+     * Sorted on its own date, an alternate lands wherever its import put it:
+     * three copies of one visual imported a week after it ended up pages
+     * away from it, and from each other. Every row is sorted on its family's
+     * value instead - the original's date, name or size - then the original
+     * comes first and its alternates follow by label. A document with no
+     * family is a family of one, so nothing else moves.
+     *
+     * The trash keeps its own order, most recently deleted first: there the
+     * question is what was just thrown away, not what belongs together.
+     */
+    private function orderByFamily(QueryBuilder $qb, bool $trashed, string $sort, string $direction): void
+    {
+        $order = 'asc' === $direction ? Order::Ascending->value : Order::Descending->value;
+
+        if ($trashed) {
+            $qb->orderBy('d.deletedAt', Order::Descending->value);
+
+            return;
+        }
+
+        $key = match ($sort) {
+            'name' => 'LOWER(COALESCE(original.title, d.title))',
+            'size' => 'COALESCE(original.size, d.size)',
+            default => 'COALESCE(original.createdAt, d.createdAt)',
+        };
+
+        $qb->addSelect($key.' AS HIDDEN familyKey')
+            ->addSelect('COALESCE(IDENTITY(d.original), d.id) AS HIDDEN familyId')
+            ->addSelect('CASE WHEN d.original IS NULL THEN 0 ELSE 1 END AS HIDDEN familyRank')
+            ->orderBy('familyKey', $order)
+            ->addOrderBy('familyId', $order)
+            ->addOrderBy('familyRank', Order::Ascending->value)
+            ->addOrderBy('d.alternateLabel', Order::Ascending->value);
+    }
+
+    /**
+     * The living alternates of several originals at once, for a page of
+     * rows that each show their family.
+     *
+     * @param list<int> $ids
+     *
+     * @return array<int, list<Document>> original id => alternates by label
+     */
+    public function findAlternatesForOriginals(array $ids): array
+    {
+        if ([] === $ids) {
+            return [];
+        }
+
+        /** @var list<Document> $alternates */
+        $alternates = $this->createQueryBuilder('d')
+            ->where('d.original IN (:ids)')
+            ->andWhere('d.deletedAt IS NULL')
+            ->setParameter('ids', $ids)
+            ->orderBy('d.alternateLabel', Order::Ascending->value)
+            ->addOrderBy('d.title', Order::Ascending->value)
+            ->getQuery()
+            ->getResult();
+
+        $byOriginal = [];
+        foreach ($alternates as $alternate) {
+            $originalId = $alternate->getOriginal()?->getId();
+            if (null !== $originalId) {
+                $byOriginal[$originalId][] = $alternate;
+            }
+        }
+
+        return $byOriginal;
+    }
+
+    /**
+     * The labels alternates already carry, most used first - offered as
+     * suggestions so the library does not end up with both "jaune" and
+     * "Jaune".
+     *
+     * @return list<string>
+     */
+    public function findAlternateLabels(int $limit = 12): array
+    {
+        $rows = $this->createQueryBuilder('d')
+            ->select('d.alternateLabel AS label', 'COUNT(d.id) AS uses')
+            ->where('d.alternateLabel IS NOT NULL')
+            ->andWhere('d.deletedAt IS NULL')
+            ->groupBy('d.alternateLabel')
+            ->orderBy('uses', Order::Descending->value)
+            ->addOrderBy('d.alternateLabel', Order::Ascending->value)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getArrayResult();
+
+        return array_values(array_map(static fn (array $row): string => (string) $row['label'], $rows));
+    }
+
+    /**
+     * The alternates of these documents, trashed ones included - what a move
+     * or a deletion "with its alternates" has to carry along.
+     *
+     * @param list<int> $ids
+     *
+     * @return list<int>
+     */
+    public function findAlternateIdsOf(array $ids, bool $includeTrashed = false): array
+    {
+        if ([] === $ids) {
+            return [];
+        }
+
+        $qb = $this->createQueryBuilder('d')
+            ->select('d.id')
+            ->where('d.original IN (:ids)')
+            ->setParameter('ids', $ids);
+
+        if (!$includeTrashed) {
+            $qb->andWhere('d.deletedAt IS NULL');
+        }
+
+        return array_map(intval(...), array_column($qb->getQuery()->getScalarResult(), 'id'));
     }
 
     /**

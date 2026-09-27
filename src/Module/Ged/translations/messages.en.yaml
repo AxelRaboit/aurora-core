@@ -201,6 +201,16 @@ backend:
         alternates: Its variants
         alternates_empty: No variant yet.
         open_original: Open the original
+        chip_original: "Original"
+        chip_original_short: "orig."
+        chip_used: "in use"
+        open: "Show the family"
+        strip_title: "Family: no alternate | Family: 1 alternate | Family: {count} alternates"
+        strip_empty: "Family"
+        add_variant: "Add an alternate"
+        with_alternates: "Also delete its alternates | Also delete its alternate | Also delete its {count} alternates"
+        move_with_alternates: "Also move the chosen originals' alternates"
+        label_suggestions: "Already in use:"
       originals_only: Group variants
       originals_only_hint: "Show originals only; their variants open from each one."
       usage:

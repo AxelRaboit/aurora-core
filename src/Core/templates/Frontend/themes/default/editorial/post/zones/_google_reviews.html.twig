@@ -13,7 +13,7 @@
     </div>
     <div class="grid gap-4 sm:grid-cols-2">
         {% for review in zone.googleReviews.reviews|slice(0, 4) %}
-            <blockquote class="m-0 rounded-xl border border-line bg-surface p-4">
+            <blockquote class="m-0 rounded-xl border border-card-line bg-surface p-4">
                 <div class="mb-2 flex items-center gap-2">
                     {% if review.photo %}
                         <img src="{{ review.photo }}" alt="" loading="lazy" class="h-8 w-8 rounded-full object-cover">

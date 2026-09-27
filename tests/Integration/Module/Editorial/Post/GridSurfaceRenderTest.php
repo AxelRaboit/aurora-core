@@ -56,7 +56,7 @@ final class GridSurfaceRenderTest extends IntegrationTestCase
         $html = $this->render($this->zone(['surface' => 'card']));
 
         self::assertStringContainsString('rounded-xl', $html);
-        self::assertStringContainsString('border-line', $html);
+        self::assertStringContainsString('border-card-line', $html);
     }
 
     public function testATintedZoneReadsAsOneSection(): void

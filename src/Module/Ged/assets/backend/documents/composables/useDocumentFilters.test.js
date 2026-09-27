@@ -143,3 +143,55 @@ describe("useDocumentFilters - the trash is not here any more", () => {
         expect(extraParams().trashed).toBeUndefined();
     });
 });
+
+describe("useDocumentFilters - families", () => {
+    it("folds families by default, without a word in the address", () => {
+        window.history.replaceState(null, "", "/backend/ged/documents");
+        const { filterOriginalsOnly, extraParams, hasActiveFilter } =
+            useDocumentFilters(vi.fn());
+
+        expect(filterOriginalsOnly.value).toBe(true);
+        expect(extraParams().originalsOnly).toBe(1);
+        expect(hasActiveFilter.value).toBe(false);
+        expect(window.location.search).not.toContain("familles");
+    });
+
+    it("keeps the flat view in the address, and counts it as a filter", () => {
+        window.history.replaceState(null, "", "/backend/ged/documents");
+        const { filterOriginalsOnly, extraParams, hasActiveFilter } =
+            useDocumentFilters(vi.fn());
+
+        filterOriginalsOnly.value = false;
+
+        expect(extraParams().originalsOnly).toBeUndefined();
+        expect(hasActiveFilter.value).toBe(true);
+        expect(window.location.search).toContain("familles=0");
+    });
+
+    it("reads the flat view back from a shared link", () => {
+        window.history.replaceState(
+            null,
+            "",
+            "/backend/ged/documents?familles=0",
+        );
+        const { filterOriginalsOnly } = useDocumentFilters(vi.fn());
+
+        expect(filterOriginalsOnly.value).toBe(false);
+    });
+
+    it("goes back to folded on reset", () => {
+        window.history.replaceState(
+            null,
+            "",
+            "/backend/ged/documents?familles=0",
+        );
+        const { filterOriginalsOnly, resetFilters } = useDocumentFilters(
+            vi.fn(),
+        );
+
+        resetFilters();
+
+        expect(filterOriginalsOnly.value).toBe(true);
+        expect(window.location.search).not.toContain("familles");
+    });
+});

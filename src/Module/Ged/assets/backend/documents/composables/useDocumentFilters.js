@@ -1,4 +1,5 @@
 import { ref, computed } from "vue";
+import { useQueryState } from "@/shared/composables/useQueryState.js";
 
 export function useDocumentFilters(reload) {
     const filterCategoryId = ref(null);
@@ -10,8 +11,17 @@ export function useDocumentFilters(reload) {
     // the control otherwise, and an unset filter costs nothing here.
     const filterStorageDisk = ref(null);
     // Families folded to their original: each visual once, its variants a
-    // click away on it.
-    const filterOriginalsOnly = ref(false);
+    // click away on it. The default, because a third of a library made of
+    // colour copies buries everything else; the flat view is kept in the
+    // address (`familles=0`) so a reload or a shared link keeps it.
+    const families = useQueryState("familles", {
+        defaultValue: "1",
+        valid: ["0", "1"],
+    });
+    const filterOriginalsOnly = computed({
+        get: () => "0" !== families.value.value,
+        set: (grouped) => families.set(grouped ? "1" : "0"),
+    });
     const hasActiveFilter = computed(
         () =>
             !!(
@@ -21,7 +31,8 @@ export function useDocumentFilters(reload) {
                 filterStatus.value ||
                 filterMimeGroup.value ||
                 filterStorageDisk.value ||
-                filterOriginalsOnly.value
+                // Grouped is the resting state: only leaving it is a filter.
+                !filterOriginalsOnly.value
             ),
     );
 
@@ -46,7 +57,7 @@ export function useDocumentFilters(reload) {
         filterStatus.value = null;
         filterMimeGroup.value = null;
         filterStorageDisk.value = null;
-        filterOriginalsOnly.value = false;
+        filterOriginalsOnly.value = true;
         reload();
     }
 

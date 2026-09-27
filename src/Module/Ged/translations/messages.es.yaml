@@ -201,6 +201,16 @@ backend:
                 alternates: 'Sus variantes'
                 alternates_empty: 'Todavía no hay variantes.'
                 open_original: 'Abrir el original'
+                chip_original: "Original"
+                chip_original_short: "orig."
+                chip_used: "en uso"
+                open: "Ver la familia"
+                strip_title: "Familia: ninguna variante | Familia: 1 variante | Familia: {count} variantes"
+                strip_empty: "Familia"
+                add_variant: "Añadir una variante"
+                with_alternates: "Eliminar también sus variantes | Eliminar también su variante | Eliminar también sus {count} variantes"
+                move_with_alternates: "Mover también las variantes de los originales elegidos"
+                label_suggestions: "Ya en uso:"
             originals_only: 'Agrupar las variantes'
             originals_only_hint: 'Mostrar solo los originales; sus variantes se abren desde cada uno.'
             usage:

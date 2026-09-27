@@ -13,6 +13,7 @@ use Aurora\Module\Configuration\Theme\Service\ThemeStyleRenderer;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Document\Service\DocumentUrlGenerator;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
@@ -93,6 +94,82 @@ final class ThemeContextSurfacesTest extends TestCase
         self::assertStringContainsString('--th-bg: #0f172a;', $css);
     }
 
+    public function testTheThemesTextAndLineColoursReachEverySurface(): void
+    {
+        $css = $this->stylesOf($this->contextWithConfig([
+            'background_color' => '#130918',
+            'header_color' => '#1b1128',
+            'text_color' => '#ece2d0',
+            'line_color' => '#3a2a55',
+        ]))->frontendSurfacesCss();
+
+        // Once for the page, once for the top bar.
+        self::assertSame(2, mb_substr_count($css, '--th-primary: #ece2d0;'));
+        self::assertSame(2, mb_substr_count($css, '--color-border: #3a2a55;'));
+    }
+
+    public function testATextOrLineColourThatIsNotHexNeverReachesTheStylesheet(): void
+    {
+        $css = $this->stylesOf($this->contextWithConfig([
+            'background_color' => '#130918',
+            'text_color' => 'red;}body{display:none',
+        ]))->frontendSurfacesCss();
+
+        self::assertStringNotContainsString('display:none', $css);
+        self::assertStringContainsString('--th-primary: rgb(243 244 246);', $css);
+    }
+
+    public function testTheValidationHeadingAndPictogramColoursNeedNoSurface(): void
+    {
+        $css = $this->stylesOf($this->contextWithConfig([
+            'success_color' => '#34d399',
+            'heading_color' => '#ece2d0',
+            'icon_color' => '#987aff',
+            'figure_color' => '#ece2d0',
+        ]))->frontendSurfacesCss();
+
+        self::assertStringContainsString('--th-figure: #ece2d0;', $css);
+
+        self::assertStringContainsString('--th-success: #34d399;', $css);
+        self::assertStringContainsString('--th-success-soft: color-mix(in oklab, #34d399 15%, transparent);', $css);
+        self::assertStringContainsString('--th-heading: #ece2d0;', $css);
+        self::assertStringContainsString('--th-icon: #987aff;', $css);
+    }
+
+    public function testAThemeWithoutThemEmitsNoInkRule(): void
+    {
+        self::assertSame('', $this->stylesOf($this->contextWithConfig([]))->frontendInkCss());
+    }
+
+    public function testACardColourReplacesTheDerivedCards(): void
+    {
+        $css = $this->stylesOf($this->contextWithConfig([
+            'background_color' => '#130918',
+            'card_color' => '#241838',
+        ]))->frontendSurfacesCss();
+
+        self::assertStringContainsString('--th-surface: #241838;', $css);
+    }
+
+    /** @return iterable<string, array{array<string, string>, ?string, ?string}> */
+    public static function iconSettings(): iterable
+    {
+        yield 'untouched keeps the file colour' => [[], null, null];
+        yield 'accent follows the main colour' => [['icon_color' => 'accent'], 'accent', null];
+        yield 'a hex is a colour of its own' => [['icon_color' => '#987aff'], 'custom', '#987aff'];
+        yield 'anything else is ignored' => [['icon_color' => 'red'], null, null];
+    }
+
+    /** @param array<string, string> $config */
+    #[DataProvider('iconSettings')]
+    public function testThePictogramSetting(array $config, ?string $tint, ?string $colour): void
+    {
+        $context = $this->contextWithConfig($config);
+
+        self::assertSame($tint, $context->iconTint());
+        self::assertSame($colour, $context->iconColor());
+    }
+
     public function testADarkSurfaceCarriesItsWholeTokenSetNotJustTheBackground(): void
     {
         $css = $this->stylesOf($this->contextWithConfig(['background_color' => '#0f172a']))->frontendSurfacesCss();
@@ -101,7 +178,7 @@ final class ThemeContextSurfacesTest extends TestCase
         // disparaîtraient sur le fond sombre sans que rien ne le signale.
         self::assertStringContainsString('--th-primary: rgb(243 244 246);', $css);
         self::assertStringContainsString('--th-secondary: rgb(156 163 175);', $css);
-        self::assertStringContainsString('--color-border: rgb(55 65 81);', $css);
+        self::assertStringContainsString('--color-border: oklch(0.451 0.040 265.755);', $css);
     }
 
     public function testALightSurfaceKeepsDarkText(): void

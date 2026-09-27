@@ -3,7 +3,7 @@
    decoration - green available, amber soon, grey busy. #}
 {% set dots = {available: 'bg-emerald-500', soon: 'bg-amber-500', busy: 'bg-zinc-400'} %}
 {% set halos = {available: 'bg-emerald-500/40', soon: 'bg-amber-500/40', busy: 'bg-zinc-400/30'} %}
-<div class="not-prose inline-flex max-w-full items-start gap-3 rounded-2xl border border-line bg-surface px-4 py-3">
+<div class="not-prose inline-flex max-w-full items-start gap-3 rounded-2xl border border-card-line bg-surface px-4 py-3">
     <span class="relative mt-1.5 flex h-2.5 w-2.5 shrink-0" aria-hidden="true">
         {% if widget.status == 'available' %}
             <span class="absolute inline-flex h-full w-full rounded-full {{ halos[widget.status] }} motion-safe:animate-ping"></span>

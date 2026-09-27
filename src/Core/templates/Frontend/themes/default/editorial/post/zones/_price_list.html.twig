@@ -1,7 +1,7 @@
 {# A menu or a price list: a section per heading, a line per item with its
    price at the end of a dotted leader - the way a card on a table reads -
    and small tags under the name. #}
-<section class="not-prose space-y-6 rounded-xl border border-line bg-surface p-5">
+<section class="not-prose space-y-6 rounded-xl border border-card-line bg-surface p-5">
     {% if widget.title %}<p class="m-0 text-lg font-semibold text-primary">{{ widget.title }}</p>{% endif %}
     {% for section in widget.sections %}
         <div>
