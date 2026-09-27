@@ -1159,6 +1159,7 @@ backend:
             customise: 'Enlaces propios de esta página'
             reset: 'Usar los enlaces del sitio'
             hint: 'Los enlaces de esta página, en orden: dónde encontrar al autor, el producto, el código. Arrastre el tirador para reordenarlos.'
+            site_list_hint: 'Los enlaces del sitio, en orden: dónde encontrar al autor, el producto, el código. Arrastre el tirador para reordenarlos.'
             empty: 'Ningún enlace, el bloque no se muestra.'
             move: Mover
             remove: Quitar

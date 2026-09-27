@@ -451,6 +451,27 @@ describe("PostGridCanvas", () => {
         expect(wrapper.emitted("fillGap").at(-1)).toEqual(["text", 0, 0, 24]);
     });
 
+    /**
+     * A hole is one row high: the types used to pour out of it over the rows
+     * below, with nothing behind them. They sit in a panel of their own now,
+     * on the side of the hole that has room, and a click anywhere else closes it.
+     */
+    it("floats the types in a panel that a click elsewhere closes", async () => {
+        const wrapper = mountCanvas([zone("a", 32)], { typeOptions: TYPES });
+
+        await wrapper
+            .find('[title="backend.posts.grid.fill_gap"]')
+            .trigger("click");
+        const panel = wrapper.find('[role="menu"]');
+        expect(panel.classes()).toContain("absolute");
+        expect(panel.classes()).toContain("bg-surface");
+        // The hole lies right of the middle, so the panel opens towards the left.
+        expect(panel.classes()).toContain("right-0");
+
+        await wrapper.find('[aria-hidden="true"].fixed').trigger("click");
+        expect(wrapper.find('[role="menu"]').exists()).toBe(false);
+    });
+
     it("leaves a full row alone", () => {
         const wrapper = mountCanvas([zone("a", 24), zone("b", 24)]);
 

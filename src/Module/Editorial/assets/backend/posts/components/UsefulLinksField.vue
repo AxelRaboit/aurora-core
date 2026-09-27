@@ -85,7 +85,7 @@ function isKept(link) {
 
     <div v-else class="space-y-3">
         <div class="flex items-start justify-between gap-3">
-            <p class="text-xs text-muted">{{ t("backend.posts.useful_links.hint") }}</p>
+            <p class="text-xs text-muted">{{ t(null === siteLinks ? "backend.posts.useful_links.site_list_hint" : "backend.posts.useful_links.hint") }}</p>
             <AppButton v-if="null !== siteLinks" variant="ghost" size="sm" v-on:click="emit('update:modelValue', null)">
                 <RotateCcw class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("backend.posts.useful_links.reset") }}
             </AppButton>

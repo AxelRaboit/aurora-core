@@ -5,6 +5,29 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.281] - 2026-09-28
+
+### Corrigé
+
+#### Le choix du type débordait d'un emplacement vide de la grille
+Dans la grille d'une publication, le « + » d'un emplacement vide ouvrait la
+cinquantaine de types de zone dans l'emplacement lui-même, haut d'une seule
+rangée : les icônes coulaient par-dessus les rangées du dessous, sans fond, et
+se mêlaient aux zones qu'elles recouvraient. Elles s'ouvrent maintenant dans un
+petit panneau à part, posé sous l'emplacement du côté où il y a de la place,
+qui défile s'il le faut et se ferme d'un clic ailleurs.
+
+#### Les interrupteurs écrasés sur téléphone
+Sur téléphone, un interrupteur agrandit sa zone de clic, et sa couleur
+remplissait toute cette zone : la pilule devenait un disque tassé. La couleur
+reste maintenant sur le dessin, et la zone de clic agrandie est invisible. Même
+correction pour les pastilles de couleur des sections du menu, dans les
+préférences.
+
+#### L'aide des liens utiles du site parlait de « cette page »
+Dans Configuration › Liens utiles, le texte d'aide disait « Les liens de cette
+page » : il parle maintenant des liens du site.
+
 ## [0.9.280] - 2026-09-27
 
 ### Corrigé
