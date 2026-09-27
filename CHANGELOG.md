@@ -50,6 +50,12 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ### Corrigé
 
+- **Les noms des catégories, étiquettes, pages et articles d'une nouvelle
+  installation s'affichaient en clés de traduction**
+  (`backend.editorial.bootstrap.taxonomies.category`…) : le bloc de
+  traductions avait glissé à la mauvaise place. Il est remis, l'espagnol est
+  ajouté, et `aurora:install` répare de lui-même un libellé resté sur sa
+  clé, sans toucher à un nom saisi à la main.
 - **Notes : la carte d'une note suit ce qu'on vient d'écrire.** Son extrait et
   sa date restaient ceux du chargement de la page jusqu'au rechargement
   suivant ; l'enregistrement renvoie maintenant l'extrait à jour.

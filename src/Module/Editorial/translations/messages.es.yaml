@@ -1,4 +1,12 @@
 backend:
+  editorial:
+    bootstrap:
+      post_types:
+        page: Página
+        article: Artículo
+      taxonomies:
+        category: Categorías
+        tag: Etiquetas
   posts:
     usage_detail: Publicación
     usage_untitled: Publicación sin título

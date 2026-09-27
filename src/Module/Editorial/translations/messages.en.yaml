@@ -39,6 +39,13 @@ backend:
     editorial_frontend: Editorial public site
     editorial_frontend_description: 'Serves the posts, listing pages and taxonomy pages to readers.'
   editorial:
+    bootstrap:
+      post_types:
+        page: Page
+        article: Article
+      taxonomies:
+        category: Categories
+        tag: Tags
     github:
       settings:
         what_title: What this integration does
@@ -206,13 +213,6 @@ backend:
     editorial_form_submission_prefix:
       label: Submission reference prefix
       description: 'Prefix of the reference generated for each submission.'
-    bootstrap:
-      post_types:
-        page: Page
-        article: Article
-      taxonomies:
-        category: Categories
-        tag: Tags
   stats:
     editorial:
       posts: Posts

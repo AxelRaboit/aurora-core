@@ -39,6 +39,13 @@ backend:
     editorial_frontend: Site public éditorial
     editorial_frontend_description: "Sert les publications, pages de liste et pages de taxonomie aux lecteurs."
   editorial:
+    bootstrap:
+      post_types:
+        page: Page
+        article: Article
+      taxonomies:
+        category: Catégories
+        tag: Étiquettes
     github:
       settings:
         what_title: Ce que fait cette intégration
@@ -206,13 +213,6 @@ backend:
     editorial_form_submission_prefix:
       label: Préfixe de référence des soumissions
       description: "Préfixe de la référence générée pour chaque soumission."
-    bootstrap:
-      post_types:
-        page: Page
-        article: Article
-      taxonomies:
-        category: Catégories
-        tag: Étiquettes
   stats:
     editorial:
       posts: Publications

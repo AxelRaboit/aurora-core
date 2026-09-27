@@ -20,6 +20,7 @@ use Aurora\Module\Editorial\PostType\Entity\PostTypeInterface;
 use Aurora\Module\Editorial\PostType\Repository\PostTypeRepository;
 use Aurora\Module\Editorial\Taxonomy\Entity\Taxonomy;
 use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyInterface;
+use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyTranslationInterface;
 use Aurora\Module\Editorial\Taxonomy\Repository\TaxonomyRepository;
 use Doctrine\Common\Collections\Order;
 use Doctrine\ORM\EntityManagerInterface;
@@ -82,7 +83,19 @@ final readonly class EditorialBootstrapProvider implements BootstrapProviderInte
         ];
 
         foreach ($definitions as [$slug, $labelKey, $icon, $hasArchive]) {
-            if ($this->postTypeRepository->findOneBySlug($slug) instanceof PostTypeInterface) {
+            $existing = $this->postTypeRepository->findOneBySlug($slug);
+
+            if ($existing instanceof PostTypeInterface) {
+                // Repaired, never renamed: only a label still equal to its
+                // own key is replaced. An installation made while that key
+                // could not be found stored it raw, and showed it as the
+                // type's name; a label anyone typed is left alone.
+                if ($labelKey === $existing->getLabel()) {
+                    $existing->setLabel($this->trans($labelKey));
+
+                    yield sprintf('libellé du type de contenu %s', $slug);
+                }
+
                 continue;
             }
 
@@ -116,7 +129,23 @@ final readonly class EditorialBootstrapProvider implements BootstrapProviderInte
         $article = $this->postTypeRepository->findOneBySlug('article');
 
         foreach ($definitions as [$slug, $labelKey, $hierarchical]) {
-            if ($this->taxonomyRepository->findOneBySlug($slug) instanceof TaxonomyInterface) {
+            $existing = $this->taxonomyRepository->findOneBySlug($slug);
+
+            if ($existing instanceof TaxonomyInterface) {
+                // Same repair as for the post types, language by language.
+                $repaired = false;
+                foreach ($this->localeCodes() as $code) {
+                    $translation = $existing->getTranslation($code);
+                    if ($translation instanceof TaxonomyTranslationInterface && $labelKey === $translation->getLabel()) {
+                        $translation->setLabel($this->trans($labelKey, $code));
+                        $repaired = true;
+                    }
+                }
+
+                if ($repaired) {
+                    yield sprintf('libellé de la taxonomie %s', $slug);
+                }
+
                 continue;
             }
 
