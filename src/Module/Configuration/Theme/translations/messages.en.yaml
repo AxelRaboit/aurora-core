@@ -29,6 +29,24 @@ backend:
     surface_dark_text: dark text
     surface_ratio: "contrast %ratio%:1"
     surface_below_aaa: readable, but below AAA comfort
+    ink_text: Public site text
+    ink_line: Lines and borders
+    ink_card_line: Card outline
+    ink_card_unset: "Not set, follows the lines"
+    ink_card: 'Card background'
+    ink_card_bg_unset: 'Not set, derived from the background'
+    ink_heading: 'Content headings'
+    ink_heading_unset: 'Not set, text colour'
+    ink_success: 'Validation (ticks)'
+    ink_success_unset: 'Not set, green by default'
+    icon: 'Card pictograms'
+    icon_original: 'The file''s own colour'
+    icon_accent: 'Main colour'
+    icon_custom: 'Custom colour'
+    icon_color: 'Pictogram colour'
+    icon_hint: 'For the SVG pictograms of cards: only their shape counts, one file serves every theme.'
+    ink_set: "Replaces the derived colour wherever it stays readable"
+    ink_unset: "Not set, derived from the background"
     sections:
       general: General
       header: Header

@@ -3,7 +3,7 @@
    stays sharp, readable on a phone and translatable. Neutral colours and no
    logo: it reads as "a post on Instagram", not as Instagram's own page. #}
 {% set networks = {instagram: 'Instagram', linkedin: 'LinkedIn', facebook: 'Facebook', x: 'X'} %}
-<article class="not-prose mx-auto w-full max-w-md overflow-hidden rounded-xl border border-line bg-surface">
+<article class="not-prose mx-auto w-full max-w-md overflow-hidden rounded-xl border border-card-line bg-surface">
     <header class="flex items-center gap-3 px-4 py-3">
         {% if widget.avatar %}
             <img src="{{ widget.avatar.url }}" alt="" loading="lazy" class="h-9 w-9 shrink-0 rounded-full object-cover" style="object-position: {{ widget.avatar.focalPosition }};">

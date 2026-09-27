@@ -206,7 +206,37 @@ final readonly class ThemeStyleRenderer
             $rules[] = $this->surfaceRule($selector, $color);
         }
 
-        return implode('', $rules);
+        return implode('', $rules).$this->frontendInkCss();
+    }
+
+    /**
+     * The theme's colours that do not depend on a surface: the tick of a
+     * validated line, the headings of the content, the pictograms of the
+     * cards. Set once on the page, inherited everywhere, whatever surface
+     * the element sits on - so unlike the ink colours, they need no page
+     * background to take effect.
+     *
+     * Empty when the theme sets none of them: the defaults live in theme.css.
+     */
+    public function frontendInkCss(): string
+    {
+        $config = $this->themeContext->activeTheme()?->getConfig() ?? [];
+        $declarations = [];
+
+        if (null !== $success = $this->surfaceColor($config['success_color'] ?? null)) {
+            $declarations[] = '--th-success: '.$success.';';
+            $declarations[] = '--th-success-soft: color-mix(in oklab, '.$success.' 15%, transparent);';
+        }
+
+        if (null !== $heading = $this->surfaceColor($config['heading_color'] ?? null)) {
+            $declarations[] = '--th-heading: '.$heading.';';
+        }
+
+        if (null !== $icon = $this->themeContext->iconColor()) {
+            $declarations[] = '--th-icon: '.$icon.';';
+        }
+
+        return [] === $declarations ? '' : 'html[data-theme]{'.implode('', $declarations).'}';
     }
 
     /**
@@ -233,8 +263,23 @@ final readonly class ThemeStyleRenderer
 
     private function surfaceRule(string $selector, string $color): string
     {
+        $config = $this->themeContext->activeTheme()?->getConfig() ?? [];
+        $tokens = [
+            ...$this->surfaceContrast->tokensFor($color),
+            // The theme's own text and line colours, over the ones the
+            // background implied: an off-white instead of pure white, a
+            // violet rule under the top bar instead of the derived one.
+            ...$this->surfaceContrast->inkTokensFor(
+                $color,
+                $this->surfaceColor($config['text_color'] ?? null),
+                $this->surfaceColor($config['line_color'] ?? null),
+                $this->surfaceColor($config['card_line_color'] ?? null),
+            ),
+            ...$this->surfaceContrast->cardTokensFor($color, $this->surfaceColor($config['card_color'] ?? null)),
+        ];
+
         $declarations = ['--th-surface-bg: '.$color.';', '--th-bg: '.$color.';'];
-        foreach ($this->surfaceContrast->tokensFor($color) as $token => $value) {
+        foreach ($tokens as $token => $value) {
             $declarations[] = $token.': '.$value.';';
         }
 

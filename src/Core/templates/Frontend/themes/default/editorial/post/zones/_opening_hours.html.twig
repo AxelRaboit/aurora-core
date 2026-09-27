@@ -4,7 +4,7 @@
    Worked out on the server in the zone's own timezone. A page cached for an
    hour could say "open" ten minutes after closing, which is why the site has
    no page cache: see GridViewBuilder. #}
-<section class="not-prose rounded-xl border border-line bg-surface p-5">
+<section class="not-prose rounded-xl border border-card-line bg-surface p-5">
     <p class="m-0 mb-4 flex items-center gap-2 text-sm font-semibold {{ widget.open ? 'text-emerald-500' : 'text-secondary' }}">
         <span class="inline-block h-2 w-2 rounded-full {{ widget.open ? 'bg-emerald-500' : 'bg-zinc-400' }}" aria-hidden="true"></span>
         {% if widget.closedToday %}{{ 'frontend.editorial.grid.hours.closed_today'|trans }} · {% endif %}{{ widget.status }}

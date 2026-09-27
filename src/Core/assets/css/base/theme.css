@@ -21,6 +21,8 @@
 
     --color-line:        var(--color-border);
     --color-line-strong: var(--color-border-strong);
+    /* Le contour des cartes : celui du theme s'il en pose un, sinon le trait. */
+    --color-card-line:   var(--th-card-line, var(--color-border));
 
     --width-serp-max: 600px;
 
@@ -236,6 +238,17 @@ html[data-theme] [data-zone-highlight][data-zone-highlight="custom"] * {
     --th-highlight: var(--zone-highlight);
 }
 
+/* A pictogram drawn in the theme's colour rather than its own
+ * (ThemeContext::iconTint). The SVG is used as a mask, so only its shape
+ * counts: one file serves every theme, and changing the colour is a setting,
+ * not a new upload. */
+.aurora-icon-tint {
+    display: inline-block;
+    background-color: var(--th-icon, var(--th-accent));
+    -webkit-mask: var(--icon-url) center / contain no-repeat;
+    mask: var(--icon-url) center / contain no-repeat;
+}
+
 /* A publication's card, in the colour of the publication it leads to
  * (PostInterface::getCardHighlightColor). Placed after the zone's rule and as
  * specific as it: the card is the narrower choice, so it wins inside a zone. */
@@ -259,7 +272,7 @@ html[data-theme] [data-card-highlight][data-card-highlight] * {
  * paragraphe rendu a cote : le layout pose deja `text-primary` sur le body. */
 .prose {
     --tw-prose-body: var(--th-primary);
-    --tw-prose-headings: var(--th-primary);
+    --tw-prose-headings: var(--th-heading, var(--th-primary));
     --tw-prose-lead: var(--th-secondary);
     --tw-prose-links: var(--th-primary);
     --tw-prose-bold: var(--th-primary);

@@ -88,7 +88,93 @@ final class SurfaceContrastTest extends TestCase
         // disparaissent.
         self::assertSame('rgb(243 244 246)', $tokens['--th-primary']);
         self::assertSame('rgb(156 163 175)', $tokens['--th-secondary']);
-        self::assertSame('rgb(55 65 81)', $tokens['--color-border']);
+        self::assertSame('oklch(0.451 0.040 265.755)', $tokens['--color-border']);
+    }
+
+    /**
+     * The slate the dark set used to hard-code is `#030712` lifted by the
+     * three steps: that background must keep its look.
+     */
+    public function testANavyBackgroundKeepsTheSlateItAlwaysHad(): void
+    {
+        $tokens = $this->contrast->tokensFor('#030712');
+
+        self::assertSame('oklch(0.210 0.027 261.692)', $tokens['--th-surface']);
+        self::assertSame('oklch(0.278 0.027 261.692)', $tokens['--th-surface-2']);
+        self::assertSame('oklch(0.373 0.027 261.692)', $tokens['--th-surface-3']);
+    }
+
+    /** A card on a violet page is violet, not a blue-grey box. */
+    public function testCardsTakeTheHueOfADarkBackground(): void
+    {
+        $tokens = $this->contrast->tokensFor('#130918');
+
+        self::assertSame('oklch(0.243 0.034 313.749)', $tokens['--th-surface']);
+        self::assertSame('oklch(0.311 0.034 313.749)', $tokens['--th-surface-2']);
+        self::assertSame('oklch(0.406 0.034 313.749)', $tokens['--color-border']);
+    }
+
+    /** White cards over a light page already read as cards. */
+    public function testALightBackgroundKeepsWhiteCards(): void
+    {
+        self::assertSame('rgb(255 255 255)', $this->contrast->tokensFor('#fef3c7')['--th-surface']);
+    }
+
+    /** An off-white text brings warm labels with it, not blue-grey ones. */
+    public function testATextColourStepsItsGreysTowardTheBackground(): void
+    {
+        $tokens = $this->contrast->inkTokensFor('#130918', '#ece2d0', null);
+
+        self::assertSame('#ece2d0', $tokens['--th-primary']);
+        self::assertSame('oklch(0.663 0.026 82.383)', $tokens['--th-secondary']);
+        self::assertSame('oklch(0.395 0.026 82.383)', $tokens['--th-subtle']);
+        self::assertArrayNotHasKey('--color-border', $tokens);
+    }
+
+    /** A cream meant for dark pages must not turn a light footer's text to cream. */
+    public function testATextColourUnreadableOnTheSurfaceIsIgnored(): void
+    {
+        self::assertSame([], $this->contrast->inkTokensFor('#fef3c7', '#ece2d0', null));
+    }
+
+    public function testALineColourBecomesTheBorderAndAStrongerOne(): void
+    {
+        $tokens = $this->contrast->inkTokensFor('#130918', null, '#3a2a55');
+
+        self::assertSame('#3a2a55', $tokens['--color-border']);
+        self::assertSame('oklch(0.398 0.076 299.336)', $tokens['--color-border-strong']);
+        self::assertArrayNotHasKey('--th-primary', $tokens);
+    }
+
+    /** A card outline of its own, set apart from the page's lines. */
+    public function testACardOutlineIsItsOwnToken(): void
+    {
+        $tokens = $this->contrast->inkTokensFor('#130918', null, '#ece2d0', '#6d58c4');
+
+        self::assertSame('#ece2d0', $tokens['--color-border']);
+        self::assertSame('#6d58c4', $tokens['--th-card-line']);
+    }
+
+    /** Unset, no token: cards fall back to the border in CSS. */
+    public function testWithoutACardOutlineCardsFollowTheLines(): void
+    {
+        self::assertArrayNotHasKey('--th-card-line', $this->contrast->inkTokensFor('#130918', null, '#ece2d0'));
+    }
+
+    /** A card colour of its own keeps the raised levels the same steps apart. */
+    public function testACardColourCarriesItsRaisedLevels(): void
+    {
+        $tokens = $this->contrast->cardTokensFor('#130918', '#241838');
+
+        self::assertSame('#241838', $tokens['--th-surface']);
+        self::assertStringStartsWith('oklch(', $tokens['--th-surface-2']);
+        self::assertSame([], $this->contrast->cardTokensFor('#130918', null));
+    }
+
+    /** A zone forced to dark has no background to take a hue from. */
+    public function testAForcedDarkSchemeKeepsTheFixedSet(): void
+    {
+        self::assertSame('rgb(17 24 39)', $this->contrast->tokensForScheme('dark')['--th-surface']);
     }
 
     public function testALightSurfaceGetsTheWholeLightTokenSet(): void

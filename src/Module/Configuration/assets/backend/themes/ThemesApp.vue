@@ -24,6 +24,11 @@ import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 
 const { t } = useI18n();
 const highlightOptions = computed(() => highlightModeOptions(t));
+const iconOptions = computed(() => [
+    { value: "original", label: t("backend.themes.icon_original") },
+    { value: "accent", label: t("backend.themes.icon_accent") },
+    { value: "custom", label: t("backend.themes.icon_custom") },
+]);
 const { can } = usePrivileges();
 
 const props = defineProps({
@@ -51,7 +56,7 @@ const props = defineProps({
 const { themeList, accentColor } = useThemesList(props.themes);
 const { activateTheme } = useThemesActivate(themeList, props.activatePath);
 const { createModal, createForm, openCreate, submitCreate } = useThemesCreate(themeList, props.createPath, { extraFields: props.extraFields });
-const { CSS_SECTIONS, DEFAULTS, editModal, editForm, colorFields, contentWidth, highlight, highlightColor, menuActive, menuActiveColor, fontFamily, footerText, headerLogoMediaId, headerCustomText, headerMode, primaryColor, surfaceColors, openEdit, resetPrimaryColor, submitEdit } = useThemesEdit(themeList, props.updatePath, { extraFields: props.extraFields });
+const { CSS_SECTIONS, DEFAULTS, editModal, editForm, colorFields, contentWidth, highlight, highlightColor, menuActive, menuActiveColor, iconMode, iconColor, fontFamily, footerText, headerLogoMediaId, headerCustomText, headerMode, primaryColor, surfaceColors, openEdit, resetPrimaryColor, submitEdit } = useThemesEdit(themeList, props.updatePath, { extraFields: props.extraFields });
 
 const fontOptions = computed(() => props.fonts.map((font) => ({ value: font.value, label: font.label })));
 const selectedFont = computed(() => props.fonts.find((font) => font.value === fontFamily.value) ?? null);
@@ -68,6 +73,20 @@ const SURFACES = computed(() => [
     { key: "background_color", label: t("backend.themes.surface_background") },
     { key: "header_color", label: t("backend.themes.surface_header") },
     { key: "footer_color", label: t("backend.themes.surface_footer") },
+]);
+
+/**
+ * Le texte et les traits du site public, posés par-dessus ce que chaque
+ * surface en déduit. Sans couleur de surface, aucune règle n'est émise : ils
+ * n'agissent donc qu'avec un fond défini.
+ */
+const INKS = computed(() => [
+    { key: "text_color", label: t("backend.themes.ink_text"), unset: t("backend.themes.ink_unset") },
+    { key: "line_color", label: t("backend.themes.ink_line"), unset: t("backend.themes.ink_unset") },
+    { key: "card_line_color", label: t("backend.themes.ink_card_line"), unset: t("backend.themes.ink_card_unset") },
+    { key: "card_color", label: t("backend.themes.ink_card"), unset: t("backend.themes.ink_card_bg_unset") },
+    { key: "heading_color", label: t("backend.themes.ink_heading"), unset: t("backend.themes.ink_heading_unset") },
+    { key: "success_color", label: t("backend.themes.ink_success"), unset: t("backend.themes.ink_success_unset") },
 ]);
 
 function contrastNote(hex) {
@@ -322,6 +341,23 @@ const pageActions = computed(() => {
                         </div>
                         <p class="text-xs text-muted">{{ t('backend.themes.menu_active_hint') }}</p>
                     </div>
+                    <div class="space-y-1 pt-2">
+                        <AppSelect
+                            v-model="iconMode"
+                            :label="t('backend.themes.icon')"
+                            :options="iconOptions"
+                        />
+                        <div v-if="iconMode === 'custom'" class="flex items-center gap-3 bg-surface-2 rounded-lg px-3 py-2">
+                            <AppColorSwatch
+                                :model-value="iconColor"
+                                size="sm"
+                                v-on:update:model-value="iconColor = $event"
+                            />
+                            <span class="text-xs font-medium text-primary flex-1">{{ t('backend.themes.icon_color') }}</span>
+                            <span class="text-xs font-mono text-muted">{{ iconColor }}</span>
+                        </div>
+                        <p class="text-xs text-muted">{{ t('backend.themes.icon_hint') }}</p>
+                    </div>
                 </div>
 
                 <div class="space-y-1.5 pt-6 border-t border-line">
@@ -345,6 +381,29 @@ const pageActions = computed(() => {
                                 size="xs"
                                 :title="t('backend.themes.reset_color')"
                                 v-on:click="surfaceColors[surface.key] = ''"
+                            >
+                                ↺
+                            </AppTextLinkButton>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 gap-2 pt-1">
+                        <div v-for="ink in INKS" :key="ink.key" class="flex items-center gap-3 bg-surface-2 rounded-lg px-3 py-2">
+                            <AppColorSwatch
+                                :model-value="surfaceColors[ink.key] || '#ffffff'"
+                                size="sm"
+                                v-on:update:model-value="surfaceColors[ink.key] = $event"
+                            />
+                            <div class="flex flex-col min-w-0 flex-1">
+                                <span class="text-xs font-medium text-primary">{{ ink.label }}</span>
+                                <span class="text-xs text-muted truncate">{{ surfaceColors[ink.key] ? t('backend.themes.ink_set') : ink.unset }}</span>
+                            </div>
+                            <span v-if="surfaceColors[ink.key]" class="text-xs font-mono text-muted">{{ surfaceColors[ink.key] }}</span>
+                            <AppTextLinkButton
+                                v-if="surfaceColors[ink.key]"
+                                color="muted"
+                                size="xs"
+                                :title="t('backend.themes.reset_color')"
+                                v-on:click="surfaceColors[ink.key] = ''"
                             >
                                 ↺
                             </AppTextLinkButton>

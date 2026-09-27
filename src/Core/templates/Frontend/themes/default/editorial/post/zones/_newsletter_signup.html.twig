@@ -10,7 +10,7 @@
      client's own provider), how to withdraw, and links the full policy -
      which is why the module cannot be switched on without one. #}
 {% set signup = zone.newsletterSignup %}
-<form class="not-prose rounded-xl border border-line bg-surface p-5" data-newsletter data-newsletter-endpoint="{{ signup.endpoint }}" action="{{ signup.endpoint }}" method="post">
+<form class="not-prose rounded-xl border border-card-line bg-surface p-5" data-newsletter data-newsletter-endpoint="{{ signup.endpoint }}" action="{{ signup.endpoint }}" method="post">
     {% if signup.title %}<p class="m-0 mb-1 text-base font-semibold text-primary">{{ signup.title }}</p>{% endif %}
     {% if signup.note %}<p class="m-0 mb-4 text-sm text-secondary">{{ signup.note }}</p>{% endif %}
     <div class="flex flex-col gap-2 sm:flex-row">
