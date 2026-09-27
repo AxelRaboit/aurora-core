@@ -11,6 +11,7 @@ use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
 use Aurora\Module\Editorial\Post\Serializer\PostSerializerInterface;
+use Aurora\Module\Editorial\Post\Share\SiteUsefulLinks;
 use Aurora\Module\Editorial\PostType\Repository\PostTypeRepository;
 use Aurora\Module\Editorial\PostType\Serializer\PostTypeSerializerInterface;
 use Aurora\Module\Editorial\Taxonomy\Repository\TaxonomyRepository;
@@ -34,6 +35,7 @@ final readonly class PostsViewBuilder
         private LocaleContextInterface $localeContext,
         private FormRepository $formRepository,
         private DeckRepository $deckRepository,
+        private SiteUsefulLinks $siteUsefulLinks,
     ) {}
 
     /**
@@ -120,6 +122,9 @@ final readonly class PostsViewBuilder
             // Same reasoning as the forms above: only the edit screen has a
             // grid to place one in.
             'decks' => $this->deckChoices(),
+            // What a page that follows the site's useful links will show, so
+            // the editor can say so rather than show an empty list.
+            'siteUsefulLinks' => $this->siteUsefulLinks->links(),
             ...$this->sharedContext(),
         ];
     }

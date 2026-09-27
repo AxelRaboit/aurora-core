@@ -5,6 +5,28 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.279] - 2026-09-27
+
+### Ajouté
+
+#### Des liens utiles pour tout le site
+Les liens utiles se règlent maintenant une fois pour tout le site, dans
+Configuration › Liens utiles, et s'affichent en bas de chaque publication, à
+côté de « Partager ». Une publication suit la liste du site par défaut ; dans
+son onglet Paramétrage, elle peut la masquer, ou avoir ses propres liens et
+revenir à ceux du site d'un clic. Toutes les publications existantes suivent la
+liste du site, sauf celles qui avaient déjà choisi leurs liens.
+
+### Corrigé
+
+#### Les préfixes de références étaient effacés à chaque déploiement
+Les préfixes de l'éditorial (publications, termes, commentaires, formulaires…),
+de la médiathèque et des notes Markdown n'étaient déclarés à aucun fournisseur
+de réglages : la synchronisation lancée à chaque déploiement supprimait ce qui
+avait été enregistré pour eux, et les pages revenaient en silence aux valeurs
+par défaut. Ils sont désormais déclarés, et un test fait échouer tout futur
+oubli du même genre.
+
 ## [0.9.278] - 2026-09-27
 
 ### Ajouté

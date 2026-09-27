@@ -48,8 +48,8 @@ interface PostInputInterface
 
     public function isUsefulLinksEnabled(): bool;
 
-    /** @return list<array{label: string, url: string, color: ?string}> */
-    public function getUsefulLinks(): array;
+    /** @return list<array{label: string, url: string, color: ?string}>|null */
+    public function getUsefulLinks(): ?array;
 
     public function isTitleVisible(): bool;
 

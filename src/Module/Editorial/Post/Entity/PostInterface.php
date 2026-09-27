@@ -66,11 +66,11 @@ interface PostInterface
 
     public function setUsefulLinksEnabled(bool $usefulLinksEnabled): static;
 
-    /** @return list<array{label: string, url: string, color: ?string}> */
-    public function getUsefulLinks(): array;
+    /** @return list<array{label: string, url: string, color: ?string}>|null null follows the site's list */
+    public function getUsefulLinks(): ?array;
 
-    /** @param list<array{label: string, url: string, color: ?string}> $usefulLinks */
-    public function setUsefulLinks(array $usefulLinks): static;
+    /** @param list<array{label: string, url: string, color: ?string}>|null $usefulLinks */
+    public function setUsefulLinks(?array $usefulLinks): static;
 
     public function isTitleVisible(): bool;
 

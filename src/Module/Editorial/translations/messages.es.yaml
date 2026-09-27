@@ -110,6 +110,10 @@ backend:
             errors:
                 terms_required: 'Debe aceptar las condiciones de Google Maps Platform para activar la integración.'
                 place_required: 'Introduzca el identificador de la ficha y la clave de API para activar la integración.'
+        useful_links:
+            settings:
+                title: 'Los enlaces útiles del sitio'
+                intro: 'Se definen una vez aquí y aparecen al pie de cada publicación, junto a «Compartir»: dónde encontrar al autor, el producto, el código. Una publicación puede ocultarlos o tener los suyos, en su pestaña Configuración.'
         newsletter:
             settings:
                 what_title: 'Qué hace esta integración'
@@ -1150,6 +1154,10 @@ backend:
             add: 'Añadir un enlace'
         useful_links_enabled: 'Enlaces útiles al pie de la página'
         useful_links:
+            site_hint: 'Esta página usa los enlaces útiles del sitio, definidos en Configuración › Enlaces útiles.'
+            site_empty: 'El sitio aún no tiene enlaces útiles.'
+            customise: 'Enlaces propios de esta página'
+            reset: 'Usar los enlaces del sitio'
             hint: 'Los enlaces de esta página, en orden: dónde encontrar al autor, el producto, el código. Arrastre el tirador para reordenarlos.'
             empty: 'Ningún enlace, el bloque no se muestra.'
             move: Mover
