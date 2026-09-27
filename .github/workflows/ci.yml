@@ -16,71 +16,31 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Des jobs paralleles plutot qu'un seul qui fait tout a la suite. Jusqu'au
+# 27/09/2026, un job unique enchainait l'installation, les controles, les tests
+# front, les unitaires et l'integration : 10 minutes de mur, dont 4 pour
+# l'integration seule, alors que les controles et les tests front n'ont meme
+# pas besoin de la base. Chaque job paie son installation (une minute et
+# demie), mais ils tournent ensemble et le depot est public : les minutes ne
+# coutent rien, seule l'attente compte.
+env:
+  APP_ENV: test
+  APP_SECRET: ci_secret_not_used_in_prod
+  DATABASE_URL: postgresql://app:!ChangeMe!@127.0.0.1:5432/aurora?serverVersion=18&charset=utf8
+
 jobs:
-  symfony:
-    name: Symfony ${{ matrix.symfony-version }} | PHP ${{ matrix.php-version }} | Node ${{ matrix.node-version }} | PNPM ${{ matrix.pnpm-version }}
+  quality:
+    name: Qualite PHP
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: true
-      matrix:
-        symfony-version: [ 7.4 ]
-        php-version: [ 8.4 ]
-        node-version: [ 24 ]
-        pnpm-version: [ 10 ]
-    env:
-      extensions: mbstring, xml, ctype, iconv, intl, pdo, pdo_pgsql, dom, filter, json, tokenizer
-      APP_ENV: test
-      APP_SECRET: ci_secret_not_used_in_prod
-      DATABASE_URL: postgresql://app:!ChangeMe!@127.0.0.1:5432/aurora?serverVersion=18&charset=utf8
-    services:
-      postgres:
-        image: postgres:18-alpine
-        env:
-          POSTGRES_USER: app
-          POSTGRES_PASSWORD: "!ChangeMe!"
-          POSTGRES_DB: aurora
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
     steps:
-      # -- Setup GitHub actions 🐙 ---------------------------------------------------
       - name: Checkout
         uses: actions/checkout@v7
 
-      # -- PHP & Composer 🧙‍️ ---------------------------------------------------------
-      - name: Setup PHP, extensions & composer with shivammathur/setup-php
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ matrix.php-version }}
-          tools: composer:v2
-          extensions: ${{ env.extensions }}
-          ini-values: post_max_size=256M, max_execution_time=180
-        env:
-          update: true
-
-      - name: Check PHP Version
-        run: php -v
+      - name: Setup PHP
+        uses: ./.github/actions/setup-php
 
       - name: Validate composer.json and composer.lock
         run: composer validate
-
-      - name: Get composer cache directory
-        id: composer-cache
-        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-
-      - name: Cache PHP dependencies
-        uses: actions/cache@v6
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ runner.os }}-composer-
-
-      - name: Install PHP dependencies
-        run: composer install --no-ansi --no-interaction --prefer-dist --no-scripts
 
       # -- Avis de securite 🔒 -------------------------------------------------
       # Deux etapes, et la premiere n'echoue jamais : elle imprime tout, pour
@@ -109,63 +69,6 @@ jobs:
           (cd tools/rector && composer install && chmod +x vendor/bin/*)
           (cd tools/phpstan && composer install && chmod +x vendor/bin/*)
 
-      # -- Symfony ⚡ ------------------------------------------------------------------
-      - name: Create test database
-        env:
-          PGPASSWORD: "!ChangeMe!"
-        run: psql -h 127.0.0.1 -U app -d aurora -c "CREATE DATABASE aurora_test;"
-
-      - name: Run migrations
-        run: php bin/console doctrine:migrations:migrate --no-interaction
-
-      # -- PNPM & Vite 🟨 ------------------------------------------------------------
-      # Deliberately no `cache:` input. setup-node v5 began caching
-      # automatically by detecting the package manager, which would have run
-      # `pnpm store path` here - one step before pnpm is installed. v6 narrowed
-      # that to npm, and this repo has no package-lock.json, so nothing fires.
-      # The pnpm store is cached explicitly two steps down instead.
-      - name: Install Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: ${{ matrix.node-version }}
-
-      - name: Install pnpm
-        run: npm install -g pnpm@${{ matrix.pnpm-version }}
-
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - uses: actions/cache@v6
-        name: Setup pnpm cache
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-      - name: Install JS dependencies
-        run: pnpm install --frozen-lockfile
-
-      # Le pendant JS, qui n'existait pas du tout : soixante-deux des
-      # soixante-et-onze avis etaient npm, et rien dans la CI ne les regardait.
-      #
-      # Le lock fait davantage autorite ici que cote PHP : un projet qui
-      # consomme aurora-core installe ses dependances JS avec
-      # `pnpm --dir=vendor/axelraboit/aurora install --frozen-lockfile`, donc
-      # depuis **ce** lock. Les plages de `package.json` ne sont jamais
-      # resolues par personne, et auditer le lock est exactement auditer ce qui
-      # sera livre.
-      - name: Report every JS advisory (never fails)
-        run: pnpm audit || true
-
-      - name: Fail on high or critical JS advisories
-        run: pnpm audit --audit-level high
-
-      - name: Build assets
-        run: pnpm build
-
       # -- Coding standards ✨ ------------------------------------------------------
       - name: PHP CS Fixer
         run: make lint-php
@@ -186,9 +89,6 @@ jobs:
       - name: Rector
         run: make rector
 
-      - name: Lint JavaScript
-        run: make lint-js
-
       # -- Static analysis ✨ -------------------------------------------------
       - name: PHPStan Cache
         uses: actions/cache@v6
@@ -200,25 +100,123 @@ jobs:
       - name: PHPStan
         run: make stan
 
-      # -- Test database 🗄️ --------------------------------------------------
-      - name: Create test database (dbname_suffix _test applied automatically by Doctrine in test env)
-        run: php bin/console doctrine:database:create --env=test --if-not-exists
+  frontend:
+    name: Front (${{ matrix.shard }}/2)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        shard: [ 1, 2 ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
 
-      - name: Run migrations on test database
-        run: php bin/console doctrine:migrations:migrate --env=test --no-interaction
+      # PHP aussi : les tests front lisent le catalogue de traductions que la
+      # console exporte depuis les YAML.
+      - name: Setup PHP
+        uses: ./.github/actions/setup-php
 
-      # -- Tests 🧪 -------------------------------------------------------------
+      - name: Setup Node
+        uses: ./.github/actions/setup-node
+
+      # Le pendant JS, qui n'existait pas du tout : soixante-deux des
+      # soixante-et-onze avis etaient npm, et rien dans la CI ne les regardait.
+      #
+      # Le lock fait davantage autorite ici que cote PHP : un projet qui
+      # consomme aurora-core installe ses dependances JS avec
+      # `pnpm --dir=vendor/axelraboit/aurora install --frozen-lockfile`, donc
+      # depuis **ce** lock. Les plages de `package.json` ne sont jamais
+      # resolues par personne, et auditer le lock est exactement auditer ce qui
+      # sera livre.
+      #
+      # Audit et lint une seule fois, sur la premiere tranche.
+      - name: Report every JS advisory (never fails)
+        if: matrix.shard == 1
+        run: pnpm audit || true
+
+      - name: Fail on high or critical JS advisories
+        if: matrix.shard == 1
+        run: pnpm audit --audit-level high
+
+      - name: Lint JavaScript
+        if: matrix.shard == 1
+        run: make lint-js
+
+      - name: Export translations
+        run: php bin/console app:translations:dump-js
+
       - name: Run frontend tests
-        run: make test-frontend
+        run: pnpm exec vitest run --shard=${{ matrix.shard }}/2
+
+  unit:
+    name: Tests unitaires PHP
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup PHP
+        uses: ./.github/actions/setup-php
+
+      # Ni base ni assets : mesure le 27/09/2026, la suite passe entiere avec
+      # une base injoignable et sans `public/build`. Le catalogue de
+      # traductions exporte, lui, est verifie par un test : dans l'ancien job
+      # unique, l'etape des tests front l'avait produit juste avant.
+      - name: Export translations
+        run: php bin/console app:translations:dump-js
 
       - name: Run backend unit tests
         run: make test-backend-unit
 
+  integration:
+    name: Integration (${{ matrix.shard }}/3)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        shard: [ 1, 2, 3 ]
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: "!ChangeMe!"
+          POSTGRES_DB: aurora
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup PHP
+        uses: ./.github/actions/setup-php
+
+      # Les tests d'integration rendent des pages, et le rendu d'un template
+      # passe par les tags Vite : sans manifeste, ils echouent.
+      - name: Setup Node
+        uses: ./.github/actions/setup-node
+
+      - name: Build assets
+        run: pnpm build
+
+      - name: Create and migrate the test database (dbname_suffix _test applied by Doctrine)
+        run: |
+          php bin/console doctrine:database:create --if-not-exists
+          php bin/console doctrine:migrations:migrate --no-interaction
+
+      # La tranche est calculee par tools/ci/shard.php depuis les fichiers du
+      # disque : un test neuf tombe toujours dans une tranche, et
+      # CiShardsCoverEveryIntegrationTestTest verifie qu'aucun ne se perd.
       - name: Run backend integration tests
-        run: make test-backend-integration
+        run: php bin/phpunit --testdox $(php tools/ci/shard.php 3 ${{ matrix.shard }})
 
   lowest:
-    name: Minimums declares | PHP 8.4
+    name: Minimums declares (${{ matrix.shard }}/3)
     # Une PR vers master est une release : c'est la que les contraintes de
     # composer.json deviennent un contrat publie, et le seul moment ou il vaut
     # la peine de payer un second run complet.
@@ -238,13 +236,15 @@ jobs:
     # au consommateur des versions qui marchent. Mesure le 16/09/2026 : les
     # 7496 tests passent aux minimums declares. Il est retire, et ce job est ce
     # qui garde la question ouverte.
+    #
+    # En trois tranches comme l'integration, les unitaires sur la premiere :
+    # c'est le job le plus long d'une PR de release.
     if: github.event_name == 'workflow_dispatch' || github.base_ref == 'master'
     runs-on: ubuntu-latest
-    env:
-      extensions: mbstring, xml, ctype, iconv, intl, pdo, pdo_pgsql, dom, filter, json, tokenizer
-      APP_ENV: test
-      APP_SECRET: ci_secret_not_used_in_prod
-      DATABASE_URL: postgresql://app:!ChangeMe!@127.0.0.1:5432/aurora?serverVersion=18&charset=utf8
+    strategy:
+      fail-fast: true
+      matrix:
+        shard: [ 1, 2, 3 ]
     services:
       postgres:
         image: postgres:18-alpine
@@ -268,7 +268,7 @@ jobs:
         with:
           php-version: '8.4'
           tools: composer:v2
-          extensions: ${{ env.extensions }}
+          extensions: mbstring, xml, ctype, iconv, intl, pdo, pdo_pgsql, dom, filter, json, tokenizer
           ini-values: post_max_size=256M, max_execution_time=180
         env:
           update: true
@@ -281,42 +281,30 @@ jobs:
       - name: Show what was resolved
         run: composer show --direct
 
-      - name: Create test database
-        env:
-          PGPASSWORD: "!ChangeMe!"
-        run: psql -h 127.0.0.1 -U app -d aurora -c "CREATE DATABASE aurora_test;"
-
-      - name: Run migrations
-        run: php bin/console doctrine:migrations:migrate --no-interaction
-
       # Les assets sont construits parce que les tests d'integration rendent des
       # pages, et le rendu d'un template passe par les tags Vite. Ils ne
       # dependent pas de la resolution PHP, mais leur absence ferait echouer ce
       # job pour une raison qui n'a rien a voir avec son sujet.
-      - name: Install Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: 24
-
-      - name: Install pnpm
-        run: npm install -g pnpm@10
-
-      - name: Install JS dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Setup Node
+        uses: ./.github/actions/setup-node
 
       - name: Build assets
         run: pnpm build
 
-      - name: Create test database (dbname_suffix _test applied automatically by Doctrine in test env)
-        run: php bin/console doctrine:database:create --env=test --if-not-exists
-
-      - name: Run migrations on test database
-        run: php bin/console doctrine:migrations:migrate --env=test --no-interaction
+      - name: Create and migrate the test database (dbname_suffix _test applied by Doctrine)
+        run: |
+          php bin/console doctrine:database:create --if-not-exists
+          php bin/console doctrine:migrations:migrate --no-interaction
 
       # Ni lint ni analyse statique : ce job ne parle pas du style du code, il
       # demande si le code tourne contre le plancher qu'on publie.
+      - name: Export translations
+        if: matrix.shard == 1
+        run: php bin/console app:translations:dump-js
+
       - name: Run backend unit tests
+        if: matrix.shard == 1
         run: make test-backend-unit
 
       - name: Run backend integration tests
-        run: make test-backend-integration
+        run: php bin/phpunit --testdox $(php tools/ci/shard.php 3 ${{ matrix.shard }})
