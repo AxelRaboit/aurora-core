@@ -722,7 +722,8 @@ export function usePostGrid(layout, content) {
     const snap = writable(
         () => layout.value.snap,
         (value) => {
-            layout.value.snap = value;
+            // AppSelect emits strings, and every edge handle adds the step.
+            layout.value.snap = Number(value);
         },
     );
 
