@@ -260,7 +260,17 @@ const SHOTS = [
         },
     },
 
-    { name: "tour-mediatheque-grille", path: "/backend/ged/documents" },
+    {
+        // La grille, choisie explicitement : un navigateur neuf ouvre la
+        // médiathèque en liste sur un écran large, et la carte montre les
+        // vignettes.
+        name: "tour-mediatheque-grille",
+        path: "/backend/ged/documents",
+        async prepare(page) {
+            await page.locator("main").getByRole("button", { name: "Vue cartes" }).click();
+            await page.waitForTimeout(2_000);
+        },
+    },
     /**
      * La fiche d'un document : ses métadonnées et son historique de versions.
      *
@@ -474,8 +484,11 @@ const SHOTS = [
         path: "/backend/configuration/themes",
         async prepare(page) {
             await page.waitForTimeout(2_500);
-            await page.getByRole("link", { name: /Modifier|Éditer/ }).first().click()
-                .catch(() => {});
+            // Le thème livré avec Aurora, toujours là. Pas de repli : un clic
+            // raté photographiait la liste des thèmes à la place de la palette,
+            // en double de tour-themes.
+            await page.locator("main").getByRole("button", { name: "Actions pour Default" }).click();
+            await page.getByRole("button", { name: "Modifier", exact: true }).click();
             await page.waitForTimeout(2_500);
         },
     },
