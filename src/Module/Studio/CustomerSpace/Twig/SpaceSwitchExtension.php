@@ -20,7 +20,7 @@ use function array_values;
  * The header now lists the spaces the reader may open - the same rule as the
  * list, archived ones left out - on the same tab they are on.
  */
-final class SpaceSwitchExtension
+final readonly class SpaceSwitchExtension
 {
     /** Tab of a space → the route that opens it. */
     private const array TAB_ROUTES = [
@@ -29,8 +29,8 @@ final class SpaceSwitchExtension
     ];
 
     public function __construct(
-        private readonly SpaceVisibility $visibility,
-        private readonly UrlGeneratorInterface $urlGenerator,
+        private SpaceVisibility $visibility,
+        private UrlGeneratorInterface $urlGenerator,
     ) {}
 
     /** @return list<array{name: string, customerName: string, colourSlot: int|null, url: string}> */
