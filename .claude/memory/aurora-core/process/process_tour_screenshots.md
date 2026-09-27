@@ -7,7 +7,7 @@ metadata:
 
 ## Règle
 
-Les vingt-quatre pages `/fr/aurora/{slug}` d'app.axelraboit.fr sont la vitrine
+Les vingt-quatre pages `/fr/aurora/{slug}` du site public sont la vitrine
 du produit. Leurs images vivent dans la médiathèque de production, et tout ce
 qui les touche passe par `tools/screenshots/`.
 

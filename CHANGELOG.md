@@ -5,6 +5,54 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.266] - 2026-09-27
+
+Corrections issues d'une revue de qualité des fonctionnalités livrées du 23 au
+26 septembre.
+
+### Sécurité
+
+- **Les couleurs de fond, d'entête et de pied du thème sont filtrées** en
+  hexadécimal avant d'entrer dans la balise `<style>` du site public, et les
+  variables CSS personnalisées d'un thème ne peuvent plus fermer leur règle.
+  La config d'un thème n'est toujours pas validée à l'écriture : ce filtre est
+  la garde en attendant.
+- **La politique de sécurité n'autorise plus tout `www.google.com`** pour les
+  scripts, seulement le chemin de reCAPTCHA sur Google et gstatic. Le domaine
+  entier sert des réponses JSONP qui auraient permis de contourner la
+  protection des scripts.
+- **Le sondage, la prise de rendez-vous et l'inscription à la lettre
+  n'acceptent plus une requête venue d'un autre site** : un formulaire caché
+  ailleurs pouvait faire voter, réserver ou inscrire un visiteur à son insu.
+- **Le vote d'un sondage a sa propre limite**, trente par heure et par adresse,
+  que le commentaire de configuration annonçait sans qu'elle existe.
+
+### Corrigé
+
+- **Une réservation ne prend plus qu'un créneau que la grille propose** : une
+  heure hors du pas (10 h 17), un créneau qui finirait après la fermeture ou
+  une date au-delà de la fenêtre de réservation étaient acceptés.
+- **Une réponse de sondage écrite « 0 » compte** : la page l'affichait, le vote
+  la refusait. Page et vote lisent désormais la même liste.
+- **Médiathèque, variantes** : une variante dont l'original est à la corbeille
+  s'enregistre de nouveau et reste visible quand les familles sont regroupées ;
+  la corbeille ne permet plus de fabriquer une chaîne à deux niveaux ; la
+  recherche publique ne donne plus le titre de l'original ;
+  `aurora:ged:import` refuse un libellé trop long avant de stocker le fichier.
+- **Un lien de partage personnalisé à l'adresse refusée est signalé dans
+  l'éditeur** au lieu de disparaître en silence à l'enregistrement.
+- **Les zones de liste préchargent leurs vignettes** : une liste de douze
+  publications coûtait douze requêtes de plus.
+- `aurora:storage:export` refuse la racine comme cible, et reprend un fichier
+  réécrit à taille égale.
+- Les scripts du tour n'ont plus de serveur par défaut
+  (`TOUR_SSH_HOST` et `TOUR_REMOTE_DIR` sont exigés) et visent une page par son
+  slug dans le type `aurora`.
+
+### Dans aurora-client
+
+Rien à faire après `make aurora-update`.
+
 ## [0.9.265] - 2026-09-26
 
 ### Ajouté
@@ -225,14 +273,30 @@ Une migration ajoute deux colonnes à `core_posts` ; `make deploy-prod` la joue.
     d'établissement (Places API), avec un lien vers la fiche complète.
   - L'inscription à la lettre ajoute l'adresse d'un visiteur à la liste du
     client chez Brevo ou Mailchimp, protégée par une limite de dix envois par
-    heure et par IP - la même limite protège désormais aussi la prise de
-    rendez-vous (0.9.253).
+    heure et par IP - la même limite protège aussi la prise de rendez-vous
+    ci-dessous.
+
+#### Quatre nouveaux blocs de page
+- **Récit en images** : une nouvelle présentation de la zone Liste, où la
+  photo de chaque chapitre reste à l'écran pendant que son texte défile à
+  côté, puis cède la place à la suivante. Pur CSS, empilé simplement sur
+  téléphone.
+- **Carte de voyage** : les étapes d'un déplacement sur une carte OpenStreetMap
+  (aucune clé, aucun compte), chaque repère ouvrant la photo prise là, choisie
+  dans une galerie d'images posée avec la zone.
+- **Simulateur de devis** : un prix de base et des options à cocher, le total
+  recalculé à chaque case, puis écrit dans le premier champ de texte libre du
+  formulaire posé juste après.
+- **Prise de rendez-vous** : les mêmes horaires que le bloc Horaires, mais
+  proposés en créneaux à réserver. Un rendez-vous atterrit, en attente de
+  confirmation, sur un calendrier partagé que le back-office voit déjà. Le
+  créneau est revérifié à l'envoi, jamais pris deux fois.
 
 ### Dans aurora-client
 
 Rien à faire : aucune migration, les deux nouveaux limiteurs de débit arrivent
-avec le paquet. Un `make aurora-update` suivi de la reconstruction des assets
-suffit.
+avec le paquet et les rendez-vous vivent dans le module Planning déjà en place.
+Un `make aurora-update` suivi de la reconstruction des assets suffit.
 
 ---
 
@@ -302,34 +366,6 @@ suffit.
   politique de sécurité du site bloquait le script de Cloudflare Turnstile (et
   celui de reCAPTCHA) : une fois la vérification activée dans les réglages, le
   widget ne se dessinait jamais et chaque envoi était refusé faute de jeton.
-
----
-
-## [0.9.253] - 2026-09-26
-
-### Ajouté
-
-#### Quatre nouveaux blocs de page
-- **Récit en images** : une nouvelle présentation de la zone Liste, où la
-  photo de chaque chapitre reste à l'écran pendant que son texte défile à
-  côté, puis cède la place à la suivante. Pur CSS, empilé simplement sur
-  téléphone.
-- **Carte de voyage** : les étapes d'un déplacement sur une carte OpenStreetMap
-  (aucune clé, aucun compte), chaque repère ouvrant la photo prise là, choisie
-  dans une galerie d'images posée avec la zone.
-- **Simulateur de devis** : un prix de base et des options à cocher, le total
-  recalculé à chaque case, puis écrit dans le premier champ de texte libre du
-  formulaire posé juste après.
-- **Prise de rendez-vous** : les mêmes horaires que le bloc Horaires, mais
-  proposés en créneaux à réserver. Un rendez-vous atterrit, en attente de
-  confirmation, sur un calendrier partagé que le back-office voit déjà. Le
-  créneau est revérifié à l'envoi, jamais pris deux fois.
-
-### Dans aurora-client
-
-Rien à faire : aucune migration, les rendez-vous vivent dans le module
-Planning déjà en place. Un `make aurora-update` suivi de la reconstruction des
-assets suffit.
 
 ---
 

@@ -8,7 +8,7 @@ import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import BannerColorField from "./BannerColorField.vue";
-import { DEFAULT_SHARE_LINKS, MAX_SHARE_LINKS, SHARE_TYPES } from "../../../frontend/shareLinks.js";
+import { DEFAULT_SHARE_LINKS, MAX_SHARE_LINKS, SHARE_TYPES, isShareAddress } from "../../../frontend/shareLinks.js";
 
 /**
  * The links of a publication's share block.
@@ -131,6 +131,7 @@ function add() {
                     :model-value="link.url ?? ''"
                     :label="t('backend.posts.share_links.url')"
                     :hint="t('backend.posts.share_links.url_hint', { url: '{url}', title: '{title}' })"
+                    :error="isShareAddress(link.url) ? '' : t('backend.posts.share_links.url_invalid')"
                     placeholder="https://"
                     v-on:update:model-value="update(index, { url: $event || null })"
                 />

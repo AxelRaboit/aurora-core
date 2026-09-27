@@ -86,6 +86,14 @@ final class ExportStorageCommand extends Command
         $target = mb_rtrim(Path::makeAbsolute((string) $input->getArgument('target'), (string) getcwd()), '/');
         $dryRun = (bool) $input->getOption('dry-run');
 
+        // `/` trims to nothing, and every key would then pass the guard below
+        // and land at the root of the machine.
+        if ('' === $target) {
+            $io->error('The target cannot be the root directory.');
+
+            return Command::INVALID;
+        }
+
         try {
             $adapter = $this->storageManager->forDisk($disk);
 
@@ -113,7 +121,10 @@ final class ExportStorageCommand extends Command
                     continue;
                 }
 
-                if (is_file($destination) && filesize($destination) === $object->size) {
+                // Same size and at least as recent: a file rewritten in the
+                // bucket with the same length is fetched again all the same.
+                if (is_file($destination) && filesize($destination) === $object->size
+                    && filemtime($destination) >= $object->lastModifiedAt->getTimestamp()) {
                     ++$skipped;
 
                     continue;

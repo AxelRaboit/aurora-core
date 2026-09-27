@@ -13,6 +13,7 @@ use Aurora\Module\Planning\Planning\Entity\Planning;
 use Aurora\Module\Planning\Planning\Repository\PlanningRepository;
 use Aurora\Module\Planning\Sync\Manager\ModuleCalendarProvider;
 use DateTimeImmutable;
+use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Clock\MockClock;
@@ -89,6 +90,29 @@ final class BookingSlotFinderTest extends TestCase
             new DateTimeImmutable('2026-09-22 11:00:00 Europe/Paris'),
             $planning,
         ));
+    }
+
+    public function testOnlyAStartTheGridOffersIsBookable(): void
+    {
+        $finder = new BookingSlotFinder($this->calendars(new Planning()), $this->createStub(PlanningEventRepository::class), new MockClock(new DateTimeImmutable('2026-09-21 06:00:00 UTC')));
+        $options = GridZoneOptions::normalize(['hours' => self::HOURS, 'slotDuration' => 60, 'bookingWindowDays' => 7, 'timezone' => 'Europe/Paris']);
+        $at = static fn (string $moment): DateTimeImmutable => new DateTimeImmutable($moment.' Europe/Paris');
+
+        self::assertTrue($finder->isOffered($options, $at('2026-09-22 11:00')), 'the last slot of the morning');
+        self::assertTrue($finder->isOffered($options, $at('2026-09-22 09:00')->setTimezone(new DateTimeZone('UTC'))), 'the same instant in another timezone');
+        self::assertFalse($finder->isOffered($options, $at('2026-09-22 10:17')), 'off the slot grid');
+        self::assertFalse($finder->isOffered($options, $at('2026-09-22 11:30')), 'would end after closing');
+        self::assertFalse($finder->isOffered($options, $at('2026-09-23 10:00')), 'a closed day');
+        self::assertFalse($finder->isOffered($options, $at('2026-09-29 10:00')), 'beyond the seven-day window');
+        self::assertFalse($finder->isOffered($options, $at('2026-09-21 09:00')), 'in the past');
+    }
+
+    public function testAClosedDateOffersNothing(): void
+    {
+        $finder = new BookingSlotFinder($this->calendars(new Planning()), $this->createStub(PlanningEventRepository::class), new MockClock(new DateTimeImmutable('2026-09-21 06:00:00 UTC')));
+        $options = GridZoneOptions::normalize(['hours' => self::HOURS, 'slotDuration' => 60, 'bookingWindowDays' => 7, 'timezone' => 'Europe/Paris', 'closedDates' => ['2026-09-22']]);
+
+        self::assertFalse($finder->isOffered($options, new DateTimeImmutable('2026-09-22 10:00 Europe/Paris')));
     }
 
     /**

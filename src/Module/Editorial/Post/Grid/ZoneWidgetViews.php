@@ -6,6 +6,7 @@ namespace Aurora\Module\Editorial\Post\Grid;
 
 use Aurora\Module\Editorial\Booking\Service\BookingSlotFinder;
 use Aurora\Module\Editorial\Poll\Repository\PollVoteRepository;
+use Aurora\Module\Editorial\Poll\Service\PollAnswers;
 use Closure;
 use DateTimeImmutable;
 use DateTimeZone;
@@ -716,24 +717,24 @@ final readonly class ZoneWidgetViews
      */
     private function poll(array $zone, array $options, array $held, string $locale, ?int $postId): ?array
     {
-        $answers = array_slice($this->lines($held['code']), 0, 8);
+        $pollAnswers = new PollAnswers();
+        $answers = $pollAnswers->of($held['label'], $held['code']);
 
-        if ('' === $held['label'] || count($answers) < 2) {
+        if (null === $answers) {
             return null;
         }
 
         $tally = null !== $postId && $this->pollVotes instanceof PollVoteRepository ? $this->pollVotes->tally($postId, $zone['id']) : [];
-        $total = array_sum($tally);
+        $results = $pollAnswers->results($answers, $tally);
 
         return [
             'question' => $held['label'],
             'answers' => array_map(static fn (int $index, string $label): array => [
                 'index' => $index,
                 'label' => $label,
-                'votes' => $tally[$index] ?? 0,
-                'percent' => 0 === $total ? 0 : (int) round(($tally[$index] ?? 0) / $total * 100),
+                ...$results['answers'][$index],
             ], array_keys($answers), $answers),
-            'total' => $total,
+            'total' => $results['total'],
             'showResults' => 'always' === $options['pollResults'],
             'endpoint' => null !== $postId && $this->urlGenerator instanceof UrlGeneratorInterface
                 ? $this->urlGenerator->generate('editorial_poll_vote', ['locale' => $locale, 'postId' => $postId, 'zoneId' => $zone['id']])

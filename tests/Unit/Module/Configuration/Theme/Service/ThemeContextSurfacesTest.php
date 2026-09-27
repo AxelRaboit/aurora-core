@@ -55,6 +55,35 @@ final class ThemeContextSurfacesTest extends TestCase
         self::assertSame('', $this->contextWithConfig(['background_color' => '   '])->frontendSurfacesCss());
     }
 
+    /**
+     * La config d'un thème n'est validée nulle part à l'écriture, et ce CSS
+     * part dans un `<style>` public : une valeur libre y fermerait la balise.
+     */
+    public function testASurfaceColourThatIsNotHexNeverReachesTheStyleTag(): void
+    {
+        $css = $this->contextWithConfig([
+            'background_color' => 'red;}</style><script>alert(1)</script>',
+            'header_color' => 'red',
+        ])->frontendSurfacesCss();
+
+        self::assertSame('', $css);
+        self::assertSame('', $this->contextWithConfig(['background_color' => 'red;}</style>'])->previewSurfaceCss('.preview'));
+    }
+
+    public function testACustomPropertyKeepsItsValueButCannotBreakOut(): void
+    {
+        $css = $this->contextWithConfig([
+            '--radius' => '0.75rem',
+            '--font' => 'var(--th-font, system-ui)',
+            '--evil' => 'x;}</style><script>alert(1)</script>',
+            '--comment' => 'a /* b',
+            '--x;color:red' => '1px',
+            'plain' => 'ignored',
+        ])->cssVariableOverrides();
+
+        self::assertSame('--radius: 0.75rem; --font: var(--th-font, system-ui);', $css);
+    }
+
     public function testTheBackgroundRuleTargetsThePage(): void
     {
         $css = $this->contextWithConfig(['background_color' => '#0f172a'])->frontendSurfacesCss();

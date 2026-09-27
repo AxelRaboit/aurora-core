@@ -41,6 +41,14 @@ final readonly class DocumentFamilyRule
             return ['originalId' => 'backend.ged.documents.errors.original_self'];
         }
 
+        // Saving an alternate without touching its link is always allowed,
+        // even when the original has gone to the trash since: refusing would
+        // lock every edit of the alternate - its title included - until
+        // somebody thought of removing a link they never asked to change.
+        if ($document?->getOriginal()?->getId() === $originalId) {
+            return [];
+        }
+
         $original = $this->documentRepository->find($originalId);
 
         if (!$original instanceof DocumentInterface || $original->isTrashed()) {
@@ -51,8 +59,11 @@ final readonly class DocumentFamilyRule
             return ['originalId' => 'backend.ged.documents.errors.original_is_alternate'];
         }
 
+        // Trashed alternates count: restoring one later would otherwise hang
+        // it two levels down, under an original that had become an alternate
+        // while it was away.
         if ($document instanceof DocumentInterface && null !== $document->getId()
-            && [] !== $this->documentRepository->countAlternatesFor([$document->getId()])) {
+            && [] !== $this->documentRepository->countAlternatesFor([$document->getId()], includeTrashed: true)) {
             return ['originalId' => 'backend.ged.documents.errors.original_has_alternates'];
         }
 

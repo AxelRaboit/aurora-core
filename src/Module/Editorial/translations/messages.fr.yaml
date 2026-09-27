@@ -1073,6 +1073,7 @@ backend:
       color: Couleur
       url: Adresse
       url_hint: "https:// ou mailto:. {url} et {title} sont remplacés par l'adresse et le titre de la page, ce qui en fait un vrai lien de partage."
+      url_invalid: "Ce lien sera retiré à l'enregistrement : son adresse doit commencer par https:// ou mailto:."
       add: Ajouter un lien
     field_title: Titre
     field_slug: Slug
@@ -1473,6 +1474,7 @@ frontend:
       poll:
         total: "Votes : %count%"
         closed: "Ce sondage n'est plus ouvert."
+        too_many: Trop de votes depuis cette adresse, réessayez plus tard.
       episode:
         transcript: Transcription
       reviews:

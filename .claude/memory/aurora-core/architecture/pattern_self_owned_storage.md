@@ -98,9 +98,9 @@ NOT NULL là où le fichier est obligatoire (ex: `DocumentVersion`).
 > comme `DocumentUrlGenerator::routeFor()`. Le piège est silencieux :
 > l'URL se construit sans erreur et répond 404 en production.
 >
-> Vaut aussi pour les fichiers dérivés. La clé d'un variant ne dit rien
-> du statut de l'image dont il vient : c'est l'entité qu'on interroge,
-> jamais le chemin.
+> Vaut aussi pour les fichiers dérivés. La clé d'une taille générée
+> (`renditions`) ne dit rien du statut de l'image dont elle vient : c'est
+> l'entité qu'on interroge, jamais le chemin.
 
 ## Référencer un fichier d'un autre module
 

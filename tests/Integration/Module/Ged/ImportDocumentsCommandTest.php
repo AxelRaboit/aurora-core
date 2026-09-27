@@ -9,6 +9,7 @@ use Aurora\Module\Ged\Enum\DocumentStatusEnum;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -153,6 +154,30 @@ final class ImportDocumentsCommandTest extends IntegrationTestCase
 
         self::assertNotSame(0, $tester->getStatusCode());
         self::assertSame($before, $this->documentCount());
+    }
+
+    /** A label the column cannot hold is refused before the file is stored. */
+    public function testALabelTooLongIsRefusedBeforeAnythingIsStored(): void
+    {
+        $this->writeImage('vert.png');
+        $this->runImport([$this->sourceDir.'/vert.png'])->assertCommandIsSuccessful();
+        $original = $this->lastDocument();
+        self::assertNotNull($original);
+
+        $this->writeImage('long.png');
+        $before = $this->documentCount();
+        $tester = $this->runImport([$this->sourceDir.'/long.png'], ['--original' => (string) $original->getId(), '--label' => str_repeat('x', 41)]);
+
+        self::assertSame(Command::INVALID, $tester->getStatusCode());
+        self::assertSame($before, $this->documentCount());
+    }
+
+    public function testALabelWithoutAnOriginalIsRefused(): void
+    {
+        $this->writeImage('seul.png');
+
+        self::assertSame(Command::INVALID, $this->runImport([$this->sourceDir], ['--label' => 'jaune'])->getStatusCode());
+        self::assertSame(Command::INVALID, $this->runImport([$this->sourceDir], ['--original' => 'abc'])->getStatusCode());
     }
 
     /**

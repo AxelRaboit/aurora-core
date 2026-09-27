@@ -54,11 +54,17 @@ final readonly class ContentSecurityPolicy
      * is refused, the widget never appears, and every submission fails the
      * check it could not show. Turnstile draws its challenge in a frame of its
      * own origin; reCAPTCHA v3 pulls its code from gstatic.
+     *
+     * **Google by path, never by origin.** `www.google.com` as a whole serves
+     * JSONP endpoints, and a script source that answers with a caller-chosen
+     * callback lets any injected tag run code without the nonce - the policy
+     * would be decorative. reCAPTCHA loads everything under `/recaptcha/` on
+     * both hosts, so that is all the policy grants.
      */
     private const array CAPTCHA_SCRIPT_ORIGINS = [
         'https://challenges.cloudflare.com',
-        'https://www.google.com',
-        'https://www.gstatic.com',
+        'https://www.google.com/recaptcha/',
+        'https://www.gstatic.com/recaptcha/',
     ];
 
     private const array CAPTCHA_FRAME_ORIGINS = [

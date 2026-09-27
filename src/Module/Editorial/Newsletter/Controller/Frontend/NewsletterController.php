@@ -7,6 +7,7 @@ namespace Aurora\Module\Editorial\Newsletter\Controller\Frontend;
 use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
+use Aurora\Core\Http\PageScriptRequestTrait;
 use Aurora\Module\Editorial\Newsletter\Service\NewsletterSubscriber;
 use Aurora\Module\Editorial\Newsletter\Setting\NewsletterSettings;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -28,6 +29,7 @@ final class NewsletterController extends AbstractController
 {
     use JsonRequestTrait;
     use JsonResponseTrait;
+    use PageScriptRequestTrait;
 
     public function __construct(
         private readonly NewsletterSettings $settings,
@@ -38,7 +40,7 @@ final class NewsletterController extends AbstractController
     #[Route('/{locale}/newsletter', name: 'editorial_newsletter_subscribe', requirements: ['locale' => '[a-z]{2}'], methods: [HttpMethodEnum::Post->value], priority: 11)]
     public function subscribe(string $locale, Request $request): JsonResponse
     {
-        if (!$this->settings->isEnabled()) {
+        if (!$this->settings->isEnabled() || !$this->isFromThisPage($request)) {
             return $this->jsonFailure('frontend.editorial.grid.newsletter.unavailable', 404);
         }
 

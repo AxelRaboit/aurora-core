@@ -17,8 +17,8 @@
  *   node tools/screenshots/push-tour.mjs           # envoyer
  *   node tools/screenshots/push-tour.mjs tour-contrats tour-espaces-clients
  *
- * Le serveur est nommé par `TOUR_SSH_HOST` (défaut `vps`) et le projet par
- * `TOUR_REMOTE_DIR` (défaut `/var/www/aurora-client`).
+ * Le serveur est nommé par `TOUR_SSH_HOST` et le projet par `TOUR_REMOTE_DIR`,
+ * sans valeur par défaut : voir `lib/remote.mjs`.
  */
 
 import { execFile } from "node:child_process";
@@ -26,6 +26,7 @@ import { readFile, access } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
+import { remote } from "./lib/remote.mjs";
 
 const run = promisify(execFile);
 
@@ -33,8 +34,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, "../..");
 const shotsDir = resolve(root, "var/screenshots");
 
-const HOST = process.env.TOUR_SSH_HOST ?? "vps";
-const REMOTE_DIR = process.env.TOUR_REMOTE_DIR ?? "/var/www/aurora-client";
+const { host: HOST, dir: REMOTE_DIR } = remote();
 const REMOTE_TMP = "/tmp/aurora-tour";
 
 const dryRun = process.argv.includes("--dry-run");
