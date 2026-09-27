@@ -1,0 +1,11 @@
+backend:
+    notifications:
+        title: Notificaciones
+        empty: 'No hay notificaciones.'
+        close: Cerrar
+        delete: 'Eliminar esta notificación'
+        delete_all: 'Eliminar todo'
+        mark_all_read: 'Marcar todo como leído'
+        just_now: 'ahora mismo'
+        minutes_ago: 'hace {n} min'
+        hours_ago: 'hace {n} h'

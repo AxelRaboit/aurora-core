@@ -1,10 +1,1532 @@
-# Lo que lee un cliente, en español.
-#
-# Solo la parte pública: la página del contrato, el formulario de firma, el PDF
-# y los correos. El back-office sigue con el repli francés, como en el resto de
-# la aplicación desde la 0.9.69, y eso es una decisión: quien administra los
-# contratos trabaja en francés, mientras que quien firma no elige el idioma de
-# su contrato.
+backend:
+    stats:
+        studio:
+            spaces: 'Espacios activos'
+            missed: 'Publicaciones no realizadas'
+            late_review: 'Revisiones atrasadas'
+            changes_requested: 'Por rehacer'
+            with_client: 'Con el cliente'
+            upcoming: 'Por publicar en 7 días'
+            awaiting_signature: 'Contratos por firmar'
+            decks: Presentaciones
+            scope_label: 'Espacios contados'
+            scopes:
+                mine: 'Mis espacios'
+                all: 'Todos los espacios'
+            attention_title: 'Por tratar'
+            attention_empty: 'Nada pendiente con sus clientes.'
+    modules:
+        studio: Studio
+        studio_backend: Studio
+        studio_backend_description: 'Lo que vende y lo que entrega a un cliente: los clientes, los contratos y las presentaciones.'
+        studio_decks: Presentaciones
+        studio_decks_description: 'Crear conjuntos de diapositivas, clasificarlos y duplicarlos.'
+    nav:
+        sections:
+            studio: Studio
+        studio_contract_templates: 'Plantillas de contrato'
+        studio_contract_templates_description: 'Los documentos tipo de los que parten los contratos, y sus versiones.'
+        studio_customers: Clientes
+        studio_customers_description: 'Las empresas con las que contrata, y su bloque de identidad legal.'
+        studio_calendar: 'Calendario editorial'
+        studio_calendar_description: 'Lo que se publica en todos sus clientes, en un solo mes.'
+        studio_spaces: 'Espacios de cliente'
+        studio_spaces_description: 'Un espacio por proyecto de cliente, con su equipo, su tablero y su calendario.'
+        studio_contracts: Contratos
+        studio_contracts_description: 'Los contratos preparados, sellados y firmados.'
+        studio_decks: Presentaciones
+        studio_decks_description: 'Los conjuntos de diapositivas que muestra, clasificados y reutilizables.'
+    audit:
+        actions:
+            studio:
+                customer:
+                    converted: 'Cliente potencial convertido en cliente'
+                    created: 'Cliente creado'
+                    updated: 'Cliente actualizado'
+                    deleted: 'Cliente eliminado'
+                    information_updated: 'Ficha de cliente actualizada'
+                customer_space:
+                    created: 'Espacio de cliente creado'
+                    updated: 'Espacio de cliente modificado'
+                    deleted: 'Espacio de cliente eliminado'
+                space_content_item:
+                    created: 'Contenido creado'
+                    answered: 'Contenido validado o devuelto por el cliente'
+                    updated: 'Contenido modificado'
+                    deleted: 'Contenido eliminado'
+                space_resource:
+                    created: 'Elemento anclado en un espacio'
+                    updated: 'Elemento de espacio modificado'
+                    shown: 'Elemento de espacio abierto al cliente'
+                    hidden: 'Elemento de espacio retirado al cliente'
+                    deleted: 'Elemento de espacio eliminado'
+                space_access_link:
+                    issued: 'Enlace de acceso de cliente creado'
+                    revoked: 'Enlace de acceso de cliente revocado'
+                    deleted: 'Enlace de acceso de cliente eliminado'
+                    opened: 'Espacio abierto por un cliente'
+                space_file:
+                    added: 'Archivo añadido a un espacio'
+                    removed: 'Archivo retirado de un espacio'
+                space_note:
+                    created: 'Nota de espacio creada'
+                    updated: 'Nota de espacio modificada'
+                    pinned: 'Nota de espacio anclada o desanclada'
+                    deleted: 'Nota de espacio eliminada'
+                    imported_from_craft: 'Nota de espacio importada desde Craft'
+                space_chat_channel:
+                    created: 'Canal de conversación abierto'
+                    renamed: 'Canal de conversación renombrado'
+                    updated: 'Canal de conversación modificado'
+                    deleted: 'Canal de conversación eliminado'
+                    opened: 'Conversación privada abierta'
+                    hidden: 'Conversación privada retirada'
+                    invited: 'Miembro añadido a un canal'
+                    uninvited: 'Miembro retirado de un canal'
+                space_chat_message:
+                    posted: 'Mensaje enviado en la conversación de un espacio'
+                    deleted: 'Mensaje de conversación eliminado'
+                space_content_attachment:
+                    attached: 'Archivo añadido a un contenido'
+                    detached: 'Archivo retirado de un contenido'
+                space_content_comment:
+                    posted: 'Mensaje enviado en un contenido'
+                    deleted: 'Mensaje eliminado'
+                space_content_column:
+                    created: 'Etapa de tablero creada'
+                    updated: 'Etapa de tablero renombrada'
+                    deleted: 'Etapa de tablero eliminada'
+                contract_template:
+                    created: 'Plantilla de contrato creada'
+                    updated: 'Plantilla de contrato actualizada'
+                    archived: 'Plantilla de contrato archivada'
+                    restored: 'Plantilla de contrato reactivada'
+                    deleted: 'Plantilla de contrato eliminada'
+                contract_template_version:
+                    opened: 'Versión de plantilla abierta'
+                    updated: 'Versión de plantilla modificada'
+                    published: 'Versión de plantilla publicada'
+                    discarded: 'Borrador de plantilla descartado'
+                contract:
+                    created: 'Contrato creado'
+                    updated: 'Contrato modificado'
+                    frozen: 'Contrato sellado'
+                    link_sent: 'Enlace de firma enviado'
+                    link_revoked: 'Enlace de firma revocado'
+                    reminder_sent: 'Recordatorio enviado al cliente'
+                    refused: 'Contrato rechazado por el cliente'
+                    terminated: 'Contrato rescindido'
+                    signed_by_customer: 'Contrato firmado por el cliente'
+                    countersigned: 'Contrato contrafirmado y formalizado'
+                    deleted: 'Contrato eliminado'
+    permissions:
+        names:
+            studio:
+                customers:
+                    view: 'Consultar los clientes'
+                    create: 'Crear un cliente'
+                    edit: 'Editar un cliente'
+                    delete: 'Eliminar un cliente'
+                spaces:
+                    view: 'Consultar los espacios de cliente'
+                    create: 'Crear un espacio de cliente'
+                    edit: 'Editar un espacio de cliente'
+                    delete: 'Eliminar un espacio de cliente'
+                    share: 'Dar acceso de cliente a un espacio'
+                contract_templates:
+                    view: 'Consultar las plantillas de contrato'
+                    create: 'Crear una plantilla de contrato'
+                    edit: 'Editar una plantilla de contrato'
+                    delete: 'Eliminar una plantilla de contrato'
+                contracts:
+                    view: 'Consultar los contratos'
+                    create: 'Crear un contrato'
+                    edit: 'Editar un contrato'
+                    delete: 'Eliminar un contrato'
+                    send: 'Enviar un contrato al cliente'
+                    countersign: 'Contrafirmar un contrato'
+                decks:
+                    view: 'Consultar las presentaciones'
+                    create: 'Crear una presentación'
+                    edit: 'Editar una presentación'
+                    delete: 'Eliminar una presentación'
+                    share: 'Compartir una presentación'
+                deck_categories:
+                    manage: 'Gestionar las secciones de presentaciones'
+    studio:
+        workload:
+            next_publication: 'próxima publicación el {date}'
+            badges:
+                missed: 'Ninguna publicación no realizada | 1 publicación no realizada | {count} publicaciones no realizadas'
+                late_review: 'Ninguna revisión atrasada | 1 revisión atrasada | {count} revisiones atrasadas'
+                changes_requested: 'Nada por rehacer | 1 por rehacer | {count} por rehacer'
+                with_client: 'Nada con el cliente | 1 con el cliente | {count} con el cliente'
+        calendar:
+            scope_label: 'Espacios mostrados'
+            scopes:
+                mine: 'Mis espacios'
+                all: 'Todos los espacios'
+            search_placeholder: 'Buscar una publicación…'
+            all_customers: 'Todos los clientes'
+            all_states: 'Todos los estados'
+            view_label: Vista
+            views:
+                month: Mes
+                list: Lista
+            today: Hoy
+            no_spaces: 'Ningún espacio que mostrar.'
+            empty_month: 'Nada programado este mes.'
+            states:
+                missed: 'Publicación no realizada'
+                late_review: 'Revisión atrasada'
+                changes_requested: 'Por rehacer'
+                with_client: 'Con el cliente'
+                upcoming: 'Por publicar'
+                published: Publicado
+            errors:
+                window: 'Este periodo no es válido.'
+                load: 'No se ha podido cargar el calendario.'
+        signatures:
+            role:
+                customer: 'El cliente'
+                provider: 'El prestador'
+        contracts:
+            title: Contratos
+            add: 'Preparar un contrato'
+            create: 'Nuevo contrato'
+            edit: 'Editar el contrato de {name}'
+            created: 'Contrato creado.'
+            updated: 'Contrato actualizado.'
+            deleted: 'Contrato eliminado.'
+            empty: 'Todavía no hay ningún contrato.'
+            search_placeholder: 'Buscar por referencia o por cliente…'
+            draft_title: 'Contrato en preparación'
+            in_preparation: 'En preparación'
+            sealed: Sellados
+            customer: Cliente
+            customer_placeholder: 'Elegir un cliente'
+            body: 'Cuerpo del contrato'
+            body_placeholder: 'Elegir una plantilla'
+            body_hint: 'La versión publicada del día queda fijada en el contrato desde su creación.'
+            annex: Anexo
+            annex_none: 'Ningún anexo'
+            annex_hint: 'Opcional. Es el que recoge lo que varía de una oferta a otra.'
+            amount: Importe
+            amount_placeholder: '850'
+            amount_hint: 'Se aceptan tanto el punto como la coma.'
+            currency: Moneda
+            effective_date: 'Fecha de entrada en vigor'
+            effective_date_placeholder: '2026-10-01'
+            custom_fields: 'Complementos del contrato'
+            custom_fields_hint: 'Los campos que las plantillas elegidas dejan a este contrato. Se escriben en el documento en el momento del sellado, por lo que son obligatorios.'
+            custom_field_placeholder: 'Por ejemplo 40 %, 30 km, o Camille Durand'
+            effective_date_hint: 'Se recoge en el contrato mediante la variable correspondiente.'
+            locale: 'Idioma del contrato'
+            locale_hint: 'El idioma en el que se redactará, leerá y firmará.'
+            version_label: 'versión {number}'
+            with_annex: 'Con el anexo {name}'
+            outdated_version: 'Desde entonces se ha publicado una versión más reciente de la plantilla. Este contrato se mantiene en la que se eligió.'
+            freeze: Sellar
+            freeze_confirm: '¿Sellar el contrato de {name}?'
+            freeze_warning: 'El documento pasa a ser definitivo: su texto, sus importes y su hash ya no podrán cambiar. Es lo que hace que la firma sea defendible, y es irreversible.'
+            delete_confirm: '¿Eliminar el contrato de {name}?'
+            col_reference: Referencia
+            col_customer: Cliente
+            col_status: Estado
+            col_sealed_at: 'Sellado el'
+            col_link: Enlace
+            read_document: 'Leer el documento'
+            preview: 'Vista previa'
+            preview_notice: 'El documento tal como lo leerá el cliente, con los datos reales de este contrato. La referencia y las menciones de firma aparecen entre corchetes: se escriben en el sellado y en la firma.'
+            preview_unknown_tokens: 'Variables desconocidas, bloquearán el sellado: {tokens}'
+            preview_failed: 'No se ha podido generar la vista previa.'
+            download_pdf: 'Descargar el PDF firmado'
+            export_pdf: 'Exportar a PDF'
+            countersign: Contrafirmar
+            countersign_intro: 'Su contrafirma formaliza el contrato. Se informará al cliente por correo electrónico.'
+            countersigned: 'Contrato contrafirmado y formalizado.'
+            send: 'Enviar al cliente'
+            send_confirm: '¿Enviar el contrato a {email}?'
+            send_warning: 'Se envía un enlace secreto por correo electrónico. Cualquier enlace enviado anteriormente queda revocado: nunca hay más de una dirección válida.'
+            sent_to: 'Enviado a {email}'
+            revoke_link: 'Revocar el enlace'
+            revoke_link_confirm: '¿Revocar el enlace enviado a {email}? La dirección dejará de funcionar de inmediato.'
+            link_expires: 'Válido hasta el {date}'
+            link_never_opened: 'Nunca abierto'
+            link_opened_at: 'Abierto el {date}'
+            no_link: 'Ningún enlace activo'
+            amends: 'Adenda al contrato'
+            amends_placeholder: 'Ninguno, contrato original'
+            amends_hint: 'Una adenda es un documento aparte, que también se firma. El contrato original conserva su texto sellado.'
+            amends_short: 'adenda a {reference}'
+            amends_long: 'Esta adenda modifica el contrato {reference}.'
+            amend: 'Crear una adenda'
+            chain: Adendas
+            chain_leaf: 'Ninguna adenda en este contrato.'
+            customer_from_amended: 'Tomado del contrato {reference}: el cliente de una adenda es el del contrato modificado.'
+            terminate: Rescindir
+            terminated: 'Rescisión registrada.'
+            terminated_short: 'rescindido el {date}'
+            termination:
+                intro: 'La rescisión es un hecho, no un documento: se registra aquí, y el contrato firmado sigue firmado. Las dos fechas cuentan, porque un preaviso es la diferencia entre ellas.'
+                noticed_at: 'Preaviso dado el'
+                noticed_at_hint: 'La fecha en la que se notificó la rescisión, por correo electrónico u otro medio.'
+                effective_at: 'Surte efecto el'
+                effective_at_hint: 'El fin real de la prestación, preaviso incluido.'
+                origin_label: 'A iniciativa de'
+                origin_placeholder: 'Quién pone fin al contrato'
+                origin:
+                    customer: 'El cliente'
+                    provider: 'El prestador'
+                    mutual: 'Ambas partes'
+                reason: 'Motivo (opcional)'
+                reason_placeholder: 'Lo que se dijo, si merece la pena conservarlo.'
+                ended: 'Contrato rescindido desde el {date}'
+                ending: 'Rescisión en curso, efectiva el {date}'
+                noticed: 'Preaviso dado el {date}, a iniciativa de: {origin}.'
+            refused_at: 'Rechazado el'
+            refusal_reason: 'Motivo del rechazo'
+            refusal_no_reason: 'No se indicó ningún motivo'
+            refused_from: 'Rechazo recibido desde {ip}'
+            retained_until: 'Conservado hasta el'
+            retention_hint: 'Un contrato sellado no puede eliminarse antes de esta fecha: es la prueba de lo que se firmó.'
+            reminders: Recordatorios
+            reminders_none: 'Ningún recordatorio'
+            reminders_count: '{count} recordatorio(s), el último el {date}'
+            row_actions:
+                edit_description: 'Edita el borrador. No se sella nada hasta que se solicite.'
+                freeze_description: 'Fija el texto, asigna la referencia y deja el contrato listo para enviar. Definitivo.'
+                delete_description: 'Elimina el borrador. Todavía no se ha enviado nada al cliente.'
+                send_description: 'Envía al cliente un enlace de firma de un solo uso.'
+                revoke_description: 'Corta el enlace en curso. Sus códigos de verificación quedan anulados con él.'
+                preview_description: 'Muestra el documento tal como lo leerá el cliente, antes del sellado.'
+                document_description: 'Abre el documento sellado y su bloque de prueba.'
+                export_description: 'Exporta el contrato a PDF. El documento firmado si existe; si no, una copia de trabajo marcada como tal.'
+            not_sealed_yet: 'Este contrato aún no está sellado. Su texto quedará fijado en el momento del sellado.'
+            seal_intact: 'El sello está intacto'
+            seal_intact_hint: 'El documento almacenado corresponde exactamente al hash tomado durante el sellado.'
+            seal_broken: 'El sello ya no coincide'
+            seal_broken_hint: 'El documento ha cambiado desde su sellado. No repare el hash: busque qué ha escrito en él.'
+            seal_hash: 'Huella del documento'
+            seal_algo: 'Algoritmo y forma canónica'
+            seal_sealed_at: 'Sellado el'
+            deferred_tokens_hint: 'La ciudad y la fecha de firma siguen siendo variables: es el firmante quien las declarará.'
+            status:
+                draft: Borrador
+                sealed: Sellado
+                sent: Enviado
+                opened: Abierto
+                signed_by_customer: 'Firmado por el cliente'
+                countersigned: Contrafirmado
+                refused: Rechazado
+                expired: Caducado
+                revoked: Revocado
+            errors:
+                preview_sealed: 'Este contrato ya está sellado: su documento almacenado es la referencia, no se vuelve a generar.'
+                body_required: 'Un contrato necesita un cuerpo de contrato.'
+                version_not_published: 'La versión {number} de «{template}» no está publicada. No se puede enviar un borrador.'
+                locale_missing: '«{template}» no tiene texto en {locale}.'
+                unknown_tokens: 'Estas variables no corresponden a nada y llegarían tal cual al cliente: {tokens}'
+                customer_required: 'Un contrato necesita un cliente.'
+                locale_required: 'El idioma del contrato es obligatorio.'
+                amount_invalid: 'El importe no puede ser negativo.'
+                effective_date_invalid: 'Esta fecha no es válida.'
+                template_not_found: 'Esta plantilla no existe, o no es del tipo esperado.'
+                template_never_published: '«{template}» no tiene ninguna versión publicada.'
+                already_frozen: 'Este contrato está sellado: ya no se puede modificar.'
+                customer_has_no_address: 'Este cliente no tiene dirección contractual. Indíquela en su ficha antes de enviar.'
+                seal_before_sending: 'Selle el contrato antes de enviarlo.'
+                already_engaged: 'Este contrato ya está firmado. Ya no se puede volver a enviar.'
+                no_active_link: 'Ningún enlace activo que revocar.'
+                seal_before_signing: 'Selle el contrato antes de enviarlo a firmar.'
+                already_concluded: 'Este contrato ya está firmado por ambas partes.'
+                contract_closed: 'Este contrato está cerrado y ya no se puede firmar.'
+                role_already_signed: 'Esta parte ya ha firmado.'
+                customer_has_not_signed: 'El cliente aún no ha firmado. La contrafirma viene después.'
+                already_refused: 'El cliente ya ha rechazado este contrato.'
+                amends_invalid: 'El contrato que se desea modificar no es válido.'
+                amends_not_found: 'No se encuentra el contrato que se desea modificar.'
+                amends_not_concluded: 'Solo se modifica mediante adenda un contrato formalizado: mientras no esté firmado por ambas partes, edítelo o vuelva a enviarlo.'
+                amends_is_amendment: 'Una adenda no se modifica con otra adenda: vincule esta al contrato original.'
+                amends_terminated: 'Este contrato está rescindido: ya no hay nada que modificar.'
+                amends_other_customer: 'El cliente de una adenda es el del contrato modificado.'
+                amendment_tokens_without_parent: 'Esta plantilla está redactada para una adenda ({fields}): indique el contrato que modifica.'
+                terminate_not_concluded: 'Solo se rescinde un contrato formalizado. Un contrato no firmado se revoca, o lo rechaza el cliente.'
+                already_terminated: 'Este contrato ya está rescindido.'
+                termination_noticed_required: 'La fecha del preaviso es obligatoria.'
+                termination_effective_required: 'La fecha de efecto es obligatoria.'
+                termination_origin_required: 'Indique quién pone fin al contrato.'
+                termination_origin_invalid: 'Este origen de rescisión no es válido.'
+                termination_date_invalid: 'Esta fecha no es válida.'
+                termination_before_notice: 'La fecha de efecto no puede ser anterior al preaviso: un preaviso corre hacia adelante.'
+                termination_reason_too_long: 'Este motivo es demasiado largo.'
+                retention_not_elapsed: 'Este contrato se conserva hasta el {date}. No se puede eliminar antes.'
+                governing_locale_conflict: 'El cuerpo y el anexo no designan el mismo idioma de referencia ({locales}). Un documento no puede tener dos textos de referencia.'
+                custom_fields_missing: 'Las plantillas elegidas exigen estos complementos y no están cumplimentados: {fields}'
+                provider_settings_missing: 'Estos datos del prestador no están indicados en los ajustes, y la plantilla los imprime: {fields}'
+                custom_field_too_long: 'Un complemento no puede superar los 500 caracteres.'
+        contract_templates:
+            title: 'Plantillas de contrato'
+            kind:
+                body: 'Cuerpo de contrato'
+                annex: Anexo
+            category:
+                community_management: CM
+                photography: Fotografía
+                development: 'Desarrollo web'
+            errors:
+                name_required: 'El nombre de la plantilla es obligatorio.'
+                name_too_long: 'El nombre de la plantilla no puede superar los 180 caracteres.'
+                translations_required: 'Una versión debe contener al menos un idioma.'
+                draft_already_open: 'Ya hay un borrador abierto en esta plantilla (versión {number}). Termínelo o descártelo antes de abrir otro.'
+                nothing_to_publish: 'Esta versión no tiene ningún texto que publicar.'
+                already_published: 'Esta versión está publicada: su texto ya no se puede modificar. Abra una nueva versión.'
+                used_by_contracts: '{count} contrato(s) sellado(s) se han elaborado a partir de esta plantilla. Eliminarla borraría el vínculo entre ellos y el texto firmado: archívela en su lugar.'
+                governing_locale_unknown: 'La aplicación no admite este idioma.'
+                governing_locale_not_written: 'El idioma de referencia ({locale}) no está redactado en esta versión.'
+                governing_locale_required: 'Esta versión está redactada en varios idiomas: indique cuál es el de referencia antes de publicar.'
+            name: 'Nombre de la plantilla'
+            name_placeholder: 'Contrato de prestación de servicios, fórmula mensual'
+            kind_label: Tipo
+            category_label: Categoría
+            category_hint: 'El oficio al que se refiere esta plantilla. Puede quedar vacío.'
+            category_none: 'Sin categoría'
+            category_none_hint: 'Aún no se ha precisado el oficio. La plantilla sigue siendo utilizable.'
+            category_all: 'Todas las categorías'
+            preview: 'Vista previa'
+            preview_notice: 'Las variables se sustituyen por ejemplos, salvo las de su empresa, que proceden de sus ajustes. Los campos propios de cada contrato aparecen entre corchetes.'
+            preview_failed: 'No se ha podido generar la vista previa.'
+            filter_category: 'Categoría: {name}'
+            kind_hint: 'Un cuerpo se firma solo. Un anexo completa un cuerpo.'
+            add: 'Añadir una plantilla'
+            create: 'Nueva plantilla'
+            edit: 'Editar {name}'
+            updated: 'Plantilla actualizada.'
+            archived: 'Plantilla archivada.'
+            restored: 'Plantilla reactivada.'
+            deleted: 'Plantilla eliminada.'
+            saved: 'Borrador guardado.'
+            published: 'Versión publicada.'
+            empty: 'Todavía no hay ninguna plantilla de contrato.'
+            search_placeholder: 'Buscar una plantilla…'
+            delete_confirm: '¿Eliminar {name}?'
+            delete_warning: 'Los contratos ya firmados conservan su propia copia del texto. Si alguno procede de esta plantilla, se rechaza la eliminación: archívela en su lugar.'
+            in_force: 'En vigor'
+            never_published: 'Nunca publicada'
+            no_draft: 'Ningún borrador'
+            view: Consultar
+            open_draft: 'Abrir un borrador'
+            duplicate: Duplicar
+            duplicate_suffix: (copia)
+            duplicate_confirm: '¿Duplicar {name}?'
+            duplicate_hint: 'La copia retoma el texto vigente en un borrador, con un nombre nuevo. No se publica nada.'
+            duplicated: 'Plantilla duplicada.'
+            col_locales: Idiomas
+            archive: Archivar
+            restore: Reactivar
+            show_archived: 'Mostrar las archivadas ({count})'
+            hide_archived: 'Ocultar las archivadas'
+            row_actions:
+                view_description: 'Abre la versión vigente, en solo lectura.'
+                open_draft_description: 'Abre una nueva versión editable, a partir del texto vigente.'
+                discard_description: 'Elimina el borrador y deja la plantilla tal como está publicada.'
+                duplicate_description: 'Crea otra plantilla, en borrador, con el mismo texto.'
+                rename_description: 'Cambia el nombre y el tipo de la plantilla, sin tocar el texto.'
+                archive_description: 'La retira de las listas de selección. Los contratos ya firmados no cambian.'
+                restore_description: 'La vuelve a poner en las listas de selección.'
+                delete_description: 'Definitivo. Los contratos firmados conservan su propia copia del texto.'
+            state_published: Publicada
+            state_draft: Borrador
+            state_archived: Archivada
+            version_label: 'Versión {number}'
+            other_versions: 'Otras versiones'
+            locale_written: 'Este idioma está redactado'
+            governing_locale: 'Idioma que prevalece'
+            governing_locale_none: 'Un solo idioma'
+            governing_locale_hint: 'En caso de discrepancia entre las traducciones, prevalece esta versión. La cláusula figura en el documento.'
+            governing_locale_needed: 'Hay varios idiomas redactados: elija el que prevalece para poder publicar.'
+            document_title: 'Título del documento'
+            document_title_placeholder: 'CONTRATO DE PRESTACIÓN DE SERVICIOS'
+            document_title_hint: 'Lo que se imprime en el encabezado del contrato, en este idioma.'
+            content_placeholder: 'Redacte las cláusulas del contrato…'
+            publish: Publicar
+            publish_confirm: '¿Publicar la versión {number}?'
+            publish_warning: 'Una versión publicada es definitiva: su texto ya no podrá editarse. Para cambiarlo después, habrá que abrir una nueva versión.'
+            published_notice: 'La versión {number} está publicada. Su texto es definitivo y ya no puede editarse.'
+            discard: Descartar
+            discard_confirm: '¿Descartar el borrador de la versión {number}? Su texto se perderá.'
+            discard_hint: 'La versión vigente no cambia y ningún contrato se ve afectado. El número {number} queda consumido: el próximo borrador será la versión {next}.'
+            discarded: 'Borrador descartado.'
+            draft_opened: 'Borrador abierto.'
+            filter_all_kinds: Todos
+            no_match: 'Ninguna plantilla coincide.'
+            variables:
+                custom: 'Un campo propio de un contrato'
+                custom_hint: 'Escriba este token con su propia clave (minúsculas, cifras, guiones bajos). Se pedirá al preparar cada contrato, y el sellado no permite dejarlo vacío.'
+                title: 'Variables disponibles'
+                hint: 'Copie un token y péguelo en el texto. Se sustituirá al generar el contrato.'
+                customer: 'El cliente'
+                provider: 'El proveedor'
+                contract: 'El contrato'
+                customer_legal_name: 'Razón social'
+                customer_legal_form: 'Forma jurídica'
+                customer_share_capital: 'Capital social'
+                customer_registered_office: 'Domicilio social'
+                customer_siret: SIRET
+                customer_trade_register: RCS
+                customer_vat_number: 'NIF-IVA intracomunitario'
+                customer_activity_sector: 'Sector de actividad'
+                customer_representative_full_name: Representante
+                customer_representative_role: 'Cargo del representante'
+                customer_contractual_email: 'Email contractual'
+                customer_phone: Teléfono
+                provider_name: Denominación
+                provider_representative: Representante
+                provider_address: 'Dirección profesional'
+                provider_siret: SIRET
+                provider_ape_code: 'Código APE'
+                provider_vat_mention: 'Mención del IVA'
+                provider_email: Email
+                provider_phone: Teléfono
+                provider_bank_holder: 'Titular de la cuenta'
+                provider_bank_iban: IBAN
+                provider_bank_bic: BIC
+                provider_bank_name: Banco
+                contract_reference: 'Referencia del contrato'
+                contract_amount: Importe
+                contract_effective_date: 'Fecha de entrada en vigor'
+                contract_signature_city: 'Ciudad de firma'
+                contract_signature_date: 'Fecha de firma'
+                contract_amends_reference: 'Referencia del contrato modificado'
+                contract_amends_effective_date: 'Fecha de entrada en vigor del contrato modificado'
+                contract_amends_rank: 'Número de la adenda'
+        decks:
+            create: 'Crear una presentación'
+            created: 'Presentación creada'
+            updated: 'Presentación actualizada'
+            deleted: 'Presentación eliminada'
+            duplicated: 'Presentación duplicada'
+            duplicate: Duplicar
+            duplicate_hint: 'Copia las diapositivas, sin el cliente.'
+            edit_hint: 'El título, la sección y el cliente.'
+            delete_hint: 'La presentación y todas sus diapositivas.'
+            copy_of: '%title% (copia)'
+            title_column: Título
+            title_placeholder: 'Auditoría del sitio, octubre'
+            description_placeholder: 'Una línea, visible en la lista.'
+            description: Descripción
+            category: Sección
+            customer: Cliente
+            slides: Diapositivas
+            uncategorised: 'Sin sección'
+            no_customer: 'Ningún cliente'
+            all_categories: 'Todas las secciones'
+            filter_by_category: 'Filtrar por sección'
+            search_placeholder: 'Buscar una presentación…'
+            empty_title: 'Ninguna presentación'
+            empty_description: 'Una presentación es un conjunto de diapositivas que muestra a alguien. Cree la primera.'
+            delete_confirm: '¿Eliminar «{title}» y todas sus diapositivas?'
+            errors:
+                title_required: 'El título es obligatorio.'
+                title_too_long: 'El título es demasiado largo.'
+                layout_unknown: 'Este diseño no existe.'
+                theme_unknown: 'Este tema no existe.'
+                import_empty: 'Este documento no contiene nada con lo que se pueda hacer una diapositiva.'
+            share: Compartir
+            share_intro: 'Una dirección secreta que abre esta presentación sin cuenta. Las notas del orador nunca aparecen en ella.'
+            share_label: Nombre
+            share_label_placeholder: 'Enviado a Marie, el 12 de septiembre'
+            share_expiry: Caducidad
+            share_no_expiry: 'Sin caducidad'
+            share_days: '{count} días'
+            share_create: 'Crear el enlace'
+            share_created: 'Enlace creado'
+            share_none: 'Ningún enlace por ahora.'
+            share_untitled: 'Enlace sin nombre'
+            share_copy: 'Copiar la dirección'
+            share_copied: 'Dirección copiada'
+            share_copy_manually: 'Copie la dirección mostrada, el navegador ha denegado el acceso al portapapeles.'
+            share_revoke: Revocar
+            share_revoked: Revocado
+            share_revoked_toast: 'Enlace revocado'
+            share_expires_on: 'Caduca el {date}'
+            share_last_used: 'Abierto el {date}'
+            share_never_opened: 'Nunca abierto'
+            share_footer: 'Este enlace es personal. No lo comparta.'
+            present: Presentar
+            print: Imprimir
+            print_hint: 'Use la impresión del navegador y después «Guardar como PDF». Una diapositiva por página, en horizontal.'
+            previous_slide: 'Diapositiva anterior'
+            next_slide: 'Diapositiva siguiente'
+            layout: Diseño
+            add_slide: 'Añadir una diapositiva'
+            slide_added: 'Diapositiva añadida'
+            slide_deleted: 'Diapositiva eliminada'
+            delete_slide: 'Eliminar la diapositiva'
+            delete_slide_confirm: 'Esta diapositiva y su contenido se perderán.'
+            move_up: Subir
+            move_down: Bajar
+            saving: Guardando…
+            saved: Guardado
+            unsaved: 'Cambios sin guardar'
+            no_slide_title: 'Ninguna diapositiva'
+            no_slide_description: 'Elija un diseño a la izquierda para empezar la presentación.'
+            speaker_notes: 'Notas del orador'
+            speaker_notes_hint: 'Nunca se muestran al público.'
+            speaker_notes_placeholder: 'Lo que dirá mientras esta diapositiva esté en pantalla.'
+            bullets_placeholder: 'Una viñeta por línea.'
+            prose_placeholder: 'El texto que se muestra en la diapositiva.'
+            image_hint: 'Elegida en la mediateca, o subida desde su equipo.'
+            appearance: Apariencia
+            appearance_saved: 'Apariencia guardada'
+            appearance_preview_hint: 'La vista previa sigue sus elecciones, la presentación solo cambia al guardar.'
+            appearance_sample_title: 'El título de su presentación'
+            appearance_sample_subtitle: 'El subtítulo, en una línea'
+            appearance_overrides_kept: 'Sus colores personalizados siguen aplicándose por encima de este tema.'
+            theme: Tema
+            themes:
+                slate: Pizarra
+                ink: Tinta
+                paper: Papel
+                bold: Intenso
+                midnight: Medianoche
+                clay: Tierra
+                chalk: Tiza
+                duo: 'Dos tonos'
+            colours: Colores
+            colour_background: Fondo
+            colour_ink: Texto
+            colour_accent: Acento
+            colour_inherited: 'Del tema'
+            colour_reset: 'Volver al tema'
+            colour_reset_all: 'Volver todo al tema'
+            gradient_label: Degradado
+            gradient_hint: 'Una aguada del color de acento sobre el fondo, igual en todas las diapositivas.'
+            gradients:
+                none: Ninguno
+                top: 'Desde arriba'
+                bottom: 'Desde abajo'
+                corner: 'En diagonal'
+                halo: 'Halo central'
+                duo: 'Acento hacia tinta'
+            pattern_label: Motivo
+            pattern_hint: 'Una textura sobre el fondo, oculta en las diapositivas con foto.'
+            patterns:
+                none: Ninguno
+                dots: Puntos
+                grid: Cuadrícula
+                diagonals: Rayado
+            margins_label: 'Márgenes del marco'
+            margins:
+                tight: Estrechos
+                normal: Normales
+                wide: Anchos
+            hairline: 'Filete del marco'
+            hairline_hint: 'Un ribete fino en el color de acento, separado de los bordes.'
+            anchors:
+                center: Centrada
+                top: Arriba
+                bottom: Abajo
+            aligns:
+                left: 'A la izquierda'
+                center: Centrado
+                right: 'A la derecha'
+            measures:
+                full: 'Ancho completo'
+                two_thirds: 'Dos tercios'
+                half: Mitad
+            vignette_hint: 'Oscurece ligeramente las esquinas y lleva la mirada al centro.'
+            bg_treatments:
+                none: Ninguno
+                blur: Desenfoque
+                mono: 'Blanco y negro'
+                duotone: 'Duotono con el acento'
+                grain: Grano
+            bg_veils:
+                flat: Uniforme
+                bottom: 'Desde abajo'
+                top: 'Desde arriba'
+            media_frames:
+                none: Ninguno
+                line: 'Filete de acento'
+                shadow: 'Sombra suave'
+            title_case_label: 'Mayúsculas de los títulos'
+            title_cases:
+                normal: Normal
+                upper: Mayúsculas
+            bullets_label: 'Forma de las viñetas'
+            bullet_shapes:
+                disc: Punto
+                dash: Guion
+                arrow: Flecha
+                number: Número
+                check: 'Marca de verificación'
+            media_bleed_hint: 'La imagen sale del margen y toca el borde del marco.'
+            rules: 'Filetes de separación'
+            rules_hint: 'Una línea entre las dos columnas y bajo el antetítulo.'
+            bands:
+                none: Ninguna
+                left: 'Banda a la izquierda'
+                bottom: 'Franja abajo'
+                edge: 'Borde fino'
+            wash_from_theme: 'El del tema'
+            looks_label: 'Partir de un estilo'
+            looks_hint: 'Aplica un tema y sus ajustes de una vez. Todo sigue siendo editable después.'
+            looks:
+                scene: Escena
+                atelier: Taller
+                dossier: Dosier
+                gallery: Galería
+            look_descriptions:
+                scene: 'Para mostrar en una sala. Oscuro, títulos en mayúsculas.'
+                atelier: 'Para argumentar. Claro y cálido, con rayado.'
+                dossier: 'Para leer. Sereno, cuadriculado, márgenes anchos.'
+                gallery: 'Las fotos lo llevan todo. Casi negro, márgenes estrechos.'
+            accent_from_logo: 'Tonos del logotipo'
+            contrast_good: 'Contraste {ratio} sobre 21. Legible en cualquier lugar.'
+            contrast_large: 'Contraste {ratio} sobre 21. Legible en pantalla grande, justo en un documento impreso.'
+            contrast_poor: 'Contraste {ratio} sobre 21. El texto será difícil de leer.'
+            transition_from_deck: 'La de la presentación'
+            slide_transition_hint: 'Solo se aplica a esta diapositiva, y únicamente en pantalla completa.'
+            drift_hint: 'Un desplazamiento muy lento de la foto mientras la diapositiva está en pantalla. Solo en pantalla completa.'
+            title_scales:
+                normal: Normal
+                quiet: Discreto
+                loud: Destacado
+            media_ids_hint: 'El orden es la disposición. Ocho como máximo; vaciar una casilla reagrupa las demás.'
+            ground_hint: 'La diapositiva se apoya en uno de los tres colores de la presentación. El texto se adapta, el acento no cambia.'
+            grounds:
+                normal: 'El fondo'
+                inverted: 'La tinta'
+                accent: 'El acento'
+            reveal_hint: 'En pantalla completa, cada pulsación hace aparecer la línea siguiente antes de pasar a la diapositiva siguiente.'
+            picture_rank: 'Imagen {rank}'
+            fonts_label: Tipografía
+            font_from_theme: 'La del tema'
+            fonts:
+                sans: 'Sin serifa'
+                serif: 'Con serifa'
+                editorial: 'Títulos con serifa, texto sin serifa'
+                technical: 'Títulos monoespaciados, texto sin serifa'
+                report: 'Títulos sin serifa, texto con serifa'
+                soft: Redondeada
+            signature: Firma
+            logo: Logotipo
+            logo_hint: 'Se muestra en pequeño, en una esquina de la diapositiva.'
+            logo_placement: 'Dónde mostrarlo'
+            logo_placements:
+                none: 'En ningún sitio'
+                cover: 'En la portada'
+                every: 'En todas las diapositivas'
+            footer_text: 'Texto del pie de página'
+            footer_text_placeholder: 'Confidencial, no difundir'
+            slide_numbers: 'Numerar las diapositivas'
+            slide_numbers_hint: 'La portada nunca se numera.'
+            common_slots: 'Fondo y antetítulo'
+            kicker_placeholder: 'Auditoría, parte 2, Nuestra propuesta…'
+            backdrop_hint: 'Una foto detrás del texto, en cualquier diseño.'
+            backdrop_dim: Velo
+            backdrop_dim_hint: 'Oscurece la imagen hacia el color de fondo, para que el texto siga siendo legible.'
+            side_left: 'A la izquierda'
+            side_right: 'A la derecha'
+            line_placeholders:
+                series: 'Un dato por línea. Etiqueta | valor'
+                bullets: 'Una viñeta por línea.'
+                items: 'Una ficha por línea. Título | descripción | etiqueta | icono'
+                steps: 'Una etapa por línea. Nombre | detalle | etiqueta | icono'
+                rows: 'Una fila de la tabla por línea, celdas separadas por |. La primera es el encabezado.'
+                figures: 'Una cifra por línea. Valor | lo que cuenta | porcentaje en %'
+                lines: 'Una línea por línea. Dirección, teléfono, sitio web.'
+            emphasis_hint: 'En el texto de una diapositiva: **negrita**, *cursiva*, `code`, ==palabra destacada==.'
+            icons_hint: 'Iconos posibles: check, arrow, clock, euro, users, warning, ban, lock, eye, rocket, zap, trend, idea, award, flag, settings.'
+            chart_types:
+                bar: Barras
+                line: Línea
+                doughnut: Anillo
+            duplicate_slide: 'Duplicar la diapositiva'
+            slide_duplicated: 'Diapositiva duplicada'
+            drag_hint: 'Arrastrar para mover'
+            presenter: 'Vista del presentador'
+            presenter_now: 'Diapositiva actual'
+            presenter_next: 'Diapositiva siguiente'
+            presenter_end: 'Fin de la presentación.'
+            presenter_no_note: 'Ninguna nota para esta diapositiva.'
+            presenter_linked: 'Vinculada a la pantalla completa'
+            presenter_alone: 'Ninguna ventana de presentación abierta'
+            timer_start: 'Iniciar el temporizador'
+            timer_pause: Pausar
+            timer_reset: 'Poner a cero'
+            media_fit_contain: 'Entera, sin recorte'
+            media_fit_cover: 'Llenar el marco'
+            media_shape_soft: 'Esquinas suaves'
+            media_shape_round: 'Esquinas redondeadas'
+            media_shape_arch: Arco
+            media_shape_circle: Círculo
+            media_focus_hint: 'Haga clic en lo que debe seguir visible cuando la imagen se recorta.'
+            import: 'Importar un documento'
+            import_submit: 'Crear las diapositivas'
+            imported: 'Presentación creada a partir del documento'
+            import_intro: 'Escriba o pegue su documento. Un título abre una diapositiva, y lo que sigue la rellena.'
+            import_document: 'El documento'
+            import_placeholder: 'Pegue aquí, o escriba…'
+            import_hint: 'Las listas se convierten en diapositivas con viñetas, las citas en citas, las tablas en tablas. Varios bloques bajo un mismo título dan varias diapositivas que lo repiten.'
+            is_template: 'Es una plantilla'
+            is_template_hint: 'Las plantillas se proponen al crear una presentación.'
+            template_badge: Plantilla
+            from_template: 'Partir de una plantilla'
+            from_nothing: 'Partir de cero'
+            fold_chapter: 'Plegar este capítulo'
+            unfold_chapter: 'Desplegar este capítulo'
+            locked_title: 'Presentación protegida'
+            locked_intro: 'Esta dirección requiere una contraseña. Se le ha comunicado junto con el enlace.'
+            locked_password: Contraseña
+            locked_submit: 'Abrir la presentación'
+            locked_failed: 'Este enlace o esta contraseña no son válidos.'
+            share_password: Contraseña
+            share_password_placeholder: 'Dejar vacío para un enlace sin contraseña'
+            share_password_hint: 'Comuníquela por un medio distinto del mensaje que contiene el enlace.'
+            share_locked: 'Protegido con contraseña'
+            share_opened: 'Abierto {count} veces'
+            share_opened_once: 'Abierto una vez'
+            overview: Índice
+            pointer: Puntero
+            transition: Transición
+            transitions:
+                none: Ninguna
+                fade: Fundido
+                slide: Deslizamiento
+            transition_hint: 'Solo existe en pantalla completa. El papel y el enlace para compartir no la incluyen.'
+            withheld_title: 'Una imagen de esta presentación no está publicada | {count} imágenes de esta presentación no están publicadas'
+            withheld_hint: 'El destinatario de un enlace no las verá. Publíquelas en la mediateca para que aparezcan.'
+            usage_detail: Presentación
+            slots:
+                mediaFit: 'Encuadre de la imagen'
+                mediaShape: 'Forma de la imagen'
+                mediaFocus: 'Punto focal'
+                chartType: 'Tipo de gráfico'
+                series: Datos
+                value: 'La cifra'
+                label: 'Lo que mide'
+                text: Texto
+                side: 'Lado de la imagen'
+                items: Fichas
+                steps: Etapas
+                rows: Filas
+                kicker: Antetítulo
+                reveal: 'Líneas una a una'
+                ground: 'Fondo de la diapositiva'
+                mediaIds: 'Las imágenes'
+                titleScale: 'Escala del título'
+                transition: 'Transición hacia esta diapositiva'
+                drift: 'Travelling sobre la foto'
+                role: Cargo
+                current: 'Línea actual'
+                band: 'Bloque de color'
+                mediaBleed: 'Imagen a sangre'
+                leftTitle: 'Título de la izquierda'
+                rightTitle: 'Título de la derecha'
+                figures: 'Las cifras'
+                lines: 'Las líneas'
+                ghost: 'Cifra en marca de agua'
+                bgTreatment: 'Tratamiento de la foto'
+                bgVeil: Velo
+                vignette: Viñeteado
+                mediaFrame: 'Contenedor de la imagen'
+                captionOver: 'Pie sobre la imagen'
+                anchor: 'Posición vertical'
+                align: Alineación
+                measure: 'Ancho del texto'
+                bgMediaId: 'Imagen de fondo'
+                title: Título
+                subtitle: Subtítulo
+                bullets: Viñetas
+                left: 'Columna izquierda'
+                right: 'Columna derecha'
+                quote: Cita
+                attribution: Atribución
+                caption: 'Pie de imagen'
+                mediaId: Imagen
+            layouts:
+                chart: Gráfico
+                stat: 'Cifra clave'
+                image_text: 'Imagen y texto'
+                cards: Fichas
+                timeline: Cronología
+                table: Tabla
+                title: Título
+                bullets: 'Título y viñetas'
+                image: 'Imagen a página completa'
+                split: 'Dos columnas'
+                quote: Cita
+                section: Separador
+                compare: Comparación
+                figures: Cifras
+                end: Fin
+                agenda: Índice
+                portrait: 'Cita y retrato'
+                logos: 'Cuadrícula de logotipos'
+                mosaic: 'Mosaico de imágenes'
+            categories:
+                errors:
+                    name_required: 'El nombre es obligatorio.'
+                    color_invalid: 'El color debe estar en formato hexadecimal, por ejemplo'
+        customers:
+            title: Clientes
+            spaces: 'Sus espacios'
+            spaces_description: 'Abre la lista de espacios de esta empresa.'
+            status: Estado
+            status_hint: 'Un cliente potencial es una empresa para la que ya se trabaja, sin tener aún su identidad legal. Convertirlo en cliente consiste en introducir el SIRET, la forma jurídica y el domicilio social.'
+            statuses:
+                prospect: 'Cliente potencial'
+                prospect_plural: 'Clientes potenciales'
+                client_plural: Clientes
+                client: Cliente
+            convert: 'Convertir en cliente'
+            convert_title: 'Convertir {name} en cliente'
+            convert_hint: 'Es ahí adonde se enviará su contrato. El SIRET, la forma jurídica y el domicilio social se completan después en su ficha.'
+            converted: 'Cliente potencial convertido en cliente.'
+            add: 'Añadir un cliente'
+            create: 'Nuevo cliente'
+            edit: 'Editar {name}'
+            empty: 'Ningún cliente por el momento.'
+            search_placeholder: 'Buscar por razón social, SIRET, representante…'
+            created: 'Cliente creado.'
+            updated: 'Cliente actualizado.'
+            deleted: 'Cliente eliminado.'
+            delete_confirm: '¿Eliminar {name}?'
+            delete_warning: 'Un cliente mencionado en un contrato no se puede eliminar: la eliminación se rechazará mientras quede alguno.'
+            linked_account: 'Cuenta: {name}'
+            col_company: Empresa
+            col_representative: Representante
+            col_siret: SIRET
+            col_contact: Contacto
+            group_identity: 'Identidad de la empresa'
+            group_representative: 'Representante legal'
+            group_contact: 'Contacto y acceso'
+            legal_name: 'Razón social'
+            legal_name_placeholder: 'Nombre de la empresa'
+            legal_form: 'Forma jurídica'
+            legal_form_placeholder: 'SARL, SAS, EI, asociación…'
+            share_capital: 'Capital social'
+            share_capital_placeholder: '10000'
+            share_capital_hint: 'Se aceptan tanto el punto como la coma.'
+            currency: Moneda
+            registered_office: 'Domicilio social'
+            registered_office_placeholder: 'Dirección completa, tal como aparecerá en el contrato'
+            siret: SIRET
+            siret_placeholder: '123 456 789 00012'
+            siret_hint: 'Catorce cifras. Los espacios se ignoran y se verifica el dígito de control.'
+            trade_register: RCS
+            trade_register_placeholder: 'Lyon B 123 456 789'
+            vat_number: 'NIF intracomunitario (TVA)'
+            vat_number_placeholder: FR12345678901
+            activity_sector: 'Sector de actividad'
+            activity_sector_placeholder: 'Restauración, inmobiliaria, artesanía…'
+            activity_sector_hint: 'Se incluye en el preámbulo del contrato.'
+            representative_first_name: Nombre
+            representative_last_name: Apellidos
+            representative_first_name_placeholder: Camille
+            representative_last_name_placeholder: Durand
+            representative_role: Cargo
+            representative_role_placeholder: 'Gerente, Presidente, Directora…'
+            contractual_email: 'Email contractual'
+            contractual_email_placeholder: contact@societe.fr
+            contractual_email_hint: 'Es a esta dirección adonde se enviará el enlace de firma.'
+            phone: Teléfono
+            phone_placeholder: '06 12 34 56 78'
+            account: 'Cuenta de usuario'
+            account_none: 'Ninguna cuenta vinculada'
+            account_hint: 'Opcional. Complételo solo si el cliente inicia sesión en el sitio.'
+            row_actions:
+                edit_description: 'Editar la ficha de este cliente'
+                convert_description: 'Abrir la ficha para introducir su identidad legal'
+                delete_description: 'Eliminar este cliente'
+            errors:
+                legal_name_required: 'La razón social es obligatoria.'
+                legal_name_too_long: 'La razón social no puede superar los 180 caracteres.'
+                contractual_email_required: 'El email contractual es obligatorio.'
+                contractual_email_invalid: 'Este email no es válido.'
+                share_capital_invalid: 'El capital social no puede ser negativo.'
+                siret_invalid: 'Este SIRET no es válido: se esperan catorce cifras y un dígito de control correcto.'
+                has_contracts: 'Este cliente figura en {count} contrato(s). Un cliente vinculado a un contrato no se puede eliminar: los contratos prueban lo que se acordó, y con quién.'
+                siret_taken: 'Este SIRET ya está registrado para {name}.'
+                has_spaces: 'Este cliente aún tiene {count} espacio(s) abierto(s). Elimine o archive su trabajo antes de eliminar la ficha.'
+        spaces:
+            usage_detail: 'Espacio {space}'
+            title: 'Espacios de cliente'
+            add: 'Añadir un espacio'
+            create: 'Nuevo espacio'
+            edit: 'Editar {name}'
+            empty: 'Ningún espacio por el momento.'
+            empty_hint: 'Un espacio agrupa el trabajo realizado para un cliente. Cree uno por proyecto, no uno por empresa.'
+            search_placeholder: 'Buscar por nombre de espacio o por empresa…'
+            created: 'Espacio creado.'
+            updated: 'Espacio actualizado.'
+            deleted: 'Espacio eliminado.'
+            delete_confirm: '¿Eliminar {name}?'
+            delete_warning: 'El espacio desaparece con todo lo que contiene: sus contenidos, sus hilos y sus archivos adjuntos, sus conversaciones, sus notas y sus enlaces de acceso. Sus fechas salen del calendario. El cliente, sus contratos y los documentos de la mediateca no cambian.'
+            show_archived: 'Mostrar los espacios archivados'
+            sort_by_urgency: 'Ordenar por urgencia'
+            archived_badge: Archivado
+            no_members: 'Ningún miembro'
+            team_button: '1 persona | {count} personas'
+            team_modal_title: 'Equipo de {name}'
+            team_modal_empty: 'Nadie está asignado a este espacio.'
+            team_modal_hint: 'No es un permiso de acceso. Indica quién, en su equipo, trabaja en este espacio.'
+            col_space: Espacio
+            col_customer: Cliente
+            col_workload: Pendiente
+            col_team: Equipo
+            col_storage: Peso
+            col_status: Estado
+            group_identity: 'El espacio'
+            group_team: 'El equipo'
+            name: 'Nombre del espacio'
+            name_placeholder: 'Panadería Martin - Redes sociales'
+            name_hint: 'Lo que verá en la lista. No la razón social, que ya figura en la ficha del cliente.'
+            description: Descripción
+            description_placeholder: 'Lo que abarca este espacio, en una o dos frases.'
+            customer: Cliente
+            customer_none: 'Elegir un cliente'
+            customer_new_prospect: '+ Nuevo cliente potencial'
+            prospect_name: 'Nombre de la empresa'
+            prospect_name_placeholder: 'Atelier Dupont'
+            prospect_email: 'Email de contacto'
+            prospect_email_hint: 'Es a esta dirección adonde se enviará su enlace de acceso.'
+            customer_hint: 'La empresa para la que se realiza este trabajo. Un mismo cliente puede tener varios espacios.'
+            status: Estado
+            status_hint: 'Un espacio archivado sale de la lista sin perder nada de su contenido.'
+            colour: Color
+            colour_hint: 'Distingue este espacio de los demás allí donde aparecen sus fechas.'
+            colour_auto: 'Elegido automáticamente'
+            timezone: 'Zona horaria'
+            timezone_hint: 'La zona horaria en la que se dividen los días de este espacio. Cámbiela para un cliente en el extranjero.'
+            members: Miembros
+            members_hint: 'Quién, en su equipo, trabaja en este espacio. No es un permiso de acceso, es un nombre que dar al cliente.'
+            member_add: 'Añadir una persona'
+            member_remove: Quitar
+            member_none_left: 'Todo el mundo está ya en este espacio.'
+            statuses:
+                active: Activo
+                archived: Archivado
+            settings:
+                section_drive: 'Google Drive'
+                folder_title: 'Carpeta compartida'
+                folder_intro: 'La carpeta de Drive que este cliente ha compartido con la dirección de la cuenta de servicio.'
+                folder_hint: 'Pegue la dirección de la carpeta, o vacíe el campo para desconectarla.'
+                folder_saved: 'Carpeta conectada.'
+                folder_cleared: 'Carpeta desconectada.'
+                drive_closes_now: 'Guardar cierra la pestaña de inmediato, también para usted: habrá que introducir la contraseña para abrirla.'
+                drive_title: 'Contraseña de la pestaña Drive'
+                drive_intro: 'Cierra la pestaña Drive de este espacio. Se aplica a todo el mundo, usted incluido: una contraseña que se puede eludir no protege a nadie.'
+                drive_locked: 'La pestaña Drive está cerrada.'
+                drive_open: 'La pestaña Drive está abierta.'
+                current_password: 'Contraseña actual'
+                new_password: 'Nueva contraseña'
+                password: Contraseña
+                password_hint: '{count} caracteres como mínimo.'
+                drive_set: 'Cerrar la pestaña'
+                drive_change: 'Cambiar la contraseña'
+                drive_clear: 'Reabrir la pestaña'
+                drive_saved: 'Contraseña guardada.'
+                drive_cleared: 'Pestaña Drive reabierta.'
+                drive_revoke: 'Volver a pedir la contraseña'
+                drive_revoked: 'Se volverá a pedir la contraseña a todo el mundo.'
+                drive_revoke_hint: 'Vuelve a cerrar la pestaña en todas las sesiones abiertas, incluida la suya, sin cambiar la contraseña.'
+                drive_recovery: 'Quitarla exige introducirla. Si se olvida, solo se puede borrar desde el servidor, con un comando en consola.'
+                current_placeholder: 'La actual'
+                new_placeholder: 'Ocho caracteres o más'
+                confirm_password: 'Confirmar la contraseña'
+                confirm_placeholder: 'La misma, por segunda vez'
+                errors:
+                    wrong_password: 'Contraseña incorrecta.'
+                    too_many_attempts: 'Demasiados intentos. Vuelva a intentarlo dentro de un cuarto de hora.'
+                    password_too_short: 'Contraseña demasiado corta.'
+                    password_mismatch: 'Las contraseñas no coinciden.'
+                    not_locked: 'La pestaña Drive no está cerrada.'
+            roles:
+                lead: 'Responsable del espacio'
+                member: Miembro
+            row_actions:
+                view_description: 'Abrir el tablero de este espacio'
+                convert_description: 'El cliente de este espacio ha firmado'
+                edit_description: 'Editar este espacio'
+                delete_description: 'Eliminar este espacio'
+            errors:
+                name_required: 'El nombre del espacio es obligatorio.'
+                name_too_long: 'El nombre no puede superar los 150 caracteres.'
+                customer_required: 'Elija el cliente al que pertenece este espacio.'
+                timezone_invalid: 'Esta zona horaria no se reconoce.'
+                team_lead_only: 'Solo el responsable del espacio puede cambiar su equipo y sus roles.'
+        space_access:
+            tab: 'Acceso del cliente'
+            intro: 'Un enlace abre este espacio en solo lectura, sin cuenta. Es personal, caduca y se puede revocar.'
+            issue: 'Crear un enlace'
+            issued: 'Enlace creado.'
+            preview: 'Vista previa'
+            revoke: Revocar
+            revoked: 'Enlace revocado.'
+            deleted: 'Enlace eliminado.'
+            empty: 'Ningún enlace por el momento.'
+            empty_hint: 'Cree uno para mostrar este plan de contenidos a su cliente.'
+            minted_title: 'Esta es la dirección'
+            minted_hint: 'Cópiela ahora: no volverá a mostrarse nunca. Solo se conserva su huella, así que nadie puede recuperarla, ni siquiera usted.'
+            recipient_email: 'Email del destinatario'
+            recipient_email_placeholder: camille@societe.fr
+            recipient_email_hint: 'La dirección a la que va a enviar el enlace. También sirve para saber quién ha abierto qué.'
+            label: Título
+            label_placeholder: 'Camille, responsable de marketing'
+            label_hint: 'Opcional. Útil cuando un mismo cliente tiene varios enlaces.'
+            valid_for_days: Validez
+            valid_for_days_hint: 'En días, {max} como máximo. Un acceso que sobrevive a la misión es un acceso que nadie piensa en cerrar.'
+            can_approve: 'Puede validar'
+            can_approve_hint: 'Sin marcar, el enlace muestra el plan sin permitir responder. Para un lector que mira pero no decide.'
+            read_only: 'solo lectura'
+            can_comment: 'Puede comentar los contenidos'
+            can_comment_hint: 'El hilo de una ficha: lo que se dice sobre una publicación concreta, y que se queda con ella.'
+            can_chat: 'Puede escribir en la conversación'
+            can_chat_hint: 'El hilo de la relación, fuera de cualquier ficha. Puede querer uno sin el otro: una agencia colaboradora anota un plan sin hablar en la sala del cliente.'
+            no_chat: 'sin la conversación'
+            can_upload: 'Puede enviar archivos'
+            can_upload_hint: 'Sin marcar por defecto. Si se marca, el cliente puede subir sus propias fotos y documentos a los contenidos. Imágenes, PDF y vídeos habituales, 25 MB como máximo.'
+            can_see_drive: 'Ver la carpeta de Drive'
+            can_see_drive_hint: 'Sin marcar, esta persona no ve ni la carpeta compartida ni su descarga. Útil para un segundo lector al que no va dirigida la carpeta del cliente.'
+            no_drive: 'sin el Drive'
+            may_upload: 'puede enviar archivos'
+            never_opened: 'Nunca abierto'
+            opened_on: 'Abierto el {date}'
+            expires_on: 'Caduca el {date}'
+            states:
+                active: Activo
+                revoked: Revocado
+                expired: Caducado
+            delete_confirm: '¿Eliminar el enlace de {name}?'
+            delete_warning: 'El enlace deja de funcionar y su rastro desaparece. Para conservar el rastro, revóquelo en su lugar.'
+            errors:
+                email_required: 'El email del destinatario es obligatorio.'
+                email_invalid: 'Este email no es válido.'
+        space_files:
+            usage_detail: 'Archivo del espacio'
+            label: Vinculación
+            tabs:
+                linked: 'En las fichas'
+                space: 'Del espacio'
+            upload: 'Subir un archivo'
+            pick: 'Elegir en la mediateca'
+            remove: 'Quitar del espacio'
+            added: 'Archivo añadido al espacio.'
+            removed: 'Archivo quitado del espacio. Sigue en la mediateca.'
+            empty_linked: 'Ningún archivo en las fichas de este espacio'
+            empty_linked_hint: 'Los archivos subidos a los contenidos, por usted o por el cliente, aparecen aquí del más reciente al más antiguo.'
+            empty_space: 'Ningún archivo en este espacio'
+            empty_space_hint: 'La guía de estilo, los logotipos, el brief, un contrato firmado: lo que pertenece a la misión sin ilustrar una publicación. El cliente los ve.'
+            errors:
+                required: 'Elija un archivo.'
+                unknown: 'No se encuentra este documento.'
+                duplicate: 'Este archivo ya está en este espacio.'
+                needs_account: 'Hay que haber iniciado sesión para añadir un archivo.'
+        craft:
+            settings:
+                what_title: 'Lo que hace esta conexión'
+                what_body: 'Permite importar un documento de Craft a las notas de un espacio de cliente. Es una copia: el documento permanece en Craft, y la nota ya no cambia por sí sola después.'
+                how_title: 'Cómo abrirla'
+                how_step_connection: 'En Craft, barra lateral, pestaña Conexiones: «Añada su primera conexión API», y luego «API para los documentos seleccionados». Una conexión sobre el espacio entero daría acceso a todo lo que contiene, incluido lo que no tiene nada que hacer aquí.'
+                how_step_select: 'Elija los documentos que los espacios de cliente podrán importar. Craft solo expondrá esos, y la lista se puede modificar en Craft en cualquier momento.'
+                how_step_mode: 'Configure la conexión en solo lectura y en modo «Clave API». En modo público, bastaría la dirección para escribir y eliminar en su cuenta.'
+                how_step_paste: 'Copie la dirección y la clave, y péguelas a continuación. Craft solo muestra la clave una vez.'
+                scope_title: 'Lo que puede hacer esta clave'
+                scope_body: 'Leer los documentos que ha marcado, y nada más. Por eso importa el modo «solo lectura»: una conexión con escritura permitiría editar y eliminar sus documentos de Craft desde esta aplicación, cuando esta solo importa.'
+                then_title: 'Después, espacio por espacio'
+                then_body: 'El botón «Importar desde Craft» aparece en la pestaña Notas de cada espacio de cliente. La importación es una copia pura: el documento permanece en Craft, y la nota no seguirá sus cambios.'
+                trouble_title: 'Cuando la lista está vacía o no responde'
+                trouble_body: 'Una lista vacía significa que la conexión no expone ningún documento: vuelva a Craft para añadirlos. Una falta de respuesta significa que la dirección o la clave ya no son válidas, a menudo porque la conexión se ha vuelto a crear en Craft, que entonces genera una nueva clave.'
+                how_link: 'Los pasos a seguir en Craft'
+                endpoint_label: 'Dirección de la conexión'
+                endpoint_hint: 'La que Craft muestra al crear la conexión. En https, de lo contrario la clave viajaría sin cifrar.'
+                token_label: 'Clave API'
+                token_hint: 'La que Craft muestra una vez que la conexión pasa al modo «Clave API».'
+                token_stored: 'Hay una clave guardada. Deje el campo vacío para conservarla.'
+                enabled_label: 'Activar la importación desde Craft'
+                enabled_hint: 'El botón aparece en las notas de cada espacio.'
+                enabled_blocked: 'Indique una dirección y una clave para poder activarla.'
+            import:
+                action: 'Importar desde Craft'
+                title: 'Importar una nota de Craft'
+                intro: 'El documento se copia en este espacio. Permanece en Craft, y la nota no seguirá sus cambios.'
+                empty: 'Ningún documento en esta conexión.'
+                unreachable: 'Craft no ha respondido.'
+                unreachable_hint: 'Compruebe la dirección y la clave en los ajustes, pestaña Craft.'
+                empty_hint: 'Vuelva a Craft para añadir documentos a la conexión.'
+                disabled: 'La importación desde Craft no está activada.'
+                disabled_hint: 'Se activa en los ajustes, pestaña Craft.'
+                imported: 'Nota importada.'
+                refresh: 'Actualizar desde Craft'
+                refresh_confirm: '¿Restablecer «{title}» a la versión actual del documento de Craft?'
+                refresh_warning: 'El cuerpo de la nota se sustituye. Lo que haya editado aquí se perderá; el color, la chincheta y la visibilidad se conservan.'
+                refresh_submit: Actualizar
+                refreshed: 'Nota actualizada.'
+                submit: Importar
+            errors:
+                endpoint_https: 'La dirección de la conexión debe empezar por https://.'
+                connection_required: 'Indique una dirección y una clave antes de activar.'
+                document_required: 'Elija un documento para importar.'
+                unreachable: 'Craft no ha devuelto nada para este documento.'
+                not_imported: 'Esta nota no procede de Craft.'
+        drive:
+            settings:
+                what_title: 'Qué hace esta conexión'
+                what_body: 'Muestra en un espacio los archivos de una carpeta de Drive que el cliente ha compartido. No se copia nada: el archivo se lee en Google en el momento en que alguien lo consulta, y se sirve a un cliente que no tiene cuenta de Google.'
+                how_title: 'Cómo activarla'
+                how_step_project: 'Cree un proyecto de Google Cloud, con un nombre que lo distinga de sus otros proyectos.'
+                how_step_project_link: 'Crear un proyecto'
+                how_step_api: 'Active la API de Google Drive en él. Compruebe el selector de proyecto en la parte superior de la consola antes de hacer clic.'
+                how_step_api_link: 'Activar la API de Drive'
+                how_step_account: 'Cree una cuenta de servicio, sin asignarle ningún rol: su acceso vendrá únicamente de las carpetas que se compartan con ella, y un rol de proyecto solo le concedería más de lo necesario.'
+                how_step_account_link: 'Crear una cuenta de servicio'
+                how_step_key: 'En su ficha, pestaña Claves, añada una clave en formato JSON. Google descarga el archivo y no lo vuelve a proporcionar nunca: ábralo y pegue todo su contenido a continuación.'
+                then_title: 'Después, espacio por espacio'
+                then_body: 'Esta clave activa la conexión para toda la aplicación. Cada espacio de cliente designa luego su propia carpeta, en su pestaña Ajustes: pegue ahí la dirección que Drive muestra en la barra del navegador.'
+                scope_title: 'Qué puede hacer esta clave'
+                scope_body: 'Nada más que leer, y nada más que lo que se le comparte. El token se solicita con el alcance «solo lectura»: incluso una petición de escritura hecha por error sería rechazada por Google. Retirar el uso compartido cierra la puerta sin tocar ningún ajuste aquí.'
+                trouble_title: 'Cuando no aparece nada'
+                trouble_body: 'Por orden: ¿se ha compartido con la dirección de la cuenta de servicio y no con la suya?; ¿está activada la API de Drive en el proyecto correcto?; ¿está marcada la casilla de abajo? Una carpeta vacía y una carpeta no compartida se ven igual en pantalla, y el espacio indica las dos causas en lugar de suponer una.'
+                share_title: 'La dirección con la que compartir'
+                share_body: 'En Drive, el cliente comparte su carpeta con esta dirección, como Lector. Lo que no se comparte permanece invisible.'
+                key_label: 'Clave de la cuenta de servicio'
+                key_hint: 'El archivo JSON completo. Contiene una clave privada: se cifra en la base de datos y no se volverá a mostrar nunca.'
+                key_stored: 'Hay una clave guardada. Déjelo vacío para conservarla.'
+                enabled_label: 'Activar la lectura de carpetas de Drive'
+                enabled_hint: 'Cada espacio podrá entonces designar la carpeta que su cliente ha compartido.'
+                enabled_blocked: 'Pegue una clave de cuenta de servicio para poder activarla.'
+            space:
+                title: 'Carpeta de Google Drive'
+                intro: 'Los archivos permanecen con el cliente: no se copia nada, y se muestran en su espacio sin que necesite una cuenta de Google.'
+                folder_label: 'Carpeta compartida'
+                folder_hint: 'Pegue la dirección de la carpeta, o vacíe el campo para desconectarla. El cliente debe haberla compartido con la dirección de la cuenta de servicio.'
+                link: Conectar
+                unlink: Desconectar
+                linked: 'Carpeta conectada.'
+                unlinked: 'Carpeta desconectada.'
+                empty: 'La carpeta está vacía, o no se ha compartido con la cuenta de servicio.'
+                no_size: '-'
+                view_label: 'Visualización de archivos'
+                no_folder: 'No hay ninguna carpeta de Drive conectada a este espacio.'
+                no_folder_referent: 'No hay ninguna carpeta de Drive conectada a este espacio. Vaya a Ajustes para designar una.'
+                locked_title: 'Pestaña protegida'
+                locked_intro: 'La carpeta de Drive de este espacio está protegida con contraseña. Se abre durante esta sesión.'
+                locked_placeholder: Contraseña
+                unlock: Abrir
+                archive: 'Descargar todo (.zip)'
+                archive_weight: 'La carpeta ocupa {weight}.'
+                archive_too_large: 'La carpeta ocupa {weight}: es demasiado para un archivo comprimido de una sola vez. Descargue los archivos uno a uno, o reduzca la carpeta compartida.'
+                import: 'Guardar en la mediateca'
+                imported: 'Archivo guardado en la mediateca. Ya está disponible en las notas, las fichas y las galerías.'
+                path_label: 'Ruta en la carpeta'
+                root: 'Carpeta compartida'
+                items: '1 archivo | {count} archivos'
+                open: 'Abrir el archivo'
+            picker:
+                title: 'Elegir un archivo de Drive'
+                intro: 'El archivo se copia en la mediateca de este espacio y después se adjunta a la ficha.'
+                copy_notice: 'Una copia: ya no seguirá los cambios del Drive del cliente, y se conserva aunque deje de compartirse.'
+                submit: 'Adjuntar a la ficha'
+            errors:
+                key_invalid: 'No es una clave de cuenta de servicio. Compruebe que ha copiado el archivo JSON completo.'
+                key_required: 'Pegue una clave de cuenta de servicio antes de activar.'
+                folder_invalid: 'No es una carpeta de Drive. Pegue su dirección, o el identificador que sigue a /folders/.'
+                import_failed: 'No se ha podido copiar este archivo. Los documentos de Google no tienen un archivo que descargar.'
+        space_notes:
+            add: 'Nueva nota'
+            create: 'Nueva nota'
+            edit: 'Editar la nota'
+            title: Título
+            title_placeholder: 'Brief del 12 de marzo'
+            body_placeholder: 'Lo que se ha dicho, lo que queda por hacer…'
+            colour: Color
+            colour_hint: 'Para localizar una nota en el muro. Si se deja vacío, no lleva ninguno - en un muro donde todo tiene color ya no se distingue nada.'
+            pinned: 'Fijar arriba'
+            pin: Fijar
+            unpin: 'Dejar de fijar'
+            view_label: Vista
+            view_grid: Muro
+            view_list: Lista
+            visibility: 'Quién la lee'
+            visibility_hint_shared: 'Todo el equipo del espacio. El cliente no ve ninguna nota.'
+            visibility_hint_personal: 'Solo usted. No llega a nadie más, ni siquiera al equipo del espacio.'
+            visibilities:
+                shared: 'Compartida con el equipo'
+                personal: Personal
+                shared_plural: Compartidas
+                personal_plural: Personales
+            someone_elses: 'La nota personal de otra persona'
+            empty_shared: 'No hay notas compartidas en este espacio'
+            empty_shared_hint: 'Lo que el equipo debe saber sobre este cliente y que ninguna ficha recoge. El cliente no ve las notas.'
+            empty_personal: 'No hay notas personales en este espacio'
+            empty_personal_hint: 'El brief tomado por teléfono, una idea aún no presentable, lo que salió mal el mes pasado. Nadie más las lee.'
+            created: 'Nota creada.'
+            updated: 'Nota guardada.'
+            deleted: 'Nota eliminada.'
+            delete_confirm: '¿Eliminar «{title}»?'
+            delete_warning: 'Las imágenes que contiene permanecen en la mediateca. Se le propondrán las que ya nada utilice.'
+            errors:
+                title_required: 'El título es obligatorio.'
+                title_too_long: 'El título no puede superar los 180 caracteres.'
+                needs_account: 'Debe iniciar sesión para tomar una nota.'
+        space_information:
+            scope: 'Esta ficha pertenece al cliente, no a este proyecto. Editarla aquí la edita en todos sus espacios, y es intencionado: un SIRET es el de una sociedad.'
+            what_the_client_sees: 'Lo que ve el cliente'
+            related_contracts: 'Contratos de este cliente'
+            related_decks: 'Presentaciones de este cliente'
+            related_spaces: 'Otros espacios de este cliente'
+            draft_contract: Borrador
+            saved: 'Ficha guardada.'
+            legal_name: 'Nombre de la empresa'
+            legal_name_placeholder: 'p. ej.: Atelier Dupont'
+            siret_placeholder: '123 456 789 00012'
+            siret_hint: 'Catorce cifras. Los espacios se ignoran y se comprueba el dígito de control.'
+            siren_placeholder: '123 456 789'
+            siren_hint: 'Nueve cifras. Son las nueve primeras del SIRET: si ambos están rellenados, deben coincidir.'
+            phone_placeholder: '06 12 34 56 78'
+            landline_placeholder: '01 23 45 67 89'
+            email_placeholder: contact@societe.test
+            email_hint: 'La misma dirección que la de los contratos: es ahí adonde se envía un enlace de firma.'
+            postal_address_placeholder: 'Dirección completa, tal como aparecerá en el contrato'
+            links_hint: 'Su sitio web, sus redes, lo que publica. Para los enlaces de trabajo - una maqueta, un acceso - está la pestaña Enlaces.'
+            link_label_placeholder: 'p. ej.: Sitio web'
+            link_url_placeholder: 'https://'
+            link_add: 'Añadir un enlace'
+            link_remove: Quitar
+            notes_placeholder: 'Lo que no encaja en ninguna casilla.'
+            notes_hint: 'El cliente lee este campo. Lo que no debe salir del equipo va en una nota del espacio.'
+            errors:
+                legal_name_required: 'El nombre de la empresa es obligatorio.'
+                legal_name_too_long: 'El nombre no puede superar los 180 caracteres.'
+                siren_invalid: 'Este SIREN no es válido: se esperan nueve cifras y un dígito de control correcto.'
+                siren_mismatch: 'Este SIREN no corresponde al SIRET introducido. Las nueve primeras cifras de un SIRET son su SIREN.'
+                phone_too_long: 'Este número no puede superar los 30 caracteres.'
+                email_invalid: 'Este email no es válido.'
+                email_too_long: 'El email no puede superar los 180 caracteres.'
+                notes_too_long: 'Este campo no puede superar los 5000 caracteres.'
+                links_too_many: 'Una ficha no admite más de 30 enlaces.'
+                link_label_required: 'Este enlace no tiene nombre.'
+                link_label_too_long: 'El nombre de un enlace no puede superar los 120 caracteres.'
+                link_url_required: 'Este enlace no tiene dirección.'
+                link_url_invalid: 'Esta dirección no es válida. Debe empezar por http:// o https://.'
+                link_url_too_long: 'Esta dirección es demasiado larga.'
+        space_resources:
+            intro: 'Lo que está en otro sitio y se busca cada vez: una maqueta, un acceso, la persona que valida. Cada elemento se muestra u oculta al cliente, uno a uno.'
+            add: Añadir
+            add_confirm: Añadir
+            edit: Editar
+            delete: 'Eliminar este elemento'
+            delete_confirm: '¿Eliminar «{label}»?'
+            empty: 'Todavía no hay nada fijado en este espacio.'
+            empty_hint: 'Un enlace de Canva, el acceso al proveedor de alojamiento, el nombre de la persona que valida: lo que se encuentra aquí en lugar de en sus favoritos.'
+            group_shown: 'Lo que ve el cliente'
+            group_hidden: 'Solo para usted'
+            show: 'Mostrar al cliente'
+            hide: 'Ocultar al cliente'
+            now_visible: 'El cliente ve este elemento.'
+            now_hidden: 'El cliente ya no ve este elemento.'
+            move_up: Subir
+            move_down: Bajar
+            kind: '¿De qué se trata?'
+            label: Nombre
+            label_placeholder_link: 'p. ej.: Maqueta de Canva'
+            label_placeholder_text: 'p. ej.: Dónde encontrar los visuales'
+            label_placeholder_contact: 'p. ej.: Camille, gerente'
+            url: Dirección
+            email: Email
+            email_placeholder: camille@societe.test
+            phone: Teléfono
+            phone_placeholder: '06 12 34 56 78'
+            body_link: Detalle
+            body_text: Texto
+            body_contact: Detalle
+            body_placeholder_link: 'p. ej.: abrir con la cuenta de la agencia'
+            body_placeholder_text: 'p. ej.: tuteo, frases cortas, sin precios en las publicaciones'
+            body_placeholder_contact: 'p. ej.: disponible los lunes y los jueves'
+            body_hint_link: 'Opcional. Lo que hay que saber antes de abrir este enlace.'
+            body_hint_text: 'Lo que desee conservar aquí.'
+            body_hint_contact: 'Opcional. Su función, su horario, lo que hay que saber.'
+            visible_to_client: 'El cliente puede ver este elemento'
+            visible_hint_on: 'Cualquier persona que tenga un enlace de acceso a este espacio lo verá.'
+            visible_hint_off: 'El elemento queda entre ustedes. El cliente no conoce ni su nombre ni su existencia.'
+            errors:
+                label_required: 'El nombre es obligatorio.'
+                label_too_long: 'El nombre no puede superar los 180 caracteres.'
+                url_required: 'Un enlace necesita una dirección.'
+                url_invalid: 'Esta dirección no es válida. Debe empezar por http:// o https://.'
+                url_too_long: 'Esta dirección es demasiado larga.'
+                body_required: 'Un texto necesita contenido.'
+                body_too_long: 'Este texto no puede superar los 10000 caracteres.'
+                email_invalid: 'Este email no es válido.'
+                email_too_long: 'El email no puede superar los 180 caracteres.'
+                phone_too_long: 'Este número no puede superar los 30 caracteres.'
+                order_invalid: 'Este orden no es legible.'
+        space_notifications:
+            chat: '%who% le ha escrito'
+            comment: '%who% ha comentado «%item%»'
+            upload: '%who% ha enviado un archivo en «%item%»'
+            approved: '%who% ha validado «%item%»'
+            changes_requested: '%who% pide cambios en «%item%»'
+            late_review: '{1}Una revisión atrasada|]1,Inf[%count% revisiones atrasadas'
+        space_chat:
+            channels:
+                main_name: General
+                notice_internal: 'Este canal es interno: el cliente no lo lee.'
+            errors:
+                main_stays_open: 'El canal principal sigue abierto al cliente: es la conversación del espacio.'
+                direct_has_no_audience: 'Una conversación privada no tiene público que ajustar.'
+                channel_not_deletable: 'Solo se pueden eliminar los canales abiertos aquí.'
+                direct_keeps_both: 'Una conversación privada conserva a sus dos personas.'
+                direct_needs_two: 'Una conversación privada es entre dos.'
+                channel_name_required: 'El canal necesita un nombre.'
+                channel_not_in_space: 'Este canal no pertenece a este espacio.'
+                not_on_the_team: 'Esta persona no forma parte del equipo de este espacio.'
+                channel_closed: 'Este canal no está abierto para usted.'
+                body_required: 'El mensaje no puede estar vacío.'
+                needs_account: 'Debe iniciar sesión para escribir en una conversación.'
+                from_client: 'Un mensaje del cliente no se puede eliminar. Es lo que le ha dicho.'
+                not_in_space: 'Este enlace no abre este espacio.'
+        space_content:
+            tab: 'Espacio de trabajo'
+            view_label: Vista
+            view_content: Contenidos
+            shape_board: Kanban
+            shape_list: Lista
+            calendar_day_empty: 'Nada previsto ese día.'
+            view_calendar: Calendario
+            view_drive: Drive
+            view_files: Archivos
+            view_chat: Conversación
+            view_notes: Notas
+            view_information: Información
+            view_resources: Recursos
+            view_settings: Ajustes
+            files_empty: 'No hay archivos en este espacio'
+            files_empty_hint: 'Los archivos subidos a los contenidos, por usted o por el cliente, aparecen aquí del más reciente al más antiguo.'
+            files_unknown_card: 'Contenido eliminado'
+            files_open: Abrir
+            files_open_in_tab: 'Abrir en una pestaña'
+            orphaned_one: '«{title}» ya no se utiliza en ningún sitio.'
+            orphaned_many: '{count} archivos ya no se utilizan en ningún sitio.'
+            orphaned_trash: 'Mover a la papelera'
+            orphaned_trashed: 'Enviado a la papelera de la mediateca. | {count} archivos enviados a la papelera de la mediateca.'
+            files_as_cards: 'Mostrar como fichas'
+            files_as_rows: 'Mostrar como lista'
+            board: Tablero
+            calendar: Calendario
+            today: Hoy
+            unscheduled_rail: 'Sin fecha'
+            unscheduled_rail_empty: 'Todo está programado.'
+            row_actions:
+                edit_description: 'Editar este contenido'
+                view_description: 'Leer este contenido, sus archivos y sus conversaciones'
+                delete_description: 'Eliminar este contenido'
+            calendar_name: 'Contenidos de clientes'
+            back_to_spaces: 'Volver a los espacios'
+            switch_space: 'Cambiar de espacio'
+            add_item: 'Añadir un contenido'
+            create_item: 'Nuevo contenido'
+            edit_item: 'Editar {title}'
+            view_item: 'Ver {title}'
+            item_created: 'Contenido creado.'
+            item_updated: 'Contenido actualizado.'
+            item_deleted: 'Contenido eliminado.'
+            delete_item_confirm: '¿Eliminar {title}?'
+            delete_item_warning: 'El contenido y su texto desaparecen. Las demás fichas no cambian.'
+            empty_column: 'Nada aquí por el momento.'
+            empty_board: 'No hay contenidos en este espacio. Añada uno para empezar.'
+            unscheduled: 'Sin fecha'
+            thread_notice: 'Lo que escriba aquí lo leerá el cliente.'
+            comment_posted: 'Mensaje enviado.'
+            comment_deleted: 'Mensaje eliminado.'
+            attachment_added: 'Archivo añadido.'
+            attachment_removed: 'Archivo quitado de la ficha.'
+            approval_reset_warning: 'Editar el título o el texto borra esta respuesta: se refería a lo que se mostró.'
+            approvals:
+                pending: Pendiente
+                approved: Validado
+                changes_requested: 'Por rehacer'
+            scheduled_for: 'El {date}'
+            title: Título
+            title_placeholder: 'Lo que dice la publicación, en una línea'
+            body: Texto
+            body_placeholder: 'El contenido tal como se publicará.'
+            column: Etapa
+            scheduled_at: 'Fecha de publicación'
+            scheduled_at_hint: 'Opcional. Una idea sin fecha vive en el tablero y pasa al calendario cuando la programa.'
+            review_by: 'Respuesta esperada antes del'
+            review_by_hint: 'Opcional. La fecha en la que necesita la opinión del cliente para cumplir con la publicación. Nada se bloquea al llegar el plazo: se muestra, nada más.'
+            review:
+                action: 'Enviar a revisar ({count})'
+                hint: 'Avisa al cliente por correo electrónico de lo que espera su opinión, y le envía una nueva dirección.'
+                confirm_title: '¿Enviar a revisar?'
+                confirm_body: '{count} publicación(es) esperan una respuesta. Cada destinatario que pueda validar recibirá un correo electrónico con una nueva dirección, y su dirección anterior dejará de funcionar.'
+                confirm_send: Enviar
+                sent: 'Enviado a {count} destinatario(s).'
+                nothing_awaiting: 'Nada espera respuesta por el momento.'
+                nobody_to_write_to: 'Ningún enlace de este espacio puede responder. Emita un acceso con permiso para validar desde la pestaña Accesos.'
+                late: '{count} atrasadas'
+                late_hint: 'Estas publicaciones han superado la fecha en la que esperaba una respuesta. Aun así, no se bloquea nada.'
+                due: 'Respuesta antes del {date}'
+                late_since: 'Respuesta esperada el {date}'
+            show_on_calendar: 'Mostrar en el calendario'
+            show_on_calendar_hint: 'Si se desmarca, la ficha conserva su fecha y permanece en el tablero, pero no aparece ni en su calendario ni en el del cliente.'
+            scheduled_at_placeholder: '22/09/2026 09:00'
+            timezone_notice: 'Las horas corresponden a la zona horaria del espacio, {timezone}.'
+            add_column: 'Añadir una etapa'
+            create_column: 'Nueva etapa'
+            edit_column: 'Renombrar la etapa'
+            move_column: 'Mover la etapa'
+            column_name: 'Nombre de la etapa'
+            column_name_placeholder: 'Por revisar, En línea…'
+            column_colour: Color
+            column_colour_hint: 'Opcional. Distingue la etapa en el tablero y colorea sus contenidos en el calendario.'
+            column_visible: 'Visible para el cliente'
+            column_visible_hint: 'Si se desmarca, esta etapa y sus contenidos no aparecen en el espacio que el cliente abre con su enlace. Permanecen en su tablero.'
+            column_created: 'Etapa añadida.'
+            column_updated: 'Etapa renombrada.'
+            column_deleted: 'Etapa eliminada.'
+            delete_column_confirm: '¿Eliminar la etapa {name}?'
+            delete_column_warning: 'Una etapa solo se puede eliminar si está vacía.'
+            column_role: 'Rol de la etapa'
+            column_role_hint: 'Opcional. Indica qué etapa común representa esta, para que los contadores del panel y del calendario editorial la reconozcan.'
+            column_role_none: Ninguno
+            column_roles:
+                idea: Idea
+                production: Producción
+                review: Revisión
+                scheduled: Programado
+                published: Publicado
+            default_columns:
+                idea: Ideas
+                writing: 'En redacción'
+                review: 'Por validar'
+                scheduled: Programado
+                published: Publicado
+            errors:
+                title_required: 'El título es obligatorio.'
+                title_too_long: 'El título no puede superar los 255 caracteres.'
+                column_required: 'Elija una etapa de este espacio.'
+                scheduled_at_invalid: 'Esta fecha no es válida.'
+                review_by_invalid: 'La fecha de revisión no es válida.'
+                column_name_required: 'El nombre de la etapa es obligatorio.'
+                column_name_too_long: 'El nombre no puede superar los 100 caracteres.'
+                column_not_empty: 'Esta etapa contiene {count} contenido(s). Muévalos antes de eliminarla.'
+                column_last: 'Un tablero conserva al menos una etapa.'
+                comment_required: 'El mensaje no puede estar vacío.'
+                comment_needs_account: 'Debe iniciar sesión para escribir en una conversación.'
+                comment_from_client: 'Un mensaje del cliente no se puede eliminar. Es lo que le ha pedido.'
+                not_in_space: 'Este contenido no pertenece a este espacio.'
+                attachment_required: 'Elija un archivo.'
+                attachment_unknown: 'Este documento no existe o ya no existe.'
+                attachment_duplicate: 'Este archivo ya está en esta ficha.'
+                attachment_needs_account: 'Debe iniciar sesión para añadir un archivo.'
+            attachments:
+                category: 'Espacios de clientes'
+                category_description: 'Archivos subidos a los contenidos de un espacio de cliente, por el estudio o por el propio cliente.'
 studio:
     contract:
         language:
@@ -12,23 +1534,23 @@ studio:
             en: inglesa
             es: española
         governing_language:
-            heading: Idioma del contrato
+            heading: 'Idioma del contrato'
             body: 'El presente contrato se redacta en varios idiomas. En caso de divergencia de interpretación entre las versiones, solo prevalece la versión {language}.'
             translation_notice: 'La versión {language} que usted lee es una traducción facilitada para su comodidad.'
     public:
         contract:
             title: Contrato
-            heading: Contrato de prestación de servicios
+            heading: 'Contrato de prestación de servicios'
             intro: 'Este documento se le dirige en nombre de {company}. Tómese el tiempo de leerlo por completo.'
-            to_sign: Este contrato espera su firma.
-            to_sign_hint: Se le pedirán su nombre y apellidos, su email, el lugar y la fecha, y después su firma. Se enviará un código de confirmación a su dirección de email.
+            to_sign: 'Este contrato espera su firma.'
+            to_sign_hint: 'Se le pedirán su nombre y apellidos, su email, el lugar y la fecha, y después su firma. Se enviará un código de confirmación a su dirección de email.'
             valid_until: 'Este enlace es válido hasta el {date}.'
-            signed: Ha firmado este contrato.
-            signed_hint: No se le pide nada más. Recibirá el documento contrafirmado por email.
-            concluded: Este contrato está firmado por ambas partes.
+            signed: 'Ha firmado este contrato.'
+            signed_hint: 'No se le pide nada más. Recibirá el documento contrafirmado por email.'
+            concluded: 'Este contrato está firmado por ambas partes.'
             hash_notice: 'Huella del documento: {hash}. Garantiza que este texto no ha cambiado desde su envío.'
-            footer: Este enlace es personal. No lo transmita.
-            refused: Ha indicado que no firma este contrato.
+            footer: 'Este enlace es personal. No lo transmita.'
+            refused: 'Ha indicado que no firma este contrato.'
             refused_hint: 'Rechazo registrado el {date}. Si es un error, dígalo al prestador: podrá volver a enviarle el contrato.'
         privacy:
             title: 'Sus datos: qué se recoge y por qué'
@@ -60,20 +1582,20 @@ studio:
         sign:
             heading: 'Firmar este contrato'
             intro: 'Indique su identidad, firme en el recuadro y confirme con el código que le enviaremos por email.'
-            first_name: 'Nombre'
-            first_name_placeholder: 'Camille'
-            last_name: 'Apellidos'
-            last_name_placeholder: 'Durand'
+            first_name: Nombre
+            first_name_placeholder: Camille
+            last_name: Apellidos
+            last_name_placeholder: Durand
             email: 'Su email'
-            email_placeholder: 'camille@empresa.es'
+            email_placeholder: camille@empresa.es
             email_hint: 'Su dirección personal. El código de confirmación, en cambio, se envía a la dirección contractual de la empresa.'
             place: 'Firmado en'
-            place_placeholder: 'Lyon'
-            date: 'Fecha'
+            place_placeholder: Lyon
+            date: Fecha
             date_placeholder: '2026-09-09'
             signature: 'Su firma'
             draw_hint: 'Firme con el dedo, el ratón o un lápiz digital.'
-            clear: 'Borrar'
+            clear: Borrar
             code_intro: 'Cuando esté listo, le enviamos un código de confirmación.'
             request_code: 'Recibir el código'
             complete_first: 'Indique su identidad y firme el recuadro para recibir el código.'
@@ -103,74 +1625,74 @@ studio:
                 code_invalid: 'Este código no es válido. Solicite uno nuevo.'
                 too_many_codes: 'Demasiados códigos solicitados para este contrato. Vuelva a intentarlo dentro de una hora.'
                 too_many_requests: 'Demasiados intentos. Espere unos minutos.'
-                code_not_sent: "No se ha podido enviar el código. Inténtelo de nuevo en un momento o avise a su interlocutor."
+                code_not_sent: 'No se ha podido enviar el código. Inténtelo de nuevo en un momento o avise a su interlocutor.'
         space:
-            unavailable_message: La dirección que ha abierto no existe, ha caducado o ha sido revocada. Si esperaba el plan de contenidos de un espacio, pida un nuevo enlace a su contacto.
+            unavailable_message: 'La dirección que ha abierto no existe, ha caducado o ha sido revocada. Si esperaba el plan de contenidos de un espacio, pida un nuevo enlace a su contacto.'
             timezone_notice: 'Horas en {timezone}'
-            calendar_day_empty: Nada previsto ese día.
+            calendar_day_empty: 'Nada previsto ese día.'
             awaiting_you: '{count} a la espera de su opinión'
-            nothing_awaiting: Ha respondido a todo lo que estaba pendiente.
-            select_all: Seleccionar todo
+            nothing_awaiting: 'Ha respondido a todo lo que estaba pendiente.'
+            select_all: 'Seleccionar todo'
             approve_selected: 'Validar la selección ({count})'
             approved_many: '{count} publicación(es) validada(s).'
             review_by: 'revisar antes del {date}'
             approval:
                 approved: Validado
-                changes_requested: Cambios solicitados
-            preview_notice: "Vista previa: esto es lo que ve quien tiene este enlace. Nada de lo que pulse aquí le llega, y esta dirección caduca en unos minutos."
-            drive_title: Documentos compartidos
-            drive_download: Descargar el archivo
-            drive_archive: Descargar todo (.zip)
-            footer: Esta dirección es personal, no la transmita.
+                changes_requested: 'Cambios solicitados'
+            preview_notice: 'Vista previa: esto es lo que ve quien tiene este enlace. Nada de lo que pulse aquí le llega, y esta dirección caduca en unos minutos.'
+            drive_title: 'Documentos compartidos'
+            drive_download: 'Descargar el archivo'
+            drive_archive: 'Descargar todo (.zip)'
+            footer: 'Esta dirección es personal, no la transmita.'
             footer_until: 'Esta dirección es personal y válida hasta el {date}: no la transmita.'
-            no_body: El texto aún no está escrito.
-            thread_notice: Lo que escriba aquí lo lee su proveedor.
-            chat_notice: Lo que escriba aquí lo lee su proveedor.
-            tabs_label: Lo que quiere ver
+            no_body: 'El texto aún no está escrito.'
+            thread_notice: 'Lo que escriba aquí lo lee su proveedor.'
+            chat_notice: 'Lo que escriba aquí lo lee su proveedor.'
+            tabs_label: 'Lo que quiere ver'
             tab_calendar: Calendario
             tab_chat: Conversación
             tab_files: Documentos
             tab_resources: Enlaces
             tab_information: Información
-            files_title: Los archivos de este espacio
+            files_title: 'Los archivos de este espacio'
             files_open: Abrir
-            upload_notice: "Imágenes, PDF y vídeos habituales, 25 MB como máximo. Lo que envíe aquí lo ve su proveedor."
+            upload_notice: 'Imágenes, PDF y vídeos habituales, 25 MB como máximo. Lo que envíe aquí lo ve su proveedor.'
             approve: Validado
             request_changes: Revisar
             answer_hint: 'Para pedir cambios, diga qué no funciona en los intercambios de arriba.'
-            answer_recorded: Su respuesta ha quedado registrada.
+            answer_recorded: 'Su respuesta ha quedado registrada.'
             already_approved: 'Validó este contenido el {date}.'
             already_changes_requested: 'Pidió una revisión el {date}.'
             errors:
-                approval_invalid: Respuesta no reconocida.
-                nothing_selected: Seleccione al menos una publicación.
-                comment_required: El mensaje no puede estar vacío.
-                too_many_requests: Demasiadas respuestas seguidas. Vuelva a intentarlo en unos minutos.
-                upload_required: Elija un archivo para enviar.
-                upload_failed: El envío no se completó. Inténtelo de nuevo.
-                upload_too_large: Ese archivo supera los 25 MB. Envíe una versión más ligera.
-                upload_type_refused: Ese tipo de archivo no se acepta. Solo imágenes, PDF y vídeos habituales.
+                approval_invalid: 'Respuesta no reconocida.'
+                nothing_selected: 'Seleccione al menos una publicación.'
+                comment_required: 'El mensaje no puede estar vacío.'
+                too_many_requests: 'Demasiadas respuestas seguidas. Vuelva a intentarlo en unos minutos.'
+                upload_required: 'Elija un archivo para enviar.'
+                upload_failed: 'El envío no se completó. Inténtelo de nuevo.'
+                upload_too_large: 'Ese archivo supera los 25 MB. Envíe una versión más ligera.'
+                upload_type_refused: 'Ese tipo de archivo no se acepta. Solo imágenes, PDF y vídeos habituales.'
         unavailable:
-            title: Este enlace ya no es válido
-            message: La dirección que ha abierto no existe, ha caducado o ha sido revocada. Si esperaba un contrato, pida un nuevo enlace a su interlocutor.
+            title: 'Este enlace ya no es válido'
+            message: 'La dirección que ha abierto no existe, ha caducado o ha sido revocada. Si esperaba un contrato, pida un nuevo enlace a su interlocutor.'
     pdf:
         footer: 'Contrato {reference} - documento firmado electrónicamente'
         signed_at: 'Firmado en {place}, el {date}'
         provisional:
-            filename_suffix: 'borrador'
+            filename_suffix: borrador
             footer: 'Contrato {name} - copia de trabajo, sin firmar'
             draft_title: 'Borrador de contrato'
-            draft_notice: "Este documento es un borrador. Su texto aún no es definitivo, las menciones entre corchetes se escriben al sellar, y no vincula a nadie."
+            draft_notice: 'Este documento es un borrador. Su texto aún no es definitivo, las menciones entre corchetes se escriben al sellar, y no vincula a nadie.'
             sealed_title: 'Contrato sellado, sin firmar'
-            sealed_notice: "Este documento es el texto definitivo del contrato, pero aún no está firmado por ambas partes. Solo la versión firmada, con su prueba de firma electrónica, da fe."
+            sealed_notice: 'Este documento es el texto definitivo del contrato, pero aún no está firmado por ambas partes. Solo la versión firmada, con su prueba de firma electrónica, da fe.'
             seal_title: 'Huella del documento sellado'
-            seal_notice: "Esta huella identifica el texto sellado. Cualquier modificación del documento produciría una huella diferente. Este documento aún no está firmado: la prueba de firma electrónica solo aparece en la versión firmada."
+            seal_notice: 'Esta huella identifica el texto sellado. Cualquier modificación del documento produciría una huella diferente. Este documento aún no está firmado: la prueba de firma electrónica solo aparece en la versión firmada.'
         role:
             customer: 'El Cliente'
             provider: 'El Prestador'
         seal:
             title: 'Prueba de firma electrónica'
-            reference: 'Referencia'
+            reference: Referencia
             sealed_at: 'Documento sellado el'
             hash: 'Huella del documento'
             observed: 'Firmado el {at}, desde {ip}'
@@ -181,13 +1703,13 @@ studio:
         space_review:
             subject: 'Se espera su opinión sobre {space}'
             body: '{count} publicación(es) esperan su opinión en el espacio {space}. Puede validarlas o solicitar cambios, y comentar cada una.'
-            cta: Abrir mi espacio
+            cta: 'Abrir mi espacio'
             replaces: 'Esta dirección sustituye a la anterior, que ya no funciona. Es personal, no la transmita.'
             expires: 'Sigue siendo válida hasta el {date}.'
         space_activity:
             subject: 'Novedades en {space}'
             body: 'Su cliente ha hecho algo en el espacio {space}:'
-            cta: Abrir el espacio
+            cta: 'Abrir el espacio'
             quiet: 'No volverá a recibir un mensaje sobre esto hasta que abra el espacio.'
         customer_refused:
             subject: 'Contrato {reference}: rechazo del cliente'
@@ -219,10 +1741,10 @@ studio:
             validity: 'Este código es válido durante {minutes} minutos.'
             warning: 'Si no ha solicitado este código, ignore este mensaje.'
         contract_link:
-            subject: Un contrato espera su firma
+            subject: 'Un contrato espera su firma'
             greeting: 'Hola {name}:'
             body: 'El contrato {reference} está listo y espera su firma. Puede leerlo y firmarlo en línea.'
-            action: Leer y firmar el contrato
+            action: 'Leer y firmar el contrato'
             expiry: 'Este enlace es válido hasta el {date}.'
-            warning: Este enlace es personal. No lo transmita.
+            warning: 'Este enlace es personal. No lo transmita.'
             signature: '{company}'

@@ -1,0 +1,317 @@
+backend:
+    stats:
+        ged:
+            documents: Documentos
+            categories: Categorías
+            tags: Etiquetas
+            folders: Carpetas
+            by_type: 'Distribución por tipo de archivo'
+    parameters:
+        ged_document_prefix:
+            label: 'Prefijo de las referencias de documentos de la mediateca'
+            description: 'Prefijo de la referencia de documento generada automáticamente en la mediateca (ej.: DOC). Déjelo vacío para desactivarlo.'
+    permissions:
+        names:
+            ged:
+                documents:
+                    view: 'Ver los documentos'
+                    create: 'Crear documentos'
+                    edit: 'Editar los documentos'
+                    delete: 'Eliminar los documentos'
+                    relocate: 'Mover los documentos entre almacenamientos'
+                categories:
+                    view: 'Ver las categorías'
+                    create: 'Crear categorías'
+                    edit: 'Editar las categorías'
+                    delete: 'Eliminar las categorías'
+                tags:
+                    manage: 'Gestionar las etiquetas'
+                folders:
+                    manage: 'Gestionar las carpetas'
+    modules:
+        ged: Mediateca
+        ged_backend: Mediateca
+        ged_backend_description: 'Activa la sección de mediateca en la administración.'
+        ged_tags: 'Etiquetas de la mediateca'
+        ged_tags_description: 'Activa la gestión de las etiquetas de documentos.'
+        ged_folders: 'Carpetas de la mediateca'
+        ged_folders_description: 'Activa la gestión de las carpetas de documentos.'
+        ged_frontend: 'Biblioteca pública de la mediateca'
+        ged_frontend_description: 'Expone los documentos publicados en el sitio público.'
+    nav:
+        sections:
+            ged: Mediateca
+        documents: Documentos
+        documents_description: 'Subir, clasificar y encontrar los documentos de la biblioteca.'
+        ged_categories: Categorías
+        ged_categories_description: 'Clasificar los documentos por naturaleza, una categoría por documento.'
+        ged_tags: Etiquetas
+        ged_tags_description: 'Etiquetar libremente un documento, con tantas etiquetas como sea necesario.'
+        ged_folders: Carpetas
+        ged_folders_description: 'Ordenar los documentos en un árbol de carpetas anidadas.'
+    ged:
+        pexels:
+            tab: Pexels
+            search_placeholder: 'Buscar una foto: oficina, naturaleza, retrato…'
+            empty: 'Ninguna foto para esta búsqueda.'
+            not_configured: 'El banco de fotos Pexels no está activado. Vaya a Configuración › Pexels para activarlo.'
+            settings:
+                what_title: 'Para qué sirve'
+                what_body: 'Pexels es un banco de fotos gratuitas. Una vez activado, aparece una pestaña «Pexels» en el selector de imágenes: busca una foto, la elige, se descarga en su mediateca y le pertenece. Su sitio ya no depende de Pexels para mostrarla.'
+                how_title: 'Obtener su clave'
+                how_step_account: 'Cree una cuenta gratuita en pexels.com, o inicie sesión en la suya.'
+                how_step_request: 'Vaya a pexels.com/api/, haga clic en «Get Started» y describa en una frase para qué la va a usar (por ejemplo: ilustrar las páginas de mi sitio). La clave se entrega de inmediato.'
+                how_step_paste: 'Copie la clave que se muestra y péguela en el campo de abajo; luego guarde.'
+                how_link: 'Abrir la página de claves de Pexels'
+                terms_label: 'He leído y acepto las condiciones de uso de Pexels'
+                terms_hint: 'La cuenta de Pexels es suya, y es su titular quien responde del uso que se haga de las fotos. En particular, en un sitio que vende un producto o un servicio, evite las fotos que muestren un rostro reconocible o una marca: pueden dar a entender una recomendación. Tampoco redistribuya los propios archivos, por ejemplo en una carpeta entregada a un tercero.'
+                terms_link: 'Leer las condiciones de uso'
+                license_link: 'Leer la licencia de Pexels'
+                accepted_on: 'Condiciones aceptadas el {date} por {user}.'
+                key_label: 'Clave de API de Pexels'
+                key_hint: 'Se guarda cifrada y nunca se vuelve a mostrar.'
+                key_stored: 'Hay una clave guardada. Deje el campo vacío para conservarla, o introduzca una nueva para sustituirla.'
+                enabled_label: 'Activar el banco de fotos Pexels'
+                enabled_hint: 'La pestaña Pexels aparecerá en el selector de imágenes.'
+                enabled_blocked: 'Acepte las condiciones e introduzca una clave para poder activarlo.'
+            errors:
+                invalid_photo: 'Esta foto no se puede importar.'
+                download_failed: 'No se ha podido descargar la foto. Vuelva a intentarlo en un momento.'
+                terms_required: 'Las condiciones de uso deben aceptarse para activar la integración.'
+                key_required: 'Se necesita una clave de API para activar la integración.'
+                unknown_disk: 'Esta ubicación de almacenamiento no existe.'
+                relocation_busy: 'Ya hay un desplazamiento en curso para este documento.'
+                relocation_failed: 'El desplazamiento ha fallado. El documento se ha quedado donde estaba.'
+        bootstrap:
+            categories:
+                inline_uploads: 'Medios editoriales'
+                inline_uploads_description: 'Imágenes importadas desde un formulario de edición: banners, imágenes destacadas, campos personalizados.'
+        documents:
+            row_actions:
+                view_description: 'Abre la vista previa, sus versiones y dónde se utiliza.'
+                download_description: 'Descarga el archivo tal como se subió.'
+                qr_description: 'Muestra un código QR que lleva a este documento.'
+                edit_description: 'Título, categoría, etiquetas, carpeta.'
+                delete_description: 'Elimina el documento y su archivo. No se puede deshacer.'
+                relocate_to_remote: 'Enviar al almacenamiento remoto'
+                relocate_to_local: 'Traer de vuelta al servidor'
+                relocate_description: 'Traslada el archivo, sus tamaños generados y su historial. Su dirección no cambia.'
+                relocate_pending: 'Ya hay un traslado en curso para este documento.'
+            storage:
+                column: Almacenamiento
+                local: Servidor
+                remote: Remoto
+                moving: Traslado
+                failed: 'Traslado fallido'
+                hint: 'Archivo almacenado: {place}.'
+            relocation:
+                done: 'Documento trasladado.'
+                queued: 'Traslado iniciado. Continúa en segundo plano.'
+                already_there: 'Este documento ya está en esta ubicación.'
+                bulk_done: '{done} documento(s) trasladado(s), {skipped} sin cambios.'
+                bulk_partial: '{done} documento(s) trasladado(s), {failed} con error.'
+                all_to_remote: 'Pasar todo al almacenamiento remoto'
+                all_to_local: 'Pasar todo al servidor'
+                all_confirm_remote: '¿Enviar al almacenamiento remoto todos los documentos que aún no están allí?'
+                all_confirm_local: '¿Traer de vuelta al servidor todos los documentos que aún no están allí?'
+                all_explain: 'Los documentos que ya están en destino se omiten. La papelera no se traslada.'
+                all_background: 'El traslado se realiza en segundo plano: las filas pasan a «Traslado» a medida que avanza.'
+                all_queued: '{queued} documento(s) en cola, {skipped} ya en destino.'
+                all_nothing: 'Todos los documentos ya están en esta ubicación.'
+            reference: Referencia
+            title: Título
+            description: Descripción
+            status: Estado
+            category: Categoría
+            file: Archivo
+            size: Tamaño
+            add: 'Añadir un documento'
+            create: 'Nuevo documento'
+            edit: 'Editar el documento {title}'
+            search_placeholder: 'Buscar un documento…'
+            picker_title: 'Elegir un documento'
+            picker_empty: 'Ningún documento disponible'
+            picker_confirm: Seleccionar
+            picker_tab_library: Mediateca
+            created: 'Documento creado correctamente'
+            updated: 'Documento actualizado'
+            deleted: 'Documento enviado a la papelera'
+            empty: 'Todavía no hay documentos'
+            delete_confirm: '¿Está seguro de que desea eliminar el documento «{title}»?'
+            delete_warning: 'El documento va a la papelera. Podrá restaurarlo mientras no se haya vaciado.'
+            back_to_list: 'Volver a los documentos'
+            no_category: 'Sin categoría'
+            tags: Etiquetas
+            no_tags: 'Ninguna etiqueta'
+            folder: Carpeta
+            no_folder: 'Ninguna carpeta'
+            versions: 'Historial de versiones'
+            filter_by_status: 'Filtrar por estado'
+            filter_by_category: 'Filtrar por categoría'
+            filter_by_tag: 'Filtrar por etiqueta'
+            filter_by_folder: 'Filtrar por carpeta'
+            filter_by_type: 'Filtrar por tipo'
+            type_image: Imágenes
+            type_video: Vídeos
+            type_audio: Audio
+            type_pdf: PDF
+            type_other: Otros
+            alt: 'Texto alternativo'
+            alt_placeholder: 'Describa la imagen para los lectores de pantalla y el SEO…'
+            caption: Leyenda
+            caption_placeholder: 'Leyenda mostrada bajo la imagen…'
+            permalink: 'Enlace permanente'
+            dimensions: Dimensiones
+            crop: Recortar
+            type: Tipo
+            preview: 'Vista previa'
+            preview_of: 'Vista previa: {name}'
+            choose_file: 'Elegir un archivo'
+            choose_file_library: Mediateca
+            choose_file_local: 'Desde el ordenador'
+            title_placeholder: 'Título del documento…'
+            description_placeholder: 'Descripción opcional…'
+            status_draft: Borrador
+            status_published: Publicado
+            status_archived: Archivado
+            usage_title: Uso
+            usage_none: 'Este documento no se utiliza en ningún sitio'
+            select_mode: Seleccionar
+            stop_selecting: 'Terminar la selección'
+            usage_unused_badge: 'Sin usar'
+            usage_unused_hint: 'Ninguna página, ningún deck y ningún espacio lo muestra'
+            kept_badge: Conservar
+            kept_hint: 'Sin usar a propósito, no eliminar'
+            alternates_badge: 'Ninguna variante | 1 variante | {count} variantes'
+            alternate_badge: Variante
+            alternate_badge_labelled: 'Variante · {label}'
+            alternate_of: 'Variante de «{title}»'
+            family:
+                section: 'Variantes y conservación'
+                kept: Conservar
+                kept_hint: 'Aunque no se use, este documento se mantiene: una variante guardada en reserva, una imagen que espera su página.'
+                original: 'Variante de'
+                original_none: 'Este documento no es variante de ningún otro.'
+                original_choose: 'Elegir el original'
+                original_change: Cambiar
+                original_remove: Quitar
+                original_locked: 'Este documento tiene sus propias variantes: sigue siendo un original.'
+                label: 'Lo que la distingue'
+                label_placeholder: 'amarillo, rojo, sin texto…'
+                alternates: 'Sus variantes'
+                alternates_empty: 'Todavía no hay variantes.'
+                open_original: 'Abrir el original'
+            originals_only: 'Agrupar las variantes'
+            originals_only_hint: 'Mostrar solo los originales; sus variantes se abren desde cada uno.'
+            usage:
+                billing_invoice: Factura
+                billing_ocr: 'Importación OCR'
+                project_task: 'Tarea de proyecto'
+            moved: 'Documento movido'
+            bulk_moved: 'Documentos movidos'
+            bulk_move: 'Mover {count} documentos'
+            all_documents: 'Todos los documentos'
+            root_folder: Raíz
+            subfolders: Subcarpetas
+            files: Archivos
+            folders_section: Carpetas
+            favourites: Favoritos
+            favourite: 'Añadir a favoritos'
+            unfavourite: 'Quitar de favoritos'
+            new_folder: 'Nueva carpeta'
+            edit_folder: 'Editar la carpeta'
+            delete_folder_confirm: '¿Eliminar la carpeta «{name}»?'
+            delete_folder_cascade: 'Enviar la carpeta y su contenido a la papelera'
+            delete_folder_cascade_hint: 'Los documentos y subcarpetas se van con ella. Al restaurarlos, todo vuelve a su sitio.'
+            delete_folder_only: 'Eliminar solo la carpeta'
+            delete_folder_only_hint: 'Su contenido sube a la raíz. Al restaurar la carpeta, estará vacía.'
+            folder_name: 'Nombre de la carpeta'
+            folder_name_placeholder: 'Nombre de la carpeta…'
+            parent_folder: 'Carpeta superior'
+            expand: Desplegar
+            collapse: Plegar
+            folder_tree: Carpetas
+            folder_tree_empty: 'Todavía no hay carpetas.'
+            move: Mover
+            errors:
+                title_required: 'El título es obligatorio'
+                original_self: 'Un documento no puede ser su propia variante.'
+                original_not_found: 'Este original ya no existe.'
+                original_is_alternate: 'Este original es a su vez una variante; elija el documento de origen.'
+                original_has_alternates: 'Este documento tiene sus propias variantes y no puede convertirse en variante.'
+                upload_required: 'No se ha recibido ningún archivo'
+                image_required: 'Este campo solo acepta imágenes.'
+                upload_too_large: 'Este archivo supera 100 MB. Redúzcalo o súbalo de otra forma.'
+                upload_type_refused: 'Este tipo de archivo no se acepta aquí.'
+                upload_failed: 'La subida no llegó completa. Inténtelo de nuevo.'
+        categories:
+            row_actions:
+                edit_description: 'Renombrar la categoría y cambiar su descripción.'
+                delete_description: 'Elimina la categoría. Los documentos que la tenían dejarán de tenerla.'
+            name: Nombre
+            slug: Identificador
+            description: Descripción
+            add: 'Añadir una categoría'
+            create: 'Nueva categoría'
+            edit: 'Editar la categoría {name}'
+            search_placeholder: 'Buscar una categoría…'
+            created: 'Categoría creada correctamente'
+            updated: 'Categoría actualizada'
+            deleted: 'Categoría eliminada'
+            empty: 'Todavía no hay categorías'
+            delete_confirm: '¿Está seguro de que desea eliminar la categoría «{name}»?'
+            delete_warning: 'Los documentos vinculados no se eliminarán.'
+            name_placeholder: 'Nombre de la categoría…'
+            description_placeholder: 'Descripción opcional…'
+            errors:
+                name_required: 'El nombre es obligatorio'
+        tags:
+            row_actions:
+                edit_description: 'Renombrar la etiqueta y cambiar su color.'
+                delete_description: 'Elimina la etiqueta y la quita de todos los documentos.'
+            name: Nombre
+            color: Color
+            search_placeholder: 'Buscar una etiqueta…'
+            add: 'Añadir una etiqueta'
+            create: 'Nueva etiqueta'
+            edit: 'Editar la etiqueta {name}'
+            created: 'Etiqueta creada correctamente'
+            updated: 'Etiqueta actualizada'
+            deleted: 'Etiqueta eliminada'
+            empty: 'Todavía no hay etiquetas'
+            delete_confirm: '¿Está seguro de que desea eliminar la etiqueta «{name}»?'
+            delete_warning: 'Los documentos vinculados no se eliminarán.'
+            name_placeholder: 'Nombre de la etiqueta…'
+            errors:
+                name_required: 'El nombre es obligatorio'
+        folders:
+            row_actions:
+                edit_description: 'Renombrar la carpeta y moverla.'
+                delete_description: 'Elimina la carpeta. Los documentos que contenía suben un nivel.'
+            name: Nombre
+            parent: 'Carpeta superior'
+            position: Posición
+            add: 'Añadir una carpeta'
+            create: 'Nueva carpeta'
+            edit: 'Editar la carpeta {name}'
+            created: 'Carpeta creada correctamente'
+            updated: 'Carpeta actualizada'
+            deleted: 'Carpeta eliminada'
+            empty: 'Todavía no hay carpetas'
+            delete_confirm: '¿Está seguro de que desea eliminar la carpeta «{name}»?'
+            delete_warning: 'Los documentos vinculados no se eliminarán.'
+            name_placeholder: 'Nombre de la carpeta…'
+            search_placeholder: 'Buscar una carpeta…'
+            no_parent: 'Ninguna (raíz)'
+            errors:
+                cycle: 'No se puede colocar una carpeta dentro de una de sus propias subcarpetas.'
+                name_required: 'El nombre es obligatorio'
+ged:
+    frontend:
+        documents:
+            title: 'Biblioteca de documentos'
+            empty: 'Todavía no hay documentos disponibles.'
+            no_category: 'Sin categoría'
+            search_placeholder: 'Buscar un documento…'
+            no_results: 'Ningún documento coincide con su búsqueda.'
+            result_count: '{count} documento|{count} documentos'

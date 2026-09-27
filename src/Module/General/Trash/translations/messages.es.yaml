@@ -1,0 +1,24 @@
+backend:
+    trash:
+        title: Papelera
+        intro: 'Todo lo eliminado espera aquí, sea cual sea el módulo, y se restaura desde aquí.'
+        retention: 'Cada fila se elimina definitivamente {days} días después de su eliminación.'
+        retention_off: 'La purga automática está desactivada: nada se elimina por sí solo.'
+        rules_note: 'Restaurar devuelve el elemento a donde estaba, cuando todavía es posible: una carpeta cuya carpeta superior se ha eliminado vuelve a la raíz, una categoría cuyo nombre se ha reutilizado recibe un nombre libre.'
+        count: '1 elemento | {count} elementos'
+        empty_one: 'Esta papelera está vacía.'
+        open_list: 'Abrir {list}'
+        days_left: 'purga en 1 día | purga en {count} días'
+        purge_due: 'purga esta noche'
+        deleted_on: 'eliminado el {date}'
+        restore: Restaurar
+        restored: 'Elemento restaurado.'
+        delete_forever: 'Eliminar definitivamente'
+        delete_forever_confirm: '¿Eliminar definitivamente «{name}»? Es la única acción de esta página que no se puede deshacer.'
+        deleted_forever: 'Elemento eliminado definitivamente.'
+        empty: Vaciar
+        empty_confirm: 'Vaciar esta papelera eliminará definitivamente sus {count} elementos. No se puede deshacer.'
+        emptied: '{count} elemento(s) eliminado(s) definitivamente.'
+        truncated: '{shown} elementos mostrados de {total}. Vacíe la papelera o espere a la purga para el resto.'
+        all_empty: 'Ninguna papelera contiene nada.'
+        all_empty_hint: 'Lo que se elimine aparecerá aquí durante su periodo de conservación.'

@@ -1,0 +1,335 @@
+backend:
+    parameters:
+        notes_markdown_image_max_edge:
+            label: 'Notas Markdown - Tamaño máx. de las imágenes (px)'
+            description: 'Notas Markdown: lado más largo, en píxeles. Las imágenes que superan este límite se redimensionan en el navegador antes del envío. Recomendado: 2048.'
+        notes_markdown_image_quality_pct:
+            label: 'Notas Markdown - Calidad de codificación WebP (%)'
+            description: 'Notas Markdown: calidad WebP aplicada al redimensionar, entre 0 y 100. Recomendado: 85 (buen equilibrio tamaño/calidad).'
+    permissions:
+        names:
+            notes:
+                markdown:
+                    use: 'Usar las notas Markdown'
+    modules:
+        notes_backend: Notas
+        notes_markdown: 'Notas Markdown'
+        notes_backend_description: 'Activa la toma de notas en Markdown, con enlaces entre notas y grafo.'
+    nav:
+        sections:
+            notes: Notas
+        notes_markdown: 'Notas Markdown'
+        notes_markdown_description: 'Toma de notas Markdown al estilo Obsidian (wiki-links, grafo)'
+    audit:
+        actions:
+            notes_markdown:
+                note:
+                    trashed: 'Nota enviada a la papelera'
+                    restored: 'Nota restaurada'
+                    created: 'Nota creada'
+                    updated: 'Nota actualizada'
+                    deleted: 'Nota eliminada definitivamente'
+                folder:
+                    created: 'Carpeta creada'
+                    updated: 'Carpeta actualizada'
+                    trashed: 'Carpeta enviada a la papelera'
+                    restored: 'Carpeta restaurada'
+                    deleted: 'Carpeta eliminada definitivamente'
+                share_link:
+                    created: 'Enlace para compartir creado'
+                    revoked: 'Enlace para compartir revocado'
+                tag:
+                    renamed: 'Etiqueta renombrada'
+                    merged: 'Etiquetas fusionadas'
+                    removed: 'Etiqueta eliminada'
+notes:
+    markdown:
+        share:
+            button: 'Compartir mediante un enlace'
+            title: 'Compartir esta nota mediante un enlace'
+            page_heading: 'Nota compartida'
+            read_only: 'Solo lectura'
+            tree_label: 'Notas de este enlace compartido'
+            include_linked: 'Incluir las notas vinculadas'
+            include_linked_hint: 'Las notas citadas mediante un enlace [[…]], y las que estas citan a su vez.'
+            also_shared: '{count} nota más se compartirá:|{count} notas más se compartirán:'
+            nothing_else: 'Nada más que compartir con esta nota.'
+            recipient_label: 'Enviar a'
+            recipient_placeholder: nombre@ejemplo.es
+            recipient_help: 'Déjelo vacío para obtener simplemente un enlace que copiar.'
+            label_field: 'Nombre del enlace compartido'
+            label_placeholder: 'Para Marie, revisión'
+            expires_label: 'Caduca el'
+            expires_placeholder: dd/mm/aaaa
+            expires_hint: 'Déjelo vacío para un enlace válido hasta su revocación.'
+            create: 'Crear el enlace'
+            created: 'Enlace creado'
+            sent: 'Invitación enviada a {email}'
+            copy: Copiar
+            copied: 'Enlace copiado'
+            revoke: Revocar
+            revoked: 'Enlace revocado'
+            revoked_on: 'Revocado el {date}'
+            never_opened: 'Nunca abierto'
+            last_opened: 'Abierto el {date}'
+            existing: 'Enlaces compartidos activos'
+            none_yet: 'Esta nota no se comparte con nadie.'
+            unavailable_title: 'Nota no disponible'
+            unavailable_body: 'Este enlace ya no es válido, o nunca existió. Pida uno nuevo a la persona que se lo envió.'
+            errors:
+                unknown_note: 'Nota no encontrada.'
+                bad_date: 'Fecha no válida.'
+            mail:
+                subject: '%title% se ha compartido con usted'
+                title: 'Se ha compartido una nota con usted'
+                intro: '%name% ha compartido con usted la nota «%title%».'
+                open: 'Abrir la nota'
+                expires: 'Este enlace caduca el %date%.'
+                read_only: 'Puede leer esta nota, pero no editarla.'
+        folders:
+            title: Carpetas
+            trash_label: 'Carpetas de notas'
+            root: 'Todos los documentos'
+            create: 'Nueva carpeta'
+            created: 'Carpeta creada'
+            rename: Renombrar
+            renamed: 'Carpeta renombrada'
+            name_placeholder: 'Nombre de la carpeta…'
+            color: Color
+            untitled: 'Carpeta sin título'
+            delete: 'Eliminar la carpeta'
+            confirm_delete: '¿Mover «{name}» a la papelera, con su contenido?'
+            deleted: 'Carpeta movida a la papelera'
+            move_to: 'Mover a…'
+            move_root: 'Todos los documentos'
+            moved: 'Elemento movido'
+            open: 'Abrir la carpeta'
+            contents: '{folders} carpetas · {notes} notas'
+            tree_empty: 'Todavía no hay carpetas.'
+            errors:
+                move_refused: 'Movimiento rechazado: una carpeta no puede guardarse dentro de sí misma, ni a más de {max} niveles.'
+                bad_payload: 'Datos no válidos.'
+                bad_color: 'Color no válido: se requiere un valor con el formato #rrggbb.'
+                create_failed: 'No se puede crear la carpeta.'
+                rename_failed: 'No se puede renombrar la carpeta.'
+                delete_failed: 'No se puede eliminar la carpeta.'
+                move_failed: 'No se puede mover el elemento.'
+                load_failed: 'No se puede cargar la carpeta.'
+        library:
+            title: 'Todos los documentos'
+            new_note: 'Nueva nota'
+            recent: 'Editadas recientemente'
+            favorites: Favoritos
+            pin: 'Fijar en el menú'
+            unpin: 'Quitar de favoritos'
+            pin_failed: 'No se puede fijar este elemento.'
+            shared:
+                start: 'Hacer visible para el equipo'
+                stop: 'Dejar de hacer visible'
+                started: 'Visible en modo lectura para el equipo'
+                stopped: 'Retirado de la vista del equipo'
+                failed: 'No se puede cambiar la visibilidad.'
+                section: 'Visible para mí'
+                badge: 'Visible para el equipo'
+                via_folder: 'Visible para el equipo a través de la carpeta {folder}'
+                change_on_folder: 'Abra la carpeta para cambiarlo'
+                confirm_folder: 'La carpeta {folder} y las {count} notas que contiene dejarán de ser visibles para el equipo.'
+                by: 'Por {name}'
+                read_only: 'Solo lectura'
+            visibility:
+                all: 'Filtrar: todo'
+                shared: 'Filtro: visibles para el equipo'
+                private: 'Filtro: privados'
+                clear: 'Quitar el filtro'
+            selected: '{count} seleccionado(s)'
+            select: Seleccionar
+            stop_selecting: 'Terminar la selección'
+            clear_selection: 'Deseleccionar todo'
+            some_refused: '{count} elemento(s) no se han podido procesar.'
+            confirm_delete_selection: '¿Mover a la papelera los {count} elementos seleccionados?'
+            new_folder: 'Nueva carpeta'
+            search_placeholder: 'Buscar una nota…'
+            preview:
+                empty: 'Esta nota está vacía.'
+            tag:
+                section: Etiquetas
+                filter: 'Ver las notas con la etiqueta {tag}'
+                clear: 'Quitar el filtro'
+                pin: 'Fijar esta etiqueta'
+                unpin: 'Desfijar esta etiqueta'
+                show_all: '+ {count} más'
+                none: 'Ninguna nota con esta etiqueta'
+                none_description: 'Ya ninguna nota lleva «{tag}».'
+            view:
+                label: Visualización
+                mosaic: Mosaico
+                cards: Fichas
+                list: Lista
+            scope:
+                flat: 'Mostrar todo sin carpetas'
+                grouped: 'Mostrar por carpetas'
+                open_folder: 'Abrir la carpeta {folder}'
+            sort:
+                label: Ordenar
+                name: Nombre
+                created: Creación
+                updated: Modificación
+                manual: 'Orden manual'
+                move_up: Subir
+                move_down: Bajar
+                asc: 'Orden ascendente'
+                desc: 'Orden descendente'
+            columns:
+                name: Nombre
+                tags: Etiquetas
+                updated: 'Editada el'
+                location: Ubicación
+            empty:
+                title: 'Esta carpeta está vacía'
+                description: 'Cree una nota o una carpeta, o arrastre una aquí.'
+            empty_root:
+                title: 'Ningún documento'
+                description: 'Cree su primera nota, o una carpeta para organizar.'
+            count: '{count} elementos'
+        image:
+            upload_failed: 'No se puede subir la imagen.'
+        title: 'Notas Markdown'
+        save: Guardar
+        read:
+            open: 'Leer solo la nota'
+            subheading: 'Vista de lectura'
+            back: 'Volver al editor'
+        cover:
+            add: 'Añadir una imagen de encabezado'
+            change: 'Cambiar la imagen de encabezado'
+            remove: 'Quitar la imagen'
+            credit: 'Foto: {name} (Pexels)'
+            search_placeholder: 'Buscar una foto…'
+            search_empty: 'Ninguna foto para esta búsqueda'
+            not_configured: 'Pexels no está configurado.'
+            not_configured_hint: 'Un administrador puede introducir la clave en los ajustes de la mediateca.'
+            position: Encuadre
+            autosaved: 'El encuadre se guarda automáticamente, como el texto de la nota.'
+            title: 'Imagen de encabezado'
+        appearance:
+            title: Apariencia
+            plain: Normal
+            sepia: Sepia
+            slate: Pizarra
+            paper: Papel
+            midnight: Noche
+            mint: Menta
+        delete: Eliminar
+        rename: 'Renombrar la nota'
+        cancel: Cancelar
+        saved: 'Nota guardada'
+        delete_warning: 'La nota se mueve a la papelera. Podrá restaurarla desde la papelera.'
+        untitled: 'Sin título'
+        title_placeholder: 'Título de la nota…'
+        search_placeholder: 'Buscar una nota…'
+        search_no_results: 'Ningún resultado'
+        search_no_results_description: 'Ninguna nota coincide con «{query}».'
+        resize_handle: 'Arrastre para redimensionar'
+        content_placeholder: |-
+            # Escriba markdown aquí
+
+            Enlace sus notas con [[Título]]
+        create_root: 'Nueva nota'
+        export:
+            all: 'Exportar el cuaderno'
+            one: 'Exportar esta nota'
+        import:
+            button: 'Importar notas'
+            done: 'Ninguna nota importada | 1 nota importada | {count} notas importadas'
+            errors:
+                required: 'Elija al menos un archivo.'
+        create_in_folder: 'Nueva nota en esta carpeta'
+        confirm_delete: '¿Eliminar definitivamente «{title}»?'
+        confirm_discard_changes: 'Tiene cambios sin guardar. ¿Descartarlos?'
+        wiki_link_not_found: 'Ninguna nota coincide con «{title}».'
+        wiki_search_placeholder: 'Escriba para filtrar las notas…'
+        wiki_no_results: 'Ninguna nota coincide con «{query}».'
+        view:
+            edit: 'Solo edición'
+            split: 'Edición + vista previa'
+            preview: 'Solo vista previa'
+        slash:
+            h1: 'Título 1'
+            h2: 'Título 2'
+            h3: 'Título 3'
+            bullet: 'Lista con viñetas'
+            numbered: 'Lista numerada'
+            checkbox: 'Casilla de verificación'
+            quote: Cita
+            divider: Separador
+            code: 'Bloque de código'
+            callout: Recuadro
+            link: 'Enlace wiki'
+            bold: Negrita
+            italic: Cursiva
+            strikethrough: Tachado
+            table: Tabla
+            no_results: 'Ningún comando'
+        tags:
+            add_placeholder: 'Añadir una etiqueta…'
+            summary: '{count} etiqueta(s)'
+            filter_label: 'Filtrar por etiqueta'
+            clear: 'Borrar todo'
+            no_results: 'Ninguna nota con estas etiquetas'
+            no_results_description: 'Ninguna nota lleva las etiquetas seleccionadas.'
+            errors:
+                empty: 'La etiqueta es obligatoria.'
+                sources_empty: 'Seleccione al menos una etiqueta para fusionar.'
+            manage:
+                title: 'Gestionar las etiquetas'
+                close: Cerrar
+                search_placeholder: 'Filtrar las etiquetas…'
+                search_empty: 'No se ha encontrado ninguna etiqueta'
+                search_empty_description: 'Ninguna etiqueta coincide con «{query}».'
+                empty_title: 'Ninguna etiqueta'
+                empty_description: 'Por ahora ninguna nota lleva etiquetas.'
+                rename: Renombrar
+                rename_confirm: Renombrar
+                new_name_placeholder: 'Nuevo nombre de la etiqueta…'
+                rename_success: 'Ninguna nota actualizada. | 1 nota actualizada. | {count} notas actualizadas.'
+                delete: Eliminar
+                delete_yes: Confirmar
+                delete_confirm: '¿Quitar «{tag}» de 1 nota? | ¿Quitar «{tag}» de {count} notas?'
+                delete_success: 'Etiqueta quitada de 0 notas. | Etiqueta quitada de 1 nota. | Etiqueta quitada de {count} notas.'
+                merge_prompt: 'Fusionar 1 etiqueta en una sola: | Fusionar {count} etiquetas en una sola:'
+                merge_target_placeholder: 'Etiqueta de destino (existente o nueva)…'
+                merge_confirm: Fusionar
+                merge_success: 'Ninguna nota fusionada. | 1 nota fusionada. | {count} notas fusionadas.'
+                note_count: '1 nota | {count} notas'
+                errors:
+                    rename_failed: 'No se puede renombrar la etiqueta.'
+                    delete_failed: 'No se puede eliminar la etiqueta.'
+                    merge_failed: 'No se pueden fusionar las etiquetas.'
+        graph:
+            title: 'Grafo de enlaces'
+            open: 'Abrir el grafo'
+            loading: 'Construyendo el grafo…'
+            empty:
+                title: 'Ningún nodo que mostrar'
+                description: 'Cree algunas notas enlazadas con [[wiki-links]] para ver el grafo.'
+        links:
+            title: Enlaces
+            open: 'Mostrar los enlaces entrantes'
+            close: 'Cerrar el panel'
+            backlinks: 'Enlaces entrantes'
+            mentions: Menciones
+            loading: Cargando…
+            empty_backlinks: 'Ningún enlace entrante'
+            empty_backlinks_description: 'Ninguna nota hace referencia a esta con [[…]].'
+            empty_mentions: 'Ninguna mención'
+            empty_mentions_description: 'Ninguna nota menciona este título sin wiki-link.'
+        empty:
+            title: 'Ninguna nota'
+            description: 'Haga clic en + para crear su primera nota.'
+        errors:
+            load_failed: 'No se puede cargar la nota.'
+            crashed: 'Esta página no se ha podido mostrar'
+            create_failed: 'No se puede crear la nota.'
+            save_failed: 'No se puede guardar la nota.'
+            delete_failed: 'No se puede eliminar la nota.'
+            reorder_failed: 'No se pueden reordenar las notas.'
