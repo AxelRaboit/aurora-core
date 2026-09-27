@@ -4,10 +4,10 @@
    ici et par les projets qui consomment Aurora, et le renommer les casserait
    en silence. C'est le point d'injection du thème, la couleur n'en est qu'une
    partie. #}
-<style>{{ themeContext.primaryColorCss()|raw }}</style>
+<style>{{ themeStyles.primaryColorCss()|raw }}</style>
 {# La police du thème. Rien n'est émis tant qu'il est resté sur Poppins, qui est
    déjà le défaut de `theme.css`. #}
-{% set fontCss = themeContext.fontFamilyCss() %}
+{% set fontCss = themeStyles.fontFamilyCss() %}
 {% if fontCss %}
     <style>{{ fontCss|raw }}</style>
 {% endif %}

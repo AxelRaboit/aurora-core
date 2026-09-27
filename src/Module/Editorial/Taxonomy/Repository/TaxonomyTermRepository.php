@@ -39,6 +39,31 @@ class TaxonomyTermRepository extends ResolveTargetEntityRepository
             ->getResult();
     }
 
+    /**
+     * Terms with what a menu or a card reads off them - their translations and
+     * their taxonomy - in one query. Loaded plainly, each term cost one query
+     * for its translations and one per taxonomy, on every page a menu shows.
+     *
+     * @param list<int> $ids
+     *
+     * @return list<TaxonomyTermInterface>
+     */
+    public function findForDisplay(array $ids): array
+    {
+        if ([] === $ids) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('t')
+            ->leftJoin('t.translations', 'tt')
+            ->innerJoin('t.taxonomy', 'tx')
+            ->addSelect('tt', 'tx')
+            ->where('t.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->getQuery()
+            ->getResult();
+    }
+
     /** @return list<TaxonomyTermInterface> */
     public function findByTaxonomyOrdered(TaxonomyInterface $taxonomy): array
     {

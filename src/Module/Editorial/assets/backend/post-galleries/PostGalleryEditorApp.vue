@@ -19,7 +19,8 @@
  */
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { ArrowLeft, Save } from "lucide-vue-next";
+import { Save } from "lucide-vue-next";
+import AppBackLink from "@/shared/components/nav/AppBackLink.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppTab from "@/shared/components/nav/AppTab.vue";
 import PostGalleryPanel from "../posts/components/PostGalleryPanel.vue";
@@ -84,10 +85,7 @@ async function save() {
 <template>
     <div class="space-y-2 sm:space-y-4">
         <div class="flex flex-wrap items-center gap-3">
-            <AppButton variant="ghost" size="sm" :href="listPath" class="shrink-0">
-                <ArrowLeft class="h-4 w-4" :stroke-width="2" />
-                {{ t("backend.post_galleries.back") }}
-            </AppButton>
+            <AppBackLink :href="listPath" :label="t('backend.post_galleries.back')" class="shrink-0" />
 
             <span class="flex-1" />
 

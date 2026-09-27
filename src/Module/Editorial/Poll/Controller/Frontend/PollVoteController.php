@@ -8,23 +8,19 @@ use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Http\PageScriptRequestTrait;
-use Aurora\Module\Editorial\Poll\Entity\PollVote;
 use Aurora\Module\Editorial\Poll\Repository\PollVoteRepository;
 use Aurora\Module\Editorial\Poll\Service\PollAnswers;
+use Aurora\Module\Editorial\Poll\Service\PollVoteRecorder;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Grid\GridNormalizer;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
-use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
 use function count;
-use function hash_hmac;
 use function is_int;
 use function is_string;
 
@@ -49,10 +45,8 @@ final class PollVoteController extends AbstractController
     public function __construct(
         private readonly PostRepository $postRepository,
         private readonly PollVoteRepository $votes,
-        private readonly EntityManagerInterface $entityManager,
         private readonly GridNormalizer $gridNormalizer,
-        #[Autowire(param: 'kernel.secret')]
-        private readonly string $secret,
+        private readonly PollVoteRecorder $recorder,
         private readonly RateLimiterFactoryInterface $editorialPollVoteLimiter,
         private readonly PollAnswers $pollAnswers,
     ) {}
@@ -81,16 +75,7 @@ final class PollVoteController extends AbstractController
             return $this->jsonFailure('frontend.editorial.grid.poll.closed');
         }
 
-        $voter = hash_hmac('sha256', $request->getClientIp().'|'.$request->headers->get('User-Agent', '').'|'.$postId.'|'.$zoneId, $this->secret);
-
-        if (!$this->votes->hasVoted($postId, $zoneId, $voter)) {
-            try {
-                $this->entityManager->persist(new PollVote($post, $zoneId, $answer, $voter));
-                $this->entityManager->flush();
-            } catch (UniqueConstraintViolationException) {
-                // Two clicks racing: the second lost, and the first counted.
-            }
-        }
+        $this->recorder->record($post, $zoneId, $answer, $request->getClientIp(), (string) $request->headers->get('User-Agent', ''));
 
         return $this->jsonSuccess($this->pollAnswers->results($answers, $this->votes->tally($postId, $zoneId)));
     }

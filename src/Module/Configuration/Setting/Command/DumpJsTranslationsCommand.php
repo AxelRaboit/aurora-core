@@ -203,7 +203,13 @@ final class DumpJsTranslationsCommand extends Command
     }
 
     /**
-     * Leaves `{name}` alone and quotes every other brace.
+     * Leaves `{name}` and `{'literal'}` alone and quotes every other brace.
+     *
+     * A literal is vue-i18n's own quoting, and the one way to show a `|`,
+     * which would otherwise split a message into plural forms - something
+     * this command cannot decide for the author, since the project's plural
+     * messages are written with the very same bar. Quoting it again turned
+     * `{'|'}` into text with stray quotes.
      *
      * vue-i18n compiles each message the first time it is rendered, and a
      * brace opens a placeholder: `function bonjour() { … }` reaches its parser
@@ -219,7 +225,7 @@ final class DumpJsTranslationsCommand extends Command
     private function escapeStrayBraces(string $value): string
     {
         return preg_replace_callback(
-            '/\{[A-Za-z0-9_]+\}|[{}]/',
+            "/\\{'[^']*'\\}|\\{[A-Za-z0-9_]+\\}|[{}]/",
             static fn (array $match): string => 1 === mb_strlen($match[0])
                 ? sprintf("{'%s'}", $match[0])
                 : $match[0],

@@ -7,8 +7,8 @@ namespace Aurora\Module\Editorial\Post\Controller\Backend;
 use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
-use Aurora\Module\Configuration\Theme\Service\ThemeContext;
 use Aurora\Module\Configuration\Theme\Service\ThemeResolver;
+use Aurora\Module\Configuration\Theme\Service\ThemeStyleRenderer;
 use Aurora\Module\Editorial\Post\Banner\BannerViewBuilder;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -45,7 +45,7 @@ final class BannerPreviewController extends AbstractController
     public function __construct(
         private readonly BannerViewBuilder $bannerViewBuilder,
         private readonly ThemeResolver $themeResolver,
-        private readonly ThemeContext $themeContext,
+        private readonly ThemeStyleRenderer $themeStyles,
     ) {}
 
     #[Route('/banner-preview', name: '_banner_preview', methods: [HttpMethodEnum::Post->value])]
@@ -70,7 +70,7 @@ final class BannerPreviewController extends AbstractController
             // selector rather than `html[data-theme]`: without it a title
             // carrying no colour of its own drew in the backend's ambient
             // text colour instead of the one the public page renders it in.
-            'html' => '<style>'.$this->themeContext->previewSurfaceCss(self::PREVIEW_SELECTOR).'</style>'
+            'html' => '<style>'.$this->themeStyles->previewSurfaceCss(self::PREVIEW_SELECTOR).'</style>'
                 .$this->renderView(
                     $this->themeResolver->resolve('editorial/post/_banner'),
                     ['banner' => $banner],
