@@ -9,6 +9,7 @@ use Aurora\Module\Configuration\Theme\Repository\ThemeRepository;
 use Aurora\Module\Configuration\Theme\Service\PrimaryColorPalette;
 use Aurora\Module\Configuration\Theme\Service\SurfaceContrast;
 use Aurora\Module\Configuration\Theme\Service\ThemeContext;
+use Aurora\Module\Configuration\Theme\Service\ThemeStyleRenderer;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Document\Service\DocumentUrlGenerator;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
@@ -47,12 +48,12 @@ final class ThemeContextSurfacesTest extends TestCase
     public function testAThemeWithoutColoursEmitsNothing(): void
     {
         // L'apparence historique reste le défaut, sans valeur à maintenir.
-        self::assertSame('', $this->contextWithConfig([])->frontendSurfacesCss());
+        self::assertSame('', $this->stylesOf($this->contextWithConfig([]))->frontendSurfacesCss());
     }
 
     public function testABlankColourIsTreatedAsUnset(): void
     {
-        self::assertSame('', $this->contextWithConfig(['background_color' => '   '])->frontendSurfacesCss());
+        self::assertSame('', $this->stylesOf($this->contextWithConfig(['background_color' => '   ']))->frontendSurfacesCss());
     }
 
     /**
@@ -61,32 +62,32 @@ final class ThemeContextSurfacesTest extends TestCase
      */
     public function testASurfaceColourThatIsNotHexNeverReachesTheStyleTag(): void
     {
-        $css = $this->contextWithConfig([
+        $css = $this->stylesOf($this->contextWithConfig([
             'background_color' => 'red;}</style><script>alert(1)</script>',
             'header_color' => 'red',
-        ])->frontendSurfacesCss();
+        ]))->frontendSurfacesCss();
 
         self::assertSame('', $css);
-        self::assertSame('', $this->contextWithConfig(['background_color' => 'red;}</style>'])->previewSurfaceCss('.preview'));
+        self::assertSame('', $this->stylesOf($this->contextWithConfig(['background_color' => 'red;}</style>']))->previewSurfaceCss('.preview'));
     }
 
     public function testACustomPropertyKeepsItsValueButCannotBreakOut(): void
     {
-        $css = $this->contextWithConfig([
+        $css = $this->stylesOf($this->contextWithConfig([
             '--radius' => '0.75rem',
             '--font' => 'var(--th-font, system-ui)',
             '--evil' => 'x;}</style><script>alert(1)</script>',
             '--comment' => 'a /* b',
             '--x;color:red' => '1px',
             'plain' => 'ignored',
-        ])->cssVariableOverrides();
+        ]))->cssVariableOverrides();
 
         self::assertSame('--radius: 0.75rem; --font: var(--th-font, system-ui);', $css);
     }
 
     public function testTheBackgroundRuleTargetsThePage(): void
     {
-        $css = $this->contextWithConfig(['background_color' => '#0f172a'])->frontendSurfacesCss();
+        $css = $this->stylesOf($this->contextWithConfig(['background_color' => '#0f172a']))->frontendSurfacesCss();
 
         self::assertStringStartsWith('html[data-theme]{', $css);
         self::assertStringContainsString('--th-bg: #0f172a;', $css);
@@ -94,7 +95,7 @@ final class ThemeContextSurfacesTest extends TestCase
 
     public function testADarkSurfaceCarriesItsWholeTokenSetNotJustTheBackground(): void
     {
-        $css = $this->contextWithConfig(['background_color' => '#0f172a'])->frontendSurfacesCss();
+        $css = $this->stylesOf($this->contextWithConfig(['background_color' => '#0f172a']))->frontendSurfacesCss();
 
         // Sans ces trois-là, les libellés de menu et les séparateurs
         // disparaîtraient sur le fond sombre sans que rien ne le signale.
@@ -105,14 +106,14 @@ final class ThemeContextSurfacesTest extends TestCase
 
     public function testALightSurfaceKeepsDarkText(): void
     {
-        $css = $this->contextWithConfig(['background_color' => '#fef9c3'])->frontendSurfacesCss();
+        $css = $this->stylesOf($this->contextWithConfig(['background_color' => '#fef9c3']))->frontendSurfacesCss();
 
         self::assertStringContainsString('--th-primary: rgb(17 24 39);', $css);
     }
 
     public function testTheHeaderRuleIsScopedAndRedefinesTheDropdownBackground(): void
     {
-        $css = $this->contextWithConfig(['header_color' => '#111827'])->frontendSurfacesCss();
+        $css = $this->stylesOf($this->contextWithConfig(['header_color' => '#111827']))->frontendSurfacesCss();
 
         self::assertStringContainsString('html[data-theme] .aurora-surface-header{', $css);
         // --th-surface-bg peint la barre, --th-bg suit les panneaux de menu
@@ -125,10 +126,10 @@ final class ThemeContextSurfacesTest extends TestCase
     {
         // Une topbar sombre sur une page claire : les deux règles coexistent et
         // ne portent pas le même jeu de texte.
-        $css = $this->contextWithConfig([
+        $css = $this->stylesOf($this->contextWithConfig([
             'background_color' => '#ffffff',
             'header_color' => '#0f172a',
-        ])->frontendSurfacesCss();
+        ]))->frontendSurfacesCss();
 
         [$page, $header] = explode('html[data-theme] .aurora-surface-header{', $css);
 
@@ -138,11 +139,11 @@ final class ThemeContextSurfacesTest extends TestCase
 
     public function testAllThreeSurfacesCanBeSetTogether(): void
     {
-        $css = $this->contextWithConfig([
+        $css = $this->stylesOf($this->contextWithConfig([
             'background_color' => '#ffffff',
             'header_color' => '#0f172a',
             'footer_color' => '#1f2937',
-        ])->frontendSurfacesCss();
+        ]))->frontendSurfacesCss();
 
         self::assertStringContainsString('.aurora-surface-header{', $css);
         self::assertStringContainsString('.aurora-surface-footer{', $css);
@@ -152,10 +153,10 @@ final class ThemeContextSurfacesTest extends TestCase
     public function testAnUnrelatedConfigKeyIsIgnored(): void
     {
         // `config` porte aussi primary_color, le logo, la largeur de contenu.
-        $css = $this->contextWithConfig([
+        $css = $this->stylesOf($this->contextWithConfig([
             'primary_color' => '#10b981',
             'content_width' => 'wide',
-        ])->frontendSurfacesCss();
+        ]))->frontendSurfacesCss();
 
         self::assertSame('', $css);
     }
@@ -164,7 +165,7 @@ final class ThemeContextSurfacesTest extends TestCase
 
     public function testAnOverridePaintsASurfaceTheThemeLeftUnset(): void
     {
-        $css = $this->contextWithConfig([])->frontendSurfacesCss(['header_color' => '#0f172a']);
+        $css = $this->stylesOf($this->contextWithConfig([]))->frontendSurfacesCss(['header_color' => '#0f172a']);
 
         self::assertStringContainsString('html[data-theme] .aurora-surface-header{', $css);
         self::assertStringContainsString('--th-surface-bg: #0f172a;', $css);
@@ -172,7 +173,7 @@ final class ThemeContextSurfacesTest extends TestCase
 
     public function testAnOverrideWinsOverTheThemeOnThatSurface(): void
     {
-        $css = $this->contextWithConfig(['header_color' => '#ffffff'])
+        $css = $this->stylesOf($this->contextWithConfig(['header_color' => '#ffffff']))
             ->frontendSurfacesCss(['header_color' => '#0f172a']);
 
         self::assertStringContainsString('--th-surface-bg: #0f172a;', $css);
@@ -182,7 +183,7 @@ final class ThemeContextSurfacesTest extends TestCase
     public function testANullOverrideLeavesTheThemeStanding(): void
     {
         // Le contrat du champ : vide veut dire « hérite », pas « éteins ».
-        $css = $this->contextWithConfig(['header_color' => '#0f172a'])
+        $css = $this->stylesOf($this->contextWithConfig(['header_color' => '#0f172a']))
             ->frontendSurfacesCss(['header_color' => null]);
 
         self::assertStringContainsString('--th-surface-bg: #0f172a;', $css);
@@ -192,7 +193,7 @@ final class ThemeContextSurfacesTest extends TestCase
     {
         // Le vide n'est pas un choix, même arrivé sous forme de chaîne : sans
         // ça une publication effacerait la couleur du thème sans le demander.
-        $css = $this->contextWithConfig(['header_color' => '#0f172a'])
+        $css = $this->stylesOf($this->contextWithConfig(['header_color' => '#0f172a']))
             ->frontendSurfacesCss(['header_color' => '   ']);
 
         self::assertStringContainsString('--th-surface-bg: #0f172a;', $css);
@@ -202,10 +203,10 @@ final class ThemeContextSurfacesTest extends TestCase
     {
         // Une publication qui ne choisit que sa topbar garde le fond du thème,
         // ce qui est ce qui rend la surcharge par surface utilisable.
-        $css = $this->contextWithConfig([
+        $css = $this->stylesOf($this->contextWithConfig([
             'background_color' => '#ffffff',
             'footer_color' => '#1f2937',
-        ])->frontendSurfacesCss(['header_color' => '#0f172a']);
+        ]))->frontendSurfacesCss(['header_color' => '#0f172a']);
 
         self::assertStringContainsString('html[data-theme]{', $css);
         self::assertStringContainsString('.aurora-surface-header{', $css);
@@ -217,15 +218,15 @@ final class ThemeContextSurfacesTest extends TestCase
     {
         // Le contraste est ce qui distingue « repeindre » de « rendre
         // illisible » : la surcharge doit passer par le même calcul.
-        $css = $this->contextWithConfig([])->frontendSurfacesCss(['background_color' => '#0f172a']);
+        $css = $this->stylesOf($this->contextWithConfig([]))->frontendSurfacesCss(['background_color' => '#0f172a']);
 
         self::assertStringContainsString('--th-primary: rgb(243 244 246);', $css);
     }
 
     public function testNoOverrideBehavesExactlyAsBefore(): void
     {
-        $withEmpty = $this->contextWithConfig(['background_color' => '#fef9c3'])->frontendSurfacesCss([]);
-        $withNone = $this->contextWithConfig(['background_color' => '#fef9c3'])->frontendSurfacesCss();
+        $withEmpty = $this->stylesOf($this->contextWithConfig(['background_color' => '#fef9c3']))->frontendSurfacesCss([]);
+        $withNone = $this->stylesOf($this->contextWithConfig(['background_color' => '#fef9c3']))->frontendSurfacesCss();
 
         self::assertSame($withNone, $withEmpty);
     }
@@ -239,7 +240,7 @@ final class ThemeContextSurfacesTest extends TestCase
      */
     public function testThePreviewRuleCarriesThePageBackgroundUnderItsOwnSelector(): void
     {
-        $css = $this->contextWithConfig(['background_color' => '#0f172a'])
+        $css = $this->stylesOf($this->contextWithConfig(['background_color' => '#0f172a']))
             ->previewSurfaceCss('.aurora-banner-preview[data-theme]');
 
         self::assertStringStartsWith('.aurora-banner-preview[data-theme]{', $css);
@@ -251,10 +252,10 @@ final class ThemeContextSurfacesTest extends TestCase
     {
         // The banner is the page's own background, not the topbar or the
         // footer - a preview scoped to the wrong surface would still be wrong.
-        $css = $this->contextWithConfig([
+        $css = $this->stylesOf($this->contextWithConfig([
             'header_color' => '#111827',
             'footer_color' => '#1f2937',
-        ])->previewSurfaceCss('.aurora-banner-preview[data-theme]');
+        ]))->previewSurfaceCss('.aurora-banner-preview[data-theme]');
 
         self::assertSame('', $css);
     }
@@ -263,24 +264,24 @@ final class ThemeContextSurfacesTest extends TestCase
     {
         // The same "light page, dark text" default an unconfigured public
         // page falls back to - nothing to override here either.
-        self::assertSame('', $this->contextWithConfig([])->previewSurfaceCss('.aurora-banner-preview[data-theme]'));
+        self::assertSame('', $this->stylesOf($this->contextWithConfig([]))->previewSurfaceCss('.aurora-banner-preview[data-theme]'));
     }
 
     // ── A publication's own accent, scoped to its own selector ────────────────
 
     public function testNoAccentColourEmitsNothing(): void
     {
-        self::assertSame('', $this->contextWithConfig([])->postAccentCss('.aurora-post-accent', null));
+        self::assertSame('', $this->stylesOf($this->contextWithConfig([]))->postAccentCss('.aurora-post-accent', null));
     }
 
     public function testABlankAccentColourEmitsNothingToo(): void
     {
-        self::assertSame('', $this->contextWithConfig([])->postAccentCss('.aurora-post-accent', '   '));
+        self::assertSame('', $this->stylesOf($this->contextWithConfig([]))->postAccentCss('.aurora-post-accent', '   '));
     }
 
     public function testAnAccentColourGeneratesTheFullScaleUnderItsOwnSelector(): void
     {
-        $css = $this->contextWithConfig([])->postAccentCss('.aurora-post-accent', '#b45309');
+        $css = $this->stylesOf($this->contextWithConfig([]))->postAccentCss('.aurora-post-accent', '#b45309');
 
         self::assertStringStartsWith('.aurora-post-accent{', $css);
         self::assertStringContainsString('--th-accent-500:', $css);
@@ -294,9 +295,14 @@ final class ThemeContextSurfacesTest extends TestCase
      */
     public function testAnAccentColourAlsoRepointsTheUnnumberedAccent(): void
     {
-        $css = $this->contextWithConfig([])->postAccentCss('.aurora-post-accent', '#b45309');
+        $css = $this->stylesOf($this->contextWithConfig([]))->postAccentCss('.aurora-post-accent', '#b45309');
 
         self::assertStringContainsString('--th-accent: var(--th-accent-500);', $css);
         self::assertStringContainsString('.dark .aurora-post-accent{--th-accent: var(--th-accent-400);', $css);
+    }
+
+    private function stylesOf(ThemeContext $context): ThemeStyleRenderer
+    {
+        return new ThemeStyleRenderer($context, new PrimaryColorPalette(), new SurfaceContrast());
     }
 }

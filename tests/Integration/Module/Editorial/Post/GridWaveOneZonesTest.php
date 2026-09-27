@@ -7,8 +7,8 @@ namespace Aurora\Tests\Integration\Module\Editorial\Post;
 use Aurora\Module\Editorial\Post\Grid\GridViewBuilder;
 use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Ged\Enum\DocumentStatusEnum;
-use Doctrine\ORM\EntityManagerInterface;
 use Aurora\Tests\Integration\IntegrationTestCase;
+use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment;
 
 /**

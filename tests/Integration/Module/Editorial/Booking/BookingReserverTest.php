@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Integration\Module\Editorial\Booking;
 
+use Aurora\Core\Locale\Service\LocaleContext;
 use Aurora\Module\Editorial\Booking\Service\BookingReserver;
 use Aurora\Module\Editorial\Booking\Service\BookingSlotFinder;
 use Aurora\Module\Planning\Event\Entity\PlanningEvent;
@@ -15,6 +16,7 @@ use DateTimeZone;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Exception\DriverException;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 use function random_int;
 use function sprintf;
@@ -59,11 +61,11 @@ final class BookingReserverTest extends IntegrationTestCase
      */
     public function testTheCalendarKeepsTheSitesLanguageWhateverTheVisitors(): void
     {
-        $translator = static::getContainer()->get(\Symfony\Contracts\Translation\TranslatorInterface::class);
+        $translator = static::getContainer()->get(TranslatorInterface::class);
         $translator->setLocale('en');
 
         $name = static::getContainer()->get(BookingSlotFinder::class)->calendar()->getName();
-        $default = static::getContainer()->get(\Aurora\Core\Locale\Service\LocaleContext::class)->getDefaultLocale();
+        $default = static::getContainer()->get(LocaleContext::class)->getDefaultLocale();
 
         self::assertSame($translator->trans('frontend.editorial.grid.booking.calendar_name', [], 'messages', $default), $name);
         self::assertNotSame('Online bookings', $name, 'the visitor language no longer names it');

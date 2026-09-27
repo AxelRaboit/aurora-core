@@ -1370,7 +1370,7 @@ final readonly class GridViewBuilder
         $position = -1;
 
         foreach (explode("\n", (string) $held['code']) as $line) {
-            if ('' === trim($line)) {
+            if ('' === mb_trim($line)) {
                 continue;
             }
 

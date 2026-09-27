@@ -24,7 +24,9 @@ describe.each(["fr", "en"])("the grid editor's examples in %s", (locale) => {
     });
 
     it("keeps the separators a format example shows", () => {
-        expect(t("backend.posts.grid.examples.travel_stops")).toMatch(/Monument Valley \| 36\.9989 \| -110\.0980\n/);
+        expect(t("backend.posts.grid.examples.travel_stops")).toMatch(
+            /Monument Valley \| 36\.9989 \| -110\.0980\n/,
+        );
         expect(t("backend.posts.grid.examples.contact_email")).toContain("@");
     });
 });

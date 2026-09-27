@@ -9,6 +9,7 @@ use Aurora\Module\Configuration\Theme\Repository\ThemeRepository;
 use Aurora\Module\Configuration\Theme\Service\PrimaryColorPalette;
 use Aurora\Module\Configuration\Theme\Service\SurfaceContrast;
 use Aurora\Module\Configuration\Theme\Service\ThemeContext;
+use Aurora\Module\Configuration\Theme\Service\ThemeStyleRenderer;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Document\Service\DocumentUrlGenerator;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
@@ -57,8 +58,8 @@ final class ThemeContextHighlightTest extends TestCase
 
     public function testOnlyACustomThemeEmitsAColour(): void
     {
-        self::assertSame('', $this->contextWithConfig([])->highlightCss());
-        self::assertSame('', $this->contextWithConfig(['highlight' => 'neutral', 'highlight_color' => '#ff0000'])->highlightCss());
+        self::assertSame('', $this->stylesOf($this->contextWithConfig([]))->highlightCss());
+        self::assertSame('', $this->stylesOf($this->contextWithConfig(['highlight' => 'neutral', 'highlight_color' => '#ff0000']))->highlightCss());
     }
 
     public function testACustomColourBecomesTheHighlightToken(): void
@@ -66,31 +67,31 @@ final class ThemeContextHighlightTest extends TestCase
         $context = $this->contextWithConfig(['highlight' => 'custom', 'highlight_color' => '#c2410c']);
 
         self::assertSame('custom', $context->highlight());
-        self::assertSame('html[data-theme]{--th-highlight: #c2410c;}', $context->highlightCss());
+        self::assertSame('html[data-theme]{--th-highlight: #c2410c;}', $this->stylesOf($context)->highlightCss());
     }
 
     /** The active entry of the top bar: the same three modes, read from their own keys. */
     public function testTheMenuMarkerHasItsOwnSetting(): void
     {
         self::assertSame('accent', $this->contextWithConfig([])->menuActive());
-        self::assertSame('', $this->contextWithConfig([])->menuActiveCss());
+        self::assertSame('', $this->stylesOf($this->contextWithConfig([]))->menuActiveCss());
         self::assertSame('neutral', $this->contextWithConfig(['menu_active' => 'neutral', 'highlight' => 'custom'])->menuActive());
 
         $custom = $this->contextWithConfig(['menu_active' => 'custom', 'menu_active_color' => '#f59e0b']);
-        self::assertSame('html[data-theme]{--th-menu-active: #f59e0b;}', $custom->menuActiveCss());
+        self::assertSame('html[data-theme]{--th-menu-active: #f59e0b;}', $this->stylesOf($custom)->menuActiveCss());
 
         $bad = $this->contextWithConfig(['menu_active' => 'custom', 'menu_active_color' => 'red;}</style>']);
         self::assertSame('accent', $bad->menuActive());
-        self::assertSame('', $bad->menuActiveCss());
+        self::assertSame('', $this->stylesOf($bad)->menuActiveCss());
     }
 
     public function testAPublicationThatInheritsEmitsNothing(): void
     {
         $context = $this->contextWithConfig([]);
 
-        self::assertSame('', $context->postHighlightCss('.p', null, null));
-        self::assertSame('', $context->postHighlightCss('.p', 'grey', null));
-        self::assertSame('', $context->postHighlightCss('.p', 'custom', 'red;}</style>'));
+        self::assertSame('', $this->stylesOf($context)->postHighlightCss('.p', null, null));
+        self::assertSame('', $this->stylesOf($context)->postHighlightCss('.p', 'grey', null));
+        self::assertSame('', $this->stylesOf($context)->postHighlightCss('.p', 'custom', 'red;}</style>'));
     }
 
     /**
@@ -101,7 +102,7 @@ final class ThemeContextHighlightTest extends TestCase
     {
         self::assertSame(
             'html[data-theme] .p,html[data-theme] .p *{--th-highlight: initial;}',
-            $this->contextWithConfig(['highlight' => 'neutral'])->postHighlightCss('.p', 'accent', null),
+            $this->stylesOf($this->contextWithConfig(['highlight' => 'neutral']))->postHighlightCss('.p', 'accent', null),
         );
     }
 
@@ -109,8 +110,8 @@ final class ThemeContextHighlightTest extends TestCase
     {
         $context = $this->contextWithConfig([]);
 
-        self::assertSame('html[data-theme] .p,html[data-theme] .p *{--th-highlight: var(--th-primary);}', $context->postHighlightCss('.p', 'neutral', null));
-        self::assertSame('html[data-theme] .p,html[data-theme] .p *{--th-highlight: #b45309;}', $context->postHighlightCss('.p', 'custom', '#b45309'));
+        self::assertSame('html[data-theme] .p,html[data-theme] .p *{--th-highlight: var(--th-primary);}', $this->stylesOf($context)->postHighlightCss('.p', 'neutral', null));
+        self::assertSame('html[data-theme] .p,html[data-theme] .p *{--th-highlight: #b45309;}', $this->stylesOf($context)->postHighlightCss('.p', 'custom', '#b45309'));
     }
 
     /**
@@ -124,7 +125,12 @@ final class ThemeContextHighlightTest extends TestCase
             $context = $this->contextWithConfig(['highlight' => 'custom', 'highlight_color' => $color]);
 
             self::assertSame('accent', $context->highlight());
-            self::assertSame('', $context->highlightCss());
+            self::assertSame('', $this->stylesOf($context)->highlightCss());
         }
+    }
+
+    private function stylesOf(ThemeContext $context): ThemeStyleRenderer
+    {
+        return new ThemeStyleRenderer($context, new PrimaryColorPalette(), new SurfaceContrast());
     }
 }
