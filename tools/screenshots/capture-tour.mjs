@@ -449,7 +449,10 @@ const SHOTS = [
         path: "/backend/editorial/taxonomies",
         async prepare(page) {
             await page.waitForTimeout(2_500);
-            await page.getByRole("link", { name: /Catégories/ }).first().click();
+            // La page ouvre d'office la première taxonomie, les catégories :
+            // rien à cliquer, mais on vérifie que c'est bien elle, pour ne
+            // jamais photographier une autre liste en croyant montrer celle-ci.
+            await page.locator("main h2", { hasText: "Catégories" }).first().waitFor();
             await page.waitForTimeout(2_500);
         },
     },
@@ -460,7 +463,7 @@ const SHOTS = [
         path: "/backend/editorial/post-types",
         async prepare(page) {
             await page.waitForTimeout(2_500);
-            await page.getByRole("link", { name: /Article/ }).first().click();
+            await page.locator('#sidemenu a[href*="/backend/editorial/post-types/"]', { hasText: "Article" }).first().click();
             await page.waitForTimeout(2_500);
         },
     },
