@@ -612,6 +612,7 @@ backend:
         instagramFeed: Instagram feed
         googleReviews: Google reviews
         newsletterSignup: Newsletter signup
+        newsletterPrivacy: Newsletter privacy notice
         stack: Stack
       zone_form: "Form"
       zone_form_hint: "The form is drawn in the page and posts where its own page posts."
@@ -1015,6 +1016,7 @@ backend:
       newsletter_hint: "Sends the address to the list set in Settings > Newsletter. While the integration is off, the zone draws nothing."
       newsletter_title: Title
       newsletter_note: Detail
+      newsletter_privacy_hint: "The newsletter's paragraph for your privacy policy: who receives the address, where, and how to unsubscribe, written for the provider set. While the newsletter is off, the zone draws nothing."
       background_video: Background video
       background_video_hint: "The film plays without sound behind the title, instead of a player. For visitors who asked for less motion, the poster stays still."
       background_video_title: Title over the video
@@ -1505,6 +1507,11 @@ frontend:
         notice: "Your address is only used to send you this newsletter; it is passed to %provider%, our mailing provider. You can unsubscribe at any time with the link in every email."
         privacy_link: Privacy policy
         consent_required: "Tick the box to confirm your subscription."
+      newsletter_privacy:
+        title: Newsletter
+        brevo: "If you subscribe to our newsletter, your email address is used only to send it to you. This processing is based on your consent, given by ticking the box on the form and, where asked, by confirming your subscription by email. Your address is entrusted to Brevo (Sendinblue SAS, a French company), our mailing provider, which hosts it in the European Union. It is kept for as long as you remain subscribed."
+        mailchimp: "If you subscribe to our newsletter, your email address is used only to send it to you. This processing is based on your consent, given by ticking the box on the form and, where asked, by confirming your subscription by email. Your address is entrusted to Mailchimp, a service of Intuit Inc., our mailing provider, based in the United States: your data is therefore transferred there. This transfer is covered by the EU-U.S. Data Privacy Framework, in which Intuit participates, and by the European Commission's standard contractual clauses. It is kept for as long as you remain subscribed."
+        rights: "You can unsubscribe at any time with the link in every email. You also have the right to access, correct and erase your data, and to lodge a complaint with the data protection authority (the CNIL in France)."
       quote:
         total: Total
       booking:

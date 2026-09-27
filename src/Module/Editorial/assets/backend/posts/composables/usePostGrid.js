@@ -27,6 +27,7 @@ import {
     Instagram,
     Star,
     Mail,
+    ShieldCheck,
     Image,
     Images,
     Columns2,
@@ -109,6 +110,7 @@ export const LEAF_ZONE_TYPES = [
     "instagramFeed",
     "googleReviews",
     "newsletterSignup",
+    "newsletterPrivacy",
 ];
 
 /** Mirrors GridNormalizer::ZONE_TYPES - a stack is top level only. */
@@ -187,6 +189,7 @@ export const ZONE_ICONS = {
     instagramFeed: Instagram,
     googleReviews: Star,
     newsletterSignup: Mail,
+    newsletterPrivacy: ShieldCheck,
     stack: Layers,
 };
 

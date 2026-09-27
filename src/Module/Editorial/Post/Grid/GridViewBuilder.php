@@ -352,6 +352,9 @@ final readonly class GridViewBuilder
                     ? $this->integrationViews->googleReviews($locale)
                     : null,
                 'widget' => $this->widgetViews->build($zone, $held, $locale, fn (?int $id): ?array => null === $id ? null : $this->mediaData($documents[$id] ?? null, $held['alt']), $currentPostId),
+                'newsletterPrivacy' => GridNormalizer::ZONE_NEWSLETTER_PRIVACY === $zone['type']
+                    ? $this->integrationViews->newsletterPrivacy($held)
+                    : null,
                 'newsletterSignup' => GridNormalizer::ZONE_NEWSLETTER_SIGNUP === $zone['type']
                     ? $this->integrationViews->newsletterSignup($held, $locale)
                     : null,

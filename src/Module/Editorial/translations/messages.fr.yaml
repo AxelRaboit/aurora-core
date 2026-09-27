@@ -612,6 +612,7 @@ backend:
         instagramFeed: Fil Instagram
         googleReviews: Avis Google
         newsletterSignup: Inscription à la lettre
+        newsletterPrivacy: Mention RGPD de la lettre
         stack: Pile
       zone_form: "Formulaire"
       zone_form_hint: "Le formulaire s'affiche dans la page, et s'envoie au même endroit que sur sa propre page."
@@ -1015,6 +1016,7 @@ backend:
       newsletter_hint: "Envoie l'adresse à la liste réglée dans Réglages > Lettre d'information. Tant que l'intégration est éteinte, la zone ne dessine rien."
       newsletter_title: Titre
       newsletter_note: Précision
+      newsletter_privacy_hint: "Le paragraphe de la lettre d'information pour votre politique de confidentialité : à qui l'adresse est confiée, où, et comment se désinscrire, rédigé selon le prestataire réglé. Tant que la lettre d'information est éteinte, la zone ne dessine rien."
       background_video: Vidéo en fond
       background_video_hint: "La vidéo tourne sans le son derrière le titre, au lieu d'un lecteur. Pour les visiteurs qui ont demandé moins d'animations, l'image d'aperçu reste fixe."
       background_video_title: Titre posé sur la vidéo
@@ -1505,6 +1507,11 @@ frontend:
         notice: "Votre adresse sert uniquement à vous envoyer cette lettre ; elle est transmise à %provider%, notre prestataire d'envoi. Vous pouvez vous désinscrire à tout moment grâce au lien présent dans chaque envoi."
         privacy_link: Politique de confidentialité
         consent_required: "Cochez la case pour confirmer votre inscription."
+      newsletter_privacy:
+        title: Lettre d'information
+        brevo: "Si vous vous inscrivez à notre lettre d'information, votre adresse e-mail sert uniquement à vous l'envoyer. Ce traitement repose sur votre consentement, donné en cochant la case du formulaire puis, le cas échéant, en confirmant votre inscription par e-mail. Votre adresse est confiée à Brevo (Sendinblue SAS, société française), notre prestataire d'envoi, qui l'héberge dans l'Union européenne. Elle est conservée tant que vous restez inscrit."
+        mailchimp: "Si vous vous inscrivez à notre lettre d'information, votre adresse e-mail sert uniquement à vous l'envoyer. Ce traitement repose sur votre consentement, donné en cochant la case du formulaire puis, le cas échéant, en confirmant votre inscription par e-mail. Votre adresse est confiée à Mailchimp, service de la société Intuit Inc., notre prestataire d'envoi, établie aux États-Unis : vos données y sont donc transférées. Ce transfert est encadré par le cadre de protection des données UE-États-Unis (Data Privacy Framework), auquel Intuit adhère, et par les clauses contractuelles types de la Commission européenne. Elle est conservée tant que vous restez inscrit."
+        rights: "Vous pouvez vous désinscrire à tout moment grâce au lien présent dans chaque envoi. Vous disposez aussi d'un droit d'accès, de rectification et d'effacement de vos données, et pouvez introduire une réclamation auprès de la CNIL."
       quote:
         total: Total
       booking:

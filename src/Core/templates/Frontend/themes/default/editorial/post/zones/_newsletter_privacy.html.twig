@@ -1,0 +1,12 @@
+{# The newsletter's paragraph of a privacy policy. Drawn only while the
+   newsletter is switched on (IntegrationZoneViews::newsletterPrivacy), and
+   written for the provider in use: Brevo keeps the addresses in the European
+   Union, Mailchimp sends them to the United States, and the GDPR asks that a
+   transfer outside the Union be named where the processing is described. #}
+{% set privacy = zone.newsletterPrivacy %}
+{% set key = 'mailchimp' == privacy.provider ? 'mailchimp' : 'brevo' %}
+<section class="aurora-newsletter-privacy">
+    <h2>{{ privacy.title ?: 'frontend.editorial.grid.newsletter_privacy.title'|trans }}</h2>
+    <p>{{ ('frontend.editorial.grid.newsletter_privacy.' ~ key)|trans }}</p>
+    <p>{{ 'frontend.editorial.grid.newsletter_privacy.rights'|trans }}</p>
+</section>
