@@ -3,8 +3,16 @@ import { useDocumentNavigation } from "@ged/backend/documents/composables/useDoc
 
 describe("useDocumentNavigation - the address", () => {
     it("keeps the search, the sort and the flat view when changing folder", async () => {
-        window.history.replaceState(null, "", "/backend/ged/documents?search=carte&sort=name&dir=asc&familles=0&all=1");
-        const { navigateTo } = useDocumentNavigation({ folders: [] }, vi.fn(), vi.fn());
+        window.history.replaceState(
+            null,
+            "",
+            "/backend/ged/documents?search=carte&sort=name&dir=asc&familles=0&all=1",
+        );
+        const { navigateTo } = useDocumentNavigation(
+            { folders: [] },
+            vi.fn(),
+            vi.fn(),
+        );
 
         await navigateTo(7);
 
@@ -18,8 +26,16 @@ describe("useDocumentNavigation - the address", () => {
     });
 
     it("drops the previous folder when going back to every document", async () => {
-        window.history.replaceState(null, "", "/backend/ged/documents?folderId=7&familles=0");
-        const { navigateToAll } = useDocumentNavigation({ folders: [] }, vi.fn(), vi.fn());
+        window.history.replaceState(
+            null,
+            "",
+            "/backend/ged/documents?folderId=7&familles=0",
+        );
+        const { navigateToAll } = useDocumentNavigation(
+            { folders: [] },
+            vi.fn(),
+            vi.fn(),
+        );
 
         await navigateToAll();
 

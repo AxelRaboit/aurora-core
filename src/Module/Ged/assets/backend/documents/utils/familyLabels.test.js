@@ -12,7 +12,7 @@ describe("labelSwatch", () => {
         expect(labelSwatch("arc")).toBe("#8b6cff");
     });
 
-        it("reads a colour through its accents", () => {
+    it("reads a colour through its accents", () => {
         expect(labelSwatch("Bleu")).toBe("#0093ed");
     });
 

@@ -60,7 +60,7 @@ describe("DocumentFamilyChips", () => {
         expect(wrapper.emitted("choose")?.[0]).toEqual([1]);
     });
 
-        it("marks a member used somewhere", () => {
+    it("marks a member used somewhere", () => {
         const buttons = mountChips().findAll("button");
 
         expect(buttons[0].find(".bg-success").exists()).toBe(true);
