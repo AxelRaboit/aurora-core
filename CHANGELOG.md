@@ -7,6 +7,26 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ## [0.9.267] - 2026-09-27
 
+### Modifié
+
+#### L'inscription à la lettre d'information, mise en conformité (RGPD)
+- **Confirmation par e-mail, activée par défaut.** Le visiteur reçoit un
+  e-mail et n'est ajouté à la liste qu'après avoir cliqué : personne ne peut
+  plus inscrire l'adresse d'un autre, et le fournisseur garde la preuve du
+  consentement. Chez Mailchimp, rien à régler ; chez Brevo, il faut indiquer
+  le numéro du modèle d'e-mail de confirmation. Le réglage peut être coupé.
+- **Une case de consentement, toujours demandée**, non cochée au départ, et
+  vérifiée aussi par le serveur.
+- **Une mention sous le champ** dit à quoi sert l'adresse, qu'elle est
+  transmise à Brevo ou Mailchimp, et comment se désinscrire, avec un lien vers
+  la politique de confidentialité. Son adresse devient obligatoire pour
+  activer le module.
+- **Chez Mailchimp, une personne désinscrite n'est plus réinscrite d'office**
+  si elle retape son adresse, et l'inscription transmet sa date et son adresse
+  IP comme preuve.
+- Le message de fin dit « confirmez votre inscription » quand une
+  confirmation est attendue.
+
 ### Corrigé
 
 - **Deux visiteurs ne peuvent plus réserver le même créneau au même instant.**
@@ -18,7 +38,9 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ### Dans aurora-client
 
-Rien à faire après `make aurora-update`.
+Rien à faire après `make aurora-update`. Une installation qui avait activé la
+lettre d'information la voit se désactiver tant que l'adresse de la politique
+de confidentialité n'est pas renseignée (Réglages > Lettre d'information).
 
 ## [0.9.266] - 2026-09-27
 

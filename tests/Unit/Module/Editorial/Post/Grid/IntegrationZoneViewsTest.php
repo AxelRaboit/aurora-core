@@ -90,7 +90,7 @@ final class IntegrationZoneViewsTest extends TestCase
     public function testANewsletterZoneCarriesItsOwnTranslatedWordsAndTheSubscribeEndpoint(): void
     {
         $newsletterSettings = $this->newsletterSettings();
-        $newsletterSettings->save(enabled: true, termsAccepted: true, provider: 'brevo', apiKey: 'key', listId: '3', acceptedBy: 'axel@example.com');
+        $newsletterSettings->save(enabled: true, termsAccepted: true, provider: 'brevo', apiKey: 'key', listId: '3', acceptedBy: 'axel@example.com', brevoTemplateId: '12', privacyUrl: '/fr/page/confidentialite');
 
         $urlGenerator = $this->createStub(UrlGeneratorInterface::class);
         $urlGenerator->method('generate')->willReturn('/fr/newsletter');
@@ -98,7 +98,14 @@ final class IntegrationZoneViewsTest extends TestCase
         $views = $this->views(new MockHttpClient(new MockResponse('')), newsletterSettings: $newsletterSettings, urlGenerator: $urlGenerator);
 
         self::assertSame(
-            ['title' => 'Recevez les prochaines dates', 'note' => 'Une fois par mois', 'endpoint' => '/fr/newsletter'],
+            [
+                'title' => 'Recevez les prochaines dates',
+                'note' => 'Une fois par mois',
+                'endpoint' => '/fr/newsletter',
+                'provider' => 'Brevo',
+                'privacyUrl' => '/fr/page/confidentialite',
+                'doubleOptIn' => true,
+            ],
             $views->newsletterSignup(['label' => 'Recevez les prochaines dates', 'caption' => 'Une fois par mois'], 'fr'),
         );
     }
