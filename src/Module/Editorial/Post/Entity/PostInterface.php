@@ -62,6 +62,16 @@ interface PostInterface
     /** @param list<array{type: string, label: ?string, url: ?string, color: ?string}>|null $shareLinks */
     public function setShareLinks(?array $shareLinks): static;
 
+    public function isUsefulLinksEnabled(): bool;
+
+    public function setUsefulLinksEnabled(bool $usefulLinksEnabled): static;
+
+    /** @return list<array{label: string, url: string, color: ?string}> */
+    public function getUsefulLinks(): array;
+
+    /** @param list<array{label: string, url: string, color: ?string}> $usefulLinks */
+    public function setUsefulLinks(array $usefulLinks): static;
+
     public function isTitleVisible(): bool;
 
     public function setTitleVisible(bool $titleVisible): static;

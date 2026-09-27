@@ -1122,6 +1122,18 @@ backend:
       url_hint: "https:// ou mailto:. {url} et {title} sont remplacés par l'adresse et le titre de la page, ce qui en fait un vrai lien de partage."
       url_invalid: "Ce lien sera retiré à l'enregistrement : son adresse doit commencer par https:// ou mailto:."
       add: Ajouter un lien
+    useful_links_enabled: Liens utiles en bas de page
+    useful_links:
+      hint: "Les liens de cette page, dans l'ordre : où retrouver l'auteur, le produit, le code. Glissez la poignée pour les réordonner."
+      empty: Aucun lien, le bloc ne s'affiche pas.
+      move: Déplacer
+      remove: Retirer
+      label: Libellé
+      color: Couleur
+      url: Adresse
+      url_hint: "https:// ou mailto:."
+      url_invalid: "Ce lien sera retiré à l'enregistrement : il lui faut un libellé, et une adresse qui commence par https:// ou mailto:."
+      add: Ajouter un lien
     field_title: Titre
     field_slug: Slug
     slug_hint: "Laissé vide, il est déduit du titre. Le modifier garde l'ancienne URL fonctionnelle."
@@ -1448,6 +1460,8 @@ frontend:
     next: Image suivante
   editorial:
     reading_time: '%minutes% min de lecture'
+    useful_links:
+      label: Liens utiles
     share:
       label: Partager
       copy_link: Copier le lien

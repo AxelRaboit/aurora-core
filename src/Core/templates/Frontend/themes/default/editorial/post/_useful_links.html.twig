@@ -1,0 +1,23 @@
+{# The useful links at the foot of a publication, drawn like the share row
+   beside them: the same outline, the same size, the same word in front.
+
+   `links` holds only what `UsefulLinksNormalizer` let through - an https or
+   mailto address, some words, maybe a colour - so nothing here re-checks
+   them. A chosen colour tints the words and the outline, as on a share link;
+   without one the link keeps the quiet look of the rest of the block. A
+   mail address says so with its icon, every other one is a link. #}
+<div class="flex flex-wrap items-center gap-2">
+    <span class="text-sm text-secondary">{{ 'frontend.editorial.useful_links.label'|trans }}</span>
+    {% for link in links %}
+        {% set isMail = link.url starts with 'mailto:' %}
+        <a
+            href="{{ link.url }}"
+            {% if not isMail %}target="_blank" rel="noopener noreferrer"{% endif %}
+            class="inline-flex items-center gap-1.5 rounded-md border border-line px-2.5 py-1.5 text-sm text-secondary transition-colors hover:border-secondary hover:text-primary"
+            {% if link.color %}style="color: {{ link.color }}; border-color: {{ link.color }};"{% endif %}
+        >
+            {{ include('@Shared/components/icon.html.twig', {name: isMail ? 'mail' : 'link', class: 'w-4 h-4', size: 16}) }}
+            {{ link.label }}
+        </a>
+    {% endfor %}
+</div>

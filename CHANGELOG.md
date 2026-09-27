@@ -5,6 +5,29 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.278] - 2026-09-27
+
+### Ajouté
+
+#### Des liens utiles en bas de chaque publication
+Une publication peut finir par une rangée « Liens utiles », à côté de
+« Partager » : où retrouver l'auteur, le produit, le code. Elle se règle dans
+l'onglet Paramétrage, comme le partage : un interrupteur, puis les liens dans
+l'ordre, chacun avec son libellé, son adresse (https:// ou mailto:) et, si on
+veut, sa couleur. Désactivée par défaut, aucune page ne change au déploiement ;
+la désactiver garde les liens pour la fois suivante.
+
+### Modifié
+
+#### Le pied de publication se lit comme un seul bloc
+Les termes de la publication, les liens utiles et le partage sont réunis sous
+un seul filet au lieu d'un filet chacun, et chaque rangée s'ouvre sur ce
+qu'elle contient : les termes par le nom de leur taxonomie (« Compétences »
+devant « Community management »), dans la langue de la page. Une taxonomie
+sans nom dans cette langue laisse ses termes sans libellé plutôt que de les
+annoncer dans une autre. Les termes prennent la même forme que les boutons
+voisins.
+
 ## [0.9.277] - 2026-09-27
 
 ### Ajouté

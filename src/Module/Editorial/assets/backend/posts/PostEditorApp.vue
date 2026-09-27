@@ -22,6 +22,7 @@ import AppFocalPointField from "@/shared/components/form/file/AppFocalPointField
 import AppImagePickerField from "@/shared/components/form/file/AppImagePickerField.vue";
 import BannerColorField from "./components/BannerColorField.vue";
 import ShareLinksField from "./components/ShareLinksField.vue";
+import UsefulLinksField from "./components/UsefulLinksField.vue";
 import PostBannerPanel from "./components/PostBannerPanel.vue";
 import PostGridPanel from "./components/PostGridPanel.vue";
 import PostGalleryPanel from "./components/PostGalleryPanel.vue";
@@ -719,6 +720,8 @@ function termLabel(term) {
                         <AppToggle v-model="form.commentsEnabled" :label="t('backend.posts.comments_enabled')" />
                         <AppToggle v-model="form.shareEnabled" :label="t('backend.posts.share_enabled')" />
                         <ShareLinksField v-if="form.shareEnabled" v-model="form.shareLinks" />
+                        <AppToggle v-model="form.usefulLinksEnabled" :label="t('backend.posts.useful_links_enabled')" />
+                        <UsefulLinksField v-if="form.usefulLinksEnabled" v-model="form.usefulLinks" />
                     </div>
 
                     <div v-if="supportsThumbnail" class="aurora-card p-3 sm:p-5 space-y-4">

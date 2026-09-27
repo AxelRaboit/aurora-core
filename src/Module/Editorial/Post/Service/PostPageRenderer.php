@@ -104,6 +104,9 @@ final readonly class PostPageRenderer
             'commentsEnabled' => $this->commentManager->areCommentsEnabled($post),
             'shareEnabled' => $post->isShareEnabled(),
             'shareLinks' => $post->getShareLinks(),
+            // Empty when the box is off: the links stay stored for when it is
+            // ticked again, but a page that hid them must not print them.
+            'usefulLinks' => $post->isUsefulLinksEnabled() ? $post->getUsefulLinks() : [],
             // Whether the page prints its own title and summary. Shared, not
             // per translation: it is a decision about the design.
             'titleVisible' => $post->isTitleVisible(),
@@ -178,19 +181,28 @@ final readonly class PostPageRenderer
     }
 
     /**
-     * Term names grouped by taxonomy, so a theme can show them without
-     * reaching back into the entity graph from Twig.
+     * Term names grouped by taxonomy, each group with the taxonomy's own name
+     * in the page's language, so a theme can say what the chips are -
+     * « Compétences » before « Community management » - without reaching back
+     * into the entity graph from Twig.
      *
-     * @return array<string, list<string>>
+     * The label is null when the taxonomy has no name in this language: a
+     * French word on a Spanish page would be worse than no word at all.
+     *
+     * @return array<string, array{label: ?string, names: list<string>}>
      */
     private function postTerms(PostInterface $post, string $locale): array
     {
         $terms = [];
         foreach ($post->getTerms() as $term) {
             $name = $term->getTranslation($locale)?->getName();
-            if (null !== $name) {
-                $terms[$term->getTaxonomy()->getSlug()][] = $name;
+            if (null === $name) {
+                continue;
             }
+
+            $taxonomy = $term->getTaxonomy();
+            $terms[$taxonomy->getSlug()] ??= ['label' => $taxonomy->getTranslation($locale)?->getLabel(), 'names' => []];
+            $terms[$taxonomy->getSlug()]['names'][] = $name;
         }
 
         return $terms;

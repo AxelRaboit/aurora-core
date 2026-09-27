@@ -188,6 +188,9 @@ export function usePostEditor(props) {
         commentsEnabled: props.post?.commentsEnabled ?? true,
         shareEnabled: props.post?.shareEnabled ?? true,
         shareLinks: props.post?.shareLinks ?? null,
+        // Off and empty for every page written before the box existed.
+        usefulLinksEnabled: props.post?.usefulLinksEnabled ?? false,
+        usefulLinks: props.post?.usefulLinks ?? [],
         // Whether the page prints its own title and summary. On the post like
         // the banner below, for the same reason: it is design, written once.
         titleVisible: props.post?.titleVisible ?? true,
