@@ -257,7 +257,7 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
         };
 
         try {
-            const { ok } = await api.update(noteId, {
+            const { ok, payload } = await api.update(noteId, {
                 folderId,
                 ...snapshot,
             });
@@ -269,15 +269,24 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
             // next debounce will flush them).
             loadedSnapshot.value = snapshot;
 
-            // Keep the flat list (sidebar tree) in sync with the new
-            // title / tags. We touch the entry in place rather than
-            // refetching the whole list to avoid losing scroll / state.
+            // Keep the flat list (sidebar tree, library cards) in sync. We
+            // touch the entry in place rather than refetching the whole list
+            // to avoid losing scroll / state. The server's copy brings the
+            // new excerpt and date: without them a card kept showing the
+            // text as it was when the page loaded.
+            const saved = payload?.note ?? null;
             const index = notes.value.findIndex((n) => n.id === noteId);
             if (index !== -1) {
                 notes.value[index] = {
                     ...notes.value[index],
                     title: snapshot.title,
                     tags: snapshot.tags,
+                    ...(saved
+                        ? {
+                              excerpt: saved.excerpt ?? null,
+                              updatedAt: saved.updatedAt,
+                          }
+                        : {}),
                 };
             }
             return true;

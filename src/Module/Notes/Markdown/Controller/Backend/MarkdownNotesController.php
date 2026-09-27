@@ -423,7 +423,12 @@ final class MarkdownNotesController extends AbstractController
 
         $this->manager->update($note, $input);
 
-        return $this->jsonSuccess(['note' => $this->serializer->serializeDetail($note)]);
+        // L'extrait voyage avec la note enregistrée : la carte de la
+        // bibliothèque suit le texte sans attendre un rechargement.
+        $excerpt = $this->repository->excerptOf((string) $note->getContent());
+        $serializer = '' !== $excerpt ? $this->serializer->withExcerpts([(int) $note->getId() => $excerpt]) : $this->serializer;
+
+        return $this->jsonSuccess(['note' => $serializer->serializeDetail($note)]);
     }
 
     #[Route('/{id}/delete', name: '_delete', methods: [HttpMethodEnum::Post->value])]
