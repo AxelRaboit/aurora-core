@@ -736,6 +736,7 @@ backend:
         people: Team
         scrolly: Photo story
         editorial: Editorial list
+        process: Horizontal timeline
       item_columns: Columns
       item_number: "Entry {number}"
       item_add: Add an entry

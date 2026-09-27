@@ -235,6 +235,8 @@ const ITEM_LABELS = {
     people: { title: "person_name", description: "person_bio", caption: "person_role", url: "person_url" },
     // A numbered entry like a step: the number is drawn, only the words are typed.
     editorial: { title: "step_title", description: "step_text", caption: null, url: null },
+    // Numbered by its place on the line, like a step: no caption to type.
+    process: { title: "step_title", description: "step_text", caption: null, url: null },
 };
 
 const itemLabels = computed(() => ITEM_LABELS[bound.display.value] ?? ITEM_LABELS.steps);

@@ -166,6 +166,41 @@
             {% endfor %}
         </ol>
 
+    {% elseif items.display == 'process' %}
+        {# A process read left to right: numbered stops on one line, the last
+           one filled because it is where the process arrives. On a phone
+           there is no width for a line of four, so the same line turns and
+           runs down the left, like the steps above.
+
+           The number of stops sets the columns, not the column setting: a
+           line of four drawn in three columns would break mid-sentence.
+           Past six it wraps four to a row, and the line stops at each row's
+           end rather than running off into the gutter. #}
+        {% set stops = items.entries|length %}
+        {% set perRow = stops <= 6 ? stops : 4 %}
+        {% set processColumns = {
+            2: 'lg:grid-cols-2',
+            3: 'lg:grid-cols-3',
+            4: 'lg:grid-cols-4',
+            5: 'lg:grid-cols-5',
+            6: 'lg:grid-cols-6',
+        } %}
+        <ol class="m-0 grid list-none grid-cols-1 gap-8 p-0 lg:gap-x-6 {{ processColumns[perRow]|default('') }}">
+            {% for entry in items.entries %}
+                <li class="relative pl-12 lg:pl-0 lg:pt-12">
+                    {% if not loop.last and loop.index % perRow != 0 %}
+                        <span class="absolute left-4 top-8 -bottom-8 w-px bg-line lg:bottom-auto lg:left-8 lg:-right-6 lg:top-4 lg:h-px lg:w-auto" aria-hidden="true"></span>
+                    {% endif %}
+                    <span
+                        class="absolute left-0 top-0 flex h-8 w-8 items-center justify-center rounded-full border-2 border-accent text-sm font-semibold {{ loop.last ? 'bg-accent text-accent-text' : 'bg-surface text-accent' }}"
+                        aria-hidden="true"
+                    >{{ entry.position }}</span>
+                    {% if entry.title %}<h3 class="m-0 text-lg font-semibold text-primary">{{ entry.title }}</h3>{% endif %}
+                    {% if entry.description %}<p class="mt-1 mb-0 text-secondary">{{ entry.description }}</p>{% endif %}
+                </li>
+            {% endfor %}
+        </ol>
+
     {% elseif items.display == 'offers' %}
         {# What each card has to answer, in the order it is asked: what is this,
            what does it cost, what do I get, how do I start.

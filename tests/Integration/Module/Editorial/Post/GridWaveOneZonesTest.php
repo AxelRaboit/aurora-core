@@ -223,6 +223,44 @@ final class GridWaveOneZonesTest extends IntegrationTestCase
         self::assertStringNotContainsString('aurora-card', $html);
     }
 
+    public function testAProcessLaysItsStopsOnOneLineAndFillsTheLast(): void
+    {
+        $html = $this->render(
+            ['type' => 'items', 'display' => 'process', 'items' => [['id' => 'p1'], ['id' => 'p2'], ['id' => 'p3'], ['id' => 'p4']]],
+            ['items' => [
+                'p1' => ['title' => 'On se parle', 'description' => 'Un appel.', 'caption' => 'Étape 1'],
+                'p2' => ['title' => 'On cadre'],
+                'p3' => ['title' => 'On produit'],
+                'p4' => ['title' => 'On publie'],
+            ]],
+        );
+
+        self::assertStringContainsString('lg:grid-cols-4', $html);
+        self::assertStringContainsString('On se parle', $html);
+        self::assertStringContainsString('Un appel.', $html);
+        // The number is the marker: a caption would say it twice.
+        self::assertStringNotContainsString('Étape 1', $html);
+        // Three links between four stops, and only the arrival is filled.
+        self::assertSame(3, mb_substr_count($html, 'lg:h-px'));
+        self::assertSame(1, mb_substr_count($html, 'bg-accent text-accent-text'));
+    }
+
+    public function testAProcessPastSixStopsWrapsFourToARow(): void
+    {
+        $entries = [];
+        $held = [];
+        foreach (range(1, 8) as $n) {
+            $entries[] = ['id' => 's'.$n];
+            $held['s'.$n] = ['title' => 'Temps '.$n];
+        }
+
+        $html = $this->render(['type' => 'items', 'display' => 'process', 'items' => $entries], ['items' => $held]);
+
+        self::assertStringContainsString('lg:grid-cols-4', $html);
+        // Seven gaps, minus the one at the end of the first row.
+        self::assertSame(6, mb_substr_count($html, 'lg:h-px'));
+    }
+
     public function testAPictureCanBecomeABandOrSitOnAScreen(): void
     {
         $band = $this->render(['type' => 'media', 'fullBleed' => true, 'mediaUrl' => 'https://picsum.photos/1600/900', 'options' => ['parallax' => true]], ['caption' => 'Une phrase']);
