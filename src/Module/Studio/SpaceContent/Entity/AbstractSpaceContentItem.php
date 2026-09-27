@@ -272,6 +272,21 @@ abstract class AbstractSpaceContentItem implements SpaceContentItemInterface
         return $this->showOnCalendar && $this->isScheduled();
     }
 
+    /**
+     * Ce que la page du client montre : une fiche de son calendrier, dans une
+     * étape qui lui est ouverte.
+     *
+     * **Une seule règle pour ce que la page porte et pour ce qu'elle
+     * accepte.** La page ne dessine que son calendrier ; lui envoyer les
+     * autres fiches mettait leurs titres et leurs textes dans sa source, et
+     * les laisser recevoir un avis ou un commentaire ouvrait des gestes sur
+     * du travail que le studio n'avait pas montré.
+     */
+    public function isShownToClient(): bool
+    {
+        return $this->appearsOnCalendar() && $this->getColumn()->isVisibleToClient();
+    }
+
     public function getPosition(): int
     {
         return $this->position;

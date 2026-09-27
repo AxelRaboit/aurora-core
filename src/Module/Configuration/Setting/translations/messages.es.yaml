@@ -1,95 +1,392 @@
 backend:
-  settings:
-    disable_anyway: Desactivar de todos modos
+    settings:
+        disable_anyway: 'Desactivar de todos modos'
+        tabs:
+            general: General
+            general_description: 'Nombre del sitio, email del administrador, URL pública.'
+            reading: Lectura
+            reading_description: 'Artículos por página, página de inicio, comentarios.'
+            localization: Localización
+            localization_description: 'Idioma, zona horaria, formato de fecha.'
+            branding: 'Identidad de marca'
+            branding_description: 'Logotipo, favicon e identidad visual.'
+            appearance: Apariencia
+            appearance_description: 'Personalizar la paleta de colores y otros ajustes visuales de la administración.'
+            seo: SEO
+            seo_description: 'Plantilla de título y meta descripción por defecto.'
+            system: Sistema
+            system_description: 'Mantenimiento, registros, acceso y subidas de archivos.'
+            email: Emails
+            email_description: 'Idioma de los emails salientes.'
+            media: 'Medios y subidas'
+            media_description: 'Límites de subida de archivos (tamaño máximo, extensiones permitidas).'
+            sequences: Secuencias
+            sequences_description: 'Prefijos de las referencias generadas automáticamente. Pestaña reservada a los desarrolladores.'
+            navigation: Navegación
+            studio: Studio
+            studio_description: 'La identidad del prestador que se imprime en cada contrato: denominación, SIRET, datos bancarios.'
+            navigation_description: 'Personalice los nombres de las secciones y de los elementos del menú lateral.'
+            pexels: Pexels
+            craft: Craft
+            github: GitHub
+            instagram: Instagram
+            google_reviews: 'Reseñas de Google'
+            newsletter: Boletín
+            drive: 'Google Drive'
+            drive_description: 'Leer una carpeta de Drive compartida por un cliente: cuenta de servicio, clave, activación.'
+            github_description: 'La cuadrícula de contribuciones de sus cuentas de GitHub, para mostrar en una página: cuentas y activación.'
+            instagram_description: 'El feed de sus publicaciones de Instagram, para mostrar en una página: cuenta y token de acceso.'
+            google_reviews_description: 'Su valoración y sus últimas reseñas de Google, para mostrar en una página: ficha del establecimiento y clave.'
+            newsletter_description: 'La suscripción a su boletín (Brevo o Mailchimp), para colocar en una página: proveedor, clave y lista.'
+            craft_description: 'Importar una nota escrita en Craft: dirección de la conexión, token, activación.'
+            pexels_description: 'Banco de fotos gratuitas: activación, clave de API y aceptación de las condiciones.'
+            captcha: Antirrobots
+            captcha_description: 'Verificación de comentarios y formularios: servicio, claves y activación.'
+            notes: Notas
+            notes_description: 'Ajustes del módulo Notas Markdown: tamaño / calidad de las imágenes subidas.'
+            storage: 'Almacenamiento de archivos'
+            storage_description: 'Dónde escribe sus archivos la aplicación: el disco del servidor, o el almacenamiento de objetos Cloudflare R2.'
+            modules: Módulos
+        storage:
+            intro: 'De forma predeterminada, los archivos que sube se escriben en el disco del servidor. Puede confiarlos en su lugar al almacenamiento de objetos Cloudflare R2, en su propia cuenta.'
+            when_useful: 'Merece la pena sobre todo si almacena mucho, o archivos grandes. Por debajo de unos pocos gigabytes, el disco del servidor basta y no necesita configuración.'
+            how_title: 'Cómo obtener las credenciales'
+            how_step_bucket: 'En el panel de Cloudflare, abra R2 y cree un contenedor, o elija uno existente.'
+            how_step_token: 'Cree un token de API con el permiso «Object Read & Write», limitado a ese único contenedor. Solo lectura no basta: la aplicación debe poder escribir.'
+            how_step_copy: 'Copie el identificador de clave y la clave secreta. Cloudflare solo los muestra una vez.'
+            how_link: 'Abrir la documentación de Cloudflare R2'
+            endpoint_label: 'Dirección de la cuenta'
+            endpoint_hint: 'La URL de la cuenta, sin el nombre del contenedor al final. La consola muestra una con el contenedor añadido: pegarla tal cual lo pondría dos veces.'
+            bucket_label: Contenedor
+            bucket_hint: 'El nombre del contenedor, solo.'
+            access_key_label: 'Identificador de clave'
+            secret_key_label: 'Clave secreta'
+            key_stored: 'Hay un valor guardado. Déjelo vacío para conservarlo.'
+            key_hint: 'Copiada de Cloudflare al crear el token.'
+            public_url_label: 'Dominio público'
+            public_url_hint: 'Opcional. El dominio que haya vinculado al contenedor, si lo ha hecho. Sin él, los archivos los sigue sirviendo la aplicación.'
+            delivery_title: 'Cómo se sirven los archivos'
+            delivery_hint: 'La dirección de un documento nunca cambia, elija lo que elija. Solo cambia cómo responde la aplicación.'
+            delivery_proxy: 'A través de la aplicación'
+            delivery_proxy_hint: 'Los bytes atraviesan el servidor. Lo más sencillo, y sus reglas de acceso siguen aplicándose.'
+            delivery_presigned: 'Mediante enlace firmado temporal'
+            delivery_presigned_hint: 'Los bytes van directamente del almacenamiento al visitante, y los archivos siguen siendo privados.'
+            delivery_public_url: 'A través del dominio público'
+            delivery_public_url_hint: 'Lo más rápido, y en caché. Los archivos pasan a ser legibles por cualquiera que conozca su dirección.'
+            test_button: 'Probar la conexión'
+            banner_none: 'Ningún almacenamiento remoto configurado. Los archivos se escriben en el disco del servidor.'
+            banner_untested: 'Configuración rellenada pero nunca probada. Ejecute la prueba antes de usarla.'
+            banner_connected: 'Conectado a Cloudflare R2, contenedor «{bucket}», verificado el {date}. Los archivos nuevos van a: {target}.'
+            banner_from_environment: 'Esta configuración viene del entorno del servidor, no de esta pantalla.'
+            disconnect_button: 'Desconectar el almacenamiento'
+            disconnect_confirm: 'Se borrarán ambas claves, junto con la dirección y el contenedor. Los archivos nuevos volverán al disco del servidor.'
+            disconnect_warning: 'Cloudflare solo muestra una clave al crearla: volver atrás obliga a crear un token nuevo, no a recuperar este.'
+            disconnected: 'Almacenamiento remoto desconectado.'
+            test_intro: 'La prueba escribe un archivo testigo, lo vuelve a leer, comprueba que está, y lo borra. Es la única forma de saber que un token puede escribir de verdad.'
+            test_passed: 'Conexión verificada el {date}.'
+            test_never: 'Nunca probada. La prueba es necesaria antes de poder cambiar el almacenamiento.'
+            active_disk_label: 'Escribir los archivos nuevos en'
+            disk_local: 'El disco del servidor'
+            usage_title: 'Lo que se almacena'
+            usage_active: 'en escritura'
+            usage_files: 'Ningún archivo | 1 archivo | {count} archivos'
+            usage_hint: 'El peso de los documentos de la mediateca, sin contar la papelera. No incluye los restos de una importación fallida ni los tamaños generados que una purga no haya recogido.'
+            disk_r2: 'Cloudflare R2'
+            switch_blocked: 'Pruebe la conexión antes de cambiar.'
+            switch_hint: 'Solo afecta a los archivos futuros. Los ya almacenados no se mueven.'
+            probe:
+                write: escritura
+                read_back: relectura
+                exists: presencia
+                metadata: 'tamaño y fecha'
+                listing: 'visible en la lista'
+                cleanup: limpieza
+            hints:
+                incomplete: 'Falta algún dato. Rellene la dirección de la cuenta, el contenedor y ambas claves.'
+                signature: 'La clave secreta no corresponde al identificador de clave. Ambos se muestran una sola vez, al crear el token: crear uno nuevo es más rápido que buscar.'
+                denied: 'Cloudflare responde pero rechaza. Compruebe que el token lleva «Object Read & Write» y no solo lectura, y que su alcance incluye este contenedor.'
+                no_bucket: 'Ese contenedor no existe en esta dirección. Atención: la dirección de la cuenta no debe terminar con el nombre del contenedor.'
+                unreachable: 'La dirección no responde. Compruébela, y compruebe que el servidor puede alcanzarla.'
+            errors:
+                verification_required: 'Pruebe la conexión antes de cambiar el almacenamiento.'
+                documents_still_remote: 'No se puede desconectar: un documento sigue en el almacenamiento remoto. | No se puede desconectar: {count} documentos siguen en el almacenamiento remoto. Recupérelos antes o sus archivos quedarían inaccesibles.'
+                configured_by_environment: 'Esta configuración está puesta en el entorno del servidor. Quite allí las variables R2: esta pantalla no puede borrarlas.'
+                endpoint_not_https: 'La dirección de la cuenta debe empezar por https://.'
+                access_key_length: 'El identificador de clave debe tener 32 caracteres. Este no los tiene: suele ser otro valor de la página de Cloudflare, o una copia incompleta.'
+                secret_key_length: 'La clave secreta debe tener 64 caracteres. Esta no los tiene: suele ser una copia incompleta.'
+        appearance:
+            color_presets:
+                title: 'Paleta del selector de colores'
+                help: 'Estos colores aparecen como atajo en todos los selectores de colores de la administración.'
+                add: 'Añadir un color'
+                confirm_add: Añadir
+                remove: 'Quitar este color'
+                reset: 'Restablecer los colores por defecto'
+                invalid_hex: 'Código hexadecimal no válido. Formato esperado: #rrggbb.'
+        nav_aliases_empty: 'No hay ninguna sección de navegación disponible.'
+        nav_aliases:
+            title: 'Menú lateral'
+            help: 'Cambie el nombre y el orden de las agrupaciones y los módulos del menú lateral. Arrastre el tirador para mover una sección o un módulo. Haga clic en una sección para desplegar sus elementos.'
+            items_empty: 'No hay ningún elemento en esta sección.'
+            reset_item: Restablecer
+            reset_all: 'Restablecer todo'
+            save: Guardar
+            drag_handle: 'Arrastrar para reordenar'
+        cascade_locked: 'Active primero «{parent}» para poder editar este ajuste.'
+        media_square_hint: 'Recomendado: imagen cuadrada (1:1).'
+        modules_intro: 'Active o desactive los módulos de la aplicación. Los cambios se guardan de inmediato.'
+        modules_empty: 'No se ha encontrado ningún módulo.'
+        module_type:
+            backend: Backend
+            frontend: Frontend
+        save: Guardar
+        saved: 'Ajustes guardados.'
+        modules_search_placeholder: 'Buscar un módulo…'
+        confirm_password: 'Confirmar la acción'
+        confirm_password_description: 'Confirme la contraseña para activar o desactivar módulos.'
+        confirm_password_placeholder: Contraseña…
+        confirm_password_invalid: 'Contraseña incorrecta.'
+        confirm_password_confirm: Confirmar
+        browse_media: 'Explorar los medios'
+        no_page_selected: 'Ninguna página seleccionada: se muestra la lista de artículos por defecto.'
+        search_post: 'Buscar una página…'
+        or_id: 'o introducir el ID:'
+        sequence_search: 'Buscar una secuencia…'
+    parameters:
+        media_credit_visible:
+            label: 'Mostrar el crédito de las fotos'
+            off_warning: 'Las condiciones de uso de la API de Pexels piden acreditar al fotógrafo y enlazar a Pexels en las fotos importadas con su clave. Al ocultar el crédito, se sale de esas condiciones, en su propia cuenta. La licencia de las fotos, en cambio, no exige la atribución.'
+            description: 'Muestra el nombre del fotógrafo y el enlace al banco de imágenes bajo las fotos que lo llevan. Las condiciones de uso de la API de Pexels piden este crédito: desactivarlo es una decisión suya sobre su propia cuenta.'
+        captcha:
+            title: 'Verificación antirrobots'
+            intro: 'Una comprobación adicional en todo lo que un visitante puede enviar, comentarios y formularios, además de la trampa para robots, el filtro de enlaces, el límite de envíos y la moderación que ya existen.'
+            privacy: 'El servicio elegido recibe la dirección IP del visitante. Es un dato personal: la cuenta debe ser la del sitio, y la política de privacidad debe decirlo.'
+            enabled: 'Activar la verificación'
+            provider: Servicio
+            site_key: 'Clave pública'
+            site_key_placeholder: 0x4AAAAAAA…
+            site_key_hint: 'Se imprime en la página, es normal: el widget la necesita.'
+            secret_key: 'Clave secreta'
+            secret_key_placeholder: 0x4AAAAAAA…
+            secret_key_hint: 'Cifrada en la base de datos. Si se deja vacía, se conserva la clave guardada.'
+            secret_set: 'Hay una clave secreta guardada.'
+            secret_unset: 'No hay ninguna clave secreta guardada.'
+            providers:
+                turnstile: 'Cloudflare Turnstile (recomendado: sin acertijos ni cookies publicitarias)'
+                recaptcha: 'Google reCAPTCHA v3 (invisible, puntúa de 0 a 1)'
+            errors:
+                keys_required: 'Ambas claves son necesarias para activar la verificación.'
+        site_name:
+            label: 'Nombre del sitio'
+            description: 'Nombre que se muestra en el sitio público y en los emails'
+            placeholder: 'Mi empresa'
+        site_description:
+            label: 'Descripción del sitio'
+            description: 'Descripción breve utilizada como meta descripción por defecto'
+            placeholder: 'Plataforma de gestión empresarial multimódulo'
+        site_url:
+            label: 'URL pública del sitio'
+            description: 'URL absoluta del sitio (sin barra final), utilizada en los emails y el sitemap'
+            placeholder: 'https://app.example.com'
+        admin_email:
+            label: 'Email del administrador'
+            description: 'Dirección de email del administrador'
+            placeholder: admin@example.com
+        default_locale:
+            label: 'Idioma por defecto'
+            description: 'Idioma por defecto del sitio (visualización pública, emails por defecto).'
+        single_locale_mode:
+            label: 'Modo de un solo idioma'
+            description: 'Si se activa, la aplicación solo muestra y guarda un idioma (el definido en «Idioma por defecto»). Las pestañas multilingües se ocultan y las URL con otro código de idioma se redirigen (301). Reversible: los contenidos introducidos en los demás idiomas se conservan en la base.'
+        posts_per_page:
+            label: 'Artículos por página'
+            description: 'Número de artículos mostrados por página en las listas públicas'
+            placeholder: 10
+        max_upload_size_mb:
+            label: 'Tamaño máx. de subida (MB)'
+            description: 'Límite, en megabytes, de cualquier archivo subido - biblioteca y espacios de cliente. Los invitados de un espacio siguen limitados además a 25 MB.'
+            placeholder: 100
+        timezone:
+            label: 'Zona horaria'
+            description: 'Zona horaria de PHP (ej.: Europe/Paris)'
+        date_format:
+            label: 'Formato de visualización de las fechas'
+            description: 'Formato de visualización de las fechas (ej.: d/m/Y)'
+        comments_enabled:
+            label: 'Comentarios activados'
+            description: 'Si se activa, los visitantes pueden dejar comentarios en los artículos del sitio público.'
+        comment_moderation_enabled:
+            label: 'Moderación de comentarios'
+            description: 'Si se activa, los comentarios quedan pendientes de moderación antes de publicarse. Si se desactiva, se aprueban automáticamente.'
+        maintenance_mode:
+            label: 'Modo mantenimiento'
+            description: 'Si se activa, el sitio público se cierra a los visitantes y muestra una página de mantenimiento.'
+        admin_registration_enabled:
+            label: 'Registros de administración abiertos'
+            description: 'Permitir los registros a través de /register (interfaz de administración). Desactívelo después de crear la primera cuenta de administrador.'
+        admin_access_request_enabled:
+            label: 'Solicitudes de acceso de administración abiertas'
+            description: 'Permitir las solicitudes de acceso a través de /access-request (formulario de solicitud de acceso a la administración)'
+        front_login_enabled:
+            label: 'Inicio de sesión en el frontend activado'
+            description: 'Si se desactiva, el sitio público deja de tener cuentas: el inicio de sesión, el registro, el espacio de cliente y la contraseña olvidada devuelven un 404, y los enlaces correspondientes desaparecen de los menús. Desactívelo para una aplicación puramente de escaparate.'
+        front_registration_enabled:
+            label: 'Registros en el frontend abiertos'
+            description: 'Si se activa, los visitantes pueden crear una cuenta desde el sitio público. No tiene efecto si el inicio de sesión en el frontend está desactivado.'
+        post_revisions_limit:
+            label: 'Número de revisiones guardadas por artículo'
+            description: 'Número máximo de revisiones conservadas por artículo (las más antiguas se eliminan)'
+        file_versions_limit:
+            label: 'Versiones de archivo conservadas'
+            description: 'Número máximo de versiones guardadas por archivo de la mediateca. Por encima, las más antiguas se eliminan junto con su archivo. 0 = ilimitado.'
+        trash_auto_purge_days:
+            label: 'Purga automática de la papelera (días)'
+            description: 'Número de días antes de la eliminación definitiva de los artículos de la papelera (0 = nunca)'
+        form_submission_retention_days:
+            label: 'Conservación de los envíos (días)'
+            description: 'Número de días de conservación de las respuestas a los formularios, dirección IP incluida, antes de su eliminación definitiva (0 = sin límite)'
+        homepage_post_id:
+            label: 'Página de inicio (ID del post)'
+            description: 'ID de un post que se muestra en la página de inicio. Vacío = lista de los últimos artículos.'
+        default_front:
+            label: 'Front por defecto'
+            description: 'Slug del front que se muestra por defecto en "/".'
+        logo_media_id:
+            label: 'Logotipo del sitio'
+            description: 'ID del medio utilizado como logotipo'
+        favicon_media_id:
+            label: Favicon
+            description: 'ID del medio utilizado como favicon'
+        seo_title_template:
+            label: 'Plantilla de título SEO'
+            description: 'Plantilla para el título de las páginas. Use {title} y {siteName}. Ej.: {title} · {siteName}'
+            placeholder: '{title} · {siteName}'
+        seo_default_description:
+            label: 'Descripción SEO por defecto'
+            description: 'Meta descripción utilizada cuando no se ha definido ninguna descripción específica'
+            placeholder: 'Plataforma de gestión empresarial: módulos CRM, ventas, mediateca…'
+        seo_default_og_image:
+            label: 'Imagen Open Graph por defecto'
+            description: 'Imagen utilizada para las vistas previas en redes sociales (Facebook, LinkedIn, Twitter…) cuando la página no define ninguna. Se recomienda 1200×630 px.'
+        seo_twitter_handle:
+            label: 'Usuario de Twitter / X'
+            description: 'Usuario de Twitter del sitio (con @, ej.: @aurora_app). Se utiliza para la etiqueta twitter:site de las Twitter Cards.'
+            placeholder: '@aurora_app'
+        email_locale:
+            label: 'Idioma forzado para los emails'
+            description: 'Idioma que se usará en todos los emails salientes. «Seguir el idioma por defecto» aplica el idioma por defecto del sitio.'
+        email_locale_auto: 'Seguir el idioma por defecto'
+        core_user_prefix:
+            label: 'Prefijo de las referencias de usuarios'
+            description: 'Prefijo de la referencia generada automáticamente (ej.: XXX). Déjelo vacío para desactivarlo.'
+        core_media_prefix:
+            label: 'Prefijo de las referencias de medios'
+            description: 'Prefijo de la referencia generada automáticamente (ej.: XXX). Déjelo vacío para desactivarlo.'
+        core_access_request_prefix:
+            label: 'Prefijo de las referencias de solicitudes de acceso'
+            description: 'Prefijo de la referencia generada automáticamente (ej.: XXX). Déjelo vacío para desactivarlo.'
+        core_audit_log_prefix:
+            label: 'Prefijo de los registros de auditoría'
+            description: 'Prefijo de la referencia generada automáticamente (ej.: XXX). Déjelo vacío para desactivarlo.'
+        core_reset_password_prefix:
+            label: 'Prefijo de las solicitudes de restablecimiento de contraseña'
+            description: 'Prefijo de la referencia generada automáticamente (ej.: XXX). Déjelo vacío para desactivarlo.'
+        core_media_folder_prefix:
+            label: 'Prefijo de las referencias de carpetas de medios'
+            description: 'Prefijo de la referencia generada automáticamente (ej.: XXX). Déjelo vacío para desactivarlo.'
+        core_menu_item_prefix:
+            label: 'Prefijo de las referencias de elementos de menú'
+            description: 'Prefijo de la referencia generada automáticamente (ej.: XXX). Déjelo vacío para desactivarlo.'
+        studio_contract_prefix:
+            label: 'Prefijo de las referencias de contrato'
+            description: 'Prefijo de las referencias de contrato. CTR por defecto, lo que da CTR-2026-0001.'
+        studio_provider_name:
+            label: 'Denominación del prestador'
+            description: 'El nombre con el que usted contrata, tal como se imprime en el encabezado del contrato.'
+        studio_provider_representative:
+            label: 'Nombre y apellidos'
+            description: 'La persona física que firma. Se imprime junto con la denominación.'
+        studio_provider_address:
+            label: 'Dirección profesional'
+            description: 'Dirección completa, en una línea: aparece en el bloque de identidad del contrato.'
+        studio_provider_siret:
+            label: SIRET
+            description: 'El SIRET del establecimiento que contrata.'
+        studio_provider_ape_code:
+            label: 'Código APE'
+            description: 'Código y descripción, por ejemplo 7021Z - conseil en relations publiques et communication.'
+        studio_provider_vat_mention:
+            label: 'Mención del IVA'
+            description: 'La frase exacta que se imprimirá, por ejemplo «non assujetti - TVA non applicable, art. 293 B du CGI».'
+        studio_provider_email:
+            label: Email
+            description: 'La dirección a la que el cliente le escribe en relación con el contrato.'
+        studio_provider_phone:
+            label: Teléfono
+            description: 'El número que se imprime en el bloque de identidad.'
+        studio_provider_bank_holder:
+            label: 'Titular de la cuenta'
+            description: 'El nombre del titular, tal como figura en el extracto.'
+        studio_provider_bank_iban:
+            label: IBAN
+            description: 'El IBAN que se imprime en las condiciones económicas del contrato.'
+        studio_provider_bank_bic:
+            label: BIC
+            description: 'El BIC del establecimiento.'
+        studio_provider_bank_name:
+            label: Banco
+            description: 'El nombre del establecimiento, y su dirección si la imprime.'
+        studio_contract_retention_years:
+            label: 'Plazo de conservación (años)'
+            description: 'Cuántos años se conserva un contrato sellado antes de poder eliminarse. Cinco años es el mínimo legal, se recomiendan diez para una prestación de servicios; por debajo de cinco, el valor se ajusta a cinco.'
+        studio_contract_reminder_enabled:
+            label: 'Enviar recordatorios automáticamente'
+            description: 'Envía por email un recordatorio de los contratos enviados y no firmados. Cada recordatorio crea una nueva dirección de firma e invalida la anterior, como un reenvío manual.'
+        studio_contract_reminder_days:
+            label: 'Intervalo entre dos recordatorios (días)'
+            description: 'Número de días sin respuesta antes de un recordatorio. Se cuenta desde el último envío, no desde el sellado.'
+        studio_contract_reminder_max:
+            label: 'Número máximo de recordatorios'
+            description: 'Por encima, el contrato se deja tranquilo. El silencio también es una respuesta.'
+        nav_section_aliases:
+            label: 'Alias de las secciones de navegación'
+            description: 'Mapa JSON de los alias de secciones (gestionado desde la interfaz).'
+        nav_item_aliases:
+            label: 'Alias de los elementos de navegación'
+            description: 'Mapa JSON de los alias de elementos del menú (gestionado desde la interfaz).'
+        color_picker_presets:
+            label: 'Paleta del selector de colores'
+            description: 'Lista JSON de colores hexadecimales propuestos como atajo en todos los selectores de colores de la administración.'
+        intro: 'Consulte y edite los ajustes técnicos de la aplicación.'
+        key: Ajuste
+        value: Valor
+        description: Descripción
+        empty: 'No hay ajustes.'
+        saved: 'Ajuste guardado.'
+        search_placeholder: 'Buscar por clave…'
+        all_groups: 'Todos los grupos'
+    title: Administración
+    stats:
+        no_module_enabled: 'No hay ningún módulo de panel activado.'
+    forms:
+        errors:
+            slug_format: 'El slug solo puede contener letras minúsculas, números y guiones.'
+            slug_taken: 'Este slug ya se utiliza para este idioma.'
     tabs:
-      storage: Almacenamiento de archivos
-      storage_description: "Dónde escribe sus archivos la aplicación: el disco del servidor, o el almacenamiento de objetos Cloudflare R2."
-      captcha: Antirrobots
-      captcha_description: "Verificación de comentarios y formularios: servicio, claves y activación."
-    storage:
-      intro: "De forma predeterminada, los archivos que sube se escriben en el disco del servidor. Puede confiarlos en su lugar al almacenamiento de objetos Cloudflare R2, en su propia cuenta."
-      when_useful: "Merece la pena sobre todo si almacena mucho, o archivos grandes. Por debajo de unos pocos gigabytes, el disco del servidor basta y no necesita configuración."
-      how_title: Cómo obtener las credenciales
-      how_step_bucket: "En el panel de Cloudflare, abra R2 y cree un contenedor, o elija uno existente."
-      how_step_token: "Cree un token de API con el permiso «Object Read & Write», limitado a ese único contenedor. Solo lectura no basta: la aplicación debe poder escribir."
-      how_step_copy: "Copie el identificador de clave y la clave secreta. Cloudflare solo los muestra una vez."
-      how_link: Abrir la documentación de Cloudflare R2
-      endpoint_label: Dirección de la cuenta
-      endpoint_hint: "La URL de la cuenta, sin el nombre del contenedor al final. La consola muestra una con el contenedor añadido: pegarla tal cual lo pondría dos veces."
-      bucket_label: Contenedor
-      bucket_hint: El nombre del contenedor, solo.
-      access_key_label: Identificador de clave
-      secret_key_label: Clave secreta
-      key_stored: Hay un valor guardado. Déjelo vacío para conservarlo.
-      key_hint: Copiada de Cloudflare al crear el token.
-      public_url_label: Dominio público
-      public_url_hint: "Opcional. El dominio que haya vinculado al contenedor, si lo ha hecho. Sin él, los archivos los sigue sirviendo la aplicación."
-      delivery_title: Cómo se sirven los archivos
-      delivery_hint: "La dirección de un documento nunca cambia, elija lo que elija. Solo cambia cómo responde la aplicación."
-      delivery_proxy: A través de la aplicación
-      delivery_proxy_hint: "Los bytes atraviesan el servidor. Lo más sencillo, y sus reglas de acceso siguen aplicándose."
-      delivery_presigned: Mediante enlace firmado temporal
-      delivery_presigned_hint: "Los bytes van directamente del almacenamiento al visitante, y los archivos siguen siendo privados."
-      delivery_public_url: A través del dominio público
-      delivery_public_url_hint: "Lo más rápido, y en caché. Los archivos pasan a ser legibles por cualquiera que conozca su dirección."
-      test_button: Probar la conexión
-      banner_none: "Ningún almacenamiento remoto configurado. Los archivos se escriben en el disco del servidor."
-      banner_untested: "Configuración rellenada pero nunca probada. Ejecute la prueba antes de usarla."
-      banner_connected: "Conectado a Cloudflare R2, contenedor «{bucket}», verificado el {date}. Los archivos nuevos van a: {target}."
-      banner_from_environment: "Esta configuración viene del entorno del servidor, no de esta pantalla."
-      disconnect_button: "Desconectar el almacenamiento"
-      disconnect_confirm: "Se borrarán ambas claves, junto con la dirección y el contenedor. Los archivos nuevos volverán al disco del servidor."
-      disconnect_warning: "Cloudflare solo muestra una clave al crearla: volver atrás obliga a crear un token nuevo, no a recuperar este."
-      disconnected: "Almacenamiento remoto desconectado."
-      test_intro: "La prueba escribe un archivo testigo, lo vuelve a leer, comprueba que está, y lo borra. Es la única forma de saber que un token puede escribir de verdad."
-      test_passed: "Conexión verificada el {date}."
-      test_never: "Nunca probada. La prueba es necesaria antes de poder cambiar el almacenamiento."
-      active_disk_label: Escribir los archivos nuevos en
-      disk_local: El disco del servidor
-      disk_r2: Cloudflare R2
-      switch_blocked: Pruebe la conexión antes de cambiar.
-      switch_hint: "Solo afecta a los archivos futuros. Los ya almacenados no se mueven."
-      probe:
-        write: escritura
-        read_back: relectura
-        exists: presencia
-        metadata: tamaño y fecha
-        listing: visible en la lista
-        cleanup: limpieza
-      hints:
-        incomplete: "Falta algún dato. Rellene la dirección de la cuenta, el contenedor y ambas claves."
-        signature: "La clave secreta no corresponde al identificador de clave. Ambos se muestran una sola vez, al crear el token: crear uno nuevo es más rápido que buscar."
-        denied: "Cloudflare responde pero rechaza. Compruebe que el token lleva «Object Read & Write» y no solo lectura, y que su alcance incluye este contenedor."
-        no_bucket: "Ese contenedor no existe en esta dirección. Atención: la dirección de la cuenta no debe terminar con el nombre del contenedor."
-        unreachable: "La dirección no responde. Compruébela, y compruebe que el servidor puede alcanzarla."
-      errors:
-        verification_required: Pruebe la conexión antes de cambiar el almacenamiento.
-        documents_still_remote: "No se puede desconectar: un documento sigue en el almacenamiento remoto. | No se puede desconectar: {count} documentos siguen en el almacenamiento remoto. Recupérelos antes o sus archivos quedarían inaccesibles."
-        configured_by_environment: "Esta configuración está puesta en el entorno del servidor. Quite allí las variables R2: esta pantalla no puede borrarlas."
-        endpoint_not_https: "La dirección de la cuenta debe empezar por https://."
-        access_key_length: "El identificador de clave debe tener 32 caracteres. Este no los tiene: suele ser otro valor de la página de Cloudflare, o una copia incompleta."
-        secret_key_length: "La clave secreta debe tener 64 caracteres. Esta no los tiene: suele ser una copia incompleta."
-  parameters:
-    media_credit_visible:
-      label: Mostrar el crédito de las fotos
-      off_warning: "Las condiciones de uso de la API de Pexels piden acreditar al fotógrafo y enlazar a Pexels en las fotos importadas con su clave. Al ocultar el crédito, se sale de esas condiciones, en su propia cuenta. La licencia de las fotos, en cambio, no exige la atribución."
-      description: "Muestra el nombre del fotógrafo y el enlace al banco de imágenes bajo las fotos que lo llevan. Las condiciones de uso de la API de Pexels piden este crédito: desactivarlo es una decisión suya sobre su propia cuenta."
-    captcha:
-      title: Verificación antirrobots
-      intro: "Una comprobación adicional en todo lo que un visitante puede enviar, comentarios y formularios, además de la trampa para robots, el filtro de enlaces, el límite de envíos y la moderación que ya existen."
-      privacy: "El servicio elegido recibe la dirección IP del visitante. Es un dato personal: la cuenta debe ser la del sitio, y la política de privacidad debe decirlo."
-      enabled: Activar la verificación
-      provider: Servicio
-      site_key: Clave pública
-      site_key_placeholder: '0x4AAAAAAA…'
-      site_key_hint: "Se imprime en la página, es normal: el widget la necesita."
-      secret_key: Clave secreta
-      secret_key_placeholder: '0x4AAAAAAA…'
-      secret_key_hint: "Cifrada en la base de datos. Si se deja vacía, se conserva la clave guardada."
-      secret_set: Hay una clave secreta guardada.
-      secret_unset: No hay ninguna clave secreta guardada.
-      providers:
-        turnstile: "Cloudflare Turnstile (recomendado: sin acertijos ni cookies publicitarias)"
-        recaptcha: "Google reCAPTCHA v3 (invisible, puntúa de 0 a 1)"
-      errors:
-        keys_required: "Ambas claves son necesarias para activar la verificación."
+        access_requests: 'Solicitudes de acceso'
+        access_requests_description: 'Solicitudes de acceso pendientes de aprobación.'
+        audit: Auditoría
+        audit_description: 'Historial de todas las acciones realizadas en la aplicación.'
+        invitations: Invitaciones
+        overview: 'Vista general'
+        overview_description: 'Indicadores clave y actividad reciente.'
+        parameters: Ajustes
+        parameters_description: 'Ajustes técnicos y valores de configuración.'
+        modules: Módulos
+        modules_description: 'Activar o desactivar los módulos y sus funcionalidades.'
+        mount_points: 'Puntos de montaje'
+        mount_points_description: 'Conexiones a recursos externos (BD, API, SFTP).'
+        permissions: Permisos
+        permissions_description: 'Consultar los permisos registrados por módulo.'
+        users: Usuarios
+        users_description: 'Gestionar las cuentas, roles y permisos de los usuarios.'

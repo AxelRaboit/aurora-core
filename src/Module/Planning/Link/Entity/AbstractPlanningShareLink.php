@@ -61,9 +61,10 @@ abstract class AbstractPlanningShareLink implements PlanningShareLinkInterface
      * schedule is the sort of thing that gets solved by forwarding both to a
      * colleague.
      *
+     * Declared on the concrete class: see there.
+     *
      * @var Collection<int, PlanningInterface>
      */
-    /** Declared on the concrete class: see there. */
     protected Collection $calendars;
 
     /**

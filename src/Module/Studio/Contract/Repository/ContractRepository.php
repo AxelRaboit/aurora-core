@@ -62,14 +62,6 @@ class ContractRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * How many contracts name this customer, whatever their state.
-     *
-     * Asked before a customer is deleted. The foreign key is `RESTRICT`, so
-     * the database already refuses - but it refuses with an SQL error in the
-     * middle of a request, which reaches the screen as a 500 and tells the
-     * reader nothing about what they did.
-     */
-    /**
      * Combien de contrats par état.
      *
      * Les neuf états en une requête. Le tableau de bord n'en met en avant
@@ -97,6 +89,14 @@ class ContractRepository extends ResolveTargetEntityRepository
         return $counts;
     }
 
+    /**
+     * How many contracts name this customer, whatever their state.
+     *
+     * Asked before a customer is deleted. The foreign key is `RESTRICT`, so
+     * the database already refuses - but it refuses with an SQL error in the
+     * middle of a request, which reaches the screen as a 500 and tells the
+     * reader nothing about what they did.
+     */
     public function countForCustomer(CustomerInterface $customer): int
     {
         return (int) $this->createQueryBuilder('c')

@@ -55,7 +55,7 @@ final readonly class EntityScheduleSubscriber implements EventSubscriberInterfac
         // Checked here rather than left to the listener never being registered:
         // a module switched off should stop acting, and the class is present
         // either way because modules are directories in one bundle.
-        if (!$this->planningContext->isBackendEnabled()) {
+        if (!$this->planningContext->isGloballyEnabled()) {
             return;
         }
 
@@ -101,7 +101,7 @@ final readonly class EntityScheduleSubscriber implements EventSubscriberInterfac
 
     public function onUnscheduled(EntityUnscheduledEvent $event): void
     {
-        if (!$this->planningContext->isBackendEnabled()) {
+        if (!$this->planningContext->isGloballyEnabled()) {
             return;
         }
 

@@ -20,4 +20,17 @@ final readonly class PlanningContext
     {
         return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::PlanningBackend);
     }
+
+    /**
+     * Whether the calendar is on for the installation, whoever is signed in.
+     *
+     * What the sync asks. A date announced while somebody who masked the
+     * calendar for themselves was saving a post used to be dropped - the
+     * calendar exists for everybody else, and it went out of date because of
+     * one person's menu preference.
+     */
+    public function isGloballyEnabled(): bool
+    {
+        return $this->moduleAccessChecker->isGloballyEnabled(ModuleParameterEnum::PlanningBackend);
+    }
 }

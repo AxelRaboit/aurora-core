@@ -1,0 +1,181 @@
+backend:
+    stats:
+        platform:
+            users: Usuarios
+            by_role: 'Distribución por rol'
+    users:
+        intro: 'Gestione los usuarios de la administración y sus roles.'
+        name: Nombre
+        user_label: Usuario
+        email: 'Correo electrónico'
+        created: 'Creado el'
+        actions: Acciones
+        search_placeholder: 'Buscar un usuario…'
+        all_roles: 'Todos los roles'
+        empty: 'Ningún usuario encontrado'
+        you: Usted
+        invite: 'Invitar a un usuario'
+        send_invite: 'Enviar la invitación'
+        invite_message: Mensaje
+        invite_message_placeholder: 'Añadir un mensaje...'
+        invite_disabled: 'Crear la cuenta desactivada'
+        invite_disabled_hint: 'Para alguien que llegará más tarde: la cuenta existe, pero no se avisa a nadie y se le deniega el inicio de sesión. La invitación se enviará cuando reactive la cuenta desde la lista.'
+        create_disabled_account: 'Crear la cuenta'
+        invite_frontend_role_hint: 'Una cuenta del sitio público solo tiene un rol: usuario. No hay nada que elegir.'
+        edit_title: 'Editar {name}'
+        delete_confirm: '¿Eliminar {name}?'
+        detail:
+            type: Tipo
+            locale: Idioma
+            created_at: 'Creado el'
+            invited_at: 'Invitado el'
+        role_label: Rol
+        role:
+            user: Usuario
+            admin: Administrador
+            dev: Desarrollador
+        type_label: Tipo
+        type:
+            backend: Backend
+            frontend: Frontend
+        status_label: Estado
+        status:
+            active: Activo
+            invited: Invitado
+            disabled: Desactivado
+            pending_verification: 'Pendiente de verificación'
+        cannot_delete_self: 'No puede eliminar su propia cuenta.'
+        cannot_modify_higher_role: 'No puede editar a un usuario con un rol superior al suyo.'
+        cannot_modify_self: 'No puede editar su propio rol.'
+        dev_granted: 'Rol Dev asignado.'
+        dev_revoked: 'Rol Dev retirado.'
+        errors:
+            email_invalid: 'Dirección de correo electrónico no válida.'
+            email_required: 'La dirección de correo electrónico es obligatoria.'
+            email_taken: 'Esta dirección de correo electrónico ya está en uso.'
+            email_too_long: 'La dirección de correo electrónico no debe superar los 180 caracteres.'
+            name_required: 'El nombre es obligatorio.'
+            name_too_long: 'El nombre no debe superar los 100 caracteres.'
+            role_invalid: 'Rol no válido.'
+            type_invalid: 'Tipo de cuenta no válido.'
+            role_required: 'El rol es obligatorio.'
+            password_too_short: 'La contraseña debe contener al menos 8 caracteres.'
+            manager_self: 'Un usuario no puede ser su propio responsable.'
+            manager_not_found: 'El responsable seleccionado no existe.'
+            manager_cycle: 'Esta asignación crearía un bucle jerárquico.'
+            cannot_manage_target: 'No puede editar los accesos de un usuario de rango superior.'
+        new_password: 'Nueva contraseña'
+        new_password_placeholder: 'Dejar vacío para no editar'
+        toast:
+            created: 'Usuario creado correctamente.'
+            updated: 'Usuario actualizado.'
+            deleted: 'Usuario eliminado.'
+        add: 'Añadir un usuario'
+        invitation_sent: 'Invitación enviada.'
+        account_created_disabled: 'Cuenta creada, desactivada. La invitación se enviará al reactivarla.'
+        invitation_resent: 'Invitación reenviada.'
+        resend_invitation: 'Reenviar la invitación'
+        enable: Reactivar
+        enable_and_invite: 'Activar e invitar'
+        disable: Desactivar
+        edit: Editar
+        name_placeholder: 'Juan Pérez'
+        email_placeholder: juan@ejemplo.com
+        password: Contraseña
+        password_optional: 'Contraseña (dejar vacío para conservarla)'
+        locale: Idioma
+        role_dev: Dev
+        role_user: Usuario
+        grant_dev: 'Asignar el rol Dev'
+        revoke_dev: 'Retirar el rol Dev'
+        grant_dev_confirm: '¿Asignar el rol Dev a {name}?'
+        revoke_dev_confirm: '¿Retirar el rol Dev a {name}?'
+        impersonate: 'Iniciar sesión como {name}'
+        impersonate_front: 'Ver el front como {name}'
+        disable_confirm: '¿Desactivar la cuenta de {name}? El usuario ya no podrá iniciar sesión.'
+        enable_confirm: '¿Reactivar la cuenta de {name}?'
+        enable_and_invite_confirm: '¿Activar la cuenta de {name}? Se le enviará una invitación para que elija su contraseña.'
+        view: 'Ver el perfil'
+        row_actions:
+            title: 'Acciones: {name}'
+            open: 'Acciones para {name}'
+            view_description: 'Consultar la ficha completa sin editar nada.'
+            revoke_dev_description: 'Retira el rol Dev, desaparece el acceso a las herramientas técnicas.'
+            grant_dev_description: 'Otorga el rol Dev y el acceso a las herramientas técnicas.'
+            dev_delete_description: 'Elimina la cuenta definitivamente. Sin vuelta atrás posible.'
+            resend_description: 'Envía una nueva invitación a la misma dirección.'
+            impersonate_description: 'Abre el backend con sus permisos, para reproducir lo que ve.'
+            impersonate_front_description: 'Abre el sitio público con su cuenta.'
+            edit_description: 'Nombre, dirección, idioma y rol.'
+            privileges_description: 'Elegir a qué tiene acceso esta cuenta, pantalla por pantalla.'
+            modules_description: 'Activar u ocultar módulos solo para esta cuenta.'
+            disable_description: 'La cuenta se conserva, pero ya no puede iniciar sesión.'
+            enable_description: 'Devuelve el acceso a la cuenta, tal como estaba.'
+            enable_and_invite_description: 'Nunca se ha contactado con esta cuenta: abrirla envía su invitación.'
+            delete_description: 'Elimina la cuenta definitivamente. Sin vuelta atrás posible.'
+        manager:
+            label: Responsable
+            none: 'Ningún responsable'
+            subordinates: 'Subordinados ({count})'
+        privileges:
+            title: Permisos
+            save: 'Guardar los permisos'
+            saved: 'Permisos actualizados'
+            no_dev_target: 'No se pueden asignar permisos a un Dev.'
+        modules:
+            title: 'Acceso a los módulos'
+            hint: 'Desmarque los módulos que desea ocultar a este usuario. Desactivar un módulo padre oculta automáticamente sus submódulos.'
+            saved: 'Acceso a los módulos actualizado.'
+        photo:
+            upload: 'Cambiar la foto'
+            remove: 'Eliminar la foto'
+            hint: 'JPEG, PNG o WebP. 5 MB máx.'
+            uploaded: 'Foto actualizada.'
+            removed: 'Foto eliminada.'
+            errors:
+                invalid_type: 'Formato no compatible. Use JPEG, PNG o WebP.'
+                too_large: 'La imagen es demasiado pesada (5 MB máx.).'
+                missing: 'Ninguna imagen seleccionada.'
+    roles:
+        ROLE_USER: Usuario
+        ROLE_ADMIN: Administrador
+        ROLE_DEV: Desarrollador
+    invitations:
+        sent: 'Invitación enviada a {email}.'
+        description: 'Envíe una invitación por correo electrónico para que alguien pueda unirse al espacio de administración.'
+        email: 'Dirección de correo electrónico del destinatario'
+        email_placeholder: ejemplo@dominio.com
+        message: 'Mensaje personalizado'
+        message_placeholder: 'Añada un mensaje para acompañar la invitación…'
+        credentials_hint: 'Puede incluir credenciales de inicio de sesión en el correo electrónico.'
+        credential_email: 'Correo electrónico de inicio de sesión'
+        credential_password: Contraseña
+        send: 'Enviar la invitación'
+        sending: Enviando…
+    access_requests:
+        intro: 'Gestione las solicitudes de acceso a la administración pendientes de validación.'
+        approved: 'Solicitud de {name} aprobada.'
+        purged: 'Solicitudes tramitadas eliminadas.'
+        rejected: 'Solicitud de {name} rechazada.'
+        status_pending: Pendiente
+        status_approved: Aprobada
+        status_rejected: Rechazada
+        requester: Solicitante
+        message: Mensaje
+        status: Estado
+        date: Fecha
+        expires: Caduca
+        empty: 'Ninguna solicitud de acceso.'
+        approve: Aprobar
+        row_actions:
+            approve_description: 'Crea la cuenta y avisa al solicitante por correo electrónico.'
+            reject_description: 'Rechaza la solicitud y avisa al solicitante.'
+        reject: Rechazar
+        purge: Purgar
+        approve_confirm: '¿Aprobar la solicitud de {name}? Se le enviará un correo electrónico.'
+        reject_confirm: '¿Rechazar la solicitud de {name}?'
+        purge_confirm: '¿Eliminar todas las solicitudes aprobadas y rechazadas? Esta acción es irreversible.'
+        approved_toast: 'Solicitud de acceso aprobada.'
+        rejected_toast: 'Solicitud de acceso rechazada.'
+        purged_toast: 'Solicitudes tramitadas eliminadas.'
+        search_placeholder: 'Buscar por correo electrónico, nombre o mensaje…'

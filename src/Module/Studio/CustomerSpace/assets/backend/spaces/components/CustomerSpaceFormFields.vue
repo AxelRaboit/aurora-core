@@ -28,6 +28,12 @@ const props = defineProps({
     statuses: { type: Array, default: () => [] },
     roles: { type: Array, default: () => [] },
     timezones: { type: Array, default: () => [] },
+    /**
+     * Si le lecteur peut changer l'équipe et les rôles. Réservé au chef de
+     * l'espace : les autres voient l'équipe sans pouvoir y toucher, le
+     * serveur refusant de toute façon.
+     */
+    canEditTeam: { type: Boolean, default: true },
 });
 
 const emit = defineEmits(["update:modelValue"]);
@@ -126,6 +132,10 @@ const timezoneOptions = computed(() =>
 const userById = computed(
     () => new Map(props.users.map((user) => [user.id, user])),
 );
+
+function roleLabel(value) {
+    return roleOptions.value.find((option) => option.value === value)?.label ?? value;
+}
 
 function userLabel(userId) {
     const user = userById.value.get(userId);
@@ -315,12 +325,15 @@ function removeMember(userId) {
                         {{ userLabel(member.userId) }}
                     </span>
                     <AppSelect
+                        v-if="canEditTeam"
                         :model-value="member.role"
                         :options="roleOptions"
                         class="w-40"
                         v-on:update:model-value="setRole(member.userId, $event)"
                     />
+                    <span v-else class="text-xs text-muted">{{ roleLabel(member.role) }}</span>
                     <AppButton
+                        v-if="canEditTeam"
                         variant="icon"
                         size="sm"
                         :aria-label="t('backend.studio.spaces.member_remove')"
@@ -336,14 +349,16 @@ function removeMember(userId) {
                 {{ t("backend.studio.spaces.no_members") }}
             </p>
 
+            <p v-if="errors.members" class="text-xs text-red-500">{{ t(errors.members, errors.members) }}</p>
+
             <AppSelect
-                v-if="addOptions.length"
+                v-if="canEditTeam && addOptions.length"
                 v-model="memberToAdd"
                 :label="t('backend.studio.spaces.member_add')"
                 :placeholder="t('backend.studio.spaces.member_add')"
                 :options="addOptions"
             />
-            <p v-else-if="form.members.length" class="text-xs text-muted">
+            <p v-else-if="canEditTeam && form.members.length" class="text-xs text-muted">
                 {{ t("backend.studio.spaces.member_none_left") }}
             </p>
         </section>

@@ -1,7 +1,95 @@
+backend:
+    themes:
+        title: Temas
+        new: 'Nuevo tema'
+        activate: Activar
+        active: Activo
+        edit: Editar
+        colors: Colores
+        reset_color: Restablecer
+        primary_color: 'Color principal'
+        primary_color_label: 'Color de acento'
+        primary_color_hint: 'Sirve de base para los botones, enlaces, insignias y el logotipo. Toda la paleta se deriva automáticamente.'
+        highlight: 'Hovers y marcas de las fichas'
+        highlight_accent: 'Color principal'
+        highlight_neutral: Neutros
+        highlight_custom: Personalizado
+        highlight_color: 'Color de los hovers y las marcas'
+        highlight_hint: 'Bordes y títulos al pasar el ratón, categoría y flecha de las fichas. En neutro, toman el color del texto; en personalizado, el color que elija, en todo el sitio.'
+        menu_active: 'Página activa en el menú'
+        menu_active_color: 'Color de la marca'
+        menu_active_hint: 'La línea bajo la entrada de la barra de navegación que corresponde a la página mostrada.'
+        surfaces: 'Colores del sitio público'
+        surfaces_hint: 'Un color por superficie. El color del texto, las etiquetas y los bordes se deduce automáticamente, claro u oscuro según lo que resulte legible.'
+        surface_background: 'Fondo de las páginas'
+        surface_header: 'Barra de navegación'
+        surface_footer: 'Pie de página'
+        surface_unset: 'No definido, mantiene la apariencia por defecto'
+        surface_light_text: 'texto claro'
+        surface_dark_text: 'texto oscuro'
+        surface_ratio: 'contraste %ratio%:1'
+        surface_below_aaa: 'legible, pero por debajo del confort AAA'
+        sections:
+            general: General
+            header: Encabezado
+            footer: 'Pie de página'
+        vars:
+            accent: 'Color principal'
+            accent_hover: 'Hover de los botones rellenos'
+            bg: Fondo
+            surface: Superficie
+            surface2: 'Superficie secundaria'
+            primary: 'Texto principal'
+            secondary: 'Texto secundario'
+            muted: 'Texto atenuado'
+            border: Borde
+            text: Texto
+        header_content: Contenido
+        header_mode_default: 'Nombre del sitio'
+        header_mode_text: 'Texto personalizado'
+        header_mode_image: 'Imagen de medios'
+        header_custom_text: 'Texto personalizado'
+        header_logo_media_id: 'ID del medio'
+        footer_text: 'Texto del pie de página'
+        content_width: 'Ancho del contenido'
+        content_width_narrow: 'Estrecho (columna de lectura)'
+        content_width_wide: Ancho
+        content_width_full: 'Ancho completo'
+        font_family: Tipografía
+        font_preview: 'El veloz murciélago hindú comía feliz cardillo y kiwi.'
+        fonts:
+            poppins: 'Geométrica, de formas regulares. El ajuste por defecto.'
+            inter: 'Neutra, diseñada para pantallas. Pasa desapercibida.'
+            work-sans: 'Grotesca, algo más ancha y cálida que Inter.'
+            nunito: 'Redondeada. El tono menos institucional de la lista.'
+            lora: 'Con serifa. Hace que la página se lea como un texto más que como una pantalla.'
+            playfair-display: 'Con serifa contrastada. El tono editorial y de alta gama, para la fotografía o el lujo.'
+            space-grotesk: 'Grotesca de trazo marcado. Títulos que llaman la atención, para un tono moderno.'
+        slug_label: Slug
+        header_media_hint: 'Encuentre el ID en Medios → abra un medio → campo ID.'
+        header_text_placeholder: 'Mi sitio'
+        config_hint: 'Variables disponibles: --th-bg, --th-surface, --th-surface-2, --th-primary, --th-secondary, --th-muted, --th-accent, --th-accent-hover'
+        config_placeholder: |-
+            {
+              "--th-accent": "#6366f1"
+            }
+        config_json_error: 'El JSON de configuración no es válido.'
+        delete_confirm: '¿Eliminar el tema "{name}"? Esta acción es irreversible.'
+        cannot_delete_default: 'No se puede eliminar el tema por defecto.'
+        cannot_delete_active: 'No se puede eliminar el tema activo.'
+        created: 'Tema creado.'
+        updated: 'Tema actualizado.'
+        activated: 'Tema activado.'
+        deleted: 'Tema eliminado.'
+        template_count: '{count} archivo(s) de plantilla'
+        errors:
+            slug_invalid: 'El slug solo puede contener letras minúsculas, cifras y guiones.'
+            slug_taken: 'Este slug ya está en uso.'
+            name_required: 'El nombre es obligatorio.'
 frontend:
-  theme:
-    title: Artículos
-    no_posts: Todavía no hay ningún artículo publicado.
-    no_content: Sin contenido.
-    search_placeholder: Buscar un artículo…
-    no_results: Ningún artículo coincide con su búsqueda.
+    theme:
+        title: Artículos
+        no_posts: 'Todavía no hay ningún artículo publicado.'
+        no_content: 'Sin contenido.'
+        search_placeholder: 'Buscar un artículo…'
+        no_results: 'Ningún artículo coincide con su búsqueda.'

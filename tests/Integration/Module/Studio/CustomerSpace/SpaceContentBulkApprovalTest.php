@@ -14,9 +14,9 @@ use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentComment;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItem;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentColumnRepository;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentItemRepository;
+use Aurora\Module\Studio\SpaceContent\Workload\SpaceWorkload;
 use Aurora\Tests\Integration\Concern\ResetsRateLimiters;
 use Aurora\Tests\Integration\IntegrationTestCase;
-use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 
@@ -156,8 +156,9 @@ final class SpaceContentBulkApprovalTest extends IntegrationTestCase
         $this->entityManager->clear();
         $stored = $this->entityManager->getRepository(CustomerSpace::class)->find($space->getId());
 
-        self::assertSame(3, $this->items->countAwaitingApproval($stored));
-        self::assertSame(1, $this->items->countLateForReview($stored, new DateTimeImmutable()));
+        $workload = static::getContainer()->get(SpaceWorkload::class);
+        self::assertSame(3, $workload->forSpace($stored)->withClient);
+        self::assertSame(1, $workload->forSpace($stored)->lateReview);
 
         // Répondue, elle sort du retard sans que son échéance ait bougé.
         $url = $this->issue($space);
@@ -165,7 +166,7 @@ final class SpaceContentBulkApprovalTest extends IntegrationTestCase
 
         $this->entityManager->clear();
         $stored = $this->entityManager->getRepository(CustomerSpace::class)->find($space->getId());
-        self::assertSame(0, $this->items->countLateForReview($stored, new DateTimeImmutable()));
+        self::assertSame(0, $workload->forSpace($stored)->lateReview);
     }
 
     private function loginAdmin(): void
@@ -238,6 +239,9 @@ final class SpaceContentBulkApprovalTest extends IntegrationTestCase
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/create', $space->getId()), [
             'title' => $title,
             'columnId' => $this->columns->findForSpace($space)[0]->getId(),
+            // Datée : la page du client ne montre que son calendrier, et
+            // n'accepte d'avis que sur ce qu'elle montre.
+            'scheduledAt' => '2026-12-01T10:00',
         ]);
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());

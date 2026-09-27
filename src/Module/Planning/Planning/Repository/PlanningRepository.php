@@ -21,15 +21,6 @@ class PlanningRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * The calendars one person may look at: their own, plus the shared ones.
-     *
-     * Ordered by name and not by id, because this list is a sidebar somebody
-     * reads rather than a page of results, and creation order means nothing to
-     * them.
-     *
-     * @return list<PlanningInterface>
-     */
-    /**
      * Every calendar this person may see.
      *
      * Three ways in: you own it, it is shared with everybody who can reach the
@@ -37,6 +28,9 @@ class PlanningRepository extends ResolveTargetEntityRepository
      * rather than a second query, so a page load stays one round trip - and
      * `DISTINCT` because a calendar shared with you *and* shared broadly would
      * otherwise arrive twice and appear twice in the sidebar.
+     *
+     * Ordered by name and not by id: this list is a sidebar somebody reads,
+     * and creation order means nothing to them.
      *
      * @return list<PlanningInterface>
      */

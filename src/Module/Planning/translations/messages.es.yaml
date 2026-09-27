@@ -1,9 +1,244 @@
+backend:
+    audit:
+        actions:
+            planning:
+                calendar:
+                    created: 'Calendario creado'
+                    updated: 'Calendario editado'
+                    deleted: 'Calendario eliminado'
+                share_link:
+                    created: 'Enlace para compartir creado'
+                    revoked: 'Enlace para compartir revocado'
+                event:
+                    created: 'Evento creado'
+                    updated: 'Evento editado'
+                    deleted: 'Evento eliminado'
+                reminder:
+                    created: 'Recordatorio creado'
+                    updated: 'Recordatorio editado'
+                    deleted: 'Recordatorio eliminado'
+    permissions:
+        names:
+            planning:
+                calendars:
+                    view: 'Ver el calendario'
+                    manage: 'Gestionar los calendarios'
+                events:
+                    create: 'Crear eventos y recordatorios'
+                    edit: 'Editar eventos y recordatorios'
+                    delete: 'Eliminar eventos y recordatorios'
+    modules:
+        planning: Calendario
+        planning_backend: Calendario
+        planning_backend_description: 'Activa el calendario en la administración.'
+    nav:
+        sections:
+            planning: Calendario
+        planning: Calendario
+        planning_description: 'Ver los eventos y recordatorios de los calendarios, por mes, semana o día.'
+    plannings:
+        title: Calendario
+        upcoming: Próximamente
+        nothing_upcoming: 'Nada previsto por ahora.'
+        open_calendar: 'Abrir el calendario'
+        shortcuts: 'Atajos: D día, W semana, M mes, T hoy, N/P navegar, C evento, R recordatorio'
+        display_zone: 'Zona horaria de visualización'
+        today: Hoy
+        views:
+            day: Día
+            week: Semana
+            month: Mes
+            agenda: Agenda
+        more: '+{count} más'
+        calendars: 'Mis calendarios'
+        new_calendar: 'Nuevo calendario'
+        edit_calendar: 'Editar el calendario'
+        name_placeholder: 'Trabajo, Personal, Foto…'
+        colour_slot: 'Color {slot}'
+        visibility_hint: 'Un calendario compartido es visible para todos los que tienen acceso al calendario.'
+        timezone_hint: 'La zona horaria que delimita los días completos de este calendario.'
+        events_in_range: 'Eventos en el periodo mostrado'
+        nothing_in_range: 'Nada en este periodo.'
+        nothing_on_day: 'Nada ese día.'
+        empty: 'Todavía no hay calendarios.'
+        name: Nombre
+        description: Descripción
+        colour: Color
+        timezone: 'Zona horaria'
+        visibility:
+            label: Visibilidad
+            private: Privado
+            shared: Compartido
+        shares:
+            label: 'Compartido con'
+            placeholder: 'Añadir a alguien…'
+            can_write: 'Puede editar'
+            save: 'Guardar el uso compartido'
+            errors:
+                owner_only: 'Solo el propietario del calendario puede cambiar su uso compartido.'
+        links:
+            title: 'Compartir {name}'
+            label: 'Compartir mediante enlace'
+            hint: 'Una dirección secreta para consultar este calendario sin cuenta. Cualquier persona que la tenga puede leerlo, hasta su caducidad o su revocación.'
+            empty: 'Ningún enlace'
+            mode: Tipo
+            mode_web: 'Página web'
+            mode_ics: 'Suscripción (.ics)'
+            create: 'Crear el enlace'
+            revoke: Revocar
+            new_label: '¿Para quién?'
+            new_label_placeholder: 'Marie, estudio de fotografía'
+            new_label_hint: 'Sirve para saber qué enlace revocar más adelante.'
+            expires: 'Caduca el'
+            expires_placeholder: Nunca
+            expires_hint: 'Vacío: no caduca. Resérvelo para las suscripciones.'
+            no_expiry: 'No caduca'
+            expires_on: 'Caduca el {date}'
+            expired_on: 'Caducado el {date}'
+            revoked_on: 'Revocado el {date}'
+            last_used: 'Abierto el {date}'
+            never_used: 'Nunca abierto'
+            also_covers: 'También cubre 1 calendario más | También cubre {count} calendarios más'
+            errors:
+                calendars_required: 'Elija al menos un calendario.'
+                label_required: 'Dé un nombre a este enlace.'
+                label_too_long: 'Este nombre es demasiado largo.'
+                not_owned: 'Solo puede compartir sus propios calendarios.'
+        scope:
+            title_edit: 'Editar el evento periódico'
+            title_delete: 'Eliminar el evento periódico'
+            this: 'Esta repetición'
+            this_hint_edit: 'Las demás se quedan donde están.'
+            this_hint_delete: 'Las demás se conservan.'
+            following: 'Esta y las siguientes'
+            following_hint_edit: 'Las repeticiones pasadas no cambian.'
+            following_hint_delete: 'Las repeticiones pasadas se conservan.'
+            all: 'Toda la serie'
+            all_hint_edit: 'Incluidas las repeticiones ya pasadas.'
+            all_hint_delete: 'Incluidas las repeticiones ya pasadas.'
+        recurrence:
+            label: Repetición
+            none: 'No se repite'
+            daily: 'Cada día'
+            weekly: 'Cada semana'
+            monthly: 'Cada mes'
+            yearly: 'Cada año'
+            custom: Personalizado…
+            every: Cada
+            freq_DAILY: días
+            freq_WEEKLY: semanas
+            freq_MONTHLY: meses
+            freq_YEARLY: años
+            on_days: 'Los días'
+            ends: Termina
+            until_placeholder: DD/MM/AAAA
+            end_never: Nunca
+            end_until: El
+            end_count: 'Después de'
+            occurrences: repeticiones
+            day_MO: L
+            day_TU: M
+            day_WE: X
+            day_TH: J
+            day_FR: V
+            day_SA: S
+            day_SU: D
+        mail:
+            alert_subject: 'Próximamente: %title%'
+            alert_intro: 'Este evento del calendario %calendar% se acerca.'
+            reminder_subject: 'Recordatorio: %title%'
+            reminder_intro: 'Este recordatorio del calendario %calendar% ha vencido.'
+            open: 'Abrir el calendario'
+        errors:
+            name_required: 'El calendario necesita un nombre.'
+            colour_out_of_range: 'Este color no existe en la paleta.'
+            timezone_unknown: 'Esta zona horaria es desconocida.'
+            window_invalid: 'El periodo solicitado no es válido.'
+        reminders:
+            title: Recordatorios
+            title_label: Título
+            title_placeholder: 'Llamar al cliente, revisar el borrador…'
+            new: 'Nuevo recordatorio'
+            edit: 'Editar el recordatorio'
+            due: Plazo
+            due_placeholder: 'El día y la hora del plazo'
+            notes: Notas
+            notes_placeholder: 'Lo que hay que saber para hacerlo'
+            completed: Terminado
+            overdue: Atrasado
+            all_day: 'Todo el día'
+            none: 'Ningún recordatorio en el periodo mostrado.'
+            notification: '%calendar% · es el momento'
+            errors:
+                title_required: 'El recordatorio necesita un título.'
+                due_required: 'El recordatorio necesita un plazo.'
+        attendees:
+            label: Participantes
+            placeholder: 'Invitar a alguien…'
+            none: 'Nadie invitado.'
+            invited_body: 'Está invitado a un evento del calendario %calendar%.'
+            your_answer: 'Su respuesta'
+            status_needs_action: 'Sin respuesta'
+            status_accepted: Aceptado
+            status_declined: Rechazado
+            status_tentative: Quizás
+            errors:
+                not_invited: 'No está invitado a este evento.'
+                status_unknown: 'Esta respuesta no existe.'
+        alerts:
+            channel: Por
+            channel_hint: 'Una alerta que solo llega a la aplicación solo se ve si ya se está en ella.'
+            channel_notification: Notificación
+            channel_email: 'Correo electrónico'
+            custom: Personalizado…
+            add: 'Añadir una alerta'
+            at_placeholder: 'El día y la hora de la alerta'
+            label: Alertas
+            none: 'Ninguna alerta para este evento.'
+            notification: '%calendar% · empieza a las %when%'
+            offsets:
+                0: 'A la hora'
+                5: '5 minutos antes'
+                10: '10 minutos antes'
+                15: '15 minutos antes'
+                30: '30 minutos antes'
+                60: '1 hora antes'
+                120: '2 horas antes'
+                1440: '1 día antes'
+                10080: '1 semana antes'
+        events:
+            title: Título
+            new: 'Nuevo evento'
+            all_day: 'Todo el día'
+            all_day_short: Día
+            starts: Inicio
+            ends: Fin
+            starts_placeholder: 'El día y la hora de inicio'
+            ends_placeholder: 'El día y la hora de fin'
+            in_zone: 'Las horas son las de la zona horaria {zone} del calendario.'
+            colour_from_calendar: 'La del calendario'
+            location: Lugar
+            location_placeholder: 'Una sala, una dirección, un enlace'
+            status:
+                tentative: 'Por confirmar'
+                confirmed: Confirmado
+                cancelled: Cancelado
+            from_module: 'Desde un módulo'
+            open_source: 'Abrir el origen'
+            errors:
+                title_required: 'El evento necesita un título.'
+                calendar_required: 'Elija un calendario.'
+                start_required: 'El evento necesita una fecha de inicio.'
+                end_required: 'El evento necesita una fecha de fin.'
+                end_before_start: 'El fin no puede ser anterior al inicio.'
+                occurrence_required: 'Indique de qué repetición se trata.'
+                read_only: 'Este evento viene de otro módulo: se edita en su origen.'
 frontend:
-  plannings:
-    share:
-      unavailable_title: "Enlace no disponible"
-      unavailable_body: "Este enlace ya no es válido. Puede haber caducado o haber sido revocado. Pida uno nuevo a la persona que se lo envió."
-      read_only: "Solo lectura"
-      until: "hasta el %date%"
-      times_in: "Horas en {zone}"
-      nothing: "Ningún calendario"
+    plannings:
+        share:
+            unavailable_title: 'Enlace no disponible'
+            unavailable_body: 'Este enlace ya no es válido. Puede haber caducado o haber sido revocado. Pida uno nuevo a la persona que se lo envió.'
+            read_only: 'Solo lectura'
+            until: 'hasta el %date%'
+            times_in: 'Horas en {zone}'
+            nothing: 'Ningún calendario'

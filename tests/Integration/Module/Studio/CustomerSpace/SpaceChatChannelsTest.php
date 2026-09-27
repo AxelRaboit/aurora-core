@@ -228,6 +228,44 @@ final class SpaceChatChannelsTest extends IntegrationTestCase
         self::assertSame($first['chatChannelId'], $this->payload()['chatChannelId']);
     }
 
+    /**
+     * **Une conversation privée ne se lit qu'en y étant.** La liste le
+     * disait déjà, les routes non : un autre membre de l'espace qui
+     * connaissait le numéro du salon le lisait, y écrivait, ou s'y invitait.
+     */
+    public function testSomebodyElseOnTheSpaceCannotReadWriteOrJoinAPrivateConversation(): void
+    {
+        $space = $this->givenSpace();
+        $mate = $this->givenTeammate($space);
+
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/chat/direct', $space->getId()), ['userId' => $mate->getId()]);
+        $directId = $this->payload()['chatChannelId'];
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/chat/%d', $space->getId(), $directId), ['body' => 'Entre nous']);
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $outsider = $this->givenAccount('dominique@aurora.test', 'Dominique Bernard');
+        $outsider->setPrivileges(['studio.spaces.view', 'studio.spaces.edit']);
+        $member = new CustomerSpaceMember();
+        $member->setSpace($this->entityManager->getReference(CustomerSpace::class, $space->getId()))->setUser($outsider)->setRole(CustomerSpaceMemberRoleEnum::Member);
+        $this->entityManager->persist($member);
+        $this->entityManager->flush();
+
+        $this->client->loginUser($outsider, 'admin');
+
+        $this->client->request('GET', sprintf('/workspace/%d/chat/%d/messages', $space->getId(), $directId));
+        self::assertSame(404, $this->client->getResponse()->getStatusCode(), 'reading');
+
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/chat/%d', $space->getId(), $directId), ['body' => 'Je passais']);
+        self::assertSame(404, $this->client->getResponse()->getStatusCode(), 'writing');
+
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/chat/channels/%d/invite', $space->getId(), $directId), ['userId' => $outsider->getId()]);
+        self::assertSame(404, $this->client->getResponse()->getStatusCode(), 'joining');
+
+        // The room everybody shares stays open to them.
+        $this->client->request('GET', sprintf('/workspace/%d/chat/%d/messages', $space->getId(), $this->mainChannel($space)->getId()));
+        self::assertSame(200, $this->client->getResponse()->getStatusCode(), 'the main room');
+    }
+
     public function testAPrivateConversationIsRefusedWithSomebodyOutsideTheSpace(): void
     {
         $space = $this->givenSpace();

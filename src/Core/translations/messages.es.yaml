@@ -1,368 +1,374 @@
 shared:
-  thread:
-    title: Intercambios
-    empty: Ningún mensaje por ahora.
-    placeholder: Escribir un mensaje…
-    send: Enviar
-    from_client: cliente
-    verdict:
-      approved: '{who} ha validado'
-      changes_requested: '{who} ha pedido cambios'
-  space_information:
-    siret: SIRET
-    siren: SIREN
-    phone: Teléfono móvil
-    landline: Teléfono fijo
-    email: Correo electrónico
-    postal_address: Dirección postal
-    links: Enlaces
-    notes: Información adicional
-    empty: Esta ficha aún está vacía.
-    empty_hint: No hay nada más que leer aquí que el nombre de la empresa.
-  space_resources:
-    kinds:
-      link: Enlace
-      text: Texto
-      contact: Contacto
-  space_chat:
-    title: Conversación
-    empty: "Aún no hay mensajes. Aquí se dice todo lo que no cabe en una ficha: el brief del mes, una campaña que se mueve, una pregunta rápida."
-    placeholder: Escribir un mensaje…
-    shortcut_hint: "Intro para enviar, Mayús+Intro para salto de línea"
-    send: Enviar
-    from_client: cliente
-    deleted: Mensaje eliminado
-    live: en directo
-    reconnecting: reconectando…
-    channels:
-      label: Canales
-      new: Nuevo canal
-      new_hint: "Un canal tiene un nombre y una audiencia. Ambos se cambian después desde sus ajustes."
-      new_open_to_client: Abrir este canal al cliente
-      new_open_to_client_hint: "Cualquier persona con un enlace de acceso a este espacio leerá este canal."
-      new_internal_hint: "El canal queda entre ustedes. El cliente no lo ve ni sabe que existe."
-      name_placeholder: Nombre del canal
-      name_example: "p. ej.: El mes que viene"
-      create: Abrir
-      cancel: Cancelar
-      rename: Renombrar
-      delete: Eliminar el canal
-      delete_confirm: "¿Eliminar este canal? Sus mensajes se van con él."
-      internal: interno
-      client_reads: leído por el cliente
-      open_to_client: Abrir al cliente
-      close_to_client: Cerrar al cliente
-      invite: Añadir a alguien
-      notice_internal: "Canal interno: el cliente no lo lee."
-      notice_direct: "Conversación privada: nadie más la lee."
-      participants: "Participantes"
-      everybody: "Todo el mundo, incluido el cliente."
-      audience: "Quién lo lee"
-      audience_open: "El cliente lee este canal."
-      audience_internal: "Este canal queda entre ustedes."
-      hide: "Retirar la conversación"
-      hide_hint: "Desaparece de su lista. No se borra nada, la otra persona sigue viéndola, y al reabrirla recupera todo el historial."
-      nobody_left: "No hay nadie más que añadir."
-      pick_direct: "Hablar con alguien"
-      pick_invite: "Añadir al canal"
-      older: "Cargar los mensajes anteriores"
-      room_settings: "Ajustes de la sala"
-      directs: Mensajes privados
-      new_direct: Nueva conversación
-      invited: Añadido al canal
-      uninvite: Quitar del canal
-      uninvited: Quitado del canal
-      members: 'Nadie | 1 persona | {count} personas'
-  attachments:
-    title: Archivos
-    empty: Ningún archivo por ahora.
-    add: Añadir un archivo
-    pick: Elegir en la GED
-    drop: Suelta un archivo aquí
-    remove: Quitar de la ficha
-    remove_confirm: ¿Quitar este archivo de la ficha? Permanece en la GED.
-    open: Abrir el archivo
-    count: 'Ningún archivo | 1 archivo | {count} archivos'
-  placeholders:
-    name: Un nombre corto
-    title: Un título corto
-    slug: titulo-de-la-pagina
-    description: Una frase para situar.
-    email: nombre.apellido@ejemplo.es
-    password: 8 caracteres como mínimo
-    url: https://ejemplo.es/pagina
-    search: Buscar…
-    one_per_line: Un valor por línea
-    value: Introducir un valor
-  drop_zone:
-    cta: Arrastre un archivo aquí, o haga clic para explorar
-    drop: Suelte para subir
-    uploading: Subiendo…
-  media:
-    choose: Elegir una imagen
-    change: Cambiar
-    remove: Quitar
-    focal_pick: Haga clic en la imagen para elegir el punto de recorte
-    focal_inherited: Punto heredado del documento
-    focal_reset: Volver al punto del documento
-    upload: Explorar
-    uploading: Importación en curso
-    upload_failed: La importación ha fallado.
-  locale_switcher: Selección de idioma
-  main_menu: Menú principal
-  menu_parent_page: Ver esta página
-  errors:
-    page_not_found:
-      title: Página no encontrada
-      message: La página que busca no existe o ha sido movida.
-      back: Volver al inicio
-    server_error:
-      title: Se ha producido un error
-      message: El servidor ha encontrado un problema inesperado. Nuestro equipo ha sido avisado. Vuelva a intentarlo dentro de unos instantes.
-      back: Volver al inicio
-    maintenance:
-      title: Sitio en mantenimiento
-      message: El sitio está cerrado temporalmente por mantenimiento. Vuelva dentro de unos instantes.
-  actions:
-    plain_title: Acciones
-    title: "Acciones: {name}"
-    open: "Acciones para {name}"
-  chart:
-    share: "{count} de {total} ({percent} %)"
-  common:
-    help: Ayuda
-    list_view: Vista de lista
-    grid_view: Vista de tarjetas
-    search: Buscar
-    selected: seleccionados
-    pagination: 'Página {page} de {totalPages}'
-    built_with: '© {year} {siteName}'
-    save: Guardar
-    cancel: Cancelar
-    delete: Eliminar
-    edit: Editar
-    create: Crear
-    add: Añadir
-    loading: Cargando…
-    confirm: Confirmar
-    refresh: Actualizar
-    error: Se ha producido un error.
-    saved: Guardado.
-    deleted: Eliminado.
-    previous: Anterior
-    autosave:
-      pending: Cambios sin guardar
-      saving: Guardando…
-      saved: Guardado
-      error: Error al guardar
-      last_saved: 'Guardado {time}'
-    actions: Acciones
-    status: Estado
-    or: o
-    name: Nombre
-    description: Descripción
-    view: Ver
-    close: Cerrar
-    back: Volver
-    expand: Desplegar
-    collapse: Plegar
-    select_placeholder: Seleccionar…
-    no_options: Ningún elemento disponible
-    add_tag_hint: Añadir una etiqueta…
-    no_result: Ningún resultado
-    select_selected: Seleccionado
-    download: Descargar
-    qr_code: Código QR
-    download_qr: Descargar el código QR
-    copied: Copiado.
-    copy: Copiar
-    dates: Fechas
-    created: Creado el
-    updated: Modificado el
-    reset: Restablecer
-    select_to_remove: Pulse Intro para quitar
-    remove: Quitar
-    all: Todos
-    load_more: Cargar más
-    next: Siguiente
-  reveal:
-    more: '1 más | {count} más'
-  pagination:
-    previous: Anterior
-    next: Siguiente
-    results: '{from} a {to} de {total} resultados'
-  comment:
-    title: Comentarios
-    form_title: Dejar un comentario
-    name: Nombre
-    email: Correo electrónico
-    content: Comentario
-    submit: Enviar
-    success: Su comentario ha sido enviado y está pendiente de moderación.
-    empty: Todavía no hay comentarios.
-    reply: Responder
-    react: Reaccionar
-  form:
-    submit: Enviar
-    submitting: Enviando…
-    next: Siguiente
-    prev: Volver
-    success: '¡Gracias, su mensaje se ha enviado correctamente!'
-    error: Se ha producido un error. Vuelva a intentarlo.
-    field_required: Este campo es obligatorio.
-    select_placeholder: Elegir…
-  locales:
-    fr: Français
-    en: English
-    es: Español
-    de: Deutsch
-  image_cropper:
-    title: Recortar la imagen
-    apply: Aplicar el recorte
-    cropped: Imagen recortada
-
+    thread:
+        title: Intercambios
+        empty: 'Ningún mensaje por ahora.'
+        placeholder: 'Escribir un mensaje…'
+        send: Enviar
+        from_client: cliente
+        verdict:
+            approved: '{who} ha validado'
+            changes_requested: '{who} ha pedido cambios'
+    space_information:
+        siret: SIRET
+        siren: SIREN
+        phone: 'Teléfono móvil'
+        landline: 'Teléfono fijo'
+        email: 'Correo electrónico'
+        postal_address: 'Dirección postal'
+        links: Enlaces
+        notes: 'Información adicional'
+        empty: 'Esta ficha aún está vacía.'
+        empty_hint: 'No hay nada más que leer aquí que el nombre de la empresa.'
+    space_resources:
+        kinds:
+            link: Enlace
+            text: Texto
+            contact: Contacto
+    space_chat:
+        title: Conversación
+        empty: 'Aún no hay mensajes. Aquí se dice todo lo que no cabe en una ficha: el brief del mes, una campaña que se mueve, una pregunta rápida.'
+        placeholder: 'Escribir un mensaje…'
+        shortcut_hint: 'Intro para enviar, Mayús+Intro para salto de línea'
+        send: Enviar
+        from_client: cliente
+        deleted: 'Mensaje eliminado'
+        live: 'en directo'
+        reconnecting: reconectando…
+        channels:
+            label: Canales
+            new: 'Nuevo canal'
+            new_hint: 'Un canal tiene un nombre y una audiencia. Ambos se cambian después desde sus ajustes.'
+            new_open_to_client: 'Abrir este canal al cliente'
+            new_open_to_client_hint: 'Cualquier persona con un enlace de acceso a este espacio leerá este canal.'
+            new_internal_hint: 'El canal queda entre ustedes. El cliente no lo ve ni sabe que existe.'
+            name_placeholder: 'Nombre del canal'
+            name_example: 'p. ej.: El mes que viene'
+            create: Abrir
+            cancel: Cancelar
+            rename: Renombrar
+            delete: 'Eliminar el canal'
+            delete_confirm: '¿Eliminar este canal? Sus mensajes se van con él.'
+            internal: interno
+            client_reads: 'leído por el cliente'
+            open_to_client: 'Abrir al cliente'
+            close_to_client: 'Cerrar al cliente'
+            invite: 'Añadir a alguien'
+            notice_internal: 'Canal interno: el cliente no lo lee.'
+            notice_direct: 'Conversación privada: nadie más la lee.'
+            participants: Participantes
+            everybody: 'Todo el mundo, incluido el cliente.'
+            audience: 'Quién lo lee'
+            audience_open: 'El cliente lee este canal.'
+            audience_internal: 'Este canal queda entre ustedes.'
+            hide: 'Retirar la conversación'
+            hide_hint: 'Desaparece de su lista. No se borra nada, la otra persona sigue viéndola, y al reabrirla recupera todo el historial.'
+            nobody_left: 'No hay nadie más que añadir.'
+            pick_direct: 'Hablar con alguien'
+            pick_invite: 'Añadir al canal'
+            older: 'Cargar los mensajes anteriores'
+            room_settings: 'Ajustes de la sala'
+            directs: 'Mensajes privados'
+            new_direct: 'Nueva conversación'
+            invited: 'Añadido al canal'
+            uninvite: 'Quitar del canal'
+            uninvited: 'Quitado del canal'
+            members: 'Nadie | 1 persona | {count} personas'
+    attachments:
+        title: Archivos
+        empty: 'Ningún archivo por ahora.'
+        add: 'Añadir un archivo'
+        pick: 'Elegir en la GED'
+        pick_drive: 'Desde el Drive'
+        drop: 'Suelta un archivo aquí'
+        remove: 'Quitar de la ficha'
+        remove_confirm: '¿Quitar este archivo de la ficha? Permanece en la GED.'
+        open: 'Abrir el archivo'
+        count: 'Ningún archivo | 1 archivo | {count} archivos'
+    palette:
+        no_colour: 'Ningún color'
+        colour_slot: 'Color {slot}'
+    placeholders:
+        name: 'Un nombre corto'
+        title: 'Un título corto'
+        slug: titulo-de-la-pagina
+        description: 'Una frase para situar.'
+        email: nombre.apellido@ejemplo.es
+        password: '8 caracteres como mínimo'
+        url: 'https://ejemplo.es/pagina'
+        search: Buscar…
+        one_per_line: 'Un valor por línea'
+        value: 'Introducir un valor'
+    drop_zone:
+        cta: 'Arrastre un archivo aquí, o haga clic para explorar'
+        drop: 'Suelte para subir'
+        uploading: Subiendo…
+    media:
+        choose: 'Elegir una imagen'
+        change: Cambiar
+        remove: Quitar
+        focal_pick: 'Haga clic en la imagen para elegir el punto de recorte'
+        focal_inherited: 'Punto heredado del documento'
+        focal_reset: 'Volver al punto del documento'
+        upload: Explorar
+        uploading: 'Importación en curso'
+        upload_failed: 'La importación ha fallado.'
+    locale_switcher: 'Selección de idioma'
+    main_menu: 'Menú principal'
+    menu_parent_page: 'Ver esta página'
+    errors:
+        page_not_found:
+            title: 'Página no encontrada'
+            message: 'La página que busca no existe o ha sido movida.'
+            back: 'Volver al inicio'
+        server_error:
+            title: 'Se ha producido un error'
+            message: 'El servidor ha encontrado un problema inesperado. Nuestro equipo ha sido avisado. Vuelva a intentarlo dentro de unos instantes.'
+            back: 'Volver al inicio'
+        maintenance:
+            title: 'Sitio en mantenimiento'
+            message: 'El sitio está cerrado temporalmente por mantenimiento. Vuelva dentro de unos instantes.'
+    actions:
+        plain_title: Acciones
+        title: 'Acciones: {name}'
+        open: 'Acciones para {name}'
+    chart:
+        share: '{count} de {total} ({percent} %)'
+    common:
+        help: Ayuda
+        list_view: 'Vista de lista'
+        grid_view: 'Vista de tarjetas'
+        search: Buscar
+        selected: seleccionados
+        pagination: 'Página {page} de {totalPages}'
+        built_with: '© {year} {siteName}'
+        save: Guardar
+        cancel: Cancelar
+        delete: Eliminar
+        edit: Editar
+        create: Crear
+        add: Añadir
+        loading: Cargando…
+        confirm: Confirmar
+        refresh: Actualizar
+        error: 'Se ha producido un error.'
+        saved: Guardado.
+        deleted: Eliminado.
+        previous: Anterior
+        autosave:
+            pending: 'Cambios sin guardar'
+            saving: Guardando…
+            saved: Guardado
+            error: 'Error al guardar'
+            last_saved: 'Guardado {time}'
+        actions: Acciones
+        status: Estado
+        or: o
+        name: Nombre
+        description: Descripción
+        view: Ver
+        close: Cerrar
+        back: Volver
+        expand: Desplegar
+        collapse: Plegar
+        select_placeholder: Seleccionar…
+        no_options: 'Ningún elemento disponible'
+        add_tag_hint: 'Añadir una etiqueta…'
+        no_result: 'Ningún resultado'
+        select_selected: Seleccionado
+        download: Descargar
+        qr_code: 'Código QR'
+        download_qr: 'Descargar el código QR'
+        copied: Copiado.
+        copy: Copiar
+        dates: Fechas
+        created: 'Creado el'
+        updated: 'Modificado el'
+        reset: Restablecer
+        select_to_remove: 'Pulse Intro para quitar'
+        remove: Quitar
+        all: Todos
+        load_more: 'Cargar más'
+        next: Siguiente
+    reveal:
+        more: '1 más | {count} más'
+    pagination:
+        previous: Anterior
+        next: Siguiente
+        results: '{from} a {to} de {total} resultados'
+    comment:
+        title: Comentarios
+        form_title: 'Dejar un comentario'
+        name: Nombre
+        email: 'Correo electrónico'
+        content: Comentario
+        submit: Enviar
+        success: 'Su comentario ha sido enviado y está pendiente de moderación.'
+        empty: 'Todavía no hay comentarios.'
+        reply: Responder
+        react: Reaccionar
+    form:
+        signature_pad:
+            clear: Borrar
+            hint: 'Firme con el dedo, el ratón o un lápiz óptico.'
+        submit: Enviar
+        submitting: Enviando…
+        next: Siguiente
+        prev: Volver
+        success: '¡Gracias, su mensaje se ha enviado correctamente!'
+        error: 'Se ha producido un error. Vuelva a intentarlo.'
+        field_required: 'Este campo es obligatorio.'
+        select_placeholder: Elegir…
+    locales:
+        fr: Français
+        en: English
+        es: Español
+        de: Deutsch
+    image_cropper:
+        title: 'Recortar la imagen'
+        apply: 'Aplicar el recorte'
+        cropped: 'Imagen recortada'
 backend:
-  help:
-    storage:
-      delivery_mode:
-        title: Cómo se sirven los archivos
-        intro: "Esta opción no cambia dónde se guardan los archivos, solo el camino que recorren hasta el visitante."
-        address_title: La dirección nunca cambia
-        address_body: "Sea cual sea el modo, un documento conserva la misma dirección. Un enlace pegado en un artículo, un correo u otro sitio sigue funcionando si cambia de opinión más adelante."
-        proxy_title: Por la aplicación
-        proxy_body: "Los bytes pasan por su servidor antes de llegar al visitante. Es lo más sencillo y sus reglas de acceso siguen aplicándose: un documento en borrador permanece invisible. A cambio, su servidor trabaja en cada descarga."
-        presigned_title: Por enlace firmado temporal
-        presigned_body: "La aplicación crea un enlace válido unos minutos y envía allí al visitante. Los bytes van directamente del almacenamiento a su navegador, sin pasar por su servidor, y los archivos siguen siendo privados. El enlace caduca, así que no puede compartirse de forma duradera."
-        public_url_title: Por el dominio público
-        public_url_body: "Los archivos los sirve el dominio que haya conectado al contenedor, con caché cerca del visitante. Es lo más rápido. A cambio, cualquiera que conozca la dirección de un archivo puede leerlo, incluido un documento que creía reservado."
-        choosing_title: Cuál elegir
-        choosing_body: "Quédese en «por la aplicación» mientras nada le moleste. Pase al enlace firmado si su servidor sufre con archivos grandes. Tome el dominio público solo para archivos que cualquiera pueda leer sin problema."
-      connection:
-        title: La conexión al almacenamiento remoto
-        what_is_tested_title: Qué comprueba la prueba
-        what_is_tested_body: "Escribe un archivo testigo real en el contenedor, lo vuelve a leer, comprueba que aparece en la lista y lo borra. Cuatro campos rellenos no prueban nada: solo una escritura real demuestra que el token puede escribir."
-        what_is_stored_title: Qué se guarda
-        what_is_stored_body: "La dirección de la cuenta, el contenedor y las dos claves, estas últimas cifradas. Nunca se le vuelven a mostrar: los campos solo indican que existe un valor."
-        disconnecting_title: Desconectar
-        disconnecting_body: "El botón «Desconectar el almacenamiento» borra ambas claves, olvida la dirección y el contenedor, anula la verificación y devuelve los archivos nuevos al disco del servidor. Los documentos ya enviados al almacenamiento remoto permanecen allí: recupérelos antes o quedarán inaccesibles."
-  nav:
-    sections:
-      general: General
-      platform: Plataforma
-      media: Mediateca
-      configuration: Configuración
-      dev: Administración
-      account: Cuenta
-    go_back: Página anterior
-    go_forward: Página siguiente
-    hard_reload: Recargar vaciando las cachés
-    expand_menu: Mostrar el menú
-    collapse_menu: Ocultar el menú
-    administration: Acceso de desarrollador
-    administration_description: "Herramientas técnicas: auditoría, solicitudes de acceso, permisos, módulos y puntos de montaje."
-    dashboard: Panel de control
-    dashboard_description: "Visión general de la actividad reciente y de los indicadores clave del sitio."
-    media: Medios
-    media_description: "Biblioteca centralizada de imágenes, vídeos y archivos reutilizables."
-    profile: Mi perfil
-    settings: Ajustes
-    settings_description: "Ajustes globales de la aplicación y preferencias por defecto."
-    themes: Temas
-    themes_description: "Vestir el sitio: colores, logotipo y favicon."
-    trash: Papelera
-    trash_description: "Lo que se ha eliminado en cada módulo, y el tiempo que le queda."
-    users: Usuarios
-    users_description: "Gestionar las cuentas, sus roles y el detalle de sus privilegios."
-    resize_hint: Arrastre para redimensionar, doble clic para restablecer
-    filter_nav: Filtrar el menú…
-    breadcrumb: Ruta de navegación
-    show_descriptions: Mostrar las descripciones
-    filter_nav_empty: Ningún elemento encontrado
-    view_site: Ver el sitio
-    counts:
-      terms: '{0}Ningún término|{1}Un término|]1,Inf[%count% términos'
-      fields: '{0}Ningún campo|{1}Un campo|]1,Inf[%count% campos'
-      posts: '{0}Ninguna publicación|{1}Una publicación|]1,Inf[%count% publicaciones'
-    back_to_modules: Todos los módulos
-    back_to_module: "Volver a {module}"
-    logout: Cerrar sesión
-    light_mode: Modo claro
-    dark_mode: Modo oscuro
-  editor:
-    placeholder: Empiece a redactar…
-    tool_names:
-      text: Texto
-      heading: Título
-      list: Lista
-      ordered_list: Lista ordenada
-      unordered_list: Lista sin ordenar
-      checklist: Lista de casillas
-      quote: Cita
-      code: Código
-      delimiter: Separador
-      raw: HTML sin formato
-      table: Tabla
-      image: Imagen
-      embed: Integración
-      marker: Marcador
-      inline_code: Código en línea
-      underline: Subrayado
-      strikethrough: Tachado
-      text_color: Color del texto
-      text_background: Color de fondo
-      font_size: Tamaño del texto
-      clear_formatting: Borrar el formato
-      callout: Destacado
-      media_text: Imagen + Texto
-      two_column: 2 columnas
-    ui:
-      block_tunes:
-        toggler:
-          Click to tune: Configurar
-          or drag to move: o arrastre para mover
-      inline_toolbar:
-        converter:
-          Convert to: Convertir en
-      toolbar:
-        toolbox:
-          Add: Añadir
-      popover:
-        Filter: Filtrar
-        Nothing found: Ningún resultado
-        nothing_found_extended: Ningún resultado. Pruebe con otro término.
-    block_tunes:
-      delete:
-        Delete: Eliminar
-        Click to delete: Haga clic para eliminar
-      move_up:
-        Move up: Mover hacia arriba
-      move_down:
-        Move down: Mover hacia abajo
-    image:
-      caption_placeholder: Pie de foto…
-    raw:
-      placeholder: "HTML sin formato. Los scripts, los gestores de eventos y los marcos hacia un host no autorizado se retiran al mostrarlo."
-    quote:
-      placeholder: Cita…
-      caption_placeholder: Autor…
-    media_text:
-      flip_left: ⇄ Imagen a la izquierda
-      flip_right: ⇄ Imagen a la derecha
-      caption_placeholder: Pie de foto…
-      text_placeholder: Su texto…
-      url_placeholder: URL de la imagen…
-      change_url: Cambiar la URL
-      confirm: Validar
-      browse: Explorar
-      actions: Acciones
-      or: o
-    media_picker:
-      title: Elegir un medio
-      search: Buscar por nombre o alt…
-      all_folders: Todas las carpetas
-      empty: Ningún medio encontrado
-      loading: Cargando…
-      select: Seleccionar
-    callout:
-      title_placeholder: Título…
-      message_placeholder: Mensaje…
+    help:
+        storage:
+            delivery_mode:
+                title: 'Cómo se sirven los archivos'
+                intro: 'Esta opción no cambia dónde se guardan los archivos, solo el camino que recorren hasta el visitante.'
+                address_title: 'La dirección nunca cambia'
+                address_body: 'Sea cual sea el modo, un documento conserva la misma dirección. Un enlace pegado en un artículo, un correo u otro sitio sigue funcionando si cambia de opinión más adelante.'
+                proxy_title: 'Por la aplicación'
+                proxy_body: 'Los bytes pasan por su servidor antes de llegar al visitante. Es lo más sencillo y sus reglas de acceso siguen aplicándose: un documento en borrador permanece invisible. A cambio, su servidor trabaja en cada descarga.'
+                presigned_title: 'Por enlace firmado temporal'
+                presigned_body: 'La aplicación crea un enlace válido unos minutos y envía allí al visitante. Los bytes van directamente del almacenamiento a su navegador, sin pasar por su servidor, y los archivos siguen siendo privados. El enlace caduca, así que no puede compartirse de forma duradera.'
+                public_url_title: 'Por el dominio público'
+                public_url_body: 'Los archivos los sirve el dominio que haya conectado al contenedor, con caché cerca del visitante. Es lo más rápido. A cambio, cualquiera que conozca la dirección de un archivo puede leerlo, incluido un documento que creía reservado.'
+                choosing_title: 'Cuál elegir'
+                choosing_body: 'Quédese en «por la aplicación» mientras nada le moleste. Pase al enlace firmado si su servidor sufre con archivos grandes. Tome el dominio público solo para archivos que cualquiera pueda leer sin problema.'
+            connection:
+                title: 'La conexión al almacenamiento remoto'
+                what_is_tested_title: 'Qué comprueba la prueba'
+                what_is_tested_body: 'Escribe un archivo testigo real en el contenedor, lo vuelve a leer, comprueba que aparece en la lista y lo borra. Cuatro campos rellenos no prueban nada: solo una escritura real demuestra que el token puede escribir.'
+                what_is_stored_title: 'Qué se guarda'
+                what_is_stored_body: 'La dirección de la cuenta, el contenedor y las dos claves, estas últimas cifradas. Nunca se le vuelven a mostrar: los campos solo indican que existe un valor.'
+                disconnecting_title: Desconectar
+                disconnecting_body: 'El botón «Desconectar el almacenamiento» borra ambas claves, olvida la dirección y el contenedor, anula la verificación y devuelve los archivos nuevos al disco del servidor. Los documentos ya enviados al almacenamiento remoto permanecen allí: recupérelos antes o quedarán inaccesibles.'
+    nav:
+        sections:
+            general: General
+            platform: Plataforma
+            media: Mediateca
+            configuration: Configuración
+            dev: Administración
+            account: Cuenta
+        go_back: 'Página anterior'
+        go_forward: 'Página siguiente'
+        hard_reload: 'Recargar vaciando las cachés'
+        expand_menu: 'Mostrar el menú'
+        collapse_menu: 'Ocultar el menú'
+        administration: 'Acceso de desarrollador'
+        administration_description: 'Herramientas técnicas: auditoría, solicitudes de acceso, permisos, módulos y puntos de montaje.'
+        dashboard: 'Panel de control'
+        dashboard_description: 'Visión general de la actividad reciente y de los indicadores clave del sitio.'
+        media: Medios
+        media_description: 'Biblioteca centralizada de imágenes, vídeos y archivos reutilizables.'
+        profile: 'Mi perfil'
+        settings: Ajustes
+        settings_description: 'Ajustes globales de la aplicación y preferencias por defecto.'
+        themes: Temas
+        themes_description: 'Vestir el sitio: colores, logotipo y favicon.'
+        trash: Papelera
+        trash_description: 'Lo que se ha eliminado en cada módulo, y el tiempo que le queda.'
+        users: Usuarios
+        users_description: 'Gestionar las cuentas, sus roles y el detalle de sus privilegios.'
+        resize_hint: 'Arrastre para redimensionar, doble clic para restablecer'
+        filter_nav: 'Filtrar el menú…'
+        breadcrumb: 'Ruta de navegación'
+        show_descriptions: 'Mostrar las descripciones'
+        filter_nav_empty: 'Ningún elemento encontrado'
+        view_site: 'Ver el sitio'
+        counts:
+            terms: '{0}Ningún término|{1}Un término|]1,Inf[%count% términos'
+            fields: '{0}Ningún campo|{1}Un campo|]1,Inf[%count% campos'
+            posts: '{0}Ninguna publicación|{1}Una publicación|]1,Inf[%count% publicaciones'
+        back_to_modules: 'Todos los módulos'
+        back_to_module: 'Volver a {module}'
+        logout: 'Cerrar sesión'
+        light_mode: 'Modo claro'
+        dark_mode: 'Modo oscuro'
+    editor:
+        placeholder: 'Empiece a redactar…'
+        tool_names:
+            text: Texto
+            heading: Título
+            list: Lista
+            ordered_list: 'Lista ordenada'
+            unordered_list: 'Lista sin ordenar'
+            checklist: 'Lista de casillas'
+            quote: Cita
+            code: Código
+            delimiter: Separador
+            raw: 'HTML sin formato'
+            table: Tabla
+            image: Imagen
+            embed: Integración
+            marker: Marcador
+            inline_code: 'Código en línea'
+            underline: Subrayado
+            strikethrough: Tachado
+            text_color: 'Color del texto'
+            text_background: 'Color de fondo'
+            font_size: 'Tamaño del texto'
+            clear_formatting: 'Borrar el formato'
+            callout: Destacado
+            media_text: 'Imagen + Texto'
+            two_column: '2 columnas'
+        ui:
+            block_tunes:
+                toggler:
+                    'Click to tune': Configurar
+                    'or drag to move': 'o arrastre para mover'
+            inline_toolbar:
+                converter:
+                    'Convert to': 'Convertir en'
+            toolbar:
+                toolbox:
+                    Add: Añadir
+            popover:
+                Filter: Filtrar
+                'Nothing found': 'Ningún resultado'
+                nothing_found_extended: 'Ningún resultado. Pruebe con otro término.'
+        block_tunes:
+            delete:
+                Delete: Eliminar
+                'Click to delete': 'Haga clic para eliminar'
+            move_up:
+                'Move up': 'Mover hacia arriba'
+            move_down:
+                'Move down': 'Mover hacia abajo'
+        image:
+            caption_placeholder: 'Pie de foto…'
+        raw:
+            placeholder: 'HTML sin formato. Los scripts, los gestores de eventos y los marcos hacia un host no autorizado se retiran al mostrarlo.'
+        quote:
+            placeholder: Cita…
+            caption_placeholder: Autor…
+        media_text:
+            flip_left: '⇄ Imagen a la izquierda'
+            flip_right: '⇄ Imagen a la derecha'
+            caption_placeholder: 'Pie de foto…'
+            text_placeholder: 'Su texto…'
+            url_placeholder: 'URL de la imagen…'
+            change_url: 'Cambiar la URL'
+            confirm: Validar
+            browse: Explorar
+            actions: Acciones
+            or: o
+        media_picker:
+            title: 'Elegir un medio'
+            search: 'Buscar por nombre o alt…'
+            all_folders: 'Todas las carpetas'
+            empty: 'Ningún medio encontrado'
+            loading: Cargando…
+            select: Seleccionar
+        callout:
+            title_placeholder: Título…
+            message_placeholder: Mensaje…

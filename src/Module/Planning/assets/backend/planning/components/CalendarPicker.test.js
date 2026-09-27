@@ -7,7 +7,7 @@ vi.mock("vue-i18n", () => ({
 }));
 
 const CALENDARS = [
-    { id: 1, name: "Pro", colourSlot: 2 },
+    { id: 1, name: "Pro", colourSlot: 2, ownerId: 9 },
     { id: 2, name: "Perso", colourSlot: 3 },
     { id: 3, name: "Équipe", colourSlot: 5 },
     { id: 4, name: "Astreinte", colourSlot: 7 },
@@ -105,7 +105,10 @@ describe("CalendarPicker", () => {
      * click.
      */
     it("stands aside when a calendar is opened for editing", async () => {
-        const wrapper = mountPicker({ canManageCalendars: true });
+        const wrapper = mountPicker({
+            canManageCalendars: true,
+            currentUserId: 9,
+        });
         await wrapper.find("button").trigger("click");
 
         await wrapper
@@ -114,6 +117,22 @@ describe("CalendarPicker", () => {
 
         expect(wrapper.emitted("edit-calendar")).toEqual([[CALENDARS[0]]]);
         expect(wrapper.text()).not.toContain("Formations");
+    });
+
+    /**
+     * Renaming or sharing a calendar is its owner's decision: the server
+     * refuses it on anybody else's, and the row stops offering it.
+     */
+    it("offers edit and share only on the reader's own calendars", async () => {
+        const wrapper = mountPicker({
+            canManageCalendars: true,
+            currentUserId: 9,
+        });
+        await wrapper.find("button").trigger("click");
+
+        expect(
+            wrapper.findAll('button[title="backend.plannings.edit_calendar"]'),
+        ).toHaveLength(1);
     });
 
     it("offers a way out when there are no calendars at all", async () => {

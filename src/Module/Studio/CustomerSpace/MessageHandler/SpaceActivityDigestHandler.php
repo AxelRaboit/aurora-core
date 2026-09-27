@@ -82,7 +82,9 @@ final readonly class SpaceActivityDigestHandler
             UrlGeneratorInterface::ABSOLUTE_URL,
         );
 
-        $unread = $this->notifications->findUnreadForUrl($recipient, $path);
+        // Sous le chemin et non égal à lui : une notification sur une fiche
+        // pointe sur `?item=…`, et elle fait partie du même espace à écrire.
+        $unread = $this->notifications->findUnreadUnderPath($recipient, $path);
 
         if ([] === $unread) {
             // Read in the meantime. The delay did its job.

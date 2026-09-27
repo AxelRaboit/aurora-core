@@ -16,6 +16,7 @@ use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceMemberRoleEnum;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceStatusEnum;
 use Aurora\Module\Studio\CustomerSpace\Security\SpaceVisibility;
 use Aurora\Module\Studio\CustomerSpace\Serializer\CustomerSpaceSerializerInterface;
+use Aurora\Module\Studio\SpaceContent\Workload\SpaceWorkload;
 use DateTimeZone;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
@@ -29,6 +30,7 @@ final readonly class CustomerSpacesViewBuilder
         private UrlGeneratorInterface $urlGenerator,
         private StorageUsageProbe $storageUsage,
         private SpaceVisibility $visibility,
+        private SpaceWorkload $workload,
     ) {}
 
     /**
@@ -69,9 +71,26 @@ final readonly class CustomerSpacesViewBuilder
     {
         // Les siens, ou tous pour un administrateur : la règle vit dans
         // `SpaceVisibility`, pas ici, parce que trois écrans se la posent.
+        // `canConfigure` par ligne : l'équipe et les rôles d'un espace sont
+        // l'affaire de son chef, et le formulaire les montre en lecture seule
+        // aux autres plutôt que de laisser le serveur refuser après coup.
+        //
+        // `workload` : ce qui attend dans chaque espace, compté par
+        // `SpaceWorkload` comme au tableau de bord, en une requête pour toute
+        // la liste. Null pour un espace archivé, dont le travail est fini.
+        $spaces = $this->visibility->visibleSpaces();
+        $workload = [];
+        foreach ($this->workload->forSpaces($spaces) as $row) {
+            $workload[$row->spaceId] = $row->toArray();
+        }
+
         return array_map(
-            $this->spaceSerializer->serialize(...),
-            $this->visibility->visibleSpaces(),
+            fn (CustomerSpaceInterface $space): array => [
+                ...$this->spaceSerializer->serialize($space),
+                'canConfigure' => $this->visibility->canConfigure($space),
+                'workload' => $workload[(int) $space->getId()] ?? null,
+            ],
+            $spaces,
         );
     }
 

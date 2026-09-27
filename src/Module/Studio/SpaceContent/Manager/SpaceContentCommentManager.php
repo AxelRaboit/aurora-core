@@ -71,11 +71,7 @@ class SpaceContentCommentManager implements SpaceContentCommentManagerInterface
 
         $this->auditPosted($comment);
 
-        $this->notifier->clientCommented(
-            $item->getSpace(),
-            $comment->getAuthorLabel(),
-            $item->getTitle(),
-        );
+        $this->notifier->clientCommented($item, $comment->getAuthorLabel());
 
         return $comment;
     }

@@ -19,19 +19,6 @@ class PlanningEventRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Everything visible in a window, across the given calendars.
-     *
-     * **Overlap, not containment.** The condition is `start < windowEnd AND end >
-     * windowStart`, which is the only one that catches an event running through
-     * the window from before it: a week of holiday that began last month belongs
-     * on this month's grid, and a naive `start BETWEEN` drops it. That is the
-     * bug every calendar has once.
-     *
-     * @param list<int> $planningIds
-     *
-     * @return list<PlanningEventInterface>
-     */
-    /**
      * The events that are one event, overlapping a window.
      *
      * `rrule IS NULL` covers both a plain event and an occurrence somebody edited
@@ -127,28 +114,6 @@ class PlanningEventRepository extends ResolveTargetEntityRepository
             // Most recent first: a search for "recette" usually means the one
             // coming up or the one just gone, not the first ever held.
             ->orderBy('e.startAt', 'DESC')
-            ->setMaxResults($limit)
-            ->getQuery()
-            ->getResult();
-
-        return $result;
-    }
-
-    public function findUpcoming(array $planningIds, DateTimeImmutable $from, int $limit = 5): array
-    {
-        if ([] === $planningIds) {
-            return [];
-        }
-
-        /** @var list<PlanningEventInterface> $result */
-        $result = $this->createQueryBuilder('e')
-            ->addSelect('p')
-            ->innerJoin('e.planning', 'p')
-            ->where('e.planning IN (:plannings)')
-            ->andWhere('e.startAt >= :from')
-            ->setParameter('plannings', $planningIds)
-            ->setParameter('from', $from)
-            ->orderBy('e.startAt', 'ASC')
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();

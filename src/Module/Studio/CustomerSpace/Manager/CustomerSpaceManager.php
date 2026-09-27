@@ -21,6 +21,7 @@ use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceMemberRoleEnum;
 use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
 use Aurora\Module\Studio\SpaceChat\Manager\SpaceChatChannelManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentColumnManagerInterface;
+use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentItemManagerInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -39,6 +40,7 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
         protected readonly SpaceContentColumnManagerInterface $columnManager,
         protected readonly SpaceChatChannelManagerInterface $chatChannels,
         protected readonly TranslatorInterface $translator,
+        protected readonly SpaceContentItemManagerInterface $contentItems,
     ) {}
 
     public function create(CustomerSpaceInputInterface $input): CustomerSpaceInterface
@@ -72,20 +74,24 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
         $this->applyInput($space, $input);
         $this->entityManager->flush();
 
+        // Its dates carry its name and colour, and leave the calendar when it
+        // is archived: they follow it rather than keep the old version.
+        $this->contentItems->announceSpace($space);
+
         $this->auditUpdated($space);
     }
 
     /**
-     * Deleting a space removes its membership rows and nothing else.
-     *
-     * There is nothing else to remove yet. The moment content items hang off a
-     * space, this becomes the place that refuses - in words, the way
-     * `CustomerManager::delete` refuses a customer a contract names - rather
-     * than letting a foreign key answer with a 500 halfway through a request.
+     * Deleting a space takes everything in it: its cards, their threads and
+     * attachments, its conversations, notes and access links go by cascade.
+     * The documents those attachments point at stay in the media library,
+     * and the space's dates are taken off the calendar first, since no
+     * cascade announces anything.
      */
     public function delete(CustomerSpaceInterface $space): void
     {
         $this->auditDeleted($space);
+        $this->contentItems->unscheduleSpace($space);
 
         $this->entityManager->remove($space);
         $this->entityManager->flush();

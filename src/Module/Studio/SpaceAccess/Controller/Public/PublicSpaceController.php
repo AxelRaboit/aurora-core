@@ -191,11 +191,7 @@ final class PublicSpaceController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-        $item = $this->itemRepository->find($itemId);
-
-        if (!$item instanceof SpaceContentItemInterface) {
-            throw $this->createNotFoundException();
-        }
+        $item = $this->clientItem($link, $itemId);
 
         $payload = $this->decodeJson($request);
 
@@ -273,8 +269,11 @@ final class PublicSpaceController extends AbstractController
             }
 
             $item = $this->itemRepository->find((int) $id);
-
             if (!$item instanceof SpaceContentItemInterface) {
+                continue;
+            }
+
+            if (!$this->isShownTo($link, $item)) {
                 continue;
             }
 
@@ -318,11 +317,7 @@ final class PublicSpaceController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-        $item = $this->itemRepository->find($itemId);
-
-        if (!$item instanceof SpaceContentItemInterface) {
-            throw $this->createNotFoundException();
-        }
+        $item = $this->clientItem($link, $itemId);
 
         $body = Str::trimFromArray($this->decodeJson($request), 'body');
 
@@ -379,11 +374,7 @@ final class PublicSpaceController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-        $item = $this->itemRepository->find($itemId);
-
-        if (!$item instanceof SpaceContentItemInterface) {
-            throw $this->createNotFoundException();
-        }
+        $item = $this->clientItem($link, $itemId);
 
         $file = $request->files->get('file');
 
@@ -465,33 +456,22 @@ final class PublicSpaceController extends AbstractController
         );
     }
 
-    /**
-     * `chatHide` est partie avec les conversations privées.
-     *
-     * Elle ne savait ranger qu'un canal direct, et un lien n'en voit plus
-     * aucun : elle répondait donc 404 à tout coup. C'était par ailleurs la
-     * seule écriture d'invité sans limite de débit, ce qui se remarque quand
-     * on la retire plutôt que quand on la garde.
-     */
-
-    /**
-     * Il n'y a plus de conversation privée sans compte.
-     *
-     * **Une route est partie d'ici, et c'est une décision de fond.** Un
-     * invité pouvait ouvrir une conversation avec n'importe quel membre de
-     * l'équipe, et recevait pour cela l'annuaire nominatif de l'espace. Le
-     * droit qui l'autorisait était « peut commenter » : cocher une case pour
-     * permettre une remarque sous une publication ouvrait en réalité une
-     * messagerie vers les salariés et donnait leurs noms.
-     *
-     * Ce qu'un client a à dire passe donc par un canal, que le studio ouvre
-     * quand il le décide. Le studio garde ses conversations privées entre
-     * collaborateurs : seul le côté invité est fermé.
-     *
-     * La garde qui compte n'est pas cette absence mais
-     * {@see SpaceChatChannelRepository::findForLink()}, qui ne rend plus aucun
-     * canal direct à un lien - y compris ceux ouverts avant ce changement.
-     */
+    // Il n'y a plus de conversation privée sans compte.
+    //
+    // **Une route est partie d'ici, et c'est une décision de fond.** Un
+    // invité pouvait ouvrir une conversation avec n'importe quel membre de
+    // l'équipe, et recevait pour cela l'annuaire nominatif de l'espace. Le
+    // droit qui l'autorisait était « peut commenter » : cocher une case pour
+    // permettre une remarque sous une publication ouvrait en réalité une
+    // messagerie vers les salariés et donnait leurs noms.
+    //
+    // Ce qu'un client a à dire passe donc par un canal, que le studio ouvre
+    // quand il le décide. Le studio garde ses conversations privées entre
+    // collaborateurs : seul le côté invité est fermé.
+    //
+    // La garde qui compte n'est pas cette absence mais
+    // {@see SpaceChatChannelRepository::findForLink()}, qui ne rend plus aucun
+    // canal direct à un lien - y compris ceux ouverts avant ce changement.
 
     /**
      * The room behind an id, or a 404.
@@ -738,7 +718,7 @@ final class PublicSpaceController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-        $response = $this->driveRelay->serve($account, $fileId, $request->query->getBoolean('download'));
+        $response = $this->driveRelay->serve($account, $link->getSpace()->getDriveFolderId(), $fileId, $request->query->getBoolean('download'));
 
         if (!$response instanceof Response) {
             throw $this->createNotFoundException();
@@ -797,17 +777,41 @@ final class PublicSpaceController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-        // **Et sa colonne doit être ouverte au client.** Retirer ces fichiers
-        // de la page sans fermer leur adresse n'aurait fait que cacher le
-        // lien : l'identifiant est un petit entier, et une étape marquée
-        // interne l'est pour de bon ou ne l'est pas.
-        if (!$attachment->getItem()->getColumn()->isVisibleToClient()) {
+        // **Et sa fiche doit être sur la page du client.** Retirer ces
+        // fichiers de la page sans fermer leur adresse n'aurait fait que
+        // cacher le lien : l'identifiant est un petit entier, et une étape
+        // marquée interne l'est pour de bon ou ne l'est pas.
+        if (!$attachment->getItem()->isShownToClient()) {
             throw $this->createNotFoundException();
         }
 
         // Servi par le service commun : local déchargé par le serveur
         // web, distant diffusé par morceaux, privé une heure.
         return $this->responder->respond($this->keyOf($attachment->getDocument(), $variant));
+    }
+
+    /**
+     * A card this link shows, or a 404.
+     *
+     * **The page's own sieve, asked again at each write.** A card in a column
+     * kept internal is not on the client's page, yet approving it, commenting
+     * on it or sending it a file used to check only that it was in the space:
+     * a card number was enough to act on work the studio had not shown.
+     */
+    private function clientItem(SpaceAccessLinkInterface $link, int $itemId): SpaceContentItemInterface
+    {
+        $item = $this->itemRepository->find($itemId);
+
+        if (!$item instanceof SpaceContentItemInterface || !$this->isShownTo($link, $item)) {
+            throw $this->createNotFoundException();
+        }
+
+        return $item;
+    }
+
+    private function isShownTo(SpaceAccessLinkInterface $link, SpaceContentItemInterface $item): bool
+    {
+        return $item->getSpace()->getId() === $link->getSpace()->getId() && $item->isShownToClient();
     }
 
     /**

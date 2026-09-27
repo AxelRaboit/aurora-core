@@ -34,7 +34,7 @@ final readonly class PlanningScheduleAvailability implements ScheduleAvailabilit
 
     public function isEnabled(): bool
     {
-        return $this->planningContext->isBackendEnabled();
+        return $this->planningContext->isGloballyEnabled();
     }
 
     public function busyPeriods(string $sourceType, DateTimeImmutable $from, DateTimeImmutable $to): array

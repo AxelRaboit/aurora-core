@@ -1,0 +1,53 @@
+backend:
+    mount_points:
+        intro: 'Gestione las conexiones con recursos externos (bases de datos, API, SFTP).'
+        search_placeholder: 'Buscar un punto de montaje…'
+        add: 'Añadir un punto de montaje'
+        edit: Editar
+        empty: 'No hay ningún punto de montaje configurado.'
+        name: Nombre
+        type: Tipo
+        host: Host
+        port: Puerto
+        username: Usuario
+        password: Contraseña
+        password_placeholder: 'Dejar vacío para conservar la contraseña actual'
+        database: 'Base de datos'
+        ssh_public_key: 'Clave SSH pública'
+        ssh_public_key_placeholder: 'ssh-ed25519 AAAA…'
+        ssh_tunnel: 'Túnel SSH'
+        ssh_tunnel_hint: 'Conectarse a la base de datos a través de un túnel SSH.'
+        ssh_host: 'Host SSH'
+        ssh_host_placeholder: 'p. ej.: 72.60.130.238'
+        ssh_port: 'Puerto SSH'
+        ssh_user: 'Usuario SSH'
+        ssh_user_placeholder: 'p. ej.: ubuntu'
+        ssh_private_key: 'Clave privada SSH'
+        ssh_private_key_placeholder: |-
+            -----BEGIN OPENSSH PRIVATE KEY-----
+            …
+        ssh_private_key_hint: 'Dejar vacío para conservar la clave actual.'
+        name_placeholder: 'p. ej.: Production DB'
+        host_placeholder: 'p. ej.: 192.168.1.10 o db.example.com'
+        port_placeholder: 'p. ej.: 5432'
+        username_placeholder: 'p. ej.: aurora_user'
+        database_placeholder: 'p. ej.: aurora_prod'
+        config: 'Configuración avanzada (JSON)'
+        test: 'Probar la conexión'
+        testing: 'Prueba en curso…'
+        test_success: 'Conexión establecida.'
+        test_failure: 'Error de conexión.'
+        test_title: 'Prueba de conexión: {name}'
+        retry: Reintentar
+        last_tested: 'Última prueba'
+        never: 'Nunca probado'
+        delete_confirm: '¿Eliminar este punto de montaje?'
+        types:
+            database: 'Base de datos'
+            api: API
+            sftp: SFTP
+        errors:
+            name_required: 'El nombre es obligatorio.'
+            name_too_long: 'El nombre no debe superar los 100 caracteres.'
+            host_required: 'El host es obligatorio.'
+            host_too_long: 'El host no debe superar los 255 caracteres.'

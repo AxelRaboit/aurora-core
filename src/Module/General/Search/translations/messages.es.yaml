@@ -1,0 +1,20 @@
+backend:
+    search:
+        button: Buscar…
+        placeholder: 'Buscar contenidos, medios…'
+        hint: 'Escriba para buscar en los contenidos, términos y medios.'
+        empty: 'Ningún resultado.'
+        keys:
+            navigate: Navegar
+            select: Seleccionar
+            close: Cerrar
+        sections:
+            recent: Recientes
+            nav: Navegación
+            projects: Proyectos
+            tasks: Tareas
+            posts: Contenidos
+            terms: Términos
+            media: Medios
+            events: Eventos
+            reminders: Recordatorios

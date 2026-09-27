@@ -304,6 +304,19 @@ const pageActions = computed(() => {
                                     {{ formatCapital(customer) }}
                                 </span>
                             </div>
+                            <!-- Ses espaces, d'un clic : la fiche d'un client ne
+                                 disait pas quels projets tournaient pour lui. -->
+                            <div v-if="customer.spaces?.length" class="mt-1 flex flex-wrap gap-x-2 gap-y-0.5 text-xs">
+                                <a
+                                    v-for="space in customer.spaces"
+                                    :key="space.id"
+                                    :href="space.url"
+                                    class="text-accent-500 hover:underline"
+                                    :class="space.archived ? 'opacity-60' : ''"
+                                >
+                                    {{ space.name }}
+                                </a>
+                            </div>
                         </td>
                         <td class="px-4 py-2 hidden lg:table-cell">
                             <div v-if="customer.representativeFullName" class="text-primary">

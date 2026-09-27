@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Integration\Module\Studio\CustomerSpace;
 
+use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\Customer\Entity\Customer;
@@ -134,9 +135,9 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
         $stored = $this->items->find($item['id']);
 
         // An opinion, not a state machine: a client clicking the wrong button
-        // would otherwise have scheduled a publication.
+        // would otherwise have moved or rescheduled a publication.
         self::assertSame($columns[0]->getId(), $stored->getColumn()->getId());
-        self::assertNull($stored->getScheduledAt());
+        self::assertSame('2026-12-01 10:00', $stored->getScheduledAt()?->format('Y-m-d H:i'));
     }
 
     public function testRewritingTheTextClearsTheAnswer(): void
@@ -151,6 +152,7 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/%d/update', $space->getId(), $item['id']), [
             'title' => 'Texte reecrit',
             'columnId' => $this->columns->findForSpace($space)[0]->getId(),
+            'scheduledAt' => '2026-12-01T10:00',
         ]);
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
@@ -161,6 +163,41 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
         // An approval is of a wording. Keeping it after a rewrite would tell
         // the board a client agreed to something they never read.
         self::assertSame('pending', $stored->getApproval()->value);
+    }
+
+    /**
+     * The date and the visual are what the client approved as much as the
+     * text: a card approved for Tuesday and moved to Friday, or given another
+     * picture, still read « validé ».
+     */
+    public function testMovingTheDateOrChangingTheVisualClearsTheAnswer(): void
+    {
+        $space = $this->givenSpace();
+        $item = $this->givenItem($space, 'Visuel de rentrée');
+        $answer = fn () => $this->asGuest()->jsonRequest('POST', $this->answerPathFor($space, $item['id']), ['approval' => 'approved']);
+        $stored = function () use ($item): string {
+            $this->entityManager->clear();
+
+            return $this->items->find($item['id'])->getApproval()->value;
+        };
+
+        $answer();
+        self::assertSame('approved', $stored());
+        $this->loginAdmin();
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/%d/schedule', $space->getId(), $item['id']), ['scheduledAt' => '2026-12-04T10:00']);
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+        self::assertSame('pending', $stored(), 'a new date');
+
+        $answer();
+        self::assertSame('approved', $stored());
+        $this->loginAdmin();
+        $document = new Document();
+        $document->setTitle('Autre visuel')->setFilePath('ged/2026/09/autre.jpg')->setFileName('autre.jpg')->setOriginalName('autre.jpg')->setMimeType('image/jpeg')->setSize(1024);
+        $this->entityManager->persist($document);
+        $this->entityManager->flush();
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/%d/attachments/attach', $space->getId(), $item['id']), ['documentId' => $document->getId()]);
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+        self::assertSame('pending', $stored(), 'a new visual');
     }
 
     public function testRewritingTheTextKeepsWhatTheClientWrote(): void
@@ -177,6 +214,7 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/%d/update', $space->getId(), $item['id']), [
             'title' => 'Texte repris',
             'columnId' => $this->columns->findForSpace($space)[0]->getId(),
+            'scheduledAt' => '2026-12-01T10:00',
         ]);
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
@@ -386,6 +424,9 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/create', $space->getId()), [
             'title' => $title,
             'columnId' => $this->columns->findForSpace($space)[0]->getId(),
+            // Datée : la page du client ne montre que son calendrier, et
+            // n'accepte d'avis que sur ce qu'elle montre.
+            'scheduledAt' => '2026-12-01T10:00',
         ]);
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());

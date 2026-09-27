@@ -381,6 +381,10 @@ class SpaceContentController extends AbstractController
      * The picker's half: a logo, a press kit, a photo filed last month. Nothing
      * is uploaded and nothing is copied - two cards can show the same file, and
      * a file shown on a card is the same row GED lists.
+     *
+     * Behind `ged.documents.view` as well as the space's own right, because
+     * the picker lists the whole library: a studio member who may not browse
+     * it must not be able to fetch a contract out of it by number.
      */
     #[Route('/content/{itemId}/attachments/attach', name: '_attachment_attach', requirements: ['itemId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.spaces.edit')]
@@ -398,7 +402,10 @@ class SpaceContentController extends AbstractController
             return $this->jsonInvalidInput(['documentId' => 'backend.studio.space_content.errors.attachment_required']);
         }
 
-        $document = $this->documents->find((int) $documentId);
+        // Only somebody who may browse the media library may take from it:
+        // an id is guessed as easily as it is picked, and a document on a
+        // card is shown to the client. Answered like an unknown id.
+        $document = $this->isGranted('ged.documents.view') ? $this->documents->find((int) $documentId) : null;
 
         if (!$document instanceof Document) {
             return $this->jsonInvalidInput(['documentId' => 'backend.studio.space_content.errors.attachment_unknown']);
@@ -541,14 +548,6 @@ class SpaceContentController extends AbstractController
 
         return $this->jsonSuccess($this->viewBuilder->boardPayload($space));
     }
-
-    /**
-     * A 404 and not a 403, deliberately.
-     *
-     * Telling somebody that the card they asked for exists but is not theirs
-     * says more than refusing to answer does. The screen cannot reach this
-     * either way: it only ever sends ids it was given.
-     */
 
     /**
      * The numeric ids of a payload list, and nothing else.

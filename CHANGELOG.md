@@ -5,6 +5,157 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.270] - 2026-09-27
+
+Le plan Studio du 27/09, en entier (lots 0 à 6) : d'abord les failles
+relevées par l'audit, puis un seul vocabulaire pour ce qui attend chez les
+clients, le tableau de bord qui s'en sert, un calendrier éditorial pour tous
+les espaces, le parcours dans un espace, un Planning qui dit vrai, et du
+ménage. Les quatre décisions du plan ont été tranchées : rôle facultatif sur
+les colonnes, « mes espaces » par défaut, contenus clients gardés dans le
+Planning mais filtrés par membre, relance au studio d'abord. Et le back-office
+parle maintenant espagnol en entier.
+
+### Ajouté
+
+#### Un rôle pour les étapes d'un tableau
+Chaque colonne d'un espace peut dire quelle étape commune elle représente :
+idée, production, relecture, programmé, publié. Facultatif, et la colonne
+garde son nom. Les colonnes créées par défaut le reçoivent, et une migration
+le pose sur les colonnes existantes qui portent encore leur nom d'origine.
+
+#### Cinq états, comptés une seule fois
+`SpaceWorkload` calcule pour chaque espace : à paraître sous 7 jours, chez le
+client, relecture en retard, à reprendre, parution manquée, et la prochaine
+parution. Le tableau de bord, la liste des espaces, l'en-tête d'un espace, le
+courriel de relecture et le calendrier éditorial s'en servent tous. Le
+tableau de bord annonçait 13 contenus « en attente du client » là où l'espace
+en comptait 6 : il comptait les idées, les brouillons, les contenus publiés,
+les étapes internes et les espaces archivés.
+
+#### L'onglet Studio du tableau de bord
+Il répond à « qu'est-ce qui m'attend chez mes clients aujourd'hui » : des
+tuiles qui mènent au calendrier éditorial filtré, les contrats à signer, et une
+liste « À traiter » avec une ligne par espace qui attend quelque chose, la plus
+urgente en haut. Par défaut, les espaces dont on est membre ; un
+administrateur peut basculer sur tous. Un administrateur membre d'aucun espace
+les voit tous.
+
+#### Le calendrier éditorial
+Nouvelle page Studio, « Calendrier éditorial » : tous les espaces visibles sur
+un mois ou en liste, une couleur par espace, des filtres par client et par
+état. En lecture seule : un clic ouvre l'espace de la carte.
+
+#### La liste des espaces dit ce qui attend
+Une colonne « À traiter » (pastilles et prochaine parution), et un tri par
+urgence.
+
+### Modifié
+
+- **Le Planning ne montre les contenus d'un client qu'aux membres de son
+  espace**, dans la grille, le panneau du tableau de bord et la recherche ; il
+  les montrait à tous ses utilisateurs. Les rendez-vous des visiteurs ne sont
+  visibles que de ceux qui peuvent modifier les pages. Le point d'extension du
+  cœur gagne `ScheduledSourceAccessInterface`, que chaque module implémente
+  pour ses propres dates.
+- **Les dates d'un espace le suivent** : renommer ou recolorer un espace met à
+  jour ses événements, l'archiver les retire du calendrier, le supprimer aussi.
+- **Le tableau de bord masque un panneau dont le lecteur n'a pas le droit de
+  consultation**, pour tous les modules. Seul le Planning le faisait.
+- Le courriel de relecture et le bouton « Envoyer à relire » ne comptent plus
+  que ce que la page du client montre.
+
+### Le parcours dans un espace (lot 4)
+
+- **La vue et la fiche ouvertes sont dans l'adresse**
+  (`/workspace/1?view=calendar&item=42`). Les notifications, le calendrier
+  éditorial, les événements du Planning et les usages de la médiathèque
+  ouvrent la fiche elle-même, au lieu de la dernière vue utilisée. Une vue
+  mémorisée que l'espace n'offre pas retombe sur le contenu au lieu d'un écran
+  vide.
+- **Passer d'un espace à l'autre** depuis l'en-tête, sans revenir à la liste.
+- **L'échéance de relecture se voit sur chaque fiche**, en alerte une fois
+  dépassée, et l'espace se filtre par état (chez le client, en retard, à
+  reprendre…). Les lignes du tableau de bord ouvrent l'espace déjà filtré.
+- **Relance au studio** : chaque matin, les membres d'un espace qui a des
+  relectures en retard reçoivent une notification, qui ne se répète pas tant
+  qu'elle n'est pas lue. Jamais de courriel automatique au client.
+- **Un avis tombe quand l'objet change** : changer la date ou le visuel d'une
+  fiche validée efface l'avis, et plus seulement réécrire le texte.
+- **Espace, client, contrats et présentations reliés** : l'onglet Informations
+  liste les contrats, les présentations et les autres espaces du client, et la
+  liste des clients montre leurs espaces.
+- Les étapes se réordonnent par glisser-déposer, et le message de suppression
+  d'un espace dit tout ce qui part avec lui.
+
+### Un Planning qui dit vrai (lot 5)
+
+- « À venir » passe par les occurrences : les séries récurrentes y figurent,
+  l'événement en cours aussi, les annulés non. Chaque ligne ouvre son jour.
+- Un rappel « journée entière » n'est en retard qu'une fois sa journée finie.
+- La recherche vérifie le droit de consulter le calendrier.
+- La synchronisation des dates ne dépend plus des modules que l'utilisateur
+  connecté a masqués pour lui-même.
+
+### Le back-office en espagnol
+
+Le back-office retombait sur le français en espagnol : 4 183 des 5 312 clés
+n'existaient qu'en français. Elles sont toutes traduites, dans les 21
+catalogues, en vouvoiement comme les pages publiques déjà traduites, avec un
+glossaire commun (ficha, etapa, mediateca, sellar…). Un test,
+`SpanishTranslationCompletenessTest`, refuse désormais une clé ajoutée en
+français sans son équivalent espagnol, ou dont les variables diffèrent.
+
+### Ménage (lot 6)
+
+- Vingt-cinq blocs de commentaires décollés de leur méthode sont recollés,
+  fusionnés ou retirés, et les commentaires qui décrivaient un ancien code sont
+  réécrits.
+- Noms : l'onglet d'en-tête d'un espace s'appelle « Espace de travail », la vue
+  « Liens » devient « Ressources », et un contrat n'est plus que « scellé ».
+
+### Sécurité
+
+- **Planning : un calendrier ne se modifie ou ne se supprime que par son
+  propriétaire.** Le droit « gérer les calendriers » suffisait pour renommer,
+  rendre public ou supprimer le calendrier privé de n'importe qui. Les
+  calendriers des modules, qui n'ont pas de propriétaire, ne se touchent plus.
+  Le crayon et le partage ne s'affichent plus que sur ses propres calendriers.
+- **Planning : un événement ne se prend plus d'un calendrier où l'on ne peut
+  pas écrire.** La modification ne vérifiait que le calendrier d'arrivée, et
+  la suppression ne vérifiait rien.
+- **Drive : seuls les fichiers du dossier de l'espace sont servis ou
+  importés.** Le compte de service lit d'autres dossiers ; un identifiant de
+  fichier deviné ou recopié servait le Drive d'un autre client, y compris
+  depuis la page du client.
+- **Médiathèque : attacher un document à une fiche ou à un espace demande le
+  droit de parcourir la médiathèque.** Un numéro suffisait pour montrer
+  n'importe quel document au client. Le bouton de sélection disparaît pour qui
+  n'a pas ce droit.
+- **Un simple membre ne peut plus se nommer chef d'espace.** L'équipe et les
+  rôles se changent par le chef de l'espace ; les autres les voient en lecture
+  seule dans le formulaire.
+- **Les conversations privées ne se lisent qu'en y étant.** Un autre membre
+  de l'espace qui connaissait le numéro d'un salon pouvait le lire, y écrire
+  ou s'y inviter. Un message doit aussi appartenir au salon de l'adresse.
+- **La page du client ne porte plus que ce qu'elle montre.** Elle ne dessine
+  que son calendrier, mais recevait toutes les fiches des étapes visibles,
+  titres et textes compris, et acceptait un avis, un commentaire ou un fichier
+  sur des fiches d'étapes internes. Une seule règle, `isShownToClient()`, sert
+  maintenant à ce qu'elle reçoit et à ce qu'elle accepte.
+- **Couper Studio, une de ses parties, ou le Planning ferme leurs routes**, y
+  compris les pages ouvertes aux clients (espace, contrat, présentation) et
+  les flux du calendrier. Seuls les menus disparaissaient.
+- Le mot de passe du Drive d'un espace est limité à dix essais par quart
+  d'heure et par personne.
+- L'aperçu d'un lien client recopie aussi le droit de discuter.
+
+### Dans aurora-client
+
+Rien à faire après `make aurora-update`. Tous les interrupteurs de Studio et
+du Planning sont allumés en production, donc les nouveaux verrous de routes ne
+ferment rien aujourd'hui.
+
 ## [0.9.269] - 2026-09-27
 
 Les rendez-vous passent par le point d'extension du calendrier, comme les

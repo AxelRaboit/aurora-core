@@ -39,13 +39,20 @@ final readonly class DriveFileServer
      * l'identifiant Google. L'aperçu, lui, n'a besoin d'aucun nom : il ne paie
      * pas cet appel.
      *
-     * Null quand le fichier n'est plus joignable - retiré du partage,
-     * supprimé, ou compte de service révoqué. Du point de vue de l'espace, il
+     * Null quand le fichier n'est pas dans le dossier de l'espace, ou n'est
+     * plus joignable - retiré du partage, supprimé, ou compte de service
+     * révoqué. Du point de vue de l'espace, il
      * n'est plus là : c'est au contrôleur d'en faire un 404 plutôt qu'une
      * erreur au milieu d'une page.
      */
-    public function serve(GoogleServiceAccount $account, string $fileId, bool $download = false): ?Response
+    public function serve(GoogleServiceAccount $account, string $folderId, string $fileId, bool $download = false): ?Response
     {
+        // Ici et non chez les appelants : deux écrans relaient, et le jour où
+        // l'un aurait oublié de le demander, il servait le Drive d'un autre.
+        if (!$this->drive->contains($account, $folderId, $fileId)) {
+            return null;
+        }
+
         $upstream = $this->drive->download($account, $fileId);
 
         if (!$upstream instanceof ResponseInterface) {

@@ -187,7 +187,7 @@ final class SpaceDriveController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-        $response = $this->files->serve($account, $fileId, $request->query->getBoolean('download'));
+        $response = $this->files->serve($account, $space->getDriveFolderId(), $fileId, $request->query->getBoolean('download'));
 
         if (!$response instanceof Response) {
             // Retiré du partage, ou supprimé. Un 404 plutôt qu'une erreur : du

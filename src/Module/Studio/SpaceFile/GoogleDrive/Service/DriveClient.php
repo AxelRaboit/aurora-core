@@ -147,6 +147,21 @@ final readonly class DriveClient
     }
 
     /**
+     * Si ce fichier est l'un de ceux que le dossier montre.
+     *
+     * **Le compte de service lit tous les dossiers qu'on lui a partagés**, et
+     * pas seulement celui de cet espace : relayer un identifiant sans cette
+     * question servait le Drive d'un autre client à qui en devinait un.
+     * Posée à la liste elle-même, et non aux parents du fichier : ce qui se
+     * relaie est exactement ce que l'écran propose, mêmes bornes de
+     * profondeur et de nombre, corbeille exclue.
+     */
+    public function contains(GoogleServiceAccount $account, string $folderId, string $fileId): bool
+    {
+        return array_any($this->files($account, $folderId), fn ($file): bool => $file['id'] === $fileId);
+    }
+
+    /**
      * Les enfants directs d'un lot de dossiers, en une requête.
      *
      * @param list<string> $parentIds
@@ -254,17 +269,6 @@ final readonly class DriveClient
     }
 
     /**
-     * Le fichier lui-même, en flux.
-     *
-     * Rendu tel quel pour que l'appelant le relaie sans le charger en mémoire :
-     * un dossier partagé contient des vidéos et des PDF de plusieurs dizaines
-     * de mégaoctets, et les mettre dans une chaîne PHP pour les recracher
-     * ensuite ferait tomber le serveur sur le premier gros fichier.
-     *
-     * Null quand Google refuse - le fichier a été retiré du partage, ou
-     * supprimé. L'appelant en fait un message, pas une erreur.
-     */
-    /**
      * Le nom du fichier, et rien d'autre.
      *
      * **Google ne le donne pas avec le contenu.** Sa réponse à `alt=media`
@@ -296,6 +300,17 @@ final readonly class DriveClient
         ];
     }
 
+    /**
+     * Le fichier lui-même, en flux.
+     *
+     * Rendu tel quel pour que l'appelant le relaie sans le charger en mémoire :
+     * un dossier partagé contient des vidéos et des PDF de plusieurs dizaines
+     * de mégaoctets, et les mettre dans une chaîne PHP pour les recracher
+     * ensuite ferait tomber le serveur sur le premier gros fichier.
+     *
+     * Null quand Google refuse - le fichier a été retiré du partage, ou
+     * supprimé. L'appelant en fait un message, pas une erreur.
+     */
     public function download(GoogleServiceAccount $account, string $fileId): ?ResponseInterface
     {
         $token = $this->token($account);

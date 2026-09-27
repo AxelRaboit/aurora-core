@@ -1,92 +1,186 @@
+backend:
+    auth:
+        access_request:
+            already_account: '¿Ya tiene una cuenta?'
+            description: 'Rellene este formulario para solicitar acceso a la administración.'
+            email: 'Correo electrónico'
+            login_link: 'Iniciar sesión'
+            message: Mensaje
+            message_placeholder: 'Describa su necesidad...'
+            name: Nombre
+            name_placeholder: 'Juan Pérez'
+            submit: 'Enviar la solicitud'
+            success_toast: 'Su solicitud de acceso se ha enviado.'
+            title: 'Solicitar acceso'
+            closed_title: 'Solicitudes de acceso cerradas'
+            closed_desc: 'Las solicitudes de acceso están desactivadas actualmente.'
+        forgot_password:
+            back_login: 'Volver al inicio de sesión'
+            instructions: 'Introduzca su dirección de correo electrónico y le enviaremos un enlace para restablecer su contraseña.'
+            sent: 'Si esta dirección está asociada a una cuenta, recibirá un correo electrónico en breve.'
+            submit: 'Enviar el enlace'
+            title: 'Contraseña olvidada'
+        hero:
+            description: 'Un CMS headless para gestionar contenidos multilingües, páginas y formularios.'
+            feature_1: 'Gestión de contenido y SEO'
+            feature_2: 'Edición multilingüe por bloques'
+            feature_3: 'Tipos de contenido y taxonomías personalizados'
+            feature_4: 'Formularios y comentarios'
+            heading: 'Dirija su contenido'
+            heading_accent: 'en {siteName}.'
+        invitation:
+            accept_title: 'Aceptar la invitación'
+            confirm_password: 'Confirmar la contraseña'
+            errors:
+                password_confirm_required: 'La confirmación es obligatoria.'
+                password_mismatch: 'Las contraseñas no coinciden.'
+                password_required: 'La contraseña es obligatoria.'
+            expired: 'Este enlace de invitación no es válido o ha caducado.'
+            password: Contraseña
+            set_password: 'Defina su contraseña para activar su cuenta.'
+            submit: 'Activar mi cuenta'
+            success: 'Su cuenta está activada, ¡bienvenido!'
+            welcome: 'Bienvenido, {name}'
+        login:
+            subtitle: 'Bienvenido de nuevo, inicie sesión en su espacio.'
+            email: 'Dirección de correo electrónico'
+            email_placeholder: su@email.com
+            forgot: '¿Ha olvidado su contraseña?'
+            no_account: '¿Todavía no tiene una cuenta?'
+            password: Contraseña
+            remember: Recordarme
+            request_access: 'Solicitar acceso'
+            submit: 'Iniciar sesión'
+            title: 'Inicio de sesión'
+        register:
+            subtitle: 'Cree su cuenta en unos segundos.'
+            already_account: '¿Ya tiene una cuenta?'
+            closed_desc: 'Los nuevos registros están desactivados por el momento.'
+            closed_title: 'Registros cerrados'
+            email: 'Correo electrónico'
+            error_email_invalid: 'Dirección de correo electrónico no válida.'
+            error_email_required: 'La dirección de correo electrónico es obligatoria.'
+            error_email_taken: 'Esta dirección de correo electrónico ya está en uso.'
+            error_name_required: 'El nombre es obligatorio.'
+            error_password_length: 'La contraseña debe contener al menos 8 caracteres.'
+            error_password_mismatch: 'Las contraseñas no coinciden.'
+            heading: 'Crear una cuenta'
+            login_link: 'Iniciar sesión'
+            name: Nombre
+            name_placeholder: 'Juan Pérez'
+            password: Contraseña
+            password_confirm: 'Confirmar la contraseña'
+            submit: 'Crear la cuenta'
+            title: 'Crear una cuenta'
+        register_confirm:
+            title: 'Verifique su correo electrónico'
+            heading: 'Verifique su correo electrónico'
+            message: 'Se le ha enviado un correo electrónico de confirmación. Haga clic en el enlace para activar su cuenta.'
+            login_link: 'Ir al inicio de sesión'
+            resend_hint: '¿No ha recibido el correo electrónico?'
+            resend_link: 'Reenviar el correo electrónico de confirmación'
+            resent_success: 'El correo electrónico de confirmación se ha reenviado.'
+        reset_password:
+            instructions: 'Elija una nueva contraseña para su cuenta.'
+            invalid_link: 'Este enlace no es válido o ha caducado.'
+            submit: Restablecer
+            success: 'Su contraseña se ha restablecido correctamente.'
+            title: 'Restablecer la contraseña'
+        verify_email:
+            title: 'Verificación del correo electrónico'
+            success_heading: '¡Correo electrónico confirmado!'
+            success_message: 'Su dirección de correo electrónico se ha verificado. Ya puede iniciar sesión.'
+            error_heading: 'Enlace no válido o caducado'
+            error_message: 'Este enlace no es válido o ha caducado. Vuelva a registrarse.'
 frontend:
-  login:
-    title: Conexión
-    heading: Conexión
-    subtitle: Conéctese a su espacio personal.
-    email: Dirección de correo
-    email_placeholder: 'usted@ejemplo.com'
-    password: Contraseña
-    forgot_password: ¿Ha olvidado su contraseña?
-    remember_me: Recordarme
-    submit: Conectarse
-    no_account: ¿Todavía no tiene cuenta?
-    register_link: Crear una cuenta
-  register:
-    title: Crear una cuenta
-    heading: Crear una cuenta
-    subtitle: Únase a nuestro espacio personal.
-    name: Nombre completo
-    name_placeholder: Juan Pérez
-    email: Dirección de correo
-    email_placeholder: 'usted@ejemplo.com'
-    password: Contraseña
-    submit: Crear la cuenta
-    already_account: ¿Ya tiene una cuenta?
-    login_link: Conectarse
-    confirm_title: Compruebe su correo
-    confirm_heading: Compruebe su correo
-    confirm_message: Le hemos enviado un correo de confirmación. Haga clic en el enlace para activar su cuenta.
-    closed_title: Inscripciones cerradas
-    closed_desc: Las nuevas inscripciones están desactivadas por el momento.
-    resend_hint: ¿No ha recibido el correo?
-    resend_link: Reenviar el correo de confirmación
-    resent_success: El correo de confirmación se ha reenviado.
-  verify_email:
-    title: Verificación del correo
-    success_heading: '¡Correo confirmado!'
-    success_message: Su dirección de correo ha sido verificada. Ya puede conectarse.
-    error_heading: Enlace no válido o caducado
-    error_message: Este enlace no es válido o ha caducado. Vuelva a registrarse.
-  account:
-    title: Mi cuenta
-    heading: Mi cuenta
-    name: Nombre
-    email: Correo electrónico
-    logout: Cerrar sesión
-  forgot_password:
-    title: Contraseña olvidada
-    heading: Contraseña olvidada
-    subtitle: Introduzca su dirección de correo y le enviaremos un enlace para restablecer su contraseña.
-    submit: Enviar el enlace
-    sent: Le hemos enviado un correo de restablecimiento. Compruebe su bandeja de entrada.
-    back_login: Volver a la conexión
-  reset_password:
-    title: Nueva contraseña
-    heading: Nueva contraseña
-    subtitle: Elija una nueva contraseña para su cuenta.
-    new_password: Nueva contraseña
-    confirm_password: Confirmar la contraseña
-    submit: Restablecer la contraseña
-    invalid_link: Este enlace no es válido o ha caducado. Haga una nueva solicitud.
-    success: Su contraseña ha sido restablecida. Ya puede conectarse.
-  invitation:
-    title: Bienvenido
-    heading: Bienvenido
-    heading_named: 'Bienvenido {name}'
-    subtitle: Elija la contraseña con la que se conectará.
-    password: Contraseña
-    confirm_password: Confirmar la contraseña
-    submit: Activar mi cuenta
-    invalid_link: "Esta invitación no es válida o ha caducado. Pida una nueva a la persona que le dio de alta."
-  errors:
-    name_required: El nombre es obligatorio.
-    email_required: La dirección de correo es obligatoria.
-    email_invalid: Dirección de correo no válida.
-    email_taken: Esta dirección de correo ya está en uso.
-    password_required: La contraseña es obligatoria.
-    password_too_short: La contraseña debe tener al menos 8 caracteres.
-    passwords_mismatch: Las contraseñas no coinciden.
-    email_not_verified: Confirme su dirección de correo antes de conectarse.
-    account_disabled: Su cuenta ha sido desactivada.
-shared:
-  password:
-    criteria:
-      length: 8 caracteres como mínimo
-      uppercase: Una letra mayúscula
-      number: Una cifra
-      special: Un carácter especial
+    login:
+        title: Conexión
+        heading: Conexión
+        subtitle: 'Conéctese a su espacio personal.'
+        email: 'Dirección de correo'
+        email_placeholder: usted@ejemplo.com
+        password: Contraseña
+        forgot_password: '¿Ha olvidado su contraseña?'
+        remember_me: Recordarme
+        submit: Conectarse
+        no_account: '¿Todavía no tiene cuenta?'
+        register_link: 'Crear una cuenta'
+    register:
+        title: 'Crear una cuenta'
+        heading: 'Crear una cuenta'
+        subtitle: 'Únase a nuestro espacio personal.'
+        name: 'Nombre completo'
+        name_placeholder: 'Juan Pérez'
+        email: 'Dirección de correo'
+        email_placeholder: usted@ejemplo.com
+        password: Contraseña
+        submit: 'Crear la cuenta'
+        already_account: '¿Ya tiene una cuenta?'
+        login_link: Conectarse
+        confirm_title: 'Compruebe su correo'
+        confirm_heading: 'Compruebe su correo'
+        confirm_message: 'Le hemos enviado un correo de confirmación. Haga clic en el enlace para activar su cuenta.'
+        closed_title: 'Inscripciones cerradas'
+        closed_desc: 'Las nuevas inscripciones están desactivadas por el momento.'
+        resend_hint: '¿No ha recibido el correo?'
+        resend_link: 'Reenviar el correo de confirmación'
+        resent_success: 'El correo de confirmación se ha reenviado.'
+    verify_email:
+        title: 'Verificación del correo'
+        success_heading: '¡Correo confirmado!'
+        success_message: 'Su dirección de correo ha sido verificada. Ya puede conectarse.'
+        error_heading: 'Enlace no válido o caducado'
+        error_message: 'Este enlace no es válido o ha caducado. Vuelva a registrarse.'
+    account:
+        title: 'Mi cuenta'
+        heading: 'Mi cuenta'
+        name: Nombre
+        email: 'Correo electrónico'
+        logout: 'Cerrar sesión'
+    forgot_password:
+        title: 'Contraseña olvidada'
+        heading: 'Contraseña olvidada'
+        subtitle: 'Introduzca su dirección de correo y le enviaremos un enlace para restablecer su contraseña.'
+        submit: 'Enviar el enlace'
+        sent: 'Le hemos enviado un correo de restablecimiento. Compruebe su bandeja de entrada.'
+        back_login: 'Volver a la conexión'
+    reset_password:
+        title: 'Nueva contraseña'
+        heading: 'Nueva contraseña'
+        subtitle: 'Elija una nueva contraseña para su cuenta.'
+        new_password: 'Nueva contraseña'
+        confirm_password: 'Confirmar la contraseña'
+        submit: 'Restablecer la contraseña'
+        invalid_link: 'Este enlace no es válido o ha caducado. Haga una nueva solicitud.'
+        success: 'Su contraseña ha sido restablecida. Ya puede conectarse.'
+    invitation:
+        title: Bienvenido
+        heading: Bienvenido
+        heading_named: 'Bienvenido {name}'
+        subtitle: 'Elija la contraseña con la que se conectará.'
+        password: Contraseña
+        confirm_password: 'Confirmar la contraseña'
+        submit: 'Activar mi cuenta'
+        invalid_link: 'Esta invitación no es válida o ha caducado. Pida una nueva a la persona que le dio de alta.'
     errors:
-      too_short: La contraseña debe tener al menos 8 caracteres.
-      no_uppercase: La contraseña debe contener al menos una mayúscula.
-      no_number: La contraseña debe contener al menos una cifra.
-      no_special: La contraseña debe contener al menos un carácter especial.
+        name_required: 'El nombre es obligatorio.'
+        email_required: 'La dirección de correo es obligatoria.'
+        email_invalid: 'Dirección de correo no válida.'
+        email_taken: 'Esta dirección de correo ya está en uso.'
+        password_required: 'La contraseña es obligatoria.'
+        password_too_short: 'La contraseña debe tener al menos 8 caracteres.'
+        passwords_mismatch: 'Las contraseñas no coinciden.'
+        email_not_verified: 'Confirme su dirección de correo antes de conectarse.'
+        account_disabled: 'Su cuenta ha sido desactivada.'
+shared:
+    password:
+        criteria:
+            length: '8 caracteres como mínimo'
+            uppercase: 'Una letra mayúscula'
+            number: 'Una cifra'
+            special: 'Un carácter especial'
+        errors:
+            too_short: 'La contraseña debe tener al menos 8 caracteres.'
+            no_uppercase: 'La contraseña debe contener al menos una mayúscula.'
+            no_number: 'La contraseña debe contener al menos una cifra.'
+            no_special: 'La contraseña debe contener al menos un carácter especial.'

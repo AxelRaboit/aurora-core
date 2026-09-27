@@ -1,0 +1,84 @@
+backend:
+    profile:
+        errors:
+            current_password_invalid: 'La contraseña actual es incorrecta.'
+            email_invalid: 'Dirección de correo electrónico no válida.'
+            email_taken: 'Esta dirección de correo electrónico ya está en uso.'
+            invalid_csrf: 'Token de seguridad no válido.'
+            invalid_locale: 'Idioma no admitido.'
+            last_dev_protected: 'Usted es el último desarrollador de esta instancia. Asigne el rol Dev a otro usuario antes de eliminar su cuenta.'
+            name_required: 'El nombre es obligatorio.'
+            password_mismatch: 'Las contraseñas no coinciden.'
+            password_too_short: 'La contraseña debe contener al menos 8 caracteres.'
+        photo:
+            title: 'Foto de perfil'
+            subtitle: 'Esta imagen aparece en el menú lateral y en la lista de usuarios.'
+        mood:
+            title: 'Frase de ánimo'
+            subtitle: 'Una frase breve que describe su estado de ánimo del momento.'
+            placeholder: 'Lo que quiera compartir…'
+            hint: '160 caracteres máx.'
+            saved: 'Frase de ánimo actualizada.'
+            errors:
+                too_long: 'La frase no debe superar los 160 caracteres.'
+        locale:
+            title: Idioma
+            subtitle: 'Elija el idioma de visualización de la administración.'
+            field: Idioma
+        info:
+            title: 'Información del perfil'
+            subtitle: 'Actualice su nombre y su dirección de correo electrónico.'
+            name: 'Nombre completo'
+            list_view: 'Vista de lista'
+            kanban_view: 'Vista Kanban'
+            name_placeholder: 'Juan Pérez'
+            email: 'Dirección de correo electrónico'
+            email_placeholder: usted@ejemplo.com
+            saved: 'Perfil actualizado correctamente.'
+        password:
+            title: 'Cambiar la contraseña'
+            subtitle: 'Utilice una contraseña larga y aleatoria para proteger su cuenta.'
+            current: 'Contraseña actual'
+            new: 'Nueva contraseña'
+            confirm: 'Confirmar la contraseña'
+            saved: 'Contraseña actualizada correctamente.'
+            error_current: 'La contraseña actual es incorrecta.'
+        account:
+            title: 'Información de la cuenta'
+            subtitle: 'Resumen de su cuenta en esta instancia.'
+            reference: Referencia
+            role: Rol
+            type: Tipo
+            status: Estado
+            manager: Responsable
+            created_at: 'Creado el'
+            unset: 'No definido'
+        preferences:
+            title: Preferencias
+            subtitle: 'Personalice su experiencia.'
+            tabs:
+                sidemenu: 'Menú lateral'
+        sidemenu:
+            title: 'Preferencias del menú lateral'
+            subtitle: 'Personalizar la navegación: ocultar las secciones o módulos que no se usan, o cambiar el color de una sección para localizarla mejor. Las páginas siguen siendo accesibles por URL directa.'
+            section_hint: 'Desactivar el botón para ocultar toda la sección, o ajustar módulo por módulo.'
+            hide_all: 'Ocultar todo'
+            show_all: 'Mostrar todo'
+            save: Guardar
+            reset: 'Volver a mostrar todo'
+            saved: 'Preferencias guardadas.'
+            reset_done: 'Preferencias restablecidas.'
+            empty: 'Ninguna sección disponible.'
+            empty_search: 'Ningún resultado para esta búsqueda.'
+            search_placeholder: 'Buscar una sección o un módulo…'
+            color_label: Color
+            color_reset: 'Restablecer el color predeterminado'
+        danger:
+            title: 'Zona de peligro'
+            description: 'La eliminación de su cuenta es irreversible. Todos sus datos se borrarán definitivamente.'
+            submit: 'Eliminar mi cuenta'
+            confirm: '¿Está seguro de que desea eliminar su cuenta? Esta acción es irreversible.'
+            dev_protected: 'Usted es el último desarrollador de esta instancia. Asigne el rol Dev a otro usuario para poder eliminar esta cuenta.'
+    impersonation:
+        banner: 'Ha iniciado sesión como {name}'
+        leave: Salir

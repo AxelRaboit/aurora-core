@@ -9,6 +9,7 @@ use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Enum\UserRoleEnum;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceMemberRoleEnum;
+use Aurora\Module\Studio\CustomerSpace\Enum\SpaceScopeEnum;
 use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
 use Symfony\Bundle\SecurityBundle\Security;
 
@@ -59,6 +60,44 @@ final readonly class SpaceVisibility
         }
 
         return $this->spaces->findVisibleTo($user, $this->seesAll());
+    }
+
+    /**
+     * The spaces a cross-space screen shows, for this scope.
+     *
+     * « Mine » is the spaces the reader is a member of. Somebody who sees
+     * every space but is a member of none gets every space instead: their own
+     * would be an empty screen, and they are the one person for whom « all »
+     * is the natural answer.
+     *
+     * @return list<CustomerSpaceInterface>
+     */
+    public function spacesIn(SpaceScopeEnum $scope): array
+    {
+        $user = $this->security->getUser();
+
+        if (!$user instanceof CoreUserInterface) {
+            return [];
+        }
+
+        $mine = $this->spaces->findVisibleTo($user, false);
+
+        if (!$this->seesAll()) {
+            return $mine;
+        }
+
+        return SpaceScopeEnum::Mine === $scope && [] !== $mine ? $mine : $this->spaces->findVisibleTo($user, true);
+    }
+
+    /**
+     * Whether « mine » and « all » are two different answers for this reader,
+     * so the screen should offer the switch at all.
+     */
+    public function hasScopeChoice(): bool
+    {
+        $user = $this->security->getUser();
+
+        return $this->seesAll() && $user instanceof CoreUserInterface && [] !== $this->spaces->findVisibleTo($user, false);
     }
 
     public function canSee(CustomerSpaceInterface $space): bool

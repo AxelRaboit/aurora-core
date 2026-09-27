@@ -2,11 +2,19 @@ backend:
     stats:
         studio:
             spaces: Active spaces
-            awaiting_client: Waiting on the client
+            missed: Missed publications
+            late_review: Reviews overdue
+            changes_requested: To rework
+            with_client: With the client
             upcoming: "Going out within 7 days"
+            awaiting_signature: Contracts to sign
             decks: Decks
-            by_approval: Where the content stands
-            by_contract_status: Where the contracts stand
+            scope_label: Spaces counted
+            scopes:
+                mine: My spaces
+                all: All spaces
+            attention_title: To handle
+            attention_empty: Nothing is waiting at your clients'.
     modules:
         studio: Studio
         studio_backend: Studio
@@ -20,8 +28,10 @@ backend:
         studio_contract_templates_description: The model documents contracts are built from, and their versions.
         studio_customers: Customers
         studio_customers_description: The companies you contract with, and their legal identity block.
+        studio_calendar: Editorial calendar
+        studio_calendar_description: What goes out for every client, on one month.
         studio_spaces: Client spaces
-        studio_spaces_description: One space per client engagement, with its team and, soon, its calendar.
+        studio_spaces_description: One space per client engagement, with its team, its board and its calendar.
         studio_contracts: Contracts
         studio_contracts_description: Contracts prepared, sealed and signed.
         studio_decks: Presentations
@@ -100,7 +110,7 @@ backend:
                 contract:
                     created: Contract created
                     updated: Contract edited
-                    frozen: Contract frozen and sealed
+                    frozen: Contract sealed
                     link_sent: Signing link sent
                     link_revoked: Signing link revoked
                     reminder_sent: Reminder sent to the customer
@@ -144,6 +154,38 @@ backend:
                 deck_categories:
                     manage: Manage presentation categories
     studio:
+        workload:
+            next_publication: "next publication on {date}"
+            badges:
+                missed: "No missed publication | 1 missed publication | {count} missed publications"
+                late_review: "No overdue review | 1 overdue review | {count} overdue reviews"
+                changes_requested: "Nothing to rework | 1 to rework | {count} to rework"
+                with_client: "Nothing with the client | 1 with the client | {count} with the client"
+        calendar:
+            scope_label: Spaces shown
+            scopes:
+                mine: My spaces
+                all: All spaces
+            search_placeholder: Search a publication…
+            all_customers: All clients
+            all_states: All states
+            view_label: Display
+            views:
+                month: Month
+                list: List
+            today: Today
+            no_spaces: No space to show.
+            empty_month: Nothing scheduled this month.
+            states:
+                missed: Missed publication
+                late_review: Review overdue
+                changes_requested: To rework
+                with_client: With the client
+                upcoming: Upcoming
+                published: Published
+            errors:
+                window: That period is not valid.
+                load: The calendar could not be loaded.
         signatures:
             role:
                 customer: 'The customer'
@@ -339,7 +381,7 @@ backend:
                 draft_already_open: 'A draft is already open on this template (version {number}). Finish or discard it before opening another.'
                 nothing_to_publish: This version has no wording to publish.
                 already_published: 'This version is published: its wording can no longer be changed. Open a new version.'
-                used_by_contracts: '{count} frozen contract(s) were built from this template. Deleting it would erase the link between them and the wording that was signed: archive it instead.'
+                used_by_contracts: '{count} sealed contract(s) were built from this template. Deleting it would erase the link between them and the wording that was signed: archive it instead.'
                 governing_locale_unknown: This language is not one the application offers.
                 governing_locale_not_written: 'The governing language ({locale}) is not written in this version.'
                 governing_locale_required: 'This version is written in several languages: say which one prevails before publishing it.'
@@ -927,8 +969,9 @@ backend:
             updated: Space updated.
             deleted: Space deleted.
             delete_confirm: 'Delete {name}?'
-            delete_warning: The space and its team list go. The customer, their contracts and their documents stay where they are.
+            delete_warning: "The space goes with everything in it: its content, their threads and attachments, its conversations, its notes and its access links. Its dates leave the calendar. The client, their contracts and the media library's documents stay."
             show_archived: Show archived spaces
+            sort_by_urgency: Sort by urgency
             archived_badge: Archived
             no_members: Nobody assigned
             team_button: '1 person | {count} people'
@@ -938,6 +981,7 @@ backend:
 
             col_space: Space
             col_customer: Client
+            col_workload: To handle
             col_team: Team
             col_storage: Weight
             col_status: Status
@@ -1006,6 +1050,7 @@ backend:
                 confirm_placeholder: The same one, a second time
                 errors:
                     wrong_password: Wrong password.
+                    too_many_attempts: Too many attempts. Try again in a quarter of an hour.
                     password_too_short: Password too short.
                     password_mismatch: Passwords do not match.
                     not_locked: "The Drive tab is not closed."
@@ -1024,6 +1069,7 @@ backend:
                 name_too_long: The name cannot be longer than 150 characters.
                 customer_required: Choose the client this space belongs to.
                 timezone_invalid: That time zone is not recognised.
+                team_lead_only: Only the space lead can change its team and roles.
         space_access:
             tab: Client access
             intro: A link opens this space read-only, with no account. It is personal, it expires, and it can be revoked.
@@ -1249,6 +1295,10 @@ backend:
         space_information:
             scope: "This sheet belongs to the customer, not to this project. Editing it here edits it in every space of theirs, deliberately: a SIRET is a company's."
             what_the_client_sees: What the client sees
+            related_contracts: "This client's contracts"
+            related_decks: "This client's decks"
+            related_spaces: "This client's other spaces"
+            draft_contract: "Draft"
             saved: Sheet saved.
             legal_name: Company name
             legal_name_placeholder: 'e.g. Atelier Dupont'
@@ -1342,6 +1392,7 @@ backend:
             upload: '%who% sent a file on "%item%"'
             approved: '%who% approved "%item%"'
             changes_requested: '%who% asked for a rewrite of "%item%"'
+            late_review: '{1}One review overdue|]1,Inf[%count% reviews overdue'
         space_chat:
             channels:
                 main_name: General
@@ -1361,7 +1412,7 @@ backend:
                 from_client: A client's message is not deleted. It is what they told you.
                 not_in_space: This link does not open this space.
         space_content:
-            tab: Content
+            tab: Workspace
             view_label: View
             view_content: Content
             shape_board: Kanban
@@ -1373,7 +1424,7 @@ backend:
             view_chat: Chat
             view_notes: Notes
             view_information: Information
-            view_resources: Links
+            view_resources: Resources
             view_settings: Settings
             files_empty: No file on this space yet
             files_empty_hint: Files put on the content, by you or by the client, appear here newest first.
@@ -1398,6 +1449,7 @@ backend:
                 delete_description: Delete this content
             calendar_name: Client content
             back_to_spaces: Back to spaces
+            switch_space: "Switch space"
             add_item: Add content
             create_item: New content
             edit_item: 'Edit {title}'
@@ -1442,6 +1494,8 @@ backend:
                 nobody_to_write_to: 'No link on this space can answer. Issue an access with the right to approve from the Access tab.'
                 late: '{count} late'
                 late_hint: 'These have passed the date you needed an answer by. Nothing is blocked because of it.'
+                due: "Answer by {date}"
+                late_since: "Answer was due {date}"
             show_on_calendar: Show on the calendar
             show_on_calendar_hint: "Unchecked, the card keeps its date and stays on the board, but appears neither on your calendar nor on the client's."
             scheduled_at_placeholder: '22/09/2026 09:00'
@@ -1450,6 +1504,7 @@ backend:
             add_column: Add a step
             create_column: New step
             edit_column: Rename the step
+            move_column: "Move the step"
             column_name: Step name
             column_name_placeholder: 'To review, Live…'
             column_colour: Colour
@@ -1462,6 +1517,15 @@ backend:
             delete_column_confirm: 'Delete the step {name}?'
             delete_column_warning: A step is only deleted when it is empty.
 
+            column_role: Step role
+            column_role_hint: Optional. Says which common stage this step stands for, so the dashboard and the editorial calendar can count it.
+            column_role_none: None
+            column_roles:
+                idea: Idea
+                production: Production
+                review: Review
+                scheduled: Scheduled
+                published: Published
             default_columns:
                 idea: Ideas
                 writing: Writing

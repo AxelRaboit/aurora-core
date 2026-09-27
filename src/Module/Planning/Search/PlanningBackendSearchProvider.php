@@ -9,6 +9,7 @@ use Aurora\Module\Planning\Event\Repository\PlanningEventRepository;
 use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
 use Aurora\Module\Planning\Planning\Repository\PlanningRepository;
 use Aurora\Module\Planning\Reminder\Repository\PlanningReminderRepository;
+use Aurora\Module\Planning\Sync\Access\ModuleEventVisibility;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -37,6 +38,7 @@ final readonly class PlanningBackendSearchProvider implements BackendSearchProvi
         private PlanningReminderRepository $reminders,
         private Security $security,
         private UrlGeneratorInterface $urlGenerator,
+        private ModuleEventVisibility $moduleEvents,
     ) {}
 
     public function search(string $query): array
@@ -45,8 +47,10 @@ final readonly class PlanningBackendSearchProvider implements BackendSearchProvi
         // palette because one module's query failed is worse than one section
         // missing.
         try {
+            // The right to look at calendars, as every calendar screen asks:
+            // the search used to answer anybody signed in.
             $user = $this->security->getUser();
-            if (!$user instanceof CoreUserInterface) {
+            if (!$user instanceof CoreUserInterface || !$this->security->isGranted('planning.calendars.view')) {
                 return [];
             }
 
@@ -76,7 +80,7 @@ final readonly class PlanningBackendSearchProvider implements BackendSearchProvi
     private function serializeEvents(array $ids, string $query): array
     {
         $rows = [];
-        foreach ($this->events->searchVisible($ids, $query) as $event) {
+        foreach ($this->moduleEvents->filter($this->events->searchVisible($ids, $query)) as $event) {
             $rows[] = [
                 'id' => $event->getId(),
                 'title' => $event->getTitle(),

@@ -10,6 +10,7 @@ use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\SpaceContent\Dto\SpaceContentColumnInputInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumn;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumnInterface;
+use Aurora\Module\Studio\SpaceContent\Enum\SpaceContentColumnRoleEnum;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentColumnRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
@@ -38,11 +39,11 @@ class SpaceContentColumnManager implements SpaceContentColumnManagerInterface
      * has to tell apart at a glance.
      */
     protected const array DEFAULT_COLUMNS = [
-        ['backend.studio.space_content.default_columns.idea', null],
-        ['backend.studio.space_content.default_columns.writing', 1],
-        ['backend.studio.space_content.default_columns.review', 4],
-        ['backend.studio.space_content.default_columns.scheduled', 3],
-        ['backend.studio.space_content.default_columns.published', 6],
+        ['backend.studio.space_content.default_columns.idea', null, SpaceContentColumnRoleEnum::Idea],
+        ['backend.studio.space_content.default_columns.writing', 1, SpaceContentColumnRoleEnum::Production],
+        ['backend.studio.space_content.default_columns.review', 4, SpaceContentColumnRoleEnum::Review],
+        ['backend.studio.space_content.default_columns.scheduled', 3, SpaceContentColumnRoleEnum::Scheduled],
+        ['backend.studio.space_content.default_columns.published', 6, SpaceContentColumnRoleEnum::Published],
     ];
 
     public function __construct(
@@ -60,6 +61,7 @@ class SpaceContentColumnManager implements SpaceContentColumnManagerInterface
             ->setName($input->getName())
             ->setColourSlot($input->getColourSlot())
             ->setVisibleToClient($input->isVisibleToClient())
+            ->setRole($input->getRole())
             ->setPosition($this->columnRepository->nextPosition($space));
 
         $this->entityManager->persist($column);
@@ -75,7 +77,8 @@ class SpaceContentColumnManager implements SpaceContentColumnManagerInterface
         $column
             ->setName($input->getName())
             ->setColourSlot($input->getColourSlot())
-            ->setVisibleToClient($input->isVisibleToClient());
+            ->setVisibleToClient($input->isVisibleToClient())
+            ->setRole($input->getRole());
         $this->entityManager->flush();
 
         $this->auditUpdated($column);
@@ -151,12 +154,13 @@ class SpaceContentColumnManager implements SpaceContentColumnManagerInterface
     {
         $position = 0;
 
-        foreach (static::DEFAULT_COLUMNS as [$key, $colourSlot]) {
+        foreach (static::DEFAULT_COLUMNS as [$key, $colourSlot, $role]) {
             $column = $this->createColumn();
             $column
                 ->setSpace($space)
                 ->setName($this->translator->trans($key))
                 ->setColourSlot($colourSlot)
+                ->setRole($role)
                 ->setPosition($position);
 
             $this->entityManager->persist($column);
@@ -196,6 +200,7 @@ class SpaceContentColumnManager implements SpaceContentColumnManagerInterface
             'name' => $column->getName(),
             'colourSlot' => $column->getColourSlot(),
             'visibleToClient' => $column->isVisibleToClient(),
+            'role' => $column->getRole()?->value,
             'spaceId' => $column->getSpace()->getId(),
             'spaceName' => $column->getSpace()->getName(),
         ];

@@ -33,6 +33,7 @@ use Aurora\Module\Planning\Reminder\Manager\PlanningReminderManagerInterface;
 use Aurora\Module\Planning\Reminder\Repository\PlanningReminderRepository;
 use Aurora\Module\Planning\Reminder\Serializer\PlanningReminderSerializer;
 use Aurora\Module\Planning\Share\Manager\PlanningShareManagerInterface;
+use Aurora\Module\Planning\Sync\Access\ModuleEventVisibility;
 use Aurora\Module\Planning\Time\PlanningClock;
 use Aurora\Module\Planning\View\PlanningViewBuilder;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
@@ -81,6 +82,7 @@ final class PlanningController extends AbstractController
         private readonly PlanningShareLinkInputFactoryInterface $shareLinkInputFactory,
         private readonly PlanningShareLinkSerializer $shareLinkSerializer,
         private readonly PlanningShareLinkRepository $shareLinkRepository,
+        private readonly ModuleEventVisibility $moduleEvents,
     ) {}
 
     #[Route('/calendar', name: '_calendar', methods: [HttpMethodEnum::Get->value])]
@@ -119,7 +121,9 @@ final class PlanningController extends AbstractController
         // draws both in the same grid. Two endpoints would be two round trips
         // whose results have to arrive together to be drawn at all.
         return $this->json([
-            'events' => $this->eventSerializer->serializeMany($this->occurrences->find($ids, $from, $to)),
+            // Without the module events the reader may not see: a client's
+            // publications go to the members of that client's space only.
+            'events' => $this->eventSerializer->serializeMany($this->moduleEvents->filter($this->occurrences->find($ids, $from, $to))),
             'reminders' => $this->reminderSerializer->serializeMany($this->reminderRepository->findInWindow($ids, $from, $to)),
         ]);
     }
@@ -146,6 +150,10 @@ final class PlanningController extends AbstractController
     #[IsGranted('planning.calendars.manage')]
     public function updateCalendar(Planning $planning, Request $request): JsonResponse
     {
+        if (!$this->isOwnCalendar($planning)) {
+            return $this->jsonNotFound();
+        }
+
         $input = $this->planningInputFactory->fromArray($this->decodeJson($request));
         $errors = $this->payloadValidator->errors($input);
         if ([] !== $errors) {
@@ -157,16 +165,6 @@ final class PlanningController extends AbstractController
         return $this->jsonSuccess(['calendar' => $this->planningSerializer->serialize($planning)]);
     }
 
-    /**
-     * Publishes a feed for this calendar, or replaces the address if one exists.
-     *
-     * One route for both, because they are the same request: asking to publish
-     * again is how somebody revokes an address they shared too widely, and a
-     * separate "rotate" would be a second name for it.
-     *
-     * The URL comes back absolute. A relative one would be useless - it is meant
-     * to be pasted into a phone.
-     */
     /**
      * Sets who a calendar is shared with, by name.
      *
@@ -274,6 +272,10 @@ final class PlanningController extends AbstractController
     #[IsGranted('planning.calendars.manage')]
     public function deleteCalendar(Planning $planning): JsonResponse
     {
+        if (!$this->isOwnCalendar($planning)) {
+            return $this->jsonNotFound();
+        }
+
         $this->planningManager->delete($planning);
 
         return $this->jsonSuccess();
@@ -310,6 +312,13 @@ final class PlanningController extends AbstractController
             return $this->jsonInvalidInput(['event' => 'backend.plannings.events.errors.read_only']);
         }
 
+        // The calendar it is on now, not only the one it is sent to: moving an
+        // event out of a calendar you cannot write to is writing to it. And a
+        // module event the reader may not see is not theirs to edit either.
+        if (!$this->writableCalendar((int) $event->getPlanning()->getId()) instanceof PlanningInterface || !$this->moduleEvents->canSee($event)) {
+            return $this->jsonNotFound();
+        }
+
         // Kept, because the scope travels in the same body as the fields and the
         // factory only reads the ones it knows.
         $data = $this->decodeJson($request);
@@ -336,14 +345,6 @@ final class PlanningController extends AbstractController
         return $this->jsonSuccess(['event' => $this->eventSerializer->serialize($written)]);
     }
 
-    /**
-     * Dragging or resizing an event: two instants and nothing else.
-     *
-     * Its own route because a drag knows the span and not the rest of the event,
-     * and posting a whole event the grid does not hold would be a way to lose a
-     * field. Validated here rather than left to the entity: it throws on an end
-     * before a start, and a 500 is the wrong answer to a gesture.
-     */
     /**
      * An attendee answering for themselves.
      *
@@ -375,6 +376,14 @@ final class PlanningController extends AbstractController
         return $this->jsonSuccess(['event' => $this->eventSerializer->serialize($event)]);
     }
 
+    /**
+     * Dragging or resizing an event: two instants and nothing else.
+     *
+     * Its own route because a drag knows the span and not the rest of the event,
+     * and posting a whole event the grid does not hold would be a way to lose a
+     * field. Validated here rather than left to the entity: it throws on an end
+     * before a start, and a 500 is the wrong answer to a gesture.
+     */
     #[Route('/events/{id}/move', name: '_events_move', methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('planning.events.edit')]
     public function moveEvent(PlanningEvent $event, Request $request): JsonResponse
@@ -383,7 +392,7 @@ final class PlanningController extends AbstractController
             return $this->jsonInvalidInput(['event' => 'backend.plannings.events.errors.read_only']);
         }
 
-        if (!$this->writableCalendar((int) $event->getPlanning()->getId()) instanceof PlanningInterface) {
+        if (!$this->writableCalendar((int) $event->getPlanning()->getId()) instanceof PlanningInterface || !$this->moduleEvents->canSee($event)) {
             return $this->jsonInvalidInput(['planningId' => 'backend.plannings.events.errors.calendar_required']);
         }
 
@@ -423,6 +432,10 @@ final class PlanningController extends AbstractController
             return $this->jsonInvalidInput(['event' => 'backend.plannings.events.errors.read_only']);
         }
 
+        if (!$this->writableCalendar((int) $event->getPlanning()->getId()) instanceof PlanningInterface || !$this->moduleEvents->canSee($event)) {
+            return $this->jsonNotFound();
+        }
+
         $data = $this->decodeJson($request);
         $scope = RecurrenceScopeEnum::fromRequest($data['scope'] ?? null);
         $occurrenceAt = $this->date($data['occurrenceAt'] ?? null);
@@ -447,22 +460,6 @@ final class PlanningController extends AbstractController
         return $this->planningRepository->findVisibleTo($user);
     }
 
-    /**
-     * The calendar an event may be written to, or null.
-     *
-     * Resolved through the visible list rather than by a bare `find()`: an id
-     * arriving in a payload is a claim, and a reader who cannot see a calendar
-     * must not be able to drop an event into it.
-     */
-    /**
-     * The calendar this id names, if the reader may write into it.
-     *
-     * Two questions and not one, which it used to conflate: seeing a calendar and
-     * writing into it became different the moment a calendar could be shared
-     * read-only. Resolved through the visible list first, so an id naming a
-     * calendar nobody can see is answered the same way as one naming nothing -
-     * saying "you cannot write to that one" would confirm it exists.
-     */
     /**
      * The reader's own calendars among those ids, and only their own.
      *
@@ -510,6 +507,32 @@ final class PlanningController extends AbstractController
         return null;
     }
 
+    /**
+     * Whether the reader owns this calendar - the only one who may rename,
+     * recolour, reshare or delete it.
+     *
+     * Write access is not enough: somebody a calendar is shared with may put
+     * events on it, not take it away from its owner. A module's calendar has
+     * no owner, so nobody may: its name and its entries are the module's.
+     * Answered as a 404 either way, so an id that is not yours does not say
+     * whose it is.
+     */
+    private function isOwnCalendar(PlanningInterface $planning): bool
+    {
+        $user = $this->getUser();
+
+        return $user instanceof CoreUserInterface && $planning->getOwner() instanceof CoreUserInterface && $planning->getOwner()->getId() === $user->getId();
+    }
+
+    /**
+     * The calendar this id names, if the reader may write into it.
+     *
+     * Two questions and not one, which it used to conflate: seeing a calendar and
+     * writing into it became different the moment a calendar could be shared
+     * read-only. Resolved through the visible list first, so an id naming a
+     * calendar nobody can see is answered the same way as one naming nothing -
+     * saying "you cannot write to that one" would confirm it exists.
+     */
     private function writableCalendar(int $id): ?PlanningInterface
     {
         $user = $this->getUser();

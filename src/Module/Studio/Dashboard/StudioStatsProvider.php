@@ -5,42 +5,60 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\Dashboard;
 
 use Aurora\Core\Dashboard\DashboardStatsProviderInterface;
+use Aurora\Module\Studio\Contract\Enum\ContractStatusEnum;
 use Aurora\Module\Studio\Contract\Repository\ContractRepository;
-use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceStatusEnum;
-use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
+use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\CustomerSpace\Enum\SpaceScopeEnum;
+use Aurora\Module\Studio\CustomerSpace\Security\SpaceVisibility;
 use Aurora\Module\Studio\Deck\Repository\DeckRepository;
-use Aurora\Module\Studio\SpaceContent\Enum\SpaceContentApprovalEnum;
-use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentItemRepository;
-use DateTimeImmutable;
+use Aurora\Module\Studio\SpaceContent\Workload\SpaceWorkload;
+use Aurora\Module\Studio\SpaceContent\Workload\SpaceWorkloadRow;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
+use function array_filter;
+use function array_map;
+use function array_slice;
 use function array_sum;
-use function sprintf;
+use function array_values;
+use function usort;
 
 /**
- * Les chiffres du Studio sur le tableau de bord.
+ * Les chiffres du Studio sur le tableau de bord : ce qui m'attend chez mes
+ * clients aujourd'hui.
  *
- * **Le module où le travail se passe n'y était pas.** L'écran d'arrivée
- * montrait l'éditorial, la médiathèque, le calendrier et les comptes ; les
- * espaces clients, les contrats et les présentations, c'est-à-dire ce qu'on
- * ouvre tous les jours, n'avaient aucun panneau. Chaque module apporte le sien
- * et celui-ci manquait, ce qui ne se voit pas : un tableau de bord incomplet
- * ressemble à un tableau de bord.
+ * **Les espaces du lecteur, et eux seuls.** Les chiffres comptaient toutes
+ * les cartes de tous les espaces, archivés compris, y compris ceux dont le
+ * lecteur n'est pas membre : 13 « en attente du client » sur cet écran, 6
+ * dans l'espace. Ils viennent maintenant de {@see SpaceWorkload}, sur les
+ * espaces que {@see SpaceVisibility} donne pour la portée choisie - les
+ * siens d'abord, tous pour qui voit tout et le demande.
  *
- * **Deux nombres disent ce qui attend quelqu'un**, et c'est la question qu'on
- * se pose en arrivant : combien de contenus dorment chez un client, et combien
- * de contrats attendent une signature. Le reste situe : une carte en attente
- * sur trois n'est pas la même nouvelle qu'une sur quarante.
+ * **Une liste plutôt que des répartitions.** Une barre « où en sont les
+ * contenus » ne dit pas chez qui aller ; une ligne par espace qui attend
+ * quelque chose, la plus urgente en haut, si.
  */
 final readonly class StudioStatsProvider implements DashboardStatsProviderInterface
 {
-    /** La fenêtre de « ce qui sort bientôt ». Une semaine, comme on planifie. */
-    private const int UPCOMING_DAYS = 7;
+    /** Au-delà, la liste cesse d'être une liste qu'on lit en arrivant. */
+    private const int ATTENTION_LIMIT = 8;
+
+    /** Les contrats qui attendent une signature, d'un côté ou de l'autre. */
+    private const array AWAITING_SIGNATURE = [
+        ContractStatusEnum::Sent,
+        ContractStatusEnum::Opened,
+        ContractStatusEnum::SignedByCustomer,
+    ];
 
     public function __construct(
-        private CustomerSpaceRepository $spaceRepository,
-        private SpaceContentItemRepository $itemRepository,
+        private SpaceVisibility $visibility,
+        private SpaceWorkload $workload,
         private ContractRepository $contractRepository,
         private DeckRepository $deckRepository,
+        private RequestStack $requestStack,
+        private UrlGeneratorInterface $urlGenerator,
+        private AuthorizationCheckerInterface $authorizationChecker,
     ) {}
 
     public function getModuleKey(): string
@@ -50,39 +68,83 @@ final readonly class StudioStatsProvider implements DashboardStatsProviderInterf
 
     public function getStats(): array
     {
-        $spaces = $this->spaceRepository->countGroupedByStatus();
-        $approvals = $this->itemRepository->countGroupedByApproval();
-        $contracts = $this->contractRepository->countGroupedByStatus();
+        $scope = SpaceScopeEnum::fromRequest($this->requestStack->getMainRequest()?->query->get('studioScope'));
+        $spaces = [];
+        foreach ($this->visibility->spacesIn($scope) as $space) {
+            $spaces[(int) $space->getId()] = $space;
+        }
 
-        $now = new DateTimeImmutable();
+        $rows = $this->workload->forSpaces(array_values($spaces));
+        $sum = static fn (string $field): int => array_sum(array_map(static fn (SpaceWorkloadRow $row): int => $row->{$field}, $rows));
 
         return [
             'studio' => [
-                'spaces' => array_sum($spaces),
-                'activeSpaces' => $spaces[CustomerSpaceStatusEnum::Active->value] ?? 0,
-                'spacesByStatus' => $spaces,
-
-                'items' => array_sum($approvals),
-                // Ce qui dort chez un client : le seul nombre de cet écran sur
-                // lequel on agit en relançant quelqu'un.
-                'awaitingClient' => $approvals[SpaceContentApprovalEnum::Pending->value] ?? 0,
-                'changesRequested' => $approvals[SpaceContentApprovalEnum::ChangesRequested->value] ?? 0,
-                'itemsByApproval' => $approvals,
-
-                // Les parutions de la semaine, au sens du calendrier : une
-                // carte décochée porte une échéance interne et n'en est pas
-                // une.
-                'upcoming' => $this->itemRepository->countScheduledBetween(
-                    $now,
-                    $now->modify(sprintf('+%d days', self::UPCOMING_DAYS)),
-                ),
-                'upcomingDays' => self::UPCOMING_DAYS,
-
-                'contracts' => array_sum($contracts),
-                'contractsByStatus' => $contracts,
-
-                'decks' => $this->deckRepository->count([]),
+                'scope' => $scope->value,
+                'hasScopeChoice' => $this->visibility->hasScopeChoice(),
+                'activeSpaces' => count($rows),
+                'withClient' => $sum('withClient'),
+                'lateReview' => $sum('lateReview'),
+                'changesRequested' => $sum('changesRequested'),
+                'missed' => $sum('missed'),
+                'upcoming' => $sum('upcoming'),
+                'upcomingDays' => SpaceWorkload::HORIZON_DAYS,
+                'awaitingSignature' => $this->awaitingSignature(),
+                'decks' => $this->authorizationChecker->isGranted('studio.decks.view') ? $this->deckRepository->count([]) : null,
+                'attention' => $this->attention($rows, $spaces),
+                'calendarPath' => $this->urlGenerator->generate('backend_studio_calendar'),
+                'contractsPath' => $this->authorizationChecker->isGranted('studio.contracts.view') ? $this->urlGenerator->generate('backend_studio_contracts') : null,
             ],
         ];
+    }
+
+    /** Null for a reader who may not look at contracts: no tile rather than a figure they cannot open. */
+    private function awaitingSignature(): ?int
+    {
+        if (!$this->authorizationChecker->isGranted('studio.contracts.view')) {
+            return null;
+        }
+
+        $counts = $this->contractRepository->countGroupedByStatus();
+
+        return array_sum(array_map(static fn (ContractStatusEnum $status): int => $counts[$status->value] ?? 0, self::AWAITING_SIGNATURE));
+    }
+
+    /**
+     * Les espaces qui attendent quelque chose, le plus urgent en haut.
+     *
+     * @param list<SpaceWorkloadRow>             $rows
+     * @param array<int, CustomerSpaceInterface> $spaces
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function attention(array $rows, array $spaces): array
+    {
+        $waiting = array_values(array_filter($rows, static fn (SpaceWorkloadRow $row): bool => $row->needsAttention()));
+        usort($waiting, static fn (SpaceWorkloadRow $a, SpaceWorkloadRow $b): int => $b->urgency() <=> $a->urgency());
+
+        return array_map(function (SpaceWorkloadRow $row) use ($spaces): array {
+            $space = $spaces[$row->spaceId];
+
+            return [
+                'id' => $row->spaceId,
+                'name' => $space->getName(),
+                'customerName' => $space->getCustomer()->getLegalName(),
+                'colourSlot' => $space->getColourSlot(),
+                // Sur l'état le plus urgent, filtré : la ligne dit « 2 relectures
+                // en retard », l'espace s'ouvre sur ces deux-là.
+                'path' => $this->urlGenerator->generate('workspace_space_content', ['id' => $row->spaceId, 'state' => $this->mostUrgentState($row)]),
+                ...$row->toArray(),
+            ];
+        }, array_slice($waiting, 0, self::ATTENTION_LIMIT));
+    }
+
+    private function mostUrgentState(SpaceWorkloadRow $row): string
+    {
+        return match (true) {
+            $row->missed > 0 => 'missed',
+            $row->lateReview > 0 => 'late_review',
+            $row->changesRequested > 0 => 'changes_requested',
+            default => 'with_client',
+        };
     }
 }

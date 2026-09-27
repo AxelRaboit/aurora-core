@@ -62,21 +62,21 @@ class NotificationRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Everything this person has not read about one screen, oldest first.
-     *
-     * What the delayed email reads to decide whether there is anything left to
-     * say, and to say all of it in one message rather than one per event.
+     * Everything this person has not read about one screen or a place in it,
+     * oldest first: the screen's path, and the same path with a query that
+     * points inside it (a card of a space).
      *
      * @return list<NotificationInterface>
      */
-    public function findUnreadForUrl(CoreUserInterface $recipient, string $url): array
+    public function findUnreadUnderPath(CoreUserInterface $recipient, string $path): array
     {
         return $this->createQueryBuilder('n')
             ->andWhere('n.recipient = :recipient')
-            ->andWhere('n.url = :url')
+            ->andWhere('n.url = :path OR n.url LIKE :inside')
             ->andWhere('n.readAt IS NULL')
             ->setParameter('recipient', $recipient)
-            ->setParameter('url', $url)
+            ->setParameter('path', $path)
+            ->setParameter('inside', addcslashes($path, '%_\\').'?%')
             ->orderBy('n.createdAt', Order::Ascending->value)
             ->getQuery()
             ->getResult();
