@@ -68,11 +68,43 @@ requêtes et échoue si le compte remonte.
 - **Liste des utilisateurs** : le responsable de chaque ligne vient avec la
   page.
 
+Deuxième lot, les chemins publics lourds :
+
+- **Flux ICS d'un calendrier** : événements, invités et rappels viennent avec
+  le calendrier (6 requêtes ligne à ligne pour 3 événements, aucune
+  désormais). Ce flux est relu toutes les quinze minutes par chaque téléphone
+  abonné.
+- **Grille du calendrier et page de partage** : alertes, invités, série d'une
+  occurrence déplacée et occurrences de chaque série viennent avec la fenêtre
+  (14 requêtes pour un mois de test, 2 désormais).
+- **Note partagée** : le carnet du propriétaire, lu et déchiffré en entier
+  pour suivre les `[[liens]]`, n'est plus parcouru qu'une fois par page au
+  lieu de trois.
+- **Sommaire d'une documentation** : les rubriques des pages et leurs noms en
+  trois requêtes, quel que soit le nombre de pages (une soixantaine de
+  requêtes avant, sur chaque page de la documentation).
+- **Validation groupée par le client** : les cartes cochées sont lues en une
+  requête, enregistrées d'un coup, et l'équipe reçoit une seule notification
+  « X a validé N contenus » au lieu d'une par carte. Cent cartes au plus par
+  geste.
+- **Page client de Studio** : le tableau est lu une fois par chargement, au
+  lieu de quatre.
+
+Au passage, **le chiffrement des colonnes est branché dès le démarrage** et
+plus seulement à la première requête : un traitement qui lisait une note
+chiffrée avant toute requête HTTP ou commande échouait sur un ordre de
+démarrage, et certains tests ne passaient que selon celui qui tournait avant
+eux.
+
 ### Dans aurora-client
 
 Rien à faire après `make aurora-update`. Une classe qui étendrait
 `PlanningEventManager` en appelant `update()` ou `move()` passerait par
 `updateAtScope()` et `moveAtScope()` ; le projet client n'en a pas.
+De même, `SharedNoteScope::noteInScope()` et `titleIndex()` prennent désormais
+la portée déjà calculée (`notesFor()`) plutôt que le lien, et une classe qui
+implémenterait `SpaceContentItemManagerInterface` sans étendre le gestionnaire
+aurait à écrire `approveMany()`. Le projet client ne fait ni l'un ni l'autre.
 
 ## [0.9.270] - 2026-09-27
 

@@ -198,6 +198,41 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
         $this->notifier->clientAnswered($item, $link->getRecipientEmail(), SpaceContentApprovalEnum::Approved === $approval);
     }
 
+    public function approveMany(array $items, SpaceAccessLinkInterface $link): int
+    {
+        $at = new DateTimeImmutable();
+        $approved = [];
+
+        foreach ($items as $item) {
+            if ($item->getSpace()->getId() !== $link->getSpace()->getId()) {
+                continue;
+            }
+
+            $item->answer(SpaceContentApprovalEnum::Approved, $link, $at);
+            $approved[] = $item;
+        }
+
+        if ([] === $approved) {
+            return 0;
+        }
+
+        $this->entityManager->flush();
+
+        // One line per card still: the audit is read card by card, and a
+        // grouped line would not answer "who approved this one".
+        foreach ($approved as $item) {
+            $this->auditAnswered($item);
+        }
+
+        if (1 === count($approved)) {
+            $this->notifier->clientAnswered($approved[0], $link->getRecipientEmail(), true);
+        } else {
+            $this->notifier->clientApprovedMany($link->getSpace(), $link->getRecipientEmail(), count($approved));
+        }
+
+        return count($approved);
+    }
+
     /**
      * Drops an answer whose content has changed under it.
      *

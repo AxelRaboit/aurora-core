@@ -53,4 +53,17 @@ interface SpaceContentItemManagerInterface
         SpaceAccessLinkInterface $link,
         SpaceContentApprovalEnum $approval,
     ): void;
+
+    /**
+     * Approves several cards at once, as one gesture.
+     *
+     * Written together and announced once: a client tidying their week
+     * approves twenty cards, and the team hears it as one piece of news, not
+     * twenty bells. Cards of another space are skipped.
+     *
+     * @param list<SpaceContentItemInterface> $items
+     *
+     * @return int how many were approved
+     */
+    public function approveMany(array $items, SpaceAccessLinkInterface $link): int;
 }

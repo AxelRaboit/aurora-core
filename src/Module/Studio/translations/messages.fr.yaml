@@ -1405,6 +1405,7 @@ backend:
             comment: '%who% a commenté « %item% »'
             upload: '%who% a envoyé un fichier sur « %item% »'
             approved: '%who% a validé « %item% »'
+            approved_many: '%who% a validé %count% contenus'
             changes_requested: '%who% demande une reprise sur « %item% »'
             late_review: '{1}Une relecture en retard|]1,Inf[%count% relectures en retard'
         space_chat:

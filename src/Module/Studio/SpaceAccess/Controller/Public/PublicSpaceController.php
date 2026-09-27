@@ -76,6 +76,9 @@ final class PublicSpaceController extends AbstractController
     use JsonResponseTrait;
     use PageScriptRequestTrait;
 
+    /** How many cards one "approve" gesture may carry. */
+    private const int MAX_APPROVED_AT_ONCE = 100;
+
     public function __construct(
         private readonly SpaceAccessLinkManagerInterface $links,
         private readonly SpaceContentItemManagerInterface $items,
@@ -261,29 +264,21 @@ final class PublicSpaceController extends AbstractController
             return $this->jsonInvalidInput(['ids' => 'studio.public.space.errors.nothing_selected']);
         }
 
-        $approved = 0;
+        // Read in one query, from this space only, and a hundred at most: the
+        // list comes from a guest, and each card is a write and a line of
+        // audit. A week's board is far below it; a longer list is cut rather
+        // than refused, and the count returned says how many went through.
+        $wanted = array_slice(array_values(array_unique(array_map(
+            intval(...),
+            array_filter($ids, static fn (mixed $id): bool => is_int($id) || (is_string($id) && ctype_digit($id))),
+        ))), 0, self::MAX_APPROVED_AT_ONCE);
 
-        foreach ($ids as $id) {
-            if (!is_int($id) && (!is_string($id) || !ctype_digit($id))) {
-                continue;
-            }
+        $items = array_values(array_filter(
+            [] === $wanted ? [] : $this->itemRepository->findBy(['id' => $wanted, 'space' => $link->getSpace()]),
+            fn (SpaceContentItemInterface $item): bool => $this->isShownTo($link, $item),
+        ));
 
-            $item = $this->itemRepository->find((int) $id);
-            if (!$item instanceof SpaceContentItemInterface) {
-                continue;
-            }
-
-            if (!$this->isShownTo($link, $item)) {
-                continue;
-            }
-
-            try {
-                $this->items->answer($item, $link, SpaceContentApprovalEnum::Approved);
-                ++$approved;
-            } catch (FieldException) {
-                continue;
-            }
-        }
+        $approved = $this->items->approveMany($items, $link);
 
         $this->links->markOpened($link);
 
