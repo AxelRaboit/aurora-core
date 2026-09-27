@@ -52,7 +52,7 @@ function tint(link) {
 </script>
 
 <template>
-    <div v-if="items.length" class="flex flex-wrap items-center gap-2 border-t border-line pt-4">
+    <div v-if="items.length" class="flex flex-wrap items-center gap-2">
         <span class="text-sm text-secondary">{{ t("frontend.editorial.share.label") }}</span>
 
         <template v-for="(link, index) in items" :key="index">

@@ -46,6 +46,11 @@ interface PostInputInterface
     /** @return list<array{type: string, label: ?string, url: ?string, color: ?string}>|null */
     public function getShareLinks(): ?array;
 
+    public function isUsefulLinksEnabled(): bool;
+
+    /** @return list<array{label: string, url: string, color: ?string}> */
+    public function getUsefulLinks(): array;
+
     public function isTitleVisible(): bool;
 
     public function getPosition(): ?int;

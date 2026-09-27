@@ -1122,6 +1122,18 @@ backend:
       url_hint: "https:// or mailto:. {url} and {title} are replaced by the page's address and title, which makes it a real share link."
       url_invalid: "This link will be dropped on save: its address must start with https:// or mailto:."
       add: Add a link
+    useful_links_enabled: Useful links at the bottom of the page
+    useful_links:
+      hint: "This page's links, in order: where else to find the author, the product, the code. Drag the handle to reorder them."
+      empty: No link, the block is not shown.
+      move: Move
+      remove: Remove
+      label: Label
+      color: Colour
+      url: Address
+      url_hint: "https:// or mailto:."
+      url_invalid: "This link will be dropped on save: it needs a label, and an address that starts with https:// or mailto:."
+      add: Add a link
     field_title: Title
     field_slug: Slug
     slug_hint: 'Left blank, it is derived from the title. Changing it keeps the old URL working.'
@@ -1448,6 +1460,8 @@ frontend:
     next: Next picture
   editorial:
     reading_time: '%minutes% min read'
+    useful_links:
+      label: Useful links
     share:
       label: Share
       copy_link: Copy link
