@@ -468,6 +468,9 @@ const pageActions = computed(() => {
                             size="sm"
                             variant="ghost"
                             :class="storedViewMode === 'grid' ? 'bg-surface-3 text-primary' : 'text-muted hover:text-primary'"
+                            :title="t('shared.common.grid_view')"
+                            :aria-label="t('shared.common.grid_view')"
+                            :aria-pressed="storedViewMode === 'grid'"
                             v-on:click="setViewMode('grid')"
                         >
                             <LayoutGrid class="w-4 h-4" :stroke-width="2" />
@@ -476,6 +479,9 @@ const pageActions = computed(() => {
                             size="sm"
                             variant="ghost"
                             :class="storedViewMode === 'list' ? 'bg-surface-3 text-primary' : 'text-muted hover:text-primary'"
+                            :title="t('shared.common.list_view')"
+                            :aria-label="t('shared.common.list_view')"
+                            :aria-pressed="storedViewMode === 'list'"
                             v-on:click="setViewMode('list')"
                         >
                             <List class="w-4 h-4" :stroke-width="2" />
@@ -487,6 +493,9 @@ const pageActions = computed(() => {
                         variant="ghost"
                         class="border border-line"
                         :class="isSelecting ? 'bg-accent-500/15 text-accent-400' : 'text-muted hover:text-primary'"
+                        :title="isSelecting ? t('backend.ged.documents.stop_selecting') : t('backend.ged.documents.select_mode')"
+                        :aria-label="isSelecting ? t('backend.ged.documents.stop_selecting') : t('backend.ged.documents.select_mode')"
+                        :aria-pressed="isSelecting"
                         v-on:click="isSelecting = !isSelecting; if (!isSelecting) clearSelection()"
                     >
                         <CheckSquare class="w-4 h-4" :stroke-width="2" />

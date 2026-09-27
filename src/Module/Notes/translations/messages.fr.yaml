@@ -144,6 +144,7 @@ notes:
         clear: Retirer le filtre
       selected: '{count} sélectionné(s)'
       select: Sélectionner
+      stop_selecting: Terminer la sélection
       clear_selection: Tout désélectionner
       some_refused: "{count} élément(s) n'ont pas pu être traités."
       confirm_delete_selection: 'Mettre à la corbeille les {count} éléments sélectionnés ?'

@@ -1,4 +1,12 @@
 backend:
+  editorial:
+    bootstrap:
+      post_types:
+        page: Página
+        article: Artículo
+      taxonomies:
+        category: Categorías
+        tag: Etiquetas
   posts:
     usage_detail: Publicación
     usage_untitled: Publicación sin título
@@ -188,6 +196,16 @@ frontend:
         invalid: Correo electrónico no válido.
         unavailable: Esta suscripción ya no está disponible.
         too_many: Demasiados intentos, inténtelo más tarde.
+        success_confirm: "Casi listo: confirme su suscripción con el enlace que acabamos de enviarle por correo."
+        consent: "Acepto recibir el boletín por correo electrónico."
+        notice: "Su dirección solo se usa para enviarle este boletín; se transmite a %provider%, nuestro proveedor de envíos. Puede darse de baja en cualquier momento con el enlace de cada envío."
+        privacy_link: Política de privacidad
+        consent_required: "Marque la casilla para confirmar su suscripción."
+      newsletter_privacy:
+        title: Boletín
+        brevo: "Si se suscribe a nuestro boletín, su dirección de correo electrónico solo se utiliza para enviárselo. Este tratamiento se basa en su consentimiento, otorgado al marcar la casilla del formulario y, en su caso, al confirmar su suscripción por correo. Su dirección se confía a Brevo (Sendinblue SAS, empresa francesa), nuestro proveedor de envíos, que la aloja en la Unión Europea. Se conserva mientras permanezca suscrito."
+        mailchimp: "Si se suscribe a nuestro boletín, su dirección de correo electrónico solo se utiliza para enviárselo. Este tratamiento se basa en su consentimiento, otorgado al marcar la casilla del formulario y, en su caso, al confirmar su suscripción por correo. Su dirección se confía a Mailchimp, servicio de la empresa Intuit Inc., nuestro proveedor de envíos, establecida en Estados Unidos: sus datos se transfieren por tanto allí. Esta transferencia está amparada por el Marco de Privacidad de Datos UE-EE. UU. (Data Privacy Framework), al que Intuit está adherida, y por las cláusulas contractuales tipo de la Comisión Europea. Se conserva mientras permanezca suscrito."
+        rights: "Puede darse de baja en cualquier momento con el enlace de cada envío. También tiene derecho de acceso, rectificación y supresión de sus datos, y puede presentar una reclamación ante la autoridad de protección de datos (la CNIL en Francia)."
       quote:
         total: Total
       booking:

@@ -1,14 +1,30 @@
 {# One field, one button: newsletterSignup.js sends the address and swaps the
    form for a thank-you line. The script is required: the route only answers
    the request it sends (the header a cross-site form cannot set), so a plain
-   form post is refused rather than signing up whoever loads another page. #}
-<form class="not-prose rounded-xl border border-line bg-surface p-5" data-newsletter data-newsletter-endpoint="{{ zone.newsletterSignup.endpoint }}" action="{{ zone.newsletterSignup.endpoint }}" method="post">
-    {% if zone.newsletterSignup.title %}<p class="m-0 mb-1 text-base font-semibold text-primary">{{ zone.newsletterSignup.title }}</p>{% endif %}
-    {% if zone.newsletterSignup.note %}<p class="m-0 mb-4 text-sm text-secondary">{{ zone.newsletterSignup.note }}</p>{% endif %}
+   form post is refused rather than signing up whoever loads another page.
+
+   What the GDPR asks of the form itself, and why each piece is here:
+   - consent is a box the visitor ticks, unticked to begin with, never read
+     off the click on the button;
+   - the information line says what the address is for, who receives it (the
+     client's own provider), how to withdraw, and links the full policy -
+     which is why the module cannot be switched on without one. #}
+{% set signup = zone.newsletterSignup %}
+<form class="not-prose rounded-xl border border-line bg-surface p-5" data-newsletter data-newsletter-endpoint="{{ signup.endpoint }}" action="{{ signup.endpoint }}" method="post">
+    {% if signup.title %}<p class="m-0 mb-1 text-base font-semibold text-primary">{{ signup.title }}</p>{% endif %}
+    {% if signup.note %}<p class="m-0 mb-4 text-sm text-secondary">{{ signup.note }}</p>{% endif %}
     <div class="flex flex-col gap-2 sm:flex-row">
-        <input type="email" name="email" required placeholder="{{ 'frontend.editorial.grid.newsletter.placeholder'|trans }}" class="w-full flex-1 rounded-lg border border-line bg-transparent px-3 py-2 text-sm text-primary" data-newsletter-email>
+        <input type="email" name="email" required autocomplete="email" aria-label="{{ 'frontend.editorial.grid.newsletter.placeholder'|trans }}" placeholder="{{ 'frontend.editorial.grid.newsletter.placeholder'|trans }}" class="w-full flex-1 rounded-lg border border-line bg-transparent px-3 py-2 text-sm text-primary" data-newsletter-email>
         <button type="submit" class="shrink-0 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90" data-newsletter-submit>{{ 'frontend.editorial.grid.newsletter.submit'|trans }}</button>
     </div>
-    <p class="m-0 mt-2 hidden text-sm text-emerald-600" data-newsletter-success>{{ 'frontend.editorial.grid.newsletter.success'|trans }}</p>
-    <p class="m-0 mt-2 hidden text-sm text-rose-500" data-newsletter-error>{{ 'frontend.editorial.grid.newsletter.failed'|trans }}</p>
+    <label class="mt-3 flex items-start gap-2 text-sm text-secondary">
+        <input type="checkbox" name="consent" required class="mt-0.5 shrink-0" data-newsletter-consent>
+        <span>{{ 'frontend.editorial.grid.newsletter.consent'|trans }}</span>
+    </label>
+    <p class="m-0 mt-2 text-xs text-muted" data-newsletter-notice>
+        {{ 'frontend.editorial.grid.newsletter.notice'|trans({'%provider%': signup.provider}) }}
+        {% if signup.privacyUrl %}<a href="{{ signup.privacyUrl }}" class="underline hover:text-highlight">{{ 'frontend.editorial.grid.newsletter.privacy_link'|trans }}</a>{% endif %}
+    </p>
+    <p class="m-0 mt-2 hidden text-sm text-emerald-600" role="status" data-newsletter-success>{{ (signup.doubleOptIn ? 'frontend.editorial.grid.newsletter.success_confirm' : 'frontend.editorial.grid.newsletter.success')|trans }}</p>
+    <p class="m-0 mt-2 hidden text-sm text-rose-500" role="alert" data-newsletter-error>{{ 'frontend.editorial.grid.newsletter.failed'|trans }}</p>
 </form>

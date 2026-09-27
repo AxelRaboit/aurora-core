@@ -39,6 +39,13 @@ backend:
     editorial_frontend: Site public éditorial
     editorial_frontend_description: "Sert les publications, pages de liste et pages de taxonomie aux lecteurs."
   editorial:
+    bootstrap:
+      post_types:
+        page: Page
+        article: Article
+      taxonomies:
+        category: Catégories
+        tag: Étiquettes
     github:
       settings:
         what_title: Ce que fait cette intégration
@@ -124,10 +131,22 @@ backend:
         key_hint: Collez ici la clé du compte du client.
         enabled_label: Afficher l'inscription à la lettre
         enabled_hint: "Les zones « Inscription à la lettre » des pages ajoutent une adresse à cette liste."
-        enabled_blocked: "Renseignez la liste, la clé et acceptez les conditions pour activer l'intégration."
+        enabled_blocked: "Renseignez la liste, la clé et la politique de confidentialité, et acceptez les conditions, pour activer l'intégration."
+        compliance_title: Conformité (RGPD)
+        compliance_body: "Le formulaire demande toujours au visiteur de cocher une case de consentement, et lui dit sous le champ à quoi sert son adresse, à qui elle est transmise et comment se désinscrire."
+        double_opt_in_label: Confirmation par e-mail (recommandé)
+        double_opt_in_hint: "Le visiteur reçoit un e-mail et n'est ajouté à la liste qu'après avoir cliqué sur le lien. Personne ne peut inscrire l'adresse d'un autre, et le fournisseur garde la preuve du consentement."
+        brevo_template_label: Modèle d'e-mail de confirmation (Brevo)
+        brevo_template_hint: "Brevo l'exige pour envoyer la confirmation : créez un modèle dans Campagnes > Modèles, avec la balise « optin » et le lien de confirmation « doubleoptin » que Brevo propose, puis reportez ici son numéro."
+        privacy_label: Adresse de la politique de confidentialité
+        privacy_hint: "Obligatoire : le lien s'affiche sous le formulaire. Une adresse https:// ou un chemin du site, par exemple /fr/page/confidentialite. Elle doit mentionner le prestataire d'envoi."
       errors:
         terms_required: "Vous devez accepter les conditions du fournisseur pour activer l'intégration."
         list_required: "Saisissez l'identifiant de la liste et la clé d'API pour activer l'intégration."
+        privacy_required: "Renseignez l'adresse de votre politique de confidentialité pour activer l'intégration : le RGPD impose d'informer le visiteur là où son adresse est collectée."
+        privacy_url_invalid: "L'adresse de la politique doit commencer par https:// ou par / (un chemin du site)."
+        template_required: "Avec Brevo, la confirmation par e-mail demande le numéro d'un modèle d'e-mail de confirmation."
+        template_invalid: Le numéro du modèle Brevo doit être un nombre.
   audit:
     actions:
       editorial:
@@ -194,13 +213,6 @@ backend:
     editorial_form_submission_prefix:
       label: Préfixe de référence des soumissions
       description: "Préfixe de la référence générée pour chaque soumission."
-    bootstrap:
-      post_types:
-        page: Page
-        article: Article
-      taxonomies:
-        category: Catégories
-        tag: Étiquettes
   stats:
     editorial:
       posts: Publications
@@ -600,6 +612,7 @@ backend:
         instagramFeed: Fil Instagram
         googleReviews: Avis Google
         newsletterSignup: Inscription à la lettre
+        newsletterPrivacy: Mention RGPD de la lettre
         stack: Pile
       zone_form: "Formulaire"
       zone_form_hint: "Le formulaire s'affiche dans la page, et s'envoie au même endroit que sur sa propre page."
@@ -1003,6 +1016,7 @@ backend:
       newsletter_hint: "Envoie l'adresse à la liste réglée dans Réglages > Lettre d'information. Tant que l'intégration est éteinte, la zone ne dessine rien."
       newsletter_title: Titre
       newsletter_note: Précision
+      newsletter_privacy_hint: "Le paragraphe de la lettre d'information pour votre politique de confidentialité : à qui l'adresse est confiée, où, et comment se désinscrire, rédigé selon le prestataire réglé. Tant que la lettre d'information est éteinte, la zone ne dessine rien."
       background_video: Vidéo en fond
       background_video_hint: "La vidéo tourne sans le son derrière le titre, au lieu d'un lecteur. Pour les visiteurs qui ont demandé moins d'animations, l'image d'aperçu reste fixe."
       background_video_title: Titre posé sur la vidéo
@@ -1488,6 +1502,16 @@ frontend:
         invalid: Adresse e-mail invalide.
         unavailable: Cette inscription n'est plus disponible.
         too_many: Trop de tentatives, réessayez plus tard.
+        success_confirm: "Presque fini : confirmez votre inscription avec le lien que nous venons de vous envoyer par e-mail."
+        consent: "J'accepte de recevoir la lettre d'information par e-mail."
+        notice: "Votre adresse sert uniquement à vous envoyer cette lettre ; elle est transmise à %provider%, notre prestataire d'envoi. Vous pouvez vous désinscrire à tout moment grâce au lien présent dans chaque envoi."
+        privacy_link: Politique de confidentialité
+        consent_required: "Cochez la case pour confirmer votre inscription."
+      newsletter_privacy:
+        title: Lettre d'information
+        brevo: "Si vous vous inscrivez à notre lettre d'information, votre adresse e-mail sert uniquement à vous l'envoyer. Ce traitement repose sur votre consentement, donné en cochant la case du formulaire puis, le cas échéant, en confirmant votre inscription par e-mail. Votre adresse est confiée à Brevo (Sendinblue SAS, société française), notre prestataire d'envoi, qui l'héberge dans l'Union européenne. Elle est conservée tant que vous restez inscrit."
+        mailchimp: "Si vous vous inscrivez à notre lettre d'information, votre adresse e-mail sert uniquement à vous l'envoyer. Ce traitement repose sur votre consentement, donné en cochant la case du formulaire puis, le cas échéant, en confirmant votre inscription par e-mail. Votre adresse est confiée à Mailchimp, service de la société Intuit Inc., notre prestataire d'envoi, établie aux États-Unis : vos données y sont donc transférées. Ce transfert est encadré par le cadre de protection des données UE-États-Unis (Data Privacy Framework), auquel Intuit adhère, et par les clauses contractuelles types de la Commission européenne. Elle est conservée tant que vous restez inscrit."
+        rights: "Vous pouvez vous désinscrire à tout moment grâce au lien présent dans chaque envoi. Vous disposez aussi d'un droit d'accès, de rectification et d'effacement de vos données, et pouvez introduire une réclamation auprès de la CNIL."
       quote:
         total: Total
       booking:

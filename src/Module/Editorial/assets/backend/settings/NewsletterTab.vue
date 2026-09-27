@@ -35,6 +35,13 @@ const listId = ref("");
 const acceptedAt = ref(null);
 const acceptedBy = ref(null);
 const apiKey = ref("");
+// On by default, like the server: an address typed on a public page proves
+// nothing about who typed it.
+const doubleOptIn = ref(true);
+const brevoTemplateId = ref("");
+const privacyUrl = ref("");
+
+const needsBrevoTemplate = computed(() => "brevo" === provider.value && doubleOptIn.value);
 
 const providerOptions = computed(() => PROVIDERS.map((value) => ({ value, label: t(`backend.editorial.newsletter.settings.providers.${value}`) })));
 
@@ -46,7 +53,12 @@ const acceptedOn = computed(() => {
 });
 
 const canEnable = computed(
-    () => termsAccepted.value && (hasKey.value || "" !== apiKey.value.trim()) && "" !== listId.value.trim(),
+    () =>
+        termsAccepted.value &&
+        (hasKey.value || "" !== apiKey.value.trim()) &&
+        "" !== listId.value.trim() &&
+        "" !== privacyUrl.value.trim() &&
+        (!needsBrevoTemplate.value || "" !== brevoTemplateId.value.trim()),
 );
 
 function apply(state) {
@@ -59,6 +71,9 @@ function apply(state) {
     acceptedBy.value = state.acceptedBy ?? null;
     termsAccepted.value = null !== acceptedAt.value;
     apiKey.value = "";
+    doubleOptIn.value = false !== state.doubleOptIn;
+    brevoTemplateId.value = null !== (state.brevoTemplateId ?? null) ? String(state.brevoTemplateId) : "";
+    privacyUrl.value = state.privacyUrl ?? "";
 }
 
 onMounted(async () => {
@@ -77,6 +92,9 @@ async function save() {
             termsAccepted: termsAccepted.value,
             provider: provider.value,
             listId: listId.value.trim(),
+            doubleOptIn: doubleOptIn.value,
+            brevoTemplateId: brevoTemplateId.value.trim(),
+            privacyUrl: privacyUrl.value.trim(),
         };
         if ("" !== apiKey.value.trim()) payload.apiKey = apiKey.value.trim();
 
@@ -125,6 +143,28 @@ defineExpose({ save, apply, canEnable });
                 :hint="hasKey ? t('backend.editorial.newsletter.settings.key_stored') : t('backend.editorial.newsletter.settings.key_hint')"
                 :placeholder="hasKey ? '••••••••••••••••' : ''"
             />
+        </section>
+
+        <section class="space-y-3 rounded-lg border border-line bg-surface-2 p-4">
+            <h3 class="text-sm font-medium text-primary">{{ t("backend.editorial.newsletter.settings.compliance_title") }}</h3>
+            <p class="text-sm text-secondary">{{ t("backend.editorial.newsletter.settings.compliance_body") }}</p>
+            <AppInput
+                v-model="privacyUrl"
+                :label="t('backend.editorial.newsletter.settings.privacy_label')"
+                :hint="t('backend.editorial.newsletter.settings.privacy_hint')"
+                placeholder="/fr/page/confidentialite"
+            />
+            <AppCheckbox v-model="doubleOptIn" :label="t('backend.editorial.newsletter.settings.double_opt_in_label')" :hint="t('backend.editorial.newsletter.settings.double_opt_in_hint')" />
+            <AppInput
+                v-if="needsBrevoTemplate"
+                v-model="brevoTemplateId"
+                :label="t('backend.editorial.newsletter.settings.brevo_template_label')"
+                :hint="t('backend.editorial.newsletter.settings.brevo_template_hint')"
+                placeholder="12"
+            />
+        </section>
+
+        <section class="space-y-3">
             <AppCheckbox v-model="enabled" :label="t('backend.editorial.newsletter.settings.enabled_label')" :hint="canEnable ? t('backend.editorial.newsletter.settings.enabled_hint') : t('backend.editorial.newsletter.settings.enabled_blocked')" :disabled="!canEnable" />
         </section>
 

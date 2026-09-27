@@ -5,6 +5,73 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.267] - 2026-09-27
+
+### Ajouté
+
+- **Le menu latéral replié revient au bord de l'écran.** Menu replié, poser
+  la souris contre le bord gauche le fait glisser par-dessus la page le temps
+  de s'en servir ; il repart quand la souris le quitte, ou avec Échap. Le
+  bouton de l'entête reste le moyen de le déplier pour de bon.
+- **Un bloc « Mention RGPD de la lettre »** pour la politique de
+  confidentialité : le paragraphe qui dit à qui l'adresse est confiée, où, et
+  comment se désinscrire, rédigé selon le prestataire réglé (hébergement dans
+  l'Union européenne chez Brevo, transfert vers les États-Unis nommé chez
+  Mailchimp). Tant que la lettre d'information est éteinte, il n'affiche rien.
+- **La fenêtre « Choisir un document » montre un aperçu** de chaque document,
+  au lieu d'une icône de fichier.
+
+### Modifié
+
+- **Notes : la sélection s'ouvre par un bouton**, comme dans la médiathèque.
+  Les ronds ne s'affichent plus en permanence sur chaque carte ; en mode
+  sélection, cliquer une carte la coche au lieu de l'ouvrir. Échap ou un
+  changement de dossier referment le mode.
+- **Notes : l'état d'enregistrement passe avant les boutons** dans la barre
+  d'une note, les boutons se rangeant à sa droite.
+
+#### L'inscription à la lettre d'information, mise en conformité (RGPD)
+- **Confirmation par e-mail, activée par défaut.** Le visiteur reçoit un
+  e-mail et n'est ajouté à la liste qu'après avoir cliqué : personne ne peut
+  plus inscrire l'adresse d'un autre, et le fournisseur garde la preuve du
+  consentement. Chez Mailchimp, rien à régler ; chez Brevo, il faut indiquer
+  le numéro du modèle d'e-mail de confirmation. Le réglage peut être coupé.
+- **Une case de consentement, toujours demandée**, non cochée au départ, et
+  vérifiée aussi par le serveur.
+- **Une mention sous le champ** dit à quoi sert l'adresse, qu'elle est
+  transmise à Brevo ou Mailchimp, et comment se désinscrire, avec un lien vers
+  la politique de confidentialité. Son adresse devient obligatoire pour
+  activer le module.
+- **Chez Mailchimp, une personne désinscrite n'est plus réinscrite d'office**
+  si elle retape son adresse, et l'inscription transmet sa date et son adresse
+  IP comme preuve.
+- Le message de fin dit « confirmez votre inscription » quand une
+  confirmation est attendue.
+
+### Corrigé
+
+- **Les noms des catégories, étiquettes, pages et articles d'une nouvelle
+  installation s'affichaient en clés de traduction**
+  (`backend.editorial.bootstrap.taxonomies.category`…) : le bloc de
+  traductions avait glissé à la mauvaise place. Il est remis, l'espagnol est
+  ajouté, et `aurora:install` répare de lui-même un libellé resté sur sa
+  clé, sans toucher à un nom saisi à la main.
+- **Notes : la carte d'une note suit ce qu'on vient d'écrire.** Son extrait et
+  sa date restaient ceux du chargement de la page jusqu'au rechargement
+  suivant ; l'enregistrement renvoie maintenant l'extrait à jour.
+- **Deux visiteurs ne peuvent plus réserver le même créneau au même instant.**
+  La prise de rendez-vous vérifiait que le créneau était libre, puis écrivait :
+  deux demandes arrivées dans la même seconde passaient toutes les deux la
+  vérification. La vérification et l'écriture se font maintenant sous un
+  verrou du calendrier des réservations ; la seconde demande attend la
+  première, puis apprend que le créneau vient d'être pris.
+
+### Dans aurora-client
+
+Rien à faire après `make aurora-update`. Une installation qui avait activé la
+lettre d'information la voit se désactiver tant que l'adresse de la politique
+de confidentialité n'est pas renseignée (Réglages > Lettre d'information).
+
 ## [0.9.266] - 2026-09-27
 
 Corrections issues d'une revue de qualité des fonctionnalités livrées du 23 au

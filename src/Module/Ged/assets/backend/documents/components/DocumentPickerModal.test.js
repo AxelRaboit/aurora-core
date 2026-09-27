@@ -188,3 +188,50 @@ describe("DocumentPickerModal Pexels tab", () => {
         expect(wrapper.emitted("select")).toBeUndefined();
     });
 });
+
+describe("DocumentPickerModal library rows", () => {
+    /**
+     * Choosing a picture by its file name alone meant finding it again
+     * elsewhere: each row shows what the document looks like, from its
+     * smallest generated size when there is one.
+     */
+    it("shows each document's picture, the small rendition first", async () => {
+        global.fetch = vi.fn().mockResolvedValue({
+            json: async () => ({
+                items: [
+                    {
+                        id: 1,
+                        title: "Entête",
+                        fileMime: "image/png",
+                        thumbnailUrl: "/uploads/ged/entete.png",
+                        renditions: {
+                            thumbnail:
+                                "/uploads/ged/variants/thumbnail/entete.webp",
+                        },
+                    },
+                    {
+                        id: 2,
+                        title: "Contrat",
+                        fileMime: "application/pdf",
+                        thumbnailUrl: null,
+                        renditions: {},
+                    },
+                ],
+                page: 1,
+                totalPages: 1,
+            }),
+        });
+
+        const wrapper = mountPicker({ mimePrefix: null });
+        await flushPromises();
+
+        const rows = wrapper.findAll("li");
+        expect(rows[0].find("img").attributes("src")).toBe(
+            "/uploads/ged/variants/thumbnail/entete.webp",
+        );
+        expect(
+            rows[1].find("img").exists(),
+            "a PDF without a still keeps its icon",
+        ).toBe(false);
+    });
+});

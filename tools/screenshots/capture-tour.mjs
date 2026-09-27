@@ -260,7 +260,17 @@ const SHOTS = [
         },
     },
 
-    { name: "tour-mediatheque-grille", path: "/backend/ged/documents" },
+    {
+        // La grille, choisie explicitement : un navigateur neuf ouvre la
+        // médiathèque en liste sur un écran large, et la carte montre les
+        // vignettes.
+        name: "tour-mediatheque-grille",
+        path: "/backend/ged/documents",
+        async prepare(page) {
+            await page.locator("main").getByRole("button", { name: "Vue cartes" }).click();
+            await page.waitForTimeout(2_000);
+        },
+    },
     /**
      * La fiche d'un document : ses métadonnées et son historique de versions.
      *
@@ -449,7 +459,10 @@ const SHOTS = [
         path: "/backend/editorial/taxonomies",
         async prepare(page) {
             await page.waitForTimeout(2_500);
-            await page.getByRole("link", { name: /Catégories/ }).first().click();
+            // La page ouvre d'office la première taxonomie, les catégories :
+            // rien à cliquer, mais on vérifie que c'est bien elle, pour ne
+            // jamais photographier une autre liste en croyant montrer celle-ci.
+            await page.locator("main h2", { hasText: "Catégories" }).first().waitFor();
             await page.waitForTimeout(2_500);
         },
     },
@@ -460,7 +473,7 @@ const SHOTS = [
         path: "/backend/editorial/post-types",
         async prepare(page) {
             await page.waitForTimeout(2_500);
-            await page.getByRole("link", { name: /Article/ }).first().click();
+            await page.locator('#sidemenu a[href*="/backend/editorial/post-types/"]', { hasText: "Article" }).first().click();
             await page.waitForTimeout(2_500);
         },
     },
@@ -471,8 +484,11 @@ const SHOTS = [
         path: "/backend/configuration/themes",
         async prepare(page) {
             await page.waitForTimeout(2_500);
-            await page.getByRole("link", { name: /Modifier|Éditer/ }).first().click()
-                .catch(() => {});
+            // Le thème livré avec Aurora, toujours là. Pas de repli : un clic
+            // raté photographiait la liste des thèmes à la place de la palette,
+            // en double de tour-themes.
+            await page.locator("main").getByRole("button", { name: "Actions pour Default" }).click();
+            await page.getByRole("button", { name: "Modifier", exact: true }).click();
             await page.waitForTimeout(2_500);
         },
     },

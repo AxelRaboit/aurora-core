@@ -16,6 +16,9 @@ use Doctrine\Persistence\ManagerRegistry;
 /** @extends ResolveTargetEntityRepository<MarkdownNoteInterface> */
 class MarkdownNoteRepository extends ResolveTargetEntityRepository
 {
+    /** Assez pour remplir une vignette de la mosaïque, sans porter la note entière. */
+    public const int EXCERPT_LENGTH = 700;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, MarkdownNote::class, MarkdownNoteInterface::class);
@@ -95,7 +98,7 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
      *
      * @return array<int, string> note id => les premières lignes, en Markdown
      */
-    public function findExcerptsForUser(CoreUserInterface $user, int $length = 700): array
+    public function findExcerptsForUser(CoreUserInterface $user, int $length = self::EXCERPT_LENGTH): array
     {
         /** @var list<array{id: int, content: string|null}> $rows */
         $rows = $this->createQueryBuilder('n')
@@ -116,6 +119,16 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
         }
 
         return $excerpts;
+    }
+
+    /**
+     * L'extrait d'une seule note, par la même règle que la liste : ce que la
+     * route d'enregistrement renvoie, pour que la carte suive le texte sans
+     * attendre un rechargement de la page.
+     */
+    public function excerptOf(string $content): string
+    {
+        return $this->summarise($content, self::EXCERPT_LENGTH);
     }
 
     /**

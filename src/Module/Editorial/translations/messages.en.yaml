@@ -39,6 +39,13 @@ backend:
     editorial_frontend: Editorial public site
     editorial_frontend_description: 'Serves the posts, listing pages and taxonomy pages to readers.'
   editorial:
+    bootstrap:
+      post_types:
+        page: Page
+        article: Article
+      taxonomies:
+        category: Categories
+        tag: Tags
     github:
       settings:
         what_title: What this integration does
@@ -124,10 +131,22 @@ backend:
         key_hint: Paste the client's own account key here.
         enabled_label: Show the newsletter signup
         enabled_hint: "The « Newsletter signup » zones of your pages add an address to this list."
-        enabled_blocked: "Enter the list, the key and accept the terms to turn the integration on."
+        enabled_blocked: "Enter the list, the key and the privacy policy, and accept the terms, to turn the integration on."
+        compliance_title: Compliance (GDPR)
+        compliance_body: "The form always asks visitors to tick a consent box, and tells them under the field what their address is for, who receives it and how to unsubscribe."
+        double_opt_in_label: Email confirmation (recommended)
+        double_opt_in_hint: "Visitors get an email and join the list only once they click its link. Nobody can sign someone else up, and the provider keeps the proof of consent."
+        brevo_template_label: Confirmation email template (Brevo)
+        brevo_template_hint: "Brevo requires one to send the confirmation: create a template in Campaigns > Templates, tagged « optin », with the « doubleoptin » confirmation link Brevo offers, then enter its number here."
+        privacy_label: Privacy policy address
+        privacy_hint: "Required: the link shows under the form. An https:// address or a path of this site, for example /en/page/privacy. It must name the mailing provider."
       errors:
         terms_required: "You must accept the provider's terms to turn the integration on."
         list_required: "Enter the list id and the API key to turn the integration on."
+        privacy_required: "Enter the address of your privacy policy to turn the integration on: the GDPR requires informing visitors where their address is collected."
+        privacy_url_invalid: "The policy address must start with https:// or / (a path of this site)."
+        template_required: "With Brevo, email confirmation needs the number of a confirmation email template."
+        template_invalid: The Brevo template number must be a number.
   audit:
     actions:
       editorial:
@@ -194,13 +213,6 @@ backend:
     editorial_form_submission_prefix:
       label: Submission reference prefix
       description: 'Prefix of the reference generated for each submission.'
-    bootstrap:
-      post_types:
-        page: Page
-        article: Article
-      taxonomies:
-        category: Categories
-        tag: Tags
   stats:
     editorial:
       posts: Posts
@@ -600,6 +612,7 @@ backend:
         instagramFeed: Instagram feed
         googleReviews: Google reviews
         newsletterSignup: Newsletter signup
+        newsletterPrivacy: Newsletter privacy notice
         stack: Stack
       zone_form: "Form"
       zone_form_hint: "The form is drawn in the page and posts where its own page posts."
@@ -1003,6 +1016,7 @@ backend:
       newsletter_hint: "Sends the address to the list set in Settings > Newsletter. While the integration is off, the zone draws nothing."
       newsletter_title: Title
       newsletter_note: Detail
+      newsletter_privacy_hint: "The newsletter's paragraph for your privacy policy: who receives the address, where, and how to unsubscribe, written for the provider set. While the newsletter is off, the zone draws nothing."
       background_video: Background video
       background_video_hint: "The film plays without sound behind the title, instead of a player. For visitors who asked for less motion, the poster stays still."
       background_video_title: Title over the video
@@ -1488,6 +1502,16 @@ frontend:
         invalid: Invalid email address.
         unavailable: This signup is no longer available.
         too_many: Too many attempts, try again later.
+        success_confirm: "Almost there: confirm your subscription with the link we have just emailed you."
+        consent: "I agree to receive the newsletter by email."
+        notice: "Your address is only used to send you this newsletter; it is passed to %provider%, our mailing provider. You can unsubscribe at any time with the link in every email."
+        privacy_link: Privacy policy
+        consent_required: "Tick the box to confirm your subscription."
+      newsletter_privacy:
+        title: Newsletter
+        brevo: "If you subscribe to our newsletter, your email address is used only to send it to you. This processing is based on your consent, given by ticking the box on the form and, where asked, by confirming your subscription by email. Your address is entrusted to Brevo (Sendinblue SAS, a French company), our mailing provider, which hosts it in the European Union. It is kept for as long as you remain subscribed."
+        mailchimp: "If you subscribe to our newsletter, your email address is used only to send it to you. This processing is based on your consent, given by ticking the box on the form and, where asked, by confirming your subscription by email. Your address is entrusted to Mailchimp, a service of Intuit Inc., our mailing provider, based in the United States: your data is therefore transferred there. This transfer is covered by the EU-U.S. Data Privacy Framework, in which Intuit participates, and by the European Commission's standard contractual clauses. It is kept for as long as you remain subscribed."
+        rights: "You can unsubscribe at any time with the link in every email. You also have the right to access, correct and erase your data, and to lodge a complaint with the data protection authority (the CNIL in France)."
       quote:
         total: Total
       booking:

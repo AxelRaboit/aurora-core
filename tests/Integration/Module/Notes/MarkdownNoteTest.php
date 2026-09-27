@@ -302,6 +302,25 @@ final class MarkdownNoteTest extends IntegrationTestCase
         self::assertSame('sepia', $fresh->getAppearance()->value);
     }
 
+    /**
+     * L'enregistrement renvoie l'extrait, par la même règle que la liste :
+     * c'est ce qui permet à la carte de la bibliothèque de suivre le texte
+     * sans recharger la page.
+     */
+    public function testSavingANoteSendsBackItsFreshExcerpt(): void
+    {
+        $note = $this->note($this->owner, 'Extrait', content: 'Ancien texte.');
+
+        $this->client->loginUser($this->owner, 'admin');
+        $response = $this->post('backend_notes_markdown_update', [
+            'title' => 'Extrait',
+            'content' => "# Nouveau\n\n![photo](data:image/png;base64,AAAA)Un texte neuf.",
+        ], ['id' => $note->getId()]);
+
+        self::assertSame("# Nouveau\n\nUn texte neuf.", $response['note']['excerpt'] ?? null, 'the image is dropped, as in the list');
+        self::assertNotNull($response['note']['updatedAt'] ?? null);
+    }
+
     /** Une adresse qui n'est pas une adresse ne s'écrit pas. */
     public function testACoverRefusesAnythingButAnHttpsAddress(): void
     {

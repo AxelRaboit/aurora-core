@@ -48,13 +48,32 @@ final class NewsletterController extends AbstractController
             return $this->jsonFailure('frontend.editorial.grid.newsletter.too_many', 429);
         }
 
-        $email = mb_trim((string) ($this->decodeJson($request)['email'] ?? ''));
+        $payload = $this->decodeJson($request);
+        $email = mb_trim((string) ($payload['email'] ?? ''));
 
         if (false === filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return $this->jsonFailure('frontend.editorial.grid.newsletter.invalid');
         }
 
-        $subscribed = $this->subscriber->subscribe($this->settings->provider(), $this->settings->apiKey(), $this->settings->listId(), $email);
+        // Consent is a tick the visitor gives, never assumed from the click
+        // on the button: the form's box starts unticked, and the server asks
+        // for it too, so a request without it adds nobody.
+        if (true !== ($payload['consent'] ?? null)) {
+            return $this->jsonFailure('frontend.editorial.grid.newsletter.consent_required');
+        }
+
+        $subscribed = $this->subscriber->subscribe(
+            $this->settings->provider(),
+            $this->settings->apiKey(),
+            $this->settings->listId(),
+            $email,
+            doubleOptIn: $this->settings->doubleOptIn(),
+            brevoTemplateId: $this->settings->brevoTemplateId(),
+            // Where the confirmation link lands: this site's home page, in
+            // the visitor's language.
+            redirectUrl: $request->getSchemeAndHttpHost().'/'.$locale,
+            visitorIp: $request->getClientIp(),
+        );
 
         if (!$subscribed) {
             return $this->jsonFailure('frontend.editorial.grid.newsletter.failed', 502);

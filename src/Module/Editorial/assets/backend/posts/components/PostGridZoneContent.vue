@@ -1000,6 +1000,14 @@ const displayHint = computed(() =>
             </div>
         </template>
 
+        <template v-else-if="zone.type === 'newsletterPrivacy'">
+            <p class="text-sm text-muted">{{ t("backend.posts.grid.newsletter_privacy_hint") }}</p>
+            <div class="rounded-lg border border-dashed border-line p-3 space-y-2">
+                <p class="text-xs uppercase tracking-wide text-muted">{{ t("backend.posts.grid.translated_fields", { locale }) }}</p>
+                <AppInput v-model="bound.label.value" :label="t('backend.posts.grid.newsletter_title')" :placeholder="t('frontend.editorial.grid.newsletter_privacy.title')" />
+            </div>
+        </template>
+
         <template v-else-if="zone.type === 'deck'">
             <AppSelect
                 v-model="bound.deckId.value"

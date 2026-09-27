@@ -478,6 +478,7 @@ describe("usePostGrid", () => {
             "instagramFeed",
             "googleReviews",
             "newsletterSignup",
+            "newsletterPrivacy",
             "stack",
         ]);
     });
@@ -527,6 +528,7 @@ describe("usePostGrid", () => {
             "instagramFeed",
             "googleReviews",
             "newsletterSignup",
+            "newsletterPrivacy",
         ]);
     });
 

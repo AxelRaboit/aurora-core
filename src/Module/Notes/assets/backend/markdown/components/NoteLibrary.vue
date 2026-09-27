@@ -27,6 +27,7 @@ import {
     ArrowUpNarrowWide,
     ChevronRight,
     FileDown,
+    CheckSquare,
     FileText,
     Folder,
     FolderInput,
@@ -424,10 +425,37 @@ function clearSelection() {
     selected.value = new Set();
 }
 
-// Changer de dossier vide la sélection : ce qu'elle contient n'est plus à
-// l'écran, et agir dessus de loin est la meilleure façon de déplacer ce
-// qu'on ne regardait pas.
-watch(currentFolderId, clearSelection);
+/**
+ * Le mode sélection, comme dans la médiathèque.
+ *
+ * Les ronds ne s'affichent qu'une fois le mode ouvert par son bouton : sur
+ * chaque carte en permanence, ils encombraient la bibliothèque pour un geste
+ * qu'on fait rarement. Dans ce mode, cliquer une carte la coche au lieu de
+ * l'ouvrir. En sortir vide la sélection.
+ */
+const selecting = ref(false);
+
+function startSelecting() {
+    selecting.value = true;
+}
+
+function stopSelecting() {
+    selecting.value = false;
+    clearSelection();
+}
+
+function toggleSelecting() {
+    if (selecting.value) {
+        stopSelecting();
+    } else {
+        startSelecting();
+    }
+}
+
+// Changer de dossier vide la sélection et referme le mode : ce qu'elle
+// contient n'est plus à l'écran, et agir dessus de loin est la meilleure
+// façon de déplacer ce qu'on ne regardait pas.
+watch(currentFolderId, stopSelecting);
 
 /** Les éléments choisis, rendus à leur nature et à leur objet. */
 function selectedItems() {
@@ -462,7 +490,7 @@ async function moveSelection(targetFolderId) {
         if (!moved) ++refused;
     }
 
-    clearSelection();
+    stopSelecting();
     emit("changed");
 
     // Un message par refus, pour douze éléments, c'est douze messages
@@ -488,7 +516,7 @@ async function deleteSelection() {
         if (!ok) ++failed;
     }
 
-    clearSelection();
+    stopSelecting();
     emit("changed");
 
     if (failed) {
@@ -926,6 +954,9 @@ function onKeydown(event) {
         const current = navigable.value[focused.value];
         if (!current) return;
         event.preventDefault();
+        // L'espace ouvre le mode s'il ne l'est pas : c'est la touche qui
+        // cochait déjà, elle n'a pas à attendre le bouton.
+        startSelecting();
         toggleSelection(current.kind, current.item);
 
         return;
@@ -939,7 +970,7 @@ function onKeydown(event) {
         return;
 
     case "Escape":
-        clearSelection();
+        stopSelecting();
 
         return;
 
@@ -1219,6 +1250,16 @@ function noteActions(note) {
  * quitter la page.
  */
 function onCardClick(kind, item, event) {
+    // En mode sélection, la carte entière coche, lien du titre compris :
+    // seul un bouton (le menu, l'épingle) garde son propre geste.
+    if (selecting.value) {
+        if (event.target.closest("button")) return;
+        event.preventDefault();
+        toggleSelection(kind, item);
+
+        return;
+    }
+
     if (event.target.closest("button, a")) return;
 
     const selection = window.getSelection?.();
@@ -1428,6 +1469,18 @@ defineExpose({
                         <FolderTree v-else class="h-4 w-4" :stroke-width="2" />
                     </AppIconButton>
 
+                    <!-- Le mode sélection, comme dans la médiathèque : les ronds
+                         n'apparaissent qu'une fois ouvert. -->
+                    <AppIconButton
+                        :class="selecting ? 'text-accent-400' : ''"
+                        :title="selecting ? t('notes.markdown.library.stop_selecting') : t('notes.markdown.library.select')"
+                        :aria-label="selecting ? t('notes.markdown.library.stop_selecting') : t('notes.markdown.library.select')"
+                        :aria-pressed="selecting"
+                        v-on:click="toggleSelecting"
+                    >
+                        <CheckSquare class="h-4 w-4" :stroke-width="2" />
+                    </AppIconButton>
+
                     <div class="inline-flex overflow-hidden rounded-md border border-line">
                         <AppTab
                             v-for="opt in viewOptions"
@@ -1507,7 +1560,7 @@ defineExpose({
                 <AppIconButton
                     :title="t('notes.markdown.library.clear_selection')"
                     size="sm"
-                    v-on:click="clearSelection"
+                    v-on:click="stopSelecting"
                 >
                     <X class="w-4 h-4" :stroke-width="2" />
                 </AppIconButton>
@@ -1597,6 +1650,7 @@ defineExpose({
                                      recouvrir : en surimpression, elle
                                      tombait sur le nom des dossiers courts. -->
                                 <button
+                                    v-if="selecting"
                                     type="button"
                                     class="shrink-0 pt-0.5"
                                     :title="t('notes.markdown.library.select')"
@@ -1657,6 +1711,7 @@ defineExpose({
                         >
                             <div class="flex items-start gap-2">
                                 <button
+                                    v-if="selecting"
                                     type="button"
                                     class="shrink-0 pt-0.5"
                                     :title="t('notes.markdown.library.select')"
