@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Aurora\Core\Scheduling\Access;
 
-use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
-
 /**
  * Who may see what a module put on the calendar.
  *
@@ -15,8 +13,12 @@ use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
  * the pages). Each module that announces dates says it here, and the calendar
  * asks before it shows one. A source nobody answers for stays visible, which
  * is what a publication date on the public site is.
+ *
+ * Tagged by the `_instanceof` block of `config/services.yaml`, like every
+ * other extension point: an `#[AutoconfigureTag]` on the interface is
+ * registered twice when the bundle loads, which the lowest Symfony versions
+ * this package allows refuse outright.
  */
-#[AutoconfigureTag(self::TAG)]
 interface ScheduledSourceAccessInterface
 {
     public const string TAG = 'aurora.scheduled_source_access';
