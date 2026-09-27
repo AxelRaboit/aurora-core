@@ -23,7 +23,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Contracts\Translation\TranslatorInterface;
 
 use function filter_var;
 use function implode;
@@ -55,7 +54,6 @@ final class BookingController extends AbstractController
         private readonly GridNormalizer $gridNormalizer,
         private readonly BookingSlotFinder $slots,
         private readonly BookingReserver $reserver,
-        private readonly TranslatorInterface $translator,
         private readonly RateLimiterFactoryInterface $editorialBookingLimiter,
     ) {}
 
@@ -112,7 +110,7 @@ final class BookingController extends AbstractController
             return $this->jsonFailure('frontend.editorial.grid.booking.invalid');
         }
 
-        $planning = $this->slots->calendar($this->translator->trans('frontend.editorial.grid.booking.calendar_name', [], 'messages', $locale));
+        $planning = $this->slots->calendar();
 
         $event = new PlanningEvent();
         $event->setPlanning($planning);

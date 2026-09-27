@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Unit\Module\Editorial\Booking;
 
+use Aurora\Core\Locale\Service\LocaleContextInterface;
 use Aurora\Module\Editorial\Booking\Service\BookingSlotFinder;
 use Aurora\Module\Editorial\Post\Grid\GridZoneOptions;
 use Aurora\Module\Planning\Event\Entity\PlanningEvent;
@@ -17,6 +18,7 @@ use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Clock\MockClock;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * The slots a booking zone offers, and the one question a submission asks
@@ -35,7 +37,7 @@ final class BookingSlotFinderTest extends TestCase
         $events = $this->createStub(PlanningEventRepository::class);
         $events->method('findSinglesInWindow')->willReturn([]);
 
-        $finder = new BookingSlotFinder(
+        $finder = $this->finder(
             $this->calendars($planning),
             $events,
             new MockClock(new DateTimeImmutable('2026-09-21 06:00:00 UTC')),
@@ -61,7 +63,7 @@ final class BookingSlotFinderTest extends TestCase
         $events = $this->createStub(PlanningEventRepository::class);
         $events->method('findSinglesInWindow')->willReturn([$busyEvent]);
 
-        $finder = new BookingSlotFinder($this->calendars($planning), $events, new MockClock(new DateTimeImmutable('2026-09-21 06:00:00 UTC')));
+        $finder = $this->finder($this->calendars($planning), $events, new MockClock(new DateTimeImmutable('2026-09-21 06:00:00 UTC')));
         $options = GridZoneOptions::normalize(['hours' => self::HOURS, 'slotDuration' => 60, 'bookingWindowDays' => 7, 'timezone' => 'Europe/Paris']);
 
         self::assertSame(['09:00', '11:00'], array_map(
@@ -82,7 +84,7 @@ final class BookingSlotFinderTest extends TestCase
         $events = $this->createStub(PlanningEventRepository::class);
         $events->method('findSinglesInWindow')->willReturn([$cancelled]);
 
-        $finder = new BookingSlotFinder($this->calendars($planning), $events, new MockClock(new DateTimeImmutable('2026-09-21 06:00:00 UTC')));
+        $finder = $this->finder($this->calendars($planning), $events, new MockClock(new DateTimeImmutable('2026-09-21 06:00:00 UTC')));
         $options = GridZoneOptions::normalize(['hours' => self::HOURS, 'slotDuration' => 60, 'bookingWindowDays' => 7, 'timezone' => 'Europe/Paris']);
 
         self::assertTrue($finder->isFree(
@@ -94,7 +96,7 @@ final class BookingSlotFinderTest extends TestCase
 
     public function testOnlyAStartTheGridOffersIsBookable(): void
     {
-        $finder = new BookingSlotFinder($this->calendars(new Planning()), $this->createStub(PlanningEventRepository::class), new MockClock(new DateTimeImmutable('2026-09-21 06:00:00 UTC')));
+        $finder = $this->finder($this->calendars(new Planning()), $this->createStub(PlanningEventRepository::class), new MockClock(new DateTimeImmutable('2026-09-21 06:00:00 UTC')));
         $options = GridZoneOptions::normalize(['hours' => self::HOURS, 'slotDuration' => 60, 'bookingWindowDays' => 7, 'timezone' => 'Europe/Paris']);
         $at = static fn (string $moment): DateTimeImmutable => new DateTimeImmutable($moment.' Europe/Paris');
 
@@ -109,10 +111,16 @@ final class BookingSlotFinderTest extends TestCase
 
     public function testAClosedDateOffersNothing(): void
     {
-        $finder = new BookingSlotFinder($this->calendars(new Planning()), $this->createStub(PlanningEventRepository::class), new MockClock(new DateTimeImmutable('2026-09-21 06:00:00 UTC')));
+        $finder = $this->finder($this->calendars(new Planning()), $this->createStub(PlanningEventRepository::class), new MockClock(new DateTimeImmutable('2026-09-21 06:00:00 UTC')));
         $options = GridZoneOptions::normalize(['hours' => self::HOURS, 'slotDuration' => 60, 'bookingWindowDays' => 7, 'timezone' => 'Europe/Paris', 'closedDates' => ['2026-09-22']]);
 
         self::assertFalse($finder->isOffered($options, new DateTimeImmutable('2026-09-22 10:00 Europe/Paris')));
+    }
+
+    /** The service with what its slot rules never read: the calendar's name. */
+    private function finder(ModuleCalendarProvider $calendars, PlanningEventRepository $events, MockClock $clock): BookingSlotFinder
+    {
+        return new BookingSlotFinder($calendars, $events, $this->createStub(TranslatorInterface::class), $this->createStub(LocaleContextInterface::class), $clock);
     }
 
     /**

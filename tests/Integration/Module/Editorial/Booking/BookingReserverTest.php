@@ -53,6 +53,22 @@ final class BookingReserverTest extends IntegrationTestCase
         self::assertTrue($reserver->reserve($this->booking($planning, '11:00')), 'the next slot is still free');
     }
 
+    /**
+     * Named in the site's default language, whoever books: the name used to
+     * follow the visitor's, and the shared calendar was renamed back and forth.
+     */
+    public function testTheCalendarKeepsTheSitesLanguageWhateverTheVisitors(): void
+    {
+        $translator = static::getContainer()->get(\Symfony\Contracts\Translation\TranslatorInterface::class);
+        $translator->setLocale('en');
+
+        $name = static::getContainer()->get(BookingSlotFinder::class)->calendar()->getName();
+        $default = static::getContainer()->get(\Aurora\Core\Locale\Service\LocaleContext::class)->getDefaultLocale();
+
+        self::assertSame($translator->trans('frontend.editorial.grid.booking.calendar_name', [], 'messages', $default), $name);
+        self::assertNotSame('Online bookings', $name, 'the visitor language no longer names it');
+    }
+
     /** While another booking holds the calendar, this one waits rather than writes. */
     public function testABookingWaitsForTheOneInFlight(): void
     {
@@ -86,7 +102,7 @@ final class BookingReserverTest extends IntegrationTestCase
     /** The site's one bookings calendar: every zone's bookings share it. */
     private function calendar(): PlanningInterface
     {
-        return static::getContainer()->get(BookingSlotFinder::class)->calendar('Réservations en ligne');
+        return static::getContainer()->get(BookingSlotFinder::class)->calendar();
     }
 
     private function booking(PlanningInterface $planning, string $clock): PlanningEvent
