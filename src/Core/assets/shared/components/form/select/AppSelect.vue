@@ -1,50 +1,63 @@
 <script setup>
-import AppFieldLabel from "@/shared/components/form/AppFieldLabel.vue";
+import { computed } from "vue";
+import AppMultiselect from "@/shared/components/form/select/AppMultiselect.vue";
 
+/**
+ * Le choix unique du back-office, jamais un `<select>` natif.
+ *
+ * Le menu du navigateur ne suit ni le thème ni la police, et il n'a pas la
+ * même allure d'un système à l'autre : c'était le seul contrôle de la maison
+ * à trancher sur le reste de l'écran. Celui-ci repose sur le sélecteur de
+ * `AppMultiselect`, sans recherche tant que la liste reste courte.
+ *
+ * Le contrat de l'ancien `<select>` est gardé tel quel, pour que les appelants
+ * n'aient rien à changer : la valeur émise est toujours une chaîne (ce que
+ * rendait `$event.target.value`, et ce que `v-model.number` sait convertir),
+ * et le placeholder reste une entrée qu'on peut choisir, celle qui ramène à
+ * « Tous les … » dans une barre de filtres.
+ */
 const props = defineProps({
-    modelValue: { type: [String, Number], default: '' },
-    label: { type: String, default: '' },
-    error: { type: String, default: '' },
+    modelValue: { type: [String, Number, null], default: "" },
+    label: { type: String, default: "" },
+    error: { type: String, default: "" },
     /** Help text under the control - explains the field, unlike `error` which reports it. */
-    hint: { type: String, default: '' },
+    hint: { type: String, default: "" },
     required: { type: Boolean, default: false },
     /** Topic id from `helpTopics.js`, surfaced next to the label. */
-    help: { type: String, default: '' },
-    placeholder: { type: String, default: '' },
-    // Array of { value, label } OR object { value: label } - leave empty to use slot
-    options: { type: [Array, Object], default: null },
+    help: { type: String, default: "" },
+    placeholder: { type: String, default: "" },
+    disabled: { type: Boolean, default: false },
+    /** Array of { value, label } OR object { value: label }. */
+    options: { type: [Array, Object], default: () => [] },
+    /** Au-delà de ce nombre d'entrées, taper filtre la liste. */
+    searchAbove: { type: Number, default: 10 },
 });
 
-defineEmits(['update:modelValue']);
+const emit = defineEmits(["update:modelValue"]);
 
-const isObjectMap = (v) => v !== null && !Array.isArray(v) && typeof v === 'object';
-const isArrayOpts = (v) => Array.isArray(v) && v.length > 0;
+const choices = computed(() => {
+    const list = Array.isArray(props.options)
+        ? props.options.map((option) => ({ value: String(option.value), label: option.label }))
+        : Object.entries(props.options ?? {}).map(([value, label]) => ({ value, label }));
+
+    return props.placeholder ? [{ value: "", label: props.placeholder }, ...list] : list;
+});
+
+const current = computed(() => String(props.modelValue ?? ""));
 </script>
 
 <template>
-    <div class="flex flex-col gap-1.5">
-        <AppFieldLabel :label="label" :required="required" :help="help" />
-        <select
-            :value="modelValue"
-            class="block w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-primary focus:border-accent-500 focus:ring-1 focus:ring-accent-500 transition"
-            :class="{ 'border-red-500 focus:border-red-500 focus:ring-red-500': error }"
-            v-on:change="$emit('update:modelValue', $event.target.value)"
-        >
-            <option v-if="placeholder" value="">{{ placeholder }}</option>
-
-            <template v-if="isArrayOpts(options)">
-                <option v-for="opt in options" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
-            </template>
-
-            <template v-else-if="isObjectMap(options)">
-                <option v-for="(lbl, val) in options" :key="val" :value="val">{{ lbl }}</option>
-            </template>
-
-            <template v-else>
-                <slot />
-            </template>
-        </select>
-        <p v-if="hint" class="text-xs text-muted">{{ hint }}</p>
-        <p v-if="error" class="text-xs text-red-500">{{ error }}</p>
-    </div>
+    <AppMultiselect
+        :model-value="current"
+        :options="choices"
+        :label="label"
+        :error="error"
+        :hint="hint"
+        :help="help"
+        :required="required"
+        :disabled="disabled"
+        :placeholder="placeholder"
+        :searchable="choices.length > searchAbove"
+        v-on:update:model-value="emit('update:modelValue', $event ?? '')"
+    />
 </template>
