@@ -94,7 +94,8 @@ final class AuditActionLabelTest extends TestCase
     }
 
     /**
-     * Every `$this->auditLogger->log('<module>', '<action>', …)` call site,
+     * Every `$this->auditLogger->log('<module>', '<action>', …)` call site, and
+     * every `logMany()` one,
      * flattened to `<module>.<action>` - the shape the Vue side builds.
      *
      * Only literal arguments are matched. A call built from a variable or a
@@ -110,9 +111,9 @@ final class AuditActionLabelTest extends TestCase
 
         foreach (self::phpFiles() as $path) {
             $code = (string) file_get_contents($path);
-            $callSites += mb_substr_count($code, 'auditLogger->log(');
+            $callSites += mb_substr_count($code, 'auditLogger->log(') + mb_substr_count($code, 'auditLogger->logMany(');
 
-            preg_match_all("/auditLogger->log\(\s*'([a-z_]+)',\s*'([a-z_.]+)'/", $code, $matches, PREG_SET_ORDER);
+            preg_match_all("/auditLogger->log(?:Many)?\(\s*'([a-z_]+)',\s*'([a-z_.]+)'/", $code, $matches, PREG_SET_ORDER);
             foreach ($matches as $match) {
                 $actions[$match[1].'.'.$match[2]] = true;
             }
@@ -122,7 +123,7 @@ final class AuditActionLabelTest extends TestCase
             $callSites,
             array_sum(array_map(
                 static fn (string $path): int => preg_match_all(
-                    "/auditLogger->log\(\s*'[a-z_]+',\s*'[a-z_.]+'/",
+                    "/auditLogger->log(?:Many)?\(\s*'[a-z_]+',\s*'[a-z_.]+'/",
                     (string) file_get_contents($path),
                 ),
                 self::phpFiles(),

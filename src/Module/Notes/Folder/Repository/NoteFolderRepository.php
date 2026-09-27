@@ -149,7 +149,10 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
      */
     public function findTrashedRootsForUser(CoreUserInterface $user): array
     {
+        // The parent comes along: the trash names it beside each folder.
         return $this->createQueryBuilder('f')
+            ->leftJoin('f.parent', 'p')
+            ->addSelect('p')
             ->where('f.user = :user')
             ->andWhere('f.deletedAt IS NOT NULL')
             ->andWhere('f.trashedWithFolderId IS NULL')

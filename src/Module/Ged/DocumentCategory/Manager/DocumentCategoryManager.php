@@ -113,8 +113,9 @@ class DocumentCategoryManager implements DocumentCategoryManagerInterface
             return 0;
         }
 
+        $this->auditDeletedMany($categories);
+
         foreach ($categories as $category) {
-            $this->auditDeleted($category);
             $this->entityManager->remove($category);
         }
 
@@ -137,8 +138,9 @@ class DocumentCategoryManager implements DocumentCategoryManagerInterface
             return 0;
         }
 
+        $this->auditDeletedMany($categories);
+
         foreach ($categories as $category) {
-            $this->auditDeleted($category);
             $this->entityManager->remove($category);
         }
 
@@ -177,6 +179,21 @@ class DocumentCategoryManager implements DocumentCategoryManagerInterface
     protected function auditUpdated(DocumentCategoryInterface $category): void
     {
         $this->auditLogger->log('ged', 'category.updated', 'DocumentCategory', $category->getId(), $this->auditPayload($category));
+    }
+
+    /**
+     * The same lines as `auditDeleted()`, written together before any row
+     * goes: audited one by one inside the loop, each line's flush also
+     * executed the removal queued before it, one row at a time.
+     *
+     * @param list<DocumentCategoryInterface> $categories
+     */
+    protected function auditDeletedMany(array $categories): void
+    {
+        $this->auditLogger->logMany('ged', 'category.deleted', 'DocumentCategory', array_map(
+            fn (DocumentCategoryInterface $category): array => ['id' => $category->getId(), 'data' => $this->auditPayload($category)],
+            $categories,
+        ));
     }
 
     protected function auditDeleted(DocumentCategoryInterface $category): void

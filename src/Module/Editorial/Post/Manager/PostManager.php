@@ -180,8 +180,14 @@ class PostManager implements PostManagerInterface
             return 0;
         }
 
+        // The audit lines together, before any row goes: inside the loop each
+        // line's flush also ran the removal queued before it.
+        $this->auditLogger->logMany('editorial', 'post.force_deleted', 'Post', array_map(
+            fn (PostInterface $post): array => ['id' => $post->getId(), 'data' => $this->auditPayload($post)],
+            $posts,
+        ));
+
         foreach ($posts as $post) {
-            $this->auditLogger->log('editorial', 'post.force_deleted', 'Post', $post->getId(), $this->auditPayload($post));
             $this->eventDispatcher->dispatch(new EntityUnscheduledEvent(self::SCHEDULE_SOURCE, (int) $post->getId()));
             $this->entityManager->remove($post);
         }

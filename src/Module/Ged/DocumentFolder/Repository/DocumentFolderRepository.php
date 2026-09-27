@@ -54,7 +54,10 @@ class DocumentFolderRepository extends ResolveTargetEntityRepository
      */
     public function findTrashedRoots(): array
     {
+        // The parent comes along: the trash names it beside each folder.
         return $this->createQueryBuilder('f')
+            ->leftJoin('f.parent', 'p')
+            ->addSelect('p')
             ->andWhere('f.deletedAt IS NOT NULL')
             ->andWhere('f.trashedWithFolderId IS NULL')
             ->orderBy('f.deletedAt', Order::Descending->value)

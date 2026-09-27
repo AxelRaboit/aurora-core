@@ -50,6 +50,29 @@ final readonly class SequenceGenerator
     }
 
     /**
+     * Several numbers of a global sequence, reserved in one statement.
+     *
+     * For a batch that needs one reference per row: asking one at a time is a
+     * round trip per row. The numbers are consecutive and nobody else can be
+     * handed any of them, since the reservation is the same atomic upsert.
+     *
+     * @return list<string>
+     */
+    public function nextMany(string $prefix, int $count, int $pad = 6): array
+    {
+        if ($count < 1) {
+            return [];
+        }
+
+        $last = $this->increment($prefix, 0, $count);
+
+        return array_map(
+            static fn (int $value): string => sprintf('%s-%0'.$pad.'d', $prefix, $value),
+            range($last - $count + 1, $last),
+        );
+    }
+
+    /**
      * Return the current value without consuming it.
      * Returns 0 if the series has never been used.
      */
@@ -63,15 +86,15 @@ final readonly class SequenceGenerator
         return false === $result ? 0 : (int) $result;
     }
 
-    private function increment(string $prefix, int $year): int
+    private function increment(string $prefix, int $year, int $by = 1): int
     {
         $result = $this->connection->executeQuery(
             'INSERT INTO app_sequence_counters (prefix, year, last_value)
-             VALUES (:prefix, :year, 1)
+             VALUES (:prefix, :year, :by)
              ON CONFLICT (prefix, year)
-             DO UPDATE SET last_value = app_sequence_counters.last_value + 1
+             DO UPDATE SET last_value = app_sequence_counters.last_value + :by
              RETURNING last_value',
-            ['prefix' => $prefix, 'year' => $year],
+            ['prefix' => $prefix, 'year' => $year, 'by' => $by],
         );
 
         return (int) $result->fetchOne();

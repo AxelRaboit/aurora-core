@@ -11,16 +11,19 @@ use Aurora\Module\Platform\User\Entity\User;
 interface NotificationManagerInterface
 {
     /**
-     * @param string|null          $url  **A path, not an absolute address.** The link stays
-     *                                   inside the application, and the browser resolves it
-     *                                   against whatever host the person is on. Written
-     *                                   absolute, it carries the host of the routing context
-     *                                   at the time the notification is written - and many are
-     *                                   written by the worker, with no HTTP request, so that
-     *                                   context falls back to `localhost`: locally, clicking
-     *                                   one led to a refused connection. An email is the
-     *                                   opposite case and needs the absolute address.
+     * @param string|null          $url   **A path, not an absolute address.** The link stays
+     *                                    inside the application, and the browser resolves it
+     *                                    against whatever host the person is on. Written
+     *                                    absolute, it carries the host of the routing context
+     *                                    at the time the notification is written - and many are
+     *                                    written by the worker, with no HTTP request, so that
+     *                                    context falls back to `localhost`: locally, clicking
+     *                                    one led to a refused connection. An email is the
+     *                                    opposite case and needs the absolute address.
      * @param array<string, mixed> $data
+     * @param bool                 $flush false in a loop: the caller flushes once for the
+     *                                    batch, rather than each notification flushing the
+     *                                    whole unit of work again
      */
     public function notify(
         CoreUserInterface $recipient,
@@ -29,6 +32,7 @@ interface NotificationManagerInterface
         ?string $body = null,
         ?string $url = null,
         array $data = [],
+        bool $flush = true,
     ): NotificationInterface;
 
     public function markRead(NotificationInterface $notification): void;

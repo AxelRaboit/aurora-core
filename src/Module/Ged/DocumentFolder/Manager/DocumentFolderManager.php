@@ -178,8 +178,9 @@ class DocumentFolderManager implements DocumentFolderManagerInterface
             return 0;
         }
 
+        $this->auditDeletedMany($folders);
+
         foreach ($folders as $folder) {
-            $this->auditDeleted($folder);
             $this->entityManager->remove($folder);
         }
 
@@ -348,6 +349,21 @@ class DocumentFolderManager implements DocumentFolderManagerInterface
     protected function auditRestored(DocumentFolderInterface $folder): void
     {
         $this->auditLogger->log('ged', 'folder.restored', 'DocumentFolder', $folder->getId(), $this->auditPayload($folder));
+    }
+
+    /**
+     * The same lines as `auditDeleted()`, written together before any row
+     * goes: audited one by one inside the loop, each line's flush also
+     * executed the removal queued before it, one row at a time.
+     *
+     * @param list<DocumentFolderInterface> $folders
+     */
+    protected function auditDeletedMany(array $folders): void
+    {
+        $this->auditLogger->logMany('ged', 'folder.deleted', 'DocumentFolder', array_map(
+            fn (DocumentFolderInterface $folder): array => ['id' => $folder->getId(), 'data' => $this->auditPayload($folder)],
+            $folders,
+        ));
     }
 
     protected function auditDeleted(DocumentFolderInterface $folder): void

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Planning\Planning\Manager;
 
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
+use Aurora\Module\Planning\Event\Repository\PlanningEventRepository;
 use Aurora\Module\Planning\Planning\Dto\PlanningInputInterface;
 use Aurora\Module\Planning\Planning\Entity\Planning;
 use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
@@ -18,6 +19,7 @@ class PlanningManager implements PlanningManagerInterface
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
         protected readonly AuditLogger $auditLogger,
+        protected readonly PlanningEventRepository $eventRepository,
     ) {}
 
     public function create(PlanningInputInterface $input, CoreUserInterface $owner): PlanningInterface
@@ -43,7 +45,7 @@ class PlanningManager implements PlanningManagerInterface
     }
 
     /**
-     * The events go with it, by the cascade the mapping declares.
+     * The events go with it, by the database's cascade on their foreign key.
      *
      * Deliberate, and the one destructive thing in this module: a calendar is
      * the container, and events with no calendar have nowhere to be drawn. The
@@ -92,6 +94,9 @@ class PlanningManager implements PlanningManagerInterface
         // The event count goes in the log because deleting a calendar takes them
         // with it, and "deleted Travail" is a much smaller sentence than
         // "deleted Travail and 214 events".
-        return ['name' => $planning->getName(), 'events' => $planning->getEvents()->count()];
+        //
+        // Counted by the database: reading the collection loaded every event of
+        // the calendar, on each save of its name as much as on its deletion.
+        return ['name' => $planning->getName(), 'events' => $this->eventRepository->countForPlanning($planning)];
     }
 }

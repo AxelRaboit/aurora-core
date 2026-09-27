@@ -7,6 +7,7 @@ namespace Aurora\Module\Editorial\Form\MessageHandler;
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
+use Aurora\Module\Editorial\Form\Entity\FormSubmissionInterface;
 use Aurora\Module\Editorial\Form\Message\PurgeFormSubmissionsMessage;
 use Aurora\Module\Editorial\Form\Repository\FormSubmissionRepository;
 use DateTimeImmutable;
@@ -68,16 +69,21 @@ final readonly class PurgeFormSubmissionsHandler
             return;
         }
 
-        foreach ($expired as $submission) {
-            // Logged before removal, and without the answers: what is recorded
-            // is that a row was forgotten and which one, never a copy of the
-            // personal data this exists to erase.
-            $this->auditLogger->log('editorial', 'form_submission.purged', 'FormSubmission', $submission->getId(), [
+        // Logged before removal, and without the answers: what is recorded is
+        // that a row was forgotten and which one, never a copy of the personal
+        // data this exists to erase. All the lines in one flush: inside the
+        // loop, each flush also ran the removal before it, a batch of five
+        // hundred costing five hundred flushes over a growing unit of work.
+        $this->auditLogger->logMany('editorial', 'form_submission.purged', 'FormSubmission', array_map(
+            static fn (FormSubmissionInterface $submission): array => ['id' => $submission->getId(), 'data' => [
                 'reference' => $submission->getReference(),
                 'form' => $submission->getForm()->getId(),
                 'submittedAt' => $submission->getSubmittedAt()->format(DATE_ATOM),
-            ]);
+            ]],
+            $expired,
+        ));
 
+        foreach ($expired as $submission) {
             $this->entityManager->remove($submission);
         }
 

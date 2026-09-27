@@ -10,6 +10,7 @@ use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Message\SpaceActivityDigestMessage;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Stamp\DelayStamp;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -58,6 +59,7 @@ final readonly class SpaceActivityNotifier
         private UrlGeneratorInterface $urlGenerator,
         private TranslatorInterface $translator,
         private MessageBusInterface $bus,
+        private EntityManagerInterface $entityManager,
     ) {}
 
     public function clientWroteInChat(CustomerSpaceInterface $space, string $author): void
@@ -164,6 +166,16 @@ final readonly class SpaceActivityNotifier
 
         $title = $this->translator->trans($titleKey, $parameters);
 
+        // Never the reason a client's message is lost: the caller has already
+        // committed it, and this is an announcement about something that has
+        // happened, not part of it happening. Hence the catch around each step.
+        //
+        // Every bell first, then one flush, then the messages: the digest the
+        // message asks for reads these notifications, so they have to be
+        // written before it can run, and a flush per member rewrote the whole
+        // unit of work once for each of them.
+        $told = [];
+
         foreach ($this->recipients($space) as $recipient) {
             if ($coalesce && $this->repository->hasUnread($recipient, $type, $url)) {
                 continue;
@@ -172,8 +184,24 @@ final readonly class SpaceActivityNotifier
             try {
                 $this->notifications->notify($recipient, $type, $title, $space->getName(), $url, [
                     'spaceId' => $space->getId(),
-                ]);
+                ], flush: false);
+                $told[] = $recipient;
+            } catch (Throwable) {
+            }
+        }
 
+        if ([] === $told) {
+            return;
+        }
+
+        try {
+            $this->entityManager->flush();
+        } catch (Throwable) {
+            return;
+        }
+
+        foreach ($told as $recipient) {
+            try {
                 // And a look back in a few minutes, to decide whether this also
                 // deserves an email. Queued rather than sent: somebody at their
                 // desk will have read it by then, and the mail that is never
@@ -183,9 +211,6 @@ final readonly class SpaceActivityNotifier
                     [new DelayStamp(self::EMAIL_DELAY_MS)],
                 );
             } catch (Throwable) {
-                // Never the reason a client's message is lost. The caller has
-                // already committed it; this is an announcement about something
-                // that has happened, not part of it happening.
             }
         }
     }

@@ -88,19 +88,28 @@ abstract class AbstractPlanning implements PlanningInterface
     protected ?CoreUserInterface $owner = null;
 
     /**
+     * The calendar's events, which go with it.
+     *
+     * Through the database's `ON DELETE CASCADE` on the event's foreign key,
+     * not through Doctrine: a cascade declared here made the ORM load every
+     * event of the calendar, then its attendees, alerts and occurrences, to
+     * delete them one row at a time - a synchronised calendar holds every
+     * scheduled post. The database does the same in one statement.
+     *
      * @var Collection<int, PlanningEventInterface>
      */
-    #[ORM\OneToMany(targetEntity: PlanningEventInterface::class, mappedBy: 'planning', cascade: ['remove'], orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: PlanningEventInterface::class, mappedBy: 'planning')]
     protected Collection $events;
 
     /**
-     * The calendar's reminders, which cascade with it for the same reason its
-     * events do: deleting a calendar deletes what was on it, and a reminder
-     * pointing at a calendar that is gone is a row nothing can reach.
+     * The calendar's reminders, which go with it for the same reason its
+     * events do, and by the same database cascade: deleting a calendar deletes
+     * what was on it, and a reminder pointing at a calendar that is gone is a
+     * row nothing can reach.
      *
      * @var Collection<int, PlanningReminderInterface>
      */
-    #[ORM\OneToMany(targetEntity: PlanningReminderInterface::class, mappedBy: 'planning', cascade: ['remove'], orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: PlanningReminderInterface::class, mappedBy: 'planning')]
     protected Collection $reminders;
 
     /**

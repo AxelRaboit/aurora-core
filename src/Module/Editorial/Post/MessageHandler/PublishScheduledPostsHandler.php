@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Editorial\Post\MessageHandler;
 
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
+use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
 use Aurora\Module\Editorial\Post\Message\PublishScheduledPostsMessage;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
@@ -50,11 +51,10 @@ final readonly class PublishScheduledPostsHandler
         // Audited one by one: a post going live is the kind of change an
         // editor comes looking for afterwards, and nobody was at the keyboard
         // to remember it happened.
-        foreach ($due as $post) {
-            $this->auditLogger->log('editorial', 'post.published_on_schedule', 'Post', $post->getId(), [
-                'status' => $post->getStatus()->value,
-            ]);
-        }
+        $this->auditLogger->logMany('editorial', 'post.published_on_schedule', 'Post', array_map(
+            static fn (PostInterface $post): array => ['id' => $post->getId(), 'data' => ['status' => $post->getStatus()->value]],
+            $due,
+        ));
 
         $this->logger->info('Published {count} scheduled post(s).', ['count' => count($due)]);
     }
