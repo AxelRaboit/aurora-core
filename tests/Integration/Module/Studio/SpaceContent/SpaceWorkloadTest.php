@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Integration\Module\Studio\SpaceContent;
 
+use Aurora\Core\Notification\Entity\Notification;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\Customer\Entity\Customer;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
+use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceMember;
+use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceMemberRoleEnum;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceStatusEnum;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLink;
 use Aurora\Module\Studio\SpaceAccess\Manager\SpaceAccessLinkManagerInterface;
@@ -16,6 +19,8 @@ use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumnInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItem;
 use Aurora\Module\Studio\SpaceContent\Enum\SpaceContentApprovalEnum;
 use Aurora\Module\Studio\SpaceContent\Enum\SpaceContentColumnRoleEnum;
+use Aurora\Module\Studio\SpaceContent\Message\NotifyLateReviewsMessage;
+use Aurora\Module\Studio\SpaceContent\MessageHandler\NotifyLateReviewsHandler;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentColumnRepository;
 use Aurora\Module\Studio\SpaceContent\Workload\SpaceWorkload;
 use Aurora\Tests\Integration\IntegrationTestCase;
@@ -53,7 +58,9 @@ final class SpaceWorkloadTest extends IntegrationTestCase
 
     protected function tearDown(): void
     {
-        foreach ([SpaceContentItem::class, SpaceContentColumn::class, SpaceAccessLink::class, CustomerSpace::class, Customer::class] as $class) {
+        $this->entityManager->createQuery(sprintf("DELETE FROM %s n WHERE n.type = 'studio.space.late_review'", Notification::class))->execute();
+
+        foreach ([SpaceContentItem::class, SpaceContentColumn::class, SpaceAccessLink::class, CustomerSpaceMember::class, CustomerSpace::class, Customer::class] as $class) {
             $this->entityManager->createQuery(sprintf('DELETE FROM %s', $class))->execute();
         }
 
@@ -118,6 +125,31 @@ final class SpaceWorkloadTest extends IntegrationTestCase
         $this->entityManager->flush();
 
         self::assertSame([], static::getContainer()->get(SpaceWorkload::class)->forSpaces([$this->reload($space)]));
+    }
+
+    /**
+     * The studio is told once about what is overdue, on a link that opens
+     * those cards, and not again while it has not looked.
+     */
+    public function testTheTeamIsToldOnceAboutOverdueReviews(): void
+    {
+        $space = $this->givenSpace('Relances');
+        $admin = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $member = new CustomerSpaceMember();
+        $member->setUser($admin)->setRole(CustomerSpaceMemberRoleEnum::Lead);
+        $space->addMember($member);
+        $this->entityManager->persist($member);
+        $this->item($space, $this->column($space, SpaceContentColumnRoleEnum::Review), new DateTimeImmutable('+5 days'), reviewBy: new DateTimeImmutable('-1 day'));
+        $this->entityManager->flush();
+
+        $handler = static::getContainer()->get(NotifyLateReviewsHandler::class);
+        $handler(new NotifyLateReviewsMessage());
+        $handler(new NotifyLateReviewsMessage());
+
+        $notifications = $this->entityManager->getRepository(Notification::class)->findBy(['type' => 'studio.space.late_review']);
+        self::assertCount(1, $notifications, 'not repeated while unread');
+        self::assertSame(sprintf('/workspace/%d?state=late_review', $space->getId()), $notifications[0]->getUrl());
+        self::assertSame('Une relecture en retard', $notifications[0]->getTitle());
     }
 
     private function givenSpace(string $name): CustomerSpace

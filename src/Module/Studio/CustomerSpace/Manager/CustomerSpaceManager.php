@@ -82,12 +82,11 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
     }
 
     /**
-     * Deleting a space removes its membership rows and nothing else.
-     *
-     * There is nothing else to remove yet. The moment content items hang off a
-     * space, this becomes the place that refuses - in words, the way
-     * `CustomerManager::delete` refuses a customer a contract names - rather
-     * than letting a foreign key answer with a 500 halfway through a request.
+     * Deleting a space takes everything in it: its cards, their threads and
+     * attachments, its conversations, notes and access links go by cascade.
+     * The documents those attachments point at stay in the media library,
+     * and the space's dates are taken off the calendar first, since no
+     * cascade announces anything.
      */
     public function delete(CustomerSpaceInterface $space): void
     {

@@ -7,12 +7,13 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ## [0.9.270] - 2026-09-27
 
-Le plan Studio du 27/09, lots 0 à 3 : d'abord les failles relevées par
-l'audit, puis un seul vocabulaire pour ce qui attend chez les clients, le
-tableau de bord qui s'en sert, et un calendrier éditorial pour tous les
-espaces. Les quatre décisions du plan ont été tranchées : rôle facultatif sur
+Le plan Studio du 27/09, en entier (lots 0 à 6) : d'abord les failles
+relevées par l'audit, puis un seul vocabulaire pour ce qui attend chez les
+clients, le tableau de bord qui s'en sert, un calendrier éditorial pour tous
+les espaces, le parcours dans un espace, un Planning qui dit vrai, et du
+ménage. Les quatre décisions du plan ont été tranchées : rôle facultatif sur
 les colonnes, « mes espaces » par défaut, contenus clients gardés dans le
-Planning mais filtrés par membre, relance au studio d'abord (lot 4).
+Planning mais filtrés par membre, relance au studio d'abord.
 
 ### Ajouté
 
@@ -62,6 +63,46 @@ urgence.
   consultation**, pour tous les modules. Seul le Planning le faisait.
 - Le courriel de relecture et le bouton « Envoyer à relire » ne comptent plus
   que ce que la page du client montre.
+
+### Le parcours dans un espace (lot 4)
+
+- **La vue et la fiche ouvertes sont dans l'adresse**
+  (`/workspace/1?view=calendar&item=42`). Les notifications, le calendrier
+  éditorial, les événements du Planning et les usages de la médiathèque
+  ouvrent la fiche elle-même, au lieu de la dernière vue utilisée. Une vue
+  mémorisée que l'espace n'offre pas retombe sur le contenu au lieu d'un écran
+  vide.
+- **Passer d'un espace à l'autre** depuis l'en-tête, sans revenir à la liste.
+- **L'échéance de relecture se voit sur chaque fiche**, en alerte une fois
+  dépassée, et l'espace se filtre par état (chez le client, en retard, à
+  reprendre…). Les lignes du tableau de bord ouvrent l'espace déjà filtré.
+- **Relance au studio** : chaque matin, les membres d'un espace qui a des
+  relectures en retard reçoivent une notification, qui ne se répète pas tant
+  qu'elle n'est pas lue. Jamais de courriel automatique au client.
+- **Un avis tombe quand l'objet change** : changer la date ou le visuel d'une
+  fiche validée efface l'avis, et plus seulement réécrire le texte.
+- **Espace, client, contrats et présentations reliés** : l'onglet Informations
+  liste les contrats, les présentations et les autres espaces du client, et la
+  liste des clients montre leurs espaces.
+- Les étapes se réordonnent par glisser-déposer, et le message de suppression
+  d'un espace dit tout ce qui part avec lui.
+
+### Un Planning qui dit vrai (lot 5)
+
+- « À venir » passe par les occurrences : les séries récurrentes y figurent,
+  l'événement en cours aussi, les annulés non. Chaque ligne ouvre son jour.
+- Un rappel « journée entière » n'est en retard qu'une fois sa journée finie.
+- La recherche vérifie le droit de consulter le calendrier.
+- La synchronisation des dates ne dépend plus des modules que l'utilisateur
+  connecté a masqués pour lui-même.
+
+### Ménage (lot 6)
+
+- Vingt-cinq blocs de commentaires décollés de leur méthode sont recollés,
+  fusionnés ou retirés, et les commentaires qui décrivaient un ancien code sont
+  réécrits.
+- Noms : l'onglet d'en-tête d'un espace s'appelle « Espace de travail », la vue
+  « Liens » devient « Ressources », et un contrat n'est plus que « scellé ».
 
 ### Sécurité
 

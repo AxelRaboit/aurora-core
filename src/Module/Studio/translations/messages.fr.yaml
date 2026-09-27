@@ -31,7 +31,7 @@ backend:
         studio_calendar: Calendrier éditorial
         studio_calendar_description: Ce qui sort chez tous vos clients, sur un seul mois.
         studio_spaces: Espaces clients
-        studio_spaces_description: Un espace par chantier client, avec son équipe et, bientôt, son calendrier.
+        studio_spaces_description: Un espace par chantier client, avec son équipe, son tableau et son calendrier.
         studio_contracts: Contrats
         studio_contracts_description: Les contrats préparés, scellés et signés.
         studio_decks: Présentations
@@ -110,7 +110,7 @@ backend:
                 contract:
                     created: Contrat créé
                     updated: Contrat modifié
-                    frozen: Contrat gelé et scellé
+                    frozen: Contrat scellé
                     link_sent: Lien de signature envoyé
                     link_revoked: Lien de signature révoqué
                     reminder_sent: Relance envoyée au client
@@ -381,7 +381,7 @@ backend:
                 draft_already_open: 'Un brouillon est déjà ouvert sur cette trame (version {number}). Terminez-le ou abandonnez-le avant d''en ouvrir un autre.'
                 nothing_to_publish: Cette version n'a aucun texte à publier.
                 already_published: 'Cette version est publiée : son texte ne peut plus être modifié. Ouvrez une nouvelle version.'
-                used_by_contracts: '{count} contrat(s) figés ont été établis à partir de cette trame. La supprimer effacerait le lien entre eux et le texte signé : archivez-la plutôt.'
+                used_by_contracts: '{count} contrat(s) scellé(s) ont été établis à partir de cette trame. La supprimer effacerait le lien entre eux et le texte signé : archivez-la plutôt.'
                 governing_locale_unknown: Cette langue n'est pas gérée par l'application.
                 governing_locale_not_written: 'La langue faisant foi ({locale}) n''est pas rédigée dans cette version.'
                 governing_locale_required: 'Cette version est rédigée en plusieurs langues : indiquez laquelle fait foi avant de publier.'
@@ -969,7 +969,7 @@ backend:
             updated: Espace mis à jour.
             deleted: Espace supprimé.
             delete_confirm: 'Supprimer {name} ?'
-            delete_warning: L'espace et la liste de son équipe disparaissent. Le client, ses contrats et ses documents ne bougent pas.
+            delete_warning: "L'espace disparaît avec tout ce qu'il contient : ses contenus, leurs fils et leurs pièces jointes, ses discussions, ses notes et ses liens d'accès. Ses dates quittent le calendrier. Le client, ses contrats et les documents de la médiathèque ne bougent pas."
             show_archived: Afficher les espaces archivés
             sort_by_urgency: Trier par urgence
             archived_badge: Archivé
@@ -1306,6 +1306,10 @@ backend:
         space_information:
             scope: "Cette fiche appartient au client, pas à ce projet. La modifier ici la modifie dans tous ses espaces, et c'est voulu : un SIRET est celui d'une société."
             what_the_client_sees: Ce que le client voit
+            related_contracts: "Contrats de ce client"
+            related_decks: "Présentations de ce client"
+            related_spaces: "Autres espaces de ce client"
+            draft_contract: "Brouillon"
             saved: Fiche enregistrée.
             legal_name: Nom de l'entreprise
             legal_name_placeholder: 'ex. : Atelier Dupont'
@@ -1399,6 +1403,7 @@ backend:
             upload: '%who% a envoyé un fichier sur « %item% »'
             approved: '%who% a validé « %item% »'
             changes_requested: '%who% demande une reprise sur « %item% »'
+            late_review: '{1}Une relecture en retard|]1,Inf[%count% relectures en retard'
         space_chat:
             channels:
                 main_name: Général
@@ -1418,7 +1423,7 @@ backend:
                 from_client: Un message du client ne se supprime pas. C'est ce qu'il vous a dit.
                 not_in_space: Ce lien n'ouvre pas cet espace.
         space_content:
-            tab: Contenu
+            tab: Espace de travail
             view_label: Vue
             view_content: Contenus
             shape_board: Kanban
@@ -1430,7 +1435,7 @@ backend:
             view_chat: Discussion
             view_notes: Notes
             view_information: Informations
-            view_resources: Liens
+            view_resources: Ressources
             view_settings: Réglages
             files_empty: Aucun fichier sur cet espace
             files_empty_hint: Les fichiers déposés sur les contenus, par vous ou par le client, apparaissent ici du plus récent au plus ancien.
@@ -1455,6 +1460,7 @@ backend:
                 delete_description: Supprimer ce contenu
             calendar_name: Contenus clients
             back_to_spaces: Retour aux espaces
+            switch_space: "Changer d'espace"
             add_item: Ajouter un contenu
             create_item: Nouveau contenu
             edit_item: 'Modifier {title}'
@@ -1499,6 +1505,8 @@ backend:
                 nobody_to_write_to: "Aucun lien de cet espace ne peut répondre. Émettez un accès avec le droit de valider depuis l'onglet Accès."
                 late: '{count} en retard'
                 late_hint: "Ces publications ont dépassé la date à laquelle vous attendiez une réponse. Rien n'est bloqué pour autant."
+                due: "Réponse avant le {date}"
+                late_since: "Réponse attendue le {date}"
             show_on_calendar: Afficher dans le calendrier
             show_on_calendar_hint: "Décochée, la carte garde sa date et reste sur le tableau, mais ne paraît ni dans votre calendrier ni dans celui du client."
             scheduled_at_placeholder: '22/09/2026 09:00'
@@ -1507,6 +1515,7 @@ backend:
             add_column: Ajouter une étape
             create_column: Nouvelle étape
             edit_column: Renommer l'étape
+            move_column: "Déplacer l'étape"
             column_name: Nom de l'étape
             column_name_placeholder: 'À relire, En ligne…'
             column_colour: Couleur

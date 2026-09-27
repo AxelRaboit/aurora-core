@@ -7,6 +7,7 @@ namespace Aurora\Module\Studio\SpaceContent\View;
 use Aurora\Core\Routing\PathTemplateGenerator;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Serializer\CustomerSpaceSerializerInterface;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentAttachmentRepository;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentColumnRepository;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentCommentRepository;
@@ -140,7 +141,12 @@ final readonly class SpaceBoardViewBuilder
     public function items(CustomerSpaceInterface $space): array
     {
         return array_map(
-            $this->itemSerializer->serialize(...),
+            // Avec ses états, calculés par `SpaceWorkload` comme les compteurs
+            // du tableau de bord : l'espace filtre par la même règle.
+            fn (SpaceContentItemInterface $item): array => [
+                ...$this->itemSerializer->serialize($item),
+                'states' => $this->workload->statesOf($item),
+            ],
             $this->itemRepository->findForSpace($space),
         );
     }

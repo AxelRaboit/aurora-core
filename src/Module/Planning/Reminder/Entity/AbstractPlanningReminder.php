@@ -197,6 +197,23 @@ abstract class AbstractPlanningReminder implements PlanningReminderInterface
         return $this->completedAt instanceof DateTimeImmutable;
     }
 
+    /**
+     * Whether it is late: not done, and past due.
+     *
+     * « Past due » for a whole-day reminder means its day is over, as the
+     * `allDay` column says: it is stored at the day's start, and comparing
+     * that to now marked « buy bread today » late from midnight on. The
+     * repository counts by the same rule, a day after the stored start.
+     */
+    public function isOverdue(DateTimeImmutable $now): bool
+    {
+        if ($this->isCompleted()) {
+            return false;
+        }
+
+        return $this->allDay ? $this->dueAt <= $now->modify('-1 day') : $this->dueAt < $now;
+    }
+
     public function complete(DateTimeImmutable $at): static
     {
         $this->completedAt = $at;

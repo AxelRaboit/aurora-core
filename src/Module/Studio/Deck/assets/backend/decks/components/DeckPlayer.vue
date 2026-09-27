@@ -45,9 +45,6 @@ const stage = ref(null);
 const { t } = useI18n();
 
 const current = computed(() => props.slides[at.value] ?? null);
-/* Une slide qui retient encore des lignes n'est pas au bout de sa course, meme
-   quand elle est la derniere du deck : sans ca, les fleches a l'ecran restent
-   grisees et les apparitions ne sont atteignables qu'au clavier. */
 /**
  * How many of them are showing.
  *
@@ -72,6 +69,9 @@ const shown = ref(0);
 const revealable = computed(() => revealableIn(props.slides[at.value]));
 
 const isFirst = computed(() => at.value === 0 && shown.value === 0);
+/* Une slide qui retient encore des lignes n'est pas au bout de sa course, meme
+   quand elle est la derniere du deck : sans ca, les fleches a l'ecran restent
+   grisees et les apparitions ne sont atteignables qu'au clavier. */
 const isLast = computed(() => at.value >= props.slides.length - 1 && shown.value >= revealable.value);
 
 

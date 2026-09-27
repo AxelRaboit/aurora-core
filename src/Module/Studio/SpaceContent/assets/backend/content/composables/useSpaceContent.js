@@ -69,6 +69,22 @@ export function useSpaceContent(initial, paths) {
 
     const isEmpty = computed(() => items.value.length === 0);
 
+    /**
+     * Un état à ne montrer que lui - chez le client, en retard, à reprendre -
+     * ou rien. Les états viennent du serveur (`SpaceWorkload`), comme les
+     * compteurs du tableau de bord : la même carte y est comptée et filtrée
+     * par la même règle.
+     */
+    const stateFilter = ref("");
+
+    const shown = computed(() =>
+        stateFilter.value
+            ? items.value.filter((item) =>
+                  (item.states ?? []).includes(stateFilter.value),
+              )
+            : items.value,
+    );
+
     const columnOptions = computed(() =>
         columns.value.map((column) => ({
             value: String(column.id),
@@ -88,14 +104,14 @@ export function useSpaceContent(initial, paths) {
     const grouped = computed(() =>
         columns.value.map((column) => ({
             column,
-            cards: items.value
+            cards: shown.value
                 .filter((item) => item.columnId === column.id)
                 .sort((a, b) => a.position - b.position),
         })),
     );
 
     const unscheduled = computed(() =>
-        items.value.filter((item) => !item.scheduledAt),
+        shown.value.filter((item) => !item.scheduledAt),
     );
 
     /**
@@ -114,7 +130,7 @@ export function useSpaceContent(initial, paths) {
      * aurait redemandé chaque jour de la dater.
      */
     const events = computed(() =>
-        items.value
+        shown.value
             .filter((item) => item.scheduledAt && false !== item.showOnCalendar)
             .map((item) => ({
                 id: item.id,
@@ -183,6 +199,16 @@ export function useSpaceContent(initial, paths) {
                 itemIds: cards.map((card) => card.id),
             }),
         );
+    }
+
+    /** The steps in a new order, moved at once so the board does not snap back. */
+    async function reorderColumns(columnIds) {
+        const byId = new Map(
+            columns.value.map((column) => [column.id, column]),
+        );
+        columns.value = columnIds.map((id) => byId.get(id)).filter(Boolean);
+
+        applyContent(await request(paths.columnReorderPath, { columnIds }));
     }
 
     /** Writes one card's date, or clears it. */
@@ -300,6 +326,8 @@ export function useSpaceContent(initial, paths) {
     );
 
     return {
+        reorderColumns,
+        stateFilter,
         columns,
         items,
         comments,

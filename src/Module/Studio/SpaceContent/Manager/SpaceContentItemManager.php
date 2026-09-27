@@ -66,9 +66,10 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
         $previousColumn = $item->getColumn();
         $previousTitle = $item->getTitle();
         $previousBody = $item->getBody();
+        $previousScheduledAt = $item->getScheduledAt();
 
         $this->applyInput($item, $input);
-        $this->clearApprovalIfContentChanged($item, $previousTitle, $previousBody);
+        $this->clearApprovalIfContentChanged($item, $previousTitle, $previousBody, $previousScheduledAt);
 
         // A card whose step changed from the form, rather than by being
         // dragged, has to land somewhere in its new column. The bottom is
@@ -156,7 +157,9 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
 
     public function reschedule(SpaceContentItemInterface $item, ?string $scheduledAt): void
     {
+        $previousScheduledAt = $item->getScheduledAt();
         $item->setScheduledAt($this->instantFrom($scheduledAt, $item->getSpace()));
+        $this->clearApprovalIfContentChanged($item, $item->getTitle(), $item->getBody(), $previousScheduledAt);
         $this->entityManager->flush();
 
         $this->auditUpdated($item);
@@ -192,33 +195,33 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
 
         // Never folded into an earlier one: answering twice is changing one's
         // mind, and the second answer is the one that counts.
-        $this->notifier->clientAnswered(
-            $item->getSpace(),
-            $link->getRecipientEmail(),
-            $item->getTitle(),
-            SpaceContentApprovalEnum::Approved === $approval,
-        );
+        $this->notifier->clientAnswered($item, $link->getRecipientEmail(), SpaceContentApprovalEnum::Approved === $approval);
     }
 
     /**
-     * Drops an answer whose text has changed under it.
+     * Drops an answer whose content has changed under it.
      *
-     * An approval is of a wording, so a rewrite makes it evidence of nothing -
-     * keeping it would tell the board a client agreed to something they never
-     * read. Moving a card between steps, renaming it in place or rescheduling
-     * it leaves the answer alone; only the title and the copy count, because
-     * they are what the client was shown.
+     * An approval is of what the client was shown - the wording, the date it
+     * goes out, the visual - so changing any of them makes it evidence of
+     * nothing, and keeping it would tell the board a client agreed to
+     * something they never saw. Only the text used to count: a card approved
+     * for Tuesday and moved to Friday still read « validé ». Moving a card
+     * between steps leaves the answer alone; the visual is looked after by
+     * {@see SpaceContentAttachmentManager}.
      */
     protected function clearApprovalIfContentChanged(
         SpaceContentItemInterface $item,
         string $previousTitle,
         ?string $previousBody,
+        ?DateTimeImmutable $previousScheduledAt,
     ): void {
         if (!$item->getApproval()->isAnswered()) {
             return;
         }
 
-        if ($item->getTitle() === $previousTitle && $item->getBody() === $previousBody) {
+        if ($item->getTitle() === $previousTitle
+            && $item->getBody() === $previousBody
+            && $item->getScheduledAt()?->getTimestamp() === $previousScheduledAt?->getTimestamp()) {
             return;
         }
 
@@ -230,8 +233,8 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
      *
      * The producer knows nothing about calendars: it says so into core, and if
      * Planning is absent or switched off nobody is listening. That is the same
-     * contract Editorial's posts use, and it is why a space does not draw an
-     * agenda of its own.
+     * contract Editorial's posts use: the space draws its own month, and the
+     * calendar module shows the same dates beside everything else.
      *
      * **One source type for every space, not one per space.** A per-space
      * source would make `ModuleCalendarProvider` create a shared, ownerless
@@ -269,7 +272,8 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
             // to know which client a date belongs to, and "Espaces clients"
             // told them the same thing eight times.
             sourceLabel: $space->getName(),
-            url: $this->urlGenerator->generate('workspace_space_content', ['id' => $space->getId()]),
+            // La fiche, pas seulement l'espace : l'agenda mène à ce qu'il montre.
+            url: $this->urlGenerator->generate('workspace_space_content', ['id' => $space->getId(), 'view' => 'calendar', 'item' => $item->getId()]),
             colourSlot: $space->getColourSlot(),
         ));
     }

@@ -61,6 +61,8 @@ class SpaceContentAttachmentManager implements SpaceContentAttachmentManagerInte
             ->setPosition($this->attachments->nextPosition($item))
             ->addedByStudio($author, $authorLabel);
 
+        $this->clearApprovalOf($item);
+
         return $this->save($attachment);
     }
 
@@ -87,11 +89,7 @@ class SpaceContentAttachmentManager implements SpaceContentAttachmentManagerInte
 
         $saved = $this->save($attachment);
 
-        $this->notifier->clientUploaded(
-            $item->getSpace(),
-            $link->getRecipientEmail(),
-            $item->getTitle(),
-        );
+        $this->notifier->clientUploaded($item, $link->getRecipientEmail());
 
         return $saved;
     }
@@ -115,9 +113,25 @@ class SpaceContentAttachmentManager implements SpaceContentAttachmentManagerInte
     public function detach(SpaceContentAttachmentInterface $attachment): void
     {
         $this->auditDetached($attachment);
+        $this->clearApprovalOf($attachment->getItem());
 
         $this->entityManager->remove($attachment);
         $this->entityManager->flush();
+    }
+
+    /**
+     * Drops the client's answer when the studio changes the visual under it.
+     *
+     * The visual is what a client approves on a content calendar, more than
+     * the text: a card approved with one picture and then given another still
+     * read « validé ». A file the client sends leaves the answer alone - it is
+     * theirs, and it is how they answer.
+     */
+    protected function clearApprovalOf(SpaceContentItemInterface $item): void
+    {
+        if ($item->getApproval()->isAnswered()) {
+            $item->clearApproval();
+        }
     }
 
     /**

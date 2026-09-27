@@ -130,9 +130,21 @@ final readonly class StudioStatsProvider implements DashboardStatsProviderInterf
                 'name' => $space->getName(),
                 'customerName' => $space->getCustomer()->getLegalName(),
                 'colourSlot' => $space->getColourSlot(),
-                'path' => $this->urlGenerator->generate('workspace_space_content', ['id' => $row->spaceId]),
+                // Sur l'état le plus urgent, filtré : la ligne dit « 2 relectures
+                // en retard », l'espace s'ouvre sur ces deux-là.
+                'path' => $this->urlGenerator->generate('workspace_space_content', ['id' => $row->spaceId, 'state' => $this->mostUrgentState($row)]),
                 ...$row->toArray(),
             ];
         }, array_slice($waiting, 0, self::ATTENTION_LIMIT));
+    }
+
+    private function mostUrgentState(SpaceWorkloadRow $row): string
+    {
+        return match (true) {
+            $row->missed > 0 => 'missed',
+            $row->lateReview > 0 => 'late_review',
+            $row->changesRequested > 0 => 'changes_requested',
+            default => 'with_client',
+        };
     }
 }

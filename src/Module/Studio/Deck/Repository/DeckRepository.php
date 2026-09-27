@@ -40,8 +40,11 @@ class DeckRepository extends ResolveTargetEntityRepository
         return $decks;
     }
 
-    /** How many slides each deck holds, indexed by deck id. */
-    /** @return array<int, int> */
+    /**
+     * How many slides each deck holds, indexed by deck id.
+     *
+     * @return array<int, int>
+     */
     public function countSlidesByDeck(): array
     {
         /** @var list<array{id: int, total: int}> $rows */

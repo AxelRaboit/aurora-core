@@ -22,6 +22,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { CalendarClock, Check, GripVertical, MessageSquare } from "lucide-vue-next";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
+import SpaceReviewDeadline from "./SpaceReviewDeadline.vue";
 
 const props = defineProps({
     item: { type: Object, required: true },
@@ -125,6 +126,7 @@ const answered = computed(() => "pending" !== props.item.approval);
                 <CalendarClock class="h-3 w-3 shrink-0" :stroke-width="2" />
                 {{ when }}
             </p>
+            <SpaceReviewDeadline :item="item" />
             <span
                 v-if="answered"
                 class="flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs"
@@ -133,7 +135,6 @@ const answered = computed(() => "pending" !== props.item.approval);
                         ? 'bg-emerald-500/10 text-emerald-500'
                         : 'bg-amber-500/10 text-amber-500'
                 "
-                :title="item.approvalNote || undefined"
             >
                 <Check
                     v-if="item.approval === 'approved'"

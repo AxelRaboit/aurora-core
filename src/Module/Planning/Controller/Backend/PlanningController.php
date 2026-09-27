@@ -166,16 +166,6 @@ final class PlanningController extends AbstractController
     }
 
     /**
-     * Publishes a feed for this calendar, or replaces the address if one exists.
-     *
-     * One route for both, because they are the same request: asking to publish
-     * again is how somebody revokes an address they shared too widely, and a
-     * separate "rotate" would be a second name for it.
-     *
-     * The URL comes back absolute. A relative one would be useless - it is meant
-     * to be pasted into a phone.
-     */
-    /**
      * Sets who a calendar is shared with, by name.
      *
      * The whole list every time, like the alerts and the attendees: the form shows
@@ -356,14 +346,6 @@ final class PlanningController extends AbstractController
     }
 
     /**
-     * Dragging or resizing an event: two instants and nothing else.
-     *
-     * Its own route because a drag knows the span and not the rest of the event,
-     * and posting a whole event the grid does not hold would be a way to lose a
-     * field. Validated here rather than left to the entity: it throws on an end
-     * before a start, and a 500 is the wrong answer to a gesture.
-     */
-    /**
      * An attendee answering for themselves.
      *
      * Not gated on `planning.events.edit`: answering an invitation is not editing
@@ -394,6 +376,14 @@ final class PlanningController extends AbstractController
         return $this->jsonSuccess(['event' => $this->eventSerializer->serialize($event)]);
     }
 
+    /**
+     * Dragging or resizing an event: two instants and nothing else.
+     *
+     * Its own route because a drag knows the span and not the rest of the event,
+     * and posting a whole event the grid does not hold would be a way to lose a
+     * field. Validated here rather than left to the entity: it throws on an end
+     * before a start, and a 500 is the wrong answer to a gesture.
+     */
     #[Route('/events/{id}/move', name: '_events_move', methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('planning.events.edit')]
     public function moveEvent(PlanningEvent $event, Request $request): JsonResponse
@@ -471,22 +461,6 @@ final class PlanningController extends AbstractController
     }
 
     /**
-     * The calendar an event may be written to, or null.
-     *
-     * Resolved through the visible list rather than by a bare `find()`: an id
-     * arriving in a payload is a claim, and a reader who cannot see a calendar
-     * must not be able to drop an event into it.
-     */
-    /**
-     * The calendar this id names, if the reader may write into it.
-     *
-     * Two questions and not one, which it used to conflate: seeing a calendar and
-     * writing into it became different the moment a calendar could be shared
-     * read-only. Resolved through the visible list first, so an id naming a
-     * calendar nobody can see is answered the same way as one naming nothing -
-     * saying "you cannot write to that one" would confirm it exists.
-     */
-    /**
      * The reader's own calendars among those ids, and only their own.
      *
      * Ownership rather than visibility, because a share link hands out access:
@@ -550,6 +524,15 @@ final class PlanningController extends AbstractController
         return $user instanceof CoreUserInterface && $planning->getOwner() instanceof CoreUserInterface && $planning->getOwner()->getId() === $user->getId();
     }
 
+    /**
+     * The calendar this id names, if the reader may write into it.
+     *
+     * Two questions and not one, which it used to conflate: seeing a calendar and
+     * writing into it became different the moment a calendar could be shared
+     * read-only. Resolved through the visible list first, so an id naming a
+     * calendar nobody can see is answered the same way as one naming nothing -
+     * saying "you cannot write to that one" would confirm it exists.
+     */
     private function writableCalendar(int $id): ?PlanningInterface
     {
         $user = $this->getUser();

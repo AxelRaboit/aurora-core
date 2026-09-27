@@ -120,13 +120,6 @@ class ContractsController extends AbstractController
     }
 
     /**
-     * Seals the document.
-     *
-     * The point of no return, and the screen says so before the click. Under
-     * `edit` for now; when the link and the mail land, sending will be its own
-     * permission because it is the act that reaches somebody outside.
-     */
-    /**
      * The contract read the way the client will read it, before sealing.
      *
      * Only while it is still in preparation. A sealed contract already has its
@@ -146,6 +139,13 @@ class ContractsController extends AbstractController
         return $this->jsonSuccess($this->contractManager->preview($contract));
     }
 
+    /**
+     * Seals the document.
+     *
+     * The point of no return, and the screen says so before the click. Under
+     * `edit` for now; when the link and the mail land, sending will be its own
+     * permission because it is the act that reaches somebody outside.
+     */
     #[Route('/{id}/freeze', name: '_freeze', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.contracts.edit')]
     public function freeze(Contract $contract): JsonResponse

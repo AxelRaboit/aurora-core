@@ -78,7 +78,8 @@ final readonly class StudioCalendarViewBuilder
             'readOnly' => true,
             'stepName' => $item->getColumn()->getName(),
             'states' => $this->workload->statesOf($item),
-            'path' => $this->urlGenerator->generate('workspace_space_content', ['id' => $item->getSpace()->getId()]),
+            // La fiche elle-même, dans la vue calendrier de son espace.
+            'path' => $this->urlGenerator->generate('workspace_space_content', ['id' => $item->getSpace()->getId(), 'view' => 'calendar', 'item' => $item->getId()]),
         ], $this->items->findOnCalendar($ids, $from, $to));
     }
 

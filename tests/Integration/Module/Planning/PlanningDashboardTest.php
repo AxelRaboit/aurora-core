@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Aurora\Tests\Integration\Module\Planning;
 
 use Aurora\Module\Planning\Dashboard\PlanningStatsProvider;
+use Aurora\Module\Planning\Event\Entity\PlanningEvent;
+use Aurora\Module\Planning\Event\Enum\PlanningEventStatusEnum;
 use Aurora\Module\Planning\Planning\Entity\Planning;
 use Aurora\Module\Planning\Reminder\Entity\PlanningReminder;
 use Aurora\Module\Platform\User\Entity\User;
@@ -159,5 +161,44 @@ final class PlanningDashboardTest extends IntegrationTestCase
         self::assertNotContains('Déjà fait', $titles);
         // Late, so behind rather than ahead: it belongs to the count.
         self::assertNotContains('En retard', $titles);
+    }
+
+    /**
+     * What is coming, as the calendar draws it: a series by its next
+     * occurrence, the meeting going on right now, and not what was cancelled.
+     * The table was asked for rows starting after now, so every series was
+     * missing and a cancelled meeting still announced.
+     */
+    public function testUpcomingFollowsSeriesAndSkipsCancelled(): void
+    {
+        $now = new DateTimeImmutable();
+        $mine = new Planning();
+        $mine->setName('À venir')->setOwner($this->admin)->setTimezone('UTC');
+        $this->entityManager->persist($mine);
+
+        $series = new PlanningEvent();
+        $series->setPlanning($mine)->setTitle('Point hebdomadaire')->setRrule('FREQ=WEEKLY')
+            ->setSpan($now->modify('+10 minutes')->modify('-10 weeks'), $now->modify('+40 minutes')->modify('-10 weeks'));
+        $ongoing = new PlanningEvent();
+        $ongoing->setPlanning($mine)->setTitle('En cours')->setSpan($now->modify('-30 minutes'), $now->modify('+30 minutes'));
+        $cancelled = new PlanningEvent();
+        $cancelled->setPlanning($mine)->setTitle('Annulé')->setStatus(PlanningEventStatusEnum::Cancelled)->setSpan($now->modify('+5 minutes'), $now->modify('+20 minutes'));
+
+        foreach ([$series, $ongoing, $cancelled] as $event) {
+            $this->entityManager->persist($event);
+        }
+        $this->entityManager->flush();
+
+        foreach ([$series, $ongoing, $cancelled] as $event) {
+            $this->created[] = [PlanningEvent::class, (int) $event->getId()];
+        }
+        $this->created[] = [Planning::class, (int) $mine->getId()];
+
+        $this->client->loginUser($this->admin, 'admin');
+        $titles = array_column($this->provider->getStats()['planning']['upcoming'], 'title');
+
+        self::assertContains('Point hebdomadaire', $titles);
+        self::assertContains('En cours', $titles);
+        self::assertNotContains('Annulé', $titles);
     }
 }
