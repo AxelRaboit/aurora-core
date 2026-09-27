@@ -5,6 +5,18 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.280] - 2026-09-27
+
+### Corrigé
+
+#### Une flèche au clavier envoyait le bord d'une zone en bout de ligne
+Dans la grille d'une publication, après avoir changé le « Pas d'aimantation »,
+une flèche sur la poignée gauche ou droite d'une zone ne l'avançait plus d'un
+cran : le bord partait d'un coup au bout de la ligne. Le pas choisi était
+aussi perdu à l'enregistrement, et revenait à quatre colonnes sans prévenir.
+Le pas est maintenant gardé comme un nombre : les flèches avancent d'un cran,
+et le réglage tient après enregistrement.
+
 ## [0.9.279] - 2026-09-27
 
 ### Ajouté

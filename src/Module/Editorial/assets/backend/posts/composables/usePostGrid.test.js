@@ -329,6 +329,16 @@ describe("usePostGrid", () => {
         expect(layout.value.zones[0].span.lg).toBe(25);
     });
 
+    // AppSelect emits strings, and "26" + "2" is "262": one arrow key on an
+    // edge handle sent it to the end of the row.
+    it("keeps the step a number when the select hands it a string", () => {
+        const { layout, api } = make();
+
+        api.snap.value = "2";
+
+        expect(layout.value.snap).toBe(2);
+    });
+
     it("never lets a zone reach zero or overflow the grid", () => {
         const { layout, api } = make();
 
