@@ -371,7 +371,7 @@ final class MenuRenderer
 
         $missing = $this->missing($ids[MenuItemTargetTypeEnum::Term->value] ?? [], $this->terms);
         if ([] !== $missing) {
-            foreach ($this->termRepository->findBy(['id' => $missing]) as $term) {
+            foreach ($this->termRepository->findForDisplay($missing) as $term) {
                 $this->terms[(int) $term->getId()] = $term;
             }
 

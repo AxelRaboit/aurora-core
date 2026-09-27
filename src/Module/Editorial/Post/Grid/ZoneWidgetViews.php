@@ -643,7 +643,7 @@ final readonly class ZoneWidgetViews
             return null;
         }
 
-        $planning = $this->bookingSlots->calendar($this->translator->trans('frontend.editorial.grid.booking.calendar_name', [], 'messages', $locale));
+        $planning = $this->bookingSlots->calendar();
         $days = $this->bookingSlots->days($options, $planning, $locale);
 
         return [

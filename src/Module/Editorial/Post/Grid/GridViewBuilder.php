@@ -7,38 +7,16 @@ namespace Aurora\Module\Editorial\Post\Grid;
 use Aurora\Core\Content\ContentValueNormalizer;
 use Aurora\Core\Content\EmbedResolver;
 use Aurora\Core\Content\VideoEmbedResolver;
-use Aurora\Core\Storage\Enum\MimeGroupEnum;
-use Aurora\Core\Storage\Enum\MimeTypeEnum;
 use Aurora\Module\Configuration\Theme\Service\SurfaceContrast;
-use Aurora\Module\Editorial\Form\Entity\FormInterface;
-use Aurora\Module\Editorial\Form\Entity\FormTranslationInterface;
-use Aurora\Module\Editorial\Form\Repository\FormRepository;
-use Aurora\Module\Editorial\Form\Serializer\FormSerializer;
 use Aurora\Module\Editorial\GitHub\Service\GitHubActivityView;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Entity\PostTranslationInterface;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
 use Aurora\Module\Editorial\Post\Service\BlocksRenderer;
-use Aurora\Module\Editorial\Post\Service\ThumbnailPresenter;
-use Aurora\Module\Editorial\PostType\Entity\PostTypeInterface;
-use Aurora\Module\Editorial\PostType\Repository\PostTypeRepository;
-use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyInterface;
-use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyTermTranslationInterface;
-use Aurora\Module\Editorial\Taxonomy\Repository\TaxonomyRepository;
-use Aurora\Module\Editorial\Taxonomy\Repository\TaxonomyTermRepository;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
-use Aurora\Module\Ged\Document\Service\DocumentCreditPresenter;
-use Aurora\Module\Ged\Document\Service\DocumentUrlGenerator;
-use Aurora\Module\Ged\Enum\DocumentStatusEnum;
-use Aurora\Module\Studio\Deck\Entity\DeckInterface;
-use Aurora\Module\Studio\Deck\Repository\DeckRepository;
-use Aurora\Module\Studio\Deck\Share\Repository\DeckShareLinkRepository;
-use Collator;
 use DateTimeImmutable;
-use IntlDateFormatter;
 use Symfony\Bundle\SecurityBundle\Security;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
  * Joins the two halves of a content grid into what a template can render.
@@ -49,42 +27,32 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  * uses, and the reason its partial survived the storage changing underneath.
  *
  * Every id is resolved in one query per kind rather than one per zone: a page
- * of ten pictures should cost one document lookup, not ten.
- *
- * One class rather than a resolver per zone type. Four types is not enough to
- * earn an interface, and a per-type resolver would fetch its own rows, which
- * is exactly the N+1 the batching above avoids. When a project needs a zone
- * type of its own, that is the moment to invert this - not before.
+ * of ten pictures should cost one document lookup, not ten. That is why the
+ * loading stays here and the building of each zone does not: the families of
+ * zones live beside it - {@see ZoneListingViews}, {@see ZoneMediaViews},
+ * {@see ZoneSiteViews}, {@see ZoneWidgetViews}, {@see IntegrationZoneViews} -
+ * and are handed what this class already loaded, so none of them fetches per
+ * zone. Each template still reads its own key of the zone: splitting the
+ * builder did not have to touch a single one of them.
  */
 final readonly class GridViewBuilder
 {
-    /** How many publications an A to Z index lists at most. */
-    private const int INDEX_LIMIT = 300;
-
     public function __construct(
         private GridNormalizer $gridNormalizer,
         private ContentValueNormalizer $values,
         private DocumentRepository $documentRepository,
-        private DocumentUrlGenerator $documentUrlGenerator,
-        private DocumentCreditPresenter $creditPresenter,
         private PostRepository $postRepository,
         private BlocksRenderer $blocksRenderer,
         private VideoEmbedResolver $videoEmbedResolver,
         private EmbedResolver $embedResolver,
-        private ThumbnailPresenter $thumbnailPresenter,
-        private FormRepository $formRepository,
-        private FormSerializer $formSerializer,
-        private TaxonomyRepository $taxonomyRepository,
-        private TaxonomyTermRepository $taxonomyTermRepository,
-        private UrlGeneratorInterface $urlGenerator,
-        private PostTypeRepository $postTypeRepository,
-        private DeckRepository $deckRepository,
-        private DeckShareLinkRepository $deckShareLinkRepository,
         private Security $security,
         private GitHubActivityView $gitHubActivityView,
         private ZoneWidgetViews $widgetViews,
         private SurfaceContrast $surfaceContrast,
         private IntegrationZoneViews $integrationViews,
+        private ZoneListingViews $listingViews,
+        private ZoneMediaViews $mediaViews,
+        private ZoneSiteViews $siteViews,
     ) {}
 
     /**
@@ -161,7 +129,7 @@ final readonly class GridViewBuilder
                 // behind a section is the one case here that costs a document
                 // lookup, and ninety-five of every hundred zones name none.
                 'background' => GridNormalizer::SURFACE_CUSTOM === $zone['surface']
-                    ? $this->zoneBackgroundView($zone['background'], $documents)
+                    ? $this->mediaViews->zoneBackgroundView($zone['background'], $documents)
                     : null,
                 // Empty for 'auto', which is every zone that never asked to
                 // override the page - the template then poses no style at
@@ -174,7 +142,7 @@ final readonly class GridViewBuilder
                     ? '--zone-highlight: '.$zone['highlightColor'].';'
                     : '',
                 'spanStyle' => $this->values->spanStyle($zone['span']),
-                'ratioStyle' => $this->ratioStyle($zone['ratio']),
+                'ratioStyle' => $this->mediaViews->ratioStyle($zone['ratio']),
                 // Empty at full width, which is every zone that has not asked
                 // for anything - so a theme reading this puts no style on the
                 // figure at all unless there is something to say. The margin
@@ -212,10 +180,10 @@ final readonly class GridViewBuilder
                     ? $this->blocksRenderer->render($held['blocks'], $locale)
                     : null,
                 'media' => GridNormalizer::ZONE_MEDIA === $zone['type']
-                    ? $this->mediaData($documents[$zone['mediaId']] ?? null, $held['alt'], $zone['mediaUrl'] ?? null)
+                    ? $this->mediaViews->mediaData($documents[$zone['mediaId']] ?? null, $held['alt'], $zone['mediaUrl'] ?? null)
                     : null,
                 'post' => GridNormalizer::ZONE_POST === $zone['type']
-                    ? $this->postCard($posts[$zone['postId']] ?? null, $locale)
+                    ? $this->listingViews->postCard($posts[$zone['postId']] ?? null, $locale)
                     : null,
                 'video' => GridNormalizer::ZONE_VIDEO === $zone['type']
                     ? $this->videoEmbedResolver->resolve($held['url'])
@@ -227,7 +195,7 @@ final readonly class GridViewBuilder
                 // per project - a client's showreel has no business on YouTube,
                 // and a conference talk has no business on their server.
                 'file' => GridNormalizer::ZONE_VIDEO === $zone['type']
-                    ? $this->videoFile($documents[$zone['mediaId']] ?? null)
+                    ? $this->mediaViews->videoFile($documents[$zone['mediaId']] ?? null)
                     : null,
                 // The same library, read as a recording rather than as a film.
                 // Its own key rather than sharing `file`: the two carry
@@ -235,14 +203,14 @@ final readonly class GridViewBuilder
                 // recording has neither - and one key holding two shapes is a
                 // template guessing which it got.
                 'audio' => GridNormalizer::ZONE_AUDIO === $zone['type']
-                    ? $this->audioFile($documents[$zone['mediaId']] ?? null)
+                    ? $this->mediaViews->audioFile($documents[$zone['mediaId']] ?? null)
                     : null,
                 // A file to take away. The words on the card are translated,
                 // like a button's: the same plaquette is "Download the
                 // brochure" on one page and "Télécharger la plaquette" on the
                 // other, and the file underneath does not change.
                 'document' => GridNormalizer::ZONE_DOCUMENT === $zone['type']
-                    ? $this->documentCard($documents[$zone['mediaId']] ?? null, $held['label'])
+                    ? $this->mediaViews->documentCard($documents[$zone['mediaId']] ?? null, $held['label'])
                     : null,
                 // Kept beside the embed so a zone whose address belongs to
                 // no known provider can still offer the link rather than
@@ -271,56 +239,56 @@ final readonly class GridViewBuilder
                 // returned had no ids the words could hang on.
                 'items' => GridNormalizer::ZONE_ITEMS === $zone['type']
                     ? ($forEditor
-                        ? $this->itemsForEditor($zone, $documents)
-                        : $this->itemsView($zone, $held, $documents))
+                        ? $this->mediaViews->itemsForEditor($zone, $documents)
+                        : $this->mediaViews->itemsView($zone, $held, $documents))
                     : null,
                 'postList' => GridNormalizer::ZONE_POST_LIST === $zone['type']
-                    ? $this->postListView($zone, $locale, $currentPostId)
+                    ? $this->listingViews->postListView($zone, $locale, $currentPostId)
                     : null,
                 'embed' => GridNormalizer::ZONE_EMBED === $zone['type']
                     ? $this->embedResolver->resolve($held['url'])
                     : null,
                 'tabs' => GridNormalizer::ZONE_TABS === $zone['type']
-                    ? $this->tabsView($zone, $held, $locale, $forEditor)
+                    ? $this->siteViews->tabsView($zone, $held, $locale, $forEditor)
                     : null,
                 'search' => GridNormalizer::ZONE_SEARCH === $zone['type']
-                    ? $this->searchView($zone, $locale)
+                    ? $this->siteViews->searchView($zone, $locale)
                     : null,
                 'comments' => GridNormalizer::ZONE_COMMENTS === $zone['type']
-                    ? $this->commentsView($currentPostId, $locale)
+                    ? $this->siteViews->commentsView($currentPostId, $locale)
                     : null,
                 'deck' => GridNormalizer::ZONE_DECK === $zone['type']
-                    ? $this->deckView($zone['deckId'])
+                    ? $this->siteViews->deckView($zone['deckId'])
                     : null,
                 'shared' => GridNormalizer::ZONE_SHARED === $zone['type']
                     ? $this->sharedView($posts[$zone['postId']] ?? null, $locale, $depth)
                     : null,
                 'compare' => GridNormalizer::ZONE_COMPARE === $zone['type']
-                    ? $this->compareView($zone, $held, $documents)
+                    ? $this->mediaViews->compareView($zone, $held, $documents)
                     : null,
                 'gallery' => match (true) {
-                    GridNormalizer::ZONE_GALLERY === $zone['type'] => $this->galleryView($zone, $documents),
+                    GridNormalizer::ZONE_GALLERY === $zone['type'] => $this->mediaViews->galleryView($zone, $documents),
                     // The editor arranges a wall of films with the gallery's own
                     // controls - add, remove, reorder - so it is handed the
                     // films in the gallery's shape. The page reads `videoWall`.
                     GridNormalizer::ZONE_VIDEO_WALL === $zone['type'] && $forEditor => ['items' => array_map(
-                        fn (int $id): array => ['url' => $this->videoFile($documents[$id] ?? null)['url'] ?? null],
+                        fn (int $id): array => ['url' => $this->mediaViews->videoFile($documents[$id] ?? null)['url'] ?? null],
                         $zone['mediaIds'],
                     )],
                     GridNormalizer::ZONE_TRAVEL_MAP === $zone['type'] && $forEditor => ['items' => array_map(
-                        fn (int $id): array => ['url' => $this->mediaData($documents[$id] ?? null, '')['url'] ?? null],
+                        fn (int $id): array => ['url' => $this->mediaViews->mediaData($documents[$id] ?? null, '')['url'] ?? null],
                         $zone['mediaIds'],
                     )],
                     default => null,
                 },
                 'map' => GridNormalizer::ZONE_MAP === $zone['type']
-                    ? $this->mapView($held['label'], $held['caption'], $documents[$zone['mediaId']] ?? null)
+                    ? $this->mediaViews->mapView($held['label'], $held['caption'], $documents[$zone['mediaId']] ?? null)
                     : null,
                 'terms' => GridNormalizer::ZONE_TERMS === $zone['type']
-                    ? $this->termsView($zone, $locale)
+                    ? $this->siteViews->termsView($zone, $locale)
                     : null,
                 'form' => GridNormalizer::ZONE_FORM === $zone['type']
-                    ? $this->formView($zone['formId'], $locale)
+                    ? $this->siteViews->formView($zone['formId'], $locale)
                     : null,
                 // Handed over untouched: Twig escapes it on the way out, and
                 // nothing between here and there is allowed to reformat a
@@ -335,15 +303,15 @@ final readonly class GridViewBuilder
                     : null,
                 'videoWall' => GridNormalizer::ZONE_VIDEO_WALL === $zone['type']
                     ? array_values(array_filter(array_map(
-                        fn (int $id): ?array => $this->videoFile($documents[$id] ?? null),
+                        fn (int $id): ?array => $this->mediaViews->videoFile($documents[$id] ?? null),
                         $zone['mediaIds'],
                     )))
                     : null,
                 'activityFeed' => GridNormalizer::ZONE_ACTIVITY_FEED === $zone['type']
-                    ? $this->activityFeedView($zone, $locale, $currentPostId)
+                    ? $this->listingViews->activityFeedView($zone, $locale, $currentPostId)
                     : null,
                 'travelMap' => GridNormalizer::ZONE_TRAVEL_MAP === $zone['type']
-                    ? $this->travelMapView($zone, $held, $documents)
+                    ? $this->mediaViews->travelMapView($zone, $held, $documents)
                     : null,
                 'instagramFeed' => GridNormalizer::ZONE_INSTAGRAM_FEED === $zone['type']
                     ? $this->integrationViews->instagramFeed($zone['options'])
@@ -351,7 +319,7 @@ final readonly class GridViewBuilder
                 'googleReviews' => GridNormalizer::ZONE_GOOGLE_REVIEWS === $zone['type']
                     ? $this->integrationViews->googleReviews($locale)
                     : null,
-                'widget' => $this->widgetViews->build($zone, $held, $locale, fn (?int $id): ?array => null === $id ? null : $this->mediaData($documents[$id] ?? null, $held['alt']), $currentPostId),
+                'widget' => $this->widgetViews->build($zone, $held, $locale, fn (?int $id): ?array => null === $id ? null : $this->mediaViews->mediaData($documents[$id] ?? null, $held['alt']), $currentPostId),
                 'newsletterPrivacy' => GridNormalizer::ZONE_NEWSLETTER_PRIVACY === $zone['type']
                     ? $this->integrationViews->newsletterPrivacy($held)
                     : null,
@@ -544,263 +512,6 @@ final readonly class GridViewBuilder
     }
 
     /**
-     * A form, ready for the same Vue component its own page mounts.
-     *
-     * Null on every "no" - no form named, none found, switched off, or not
-     * translated here - so the template leaves the zone out rather than
-     * drawing an empty box. An inactive form is a draft the site has not
-     * published: the page it would have had 404s, and a zone should not be a
-     * way around that.
-     *
-     * @return array{title: string, description: string|null, data: array<string, mixed>, submitPath: string}|null
-     */
-    private function formView(?int $formId, string $locale): ?array
-    {
-        if (null === $formId) {
-            return null;
-        }
-
-        $form = $this->formRepository->find($formId);
-        if (!$form instanceof FormInterface || !$form->isActive()) {
-            return null;
-        }
-
-        $translation = $form->getTranslation($locale);
-        if (!$translation instanceof FormTranslationInterface) {
-            return null;
-        }
-
-        return [
-            'title' => $translation->getTitle(),
-            'description' => $translation->getDescription(),
-            'data' => $this->formSerializer->serializeForReader($form, $locale),
-            // The same route the form's own page posts to, so one endpoint
-            // answers wherever the form is drawn - and its rate limit and its
-            // validation come along unchanged.
-            'submitPath' => $this->urlGenerator->generate('editorial_form_submit', [
-                'locale' => $locale,
-                'slug' => $translation->getSlug(),
-            ]),
-        ];
-    }
-
-    /**
-     * A list zone, answered from the database on every render.
-     *
-     * One query per zone. A page holding three of them makes three, which is
-     * the price of a list that is never out of date - the alternative is an
-     * author remembering to edit a page every time they publish.
-     *
-     * @return array{columns: int, variant: string, cards: list<array<string, mixed>>}
-     */
-    private function postListView(array $zone, string $locale, ?int $currentPostId): array
-    {
-        if ('index' === ($zone['options']['listLayout'] ?? 'cards')) {
-            return $this->postIndexView($zone, $locale, $currentPostId);
-        }
-
-        $posts = $this->postRepository->findLatestPublished(
-            $locale,
-            (int) $zone['limit'],
-            $zone['postTypeId'],
-            $zone['termId'],
-            // A publication listing its neighbours should not offer itself
-            // among them.
-            $currentPostId,
-        );
-        $this->postRepository->warmCards($posts);
-
-        $cards = [];
-        foreach ($posts as $post) {
-            $card = $this->postCard($post, $locale);
-            if (null !== $card) {
-                $cards[] = $card;
-            }
-        }
-
-        return [
-            'columns' => (int) $zone['columns'],
-            'variant' => (string) $zone['cardVariant'],
-            'cards' => $cards,
-        ];
-    }
-
-    /**
-     * The newest publications, and the latest releases of the repositories the
-     * zone names when GitHub is switched on, in one list by date.
-     *
-     * Two sources and one order, because a reader of "what moved lately" does
-     * not care which module a change came from - only that it is recent.
-     *
-     * @param array<string, mixed> $zone
-     *
-     * @return list<array{kind: string, title: string, url: string, date: string, dateLabel: string, detail: string}>
-     */
-    private function activityFeedView(array $zone, string $locale, ?int $currentPostId): array
-    {
-        $dates = new IntlDateFormatter($locale, IntlDateFormatter::LONG, IntlDateFormatter::NONE);
-        $entries = [];
-
-        $posts = $this->postRepository->findLatestPublished($locale, (int) $zone['limit'], $zone['postTypeId'], null, $currentPostId);
-        // Thumbnails and terms for the whole list at once, as the archive
-        // pages do: read card by card, a feed of twelve cost twelve queries.
-        $this->postRepository->warmCards($posts);
-
-        foreach ($posts as $post) {
-            $card = $this->postCard($post, $locale);
-            $published = $post->getPublishedAt();
-            if (null === $card) {
-                continue;
-            }
-
-            if (null === $published) {
-                continue;
-            }
-
-            $entries[] = [
-                'kind' => 'post',
-                'title' => (string) $card['title'],
-                'url' => $this->urlGenerator->generate('editorial_post', ['locale' => $locale, 'postTypeSlug' => $card['postTypeSlug'], 'slug' => $card['slug']]),
-                'date' => $published->format(DATE_ATOM),
-                'dateLabel' => (string) $dates->format($published),
-                'detail' => (string) ($card['description'] ?? ''),
-            ];
-        }
-
-        if ($zone['options']['feedGithub'] ?? false) {
-            foreach ($this->gitHubActivityView->build($locale, ['githubMode' => 'releases', 'githubRepos' => $zone['options']['githubRepos'] ?? []])['releases'] ?? [] as $release) {
-                if ('' === $release['publishedAt']) {
-                    continue;
-                }
-
-                $entries[] = [
-                    'kind' => 'release',
-                    'title' => $release['repo'].' '.$release['name'],
-                    'url' => $release['url'],
-                    'date' => new DateTimeImmutable($release['publishedAt'])->format(DATE_ATOM),
-                    'dateLabel' => $release['dateLabel'],
-                    'detail' => $release['summary'],
-                ];
-            }
-        }
-
-        usort($entries, static fn (array $a, array $b): int => $b['date'] <=> $a['date']);
-
-        return array_slice($entries, 0, max(1, (int) $zone['limit']));
-    }
-
-    /**
-     * Every publication the list would show, by letter, for an index.
-     *
-     * The count is not the zone's `limit`: an index that stops at twelve is
-     * not an index. It stops at INDEX_LIMIT instead, which is a documentation
-     * or a glossary of a good size, and past which a page of links wants a
-     * search rather than a longer page.
-     *
-     * Letters are read off the title with its accents removed, so « Écran »
-     * files under E; anything that does not start with a letter files under #.
-     *
-     * @param array<string, mixed> $zone
-     *
-     * @return array{columns: int, variant: string, cards: list<array<string, mixed>>, index: list<array{letter: string, entries: list<array{title: string, url: string}>}>}
-     */
-    private function postIndexView(array $zone, string $locale, ?int $currentPostId): array
-    {
-        $posts = $this->postRepository->findLatestPublished($locale, self::INDEX_LIMIT, $zone['postTypeId'], $zone['termId'], $currentPostId);
-        $this->postRepository->warmCards($posts);
-        $collator = new Collator($locale);
-        $entries = [];
-
-        foreach ($posts as $post) {
-            $card = $this->postCard($post, $locale);
-
-            if (null !== $card && '' !== (string) $card['title']) {
-                $entries[] = [
-                    'title' => (string) $card['title'],
-                    'url' => $this->urlGenerator->generate('editorial_post', [
-                        'locale' => $locale,
-                        'postTypeSlug' => $card['postTypeSlug'],
-                        'slug' => $card['slug'],
-                    ]),
-                ];
-            }
-        }
-
-        usort($entries, static fn (array $a, array $b): int => (int) $collator->compare($a['title'], $b['title']));
-
-        $groups = [];
-        foreach ($entries as $entry) {
-            $first = mb_strtoupper(mb_substr((string) transliterator_transliterate('Any-Latin; Latin-ASCII', $entry['title']), 0, 1));
-            $letter = 1 === preg_match('/^[A-Z]$/', $first) ? $first : '#';
-            $groups[$letter][] = $entry;
-        }
-
-        // `#` last, the way a printed index puts figures after Z.
-        uksort($groups, static fn (string $a, string $b): int => ('#' === $a) <=> ('#' === $b) ?: $a <=> $b);
-
-        $index = [];
-        foreach ($groups as $letter => $list) {
-            $index[] = ['letter' => $letter, 'entries' => $list];
-        }
-
-        return [
-            'columns' => (int) $zone['columns'],
-            'variant' => (string) $zone['cardVariant'],
-            'cards' => [],
-            'index' => $index,
-        ];
-    }
-
-    /**
-     * The panels of a tabs zone, each with its label and its body.
-     *
-     * The body goes through the same renderer a text zone's does, so a panel
-     * is sanitised on exactly the path everything else already takes - there
-     * is no second way into the markup here.
-     *
-     * A panel with no label and nothing written is dropped, for the reason a
-     * blank item entry is: a row typed into tomorrow belongs in the editor and
-     * not on the page. The editor keeps them, which is what `forEditor` is for.
-     *
-     * Ids come from the stored list rather than from a counter, because that
-     * is what the labels and the panels are tied together by in the markup -
-     * and a page with two tab zones must not have them fighting over `panel-1`.
-     *
-     * @param array<string, mixed> $zone
-     * @param array<string, mixed> $held
-     *
-     * @return array{zoneId: string, panels: list<array{id: string, label: string, html: string}>}
-     */
-    private function tabsView(array $zone, array $held, string $locale, bool $forEditor): array
-    {
-        $texts = is_array($held['items'] ?? null) ? $held['items'] : [];
-        $panels = [];
-
-        foreach (is_array($zone['items'] ?? null) ? $zone['items'] : [] as $panel) {
-            $id = $panel['id'] ?? null;
-
-            if (!is_string($id)) {
-                continue;
-            }
-
-            $words = is_array($texts[$id] ?? null) ? $texts[$id] : [];
-            $label = (string) ($words['title'] ?? '');
-            $html = $this->blocksRenderer->render(
-                is_array($words['blocks'] ?? null) ? $words['blocks'] : [],
-                $locale,
-            );
-
-            if (!$forEditor && '' === $label && '' === mb_trim(strip_tags($html))) {
-                continue;
-            }
-
-            $panels[] = ['id' => $id, 'label' => $label, 'html' => $html];
-        }
-
-        return ['zoneId' => (string) $zone['id'], 'panels' => $panels];
-    }
-
-    /**
      * Whether the grid places the comment thread itself.
      *
      * Stacks included: a thread tucked into a column is still the thread, and
@@ -821,128 +532,6 @@ final readonly class GridViewBuilder
         }
 
         return false;
-    }
-
-    /**
-     * Where a search field posts, and what it is allowed to find.
-     *
-     * The endpoint is the one the sequence search already uses, and so is the
-     * component that draws it: a second search built for this zone would be a
-     * second set of empty states, a second debounce and a second thing to keep
-     * in step.
-     *
-     * An empty type means the whole site, which is the answer that needs no
-     * setting up.
-     *
-     * @param array<string, mixed> $zone
-     *
-     * @return array{searchUrl: string}
-     */
-    private function searchView(array $zone, string $locale): array
-    {
-        $parameters = ['locale' => $locale];
-
-        $postType = null === $zone['postTypeId']
-            ? null
-            : $this->postTypeRepository->find($zone['postTypeId']);
-
-        if ($postType instanceof PostTypeInterface) {
-            $parameters['type'] = $postType->getSlug();
-        }
-
-        return ['searchUrl' => $this->urlGenerator->generate('editorial_home_search', $parameters)];
-    }
-
-    /**
-     * The three addresses the comment thread needs, for the page it sits on.
-     *
-     * Built from the current publication rather than from anything on the
-     * zone: a thread belongs to the page it is drawn on, and offering an
-     * author a choice there would be offering them a way to put one page's
-     * replies under another.
-     *
-     * @return array{listPath: string, submitPath: string, reactPathTemplate: string}|null
-     */
-    private function commentsView(?int $currentPostId, string $locale): ?array
-    {
-        // Its own lookup rather than the shared prefetch: the prefetch gathers
-        // what zones *name*, and this zone names nothing - it is about the
-        // page it stands on. One query, and only on a page carrying the zone.
-        $post = null === $currentPostId ? null : $this->postRepository->find($currentPostId);
-
-        if (!$post instanceof PostInterface) {
-            return null;
-        }
-
-        $translation = $post->getTranslation($locale);
-        $typeSlug = $post->getPostType()->getSlug();
-
-        if (!$translation instanceof PostTranslationInterface || '' === $translation->getSlug()) {
-            return null;
-        }
-
-        $parameters = ['locale' => $locale, 'postTypeSlug' => $typeSlug, 'slug' => $translation->getSlug()];
-
-        return [
-            'listPath' => $this->urlGenerator->generate('editorial_post_comments', $parameters),
-            'submitPath' => $this->urlGenerator->generate('editorial_post_comment_submit', $parameters),
-            'reactPathTemplate' => $this->urlGenerator->generate(
-                'editorial_comment_react',
-                [...$parameters, 'commentId' => '__commentId__'],
-            ),
-        ];
-    }
-
-    /**
-     * A presentation, but only one somebody has actually published.
-     *
-     * A deck is an internal document until a share link exists for it, so a
-     * zone naming one with no live link draws nothing. A revoked link, an
-     * expired one and one behind a password are all "no": the last because a
-     * page cannot ask for a password on the deck's behalf, and an iframe onto
-     * the unlock form would be a locked door drawn inside an article.
-     *
-     * Same origin, so nothing here loads a third party - this is the site
-     * showing its own page inside its own page.
-     *
-     * @return array{url: string, title: string}|null
-     */
-    private function deckView(?int $deckId): ?array
-    {
-        if (null === $deckId) {
-            return null;
-        }
-
-        $deck = $this->deckRepository->find($deckId);
-
-        if (!$deck instanceof DeckInterface) {
-            return null;
-        }
-
-        $now = new DateTimeImmutable();
-
-        foreach ($this->deckShareLinkRepository->findForDeck($deck) as $link) {
-            if (null !== $link->getRevokedAt()) {
-                continue;
-            }
-
-            if (null !== $link->getPasswordHash()) {
-                continue;
-            }
-
-            $expiresAt = $link->getExpiresAt();
-
-            if (null !== $expiresAt && $expiresAt < $now) {
-                continue;
-            }
-
-            return [
-                'url' => $this->urlGenerator->generate('public_deck_show', ['token' => $link->getToken()]),
-                'title' => $deck->getTitle(),
-            ];
-        }
-
-        return null;
     }
 
     /**
@@ -1042,374 +631,6 @@ final readonly class GridViewBuilder
         );
 
         return [] === $grid['zones'] ? null : $grid;
-    }
-
-    /**
-     * Before and after, or nothing.
-     *
-     * Both or neither, decided here rather than by the template: one picture
-     * of a pair is not a comparison, and a handle with nothing on its right is
-     * a control that lies about what it does. The same reasoning the button
-     * zone applies to its label and its address.
-     *
-     * The words under each side are translated, and the template supplies a
-     * default when the author typed none: "before" and "after" are what they
-     * say in nine cases out of ten, and asking every time is asking for
-     * nothing.
-     *
-     * @param array<string, mixed>          $zone
-     * @param array<string, mixed>          $held
-     * @param array<int, DocumentInterface> $documents
-     *
-     * @return array{before: array<string, mixed>, after: array<string, mixed>, beforeLabel: string, afterLabel: string}|null
-     */
-    private function compareView(array $zone, array $held, array $documents): ?array
-    {
-        $ids = is_array($zone['mediaIds'] ?? null) ? $zone['mediaIds'] : [];
-
-        if (2 !== count($ids)) {
-            return null;
-        }
-
-        $before = $this->mediaData($documents[$ids[0]] ?? null, '');
-        $after = $this->mediaData($documents[$ids[1]] ?? null, '');
-
-        if (null === $before || null === $after) {
-            return null;
-        }
-
-        return [
-            'before' => $before,
-            'after' => $after,
-            // `alt` and `label` rather than two fields of their own: the two
-            // spare translated slots a zone already carries, used for the two
-            // words this one needs. Empty when the author typed nothing, and
-            // the template falls back to a translated default - this class has
-            // no translator, and a French word hard-coded here would be a
-            // French word on an English page.
-            'beforeLabel' => (string) $held['alt'],
-            'afterLabel' => (string) $held['label'],
-        ];
-    }
-
-    /**
-     * The pictures of a gallery zone, resolved against the one prefetch.
-     *
-     * A document named here but since deleted, or replaced by something that
-     * is not a picture, drops out rather than leaving a hole: {@see mediaData}
-     * already answers that question and this only has to respect the answer.
-     *
-     * `ratioStyle` is empty when the zone asks for its own proportions, and
-     * that emptiness is what the template reads to flow the pictures down
-     * columns instead of cropping them into a grid.
-     *
-     * @param array<string, mixed>          $zone
-     * @param array<int, DocumentInterface> $documents
-     *
-     * @return array{columns: int, ratioStyle: string, items: list<array<string, mixed>>}
-     */
-    private function galleryView(array $zone, array $documents): array
-    {
-        $items = [];
-
-        foreach (is_array($zone['mediaIds'] ?? null) ? $zone['mediaIds'] : [] as $id) {
-            $picture = $this->mediaData($documents[$id] ?? null, '');
-
-            if (null !== $picture) {
-                $items[] = $picture;
-            }
-        }
-
-        return [
-            'columns' => (int) $zone['columns'],
-            'ratioStyle' => $this->ratioStyle($zone['ratio']),
-            'items' => $items,
-        ];
-    }
-
-    /**
-     * An address, and a way to be taken to it.
-     *
-     * Nothing here reaches a provider while the page is being read: the
-     * address is text the author typed, the picture is one they chose, and the
-     * link is only followed if the reader decides to. That is the whole design
-     * of this zone - a draggable map would be a third party on every view,
-     * chosen once by us for every client.
-     *
-     * The link goes to Google Maps' universal address, which is what opens the
-     * native application on Android and iOS and a page anywhere else. It is a
-     * choice rather than a neutrality: OpenStreetMap would not profile anyone,
-     * and would not open the application a reader already navigates with. One
-     * line to change here if the trade is judged the other way.
-     *
-     * @param string|null $name  what the place is called, in this language
-     * @param string|null $lines the address as typed, one line per line
-     *
-     * @return array{name: string, lines: list<string>, directionsUrl: string, media: array<string, mixed>|null}|null
-     */
-    private function mapView(?string $name, ?string $lines, ?DocumentInterface $media): ?array
-    {
-        $address = [];
-        foreach (explode("\n", (string) $lines) as $line) {
-            $line = mb_trim($line);
-
-            if ('' !== $line) {
-                $address[] = $line;
-            }
-        }
-
-        // A zone with no address is not a place, whatever else it carries. A
-        // name and a photograph alone would draw a card that cannot answer the
-        // one question it is there for.
-        if ([] === $address) {
-            return null;
-        }
-
-        return [
-            'name' => (string) $name,
-            'lines' => $address,
-            // Joined by commas rather than by the newlines it was typed with:
-            // a query string carrying line breaks is a query string that has
-            // to be repaired at the other end.
-            'directionsUrl' => 'https://www.google.com/maps/search/?api=1&query='
-                .rawurlencode(implode(', ', $address)),
-            'media' => $this->mediaData($media, ''),
-        ];
-    }
-
-    /**
-     * The terms of one taxonomy, in the order the backend arranges them.
-     *
-     * One query per zone, like the list beside it, and for the same reason: a
-     * page that answers the question on every render is a page nobody has to
-     * remember to edit.
-     *
-     * A term with nothing written in this language is dropped rather than
-     * shown under its slug. A word an author never wrote is not a word to put
-     * in front of a reader, and a link labelled with a slug reads as a fault.
-     *
-     * @param array<string, mixed> $zone
-     *
-     * @return array{name: string, entries: list<array{label: string, url: string}>}
-     */
-    private function termsView(array $zone, string $locale): array
-    {
-        $taxonomy = null === $zone['taxonomyId']
-            ? null
-            : $this->taxonomyRepository->find($zone['taxonomyId']);
-
-        if (!$taxonomy instanceof TaxonomyInterface) {
-            return ['name' => '', 'entries' => []];
-        }
-
-        $entries = [];
-        foreach ($this->taxonomyTermRepository->findByTaxonomyOrdered($taxonomy) as $term) {
-            $translation = $term->getTranslation($locale);
-            if (!$translation instanceof TaxonomyTermTranslationInterface) {
-                continue;
-            }
-
-            if ('' === $translation->getName()) {
-                continue;
-            }
-
-            $entries[] = [
-                'label' => $translation->getName(),
-                'url' => $this->urlGenerator->generate('editorial_term', [
-                    'locale' => $locale,
-                    'taxonomySlug' => $taxonomy->getSlug(),
-                    'termSlug' => $translation->getSlug(),
-                ]),
-            ];
-        }
-
-        return [
-            // The taxonomy's own name in this language, for a zone that wants
-            // to say what it is listing. Empty when untranslated, and the
-            // template draws no heading rather than an empty one.
-            'name' => $taxonomy->getTranslation($locale)?->getLabel() ?? '',
-            'entries' => $entries,
-        ];
-    }
-
-    /**
-     * An item list, joined back together: the arrangement says how many
-     * entries there are and which picture each carries, the translation says
-     * what they read.
-     *
-     * An entry whose words are all empty is dropped. A list is authored by
-     * adding rows and filling them in, so the blank one at the end is the one
-     * being written - it belongs in the editor, not on the page.
-     *
-     * @param array<string, mixed>          $zone
-     * @param array<string, mixed>          $held      this locale's content for the zone
-     * @param array<int, DocumentInterface> $documents
-     *
-     * @return array{display: string, columns: int, entries: list<array<string, mixed>>}
-     */
-    private function itemsView(array $zone, array $held, array $documents): array
-    {
-        $texts = is_array($held['items'] ?? null) ? $held['items'] : [];
-        $entries = [];
-
-        foreach (is_array($zone['items'] ?? null) ? $zone['items'] : [] as $item) {
-            $id = $item['id'] ?? null;
-            if (!is_string($id)) {
-                continue;
-            }
-
-            $words = is_array($texts[$id] ?? null) ? $texts[$id] : [];
-            $media = $this->mediaData($documents[$item['mediaId']] ?? null, '');
-
-            $title = (string) ($words['title'] ?? '');
-            $description = (string) ($words['description'] ?? '');
-            $caption = (string) ($words['caption'] ?? '');
-
-            if ('' === $title && '' === $description && '' === $caption && null === $media) {
-                continue;
-            }
-
-            $entries[] = [
-                'id' => $id,
-                'title' => $title,
-                'description' => $description,
-                'caption' => $caption,
-                'url' => $words['url'] ?? null,
-                'media' => $media,
-                // Only the offers costume draws it, but it travels with every
-                // entry: reading it in the template is one `default`, and
-                // deciding here which costumes may carry it would put the
-                // costume's business in the wrong file.
-                'featured' => (bool) ($item['featured'] ?? false),
-                // 1-based, for the display that numbers its steps. Worked out
-                // here rather than in the template, which would have to count
-                // the entries it skipped.
-                'position' => count($entries) + 1,
-            ];
-        }
-
-        return [
-            'display' => (string) $zone['display'],
-            'columns' => (int) $zone['columns'],
-            'entries' => $entries,
-            // Carried into the view rather than read off the zone in Twig,
-            // because `_grid_items` is handed `items` and nothing else - and
-            // giving it the whole zone to reach one flag would hand it the
-            // span, the surface and the anchor as well.
-            'exclusiveOpen' => (bool) ($zone['exclusiveOpen'] ?? false),
-            // The grouping name the browser folds on. Per zone, so two lists
-            // on one page do not close each other's panels; `id` is already
-            // unique across the grid, stacks included.
-            'id' => (string) $zone['id'],
-        ];
-    }
-
-    /**
-     * The same entries, in the shape the editor keeps them in.
-     *
-     * Identity and order exactly as stored - the ids are what each entry's
-     * words are filed under, so an arrangement that comes back without them
-     * comes back as different entries - plus the picture resolved, so the
-     * picker shows the logo it already holds rather than a number.
-     *
-     * Blank entries are kept, unlike the page's view: a row typed into
-     * tomorrow is a row today.
-     *
-     * @param array<string, mixed>          $zone
-     * @param array<int, DocumentInterface> $documents
-     *
-     * @return list<array{id: string, mediaId: int|null, media: array<string, mixed>|null}>
-     */
-    private function itemsForEditor(array $zone, array $documents): array
-    {
-        $items = [];
-
-        foreach (is_array($zone['items'] ?? null) ? $zone['items'] : [] as $item) {
-            $id = $item['id'] ?? null;
-            if (!is_string($id)) {
-                continue;
-            }
-
-            $mediaId = $item['mediaId'] ?? null;
-
-            $items[] = [
-                'id' => $id,
-                'mediaId' => is_int($mediaId) ? $mediaId : null,
-                'media' => $this->mediaData($documents[$mediaId] ?? null, ''),
-            ];
-        }
-
-        return $items;
-    }
-
-    /**
-     * A trip's stops, paired by position with the gallery of photos the
-     * author picked - the same pairing a compare zone makes between its two
-     * slots, extended to as many as there are.
-     *
-     * A line the parser cannot read (not exactly three parts, or a latitude
-     * or longitude that is not a plain number) is dropped rather than
-     * guessed: a pin planted at 0°N 0°E from a typo is worse than a pin
-     * missing.
-     *
-     * @param array<string, mixed>          $zone
-     * @param array<string, mixed>          $held
-     * @param array<int, DocumentInterface> $documents
-     *
-     * @return array{stops: list<array<string, mixed>>}|null
-     */
-    private function travelMapView(array $zone, array $held, array $documents): ?array
-    {
-        $stops = [];
-
-        foreach (explode("\n", (string) $held['code']) as $index => $line) {
-            $parts = array_map(trim(...), explode('|', $line));
-            if (3 !== count($parts)) {
-                continue;
-            }
-
-            if (!is_numeric($parts[1])) {
-                continue;
-            }
-
-            if (!is_numeric($parts[2])) {
-                continue;
-            }
-
-            if ('' === $parts[0]) {
-                continue;
-            }
-
-            $lat = (float) $parts[1];
-            $lng = (float) $parts[2];
-            if ($lat < -90) {
-                continue;
-            }
-
-            if ($lat > 90) {
-                continue;
-            }
-
-            if ($lng < -180) {
-                continue;
-            }
-
-            if ($lng > 180) {
-                continue;
-            }
-
-            $mediaId = $zone['mediaIds'][$index] ?? null;
-            $photo = null !== $mediaId ? $this->mediaData($documents[$mediaId] ?? null, $parts[0]) : null;
-
-            $stops[] = [
-                'label' => $parts[0],
-                'lat' => $lat,
-                'lng' => $lng,
-                'photo' => $photo,
-            ];
-        }
-
-        return [] === $stops ? null : ['stops' => $stops];
     }
 
     /**
@@ -1526,54 +747,6 @@ final readonly class GridViewBuilder
     }
 
     /**
-     * A linked publication is shown in the language of the page it appears on,
-     * which is why the id is shared and this is not: the post carries its own
-     * translations and picking the right one is the renderer's job.
-     *
-     * Built here rather than through PostSerializer, for two reasons. It would
-     * be a circular dependency - the serialiser calls this builder to hand the
-     * editor a resolved layout. And `serializeCard` computes terms and custom
-     * fields, which cost queries and which a grid card does not show: six
-     * fields is the whole of it.
-     *
-     * @return array<string, mixed>|null null when the post is gone, trashed,
-     *                                   or has nothing written in this locale
-     */
-    private function postCard(?PostInterface $post, string $locale): ?array
-    {
-        if (!$post instanceof PostInterface || $post->isTrashed()) {
-            return null;
-        }
-
-        $translation = $post->getTranslation($locale);
-        $thumbnail = $this->thumbnailPresenter->present($post);
-
-        // A card with no title and no address is a link to nowhere. That is
-        // what an untranslated publication looks like, and it should leave a
-        // gap rather than an empty box.
-        if (null === $translation?->getTitle() || null === $translation->getSlug()) {
-            return null;
-        }
-
-        return [
-            'id' => $post->getId(),
-            'title' => $translation->getTitle(),
-            'slug' => $translation->getSlug(),
-            // The description, never the meta description: that one is written
-            // for a search snippet and cut around 160 characters.
-            'description' => $translation->getDescription(),
-            'postTypeSlug' => $post->getPostType()->getSlug(),
-            // Named the same way serializeCard names them, so one card
-            // partial can read either shape. Spreading the presenter's own
-            // keys would have put a `url` on a card, which reads as the
-            // publication's address rather than its picture's.
-            'thumbnailUrl' => $thumbnail['url'],
-            'thumbnailFitClass' => $thumbnail['objectFitClass'],
-            'thumbnailFocalPosition' => $thumbnail['focalPosition'],
-        ];
-    }
-
-    /**
      * How a stack divides its height between the zones it holds.
      *
      * Normally by their shares, which is what `shareStyle` already says. But a
@@ -1619,35 +792,6 @@ final readonly class GridViewBuilder
     }
 
     /**
-     * The crop, as a declaration rather than a class.
-     *
-     * A Tailwind class would have to be written out somewhere Tailwind reads -
-     * `aspect-video` happens to appear in this module's Twig, but
-     * `aspect-square` and `aspect-[3/4]` appear nowhere, so choosing them here
-     * would emit nothing and the crop would silently not happen. The project
-     * already answered this question for spans, which go out as custom
-     * properties for the same reason. `ThumbnailFitEnum::objectFitClass()`
-     * returns classes from PHP and gets away with it only because those strings
-     * exist in unrelated Vue files.
-     *
-     * Empty for `natural`, so the caller can test it and the style attribute
-     * stays clean.
-     */
-    private function ratioStyle(string $ratio): string
-    {
-        return match ($ratio) {
-            '16x9' => 'aspect-ratio: 16 / 9;',
-            '4x3' => 'aspect-ratio: 4 / 3;',
-            '1x1' => 'aspect-ratio: 1 / 1;',
-            '3x4' => 'aspect-ratio: 3 / 4;',
-            // `fill` and `natural` both land here: neither states a ratio. What
-            // separates them is a height, which is a class on the element
-            // rather than a declaration - see `_grid_zone.html.twig`.
-            default => '',
-        };
-    }
-
-    /**
      * Which side a picture narrower than its zone sits on.
      *
      * `margin-inline` rather than a class, for the reason the width beside it
@@ -1668,259 +812,6 @@ final readonly class GridViewBuilder
      *                                   draw, which the template reads as a
      *                                   zone that renders nothing
      */
-    /**
-     * A video the library holds, ready for a `<video>`.
-     *
-     * The mime is checked rather than trusted: the picker offers videos, but a
-     * fixture, an API write or a file replaced after the zone was configured
-     * all reach past it - and a player pointed at a PDF is a black rectangle
-     * with nothing said anywhere. Same reasoning as {@see mediaData}, and the
-     * same place to ask it: only the render knows what the file is today.
-     *
-     * @return array{url: string, mimeType: string, poster: string|null, width: int|null, height: int|null}|null
-     */
-    private function videoFile(?DocumentInterface $media): ?array
-    {
-        if (!$media instanceof DocumentInterface) {
-            return null;
-        }
-
-        $mime = MimeTypeEnum::tryFrom((string) $media->getMimeType());
-
-        if (!$mime?->isVideo()) {
-            return null;
-        }
-
-        $url = $this->documentUrlGenerator->publicUrl($media);
-
-        if (null === $url) {
-            return null;
-        }
-
-        return [
-            'url' => $url,
-            'mimeType' => $mime->value,
-            // The still the player shows before anything is downloaded.
-            'poster' => $this->documentUrlGenerator->thumbnailPathUrl($media),
-            // The film's own pixel size, so the box is the right shape before
-            // a single byte is fetched. Without it a `preload="none"` player
-            // falls back to the browser's 300x150 default, which is why an
-            // unplayed portrait film used to render as a squat black
-            // rectangle. Null when the document predates the column.
-            'width' => $media->getWidth(),
-            'height' => $media->getHeight(),
-        ];
-    }
-
-    /**
-     * A recording the library holds, for a player the browser draws itself.
-     *
-     * Asked at render for the reason {@see videoFile} is: a zone configured
-     * with a recording stays configured with it after the file behind it is
-     * replaced by a spreadsheet, and only the render knows what it is today.
-     * A player pointed at the wrong thing is a silent control that does
-     * nothing, with no message anywhere.
-     *
-     * No poster and no dimensions, unlike a film: a `<audio>` element has a
-     * height of its own that owes nothing to what it plays.
-     *
-     * @return array{url: string, mimeType: string}|null
-     */
-    private function audioFile(?DocumentInterface $media): ?array
-    {
-        if (!$media instanceof DocumentInterface) {
-            return null;
-        }
-
-        if (!MimeGroupEnum::Audio->matches($media->getMimeType())) {
-            return null;
-        }
-
-        // Published only, for the reason {@see documentCard} gives, and it
-        // bites harder here. Since `/uploads` began withholding anything not
-        // published, {@see DocumentUrlGenerator::publicUrl} hands back the
-        // backend address for a draft - so a zone naming one would draw a
-        // player that answers 403 to every visitor, silently. A picture in
-        // that state at least shows a broken image; a dead player shows
-        // nothing at all and reads as a site that does not work.
-        if (DocumentStatusEnum::Published !== $media->getStatus()) {
-            return null;
-        }
-
-        $url = $this->documentUrlGenerator->publicUrl($media);
-
-        if (null === $url) {
-            return null;
-        }
-
-        return [
-            'url' => $url,
-            'mimeType' => (string) $media->getMimeType(),
-        ];
-    }
-
-    /**
-     * A file offered for download, as the card that describes it.
-     *
-     * **Published only.** A library holds a client's internal papers beside
-     * the ones they hand out, and the status column is what already tells them
-     * apart; a draft named in a zone renders as nothing rather than as a link.
-     * That is the whole of the check, and it is worth being plain about what it
-     * is not: the file itself is served by a public route, so this decides what
-     * a page *advertises*, not what the server will hand over to somebody who
-     * already has the address.
-     *
-     * The extension comes off the original name rather than off the mime type:
-     * it is what the reader will see in their downloads folder, and `xlsx` says
-     * more to them than `application/vnd.openxmlformats-officedocument…` ever
-     * will.
-     *
-     * @param string|null $label what the control says, in the page's language;
-     *                           the document's own title when nothing is typed
-     *
-     * @return array{title: string, url: string, extension: string, size: int|null}|null
-     */
-    private function documentCard(?DocumentInterface $media, ?string $label): ?array
-    {
-        if (!$media instanceof DocumentInterface) {
-            return null;
-        }
-
-        if (DocumentStatusEnum::Published !== $media->getStatus()) {
-            return null;
-        }
-
-        $url = $this->documentUrlGenerator->publicUrl($media);
-
-        if (null === $url) {
-            return null;
-        }
-
-        $extension = pathinfo((string) $media->getOriginalName(), PATHINFO_EXTENSION);
-
-        return [
-            'title' => null !== $label && '' !== $label ? $label : $media->getTitle(),
-            'url' => $url,
-            'extension' => mb_strtoupper($extension),
-            'size' => $media->getSize(),
-        ];
-    }
-
-    private function mediaData(?DocumentInterface $media, string $alt, ?string $url = null): ?array
-    {
-        // The library wins whenever it has an answer: a document carries a
-        // focal point, a rendition sized for this slot and an alt of its own,
-        // and none of that can be read off an address. The address is what an
-        // author has while a page is being drafted, not a second way of doing
-        // the same thing.
-        if (!$media instanceof DocumentInterface) {
-            return null === $url ? null : [
-                'url' => $url,
-                'alt' => $alt,
-                // Nothing to focus on: an address says where a picture is, not
-                // what matters inside it. Centre is what `object-cover` does
-                // without instruction anyway, and stating it keeps the template
-                // free of a second branch.
-                'focalPosition' => '50% 50%',
-            ];
-        }
-
-        // A media zone renders an `<img>`, so what it holds has to be an
-        // image. The backend picker only ever offers those, but three paths
-        // reach past it - a fixture, an API write, and a document whose file
-        // is replaced after the zone was configured - and an `<img>` pointed
-        // at an mp4 is a broken image with nothing said anywhere.
-        //
-        // Asked here rather than refused in `GridNormalizer` for two reasons.
-        // The normaliser has no database and runs on every render, not only on
-        // the way in - giving it a repository would put a query behind every
-        // page view. And the third path above has no write to refuse: a layout
-        // that was valid the day it was saved stops being valid the day the
-        // file behind it changes. Only the render knows.
-        if (!MimeGroupEnum::Image->matches($media->getMimeType())) {
-            return null;
-        }
-
-        $url = $this->documentUrlGenerator->renditionUrl($media, 'large')
-            ?? $this->documentUrlGenerator->publicUrl($media);
-
-        // A document can carry no file at all - the demo library keeps three
-        // that way on purpose, so the upload flow has something to be tested
-        // against. Without this the zone emitted `<img src="">`, which is a
-        // broken image rather than an absent one.
-        if (null === $url) {
-            return null;
-        }
-
-        return [
-            'url' => $url,
-            // The zone's own alt wins: the same picture can mean different
-            // things in two places, and the document's alt describes the file.
-            'alt' => '' !== $alt ? $alt : (string) $media->getAlt(),
-            'focalPosition' => $this->documentUrlGenerator->focalPositionCss($media),
-            // The camera line: « Canon EOS R6 · f/2.8 · 1/500 s · ISO 100 ».
-            // Empty for a picture uploaded before its settings were read, or
-            // one whose camera wrote nothing.
-            'exif' => implode(' · ', array_values(array_intersect_key(
-                $media->getExif(),
-                array_flip(['camera', 'lens', 'focal', 'aperture', 'shutter', 'iso']),
-            ))),
-            // **Ce qui réserve la place avant que l'image arrive.** Sans les
-            // deux, un `<img>` en chargement différé occupe zéro pixel de
-            // haut : la page est courte, puis s'allonge à chaque image qui
-            // se pose, et on voit le contenu descendre par à-coups. Mesuré
-            // sur la page photographie, où trois images font toute la page.
-            //
-            // Ce sont les dimensions du document et l'adresse est celle
-            // d'une taille générée, ce qui est sans importance : le navigateur
-            // n'en tire qu'un rapport, et une taille générée est un
-            // redimensionnement. Vérifié sur la production, où la taille
-            // « large » d'une photo mesure exactement ce que le document
-            // déclare.
-            'width' => $media->getWidth(),
-            'height' => $media->getHeight(),
-            // Null for anything we host ourselves. Present, and displayed by
-            // the template, for a stock photo whose licence requires it.
-            'credit' => $this->creditPresenter->present($media),
-        ];
-    }
-
-    /**
-     * A `custom` surface's colour, gradient or picture, ready for the
-     * template - mirrors {@see BannerViewBuilder::fillStyle()} and its own
-     * `mediaData`, one call site rather than two renderers.
-     *
-     * @param array<string, mixed>          $background a normalised zone background
-     * @param array<int, DocumentInterface> $documents  every document this render already fetched
-     *
-     * @return array{fillStyle: ?string, media: ?array<string, mixed>, overlay: int}
-     */
-    private function zoneBackgroundView(array $background, array $documents): array
-    {
-        return [
-            'fillStyle' => match ($background['type']) {
-                GridNormalizer::ZONE_FILL_SOLID => null !== $background['color']
-                    ? sprintf('background-color: %s;', $background['color'])
-                    : null,
-                GridNormalizer::ZONE_FILL_GRADIENT => null !== $background['gradientFrom'] && null !== $background['gradientTo']
-                    ? sprintf(
-                        'background-image: linear-gradient(%ddeg, %s, %s);',
-                        $background['gradientAngle'],
-                        $background['gradientFrom'],
-                        $background['gradientTo'],
-                    )
-                    : null,
-                default => null,
-            },
-            'media' => $this->mediaData($documents[$background['mediaId']] ?? null, ''),
-            // Reuses the dedicated video zone's own resolver: the mime is
-            // checked here rather than trusted from the layout, the same
-            // reasoning as there - a file can be replaced after the zone was
-            // configured.
-            'video' => $this->videoFile($documents[$background['videoId']] ?? null),
-            'overlay' => $background['overlay'],
-        ];
-    }
 
     /**
      * The mode a zone's hovers take, or null to follow the page. A custom

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Editorial\Booking\Service;
 
+use Aurora\Core\Locale\Service\LocaleContextInterface;
 use Aurora\Module\Editorial\Post\Grid\GridZoneOptions;
 use Aurora\Module\Planning\Event\Entity\PlanningEventInterface;
 use Aurora\Module\Planning\Event\Enum\PlanningEventStatusEnum;
@@ -15,6 +16,7 @@ use DateTimeImmutable;
 use DateTimeZone;
 use IntlDateFormatter;
 use Psr\Clock\ClockInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 use function array_any;
 use function array_filter;
@@ -46,15 +48,30 @@ final readonly class BookingSlotFinder
     /** How far ahead a slot must start, so nobody books the next five minutes. */
     private const int LEAD_MINUTES = 60;
 
+    private const string NAME_KEY = 'frontend.editorial.grid.booking.calendar_name';
+
     public function __construct(
         private ModuleCalendarProvider $calendars,
         private PlanningEventRepository $events,
+        private TranslatorInterface $translator,
+        private LocaleContextInterface $localeContext,
         private ?ClockInterface $clock = null,
     ) {}
 
-    public function calendar(string $name): PlanningInterface
+    /**
+     * The site's one bookings calendar, named in the site's default language.
+     *
+     * Not the visitor's: the provider renames a calendar whose name changed,
+     * and a French visitor after a Spanish one flipped it between
+     * « Réservations en ligne » and « Reservas en línea » all day long. The
+     * calendar lives in the back office, whose name should hold still.
+     */
+    public function calendar(): PlanningInterface
     {
-        return $this->calendars->forSource(self::SOURCE, $name);
+        return $this->calendars->forSource(
+            self::SOURCE,
+            $this->translator->trans(self::NAME_KEY, [], 'messages', $this->localeContext->getDefaultLocale()),
+        );
     }
 
     /**

@@ -10,6 +10,7 @@ use Aurora\Module\Configuration\Theme\Repository\ThemeRepository;
 use Aurora\Module\Configuration\Theme\Service\PrimaryColorPalette;
 use Aurora\Module\Configuration\Theme\Service\SurfaceContrast;
 use Aurora\Module\Configuration\Theme\Service\ThemeContext;
+use Aurora\Module\Configuration\Theme\Service\ThemeStyleRenderer;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Document\Service\DocumentUrlGenerator;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
@@ -45,13 +46,13 @@ final class ThemeContextFontTest extends TestCase
     {
         // Le défaut vit déjà dans theme.css : une règle qui le répète serait
         // une seconde copie à tenir à jour.
-        self::assertSame('', $this->contextWithConfig([])->fontFamilyCss());
-        self::assertSame('', $this->contextWithConfig(['font_family' => 'poppins'])->fontFamilyCss());
+        self::assertSame('', $this->stylesOf($this->contextWithConfig([]))->fontFamilyCss());
+        self::assertSame('', $this->stylesOf($this->contextWithConfig(['font_family' => 'poppins']))->fontFamilyCss());
     }
 
     public function testAChosenFontOverridesTheVariableTheWholePageReads(): void
     {
-        $css = $this->contextWithConfig(['font_family' => 'lora'])->fontFamilyCss();
+        $css = $this->stylesOf($this->contextWithConfig(['font_family' => 'lora']))->fontFamilyCss();
 
         // `--th-font-sans` et pas `--font-sans` : la seconde est recopiée
         // littéralement par Tailwind au moment de la compilation, donc la
@@ -63,7 +64,12 @@ final class ThemeContextFontTest extends TestCase
 
     public function testAnUnknownFontLeavesThePageOnTheDefault(): void
     {
-        self::assertSame('', $this->contextWithConfig(['font_family' => 'papyrus'])->fontFamilyCss());
+        self::assertSame('', $this->stylesOf($this->contextWithConfig(['font_family' => 'papyrus']))->fontFamilyCss());
         self::assertSame(ThemeFontEnum::default(), $this->contextWithConfig(['font_family' => 'papyrus'])->font());
+    }
+
+    private function stylesOf(ThemeContext $context): ThemeStyleRenderer
+    {
+        return new ThemeStyleRenderer($context, new PrimaryColorPalette(), new SurfaceContrast());
     }
 }

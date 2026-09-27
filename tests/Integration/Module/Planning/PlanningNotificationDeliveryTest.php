@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Integration\Module\Planning;
 
+use Aurora\Core\Notification\Entity\Notification;
 use Aurora\Module\Planning\Event\Entity\PlanningEvent;
 use Aurora\Module\Planning\Event\Entity\PlanningEventAlert;
 use Aurora\Module\Planning\Event\Enum\PlanningAlertChannelEnum;
@@ -171,6 +172,27 @@ final class PlanningNotificationDeliveryTest extends IntegrationTestCase
 
         self::assertSame(1, $this->notifier->sendDue(new DateTimeImmutable('2026-08-23 13:30')));
         self::assertCount(0, $this->mailerMessages());
+    }
+
+    /**
+     * In the application, the link is a path; in a mail, an address.
+     *
+     * Notifications are written by the worker, with no request: an absolute
+     * link carried the router's fallback host, and locally a click led to a
+     * refused connection. A mail is read outside the application and needs
+     * the full address.
+     */
+    public function testAnInAppAlertLinksByPath(): void
+    {
+        $this->alert('2026-08-23 14:00', 30);
+        $this->notifier->sendDue(new DateTimeImmutable('2026-08-23 13:30'));
+
+        $notification = static::getContainer()->get(EntityManagerInterface::class)
+            ->getRepository(Notification::class)
+            ->findOneBy(['type' => 'planning.alert'], ['id' => 'DESC']);
+
+        self::assertNotNull($notification);
+        self::assertStringStartsWith('/', (string) $notification->getUrl());
     }
 
     /**

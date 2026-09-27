@@ -27,7 +27,6 @@ import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 
 const { formatDateNumeric, formatDateTimeNumeric } = useDateFormat();
 import {
-    ArrowLeft,
     CalendarX,
     Check,
     FileDown,
@@ -38,6 +37,7 @@ import {
     ShieldCheck,
     X,
 } from "lucide-vue-next";
+import AppBackLink from "@/shared/components/nav/AppBackLink.vue";
 
 const { t } = useI18n();
 
@@ -295,6 +295,11 @@ const contractActions = computed(() => {
 
 <template>
     <div class="space-y-2 sm:space-y-4">
+        <!-- Le retour est de la navigation, pas une action : un lien discret
+             au-dessus de l'entête, comme sur les autres écrans, plutôt qu'un
+             bouton du même poids que « Contresigner ». -->
+        <AppBackLink :href="indexPath" :label="t('shared.common.back')" />
+
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="space-y-1">
                 <h1 class="text-lg font-semibold text-primary">
@@ -308,10 +313,6 @@ const contractActions = computed(() => {
                  est le geste de la page, et il se retrouvait à cent quarante
                  pixels entre un retour et une feuille d'actions. -->
             <div class="flex w-full flex-col items-stretch gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
-                <AppButton class="w-full sm:w-auto" variant="ghost" size="md" :href="indexPath">
-                    <ArrowLeft class="w-3.5 h-3.5" :stroke-width="2" />
-                    {{ t("shared.common.back") }}
-                </AppButton>
                 <AppPageActions
                     v-if="contractActions.length"
                     class="w-full sm:w-auto"

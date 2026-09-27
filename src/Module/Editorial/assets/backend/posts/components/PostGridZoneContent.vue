@@ -534,13 +534,13 @@ const displayHint = computed(() =>
                 </p>
                 <AppInput
                     v-model="bound.label.value"
-                    placeholder="Disponible pour de nouveaux projets"
+                    :placeholder="t('backend.posts.grid.examples.availability_label')"
                     :label="t('backend.posts.grid.availability_label')"
                     :hint="t('backend.posts.grid.availability_label_hint')"
                 />
                 <AppInput
                     v-model="bound.caption.value"
-                    placeholder="Réponse sous 48 h"
+                    :placeholder="t('backend.posts.grid.examples.availability_note')"
                     :label="t('backend.posts.grid.availability_note')"
                 />
             </div>
@@ -568,7 +568,7 @@ const displayHint = computed(() =>
                 </p>
                 <AppInput
                     v-model="bound.caption.value"
-                    placeholder="Fermé les jours fériés"
+                    :placeholder="t('backend.posts.grid.examples.hours_note')"
                     :label="t('backend.posts.grid.hours_note')"
                 />
             </div>
@@ -593,12 +593,12 @@ const displayHint = computed(() =>
                 </p>
                 <AppInput
                     v-model="bound.label.value"
-                    placeholder="Ouverture de la boutique"
+                    :placeholder="t('backend.posts.grid.examples.countdown_title')"
                     :label="t('backend.posts.grid.countdown_title')"
                 />
                 <AppInput
                     v-model="bound.caption.value"
-                    placeholder="La boutique est ouverte"
+                    :placeholder="t('backend.posts.grid.examples.countdown_done')"
                     :label="t('backend.posts.grid.countdown_after')"
                     :hint="t('backend.posts.grid.countdown_after_hint')"
                 />
@@ -609,7 +609,7 @@ const displayHint = computed(() =>
             <AppImagePickerField v-model="bound.media.value" :label="t('backend.posts.grid.contact_photo')" />
             <AppInput
                 v-model="bound.contactName.value"
-                placeholder="Axel Raboit"
+                :placeholder="t('backend.posts.grid.examples.person_name')"
                 :label="t('backend.posts.grid.contact_name')"
             />
             <AppInput
@@ -620,7 +620,7 @@ const displayHint = computed(() =>
             />
             <AppInput
                 v-model="bound.contactEmail.value"
-                placeholder="contact@exemple.fr"
+                :placeholder="t('backend.posts.grid.examples.contact_email')"
                 type="email"
                 :label="t('backend.posts.grid.contact_email')"
             />
@@ -636,7 +636,7 @@ const displayHint = computed(() =>
                 </p>
                 <AppInput
                     v-model="bound.caption.value"
-                    placeholder="Photographe"
+                    :placeholder="t('backend.posts.grid.examples.contact_role')"
                     :label="t('backend.posts.grid.contact_role')"
                 />
             </div>
@@ -650,7 +650,7 @@ const displayHint = computed(() =>
             />
             <AppInput
                 v-model="bound.socialName.value"
-                placeholder="Axel Raboit"
+                :placeholder="t('backend.posts.grid.examples.person_name')"
                 :label="t('backend.posts.grid.social_name')"
             />
             <AppInput v-model="bound.socialHandle.value" :label="t('backend.posts.grid.social_handle')" placeholder="@" />
@@ -688,7 +688,7 @@ const displayHint = computed(() =>
                 <p class="text-xs uppercase tracking-wide text-muted">
                     {{ t("backend.posts.grid.translated_fields", { locale }) }}
                 </p>
-                <AppTextarea v-model="bound.caption.value" :label="t('backend.posts.grid.social_text')" :rows="5" placeholder="Lumière du matin sur le port, sans retouche." />
+                <AppTextarea v-model="bound.caption.value" :label="t('backend.posts.grid.social_text')" :rows="5" :placeholder="t('backend.posts.grid.examples.social_text')" />
             </div>
         </template>
 
@@ -719,7 +719,7 @@ const displayHint = computed(() =>
                 />
                 <AppInput
                     v-model="bound.label.value"
-                    placeholder="Scannez pour voir le site"
+                    :placeholder="t('backend.posts.grid.examples.qr_caption')"
                     :label="t('backend.posts.grid.qr_label')"
                 />
             </div>
@@ -741,15 +741,15 @@ const displayHint = computed(() =>
                 <p class="text-xs uppercase tracking-wide text-muted">
                     {{ t("backend.posts.grid.translated_fields", { locale }) }}
                 </p>
-                <AppInput v-model="bound.label.value" :label="t('backend.posts.grid.chart_title')" placeholder="Abonnés Instagram" />
+                <AppInput v-model="bound.label.value" :label="t('backend.posts.grid.chart_title')" :placeholder="t('backend.posts.grid.examples.chart_title')" />
                 <AppTextarea
                     v-model="bound.code.value"
                     :label="t('backend.posts.grid.chart_data')"
                     :hint="t('backend.posts.grid.chart_data_hint')"
-                    :placeholder="'Janvier ; 1200\nFévrier ; 1480\nMars ; 2100'"
+                    :placeholder="t('backend.posts.grid.examples.chart_data')"
                     :rows="6"
                 />
-                <AppInput v-model="bound.caption.value" :label="t('backend.posts.grid.chart_note')" placeholder="Source : statistiques du compte" />
+                <AppInput v-model="bound.caption.value" :label="t('backend.posts.grid.chart_note')" :placeholder="t('backend.posts.grid.examples.chart_source')" />
             </div>
         </template>
 
@@ -817,12 +817,12 @@ const displayHint = computed(() =>
                 <p class="text-xs uppercase tracking-wide text-muted">
                     {{ t("backend.posts.grid.translated_fields", { locale }) }}
                 </p>
-                <AppInput v-model="bound.label.value" :label="t('backend.posts.grid.calendar_title')" placeholder="Planning d'octobre" />
+                <AppInput v-model="bound.label.value" :label="t('backend.posts.grid.calendar_title')" :placeholder="t('backend.posts.grid.examples.calendar_title')" />
                 <AppTextarea
                     v-model="bound.code.value"
                     :label="t('backend.posts.grid.calendar_entries')"
                     :hint="t('backend.posts.grid.calendar_entries_hint')"
-                    :placeholder="'2026-10-03 | Instagram | Réel coulisses\n2026-10-07 | LinkedIn | Étude de cas'"
+                    :placeholder="t('backend.posts.grid.examples.calendar_data')"
                     :rows="8"
                 />
             </div>
@@ -861,15 +861,15 @@ const displayHint = computed(() =>
                 <p class="text-xs uppercase tracking-wide text-muted">
                     {{ t("backend.posts.grid.translated_fields", { locale }) }}
                 </p>
-                <AppInput v-model="bound.label.value" :label="t('backend.posts.grid.price_title')" placeholder="La carte" />
+                <AppInput v-model="bound.label.value" :label="t('backend.posts.grid.price_title')" :placeholder="t('backend.posts.grid.examples.price_title')" />
                 <AppTextarea
                     v-model="bound.code.value"
                     :label="t('backend.posts.grid.price_lines')"
                     :hint="t('backend.posts.grid.price_lines_hint')"
-                    :placeholder="'# Entrées\nSoupe du jour | 8 € | végétarien | selon le marché\nTartare de bœuf | 14 €'"
+                    :placeholder="t('backend.posts.grid.examples.price_data')"
                     :rows="10"
                 />
-                <AppInput v-model="bound.caption.value" :label="t('backend.posts.grid.price_note')" placeholder="Prix nets, service compris" />
+                <AppInput v-model="bound.caption.value" :label="t('backend.posts.grid.price_note')" :placeholder="t('backend.posts.grid.examples.price_note')" />
             </div>
         </template>
 
@@ -883,12 +883,12 @@ const displayHint = computed(() =>
                 <p class="text-xs uppercase tracking-wide text-muted">
                     {{ t("backend.posts.grid.translated_fields", { locale }) }}
                 </p>
-                <AppInput v-model="bound.label.value" :label="t('backend.posts.grid.poll_question')" placeholder="Quel format préférez-vous ?" />
+                <AppInput v-model="bound.label.value" :label="t('backend.posts.grid.poll_question')" :placeholder="t('backend.posts.grid.examples.poll_question')" />
                 <AppTextarea
                     v-model="bound.code.value"
                     :label="t('backend.posts.grid.poll_answers')"
                     :hint="t('backend.posts.grid.poll_answers_hint')"
-                    :placeholder="'Les réels\nLes carrousels\nLes stories'"
+                    :placeholder="t('backend.posts.grid.examples.poll_answers')"
                     :rows="5"
                 />
             </div>
@@ -940,7 +940,7 @@ const displayHint = computed(() =>
                     v-model="bound.code.value"
                     :label="t('backend.posts.grid.travel_stops')"
                     :hint="t('backend.posts.grid.travel_stops_hint')"
-                    :placeholder="'Monument Valley | 36.9989 | -110.0980\nLondres | 51.5072 | -0.1276'"
+                    :placeholder="t('backend.posts.grid.examples.travel_stops')"
                     :rows="6"
                 />
             </div>
@@ -950,15 +950,15 @@ const displayHint = computed(() =>
             <AppInput v-model="bound.quoteCurrency.value" :label="t('backend.posts.grid.quote_currency')" placeholder="€" />
             <div class="rounded-lg border border-dashed border-line p-3 space-y-2">
                 <p class="text-xs uppercase tracking-wide text-muted">{{ t("backend.posts.grid.translated_fields", { locale }) }}</p>
-                <AppInput v-model="bound.label.value" :label="t('backend.posts.grid.quote_title')" placeholder="Estimez votre séance" />
+                <AppInput v-model="bound.label.value" :label="t('backend.posts.grid.quote_title')" :placeholder="t('backend.posts.grid.examples.quote_title')" />
                 <AppTextarea
                     v-model="bound.code.value"
                     :label="t('backend.posts.grid.quote_options')"
                     :hint="t('backend.posts.grid.quote_options_hint')"
-                    :placeholder="'= 90\nDrone | 40\nAlbum photo | 60'"
+                    :placeholder="t('backend.posts.grid.examples.quote_data')"
                     :rows="6"
                 />
-                <AppInput v-model="bound.caption.value" :label="t('backend.posts.grid.quote_note')" placeholder="Devis indicatif, confirmé après échange" />
+                <AppInput v-model="bound.caption.value" :label="t('backend.posts.grid.quote_note')" :placeholder="t('backend.posts.grid.examples.quote_note')" />
             </div>
         </template>
 
@@ -977,8 +977,8 @@ const displayHint = computed(() =>
             <AppChoiceRow v-model="bound.bookingWindowDays.value" :label="t('backend.posts.grid.booking_window')" :options="choices.bookingWindowDays ?? []" />
             <div class="rounded-lg border border-dashed border-line p-3 space-y-2">
                 <p class="text-xs uppercase tracking-wide text-muted">{{ t("backend.posts.grid.translated_fields", { locale }) }}</p>
-                <AppInput v-model="bound.label.value" :label="t('backend.posts.grid.booking_title')" placeholder="Réserver une séance" />
-                <AppInput v-model="bound.caption.value" :label="t('backend.posts.grid.booking_note')" placeholder="Une réponse sous 24 h" />
+                <AppInput v-model="bound.label.value" :label="t('backend.posts.grid.booking_title')" :placeholder="t('backend.posts.grid.examples.booking_title')" />
+                <AppInput v-model="bound.caption.value" :label="t('backend.posts.grid.booking_note')" :placeholder="t('backend.posts.grid.examples.booking_note')" />
             </div>
         </template>
 
@@ -995,8 +995,8 @@ const displayHint = computed(() =>
             <p class="text-sm text-muted">{{ t("backend.posts.grid.newsletter_hint") }}</p>
             <div class="rounded-lg border border-dashed border-line p-3 space-y-2">
                 <p class="text-xs uppercase tracking-wide text-muted">{{ t("backend.posts.grid.translated_fields", { locale }) }}</p>
-                <AppInput v-model="bound.label.value" :label="t('backend.posts.grid.newsletter_title')" placeholder="Recevez les prochaines dates" />
-                <AppInput v-model="bound.caption.value" :label="t('backend.posts.grid.newsletter_note')" placeholder="Une fois par mois, jamais de spam" />
+                <AppInput v-model="bound.label.value" :label="t('backend.posts.grid.newsletter_title')" :placeholder="t('backend.posts.grid.examples.newsletter_title')" />
+                <AppInput v-model="bound.caption.value" :label="t('backend.posts.grid.newsletter_note')" :placeholder="t('backend.posts.grid.examples.newsletter_note')" />
             </div>
         </template>
 
@@ -1561,7 +1561,7 @@ const displayHint = computed(() =>
                     <AppInput
                         v-model="bound.label.value"
                         :label="t('backend.posts.grid.background_video_button')"
-                        placeholder="Découvrir le lieu"
+                        :placeholder="t('backend.posts.grid.examples.cta_label')"
                     />
                     <AppInput
                         v-model="bound.url.value"
@@ -1615,7 +1615,7 @@ const displayHint = computed(() =>
                     v-model="bound.code.value"
                     :label="t('backend.posts.grid.episode_chapters')"
                     :hint="t('backend.posts.grid.episode_chapters_hint')"
-                    :placeholder="'00:00 Introduction\n04:12 Le matériel\n---\nTranscription…'"
+                    :placeholder="t('backend.posts.grid.examples.chapters')"
                     :rows="6"
                 />
             </div>

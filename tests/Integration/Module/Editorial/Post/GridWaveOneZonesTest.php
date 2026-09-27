@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Aurora\Tests\Integration\Module\Editorial\Post;
 
 use Aurora\Module\Editorial\Post\Grid\GridViewBuilder;
+use Aurora\Module\Ged\Document\Entity\Document;
+use Aurora\Module\Ged\Enum\DocumentStatusEnum;
 use Aurora\Tests\Integration\IntegrationTestCase;
+use Doctrine\ORM\EntityManagerInterface;
 use Twig\Environment;
 
 /**
@@ -140,6 +143,37 @@ final class GridWaveOneZonesTest extends IntegrationTestCase
         self::assertStringContainsString('data-travel-map', $html);
         self::assertStringContainsString('Monument Valley', $html);
         self::assertStringContainsString('36.9989', $html);
+    }
+
+    /**
+     * Photos pair with stops, not raw lines: a blank line between two stops,
+     * as a translation easily picks up, used to hand the second stop the
+     * photo meant for a third.
+     */
+    public function testABlankLineDoesNotShiftTheTravelPhotos(): void
+    {
+        static::bootKernel();
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $ids = [];
+        foreach (['monument', 'londres'] as $name) {
+            $document = new Document();
+            $document->setTitle($name)->setOriginalName($name.'.jpg')->setMimeType('image/jpeg')
+                ->setFilePath('ged/2026/09/'.$name.'-'.bin2hex(random_bytes(4)).'.jpg')
+                ->setStatus(DocumentStatusEnum::Published);
+            $entityManager->persist($document);
+            $entityManager->flush();
+            $ids[$name] = (int) $document->getId();
+        }
+
+        $grid = static::getContainer()->get(GridViewBuilder::class)->build(
+            ['enabled' => true, 'zones' => [['id' => 'z1', 'type' => 'travelMap', 'mediaIds' => [$ids['monument'], $ids['londres']]]]],
+            ['zones' => ['z1' => ['code' => "Monument Valley | 36.9989 | -110.098\n\nLondres | 51.5072 | -0.1276"]]],
+            'fr',
+        );
+        $stops = $grid['zones'][0]['travelMap']['stops'] ?? [];
+
+        self::assertCount(2, $stops);
+        self::assertStringContainsString('londres', (string) ($stops[1]['photo']['url'] ?? ''), 'London keeps the second photo');
     }
 
     public function testATravelMapDropsAnUnreadableLine(): void

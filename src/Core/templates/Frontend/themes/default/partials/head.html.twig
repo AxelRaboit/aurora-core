@@ -105,17 +105,17 @@
    publication, qui peut habiller ses trois surfaces pour elle seule. Partout
    ailleurs le thème répond seul, d'où le défaut vide plutôt qu'un `is defined`
    à chaque appel. #}
-{% set surfacesCss = themeContext.frontendSurfacesCss(surfaceOverrides|default({})) %}
+{% set surfacesCss = themeStyles.frontendSurfacesCss(surfaceOverrides|default({})) %}
 {% if surfacesCss %}
     <style>{{ surfacesCss|raw }}</style>
 {% endif %}
 
-{% set highlightCss = themeContext.highlightCss() ~ themeContext.menuActiveCss() %}
+{% set highlightCss = themeStyles.highlightCss() ~ themeStyles.menuActiveCss() %}
 {% if highlightCss %}
     <style>{{ highlightCss|raw }}</style>
 {% endif %}
 
-{% set cssOverrides = themeContext.cssVariableOverrides() %}
+{% set cssOverrides = themeStyles.cssVariableOverrides() %}
 {% if cssOverrides %}
     <style>html[data-theme] { {{ cssOverrides|raw }} }</style>
 {% endif %}

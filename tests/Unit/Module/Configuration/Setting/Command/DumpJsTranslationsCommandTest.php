@@ -74,6 +74,22 @@ final class DumpJsTranslationsCommandTest extends TestCase
     }
 
     /**
+     * A literal is vue-i18n's own quoting, and the only way to show a `|`
+     * that is not a plural separator: quoting it again put the quotes on
+     * screen. A plural message, written with the bare bar, is left as it is.
+     */
+    public function testALiteralIsKeptAndABarePipeStaysAPluralSeparator(): void
+    {
+        $messages = $this->dump([
+            'format' => "Londres {'|'} 51.5 {'|'} -0.12",
+            'plural' => 'Aucune note | 1 note | {count} notes',
+        ]);
+
+        self::assertSame("Londres {'|'} 51.5 {'|'} -0.12", $messages['format']);
+        self::assertSame('Aucune note | 1 note | {count} notes', $messages['plural']);
+    }
+
+    /**
      * @param array<string, string> $messages
      *
      * @return array<string, string>
