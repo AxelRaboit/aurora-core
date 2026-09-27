@@ -10,6 +10,7 @@ import AppPagination from "@/shared/components/nav/AppPagination.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppLoader from "@/shared/components/feedback/AppLoader.vue";
+import AppThumbnail from "@/shared/components/display/AppThumbnail.vue";
 import AppTab from "@/shared/components/nav/AppTab.vue";
 import { useFileSize } from "@/shared/composables/format/useFileSize.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
@@ -395,7 +396,23 @@ function isSelected(doc) {
                             ]"
                             v-on:click="pick(doc)"
                         >
-                            <FileText class="w-5 h-5 text-secondary shrink-0" :stroke-width="1.5" />
+                            <!-- Un aperçu plutôt qu'une icône : choisir une image
+                                 sur son seul nom de fichier obligeait à la
+                                 retrouver ailleurs. La petite taille générée
+                                 d'abord, plus légère que le fichier entier. -->
+                            <AppThumbnail
+                                :src="doc.renditions?.thumbnail ?? doc.thumbnailUrl ?? null"
+                                :alt="doc.alt ?? doc.title ?? ''"
+                                size="md"
+                            >
+                                <span class="flex h-full w-full items-center justify-center">
+                                    <FileText
+                                        class="w-5 h-5"
+                                        :class="'application/pdf' === doc.fileMime ? 'text-rose-400' : 'text-secondary'"
+                                        :stroke-width="1.5"
+                                    />
+                                </span>
+                            </AppThumbnail>
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <span class="font-medium text-primary truncate">{{ doc.title }}</span>

@@ -894,6 +894,33 @@ onUnmounted(() => {
                         >
 
                         <div class="ml-auto flex shrink-0 flex-wrap items-center justify-end gap-2 md:gap-3">
+                            <!-- L'état de l'enregistrement d'abord, les boutons à sa
+                                 droite : on lit « Enregistré » là où le regard
+                                 quitte le titre, et les gestes restent groupés
+                                 au bord de l'écran. -->
+                            <div class="flex items-center gap-3 shrink-0">
+                                <span
+                                    v-if="saveStatusDisplay"
+                                    class="inline-flex items-center gap-1.5 text-xs"
+                                    :class="saveStatusDisplay.classes"
+                                >
+                                    <component
+                                        :is="saveStatusDisplay.icon"
+                                        class="w-3.5 h-3.5"
+                                        :class="saveStatusDisplay.spin ? 'animate-spin' : ''"
+                                        :stroke-width="2"
+                                    />
+                                    {{ saveStatusDisplay.label }}
+                                </span>
+                                <span
+                                    v-if="lastSavedAt"
+                                    class="text-xs text-muted"
+                                    :title="formatDateTimeNumeric(lastSavedAt.toISOString())"
+                                >
+                                    {{ t('shared.common.autosave.last_saved', { time: lastSavedRelative }) }}
+                                </span>
+                            </div>
+
                             <!-- Ce qu'on touche en écrivant reste sous la
                                  main ; le reste passe dans le menu.
                                  
@@ -940,29 +967,6 @@ onUnmounted(() => {
                                 >
                                     <component :is="opt.icon" class="w-4 h-4" :stroke-width="2" />
                                 </AppTab>
-                            </div>
-
-                            <div class="flex items-center gap-3 shrink-0">
-                                <span
-                                    v-if="saveStatusDisplay"
-                                    class="inline-flex items-center gap-1.5 text-xs"
-                                    :class="saveStatusDisplay.classes"
-                                >
-                                    <component
-                                        :is="saveStatusDisplay.icon"
-                                        class="w-3.5 h-3.5"
-                                        :class="saveStatusDisplay.spin ? 'animate-spin' : ''"
-                                        :stroke-width="2"
-                                    />
-                                    {{ saveStatusDisplay.label }}
-                                </span>
-                                <span
-                                    v-if="lastSavedAt"
-                                    class="text-xs text-muted"
-                                    :title="formatDateTimeNumeric(lastSavedAt.toISOString())"
-                                >
-                                    {{ t('shared.common.autosave.last_saved', { time: lastSavedRelative }) }}
-                                </span>
                             </div>
                         </div>
 

@@ -350,6 +350,13 @@ final readonly class GridNormalizer
     public const string ZONE_NEWSLETTER_SIGNUP = 'newsletterSignup';
 
     /**
+     * The newsletter's paragraph for a privacy policy: who receives the
+     * address, where, and how to withdraw - written for the provider in use,
+     * and drawn only while the newsletter is switched on.
+     */
+    public const string ZONE_NEWSLETTER_PRIVACY = 'newsletterPrivacy';
+
+    /**
      * Another publication's grid, drawn here.
      *
      * The one thing a CMS starts missing the moment a site passes ten pages:
@@ -761,6 +768,7 @@ final readonly class GridNormalizer
         self::ZONE_INSTAGRAM_FEED,
         self::ZONE_GOOGLE_REVIEWS,
         self::ZONE_NEWSLETTER_SIGNUP,
+        self::ZONE_NEWSLETTER_PRIVACY,
     ];
 
     /**

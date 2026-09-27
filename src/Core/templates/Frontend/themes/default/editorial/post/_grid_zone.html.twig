@@ -830,6 +830,9 @@
     {% elseif zone.type == 'googleReviews' and zone.googleReviews %}
         {{ include('Frontend/themes/default/editorial/post/zones/_google_reviews.html.twig') }}
 
+    {% elseif zone.type == 'newsletterPrivacy' and zone.newsletterPrivacy %}
+        {{ include('Frontend/themes/default/editorial/post/zones/_newsletter_privacy.html.twig') }}
+
     {% elseif zone.type == 'newsletterSignup' and zone.newsletterSignup %}
         {{ include('Frontend/themes/default/editorial/post/zones/_newsletter_signup.html.twig') }}
 

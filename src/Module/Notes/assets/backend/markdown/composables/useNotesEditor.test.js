@@ -137,6 +137,49 @@ describe("useNotesEditor", () => {
         expect(editor.isDirty.value, "l'apparence aussi").toBe(true);
     });
 
+    /**
+     * La carte de la bibliothèque suit le texte enregistré.
+     *
+     * Elle lisait l'extrait et la date calculés au chargement de la page :
+     * modifier une note laissait sa vignette sur l'ancien texte jusqu'au
+     * rechargement suivant.
+     */
+    it("met à jour l'extrait et la date de la carte après l'enregistrement", async () => {
+        const api = {
+            show: vi.fn().mockResolvedValue({
+                ok: true,
+                payload: {
+                    note: {
+                        id: 2,
+                        title: "Studio Lumen",
+                        content: "Avant.",
+                        tags: [],
+                    },
+                },
+            }),
+            update: vi.fn().mockResolvedValue({
+                ok: true,
+                payload: {
+                    note: {
+                        id: 2,
+                        excerpt: "Après.",
+                        updatedAt: "2026-09-27T10:00:00+00:00",
+                    },
+                },
+            }),
+        };
+
+        const editor = editorWith(api);
+        await editor.selectNote(2);
+        editor.form.value.content = "Après.";
+        await nextTick();
+        await editor.saveSelected();
+
+        const card = editor.notes.value.find((note) => 2 === note.id);
+        expect(card.excerpt).toBe("Après.");
+        expect(card.updatedAt).toBe("2026-09-27T10:00:00+00:00");
+    });
+
     // Le défaut : `selectNote` posait l'identifiant demandé avant d'avoir la
     // réponse, et sortait sur échec sans toucher au formulaire. L'éditeur
     // affichait donc la note précédente en face du nouvel identifiant, et la

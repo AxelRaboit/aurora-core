@@ -10,6 +10,7 @@ import { searchSections } from "@/shared/search/searchSectionRegistry.js";
 import { useResizable } from "@/shared/composables/useResizable.js";
 import { useBackendSearch } from "@core/backend/sidemenu/composables/useBackendSearch.js";
 import { useSidemenuCollapse } from "@core/backend/sidemenu/composables/useSidemenuCollapse.js";
+import { useSidemenuPeek } from "@core/backend/sidemenu/composables/useSidemenuPeek.js";
 import { useSidemenuDescriptions } from "@core/backend/sidemenu/composables/useSidemenuDescriptions.js";
 import { useSidemenuNav } from "@core/backend/sidemenu/composables/useSidemenuNav.js";
 import { useSidemenuSectionTheme } from "@core/backend/sidemenu/composables/useSidemenuSectionTheme.js";
@@ -102,6 +103,7 @@ const { t, d } = useI18n();
 const { theme, toggle: toggleTheme } = useTheme();
 const { liveSectionColors } = useSidemenuLiveColors(props.navSectionColors);
 const { mobileOpen, openMobile, closeMobile } = useSidemenuCollapse(props.sidemenuCollapsedPath);
+const { onEdgeEnter, onEdgeLeave, onMenuEnter, onMenuLeave } = useSidemenuPeek();
 const { showDescriptions, toggleDescriptions } = useSidemenuDescriptions(
     props.sidemenuDescriptionsPath,
     props.sidemenuShowDescriptions,
@@ -187,10 +189,21 @@ function openSearchFromMobile() {
          a gesture aimed at the column, and a global handler would fire it while
          someone was typing in the page. Keydown from a focused row bubbles here,
          which is exactly the scope wanted - "Escape, while I am in the menu". -->
+    <!-- The left edge of the screen, which calls a folded menu back over the
+         page. Shown by sidemenu.css only while the menu is folded, on a
+         screen wide enough to have one; see useSidemenuPeek. -->
+    <div
+        class="sidemenu-edge"
+        aria-hidden="true"
+        v-on:mouseenter="onEdgeEnter"
+        v-on:mouseleave="onEdgeLeave"
+    />
     <aside
         id="sidemenu"
         class="hidden lg:flex flex-col fixed inset-y-0 left-0 bg-surface border-r border-line z-30 overflow-hidden"
         v-on:keydown.esc="backToProject"
+        v-on:mouseenter="onMenuEnter"
+        v-on:mouseleave="onMenuLeave"
     >
         <div class="sh-wrap flex items-center h-16 border-b border-line shrink-0 transition-all duration-200">
             <a :href="dashboardPath" class="flex items-center gap-2.5 min-w-0 flex-1">

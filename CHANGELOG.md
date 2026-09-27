@@ -7,7 +7,28 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ## [0.9.267] - 2026-09-27
 
+### Ajouté
+
+- **Le menu latéral replié revient au bord de l'écran.** Menu replié, poser
+  la souris contre le bord gauche le fait glisser par-dessus la page le temps
+  de s'en servir ; il repart quand la souris le quitte, ou avec Échap. Le
+  bouton de l'entête reste le moyen de le déplier pour de bon.
+- **Un bloc « Mention RGPD de la lettre »** pour la politique de
+  confidentialité : le paragraphe qui dit à qui l'adresse est confiée, où, et
+  comment se désinscrire, rédigé selon le prestataire réglé (hébergement dans
+  l'Union européenne chez Brevo, transfert vers les États-Unis nommé chez
+  Mailchimp). Tant que la lettre d'information est éteinte, il n'affiche rien.
+- **La fenêtre « Choisir un document » montre un aperçu** de chaque document,
+  au lieu d'une icône de fichier.
+
 ### Modifié
+
+- **Notes : la sélection s'ouvre par un bouton**, comme dans la médiathèque.
+  Les ronds ne s'affichent plus en permanence sur chaque carte ; en mode
+  sélection, cliquer une carte la coche au lieu de l'ouvrir. Échap ou un
+  changement de dossier referment le mode.
+- **Notes : l'état d'enregistrement passe avant les boutons** dans la barre
+  d'une note, les boutons se rangeant à sa droite.
 
 #### L'inscription à la lettre d'information, mise en conformité (RGPD)
 - **Confirmation par e-mail, activée par défaut.** Le visiteur reçoit un
@@ -29,6 +50,9 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ### Corrigé
 
+- **Notes : la carte d'une note suit ce qu'on vient d'écrire.** Son extrait et
+  sa date restaient ceux du chargement de la page jusqu'au rechargement
+  suivant ; l'enregistrement renvoie maintenant l'extrait à jour.
 - **Deux visiteurs ne peuvent plus réserver le même créneau au même instant.**
   La prise de rendez-vous vérifiait que le créneau était libre, puis écrivait :
   deux demandes arrivées dans la même seconde passaient toutes les deux la

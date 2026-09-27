@@ -79,6 +79,31 @@ final readonly class IntegrationZoneViews
     }
 
     /**
+     * The newsletter's paragraph of a privacy policy, or nothing while the
+     * newsletter is off: a policy that describes a processing that does not
+     * happen misinforms as surely as one that forgets it.
+     *
+     * The words themselves live in the template, by provider: they change
+     * with where the addresses go - an EU company, or a transfer to the
+     * United States that the paragraph must name.
+     *
+     * @param array<string, mixed> $held
+     *
+     * @return array{title: string, provider: string}|null
+     */
+    public function newsletterPrivacy(array $held): ?array
+    {
+        if (!$this->newsletterSettings->isEnabled()) {
+            return null;
+        }
+
+        return [
+            'title' => $held['label'],
+            'provider' => $this->newsletterSettings->provider(),
+        ];
+    }
+
+    /**
      * @param array<string, mixed> $held
      *
      * @return array<string, mixed>|null

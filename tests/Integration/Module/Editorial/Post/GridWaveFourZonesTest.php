@@ -102,6 +102,33 @@ final class GridWaveFourZonesTest extends IntegrationTestCase
         self::assertStringContainsString('href="/fr/page/confidentialite"', $html);
     }
 
+    /**
+     * The privacy paragraph follows the newsletter: nothing while it is off,
+     * and the provider's own words once it is on - an EU host for Brevo, the
+     * transfer to the United States named for Mailchimp.
+     */
+    public function testTheNewsletterPrivacyParagraphFollowsTheProvider(): void
+    {
+        static::bootKernel();
+        $settings = static::getContainer()->get(NewsletterSettings::class);
+
+        $settings->save(enabled: false, termsAccepted: false, provider: 'brevo', apiKey: null, listId: null, acceptedBy: '');
+        self::assertStringNotContainsString('aurora-newsletter-privacy', $this->render(['type' => 'newsletterPrivacy']));
+
+        $settings->save(enabled: true, termsAccepted: true, provider: 'brevo', apiKey: 'key', listId: '3', acceptedBy: 'axel@example.com', brevoTemplateId: '12', privacyUrl: '/fr/page/confidentialite');
+        $brevo = $this->render(['type' => 'newsletterPrivacy']);
+        self::assertStringContainsString('Brevo', $brevo);
+        self::assertStringContainsString('Union européenne', $brevo);
+        self::assertStringNotContainsString('États-Unis', $brevo);
+
+        $settings->save(enabled: true, termsAccepted: true, provider: 'mailchimp', apiKey: 'key-us21', listId: 'l1', acceptedBy: 'axel@example.com', privacyUrl: '/fr/page/confidentialite');
+        $mailchimp = $this->render(['type' => 'newsletterPrivacy'], ['label' => 'Nos envois']);
+        self::assertStringContainsString('Nos envois', $mailchimp);
+        self::assertStringContainsString('États-Unis', $mailchimp);
+
+        $settings->save(enabled: false, termsAccepted: false, provider: 'brevo', apiKey: null, listId: null, acceptedBy: '');
+    }
+
     /** @param array<string, mixed> $zone @param array<string, mixed> $held */
     private function render(array $zone, array $held = []): string
     {

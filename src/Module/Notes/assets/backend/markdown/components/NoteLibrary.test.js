@@ -395,6 +395,7 @@ describe("the library", () => {
             move: vi.fn().mockResolvedValue({ ok: true, payload: {} }),
         };
         const wrapper = render({ notesApi, foldersApi });
+        await startSelecting(wrapper);
 
         // Une note et un dossier : la sélection porte les deux natures, et
         // un identifiant seul les aurait confondus.
@@ -423,6 +424,7 @@ describe("the library", () => {
 
     it("forgets the selection when the folder changes", async () => {
         const wrapper = render();
+        await startSelecting(wrapper);
 
         await wrapper
             .findAll("article")[0]
@@ -507,7 +509,10 @@ describe("the library", () => {
             .findAll("article")
             .find((one) => one.text().includes("Clients"));
 
-        await folderCard.findAll("button")[1].trigger("dblclick");
+        await folderCard
+            .findAll("button")
+            .find((button) => button.text().includes("Clients"))
+            .trigger("dblclick");
 
         expect(document.body.textContent).toContain("folders.rename");
     });
@@ -589,6 +594,7 @@ describe("the library", () => {
     /** La case à cocher choisit, elle n'ouvre pas. */
     it("does not open when the checkbox is pressed", async () => {
         const wrapper = render({ folders: [] });
+        await startSelecting(wrapper);
 
         await wrapper
             .findAll("article")[0]
@@ -597,6 +603,42 @@ describe("the library", () => {
 
         expect(wrapper.emitted("open-note")).toBeUndefined();
         expect(wrapper.text()).toContain("library.selected");
+    });
+
+    /**
+     * Comme dans la médiathèque : les ronds ne se montrent qu'en mode
+     * sélection, et dans ce mode un clic sur la carte coche au lieu d'ouvrir.
+     */
+    it("shows no checkbox until selection mode is opened", async () => {
+        const wrapper = render({ folders: [] });
+
+        expect(
+            wrapper
+                .findAll("article")[0]
+                .find("button[title$='library.select']")
+                .exists(),
+        ).toBe(false);
+
+        await startSelecting(wrapper);
+        await wrapper.findAll("article")[0].trigger("click");
+
+        expect(wrapper.emitted("open-note")).toBeUndefined();
+        expect(wrapper.text()).toContain("library.selected");
+    });
+
+    it("leaves selection mode with Escape, and forgets what was picked", async () => {
+        const wrapper = render({ folders: [] });
+        await startSelecting(wrapper);
+        await wrapper.findAll("article")[0].trigger("click");
+
+        window.dispatchEvent(
+            new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+        );
+        await flushPromises();
+
+        expect(wrapper.text()).not.toContain("library.selected");
+        await wrapper.findAll("article")[0].trigger("click");
+        expect(wrapper.emitted("open-note")).toBeTruthy();
     });
 
     /**
@@ -1021,3 +1063,13 @@ describe("the library", () => {
         expect(wrapper.text()).not.toContain("Clients");
     });
 });
+
+/** Ouvre le mode sélection par son bouton, comme l'utilisateur. */
+async function startSelecting(wrapper) {
+    await wrapper
+        .findAll("button")
+        .find((button) =>
+            (button.attributes("title") ?? "").endsWith("library.select"),
+        )
+        .trigger("click");
+}
