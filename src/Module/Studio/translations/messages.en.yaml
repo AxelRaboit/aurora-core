@@ -2,11 +2,19 @@ backend:
     stats:
         studio:
             spaces: Active spaces
-            awaiting_client: Waiting on the client
+            missed: Missed publications
+            late_review: Reviews overdue
+            changes_requested: To rework
+            with_client: With the client
             upcoming: "Going out within 7 days"
+            awaiting_signature: Contracts to sign
             decks: Decks
-            by_approval: Where the content stands
-            by_contract_status: Where the contracts stand
+            scope_label: Spaces counted
+            scopes:
+                mine: My spaces
+                all: All spaces
+            attention_title: To handle
+            attention_empty: Nothing is waiting at your clients'.
     modules:
         studio: Studio
         studio_backend: Studio
@@ -20,6 +28,8 @@ backend:
         studio_contract_templates_description: The model documents contracts are built from, and their versions.
         studio_customers: Customers
         studio_customers_description: The companies you contract with, and their legal identity block.
+        studio_calendar: Editorial calendar
+        studio_calendar_description: What goes out for every client, on one month.
         studio_spaces: Client spaces
         studio_spaces_description: One space per client engagement, with its team and, soon, its calendar.
         studio_contracts: Contracts
@@ -144,6 +154,38 @@ backend:
                 deck_categories:
                     manage: Manage presentation categories
     studio:
+        workload:
+            next_publication: "next publication on {date}"
+            badges:
+                missed: "No missed publication | 1 missed publication | {count} missed publications"
+                late_review: "No overdue review | 1 overdue review | {count} overdue reviews"
+                changes_requested: "Nothing to rework | 1 to rework | {count} to rework"
+                with_client: "Nothing with the client | 1 with the client | {count} with the client"
+        calendar:
+            scope_label: Spaces shown
+            scopes:
+                mine: My spaces
+                all: All spaces
+            search_placeholder: Search a publication…
+            all_customers: All clients
+            all_states: All states
+            view_label: Display
+            views:
+                month: Month
+                list: List
+            today: Today
+            no_spaces: No space to show.
+            empty_month: Nothing scheduled this month.
+            states:
+                missed: Missed publication
+                late_review: Review overdue
+                changes_requested: To rework
+                with_client: With the client
+                upcoming: Upcoming
+                published: Published
+            errors:
+                window: That period is not valid.
+                load: The calendar could not be loaded.
         signatures:
             role:
                 customer: 'The customer'
@@ -929,6 +971,7 @@ backend:
             delete_confirm: 'Delete {name}?'
             delete_warning: The space and its team list go. The customer, their contracts and their documents stay where they are.
             show_archived: Show archived spaces
+            sort_by_urgency: Sort by urgency
             archived_badge: Archived
             no_members: Nobody assigned
             team_button: '1 person | {count} people'
@@ -938,6 +981,7 @@ backend:
 
             col_space: Space
             col_customer: Client
+            col_workload: To handle
             col_team: Team
             col_storage: Weight
             col_status: Status
@@ -1464,6 +1508,15 @@ backend:
             delete_column_confirm: 'Delete the step {name}?'
             delete_column_warning: A step is only deleted when it is empty.
 
+            column_role: Step role
+            column_role_hint: Optional. Says which common stage this step stands for, so the dashboard and the editorial calendar can count it.
+            column_role_none: None
+            column_roles:
+                idea: Idea
+                production: Production
+                review: Review
+                scheduled: Scheduled
+                published: Published
             default_columns:
                 idea: Ideas
                 writing: Writing

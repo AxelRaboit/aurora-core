@@ -18,6 +18,12 @@ interface SpaceContentItemManagerInterface
 
     public function delete(SpaceContentItemInterface $item): void;
 
+    /** Re-announces every card of the space, after its name, colour or status changed. */
+    public function announceSpace(CustomerSpaceInterface $space): void;
+
+    /** Takes every card of the space off the calendar, before the space is deleted. */
+    public function unscheduleSpace(CustomerSpaceInterface $space): void;
+
     /**
      * Writes the order of one column after a drag.
      *

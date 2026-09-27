@@ -10,6 +10,8 @@ use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumnInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItem;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
 use Aurora\Module\Studio\SpaceContent\Enum\SpaceContentApprovalEnum;
+use Aurora\Module\Studio\SpaceContent\Enum\SpaceContentColumnRoleEnum;
+use Aurora\Module\Studio\SpaceContent\Workload\SpaceWorkload;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\Order;
 use Doctrine\Persistence\ManagerRegistry;
@@ -66,99 +68,130 @@ class SpaceContentItemRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Combien de cartes par verdict du client.
+     * The raw counts behind {@see SpaceWorkload}, per space, in two queries
+     * whatever the number of spaces.
      *
-     * C'est le nombre qui dit ce qui attend quelqu'un : une carte en attente
-     * dort chez le client, une carte à revoir est revenue au studio.
+     * The definitions live on the service; this only turns them into SQL.
+     * « Not published » is a step with no role or another role: a step
+     * nobody gave a role to is not known to be a published one.
      *
-     * @return array<string, int>
+     * @param list<int> $spaceIds
+     *
+     * @return array<int, array{upcoming: int, withClient: int, lateReview: int, changesRequested: int, missed: int, hasPublishedStep: bool, nextPublication: DateTimeImmutable|null}>
      */
-    public function countGroupedByApproval(): array
+    public function workloadBySpace(array $spaceIds, DateTimeImmutable $now, DateTimeImmutable $horizon): array
     {
+        if ([] === $spaceIds) {
+            return [];
+        }
+
+        $onCalendar = 'i.showOnCalendar = true AND i.scheduledAt IS NOT NULL AND (c.role IS NULL OR c.role <> :published)';
+        $withClient = $onCalendar.' AND c.visibleToClient = true AND i.approval = :pending';
+
         $rows = $this->createQueryBuilder('i')
-            ->select('i.approval AS approval, COUNT(i.id) AS total')
-            ->groupBy('i.approval')
+            ->select('IDENTITY(i.space) AS space')
+            ->addSelect(sprintf('SUM(CASE WHEN %s AND i.scheduledAt >= :now AND i.scheduledAt < :horizon THEN 1 ELSE 0 END) AS upcoming', $onCalendar))
+            ->addSelect(sprintf('SUM(CASE WHEN %s THEN 1 ELSE 0 END) AS withClient', $withClient))
+            ->addSelect(sprintf('SUM(CASE WHEN %s AND i.reviewBy IS NOT NULL AND i.reviewBy < :now THEN 1 ELSE 0 END) AS lateReview', $withClient))
+            ->addSelect('SUM(CASE WHEN i.approval = :changes AND (c.role IS NULL OR c.role <> :published) THEN 1 ELSE 0 END) AS changesRequested')
+            ->addSelect(sprintf('SUM(CASE WHEN %s AND i.scheduledAt < :now THEN 1 ELSE 0 END) AS missed', $onCalendar))
+            ->addSelect(sprintf('MIN(CASE WHEN %s AND i.scheduledAt >= :now THEN i.scheduledAt ELSE :none END) AS nextPublication', $onCalendar))
+            ->join('i.column', 'c')
+            ->where('i.space IN (:spaces)')
+            ->groupBy('i.space')
+            ->setParameter('spaces', $spaceIds)
+            ->setParameter('now', $now)
+            ->setParameter('horizon', $horizon)
+            ->setParameter('published', SpaceContentColumnRoleEnum::Published)
+            ->setParameter('pending', SpaceContentApprovalEnum::Pending)
+            ->setParameter('changes', SpaceContentApprovalEnum::ChangesRequested)
+            ->setParameter('none', null)
             ->getQuery()
             ->getScalarResult();
 
-        $counts = [];
+        $withPublishedStep = array_flip(array_map(intval(...), $this->getEntityManager()->createQueryBuilder()
+            ->select('DISTINCT IDENTITY(c.space)')
+            ->from(SpaceContentColumnInterface::class, 'c')
+            ->where('c.space IN (:spaces)')
+            ->andWhere('c.role = :published')
+            ->setParameter('spaces', $spaceIds)
+            ->setParameter('published', SpaceContentColumnRoleEnum::Published)
+            ->getQuery()
+            ->getSingleColumnResult()));
+
+        $bySpace = [];
 
         foreach ($rows as $row) {
-            $approval = $row['approval'];
-            $counts[$approval instanceof SpaceContentApprovalEnum ? $approval->value : (string) $approval] = (int) $row['total'];
+            $id = (int) $row['space'];
+            $bySpace[$id] = [
+                'upcoming' => (int) $row['upcoming'],
+                'withClient' => (int) $row['withClient'],
+                'lateReview' => (int) $row['lateReview'],
+                'changesRequested' => (int) $row['changesRequested'],
+                'missed' => (int) $row['missed'],
+                'hasPublishedStep' => isset($withPublishedStep[$id]),
+                'nextPublication' => null === $row['nextPublication'] ? null : new DateTimeImmutable((string) $row['nextPublication']),
+            ];
         }
 
-        return $counts;
+        return $bySpace;
     }
 
     /**
-     * Ce qui sort d'ici à une date.
+     * The cards on the calendar of these spaces, between two instants, with
+     * their step and space loaded: the editorial calendar draws all three.
      *
-     * **Les mêmes deux conditions que le calendrier**, et pas seulement la
-     * date : une carte décochée porte une échéance interne, et la compter ici
-     * annoncerait une parution qui n'en est pas une.
+     * @param list<int> $spaceIds
+     *
+     * @return list<SpaceContentItemInterface>
      */
-    public function countScheduledBetween(DateTimeImmutable $from, DateTimeImmutable $to): int
+    public function findOnCalendar(array $spaceIds, DateTimeImmutable $from, DateTimeImmutable $to): array
     {
-        return (int) $this->createQueryBuilder('i')
-            ->select('COUNT(i.id)')
-            ->where('i.scheduledAt >= :from')
-            ->andWhere('i.scheduledAt < :to')
+        if ([] === $spaceIds) {
+            return [];
+        }
+
+        /** @var list<SpaceContentItemInterface> $items */
+        $items = $this->createQueryBuilder('i')
+            ->addSelect('c', 's')
+            ->join('i.column', 'c')
+            ->join('i.space', 's')
+            ->where('i.space IN (:spaces)')
             ->andWhere('i.showOnCalendar = true')
+            ->andWhere('i.scheduledAt >= :from')
+            ->andWhere('i.scheduledAt < :to')
+            ->setParameter('spaces', $spaceIds)
             ->setParameter('from', $from)
             ->setParameter('to', $to)
+            ->orderBy('i.scheduledAt', Order::Ascending->value)
             ->getQuery()
-            ->getSingleScalarResult();
+            ->getResult();
+
+        return $items;
     }
 
     /**
-     * Ce qui attend encore une réponse du client, dans un espace.
+     * Those of these cards that belong to these spaces.
      *
-     * **Les mêmes deux conditions que le calendrier**, pour la raison que
-     * `countScheduledBetween` donne : une carte sans date ou décochée n'est pas
-     * sous les yeux du client, donc annoncer qu'elle l'attend serait lui
-     * demander de répondre à quelque chose qu'il ne voit pas.
+     * @param list<int> $itemIds
+     * @param list<int> $spaceIds
      *
-     * `Pending` veut dire que personne n'a rien dit, ce qui n'est pas un refus :
-     * c'est exactement la population qu'une invitation à relire concerne.
+     * @return list<int>
      */
-    public function countAwaitingApproval(CustomerSpaceInterface $space): int
+    public function idsInSpaces(array $itemIds, array $spaceIds): array
     {
-        return (int) $this->createQueryBuilder('i')
-            ->select('COUNT(i.id)')
-            ->where('i.space = :space')
-            ->andWhere('i.scheduledAt IS NOT NULL')
-            ->andWhere('i.showOnCalendar = true')
-            ->andWhere('i.approval = :pending')
-            ->setParameter('space', $space)
-            ->setParameter('pending', SpaceContentApprovalEnum::Pending)
-            ->getQuery()
-            ->getSingleScalarResult();
-    }
+        if ([] === $itemIds || [] === $spaceIds) {
+            return [];
+        }
 
-    /**
-     * Ce dont l'échéance de relecture est passée sans réponse.
-     *
-     * Un sous-ensemble de {@see countAwaitingApproval()} : c'est la même
-     * population, réduite à ce qui a une échéance et l'a dépassée. Le studio a
-     * besoin des deux, parce que « trois en attente » et « trois en attente
-     * dont deux en retard » n'appellent pas la même journée.
-     */
-    public function countLateForReview(CustomerSpaceInterface $space, DateTimeImmutable $now): int
-    {
-        return (int) $this->createQueryBuilder('i')
-            ->select('COUNT(i.id)')
-            ->where('i.space = :space')
-            ->andWhere('i.scheduledAt IS NOT NULL')
-            ->andWhere('i.showOnCalendar = true')
-            ->andWhere('i.approval = :pending')
-            ->andWhere('i.reviewBy IS NOT NULL')
-            ->andWhere('i.reviewBy < :now')
-            ->setParameter('space', $space)
-            ->setParameter('pending', SpaceContentApprovalEnum::Pending)
-            ->setParameter('now', $now)
+        return array_map(intval(...), $this->createQueryBuilder('i')
+            ->select('i.id')
+            ->where('i.id IN (:items)')
+            ->andWhere('i.space IN (:spaces)')
+            ->setParameter('items', $itemIds)
+            ->setParameter('spaces', $spaceIds)
             ->getQuery()
-            ->getSingleScalarResult();
+            ->getSingleColumnResult());
     }
 
     public function countForSpace(CustomerSpaceInterface $space): int

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\SpaceContent\Dto;
 
 use Aurora\Core\Support\ChartPalette;
+use Aurora\Module\Studio\SpaceContent\Enum\SpaceContentColumnRoleEnum;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class SpaceContentColumnInput implements SpaceContentColumnInputInterface
@@ -19,6 +20,7 @@ class SpaceContentColumnInput implements SpaceContentColumnInputInterface
         // comportement d'avant plutôt que de cacher une étape sans que
         // personne l'ait demandé.
         public readonly bool $visibleToClient = true,
+        public readonly ?SpaceContentColumnRoleEnum $role = null,
     ) {}
 
     public function getName(): string
@@ -34,5 +36,10 @@ class SpaceContentColumnInput implements SpaceContentColumnInputInterface
     public function isVisibleToClient(): bool
     {
         return $this->visibleToClient;
+    }
+
+    public function getRole(): ?SpaceContentColumnRoleEnum
+    {
+        return $this->role;
     }
 }

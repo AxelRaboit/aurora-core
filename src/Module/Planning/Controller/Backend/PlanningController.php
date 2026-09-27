@@ -33,6 +33,7 @@ use Aurora\Module\Planning\Reminder\Manager\PlanningReminderManagerInterface;
 use Aurora\Module\Planning\Reminder\Repository\PlanningReminderRepository;
 use Aurora\Module\Planning\Reminder\Serializer\PlanningReminderSerializer;
 use Aurora\Module\Planning\Share\Manager\PlanningShareManagerInterface;
+use Aurora\Module\Planning\Sync\Access\ModuleEventVisibility;
 use Aurora\Module\Planning\Time\PlanningClock;
 use Aurora\Module\Planning\View\PlanningViewBuilder;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
@@ -81,6 +82,7 @@ final class PlanningController extends AbstractController
         private readonly PlanningShareLinkInputFactoryInterface $shareLinkInputFactory,
         private readonly PlanningShareLinkSerializer $shareLinkSerializer,
         private readonly PlanningShareLinkRepository $shareLinkRepository,
+        private readonly ModuleEventVisibility $moduleEvents,
     ) {}
 
     #[Route('/calendar', name: '_calendar', methods: [HttpMethodEnum::Get->value])]
@@ -119,7 +121,9 @@ final class PlanningController extends AbstractController
         // draws both in the same grid. Two endpoints would be two round trips
         // whose results have to arrive together to be drawn at all.
         return $this->json([
-            'events' => $this->eventSerializer->serializeMany($this->occurrences->find($ids, $from, $to)),
+            // Without the module events the reader may not see: a client's
+            // publications go to the members of that client's space only.
+            'events' => $this->eventSerializer->serializeMany($this->moduleEvents->filter($this->occurrences->find($ids, $from, $to))),
             'reminders' => $this->reminderSerializer->serializeMany($this->reminderRepository->findInWindow($ids, $from, $to)),
         ]);
     }
@@ -319,8 +323,9 @@ final class PlanningController extends AbstractController
         }
 
         // The calendar it is on now, not only the one it is sent to: moving an
-        // event out of a calendar you cannot write to is writing to it.
-        if (!$this->writableCalendar((int) $event->getPlanning()->getId()) instanceof PlanningInterface) {
+        // event out of a calendar you cannot write to is writing to it. And a
+        // module event the reader may not see is not theirs to edit either.
+        if (!$this->writableCalendar((int) $event->getPlanning()->getId()) instanceof PlanningInterface || !$this->moduleEvents->canSee($event)) {
             return $this->jsonNotFound();
         }
 
@@ -397,7 +402,7 @@ final class PlanningController extends AbstractController
             return $this->jsonInvalidInput(['event' => 'backend.plannings.events.errors.read_only']);
         }
 
-        if (!$this->writableCalendar((int) $event->getPlanning()->getId()) instanceof PlanningInterface) {
+        if (!$this->writableCalendar((int) $event->getPlanning()->getId()) instanceof PlanningInterface || !$this->moduleEvents->canSee($event)) {
             return $this->jsonInvalidInput(['planningId' => 'backend.plannings.events.errors.calendar_required']);
         }
 
@@ -437,7 +442,7 @@ final class PlanningController extends AbstractController
             return $this->jsonInvalidInput(['event' => 'backend.plannings.events.errors.read_only']);
         }
 
-        if (!$this->writableCalendar((int) $event->getPlanning()->getId()) instanceof PlanningInterface) {
+        if (!$this->writableCalendar((int) $event->getPlanning()->getId()) instanceof PlanningInterface || !$this->moduleEvents->canSee($event)) {
             return $this->jsonNotFound();
         }
 

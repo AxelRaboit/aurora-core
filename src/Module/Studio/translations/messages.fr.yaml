@@ -2,11 +2,19 @@ backend:
     stats:
         studio:
             spaces: Espaces actifs
-            awaiting_client: En attente du client
-            upcoming: "Parutions sous 7 jours"
+            missed: Parutions manquées
+            late_review: Relectures en retard
+            changes_requested: À reprendre
+            with_client: Chez le client
+            upcoming: "À paraître sous 7 jours"
+            awaiting_signature: Contrats à signer
             decks: Présentations
-            by_approval: Où en sont les contenus
-            by_contract_status: Où en sont les contrats
+            scope_label: Espaces comptés
+            scopes:
+                mine: Mes espaces
+                all: Tous les espaces
+            attention_title: À traiter
+            attention_empty: Rien n'attend chez vos clients.
     modules:
         studio: Studio
         studio_backend: Studio
@@ -20,6 +28,8 @@ backend:
         studio_contract_templates_description: Les documents types dont partent les contrats, et leurs versions.
         studio_customers: Clients
         studio_customers_description: Les sociétés avec qui vous contractez, et leur bloc d'identité légale.
+        studio_calendar: Calendrier éditorial
+        studio_calendar_description: Ce qui sort chez tous vos clients, sur un seul mois.
         studio_spaces: Espaces clients
         studio_spaces_description: Un espace par chantier client, avec son équipe et, bientôt, son calendrier.
         studio_contracts: Contrats
@@ -144,6 +154,38 @@ backend:
                 deck_categories:
                     manage: Gérer les rubriques de présentation
     studio:
+        workload:
+            next_publication: "prochaine parution le {date}"
+            badges:
+                missed: "Aucune parution manquée | 1 parution manquée | {count} parutions manquées"
+                late_review: "Aucune relecture en retard | 1 relecture en retard | {count} relectures en retard"
+                changes_requested: "Rien à reprendre | 1 à reprendre | {count} à reprendre"
+                with_client: "Rien chez le client | 1 chez le client | {count} chez le client"
+        calendar:
+            scope_label: Espaces affichés
+            scopes:
+                mine: Mes espaces
+                all: Tous les espaces
+            search_placeholder: Rechercher une publication…
+            all_customers: Tous les clients
+            all_states: Tous les états
+            view_label: Affichage
+            views:
+                month: Mois
+                list: Liste
+            today: Aujourd'hui
+            no_spaces: Aucun espace à afficher.
+            empty_month: Rien de programmé ce mois-ci.
+            states:
+                missed: Parution manquée
+                late_review: Relecture en retard
+                changes_requested: À reprendre
+                with_client: Chez le client
+                upcoming: À paraître
+                published: Publié
+            errors:
+                window: Cette période n'est pas valide.
+                load: Le calendrier n'a pas pu être chargé.
         signatures:
             role:
                 customer: 'Le client'
@@ -929,6 +971,7 @@ backend:
             delete_confirm: 'Supprimer {name} ?'
             delete_warning: L'espace et la liste de son équipe disparaissent. Le client, ses contrats et ses documents ne bougent pas.
             show_archived: Afficher les espaces archivés
+            sort_by_urgency: Trier par urgence
             archived_badge: Archivé
             no_members: Aucun membre
             team_button: '1 personne | {count} personnes'
@@ -938,6 +981,7 @@ backend:
 
             col_space: Espace
             col_customer: Client
+            col_workload: À traiter
             col_team: Équipe
             col_storage: Poids
             col_status: Statut
@@ -1475,6 +1519,15 @@ backend:
             delete_column_confirm: 'Supprimer l''étape {name} ?'
             delete_column_warning: Une étape ne se supprime que si elle est vide.
 
+            column_role: Rôle de l'étape
+            column_role_hint: Facultatif. Dit quelle étape commune celle-ci représente, pour que les compteurs du tableau de bord et du calendrier éditorial la reconnaissent.
+            column_role_none: Aucun
+            column_roles:
+                idea: Idée
+                production: Production
+                review: Relecture
+                scheduled: Programmé
+                published: Publié
             default_columns:
                 idea: Idées
                 writing: En rédaction

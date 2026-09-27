@@ -10,7 +10,7 @@ use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceAccess\Manager\SpaceAccessLinkManager;
 use Aurora\Module\Studio\SpaceAccess\Manager\SpaceAccessLinkManagerInterface;
 use Aurora\Module\Studio\SpaceAccess\Repository\SpaceAccessLinkRepository;
-use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentItemRepository;
+use Aurora\Module\Studio\SpaceContent\Workload\SpaceWorkload;
 use DateTimeImmutable;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -40,7 +40,7 @@ final readonly class SpaceReviewInviter
     public function __construct(
         private SpaceAccessLinkRepository $links,
         private SpaceAccessLinkManagerInterface $linkManager,
-        private SpaceContentItemRepository $items,
+        private SpaceWorkload $workload,
         private MailService $mail,
         private UrlGeneratorInterface $urlGenerator,
         private LoggerInterface $logger,
@@ -54,7 +54,10 @@ final readonly class SpaceReviewInviter
      */
     public function invite(CustomerSpaceInterface $space): array
     {
-        $awaiting = $this->items->countAwaitingApproval($space);
+        // Comme partout ailleurs : ce que la page du client montre et attend.
+        // Le compte incluait les étapes internes, donc annonçait au client des
+        // contenus qu'il ne trouvait pas en ouvrant sa page.
+        $awaiting = $this->workload->forSpace($space)->withClient;
 
         if (0 === $awaiting) {
             return ['awaiting' => 0, 'notified' => 0];
