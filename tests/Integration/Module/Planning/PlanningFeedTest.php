@@ -18,6 +18,7 @@ use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use DateTimeImmutable;
+use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -167,6 +168,55 @@ final class PlanningFeedTest extends IntegrationTestCase
     }
 
     /**
+     * A series is published as a series, in its calendar's zone.
+     *
+     * The feed wrote the first occurrence only: a subscribed calendar showed a
+     * weekly meeting once. It now carries the rule, the dates the series no
+     * longer produces - one deleted, one moved and written as an event of its
+     * own - and the zone the rule repeats in, so that 10:00 in Paris stays
+     * 10:00 after the clocks change.
+     */
+    public function testASeriesIsPublishedWithItsRuleExceptionsAndZone(): void
+    {
+        $planning = $this->calendar();
+        $planning->setTimezone('Europe/Paris');
+        $link = $this->link([$planning]);
+
+        $series = new PlanningEvent();
+        $series->setPlanning($planning)->setTitle('Point hebdo')->setRrule('FREQ=WEEKLY')
+            ->setSpan(new DateTimeImmutable('2026-08-03 08:00', new DateTimeZone('UTC')), new DateTimeImmutable('2026-08-03 08:30', new DateTimeZone('UTC')));
+        $series->excludeOccurrence(new DateTimeImmutable('2026-08-17 08:00', new DateTimeZone('UTC')));
+        $this->entityManager->persist($series);
+
+        $moved = new PlanningEvent();
+        $moved->setPlanning($planning)->setTitle('Point hebdo, décalé')->setMaster($series)
+            ->setOccurrenceAt(new DateTimeImmutable('2026-08-10 08:00', new DateTimeZone('UTC')))
+            ->setSpan(new DateTimeImmutable('2026-08-10 12:00', new DateTimeZone('UTC')), new DateTimeImmutable('2026-08-10 12:30', new DateTimeZone('UTC')));
+        $this->entityManager->persist($moved);
+        $this->entityManager->flush();
+        $this->created[] = [PlanningEvent::class, (int) $moved->getId()];
+        $this->created[] = [PlanningEvent::class, (int) $series->getId()];
+
+        $token = $link->getToken();
+        $this->entityManager->clear();
+
+        $this->client->request('GET', $this->urlGenerator->generate('planning_feed_show', ['token' => $token]));
+        self::assertResponseIsSuccessful();
+        // Unfolded, as a reader sees it.
+        $body = str_replace("\r\n ", '', (string) $this->client->getResponse()->getContent());
+
+        self::assertStringContainsString("DTSTART;TZID=Europe/Paris:20260803T100000\r\n", $body);
+        self::assertStringContainsString("RRULE:FREQ=WEEKLY\r\n", $body);
+        self::assertStringContainsString("EXDATE;TZID=Europe/Paris:20260810T100000,20260817T100000\r\n", $body);
+        // The moved occurrence stays an event of its own, at its new time.
+        self::assertStringContainsString("SUMMARY:Point hebdo\\, décalé\r\nDTSTART:20260810T120000Z\r\n", $body);
+        // The zone is described, summer time included, before the events.
+        self::assertStringContainsString("BEGIN:VTIMEZONE\r\nTZID:Europe/Paris\r\n", $body);
+        self::assertStringContainsString("TZOFFSETFROM:+0100\r\nTZOFFSETTO:+0200\r\n", $body);
+        self::assertLessThan(mb_strpos($body, 'BEGIN:VEVENT'), mb_strpos($body, 'BEGIN:VTIMEZONE'));
+    }
+
+    /**
      * The feed costs the same few queries with three events or three thousand.
      *
      * Every subscribed phone polls it every quarter of an hour. Events,
@@ -211,7 +261,9 @@ final class PlanningFeedTest extends IntegrationTestCase
 
         $rowByRow = array_filter(
             $holder->getData()['default'] ?? [],
-            static fn (array $query): bool => 1 === preg_match('/FROM (core_planning_events|core_planning_event_attendees|core_planning_reminders|core_users) /', (string) $query['sql']),
+            // `t0` is the alias of Doctrine's lazy loads, one relation of one
+            // row at a time; the batched queries are DQL and alias `c0_`.
+            static fn (array $query): bool => 1 === preg_match('/FROM (core_planning_events|core_planning_event_attendees|core_planning_reminders|core_users) t0 /', (string) $query['sql']),
         );
         self::assertSame([], array_column($rowByRow, 'sql'), 'nothing is loaded row by row');
     }

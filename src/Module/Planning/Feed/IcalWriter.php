@@ -65,16 +65,31 @@ final readonly class IcalWriter
             'X-PUBLISHED-TTL:PT15M',
         ];
 
+        $components = [];
+        /** @var array<string, int> $zones the zones a series is written in, and its first year */
+        $zones = [];
+
         foreach ($plannings as $planning) {
             foreach ($planning->getEvents() as $event) {
-                $lines = [...$lines, ...$this->event($event)];
+                $components = [...$components, ...$this->event($event)];
+
+                if ($this->isWrittenInItsZone($event)) {
+                    $zone = PlanningClock::zone($event->getPlanning())->getName();
+                    $zones[$zone] = min($zones[$zone] ?? PHP_INT_MAX, (int) $event->getStartAt()->format('Y'));
+                }
             }
 
             foreach ($planning->getReminders() as $reminder) {
-                $lines = [...$lines, ...$this->reminder($reminder)];
+                $components = [...$components, ...$this->reminder($reminder)];
             }
         }
 
+        // The zones before the events that name them, as the format asks.
+        foreach ($zones as $zone => $firstYear) {
+            $lines = [...$lines, ...$this->timezone(new DateTimeZone($zone), $firstYear)];
+        }
+
+        $lines = [...$lines, ...$components];
         $lines[] = 'END:VCALENDAR';
 
         // CRLF, which the format requires rather than prefers: some readers treat
@@ -92,17 +107,28 @@ final readonly class IcalWriter
             'SUMMARY:'.$this->escape($event->getTitle()),
         ];
 
+        $zone = PlanningClock::zone($event->getPlanning());
+
         if ($event->isAllDay()) {
             // A whole day is a date and not an instant, and its end is exclusive -
             // a one-day event ends on the following day. Written in the calendar's
             // zone, because that is the zone whose days these are.
-            $zone = PlanningClock::zone($event->getPlanning());
             $lines[] = 'DTSTART;VALUE=DATE:'.$event->getStartAt()->setTimezone($zone)->format('Ymd');
             $lines[] = 'DTEND;VALUE=DATE:'.$event->getEndAt()->setTimezone($zone)->modify('+1 day')->format('Ymd');
+        } elseif ($this->isWrittenInItsZone($event)) {
+            // A series is written in its calendar's zone and not in UTC: the
+            // reader repeats the rule in the zone of DTSTART, and a weekly
+            // 10:00 in Paris repeated in UTC becomes 11:00 once the clocks
+            // change. The expander repeats it in the same zone, for the same
+            // reason.
+            $lines[] = sprintf('DTSTART;TZID=%s:%s', $zone->getName(), $event->getStartAt()->setTimezone($zone)->format('Ymd\THis'));
+            $lines[] = sprintf('DTEND;TZID=%s:%s', $zone->getName(), $event->getEndAt()->setTimezone($zone)->format('Ymd\THis'));
         } else {
             $lines[] = 'DTSTART:'.$this->stamp($event->getStartAt());
             $lines[] = 'DTEND:'.$this->stamp($event->getEndAt());
         }
+
+        $lines = [...$lines, ...$this->recurrence($event, $zone)];
 
         if (null !== $event->getDescription()) {
             $lines[] = 'DESCRIPTION:'.$this->escape($event->getDescription());
@@ -166,6 +192,143 @@ final readonly class IcalWriter
         $lines[] = 'END:VTODO';
 
         return $lines;
+    }
+
+    /**
+     * The rule of a series, and the dates it no longer produces.
+     *
+     * Without these a subscribed calendar showed a series as its first
+     * occurrence only. The dates left out are the occurrences somebody
+     * deleted and the ones somebody edited: an edited occurrence is a row of
+     * its own, written as its own event, and the series must not also draw it
+     * at its old time.
+     *
+     * @return list<string>
+     */
+    private function recurrence(PlanningEventInterface $event, DateTimeZone $zone): array
+    {
+        $rrule = $event->getRrule();
+        if (null === $rrule || '' === $rrule) {
+            return [];
+        }
+
+        $lines = ['RRULE:'.$rrule];
+
+        $skipped = $event->getExdates();
+        foreach ($event->getOccurrences() as $edited) {
+            $at = $edited->getOccurrenceAt();
+            if ($at instanceof DateTimeImmutable) {
+                $skipped[] = $at->format(DATE_ATOM);
+            }
+        }
+
+        if ([] === $skipped) {
+            return $lines;
+        }
+
+        $dates = [];
+        foreach (array_unique($skipped) as $at) {
+            $local = new DateTimeImmutable($at)->setTimezone($zone);
+            $dates[] = match (true) {
+                $event->isAllDay() => $local->format('Ymd'),
+                $this->isWrittenInItsZone($event) => $local->format('Ymd\THis'),
+                default => $this->stamp($local),
+            };
+        }
+
+        sort($dates);
+
+        $lines[] = match (true) {
+            $event->isAllDay() => 'EXDATE;VALUE=DATE:'.implode(',', $dates),
+            $this->isWrittenInItsZone($event) => sprintf('EXDATE;TZID=%s:%s', $zone->getName(), implode(',', $dates)),
+            default => 'EXDATE:'.implode(',', $dates),
+        };
+
+        return $lines;
+    }
+
+    /**
+     * A timed series, in a calendar whose zone is not UTC itself.
+     *
+     * Single events stay in UTC: an instant needs no zone, and a reader
+     * converts it. A series is a rule, and a rule needs the zone it repeats in.
+     */
+    private function isWrittenInItsZone(PlanningEventInterface $event): bool
+    {
+        return null !== $event->getRrule()
+            && '' !== $event->getRrule()
+            && !$event->isAllDay()
+            && 'UTC' !== PlanningClock::zone($event->getPlanning())->getName();
+    }
+
+    /**
+     * A zone as the format describes one: its changes of offset, spelled out.
+     *
+     * Some readers know the IANA names and ignore this, others need it to
+     * place a `TZID` at all. Written from PHP's own table of transitions, from
+     * the first series' year to ten years ahead, rather than as a rule of
+     * their own: the table already knows every past change of the rules, and
+     * a hand-written "last Sunday of March" would be wrong for the years it
+     * was not.
+     *
+     * @return list<string>
+     */
+    private function timezone(DateTimeZone $zone, int $firstYear): array
+    {
+        $from = new DateTimeImmutable(sprintf('%d-01-01 00:00:00', $firstYear), new DateTimeZone('UTC'));
+        $to = new DateTimeImmutable('first day of january next year', new DateTimeZone('UTC'))->modify('+10 years');
+        $transitions = $zone->getTransitions($from->getTimestamp(), $to->getTimestamp());
+
+        $lines = ['BEGIN:VTIMEZONE', 'TZID:'.$zone->getName()];
+
+        // The first entry is the state at the start of the range, not a change.
+        $offset = (int) ($transitions[0]['offset'] ?? $zone->getOffset($from));
+        $lines = [...$lines, ...$this->observance(
+            (bool) ($transitions[0]['isdst'] ?? false),
+            gmdate('Ymd\THis', $from->getTimestamp() + $offset),
+            $offset,
+            $offset,
+            (string) ($transitions[0]['abbr'] ?? ''),
+        )];
+
+        foreach (array_slice($transitions, 1) as $transition) {
+            $lines = [...$lines, ...$this->observance(
+                (bool) $transition['isdst'],
+                // The local time the change happens at, on the clock before it.
+                gmdate('Ymd\THis', (int) $transition['ts'] + $offset),
+                $offset,
+                (int) $transition['offset'],
+                (string) $transition['abbr'],
+            )];
+            $offset = (int) $transition['offset'];
+        }
+
+        $lines[] = 'END:VTIMEZONE';
+
+        return $lines;
+    }
+
+    /** @return list<string> */
+    private function observance(bool $daylight, string $start, int $from, int $to, string $name): array
+    {
+        $kind = $daylight ? 'DAYLIGHT' : 'STANDARD';
+
+        return [
+            'BEGIN:'.$kind,
+            'DTSTART:'.$start,
+            'TZOFFSETFROM:'.$this->offset($from),
+            'TZOFFSETTO:'.$this->offset($to),
+            ...('' === $name ? [] : ['TZNAME:'.$this->escape($name)]),
+            'END:'.$kind,
+        ];
+    }
+
+    private function offset(int $seconds): string
+    {
+        $sign = $seconds < 0 ? '-' : '+';
+        $seconds = abs($seconds);
+
+        return sprintf('%s%02d%02d', $sign, intdiv($seconds, 3600), intdiv($seconds % 3600, 60));
     }
 
     private function status(PlanningEventInterface $event): string
