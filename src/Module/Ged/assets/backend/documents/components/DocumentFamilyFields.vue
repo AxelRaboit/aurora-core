@@ -25,6 +25,10 @@ const props = defineProps({
     alternatesPath: { type: String, default: "" },
     showPath: { type: String, default: "" },
     error: { type: String, default: "" },
+    // The labels already in use across the library, offered as one-click
+    // suggestions: free text stays allowed, but "jaune" and "Jaune" are
+    // better not both invented.
+    labelSuggestions: { type: Array, default: () => [] },
 });
 
 const kept = defineModel("kept", { type: Boolean, default: false });
@@ -40,7 +44,10 @@ const { request } = useRequest();
 const alternates = ref([]);
 const loadingAlternates = ref(false);
 
-const isOriginal = computed(() => (props.doc?.alternateCount ?? 0) > 0);
+// An original even when all its alternates are in the trash: the server
+// counts them (`DocumentFamilyRule`), so offering "Variante de" here would
+// only lead to a refusal on save.
+const isOriginal = computed(() => (props.doc?.alternateCount ?? 0) > 0 || props.doc?.familyLocked === true);
 
 async function loadAlternates() {
     alternates.value = [];
@@ -138,6 +145,19 @@ function thumbnailOf(doc) {
                 :placeholder="t('backend.ged.documents.family.label_placeholder')"
                 maxlength="40"
             />
+            <div v-if="originalId && labelSuggestions.length" class="flex flex-wrap items-center gap-1">
+                <span class="text-xs text-muted">{{ t("backend.ged.documents.family.label_suggestions") }}</span>
+                <button
+                    v-for="suggestion in labelSuggestions"
+                    :key="suggestion"
+                    type="button"
+                    class="text-xs px-1.5 py-0.5 rounded border transition-colors"
+                    :class="label === suggestion ? 'border-violet-500 text-violet-600 dark:text-violet-400' : 'border-line text-secondary hover:text-primary'"
+                    v-on:click="label = suggestion"
+                >
+                    {{ suggestion }}
+                </button>
+            </div>
         </template>
     </div>
 </template>

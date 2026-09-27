@@ -1,4 +1,6 @@
 <script setup>
+import DocumentFamilyChips from "@ged/backend/documents/components/DocumentFamilyChips.vue";
+import { familyMembers } from "@ged/backend/documents/utils/familyLabels.js";
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { Check, FileText, Folder, Search, X } from "lucide-vue-next";
@@ -100,9 +102,13 @@ const visibleItems = computed(() => {
 async function load() {
     loading.value = true;
     try {
+        // Families folded, as in the library: each visual once, its
+        // alternates chosen from its card. A caller lifts it with
+        // `{ originalsOnly: "" }`.
         const params = new URLSearchParams({
             page: String(page.value),
             status: "published",
+            originalsOnly: "1",
         });
         for (const [key, value] of Object.entries(props.query)) {
             if ("" === value || null === value) params.delete(key);
@@ -251,6 +257,25 @@ function goToPage(p) {
     load();
 }
 
+// The member each family card offers, chosen with its chips.
+const previewed = ref({});
+
+function memberOf(doc) {
+    const id = previewed.value[doc.id];
+    if (!id || id === doc.id) return doc;
+
+    return doc.alternates?.find((member) => member.id === id) ?? doc;
+}
+
+function pickMember(doc, id) {
+    previewed.value = { ...previewed.value, [doc.id]: id };
+    pick(memberOf(doc));
+}
+
+function isFamilySelected(doc) {
+    return isSelected(doc) || (doc.alternates ?? []).some((member) => isSelected(member));
+}
+
 function pick(doc) {
     if (!props.multiple) {
         selected.value = doc;
@@ -390,19 +415,19 @@ function isSelected(doc) {
                             :key="doc.id"
                             :class="[
                                 'flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors',
-                                isSelected(doc)
+                                isFamilySelected(doc)
                                     ? 'border-accent bg-accent-500/10'
                                     : 'border-line bg-surface-2 hover:border-accent-500/40 hover:bg-surface-2/60',
                             ]"
-                            v-on:click="pick(doc)"
+                            v-on:click="pick(memberOf(doc))"
                         >
                             <!-- Un aperçu plutôt qu'une icône : choisir une image
                                  sur son seul nom de fichier obligeait à la
                                  retrouver ailleurs. La petite taille générée
                                  d'abord, plus légère que le fichier entier. -->
                             <AppThumbnail
-                                :src="doc.renditions?.thumbnail ?? doc.thumbnailUrl ?? null"
-                                :alt="doc.alt ?? doc.title ?? ''"
+                                :src="memberOf(doc).renditions?.thumbnail ?? memberOf(doc).thumbnailUrl ?? null"
+                                :alt="memberOf(doc).alt ?? memberOf(doc).title ?? ''"
                                 size="md"
                             >
                                 <span class="flex h-full w-full items-center justify-center">
@@ -422,13 +447,20 @@ function isSelected(doc) {
                                     </AppBadge>
                                 </div>
                                 <p v-if="doc.description" class="text-xs text-secondary line-clamp-1 mt-0.5">{{ doc.description }}</p>
+                                <DocumentFamilyChips
+                                    v-if="familyMembers(doc).length"
+                                    class="mt-1"
+                                    :model-value="previewed[doc.id] ?? doc.id"
+                                    :members="familyMembers(doc)"
+                                    v-on:update:model-value="(id) => pickMember(doc, id)"
+                                />
                                 <p class="text-xs text-muted mt-0.5">
                                     {{ doc.fileName }}
                                     <span v-if="doc.fileSize"> · {{ formatSize(doc.fileSize) }}</span>
                                     <span v-if="doc.fileMime"> · {{ doc.fileMime }}</span>
                                 </p>
                             </div>
-                            <Check v-if="isSelected(doc)" class="w-5 h-5 text-accent shrink-0" :stroke-width="2.5" />
+                            <Check v-if="isFamilySelected(doc)" class="w-5 h-5 text-accent shrink-0" :stroke-width="2.5" />
                         </li>
                     </ul>
                     <AppNoData v-else-if="!loading" :message="t('backend.ged.documents.picker_empty')" />

@@ -16,6 +16,10 @@ defineProps({
     doc: { type: Object, required: true },
 });
 
+// The family badges open the family: "3 variantes" on an original, and
+// "Variante · jaune" on an alternate, which leads to the same family.
+const emit = defineEmits(["open-family"]);
+
 const { t } = useI18n();
 </script>
 
@@ -30,13 +34,22 @@ const { t } = useI18n();
         :title="t('backend.ged.documents.kept_hint')"
         class="text-xs px-1.5 py-0.5 rounded border border-sky-500/40 text-sky-600 dark:text-sky-400"
     >{{ t("backend.ged.documents.kept_badge") }}</span>
-    <span
+    <button
         v-if="doc.alternateCount > 0"
-        class="text-xs px-1.5 py-0.5 rounded border border-violet-500/40 text-violet-600 dark:text-violet-400"
-    >{{ t("backend.ged.documents.alternates_badge", { count: doc.alternateCount }, doc.alternateCount) }}</span>
-    <span
+        type="button"
+        :title="t('backend.ged.documents.family.open')"
+        class="text-xs px-1.5 py-0.5 rounded border border-violet-500/40 text-violet-600 dark:text-violet-400 hover:bg-violet-500/10 transition-colors"
+        v-on:click.stop="emit('open-family', doc)"
+    >
+        {{ t("backend.ged.documents.alternates_badge", { count: doc.alternateCount }, doc.alternateCount) }}
+    </button>
+    <button
         v-if="doc.originalId"
+        type="button"
         :title="t('backend.ged.documents.alternate_of', { title: doc.originalTitle ?? '' })"
-        class="text-xs px-1.5 py-0.5 rounded border border-violet-500/40 text-violet-600 dark:text-violet-400"
-    >{{ doc.alternateLabel ? t("backend.ged.documents.alternate_badge_labelled", { label: doc.alternateLabel }) : t("backend.ged.documents.alternate_badge") }}</span>
+        class="text-xs px-1.5 py-0.5 rounded border border-violet-500/40 text-violet-600 dark:text-violet-400 hover:bg-violet-500/10 transition-colors"
+        v-on:click.stop="emit('open-family', doc)"
+    >
+        {{ doc.alternateLabel ? t("backend.ged.documents.alternate_badge_labelled", { label: doc.alternateLabel }) : t("backend.ged.documents.alternate_badge") }}
+    </button>
 </template>

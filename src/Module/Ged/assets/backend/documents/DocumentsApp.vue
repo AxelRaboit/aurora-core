@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useListPage } from "@/shared/composables/list/useListPage.js";
 import { useQrCode } from "@/shared/composables/overlay/useQrCode.js";
@@ -51,6 +51,9 @@ import DocumentTagChip from "@ged/backend/documents/components/DocumentTagChip.v
 import DocumentStorageChip from "@ged/backend/documents/components/DocumentStorageChip.vue";
 import DocumentStateBadges from "@ged/backend/documents/components/DocumentStateBadges.vue";
 import DocumentFamilyFields from "@ged/backend/documents/components/DocumentFamilyFields.vue";
+import DocumentFamilyChips from "@ged/backend/documents/components/DocumentFamilyChips.vue";
+import DocumentFamilyStrip from "@ged/backend/documents/components/DocumentFamilyStrip.vue";
+import { familyMembers } from "@ged/backend/documents/utils/familyLabels.js";
 import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
 
 const { t } = useI18n();
@@ -76,6 +79,8 @@ const props = defineProps({
     uploadPath: { type: String, required: true },
     cropPath: { type: String, default: "" },
     movePath: { type: String, default: "" },
+    /** The alternate labels already used in the library, offered as suggestions. */
+    alternateLabels: { type: Array, default: () => [] },
     bulkMovePath: { type: String, default: "" },
     storagePath: { type: String, default: "" },
     bulkStoragePath: { type: String, default: "" },
@@ -133,10 +138,14 @@ const {
 // Sidebar (folderId / rootOnly) drives the folder filter - strip the legacy
 // chip's folderId from the existing useDocumentFilters payload to avoid
 // double-writing the same query param.
+// The sort is asked of the server; its state is created with the display
+// below, once `items` exists, and plugged in here at request time.
+let sortExtraParams = () => ({});
+
 function combinedExtraParams() {
     const base = filterExtraParams();
     delete base.folderId;
-    return { ...base, ...navExtraParams() };
+    return { ...base, ...navExtraParams(), ...sortExtraParams() };
 }
 
 const { items, loading, page, totalPages, search: searchInput, onSearch, goToPage, reload: reset } = useListPage(
@@ -165,8 +174,47 @@ const {
     sortBy,
     sortDir,
     setSort,
+    sortParams,
     displayedItems,
 } = useDocumentsDisplay(items);
+sortExtraParams = sortParams;
+// A new order is a new listing, from its first page.
+watch([sortBy, sortDir], () => reset());
+
+// ── Families ─────────────────────────────────────────────────────────────────
+// Which member a family card shows, chosen with its chips. Kept by original
+// id for the page on screen; a reload shows the originals again.
+const previewedMember = ref({});
+
+function familyOf(doc) {
+    return familyMembers(doc);
+}
+
+function thumbnailShown(doc) {
+    const id = previewedMember.value[doc.id];
+    if (!id || id === doc.id) return doc.thumbnailUrl;
+
+    return doc.alternates?.find((member) => member.id === id)?.thumbnailUrl ?? doc.thumbnailUrl;
+}
+
+// "With its alternates" is the default answer when an original is deleted or
+// moved: a variant left behind is one nobody finds again.
+const deleteWithAlternates = ref(true);
+
+function submitDelete() {
+    doDelete(pendingDelete.value?.alternateCount > 0 && deleteWithAlternates.value ? { withAlternates: true } : null);
+}
+
+// Adding a variant from the family strip: the create form, already declared
+// as a variant of this original, with the label left to fill in.
+function startVariant(original) {
+    viewingDoc.value = null;
+    openCreate();
+    newDoc.value.originalId = original.id;
+    newDoc.value.originalTitle = original.title;
+    newDoc.value.folderId = original.folderId ?? null;
+    newDoc.value.kept = true;
+}
 
 const { currentFolder, breadcrumbs, folderEditOptions } = useDocumentSidebarTree(folders, currentFolderId);
 
@@ -220,7 +268,7 @@ const documentActions = useDocumentRowActions({
     relocationAvailable: props.storageRelocationAvailable,
 });
 
-const { doBulkDelete, bulkMoveTargetId, openBulkMove, bulkMove, bulkRelocate, bulkRelocating } = useDocumentBulkActions(
+const { doBulkDelete, bulkMoveTargetId, openBulkMove, bulkMove, bulkMoveWithAlternates, bulkRelocate, bulkRelocating } = useDocumentBulkActions(
     props, items, selectedIds, isSelecting, clearSelection, currentFolderId, reset,
 );
 
@@ -278,6 +326,10 @@ const bulkActions = computed(() => {
 });
 
 const { cropTarget, onCropped } = useDocumentCrop(viewingDoc, reset);
+
+// Whether the selection holds an original with alternates: only then is
+// "with its alternates" a question worth asking.
+const selectedHaveAlternates = computed(() => items.value.some((doc) => selectedIds.value.has(doc.id) && doc.alternateCount > 0));
 
 const {
     pendingDisk: relocateAllDisk,
@@ -513,6 +565,8 @@ const pageActions = computed(() => {
                             class="group relative bg-surface border rounded-lg overflow-hidden transition-colors cursor-pointer"
                             :class="[
                                 selectedIds.has(doc.id) ? 'border-accent-400 ring-2 ring-accent-500' : 'border-line hover:border-accent-400',
+                                // A family reads as a stack: two edges behind the card.
+                                doc.alternates?.length ? 'shadow-[3px_-3px_0_-1px_var(--color-surface-3),6px_-6px_0_-2px_var(--color-surface-2)] mt-1.5 mr-1.5' : '',
                             ]"
                             draggable="true"
                             v-on:click="isSelecting ? toggleSelect(doc.id) : viewDoc(doc)"
@@ -523,8 +577,9 @@ const pageActions = computed(() => {
                             </div>
                             <div class="relative aspect-square bg-surface-2 flex items-center justify-center overflow-hidden">
                                 <AppImage
-                                    v-if="doc.thumbnailUrl"
-                                    :src="doc.thumbnailUrl"
+                                    v-if="thumbnailShown(doc)"
+                                    :key="thumbnailShown(doc)"
+                                    :src="thumbnailShown(doc)"
                                     :alt="doc.fileName ?? doc.title"
                                     object-fit="cover"
                                 />
@@ -584,8 +639,13 @@ const pageActions = computed(() => {
                                 <div v-if="doc.folderName" class="text-xs text-accent-400/80 truncate flex items-center gap-1">
                                     <Folder class="w-2.5 h-2.5 shrink-0" :stroke-width="2" />{{ doc.folderName }}
                                 </div>
+                                <DocumentFamilyChips
+                                    v-if="familyOf(doc).length"
+                                    v-model="previewedMember[doc.id]"
+                                    :members="familyOf(doc)"
+                                />
                                 <div v-if="doc.tags?.length || storageRelocationAvailable || 0 === doc.usageCount || doc.kept || doc.alternateCount || doc.originalId" class="flex flex-wrap items-center gap-1 pt-0.5">
-                                    <DocumentStateBadges :doc="doc" />
+                                    <DocumentStateBadges :doc="doc" v-on:open-family="viewDoc" />
                                     <DocumentStorageChip
                                         v-if="storageRelocationAvailable"
                                         :disk="doc.storageDisk"
@@ -651,7 +711,12 @@ const pageActions = computed(() => {
                                                  utilisés ne portent donc aucune marque, et l'oeil
                                                  tombe sur les autres. Le détail de qui l'utilise
                                                  s'ouvre avec le document. -->
-                                            <DocumentStateBadges :doc="doc" />
+                                            <DocumentStateBadges :doc="doc" v-on:open-family="viewDoc" />
+                                            <DocumentFamilyChips
+                                                v-if="familyOf(doc).length"
+                                                v-model="previewedMember[doc.id]"
+                                                :members="familyOf(doc)"
+                                            />
                                         </div>
                                     </td>
                                     <td class="px-4 py-2 text-secondary hidden md:table-cell">{{ doc.categoryName ?? t("backend.ged.documents.no_category") }}</td>
@@ -793,6 +858,18 @@ const pageActions = computed(() => {
                     </AppFileInput>
                     <span v-if="newDoc.originalName ?? newDoc.fileName" class="text-sm text-muted flex items-center gap-1"><FileText class="w-4 h-4" :stroke-width="2" /> {{ newDoc.originalName ?? newDoc.fileName }}</span>
                 </div>
+                <!-- A new document can be born a variant, from the family strip
+                     or by choosing its original here. -->
+                <DocumentFamilyFields
+                    v-model:kept="newDoc.kept"
+                    v-model:original-id="newDoc.originalId"
+                    v-model:original-title="newDoc.originalTitle"
+                    v-model:label="newDoc.alternateLabel"
+                    :alternates-path="alternatesPath"
+                    :show-path="showPath"
+                    :error="createErrors.originalId"
+                    :label-suggestions="alternateLabels"
+                />
             </div>
             <template #footer>
                 <AppModalFooter>
@@ -893,6 +970,7 @@ const pageActions = computed(() => {
                         :alternates-path="alternatesPath"
                         :show-path="showPath"
                         :error="editErrors.originalId"
+                        :label-suggestions="alternateLabels"
                         v-on:open="openEdit"
                     />
                 </div>
@@ -916,10 +994,16 @@ const pageActions = computed(() => {
         >
             <p class="text-sm text-primary">{{ t("backend.ged.documents.delete_confirm", { title: pendingDelete?.title ?? "" }) }}</p>
             <p class="text-sm text-secondary">{{ t("backend.ged.documents.delete_warning") }}</p>
+            <AppCheckbox
+                v-if="pendingDelete?.alternateCount > 0"
+                v-model="deleteWithAlternates"
+                class="pt-2"
+                :label="t('backend.ged.documents.family.with_alternates', { count: pendingDelete.alternateCount }, pendingDelete.alternateCount)"
+            />
             <template #footer>
                 <AppModalFooter>
                     <AppButton variant="ghost" size="md" v-on:click="pendingDelete = null"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
-                    <AppButton variant="danger" size="md" :loading="deleteLoading" v-on:click="doDelete"><Trash2 class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.delete") }}</AppButton>
+                    <AppButton variant="danger" size="md" :loading="deleteLoading" v-on:click="submitDelete"><Trash2 class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.delete") }}</AppButton>
                 </AppModalFooter>
             </template>
         </AppModal>
@@ -963,6 +1047,12 @@ const pageActions = computed(() => {
                 :allow-empty="true"
                 track-by="id"
                 option-label="displayLabel"
+            />
+            <AppCheckbox
+                v-if="selectedHaveAlternates"
+                v-model="bulkMoveWithAlternates"
+                class="pt-3"
+                :label="t('backend.ged.documents.family.move_with_alternates')"
             />
             <template #footer>
                 <AppModalFooter>
@@ -1139,6 +1229,14 @@ const pageActions = computed(() => {
                         </div>
                     </div>
                 </div>
+                <DocumentFamilyStrip
+                    class="mt-5 border-t border-line/40 pt-4"
+                    :doc="viewingDoc"
+                    :alternates-path="alternatesPath"
+                    :can-add="can('ged.documents.create')"
+                    v-on:open="viewDoc"
+                    v-on:add="startVariant"
+                />
             </template>
             <template #footer>
                 <AppModalFooter>

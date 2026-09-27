@@ -343,7 +343,12 @@ describe("dragging a folder onto another", () => {
 
         const call = posted().at(-1);
         expect(call.url).toBe("/backend/ged/documents/bulk-move");
-        expect(JSON.parse(call.body)).toEqual({ ids: [42], folderId: 3 });
+        // A dragged original takes its alternates along.
+        expect(JSON.parse(call.body)).toEqual({
+            ids: [42],
+            folderId: 3,
+            withAlternates: true,
+        });
     });
 });
 
