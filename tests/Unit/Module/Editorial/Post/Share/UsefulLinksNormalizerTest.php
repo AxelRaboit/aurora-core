@@ -16,10 +16,12 @@ use function str_repeat;
 
 final class UsefulLinksNormalizerTest extends TestCase
 {
-    public function testNothingSentIsNoLinks(): void
+    /** Not a list means not the page's own: it follows the site's. */
+    public function testNothingSentFollowsTheSite(): void
     {
-        self::assertSame([], new UsefulLinksNormalizer()->normalize(null));
-        self::assertSame([], new UsefulLinksNormalizer()->normalize('https://example.com'));
+        self::assertNull(new UsefulLinksNormalizer()->normalize(null));
+        self::assertNull(new UsefulLinksNormalizer()->normalize('https://example.com'));
+        self::assertSame([], new UsefulLinksNormalizer()->normalize([]));
     }
 
     public function testAGoodLinkKeepsItsWordsAddressAndColour(): void
@@ -48,6 +50,7 @@ final class UsefulLinksNormalizerTest extends TestCase
     {
         $links = new UsefulLinksNormalizer()->normalize(array_fill(0, 20, ['label' => str_repeat('a', 80), 'url' => 'https://example.com']));
 
+        self::assertIsArray($links);
         self::assertCount(UsefulLinksNormalizer::MAX_LINKS, $links);
         self::assertSame(60, mb_strlen($links[0]['label']));
     }

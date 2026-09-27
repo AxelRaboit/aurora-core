@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Tests\Unit\Module\Configuration\Setting;
 
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnumInterface;
+use Aurora\Module\Configuration\Setting\Provider\ApplicationParameterProviderInterface;
 use Aurora\Module\Configuration\Setting\Provider\OwnedSettingProviderInterface;
 use BackedEnum;
 use FilesystemIterator;
@@ -72,6 +73,51 @@ final class OwnedSettingCoverageTest extends TestCase
             "These settings rows are written by a tab and claimed by no provider, so the\n"
             ."deploy-time sync deletes them at the next release. Add an\n"
             ."OwnedSettingProviderInterface next to the enum:\n  ".implode("\n  ", $orphans),
+        );
+    }
+
+    /**
+     * The other half of the rule, which the test above took on trust.
+     *
+     * An enum drawn by the settings screen is only safe if a parameter
+     * provider yields it. Three did not - the editorial, document library and
+     * markdown note ones - so every value saved for them was deleted by the
+     * next deploy, and nothing here noticed because the first test skips them
+     * on the assumption that somebody declared them. Found on 27/09/2026.
+     */
+    public function testEverySettingsScreenEnumIsDeclaredByAParameterProvider(): void
+    {
+        $declared = [];
+
+        foreach ($this->classesImplementing(ApplicationParameterProviderInterface::class) as $class) {
+            /** @var ApplicationParameterProviderInterface $provider */
+            $provider = new $class();
+
+            foreach ($provider->getParameters() as $parameter) {
+                $declared[$parameter->getKey()] = $class;
+            }
+        }
+
+        $undeclared = [];
+
+        foreach ($this->settingEnums() as $enum) {
+            if (!is_a($enum, ApplicationParameterEnumInterface::class, true)) {
+                continue;
+            }
+
+            foreach ($enum::cases() as $case) {
+                if (!isset($declared[$case->getKey()])) {
+                    $undeclared[] = sprintf('%s::%s → "%s"', $enum, $case->name, $case->getKey());
+                }
+            }
+        }
+
+        self::assertSame(
+            [],
+            $undeclared,
+            "These settings are drawn by the settings screen and declared by no parameter\n"
+            ."provider, so the deploy-time sync deletes whatever was saved for them. Add an\n"
+            ."ApplicationParameterProviderInterface next to the enum:\n  ".implode("\n  ", $undeclared),
         );
     }
 
