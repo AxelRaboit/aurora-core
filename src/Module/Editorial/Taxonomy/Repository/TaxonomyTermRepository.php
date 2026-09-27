@@ -64,6 +64,24 @@ class TaxonomyTermRepository extends ResolveTargetEntityRepository
             ->getResult();
     }
 
+    /**
+     * The same list with the translations, for a page that prints every name.
+     *
+     * @return list<TaxonomyTermInterface>
+     */
+    public function findByTaxonomyOrderedForDisplay(TaxonomyInterface $taxonomy): array
+    {
+        return $this->createQueryBuilder('t')
+            ->leftJoin('t.translations', 'tt')
+            ->addSelect('tt')
+            ->where('t.taxonomy = :taxonomy')
+            ->setParameter('taxonomy', $taxonomy)
+            ->orderBy('t.position', Order::Ascending->value)
+            ->addOrderBy('t.id', Order::Ascending->value)
+            ->getQuery()
+            ->getResult();
+    }
+
     /** @return list<TaxonomyTermInterface> */
     public function findByTaxonomyOrdered(TaxonomyInterface $taxonomy): array
     {

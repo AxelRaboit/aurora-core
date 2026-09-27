@@ -29,11 +29,17 @@ class SpaceFileRepository extends ResolveTargetEntityRepository
      * under one tab and a reader switching between them should not have to
      * re-learn which way time runs.
      *
+     * The document comes along: every row shows its title, name, type and
+     * size, and a lazy document is a query per file on a page the client
+     * reloads after each upload.
+     *
      * @return list<SpaceFileInterface>
      */
     public function findForSpace(CustomerSpaceInterface $space): array
     {
         return $this->createQueryBuilder('f')
+            ->join('f.document', 'd')
+            ->addSelect('d')
             ->where('f.space = :space')
             ->setParameter('space', $space)
             ->orderBy('f.createdAt', Order::Descending->value)

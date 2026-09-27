@@ -62,7 +62,7 @@ final readonly class ZoneSiteViews
             return null;
         }
 
-        $form = $this->formRepository->find($formId);
+        $form = $this->formRepository->findForReader($formId);
         if (!$form instanceof FormInterface || !$form->isActive()) {
             return null;
         }
@@ -234,7 +234,7 @@ final readonly class ZoneSiteViews
         }
 
         $entries = [];
-        foreach ($this->taxonomyTermRepository->findByTaxonomyOrdered($taxonomy) as $term) {
+        foreach ($this->taxonomyTermRepository->findByTaxonomyOrderedForDisplay($taxonomy) as $term) {
             $translation = $term->getTranslation($locale);
             if (!$translation instanceof TaxonomyTermTranslationInterface) {
                 continue;

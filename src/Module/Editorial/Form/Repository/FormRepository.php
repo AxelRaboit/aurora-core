@@ -21,6 +21,24 @@ class FormRepository extends ResolveTargetEntityRepository
     }
 
     /**
+     * One form with everything a reader sees: its translations, its fields
+     * and theirs. The same load as the form's own page, for a form drawn
+     * inside another page.
+     */
+    public function findForReader(int $id): ?FormInterface
+    {
+        return $this->createQueryBuilder('f')
+            ->leftJoin('f.translations', 't')
+            ->leftJoin('f.fields', 'field')
+            ->leftJoin('field.translations', 'ft')
+            ->addSelect('t', 'field', 'ft')
+            ->where('f.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    /**
      * The builder's list, with everything it draws.
      *
      * @return list<FormInterface>
