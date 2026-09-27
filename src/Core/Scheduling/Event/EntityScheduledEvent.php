@@ -67,6 +67,26 @@ class EntityScheduledEvent
          * about work for five different companies.
          */
         private readonly ?int $colourSlot = null,
+        /**
+         * What the calendar entry says beyond its title - who booked, how to
+         * reach them. Null for a date that is its own explanation.
+         */
+        private readonly ?string $description = null,
+        /**
+         * The entry arrives awaiting confirmation rather than confirmed: a
+         * request somebody made, which the calendar's owner accepts or not.
+         */
+        private readonly bool $tentative = false,
+        /**
+         * The calendar may edit, confirm, cancel or delete the entry.
+         *
+         * Off by default, and off for every date that mirrors a record the
+         * module keeps - a publication's date belongs to the publication, and
+         * the next announcement would overwrite an edit anyway. On for a
+         * request the calendar itself answers: a visitor's booking is decided
+         * in the calendar, and nothing re-announces it.
+         */
+        private readonly bool $editable = false,
     ) {}
 
     public function getSourceType(): string
@@ -112,5 +132,20 @@ class EntityScheduledEvent
     public function getUrl(): ?string
     {
         return $this->url;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function isTentative(): bool
+    {
+        return $this->tentative;
+    }
+
+    public function isEditable(): bool
+    {
+        return $this->editable;
     }
 }

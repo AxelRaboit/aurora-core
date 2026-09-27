@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Integration\Module\Editorial\Booking;
 
+use Aurora\Module\Editorial\Booking\Service\BookingSlotFinder;
 use Aurora\Module\Editorial\Post\Entity\Post;
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
 use Aurora\Module\Editorial\PostType\Entity\PostType;
+use Aurora\Module\Planning\Event\Entity\PlanningEventInterface;
+use Aurora\Module\Planning\Event\Enum\PlanningEventStatusEnum;
 use Aurora\Module\Planning\Event\Repository\PlanningEventRepository;
 use Aurora\Tests\Integration\Concern\ResetsRateLimiters;
 use Aurora\Tests\Integration\IntegrationTestCase;
@@ -52,6 +55,40 @@ final class BookingControllerTest extends IntegrationTestCase
         self::assertCount(1, array_filter($events, static fn ($e) => 'Camille Laurent' === $e->getTitle()));
     }
 
+    /**
+     * Each booking is a source of its own. They used to share the page's id,
+     * and the calendar's unique source index refused the second booking on
+     * the same page with a server error.
+     */
+    public function testTwoBookingsOnOnePageBothLand(): void
+    {
+        $postId = $this->page();
+
+        self::assertTrue($this->book($postId, $this->tomorrowAt('14:00'), 'Camille', 'camille@example.com')['success'] ?? false);
+        self::assertTrue($this->book($postId, $this->tomorrowAt('15:00'), 'Dominique', 'dominique@example.com')['success'] ?? false);
+
+        $titles = array_map(static fn ($event): string => $event->getTitle(), $this->bookingsOnTheCalendar());
+        self::assertContains('Camille', $titles);
+        self::assertContains('Dominique', $titles);
+    }
+
+    /**
+     * On the calendar at the instant the visitor chose, awaiting
+     * confirmation, and the calendar's to confirm or cancel.
+     */
+    public function testABookingLandsAtItsInstantAndStaysTheCalendarsToAnswer(): void
+    {
+        $at = $this->tomorrowAt('16:00');
+        self::assertTrue($this->book($this->page(), $at, 'Sacha', 'sacha@example.com')['success'] ?? false);
+
+        $events = array_values(array_filter($this->bookingsOnTheCalendar(), static fn ($event): bool => 'Sacha' === $event->getTitle()));
+        self::assertCount(1, $events);
+        self::assertSame(new DateTimeImmutable($at)->getTimestamp(), $events[0]->getStartAt()->getTimestamp(), 'the Paris 16:00 the visitor chose, not 16:00 UTC');
+        self::assertSame(PlanningEventStatusEnum::Tentative, $events[0]->getStatus());
+        self::assertFalse($events[0]->isReadOnly());
+        self::assertStringContainsString('sacha@example.com', (string) $events[0]->getDescription());
+    }
+
     public function testAnInvalidEmailIsRefused(): void
     {
         self::assertSame('frontend.editorial.grid.booking.invalid', $this->book($this->page(), $this->tomorrowAt('11:00'), 'X', 'not-an-email')['error'] ?? null);
@@ -76,6 +113,14 @@ final class BookingControllerTest extends IntegrationTestCase
         $this->client->request('POST', sprintf('/fr/booking/%d/b1', $this->page()), server: ['CONTENT_TYPE' => 'text/plain'], content: json_encode(['at' => $this->tomorrowAt('10:00'), 'name' => 'X', 'email' => 'x@example.com'], JSON_THROW_ON_ERROR));
 
         self::assertSame(404, $this->client->getResponse()->getStatusCode());
+    }
+
+    /** @return list<PlanningEventInterface> */
+    private function bookingsOnTheCalendar(): array
+    {
+        $this->entityManager->clear();
+
+        return static::getContainer()->get(PlanningEventRepository::class)->findBy(['sourceType' => BookingSlotFinder::SOURCE]);
     }
 
     private function tomorrowAt(string $clock): string

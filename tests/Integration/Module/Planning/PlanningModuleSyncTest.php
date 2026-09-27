@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Integration\Module\Planning;
 
+use Aurora\Core\Scheduling\Availability\ScheduleAvailabilityInterface;
 use Aurora\Core\Scheduling\Event\EntityScheduledEvent;
 use Aurora\Core\Scheduling\Event\EntityUnscheduledEvent;
 use Aurora\Module\Planning\Event\Entity\PlanningEvent;
+use Aurora\Module\Planning\Event\Enum\PlanningEventStatusEnum;
 use Aurora\Module\Planning\Event\Repository\PlanningEventRepository;
 use Aurora\Module\Planning\Planning\Entity\Planning;
 use Aurora\Module\Planning\Planning\Enum\PlanningVisibilityEnum;
@@ -155,8 +157,68 @@ final class PlanningModuleSyncTest extends IntegrationTestCase
         $entry = $this->events->findBySource(self::SOURCE, 42);
         self::assertInstanceOf(PlanningEvent::class, $entry);
         self::assertTrue($entry->isFromModule());
+        self::assertTrue($entry->isReadOnly());
         self::assertSame('Tests', $entry->getSourceLabel());
         self::assertSame('/quelque-part/42', $entry->getSourceUrl());
+    }
+
+    /**
+     * A request the calendar answers: it arrives awaiting confirmation,
+     * carries its notes, and stays the calendar's to edit - and what the
+     * owner decides is not undone if the module speaks again.
+     */
+    public function testAHandedOverEntryArrivesTentativeAndStaysEditable(): void
+    {
+        $this->dispatcher->dispatch($this->handedOver());
+
+        $entry = $this->events->findBySource(self::SOURCE, 42);
+        self::assertInstanceOf(PlanningEvent::class, $entry);
+        self::assertTrue($entry->isFromModule());
+        self::assertFalse($entry->isReadOnly());
+        self::assertSame(PlanningEventStatusEnum::Tentative, $entry->getStatus());
+        self::assertSame("camille@example.com\n06 00 00 00 00", $entry->getDescription());
+
+        $entry->setStatus(PlanningEventStatusEnum::Confirmed)->setDescription('Rappelée');
+        $this->entityManager->flush();
+        $this->dispatcher->dispatch($this->handedOver());
+
+        self::assertSame(PlanningEventStatusEnum::Confirmed, $entry->getStatus());
+        self::assertSame('Rappelée', $entry->getDescription());
+    }
+
+    /**
+     * What a module offering slots is told is taken: its own entries and
+     * whatever the owner typed into that calendar, a cancelled one excepted.
+     */
+    public function testTheCalendarSaysWhatIsTakenOnAModuleCalendar(): void
+    {
+        $availability = static::getContainer()->get(ScheduleAvailabilityInterface::class);
+        $day = new DateTimeImmutable('2026-09-14 00:00');
+        $span = static fn (array $busy): array => array_map(static fn (array $period): string => $period[0]->format('H:i').'-'.$period[1]->format('H:i'), $busy);
+
+        self::assertTrue($availability->isEnabled());
+        self::assertSame([], $availability->busyPeriods(self::SOURCE, $day, $day->modify('+1 day')), 'no calendar yet, nothing taken');
+
+        $this->dispatcher->dispatch($this->handedOver());
+        $entry = $this->events->findBySource(self::SOURCE, 42);
+        self::assertInstanceOf(PlanningEvent::class, $entry);
+
+        $blocked = new PlanningEvent();
+        $blocked->setPlanning($entry->getPlanning())->setTitle('Dentiste')->setSpan(new DateTimeImmutable('2026-09-14 14:00'), new DateTimeImmutable('2026-09-14 15:00'));
+        $this->entityManager->persist($blocked);
+        $this->entityManager->flush();
+
+        try {
+            self::assertSame(['09:00-10:00', '14:00-15:00'], $span($availability->busyPeriods(self::SOURCE, $day, $day->modify('+1 day'))));
+
+            $entry->setStatus(PlanningEventStatusEnum::Cancelled);
+            $this->entityManager->flush();
+
+            self::assertSame(['14:00-15:00'], $span($availability->busyPeriods(self::SOURCE, $day, $day->modify('+1 day'))), 'a cancelled booking frees its slot');
+        } finally {
+            $this->entityManager->remove($blocked);
+            $this->entityManager->flush();
+        }
     }
 
     /**
@@ -178,6 +240,21 @@ final class PlanningModuleSyncTest extends IntegrationTestCase
         $calendar = $this->plannings->findOneBy(['sourceType' => self::SOURCE]);
         self::assertInstanceOf(Planning::class, $calendar);
         self::assertSame('Choses testées', $calendar->getName());
+    }
+
+    private function handedOver(): EntityScheduledEvent
+    {
+        return new EntityScheduledEvent(
+            sourceType: self::SOURCE,
+            sourceId: 42,
+            label: 'Camille',
+            startAt: new DateTimeImmutable('2026-09-14 09:00'),
+            endAt: new DateTimeImmutable('2026-09-14 10:00'),
+            calendarName: 'Choses',
+            description: "camille@example.com\n06 00 00 00 00",
+            tentative: true,
+            editable: true,
+        );
     }
 
     private function scheduled(string $label, string $startAt): EntityScheduledEvent

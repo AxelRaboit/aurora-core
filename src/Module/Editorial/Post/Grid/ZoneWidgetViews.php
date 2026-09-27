@@ -628,8 +628,9 @@ final readonly class ZoneWidgetViews
      * The days and slots a visitor may book, and where an answer goes.
      *
      * `null` outside a real page (no post id, the preview an author is
-     * editing) rather than a booking form nobody can submit - there is
-     * nothing wrong to say, there is simply no calendar to check yet.
+     * editing) or with the calendar switched off, rather than a booking
+     * form nobody can submit - there is nothing wrong to say, there is
+     * simply no calendar to check.
      *
      * @param array<string, mixed> $zone
      * @param array<string, mixed> $options
@@ -639,12 +640,11 @@ final readonly class ZoneWidgetViews
      */
     private function appointmentBooking(array $zone, array $options, array $held, string $locale, ?int $postId): ?array
     {
-        if (in_array(null, [$this->bookingSlots, $postId, $this->urlGenerator], true)) {
+        if (in_array(null, [$this->bookingSlots, $postId, $this->urlGenerator], true) || !$this->bookingSlots->isEnabled()) {
             return null;
         }
 
-        $planning = $this->bookingSlots->calendar();
-        $days = $this->bookingSlots->days($options, $planning, $locale);
+        $days = $this->bookingSlots->days($options, $locale);
 
         return [
             'title' => $held['label'],

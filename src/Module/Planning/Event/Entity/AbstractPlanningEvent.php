@@ -91,6 +91,17 @@ abstract class AbstractPlanningEvent implements PlanningEventInterface
     protected ?string $sourceUrl = null;
 
     /**
+     * Whether the calendar may still edit an event a module announced.
+     *
+     * False for a date that mirrors a record the module keeps - the next
+     * announcement would overwrite the edit. True for a request the calendar
+     * answers itself, a visitor's booking: nothing re-announces it, and
+     * confirming or cancelling it here is the whole point.
+     */
+    #[ORM\Column(options: ['default' => false])]
+    protected bool $sourceEditable = false;
+
+    /**
      * The recurrence rule as RFC 5545 writes it, or null for a single event.
      *
      * Stored as the standard's own string rather than parsed into columns, so it
@@ -377,13 +388,6 @@ abstract class AbstractPlanningEvent implements PlanningEventInterface
         return $this;
     }
 
-    /**
-     * Whether another module owns this event.
-     *
-     * What the screens ask, so none of them reads the provenance columns: an
-     * event from a module has no Edit and no Delete, because it reflects a date
-     * that lives somewhere else and the only useful gesture is to go there.
-     */
     public function getSourceUrl(): ?string
     {
         return $this->sourceUrl;
@@ -551,8 +555,34 @@ abstract class AbstractPlanningEvent implements PlanningEventInterface
         return $this->colourSlot ?? $this->getPlanning()->getColourSlot();
     }
 
+    /** Whether another module announced this event. */
     public function isFromModule(): bool
     {
         return null !== $this->sourceType && null !== $this->sourceId;
+    }
+
+    public function isSourceEditable(): bool
+    {
+        return $this->sourceEditable;
+    }
+
+    public function setSourceEditable(bool $sourceEditable): static
+    {
+        $this->sourceEditable = $sourceEditable;
+
+        return $this;
+    }
+
+    /**
+     * Whether the calendar must leave this event alone.
+     *
+     * What the screens ask, so none of them reads the provenance columns: an
+     * event a module owns has no Edit and no Delete, because it reflects a
+     * date that lives somewhere else and the only useful gesture is to go
+     * there - unless the module handed it over to the calendar.
+     */
+    public function isReadOnly(): bool
+    {
+        return $this->isFromModule() && !$this->sourceEditable;
     }
 }

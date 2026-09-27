@@ -306,7 +306,7 @@ final class PlanningController extends AbstractController
         // Answered before validating the payload: an event a module owns is not
         // editable whatever the body says, and reporting field errors on a form
         // that cannot be submitted anyway is a worse answer than the truth.
-        if ($event->isFromModule()) {
+        if ($event->isReadOnly()) {
             return $this->jsonInvalidInput(['event' => 'backend.plannings.events.errors.read_only']);
         }
 
@@ -379,7 +379,7 @@ final class PlanningController extends AbstractController
     #[IsGranted('planning.events.edit')]
     public function moveEvent(PlanningEvent $event, Request $request): JsonResponse
     {
-        if ($event->isFromModule()) {
+        if ($event->isReadOnly()) {
             return $this->jsonInvalidInput(['event' => 'backend.plannings.events.errors.read_only']);
         }
 
@@ -419,7 +419,7 @@ final class PlanningController extends AbstractController
     #[IsGranted('planning.events.delete')]
     public function deleteEvent(PlanningEvent $event, Request $request): JsonResponse
     {
-        if ($event->isFromModule()) {
+        if ($event->isReadOnly()) {
             return $this->jsonInvalidInput(['event' => 'backend.plannings.events.errors.read_only']);
         }
 

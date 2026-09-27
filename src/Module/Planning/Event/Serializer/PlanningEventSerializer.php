@@ -11,8 +11,8 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 /**
  * An event, as a grid draws it.
  *
- * Carries `readOnly` rather than leaving each screen to work out that an event
- * owned by a module cannot be edited. One computed flag beats the same
+ * Carries `readOnly` rather than leaving each screen to work out whether an
+ * event a module announced may be edited. One computed flag beats the same
  * `sourceType !== null` written in a month cell, a popover and a form - and it
  * is the flag the manager enforces, so the screen and the write agree by
  * construction.
@@ -78,7 +78,10 @@ final readonly class PlanningEventSerializer
             // to a series without having to look the series up.
             'masterId' => $event->getMaster()?->getId(),
             'attendees' => $this->attendees($event),
-            'readOnly' => $event->isFromModule(),
+            // Two flags, because they no longer go together: a booking comes
+            // from a module and is still the calendar's to confirm or cancel.
+            'fromModule' => $event->isFromModule(),
+            'readOnly' => $event->isReadOnly(),
         ];
     }
 
