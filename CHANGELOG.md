@@ -5,6 +5,21 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.267] - 2026-09-27
+
+### Corrigé
+
+- **Deux visiteurs ne peuvent plus réserver le même créneau au même instant.**
+  La prise de rendez-vous vérifiait que le créneau était libre, puis écrivait :
+  deux demandes arrivées dans la même seconde passaient toutes les deux la
+  vérification. La vérification et l'écriture se font maintenant sous un
+  verrou du calendrier des réservations ; la seconde demande attend la
+  première, puis apprend que le créneau vient d'être pris.
+
+### Dans aurora-client
+
+Rien à faire après `make aurora-update`.
+
 ## [0.9.266] - 2026-09-27
 
 Corrections issues d'une revue de qualité des fonctionnalités livrées du 23 au
