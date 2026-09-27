@@ -23,14 +23,13 @@ use Aurora\Module\Editorial\PostType\Repository\PostTypeRepository;
 use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyInterface;
 use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyTermInterface;
 use Aurora\Module\Editorial\Taxonomy\Repository\TaxonomyRepository;
+use Aurora\Module\Editorial\Taxonomy\Repository\TaxonomyTermRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-
-use function array_map;
 
 /**
  * The public pages.
@@ -49,6 +48,7 @@ class PageController extends AbstractController
         private readonly PostTypeRepository $postTypeRepository,
         private readonly PostSlugHistoryRepository $slugHistoryRepository,
         private readonly TaxonomyRepository $taxonomyRepository,
+        private readonly TaxonomyTermRepository $taxonomyTermRepository,
         private readonly Context $context,
         private readonly ThemeResolver $themeResolver,
         private readonly HttpCacheService $httpCache,
@@ -145,8 +145,11 @@ class PageController extends AbstractController
         // page. Letting a publication of some unrelated type answer it on the
         // strength of a shared slug sent the reader off on a **permanent**
         // redirect to a page they never asked for, and browsers cache that.
-        if (!$post instanceof PostInterface && $this->termPageExists($postTypeSlug, $slug, $locale)) {
-            return $this->term($locale, $postTypeSlug, $slug, $request);
+        if (!$post instanceof PostInterface) {
+            $found = $this->resolveTerm($postTypeSlug, $slug, $locale);
+            if (null !== $found) {
+                return $this->renderTerm($locale, $found[0], $found[1], $request);
+            }
         }
 
         $post ??= $this->postRepository->findPublishedBySlug($slug, $locale);
@@ -157,10 +160,9 @@ class PageController extends AbstractController
                 return $redirect;
             }
 
-            // Neither a publication nor a term: `term()` answers the 404, so
-            // that an address which names a taxonomy but no term of it fails
-            // the same way whichever branch got there.
-            return $this->term($locale, $postTypeSlug, $slug, $request);
+            // Neither a publication nor a term - the term was asked above -
+            // so the same 404 the term route gives, whichever branch got here.
+            throw $this->createNotFoundException();
         }
 
         // The type is part of the URL but not of the identity: a post moved
@@ -192,23 +194,23 @@ class PageController extends AbstractController
         $this->assertActiveLocale($locale);
         $request->setLocale($locale);
 
-        $taxonomy = $this->taxonomyRepository->findOneBySlug($taxonomySlug);
-        if (!$taxonomy instanceof TaxonomyInterface) {
+        $found = $this->resolveTerm($taxonomySlug, $termSlug, $locale);
+        if (null === $found) {
             throw $this->createNotFoundException();
         }
 
-        $term = $this->findTermBySlug($taxonomy, $termSlug, $locale);
-        if (!$term instanceof TaxonomyTermInterface) {
-            throw $this->createNotFoundException();
-        }
+        return $this->renderTerm($locale, $found[0], $found[1], $request);
+    }
 
+    private function renderTerm(string $locale, TaxonomyInterface $taxonomy, TaxonomyTermInterface $term, Request $request): Response
+    {
         // The term and everything under it. A publication is filed under a
         // leaf, so a section that only holds sub-sections holds none of its
         // own: `/fr/section/le-back-office` answered 200 and listed nothing,
         // which reads as a broken page rather than as an empty one. A flat
         // taxonomy has no descendants, so nothing changes for tags.
         $result = $this->postRepository->findPublishedByTerms(
-            array_map(static fn (TaxonomyTermInterface $branch): int => (int) $branch->getId(), $term->getSelfAndDescendants()),
+            $this->taxonomyTermRepository->findSelfAndDescendantIds($term),
             $this->page($request),
             $this->postsPerPage(),
             $locale,
@@ -284,28 +286,26 @@ class PageController extends AbstractController
     }
 
     /**
-     * Whether the two segments of the address name a taxonomy and a term of it.
+     * The taxonomy and the term an address names, or null.
      *
-     * Asked before the widest post look-up rather than after, so the answer
-     * cannot be a redirect to something else that happens to share the slug.
+     * Asked by the post route before its widest look-up, so the answer cannot
+     * be a redirect to something else that happens to share the slug; and by
+     * the term route. Once per request either way: the post route used to ask
+     * whether the term existed, then hand over to the term route, which asked
+     * again.
+     *
+     * @return array{0: TaxonomyInterface, 1: TaxonomyTermInterface}|null
      */
-    private function termPageExists(string $taxonomySlug, string $termSlug, string $locale): bool
+    private function resolveTerm(string $taxonomySlug, string $termSlug, string $locale): ?array
     {
         $taxonomy = $this->taxonomyRepository->findOneBySlug($taxonomySlug);
-
-        return $taxonomy instanceof TaxonomyInterface
-            && $this->findTermBySlug($taxonomy, $termSlug, $locale) instanceof TaxonomyTermInterface;
-    }
-
-    private function findTermBySlug(TaxonomyInterface $taxonomy, string $slug, string $locale): ?TaxonomyTermInterface
-    {
-        foreach ($taxonomy->getTerms() as $term) {
-            if ($term->getTranslation($locale)?->getSlug() === $slug) {
-                return $term;
-            }
+        if (!$taxonomy instanceof TaxonomyInterface) {
+            return null;
         }
 
-        return null;
+        $term = $this->taxonomyTermRepository->findOneBySlug($taxonomy, $termSlug, $locale);
+
+        return $term instanceof TaxonomyTermInterface ? [$taxonomy, $term] : null;
     }
 
     /** @return array{items: list<PostInterface>, total: int, page: int, totalPages: int} */

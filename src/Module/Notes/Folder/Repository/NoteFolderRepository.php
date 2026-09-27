@@ -127,6 +127,33 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
      *
      * @return list<NoteFolderInterface>
      */
+    /**
+     * The living children of several folders at once, their owner with them.
+     *
+     * For walking a tree a level at a time: one query per depth, where asking
+     * folder by folder cost one per node, leaves included.
+     *
+     * @param list<int> $folderIds
+     *
+     * @return list<NoteFolderInterface>
+     */
+    public function findLivingChildrenOfAny(array $folderIds): array
+    {
+        if ([] === $folderIds) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('f')
+            ->innerJoin('f.user', 'u')
+            ->addSelect('u')
+            ->where('IDENTITY(f.parent) IN (:ids)')
+            ->andWhere('f.deletedAt IS NULL')
+            ->setParameter('ids', $folderIds)
+            ->orderBy('f.position', Order::Ascending->value)
+            ->getQuery()
+            ->getResult();
+    }
+
     public function findLivingChildrenOf(int $folderId): array
     {
         return $this->createQueryBuilder('f')

@@ -499,6 +499,29 @@ class PostRepository extends ResolveTargetEntityRepository
     }
 
     /**
+     * The terms that carry at least one published, untrashed publication.
+     *
+     * What the sitemap asks of every term. Asked of the entities, it loaded
+     * every publication of every term - JSON columns included - to test one
+     * flag; the database answers it in one pass.
+     *
+     * @return array<int, true> keyed by term id
+     */
+    public function findTermIdsWithPublishedPost(): array
+    {
+        $ids = $this->createQueryBuilder('p')
+            ->select('DISTINCT te.id')
+            ->innerJoin('p.terms', 'te')
+            ->where('p.status = :published')
+            ->andWhere('p.deletedAt IS NULL')
+            ->setParameter('published', PostStatusEnum::Published)
+            ->getQuery()
+            ->getSingleColumnResult();
+
+        return array_fill_keys(array_map(intval(...), $ids), true);
+    }
+
+    /**
      * These publications with what a card or a link reads from them - their
      * translations, their type and their thumbnail - in one query, rather
      * than one per publication for each as the page renders.

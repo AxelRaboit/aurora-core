@@ -187,10 +187,11 @@ final readonly class SitemapBuilder
     private function termEntries(array &$byLocale): array
     {
         $entries = [];
+        $withPosts = $this->postRepository->findTermIdsWithPublishedPost();
 
         foreach ($this->taxonomyRepository->findAllForIndex() as $taxonomy) {
             foreach ($taxonomy->getTerms() as $term) {
-                if (!$this->hasPublishedPost($term->getPosts())) {
+                if (!isset($withPosts[(int) $term->getId()])) {
                     continue;
                 }
 
@@ -217,18 +218,6 @@ final readonly class SitemapBuilder
         }
 
         return $entries;
-    }
-
-    /** @param iterable<PostInterface> $posts */
-    private function hasPublishedPost(iterable $posts): bool
-    {
-        foreach ($posts as $post) {
-            if ($post->isPublished() && !$post->isTrashed()) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private function lastModified(PostInterface $post): string

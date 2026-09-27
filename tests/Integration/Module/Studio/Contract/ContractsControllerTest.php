@@ -15,6 +15,7 @@ use Aurora\Module\Studio\Contract\Enum\ContractTemplateKindEnum;
 use Aurora\Module\Studio\Contract\Manager\ContractTemplateManager;
 use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\Contract\Repository\ContractTemplateVersionRepository;
+use Aurora\Module\Studio\Contract\View\ContractsViewBuilder;
 use Aurora\Module\Studio\Customer\Entity\Customer;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Tests\Integration\IntegrationTestCase;
@@ -184,6 +185,38 @@ final class ContractsControllerTest extends IntegrationTestCase
         self::assertSame(422, $this->client->getResponse()->getStatusCode());
         $payload = json_decode((string) $this->client->getResponse()->getContent(), true);
         self::assertArrayHasKey('customerId', $payload['errors']);
+    }
+
+    /**
+     * The list costs the same queries for two contracts or four.
+     *
+     * Each row looked up its active signing link, its pinned versions, their
+     * templates and every version of those templates, one contract at a time.
+     */
+    public function testTheListDoesNotGrowWithTheContracts(): void
+    {
+        $this->createContract();
+        $this->createContract();
+        $withTwo = $this->queriesForTheList();
+
+        $this->createContract();
+        $this->createContract();
+        $withFour = $this->queriesForTheList();
+
+        self::assertSame($withTwo, $withFour, 'two more contracts, not one more query');
+    }
+
+    private function queriesForTheList(): int
+    {
+        $container = static::getContainer();
+        $container->get(EntityManagerInterface::class)->clear();
+        $holder = $container->get('doctrine.debug_data_holder');
+        $holder->reset();
+
+        $payload = $container->get(ContractsViewBuilder::class)->listPayload();
+        self::assertNotEmpty($payload['contracts']);
+
+        return count($holder->getData()['default'] ?? []);
     }
 
     /** @return array<string, mixed> */

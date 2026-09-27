@@ -249,6 +249,8 @@ final readonly class EditorialModule implements ModuleInterface, ModuleNavViewPr
         if ($this->editorialContext->isPostTypesEnabled()) {
             $items = [];
 
+            $postCounts = $this->postTypeRepository->countPostsByType();
+
             foreach ($this->postTypeRepository->findAllWithRelations() as $postType) {
                 $items[] = new NavItem(
                     route: 'backend_editorial_post_types_show',
@@ -262,7 +264,7 @@ final readonly class EditorialModule implements ModuleInterface, ModuleNavViewPr
                     // the active row would be all of them at once.
                     key: sprintf('editorial.post_type.%d', $postType->getId()),
                     label: $postType->getLabel(),
-                    description: $this->postTypeDescription($postType),
+                    description: $this->postTypeDescription($postType, $postCounts),
                 );
             }
 
@@ -327,10 +329,11 @@ final readonly class EditorialModule implements ModuleInterface, ModuleNavViewPr
             ?? $this->translator->trans('backend.nav.counts.fields', ['%count%' => $form->getFields()->count()]);
     }
 
-    private function postTypeDescription(PostTypeInterface $postType): string
+    /** @param array<int, int> $postCounts type id → posts, from countPostsByType() */
+    private function postTypeDescription(PostTypeInterface $postType, array $postCounts): string
     {
         return $postType->getDescription()
-            ?? $this->translator->trans('backend.nav.counts.posts', ['%count%' => $postType->getPosts()->count()]);
+            ?? $this->translator->trans('backend.nav.counts.posts', ['%count%' => $postCounts[(int) $postType->getId()] ?? 0]);
     }
 
     /**

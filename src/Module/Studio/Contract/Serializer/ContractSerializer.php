@@ -28,6 +28,22 @@ class ContractSerializer implements ContractSerializerInterface
     /** @return array<string, mixed> */
     public function serialize(ContractInterface $contract): array
     {
+        return $this->row($contract, $this->links->findActiveFor($contract));
+    }
+
+    public function serializeMany(array $contracts): array
+    {
+        $links = $this->links->findActiveForContracts($contracts);
+
+        return array_map(
+            fn (ContractInterface $contract): array => $this->row($contract, $links[(int) $contract->getId()] ?? null),
+            $contracts,
+        );
+    }
+
+    /** @return array<string, mixed> */
+    protected function row(ContractInterface $contract, ?ContractAccessLinkInterface $link): array
+    {
         $customer = $contract->getCustomer();
 
         return [
@@ -48,7 +64,7 @@ class ContractSerializer implements ContractSerializerInterface
             'createdAt' => $contract->getCreatedAt()->format(DATE_ATOM),
             'body' => $this->part($contract->getBodyVersion()),
             'annex' => $this->part($contract->getAnnexVersion()),
-            'link' => $this->link($contract),
+            'link' => $this->link($link),
             'hasPdf' => $contract->hasPdf(),
             'pdfHash' => $contract->getPdfHash(),
             // A refusal is an answer, so it travels with the row rather than
@@ -136,10 +152,8 @@ class ContractSerializer implements ContractSerializerInterface
      *
      * @return array<string, mixed>|null
      */
-    private function link(ContractInterface $contract): ?array
+    private function link(?ContractAccessLinkInterface $link): ?array
     {
-        $link = $this->links->findActiveFor($contract);
-
         if (!$link instanceof ContractAccessLinkInterface) {
             return null;
         }
