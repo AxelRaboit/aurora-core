@@ -244,6 +244,7 @@ final readonly class ZoneListingViews
             'thumbnailUrl' => $thumbnail['url'],
             'thumbnailFitClass' => $thumbnail['objectFitClass'],
             'thumbnailFocalPosition' => $thumbnail['focalPosition'],
+            'cardHighlight' => $post->getCardHighlightColor(),
         ];
     }
 }

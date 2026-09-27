@@ -5,6 +5,19 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.273] - 2026-09-27
+
+### Ajouté
+
+#### Une carte prend la couleur de la page qu'elle présente
+Au survol, la bordure, la catégorie, le titre et la flèche d'une carte de
+publication prenaient la couleur de la page qui la liste : sur un accueil qui
+présente trois métiers, les trois cartes s'allumaient pareil. Une carte prend
+désormais la couleur de la publication vers laquelle elle mène : sa couleur de
+survol personnalisée si elle en a une, sinon sa couleur d'accent. Une
+publication sans couleur, ou réglée en survol neutre, laisse sa carte suivre la
+page comme avant. Vaut pour les archives et pour les cartes d'une grille.
+
 ## [0.9.272] - 2026-09-27
 
 ### Corrigé

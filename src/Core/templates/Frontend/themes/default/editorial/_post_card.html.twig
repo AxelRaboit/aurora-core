@@ -30,7 +30,13 @@
 {% set cardTerms = post.terms is defined ? post.terms : [] %}
 {% set eyebrow = cardTerms is not empty ? (cardTerms|first)|first : null %}
 
-<article class="group not-prose relative flex h-full overflow-hidden rounded-xl border border-line bg-surface transition duration-200 hover:-translate-y-1 hover:border-highlight-500/60 hover:shadow-xl hover:shadow-black/30 {{ variant == 'horizontal' ? 'flex-row items-stretch' : 'flex-col' }}">
+{# The listed publication's own hover colour, when it has one: the border, the
+   eyebrow, the title and the arrow then take the colour of the page the card
+   leads to. `default` because a payload built before the key existed (a cached
+   one) must still render. #}
+{% set cardHighlight = post.cardHighlight|default(null) %}
+
+<article class="group not-prose relative flex h-full overflow-hidden rounded-xl border border-line bg-surface transition duration-200 hover:-translate-y-1 hover:border-highlight-500/60 hover:shadow-xl hover:shadow-black/30 {{ variant == 'horizontal' ? 'flex-row items-stretch' : 'flex-col' }}"{% if cardHighlight %} data-card-highlight style="--card-highlight: {{ cardHighlight }};"{% endif %}>
     {% if post.thumbnailUrl and variant != 'compact' %}
         {# The fit arrives as a class, not a value: Tailwind only emits classes
            it can read in the source, and `object-{{ fit }}` is one it never
