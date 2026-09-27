@@ -48,6 +48,26 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
   `PlanningEventManager::update()` et `move()`, qui n'avaient plus d'appelant,
   retirés (les versions « à la portée choisie » les remplacent).
 
+### Performances
+
+Premier lot de l'audit N+1 du 27/09 : des pages qui lançaient une requête par
+ligne n'en lancent plus qu'une. Chaque correction a son test, qui compte les
+requêtes et échoue si le compte remonte.
+
+- **Fichiers d'un espace Studio** : le document de chaque fichier vient avec
+  la liste (4 requêtes pour 3 fichiers, 1 désormais), côté client comme côté
+  studio.
+- **Zone « termes » d'une page** : les noms des termes sont lus avec eux.
+- **Formulaire posé dans une page** : champs et libellés chargés d'un coup,
+  comme sur la page du formulaire.
+- **Page d'article** : les termes des badges et leurs noms en une requête,
+  comme sur les listes.
+- **Menu public** : une entrée vers un article ou un terme supprimé ne relance
+  plus la recherche à chaque lecture, et le type d'article d'une section est
+  chargé avec les autres cibles.
+- **Liste des utilisateurs** : le responsable de chaque ligne vient avec la
+  page.
+
 ### Dans aurora-client
 
 Rien à faire après `make aurora-update`. Une classe qui étendrait
