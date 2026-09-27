@@ -159,7 +159,12 @@ jobs:
         uses: ./.github/actions/setup-php
 
       # Ni base ni assets : mesure le 27/09/2026, la suite passe entiere avec
-      # une base injoignable et sans `public/build`.
+      # une base injoignable et sans `public/build`. Le catalogue de
+      # traductions exporte, lui, est verifie par un test : dans l'ancien job
+      # unique, l'etape des tests front l'avait produit juste avant.
+      - name: Export translations
+        run: php bin/console app:translations:dump-js
+
       - name: Run backend unit tests
         run: make test-backend-unit
 
@@ -293,6 +298,10 @@ jobs:
 
       # Ni lint ni analyse statique : ce job ne parle pas du style du code, il
       # demande si le code tourne contre le plancher qu'on publie.
+      - name: Export translations
+        if: matrix.shard == 1
+        run: php bin/console app:translations:dump-js
+
       - name: Run backend unit tests
         if: matrix.shard == 1
         run: make test-backend-unit
