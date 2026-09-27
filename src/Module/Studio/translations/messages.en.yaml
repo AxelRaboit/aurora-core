@@ -1394,6 +1394,7 @@ backend:
             comment: '%who% commented on "%item%"'
             upload: '%who% sent a file on "%item%"'
             approved: '%who% approved "%item%"'
+            approved_many: '%who% approved %count% items'
             changes_requested: '%who% asked for a rewrite of "%item%"'
             late_review: '{1}One review overdue|]1,Inf[%count% reviews overdue'
         space_chat:

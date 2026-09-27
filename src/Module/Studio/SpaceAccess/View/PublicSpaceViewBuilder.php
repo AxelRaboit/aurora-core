@@ -9,6 +9,7 @@ use Aurora\Module\Studio\Customer\Serializer\CustomerInformationSerializerInterf
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumnInterface;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentAttachmentRepository;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentColumnRepository;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentCommentRepository;
@@ -61,6 +62,7 @@ final readonly class PublicSpaceViewBuilder
     public function view(SpaceAccessLinkInterface $link, string $token): array
     {
         $space = $link->getSpace();
+        $cards = $this->visibleCards($space);
 
         return [
             'space' => [
@@ -85,9 +87,9 @@ final readonly class PublicSpaceViewBuilder
                 },
                 $this->visibleColumns($space),
             ),
-            'items' => $this->items($link),
-            'comments' => $this->comments($link),
-            'attachments' => $this->attachments($link, $token),
+            'items' => $this->serializeCards($cards),
+            'comments' => $this->commentsOn($space, $cards),
+            'attachments' => $this->attachmentsOn($link, $token, $cards),
             // La fiche du client, quand elle dit quelque chose.
             //
             // **`null` plutôt qu'une fiche vide**, parce que c'est ce que
@@ -181,12 +183,20 @@ final readonly class PublicSpaceViewBuilder
      */
     public function comments(SpaceAccessLinkInterface $link): array
     {
-        $space = $link->getSpace();
-        $visible = $this->visibleItemIds($space);
+        return $this->commentsOn($link->getSpace(), $this->visibleCards($link->getSpace()));
+    }
+
+    /**
+     * @param array<int, SpaceContentItemInterface> $cards
+     *
+     * @return array<int, list<array<string, mixed>>>
+     */
+    private function commentsOn(CustomerSpaceInterface $space, array $cards): array
+    {
         $byItem = [];
 
         foreach ($this->commentRepository->findForSpaceByItem($space) as $itemId => $comments) {
-            if (!isset($visible[(int) $itemId])) {
+            if (!isset($cards[(int) $itemId])) {
                 continue;
             }
 
@@ -207,12 +217,20 @@ final readonly class PublicSpaceViewBuilder
      */
     public function attachments(SpaceAccessLinkInterface $link, string $token): array
     {
-        $space = $link->getSpace();
-        $visible = $this->visibleItemIds($space);
+        return $this->attachmentsOn($link, $token, $this->visibleCards($link->getSpace()));
+    }
+
+    /**
+     * @param array<int, SpaceContentItemInterface> $cards
+     *
+     * @return array<int, list<array<string, mixed>>>
+     */
+    private function attachmentsOn(SpaceAccessLinkInterface $link, string $token, array $cards): array
+    {
         $byItem = [];
 
-        foreach ($this->attachmentRepository->findForSpaceByItem($space) as $itemId => $attachments) {
-            if (!isset($visible[(int) $itemId])) {
+        foreach ($this->attachmentRepository->findForSpaceByItem($link->getSpace()) as $itemId => $attachments) {
+            if (!isset($cards[(int) $itemId])) {
                 continue;
             }
 
@@ -239,34 +257,30 @@ final readonly class PublicSpaceViewBuilder
      */
     public function threadPayload(SpaceAccessLinkInterface $link, string $token): array
     {
+        $cards = $this->visibleCards($link->getSpace());
+
         return [
             'success' => true,
-            'items' => $this->items($link),
-            'comments' => $this->comments($link),
-            'attachments' => $this->attachments($link, $token),
+            'items' => $this->serializeCards($cards),
+            'comments' => $this->commentsOn($link->getSpace(), $cards),
+            'attachments' => $this->attachmentsOn($link, $token, $cards),
         ];
     }
 
     /** @return list<array<string, mixed>> */
     public function items(SpaceAccessLinkInterface $link): array
     {
-        $space = $link->getSpace();
+        return $this->serializeCards($this->visibleCards($link->getSpace()));
+    }
 
-        // **Les deux filtres, et pas seulement celui des colonnes.** Retirer
-        // une étape sans retirer ses fiches laisserait les cartes d'une
-        // colonne invisible dans le calendrier du client, qui les lit par
-        // leur date et non par leur étape. C'est exactement l'écart qui aurait
-        // rendu le réglage rassurant et inutile.
-        $visible = $this->visibleItemIds($space);
-        $items = [];
-
-        foreach ($this->items->findForSpace($space) as $item) {
-            if (isset($visible[(int) $item->getId()])) {
-                $items[] = $this->itemSerializer->serialize($item);
-            }
-        }
-
-        return $items;
+    /**
+     * @param array<int, SpaceContentItemInterface> $cards
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function serializeCards(array $cards): array
+    {
+        return array_values(array_map($this->itemSerializer->serialize(...), $cards));
     }
 
     /**
@@ -279,23 +293,28 @@ final readonly class PublicSpaceViewBuilder
      * rien parce qu'il ne connaissait pas la fiche, ce qui est la pire forme
      * de fuite : invisible à l'usage, entière dans la source.
      *
-     * Calculé une fois et partagé, plutôt que trois fois : le tableau d'un
-     * espace tient dans une poignée de colonnes, et le dépôt sert déjà les
-     * mêmes lignes au studio.
+     * **Les deux filtres, et pas seulement celui des colonnes.** Retirer une
+     * étape sans retirer ses fiches laisserait les cartes d'une colonne
+     * invisible dans le calendrier du client, qui les lit par leur date et non
+     * par leur étape.
      *
-     * @return array<int, true>
+     * Lu une fois par page et passé aux trois listes. Chacune le relisait
+     * pour son compte, et la page entière relisait le tableau quatre fois, à
+     * chaque chargement et après chaque réponse du client.
+     *
+     * @return array<int, SpaceContentItemInterface> dans l'ordre du tableau
      */
-    private function visibleItemIds(CustomerSpaceInterface $space): array
+    private function visibleCards(CustomerSpaceInterface $space): array
     {
-        $items = [];
+        $cards = [];
 
         foreach ($this->items->findForSpace($space) as $item) {
             if ($item->isShownToClient()) {
-                $items[(int) $item->getId()] = true;
+                $cards[(int) $item->getId()] = $item;
             }
         }
 
-        return $items;
+        return $cards;
     }
 
     /**

@@ -4,9 +4,15 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Integration\Module\Planning;
 
+use Aurora\Module\Planning\Attendee\Entity\PlanningEventAttendee;
 use Aurora\Module\Planning\Event\Entity\PlanningEvent;
+use Aurora\Module\Planning\Event\Entity\PlanningEventAlert;
 use Aurora\Module\Planning\Event\Repository\PlanningEventRepository;
+use Aurora\Module\Planning\Event\Serializer\PlanningEventSerializer;
 use Aurora\Module\Planning\Planning\Entity\Planning;
+use Aurora\Module\Planning\Recurrence\PlanningOccurrenceFinder;
+use Aurora\Module\Platform\User\Entity\User;
+use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -143,5 +149,53 @@ final class PlanningEventWindowTest extends IntegrationTestCase
             new DateTimeImmutable('2026-08-01 00:00'),
             new DateTimeImmutable('2026-09-01 00:00'),
         ));
+    }
+
+    /**
+     * A month grid costs the same queries with three events or a hundred.
+     *
+     * The serializer reads each event's alerts and attendees, an edited
+     * occurrence's series, and the expander each series' edited occurrences:
+     * all lazy, so a query per event on the grid and on the public share page.
+     * They now come with the two window queries.
+     */
+    public function testTheGridLoadsItsEventsWithWhatItDraws(): void
+    {
+        $user = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        self::assertInstanceOf(User::class, $user);
+
+        foreach (['4', '5', '6'] as $day) {
+            $event = $this->event('Rendez-vous '.$day, "2026-08-0{$day} 10:00", "2026-08-0{$day} 11:00");
+            $alert = new PlanningEventAlert();
+            $alert->setMinutesBefore(15);
+            $event->addAlert($alert);
+            $attendee = new PlanningEventAttendee();
+            $attendee->setEvent($event)->setUser($user);
+            $this->entityManager->persist($attendee);
+        }
+
+        $series = $this->event('Point hebdo', '2026-08-03 09:00', '2026-08-03 09:30');
+        $series->setRrule('FREQ=WEEKLY');
+        $moved = $this->event('Point hebdo', '2026-08-10 14:00', '2026-08-10 14:30');
+        $moved->setMaster($series)->setOccurrenceAt(new DateTimeImmutable('2026-08-10 09:00'));
+        $this->entityManager->flush();
+
+        $this->entityManager->clear();
+        $holder = static::getContainer()->get('doctrine.debug_data_holder');
+        $holder->reset();
+
+        $occurrences = static::getContainer()->get(PlanningOccurrenceFinder::class)->find(
+            [(int) $this->planning->getId()],
+            new DateTimeImmutable('2026-08-01 00:00'),
+            new DateTimeImmutable('2026-09-01 00:00'),
+        );
+        $rows = static::getContainer()->get(PlanningEventSerializer::class)->serializeMany($occurrences);
+
+        // Three meetings, the moved occurrence, and the four other Mondays.
+        self::assertCount(8, $rows);
+        self::assertSame(2, count($holder->getData()['default'] ?? []), 'the singles and the series, nothing more');
+
+        // Planning is re-read by the tearDown: the clear above detached it.
+        $this->planning = $this->entityManager->find(Planning::class, $this->planning->getId());
     }
 }

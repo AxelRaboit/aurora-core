@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Integration\Module\Planning;
 
+use Aurora\Module\Planning\Attendee\Entity\PlanningEventAttendee;
 use Aurora\Module\Planning\Event\Entity\PlanningEvent;
 use Aurora\Module\Planning\Link\Entity\PlanningShareLink;
 use Aurora\Module\Planning\Link\Entity\PlanningShareLinkInterface;
@@ -163,6 +164,56 @@ final class PlanningFeedTest extends IntegrationTestCase
         self::assertStringContainsString('STATUS:NEEDS-ACTION', $body);
         // The semicolon and comma are escaped, as the format requires.
         self::assertStringContainsString('SUMMARY:Recette\; client\\, et autres', $body);
+    }
+
+    /**
+     * The feed costs the same few queries with three events or three thousand.
+     *
+     * Every subscribed phone polls it every quarter of an hour. Events,
+     * attendees, their users and the reminders used to load one row at a time,
+     * all of them lazy; they now come with the calendar.
+     */
+    public function testTheFeedLoadsItsRowsWithTheCalendar(): void
+    {
+        $planning = $this->calendar();
+        $link = $this->link([$planning]);
+
+        foreach (['Recette', 'Tournage', 'Livraison'] as $title) {
+            $event = new PlanningEvent();
+            $event->setPlanning($planning);
+            $event->setTitle($title);
+            $event->setSpan(new DateTimeImmutable('2026-09-01 10:00'), new DateTimeImmutable('2026-09-01 11:00'));
+            $attendee = new PlanningEventAttendee();
+            $attendee->setEvent($event)->setUser($this->admin);
+            $this->entityManager->persist($event);
+            $this->entityManager->persist($attendee);
+
+            $reminder = new PlanningReminder();
+            $reminder->setPlanning($planning);
+            $reminder->setTitle('Relancer '.$title);
+            $reminder->setDueAt(new DateTimeImmutable('2026-09-02 09:00'));
+            $this->entityManager->persist($reminder);
+
+            $this->entityManager->flush();
+            $this->created[] = [PlanningEvent::class, (int) $event->getId()];
+            $this->created[] = [PlanningReminder::class, (int) $reminder->getId()];
+        }
+
+        $token = $link->getToken();
+        $this->entityManager->clear();
+        $this->client->disableReboot();
+        $holder = static::getContainer()->get('doctrine.debug_data_holder');
+        $holder->reset();
+
+        $this->client->request('GET', $this->urlGenerator->generate('planning_feed_show', ['token' => $token]));
+        self::assertResponseIsSuccessful();
+        self::assertSame(3, mb_substr_count((string) $this->client->getResponse()->getContent(), 'ATTENDEE;'));
+
+        $rowByRow = array_filter(
+            $holder->getData()['default'] ?? [],
+            static fn (array $query): bool => 1 === preg_match('/FROM (core_planning_events|core_planning_event_attendees|core_planning_reminders|core_users) /', (string) $query['sql']),
+        );
+        self::assertSame([], array_column($rowByRow, 'sql'), 'nothing is loaded row by row');
     }
 
     /**

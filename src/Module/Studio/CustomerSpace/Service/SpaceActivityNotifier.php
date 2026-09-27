@@ -106,6 +106,23 @@ final readonly class SpaceActivityNotifier
     }
 
     /**
+     * Several cards approved in one gesture, told once.
+     *
+     * The link opens the space on the approved cards rather than on one of
+     * them. Never folded, like a single answer: it is news about the board.
+     */
+    public function clientApprovedMany(CustomerSpaceInterface $space, string $author, int $count): void
+    {
+        $this->announce(
+            $space,
+            'studio.space.answer',
+            'backend.studio.space_notifications.approved_many',
+            ['%who%' => $author, '%count%' => (string) $count],
+            coalesce: false,
+        );
+    }
+
+    /**
      * Reviews past their deadline, told to the space's team.
      *
      * The one piece of news here that is not something the client did: it is

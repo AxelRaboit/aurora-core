@@ -49,4 +49,41 @@ class PlanningRepository extends ResolveTargetEntityRepository
 
         return $result;
     }
+
+    /**
+     * Loads everything a feed writes, for these calendars, in two queries.
+     *
+     * The feed walks each calendar's events, their attendees and each
+     * attendee's user, then its reminders - all lazy, so a query per event on
+     * a URL every subscribed phone polls every quarter of an hour. Doctrine
+     * fills the managed calendars in place, so the writer reads them without
+     * asking again. Two queries rather than one: joining events and reminders
+     * together would multiply one by the other.
+     *
+     * @param list<PlanningInterface> $plannings
+     */
+    public function warmForFeed(array $plannings): void
+    {
+        if ([] === $plannings) {
+            return;
+        }
+
+        $this->createQueryBuilder('p')
+            ->leftJoin('p.events', 'e')
+            ->leftJoin('e.attendees', 'a')
+            ->leftJoin('a.user', 'u')
+            ->addSelect('e', 'a', 'u')
+            ->where('p IN (:plannings)')
+            ->setParameter('plannings', $plannings)
+            ->getQuery()
+            ->getResult();
+
+        $this->createQueryBuilder('p')
+            ->leftJoin('p.reminders', 'r')
+            ->addSelect('r')
+            ->where('p IN (:plannings)')
+            ->setParameter('plannings', $plannings)
+            ->getQuery()
+            ->getResult();
+    }
 }

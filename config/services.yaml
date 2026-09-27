@@ -28,6 +28,12 @@ services:
     Aurora\:
         resource: '../src/'
 
+    # Public so the bundle can build it at boot: Doctrine creates the
+    # encrypted column types itself, and they need the service before the
+    # first query - which, in a test, can come before any request.
+    Aurora\Core\Encryption\EventSubscriber\EncryptedTypeBootstrapper:
+        public: true
+
     # Auto-tag every MediaUsageProvider so the aggregator service collects them.
     # Auto-tag every registered front so the Registry collects them.
     # Auto-tag every menu location provider so the MenuLocationRegistry collects them.

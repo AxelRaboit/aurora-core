@@ -6,6 +6,7 @@ namespace Aurora;
 
 use Aurora\Core\Encryption\Doctrine\EncryptedStringType;
 use Aurora\Core\Encryption\Doctrine\EncryptedTextType;
+use Aurora\Core\Encryption\EventSubscriber\EncryptedTypeBootstrapper;
 use Aurora\Core\Locale\Entity\Locale;
 use Aurora\Core\Locale\Entity\LocaleInterface;
 use Aurora\Core\Locale\Enum\LocaleEnum;
@@ -177,6 +178,21 @@ class AuroraBundle extends AbstractBundle
     public function getPath(): string
     {
         return __DIR__;
+    }
+
+    /**
+     * Hands the encryption service to Doctrine's encrypted types at boot.
+     *
+     * The subscriber did it on the first request or command only. Anything
+     * that read or wrote an encrypted column before either - a test building
+     * its notes, a worker message - failed on a boot-order error, and whether
+     * a test passed depended on which test ran before it.
+     */
+    #[Override]
+    public function boot(): void
+    {
+        parent::boot();
+        $this->container?->get(EncryptedTypeBootstrapper::class);
     }
 
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
