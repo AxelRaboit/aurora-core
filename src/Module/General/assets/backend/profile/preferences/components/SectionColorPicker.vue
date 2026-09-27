@@ -46,15 +46,22 @@ function clear() {
 
 <template>
     <div class="flex flex-wrap items-center gap-1.5">
+        <!-- The button is the hit area, the swatch inside it the drawing: on a
+             phone the button grows by its padding and the swatch keeps its
+             size, its corners and its ring. -->
         <button
             v-for="colour in PALETTE"
             :key="colour.name"
             type="button"
-            class="w-6 h-6 rounded ring-offset-2 ring-offset-surface transition-all hover:scale-110 shrink-0 box-content bg-clip-content py-[0.1875rem] -my-[0.1875rem] px-[0.1875rem] -mx-[0.1875rem] sm:box-border sm:p-0 sm:m-0"
-            :class="[colour.swatch, modelValue === colour.name ? 'ring-2 ring-white scale-110' : 'opacity-60 hover:opacity-100']"
+            class="group shrink-0 p-[0.1875rem] -m-[0.1875rem] sm:p-0 sm:m-0"
             :title="colour.name"
             v-on:click="pick(colour.name)"
-        />
+        >
+            <span
+                class="block w-6 h-6 rounded ring-offset-2 ring-offset-surface transition-all group-hover:scale-110"
+                :class="[colour.swatch, modelValue === colour.name ? 'ring-2 ring-white scale-110' : 'opacity-60 group-hover:opacity-100']"
+            />
+        </button>
         <button
             type="button"
             class="ml-1 p-1 rounded text-muted hover:text-primary hover:bg-surface-2 transition-colors shrink-0 inline-flex min-h-7.5 min-w-7.5 items-center justify-center sm:min-h-0 sm:min-w-0"

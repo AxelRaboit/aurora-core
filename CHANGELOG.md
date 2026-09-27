@@ -5,6 +5,18 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.282] - 2026-09-28
+
+### Corrigé
+
+#### Les interrupteurs en forme de coussin sur téléphone
+La correction de la 0.9.281 gardait la couleur sur le dessin de
+l'interrupteur, mais son arrondi restait calculé sur la zone de clic, plus
+haute : les bouts de la pilule devenaient des ellipses aplaties. La zone de
+clic et le dessin sont maintenant deux éléments distincts : l'interrupteur
+retrouve exactement sa forme d'origine, avec la même zone de clic agrandie sur
+téléphone. Même correction pour les pastilles de couleur des sections du menu.
+
 ## [0.9.281] - 2026-09-28
 
 ### Corrigé
