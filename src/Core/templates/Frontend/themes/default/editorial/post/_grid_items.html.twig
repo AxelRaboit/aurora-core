@@ -146,6 +146,26 @@
             {% endfor %}
         </div>
 
+    {% elseif items.display == 'editorial' %}
+        {# A list set like a magazine page: no boxes, a rule over each entry and
+           its number in the margin of the text. For a handful of things that
+           are equals rather than a sequence - what is on offer, what a service
+           covers - where cards would give every one the weight of a product.
+
+           The number is written on two digits because it is a mark, not a
+           count: "01" to "06" line up, where "1" to "6" read as a tally. #}
+        <ol class="m-0 grid list-none grid-cols-1 gap-x-12 p-0 {{ columns[items.columns] }}">
+            {% for entry in items.entries %}
+                <li class="flex gap-5 border-t border-line py-6">
+                    <span class="shrink-0 text-2xl font-medium leading-none text-accent tabular-nums sm:text-3xl" aria-hidden="true">{{ '%02d'|format(entry.position) }}</span>
+                    <div class="min-w-0">
+                        {% if entry.title %}<h3 class="m-0 text-lg font-semibold text-primary">{{ entry.title }}</h3>{% endif %}
+                        {% if entry.description %}<p class="mt-1 mb-0 text-secondary">{{ entry.description }}</p>{% endif %}
+                    </div>
+                </li>
+            {% endfor %}
+        </ol>
+
     {% elseif items.display == 'offers' %}
         {# What each card has to answer, in the order it is asked: what is this,
            what does it cost, what do I get, how do I start.
