@@ -13,6 +13,7 @@ use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Entity\PostTranslationInterface;
 use Aurora\Module\Editorial\Post\Gallery\GalleryViewBuilder;
 use Aurora\Module\Editorial\Post\Grid\GridViewBuilder;
+use Aurora\Module\Editorial\Post\Repository\PostRepository;
 use Aurora\Module\Editorial\Post\Sequence\PostSequenceBuilder;
 use Aurora\Module\Editorial\Seo\Service\AlternatesBuilder;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
@@ -44,6 +45,7 @@ final readonly class PostPageRenderer
         private GalleryViewBuilder $galleryViewBuilder,
         private PostSequenceBuilder $sequenceBuilder,
         private ReadingTimeCalculator $readingTimeCalculator,
+        private PostRepository $postRepository,
     ) {}
 
     public function render(PostInterface $post, string $locale): Response
@@ -54,6 +56,10 @@ final readonly class PostPageRenderer
             // a redirect to a locale that has one. Guessing here would hide it.
             throw new LogicException(sprintf('Post #%d has no translation for locale "%s".', $post->getId(), $locale));
         }
+
+        // The terms, their names and taxonomies in one query, as the lists do
+        // for their cards: the badges would otherwise load them term by term.
+        $this->postRepository->warmCards([$post]);
 
         // Read once: the reading time is counted off the same resolved zones
         // the page is about to render, so the two can never disagree.

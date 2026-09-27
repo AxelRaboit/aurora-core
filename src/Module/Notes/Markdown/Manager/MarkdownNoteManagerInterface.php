@@ -14,6 +14,16 @@ interface MarkdownNoteManagerInterface
 {
     public function create(CoreUserInterface $user, MarkdownNoteInputInterface $input): MarkdownNoteInterface;
 
+    /**
+     * Several notes at once, for an import: written in one flush and audited
+     * together, each appended at the end of its folder in the order given.
+     *
+     * @param list<MarkdownNoteInputInterface> $inputs
+     *
+     * @return list<MarkdownNoteInterface>
+     */
+    public function createMany(CoreUserInterface $user, array $inputs): array;
+
     public function update(MarkdownNoteInterface $note, MarkdownNoteInputInterface $input): void;
 
     /** Moves a note to the trash. */

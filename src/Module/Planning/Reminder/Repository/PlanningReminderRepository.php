@@ -98,10 +98,14 @@ class PlanningReminderRepository extends ServiceEntityRepository
             ->addSelect('p')
             ->innerJoin('r.planning', 'p')
             ->where('r.planning IN (:plannings)')
-            ->andWhere('r.dueAt >= :from')
+            // A whole-day reminder is still to come until its day is over,
+            // the other half of `isOverdue()`: it is stored at the day's
+            // start, and « from now on » left today's out of both lists.
+            ->andWhere('(r.allDay = false AND r.dueAt >= :from) OR (r.allDay = true AND r.dueAt > :dayAgo)')
             ->andWhere('r.completedAt IS NULL')
             ->setParameter('plannings', $planningIds)
             ->setParameter('from', $from)
+            ->setParameter('dayAgo', $from->modify('-1 day'))
             ->orderBy('r.dueAt', 'ASC')
             ->setMaxResults($limit)
             ->getQuery()

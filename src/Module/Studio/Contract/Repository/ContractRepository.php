@@ -36,12 +36,46 @@ class ContractRepository extends ResolveTargetEntityRepository
      */
     public function findAllForIndex(): array
     {
-        return $this->createQueryBuilder('c')
-            ->addSelect('cu')
+        // The pinned versions and their templates come along, each one row per
+        // contract. Whether a version is outdated is read off its template's
+        // versions: those are loaded after, for every template at once, since
+        // joining them here would multiply each contract by two lists.
+        /** @var list<ContractInterface> $contracts */
+        $contracts = $this->createQueryBuilder('c')
+            ->addSelect('cu', 'bv', 'bt', 'av', 'at')
             ->innerJoin('c.customer', 'cu')
+            ->leftJoin('c.bodyVersion', 'bv')
+            ->leftJoin('bv.template', 'bt')
+            ->leftJoin('c.annexVersion', 'av')
+            ->leftJoin('av.template', 'at')
             ->orderBy('c.createdAt', Order::Descending->value)
             ->getQuery()
             ->getResult();
+
+        $templates = [];
+        foreach ($contracts as $contract) {
+            foreach ([$contract->getBodyVersion(), $contract->getAnnexVersion()] as $version) {
+                if (null !== $version) {
+                    $templates[(int) $version->getTemplate()->getId()] = $version->getTemplate();
+                }
+            }
+        }
+
+        if ([] !== $templates) {
+            $entityManager = $this->getEntityManager();
+            $versionClass = $this->getClassMetadata()->getAssociationTargetClass('bodyVersion');
+
+            $entityManager->createQueryBuilder()
+                ->select('t', 'v')
+                ->from($entityManager->getClassMetadata($versionClass)->getAssociationTargetClass('template'), 't')
+                ->leftJoin('t.versions', 'v')
+                ->where('t IN (:templates)')
+                ->setParameter('templates', array_values($templates))
+                ->getQuery()
+                ->getResult();
+        }
+
+        return $contracts;
     }
 
     /**

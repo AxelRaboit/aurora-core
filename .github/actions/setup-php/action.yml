@@ -1,0 +1,35 @@
+name: Setup PHP
+description: PHP 8.4 with the bundle's extensions, and its Composer dependencies from the lock.
+
+# Shared by every job of ci.yml that runs PHP, so that the jobs cannot drift
+# apart on a version or an extension. The `lowest` job does not use it: it
+# resolves the declared minimums instead of installing the lock.
+
+runs:
+  using: composite
+  steps:
+    - name: Setup PHP, extensions & composer with shivammathur/setup-php
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.4'
+        tools: composer:v2
+        extensions: mbstring, xml, ctype, iconv, intl, pdo, pdo_pgsql, dom, filter, json, tokenizer
+        ini-values: post_max_size=256M, max_execution_time=180
+      env:
+        update: true
+
+    - name: Get composer cache directory
+      id: composer-cache
+      shell: bash
+      run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+    - name: Cache PHP dependencies
+      uses: actions/cache@v6
+      with:
+        path: ${{ steps.composer-cache.outputs.dir }}
+        key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+        restore-keys: ${{ runner.os }}-composer-
+
+    - name: Install PHP dependencies
+      shell: bash
+      run: composer install --no-ansi --no-interaction --prefer-dist --no-scripts

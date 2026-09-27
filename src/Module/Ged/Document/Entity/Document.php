@@ -11,6 +11,10 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: DocumentRepository::class)]
 #[ORM\Table(name: 'core_ged_documents')]
+// Created with `text_pattern_ops` by Version20260927180000, so a `LIKE`
+// prefix uses them whatever the collation; see that migration.
+#[ORM\Index(name: 'idx_ged_document_file_path', columns: ['file_path'])]
+#[ORM\Index(name: 'idx_ged_document_thumbnail_path', columns: ['thumbnail_path'])]
 class Document extends AbstractDocument
 {
     #[ORM\Id]

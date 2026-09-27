@@ -54,7 +54,10 @@ class DocumentFolderRepository extends ResolveTargetEntityRepository
      */
     public function findTrashedRoots(): array
     {
+        // The parent comes along: the trash names it beside each folder.
         return $this->createQueryBuilder('f')
+            ->leftJoin('f.parent', 'p')
+            ->addSelect('p')
             ->andWhere('f.deletedAt IS NOT NULL')
             ->andWhere('f.trashedWithFolderId IS NULL')
             ->orderBy('f.deletedAt', Order::Descending->value)
@@ -72,6 +75,28 @@ class DocumentFolderRepository extends ResolveTargetEntityRepository
         return $this->createQueryBuilder('f')
             ->andWhere('f.trashedWithFolderId = :id')
             ->setParameter('id', $folderId)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * The living children of several folders at once, for walking a tree a
+     * level at a time: one query per depth rather than one per node.
+     *
+     * @param list<int> $folderIds
+     *
+     * @return list<DocumentFolderInterface>
+     */
+    public function findLivingChildrenOfAny(array $folderIds): array
+    {
+        if ([] === $folderIds) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('f')
+            ->andWhere('IDENTITY(f.parent) IN (:ids)')
+            ->andWhere('f.deletedAt IS NULL')
+            ->setParameter('ids', $folderIds)
             ->getQuery()
             ->getResult();
     }

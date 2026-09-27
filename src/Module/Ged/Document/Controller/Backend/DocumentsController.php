@@ -398,12 +398,9 @@ final class DocumentsController extends AbstractController
 
         $counts = ['moved' => 0, 'queued' => 0, 'alreadyThere' => 0, 'busy' => 0, 'failed' => 0];
 
-        foreach ($ids as $id) {
-            $document = $this->documentRepository->find($id);
-
-            if (null === $document) {
-                continue;
-            }
+        // The whole selection in one query rather than a find() per id.
+        foreach ([] === $ids ? [] : $this->documentRepository->findBy(['id' => $ids]) as $document) {
+            $id = (int) $document->getId();
 
             if ($this->relocator->weigh($document) > self::INLINE_RELOCATION_LIMIT_BYTES) {
                 $this->messageBus->dispatch(new RelocateDocumentMessage($id, $target));

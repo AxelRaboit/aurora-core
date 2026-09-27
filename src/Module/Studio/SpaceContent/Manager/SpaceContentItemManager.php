@@ -198,6 +198,43 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
         $this->notifier->clientAnswered($item, $link->getRecipientEmail(), SpaceContentApprovalEnum::Approved === $approval);
     }
 
+    public function approveMany(array $items, SpaceAccessLinkInterface $link): int
+    {
+        $at = new DateTimeImmutable();
+        $approved = [];
+
+        foreach ($items as $item) {
+            if ($item->getSpace()->getId() !== $link->getSpace()->getId()) {
+                continue;
+            }
+
+            $item->answer(SpaceContentApprovalEnum::Approved, $link, $at);
+            $approved[] = $item;
+        }
+
+        if ([] === $approved) {
+            return 0;
+        }
+
+        $this->entityManager->flush();
+
+        // One line per card still: the audit is read card by card, and a
+        // grouped line would not answer "who approved this one". Written in
+        // one flush.
+        $this->auditLogger->logMany('studio', 'space_content_item.answered', 'SpaceContentItem', array_map(
+            fn (SpaceContentItemInterface $item): array => ['id' => $item->getId(), 'data' => $this->answeredPayload($item)],
+            $approved,
+        ));
+
+        if (1 === count($approved)) {
+            $this->notifier->clientAnswered($approved[0], $link->getRecipientEmail(), true);
+        } else {
+            $this->notifier->clientApprovedMany($link->getSpace(), $link->getRecipientEmail(), count($approved));
+        }
+
+        return count($approved);
+    }
+
     /**
      * Drops an answer whose content has changed under it.
      *
@@ -358,13 +395,19 @@ class SpaceContentItemManager implements SpaceContentItemManagerInterface
 
     protected function auditAnswered(SpaceContentItemInterface $item): void
     {
-        $this->auditLogger->log('studio', 'space_content_item.answered', 'SpaceContentItem', $item->getId(), [
+        $this->auditLogger->log('studio', 'space_content_item.answered', 'SpaceContentItem', $item->getId(), $this->answeredPayload($item));
+    }
+
+    /** @return array<string, mixed> */
+    protected function answeredPayload(SpaceContentItemInterface $item): array
+    {
+        return [
             ...$this->auditPayload($item),
             'approval' => $item->getApproval()->value,
             // Who, by the address they hold: there is no account behind this,
             // and the email the link was sent to is the only name there is.
             'answeredBy' => $item->getApprovalByLink()?->getRecipientEmail(),
-        ]);
+        ];
     }
 
     protected function auditDeleted(SpaceContentItemInterface $item): void

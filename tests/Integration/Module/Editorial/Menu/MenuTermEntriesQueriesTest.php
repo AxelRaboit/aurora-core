@@ -92,6 +92,36 @@ final class MenuTermEntriesQueriesTest extends IntegrationTestCase
         self::assertSame(1, count($translationQueries), 'the terms and their translations load together');
     }
 
+    /**
+     * A deleted target is looked up once, not once per read.
+     *
+     * The miss was remembered as null, and `??=` took that null for a key
+     * never seen, so every later read of the entry asked the database again.
+     */
+    public function testAnEntryToADeletedPostIsLookedUpOnce(): void
+    {
+        $location = 'test-orphan-'.bin2hex(random_bytes(4));
+        $menu = new Menu();
+        $menu->setName('Orphelin')->setLocation($location);
+        $this->persist($menu);
+
+        $item = new MenuItem();
+        $item->setMenu($menu)->setTargetType(MenuItemTargetTypeEnum::Post)->setTargetId(2_000_000_000)->setPosition(0);
+        $this->persist($item);
+
+        $this->entityManager->clear();
+        $holder = static::getContainer()->get('doctrine.debug_data_holder');
+        $holder->reset();
+
+        static::getContainer()->get(MenuRenderer::class)->render($location, 'fr');
+
+        $postQueries = array_filter(
+            $holder->getData()['default'] ?? [],
+            static fn (array $query): bool => str_contains((string) $query['sql'], 'FROM core_posts '),
+        );
+        self::assertSame(1, count($postQueries), 'the missing post is asked for once');
+    }
+
     private function persist(object $entity): void
     {
         $this->entityManager->persist($entity);

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Editorial\Post\MessageHandler;
 
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
+use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
 use Aurora\Module\Editorial\Post\Message\UnpublishScheduledPostsMessage;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
@@ -52,11 +53,10 @@ final readonly class UnpublishScheduledPostsHandler
         // One line per post, as the publishing handler does. A page leaving the
         // site is exactly what somebody comes looking for afterwards, and nobody
         // was at the keyboard to remember it happened.
-        foreach ($due as $post) {
-            $this->auditLogger->log('editorial', 'post.unpublished_on_schedule', 'Post', $post->getId(), [
-                'status' => $post->getStatus()->value,
-            ]);
-        }
+        $this->auditLogger->logMany('editorial', 'post.unpublished_on_schedule', 'Post', array_map(
+            static fn (PostInterface $post): array => ['id' => $post->getId(), 'data' => ['status' => $post->getStatus()->value]],
+            $due,
+        ));
 
         $this->logger->info('Unpublished {count} scheduled post(s).', ['count' => count($due)]);
     }

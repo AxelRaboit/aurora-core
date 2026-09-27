@@ -9,6 +9,7 @@ use Aurora\Module\Planning\Feed\IcalWriter;
 use Aurora\Module\Planning\Link\Entity\PlanningShareLinkInterface;
 use Aurora\Module\Planning\Link\Enum\PlanningShareLinkModeEnum;
 use Aurora\Module\Planning\Link\Manager\PlanningShareLinkManagerInterface;
+use Aurora\Module\Planning\Planning\Repository\PlanningRepository;
 use Aurora\Module\Planning\PlanningContext;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -47,6 +48,7 @@ final class PlanningFeedController extends AbstractController
         private readonly PlanningShareLinkManagerInterface $shareLinks,
         private readonly IcalWriter $writer,
         private readonly PlanningContext $planningContext,
+        private readonly PlanningRepository $plannings,
     ) {}
 
     /**
@@ -82,6 +84,8 @@ final class PlanningFeedController extends AbstractController
         if ([] === $calendars) {
             throw $this->createNotFoundException();
         }
+
+        $this->plannings->warmForFeed(array_values($calendars));
 
         // The link's own label names the feed, not the first calendar's name: a
         // link can carry several, and a subscription called "Pro" that also holds

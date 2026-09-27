@@ -8,6 +8,7 @@ use Aurora\Core\Timestampable\TimestampableTrait;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceContent\Enum\SpaceContentApprovalEnum;
+use Aurora\Module\Studio\SpaceContent\Enum\SpaceContentColumnRoleEnum;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -231,16 +232,22 @@ abstract class AbstractSpaceContentItem implements SpaceContentItemInterface
     }
 
     /**
-     * L'échéance de relecture est passée et personne n'a répondu.
+     * L'échéance de relecture est passée et le client n'a rien répondu, sur une
+     * carte qu'il a sous les yeux.
      *
-     * Les deux conditions ensemble : une carte déjà validée n'est en retard de
-     * rien, et une carte sans échéance n'a rien à dépasser.
+     * La règle de `SpaceWorkload`, écrite une fois pour la carte : une carte
+     * validée n'est en retard de rien, une carte sans échéance n'a rien à
+     * dépasser, et une carte que le client ne voit pas - étape interne, hors
+     * calendrier, déjà publiée - ne peut pas l'attendre. Le badge de la carte
+     * disait « en retard » là où les compteurs ne comptaient rien.
      */
     public function isLateForReview(DateTimeImmutable $now): bool
     {
         return $this->reviewBy instanceof DateTimeImmutable
             && $this->reviewBy < $now
-            && !$this->approval->isAnswered();
+            && !$this->approval->isAnswered()
+            && $this->isShownToClient()
+            && SpaceContentColumnRoleEnum::Published !== $this->getColumn()->getRole();
     }
 
     public function isScheduled(): bool

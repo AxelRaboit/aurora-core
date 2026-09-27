@@ -41,6 +41,27 @@ class DeckRepository extends ResolveTargetEntityRepository
     }
 
     /**
+     * Every deck with its slides, for the pictures they draw.
+     *
+     * What the library's usage badges walk. `findAllForList()` left the
+     * slides lazy, so the walk cost a query per deck, each time the library
+     * opened.
+     *
+     * @return list<DeckInterface>
+     */
+    public function findAllWithSlides(): array
+    {
+        /** @var list<DeckInterface> $decks */
+        $decks = $this->createQueryBuilder('d')
+            ->leftJoin('d.slides', 's')->addSelect('s')
+            ->orderBy('d.updatedAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+
+        return $decks;
+    }
+
+    /**
      * How many slides each deck holds, indexed by deck id.
      *
      * @return array<int, int>

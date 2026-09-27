@@ -176,6 +176,9 @@ backend:
             today: Aujourd'hui
             no_spaces: Aucun espace à afficher.
             empty_month: Rien de programmé ce mois-ci.
+            empty_state: "Aucune fiche dans cet état."
+            undated: "Sans date"
+            all_months: "Tous les mois"
             states:
                 missed: Parution manquée
                 late_review: Relecture en retard
@@ -1402,6 +1405,7 @@ backend:
             comment: '%who% a commenté « %item% »'
             upload: '%who% a envoyé un fichier sur « %item% »'
             approved: '%who% a validé « %item% »'
+            approved_many: '%who% a validé %count% contenus'
             changes_requested: '%who% demande une reprise sur « %item% »'
             late_review: '{1}Une relecture en retard|]1,Inf[%count% relectures en retard'
         space_chat:

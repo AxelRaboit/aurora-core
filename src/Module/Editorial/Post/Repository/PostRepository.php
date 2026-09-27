@@ -65,10 +65,15 @@ class PostRepository extends ResolveTargetEntityRepository
         array $termIds = [],
         array $statuses = [],
     ): array {
+        // The translation of the locale is joined to filter and search on, not
+        // selected: a fetch join restricted by `WITH` marks the collection as
+        // loaded with that one row, and the list's language badges then saw
+        // one language on every post. All of them come after the page, in
+        // hydrateCollections(), where no LIMIT can be thrown off by them.
         $items = $this->createQueryBuilder('p')
             ->leftJoin('p.translations', 't', 'WITH', 't.locale = :locale')
             ->leftJoin('p.postType', 'pt')
-            ->addSelect('t', 'pt')
+            ->addSelect('pt')
             ->setParameter('locale', $locale)
             ->orderBy('p.createdAt', Order::Descending->value);
 
@@ -494,6 +499,29 @@ class PostRepository extends ResolveTargetEntityRepository
     }
 
     /**
+     * The terms that carry at least one published, untrashed publication.
+     *
+     * What the sitemap asks of every term. Asked of the entities, it loaded
+     * every publication of every term - JSON columns included - to test one
+     * flag; the database answers it in one pass.
+     *
+     * @return array<int, true> keyed by term id
+     */
+    public function findTermIdsWithPublishedPost(): array
+    {
+        $ids = $this->createQueryBuilder('p')
+            ->select('DISTINCT te.id')
+            ->innerJoin('p.terms', 'te')
+            ->where('p.status = :published')
+            ->andWhere('p.deletedAt IS NULL')
+            ->setParameter('published', PostStatusEnum::Published)
+            ->getQuery()
+            ->getSingleColumnResult();
+
+        return array_fill_keys(array_map(intval(...), $ids), true);
+    }
+
+    /**
      * These publications with what a card or a link reads from them - their
      * translations, their type and their thumbnail - in one query, rather
      * than one per publication for each as the page renders.
@@ -778,7 +806,7 @@ class PostRepository extends ResolveTargetEntityRepository
 
         $ids = array_map(static fn (PostInterface $post): ?int => $post->getId(), $posts);
 
-        foreach (['terms', 'relatedPosts'] as $association) {
+        foreach (['translations', 'terms', 'relatedPosts'] as $association) {
             $this->createQueryBuilder('p')
                 ->leftJoin('p.'.$association, 'assoc')
                 ->addSelect('assoc')

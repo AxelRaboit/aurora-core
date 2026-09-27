@@ -171,6 +171,33 @@ class SpaceContentItemRepository extends ResolveTargetEntityRepository
     }
 
     /**
+     * Every card of these spaces, with its step and space loaded, dated or not.
+     *
+     * @param list<int> $spaceIds
+     *
+     * @return list<SpaceContentItemInterface>
+     */
+    public function findForSpaces(array $spaceIds): array
+    {
+        if ([] === $spaceIds) {
+            return [];
+        }
+
+        /** @var list<SpaceContentItemInterface> $items */
+        $items = $this->createQueryBuilder('i')
+            ->addSelect('c', 's')
+            ->join('i.column', 'c')
+            ->join('i.space', 's')
+            ->where('i.space IN (:spaces)')
+            ->setParameter('spaces', $spaceIds)
+            ->orderBy('i.scheduledAt', Order::Ascending->value)
+            ->getQuery()
+            ->getResult();
+
+        return $items;
+    }
+
+    /**
      * Those of these cards that belong to these spaces.
      *
      * @param list<int> $itemIds

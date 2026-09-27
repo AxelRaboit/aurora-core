@@ -16,8 +16,12 @@ use Aurora\Module\Editorial\PostType\Entity\PostType;
 use Aurora\Module\Editorial\PostType\Repository\PostTypeRepository;
 use Aurora\Module\Editorial\Seo\Dto\SitemapData;
 use Aurora\Module\Editorial\Seo\Service\SitemapBuilder;
+use Aurora\Module\Editorial\Taxonomy\Entity\Taxonomy;
+use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyInterface;
+use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyTerm;
 use Aurora\Module\Editorial\Taxonomy\Repository\TaxonomyRepository;
 use PHPUnit\Framework\TestCase;
+use ReflectionProperty;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RequestContext;
@@ -110,13 +114,37 @@ final class SitemapBuilderTest extends TestCase
     }
 
     /**
-     * @param list<PostInterface> $posts
-     * @param list<string>        $activeLocales
+     * A term is listed only when a published publication is filed under it,
+     * which the database now answers for every term at once.
      */
-    private function build(array $posts, array $activeLocales = ['fr', 'en']): SitemapData
+    public function testListsOnlyTheTermsWithAPublishedPublication(): void
+    {
+        $taxonomy = new Taxonomy()->setSlug('categorie');
+        foreach ([7 => 'remplie', 8 => 'vide'] as $id => $slug) {
+            $term = new TaxonomyTerm();
+            new ReflectionProperty(TaxonomyTerm::class, 'id')->setValue($term, $id);
+            $term->setTaxonomy($taxonomy);
+            $term->translate('fr')->setName($slug)->setSlug($slug);
+            $taxonomy->getTerms()->add($term);
+        }
+
+        $data = $this->build([], ['fr'], [$taxonomy], [7 => true]);
+
+        self::assertStringContainsString('https://example.org/fr/categorie/remplie', $data->xml);
+        self::assertStringNotContainsString('/fr/categorie/vide', $data->xml);
+    }
+
+    /**
+     * @param list<PostInterface>     $posts
+     * @param list<string>            $activeLocales
+     * @param list<TaxonomyInterface> $taxonomies
+     * @param array<int, true>        $termsWithPosts
+     */
+    private function build(array $posts, array $activeLocales = ['fr', 'en'], array $taxonomies = [], array $termsWithPosts = []): SitemapData
     {
         $postRepository = $this->createStub(PostRepository::class);
         $postRepository->method('findAllPublishedForSitemap')->willReturn($posts);
+        $postRepository->method('findTermIdsWithPublishedPost')->willReturn($termsWithPosts);
 
         // One archived type, so the archive section is non-empty and the
         // per-locale counts have something other than posts in them.
@@ -127,7 +155,7 @@ final class SitemapBuilderTest extends TestCase
         ]);
 
         $taxonomyRepository = $this->createStub(TaxonomyRepository::class);
-        $taxonomyRepository->method('findAllForIndex')->willReturn([]);
+        $taxonomyRepository->method('findAllForIndex')->willReturn($taxonomies);
 
         $context = $this->context($activeLocales);
 
@@ -139,6 +167,7 @@ final class SitemapBuilderTest extends TestCase
                 return match ($route) {
                     'editorial_home' => sprintf('https://example.org/%s', $locale),
                     'editorial_archive' => sprintf('https://example.org/%s/%s', $locale, $parameters['postTypeSlug'] ?? ''),
+                    'editorial_term' => sprintf('https://example.org/%s/%s/%s', $locale, $parameters['taxonomySlug'] ?? '', $parameters['termSlug'] ?? ''),
                     default => sprintf('https://example.org/%s/%s/%s', $locale, $parameters['postTypeSlug'] ?? '', $parameters['slug'] ?? ''),
                 };
             },

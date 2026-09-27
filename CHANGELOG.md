@@ -5,6 +5,221 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.271] - 2026-09-27
+
+### Sécurité
+
+- **Créer un espace ne permet plus de le confier à d'autres sans y être.** La
+  création acceptait n'importe quelle équipe et n'importe quels rôles. Qui crée
+  un espace sans voir tous les espaces en devient désormais le chef, quelle que
+  soit l'équipe envoyée.
+- **La règle « l'équipe se change par le chef » vit dans le gestionnaire des
+  espaces**, et plus seulement dans un contrôleur : toute façon d'enregistrer un
+  espace y passe.
+- **Le tableau de bord n'affiche plus un panneau inconnu du serveur.**
+  L'interrupteur et le droit de chaque module tiennent dans une seule table, et
+  l'écran ne montre que ce qu'elle autorise : un module oublié dans la liste des
+  droits s'affichait sans verrou.
+- **La recherche du Planning vérifie que le module est allumé.**
+
+### Corrigé
+
+- **La modération des commentaires perdait des commentaires.** La page
+  joignait les traductions de l'article sous sa limite : en trois langues, une
+  « page de 20 » en montrait 7, les pages ne faisaient pas le total, et
+  certains commentaires n'apparaissaient sur aucune. Chaque page montre
+  désormais ses 20 commentaires, et le nombre de réponses de chacun est
+  compté sans charger les fils.
+- **Les pastilles de langue de la liste des articles** ne montraient que la
+  langue de l'écran, même pour un article traduit en trois langues.
+- **Un calendrier abonné montre les séries en entier.** Le flux ICS n'écrivait
+  que la première occurrence d'un événement récurrent. Il porte maintenant la
+  règle, les occurrences supprimées ou déplacées, et le fuseau du calendrier :
+  un rendez-vous hebdomadaire à 10 h reste à 10 h après le changement d'heure.
+- **Couper un module est vu par le worker sans le redémarrer.** Les réglages
+  et les interrupteurs de modules restaient en mémoire d'un message à
+  l'autre : désactiver le Planning n'arrêtait ses rappels qu'au redémarrage.
+- **La médiathèque affiche les miniatures des images**, et non plus les
+  originaux (jusqu'à 2 560 pixels, vingt par page) dans des tuiles de 200.
+- **Les images servies depuis R2 retrouvent leur document par un index** sur
+  les chemins, au lieu de parcourir toute la médiathèque à chaque image.
+- Mettre à la corbeille ou restaurer une sélection de documents écrivait une
+  ligne d'audit pour chaque document sélectionné, y compris ceux qui étaient
+  déjà dans cet état.
+- Un rappel « journée entière » du jour apparaît dans « À venir » : il n'était
+  ni en retard ni à venir, donc nulle part.
+- Un lien vers une fiche ou un état sans vue ouvre le contenu de l'espace, et
+  plus la dernière vue utilisée ; `?view=content` est respecté.
+- Le badge « en retard » d'une fiche suit la même règle que les compteurs :
+  une fiche d'étape interne, hors calendrier ou publiée n'attend pas le client.
+- Les tuiles du tableau de bord ouvrent la liste du calendrier éditorial avec
+  toutes les fiches de l'état, tous mois confondus et sans date comprises : les
+  parutions manquées des mois passés n'y figuraient pas.
+- Retirer un fichier envoyé par le client ne fait plus tomber sa réponse.
+- Les liens « autour du client » suivent les interrupteurs de Studio : un
+  module coupé n'y apparaît plus.
+- **Plus aucun menu déroulant natif dans le back-office.** `AppSelect`
+  rendait le `<select>` du navigateur, qui ne suit ni le thème ni la police :
+  le filtre d'état d'un espace, et environ 150 autres choix, passent au
+  sélecteur maison, sans aucun changement chez les appelants. La recherche
+  apparaît au-delà de dix entrées, et un select désactivé l'est enfin pour de
+  vrai (l'attribut tombait sur l'enveloppe). Un test échoue désormais si un
+  `<select>` natif revient ; seul le formulaire public du site en garde un,
+  pour le sélecteur du téléphone.
+- Ménage : commentaires qui décrivaient un autre code réécrits, et
+  `PlanningEventManager::update()` et `move()`, qui n'avaient plus d'appelant,
+  retirés (les versions « à la portée choisie » les remplacent).
+
+### Performances
+
+Premier lot de l'audit N+1 du 27/09 : des pages qui lançaient une requête par
+ligne n'en lancent plus qu'une. Chaque correction a son test, qui compte les
+requêtes et échoue si le compte remonte.
+
+- **Fichiers d'un espace Studio** : le document de chaque fichier vient avec
+  la liste (4 requêtes pour 3 fichiers, 1 désormais), côté client comme côté
+  studio.
+- **Zone « termes » d'une page** : les noms des termes sont lus avec eux.
+- **Formulaire posé dans une page** : champs et libellés chargés d'un coup,
+  comme sur la page du formulaire.
+- **Page d'article** : les termes des badges et leurs noms en une requête,
+  comme sur les listes.
+- **Menu public** : une entrée vers un article ou un terme supprimé ne relance
+  plus la recherche à chaque lecture, et le type d'article d'une section est
+  chargé avec les autres cibles.
+- **Liste des utilisateurs** : le responsable de chaque ligne vient avec la
+  page.
+
+Deuxième lot, les chemins publics lourds :
+
+- **Flux ICS d'un calendrier** : événements, invités et rappels viennent avec
+  le calendrier (6 requêtes ligne à ligne pour 3 événements, aucune
+  désormais). Ce flux est relu toutes les quinze minutes par chaque téléphone
+  abonné.
+- **Grille du calendrier et page de partage** : alertes, invités, série d'une
+  occurrence déplacée et occurrences de chaque série viennent avec la fenêtre
+  (14 requêtes pour un mois de test, 2 désormais).
+- **Note partagée** : le carnet du propriétaire, lu et déchiffré en entier
+  pour suivre les `[[liens]]`, n'est plus parcouru qu'une fois par page au
+  lieu de trois.
+- **Sommaire d'une documentation** : les rubriques des pages et leurs noms en
+  trois requêtes, quel que soit le nombre de pages (une soixantaine de
+  requêtes avant, sur chaque page de la documentation).
+- **Validation groupée par le client** : les cartes cochées sont lues en une
+  requête, enregistrées d'un coup, et l'équipe reçoit une seule notification
+  « X a validé N contenus » au lieu d'une par carte. Cent cartes au plus par
+  geste.
+- **Page client de Studio** : le tableau est lu une fois par chargement, au
+  lieu de quatre.
+
+Troisième lot, les écritures en masse :
+
+- **Journal d'audit par lots.** Une opération sur beaucoup de lignes (vider
+  une corbeille, déplacer ou restaurer des documents, les purges planifiées
+  d'articles, de notes, de dossiers, de catégories et de réponses de
+  formulaire, la publication programmée) écrivait chaque ligne d'audit avec
+  son propre numéro et son propre enregistrement, et chaque enregistrement
+  recalculait tout ce qui était déjà chargé : un coût qui croissait au carré.
+  Les lignes restent une par élément, mais leurs numéros sont réservés d'un
+  coup et elles partent ensemble (4 réservations pour 4 documents, 1
+  désormais).
+- **Vider la corbeille de la médiathèque** lit les versions de tous les
+  documents en une requête, au lieu d'une par document.
+- **Supprimer un calendrier** ne charge plus ses événements, invités, alertes
+  et rappels pour les effacer un par un : la base les efface d'elle-même. Son
+  enregistrement ne charge plus non plus tous ses événements pour les compter.
+- **Supprimer un formulaire** ne charge plus toutes ses réponses.
+- **Notifications en série** : les alertes et rappels du Planning, et les
+  annonces d'un espace Studio à son équipe, sont enregistrés en une fois.
+- La corbeille générale lit le dossier parent avec chaque dossier.
+
+Quatrième lot, les points moyens restants :
+
+- **Page d'un terme** (publique) : le terme est trouvé par une requête et ses
+  sous-termes par une autre, au lieu de parcourir toute la taxonomie puis
+  chaque nœud. Le coût ne grandit plus avec la taxonomie, 404 compris, et le
+  terme n'est plus cherché deux fois quand l'adresse passe d'abord par la
+  route d'un article.
+- **Menu du back-office Editorial** : le nombre d'articles de chaque type est
+  compté par la base au lieu de charger tous les articles, sur chaque page
+  Editorial.
+- **Écran des menus** : les cibles des entrées sont chargées par type, en une
+  requête chacune, au lieu de deux requêtes par entrée.
+- **Liste des contrats** : liens de signature, versions et modèles lus pour
+  toute la liste en trois requêtes (9 pour 2 contrats et 17 pour 4 avant) ;
+  la liste n'est plus lue deux fois par la page.
+- **Badges d'usage de la médiathèque** : les diaporamas sont lus avec leurs
+  diapositives, au lieu d'une requête par diaporama.
+- **« Partagé avec moi »** dans les notes : une requête par niveau de
+  l'arbre partagé, au lieu d'une par dossier.
+- **Sitemap** : les termes qui ont un article publié sont trouvés en une
+  requête, sans charger les articles de chaque terme.
+
+Cinquième lot, tout ce qui restait de l'audit :
+
+- **Import d'un carnet zip** : les notes sont écrites ensemble, avec une
+  requête de position par dossier et un seul enregistrement. Note par note,
+  chaque enregistrement rechiffrait tout ce qui était déjà importé, et un gros
+  coffre Obsidian pouvait expirer à mi-chemin.
+- **Imports de la médiathèque** (`aurora:ged:import`, Pexels compris) : un
+  document neuf reçoit sa première version dans le même enregistrement, sans
+  chercher de numéro ni d'élagage, et la mémoire est vidée entre deux
+  fichiers.
+- **Images servies depuis R2** : la ligne du document est lue une fois par
+  requête au lieu de deux.
+- **Déplacement vers R2 ou en local** : la sélection est lue en une requête et
+  les versions de chaque document une seule fois.
+- **Mise à la corbeille d'un dossier** (médiathèque et notes) : une requête par
+  niveau de l'arbre au lieu d'une par dossier, et plus de double parcours
+  (14 requêtes avant pour une branche de 7 dossiers, 3 désormais).
+- **Vignettes de la page client Studio** : une requête par vignette au lieu
+  de cinq.
+- **Équipe d'un espace Studio** : les membres et leurs comptes sont lus en une
+  fois, et les notifications non lues de toute l'équipe en une requête.
+- **Salons de discussion** : lus une fois par page au lieu de deux, avec
+  leurs membres.
+- **Sélecteur de modèles de contrat** : versions et textes de tous les
+  modèles en une requête.
+- **Page du Planning** : partages, personnes et calendriers des liens viennent
+  avec les calendriers ; inviter plusieurs personnes les trouve en une
+  requête et écrit leurs notifications ensemble.
+- **Formulaires** : les réponses sont libellées à partir d'un formulaire lu
+  une fois (liste, export CSV, envoi) ; aller sur `/forms` ne charge plus tous
+  les formulaires pour trouver le premier.
+- **Sélecteur d'articles** : une sélection enregistrée revient dans son ordre,
+  titres compris, en une requête.
+- **Divers** : le tableau de bord compte les taxonomies sans les charger, la
+  médiathèque compte ses dossiers une fois au premier rendu, la recherche
+  d'images orphelines compte les usages en une passe, et la commande
+  `ged:audit-public-documents` lit les publications avec leurs traductions
+  (et ignore celles qui sont à la corbeille, qui n'ont plus de page).
+
+Au passage, **le chiffrement des colonnes est branché dès le démarrage** et
+plus seulement à la première requête : un traitement qui lisait une note
+chiffrée avant toute requête HTTP ou commande échouait sur un ordre de
+démarrage, et certains tests ne passaient que selon celui qui tournait avant
+eux.
+
+### Dans aurora-client
+
+Rien à faire après `make aurora-update`. Une classe qui étendrait
+`PlanningEventManager` en appelant `update()` ou `move()` passerait par
+`updateAtScope()` et `moveAtScope()` ; le projet client n'en a pas.
+De même, `SharedNoteScope::noteInScope()` et `titleIndex()` prennent désormais
+la portée déjà calculée (`notesFor()`) plutôt que le lien, et une classe qui
+implémenterait `SpaceContentItemManagerInterface` sans étendre le gestionnaire
+aurait à écrire `approveMany()`. Le projet client ne fait ni l'un ni l'autre.
+`NotificationManagerInterface::notify()` prend un dernier paramètre facultatif
+`bool $flush = true` : une implémentation écrite à part devrait l'ajouter à sa
+signature. Le projet client n'en a pas.
+Idem pour `CommentSerializerInterface::serialize()`, qui prend un troisième
+paramètre facultatif `?array $replyCounts`. Une migration ajoute deux index à
+`core_ged_documents` ; `make deploy-prod` la passe.
+`MenuSerializerInterface::serializeItem()` prend un second paramètre facultatif,
+et `ContractSerializerInterface` gagne `serializeMany()` : une implémentation
+écrite à part devrait les ajouter. Le projet client n'en a pas.
+`MarkdownNoteManagerInterface` gagne `createMany()`, avec la même remarque.
+
 ## [0.9.270] - 2026-09-27
 
 Le plan Studio du 27/09, en entier (lots 0 à 6) : d'abord les failles

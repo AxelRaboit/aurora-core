@@ -11,7 +11,7 @@ use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 /**
  * Builds the Twig payload for the backend dashboard.
  *
- * A module joins by adding a line to MODULE_TOGGLES below and a
+ * A module joins by adding a line to MODULES below and a
  * `*-panel.register.js` on the Vue side, which fills the panel registry before
  * any app mounts. (That register file replaced a `MODULE_DEFINITIONS` constant
  * this comment still named.) Its figures reach `stats` through a
@@ -28,40 +28,28 @@ use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 final readonly class DashboardViewBuilder
 {
     /**
-     * Module id → the settings key gating it. The id is what a stats provider
-     * returns from `getModuleKey()` and what the Vue definitions match on.
+     * Module id → the settings key gating it, and the privilege that lets
+     * somebody look at what it counts.
      *
-     * @var array<string, string>
+     * One table rather than two: with a separate list of privileges, a module
+     * added to the toggles and forgotten there showed its panel to everybody.
+     * The id is what a stats provider returns from `getModuleKey()` and what
+     * the Vue definitions match on, and the screen draws only the panels this
+     * table says yes to.
+     *
+     * Planning fournissait ses chiffres depuis le début sans être listé ici :
+     * ses chiffres n'étaient jamais demandés, et le calendrier annonçait zéro
+     * calendrier et zéro retard. Un module absent de cette table n'a plus de
+     * panneau du tout.
+     *
+     * @var array<string, array{toggle: string, privilege: string}>
      */
-    private const array MODULE_TOGGLES = [
-        'editorial' => 'modules_editorial_backend',
-        'ged' => 'modules_ged_backend',
-        'platform' => 'modules_platform_backend',
-        // Planning fournissait ses chiffres depuis le début et n'était pas
-        // listé ici : un panneau absent de cette table s'affiche quand même,
-        // parce que la liste ne masque que ce qu'elle dit faux, mais ses
-        // chiffres ne sont jamais demandés. Le calendrier annonçait donc zéro
-        // calendrier et zéro retard, ce qui ressemble à une installation
-        // vide plutôt qu'à un panneau débranché.
-        'planning' => 'modules_planning_backend',
-        'studio' => 'modules_studio_backend',
-    ];
-
-    /**
-     * Module id → the privilege that lets somebody look at what it counts.
-     *
-     * A module switched on is not a module everybody may read: the panel's
-     * figures describe screens the reader might not be allowed to open, and
-     * only Planning used to check. One entry per module of MODULE_TOGGLES.
-     *
-     * @var array<string, string>
-     */
-    private const array MODULE_PRIVILEGES = [
-        'editorial' => 'editorial.posts.view',
-        'ged' => 'ged.documents.view',
-        'platform' => 'platform.users.manage',
-        'planning' => 'planning.calendars.view',
-        'studio' => 'studio.spaces.view',
+    private const array MODULES = [
+        'editorial' => ['toggle' => 'modules_editorial_backend', 'privilege' => 'editorial.posts.view'],
+        'ged' => ['toggle' => 'modules_ged_backend', 'privilege' => 'ged.documents.view'],
+        'platform' => ['toggle' => 'modules_platform_backend', 'privilege' => 'platform.users.manage'],
+        'planning' => ['toggle' => 'modules_planning_backend', 'privilege' => 'planning.calendars.view'],
+        'studio' => ['toggle' => 'modules_studio_backend', 'privilege' => 'studio.spaces.view'],
     ];
 
     public function __construct(
@@ -76,9 +64,9 @@ final readonly class DashboardViewBuilder
     public function indexView(): array
     {
         $enabledModules = [];
-        foreach (self::MODULE_TOGGLES as $moduleId => $toggle) {
-            $enabledModules[$moduleId] = $this->moduleAccessChecker->isEnabled($toggle)
-                && $this->authorizationChecker->isGranted(self::MODULE_PRIVILEGES[$moduleId]);
+        foreach (self::MODULES as $moduleId => $module) {
+            $enabledModules[$moduleId] = $this->moduleAccessChecker->isEnabled($module['toggle'])
+                && $this->authorizationChecker->isGranted($module['privilege']);
         }
 
         return [

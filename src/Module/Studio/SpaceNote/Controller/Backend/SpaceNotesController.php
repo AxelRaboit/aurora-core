@@ -324,27 +324,18 @@ class SpaceNotesController extends AbstractController
      */
     private function documentsOf(SpaceNote $note): array
     {
-        $documents = [];
+        $ids = [];
 
         foreach ($note->getBody() as $block) {
             $file = $block['data']['file'] ?? null;
             $id = is_array($file) ? ($file['documentId'] ?? null) : null;
-            if (!is_int($id)) {
-                continue;
-            }
-
-            if (isset($documents[$id])) {
-                continue;
-            }
-
-            $document = $this->documentRepository->find($id);
-
-            if ($document instanceof DocumentInterface) {
-                $documents[$id] = $document;
+            if (is_int($id)) {
+                $ids[$id] = true;
             }
         }
 
-        return array_values($documents);
+        // One query for every picture of the note, not one each.
+        return [] === $ids ? [] : $this->documentRepository->findBy(['id' => array_keys($ids)]);
     }
 
     /**

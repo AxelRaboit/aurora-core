@@ -54,7 +54,8 @@ final readonly class DocumentsViewBuilder
         $folders = $this->serializeFoldersWithCounts();
 
         return [
-            'documents' => $this->buildListPayload($pagination),
+            // The folders already counted above, rather than counted again.
+            'documents' => $this->buildListPayload($pagination, folders: $folders),
             'categories' => $categories,
             'tags' => $tags,
             'folders' => $folders,
@@ -103,6 +104,7 @@ final readonly class DocumentsViewBuilder
         ];
     }
 
+    /** @param list<array<string, mixed>>|null $folders the sidebar's folders, when the caller has counted them */
     public function buildListPayload(
         PaginationRequest $pagination,
         ?int $categoryId = null,
@@ -114,6 +116,7 @@ final readonly class DocumentsViewBuilder
         ?StorageDiskEnum $storageDisk = null,
         bool $trashed = false,
         bool $originalsOnly = false,
+        ?array $folders = null,
     ): array {
         $result = $this->documentRepository->findPaginated(
             $pagination->page,
@@ -139,7 +142,7 @@ final readonly class DocumentsViewBuilder
             'totalPages' => $result['totalPages'],
             // Sidebar refreshes counts on every navigation so the badges next
             // to folder names stay in sync after moves / deletes / uploads.
-            'folders' => $this->serializeFoldersWithCounts(),
+            'folders' => $folders ?? $this->serializeFoldersWithCounts(),
         ];
     }
 

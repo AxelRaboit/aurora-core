@@ -36,6 +36,32 @@ class PostTypeRepository extends ResolveTargetEntityRepository
             ->getResult();
     }
 
+    /**
+     * How many posts each type holds, keyed by type id, in one query.
+     *
+     * The same rows `getPosts()->count()` counted, without loading them: the
+     * back-office menu asked it of every type with no description, on every
+     * Editorial page, and hydrated every post of the type to answer.
+     *
+     * @return array<int, int>
+     */
+    public function countPostsByType(): array
+    {
+        $rows = $this->createQueryBuilder('pt')
+            ->select('pt.id AS id', 'COUNT(p.id) AS posts')
+            ->leftJoin('pt.posts', 'p')
+            ->groupBy('pt.id')
+            ->getQuery()
+            ->getArrayResult();
+
+        $counts = [];
+        foreach ($rows as $row) {
+            $counts[(int) $row['id']] = (int) $row['posts'];
+        }
+
+        return $counts;
+    }
+
     public function findOneBySlug(string $slug): ?PostTypeInterface
     {
         return $this->findOneBy(['slug' => $slug]);

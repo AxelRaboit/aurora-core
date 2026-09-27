@@ -31,9 +31,10 @@ use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
  * happens on, and the first two words of the rule could not admit it. The rule
  * is now: Studio holds what is sold, what is delivered, and the surface it is
  * delivered on. The boundary it still refuses is the same one - a tool the work
- * is made with belongs to its own module, which is why a space announces its
- * dates to Planning instead of drawing a calendar of its own, and files its
- * documents in the GED instead of keeping a second one.
+ * is made with belongs to its own module: a space draws its own month and the
+ * editorial calendar reads across spaces, but the dates also go to Planning
+ * rather than a second agenda, and the documents are filed in the GED instead
+ * of a second library.
  *
  * The module has no landing page of its own. Every destination it owns is a
  * real screen, so a row in the menu always leads somewhere that shows

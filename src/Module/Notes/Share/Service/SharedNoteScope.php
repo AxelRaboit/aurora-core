@@ -139,10 +139,16 @@ final readonly class SharedNoteScope
      *
      * The lookup runs over the scope rather than the repository: a guest cannot
      * name a note the link does not already carry.
+     *
+     * The scope is passed in, as `notesFor()` returned it, rather than walked
+     * again: the walk reads and decrypts the owner's whole notebook, and one
+     * page used to pay for it three times.
+     *
+     * @param list<MarkdownNoteInterface> $scope
      */
-    public function noteInScope(MarkdownNoteShareLinkInterface $link, int $id): ?MarkdownNoteInterface
+    public function noteInScope(array $scope, int $id): ?MarkdownNoteInterface
     {
-        foreach ($this->notesFor($link) as $note) {
+        foreach ($scope as $note) {
             if ((int) $note->getId() === $id) {
                 return $note;
             }
@@ -159,12 +165,14 @@ final readonly class SharedNoteScope
      * unique, and the first in scope order wins - the root-first order the
      * reader sees.
      *
+     * @param list<MarkdownNoteInterface> $scope as `notesFor()` returned it
+     *
      * @return array<string, int>
      */
-    public function titleIndex(MarkdownNoteShareLinkInterface $link): array
+    public function titleIndex(array $scope): array
     {
         $index = [];
-        foreach ($this->notesFor($link) as $note) {
+        foreach ($scope as $note) {
             $title = mb_trim((string) $note->getTitle());
             if ('' === $title) {
                 continue;

@@ -66,6 +66,29 @@ class SpaceChatChannelRepository extends ResolveTargetEntityRepository
      *
      * @return list<SpaceChatChannelInterface>
      */
+    /**
+     * The members of these rooms, filled in place.
+     *
+     * A room's list shows who is in it; loaded room by room, that was a query
+     * for each.
+     *
+     * @param list<SpaceChatChannelInterface> $channels
+     */
+    public function warmMembers(array $channels): void
+    {
+        if ([] === $channels) {
+            return;
+        }
+
+        $this->createQueryBuilder('c')
+            ->leftJoin('c.members', 'm')
+            ->addSelect('m')
+            ->where('c IN (:channels)')
+            ->setParameter('channels', $channels)
+            ->getQuery()
+            ->getResult();
+    }
+
     public function findForUser(CustomerSpaceInterface $space, CoreUserInterface $user): array
     {
         return $this->createQueryBuilder('c')

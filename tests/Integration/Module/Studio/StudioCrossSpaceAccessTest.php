@@ -15,6 +15,7 @@ use Aurora\Module\Studio\Customer\Entity\Customer;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceMember;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceMemberRoleEnum;
+use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceStatusEnum;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumn;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItem;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentItemManager;
@@ -174,6 +175,63 @@ final class StudioCrossSpaceAccessTest extends IntegrationTestCase
         self::assertNull($events->findBySource(SpaceContentItemManager::SCHEDULE_SOURCE, $itemId), 'a deleted space leaves the calendar');
     }
 
+    /**
+     * A tile of the dashboard opens every card in its state, whatever its
+     * month: a publication missed last month was not on this month's grid.
+     */
+    public function testAStateListsItsCardsAcrossMonths(): void
+    {
+        $space = $this->givenSpace('Le mien', '73282932000074');
+        $this->givenScheduledItem($space, 'Manquée il y a deux mois', '-60 days');
+        $this->givenScheduledItem($space, 'À venir', '+3 days');
+
+        $this->client->request('GET', '/backend/studio/calendar/items?scope=all&state=missed');
+        self::assertResponseIsSuccessful();
+
+        self::assertSame(['Manquée il y a deux mois'], array_column(json_decode((string) $this->client->getResponse()->getContent(), true)['items'], 'title'));
+    }
+
+    /**
+     * The header of a space lists the other spaces the reader may open - not
+     * the ones they may not, nor the archived ones - on the same tab.
+     */
+    public function testTheSpaceSwitcherListsTheOtherVisibleSpaces(): void
+    {
+        $mine = $this->givenSpace('Le mien', '73282932000074');
+        $other = $this->givenSpace('Mon autre', '39860733100024');
+        $theirs = $this->givenSpace('Le leur', '55210055400013');
+        $archived = $this->givenSpace('Archivé', '44306184100047');
+        $archived->setStatus(CustomerSpaceStatusEnum::Archived);
+        $this->entityManager->flush();
+
+        $member = $this->givenTeammate(['studio.spaces.view']);
+        foreach ([$mine, $other, $archived] as $space) {
+            $this->givenMembership($space, $member);
+        }
+        $this->client->loginUser($member, 'admin');
+
+        $this->client->request('GET', sprintf('/workspace/%d', $mine->getId()));
+        self::assertResponseIsSuccessful();
+        $switcher = $this->client->getCrawler()->filter('header details a')->each(static fn ($link): string => (string) $link->attr('href'));
+
+        self::assertSame([sprintf('/workspace/%d', $other->getId())], $switcher);
+    }
+
+    /** The steps of a board are reordered through the route the board now calls. */
+    public function testTheStepsOfABoardAreReordered(): void
+    {
+        $space = $this->givenSpace('Tableau', '73282932000074');
+        $ids = array_map(static fn ($column): int => (int) $column->getId(), static::getContainer()->get(SpaceContentColumnRepository::class)->findForSpace($space));
+        $reversed = array_reverse($ids);
+
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/columns/reorder', $space->getId()), ['columnIds' => $reversed]);
+        self::assertResponseIsSuccessful();
+
+        $this->entityManager->clear();
+        $space = $this->entityManager->find(CustomerSpace::class, $space->getId());
+        self::assertSame($reversed, array_map(static fn ($column): int => (int) $column->getId(), static::getContainer()->get(SpaceContentColumnRepository::class)->findForSpace($space)));
+    }
+
     /** @return list<string> */
     private function calendarTitles(string $scope): array
     {
@@ -215,14 +273,14 @@ final class StudioCrossSpaceAccessTest extends IntegrationTestCase
     }
 
     /** A dated card, created through the space so the calendar hears of it. */
-    private function givenScheduledItem(CustomerSpace $space, string $title): int
+    private function givenScheduledItem(CustomerSpace $space, string $title, string $when = '+3 days'): int
     {
         $column = static::getContainer()->get(SpaceContentColumnRepository::class)->findForSpace($space)[0];
 
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/create', $space->getId()), [
             'title' => $title,
             'columnId' => $column->getId(),
-            'scheduledAt' => new DateTimeImmutable('+3 days')->format('Y-m-d\TH:i'),
+            'scheduledAt' => new DateTimeImmutable($when)->format('Y-m-d\TH:i'),
         ]);
         self::assertResponseIsSuccessful();
 

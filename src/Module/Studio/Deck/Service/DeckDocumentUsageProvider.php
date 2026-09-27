@@ -53,7 +53,7 @@ final readonly class DeckDocumentUsageProvider implements BatchDocumentUsageProv
     {
         $usages = [];
 
-        foreach ($this->decks->findAllForList() as $deck) {
+        foreach ($this->decks->findAllWithSlides() as $deck) {
             if (!in_array($documentId, $this->pictures->idsUsedBy($deck), true)) {
                 continue;
             }
@@ -90,7 +90,7 @@ final readonly class DeckDocumentUsageProvider implements BatchDocumentUsageProv
         $wanted = array_fill_keys($documentIds, true);
         $counts = [];
 
-        foreach ($this->decks->findAllForList() as $deck) {
+        foreach ($this->decks->findAllWithSlides() as $deck) {
             foreach ($this->pictures->idsUsedBy($deck) as $documentId) {
                 if (isset($wanted[$documentId])) {
                     $counts[$documentId] = ($counts[$documentId] ?? 0) + 1;

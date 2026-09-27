@@ -47,7 +47,11 @@ class UserRepository extends ResolveTargetEntityRepository
      */
     public function findPaginated(int $page, int $limit = 20, ?string $search = null, ?string $role = null): array
     {
-        $queryBuilder = $this->createQueryBuilder('u')->orderBy('u.createdAt', Order::Descending->value);
+        // The manager is on every row; to-one, so the join leaves the page size alone.
+        $queryBuilder = $this->createQueryBuilder('u')
+            ->leftJoin('u.manager', 'm')
+            ->addSelect('m')
+            ->orderBy('u.createdAt', Order::Descending->value);
         $countQueryBuilder = $this->createQueryBuilder('u')->select('COUNT(u.id)');
 
         if (null !== $search && '' !== $search) {

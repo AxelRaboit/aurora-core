@@ -247,6 +247,37 @@ final class NoteShareTest extends IntegrationTestCase
         self::assertResponseIsSuccessful();
     }
 
+    /**
+     * A shared page walks the owner's notebook once.
+     *
+     * The walk reads and decrypts every note the owner has, to follow the
+     * `[[links]]`. Finding the note, listing the scope and indexing its titles
+     * each walked it again: three times per page, for an anonymous reader.
+     */
+    public function testASharedPageReadsTheNotebookOnce(): void
+    {
+        $target = $this->note('Suite', 'Le contenu lié.');
+        $source = $this->note('Sommaire', 'Voir [[Suite]].');
+        $link = $this->link($source, includeLinked: true);
+
+        $this->client->disableReboot();
+        $holder = static::getContainer()->get('doctrine.debug_data_holder');
+        $holder->reset();
+
+        $this->client->request('GET', $this->urlGenerator->generate(
+            'notes_share_note',
+            ['token' => $link->getToken(), 'id' => $target->getId()],
+        ));
+        self::assertResponseIsSuccessful();
+
+        $walks = array_filter(
+            $holder->getData()['default'] ?? [],
+            static fn (array $query): bool => str_contains((string) $query['sql'], 'FROM core_notes_markdown_notes ')
+                && !str_contains((string) $query['sql'], '.id = ?'),
+        );
+        self::assertCount(1, $walks, 'the notebook is read once per page');
+    }
+
     /** Links are followed through, not just one hop. */
     public function testLinksAreFollowedTransitively(): void
     {

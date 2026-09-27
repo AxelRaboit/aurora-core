@@ -131,6 +131,45 @@ final class DocumentDeletionErasesFilesTest extends IntegrationTestCase
         self::assertFileDoesNotExist($plainFile);
     }
 
+    /**
+     * Emptying a trash costs the same queries for four documents or four hundred.
+     *
+     * Each document read its versions on its own, and wrote its line of
+     * audit with its own sequence number and its own flush - and each flush
+     * recomputed everything the unit of work already held.
+     */
+    public function testEmptyingATrashReadsAndAuditsInBatches(): void
+    {
+        static::createClient();
+        $container = static::getContainer();
+        $entityManager = $container->get(EntityManagerInterface::class);
+        $manager = $container->get(DocumentManagerInterface::class);
+        $uploadDir = (string) $container->getParameter('app.upload_dir');
+
+        $manager->emptyTrash();
+
+        foreach (['un', 'deux', 'trois', 'quatre'] as $name) {
+            $path = 'ged/9999/01/batch-'.$name.'-'.uniqid().'.png';
+            $this->writePng($uploadDir, $path);
+            $document = $this->document('Batch '.$name, $path);
+            $entityManager->persist($document);
+            $entityManager->flush();
+            $manager->delete($document);
+        }
+
+        $holder = $container->get('doctrine.debug_data_holder');
+        $holder->reset();
+
+        self::assertSame(4, $manager->emptyTrash());
+
+        $count = static fn (string $needle): int => count(array_filter(
+            $holder->getData()['default'] ?? [],
+            static fn (array $query): bool => str_contains((string) $query['sql'], $needle),
+        ));
+        self::assertSame(1, $count('app_sequence_counters'), 'the audit references are reserved together');
+        self::assertSame(1, $count('FROM core_ged_document_versions c0_ WHERE c0_.document_id IN'), 'the versions are read together');
+    }
+
     public function testRestoringATrashedDocumentBringsItBackWithItsFile(): void
     {
         static::createClient();

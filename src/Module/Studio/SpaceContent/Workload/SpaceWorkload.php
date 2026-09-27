@@ -112,10 +112,11 @@ final readonly class SpaceWorkload
 
         if ($onCalendar && $pending && $column->isVisibleToClient()) {
             $states[] = 'with_client';
+        }
 
-            if ($item->getReviewBy() instanceof DateTimeImmutable && $item->getReviewBy() < $now) {
-                $states[] = 'late_review';
-            }
+        // The card's own rule, which the badge on it reads too.
+        if ($item->isLateForReview($now)) {
+            $states[] = 'late_review';
         }
 
         if (SpaceContentApprovalEnum::ChangesRequested === $item->getApproval()) {

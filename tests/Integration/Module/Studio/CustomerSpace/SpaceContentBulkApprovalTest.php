@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Integration\Module\Studio\CustomerSpace;
 
+use Aurora\Core\Notification\Entity\Notification;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\Customer\Entity\Customer;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
+use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceMember;
+use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceMemberRoleEnum;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLink;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumn;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentComment;
@@ -20,9 +23,13 @@ use Aurora\Tests\Integration\IntegrationTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 
+use function array_filter;
+use function array_values;
 use function json_decode;
 use function parse_url;
+use function preg_match;
 use function sprintf;
+use function str_contains;
 
 /**
  * Valider plusieurs cartes d'un geste, et l'échéance de relecture.
@@ -60,7 +67,9 @@ final class SpaceContentBulkApprovalTest extends IntegrationTestCase
 
     protected function tearDown(): void
     {
-        foreach ([SpaceContentComment::class, SpaceContentItem::class, SpaceAccessLink::class, SpaceContentColumn::class, CustomerSpace::class, Customer::class] as $class) {
+        $this->entityManager->createQuery(sprintf("DELETE FROM %s n WHERE n.type = 'studio.space.answer'", Notification::class))->execute();
+
+        foreach ([SpaceContentComment::class, SpaceContentItem::class, SpaceAccessLink::class, SpaceContentColumn::class, CustomerSpaceMember::class, CustomerSpace::class, Customer::class] as $class) {
             $this->entityManager->createQuery(sprintf('DELETE FROM %s', $class))->execute();
         }
 
@@ -86,6 +95,107 @@ final class SpaceContentBulkApprovalTest extends IntegrationTestCase
         // Ce qui n'était pas coché n'a pas bougé : une action de masse porte
         // sur une sélection, pas sur un écran.
         self::assertSame('pending', $this->items->find($untouched)->getApproval()->value);
+    }
+
+    /**
+     * Trois cartes validées d'un geste : une lecture, une nouvelle.
+     *
+     * Chaque carte était relue seule, écrite seule, et annoncée seule à
+     * chaque membre de l'équipe : vingt cartes rangées d'un coup faisaient
+     * vingt cloches.
+     */
+    public function testSeveralApprovalsAreReadOnceAndAnnouncedOnce(): void
+    {
+        $space = $this->givenSpace();
+        $ids = [$this->givenItem($space, 'Un'), $this->givenItem($space, 'Deux'), $this->givenItem($space, 'Trois')];
+        $url = $this->issue($space);
+
+        // Somebody to tell: an administrator who creates a space is not made
+        // a member of it, since they see every space anyway.
+        $member = new CustomerSpaceMember();
+        $member->setUser($this->entityManager->getRepository(User::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']))->setRole(CustomerSpaceMemberRoleEnum::Lead);
+        $managed = $this->entityManager->find(CustomerSpace::class, $space->getId());
+        $managed->addMember($member);
+        $this->entityManager->persist($member);
+        $this->entityManager->flush();
+
+        $this->entityManager->createQuery(sprintf("DELETE FROM %s n WHERE n.type = 'studio.space.answer'", Notification::class))->execute();
+        $guest = $this->asGuest();
+        $guest->disableReboot();
+        $holder = static::getContainer()->get('doctrine.debug_data_holder');
+        $holder->reset();
+
+        $guest->jsonRequest('POST', $this->approvePath($url), ['ids' => $ids]);
+        self::assertSame(3, $this->payload()['approved']);
+
+        $reads = array_filter(
+            $holder->getData()['default'] ?? [],
+            static fn (array $query): bool => str_starts_with((string) $query['sql'], 'SELECT')
+                && str_contains((string) $query['sql'], 'FROM core_studio_space_content_items ')
+                && str_contains((string) $query['sql'], ' IN ('),
+        );
+        self::assertCount(1, $reads, 'the selected cards are read in one query');
+
+        $news = $this->entityManager->getRepository(Notification::class)->findBy(['type' => 'studio.space.answer']);
+        self::assertCount(1, $news, 'one piece of news for the whole gesture');
+        self::assertStringContainsString('3', $news[0]->getTitle());
+    }
+
+    /**
+     * La page du client lit son tableau une fois.
+     *
+     * Les cartes, leurs fils et leurs fichiers relisaient chacun le tableau
+     * pour savoir ce que le client a le droit de voir : quatre lectures par
+     * chargement, et autant après chaque réponse.
+     */
+    public function testTheClientPageReadsItsBoardOnce(): void
+    {
+        $space = $this->givenSpace();
+        $this->givenItem($space, 'Un');
+        $this->givenItem($space, 'Deux');
+        $url = $this->issue($space);
+
+        $guest = $this->asGuest();
+        $guest->disableReboot();
+        $holder = static::getContainer()->get('doctrine.debug_data_holder');
+        $holder->reset();
+
+        $guest->request('GET', (string) parse_url($url, PHP_URL_PATH));
+        self::assertSame(200, $guest->getResponse()->getStatusCode());
+
+        $boardReads = array_filter(
+            $holder->getData()['default'] ?? [],
+            static fn (array $query): bool => str_starts_with((string) $query['sql'], 'SELECT')
+                && str_contains((string) $query['sql'], 'FROM core_studio_space_content_items '),
+        );
+        self::assertCount(1, $boardReads, 'the board is read once per page');
+    }
+
+    /**
+     * La page du client lit ses salons une fois, avec leurs membres.
+     *
+     * La page et le jeton du hub les lisaient chacun, et les membres de
+     * chaque salon venaient un par un.
+     */
+    public function testTheClientPageReadsItsRoomsOnce(): void
+    {
+        $space = $this->givenSpace();
+        $url = $this->issue($space);
+
+        $guest = $this->asGuest();
+        $guest->disableReboot();
+        $holder = static::getContainer()->get('doctrine.debug_data_holder');
+        $holder->reset();
+
+        $guest->request('GET', (string) parse_url($url, PHP_URL_PATH));
+        self::assertSame(200, $guest->getResponse()->getStatusCode());
+
+        $queries = $holder->getData()['default'] ?? [];
+        $roomLists = array_filter($queries, static fn (array $query): bool => str_contains((string) $query['sql'], 'open_to_client = true'));
+        $memberLoads = array_filter($queries, static fn (array $query): bool => 1 === preg_match('/FROM core_studio_space_chat_channel_members t0 /', (string) $query['sql']));
+
+        self::assertCount(1, $roomLists, 'the rooms, read once');
+        self::assertSame([], array_values($memberLoads), 'no room loads its members alone');
     }
 
     /** La carte d'un autre client est ignorée, jamais validée. */

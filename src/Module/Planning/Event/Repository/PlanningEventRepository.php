@@ -7,6 +7,7 @@ namespace Aurora\Module\Planning\Event\Repository;
 use Aurora\Core\Repository\ResolveTargetEntityRepository;
 use Aurora\Module\Planning\Event\Entity\PlanningEvent;
 use Aurora\Module\Planning\Event\Entity\PlanningEventInterface;
+use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
 use DateTimeImmutable;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -29,6 +30,10 @@ class PlanningEventRepository extends ResolveTargetEntityRepository
      * event running from before the window into it is on the screen, and a query
      * comparing only starts is the bug every calendar has once.
      *
+     * Alerts, attendees with their user, and the series an edited occurrence
+     * came from are joined: the serializer reads all of them for every event,
+     * on a grid of up to a hundred and fifty and on a public share page.
+     *
      * @param list<int> $planningIds
      *
      * @return list<PlanningEventInterface>
@@ -41,8 +46,12 @@ class PlanningEventRepository extends ResolveTargetEntityRepository
 
         /** @var list<PlanningEventInterface> $result */
         $result = $this->createQueryBuilder('e')
-            ->addSelect('p')
+            ->addSelect('p', 'al', 'at', 'au', 'm')
             ->innerJoin('e.planning', 'p')
+            ->leftJoin('e.alerts', 'al')
+            ->leftJoin('e.attendees', 'at')
+            ->leftJoin('at.user', 'au')
+            ->leftJoin('e.master', 'm')
             ->where('e.planning IN (:plannings)')
             ->andWhere('e.rrule IS NULL')
             ->andWhere('e.startAt < :to')
@@ -68,6 +77,10 @@ class PlanningEventRepository extends ResolveTargetEntityRepository
      * Whether a qualifying series actually lands inside the window is the
      * expander's answer, and it is cheap once the candidates are this few.
      *
+     * Alerts, attendees and the edited occurrences are joined: the serializer
+     * reads the first two for every occurrence drawn, and the expander reads
+     * the third to know which dates to skip.
+     *
      * @param list<int> $planningIds
      *
      * @return list<PlanningEventInterface>
@@ -80,8 +93,12 @@ class PlanningEventRepository extends ResolveTargetEntityRepository
 
         /** @var list<PlanningEventInterface> $result */
         $result = $this->createQueryBuilder('e')
-            ->addSelect('p')
+            ->addSelect('p', 'al', 'at', 'au', 'o')
             ->innerJoin('e.planning', 'p')
+            ->leftJoin('e.alerts', 'al')
+            ->leftJoin('e.attendees', 'at')
+            ->leftJoin('at.user', 'au')
+            ->leftJoin('e.occurrences', 'o')
             ->where('e.planning IN (:plannings)')
             ->andWhere('e.rrule IS NOT NULL')
             ->andWhere('e.startAt < :to')
@@ -119,6 +136,16 @@ class PlanningEventRepository extends ResolveTargetEntityRepository
             ->getResult();
 
         return $result;
+    }
+
+    public function countForPlanning(PlanningInterface $planning): int
+    {
+        return (int) $this->createQueryBuilder('e')
+            ->select('COUNT(e.id)')
+            ->where('e.planning = :planning')
+            ->setParameter('planning', $planning)
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 
     public function findBySource(string $sourceType, int $sourceId): ?PlanningEventInterface

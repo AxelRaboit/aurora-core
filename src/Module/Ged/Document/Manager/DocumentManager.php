@@ -65,11 +65,17 @@ class DocumentManager implements DocumentManagerInterface
         $document->setStorageDisk($this->storageManager->activeDisk());
         $this->regenerateRenditionsIfImage($document);
         $this->entityManager->persist($document);
-        $this->entityManager->flush();
 
+        // The first version goes in with the document, in the same flush. A
+        // document born a moment ago has no history, so its version is the
+        // first and there is nothing to prune: asking the database for either,
+        // then flushing again, cost two queries and a flush per file of an
+        // import.
         if (null !== $document->getFilePath()) {
-            $this->recordVersion($document);
+            $this->entityManager->persist($this->versionOf($document, 1));
         }
+
+        $this->entityManager->flush();
 
         $this->auditCreated($document);
 
@@ -198,9 +204,7 @@ class DocumentManager implements DocumentManagerInterface
 
         $this->entityManager->flush();
 
-        foreach ($documents as $document) {
-            $this->auditMoved($document, $folder);
-        }
+        $this->auditLogger->logMany('ged', 'document.moved', 'Document', $this->auditEntries($documents, ['folder' => $folder?->getName()]));
     }
 
     /**
@@ -216,7 +220,7 @@ class DocumentManager implements DocumentManagerInterface
         }
 
         $documents = $this->documentRepository->findBy(['id' => $ids]);
-        $trashed = 0;
+        $trashed = [];
 
         foreach ($documents as $document) {
             if ($document->isTrashed()) {
@@ -224,16 +228,16 @@ class DocumentManager implements DocumentManagerInterface
             }
 
             $document->setDeletedAt(new DateTimeImmutable());
-            ++$trashed;
+            $trashed[] = $document;
         }
 
         $this->entityManager->flush();
 
-        foreach ($documents as $document) {
-            $this->auditTrashed($document);
-        }
+        // The ones this call trashed, not the whole selection: a document
+        // already in the trash was logged when it went there.
+        $this->auditLogger->logMany('ged', 'document.trashed', 'Document', $this->auditEntries($trashed));
 
-        return $trashed;
+        return count($trashed);
     }
 
     public function bulkRestore(array $ids): int
@@ -243,7 +247,7 @@ class DocumentManager implements DocumentManagerInterface
         }
 
         $documents = $this->documentRepository->findBy(['id' => $ids]);
-        $restored = 0;
+        $restored = [];
 
         foreach ($documents as $document) {
             if (!$document->isTrashed()) {
@@ -251,16 +255,14 @@ class DocumentManager implements DocumentManagerInterface
             }
 
             $document->setDeletedAt(null);
-            ++$restored;
+            $restored[] = $document;
         }
 
         $this->entityManager->flush();
 
-        foreach ($documents as $document) {
-            $this->auditRestored($document);
-        }
+        $this->auditLogger->logMany('ged', 'document.restored', 'Document', $this->auditEntries($restored));
 
-        return $restored;
+        return count($restored);
     }
 
     /**
@@ -296,11 +298,22 @@ class DocumentManager implements DocumentManagerInterface
         // affichait « une erreur est survenue », et la suppression unitaire -
         // un seul document, donc pas de second audit au milieu - continuait
         // de passer.
+        //
+        // Les lignes d'audit partent désormais toutes en un flush, avant la
+        // première suppression, ce qui garde la même garantie.
+        $this->auditLogger->logMany('ged', 'document.deleted', 'Document', $this->auditEntries($documents));
+
+        $documentsByDisk = [];
+
         foreach ($documents as $document) {
-            $this->auditDeleted($document);
             $disk = $document->getStorageDisk()->value;
+            $documentsByDisk[$disk][] = $document;
             $renditionsByDisk[$disk] = array_merge($renditionsByDisk[$disk] ?? [], $document->getRenditions());
-            $pathsByDisk[$disk] = array_merge($pathsByDisk[$disk] ?? [], $this->collectOwnedFiles([$document]));
+        }
+
+        // One query per disk for the versions, not one per document.
+        foreach ($documentsByDisk as $disk => $onDisk) {
+            $pathsByDisk[$disk] = $this->collectOwnedFiles($onDisk);
         }
 
         foreach ($documents as $document) {
@@ -390,17 +403,12 @@ class DocumentManager implements DocumentManagerInterface
     protected function collectOwnedFiles(array $documents): array
     {
         $paths = [];
+        $versionPaths = $this->versionRepository->findFilePathsByDocument($documents);
+
         foreach ($documents as $document) {
-            foreach ([$document->getFilePath(), $document->getThumbnailPath()] as $path) {
+            foreach ([$document->getFilePath(), $document->getThumbnailPath(), ...$versionPaths[(int) $document->getId()] ?? []] as $path) {
                 if (null !== $path && '' !== $path) {
                     $paths[$path] = true;
-                }
-            }
-
-            foreach ($this->versionRepository->findByDocument($document) as $version) {
-                $versionPath = $version->getFilePath();
-                if ('' !== $versionPath) {
-                    $paths[$versionPath] = true;
                 }
             }
         }
@@ -458,6 +466,15 @@ class DocumentManager implements DocumentManagerInterface
      */
     protected function recordVersion(DocumentInterface $document): void
     {
+        $this->entityManager->persist($this->versionOf($document, $this->versionRepository->getNextVersionNumber($document)));
+        $this->entityManager->flush();
+
+        $this->pruneVersions($document);
+    }
+
+    /** A version row pointing at the document's current file. */
+    protected function versionOf(DocumentInterface $document, int $number): DocumentVersionInterface
+    {
         $version = $this->createDocumentVersion();
         $version->setDocument($document)
             ->setFilePath((string) $document->getFilePath())
@@ -469,11 +486,9 @@ class DocumentManager implements DocumentManagerInterface
             // at the same backend. They diverge later, when the document moves
             // and its history stays where it was.
             ->setStorageDisk($document->getStorageDisk())
-            ->setVersionNumber($this->versionRepository->getNextVersionNumber($document));
-        $this->entityManager->persist($version);
-        $this->entityManager->flush();
+            ->setVersionNumber($number);
 
-        $this->pruneVersions($document);
+        return $version;
     }
 
     /**
@@ -645,6 +660,22 @@ class DocumentManager implements DocumentManagerInterface
             ...$this->auditPayload($document),
             'folder' => $folder?->getName(),
         ]);
+    }
+
+    /**
+     * One audit line per document, for `AuditLogger::logMany()`.
+     *
+     * @param list<DocumentInterface> $documents
+     * @param array<string, mixed>    $extra     added to every line
+     *
+     * @return list<array{id: int|null, data: array<string, mixed>}>
+     */
+    protected function auditEntries(array $documents, array $extra = []): array
+    {
+        return array_map(
+            fn (DocumentInterface $document): array => ['id' => $document->getId(), 'data' => [...$this->auditPayload($document), ...$extra]],
+            $documents,
+        );
     }
 
     protected function auditPayload(DocumentInterface $document): array

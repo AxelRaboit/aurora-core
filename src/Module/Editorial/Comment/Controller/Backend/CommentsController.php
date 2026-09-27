@@ -57,10 +57,11 @@ class CommentsController extends AbstractController
         // Tallies for the whole page in one query rather than one per row.
         $ids = array_map(static fn (CommentInterface $comment): int => (int) $comment->getId(), $result['items']);
         $reactionCounts = $this->reactionRepository->countByComments($ids);
+        $replyCounts = $this->commentRepository->countRepliesByComments($ids);
 
         return $this->jsonSuccess([
             'comments' => array_map(
-                fn (CommentInterface $comment): array => $this->commentSerializer->serialize($comment, $reactionCounts),
+                fn (CommentInterface $comment): array => $this->commentSerializer->serialize($comment, $reactionCounts, $replyCounts),
                 $result['items'],
             ),
             'total' => $result['total'],

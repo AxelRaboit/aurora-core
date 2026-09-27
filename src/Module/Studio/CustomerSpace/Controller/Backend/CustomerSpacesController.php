@@ -12,9 +12,7 @@ use Aurora\Core\Validation\Service\PayloadValidator;
 use Aurora\Module\Studio\CustomerSpace\Dto\CustomerSpaceInputFactoryInterface;
 use Aurora\Module\Studio\CustomerSpace\Dto\CustomerSpaceInputInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
-use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceMemberRoleEnum;
 use Aurora\Module\Studio\CustomerSpace\Manager\CustomerSpaceManagerInterface;
-use Aurora\Module\Studio\CustomerSpace\Security\SpaceVisibility;
 use Aurora\Module\Studio\CustomerSpace\View\CustomerSpacesViewBuilder;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -35,7 +33,6 @@ class CustomerSpacesController extends AbstractController
         protected readonly CustomerSpaceInputFactoryInterface $spaceInputFactory,
         protected readonly CustomerSpacesViewBuilder $viewBuilder,
         protected readonly PayloadValidator $payloadValidator,
-        protected readonly SpaceVisibility $visibility,
     ) {}
 
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
@@ -58,13 +55,6 @@ class CustomerSpacesController extends AbstractController
     public function update(CustomerSpace $space, Request $request): JsonResponse
     {
         return $this->withInput($request, function (CustomerSpaceInputInterface $input) use ($space): JsonResponse {
-            // Qui est dans l'équipe, et qui la dirige, se décide par le chef
-            // de l'espace. Le droit de modifier un espace suffisait : un
-            // simple membre se renvoyait lui-même avec le rôle de chef.
-            if (!$this->visibility->canConfigure($space) && $this->teamOf($input) !== $this->currentTeam($space)) {
-                return $this->jsonInvalidInput(['members' => 'backend.studio.spaces.errors.team_lead_only']);
-            }
-
             $this->spaceManager->update($space, $input);
 
             return $this->jsonSuccess($this->viewBuilder->spacePayload($space));
@@ -82,37 +72,6 @@ class CustomerSpacesController extends AbstractController
         }
 
         return $this->jsonSuccess($this->viewBuilder->listPayload());
-    }
-
-    /**
-     * L'équipe envoyée, rôle par personne, dans un ordre qui ne dépend pas du
-     * formulaire. Un rôle inconnu vaut « membre », comme le fait le Manager.
-     *
-     * @return array<int, string>
-     */
-    private function teamOf(CustomerSpaceInputInterface $input): array
-    {
-        $team = [];
-        foreach ($input->getMembers() as $row) {
-            $team[$row['userId']] = (CustomerSpaceMemberRoleEnum::tryFrom($row['role']) ?? CustomerSpaceMemberRoleEnum::Member)->value;
-        }
-
-        ksort($team);
-
-        return $team;
-    }
-
-    /** @return array<int, string> */
-    private function currentTeam(CustomerSpace $space): array
-    {
-        $team = [];
-        foreach ($space->getMembers() as $member) {
-            $team[(int) $member->getUser()->getId()] = $member->getRole()->value;
-        }
-
-        ksort($team);
-
-        return $team;
     }
 
     /**

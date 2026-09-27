@@ -21,7 +21,9 @@ export function useDashboardModule(enabledModules) {
 
     const visibleModules = computed(() =>
         dashboardPanels()
-            .filter((module) => enabledModules.value[module.id] !== false)
+            // Only what the server said yes to. `!== false` drew a panel the
+            // server had never heard of - no toggle, no privilege checked.
+            .filter((module) => true === enabledModules.value[module.id])
             .map((module) => ({ ...module, label: () => t(module.labelKey) })),
     );
 

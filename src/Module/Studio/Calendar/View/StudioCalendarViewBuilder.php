@@ -16,6 +16,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use function array_filter;
 use function array_map;
 use function array_values;
+use function in_array;
 
 /**
  * What the editorial calendar shows: what goes out, for whom, and when.
@@ -65,7 +66,32 @@ final readonly class StudioCalendarViewBuilder
 
         $ids = array_map(static fn (CustomerSpaceInterface $space): int => (int) $space->getId(), $this->activeSpaces($scope));
 
-        return array_map(fn (SpaceContentItemInterface $item): array => [
+        return array_map($this->serialize(...), $this->items->findOnCalendar($ids, $from, $to));
+    }
+
+    /**
+     * Every card in one state, whatever its month and whether it has a date.
+     *
+     * What a tile of the dashboard opens: « 3 publications not made » names
+     * cards of past months, and « to rework » ones that may have no date at
+     * all, so a month on screen could not show them.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function itemsInState(SpaceScopeEnum $scope, string $state): array
+    {
+        $ids = array_map(static fn (CustomerSpaceInterface $space): int => (int) $space->getId(), $this->activeSpaces($scope));
+
+        return array_values(array_map($this->serialize(...), array_filter(
+            $this->items->findForSpaces($ids),
+            fn (SpaceContentItemInterface $item): bool => in_array($state, $this->workload->statesOf($item), true),
+        )));
+    }
+
+    /** @return array<string, mixed> */
+    private function serialize(SpaceContentItemInterface $item): array
+    {
+        return [
             'id' => $item->getId(),
             'title' => $item->getTitle(),
             'spaceId' => $item->getSpace()->getId(),
@@ -79,8 +105,14 @@ final readonly class StudioCalendarViewBuilder
             'stepName' => $item->getColumn()->getName(),
             'states' => $this->workload->statesOf($item),
             // La fiche elle-même, dans la vue calendrier de son espace.
-            'path' => $this->urlGenerator->generate('workspace_space_content', ['id' => $item->getSpace()->getId(), 'view' => 'calendar', 'item' => $item->getId()]),
-        ], $this->items->findOnCalendar($ids, $from, $to));
+            // The card itself: in its space's month when it has a date, in
+            // the content otherwise - an undated card is not on a calendar.
+            'path' => $this->urlGenerator->generate('workspace_space_content', [
+                'id' => $item->getSpace()->getId(),
+                'view' => $item->getScheduledAt() instanceof DateTimeImmutable ? 'calendar' : 'content',
+                'item' => $item->getId(),
+            ]),
+        ];
     }
 
     /** @return list<CustomerSpaceInterface> */

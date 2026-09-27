@@ -60,7 +60,7 @@ final class NoteShareController extends AbstractController
             return $this->unavailable();
         }
 
-        return $this->render('@Notes/share/show.html.twig', $this->pageView($link, $link->getNote()));
+        return $this->render('@Notes/share/show.html.twig', $this->pageView($link, $link->getNote(), $this->scope->notesFor($link)));
     }
 
     /**
@@ -87,13 +87,15 @@ final class NoteShareController extends AbstractController
             return $this->unavailable();
         }
 
-        $note = $this->scope->noteInScope($link, $id);
+        // Walked once per request: it reads the owner's whole notebook.
+        $scope = $this->scope->notesFor($link);
+        $note = $this->scope->noteInScope($scope, $id);
 
         if (!$note instanceof MarkdownNoteInterface) {
             return $this->unavailable();
         }
 
-        return $this->render('@Notes/share/show.html.twig', $this->pageView($link, $note));
+        return $this->render('@Notes/share/show.html.twig', $this->pageView($link, $note, $scope));
     }
 
     /**
@@ -136,12 +138,12 @@ final class NoteShareController extends AbstractController
     }
 
     /**
+     * @param list<MarkdownNoteInterface> $scope the link's notes, walked once by the caller
+     *
      * @return array<string, mixed>
      */
-    private function pageView(MarkdownNoteShareLinkInterface $link, MarkdownNoteInterface $note): array
+    private function pageView(MarkdownNoteShareLinkInterface $link, MarkdownNoteInterface $note, array $scope): array
     {
-        $scope = $this->scope->notesFor($link);
-
         $token = $link->getToken();
 
         return [
@@ -182,7 +184,7 @@ final class NoteShareController extends AbstractController
                 'id' => (int) $n->getId(),
                 'title' => $n->getTitle(),
             ], $scope),
-            'titleIndex' => $this->scope->titleIndex($link),
+            'titleIndex' => $this->scope->titleIndex($scope),
         ];
     }
 

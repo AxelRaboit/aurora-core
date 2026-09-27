@@ -20,7 +20,6 @@ use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\Customer\View\SpaceInformationViewBuilder;
 use Aurora\Module\Studio\CustomerSpace\Controller\SpaceOwnershipTrait;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
-use Aurora\Module\Studio\SpaceChat\Repository\SpaceChatChannelRepository;
 use Aurora\Module\Studio\SpaceChat\Service\SpaceChatHub;
 use Aurora\Module\Studio\SpaceChat\View\SpaceChatViewBuilder;
 use Aurora\Module\Studio\SpaceContent\Dto\SpaceContentColumnInputFactoryInterface;
@@ -92,7 +91,6 @@ class SpaceContentController extends AbstractController
         protected readonly SpaceOrphanedDocumentOffer $orphanedOffer,
         protected readonly SpaceBoardViewBuilder $viewBuilder,
         protected readonly SpaceChatViewBuilder $chatViewBuilder,
-        protected readonly SpaceChatChannelRepository $chatChannels,
         protected readonly SpaceChatHub $chatHub,
         protected readonly SpaceNotesViewBuilder $notesViewBuilder,
         protected readonly SpaceFilesViewBuilder $filesViewBuilder,
@@ -126,9 +124,12 @@ class SpaceContentController extends AbstractController
         // conversation is a fifth thing the reader can be looking at, not a
         // fifth reading of the cards, and a builder named for the board has no
         // business knowing the chat exists.
+        // Read once, for the page and for the hub's cookie below.
+        $rooms = $this->chatViewBuilder->roomsForUser($space, $reader);
+
         $response = $this->render('@Studio/backend/space-content/content.html.twig', [
             ...$this->viewBuilder->contentView($space),
-            ...$this->chatViewBuilder->view($space, $reader),
+            ...$this->chatViewBuilder->view($space, $reader, $rooms),
             ...$this->notesViewBuilder->view($space),
             ...$this->filesViewBuilder->view($space),
             ...$this->informationViewBuilder->view($space),
@@ -145,7 +146,7 @@ class SpaceContentController extends AbstractController
         // Les canaux que ce lecteur entend, pas ceux de l'espace : le jeton
         // nomme ses sujets un par un, et un canal interne dont il n'est pas
         // n'y figure pas.
-        $cookie = $this->chatHub->subscriptionCookie($request, $this->chatChannels->findForUser($space, $reader));
+        $cookie = $this->chatHub->subscriptionCookie($request, $rooms);
 
         if ($cookie instanceof Cookie) {
             $response->headers->setCookie($cookie);

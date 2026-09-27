@@ -142,12 +142,14 @@ final readonly class NoteReadScope
             $tous[(int) $racine->getId()] = $racine;
         }
 
-        $aVisiter = array_keys($tous);
+        // Un niveau par requête : demander dossier par dossier coûtait une
+        // requête par nœud, feuilles comprises.
+        $niveau = array_keys($tous);
 
-        while ([] !== $aVisiter) {
-            $enfants = $this->folders->findLivingChildrenOf(array_shift($aVisiter));
+        while ([] !== $niveau) {
+            $suivant = [];
 
-            foreach ($enfants as $enfant) {
+            foreach ($this->folders->findLivingChildrenOfAny($niveau) as $enfant) {
                 $id = (int) $enfant->getId();
 
                 if (isset($tous[$id])) {
@@ -155,8 +157,10 @@ final readonly class NoteReadScope
                 }
 
                 $tous[$id] = $enfant;
-                $aVisiter[] = $id;
+                $suivant[] = $id;
             }
+
+            $niveau = $suivant;
         }
 
         return array_values($tous);

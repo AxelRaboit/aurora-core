@@ -9,6 +9,7 @@ use Aurora\Module\Editorial\Post\Entity\PostTranslationInterface;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
 use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyInterface;
 use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyTermInterface;
+use Aurora\Module\Editorial\Taxonomy\Repository\TaxonomyTermRepository;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 use function array_key_last;
@@ -27,16 +28,18 @@ use function usort;
  * off it by their term. Nothing here is a second structure to keep in step
  * with the first: the summary is the taxonomy, drawn.
  *
- * Everything is read in two queries and grouped in memory rather than asked
- * per rubric. A hundred and thirty-four pages is small, and the page is cached
- * on its content date anyway; what matters is that the count of queries does
- * not grow with the count of rubrics.
+ * Everything is read in three queries and grouped in memory rather than asked
+ * per rubric: the pages, their rubrics, and the tree with its names. What
+ * matters is that the count of queries grows with neither the pages nor the
+ * rubrics - it did with both, one query per page for its rubrics and one per
+ * rubric for its name, some sixty on a documentation page.
  */
 final readonly class PostSequenceBuilder
 {
     public function __construct(
         private PostRepository $postRepository,
         private UrlGeneratorInterface $urlGenerator,
+        private TaxonomyTermRepository $termRepository,
     ) {}
 
     /**
@@ -60,6 +63,8 @@ final readonly class PostSequenceBuilder
         // repository already sorts by position then date, which is the order
         // the summary is meant to show.
         $pages = $this->postRepository->findLatestPublished($locale, 500, $postType->getId());
+        $this->postRepository->warmCards($pages);
+        $terms = $this->termRepository->findByTaxonomyOrderedForDisplay($taxonomy);
 
         /** @var array<int, list<PostInterface>> $byTerm */
         $byTerm = [];
@@ -73,10 +78,10 @@ final readonly class PostSequenceBuilder
         $summary = [];
         $flat = [];
 
-        foreach ($this->children($taxonomy->getTerms(), null) as $section) {
+        foreach ($this->children($terms, null) as $section) {
             $entries = [];
 
-            foreach ($this->children($taxonomy->getTerms(), $section) as $rubric) {
+            foreach ($this->children($terms, $section) as $rubric) {
                 $entries[] = $this->rubricView($rubric, $byTerm, $post, $locale, $flat);
             }
 

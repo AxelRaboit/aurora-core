@@ -130,9 +130,15 @@ class DocumentSerializer implements DocumentSerializerInterface
             return $this->documentUrlGenerator->thumbnailPathUrl($document);
         }
 
+        // An image has no `thumbnailPath` - that one is for what has to be
+        // drawn into a picture first, a PDF or a video. Its thumbnail is a
+        // rendition, and the grid used to skip them for the original: twenty
+        // pictures of up to 2560 pixels a page, for tiles a few hundred wide.
+        // `medium` is sharp on a dense screen at that size; an original
+        // smaller than it has no rendition and is small enough already.
         $mime = MimeTypeEnum::tryFrom($document->getMimeType() ?? '');
         if (null !== $mime && str_starts_with($mime->value, 'image/')) {
-            return $this->documentUrlGenerator->publicUrl($document);
+            return $this->documentUrlGenerator->thumbUrl($document);
         }
 
         return null;

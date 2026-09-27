@@ -52,6 +52,63 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
         return $note;
     }
 
+    public function createMany(CoreUserInterface $user, array $inputs): array
+    {
+        if ([] === $inputs) {
+            return [];
+        }
+
+        // What `create()` asks the database once per note - the folder, the
+        // last position in it - asked once per folder, and a single flush.
+        // Note by note, a vault of five hundred cost some three thousand
+        // queries and five hundred flushes, each re-encrypting every note
+        // already written, inside one request that could time out half-way.
+        /** @var array<int|string, NoteFolderInterface|null> $folders */
+        $folders = [];
+        /** @var array<int|string, int> $nextPosition */
+        $nextPosition = [];
+        $notes = [];
+
+        foreach ($inputs as $input) {
+            $folderId = $input->getFolderId();
+            $key = $folderId ?? 'root';
+
+            if (!array_key_exists($key, $folders)) {
+                $folders[$key] = null === $folderId ? null : $this->folderRepository->findOneByUserAndId($user, $folderId);
+                $max = $this->noteRepository->findMaxPositionForUserAndFolder($user, $folderId);
+                $nextPosition[$key] = null === $max ? 0 : $max + 1;
+            }
+
+            $note = $this->createNote();
+            $note->setUser($user);
+            $note->setTitle($input->getTitle());
+            $note->setContent($input->getContent());
+            $note->setTags($input->getTags());
+            $note->setCoverUrl($input->getCoverUrl());
+            $note->setCoverCreditName($input->getCoverCreditName());
+            $note->setCoverCreditUrl($input->getCoverCreditUrl());
+            $note->setAppearance(NoteAppearanceEnum::fromNullable($input->getAppearance()));
+            if (null !== $input->getCoverPosition()) {
+                $note->setCoverPosition($input->getCoverPosition());
+            }
+
+            $note->setFolder($folders[$key]);
+            $note->setPosition($input->getPosition() ?? $nextPosition[$key]++);
+
+            $this->entityManager->persist($note);
+            $notes[] = $note;
+        }
+
+        $this->entityManager->flush();
+
+        $this->auditLogger->logMany('notes_markdown', 'note.created', 'MarkdownNote', array_map(
+            fn (MarkdownNoteInterface $note): array => ['id' => $note->getId(), 'data' => $this->auditPayload($note)],
+            $notes,
+        ));
+
+        return $notes;
+    }
+
     public function update(MarkdownNoteInterface $note, MarkdownNoteInputInterface $input): void
     {
         $oldTitle = $note->getTitle();
@@ -141,8 +198,14 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
             return 0;
         }
 
+        // The audit lines together, before any row goes: inside the loop each
+        // line's flush also ran the removal queued before it.
+        $this->auditLogger->logMany('notes_markdown', 'note.deleted', 'MarkdownNote', array_map(
+            fn (MarkdownNoteInterface $note): array => ['id' => $note->getId(), 'data' => $this->auditPayload($note)],
+            $notes,
+        ));
+
         foreach ($notes as $note) {
-            $this->auditDeleted($note);
             $this->cleanupOrphanedImages($note->getUser(), $note->getContent(), null);
             $this->entityManager->remove($note);
         }

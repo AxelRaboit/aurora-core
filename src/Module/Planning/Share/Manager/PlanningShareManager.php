@@ -6,7 +6,6 @@ namespace Aurora\Module\Planning\Share\Manager;
 
 use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
 use Aurora\Module\Planning\Share\Entity\PlanningShare;
-use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
@@ -52,18 +51,13 @@ class PlanningShareManager implements PlanningShareManagerInterface
             unset($wanted[$id]);
         }
 
-        foreach ($wanted as $id => $canWrite) {
-            $person = $this->users->find($id);
-            // An id that names nobody is dropped rather than refused: it means a
-            // stale list, and failing the whole change over it would be the wrong
-            // trade.
-            if (!$person instanceof CoreUserInterface) {
-                continue;
-            }
-
+        // Everybody new in one query rather than one each. An id that names
+        // nobody is dropped rather than refused: it means a stale list, and
+        // failing the whole change over it would be the wrong trade.
+        foreach ([] === $wanted ? [] : $this->users->findBy(['id' => array_keys($wanted)]) as $person) {
             $share = new PlanningShare();
             $share->setUser($person);
-            $share->setCanWrite($canWrite);
+            $share->setCanWrite($wanted[(int) $person->getId()]);
             $planning->addShare($share);
             $this->entityManager->persist($share);
         }

@@ -24,6 +24,7 @@ use Aurora\Module\Studio\SpaceChat\Manager\SpaceChatMessageManagerInterface;
 use Aurora\Module\Studio\SpaceChat\Repository\SpaceChatChannelRepository;
 use Aurora\Module\Studio\SpaceChat\Service\SpaceChatHub;
 use Aurora\Module\Studio\SpaceChat\View\SpaceChatViewBuilder;
+use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentAttachmentInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
 use Aurora\Module\Studio\SpaceContent\Enum\SpaceContentApprovalEnum;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentAttachmentManagerInterface;
@@ -75,6 +76,9 @@ final class PublicSpaceController extends AbstractController
     use JsonRequestTrait;
     use JsonResponseTrait;
     use PageScriptRequestTrait;
+
+    /** How many cards one "approve" gesture may carry. */
+    private const int MAX_APPROVED_AT_ONCE = 100;
 
     public function __construct(
         private readonly SpaceAccessLinkManagerInterface $links,
@@ -132,9 +136,12 @@ final class PublicSpaceController extends AbstractController
 
         $this->links->markOpened($link);
 
+        // Read once, for the page and for the hub's cookie below.
+        $rooms = $this->chatViewBuilder->roomsForLink($link);
+
         $response = $this->privately($this->render('@Studio/public/space.html.twig', [
             ...$this->viewBuilder->view($link, $token),
-            ...$this->chatViewBuilder->publicView($link, $token),
+            ...$this->chatViewBuilder->publicView($link, $token, $rooms),
             ...$this->filesViewBuilder->publicView($link, $token),
         ]));
 
@@ -145,7 +152,7 @@ final class PublicSpaceController extends AbstractController
         // to this space's topic and to subscribing only, in a cookie the
         // browser sends nowhere but the hub. Revoking the link stops this page
         // being served, and the cookie runs out on its own.
-        $cookie = $this->chatHub->subscriptionCookie($request, $this->chatChannels->findForLink($link->getSpace(), $link));
+        $cookie = $this->chatHub->subscriptionCookie($request, $rooms);
 
         if ($cookie instanceof Cookie) {
             $response->headers->setCookie($cookie);
@@ -261,29 +268,21 @@ final class PublicSpaceController extends AbstractController
             return $this->jsonInvalidInput(['ids' => 'studio.public.space.errors.nothing_selected']);
         }
 
-        $approved = 0;
+        // Read in one query, from this space only, and a hundred at most: the
+        // list comes from a guest, and each card is a write and a line of
+        // audit. A week's board is far below it; a longer list is cut rather
+        // than refused, and the count returned says how many went through.
+        $wanted = array_slice(array_values(array_unique(array_map(
+            intval(...),
+            array_filter($ids, static fn (mixed $id): bool => is_int($id) || (is_string($id) && ctype_digit($id))),
+        ))), 0, self::MAX_APPROVED_AT_ONCE);
 
-        foreach ($ids as $id) {
-            if (!is_int($id) && (!is_string($id) || !ctype_digit($id))) {
-                continue;
-            }
+        $items = array_values(array_filter(
+            [] === $wanted ? [] : $this->itemRepository->findBy(['id' => $wanted, 'space' => $link->getSpace()]),
+            fn (SpaceContentItemInterface $item): bool => $this->isShownTo($link, $item),
+        ));
 
-            $item = $this->itemRepository->find((int) $id);
-            if (!$item instanceof SpaceContentItemInterface) {
-                continue;
-            }
-
-            if (!$this->isShownTo($link, $item)) {
-                continue;
-            }
-
-            try {
-                $this->items->answer($item, $link, SpaceContentApprovalEnum::Approved);
-                ++$approved;
-            } catch (FieldException) {
-                continue;
-            }
-        }
+        $approved = $this->items->approveMany($items, $link);
 
         $this->links->markOpened($link);
 
@@ -766,14 +765,12 @@ final class PublicSpaceController extends AbstractController
             throw $this->createNotFoundException();
         }
 
-        $attachment = $this->attachmentRepository->find($attachmentId);
-
         // The card the file hangs on has to belong to the space this link
-        // opens. Without this line the id in the address reaches every file of
-        // every client.
-        if (null === $attachment
-            || $attachment->getItem()->getSpace()->getId() !== $link->getSpace()->getId()
-        ) {
+        // opens - checked in the query itself. Without it the id in the
+        // address reaches every file of every client.
+        $attachment = $this->attachmentRepository->findForGuest($attachmentId, $link->getSpace());
+
+        if (!$attachment instanceof SpaceContentAttachmentInterface) {
             throw $this->createNotFoundException();
         }
 

@@ -358,6 +358,13 @@ final class MenuRenderer
             if (null !== $targetId) {
                 $ids[$item->getTargetType()->value][] = $targetId;
             }
+
+            // A section entry names a post type too, read on every page to
+            // decide which entry is current.
+            $sectionTypeId = $item->getSectionPostTypeId();
+            if (null !== $sectionTypeId) {
+                $ids[MenuItemTargetTypeEnum::PostTypeArchive->value][] = $sectionTypeId;
+            }
         }
 
         $missing = $this->missing($ids[MenuItemTargetTypeEnum::Post->value] ?? [], $this->posts);
@@ -404,7 +411,8 @@ final class MenuRenderer
 
     /**
      * Misses are cached too, so a deleted target is not looked up again on
-     * every entry that still points at it.
+     * every entry that still points at it. Read back with `array_key_exists`,
+     * never `??=`, which takes a remembered null for a key never seen.
      *
      * @param list<int>               $ids
      * @param array<int, object|null> $cache
@@ -422,7 +430,11 @@ final class MenuRenderer
             return null;
         }
 
-        return $this->posts[$id] ??= $this->postRepository->find($id);
+        if (!array_key_exists($id, $this->posts)) {
+            $this->posts[$id] = $this->postRepository->find($id);
+        }
+
+        return $this->posts[$id];
     }
 
     private function term(?int $id): ?TaxonomyTermInterface
@@ -431,7 +443,11 @@ final class MenuRenderer
             return null;
         }
 
-        return $this->terms[$id] ??= $this->termRepository->find($id);
+        if (!array_key_exists($id, $this->terms)) {
+            $this->terms[$id] = $this->termRepository->find($id);
+        }
+
+        return $this->terms[$id];
     }
 
     private function postType(?int $id): ?PostTypeInterface
@@ -440,7 +456,11 @@ final class MenuRenderer
             return null;
         }
 
-        return $this->postTypes[$id] ??= $this->postTypeRepository->find($id);
+        if (!array_key_exists($id, $this->postTypes)) {
+            $this->postTypes[$id] = $this->postTypeRepository->find($id);
+        }
+
+        return $this->postTypes[$id];
     }
 
     /** @param array<int, array<string, mixed>> $items */

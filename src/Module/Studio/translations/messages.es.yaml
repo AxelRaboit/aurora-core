@@ -176,6 +176,9 @@ backend:
             today: Hoy
             no_spaces: 'Ningún espacio que mostrar.'
             empty_month: 'Nada programado este mes.'
+            empty_state: "Ninguna ficha en este estado."
+            undated: "Sin fecha"
+            all_months: "Todos los meses"
             states:
                 missed: 'Publicación no realizada'
                 late_review: 'Revisión atrasada'
@@ -1369,6 +1372,7 @@ backend:
             comment: '%who% ha comentado «%item%»'
             upload: '%who% ha enviado un archivo en «%item%»'
             approved: '%who% ha validado «%item%»'
+            approved_many: '%who% ha validado %count% contenidos'
             changes_requested: '%who% pide cambios en «%item%»'
             late_review: '{1}Una revisión atrasada|]1,Inf[%count% revisiones atrasadas'
         space_chat:

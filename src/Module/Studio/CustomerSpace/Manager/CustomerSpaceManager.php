@@ -6,6 +6,7 @@ namespace Aurora\Module\Studio\CustomerSpace\Manager;
 
 use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
+use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\Customer\Dto\CustomerInputFactoryInterface;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
@@ -19,10 +20,12 @@ use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceMember;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceMemberInterface;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceMemberRoleEnum;
 use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
+use Aurora\Module\Studio\CustomerSpace\Security\SpaceVisibility;
 use Aurora\Module\Studio\SpaceChat\Manager\SpaceChatChannelManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentColumnManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentItemManagerInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -41,6 +44,8 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
         protected readonly SpaceChatChannelManagerInterface $chatChannels,
         protected readonly TranslatorInterface $translator,
         protected readonly SpaceContentItemManagerInterface $contentItems,
+        protected readonly SpaceVisibility $visibility,
+        protected readonly Security $security,
     ) {}
 
     public function create(CustomerSpaceInputInterface $input): CustomerSpaceInterface
@@ -54,6 +59,7 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
         }
 
         $this->applyInput($space, $input);
+        $this->makeCreatorLead($space);
 
         $this->entityManager->persist($space);
         $this->seedBoard($space);
@@ -71,6 +77,7 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
 
     public function update(CustomerSpaceInterface $space, CustomerSpaceInputInterface $input): void
     {
+        $this->refuseTeamChangeUnlessLead($space, $input);
         $this->applyInput($space, $input);
         $this->entityManager->flush();
 
@@ -123,6 +130,85 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
     }
 
     /** Same contract as `createSpace`, for the row that joins a space to an account. */
+    /**
+     * Who is on the team, and who leads it, is the lead's decision.
+     *
+     * Here and not in a controller, so that every way of saving a space goes
+     * through it: the right to edit a space was enough to send oneself back
+     * as its lead. A team sent unchanged passes, so a member can still rename
+     * the space.
+     */
+    protected function refuseTeamChangeUnlessLead(CustomerSpaceInterface $space, CustomerSpaceInputInterface $input): void
+    {
+        if ($this->visibility->canConfigure($space) || $this->teamOf($input) === $this->currentTeam($space)) {
+            return;
+        }
+
+        throw new FieldException('members', $this->translator->trans('backend.studio.spaces.errors.team_lead_only'));
+    }
+
+    /**
+     * Whoever creates a space leads it, unless they already see every space.
+     *
+     * Creating was the unguarded half: any team and any roles went through,
+     * so somebody could open a space and hand it to others without being in
+     * it. A creator who is not an administrator is now always on the team,
+     * as its lead - which is what lets them configure the space afterwards.
+     */
+    protected function makeCreatorLead(CustomerSpaceInterface $space): void
+    {
+        $creator = $this->security->getUser();
+
+        if ($this->visibility->seesAll() || !$creator instanceof CoreUserInterface) {
+            return;
+        }
+
+        foreach ($space->getMembers() as $member) {
+            if ($member->getUser()->getId() === $creator->getId()) {
+                $member->setRole(CustomerSpaceMemberRoleEnum::Lead);
+
+                return;
+            }
+        }
+
+        $member = $this->createMember();
+        $member->setUser($creator);
+        $member->setRole(CustomerSpaceMemberRoleEnum::Lead);
+
+        $space->addMember($member);
+    }
+
+    /**
+     * The team sent, a role per person, in an order that does not depend on
+     * the form. An unknown role counts as « member », as `applyMembers` reads it.
+     *
+     * @return array<int, string>
+     */
+    protected function teamOf(CustomerSpaceInputInterface $input): array
+    {
+        $team = [];
+        foreach ($input->getMembers() as $row) {
+            $team[$row['userId']] = (CustomerSpaceMemberRoleEnum::tryFrom($row['role']) ?? CustomerSpaceMemberRoleEnum::Member)->value;
+        }
+
+        ksort($team);
+
+        return $team;
+    }
+
+    /** @return array<int, string> */
+    protected function currentTeam(CustomerSpaceInterface $space): array
+    {
+        $team = [];
+        foreach ($space->getMembers() as $member) {
+            $team[(int) $member->getUser()->getId()] = $member->getRole()->value;
+        }
+
+        ksort($team);
+
+        return $team;
+    }
+
     protected function createMember(): CustomerSpaceMemberInterface
     {
         return new CustomerSpaceMember();

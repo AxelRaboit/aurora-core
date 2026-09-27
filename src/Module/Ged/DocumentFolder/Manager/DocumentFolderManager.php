@@ -67,7 +67,13 @@ class DocumentFolderManager implements DocumentFolderManagerInterface
         $folder->setDeletedAt($now)->setTrashedWithFolderId(null);
 
         if ($cascade) {
-            foreach ($this->descendantsOf($folder) as $descendant) {
+            // Walked once, for the folders and for the documents under them.
+            $descendants = $this->descendantsOf($folder);
+            $branchIds = [$folderId];
+
+            foreach ($descendants as $descendant) {
+                $branchIds[] = (int) $descendant->getId();
+
                 if ($descendant->isTrashed()) {
                     continue;
                 }
@@ -75,7 +81,7 @@ class DocumentFolderManager implements DocumentFolderManagerInterface
                 $descendant->setDeletedAt($now)->setTrashedWithFolderId($folderId);
             }
 
-            foreach ($this->documentRepository->findLivingIn($this->branchIds($folder)) as $document) {
+            foreach ($this->documentRepository->findLivingIn($branchIds) as $document) {
                 $document->setDeletedAt($now)->setTrashedWithFolderId($folderId);
             }
         } else {
@@ -178,8 +184,9 @@ class DocumentFolderManager implements DocumentFolderManagerInterface
             return 0;
         }
 
+        $this->auditDeletedMany($folders);
+
         foreach ($folders as $folder) {
-            $this->auditDeleted($folder);
             $this->entityManager->remove($folder);
         }
 
@@ -195,15 +202,26 @@ class DocumentFolderManager implements DocumentFolderManagerInterface
      */
     protected function descendantsOf(DocumentFolderInterface $folder): array
     {
+        // A level per query: asking each node for its children cost one query
+        // per folder of the branch, leaves included.
         $found = [];
-        $queue = [$folder];
+        $level = [(int) $folder->getId()];
+        $seen = [(int) $folder->getId() => true];
 
-        while ([] !== $queue) {
-            $current = array_shift($queue);
-            foreach ($this->folderRepository->findChildrenOf((int) $current->getId()) as $child) {
+        while ([] !== $level) {
+            $next = [];
+            foreach ($this->folderRepository->findLivingChildrenOfAny($level) as $child) {
+                $id = (int) $child->getId();
+                if (isset($seen[$id])) {
+                    continue;
+                }
+
+                $seen[$id] = true;
                 $found[] = $child;
-                $queue[] = $child;
+                $next[] = $id;
             }
+
+            $level = $next;
         }
 
         return $found;
@@ -348,6 +366,21 @@ class DocumentFolderManager implements DocumentFolderManagerInterface
     protected function auditRestored(DocumentFolderInterface $folder): void
     {
         $this->auditLogger->log('ged', 'folder.restored', 'DocumentFolder', $folder->getId(), $this->auditPayload($folder));
+    }
+
+    /**
+     * The same lines as `auditDeleted()`, written together before any row
+     * goes: audited one by one inside the loop, each line's flush also
+     * executed the removal queued before it, one row at a time.
+     *
+     * @param list<DocumentFolderInterface> $folders
+     */
+    protected function auditDeletedMany(array $folders): void
+    {
+        $this->auditLogger->logMany('ged', 'folder.deleted', 'DocumentFolder', array_map(
+            fn (DocumentFolderInterface $folder): array => ['id' => $folder->getId(), 'data' => $this->auditPayload($folder)],
+            $folders,
+        ));
     }
 
     protected function auditDeleted(DocumentFolderInterface $folder): void

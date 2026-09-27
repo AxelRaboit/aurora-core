@@ -35,6 +35,7 @@ class NotificationManager implements NotificationManagerInterface
         ?string $body = null,
         ?string $url = null,
         array $data = [],
+        bool $flush = true,
     ): NotificationInterface {
         $notification = $this->createNotification();
         $notification->setRecipient($recipient)
@@ -44,7 +45,10 @@ class NotificationManager implements NotificationManagerInterface
             ->setUrl($url)
             ->setData($data);
         $this->entityManager->persist($notification);
-        $this->entityManager->flush();
+
+        if ($flush) {
+            $this->entityManager->flush();
+        }
 
         return $notification;
     }

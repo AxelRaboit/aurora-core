@@ -165,9 +165,7 @@ const pageActions = computed(() => {
                         :error="mp.createErrors.value.name"
                         required
                     />
-                    <AppSelect v-model="mp.createForm.value.type" :label="t('backend.mount_points.type')">
-                        <option v-for="type in mp.types.value" :key="type.value" :value="type.value">{{ type.label }}</option>
-                    </AppSelect>
+                    <AppSelect v-model="mp.createForm.value.type" :label="t('backend.mount_points.type')" :options="mp.types.value" />
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-[1fr_8rem] gap-4">
                     <AppInput
@@ -281,9 +279,7 @@ const pageActions = computed(() => {
                         :error="mp.editErrors.value.name"
                         required
                     />
-                    <AppSelect v-model="mp.editForm.value.type" :label="t('backend.mount_points.type')">
-                        <option v-for="type in mp.types.value" :key="type.value" :value="type.value">{{ type.label }}</option>
-                    </AppSelect>
+                    <AppSelect v-model="mp.editForm.value.type" :label="t('backend.mount_points.type')" :options="mp.types.value" />
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-[1fr_8rem] gap-4">
                     <AppInput

@@ -6,6 +6,7 @@ namespace Aurora\Tests\Integration\Module\Editorial\Post;
 
 use Aurora\Module\Editorial\Post\Entity\Post;
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
+use Aurora\Module\Editorial\Post\Sequence\PostSequenceBuilder;
 use Aurora\Module\Editorial\PostType\Entity\PostType;
 use Aurora\Module\Editorial\Taxonomy\Entity\Taxonomy;
 use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyTerm;
@@ -123,6 +124,27 @@ final class PostSequenceTest extends IntegrationTestCase
         self::assertStringContainsString('rel="prev"', $html);
         self::assertStringContainsString(sprintf('href="/fr/guide-%s/troisieme"', $this->suffix), $html);
         self::assertStringContainsString('rel="next"', $html);
+    }
+
+    /**
+     * The summary costs the same queries for three pages or six.
+     *
+     * It loaded each page's rubrics, then each rubric's name, one at a time:
+     * some sixty queries on a documentation page, on every page of it.
+     */
+    public function testTheSummaryDoesNotGrowWithItsPages(): void
+    {
+        $first = $this->page('Un', 1);
+        $this->page('Deux', 2);
+        $this->page('Trois', 3);
+        $withThree = $this->queriesToBuild((int) $first->getId());
+
+        $this->page('Quatre', 4);
+        $this->page('Cinq', 5);
+        $this->page('Six', 6);
+        $withSix = $this->queriesToBuild((int) $first->getId());
+
+        self::assertSame($withThree, $withSix, 'three more pages, not one more query');
     }
 
     /** The ends of the sequence lead nowhere rather than wrapping around. */
@@ -283,6 +305,26 @@ final class PostSequenceTest extends IntegrationTestCase
         $data = json_decode((string) $this->client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
 
         return $data;
+    }
+
+    private function queriesToBuild(int $postId): int
+    {
+        $this->entityManager->clear();
+        $post = $this->entityManager->find(Post::class, $postId);
+        self::assertInstanceOf(Post::class, $post);
+
+        $holder = static::getContainer()->get('doctrine.debug_data_holder');
+        $holder->reset();
+
+        $sequence = static::getContainer()->get(PostSequenceBuilder::class)->build($post, 'fr');
+        self::assertNotNull($sequence);
+        $queries = count($holder->getData()['default'] ?? []);
+
+        // Managed again, so the next pages can hang off them.
+        $this->type = $this->entityManager->find(PostType::class, $this->type->getId());
+        $this->rubric = $this->entityManager->find(TaxonomyTerm::class, $this->rubric->getId());
+
+        return $queries;
     }
 
     private function read(string $slug): string
