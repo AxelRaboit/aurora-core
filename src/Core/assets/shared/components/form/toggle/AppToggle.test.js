@@ -5,19 +5,28 @@ import AppToggle from "./AppToggle.vue";
 describe("AppToggle", () => {
     it("applies bg-accent class when modelValue is true", () => {
         const wrapper = mount(AppToggle, { props: { modelValue: true } });
-        expect(wrapper.find("button").classes()).toContain("bg-accent");
+        expect(wrapper.find("[data-track]").classes()).toContain("bg-accent");
     });
 
     it("applies bg-surface-3 class when modelValue is false", () => {
         const wrapper = mount(AppToggle, { props: { modelValue: false } });
-        expect(wrapper.find("button").classes()).toContain("bg-surface-3");
+        expect(wrapper.find("[data-track]").classes()).toContain(
+            "bg-surface-3",
+        );
     });
 
     // On a phone the switch grows a hit area through its padding. The colour
-    // must stay on the drawn track, or the pill swells into a squashed disc.
-    it("keeps its colour off the hit area it gains on a phone", () => {
+    // and the rounding belong to the track inside, which keeps its size: on
+    // the button itself they swelled into a disc, then into a cushion.
+    it("draws the track apart from the hit area it grows on a phone", () => {
         const wrapper = mount(AppToggle, { props: { modelValue: true } });
-        expect(wrapper.find("button").classes()).toContain("bg-clip-content");
+        const button = wrapper.find("button");
+        const track = wrapper.find("[data-track]");
+
+        expect(button.classes().some((c) => c.startsWith("bg-"))).toBe(false);
+        expect(track.classes()).toEqual(
+            expect.arrayContaining(["h-5", "w-9", "rounded-full"]),
+        );
     });
 
     it("applies disabled state and opacity class when disabled=true", () => {
