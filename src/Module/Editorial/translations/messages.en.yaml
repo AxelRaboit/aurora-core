@@ -1133,6 +1133,7 @@ backend:
       customise: Links of this page's own
       reset: Follow the site's links
       hint: "This page's links, in order: where else to find the author, the product, the code. Drag the handle to reorder them."
+      site_list_hint: "The site's links, in order: where else to find the author, the product, the code. Drag the handle to reorder them."
       empty: No link, the block is not shown.
       move: Move
       remove: Remove

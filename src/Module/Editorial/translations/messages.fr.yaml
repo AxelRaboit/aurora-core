@@ -1133,6 +1133,7 @@ backend:
       customise: Des liens propres à cette page
       reset: Reprendre les liens du site
       hint: "Les liens de cette page, dans l'ordre : où retrouver l'auteur, le produit, le code. Glissez la poignée pour les réordonner."
+      site_list_hint: "Les liens du site, dans l'ordre : où retrouver l'auteur, le produit, le code. Glissez la poignée pour les réordonner."
       empty: Aucun lien, le bloc ne s'affiche pas.
       move: Déplacer
       remove: Retirer
