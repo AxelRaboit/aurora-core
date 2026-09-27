@@ -8,6 +8,7 @@ use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Http\PageScriptRequestTrait;
+use Aurora\Module\Editorial\Booking\Service\BookingReserver;
 use Aurora\Module\Editorial\Booking\Service\BookingSlotFinder;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Grid\GridNormalizer;
@@ -16,7 +17,6 @@ use Aurora\Module\Planning\Event\Entity\PlanningEvent;
 use Aurora\Module\Planning\Event\Enum\PlanningEventStatusEnum;
 use DateTimeImmutable;
 use DateTimeZone;
-use Doctrine\ORM\EntityManagerInterface;
 use IntlDateFormatter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -54,7 +54,7 @@ final class BookingController extends AbstractController
         private readonly PostRepository $postRepository,
         private readonly GridNormalizer $gridNormalizer,
         private readonly BookingSlotFinder $slots,
-        private readonly EntityManagerInterface $entityManager,
+        private readonly BookingReserver $reserver,
         private readonly TranslatorInterface $translator,
         private readonly RateLimiterFactoryInterface $editorialBookingLimiter,
     ) {}
@@ -114,10 +114,6 @@ final class BookingController extends AbstractController
 
         $planning = $this->slots->calendar($this->translator->trans('frontend.editorial.grid.booking.calendar_name', [], 'messages', $locale));
 
-        if (!$this->slots->isFree($start, $end, $planning)) {
-            return $this->jsonFailure('frontend.editorial.grid.booking.taken', 409);
-        }
-
         $event = new PlanningEvent();
         $event->setPlanning($planning);
         $event->setTitle($name);
@@ -127,8 +123,11 @@ final class BookingController extends AbstractController
         $event->setSource('editorial.booking', $postId, $name);
         $event->setSourceUrl($this->pageAddress($request));
 
-        $this->entityManager->persist($event);
-        $this->entityManager->flush();
+        // Checked and written under one lock: two visitors on the same slot
+        // in the same second no longer both get it.
+        if (!$this->reserver->reserve($event)) {
+            return $this->jsonFailure('frontend.editorial.grid.booking.taken', 409);
+        }
 
         return $this->jsonSuccess(['label' => new IntlDateFormatter($locale, IntlDateFormatter::FULL, IntlDateFormatter::SHORT, $timezone)->format($start)]);
     }
