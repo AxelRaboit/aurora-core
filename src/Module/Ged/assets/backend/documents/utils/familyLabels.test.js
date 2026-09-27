@@ -8,6 +8,10 @@ describe("labelSwatch", () => {
         expect(labelSwatch(" amarillo ")).toBe("#e0a21a");
     });
 
+    it("shows the house style's variants as its violet", () => {
+        expect(labelSwatch("arc")).toBe("#8b6cff");
+    });
+
     it("reads a colour through its accents", () => {
         expect(labelSwatch("Bleu")).toBe("#0093ed");
     });

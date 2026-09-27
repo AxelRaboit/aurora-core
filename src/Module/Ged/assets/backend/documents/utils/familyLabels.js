@@ -37,6 +37,9 @@ const SWATCHES = {
     gris: "#9ca3af",
     gray: "#9ca3af",
     grey: "#9ca3af",
+    // The house style of the site built on this installation: its variants
+    // are labelled "arc" and read as the violet they are.
+    arc: "#8b6cff",
 };
 
 /**

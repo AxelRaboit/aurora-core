@@ -452,7 +452,7 @@ function isSelected(doc) {
                                     class="mt-1"
                                     :model-value="previewed[doc.id] ?? doc.id"
                                     :members="familyMembers(doc)"
-                                    v-on:update:model-value="(id) => pickMember(doc, id)"
+                                    v-on:choose="(id) => pickMember(doc, id)"
                                 />
                                 <p class="text-xs text-muted mt-0.5">
                                     {{ doc.fileName }}

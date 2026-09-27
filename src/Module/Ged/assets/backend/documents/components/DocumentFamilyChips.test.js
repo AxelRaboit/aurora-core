@@ -52,6 +52,14 @@ describe("DocumentFamilyChips", () => {
         expect(wrapper.emitted("update:modelValue")?.[0]).toEqual([2]);
     });
 
+    it("reports every choice, even of the member already shown", async () => {
+        const wrapper = mountChips();
+
+        await wrapper.findAll("button")[0].trigger("click");
+
+        expect(wrapper.emitted("choose")?.[0]).toEqual([1]);
+    });
+
     it("marks a member used somewhere", () => {
         const buttons = mountChips().findAll("button");
 

@@ -17,6 +17,16 @@ defineProps({
 
 const previewed = defineModel({ type: Number, default: null });
 
+// Every click, even on the member already shown: a picker that shows the
+// original by default must still be able to pick it after a variant was
+// tried, and the model alone does not fire for a value it already holds.
+const emit = defineEmits(["choose"]);
+
+function choose(member) {
+    previewed.value = member.id;
+    emit("choose", member.id);
+}
+
 const { t } = useI18n();
 
 function titleOf(member) {
@@ -41,7 +51,7 @@ function titleOf(member) {
             :title="titleOf(member)"
             :aria-label="titleOf(member)"
             :aria-pressed="(previewed ?? members[0].id) === member.id"
-            v-on:click="previewed = member.id"
+            v-on:click="choose(member)"
         >
             <template v-if="!labelSwatch(member.label)">{{ member.original ? t("backend.ged.documents.family.chip_original_short") : member.label || "?" }}</template>
             <span v-if="member.usageCount > 0" class="absolute -right-0.5 -top-0.5 h-1.5 w-1.5 rounded-full bg-success" aria-hidden="true" />

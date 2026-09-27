@@ -29,12 +29,14 @@ export function useDocumentNavigation(props, reload, clearSelection) {
     const rootOnly = ref(initialRoot);
 
     function buildUrl() {
-        const url = new URL(window.location.pathname, window.location.origin);
-        // Preserve search if present in current URL
-        const search = new URLSearchParams(window.location.search).get(
-            "search",
-        );
-        if (search) url.searchParams.set("search", search);
+        // Everything else in the address stays: the search, the sort, the
+        // flat view (`familles=0`). Rebuilt from the path alone, the address
+        // lost them on every folder change, and a reload came back sorted by
+        // date and folded whatever the reader had chosen.
+        const url = new URL(window.location.href);
+        for (const key of ["folderId", "rootOnly", "all"]) {
+            url.searchParams.delete(key);
+        }
         if (currentFolderId.value) {
             url.searchParams.set("folderId", String(currentFolderId.value));
         } else if (rootOnly.value) {

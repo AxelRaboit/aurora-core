@@ -5,6 +5,24 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.275] - 2026-09-27
+
+### Corrigé
+
+#### Reprendre l'original d'une famille dans le sélecteur d'image
+Dans le sélecteur, après avoir essayé une variante sur la carte d'une famille,
+un clic sur la puce de l'original ne le sélectionnait plus : il fallait cliquer
+la carte elle-même. La puce sélectionne désormais toujours le membre choisi.
+
+#### L'adresse de la médiathèque garde la vue à plat et le tri
+Changer de dossier réécrivait l'adresse en ne gardant que la recherche :
+`familles=0`, `sort` et `dir` disparaissaient, et un rechargement revenait
+regroupé et trié par date. L'adresse garde désormais tous ses paramètres.
+
+#### Les variantes « arc » en pastille
+Une variante étiquetée « arc » s'affiche en pastille violette, comme une
+couleur, et non plus en texte.
+
 ## [0.9.274] - 2026-09-27
 
 ### Ajouté
