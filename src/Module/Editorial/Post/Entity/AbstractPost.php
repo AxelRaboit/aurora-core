@@ -727,6 +727,32 @@ abstract class AbstractPost implements PostInterface
         return $this;
     }
 
+    /**
+     * The colour this publication's card takes on hover wherever it is listed:
+     * its own custom hover colour, else its accent. A page themed in red is
+     * announced in red by its card on the home page too, rather than in the
+     * colour of whichever page happens to list it.
+     *
+     * Null leaves the card to its context. So does `neutral`: a page that
+     * asked for quiet hovers on itself did not ask for a colour elsewhere.
+     * Checked as a hex colour again here because the value ends up in a
+     * style attribute, whatever wrote it to the database.
+     */
+    public function getCardHighlightColor(): ?string
+    {
+        if ('neutral' === $this->highlight) {
+            return null;
+        }
+
+        foreach (['custom' === $this->highlight ? $this->highlightColor : null, $this->accentColor] as $color) {
+            if (is_string($color) && 1 === preg_match('/^#[0-9a-fA-F]{6}$/', $color)) {
+                return $color;
+            }
+        }
+
+        return null;
+    }
+
     /** @see AbstractTaxonomy::createTranslation() */
     protected function createTranslation(): PostTranslationInterface
     {

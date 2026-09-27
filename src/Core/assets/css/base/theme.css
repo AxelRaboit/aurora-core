@@ -236,6 +236,14 @@ html[data-theme] [data-zone-highlight][data-zone-highlight="custom"] * {
     --th-highlight: var(--zone-highlight);
 }
 
+/* A publication's card, in the colour of the publication it leads to
+ * (PostInterface::getCardHighlightColor). Placed after the zone's rule and as
+ * specific as it: the card is the narrower choice, so it wins inside a zone. */
+html[data-theme] [data-card-highlight][data-card-highlight],
+html[data-theme] [data-card-highlight][data-card-highlight] * {
+    --th-highlight: var(--card-highlight);
+}
+
 /* Le plugin Tailwind Typography peint `.prose` avec ses propres variables, des
  * gris figes qui ignorent totalement les jetons du projet. Tout le contenu
  * editorial passant par cette classe, un fond sombre laissait le texte des
