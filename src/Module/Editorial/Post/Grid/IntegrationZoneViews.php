@@ -93,6 +93,11 @@ final readonly class IntegrationZoneViews
             'title' => $held['label'],
             'note' => $held['caption'],
             'endpoint' => $this->urlGenerator->generate('editorial_newsletter_subscribe', ['locale' => $locale]),
+            // What the GDPR asks the form itself to say: who receives the
+            // address, and where the full policy is.
+            'provider' => 'mailchimp' === $this->newsletterSettings->provider() ? 'Mailchimp' : 'Brevo',
+            'privacyUrl' => $this->newsletterSettings->privacyUrl(),
+            'doubleOptIn' => $this->newsletterSettings->doubleOptIn(),
         ];
     }
 }

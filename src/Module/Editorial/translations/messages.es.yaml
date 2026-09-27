@@ -188,6 +188,11 @@ frontend:
         invalid: Correo electrónico no válido.
         unavailable: Esta suscripción ya no está disponible.
         too_many: Demasiados intentos, inténtelo más tarde.
+        success_confirm: "Casi listo: confirme su suscripción con el enlace que acabamos de enviarle por correo."
+        consent: "Acepto recibir el boletín por correo electrónico."
+        notice: "Su dirección solo se usa para enviarle este boletín; se transmite a %provider%, nuestro proveedor de envíos. Puede darse de baja en cualquier momento con el enlace de cada envío."
+        privacy_link: Política de privacidad
+        consent_required: "Marque la casilla para confirmar su suscripción."
       quote:
         total: Total
       booking:

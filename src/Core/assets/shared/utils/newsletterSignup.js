@@ -1,9 +1,9 @@
 /**
  * L'inscription à la lettre d'information - `[data-newsletter]`.
  *
- * Envoie l'adresse en arrière-plan et remplace le formulaire par un mot de
- * remerciement. Sans ce module, le bouton envoie le formulaire normalement
- * (rechargement compris) vers la même adresse.
+ * Envoie l'adresse et le consentement en arrière-plan, puis remplace le
+ * formulaire par un mot de remerciement. Le module est indispensable : la
+ * route n'accepte que la requête qu'il envoie.
  *
  * Gabarit : templates/Frontend/themes/default/editorial/post/zones/_newsletter_signup.html.twig
  */
@@ -14,6 +14,7 @@ function wire(form) {
         event.preventDefault();
 
         const email = form.querySelector("[data-newsletter-email]");
+        const consent = form.querySelector("[data-newsletter-consent]");
         const submitButton = form.querySelector("[data-newsletter-submit]");
         const success = form.querySelector("[data-newsletter-success]");
         const error = form.querySelector("[data-newsletter-error]");
@@ -29,12 +30,15 @@ function wire(form) {
                     "Content-Type": "application/json",
                     "X-Requested-With": "XMLHttpRequest",
                 },
-                body: JSON.stringify({ email: email.value }),
+                body: JSON.stringify({
+                    email: email.value,
+                    consent: true === consent?.checked,
+                }),
             });
             const data = await response.json();
 
             if (data?.success) {
-                form.querySelectorAll("input, button").forEach((el) => {
+                form.querySelectorAll("input, button, label").forEach((el) => {
                     el.hidden = true;
                 });
                 success.classList.remove("hidden");

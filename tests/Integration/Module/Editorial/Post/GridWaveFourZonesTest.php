@@ -87,13 +87,19 @@ final class GridWaveFourZonesTest extends IntegrationTestCase
     public function testANewsletterZoneShowsItsFormAndPostsToTheSubscribeEndpoint(): void
     {
         static::bootKernel();
-        static::getContainer()->get(NewsletterSettings::class)->save(enabled: true, termsAccepted: true, provider: 'brevo', apiKey: 'key', listId: '3', acceptedBy: 'axel@example.com');
+        static::getContainer()->get(NewsletterSettings::class)->save(enabled: true, termsAccepted: true, provider: 'brevo', apiKey: 'key', listId: '3', acceptedBy: 'axel@example.com', brevoTemplateId: '12', privacyUrl: '/fr/page/confidentialite');
 
         $html = $this->render(['type' => 'newsletterSignup'], ['label' => 'Recevez les prochaines dates', 'caption' => 'Une fois par mois']);
 
         self::assertStringContainsString('Recevez les prochaines dates', $html);
         self::assertStringContainsString('Une fois par mois', $html);
         self::assertStringContainsString('data-newsletter-endpoint="/fr/newsletter"', $html);
+        // What the GDPR asks of the form: an unticked, required consent box,
+        // who receives the address, and the policy it links to.
+        self::assertMatchesRegularExpression('/<input type="checkbox" name="consent" required[^>]*data-newsletter-consent>/', $html);
+        self::assertStringNotContainsString('checked', $html);
+        self::assertStringContainsString('Brevo', $html);
+        self::assertStringContainsString('href="/fr/page/confidentialite"', $html);
     }
 
     /** @param array<string, mixed> $zone @param array<string, mixed> $held */
