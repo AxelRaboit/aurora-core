@@ -110,6 +110,10 @@ backend:
       errors:
         terms_required: "Vous devez accepter les conditions de Google Maps Platform pour activer l'intégration."
         place_required: "Saisissez l'identifiant de la fiche et la clé d'API pour activer l'intégration."
+    useful_links:
+      settings:
+        title: Les liens utiles du site
+        intro: "Posés une fois ici, ils s'affichent en bas de chaque publication, à côté de « Partager » : où retrouver l'auteur, le produit, le code. Une publication peut les masquer ou avoir les siens, dans son onglet Paramétrage."
     newsletter:
       settings:
         what_title: Ce que fait cette intégration
@@ -1124,6 +1128,10 @@ backend:
       add: Ajouter un lien
     useful_links_enabled: Liens utiles en bas de page
     useful_links:
+      site_hint: "Cette page reprend les liens utiles du site, réglés dans Configuration › Liens utiles."
+      site_empty: Le site n'a pas encore de liens utiles.
+      customise: Des liens propres à cette page
+      reset: Reprendre les liens du site
       hint: "Les liens de cette page, dans l'ordre : où retrouver l'auteur, le produit, le code. Glissez la poignée pour les réordonner."
       empty: Aucun lien, le bloc ne s'affiche pas.
       move: Déplacer

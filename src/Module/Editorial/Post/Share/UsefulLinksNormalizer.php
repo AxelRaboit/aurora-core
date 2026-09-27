@@ -13,7 +13,11 @@ use function mb_trim;
 use function preg_match;
 
 /**
- * The useful links of a publication, as the editor may send them.
+ * The useful links of a publication, as the editor may send them, or of the
+ * whole site, as its Configuration tab does.
+ *
+ * Null means "not the page's own": the page follows the site's list. An
+ * empty list is a choice, and shows nothing.
  *
  * Unlike a share link, every one of them is an address the author typed, so
  * every one is held to `https://` and `mailto:` here, at the write boundary:
@@ -30,12 +34,12 @@ final class UsefulLinksNormalizer
     private const int MAX_URL = 500;
 
     /**
-     * @return list<array{label: string, url: string, color: ?string}>
+     * @return list<array{label: string, url: string, color: ?string}>|null
      */
-    public function normalize(mixed $raw): array
+    public function normalize(mixed $raw): ?array
     {
         if (!is_array($raw)) {
-            return [];
+            return null;
         }
 
         $links = [];

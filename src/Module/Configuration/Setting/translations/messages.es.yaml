@@ -32,11 +32,13 @@ backend:
             instagram: Instagram
             google_reviews: 'Reseñas de Google'
             newsletter: Boletín
+            useful_links: 'Enlaces útiles'
             drive: 'Google Drive'
             drive_description: 'Leer una carpeta de Drive compartida por un cliente: cuenta de servicio, clave, activación.'
             github_description: 'La cuadrícula de contribuciones de sus cuentas de GitHub, para mostrar en una página: cuentas y activación.'
             instagram_description: 'El feed de sus publicaciones de Instagram, para mostrar en una página: cuenta y token de acceso.'
             google_reviews_description: 'Su valoración y sus últimas reseñas de Google, para mostrar en una página: ficha del establecimiento y clave.'
+            useful_links_description: 'Los enlaces al pie de cada publicación, junto a «Compartir»: redes, perfiles, correo electrónico.'
             newsletter_description: 'La suscripción a su boletín (Brevo o Mailchimp), para colocar en una página: proveedor, clave y lista.'
             craft_description: 'Importar una nota escrita en Craft: dirección de la conexión, token, activación.'
             pexels_description: 'Banco de fotos gratuitas: activación, clave de API y aceptación de las condiciones.'

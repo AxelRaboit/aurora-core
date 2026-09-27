@@ -44,6 +44,7 @@ const props = defineProps({
     taxonomies: { type: Array, default: () => [] },
     decks: { type: Array, default: () => [] },
     forms: { type: Array, default: () => [] },
+    siteUsefulLinks: { type: Array, default: () => [] },
     locales: { type: Array, default: () => [] },
     statusOptions: { type: Array, default: () => [] },
     createPath: { type: String, required: true },
@@ -721,7 +722,7 @@ function termLabel(term) {
                         <AppToggle v-model="form.shareEnabled" :label="t('backend.posts.share_enabled')" />
                         <ShareLinksField v-if="form.shareEnabled" v-model="form.shareLinks" />
                         <AppToggle v-model="form.usefulLinksEnabled" :label="t('backend.posts.useful_links_enabled')" />
-                        <UsefulLinksField v-if="form.usefulLinksEnabled" v-model="form.usefulLinks" />
+                        <UsefulLinksField v-if="form.usefulLinksEnabled" v-model="form.usefulLinks" :site-links="siteUsefulLinks" />
                     </div>
 
                     <div v-if="supportsThumbnail" class="aurora-card p-3 sm:p-5 space-y-4">

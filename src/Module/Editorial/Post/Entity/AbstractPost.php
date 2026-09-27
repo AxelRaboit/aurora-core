@@ -81,21 +81,23 @@ abstract class AbstractPost implements PostInterface
 
     /**
      * Whether the page ends with its useful links: where else to find the
-     * author, the product, the code. Off by default - unlike sharing, no page
-     * had it before the box existed.
+     * author, the product, the code. On by default, like sharing: the site's
+     * own list is set once in Configuration and meant for every page.
      */
-    #[ORM\Column(options: ['default' => false])]
-    protected bool $usefulLinksEnabled = false;
+    #[ORM\Column(options: ['default' => true])]
+    protected bool $usefulLinksEnabled = true;
 
     /**
-     * The useful links, in order, each with its own words, address and
-     * optional colour. Stored whether or not the block is shown, so turning
-     * it off and on again does not lose them.
+     * The page's own useful links, in order, each with its words, address
+     * and optional colour. Null means the page follows the site's list, which
+     * is what keeps a change made once in Configuration reaching every page;
+     * an empty list is a choice, and shows nothing. Stored whether or not the
+     * block is shown, so turning it off and on again does not lose them.
      *
-     * @var list<array{label: string, url: string, color: ?string}>
+     * @var list<array{label: string, url: string, color: ?string}>|null
      */
-    #[ORM\Column(type: Types::JSON, options: ['default' => '[]'])]
-    protected array $usefulLinks = [];
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    protected ?array $usefulLinks = null;
 
     /**
      * Whether the published page prints its own title and summary.
@@ -458,12 +460,12 @@ abstract class AbstractPost implements PostInterface
         return $this;
     }
 
-    public function getUsefulLinks(): array
+    public function getUsefulLinks(): ?array
     {
         return $this->usefulLinks;
     }
 
-    public function setUsefulLinks(array $usefulLinks): static
+    public function setUsefulLinks(?array $usefulLinks): static
     {
         $this->usefulLinks = $usefulLinks;
 

@@ -35,7 +35,7 @@ class PostInputFactory implements PostInputFactoryInterface
             commentsEnabled: (bool) ($data['commentsEnabled'] ?? true),
             shareEnabled: (bool) ($data['shareEnabled'] ?? true),
             shareLinks: new ShareLinksNormalizer()->normalize($data['shareLinks'] ?? null),
-            usefulLinksEnabled: (bool) ($data['usefulLinksEnabled'] ?? false),
+            usefulLinksEnabled: (bool) ($data['usefulLinksEnabled'] ?? true),
             usefulLinks: new UsefulLinksNormalizer()->normalize($data['usefulLinks'] ?? null),
             titleVisible: (bool) ($data['titleVisible'] ?? true),
             // On the post, not the translation: one design for every language.

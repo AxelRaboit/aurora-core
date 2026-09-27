@@ -110,6 +110,10 @@ backend:
       errors:
         terms_required: "You must accept the Google Maps Platform terms to turn the integration on."
         place_required: "Enter the listing id and the API key to turn the integration on."
+    useful_links:
+      settings:
+        title: The site's useful links
+        intro: "Set once here, they show at the foot of every publication, beside « Share »: where else to find the author, the product, the code. A publication can hide them or have its own, in its Settings tab."
     newsletter:
       settings:
         what_title: What this integration does
@@ -1124,6 +1128,10 @@ backend:
       add: Add a link
     useful_links_enabled: Useful links at the bottom of the page
     useful_links:
+      site_hint: "This page follows the site's useful links, set in Configuration › Useful links."
+      site_empty: The site has no useful links yet.
+      customise: Links of this page's own
+      reset: Follow the site's links
       hint: "This page's links, in order: where else to find the author, the product, the code. Drag the handle to reorder them."
       empty: No link, the block is not shown.
       move: Move

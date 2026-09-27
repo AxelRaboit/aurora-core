@@ -15,6 +15,7 @@ use Aurora\Module\Editorial\Post\Gallery\GalleryViewBuilder;
 use Aurora\Module\Editorial\Post\Grid\GridViewBuilder;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
 use Aurora\Module\Editorial\Post\Sequence\PostSequenceBuilder;
+use Aurora\Module\Editorial\Post\Share\SiteUsefulLinks;
 use Aurora\Module\Editorial\Seo\Service\AlternatesBuilder;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Service\DocumentUrlGenerator;
@@ -46,6 +47,7 @@ final readonly class PostPageRenderer
         private PostSequenceBuilder $sequenceBuilder,
         private ReadingTimeCalculator $readingTimeCalculator,
         private PostRepository $postRepository,
+        private SiteUsefulLinks $siteUsefulLinks,
     ) {}
 
     public function render(PostInterface $post, string $locale): Response
@@ -104,9 +106,10 @@ final readonly class PostPageRenderer
             'commentsEnabled' => $this->commentManager->areCommentsEnabled($post),
             'shareEnabled' => $post->isShareEnabled(),
             'shareLinks' => $post->getShareLinks(),
-            // Empty when the box is off: the links stay stored for when it is
-            // ticked again, but a page that hid them must not print them.
-            'usefulLinks' => $post->isUsefulLinksEnabled() ? $post->getUsefulLinks() : [],
+            // The page's own links, else the site's. Empty when the box is
+            // off: the links stay stored for when it is ticked again, but a
+            // page that hid them must not print them.
+            'usefulLinks' => $post->isUsefulLinksEnabled() ? ($post->getUsefulLinks() ?? $this->siteUsefulLinks->links()) : [],
             // Whether the page prints its own title and summary. Shared, not
             // per translation: it is a decision about the design.
             'titleVisible' => $post->isTitleVisible(),
