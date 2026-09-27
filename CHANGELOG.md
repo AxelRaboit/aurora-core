@@ -5,6 +5,48 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.269] - 2026-09-27
+
+Les rendez-vous passent par le point d'extension du calendrier, comme les
+dates des publications.
+
+### Corrigé
+
+- **Un deuxième rendez-vous sur la même page ne plante plus.** Chaque
+  réservation empruntait l'identifiant de la page comme source de son
+  événement ; le calendrier n'accepte qu'un événement par source, et la
+  deuxième réservation d'une page finissait en erreur serveur. Un rendez-vous
+  a maintenant son propre enregistrement, donc sa propre identité. Aucun
+  rendez-vous n'avait encore été pris en production.
+- **Un rendez-vous arrive dans le calendrier à la bonne heure.** Il était
+  rangé à l'heure de Paris dans une base qui compte en UTC : un rendez-vous de
+  10 h s'affichait à 12 h, et c'était le créneau de 12 h qui passait pour pris.
+  Le calendrier convertit désormais en UTC tout ce qu'un module lui annonce.
+- **Un rendez-vous se confirme, se modifie ou s'annule dans le calendrier.**
+  Venu d'un module, il était en lecture seule comme une date de publication.
+  Il garde l'indication de sa provenance et le lien vers la page.
+
+### Modifié (code)
+
+- `EntityScheduledEvent` accepte une description, un statut « à confirmer »
+  et le droit pour le calendrier de modifier l'événement.
+  `ScheduleAvailabilityInterface`, dans le cœur, dit ce qui est déjà pris dans
+  le calendrier d'une source ; Planning l'implémente.
+- Côté Planning, `isReadOnly()` remplace `isFromModule()` partout où il
+  s'agit d'autoriser une modification (`refuseIfFromModule` devient
+  `refuseIfReadOnly`).
+- L'éditorial n'importe plus rien de Planning, et un test y veille.
+- `PostManager` : `PostSnapshot` passe en dernier argument du constructeur,
+  avec les autres ajouts. Ce n'est pas un changement pour un service injecté
+  par le conteneur.
+
+### Dans aurora-client
+
+Rien à faire après `make aurora-update`, qui joue la migration. Une classe
+qui étendrait `PostManager` en appelant son constructeur parent, ou
+`PlanningEventManager` en surchargeant `refuseIfFromModule`, serait à
+reprendre ; le projet client n'en a pas.
+
 ## [0.9.268] - 2026-09-27
 
 Suite de la revue de qualité : les points restés ouverts.

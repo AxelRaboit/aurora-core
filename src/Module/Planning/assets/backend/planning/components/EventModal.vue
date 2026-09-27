@@ -359,16 +359,17 @@ const when = computed(() => {
                 {{ alertSummary }}
             </p>
 
-            <!-- An event a module pushed says where it came from and offers
-                 nothing else: it reflects a date that lives elsewhere, and the
-                 only useful gesture is to go to the source. -->
-            <template v-if="event.readOnly">
+            <!-- An event a module pushed says where it came from. A read-only
+                 one offers nothing else: it reflects a date that lives
+                 elsewhere, and the only useful gesture is to go to the source.
+                 One the module handed over (a booking) keeps its buttons. -->
+            <template v-if="event.fromModule">
                 <p class="text-xs text-muted">
                     {{ t("backend.plannings.events.from_module") }}{{ event.sourceLabel ? ` · ${event.sourceLabel}` : "" }}
                 </p>
-                <!-- The only useful gesture on an event a module owns. Editing it
-                     here would be undone by the source's next announcement, which
-                     is why the manager refuses it. -->
+                <!-- The page the date came from: for a read-only event the only
+                     useful gesture, since the manager refuses an edit the
+                     source's next announcement would undo anyway. -->
                 <a
                     v-if="event.sourceUrl"
                     :href="event.sourceUrl"

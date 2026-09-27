@@ -105,6 +105,12 @@ interface PlanningEventInterface extends TimestampableInterface
 
     public function isFromModule(): bool;
 
+    public function isSourceEditable(): bool;
+
+    public function setSourceEditable(bool $sourceEditable): static;
+
+    public function isReadOnly(): bool;
+
     /**
      * @return Collection<int, PlanningEventAlertInterface>
      */

@@ -4,24 +4,16 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Editorial\Booking\Service;
 
-use Aurora\Core\Locale\Service\LocaleContextInterface;
+use Aurora\Core\Scheduling\Availability\ScheduleAvailabilityInterface;
 use Aurora\Module\Editorial\Post\Grid\GridZoneOptions;
-use Aurora\Module\Planning\Event\Entity\PlanningEventInterface;
-use Aurora\Module\Planning\Event\Enum\PlanningEventStatusEnum;
-use Aurora\Module\Planning\Event\Repository\PlanningEventRepository;
-use Aurora\Module\Planning\Planning\Entity\PlanningInterface;
-use Aurora\Module\Planning\Sync\Manager\ModuleCalendarProvider;
 use DateInterval;
 use DateTimeImmutable;
 use DateTimeZone;
 use IntlDateFormatter;
 use Psr\Clock\ClockInterface;
-use Symfony\Contracts\Translation\TranslatorInterface;
 
 use function array_any;
-use function array_filter;
 use function array_map;
-use function array_values;
 use function explode;
 use function in_array;
 use function max;
@@ -32,46 +24,36 @@ use function sprintf;
 /**
  * Which slots of an appointment-booking zone are still free.
  *
- * One calendar for the whole site, made on first use by
- * {@see ModuleCalendarProvider}: every zone's bookings land in the same
- * place, which is where the back office already looks for a calendar.
+ * Asked of the calendar through core's {@see ScheduleAvailabilityInterface},
+ * never of the calendar module itself: every zone's bookings land in one
+ * calendar, and what is taken there - bookings and whatever the owner
+ * blocked by hand - is the calendar's to say.
  *
  * A slot is free when it falls inside the zone's opening hours, is not on a
  * day marked closed, starts at least an hour from now, and does not overlap
- * an event already on that calendar - any status but cancelled, because a
- * tentative booking holds its slot exactly as a confirmed one does.
+ * anything already taken - a tentative booking holds its slot exactly as a
+ * confirmed one does.
  */
 final readonly class BookingSlotFinder
 {
-    private const string SOURCE = 'editorial.booking';
+    /** The source every booking is announced under, and the calendar's key. */
+    public const string SOURCE = 'editorial.booking';
 
     /** How far ahead a slot must start, so nobody books the next five minutes. */
     private const int LEAD_MINUTES = 60;
 
-    private const string NAME_KEY = 'frontend.editorial.grid.booking.calendar_name';
-
     public function __construct(
-        private ModuleCalendarProvider $calendars,
-        private PlanningEventRepository $events,
-        private TranslatorInterface $translator,
-        private LocaleContextInterface $localeContext,
+        private ScheduleAvailabilityInterface $availability,
         private ?ClockInterface $clock = null,
     ) {}
 
     /**
-     * The site's one bookings calendar, named in the site's default language.
-     *
-     * Not the visitor's: the provider renames a calendar whose name changed,
-     * and a French visitor after a Spanish one flipped it between
-     * « Réservations en ligne » and « Reservas en línea » all day long. The
-     * calendar lives in the back office, whose name should hold still.
+     * Whether a booking taken now would reach a calendar. With the calendar
+     * switched off it would land nowhere, so the zone offers nothing.
      */
-    public function calendar(): PlanningInterface
+    public function isEnabled(): bool
     {
-        return $this->calendars->forSource(
-            self::SOURCE,
-            $this->translator->trans(self::NAME_KEY, [], 'messages', $this->localeContext->getDefaultLocale()),
-        );
+        return $this->availability->isEnabled();
     }
 
     /**
@@ -79,7 +61,7 @@ final readonly class BookingSlotFinder
      *
      * @return list<array{date: string, label: string, slots: list<array{at: string, label: string}>}>
      */
-    public function days(array $options, PlanningInterface $planning, string $locale): array
+    public function days(array $options, string $locale): array
     {
         $timezone = new DateTimeZone($options['timezone']);
         $now = ($this->clock?->now() ?? new DateTimeImmutable())->setTimezone($timezone);
@@ -93,10 +75,7 @@ final readonly class BookingSlotFinder
         $from = $now->setTime(0, 0);
         $to = $from->modify(sprintf('+%d days', $span));
 
-        $busy = array_values(array_filter(
-            $this->events->findSinglesInWindow([(int) $planning->getId()], $from, $to),
-            static fn (PlanningEventInterface $event): bool => PlanningEventStatusEnum::Cancelled !== $event->getStatus(),
-        ));
+        $busy = $this->availability->busyPeriods(self::SOURCE, $from, $to);
 
         $weekdayFormat = new IntlDateFormatter($locale, IntlDateFormatter::FULL, IntlDateFormatter::NONE, $timezone);
         $timeFormat = new IntlDateFormatter($locale, IntlDateFormatter::NONE, IntlDateFormatter::SHORT, $timezone);
@@ -155,14 +134,9 @@ final readonly class BookingSlotFinder
      * `days()` draws its grid from, asked about one instant instead of
      * every one of them, so the two cannot disagree.
      */
-    public function isFree(DateTimeImmutable $start, DateTimeImmutable $end, PlanningInterface $planning): bool
+    public function isFree(DateTimeImmutable $start, DateTimeImmutable $end): bool
     {
-        $busy = array_filter(
-            $this->events->findSinglesInWindow([(int) $planning->getId()], $start, $end),
-            static fn (PlanningEventInterface $event): bool => PlanningEventStatusEnum::Cancelled !== $event->getStatus(),
-        );
-
-        return [] === $busy;
+        return !$this->overlaps($start, $end, $this->availability->busyPeriods(self::SOURCE, $start, $end));
     }
 
     /**
@@ -202,10 +176,10 @@ final readonly class BookingSlotFinder
         return '24:00' === $clock ? $at->modify('+1 minute') : $at;
     }
 
-    /** @param list<PlanningEventInterface> $busy */
+    /** @param list<array{0: DateTimeImmutable, 1: DateTimeImmutable}> $busy */
     private function overlaps(DateTimeImmutable $start, DateTimeImmutable $end, array $busy): bool
     {
-        return array_any($busy, fn ($event): bool => $start < $event->getEndAt() && $end > $event->getStartAt());
+        return array_any($busy, static fn (array $span): bool => $start < $span[1] && $end > $span[0]);
     }
 
     private function weekday(DateTimeImmutable $date): string
