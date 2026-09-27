@@ -74,7 +74,7 @@ class PlanningEventManager implements PlanningEventManagerInterface
      */
     public function update(PlanningEventInterface $event, PlanningEventInputInterface $input, PlanningInterface $planning): void
     {
-        $this->refuseIfFromModule($event);
+        $this->refuseIfReadOnly($event);
 
         $event->setPlanning($planning);
         $this->applyInput($event, $input);
@@ -99,7 +99,7 @@ class PlanningEventManager implements PlanningEventManagerInterface
      */
     public function move(PlanningEventInterface $event, DateTimeImmutable $startAt, DateTimeImmutable $endAt): void
     {
-        $this->refuseIfFromModule($event);
+        $this->refuseIfReadOnly($event);
 
         $event->setSpan($startAt, $endAt);
         $this->entityManager->flush();
@@ -127,7 +127,7 @@ class PlanningEventManager implements PlanningEventManagerInterface
     ): PlanningEventInterface {
         $target = $this->resolveTarget($event, $scope, $occurrenceAt);
 
-        $this->refuseIfFromModule($target);
+        $this->refuseIfReadOnly($target);
         // Captured before the input is applied, because a split hands back a tail
         // carrying the series' rule and `applyInput` writes whatever the payload
         // says - which for an edit that never mentioned recurrence is null. Left
@@ -169,7 +169,7 @@ class PlanningEventManager implements PlanningEventManagerInterface
     ): PlanningEventInterface {
         $target = $this->resolveTarget($event, $scope, $occurrenceAt);
 
-        $this->refuseIfFromModule($target);
+        $this->refuseIfReadOnly($target);
         $target->setSpan($startAt, $endAt);
 
         if (RecurrenceScopeEnum::This === $scope) {
@@ -196,7 +196,7 @@ class PlanningEventManager implements PlanningEventManagerInterface
         RecurrenceScopeEnum $scope,
         ?DateTimeImmutable $occurrenceAt,
     ): void {
-        $this->refuseIfFromModule($event);
+        $this->refuseIfReadOnly($event);
 
         if (RecurrenceScopeEnum::This === $scope && $occurrenceAt instanceof DateTimeImmutable) {
             $this->recurrence->removeOccurrence($event, $occurrenceAt);
@@ -258,7 +258,7 @@ class PlanningEventManager implements PlanningEventManagerInterface
 
     public function delete(PlanningEventInterface $event): void
     {
-        $this->refuseIfFromModule($event);
+        $this->refuseIfReadOnly($event);
 
         $this->auditDeleted($event);
 
@@ -503,17 +503,19 @@ class PlanningEventManager implements PlanningEventManagerInterface
     }
 
     /**
-     * An event a module pushed is not ours to change.
+     * An event a module pushed is not ours to change, unless it said so.
      *
      * Refused in the manager and not only hidden in the screen: the screen
      * already leaves out Edit and Delete, but a request can arrive without one,
      * and the next writer of a controller should not have to remember this.
      * Editing it would also be pointless - the subscriber that pushed it
-     * rewrites it the next time its source changes.
+     * rewrites it the next time its source changes. A module that hands the
+     * event over (a booking, which the calendar confirms or cancels) marks it
+     * editable, and nothing re-announces it.
      */
-    protected function refuseIfFromModule(PlanningEventInterface $event): void
+    protected function refuseIfReadOnly(PlanningEventInterface $event): void
     {
-        if ($event->isFromModule()) {
+        if ($event->isReadOnly()) {
             throw new RuntimeException('A planning event owned by a module cannot be edited from the calendar.');
         }
     }

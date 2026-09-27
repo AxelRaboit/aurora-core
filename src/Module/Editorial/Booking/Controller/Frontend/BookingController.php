@@ -8,13 +8,12 @@ use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Http\PageScriptRequestTrait;
+use Aurora\Module\Editorial\Booking\Entity\Booking;
 use Aurora\Module\Editorial\Booking\Service\BookingReserver;
 use Aurora\Module\Editorial\Booking\Service\BookingSlotFinder;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Grid\GridNormalizer;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
-use Aurora\Module\Planning\Event\Entity\PlanningEvent;
-use Aurora\Module\Planning\Event\Enum\PlanningEventStatusEnum;
 use DateTimeImmutable;
 use DateTimeZone;
 use IntlDateFormatter;
@@ -70,7 +69,9 @@ final class BookingController extends AbstractController
 
         $post = $this->postRepository->find($postId);
 
-        if (!$post instanceof PostInterface || !$post->isPublished()) {
+        // With the calendar switched off a booking would land nowhere: the
+        // zone offers no slots then, and a request for one is refused alike.
+        if (!$post instanceof PostInterface || !$post->isPublished() || !$this->slots->isEnabled()) {
             return $this->jsonFailure('frontend.editorial.grid.booking.unavailable', 404);
         }
 
@@ -110,20 +111,9 @@ final class BookingController extends AbstractController
             return $this->jsonFailure('frontend.editorial.grid.booking.invalid');
         }
 
-        $planning = $this->slots->calendar();
-
-        $event = new PlanningEvent();
-        $event->setPlanning($planning);
-        $event->setTitle($name);
-        $event->setDescription($this->summary($email, $phone, $message));
-        $event->setSpan($start, $end);
-        $event->setStatus(PlanningEventStatusEnum::Tentative);
-        $event->setSource('editorial.booking', $postId, $name);
-        $event->setSourceUrl($this->pageAddress($request));
-
         // Checked and written under one lock: two visitors on the same slot
         // in the same second no longer both get it.
-        if (!$this->reserver->reserve($event)) {
+        if (!$this->reserver->reserve(new Booking($post, $zoneId, $start, $end), $name, $this->summary($email, $phone, $message), $this->pageAddress($request))) {
             return $this->jsonFailure('frontend.editorial.grid.booking.taken', 409);
         }
 

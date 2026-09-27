@@ -4,21 +4,13 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Unit\Module\Editorial\Booking;
 
-use Aurora\Core\Locale\Service\LocaleContextInterface;
+use Aurora\Core\Scheduling\Availability\ScheduleAvailabilityInterface;
 use Aurora\Module\Editorial\Booking\Service\BookingSlotFinder;
 use Aurora\Module\Editorial\Post\Grid\GridZoneOptions;
-use Aurora\Module\Planning\Event\Entity\PlanningEvent;
-use Aurora\Module\Planning\Event\Enum\PlanningEventStatusEnum;
-use Aurora\Module\Planning\Event\Repository\PlanningEventRepository;
-use Aurora\Module\Planning\Planning\Entity\Planning;
-use Aurora\Module\Planning\Planning\Repository\PlanningRepository;
-use Aurora\Module\Planning\Sync\Manager\ModuleCalendarProvider;
 use DateTimeImmutable;
 use DateTimeZone;
-use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Clock\MockClock;
-use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * The slots a booking zone offers, and the one question a submission asks
@@ -33,18 +25,10 @@ final class BookingSlotFinderTest extends TestCase
     public function testSlotsAreQuantisedToTheirDurationInsideTheOpenHours(): void
     {
         // 22 September 2026 is a Tuesday.
-        $planning = new Planning();
-        $events = $this->createStub(PlanningEventRepository::class);
-        $events->method('findSinglesInWindow')->willReturn([]);
-
-        $finder = $this->finder(
-            $this->calendars($planning),
-            $events,
-            new MockClock(new DateTimeImmutable('2026-09-21 06:00:00 UTC')),
-        );
+        $finder = $this->finder([]);
 
         $options = GridZoneOptions::normalize(['hours' => self::HOURS, 'slotDuration' => 60, 'bookingWindowDays' => 7, 'timezone' => 'Europe/Paris']);
-        $days = $finder->days($options, $planning, 'fr');
+        $days = $finder->days($options, 'fr');
 
         self::assertCount(1, $days);
         self::assertSame('2026-09-22', $days[0]['date']);
@@ -53,50 +37,33 @@ final class BookingSlotFinderTest extends TestCase
 
     public function testABusySlotIsNotOffered(): void
     {
-        $planning = new Planning();
-        $busyEvent = new PlanningEvent();
-        $busyEvent->setPlanning($planning)->setTitle('x')->setSpan(
+        $finder = $this->finder([[
             new DateTimeImmutable('2026-09-22 10:00:00 Europe/Paris'),
             new DateTimeImmutable('2026-09-22 11:00:00 Europe/Paris'),
-        );
-
-        $events = $this->createStub(PlanningEventRepository::class);
-        $events->method('findSinglesInWindow')->willReturn([$busyEvent]);
-
-        $finder = $this->finder($this->calendars($planning), $events, new MockClock(new DateTimeImmutable('2026-09-21 06:00:00 UTC')));
+        ]]);
         $options = GridZoneOptions::normalize(['hours' => self::HOURS, 'slotDuration' => 60, 'bookingWindowDays' => 7, 'timezone' => 'Europe/Paris']);
 
         self::assertSame(['09:00', '11:00'], array_map(
             static fn (array $slot): string => mb_substr($slot['at'], 11, 5),
-            $finder->days($options, $planning, 'fr')[0]['slots'],
+            $finder->days($options, 'fr')[0]['slots'],
         ));
     }
 
-    public function testACancelledEventFreesItsSlotBackUp(): void
+    /** A span that only overlaps a slot's edge takes it all the same. */
+    public function testASlotOverlappedAtAllIsNotFree(): void
     {
-        $planning = new Planning();
-        $cancelled = new PlanningEvent();
-        $cancelled->setPlanning($planning)->setTitle('x')->setStatus(PlanningEventStatusEnum::Cancelled)->setSpan(
-            new DateTimeImmutable('2026-09-22 10:00:00 Europe/Paris'),
-            new DateTimeImmutable('2026-09-22 11:00:00 Europe/Paris'),
-        );
+        $finder = $this->finder([[
+            new DateTimeImmutable('2026-09-22 10:30:00 Europe/Paris'),
+            new DateTimeImmutable('2026-09-22 10:45:00 Europe/Paris'),
+        ]]);
 
-        $events = $this->createStub(PlanningEventRepository::class);
-        $events->method('findSinglesInWindow')->willReturn([$cancelled]);
-
-        $finder = $this->finder($this->calendars($planning), $events, new MockClock(new DateTimeImmutable('2026-09-21 06:00:00 UTC')));
-        $options = GridZoneOptions::normalize(['hours' => self::HOURS, 'slotDuration' => 60, 'bookingWindowDays' => 7, 'timezone' => 'Europe/Paris']);
-
-        self::assertTrue($finder->isFree(
-            new DateTimeImmutable('2026-09-22 10:00:00 Europe/Paris'),
-            new DateTimeImmutable('2026-09-22 11:00:00 Europe/Paris'),
-            $planning,
-        ));
+        self::assertFalse($finder->isFree(new DateTimeImmutable('2026-09-22 10:00:00 Europe/Paris'), new DateTimeImmutable('2026-09-22 11:00:00 Europe/Paris')));
+        self::assertTrue($finder->isFree(new DateTimeImmutable('2026-09-22 10:45:00 Europe/Paris'), new DateTimeImmutable('2026-09-22 11:45:00 Europe/Paris')), 'touching is not overlapping');
     }
 
     public function testOnlyAStartTheGridOffersIsBookable(): void
     {
-        $finder = $this->finder($this->calendars(new Planning()), $this->createStub(PlanningEventRepository::class), new MockClock(new DateTimeImmutable('2026-09-21 06:00:00 UTC')));
+        $finder = $this->finder([]);
         $options = GridZoneOptions::normalize(['hours' => self::HOURS, 'slotDuration' => 60, 'bookingWindowDays' => 7, 'timezone' => 'Europe/Paris']);
         $at = static fn (string $moment): DateTimeImmutable => new DateTimeImmutable($moment.' Europe/Paris');
 
@@ -111,28 +78,23 @@ final class BookingSlotFinderTest extends TestCase
 
     public function testAClosedDateOffersNothing(): void
     {
-        $finder = $this->finder($this->calendars(new Planning()), $this->createStub(PlanningEventRepository::class), new MockClock(new DateTimeImmutable('2026-09-21 06:00:00 UTC')));
+        $finder = $this->finder([]);
         $options = GridZoneOptions::normalize(['hours' => self::HOURS, 'slotDuration' => 60, 'bookingWindowDays' => 7, 'timezone' => 'Europe/Paris', 'closedDates' => ['2026-09-22']]);
 
         self::assertFalse($finder->isOffered($options, new DateTimeImmutable('2026-09-22 10:00 Europe/Paris')));
     }
 
-    /** The service with what its slot rules never read: the calendar's name. */
-    private function finder(ModuleCalendarProvider $calendars, PlanningEventRepository $events, MockClock $clock): BookingSlotFinder
-    {
-        return new BookingSlotFinder($calendars, $events, $this->createStub(TranslatorInterface::class), $this->createStub(LocaleContextInterface::class), $clock);
-    }
-
     /**
-     * A real provider, unused dependencies: `days()` and `isFree()` are
-     * given the planning directly, so `calendar()` is never called here -
-     * and `ModuleCalendarProvider` is final, which rules out a double.
+     * The service on a calendar holding these spans, at 08:00 in Paris on
+     * Monday 21 September 2026.
+     *
+     * @param list<array{0: DateTimeImmutable, 1: DateTimeImmutable}> $busy
      */
-    private function calendars(Planning $planning): ModuleCalendarProvider
+    private function finder(array $busy): BookingSlotFinder
     {
-        return new ModuleCalendarProvider(
-            $this->createStub(PlanningRepository::class),
-            $this->createStub(EntityManagerInterface::class),
-        );
+        $availability = $this->createStub(ScheduleAvailabilityInterface::class);
+        $availability->method('busyPeriods')->willReturn($busy);
+
+        return new BookingSlotFinder($availability, new MockClock(new DateTimeImmutable('2026-09-21 06:00:00 UTC')));
     }
 }

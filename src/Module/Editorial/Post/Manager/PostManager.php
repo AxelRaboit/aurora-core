@@ -72,12 +72,12 @@ class PostManager implements PostManagerInterface
         protected readonly TranslatorInterface $translator,
         protected readonly AuditLogger $auditLogger,
         protected readonly SequenceGenerator $sequenceGenerator,
-        protected readonly PostSnapshot $snapshot,
         protected readonly BannerNormalizer $bannerNormalizer,
         protected readonly GridNormalizer $gridNormalizer,
         protected readonly GalleryNormalizer $galleryNormalizer,
         protected readonly EventDispatcherInterface $eventDispatcher,
         protected readonly UrlGeneratorInterface $urlGenerator,
+        protected readonly PostSnapshot $snapshot,
     ) {}
 
     public function create(PostInputInterface $input): PostInterface
