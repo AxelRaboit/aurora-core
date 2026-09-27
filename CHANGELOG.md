@@ -5,6 +5,22 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.271] - 2026-09-27
+
+### Sécurité
+
+- **Créer un espace ne permet plus de le confier à d'autres sans y être.** La
+  création acceptait n'importe quelle équipe et n'importe quels rôles. Qui crée
+  un espace sans voir tous les espaces en devient désormais le chef, quelle que
+  soit l'équipe envoyée.
+- **La règle « l'équipe se change par le chef » vit dans le gestionnaire des
+  espaces**, et plus seulement dans un contrôleur : toute façon d'enregistrer un
+  espace y passe.
+
+### Dans aurora-client
+
+Rien à faire après `make aurora-update`.
+
 ## [0.9.270] - 2026-09-27
 
 Le plan Studio du 27/09, en entier (lots 0 à 6) : d'abord les failles

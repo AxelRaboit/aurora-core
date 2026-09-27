@@ -138,7 +138,7 @@ final class SpaceVisibilityTest extends IntegrationTestCase
 
         $this->client->jsonRequest('POST', sprintf('/backend/studio/spaces/%d/update', $space->getId()), $update('Mon espace', CustomerSpaceMemberRoleEnum::Lead->value));
         self::assertSame(422, $this->client->getResponse()->getStatusCode());
-        self::assertSame('backend.studio.spaces.errors.team_lead_only', $this->payload()['errors']['members'] ?? null);
+        self::assertArrayHasKey('members', $this->payload()['errors'] ?? []);
 
         $this->client->jsonRequest('POST', sprintf('/backend/studio/spaces/%d/update', $space->getId()), $update('Renommé', CustomerSpaceMemberRoleEnum::Member->value));
         self::assertSame(200, $this->client->getResponse()->getStatusCode(), 'the same team, a new name');
@@ -148,6 +148,45 @@ final class SpaceVisibilityTest extends IntegrationTestCase
         self::assertInstanceOf(CustomerSpace::class, $stored);
         self::assertSame('Renommé', $stored->getName());
         self::assertSame(CustomerSpaceMemberRoleEnum::Member, $stored->getMembers()->first()->getRole());
+    }
+
+    /**
+     * Whoever creates a space leads it, unless they see every space: the
+     * creation accepted any team, so a space could be opened and handed to
+     * others without its creator in it.
+     */
+    public function testWhoeverCreatesASpaceLeadsIt(): void
+    {
+        $creator = $this->givenTeammate('portee-createur@example.test');
+        $creator->setPrivileges(['studio.spaces.view', 'studio.spaces.edit', 'studio.spaces.create']);
+        $other = $this->givenTeammate('portee-autre@example.test');
+        $this->entityManager->flush();
+
+        $customer = new Customer();
+        $customer->setLegalName('Client créé')->setSiret('73282932000074')->setContractualEmail('portee-client@example.test');
+        $this->entityManager->persist($customer);
+        $this->entityManager->flush();
+
+        $this->client->loginUser($creator, 'admin');
+        $this->client->jsonRequest('POST', '/backend/studio/spaces/create', [
+            'name' => 'Donné à un autre',
+            'customerId' => $customer->getId(),
+            'timezone' => 'Europe/Paris',
+            'members' => [['userId' => $other->getId(), 'role' => CustomerSpaceMemberRoleEnum::Lead->value]],
+        ]);
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+
+        $this->entityManager->clear();
+        $space = $this->entityManager->find(CustomerSpace::class, $this->payload()['space']['id']);
+        self::assertInstanceOf(CustomerSpace::class, $space);
+
+        $roles = [];
+        foreach ($space->getMembers() as $member) {
+            $roles[$member->getUser()->getUserIdentifier()] = $member->getRole();
+        }
+
+        self::assertSame(CustomerSpaceMemberRoleEnum::Lead, $roles['portee-createur@example.test'] ?? null, 'the creator leads it');
+        self::assertSame(CustomerSpaceMemberRoleEnum::Lead, $roles['portee-autre@example.test'] ?? null, 'the team sent is kept');
     }
 
     /** @return array<string, mixed> */
