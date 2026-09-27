@@ -32,7 +32,9 @@ const { formatDate } = useDateFormat();
 function calendarFor(state) {
     const path = props.stats.calendarPath;
 
-    return path ? `${path}?scope=${props.stats.scope ?? "mine"}&state=${state}` : null;
+    // En liste : pour un état, la liste montre toutes ses cartes, des mois
+    // passés comme sans date, là où le mois affiché en cachait une partie.
+    return path ? `${path}?scope=${props.stats.scope ?? "mine"}&view=list&state=${state}` : null;
 }
 
 const tiles = computed(() =>

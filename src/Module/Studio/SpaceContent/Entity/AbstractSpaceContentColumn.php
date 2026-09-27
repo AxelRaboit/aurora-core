@@ -74,8 +74,9 @@ abstract class AbstractSpaceContentColumn implements SpaceContentColumnInterface
      * oubliée annulerait la protection.
      *
      * Le modèle existe déjà sur les canaux de discussion, qui portent le même
-     * interrupteur avec le même défaut : c'est ce qui rend celui-ci lisible
-     * sans explication.
+     * interrupteur, avec le défaut inverse : un salon naît interne parce qu'on
+     * y parle entre soi, une étape naît visible parce que le tableau est fait
+     * pour être montré.
      *
      * Vrai par défaut. Fermé d'office aurait fait disparaître le contenu des
      * espaces existants le jour de la mise à jour, ce qu'aucun client

@@ -14,10 +14,6 @@ interface PlanningEventManagerInterface
 {
     public function create(PlanningEventInputInterface $input, PlanningInterface $planning): PlanningEventInterface;
 
-    public function update(PlanningEventInterface $event, PlanningEventInputInterface $input, PlanningInterface $planning): void;
-
-    public function move(PlanningEventInterface $event, DateTimeImmutable $startAt, DateTimeImmutable $endAt): void;
-
     public function updateAtScope(
         PlanningEventInterface $event,
         PlanningEventInputInterface $input,

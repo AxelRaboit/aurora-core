@@ -91,27 +91,44 @@ const visible = computed(() =>
 const cells = computed(() => monthGrid(year.value, month.value));
 const monthTitle = computed(() => d(new Date(year.value, month.value, 1), { year: "numeric", month: "long" }));
 
-/** La liste : les cartes du mois affiché, jour par jour. */
+/**
+ * Un état demandé en liste : toutes ses cartes, tous mois confondus et datées
+ * ou non. C'est ce qu'ouvre une tuile du tableau de bord - « 3 parutions
+ * manquées » nomme des cartes des mois passés, que le mois affiché cachait.
+ */
+const acrossMonths = computed(() => "list" === view.value && "" !== state.value);
+
+/** La liste : les cartes du mois affiché jour par jour, ou de tous les mois pour un état. */
 const byDay = computed(() => {
     const days = new Map();
+    const undated = [];
 
     for (const item of visible.value) {
+        if (!item.startAt) {
+            undated.push(item);
+            continue;
+        }
+
         const at = new Date(item.startAt);
-        if (at.getMonth() !== month.value || at.getFullYear() !== year.value) continue;
+        if (!acrossMonths.value && (at.getMonth() !== month.value || at.getFullYear() !== year.value)) continue;
 
         const key = at.toDateString();
-        if (!days.has(key)) days.set(key, { date: at, items: [] });
+        if (!days.has(key)) days.set(key, { key, date: at, items: [] });
         days.get(key).items.push(item);
     }
 
-    return [...days.values()];
+    const groups = [...days.values()].sort((a, b) => a.date - b.date);
+
+    return undated.length ? [...groups, { key: "undated", date: null, items: undated }] : groups;
 });
 
 const dayItems = computed(() => visible.value.filter((item) => sameDay(new Date(item.startAt), selectedDay.value)));
 
 async function load() {
     const { from, to } = gridWindow(year.value, month.value);
-    const query = new URLSearchParams({ scope: props.scope, from: from.toISOString(), to: to.toISOString() });
+    const query = acrossMonths.value
+        ? new URLSearchParams({ scope: props.scope, state: state.value })
+        : new URLSearchParams({ scope: props.scope, from: from.toISOString(), to: to.toISOString() });
 
     loading.value = true;
     failed.value = false;
@@ -148,7 +165,10 @@ watch([view, customer, state], () => {
     window.history.replaceState(null, "", `?${next.toString()}`);
 });
 
-watch([year, month], load);
+watch([year, month, acrossMonths], load);
+watch(state, () => {
+    if (acrossMonths.value) load();
+});
 onMounted(load);
 
 function open(item) {
@@ -204,14 +224,19 @@ function spaceName(item) {
         <!-- La barre du module Calendrier, à l'identique : un mois se
              parcourt partout de la même façon. -->
         <div class="flex flex-wrap items-center gap-2">
-            <AppIconButton :title="t('shared.common.previous')" v-on:click="goToMonth(-1)">
-                <ChevronLeft class="h-4 w-4" :stroke-width="2" />
-            </AppIconButton>
-            <AppIconButton :title="t('shared.common.next')" v-on:click="goToMonth(1)">
-                <ChevronRight class="h-4 w-4" :stroke-width="2" />
-            </AppIconButton>
-            <h2 class="min-w-0 truncate text-sm font-semibold text-primary first-letter:uppercase sm:text-base">
-                {{ monthTitle }}
+            <template v-if="!acrossMonths">
+                <AppIconButton :title="t('shared.common.previous')" v-on:click="goToMonth(-1)">
+                    <ChevronLeft class="h-4 w-4" :stroke-width="2" />
+                </AppIconButton>
+                <AppIconButton :title="t('shared.common.next')" v-on:click="goToMonth(1)">
+                    <ChevronRight class="h-4 w-4" :stroke-width="2" />
+                </AppIconButton>
+                <h2 class="min-w-0 truncate text-sm font-semibold text-primary first-letter:uppercase sm:text-base">
+                    {{ monthTitle }}
+                </h2>
+            </template>
+            <h2 v-else class="min-w-0 truncate text-sm font-semibold text-primary sm:text-base">
+                {{ t("backend.studio.calendar.all_months") }}
             </h2>
 
             <div class="flex w-full items-center gap-2 sm:ml-auto sm:w-auto">
@@ -258,17 +283,19 @@ function spaceName(item) {
         </template>
 
         <div v-else class="space-y-4">
-            <AppNoData v-if="!loading && !byDay.length" :message="t('backend.studio.calendar.empty_month')" />
-            <section v-for="day in byDay" :key="day.date.toDateString()" class="space-y-1">
+            <AppNoData v-if="!loading && !byDay.length" :message="t(acrossMonths ? 'backend.studio.calendar.empty_state' : 'backend.studio.calendar.empty_month')" />
+            <section v-for="day in byDay" :key="day.key" class="space-y-1">
                 <h3 class="text-xs font-medium uppercase tracking-wide text-secondary">
-                    {{ d(day.date, { weekday: "long", day: "numeric", month: "long" }) }}
+                    {{ day.date ? d(day.date, acrossMonths ? { weekday: "long", day: "numeric", month: "long", year: "numeric" } : { weekday: "long", day: "numeric", month: "long" }) : t("backend.studio.calendar.undated") }}
                 </h3>
                 <ul class="aurora-card divide-y divide-line/60">
                     <li v-for="item in day.items" :key="item.id">
                         <a :href="item.path" class="flex flex-col gap-1 px-3 py-2 sm:flex-row sm:items-center sm:gap-3 hover:bg-surface-2/40">
                             <span class="min-w-0 flex-1">
                                 <span class="block truncate text-sm text-primary">{{ item.title }}</span>
-                                <span class="block truncate text-xs text-muted">{{ spaceName(item) }} · {{ item.stepName }} · {{ d(new Date(item.startAt), { hour: "2-digit", minute: "2-digit" }) }}</span>
+                                <span class="block truncate text-xs text-muted">
+                                    {{ spaceName(item) }} · {{ item.stepName }}<template v-if="item.startAt"> · {{ d(new Date(item.startAt), { hour: "2-digit", minute: "2-digit" }) }}</template>
+                                </span>
                             </span>
                             <span class="flex flex-wrap items-center gap-1.5">
                                 <span

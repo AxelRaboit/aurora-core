@@ -3,10 +3,11 @@
  * A space's content, in whichever view the reader prefers.
  *
  * **The switcher lists subjects, not drawings.** Contenus, Calendrier,
- * Fichiers, Discussion, Notes: five different questions about one space. Which
- * of them somebody reads is a preference, so it lives with the person and not
- * in the address - remembered, free, and the same in every space they open.
- * What is on screen - which space - stays in the URL.
+ * Fichiers, Drive, Discussion, Notes, Informations, Ressources, Réglages: nine
+ * questions about one space, the Drive and the settings only where they apply.
+ * Which of them somebody reads by default is a preference, remembered for the
+ * person and the same in every space they open; the one on screen, and the
+ * card open in it, are in the address, so a link opens what it names.
  *
  * **The kanban and the list are one entry, with two shapes.** They show the
  * same cards in the same order and differ only in the drawing, which is the
@@ -39,6 +40,7 @@ import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { usePersistedChoice } from "@/shared/composables/usePersistedChoice.js";
 import { useQueryState } from "@/shared/composables/useQueryState.js";
+import { viewFromAddress } from "./spaceAddress.js";
 import { useSpaceCardActions } from "./composables/useSpaceCardActions.js";
 import { useSpaceContent } from "./composables/useSpaceContent.js";
 import { useSpaceContentShape } from "./composables/useSpaceContentShape.js";
@@ -258,7 +260,9 @@ const { choice: view } = usePersistedChoice(
 const viewInUrl = useQueryState("view", { defaultValue: "content", valid: VIEWS.map((entry) => entry.key) });
 const itemInUrl = useQueryState("item");
 
-if ("content" !== viewInUrl.value.value) view.value = viewInUrl.value.value;
+// Read from the address as it is: see `viewFromAddress`.
+const viewAtLoad = viewFromAddress(window.location.search, VIEWS.map((entry) => entry.key));
+if (viewAtLoad) view.value = viewAtLoad;
 
 /**
  * Une vue mémorisée que cet espace n'offre pas - le Drive sans compte de
@@ -540,7 +544,7 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
          un flex item ne descend pas sous son contenu. -->
     <div class="flex flex-1 flex-col gap-2 sm:gap-4">
         <div class="flex flex-wrap items-center justify-between gap-3">
-            <!-- Segmented rather than a select: five choices are worth showing
+            <!-- Segmented rather than a select: the choices are worth showing
                  at once, and the one in use is the answer to "why does this
                  look different from yesterday".
 

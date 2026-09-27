@@ -17,10 +17,9 @@
    client's board. This layout changes what is drawn, never where it lives - the
    trap that `backend_ged_files` exists to work around, met head-on.
 
-   What the client will eventually see is this same shell in a read-only mode,
-   reached by a signed link on a public route. Two addresses, two ways of
-   proving who you are, one screen - which is the whole reason for building the
-   shell now rather than when the portal arrives. #}
+   The client reads the same space through a page of their own, on a public
+   route reached by a signed link, with the layout this one was modelled on:
+   two addresses, two ways of proving who you are, and one space behind them. #}
 <!DOCTYPE html>
 <html lang="{{ app.request.locale }}">
     <head>
@@ -188,7 +187,7 @@
                         {label: 'backend.studio.space_access.tab'|trans, url: accessPath, key: 'access'},
                     ] %}
                     {% for tab in tabs %}
-                        {% if tab.key == activeTab|default('board') %}
+                        {% if tab.key == activeTab|default('content') %}
                             <span class="flex-1 rounded-md bg-surface-2 px-2.5 py-1 text-center text-sm font-medium text-primary sm:flex-none sm:text-left" aria-current="page">
                                 {{ tab.label }}
                             </span>

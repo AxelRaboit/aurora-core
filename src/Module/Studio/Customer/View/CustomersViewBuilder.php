@@ -13,6 +13,7 @@ use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\Customer\Repository\CustomerRepository;
 use Aurora\Module\Studio\Customer\Serializer\CustomerSerializerInterface;
 use Aurora\Module\Studio\CustomerSpace\Security\SpaceVisibility;
+use Aurora\Module\Studio\StudioContext;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final readonly class CustomersViewBuilder
@@ -24,6 +25,7 @@ final readonly class CustomersViewBuilder
         private PathTemplateGenerator $pathTemplates,
         private UrlGeneratorInterface $urlGenerator,
         private SpaceVisibility $visibility,
+        private StudioContext $studioContext,
     ) {}
 
     /**
@@ -56,7 +58,7 @@ final readonly class CustomersViewBuilder
         // Ses espaces avec lui, ceux que le lecteur voit : une fiche client
         // ne disait pas quels projets tournaient pour lui.
         $spacesByCustomer = [];
-        foreach ($this->visibility->visibleSpaces() as $space) {
+        foreach ($this->studioContext->areSpacesEnabled() ? $this->visibility->visibleSpaces() : [] as $space) {
             $spacesByCustomer[(int) $space->getCustomer()->getId()][] = [
                 'id' => $space->getId(),
                 'name' => $space->getName(),

@@ -67,47 +67,6 @@ class PlanningEventManager implements PlanningEventManagerInterface
     }
 
     /**
-     * The calendar is passed in rather than read off the input, because moving an
-     * event between calendars is the same gesture as editing it: the form has one
-     * calendar picker and the controller has already resolved it to an entity the
-     * user may write to.
-     */
-    public function update(PlanningEventInterface $event, PlanningEventInputInterface $input, PlanningInterface $planning): void
-    {
-        $this->refuseIfReadOnly($event);
-
-        $event->setPlanning($planning);
-        $this->applyInput($event, $input);
-        $this->entityManager->flush();
-
-        $this->auditUpdated($event);
-        $this->notifyInvitations($event);
-    }
-
-    /**
-     * Moves an event, and nothing else.
-     *
-     * Its own method rather than an `update` with a partial input, because the
-     * input DTO carries every field and a drag knows two: reusing it would have
-     * meant the client sending back a whole event it does not hold. Its
-     * serialised form is not the input's shape either - `colourSlot` comes down
-     * resolved, so echoing it back would turn an event that follows its calendar
-     * into one with a colour of its own.
-     *
-     * The alerts follow, because `setSpan` recomputes the relative ones. That is
-     * the point of the drag being a span change rather than two field writes.
-     */
-    public function move(PlanningEventInterface $event, DateTimeImmutable $startAt, DateTimeImmutable $endAt): void
-    {
-        $this->refuseIfReadOnly($event);
-
-        $event->setSpan($startAt, $endAt);
-        $this->entityManager->flush();
-
-        $this->auditUpdated($event);
-    }
-
-    /**
      * Writes an edit at the scope the reader chose.
      *
      * The scope decides which row is written before anything is written, which is
