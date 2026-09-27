@@ -87,6 +87,7 @@ const INKS = computed(() => [
     { key: "card_color", label: t("backend.themes.ink_card"), unset: t("backend.themes.ink_card_bg_unset") },
     { key: "heading_color", label: t("backend.themes.ink_heading"), unset: t("backend.themes.ink_heading_unset") },
     { key: "success_color", label: t("backend.themes.ink_success"), unset: t("backend.themes.ink_success_unset") },
+    { key: "figure_color", label: t("backend.themes.ink_figure"), unset: t("backend.themes.ink_figure_unset") },
 ]);
 
 function contrastNote(hex) {

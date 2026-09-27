@@ -159,6 +159,7 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
         "card_color",
         "heading_color",
         "success_color",
+        "figure_color",
     ];
     const surfaceColors = reactive(
         Object.fromEntries(SURFACE_KEYS.map((k) => [k, ""])),

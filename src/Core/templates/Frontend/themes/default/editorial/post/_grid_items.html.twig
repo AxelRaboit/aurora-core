@@ -57,7 +57,7 @@
                        pour tout ce qui ne joue pas l'animation. #}
                     <dt
                         data-count-up="{{ entry.title }}"
-                        class="m-0 text-3xl font-bold text-accent sm:text-4xl"
+                        class="m-0 text-3xl font-bold text-figure sm:text-4xl"
                     >{{ entry.title }}</dt>
                     {% if entry.description %}<dd class="m-0 mt-1 text-sm text-secondary">{{ entry.description }}</dd>{% endif %}
                 </div>
@@ -194,7 +194,7 @@
                         {% endif %}
                         {% if entry.title %}<h3 class="m-0 text-lg font-semibold text-primary">{{ entry.title }}</h3>{% endif %}
                     </div>
-                    {% if entry.caption %}<p class="m-0 mt-2 text-3xl font-bold text-accent">{{ entry.caption }}</p>{% endif %}
+                    {% if entry.caption %}<p class="m-0 mt-2 text-3xl font-bold text-figure">{{ entry.caption }}</p>{% endif %}
                     {% if entry.description %}
                         {# One line per line, which is how the field is filled
                            in: a list of what is included reads as a list, and

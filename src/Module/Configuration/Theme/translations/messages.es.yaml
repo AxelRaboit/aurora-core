@@ -39,6 +39,8 @@ backend:
         ink_heading_unset: 'Sin definir, color del texto'
         ink_success: 'Validación (marcas)'
         ink_success_unset: 'Sin definir, verde por defecto'
+        ink_figure: 'Cifras clave (estadísticas, precios)'
+        ink_figure_unset: 'Sin definir, color principal'
         icon: 'Pictogramas de las tarjetas'
         icon_original: 'Color original del archivo'
         icon_accent: 'Color principal'

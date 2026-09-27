@@ -39,6 +39,8 @@ backend:
     ink_heading_unset: 'Not set, text colour'
     ink_success: 'Validation (ticks)'
     ink_success_unset: 'Not set, green by default'
+    ink_figure: 'Key figures (statistics, prices)'
+    ink_figure_unset: 'Not set, main colour'
     icon: 'Card pictograms'
     icon_original: 'The file''s own colour'
     icon_accent: 'Main colour'

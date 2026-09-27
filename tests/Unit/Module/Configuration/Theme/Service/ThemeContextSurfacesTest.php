@@ -125,7 +125,10 @@ final class ThemeContextSurfacesTest extends TestCase
             'success_color' => '#34d399',
             'heading_color' => '#ece2d0',
             'icon_color' => '#987aff',
+            'figure_color' => '#ece2d0',
         ]))->frontendSurfacesCss();
+
+        self::assertStringContainsString('--th-figure: #ece2d0;', $css);
 
         self::assertStringContainsString('--th-success: #34d399;', $css);
         self::assertStringContainsString('--th-success-soft: color-mix(in oklab, #34d399 15%, transparent);', $css);

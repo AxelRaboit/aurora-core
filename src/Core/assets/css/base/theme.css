@@ -23,6 +23,9 @@
     --color-line-strong: var(--color-border-strong);
     /* Le contour des cartes : celui du theme s'il en pose un, sinon le trait. */
     --color-card-line:   var(--th-card-line, var(--color-border));
+    /* Les chiffres mis en avant (statistiques, prix) : ceux du theme s'il en
+       pose, sinon la couleur principale, comme avant. */
+    --color-figure:      var(--th-figure, var(--th-accent));
 
     --width-serp-max: 600px;
 

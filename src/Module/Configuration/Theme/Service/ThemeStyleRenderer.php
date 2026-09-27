@@ -211,8 +211,8 @@ final readonly class ThemeStyleRenderer
 
     /**
      * The theme's colours that do not depend on a surface: the tick of a
-     * validated line, the headings of the content, the pictograms of the
-     * cards. Set once on the page, inherited everywhere, whatever surface
+     * validated line, the headings of the content, the key figures, the
+     * pictograms of the cards. Set once on the page, inherited everywhere, whatever surface
      * the element sits on - so unlike the ink colours, they need no page
      * background to take effect.
      *
@@ -232,6 +232,9 @@ final readonly class ThemeStyleRenderer
             $declarations[] = '--th-heading: '.$heading.';';
         }
 
+        if (null !== $figure = $this->surfaceColor($config['figure_color'] ?? null)) {
+            $declarations[] = '--th-figure: '.$figure.';';
+        }
         if (null !== $icon = $this->themeContext->iconColor()) {
             $declarations[] = '--th-icon: '.$icon.';';
         }

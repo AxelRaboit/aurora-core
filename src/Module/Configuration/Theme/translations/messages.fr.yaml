@@ -39,6 +39,8 @@ backend:
     ink_heading_unset: 'Non définie, couleur du texte'
     ink_success: 'Validation (coches)'
     ink_success_unset: 'Non définie, vert par défaut'
+    ink_figure: 'Chiffres clés (statistiques, prix)'
+    ink_figure_unset: 'Non définie, couleur principale'
     icon: 'Pictogrammes des cartes'
     icon_original: 'Couleur d''origine du fichier'
     icon_accent: 'Couleur principale'
