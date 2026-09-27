@@ -12,11 +12,12 @@ use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnumInterface;
 use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
 use Doctrine\Common\Collections\Order;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Contracts\Service\ResetInterface;
 
 /**
  * @extends ResolveTargetEntityRepository<SettingInterface>
  */
-class SettingRepository extends ResolveTargetEntityRepository
+class SettingRepository extends ResolveTargetEntityRepository implements ResetInterface
 {
     use PaginationTrait;
 
@@ -26,6 +27,18 @@ class SettingRepository extends ResolveTargetEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Setting::class, SettingInterface::class);
+    }
+
+    /**
+     * Forgets the settings read so far.
+     *
+     * Called by Symfony between two messages of a worker. Without it the
+     * worker kept the settings of the moment it started: switching a module
+     * off did not stop its scheduled jobs until the worker was restarted.
+     */
+    public function reset(): void
+    {
+        $this->cache = null;
     }
 
     public function get(string $key, ?string $default = null): ?string

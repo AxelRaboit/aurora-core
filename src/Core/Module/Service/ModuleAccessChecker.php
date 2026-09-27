@@ -9,6 +9,7 @@ use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Contracts\Service\ResetInterface;
 
 /**
  * Single source of truth for module enablement.
@@ -28,7 +29,7 @@ use Symfony\Bundle\SecurityBundle\Security;
  * that benefit from type safety) or a raw string key (for client modules
  * with toggles not present in the enum).
  */
-class ModuleAccessChecker
+class ModuleAccessChecker implements ResetInterface
 {
     /** @var array<string, bool> */
     private array $globalCache = [];
@@ -38,6 +39,15 @@ class ModuleAccessChecker
         protected readonly Security $security,
         protected readonly ModuleToggleRegistry $toggleRegistry,
     ) {}
+
+    /**
+     * Forgets the toggles read so far, between two messages of a worker, for
+     * the same reason as {@see SettingRepository::reset()}.
+     */
+    public function reset(): void
+    {
+        $this->globalCache = [];
+    }
 
     /**
      * Returns whether the given toggle is accessible.

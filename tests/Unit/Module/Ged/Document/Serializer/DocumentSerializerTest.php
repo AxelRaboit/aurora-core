@@ -45,6 +45,7 @@ final class DocumentSerializerTest extends TestCase
         ?string $mimeType = null,
         ?int $size = null,
         ?string $thumbnailPath = null,
+        array $renditions = [],
         array $tags = [],
         ?DocumentFolderInterface $folder = null,
         string $createdAt = '2025-01-01T00:00:00+00:00',
@@ -67,6 +68,7 @@ final class DocumentSerializerTest extends TestCase
         $document->method('getMimeType')->willReturn($mimeType);
         $document->method('getSize')->willReturn($size);
         $document->method('getThumbnailPath')->willReturn($thumbnailPath);
+        $document->method('getRenditions')->willReturn($renditions);
         $document->method('getTags')->willReturn(new ArrayCollection($tags));
         $document->method('getFolder')->willReturn($folder);
         $document->method('getCreatedAt')->willReturn(new DateTimeImmutable($createdAt));
@@ -170,6 +172,7 @@ final class DocumentSerializerTest extends TestCase
         self::assertSame('/uploads/ged/thumbnails/2026/05/contract.jpg', $result['thumbnailUrl']);
     }
 
+    /** An image too small to have renditions is shown as itself. */
     public function testSerializeFallsBackToImageItselfForNativeImageMimes(): void
     {
         $result = $this->serializer->serialize($this->makeDocument(
@@ -178,6 +181,22 @@ final class DocumentSerializerTest extends TestCase
         ));
 
         self::assertSame('/uploads/ged/2026/05/photo.webp', $result['thumbnailUrl']);
+    }
+
+    /**
+     * An image's thumbnail is its medium rendition, not the original: the
+     * grid showed twenty originals of up to 2560 pixels in tiles a few
+     * hundred wide.
+     */
+    public function testAnImageWithRenditionsIsShownThroughItsMediumOne(): void
+    {
+        $document = $this->makeDocument(filePath: 'ged/2026/05/photo.webp', mimeType: 'image/webp', renditions: [
+            'thumbnail' => 'ged/2026/05/variants/thumbnail/photo.webp',
+            'medium' => 'ged/2026/05/variants/medium/photo.webp',
+            'large' => 'ged/2026/05/variants/large/photo.webp',
+        ]);
+
+        self::assertSame('/uploads/ged/2026/05/variants/medium/photo.webp', $this->serializer->serialize($document)['thumbnailUrl']);
     }
 
     public function testSerializeNoThumbnailForUnsupportedMime(): void

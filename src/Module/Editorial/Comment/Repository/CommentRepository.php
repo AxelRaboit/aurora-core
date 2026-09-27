@@ -32,11 +32,17 @@ class CommentRepository extends ResolveTargetEntityRepository
      */
     public function findPaginatedForAdmin(int $page, int $limit, ?CommentStatusEnum $status, ?string $search = null): array
     {
+        // Only relations to one row each under the LIMIT. The post's
+        // translations used to be joined here too, and a joined collection
+        // multiplies the rows the LIMIT counts: in three languages a "page of
+        // 20" held about seven comments, and some fell on no page at all.
+        // The titles are loaded after the page, by warmPostTitles().
         $items = $this->createQueryBuilder('c')
             ->leftJoin('c.post', 'p')
-            ->leftJoin('p.translations', 't')
-            ->addSelect('p', 't')
-            ->orderBy('c.createdAt', Order::Descending->value);
+            ->leftJoin('c.parent', 'parent')
+            ->addSelect('p', 'parent')
+            ->orderBy('c.createdAt', Order::Descending->value)
+            ->addOrderBy('c.id', Order::Descending->value);
 
         $count = $this->createQueryBuilder('c')->select('COUNT(c.id)');
 
@@ -56,7 +62,69 @@ class CommentRepository extends ResolveTargetEntityRepository
             }
         }
 
-        return $this->paginate($items, $count, $page, $limit);
+        $result = $this->paginate($items, $count, $page, $limit);
+        $this->warmPostTitles($result['items']);
+
+        return $result;
+    }
+
+    /**
+     * How many replies each of these comments has, in one query.
+     *
+     * Keyed by id, every id present, zero included.
+     *
+     * @param list<int> $ids
+     *
+     * @return array<int, int>
+     */
+    public function countRepliesByComments(array $ids): array
+    {
+        $counts = array_fill_keys($ids, 0);
+        if ([] === $ids) {
+            return $counts;
+        }
+
+        $rows = $this->createQueryBuilder('c')
+            ->select('IDENTITY(c.parent) AS parentId', 'COUNT(c.id) AS replies')
+            ->where('c.parent IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->groupBy('c.parent')
+            ->getQuery()
+            ->getArrayResult();
+
+        foreach ($rows as $row) {
+            $counts[(int) $row['parentId']] = (int) $row['replies'];
+        }
+
+        return $counts;
+    }
+
+    /**
+     * The translations of the posts these comments are on, loaded in place.
+     *
+     * @param list<CommentInterface> $comments
+     */
+    private function warmPostTitles(array $comments): void
+    {
+        $posts = [];
+        foreach ($comments as $comment) {
+            $posts[(int) $comment->getPost()->getId()] = $comment->getPost();
+        }
+
+        $posts = array_values($posts);
+
+        if ([] === $posts) {
+            return;
+        }
+
+        $this->getEntityManager()->createQueryBuilder()
+            ->select('p', 't')
+            ->from($this->getClassMetadata()->getAssociationTargetClass('post'), 'p')
+            ->leftJoin('p.translations', 't')
+            ->where('p IN (:posts)')
+            ->setParameter('posts', $posts)
+            ->getQuery()
+            ->getResult();
     }
 
     /**

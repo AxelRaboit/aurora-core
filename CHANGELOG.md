@@ -24,6 +24,25 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ### Corrigé
 
+- **La modération des commentaires perdait des commentaires.** La page
+  joignait les traductions de l'article sous sa limite : en trois langues, une
+  « page de 20 » en montrait 7, les pages ne faisaient pas le total, et
+  certains commentaires n'apparaissaient sur aucune. Chaque page montre
+  désormais ses 20 commentaires, et le nombre de réponses de chacun est
+  compté sans charger les fils.
+- **Les pastilles de langue de la liste des articles** ne montraient que la
+  langue de l'écran, même pour un article traduit en trois langues.
+- **Un calendrier abonné montre les séries en entier.** Le flux ICS n'écrivait
+  que la première occurrence d'un événement récurrent. Il porte maintenant la
+  règle, les occurrences supprimées ou déplacées, et le fuseau du calendrier :
+  un rendez-vous hebdomadaire à 10 h reste à 10 h après le changement d'heure.
+- **Couper un module est vu par le worker sans le redémarrer.** Les réglages
+  et les interrupteurs de modules restaient en mémoire d'un message à
+  l'autre : désactiver le Planning n'arrêtait ses rappels qu'au redémarrage.
+- **La médiathèque affiche les miniatures des images**, et non plus les
+  originaux (jusqu'à 2 560 pixels, vingt par page) dans des tuiles de 200.
+- **Les images servies depuis R2 retrouvent leur document par un index** sur
+  les chemins, au lieu de parcourir toute la médiathèque à chaque image.
 - Mettre à la corbeille ou restaurer une sélection de documents écrivait une
   ligne d'audit pour chaque document sélectionné, y compris ceux qui étaient
   déjà dans cet état.
@@ -132,6 +151,9 @@ aurait à écrire `approveMany()`. Le projet client ne fait ni l'un ni l'autre.
 `NotificationManagerInterface::notify()` prend un dernier paramètre facultatif
 `bool $flush = true` : une implémentation écrite à part devrait l'ajouter à sa
 signature. Le projet client n'en a pas.
+Idem pour `CommentSerializerInterface::serialize()`, qui prend un troisième
+paramètre facultatif `?array $replyCounts`. Une migration ajoute deux index à
+`core_ged_documents` ; `make deploy-prod` la passe.
 
 ## [0.9.270] - 2026-09-27
 

@@ -13,10 +13,13 @@ interface CommentSerializerInterface
      * the author's address, the status.
      *
      * @param array<int, array<string, int>> $reactionCounts comment id → type → count
+     * @param array<int, int>|null           $replyCounts    comment id → replies, for a list;
+     *                                                       without it the replies are counted
+     *                                                       from the collection, which loads them
      *
      * @return array<string, mixed>
      */
-    public function serialize(CommentInterface $comment, array $reactionCounts = []): array;
+    public function serialize(CommentInterface $comment, array $reactionCounts = [], ?array $replyCounts = null): array;
 
     /**
      * What a reader receives. No address, no status: everything here is

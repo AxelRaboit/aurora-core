@@ -16,7 +16,7 @@ class CommentSerializer implements CommentSerializerInterface
 {
     public function __construct(protected readonly TranslatorInterface $translator) {}
 
-    public function serialize(CommentInterface $comment, array $reactionCounts = []): array
+    public function serialize(CommentInterface $comment, array $reactionCounts = [], ?array $replyCounts = null): array
     {
         return [
             ...$this->shared($comment, $reactionCounts),
@@ -25,7 +25,7 @@ class CommentSerializer implements CommentSerializerInterface
             'authorEmail' => $comment->getAuthorEmail(),
             'status' => $comment->getStatus()->value,
             'parentAuthorName' => $comment->getParent()?->getAuthorName(),
-            'replyCount' => $comment->getReplies()->count(),
+            'replyCount' => $replyCounts[(int) $comment->getId()] ?? $comment->getReplies()->count(),
         ];
     }
 

@@ -65,10 +65,15 @@ class PostRepository extends ResolveTargetEntityRepository
         array $termIds = [],
         array $statuses = [],
     ): array {
+        // The translation of the locale is joined to filter and search on, not
+        // selected: a fetch join restricted by `WITH` marks the collection as
+        // loaded with that one row, and the list's language badges then saw
+        // one language on every post. All of them come after the page, in
+        // hydrateCollections(), where no LIMIT can be thrown off by them.
         $items = $this->createQueryBuilder('p')
             ->leftJoin('p.translations', 't', 'WITH', 't.locale = :locale')
             ->leftJoin('p.postType', 'pt')
-            ->addSelect('t', 'pt')
+            ->addSelect('pt')
             ->setParameter('locale', $locale)
             ->orderBy('p.createdAt', Order::Descending->value);
 
@@ -778,7 +783,7 @@ class PostRepository extends ResolveTargetEntityRepository
 
         $ids = array_map(static fn (PostInterface $post): ?int => $post->getId(), $posts);
 
-        foreach (['terms', 'relatedPosts'] as $association) {
+        foreach (['translations', 'terms', 'relatedPosts'] as $association) {
             $this->createQueryBuilder('p')
                 ->leftJoin('p.'.$association, 'assoc')
                 ->addSelect('assoc')

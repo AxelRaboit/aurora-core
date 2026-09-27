@@ -51,14 +51,14 @@ class PlanningRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Loads everything a feed writes, for these calendars, in two queries.
+     * Loads everything a feed writes, for these calendars, in three queries.
      *
      * The feed walks each calendar's events, their attendees and each
      * attendee's user, then its reminders - all lazy, so a query per event on
      * a URL every subscribed phone polls every quarter of an hour. Doctrine
      * fills the managed calendars in place, so the writer reads them without
-     * asking again. Two queries rather than one: joining events and reminders
-     * together would multiply one by the other.
+     * asking again. Several queries rather than one: joining events and
+     * reminders together would multiply one by the other.
      *
      * @param list<PlanningInterface> $plannings
      */
@@ -74,6 +74,21 @@ class PlanningRepository extends ResolveTargetEntityRepository
             ->leftJoin('a.user', 'u')
             ->addSelect('e', 'a', 'u')
             ->where('p IN (:plannings)')
+            ->setParameter('plannings', $plannings)
+            ->getQuery()
+            ->getResult();
+
+        // The edited occurrences of each series, which the feed leaves out of
+        // the rule. A query of their own: joined above, they would multiply
+        // every series by its attendees.
+        // Read from the events rather than through `p.events` with a `WITH`:
+        // a restricted fetch join would pass for the whole collection.
+        $this->getEntityManager()->createQueryBuilder()
+            ->select('e', 'o')
+            ->from($this->getClassMetadata()->getAssociationTargetClass('events'), 'e')
+            ->leftJoin('e.occurrences', 'o')
+            ->where('e.planning IN (:plannings)')
+            ->andWhere('e.rrule IS NOT NULL')
             ->setParameter('plannings', $plannings)
             ->getQuery()
             ->getResult();
