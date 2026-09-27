@@ -41,6 +41,8 @@ interface PlanningReminderInterface extends TimestampableInterface
 
     public function isCompleted(): bool;
 
+    public function isOverdue(DateTimeImmutable $now): bool;
+
     public function complete(DateTimeImmutable $at): static;
 
     public function reopen(): static;

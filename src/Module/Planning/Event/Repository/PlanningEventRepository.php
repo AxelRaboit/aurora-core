@@ -134,28 +134,6 @@ class PlanningEventRepository extends ResolveTargetEntityRepository
         return $result;
     }
 
-    public function findUpcoming(array $planningIds, DateTimeImmutable $from, int $limit = 5): array
-    {
-        if ([] === $planningIds) {
-            return [];
-        }
-
-        /** @var list<PlanningEventInterface> $result */
-        $result = $this->createQueryBuilder('e')
-            ->addSelect('p')
-            ->innerJoin('e.planning', 'p')
-            ->where('e.planning IN (:plannings)')
-            ->andWhere('e.startAt >= :from')
-            ->setParameter('plannings', $planningIds)
-            ->setParameter('from', $from)
-            ->orderBy('e.startAt', 'ASC')
-            ->setMaxResults($limit)
-            ->getQuery()
-            ->getResult();
-
-        return $result;
-    }
-
     public function findBySource(string $sourceType, int $sourceId): ?PlanningEventInterface
     {
         return $this->findOneBy(['sourceType' => $sourceType, 'sourceId' => $sourceId]);

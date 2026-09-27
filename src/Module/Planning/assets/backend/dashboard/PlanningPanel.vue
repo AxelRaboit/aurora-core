@@ -95,10 +95,13 @@ const upcoming = computed(() =>
             <AppNoData v-if="!upcoming.length" :message="t('backend.plannings.nothing_upcoming')" />
 
             <div v-else class="flex flex-col gap-2">
-                <div
+                <!-- Chaque ligne ouvre son jour dans le calendrier. La date dans
+                     la clé : deux occurrences d'une série ont le même id. -->
+                <a
                     v-for="row in upcoming"
-                    :key="`${row.kind}-${row.id}`"
-                    class="flex items-baseline gap-2 min-w-0"
+                    :key="`${row.kind}-${row.id}-${row.at}`"
+                    :href="row.path"
+                    class="-mx-1.5 flex min-w-0 items-baseline gap-2 rounded-md px-1.5 py-0.5 transition-colors hover:bg-surface-2"
                 >
                     <span
                         class="w-1.5 h-1.5 rounded-full shrink-0"
@@ -106,7 +109,7 @@ const upcoming = computed(() =>
                     />
                     <span class="min-w-0 flex-1 truncate text-sm text-primary">{{ row.title }}</span>
                     <span class="shrink-0 text-2xs text-muted tabular-nums">{{ row.when }}</span>
-                </div>
+                </a>
             </div>
         </div>
     </div>

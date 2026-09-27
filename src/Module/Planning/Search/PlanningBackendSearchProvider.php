@@ -47,8 +47,10 @@ final readonly class PlanningBackendSearchProvider implements BackendSearchProvi
         // palette because one module's query failed is worse than one section
         // missing.
         try {
+            // The right to look at calendars, as every calendar screen asks:
+            // the search used to answer anybody signed in.
             $user = $this->security->getUser();
-            if (!$user instanceof CoreUserInterface) {
+            if (!$user instanceof CoreUserInterface || !$this->security->isGranted('planning.calendars.view')) {
                 return [];
             }
 

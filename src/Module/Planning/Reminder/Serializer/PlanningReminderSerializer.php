@@ -36,7 +36,7 @@ final readonly class PlanningReminderSerializer
             // Computed here rather than left to the screen: "late" is a
             // comparison against now, and a browser with a wrong clock would
             // otherwise strike through things that are not late at all.
-            'overdue' => !$reminder->isCompleted() && $reminder->getDueAt() < $now,
+            'overdue' => $reminder->isOverdue($now),
             'planningId' => $planning->getId(),
             'planningName' => $planning->getName(),
             'colourSlot' => $planning->getColourSlot(),

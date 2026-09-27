@@ -128,10 +128,13 @@ class PlanningReminderRepository extends ServiceEntityRepository
         return (int) $this->createQueryBuilder('r')
             ->select('COUNT(r.id)')
             ->where('r.planning IN (:plannings)')
-            ->andWhere('r.dueAt < :now')
+            // The rule of `isOverdue()`: a whole-day reminder is late once its
+            // day is over, not from its first minute.
+            ->andWhere('(r.allDay = false AND r.dueAt < :now) OR (r.allDay = true AND r.dueAt <= :dayAgo)')
             ->andWhere('r.completedAt IS NULL')
             ->setParameter('plannings', $planningIds)
             ->setParameter('now', $now)
+            ->setParameter('dayAgo', $now->modify('-1 day'))
             ->getQuery()
             ->getSingleScalarResult();
     }
