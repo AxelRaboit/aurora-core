@@ -205,6 +205,24 @@ final class GridWaveOneZonesTest extends IntegrationTestCase
         self::assertStringContainsString('lg:sticky', $html);
     }
 
+    public function testAnEditorialListNumbersItsEntriesOnTwoDigits(): void
+    {
+        $html = $this->render(
+            ['type' => 'items', 'display' => 'editorial', 'columns' => 2, 'items' => [['id' => 'e1'], ['id' => 'e2']]],
+            ['items' => [
+                'e1' => ['title' => 'Site vitrine', 'description' => 'Quelques pages, rapides.'],
+                'e2' => ['title' => 'Application', 'description' => 'Un outil métier.'],
+            ]],
+        );
+
+        self::assertStringContainsString('Site vitrine', $html);
+        self::assertStringContainsString('Un outil métier.', $html);
+        self::assertStringContainsString('>01</span>', $html);
+        self::assertStringContainsString('>02</span>', $html);
+        self::assertStringContainsString('sm:grid-cols-2', $html);
+        self::assertStringNotContainsString('aurora-card', $html);
+    }
+
     public function testAPictureCanBecomeABandOrSitOnAScreen(): void
     {
         $band = $this->render(['type' => 'media', 'fullBleed' => true, 'mediaUrl' => 'https://picsum.photos/1600/900', 'options' => ['parallax' => true]], ['caption' => 'Une phrase']);
