@@ -130,6 +130,9 @@ interface PostInterface
 
     public function setHighlightColor(?string $highlightColor): static;
 
+    /** The hover colour of this publication's card in a listing, or null to follow the listing page. */
+    public function getCardHighlightColor(): ?string;
+
     public function getPostType(): PostTypeInterface;
 
     public function setPostType(PostTypeInterface $postType): static;

@@ -181,6 +181,7 @@ class PostSerializer implements PostSerializerInterface
             'thumbnailUrl' => $thumbnail['url'],
             'thumbnailFitClass' => $thumbnail['objectFitClass'],
             'thumbnailFocalPosition' => $thumbnail['focalPosition'],
+            'cardHighlight' => $post->getCardHighlightColor(),
             // A card used to carry only what a blog post needs - title, teaser,
             // image. A post type whose meaning lives in its custom fields (a
             // room's price, a product's weight) could not be listed usefully at
