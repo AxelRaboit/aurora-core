@@ -736,6 +736,7 @@ backend:
                 people: Equipo
                 scrolly: 'Relato en imágenes'
                 editorial: 'Lista editorial'
+                process: 'Línea de tiempo horizontal'
             item_columns: Columnas
             item_number: 'Entrada {number}'
             item_add: 'Añadir una entrada'

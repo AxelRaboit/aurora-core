@@ -265,7 +265,7 @@ export function defaultZoneOptions() {
 /** Mirrors GridNormalizer::SEPARATOR_STYLES. */
 export const SEPARATOR_STYLES = ["line", "space", "wave", "diagonal", "bevel"];
 
-/** Mirrors GridNormalizer::ITEM_DISPLAYS - the ten costumes of an item list. */
+/** Mirrors GridNormalizer::ITEM_DISPLAYS - the eleven costumes of an item list. */
 export const ITEM_DISPLAYS = [
     "steps",
     "stats",
@@ -277,6 +277,7 @@ export const ITEM_DISPLAYS = [
     "people",
     "scrolly",
     "editorial",
+    "process",
 ];
 
 /** Mirrors GridNormalizer::ITEM_COLUMNS. */

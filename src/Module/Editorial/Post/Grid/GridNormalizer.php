@@ -466,7 +466,7 @@ final readonly class GridNormalizer
      * written. New ones go at the end: the first is the default, and moving it
      * would restyle every list already published.
      */
-    public const array ITEM_DISPLAYS = ['steps', 'stats', 'faq', 'quotes', 'logos', 'timeline', 'offers', 'people', 'scrolly', 'editorial'];
+    public const array ITEM_DISPLAYS = ['steps', 'stats', 'faq', 'quotes', 'logos', 'timeline', 'offers', 'people', 'scrolly', 'editorial', 'process'];
 
     /**
      * How densely a publication card is drawn. The same publication either
