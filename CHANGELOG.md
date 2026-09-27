@@ -5,6 +5,40 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.268] - 2026-09-27
+
+Suite de la revue de qualité : les points restés ouverts.
+
+### Corrigé
+
+- **Le calendrier des rendez-vous ne change plus de nom selon la langue du
+  visiteur.** Il se renommait à chaque réservation faite dans une autre
+  langue ; il porte maintenant le nom de la langue par défaut du site.
+- **Carte de voyage : une ligne vide ne décale plus les photos.** Une ligne
+  vide glissée dans une traduction faisait passer chaque photo suivante sur
+  l'étape d'après.
+- **Les textes d'exemple de l'éditeur de grille sont traduits.** Une trentaine
+  s'affichaient en français dans les back-offices anglais et espagnol.
+- **Le menu charge ses entrées vers des catégories ou étiquettes en une
+  requête**, au lieu d'une par entrée, sur chaque page.
+- L'éditeur de galerie et la page d'un contrat prennent le lien de retour
+  commun, discret, au lieu d'un bouton du poids des actions de la page.
+
+### Modifié (code)
+
+- `ThemeContext` ne produit plus de CSS : tout ce qui part dans une balise
+  `<style>` vit dans `ThemeStyleRenderer`, exposé à Twig sous `themeStyles`.
+  Les anciennes méthodes restent, dépréciées, pour les gabarits recopiés.
+- `GridViewBuilder` est découpé par familles de zones (listes, médias,
+  fonctions du site), de 1965 à 897 lignes, sans toucher aux gabarits.
+- Le vote d'un sondage s'enregistre dans un service, plus dans le contrôleur.
+
+### Dans aurora-client
+
+Rien à faire après `make aurora-update`. Un gabarit recopié qui appelle
+`themeContext.highlightCss()` (ou une autre méthode de CSS) fonctionne
+toujours ; `themeStyles.highlightCss()` est la forme à préférer.
+
 ## [0.9.267] - 2026-09-27
 
 ### Ajouté
