@@ -5,6 +5,19 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.277] - 2026-09-27
+
+### Ajouté
+
+#### Un affichage « Frise horizontale » pour les zones Liste
+Une zone Liste peut se présenter comme un déroulé qui se lit de gauche à
+droite : chaque entrée est une étape numérotée sur une même ligne, reliée à la
+suivante par un fil, et la dernière est pleine, parce que c'est là que le
+déroulé arrive. Le nombre d'étapes fixe les colonnes (jusqu'à six sur une
+ligne, quatre par rangée au-delà). Sur téléphone, la frise se redresse et
+descend le long de la marge. Le numéro sert de repère : la petite ligne
+au-dessus du titre n'est pas demandée.
+
 ## [0.9.276] - 2026-09-27
 
 ### Ajouté
