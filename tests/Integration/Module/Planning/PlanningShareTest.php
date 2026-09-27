@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Integration\Module\Planning;
 
+use Aurora\Module\Planning\Event\Entity\PlanningEvent;
 use Aurora\Module\Planning\Planning\Entity\Planning;
 use Aurora\Module\Planning\Planning\Enum\PlanningVisibilityEnum;
 use Aurora\Module\Planning\Share\Entity\PlanningShare;
@@ -11,6 +12,7 @@ use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Tests\Integration\IntegrationTestCase;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -498,6 +500,89 @@ final class PlanningShareTest extends IntegrationTestCase
         ]);
 
         self::assertResponseStatusCodeSame(422);
+    }
+
+    /**
+     * Renaming, recolouring or deleting a calendar is its owner's decision,
+     * whatever the reader may otherwise do with it: holding the right to
+     * manage calendars used to be enough to take anybody's.
+     */
+    public function testSomebodyElsesCalendarCannotBeChangedOrDeleted(): void
+    {
+        $planning = $this->calendar();
+        $this->share($planning, canWrite: true);
+
+        $this->client->loginUser($this->guest, 'admin');
+
+        $this->post('backend_planning_calendars_update', [...$this->payload($planning, 'shared'), 'name' => 'Pris'], ['id' => $planning->getId()]);
+        self::assertResponseStatusCodeSame(404);
+
+        $this->post('backend_planning_calendars_delete', [], ['id' => $planning->getId()]);
+        self::assertResponseStatusCodeSame(404);
+
+        $this->entityManager->clear();
+        $stored = $this->entityManager->find(Planning::class, $planning->getId());
+        self::assertInstanceOf(Planning::class, $stored);
+        self::assertSame('Privé', $stored->getName());
+        self::assertSame(PlanningVisibilityEnum::Private, $stored->getVisibility());
+    }
+
+    /** Nobody owns a module's calendar, so nobody renames or deletes it. */
+    public function testAModulesCalendarCannotBeChangedOrDeleted(): void
+    {
+        $planning = new Planning();
+        $planning->setName('Contenus clients')->setSourceType('test.module')->setVisibility(PlanningVisibilityEnum::Shared);
+        $this->entityManager->persist($planning);
+        $this->entityManager->flush();
+        $this->created[] = [Planning::class, (int) $planning->getId()];
+
+        $this->client->loginUser($this->owner, 'admin');
+
+        $this->post('backend_planning_calendars_update', $this->payload($planning, 'shared'), ['id' => $planning->getId()]);
+        self::assertResponseStatusCodeSame(404);
+
+        $this->post('backend_planning_calendars_delete', [], ['id' => $planning->getId()]);
+        self::assertResponseStatusCodeSame(404);
+    }
+
+    /**
+     * An event on a calendar you cannot write to stays where it is: sending
+     * it to a calendar of your own used to be enough to take it, and deleting
+     * it asked nothing at all.
+     */
+    public function testSomebodyElsesEventCannotBeTakenOrDeleted(): void
+    {
+        $planning = $this->calendar();
+        $event = new PlanningEvent();
+        $event->setPlanning($planning)->setTitle('Rendez-vous médical')->setSpan(new DateTimeImmutable('2026-09-01 10:00'), new DateTimeImmutable('2026-09-01 11:00'));
+        $this->entityManager->persist($event);
+        $this->entityManager->flush();
+        $this->created[] = [PlanningEvent::class, (int) $event->getId()];
+
+        $mine = new Planning();
+        $mine->setName('À moi')->setOwner($this->guest)->setVisibility(PlanningVisibilityEnum::Private);
+        $this->entityManager->persist($mine);
+        $this->entityManager->flush();
+        $this->created[] = [Planning::class, (int) $mine->getId()];
+
+        $this->client->loginUser($this->guest, 'admin');
+
+        $this->post('backend_planning_events_update', [
+            'planningId' => $mine->getId(),
+            'title' => 'Volé',
+            'startAt' => '2026-09-01T10:00:00Z',
+            'endAt' => '2026-09-01T11:00:00Z',
+        ], ['id' => $event->getId()]);
+        self::assertResponseStatusCodeSame(404);
+
+        $this->post('backend_planning_events_delete', [], ['id' => $event->getId()]);
+        self::assertResponseStatusCodeSame(404);
+
+        $this->entityManager->clear();
+        $stored = $this->entityManager->find(PlanningEvent::class, $event->getId());
+        self::assertInstanceOf(PlanningEvent::class, $stored);
+        self::assertSame('Rendez-vous médical', $stored->getTitle());
+        self::assertSame($planning->getId(), $stored->getPlanning()->getId());
     }
 
     /** @return list<int> */

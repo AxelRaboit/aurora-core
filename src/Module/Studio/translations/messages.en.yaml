@@ -1006,6 +1006,7 @@ backend:
                 confirm_placeholder: The same one, a second time
                 errors:
                     wrong_password: Wrong password.
+                    too_many_attempts: Too many attempts. Try again in a quarter of an hour.
                     password_too_short: Password too short.
                     password_mismatch: Passwords do not match.
                     not_locked: "The Drive tab is not closed."
@@ -1024,6 +1025,7 @@ backend:
                 name_too_long: The name cannot be longer than 150 characters.
                 customer_required: Choose the client this space belongs to.
                 timezone_invalid: That time zone is not recognised.
+                team_lead_only: Only the space lead can change its team and roles.
         space_access:
             tab: Client access
             intro: A link opens this space read-only, with no account. It is personal, it expires, and it can be revoked.

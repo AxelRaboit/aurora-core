@@ -109,6 +109,7 @@ class SpaceAccessLinkManager implements SpaceAccessLinkManagerInterface
             ->setLabel($source->getLabel())
             ->setCanApprove($source->canApprove())
             ->setCanComment($source->canComment())
+            ->setCanChat($source->canChat())
             ->setCanUpload($source->canUpload())
             ->setCanSeeDrive($source->canSeeDrive())
             ->setPreviewOf($source)

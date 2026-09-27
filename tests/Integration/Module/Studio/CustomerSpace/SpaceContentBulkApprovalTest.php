@@ -238,6 +238,9 @@ final class SpaceContentBulkApprovalTest extends IntegrationTestCase
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/create', $space->getId()), [
             'title' => $title,
             'columnId' => $this->columns->findForSpace($space)[0]->getId(),
+            // Datée : la page du client ne montre que son calendrier, et
+            // n'accepte d'avis que sur ce qu'elle montre.
+            'scheduledAt' => '2026-12-01T10:00',
         ]);
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());

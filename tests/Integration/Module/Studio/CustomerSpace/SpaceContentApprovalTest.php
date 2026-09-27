@@ -134,9 +134,9 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
         $stored = $this->items->find($item['id']);
 
         // An opinion, not a state machine: a client clicking the wrong button
-        // would otherwise have scheduled a publication.
+        // would otherwise have moved or rescheduled a publication.
         self::assertSame($columns[0]->getId(), $stored->getColumn()->getId());
-        self::assertNull($stored->getScheduledAt());
+        self::assertSame('2026-12-01 10:00', $stored->getScheduledAt()?->format('Y-m-d H:i'));
     }
 
     public function testRewritingTheTextClearsTheAnswer(): void
@@ -151,6 +151,7 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/%d/update', $space->getId(), $item['id']), [
             'title' => 'Texte reecrit',
             'columnId' => $this->columns->findForSpace($space)[0]->getId(),
+            'scheduledAt' => '2026-12-01T10:00',
         ]);
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
@@ -177,6 +178,7 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/%d/update', $space->getId(), $item['id']), [
             'title' => 'Texte repris',
             'columnId' => $this->columns->findForSpace($space)[0]->getId(),
+            'scheduledAt' => '2026-12-01T10:00',
         ]);
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
@@ -386,6 +388,9 @@ final class SpaceContentApprovalTest extends IntegrationTestCase
         $this->client->jsonRequest('POST', sprintf('/workspace/%d/content/create', $space->getId()), [
             'title' => $title,
             'columnId' => $this->columns->findForSpace($space)[0]->getId(),
+            // Datée : la page du client ne montre que son calendrier, et
+            // n'accepte d'avis que sur ce qu'elle montre.
+            'scheduledAt' => '2026-12-01T10:00',
         ]);
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());

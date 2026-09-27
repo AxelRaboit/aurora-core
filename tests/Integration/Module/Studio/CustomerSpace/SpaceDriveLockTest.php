@@ -22,6 +22,7 @@ use Symfony\Component\Console\Tester\CommandTester;
 
 use function json_decode;
 use function sprintf;
+use function str_repeat;
 
 /**
  * La serrure de l'onglet Drive.
@@ -106,6 +107,26 @@ final class SpaceDriveLockTest extends IntegrationTestCase
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
         self::assertFalse($this->driveOpen($space), "l'onglet reste ouvert");
+    }
+
+    /**
+     * Dix essais le quart d'heure, puis plus rien, même le bon : un mot de
+     * passe qu'on peut essayer sans fin n'en est pas un.
+     */
+    public function testGuessingThePasswordIsCutShort(): void
+    {
+        $space = $this->givenSpace();
+        $this->post($space, '/drive-password', ['password' => self::PASSWORD]);
+
+        for ($attempt = 1; $attempt <= 10; ++$attempt) {
+            $guess = str_repeat((string) $attempt, 3);
+            $this->post($space, '/drive-unlock', ['password' => $guess]);
+            self::assertNotSame(429, $this->client->getResponse()->getStatusCode(), sprintf('attempt %d', $attempt));
+        }
+
+        $this->post($space, '/drive-unlock', ['password' => self::PASSWORD]);
+        self::assertSame(429, $this->client->getResponse()->getStatusCode());
+        self::assertFalse($this->driveOpen($space));
     }
 
     /** Le retirer demande de le saisir, sinon ce n'est qu'un ralentisseur. */

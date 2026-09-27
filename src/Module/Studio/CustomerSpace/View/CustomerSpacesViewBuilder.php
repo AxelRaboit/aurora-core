@@ -69,8 +69,14 @@ final readonly class CustomerSpacesViewBuilder
     {
         // Les siens, ou tous pour un administrateur : la règle vit dans
         // `SpaceVisibility`, pas ici, parce que trois écrans se la posent.
+        // `canConfigure` par ligne : l'équipe et les rôles d'un espace sont
+        // l'affaire de son chef, et le formulaire les montre en lecture seule
+        // aux autres plutôt que de laisser le serveur refuser après coup.
         return array_map(
-            $this->spaceSerializer->serialize(...),
+            fn (CustomerSpaceInterface $space): array => [
+                ...$this->spaceSerializer->serialize($space),
+                'canConfigure' => $this->visibility->canConfigure($space),
+            ],
             $this->visibility->visibleSpaces(),
         );
     }

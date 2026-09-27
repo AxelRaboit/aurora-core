@@ -5,6 +5,54 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.270] - 2026-09-27
+
+Le lot 0 du plan Studio : les failles relevées par l'audit du 27/09, avant
+tout nouveau développement. Chacune est fermée côté serveur et prouvée par un
+test.
+
+### Sécurité
+
+- **Planning : un calendrier ne se modifie ou ne se supprime que par son
+  propriétaire.** Le droit « gérer les calendriers » suffisait pour renommer,
+  rendre public ou supprimer le calendrier privé de n'importe qui. Les
+  calendriers des modules, qui n'ont pas de propriétaire, ne se touchent plus.
+  Le crayon et le partage ne s'affichent plus que sur ses propres calendriers.
+- **Planning : un événement ne se prend plus d'un calendrier où l'on ne peut
+  pas écrire.** La modification ne vérifiait que le calendrier d'arrivée, et
+  la suppression ne vérifiait rien.
+- **Drive : seuls les fichiers du dossier de l'espace sont servis ou
+  importés.** Le compte de service lit d'autres dossiers ; un identifiant de
+  fichier deviné ou recopié servait le Drive d'un autre client, y compris
+  depuis la page du client.
+- **Médiathèque : attacher un document à une fiche ou à un espace demande le
+  droit de parcourir la médiathèque.** Un numéro suffisait pour montrer
+  n'importe quel document au client. Le bouton de sélection disparaît pour qui
+  n'a pas ce droit.
+- **Un simple membre ne peut plus se nommer chef d'espace.** L'équipe et les
+  rôles se changent par le chef de l'espace ; les autres les voient en lecture
+  seule dans le formulaire.
+- **Les conversations privées ne se lisent qu'en y étant.** Un autre membre
+  de l'espace qui connaissait le numéro d'un salon pouvait le lire, y écrire
+  ou s'y inviter. Un message doit aussi appartenir au salon de l'adresse.
+- **La page du client ne porte plus que ce qu'elle montre.** Elle ne dessine
+  que son calendrier, mais recevait toutes les fiches des étapes visibles,
+  titres et textes compris, et acceptait un avis, un commentaire ou un fichier
+  sur des fiches d'étapes internes. Une seule règle, `isShownToClient()`, sert
+  maintenant à ce qu'elle reçoit et à ce qu'elle accepte.
+- **Couper Studio, une de ses parties, ou le Planning ferme leurs routes**, y
+  compris les pages ouvertes aux clients (espace, contrat, présentation) et
+  les flux du calendrier. Seuls les menus disparaissaient.
+- Le mot de passe du Drive d'un espace est limité à dix essais par quart
+  d'heure et par personne.
+- L'aperçu d'un lien client recopie aussi le droit de discuter.
+
+### Dans aurora-client
+
+Rien à faire après `make aurora-update`. Tous les interrupteurs de Studio et
+du Planning sont allumés en production, donc les nouveaux verrous de routes ne
+ferment rien aujourd'hui.
+
 ## [0.9.269] - 2026-09-27
 
 Les rendez-vous passent par le point d'extension du calendrier, comme les

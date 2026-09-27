@@ -146,6 +146,10 @@ final class PlanningController extends AbstractController
     #[IsGranted('planning.calendars.manage')]
     public function updateCalendar(Planning $planning, Request $request): JsonResponse
     {
+        if (!$this->isOwnCalendar($planning)) {
+            return $this->jsonNotFound();
+        }
+
         $input = $this->planningInputFactory->fromArray($this->decodeJson($request));
         $errors = $this->payloadValidator->errors($input);
         if ([] !== $errors) {
@@ -274,6 +278,10 @@ final class PlanningController extends AbstractController
     #[IsGranted('planning.calendars.manage')]
     public function deleteCalendar(Planning $planning): JsonResponse
     {
+        if (!$this->isOwnCalendar($planning)) {
+            return $this->jsonNotFound();
+        }
+
         $this->planningManager->delete($planning);
 
         return $this->jsonSuccess();
@@ -308,6 +316,12 @@ final class PlanningController extends AbstractController
         // that cannot be submitted anyway is a worse answer than the truth.
         if ($event->isReadOnly()) {
             return $this->jsonInvalidInput(['event' => 'backend.plannings.events.errors.read_only']);
+        }
+
+        // The calendar it is on now, not only the one it is sent to: moving an
+        // event out of a calendar you cannot write to is writing to it.
+        if (!$this->writableCalendar((int) $event->getPlanning()->getId()) instanceof PlanningInterface) {
+            return $this->jsonNotFound();
         }
 
         // Kept, because the scope travels in the same body as the fields and the
@@ -423,6 +437,10 @@ final class PlanningController extends AbstractController
             return $this->jsonInvalidInput(['event' => 'backend.plannings.events.errors.read_only']);
         }
 
+        if (!$this->writableCalendar((int) $event->getPlanning()->getId()) instanceof PlanningInterface) {
+            return $this->jsonNotFound();
+        }
+
         $data = $this->decodeJson($request);
         $scope = RecurrenceScopeEnum::fromRequest($data['scope'] ?? null);
         $occurrenceAt = $this->date($data['occurrenceAt'] ?? null);
@@ -508,6 +526,23 @@ final class PlanningController extends AbstractController
         }
 
         return null;
+    }
+
+    /**
+     * Whether the reader owns this calendar - the only one who may rename,
+     * recolour, reshare or delete it.
+     *
+     * Write access is not enough: somebody a calendar is shared with may put
+     * events on it, not take it away from its owner. A module's calendar has
+     * no owner, so nobody may: its name and its entries are the module's.
+     * Answered as a 404 either way, so an id that is not yours does not say
+     * whose it is.
+     */
+    private function isOwnCalendar(PlanningInterface $planning): bool
+    {
+        $user = $this->getUser();
+
+        return $user instanceof CoreUserInterface && $planning->getOwner() instanceof CoreUserInterface && $planning->getOwner()->getId() === $user->getId();
     }
 
     private function writableCalendar(int $id): ?PlanningInterface

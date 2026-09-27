@@ -59,6 +59,7 @@ onUnmounted(() => {
             :counts-by-calendar="state.countsByCalendar"
             :can-create-events="state.canCreateEvents"
             :can-manage-calendars="state.canManageCalendars"
+            :current-user-id="state.currentUserId"
             :zone="state.zone"
             :timezones="state.timezones"
             v-on:set-zone="(...a) => forward('set-zone', ...a)"

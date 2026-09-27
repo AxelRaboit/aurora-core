@@ -1006,6 +1006,7 @@ backend:
                 confirm_placeholder: Le même, une seconde fois
                 errors:
                     wrong_password: Mot de passe incorrect.
+                    too_many_attempts: Trop d'essais. Réessayez dans un quart d'heure.
                     password_too_short: Mot de passe trop court.
                     password_mismatch: Les mots de passe ne correspondent pas.
                     not_locked: "L'onglet Drive n'est pas fermé."
@@ -1024,6 +1025,7 @@ backend:
                 name_too_long: Le nom ne peut pas dépasser 150 caractères.
                 customer_required: Choisissez le client à qui cet espace appartient.
                 timezone_invalid: Ce fuseau horaire n'est pas reconnu.
+                team_lead_only: Seul le chef de l'espace peut changer son équipe et ses rôles.
         space_access:
             tab: Accès client
             intro: Un lien ouvre cet espace en lecture seule, sans compte. Il est personnel, il expire, et il se révoque.

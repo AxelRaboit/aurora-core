@@ -117,6 +117,24 @@ final class SpaceAccessPreviewTest extends IntegrationTestCase
         self::assertSame(404, $this->client->getResponse()->getStatusCode());
     }
 
+    /**
+     * Tous les droits, discussion comprise : l'aperçu la perdait, et l'écran
+     * montré au studio n'était plus celui du client.
+     */
+    public function testAPreviewCarriesEveryRightOfItsLink(): void
+    {
+        $source = $this->givenLink();
+        $source->setCanChat(true)->setCanUpload(true)->setCanSeeDrive(true);
+        $this->entityManager->flush();
+
+        $preview = $this->links->preview($source);
+
+        self::assertSame(
+            [$source->canApprove(), $source->canComment(), true, true, true],
+            [$preview->canApprove(), $preview->canComment(), $preview->canChat(), $preview->canUpload(), $preview->canSeeDrive()],
+        );
+    }
+
     /** Un aperçu n'est le destinataire de personne : la liste l'ignore. */
     public function testAPreviewNeverShowsInTheListOfLinks(): void
     {

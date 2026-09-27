@@ -61,6 +61,14 @@ final readonly class DriveImporter
         string $fileId,
         CustomerSpaceInterface $space,
     ): ?DocumentInterface {
+        // Seulement un fichier du dossier de cet espace : le compte de service
+        // en lit d'autres, et un identifiant se devine ou se recopie.
+        $folderId = $space->getDriveFolderId();
+
+        if (null === $folderId || !$this->drive->contains($account, $folderId, $fileId)) {
+            return null;
+        }
+
         $metadata = $this->drive->metadata($account, $fileId);
         $upstream = $this->drive->download($account, $fileId);
 

@@ -147,6 +147,21 @@ final readonly class DriveClient
     }
 
     /**
+     * Si ce fichier est l'un de ceux que le dossier montre.
+     *
+     * **Le compte de service lit tous les dossiers qu'on lui a partagés**, et
+     * pas seulement celui de cet espace : relayer un identifiant sans cette
+     * question servait le Drive d'un autre client à qui en devinait un.
+     * Posée à la liste elle-même, et non aux parents du fichier : ce qui se
+     * relaie est exactement ce que l'écran propose, mêmes bornes de
+     * profondeur et de nombre, corbeille exclue.
+     */
+    public function contains(GoogleServiceAccount $account, string $folderId, string $fileId): bool
+    {
+        return array_any($this->files($account, $folderId), fn ($file): bool => $file['id'] === $fileId);
+    }
+
+    /**
      * Les enfants directs d'un lot de dossiers, en une requête.
      *
      * @param list<string> $parentIds

@@ -450,6 +450,7 @@ const pageActions = computed(() => {
                     :statuses="statuses"
                     :roles="roles"
                     :timezones="timezones"
+                    :can-edit-team="editingSpace?.canConfigure ?? false"
                 />
             </form>
             <template #footer>

@@ -15,6 +15,7 @@ use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
+use function array_map;
 use function json_encode;
 use function openssl_pkey_export;
 use function openssl_pkey_new;
@@ -75,6 +76,17 @@ final class DriveFileServerTest extends TestCase
         ]);
     }
 
+    /** Le dossier de l'espace, tel que Google le liste : ces fichiers-là et aucun autre. */
+    private function listing(string ...$ids): MockResponse
+    {
+        $ids = [] === $ids ? ['fichier-1', 'fichier-42', 'disparu'] : $ids;
+        $files = array_map(static fn (string $id): array => ['id' => $id, 'name' => $id.'.pdf', 'mimeType' => 'application/pdf', 'parents' => ['dossier']], $ids);
+
+        return new MockResponse((string) json_encode(['files' => $files]), [
+            'response_headers' => ['content-type' => 'application/json'],
+        ]);
+    }
+
     private function content(string $type): MockResponse
     {
         return new MockResponse('octets', ['response_headers' => [
@@ -94,28 +106,30 @@ final class DriveFileServerTest extends TestCase
 
     public function testAPreviewCostsNoExtraCallAndCarriesNoDisposition(): void
     {
-        $server = $this->server([$this->token(), $this->content('application/pdf')]);
+        $server = $this->server([$this->token(), $this->listing(), $this->content('application/pdf')]);
 
-        $response = $server->serve($this->account, 'fichier-1');
+        $response = $server->serve($this->account, 'dossier', 'fichier-1');
 
         self::assertInstanceOf(Response::class, $response);
         self::assertFalse($response->headers->has('Content-Disposition'));
         self::assertSame('application/pdf', $response->headers->get('Content-Type'));
 
-        // Le jeton, puis le contenu. Rien de plus : redemander le nom pour un
-        // aperçu ajouterait un aller-retour à chaque ouverture.
-        self::assertCount(2, $this->urls);
+        // Le jeton, la liste du dossier, puis le contenu. Rien de plus :
+        // redemander le nom pour un aperçu ajouterait un aller-retour à
+        // chaque ouverture.
+        self::assertCount(3, $this->urls);
     }
 
     public function testADownloadCarriesTheNameGoogleGives(): void
     {
         $server = $this->server([
             $this->token(),
+            $this->listing(),
             $this->content('application/pdf'),
             $this->metadata('Devis 2026.pdf'),
         ]);
 
-        $response = $server->serve($this->account, 'fichier-1', download: true);
+        $response = $server->serve($this->account, 'dossier', 'fichier-1', download: true);
 
         self::assertInstanceOf(Response::class, $response);
 
@@ -134,11 +148,12 @@ final class DriveFileServerTest extends TestCase
     {
         $server = $this->server([
             $this->token(),
+            $this->listing(),
             $this->content('application/pdf'),
             new MockResponse('', ['http_code' => 500]),
         ]);
 
-        $response = $server->serve($this->account, 'fichier-1', download: true);
+        $response = $server->serve($this->account, 'dossier', 'fichier-1', download: true);
 
         self::assertInstanceOf(Response::class, $response);
         self::assertSame('attachment', $response->headers->get('Content-Disposition'));
@@ -155,11 +170,12 @@ final class DriveFileServerTest extends TestCase
     {
         $server = $this->server([
             $this->token(),
+            $this->listing(),
             $this->content('text/html'),
             $this->metadata('piege.html'),
         ]);
 
-        $response = $server->serve($this->account, 'fichier-1');
+        $response = $server->serve($this->account, 'dossier', 'fichier-1');
 
         self::assertInstanceOf(Response::class, $response);
         self::assertStringStartsWith('attachment', (string) $response->headers->get('Content-Disposition'));
@@ -168,9 +184,9 @@ final class DriveFileServerTest extends TestCase
 
     public function testNothingIsCachedByAnIntermediary(): void
     {
-        $server = $this->server([$this->token(), $this->content('image/png')]);
+        $server = $this->server([$this->token(), $this->listing(), $this->content('image/png')]);
 
-        $response = $server->serve($this->account, 'fichier-1');
+        $response = $server->serve($this->account, 'dossier', 'fichier-1');
 
         self::assertInstanceOf(Response::class, $response);
         // Symfony réordonne les directives : on vérifie ce qu'elles disent,
@@ -182,23 +198,37 @@ final class DriveFileServerTest extends TestCase
 
     public function testAFileOutOfReachIsNullAndNotAnError(): void
     {
-        $server = $this->server([$this->token(), new MockResponse('', ['http_code' => 404])]);
+        $server = $this->server([$this->token(), $this->listing(), new MockResponse('', ['http_code' => 404])]);
 
-        self::assertNull($server->serve($this->account, 'disparu'));
+        self::assertNull($server->serve($this->account, 'dossier', 'disparu'));
     }
 
     public function testTheNameIsAskedForTheRightFile(): void
     {
         $server = $this->server([
             $this->token(),
+            $this->listing(),
             $this->content('application/pdf'),
             $this->metadata('Contrat.pdf'),
         ]);
 
-        $server->serve($this->account, 'fichier-42', download: true);
+        $server->serve($this->account, 'dossier', 'fichier-42', download: true);
 
-        $asked = $this->urls[2] ?? '';
+        $asked = $this->urls[3] ?? '';
         self::assertStringContainsString('fichier-42', $asked);
         self::assertTrue(str_contains($asked, 'fields=name%2CmimeType') || str_contains($asked, 'fields=name,mimeType'));
+    }
+
+    /**
+     * **Le compte de service lit d'autres dossiers que celui de l'espace.**
+     * Un identifiant deviné ou recopié depuis l'espace d'un autre client ne
+     * sert rien, et Google n'est même pas sollicité pour le contenu.
+     */
+    public function testAFileOutsideTheSpacesFolderIsNotServed(): void
+    {
+        $server = $this->server([$this->token(), $this->listing('fichier-1'), $this->content('application/pdf')]);
+
+        self::assertNull($server->serve($this->account, 'dossier', 'fichier-d-un-autre-client'));
+        self::assertCount(2, $this->urls, 'the token and the listing, never the content');
     }
 }

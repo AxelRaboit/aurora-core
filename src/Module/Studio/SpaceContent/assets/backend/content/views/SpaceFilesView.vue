@@ -49,6 +49,8 @@ const props = defineProps({
     /** Les fichiers de l'espace lui-même, sur aucune fiche. */
     spaceFiles: { type: Array, default: () => [] },
     editable: { type: Boolean, default: false },
+    /** Si le lecteur peut parcourir la médiathèque que le sélecteur liste. */
+    canPick: { type: Boolean, default: false },
     loading: { type: Boolean, default: false },
 });
 
@@ -173,6 +175,7 @@ function chooseFile(event) {
                         {{ t("backend.studio.space_files.upload") }}
                     </AppButton>
                     <AppButton
+                        v-if="canPick"
                         class="w-full sm:w-auto"
                         variant="ghost"
                         size="sm"
