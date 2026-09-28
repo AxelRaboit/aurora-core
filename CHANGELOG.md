@@ -9,6 +9,16 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ### Amélioré
 
+#### Une démonstration qui ressemble à un vrai site
+Le site public de la démonstration montrait des images abstraites et du faux
+latin. Il montre maintenant quatorze photos libres de Pexels (crédit du
+photographe sous chaque image, comme le site le fait pour tout document qui
+porte une attribution), un accueil en carrousel sur trois photos, et de vrais
+textes en trois langues : un studio, ses trois services, deux réalisations
+racontées avec leurs chiffres. Les galeries ont chacune leurs photos. Les
+fichiers et leurs licences sont listés dans
+`test_files/images/pexels/CREDITS.md`.
+
 #### Un vrai formulaire de contact dans la démo
 La page Contact de la démonstration posait la demande de devis, qui porte
 exprès un champ de chaque type en deux étapes pour les écrans du module

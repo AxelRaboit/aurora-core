@@ -79,12 +79,13 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
 
         $this->createColorFamily($manager);
 
-        // Favicon + logo point at the generated gradient (media[3]), not at one
+        // Favicon + logo point at the drawn mark (the last media), not at one
         // of the photographs: a logo is a mark, and the demo's photographs are
         // subjects - a flag in the corner of every screen of the manual reads
         // as the product's identity, which it is not. After flush so IDs exist.
-        if (isset($media[3]) && null !== $media[3]->getId()) {
-            $faviconId = (string) $media[3]->getId();
+        $mark = $media[array_key_last($media)] ?? null;
+        if (null !== $mark?->getId()) {
+            $faviconId = (string) $mark->getId();
             $this->settingsManager->set(ApplicationParameterEnum::FaviconMediaId->value, $faviconId);
             $this->settingsManager->set(ApplicationParameterEnum::LogoMediaId->value, $faviconId);
         }
@@ -105,21 +106,37 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
         // shipped with the repository. The test next door checks that the
         // files named here exist; it resolves the root correctly, so it
         // passed while the fixture read somewhere else entirely.
-        // **Les sources sont des aplats, pas des photographies, et c'est
-        // voulu.** Deux d'entre elles ne l'etaient pas : un chat genere en IA
-        // servait de `hero-banner.jpg` et un drapeau canadien de
-        // `landscape.jpg`. Une demo se montre a des prospects, et une image
-        // qui a un sujet raconte autre chose que le produit - on regarde le
-        // chat, pas la mediatheque. Remplacees le 2026-09-16 par des degrades
-        // du meme langage visuel que les deux placeholders deja presents.
+        // **Des photographies libres de droits (Pexels), depuis le
+        // 28/09/2026.** La démonstration sert aussi à photographier le site
+        // public pour le tour d'Aurora, et un site fait d'aplats de couleur ne
+        // montre pas ce qu'un vrai site devient. Chaque photo est créditée
+        // (photographe, lien) comme un import Pexels l'aurait fait ; la liste
+        // est dans test_files/images/pexels/CREDITS.md.
+        //
+        // Les quatre premières gardent leur titre de toujours : c'est la clé
+        // qui rend `make demo` rejouable. Les suivantes sont ajoutées après la
+        // vidéo et le document, pour ne décaler aucune référence.
         $sourceDir = dirname(__DIR__, 2).'/test_files';
         $defs = [
-            ['src' => 'images/hero-placeholder.jpg',      'name' => 'hero-banner.jpg',   'original' => 'hero-banner.jpg',   'mime' => 'image/jpeg', 'w' => 1280, 'h' => 853],
-            ['src' => 'images/landscape-placeholder.jpg', 'name' => 'landscape.jpg',     'original' => 'landscape.jpg',     'mime' => 'image/jpeg', 'w' => 1280, 'h' => 720],
-            ['src' => 'images/portrait-placeholder.jpg',  'name' => 'portrait-team.jpg', 'original' => 'portrait-team.jpg', 'mime' => 'image/jpeg', 'w' => 800,  'h' => 1000],
-            ['src' => 'images/workspace-placeholder.jpg', 'name' => 'office-setup.jpg',  'original' => 'office-setup.jpg',  'mime' => 'image/jpeg', 'w' => 1200, 'h' => 800],
+            ['src' => 'images/pexels/pexels-4348298.jpg',  'name' => 'hero-banner.jpg',   'original' => 'hero-banner.jpg',   'mime' => 'image/jpeg', 'w' => 1920, 'h' => 1280, 'pexels' => [4348298, 'Antoni Shkraba'], 'alt' => 'Un atelier lumineux, des tables de travail et des plantes'],
+            ['src' => 'images/pexels/pexels-36103492.jpg', 'name' => 'landscape.jpg',     'original' => 'landscape.jpg',     'mime' => 'image/jpeg', 'w' => 1920, 'h' => 1280, 'pexels' => [36103492, 'gang liang'], 'alt' => 'Un lac de montagne sous un ciel bleu'],
+            ['src' => 'images/pexels/pexels-9697663.jpg',  'name' => 'portrait-team.jpg', 'original' => 'portrait-team.jpg', 'mime' => 'image/jpeg', 'w' => 1280, 'h' => 1920, 'pexels' => [9697663, 'Daria Nekipelova'], 'alt' => 'Portrait d\'une femme dans la lumière du soleil'],
+            ['src' => 'images/pexels/pexels-5668471.jpg',  'name' => 'office-setup.jpg',  'original' => 'office-setup.jpg',  'mime' => 'image/jpeg', 'w' => 1920, 'h' => 1280, 'pexels' => [5668471, 'Sora Shimazaki'], 'alt' => 'Un ordinateur portable ouvert, un carnet et un café'],
             ['src' => 'videos/sample-30s-720p.mp4',  'name' => 'demo-video.mp4',   'original' => 'demo-video.mp4',   'mime' => 'video/mp4',  'w' => 1280, 'h' => 720],
             ['src' => 'files/placeholders/document-placeholder.webp', 'name' => 'document-sample.webp', 'original' => 'document-sample.webp', 'mime' => 'image/webp', 'w' => 0, 'h' => 0],
+            ['src' => 'images/pexels/pexels-11506719.jpg', 'name' => 'ville-crepuscule.jpg',   'original' => 'Une ville au crépuscule',      'mime' => 'image/jpeg', 'w' => 1920, 'h' => 1158, 'pexels' => [11506719, 'Tinny HU'], 'alt' => 'Une ville au coucher du soleil, reflétée dans le fleuve'],
+            ['src' => 'images/pexels/pexels-15307795.jpg', 'name' => 'appareil-photo.jpg',     'original' => 'Un appareil photo',            'mime' => 'image/jpeg', 'w' => 1280, 'h' => 1920, 'pexels' => [15307795, 'Furkan Elveren'], 'alt' => 'Des mains qui tiennent un appareil photo argentique'],
+            ['src' => 'images/pexels/pexels-16229745.jpg', 'name' => 'reseaux-sociaux.jpg',    'original' => 'Des réseaux sociaux',          'mime' => 'image/jpeg', 'w' => 1920, 'h' => 1158, 'pexels' => [16229745, 'Sanket Mishra'], 'alt' => 'Un téléphone affichant des applications de réseaux sociaux'],
+            ['src' => 'images/pexels/pexels-9052803.jpg',  'name' => 'site-web.jpg',           'original' => 'Un site sur ordinateur',       'mime' => 'image/jpeg', 'w' => 1920, 'h' => 1280, 'pexels' => [9052803, 'SHVETS production'], 'alt' => 'Une personne qui parcourt un site sur un ordinateur portable'],
+            ['src' => 'images/pexels/pexels-9458996.jpg',  'name' => 'facade-blanche.jpg',     'original' => 'Une façade blanche',           'mime' => 'image/jpeg', 'w' => 1920, 'h' => 1280, 'pexels' => [9458996, 'Stephen Andrews'], 'alt' => 'La façade blanche et minimaliste d\'un bâtiment moderne'],
+            ['src' => 'images/pexels/pexels-16566144.jpg', 'name' => 'facade-verre.jpg',       'original' => 'Une façade de verre',          'mime' => 'image/jpeg', 'w' => 1536, 'h' => 1920, 'pexels' => [16566144, 'Mikita Yo'], 'alt' => 'Une façade de verre aux lignes courbes'],
+            ['src' => 'images/pexels/pexels-39192265.jpg', 'name' => 'montagnes.jpg',          'original' => 'Des montagnes',                'mime' => 'image/jpeg', 'w' => 1920, 'h' => 1280, 'pexels' => [39192265, 'Mohd Atir'], 'alt' => 'Un lac entre des forêts de pins et des sommets enneigés'],
+            ['src' => 'images/pexels/pexels-37190347.jpg', 'name' => 'cote-rocheuse.jpg',      'original' => 'Une côte rocheuse',            'mime' => 'image/jpeg', 'w' => 1920, 'h' => 1080, 'pexels' => [37190347, 'Hobi Photography'], 'alt' => 'Une côte rocheuse vue du ciel, les vagues qui se brisent'],
+            ['src' => 'images/pexels/pexels-17191088.jpg', 'name' => 'plage.jpg',              'original' => 'Une plage',                    'mime' => 'image/jpeg', 'w' => 1920, 'h' => 1080, 'pexels' => [17191088, 'Field Photography'], 'alt' => 'Une plage de sable doré vue du ciel'],
+            ['src' => 'images/pexels/pexels-8725071.jpg',  'name' => 'gratte-ciel.jpg',        'original' => 'Des gratte-ciel',              'mime' => 'image/jpeg', 'w' => 1920, 'h' => 1282, 'pexels' => [8725071, 'Josh Hild'], 'alt' => 'Des gratte-ciel au coucher du soleil'],
+            // Un aplat, exprès : le favicon et le logo de la démo sont une
+            // marque, pas une photo. Il n'a pas de source et se dessine.
+            ['src' => 'images/aurora-mark.png', 'name' => 'aurora-mark.png', 'original' => 'Marque Aurora', 'mime' => 'image/png', 'w' => 512, 'h' => 512],
         ];
 
         $media = [];
@@ -192,6 +209,16 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
 
             if ($def['w'] > 0) {
                 $document->setWidth($def['w'])->setHeight($def['h']);
+            }
+
+            // Crédité comme l'aurait fait un import Pexels : c'est ce qui
+            // affiche le nom du photographe sous l'image sur le site.
+            if (isset($def['pexels'])) {
+                [$pexelsId, $photographer] = $def['pexels'];
+                $document->setSourceUrl(sprintf('https://www.pexels.com/photo/%d/', $pexelsId))
+                    ->setAttributionName($photographer)
+                    ->setAttributionUrl('https://www.pexels.com')
+                    ->setAlt($def['alt']);
             }
 
             $em->persist($document);
