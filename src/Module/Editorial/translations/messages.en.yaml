@@ -1147,6 +1147,9 @@ backend:
     related_posts: Related posts
     related_posts_hint: "Other posts this one can point to, for instance to offer them in a 'Publication' zone of its grid."
     related_posts_empty: No related post yet.
+    related_post_trashed: "in the trash"
+    related_post_trashed_title: "{title} (in the trash)"
+    related_posts_trashed_hint: "A post in the trash stays linked, so it finds its place again if restored, but it no longer shows anywhere on the site. Remove it if it is not coming back."
     thumbnail: Thumbnail
     thumbnail_hint: "The picture that stands for this publication wherever it is listed: a listing card, a grid zone linking to it, the preview of a shared link."
     thumbnail_image: Image

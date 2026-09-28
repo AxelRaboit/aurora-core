@@ -1173,6 +1173,9 @@ backend:
         related_posts: 'Publicaciones relacionadas'
         related_posts_hint: 'Otras publicaciones que esta puede citar, por ejemplo para proponerlas en una zona «Publicación» de su cuadrícula.'
         related_posts_empty: 'Todavía no hay publicaciones relacionadas.'
+        related_post_trashed: "en la papelera"
+        related_post_trashed_title: "{title} (en la papelera)"
+        related_posts_trashed_hint: "Una publicación en la papelera sigue vinculada, para recuperar su lugar si se restaura, pero ya no se muestra en ninguna parte del sitio. Quítela si no va a volver."
         thumbnail: Miniatura
         thumbnail_hint: 'La imagen que representa esta publicación allí donde aparece listada: una ficha de lista, una zona de cuadrícula que apunta a ella, la vista previa de un enlace compartido.'
         thumbnail_image: Imagen

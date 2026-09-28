@@ -458,10 +458,21 @@ export function usePostEditor(props) {
         ),
     );
 
+    // Linked posts that are in the trash. The link is kept on purpose -
+    // restoring the post brings it back where it was - but nothing on the site
+    // shows a trashed post, so the editor has to say it is gone rather than
+    // list it like the others. A permanent deletion drops the link itself.
+    const trashedRelatedIds = new Set(
+        (props.post?.relatedPosts ?? [])
+            .filter((related) => related.trashed)
+            .map((related) => related.id),
+    );
+
     const selectedRelatedPosts = computed(() =>
         form.value.relatedPostIds.map((id) => ({
             id,
             title: relatedPostTitles.value.get(id) ?? `#${id}`,
+            trashed: trashedRelatedIds.has(id),
         })),
     );
 

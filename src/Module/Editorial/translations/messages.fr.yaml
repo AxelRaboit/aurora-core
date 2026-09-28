@@ -1147,6 +1147,9 @@ backend:
     related_posts: Publications liées
     related_posts_hint: "D'autres publications que celle-ci peut citer, par exemple pour les proposer dans une zone « Publication » de sa grille."
     related_posts_empty: Aucune publication liée pour le moment.
+    related_post_trashed: "à la corbeille"
+    related_post_trashed_title: "{title} (à la corbeille)"
+    related_posts_trashed_hint: "Une publication à la corbeille reste liée, pour retrouver sa place si elle est restaurée, mais elle ne s'affiche plus nulle part sur le site. Retirez-la si elle ne doit pas revenir."
     thumbnail: Vignette
     thumbnail_hint: "L'image qui représente cette publication partout où elle est listée : une carte de liste, une zone de grille qui pointe vers elle, l'aperçu d'un lien partagé."
     thumbnail_image: Image
