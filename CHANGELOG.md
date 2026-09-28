@@ -5,6 +5,17 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.290] - 2026-09-28
+
+### Amélioré
+
+#### Le sélecteur de langue n'affiche plus que le drapeau dans la barre
+Dans la barre du site public, le sélecteur de langue montrait le drapeau et
+le nom de la langue à partir de la tablette. Il n'affiche plus que le
+drapeau, à toutes les largeurs ; le nom apparaît au survol et reste lu par les
+lecteurs d'écran. Le menu qu'il ouvre garde les noms en toutes lettres. Une
+langue sans drapeau garde son nom dans la barre.
+
 ## [0.9.289] - 2026-09-28
 
 ### Ajouté

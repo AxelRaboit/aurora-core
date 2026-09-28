@@ -8,10 +8,10 @@
 
    A flag is a country, not a language - English is not the United Kingdom and
    Portuguese is not Portugal. So the flag is decorative (`aria-hidden`) and the
-   language's own name is always in the markup: on the trigger it shows from
-   `sm` up and is read out at every width, and inside the panel it is always
-   visible. A switcher a screen reader announces as "image, image" is not a
-   switcher.
+   language's own name is always in the markup: on the trigger it is read out
+   but not shown - the bar keeps only the flag, and the name appears on hover
+   through `title` - and inside the panel it is always visible. A switcher a
+   screen reader announces as "image, image" is not a switcher.
 
    `locale_flag()` answers null for a language with no flag mapped, and the name
    alone is then the whole control rather than a gap.
@@ -26,12 +26,15 @@
 <nav class="relative" aria-label="{{ 'shared.locale_switcher'|trans }}">
     <details class="group" data-dropdown>
         <summary
+            title="{{ locale_name(current) ?? current|upper }}"
             class="flex cursor-pointer list-none select-none items-center gap-1.5 rounded-md px-2 py-2 text-secondary transition-colors hover:bg-surface-2/60 hover:text-primary sm:py-1 [&::-webkit-details-marker]:hidden"
         >
             {% if currentFlag %}
                 <span class="fi fi-{{ currentFlag }} rounded-[2px] shrink-0" aria-hidden="true"></span>
             {% endif %}
-            <span class="sr-only sm:not-sr-only">{{ locale_name(current) ?? current|upper }}</span>
+            {# Flag only in the bar; the name stays for screen readers, and is
+               shown when the language has no flag to stand for it. #}
+            <span class="{{ currentFlag ? 'sr-only' : '' }}">{{ locale_name(current) ?? current|upper }}</span>
             {{ include('@Shared/components/icon.html.twig', {
                 name: 'chevron-down',
                 class: 'w-3.5 h-3.5 shrink-0 transition-transform group-open:rotate-180',
