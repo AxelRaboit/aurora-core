@@ -57,6 +57,8 @@ const props = defineProps({
     /** The active forms a zone may pose. */
     formOptions: { type: Array, default: () => [] },
     previewPath: { type: String, required: true },
+    /** Where a header zone's panel asks for its preview. */
+    bannerPreviewPath: { type: String, default: "" },
 });
 
 const { t } = useI18n();
@@ -665,6 +667,7 @@ function resizeZone(index, columns) {
                                 :scale-options="scaleOptions"
                                 :align-options="alignOptions"
                                 :choices="zoneChoices"
+                                :banner-preview-path="bannerPreviewPath"
                                 :items="zoneItems(index, childIndex)"
                                 :item-fields="(i) => itemFields(index, i, childIndex)"
                                 :can-add-item="canAddItem(index, childIndex)"
@@ -710,6 +713,7 @@ function resizeZone(index, columns) {
                     :scale-options="scaleOptions"
                     :align-options="alignOptions"
                     :choices="zoneChoices"
+                    :banner-preview-path="bannerPreviewPath"
                     :items="zoneItems(index)"
                     :item-fields="(i) => itemFields(index, i)"
                     :can-add-item="canAddItem(index)"

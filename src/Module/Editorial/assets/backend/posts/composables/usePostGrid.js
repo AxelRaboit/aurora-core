@@ -1,5 +1,6 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
+import { emptyBannerLayout, emptyBannerTexts } from "./usePostEditor.js";
 import {
     AudioLines,
     ClipboardList,
@@ -45,6 +46,7 @@ import {
     Presentation,
     Search,
     SeparatorHorizontal,
+    GalleryHorizontalEnd,
 } from "lucide-vue-next";
 
 /**
@@ -111,6 +113,7 @@ export const LEAF_ZONE_TYPES = [
     "googleReviews",
     "newsletterSignup",
     "newsletterPrivacy",
+    "banner",
 ];
 
 /** Mirrors GridNormalizer::ZONE_TYPES - a stack is top level only. */
@@ -176,6 +179,8 @@ export const ZONE_ICONS = {
     // The counter every network puts under a post.
     socialPost: Heart,
     qrCode: QrCode,
+    // Slides side by side, one showing: a header, or a carousel of them.
+    banner: GalleryHorizontalEnd,
     chart: ChartColumn,
     // A phone held upright: the shape of every film on the wall.
     videoWall: Smartphone,
@@ -661,6 +666,18 @@ function newZone(type) {
         // en page, pas un comportement.
         sticky: false,
         fullBleed: false,
+        // A header zone's design - the banner's own layout, switched on since
+        // the zone being there is the switch. Null on every other type, as on
+        // the server.
+        banner:
+            "banner" === type
+                ? {
+                      ...emptyBannerLayout(),
+                      enabled: true,
+                      height: "lg",
+                      width: "contained",
+                  }
+                : null,
         // Empty on every zone, filled only by a stack - the same reason every
         // other key is always present: switching a type back and forth in the
         // editor must not lose what was picked.
@@ -698,6 +715,9 @@ function newZoneContent() {
         label: "",
         items: {},
         code: "",
+        // A header zone's words, like a banner translation's. Filled on
+        // demand by `bannerTexts` below.
+        banner: null,
     };
 }
 
@@ -1411,7 +1431,46 @@ export function usePostGrid(layout, content) {
                     },
                 );
 
+            // A header zone's two halves, for the banner panel: the design on
+            // the zone, the words on this language's content. Created on
+            // demand, like the background above: a translation that has never
+            // opened the zone holds no words for it yet, and PHP sends an
+            // empty map as a list.
+            const bannerLayout = computed(() => {
+                const target = zone();
+                if (undefined === target) return null;
+
+                target.banner ??= { ...emptyBannerLayout(), enabled: true };
+
+                return target.banner;
+            });
+            const bannerTexts = computed(() => {
+                const target = held();
+                if (!target || Array.isArray(target)) return null;
+
+                if (!target.banner || Array.isArray(target.banner)) {
+                    target.banner = emptyBannerTexts();
+                }
+                for (const key of ["items", "slides"]) {
+                    if (
+                        !target.banner[key] ||
+                        Array.isArray(target.banner[key])
+                    ) {
+                        target.banner[key] = {};
+                    }
+                }
+                for (const slide of Object.values(target.banner.slides)) {
+                    if (!slide.items || Array.isArray(slide.items)) {
+                        slide.items = {};
+                    }
+                }
+
+                return target.banner;
+            });
+
             zoneFieldsCache.set(key, {
+                bannerLayout,
+                bannerTexts,
                 // Shared - the settings of one kind of zone.
                 ...Object.fromEntries(
                     Object.keys(defaultZoneOptions()).map((name) => [

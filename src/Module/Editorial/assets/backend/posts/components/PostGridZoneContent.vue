@@ -27,6 +27,7 @@ import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
 import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-vue-next";
 import OpeningHoursField from "./zones/OpeningHoursField.vue";
+import PostBannerPanel from "./PostBannerPanel.vue";
 import { parseLines } from "./zones/openingHours.js";
 
 const props = defineProps({
@@ -50,6 +51,8 @@ const props = defineProps({
     formOptions: { type: Array, default: () => [] },
     /** True for a zone inside a stack, where the row controls do not apply. */
     inStack: { type: Boolean, default: false },
+    /** Where a header zone's panel asks for its preview. */
+    bannerPreviewPath: { type: String, default: "" },
     /** The shapes a media zone may be cropped to. */
     ratioOptions: { type: Array, default: () => [] },
     /** How much of its zone's width a picture may take. */
@@ -576,6 +579,20 @@ const displayHint = computed(() =>
                     :label="t('backend.posts.grid.hours_note')"
                 />
             </div>
+        </template>
+
+        <!-- A header in the body: the page banner's own panel, on this
+             zone's two halves. Slides, backgrounds, carousel - everything
+             the header above the page can do. -->
+        <template v-else-if="zone.type === 'banner'">
+            <PostBannerPanel
+                v-if="fields.bannerLayout.value && fields.bannerTexts.value"
+                :layout="fields.bannerLayout.value"
+                :texts="fields.bannerTexts.value"
+                :locale="locale"
+                :preview-path="bannerPreviewPath"
+                embedded
+            />
         </template>
 
         <template v-else-if="zone.type === 'countdown'">

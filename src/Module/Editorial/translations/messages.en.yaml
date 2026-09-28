@@ -648,6 +648,7 @@ backend:
         availability: Availability
         openingHours: Opening hours
         countdown: Countdown
+        banner: Header
         contactCard: Business card
         socialPost: Social post
         qrCode: QR code

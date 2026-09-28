@@ -42,6 +42,11 @@ const props = defineProps({
     /** Which language that is - shown on the fields that are per-language. */
     locale: { type: String, required: true },
     previewPath: { type: String, required: true },
+    /**
+     * Set in the body as a grid zone rather than above the page: always on,
+     * so the switch and the "off" hint have nothing to say.
+     */
+    embedded: { type: Boolean, default: false },
 });
 
 const { t } = useI18n();
@@ -110,13 +115,13 @@ const { html: previewHtml, loading: previewLoading } = useServerPreview(
 
 <template>
     <div class="space-y-4">
-        <AppToggle v-model="fields.enabled.value" :label="t('backend.posts.banner.enabled')" />
+        <AppToggle v-if="!embedded" v-model="fields.enabled.value" :label="t('backend.posts.banner.enabled')" />
 
         <!-- Without this the card is a lone toggle, which reads as collapsed
              rather than as off. It also says the thing the model makes true
              and nothing else would: the design is shared, so switching it on
              switches it on in every language. -->
-        <p v-if="!fields.enabled.value" class="text-sm text-muted">
+        <p v-if="!embedded && !fields.enabled.value" class="text-sm text-muted">
             {{ t("backend.posts.banner.disabled_hint") }}
         </p>
 

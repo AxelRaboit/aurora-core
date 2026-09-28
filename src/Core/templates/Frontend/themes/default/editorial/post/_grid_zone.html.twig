@@ -380,6 +380,14 @@
             {% endif %}
         </figure>
 
+    {% elseif zone.type == 'banner' and zone.banner %}
+        {# The page's banner, at this zone's width: the same partial as the
+           header above the page, carousel included. Its width setting reads
+           inside the zone - `contained` rounds it and pads its words, `full_aligned`
+           lines them up with the page's column, which is what a zone set
+           edge to edge wants. #}
+        {{ include('Frontend/themes/default/editorial/post/_banner.html.twig', {banner: zone.banner}) }}
+
     {% elseif zone.type == 'shared' and zone.shared %}
         {# The block's own grid, drawn inside this zone's box.
 
