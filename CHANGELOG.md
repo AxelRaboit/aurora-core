@@ -5,7 +5,7 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
-## [Unreleased]
+## [0.9.283] - 2026-09-28
 
 ### Ajouté
 
@@ -56,6 +56,18 @@ réglage plutôt qu'une nouvelle image à fabriquer. Désactivée par défaut : 
 ne change sur les pages existantes.
 
 ### Corrigé
+
+#### Le logo du site sur téléphone
+Le logo choisi dans Paramètres › Branding ne s'affichait que dans le menu
+latéral sur grand écran : sur téléphone, la barre du haut et le menu déroulant
+dessinaient toujours la marque par défaut. Ils affichent maintenant le logo du
+site, et la marque par défaut seulement quand aucun n'est choisi.
+
+#### Le nom de fichier ne déborde plus du sélecteur d'image
+Dans la fenêtre « Choisir un document », le nom de fichier stocké (32
+caractères sans espace) sortait de la carte sur téléphone et poussait toute la
+liste de côté. Il est coupé avec des points de suspension ; la taille reste
+affichée, et le type de fichier est masqué sur téléphone pour gagner la place.
 
 #### Un document restauré seul ne suit plus son ancien dossier
 Un document tombé avec un dossier, puis restauré seul, gardait la trace du

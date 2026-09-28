@@ -113,3 +113,38 @@ describe("switching between the two menu views", () => {
         expect(buttonSaying(render(null), "Revenir à")).toBeFalsy();
     });
 });
+
+describe("the site's logo", () => {
+    function renderWithLogo(siteLogoUrl) {
+        return mount(AppSidemenu, {
+            props: {
+                navSections: NAV_SECTIONS,
+                activeRoute: "backend_ged_documents",
+                moduleNavView: GED_VIEW,
+                siteLogoUrl,
+            },
+            global: { plugins: [i18n] },
+        });
+    }
+
+    /**
+     * The wide sidebar read the logo setting, and the phone bar and its drawer
+     * kept drawing the default mark: a logo set in Branding only showed on a
+     * large screen.
+     */
+    it("shows in the wide sidebar, the phone bar and the phone drawer", () => {
+        const wrapper = renderWithLogo("/uploads/ged/logo.png");
+
+        expect(
+            wrapper.findAll('img[src="/uploads/ged/logo.png"]'),
+        ).toHaveLength(3);
+        expect(wrapper.findAll("svg[viewBox='0 0 64 64']")).toHaveLength(0);
+    });
+
+    it("falls back to the default mark everywhere when none is set", () => {
+        const wrapper = renderWithLogo("");
+
+        expect(wrapper.findAll("img[alt='Logo']")).toHaveLength(0);
+        expect(wrapper.findAll("svg[viewBox='0 0 64 64']")).toHaveLength(3);
+    });
+});
