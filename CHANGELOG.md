@@ -5,6 +5,19 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.287] - 2026-09-28
+
+### Ajouté
+
+#### Le cadrage de l'image de fond d'un en-tête se règle
+Une image de fond d'en-tête était toujours rognée autour du point focal de
+son document, le même que dans une galerie ou une carte. Une photo cadrée
+pour la galerie pouvait donc perdre une tête dans un bandeau, sans rien pour
+y remédier. Sous l'image de fond, un sélecteur de point (le même que pour la
+vignette d'une publication) règle maintenant le cadrage propre à l'en-tête,
+et à chaque diapositive d'un carrousel. Sans réglage, rien ne change : c'est
+le point du document qui compte.
+
 ## [0.9.286] - 2026-09-28
 
 ### Corrigé

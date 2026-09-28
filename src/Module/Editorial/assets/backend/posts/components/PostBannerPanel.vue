@@ -18,6 +18,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
+import AppFocalPointField from "@/shared/components/form/file/AppFocalPointField.vue";
 import AppImagePickerField from "@/shared/components/form/file/AppImagePickerField.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppLoader from "@/shared/components/feedback/AppLoader.vue";
@@ -76,6 +77,7 @@ const {
     removeItem,
     moveItem,
     hasBackgroundImage,
+    backgroundPreview,
     isSolidFill,
     isGradientFill,
     fillPreviewStyle,
@@ -476,6 +478,21 @@ const { html: previewHtml, loading: previewLoading } = useServerPreview(
                     v-model="fields.backgroundMedia.value"
                     :label="t('backend.posts.banner.background_image')"
                     :hint="t('backend.posts.banner.background_image_hint')"
+                />
+
+                <!-- Where the wide picture is cropped in this band. Its own point
+                     rather than the document's: a photograph framed for a gallery
+                     can lose a head in a banner. -->
+                <AppFocalPointField
+                    v-if="backgroundPreview.url"
+                    :src="backgroundPreview.url"
+                    :x="fields.backgroundFocalX.value"
+                    :y="fields.backgroundFocalY.value"
+                    :inherited="backgroundPreview.inherited"
+                    :label="t('backend.posts.banner.background_focal')"
+                    :hint="t('backend.posts.banner.background_focal_hint')"
+                    v-on:update:x="fields.backgroundFocalX.value = $event"
+                    v-on:update:y="fields.backgroundFocalY.value = $event"
                 />
 
                 <AppImagePickerField

@@ -33,11 +33,11 @@ final class BannerCarouselTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        static::bootKernel();
+        self::bootKernel();
 
-        $this->bannerViewBuilder = static::getContainer()->get(BannerViewBuilder::class);
-        $this->normalizer = static::getContainer()->get(BannerNormalizer::class);
-        $twig = static::getContainer()->get(Environment::class);
+        $this->bannerViewBuilder = self::getContainer()->get(BannerViewBuilder::class);
+        $this->normalizer = self::getContainer()->get(BannerNormalizer::class);
+        $twig = self::getContainer()->get(Environment::class);
         self::assertInstanceOf(Environment::class, $twig);
         $this->twig = $twig;
     }
@@ -158,6 +158,19 @@ final class BannerCarouselTest extends IntegrationTestCase
         self::assertSame([], $banner['slides'], 'one slide, no carousel');
         self::assertSame('Troisième', $banner['items'][0]['title']);
         self::assertSame(0, $banner['headingIndex']);
+    }
+
+    public function testASlideCanCropItsPictureItsOwnWay(): void
+    {
+        $layout = $this->normalizer->normalizeLayout([
+            'background' => ['focalX' => '0.43', 'focalY' => 1.7],
+            'slides' => [['id' => 's1', 'background' => ['focalY' => 0.25]]],
+        ]);
+
+        self::assertSame(0.43, $layout['background']['focalX']);
+        self::assertNull($layout['background']['focalY'], 'outside 0..1 is dropped');
+        self::assertNull($layout['slides'][0]['background']['focalX']);
+        self::assertSame(0.25, $layout['slides'][0]['background']['focalY']);
     }
 
     public function testSlidesAloneKeepTheBannerOn(): void

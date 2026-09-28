@@ -448,6 +448,20 @@ export function usePostBanner(layout, texts) {
                 background().overlay = value;
             },
         ),
+        // The open slide's own crop of its wide picture. Null follows the
+        // document's point, which is what the picker shows when cleared.
+        backgroundFocalX: writable(
+            () => background().focalX ?? null,
+            (value) => {
+                background().focalX = value ?? null;
+            },
+        ),
+        backgroundFocalY: writable(
+            () => background().focalY ?? null,
+            (value) => {
+                background().focalY = value ?? null;
+            },
+        ),
         // On the banner rather than on its background: it fades the whole
         // header into the page, picture or no picture.
         fadeOut: writable(
@@ -547,6 +561,20 @@ export function usePostBanner(layout, texts) {
             Boolean(background().media) ||
             Boolean(slideTexts().background?.media),
     );
+    // The wide picture actually drawn, the language's own over the shared
+    // one, and where its document says to crop it: what the focal picker aims
+    // at and falls back to.
+    const backgroundPreview = computed(() => {
+        const media = slideTexts().background?.media ?? background().media;
+
+        return {
+            url: media?.url ?? "",
+            inherited:
+                media?.documentFocalPosition ??
+                media?.focalPosition ??
+                "50% 50%",
+        };
+    });
     const isSolidFill = computed(() => "solid" === background().type);
     const isGradientFill = computed(() => "gradient" === background().type);
 
@@ -736,6 +764,7 @@ export function usePostBanner(layout, texts) {
         removeItem,
         moveItem,
         hasBackgroundImage,
+        backgroundPreview,
         isSolidFill,
         isGradientFill,
         fillPreviewStyle,

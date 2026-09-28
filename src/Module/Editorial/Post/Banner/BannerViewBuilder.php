@@ -286,7 +286,12 @@ final readonly class BannerViewBuilder
             ),
             'background' => [
                 ...$background,
-                'media' => $this->mediaData($documents[$backgroundId] ?? null, ''),
+                'media' => $this->withFocal(
+                    $this->mediaData($documents[$backgroundId] ?? null, ''),
+                    $documents[$backgroundId] ?? null,
+                    $background['focalX'] ?? null,
+                    $background['focalY'] ?? null,
+                ),
                 // Null when no phone picture is set, and the template then
                 // lets the phone crop the main one, as it always has.
                 'mobileMedia' => $this->mediaData($documents[$mobileId] ?? null, ''),
@@ -297,6 +302,39 @@ final readonly class BannerViewBuilder
                 'fillStyle' => $this->fillStyle($background),
             ],
         ];
+    }
+
+    /**
+     * The banner's own crop of its wide picture, over the document's.
+     *
+     * Either axis may be set alone: the other keeps the document's point,
+     * or the centre when the document has none. The document's own position
+     * travels on as `documentFocalPosition`, for the editor to show where a
+     * cleared setting falls back to.
+     *
+     * @param array<string, mixed>|null $media
+     *
+     * @return array<string, mixed>|null
+     */
+    private function withFocal(?array $media, ?DocumentInterface $document, ?float $focalX, ?float $focalY): ?array
+    {
+        if (null === $media) {
+            return null;
+        }
+
+        $media['documentFocalPosition'] = $media['focalPosition'];
+
+        if (null === $focalX && null === $focalY) {
+            return $media;
+        }
+
+        $media['focalPosition'] = sprintf(
+            '%s%% %s%%',
+            round(($focalX ?? $document?->getFocalX() ?? 0.5) * 100, 2),
+            round(($focalY ?? $document?->getFocalY() ?? 0.5) * 100, 2),
+        );
+
+        return $media;
     }
 
     /**

@@ -476,7 +476,25 @@ final readonly class BannerNormalizer
             // Percentage, so a background image can be darkened enough for
             // text to stay readable over it.
             'overlay' => max(0, min(100, (int) ($data['overlay'] ?? 0))),
+            // Where this banner crops its wide picture around, as fractions
+            // across and down. Null follows the document's own point, which
+            // is what every banner did: the same photograph can need a
+            // different crop in a wide band than in a gallery or a card.
+            'focalX' => $this->fraction($data['focalX'] ?? null),
+            'focalY' => $this->fraction($data['focalY'] ?? null),
         ];
+    }
+
+    /** A fraction between 0 and 1, or null for anything else. */
+    private function fraction(mixed $value): ?float
+    {
+        if (!is_numeric($value)) {
+            return null;
+        }
+
+        $fraction = (float) $value;
+
+        return $fraction >= 0.0 && $fraction <= 1.0 ? round($fraction, 4) : null;
     }
 
     /**
