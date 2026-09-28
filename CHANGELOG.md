@@ -5,6 +5,75 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.283] - 2026-09-28
+
+### Ajouté
+
+#### Un dossier mis à la corbeille emporte ses familles
+Les variantes d'un visuel vivent souvent ailleurs que lui : à la racine, où
+l'import les a laissées, ou dans un dossier à part. Mettre à la corbeille le
+dossier de l'original les laissait derrière, variantes vivantes d'un original
+que plus personne ne voyait. La confirmation compte maintenant les variantes
+rangées hors du dossier et propose de les emporter (case cochée par défaut).
+Restaurer le dossier remet chacune à sa place, et le supprimer pour de bon ne
+retire plus son dossier à une variante venue d'ailleurs.
+
+#### L'usage d'une famille se lit en une ligne
+Sous les puces d'un visuel, dans la liste comme dans le bandeau Famille, une
+ligne dit quelle version est utilisée et par quoi : « Original : 2
+publications · rouge : 1 présentation », ou « Aucune version de la famille
+n'est utilisée ». Sur un original qui a des variantes, cette ligne remplace le
+badge « Inutilisé », qui laissait croire que toute la famille l'était.
+
+#### Le logo, le favicon et l'image de partage comptent comme usages
+Les réglages du site qui pointent vers une image de la médiathèque (logo du
+back-office, favicon, image de partage par défaut) n'étaient signalés nulle
+part : le favicon du site s'affichait « Inutilisé » et pouvait partir à la
+corbeille sans avertissement. Ils apparaissent maintenant dans l'utilisation
+du document, avec un lien vers l'onglet des paramètres concerné.
+
+#### Créer une variante de couleur depuis la médiathèque
+Un bouton « Variante de couleur », dans l'aperçu d'une image et dans le
+bandeau Famille, décline le visuel dans une autre couleur et range la copie
+dans sa famille, avec le dossier, la catégorie, les étiquettes, le texte
+alternatif et le crédit de l'original, marquée « À conserver ». On choisit la
+nouvelle couleur (celle du thème en un clic), l'étiquette, la couleur à
+remplacer (détectée : la teinte dominante du visuel, ou choisie) et des
+couleurs à épargner. Chaque pixel de la teinte remplacée prend la nouvelle et
+garde sa luminosité, sans seuil qui tracerait un bord dans un dégradé. Les
+photos et captures posées sur le visuel sont protégées par défaut, ciel et
+aplats compris. Demandée depuis une variante, c'est l'original qui est
+décliné. Images fixes seulement (PNG, JPEG, WebP).
+
+#### Des liserés dessinés par le site sur une entête
+Nouvelle option d'entête, onglet En-tête › Apparence : des bandes de couleur
+parallèles et inclinées, posées par-dessus n'importe quel fond, sous le texte.
+Couleurs (une par bande, jusqu'à six, dans l'ordre), côté (gauche, centre,
+droite), épaisseur, écart, inclinaison, distance du bord et opacité se règlent
+page par page ; les bandes s'affinent sur tablette et sur téléphone, où l'on
+peut aussi les masquer. Changer leurs couleurs ou leur angle devient un
+réglage plutôt qu'une nouvelle image à fabriquer. Désactivée par défaut : rien
+ne change sur les pages existantes.
+
+### Corrigé
+
+#### Le logo du site sur téléphone
+Le logo choisi dans Paramètres › Branding ne s'affichait que dans le menu
+latéral sur grand écran : sur téléphone, la barre du haut et le menu déroulant
+dessinaient toujours la marque par défaut. Ils affichent maintenant le logo du
+site, et la marque par défaut seulement quand aucun n'est choisi.
+
+#### Le nom de fichier ne déborde plus du sélecteur d'image
+Dans la fenêtre « Choisir un document », le nom de fichier stocké (32
+caractères sans espace) sortait de la carte sur téléphone et poussait toute la
+liste de côté. Il est coupé avec des points de suspension ; la taille reste
+affichée, et le type de fichier est masqué sur téléphone pour gagner la place.
+
+#### Un document restauré seul ne suit plus son ancien dossier
+Un document tombé avec un dossier, puis restauré seul, gardait la trace du
+dossier : le restaurer ou le supprimer pour de bon le déplaçait encore. Cette
+trace est effacée dès qu'un document part ou revient seul.
+
 ## [0.9.282] - 2026-09-28
 
 ### Corrigé

@@ -532,15 +532,74 @@ class DocumentRepository extends ResolveTargetEntityRepository implements ResetI
     /**
      * The documents that fell with this folder.
      *
+     * Only those still in the trash: a document restored on its own since is
+     * back in the library, and must not be moved or trashed again because a
+     * stale marker still names the folder.
+     *
      * @return list<Document>
      */
     public function findTrashedWith(int $folderId): array
     {
         return $this->createQueryBuilder('d')
             ->where('d.trashedWithFolderId = :id')
+            ->andWhere('d.deletedAt IS NOT NULL')
             ->setParameter('id', $folderId)
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * The living alternates of the living documents in these folders, filed
+     * somewhere else - at the root, or in a folder outside the list.
+     *
+     * What a folder sent to the trash "with the families" has to take along
+     * beyond its own contents. The alternates filed inside the folders are
+     * already part of them, so they are left out.
+     *
+     * @param list<int> $folderIds
+     *
+     * @return list<Document>
+     */
+    public function findLivingAlternatesFiledOutside(array $folderIds): array
+    {
+        if ([] === $folderIds) {
+            return [];
+        }
+
+        return $this->livingAlternatesFiledOutside($folderIds)
+            ->select('d')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * How many documents `findLivingAlternatesFiledOutside()` would return,
+     * for the confirmation that offers to take them along.
+     *
+     * @param list<int> $folderIds
+     */
+    public function countLivingAlternatesFiledOutside(array $folderIds): int
+    {
+        if ([] === $folderIds) {
+            return 0;
+        }
+
+        return (int) $this->livingAlternatesFiledOutside($folderIds)
+            ->select('COUNT(d.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /** @param list<int> $folderIds */
+    private function livingAlternatesFiledOutside(array $folderIds): QueryBuilder
+    {
+        return $this->createQueryBuilder('d')
+            ->innerJoin('d.original', 'o')
+            ->where('o.folder IN (:ids)')
+            ->andWhere('o.deletedAt IS NULL')
+            ->andWhere('d.deletedAt IS NULL')
+            ->andWhere('d.folder IS NULL OR d.folder NOT IN (:ids)')
+            ->setParameter('ids', $folderIds);
     }
 
     /** The sort keys the listing accepts, as the screen names them. */

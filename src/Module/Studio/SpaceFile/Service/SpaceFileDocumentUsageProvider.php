@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\SpaceFile\Service;
 
 use Aurora\Module\Ged\Document\Contract\BatchDocumentUsageProviderInterface;
+use Aurora\Module\Ged\Document\Contract\TypedDocumentUsageProviderInterface;
 use Aurora\Module\Studio\SpaceContent\Service\SpaceAttachmentDocumentUsageProvider;
 use Aurora\Module\Studio\SpaceFile\Repository\SpaceFileRepository;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -18,13 +19,18 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * supprimer le document ne noircit pas une vignette, il retire le fichier de
  * l'espace sans rien laisser derrière.
  */
-final readonly class SpaceFileDocumentUsageProvider implements BatchDocumentUsageProviderInterface
+final readonly class SpaceFileDocumentUsageProvider implements BatchDocumentUsageProviderInterface, TypedDocumentUsageProviderInterface
 {
     public function __construct(
         private SpaceFileRepository $files,
         private UrlGeneratorInterface $urlGenerator,
         private TranslatorInterface $translator,
     ) {}
+
+    public function usageType(): string
+    {
+        return 'studio.space_file';
+    }
 
     /** @return list<array{type: string, label: string, detail?: ?string, href?: ?string}> */
     public function findUsages(int $documentId): array
@@ -35,7 +41,7 @@ final readonly class SpaceFileDocumentUsageProvider implements BatchDocumentUsag
             $space = $file->getSpace();
 
             $usages[] = [
-                'type' => 'studio.space_file',
+                'type' => $this->usageType(),
                 // Le nom de l'espace, pas celui du document : l'écran de
                 // suppression dit déjà quel fichier part, et ce qu'il faut
                 // savoir avant de valider, c'est chez qui il sert.

@@ -63,7 +63,7 @@ export function labelSwatch(label) {
  * alternates as the server sorted them (by label).
  *
  * @param {object} doc a listing row carrying `alternates`
- * @returns {Array<{id: number, label: string|null, thumbnailUrl: string|null, usageCount: number, original: boolean}>}
+ * @returns {Array<{id: number, label: string|null, thumbnailUrl: string|null, usageCount: number, usageByType: object, original: boolean}>}
  */
 export function familyMembers(doc) {
     if (!doc?.alternates?.length) return [];
@@ -75,8 +75,38 @@ export function familyMembers(doc) {
             title: doc.title,
             thumbnailUrl: doc.thumbnailUrl ?? null,
             usageCount: doc.usageCount ?? 0,
+            usageByType: doc.usageByType ?? {},
             original: true,
         },
         ...doc.alternates.map((member) => ({ ...member, original: false })),
     ];
+}
+
+/**
+ * Which members of a family are used, and by what kind of source.
+ *
+ * The line a family card reads from - "Original : 2 publications · rouge :
+ * 1 présentation" - instead of an "Inutilisé" per member that says nothing
+ * about the family as a whole. Members nothing uses are left out; a member
+ * whose count came without its kinds (an older payload) is counted as
+ * "other" rather than dropped.
+ *
+ * @param {Array<{original: boolean, label: string|null, usageCount: number, usageByType?: object}>} members
+ * @returns {Array<{member: object, parts: Array<{type: string, count: number}>}>}
+ */
+export function familyUsage(members) {
+    return (members ?? [])
+        .filter((member) => (member.usageCount ?? 0) > 0)
+        .map((member) => {
+            const parts = Object.entries(member.usageByType ?? {})
+                .filter(([, count]) => count > 0)
+                .map(([type, count]) => ({ type, count }));
+
+            return {
+                member,
+                parts: parts.length
+                    ? parts
+                    : [{ type: "other", count: member.usageCount }],
+            };
+        });
 }

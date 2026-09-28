@@ -454,10 +454,14 @@ function isSelected(doc) {
                                     :members="familyMembers(doc)"
                                     v-on:choose="(id) => pickMember(doc, id)"
                                 />
-                                <p class="text-xs text-muted mt-0.5">
-                                    {{ doc.fileName }}
-                                    <span v-if="doc.fileSize"> · {{ formatSize(doc.fileSize) }}</span>
-                                    <span v-if="doc.fileMime"> · {{ doc.fileMime }}</span>
+                                <!-- The stored name is 32 random characters with no
+                                     space to break at: on a phone it ran out of
+                                     the card and pushed the list sideways. It
+                                     is cut short; the size and type stay whole. -->
+                                <p class="flex min-w-0 text-xs text-muted mt-0.5">
+                                    <span class="truncate">{{ doc.fileName }}</span>
+                                    <span v-if="doc.fileSize" class="shrink-0 whitespace-nowrap">&nbsp;· {{ formatSize(doc.fileSize) }}</span>
+                                    <span v-if="doc.fileMime" class="shrink-0 whitespace-nowrap max-sm:hidden">&nbsp;· {{ doc.fileMime }}</span>
                                 </p>
                             </div>
                             <Check v-if="isFamilySelected(doc)" class="w-5 h-5 text-accent shrink-0" :stroke-width="2.5" />

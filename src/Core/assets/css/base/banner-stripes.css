@@ -1,0 +1,60 @@
+/*
+ * Slanted colour bands over a page banner, drawn by the site.
+ *
+ * The values arrive as custom properties on the element, built by
+ * BannerViewBuilder from integers the normaliser clamped:
+ *   --stripe-thickness  width of one band, px, on a wide screen
+ *   --stripe-gap        space between two bands, px
+ *   --stripe-angle      skew, deg (negative leans the top to the right)
+ *   --stripe-offset     distance from the edge, % of the banner's width
+ *
+ * The bands overshoot the banner by a quarter of its height at each end, so
+ * the skew never shows a band's cut end; the header's `overflow: clip` trims
+ * them to its own box.
+ */
+.aurora-banner-stripes {
+    --stripe-scale: 1;
+    position: absolute;
+    top: -25%;
+    bottom: -25%;
+    display: flex;
+    gap: calc(var(--stripe-gap) * var(--stripe-scale));
+    transform: skewX(var(--stripe-angle));
+    pointer-events: none;
+}
+
+.aurora-banner-stripes[data-side="end"] {
+    right: var(--stripe-offset);
+}
+
+.aurora-banner-stripes[data-side="start"] {
+    left: var(--stripe-offset);
+}
+
+.aurora-banner-stripes[data-side="center"] {
+    left: 50%;
+    translate: -50% 0;
+}
+
+.aurora-banner-stripes > span {
+    display: block;
+    width: calc(var(--stripe-thickness) * var(--stripe-scale));
+    height: 100%;
+}
+
+/* Smaller where the banner is: a tablet between 640 and 1023px, a phone below. */
+@media (max-width: 1023px) {
+    .aurora-banner-stripes {
+        --stripe-scale: 0.75;
+    }
+}
+
+@media (max-width: 639px) {
+    .aurora-banner-stripes {
+        --stripe-scale: 0.5;
+    }
+
+    .aurora-banner-stripes[data-hide-on-phone] {
+        display: none;
+    }
+}

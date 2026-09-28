@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\SpaceContent\Service;
 
 use Aurora\Module\Ged\Document\Contract\BatchDocumentUsageProviderInterface;
+use Aurora\Module\Ged\Document\Contract\TypedDocumentUsageProviderInterface;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentAttachmentRepository;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -22,13 +23,18 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * Joined rather than scanned, unlike {@see DeckDocumentUsageProvider}: the
  * relation is a typed FK, so the query is exact and survives a rename.
  */
-final readonly class SpaceAttachmentDocumentUsageProvider implements BatchDocumentUsageProviderInterface
+final readonly class SpaceAttachmentDocumentUsageProvider implements BatchDocumentUsageProviderInterface, TypedDocumentUsageProviderInterface
 {
     public function __construct(
         private SpaceContentAttachmentRepository $attachments,
         private UrlGeneratorInterface $urlGenerator,
         private TranslatorInterface $translator,
     ) {}
+
+    public function usageType(): string
+    {
+        return 'studio.space_attachment';
+    }
 
     /** @return list<array{type: string, label: string, detail?: ?string, href?: ?string}> */
     public function findUsages(int $documentId): array
@@ -39,7 +45,7 @@ final readonly class SpaceAttachmentDocumentUsageProvider implements BatchDocume
             $item = $attachment->getItem();
 
             $usages[] = [
-                'type' => 'studio.space_attachment',
+                'type' => $this->usageType(),
                 'label' => $item->getTitle(),
                 // The card alone is not enough to place the file: card titles
                 // repeat across spaces ("Devis", "Photos"), and what the

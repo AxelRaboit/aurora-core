@@ -12,6 +12,21 @@ import { slugifyIfEmpty } from "@/shared/utils/format/slugify.js";
 //
 // The design only. It sits on the post, so every language shows the same
 // banner and translating one means writing its words, not rebuilding it.
+/** The bands as BannerNormalizer starts them: three, leaning right. */
+export function emptyBannerStripes() {
+    return {
+        enabled: false,
+        colors: ["#34d399", "#bd4a55", "#cd8f31"],
+        side: "end",
+        thickness: 48,
+        gap: 16,
+        angle: 22,
+        offset: 8,
+        opacity: 100,
+        hideOnPhone: false,
+    };
+}
+
 export function emptyBannerLayout() {
     return {
         enabled: false,
@@ -22,6 +37,8 @@ export function emptyBannerLayout() {
         logo: null,
         // Whether the foot of the banner dissolves into the page.
         fadeOut: false,
+        // Slanted colour bands drawn over the banner, off until asked for.
+        stripes: emptyBannerStripes(),
         background: {
             type: "none",
             color: null,

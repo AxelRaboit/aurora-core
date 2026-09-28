@@ -211,6 +211,39 @@ backend:
         with_alternates: "Also delete its alternates | Also delete its alternate | Also delete its {count} alternates"
         move_with_alternates: "Also move the chosen originals' alternates"
         label_suggestions: "Already in use:"
+        usage_none: "No version of the family is used"
+        usage_types:
+          other: "{count} use | {count} use | {count} uses"
+          editorial_post: "{count} post | {count} post | {count} posts"
+          studio_deck: "{count} deck | {count} deck | {count} decks"
+          studio_space_note: "{count} space note | {count} space note | {count} space notes"
+          studio_space_file: "{count} space file | {count} space file | {count} space files"
+          studio_space_attachment: "{count} attachment | {count} attachment | {count} attachments"
+          configuration_setting: "{count} site setting | {count} site setting | {count} site settings"
+      recolor:
+        open: "Colour alternate"
+        title: "Create a colour alternate"
+        intro: "A copy of “{title}” in another colour, filed in its family. Every pixel of the visual’s hue takes the new one and keeps its lightness."
+        color: "New colour"
+        theme_color: "Theme colour"
+        source: "Colour to replace"
+        source_auto: "Detected"
+        source_pick: "Chosen"
+        source_hint: "Detected: the visual’s dominant hue, such as the green of a green background."
+        spare: "Colours to spare"
+        spare_hint: "They stay as they are, even within the replaced hue: the green of a logo, of a marker."
+        spare_add: "Add a colour"
+        protect_detail: "Protect photos and screenshots"
+        protect_detail_hint: "The detailed areas laid on the visual (a photo, a screenshot) keep their colours."
+        working: "Creating the copy… a few seconds for a large image."
+        submit: "Create the alternate"
+        created: "Alternate “{label}” created."
+        errors:
+          color_required: "Choose the new colour."
+          color_invalid: "A colour in #rrggbb format."
+          label_required: "Give the alternate a label."
+          not_an_image: "Only a still image (PNG, JPEG, WebP) can be declined."
+          nothing_to_replace: "No colour to replace was found: choose it."
       originals_only: Group variants
       originals_only_hint: "Show originals only; their variants open from each one."
       usage:
@@ -235,6 +268,7 @@ backend:
       delete_folder_cascade_hint: Documents and sub-folders go with it. Restoring puts everything back in place.
       delete_folder_only: Delete the folder only
       delete_folder_only_hint: Its contents surface at the root. Restoring the folder brings it back empty.
+      delete_folder_with_alternates: "Also take the alternate filed elsewhere | Also take the alternate filed elsewhere | Also take the {count} alternates filed elsewhere"
       folder_name: Folder name
       folder_name_placeholder: Folder name…
       parent_folder: Parent folder

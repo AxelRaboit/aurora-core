@@ -389,6 +389,24 @@ backend:
       logo_hint: Shown top left, over the background.
       fade_out: Fade into the page
       fade_out_hint: "The foot of the header dissolves into the page instead of ending on an edge."
+      stripes: "Stripes"
+      stripes_hint: "Slanted colour bands, drawn by the site over the background."
+      stripe_colors: "One band per colour, in this order"
+      stripe_color: "Band {number}"
+      stripe_add: "Add a band"
+      stripe_remove: "Remove the band"
+      stripe_side: "Position"
+      stripe_thickness: "Thickness: {px} px"
+      stripe_gap: "Gap: {px} px"
+      stripe_angle: "Slant: {degrees}°"
+      stripe_offset: "Distance from the edge: {percent}%"
+      stripe_opacity: "Opacity: {percent}%"
+      stripe_hide_on_phone: "Hide on phones"
+      stripe_hide_on_phone_hint: "A phone keeps only the middle of the header, where the words are."
+      stripe_sides:
+        start: "Left"
+        center: "Centre"
+        end: "Right"
       fill: Background type
       fills:
         none: None

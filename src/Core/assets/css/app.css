@@ -135,6 +135,7 @@
 /* ── Shared component styles (loaded everywhere, used everywhere) ──── */
 @import "./base/content-blocks.css";
 @import "./base/aurora-grid.css";
+@import "./base/banner-stripes.css";
 @import "./base/reveal.css";
 @import "./base/input.css";
 @import "./base/loader.css";

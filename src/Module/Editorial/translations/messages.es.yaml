@@ -389,6 +389,24 @@ backend:
             logo_hint: 'Se muestra arriba a la izquierda, sobre el fondo.'
             fade_out: 'Fundido hacia abajo'
             fade_out_hint: 'La parte inferior del encabezado se funde con la página en lugar de cortarse en seco.'
+            stripes: "Franjas"
+            stripes_hint: "Bandas de color inclinadas, dibujadas por el sitio sobre el fondo."
+            stripe_colors: "Una banda por color, en este orden"
+            stripe_color: "Banda {number}"
+            stripe_add: "Añadir una banda"
+            stripe_remove: "Quitar la banda"
+            stripe_side: "Posición"
+            stripe_thickness: "Grosor: {px} px"
+            stripe_gap: "Separación: {px} px"
+            stripe_angle: "Inclinación: {degrees}°"
+            stripe_offset: "Distancia al borde: {percent} %"
+            stripe_opacity: "Opacidad: {percent} %"
+            stripe_hide_on_phone: "Ocultar en el teléfono"
+            stripe_hide_on_phone_hint: "Un teléfono solo conserva el centro del encabezado, donde están las palabras."
+            stripe_sides:
+                start: "Izquierda"
+                center: "Centro"
+                end: "Derecha"
             fill: 'Tipo de fondo'
             fills:
                 none: Ninguno

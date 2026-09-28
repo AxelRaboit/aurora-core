@@ -54,8 +54,14 @@ class DocumentFolderManager implements DocumentFolderManagerInterface
      * is the filing rather than the files. Without it, the folder goes alone
      * and its contents surface at the root, which is what deleting a folder
      * has always done, except the folder itself can now be brought back.
+     *
+     * `$withAlternates` only matters with `$cascade`: the alternates of the
+     * documents inside that are filed elsewhere go too, stamped as having
+     * fallen with the folder, so a restore brings the families back whole.
+     * Without the cascade the documents stay in the library, and so do their
+     * alternates.
      */
-    public function delete(DocumentFolderInterface $folder, bool $cascade = true): void
+    public function delete(DocumentFolderInterface $folder, bool $cascade = true, bool $withAlternates = false): void
     {
         if ($folder->isTrashed()) {
             return;
@@ -81,7 +87,11 @@ class DocumentFolderManager implements DocumentFolderManagerInterface
                 $descendant->setDeletedAt($now)->setTrashedWithFolderId($folderId);
             }
 
-            foreach ($this->documentRepository->findLivingIn($branchIds) as $document) {
+            // Asked before the branch is stamped, while its originals still
+            // read as living in the database.
+            $strays = $withAlternates ? $this->documentRepository->findLivingAlternatesFiledOutside($branchIds) : [];
+
+            foreach ([...$this->documentRepository->findLivingIn($branchIds), ...$strays] as $document) {
                 $document->setDeletedAt($now)->setTrashedWithFolderId($folderId);
             }
         } else {
@@ -101,7 +111,12 @@ class DocumentFolderManager implements DocumentFolderManagerInterface
 
         $this->entityManager->flush();
 
-        $this->auditTrashed($folder, $cascade);
+        $this->auditTrashed($folder, $cascade, $cascade && $withAlternates);
+    }
+
+    public function countAlternatesFiledOutside(DocumentFolderInterface $folder): int
+    {
+        return $this->documentRepository->countLivingAlternatesFiledOutside($this->branchIds($folder));
     }
 
     /**
@@ -149,13 +164,22 @@ class DocumentFolderManager implements DocumentFolderManagerInterface
     public function forceDelete(DocumentFolderInterface $folder): void
     {
         $folderId = (int) $folder->getId();
+        $branch = [$folderId => true];
 
         foreach ($this->folderRepository->findTrashedWith($folderId) as $descendant) {
+            $branch[(int) $descendant->getId()] = true;
             $descendant->setParent(null)->setDeletedAt(null)->setTrashedWithFolderId(null);
         }
 
         foreach ($this->documentRepository->findTrashedWith($folderId) as $document) {
-            $document->setFolder(null)->setDeletedAt(null)->setTrashedWithFolderId(null);
+            // An alternate that fell with the folder from somewhere else keeps
+            // its own folder: only what was filed in the branch loses it.
+            $filedIn = $document->getFolder()?->getId();
+            if (null !== $filedIn && isset($branch[$filedIn])) {
+                $document->setFolder(null);
+            }
+
+            $document->setDeletedAt(null)->setTrashedWithFolderId(null);
         }
 
         $this->auditDeleted($folder);
@@ -355,11 +379,12 @@ class DocumentFolderManager implements DocumentFolderManagerInterface
         $this->auditLogger->log('ged', 'folder.updated', 'DocumentFolder', $folder->getId(), $this->auditPayload($folder));
     }
 
-    protected function auditTrashed(DocumentFolderInterface $folder, bool $cascade): void
+    protected function auditTrashed(DocumentFolderInterface $folder, bool $cascade, bool $withAlternates = false): void
     {
         $this->auditLogger->log('ged', 'folder.trashed', 'DocumentFolder', $folder->getId(), [
             ...$this->auditPayload($folder),
             'cascade' => $cascade,
+            'withAlternates' => $withAlternates,
         ]);
     }
 

@@ -165,6 +165,24 @@
         {% endif %}
     {% endif %}
 
+    {% if banner.stripes.enabled|default(false) %}
+        {# Slanted colour bands, over the picture and under the words: `-z-10`
+           like the picture, and later in the document. The style is custom
+           properties built from clamped integers, and each colour a hex the
+           normaliser checked, so `raw` is not a hole. #}
+        <div
+            class="aurora-banner-stripes -z-10"
+            data-side="{{ banner.stripes.side }}"
+            {% if banner.stripes.hideOnPhone %}data-hide-on-phone{% endif %}
+            style="{{ banner.stripes.style|raw }}"
+            aria-hidden="true"
+        >
+            {% for color in banner.stripes.colors %}
+                <span style="background-color: {{ color }};"></span>
+            {% endfor %}
+        </div>
+    {% endif %}
+
     {% if banner.fadeOut|default(false) %}
         {# The foot of the banner dissolving into the page rather than ending
            on an edge. Drawn after the picture and its darkening so it sits

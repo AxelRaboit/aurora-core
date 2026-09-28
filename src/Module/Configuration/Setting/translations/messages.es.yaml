@@ -1,6 +1,7 @@
 backend:
     settings:
         disable_anyway: 'Desactivar de todos modos'
+        usage_detail: 'Ajustes del sitio'
         tabs:
             general: General
             general_description: 'Nombre del sitio, email del administrador, URL pública.'

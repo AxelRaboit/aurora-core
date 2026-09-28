@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\Deck\Service;
 
 use Aurora\Module\Ged\Document\Contract\BatchDocumentUsageProviderInterface;
+use Aurora\Module\Ged\Document\Contract\TypedDocumentUsageProviderInterface;
 use Aurora\Module\Studio\Deck\Repository\DeckRepository;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -36,7 +37,7 @@ use function in_array;
  * being true, the shape to reach for is a JSON index on the content column,
  * which is driver-specific and not worth its migration yet.
  */
-final readonly class DeckDocumentUsageProvider implements BatchDocumentUsageProviderInterface
+final readonly class DeckDocumentUsageProvider implements BatchDocumentUsageProviderInterface, TypedDocumentUsageProviderInterface
 {
     public function __construct(
         private DeckRepository $decks,
@@ -47,6 +48,11 @@ final readonly class DeckDocumentUsageProvider implements BatchDocumentUsageProv
         // anybody implemented it.
         private TranslatorInterface $translator,
     ) {}
+
+    public function usageType(): string
+    {
+        return 'studio.deck';
+    }
 
     /** @return list<array{type: string, label: string, detail?: ?string, href?: ?string}> */
     public function findUsages(int $documentId): array
@@ -59,7 +65,7 @@ final readonly class DeckDocumentUsageProvider implements BatchDocumentUsageProv
             }
 
             $usages[] = [
-                'type' => 'studio.deck',
+                'type' => $this->usageType(),
                 'label' => $deck->getTitle(),
                 'detail' => $this->translator->trans('backend.studio.decks.usage_detail'),
                 'href' => $this->urlGenerator->generate('backend_studio_deck', ['id' => $deck->getId()]),
