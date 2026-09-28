@@ -9,6 +9,13 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ### Amélioré
 
+#### Un vrai formulaire de contact dans la démo
+La page Contact de la démonstration posait la demande de devis, qui porte
+exprès un champ de chaque type en deux étapes pour les écrans du module
+Formulaires. Elle pose maintenant un formulaire de contact de trois champs
+(nom, e-mail, message), et n'appelle plus de commentaires. La demande de devis
+reste dans la démo pour le module Formulaires.
+
 #### Le sélecteur de langue n'affiche plus que le drapeau dans la barre
 Dans la barre du site public, le sélecteur de langue montrait le drapeau et
 le nom de la langue à partir de la tablette. Il n'affiche plus que le

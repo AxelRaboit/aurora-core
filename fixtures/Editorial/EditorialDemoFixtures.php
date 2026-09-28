@@ -142,7 +142,11 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         // La page de contact pose le formulaire, donc elle attend qu'il
         // existe : une zone de formulaire nomme un identifiant, et un
         // formulaire qui n'est pas encore écrit n'en a pas.
-        $this->layOutContactPage($posts, $this->createQuoteForm());
+        //
+        // Deux formulaires : la demande de devis garde un champ de chaque
+        // type pour les écrans du module, la page de contact pose le court.
+        $this->createQuoteForm();
+        $this->layOutContactPage($posts, $this->createContactForm());
 
         $this->createComments($manager, $posts);
         $manager->flush();
@@ -1490,6 +1494,10 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             return;
         }
 
+        // Une page de contact n'appelle pas de discussion : le formulaire est
+        // là pour ça.
+        $contact->setCommentsEnabled(false);
+
         $contact->setGridLayout($this->gridNormalizer->normalizeLayout([
             'enabled' => true,
             'snap' => 4,
@@ -1510,19 +1518,19 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         $headings = [
             'fr' => [
                 'Nous écrire',
-                'Décrivez votre projet en quelques lignes : ce que vous faites, ce dont vous avez besoin, et sous quel délai. Un devis chiffré suit sous 48 heures, sans engagement.',
+                'Une question, un projet : quelques lignes suffisent. On vous répond sous 48 heures.',
                 'Nous joindre',
                 ['contact@example.com', '+33 1 23 45 67 89', '12 rue des Lilas, 75011 Paris'],
             ],
             'en' => [
                 'Write to us',
-                'Describe your project in a few lines: what you do, what you need, and by when. A costed quote follows within 48 hours, with no commitment.',
+                'A question, a project: a few lines are enough. We answer within 48 hours.',
                 'Reach us',
                 ['contact@example.com', '+33 1 23 45 67 89', '12 rue des Lilas, 75011 Paris'],
             ],
             'es' => [
                 'Escríbanos',
-                'Describa su proyecto en unas líneas: a qué se dedica, qué necesita y en qué plazo. Le enviamos un presupuesto en 48 horas, sin compromiso.',
+                'Una pregunta, un proyecto: bastan unas líneas. Le respondemos en 48 horas.',
                 'Cómo localizarnos',
                 ['contact@example.com', '+33 1 23 45 67 89', '12 rue des Lilas, 75011 Paris'],
             ],
@@ -1766,6 +1774,63 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         }
 
         $this->submitQuoteForm($form, $fields);
+
+        return $form;
+    }
+
+    /**
+     * Un formulaire de contact tel qu'on en pose un sur un site : trois
+     * champs, une seule étape.
+     *
+     * La page de contact posait la demande de devis, qui porte exprès un champ
+     * de chaque type en deux étapes pour les écrans du module Formulaires. Sur
+     * la page, et sur la capture du site public qui la montre, cela donnait un
+     * formulaire de dix champs pour écrire trois lignes.
+     *
+     * Idempotent sur son slug français, comme le devis.
+     */
+    private function createContactForm(): FormInterface
+    {
+        $existing = $this->formTranslationRepository->findOneByLocaleAndSlug('fr', 'nous-ecrire');
+        if ($existing instanceof FormTranslationInterface) {
+            return $existing->getForm();
+        }
+
+        $form = $this->forms->create(new FormInput(
+            translations: [
+                'fr' => ['title' => 'Votre message', 'slug' => 'nous-ecrire', 'description' => null],
+                'en' => ['title' => 'Your message', 'slug' => 'write-to-us', 'description' => null],
+                'es' => ['title' => 'Su mensaje', 'slug' => 'escribanos', 'description' => null],
+            ],
+            notifyEmail: 'contact@example.com',
+        ));
+
+        $fields = [
+            [FormFieldTypeEnum::Text, [
+                'fr' => ['label' => 'Nom', 'placeholder' => 'Camille Durand', 'options' => []],
+                'en' => ['label' => 'Name', 'placeholder' => 'Camille Durand', 'options' => []],
+                'es' => ['label' => 'Nombre', 'placeholder' => 'Camille Durand', 'options' => []],
+            ]],
+            [FormFieldTypeEnum::Email, [
+                'fr' => ['label' => 'Adresse e-mail', 'placeholder' => 'camille@exemple.fr', 'options' => []],
+                'en' => ['label' => 'Email address', 'placeholder' => 'camille@example.com', 'options' => []],
+                'es' => ['label' => 'Correo electrónico', 'placeholder' => 'camille@ejemplo.es', 'options' => []],
+            ]],
+            [FormFieldTypeEnum::Textarea, [
+                'fr' => ['label' => 'Message', 'placeholder' => 'Votre question ou votre projet, en quelques lignes.', 'options' => []],
+                'en' => ['label' => 'Message', 'placeholder' => 'Your question or your project, in a few lines.', 'options' => []],
+                'es' => ['label' => 'Mensaje', 'placeholder' => 'Su pregunta o su proyecto, en unas líneas.', 'options' => []],
+            ]],
+        ];
+
+        foreach ($fields as [$type, $translations]) {
+            $this->forms->createField($form, new FormFieldInput(
+                translations: $translations,
+                type: $type,
+                required: true,
+                step: 1,
+            ));
+        }
 
         return $form;
     }
