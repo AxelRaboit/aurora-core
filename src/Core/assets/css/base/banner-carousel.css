@@ -1,0 +1,182 @@
+/*
+ * A banner whose slides take turns - `[data-banner-carousel]`.
+ *
+ * Every slide sits in the same grid cell, so the banner is as tall as the
+ * tallest of them and nothing below moves when they change. Only the one
+ * marked `data-active` shows; without the script that is the first, and the
+ * controls stay hidden.
+ *
+ * Two ways to change, chosen per page (`data-transition`): a fade, or a slide
+ * sideways. bannerCarousel.js sets `--banner-from` on the slide coming in so
+ * it enters from the side it was asked from.
+ *
+ * Gabarit : templates/Frontend/themes/default/editorial/post/_banner.html.twig
+ */
+/* A vertical drag still scrolls the page; a horizontal one is the carousel's
+   to read, instead of the browser cancelling it as a pan. */
+[data-banner-carousel] {
+    touch-action: pan-y;
+}
+
+.aurora-banner-track {
+    display: grid;
+    grid-template: 1fr / 1fr;
+}
+
+.aurora-banner-slide {
+    grid-area: 1 / 1;
+    visibility: hidden;
+    opacity: 0;
+    /* Visibility waits for the fade to finish before hiding the slide, so
+       the one leaving is still drawn while it goes. */
+    transition:
+        opacity 0.7s ease,
+        visibility 0s linear 0.7s;
+}
+
+.aurora-banner-slide[data-active] {
+    visibility: visible;
+    opacity: 1;
+    transition:
+        opacity 0.7s ease,
+        visibility 0s;
+}
+
+[data-transition="slide"] .aurora-banner-slide {
+    opacity: 1;
+    transform: translateX(var(--banner-to, 100%));
+    transition:
+        transform 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+        visibility 0s linear 0.7s;
+}
+
+[data-transition="slide"] .aurora-banner-slide[data-active] {
+    transform: none;
+    transition:
+        transform 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+        visibility 0s;
+}
+
+/* Placed without a transition, before it moves in. */
+.aurora-banner-slide[data-banner-staging] {
+    transition: none !important;
+}
+
+.aurora-banner-arrow {
+    position: absolute;
+    top: 50%;
+    z-index: 20;
+    display: none;
+    width: 2.75rem;
+    height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    border: 1px solid rgb(255 255 255 / 0.25);
+    background: rgb(0 0 0 / 0.35);
+    color: #fff;
+    translate: 0 -50%;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.aurora-banner-arrow:hover,
+.aurora-banner-arrow:focus-visible {
+    background: rgb(0 0 0 / 0.55);
+    border-color: var(--banner-dot-color, #fff);
+}
+
+.aurora-banner-arrow[data-side="start"] {
+    left: 0.75rem;
+}
+
+.aurora-banner-arrow[data-side="end"] {
+    right: 0.75rem;
+}
+
+/* A phone swipes, and on its width an arrow would sit on the title. */
+@media (min-width: 640px) {
+    .aurora-banner-arrow:not([hidden]) {
+        display: flex;
+    }
+}
+
+.aurora-banner-dots {
+    position: absolute;
+    bottom: 1.25rem;
+    left: 50%;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    translate: -50% 0;
+}
+
+.aurora-banner-dots[hidden] {
+    display: none;
+}
+
+.aurora-banner-dot {
+    width: 0.625rem;
+    height: 0.625rem;
+    padding: 0;
+    border: 0;
+    border-radius: 9999px;
+    background: rgb(255 255 255 / 0.45);
+    cursor: pointer;
+    transition:
+        width 0.3s ease,
+        background-color 0.3s ease;
+}
+
+.aurora-banner-dot:hover {
+    background: rgb(255 255 255 / 0.75);
+}
+
+/* The current slide's dot, long and in that slide's accent. */
+.aurora-banner-dot[aria-current="true"] {
+    width: 1.75rem;
+    background: var(--banner-dot-color, #fff);
+}
+
+.aurora-banner-pause {
+    display: flex;
+    width: 1.5rem;
+    height: 1.5rem;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.25rem;
+    padding: 0;
+    border: 0;
+    border-radius: 9999px;
+    background: rgb(0 0 0 / 0.35);
+    color: rgb(255 255 255 / 0.85);
+    cursor: pointer;
+}
+
+.aurora-banner-pause:hover,
+.aurora-banner-pause:focus-visible {
+    color: #fff;
+    background: rgb(0 0 0 / 0.55);
+}
+
+.aurora-banner-dot:focus-visible,
+.aurora-banner-pause:focus-visible,
+.aurora-banner-arrow:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+}
+
+/* Someone who asked their system for less motion gets the change without
+   the movement; the script also stops the slides turning by themselves. */
+@media (prefers-reduced-motion: reduce) {
+    .aurora-banner-slide,
+    .aurora-banner-slide[data-active],
+    [data-transition="slide"] .aurora-banner-slide,
+    [data-transition="slide"] .aurora-banner-slide[data-active] {
+        transition: none;
+    }
+}

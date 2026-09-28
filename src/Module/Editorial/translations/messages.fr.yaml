@@ -391,6 +391,33 @@ backend:
       fade_out_hint: "Le bas de l'en-tête se dissout dans la page au lieu de s'arrêter net."
       stripes: "Liserés"
       stripes_hint: "Des bandes de couleur inclinées, dessinées par le site par-dessus le fond."
+      slides: "Diapositives"
+      slides_hint: "La première est l'en-tête de la page. Ajoutez-en d'autres : elles défileront à tour de rôle, au même endroit."
+      slide: "Diapositive {number}"
+      slide_open: "Diapositive modifiée"
+      add_slide: "Ajouter une diapositive"
+      remove_slide: "Retirer cette diapositive"
+      move_slide_left: "Placer plus tôt"
+      move_slide_right: "Placer plus tard"
+      first_slide_hint: "La diapositive 1 porte le titre principal de la page et reste la première."
+      accent_color: "Couleur d'accent"
+      accent_color_hint: "Remplace la couleur du thème dans cette diapositive : le « × » du titre, et tout ce qui est écrit dans la couleur d'accent."
+      background_section: "Fond"
+      slide_background: "Fond de la diapositive {number}"
+      carousel: "Défilement"
+      carousel_autoplay: "Défiler automatiquement"
+      carousel_autoplay_hint: "Un bouton pause s'ajoute à côté des points : un contenu qui bouge seul doit pouvoir être arrêté."
+      carousel_interval: "Durée d'une diapositive : {seconds} s"
+      carousel_pause_on_hover: "Pause au survol"
+      carousel_pause_on_hover_hint: "Le défilement s'arrête tant que le pointeur est sur l'en-tête."
+      carousel_arrows: "Flèches"
+      carousel_arrows_hint: "À gauche et à droite, à partir de la tablette. Sur téléphone, on fait glisser du doigt."
+      carousel_dots: "Points"
+      carousel_dots_hint: "Un point par diapositive, en bas de l'en-tête, dans la couleur de celle affichée."
+      carousel_transition: "Transition"
+      transitions:
+        fade: "Fondu"
+        slide: "Glissement"
       stripe_colors: "Une bande par couleur, dans cet ordre"
       stripe_color: "Bande {number}"
       stripe_add: "Ajouter une bande"
@@ -1487,6 +1514,17 @@ frontend:
     next: Image suivante
   editorial:
     reading_time: '%minutes% min de lecture'
+    banner:
+      carousel:
+        role: "carrousel"
+        label: "Présentation en diapositives"
+        slide_role: "diapositive"
+        slide: "Diapositive %index% sur %count%"
+        previous: "Diapositive précédente"
+        next: "Diapositive suivante"
+        pause: "Mettre en pause le défilement"
+        play: "Reprendre le défilement"
+        go_to: "Aller à la diapositive %index% sur %count%"
     useful_links:
       label: Liens utiles
     share:

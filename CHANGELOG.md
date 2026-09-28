@@ -5,6 +5,37 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.285] - 2026-09-28
+
+### Ajouté
+
+#### Un en-tête peut faire défiler plusieurs diapositives
+L'en-tête d'une publication devient un carrousel dès qu'on lui ajoute une
+diapositive (onglet En-tête › Diapositives). La première est l'en-tête tel
+qu'il était, avec le titre principal de la page ; les suivantes prennent leur
+tour au même endroit, chacune avec son fond (ordinateur, tablette, téléphone,
+et par langue), ses textes et boutons traduits, et sa **couleur d'accent**,
+qui remplace celle du thème dans la diapositive : le « × » d'un titre, le
+point qui la désigne. Largeur, hauteur, fondu, liserés et logo restent
+communs à toutes.
+
+Tout le défilement se règle depuis la publication : passage automatique ou
+non, durée d'une diapositive (7 s par défaut, de 3 à 30), pause au survol,
+flèches, points, et transition en fondu ou en glissement. Quand les
+diapositives tournent seules, un bouton pause s'ajoute à côté des points, car
+un contenu qui bouge plus de cinq secondes doit pouvoir être arrêté ; il ne
+tourne pas du tout pour un visiteur qui a demandé moins d'animations à son
+système. Au doigt, on fait glisser ; au clavier, les flèches. La page garde
+un seul titre principal, et sa hauteur ne bouge pas d'une diapositive à
+l'autre. L'aperçu de l'éditeur montre la diapositive ouverte.
+
+#### Une famille de couleurs dans la médiathèque de démonstration
+`make demo` crée deux variantes, rouge et bleue, du « Visuel de campagne -
+Automne 2025 », par le même service que le bouton « Variante de couleur ».
+La bleue est rangée dans un autre dossier : le bandeau de famille, la liste
+regroupée et la case « Emporter aussi la variante rangée ailleurs » ont
+enfin quelque chose à montrer.
+
 ## [0.9.284] - 2026-09-28
 
 ### Amélioré

@@ -379,7 +379,7 @@ final class BannerNormalizerTest extends TestCase
     public function testAnEmptyLayoutIsAnAcceptableArgument(): void
     {
         self::assertSame(
-            ['items' => [], 'background' => ['mediaId' => null, 'mobileMediaId' => null, 'tabletMediaId' => null]],
+            ['items' => [], 'background' => ['mediaId' => null, 'mobileMediaId' => null, 'tabletMediaId' => null], 'slides' => []],
             $this->normalizer->normalizeTexts(['items' => ['a' => []]], []),
         );
     }
