@@ -57,6 +57,24 @@ export function emptyBannerLayout() {
             fillStyle: null,
         },
         items: [],
+        // The colour the banner's words are accented in; null keeps the theme's.
+        accentColor: null,
+        // The slides after this one, for a banner that takes turns. Each is a
+        // background and its items like the banner itself - see newBannerSlide.
+        slides: [],
+        carousel: emptyBannerCarousel(),
+    };
+}
+
+/** How the slides take turns, as BannerNormalizer starts it. */
+export function emptyBannerCarousel() {
+    return {
+        autoplay: true,
+        interval: 7,
+        pauseOnHover: true,
+        arrows: true,
+        dots: true,
+        transition: "fade",
     };
 }
 
@@ -74,6 +92,8 @@ export function emptyBannerTexts() {
             mobileMedia: null,
             tabletMedia: null,
         },
+        // The words of each further slide, keyed by the slide's id.
+        slides: {},
     };
 }
 
@@ -159,6 +179,23 @@ function translationFrom(source) {
             ...emptyBannerTexts().background,
             ...(translation.banner?.background ?? {}),
         },
+        // Each further slide's words, guarded the same way: a slide with no
+        // item yet arrives with `items: []`, and a list takes `items[id] = …`
+        // and then loses it on the way out.
+        slides: Object.fromEntries(
+            Object.entries(mapOf(translation.banner?.slides)).map(
+                ([id, slide]) => [
+                    id,
+                    {
+                        items: mapOf(slide?.items),
+                        background: {
+                            ...emptyBannerTexts().background,
+                            ...(slide?.background ?? {}),
+                        },
+                    },
+                ],
+            ),
+        ),
     };
 
     // Same guard as the banner above: a translation saved before the grid
@@ -220,6 +257,10 @@ export function usePostEditor(props) {
         bannerLayout: {
             ...emptyBannerLayout(),
             ...(props.post?.bannerLayout ?? {}),
+            carousel: {
+                ...emptyBannerCarousel(),
+                ...(props.post?.bannerLayout?.carousel ?? {}),
+            },
         },
         gridLayout: {
             ...emptyGridLayout(),

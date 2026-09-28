@@ -60,7 +60,8 @@ final readonly class BannerViewBuilder
         $hasContent = null !== $banner['background']['fillStyle']
             || null !== $banner['background']['media']
             || [] !== $banner['items']
-            || $banner['stripes']['enabled'];
+            || $banner['stripes']['enabled']
+            || [] !== $banner['slides'];
 
         return $hasContent ? $banner : null;
     }
@@ -75,9 +76,29 @@ final readonly class BannerViewBuilder
      *
      * @return array<string, mixed>
      */
-    public function buildForEditor(array $layout, array $texts): array
+    public function buildForEditor(array $layout, array $texts, int $focusSlide = 0): array
     {
-        return $this->resolve($layout, $texts);
+        $banner = $this->resolve($layout, $texts);
+
+        // The panel previews the slide being edited, not the carousel: a
+        // preview is HTML dropped into the editor, no script turns it, so the
+        // first slide would be all it ever showed. The chosen slide takes the
+        // first one's place, and the rest are left out.
+        $slide = $banner['slides'][$focusSlide - 1] ?? null;
+
+        if (null === $slide) {
+            return $banner;
+        }
+
+        return [
+            ...$banner,
+            'items' => $slide['items'],
+            'background' => $slide['background'],
+            'accentColor' => $slide['accentColor'],
+            'accentStyle' => $slide['accentStyle'],
+            'headingIndex' => $this->headingIndex($slide['items']),
+            'slides' => [],
+        ];
     }
 
     /**
@@ -95,17 +116,33 @@ final readonly class BannerViewBuilder
     {
         $layout = $this->bannerNormalizer->normalizeLayout($rawLayout);
         $texts = $this->bannerNormalizer->normalizeTexts($rawTexts, $layout);
-        $local = $texts['background'];
-        $documents = $this->documentsById([$local['mediaId'], $local['mobileMediaId'], $local['tabletMediaId']]);
+        $locals = [$texts['background']];
+        foreach ($texts['slides'] as $slide) {
+            $locals[] = $slide['background'];
+        }
+
+        $ids = [];
+        foreach ($locals as $local) {
+            $ids[] = $local['mediaId'];
+            $ids[] = $local['mobileMediaId'];
+            $ids[] = $local['tabletMediaId'];
+        }
+
+        $documents = $this->documentsById($ids);
+        $withMedia = fn (array $local): array => [
+            ...$local,
+            'media' => $this->mediaData($documents[$local['mediaId']] ?? null, ''),
+            'mobileMedia' => $this->mediaData($documents[$local['mobileMediaId']] ?? null, ''),
+            'tabletMedia' => $this->mediaData($documents[$local['tabletMediaId']] ?? null, ''),
+        ];
 
         return [
             ...$texts,
-            'background' => [
-                ...$local,
-                'media' => $this->mediaData($documents[$local['mediaId']] ?? null, ''),
-                'mobileMedia' => $this->mediaData($documents[$local['mobileMediaId']] ?? null, ''),
-                'tabletMedia' => $this->mediaData($documents[$local['tabletMediaId']] ?? null, ''),
-            ],
+            'background' => $withMedia($texts['background']),
+            'slides' => array_map(
+                static fn (array $slide): array => [...$slide, 'background' => $withMedia($slide['background'])],
+                $texts['slides'],
+            ),
         ];
     }
 
@@ -120,35 +157,46 @@ final readonly class BannerViewBuilder
         $layout = $this->bannerNormalizer->normalizeLayout($rawLayout);
         $texts = $this->bannerNormalizer->normalizeTexts($rawTexts, $layout);
 
-        // The language's own picture wins over the shared one, field by field:
-        // a translation may bring only a phone picture and keep the shared
-        // wide one, or the reverse.
-        $local = $texts['background'];
-        $backgroundId = $local['mediaId'] ?? $layout['background']['mediaId'];
-        $mobileId = $local['mobileMediaId'] ?? $layout['background']['mobileMediaId'];
-        $tabletId = $local['tabletMediaId'] ?? $layout['background']['tabletMediaId'];
+        $mainIds = $this->backgroundIds($layout['background'], $texts['background']);
+        $slideIds = [];
+        $ids = [$layout['logoMediaId'], ...$mainIds, ...array_column($layout['items'], 'mediaId')];
 
-        $documents = $this->documents($layout, [$backgroundId, $mobileId, $tabletId]);
+        foreach ($layout['slides'] as $slide) {
+            $slideIds[$slide['id']] = $this->backgroundIds(
+                $slide['background'],
+                $texts['slides'][$slide['id']]['background'] ?? [],
+            );
+            array_push($ids, ...$slideIds[$slide['id']], ...array_column($slide['items'], 'mediaId'));
+        }
 
-        $items = array_map(
-            function (array $item) use ($texts, $documents): array {
-                $text = $texts['items'][$item['id']];
+        // Every picture of every slide in one query: a carousel of five is
+        // still one round trip.
+        $documents = $this->documentsById($ids);
+
+        $main = $this->resolveSlide($layout['items'], $texts['items'], $layout['background'], $mainIds, $documents);
+
+        $slides = array_map(
+            function (array $slide) use ($texts, $slideIds, $documents): array {
+                $resolved = $this->resolveSlide(
+                    $slide['items'],
+                    $texts['slides'][$slide['id']]['items'] ?? [],
+                    $slide['background'],
+                    $slideIds[$slide['id']],
+                    $documents,
+                );
 
                 return [
-                    ...$item,
-                    ...$text,
-                    'media' => $this->mediaData($documents[$item['mediaId']] ?? null, $text['alt']),
-                    // Custom properties rather than classes: a span is a number
-                    // between 1 and 48 chosen at runtime, and Tailwind only
-                    // emits classes it can read in the source.
-                    'spanStyle' => $this->values->spanStyle($item['span']),
-                    // The CSS stack, built from the enum so the template never
-                    // writes a font name it was sent.
-                    'titleFontStack' => ThemeFontEnum::tryFrom((string) $item['titleFont'])?->stack(),
-                    'descriptionFontStack' => ThemeFontEnum::tryFrom((string) $item['descriptionFont'])?->stack(),
+                    'id' => $slide['id'],
+                    'accentColor' => $slide['accentColor'],
+                    'accentStyle' => $this->accentStyle($slide['accentColor']),
+                    ...$resolved,
+                    // A page has one <h1>, and it is the first slide's: the
+                    // others take their turn in the same place, they are not
+                    // the page's title.
+                    'headingIndex' => null,
                 ];
             },
-            $layout['items'],
+            $layout['slides'],
         );
 
         return [
@@ -163,20 +211,10 @@ final readonly class BannerViewBuilder
             // not been written yet has no title to promote, and the template
             // then keeps the plain <h1> under the banner rather than leaving
             // the page without one.
-            'headingIndex' => $this->headingIndex($items),
-            'items' => $items,
-            'background' => [
-                ...$layout['background'],
-                'media' => $this->mediaData($documents[$backgroundId] ?? null, ''),
-                // Null when no phone picture is set, and the template then
-                // lets the phone crop the main one, as it always has.
-                'mobileMedia' => $this->mediaData($documents[$mobileId] ?? null, ''),
-                'tabletMedia' => $this->mediaData($documents[$tabletId] ?? null, ''),
-                // Built here rather than in Twig so one place knows how a fill
-                // becomes CSS. Safe to assemble as a string: the normaliser has
-                // already reduced every part to a hex colour or an integer.
-                'fillStyle' => $this->fillStyle($layout['background']),
-            ],
+            'headingIndex' => $this->headingIndex($main['items']),
+            'items' => $main['items'],
+            'background' => $main['background'],
+            'accentStyle' => $this->accentStyle($layout['accentColor']),
             'logo' => $this->mediaData($documents[$layout['logoMediaId']] ?? null, ''),
             'stripes' => [
                 ...$layout['stripes'],
@@ -185,7 +223,93 @@ final readonly class BannerViewBuilder
                 // rule in the stylesheet.
                 'style' => $this->stripesStyle($layout['stripes']),
             ],
+            'slides' => $slides,
         ];
+    }
+
+    /**
+     * The three pictures actually drawn behind one slide.
+     *
+     * The language's own picture wins over the shared one, field by field:
+     * a translation may bring only a phone picture and keep the shared wide
+     * one, or the reverse.
+     *
+     * @param array<string, mixed> $shared the slide's layout background
+     * @param array<string, mixed> $local  the language's own background
+     *
+     * @return array{0: ?int, 1: ?int, 2: ?int} wide, phone and tablet
+     */
+    private function backgroundIds(array $shared, array $local): array
+    {
+        return [
+            $local['mediaId'] ?? $shared['mediaId'],
+            $local['mobileMediaId'] ?? $shared['mobileMediaId'],
+            $local['tabletMediaId'] ?? $shared['tabletMediaId'],
+        ];
+    }
+
+    /**
+     * One slide's items and background, joined with their words and pictures.
+     *
+     * @param list<array<string, mixed>>       $items
+     * @param array<string, mixed>             $itemTexts  texts keyed by item id
+     * @param array<string, mixed>             $background the slide's layout background
+     * @param array{0: ?int, 1: ?int, 2: ?int} $ids        from backgroundIds()
+     * @param array<int, DocumentInterface>    $documents
+     *
+     * @return array{items: list<array<string, mixed>>, background: array<string, mixed>}
+     */
+    private function resolveSlide(array $items, array $itemTexts, array $background, array $ids, array $documents): array
+    {
+        [$backgroundId, $mobileId, $tabletId] = $ids;
+
+        return [
+            'items' => array_map(
+                function (array $item) use ($itemTexts, $documents): array {
+                    $text = $itemTexts[$item['id']] ?? ['title' => '', 'description' => '', 'alt' => '', 'label' => '', 'url' => null];
+
+                    return [
+                        ...$item,
+                        ...$text,
+                        'media' => $this->mediaData($documents[$item['mediaId']] ?? null, $text['alt']),
+                        // Custom properties rather than classes: a span is a number
+                        // between 1 and 48 chosen at runtime, and Tailwind only
+                        // emits classes it can read in the source.
+                        'spanStyle' => $this->values->spanStyle($item['span']),
+                        // The CSS stack, built from the enum so the template never
+                        // writes a font name it was sent.
+                        'titleFontStack' => ThemeFontEnum::tryFrom((string) $item['titleFont'])?->stack(),
+                        'descriptionFontStack' => ThemeFontEnum::tryFrom((string) $item['descriptionFont'])?->stack(),
+                    ];
+                },
+                $items,
+            ),
+            'background' => [
+                ...$background,
+                'media' => $this->mediaData($documents[$backgroundId] ?? null, ''),
+                // Null when no phone picture is set, and the template then
+                // lets the phone crop the main one, as it always has.
+                'mobileMedia' => $this->mediaData($documents[$mobileId] ?? null, ''),
+                'tabletMedia' => $this->mediaData($documents[$tabletId] ?? null, ''),
+                // Built here rather than in Twig so one place knows how a fill
+                // becomes CSS. Safe to assemble as a string: the normaliser has
+                // already reduced every part to a hex colour or an integer.
+                'fillStyle' => $this->fillStyle($background),
+            ],
+        ];
+    }
+
+    /**
+     * The theme's accent, replaced inside one slide.
+     *
+     * Everything written in the accent reads `--th-accent`, the `×` a title
+     * colours in the editor included, so redefining it on the slide recolours
+     * all of it without the template knowing which parts those are. A hex the
+     * normaliser checked, so safe in a `style` attribute.
+     */
+    private function accentStyle(?string $color): ?string
+    {
+        return null !== $color ? sprintf('--th-accent: %s;', $color) : null;
     }
 
     /**
@@ -219,22 +343,6 @@ final readonly class BannerViewBuilder
         }
 
         return null;
-    }
-
-    /**
-     * @param array<string, mixed> $layout
-     * @param list<?int>           $backgroundIds the pictures actually drawn behind the banner
-     *
-     * @return array<int, DocumentInterface>
-     */
-    private function documents(array $layout, array $backgroundIds): array
-    {
-        $ids = [$layout['logoMediaId'], ...$backgroundIds];
-        foreach ($layout['items'] as $item) {
-            $ids[] = $item['mediaId'];
-        }
-
-        return $this->documentsById($ids);
     }
 
     /**

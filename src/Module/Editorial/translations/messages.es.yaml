@@ -391,6 +391,33 @@ backend:
             fade_out_hint: 'La parte inferior del encabezado se funde con la página en lugar de cortarse en seco.'
             stripes: "Franjas"
             stripes_hint: "Bandas de color inclinadas, dibujadas por el sitio sobre el fondo."
+            slides: "Diapositivas"
+            slides_hint: "La primera es la cabecera de la página. Añada otras: se turnarán en el mismo lugar."
+            slide: "Diapositiva {number}"
+            slide_open: "Diapositiva en edición"
+            add_slide: "Añadir una diapositiva"
+            remove_slide: "Quitar esta diapositiva"
+            move_slide_left: "Colocar antes"
+            move_slide_right: "Colocar después"
+            first_slide_hint: "La diapositiva 1 lleva el título principal de la página y sigue siendo la primera."
+            accent_color: "Color de acento"
+            accent_color_hint: "Sustituye el color del tema en esta diapositiva: el « × » del título y todo lo escrito en el color de acento."
+            background_section: "Fondo"
+            slide_background: "Fondo de la diapositiva {number}"
+            carousel: "Desplazamiento"
+            carousel_autoplay: "Desplazar automáticamente"
+            carousel_autoplay_hint: "Se añade un botón de pausa junto a los puntos: lo que se mueve solo debe poder detenerse."
+            carousel_interval: "Duración de una diapositiva: {seconds} s"
+            carousel_pause_on_hover: "Pausa al pasar el puntero"
+            carousel_pause_on_hover_hint: "El desplazamiento se detiene mientras el puntero está sobre la cabecera."
+            carousel_arrows: "Flechas"
+            carousel_arrows_hint: "A izquierda y derecha, a partir de la tableta. En el teléfono, se desliza con el dedo."
+            carousel_dots: "Puntos"
+            carousel_dots_hint: "Un punto por diapositiva al pie de la cabecera, del color de la que se muestra."
+            carousel_transition: "Transición"
+            transitions:
+                fade: "Fundido"
+                slide: "Deslizamiento"
             stripe_colors: "Una banda por color, en este orden"
             stripe_color: "Banda {number}"
             stripe_add: "Añadir una banda"
@@ -1513,6 +1540,17 @@ frontend:
         next: 'Imagen siguiente'
     editorial:
         reading_time: '%minutes% min de lectura'
+        banner:
+            carousel:
+                role: "carrusel"
+                label: "Presentación en diapositivas"
+                slide_role: "diapositiva"
+                slide: "Diapositiva %index% de %count%"
+                previous: "Diapositiva anterior"
+                next: "Diapositiva siguiente"
+                pause: "Pausar el desplazamiento"
+                play: "Reanudar el desplazamiento"
+                go_to: "Ir a la diapositiva %index% de %count%"
         useful_links:
             label: 'Enlaces útiles'
         share:

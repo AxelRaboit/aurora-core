@@ -11,8 +11,10 @@ use Aurora\Core\Storage\StorageManager;
 use Aurora\Fixtures\Core\AppFixtures;
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
 use Aurora\Module\Configuration\Setting\Service\SettingsService;
+use Aurora\Module\Ged\Document\Dto\ColorAlternateInput;
 use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Ged\Document\Entity\DocumentVersion;
+use Aurora\Module\Ged\Document\Service\DocumentColorAlternateCreator;
 use Aurora\Module\Ged\DocumentCategory\Entity\DocumentCategoryInterface;
 use Aurora\Module\Ged\DocumentFolder\Entity\DocumentFolder;
 use Aurora\Module\Ged\DocumentTag\Entity\DocumentTag;
@@ -45,6 +47,7 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
         private readonly ImageRenditionGenerator $renditions,
         private readonly StorageManager $storageManager,
         private readonly SettingsService $settingsManager,
+        private readonly DocumentColorAlternateCreator $colorAlternates,
         private readonly Filesystem $fs = new Filesystem(),
     ) {}
 
@@ -73,6 +76,8 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
         $manager->flush();
 
         $this->createVersionHistory($manager);
+
+        $this->createColorFamily($manager);
 
         // Favicon + logo point at the generated gradient (media[3]), not at one
         // of the photographs: a logo is a mark, and the demo's photographs are
@@ -602,5 +607,46 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
                 ],
             );
         }
+    }
+
+    /**
+     * Une famille : l'original et deux variantes de couleur.
+     *
+     * Sans elle, une démo fraîche n'a aucune variante, et tout ce que la
+     * médiathèque sait faire d'une famille reste invisible : le bandeau de
+     * l'aperçu, le regroupement de la liste, l'usage compté pour toute la
+     * famille. Les variantes passent par le service du bouton « Variante de
+     * couleur », pas par un fichier dessiné ici : c'est ce qu'un utilisateur
+     * obtient, et aucune image n'est commitée pour ça.
+     *
+     * La bleue est rangée dans un autre dossier, exprès : c'est le cas que
+     * la mise à la corbeille d'un dossier doit rattraper (« Emporter aussi la
+     * variante rangée ailleurs »), et il n'apparaît qu'avec lui.
+     */
+    private function createColorFamily(EntityManagerInterface $em): void
+    {
+        $documentRepository = $em->getRepository(Document::class);
+        $original = $documentRepository->findOneBy(['title' => 'Visuel de campagne - Automne 2025']);
+
+        if (!$original instanceof Document || null === $original->getFilePath()) {
+            return;
+        }
+
+        // La démo se rejoue : une famille déjà là n'est pas refaite.
+        if ([] !== $documentRepository->findBy(['original' => $original])) {
+            return;
+        }
+
+        $elsewhere = $em->getRepository(DocumentFolder::class)->findOneBy(['name' => 'Aurora Tech']);
+
+        foreach ([['#ef4444', 'rouge', false], ['#3b82f6', 'bleu', true]] as [$color, $label, $fileElsewhere]) {
+            $alternate = $this->colorAlternates->create($original, new ColorAlternateInput(color: $color, label: $label));
+
+            if ($fileElsewhere && $alternate instanceof Document && $elsewhere instanceof DocumentFolder) {
+                $alternate->setFolder($elsewhere);
+            }
+        }
+
+        $em->flush();
     }
 }

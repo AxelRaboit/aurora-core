@@ -127,6 +127,25 @@ final readonly class BannerNormalizer
     /** Three bands when nothing is chosen: a green, a red and a yellow. */
     private const array DEFAULT_STRIPE_COLORS = ['#34d399', '#bd4a55', '#cd8f31'];
 
+    /**
+     * How many slides a banner can add after its own: a carousel is a header
+     * that takes turns, and past half a dozen nobody waits to see the last.
+     */
+    private const int MAX_SLIDES = 6;
+
+    public const string TRANSITION_FADE = 'fade';
+
+    public const string TRANSITION_SLIDE = 'slide';
+
+    private const array TRANSITIONS = [self::TRANSITION_FADE, self::TRANSITION_SLIDE];
+
+    /** Seconds a slide stays when the carousel turns by itself. */
+    public const int DEFAULT_INTERVAL = 7;
+
+    private const int MIN_INTERVAL = 3;
+
+    private const int MAX_INTERVAL = 30;
+
     public function __construct(
         private ContentValueNormalizer $values,
         private BlockHtmlSanitizer $sanitizer = new BlockHtmlSanitizer(),
@@ -160,6 +179,15 @@ final readonly class BannerNormalizer
             'background' => $this->background(is_array($data['background'] ?? null) ? $data['background'] : []),
             'stripes' => $this->stripes(is_array($data['stripes'] ?? null) ? $data['stripes'] : []),
             'items' => $this->layoutItems($data),
+            // The colour this banner's words are accented in, in place of the
+            // theme's: the `×` of a title and anything else written in the
+            // accent. Null keeps the theme's, which is what every banner did.
+            'accentColor' => $this->values->color($data['accentColor'] ?? null),
+            // The banner above is the first slide; these are the ones that
+            // take their turn after it. Empty for every banner that is not a
+            // carousel, which is every banner written before it existed.
+            'slides' => $this->slides($data['slides'] ?? null),
+            'carousel' => $this->carousel(is_array($data['carousel'] ?? null) ? $data['carousel'] : []),
         ];
     }
 
@@ -184,11 +212,6 @@ final readonly class BannerNormalizer
         // an empty layout is a legitimate argument - a post with no banner -
         // and reaching for a key that is not there would turn it into a crash.
         $items = is_array($layout['items'] ?? null) ? $layout['items'] : [];
-        $ids = array_values(array_filter(array_map(
-            static fn (mixed $item): ?string => is_array($item) && is_string($item['id'] ?? null) ? $item['id'] : null,
-            $items,
-        )));
-
         $stored = is_array($data['items'] ?? null) ? $data['items'] : [];
 
         // A banner written before the split holds one flat list carrying both
@@ -197,12 +220,55 @@ final readonly class BannerNormalizer
         // rather than only in the migration so a client database restored from
         // an older dump reads correctly instead of losing its copy.
         if ($this->isLegacyShape($stored)) {
-            $stored = $this->textsFromLegacyItems($stored, $ids);
+            $stored = $this->textsFromLegacyItems($stored, $this->itemIds($items));
         }
 
+        // Each further slide carries its own words, keyed by the slide's id
+        // for the same reason items are: reordering the slides must not hand
+        // one slide's copy to another in every other language.
+        $storedSlides = is_array($data['slides'] ?? null) ? $data['slides'] : [];
+        $slides = [];
+
+        foreach (is_array($layout['slides'] ?? null) ? $layout['slides'] : [] as $slide) {
+            if (!is_array($slide)) {
+                continue;
+            }
+
+            if (!is_string($slide['id'] ?? null)) {
+                continue;
+            }
+
+            $entry = is_array($storedSlides[$slide['id']] ?? null) ? $storedSlides[$slide['id']] : [];
+
+            $slides[$slide['id']] = [
+                'items' => $this->itemTexts(
+                    is_array($slide['items'] ?? null) ? $slide['items'] : [],
+                    is_array($entry['items'] ?? null) ? $entry['items'] : [],
+                ),
+                'background' => $this->localBackground(is_array($entry['background'] ?? null) ? $entry['background'] : []),
+            ];
+        }
+
+        return [
+            'items' => $this->itemTexts($items, $stored),
+            'background' => $this->localBackground(is_array($data['background'] ?? null) ? $data['background'] : []),
+            'slides' => $slides,
+        ];
+    }
+
+    /**
+     * The words of a list of items, one entry per item that exists.
+     *
+     * @param array<mixed> $items  layout items, already normalised
+     * @param array<mixed> $stored texts keyed by item id
+     *
+     * @return array<string, BannerItemText>
+     */
+    private function itemTexts(array $items, array $stored): array
+    {
         $texts = [];
 
-        foreach ($ids as $id) {
+        foreach ($this->itemIds($items) as $id) {
             $entry = is_array($stored[$id] ?? null) ? $stored[$id] : [];
 
             $texts[$id] = [
@@ -214,9 +280,85 @@ final readonly class BannerNormalizer
             ];
         }
 
+        return $texts;
+    }
+
+    /**
+     * @param array<mixed> $items
+     *
+     * @return list<string>
+     */
+    private function itemIds(array $items): array
+    {
+        return array_values(array_filter(array_map(
+            static fn (mixed $item): ?string => is_array($item) && is_string($item['id'] ?? null) ? $item['id'] : null,
+            $items,
+        )));
+    }
+
+    /**
+     * The slides after the first, each one a background and its items like
+     * the banner itself, plus the accent its words are drawn in.
+     *
+     * What stays on the banner is what a carousel shares: its width, its
+     * height, the fade at its foot, the bands, the logo. A slide is what
+     * changes from one turn to the next.
+     *
+     * @return list<array{id: string, accentColor: ?string, background: array<string, mixed>, items: list<array<string, mixed>>}>
+     */
+    private function slides(mixed $raw): array
+    {
+        if (!is_array($raw)) {
+            return [];
+        }
+
+        $slides = [];
+        $used = [];
+
+        foreach (array_slice(array_values($raw), 0, self::MAX_SLIDES) as $entry) {
+            if (!is_array($entry)) {
+                continue;
+            }
+
+            $id = $this->values->itemId($entry['id'] ?? null, $used);
+            $used[$id] = true;
+
+            $slides[] = [
+                'id' => $id,
+                'accentColor' => $this->values->color($entry['accentColor'] ?? null),
+                'background' => $this->background(is_array($entry['background'] ?? null) ? $entry['background'] : []),
+                // Only `items` is read: the pre-split slots belong to banners
+                // that predate slides by a year.
+                'items' => $this->layoutItems(['items' => is_array($entry['items'] ?? null) ? $entry['items'] : []]),
+            ];
+        }
+
+        return $slides;
+    }
+
+    /**
+     * How the slides take turns. Read only when there is more than one.
+     *
+     * Everything a visitor sees move is a setting of the page rather than a
+     * choice made in the theme: how long a slide stays, whether it moves on
+     * by itself at all, and which controls are offered to move it by hand.
+     *
+     * @param array<string, mixed> $data
+     *
+     * @return array{autoplay: bool, interval: int, pauseOnHover: bool, arrows: bool, dots: bool, transition: string}
+     */
+    private function carousel(array $data): array
+    {
         return [
-            'items' => $texts,
-            'background' => $this->localBackground(is_array($data['background'] ?? null) ? $data['background'] : []),
+            'autoplay' => (bool) ($data['autoplay'] ?? true),
+            'interval' => max(self::MIN_INTERVAL, min(self::MAX_INTERVAL, (int) ($data['interval'] ?? self::DEFAULT_INTERVAL))),
+            // Reading a slide while it slips away is the complaint every
+            // self-turning carousel earns; stopping under the pointer and
+            // while a control has the focus is the answer.
+            'pauseOnHover' => (bool) ($data['pauseOnHover'] ?? true),
+            'arrows' => (bool) ($data['arrows'] ?? true),
+            'dots' => (bool) ($data['dots'] ?? true),
+            'transition' => $this->values->oneOf($data['transition'] ?? null, self::TRANSITIONS, self::TRANSITION_FADE),
         ];
     }
 
@@ -229,7 +371,7 @@ final readonly class BannerNormalizer
     /** Empty texts - what a translation starts life with. */
     public function emptyTexts(): array
     {
-        return ['items' => [], 'background' => $this->localBackground([])];
+        return ['items' => [], 'background' => $this->localBackground([]), 'slides' => []];
     }
 
     /**

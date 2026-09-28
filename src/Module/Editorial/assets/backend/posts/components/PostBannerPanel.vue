@@ -29,7 +29,7 @@ import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
 import AppChoiceRow from "@/shared/components/form/select/AppChoiceRow.vue";
 import BannerColorField from "./BannerColorField.vue";
 import BannerTitleInput from "./BannerTitleInput.vue";
-import { Plus, Trash2, ChevronUp, ChevronDown, Type, Image, MousePointerClick } from "lucide-vue-next";
+import { Plus, Trash2, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Type, Image, MousePointerClick } from "lucide-vue-next";
 import { usePostBanner } from "../composables/usePostBanner.js";
 import { useServerPreview } from "@/shared/composables/http/backend/useServerPreview.js";
 
@@ -46,6 +46,15 @@ const props = defineProps({
 const { t } = useI18n();
 
 const {
+    activeSlide,
+    slideCount,
+    isCarousel,
+    canAddSlide,
+    selectSlide,
+    addSlide,
+    removeSlide,
+    moveSlide,
+    transitionOptions,
     heightOptions,
     alignOptions,
     fillOptions,
@@ -78,11 +87,21 @@ const {
     computed(() => props.texts),
 );
 
+// One choice per slide, numbered from 1 as the page shows them.
+const slideOptions = computed(() =>
+    Array.from({ length: slideCount.value }, (_, index) => ({
+        value: index,
+        label: t("backend.posts.banner.slide", { number: index + 1 }),
+    })),
+);
+
 // Both halves, because a preview is per language: the same layout with the
 // German copy is a different picture from the same layout with the French.
+// And the open slide only: the preview is HTML dropped in here, no script turns
+// it, and the slide being edited is the one worth seeing.
 const { html: previewHtml, loading: previewLoading } = useServerPreview(
-    () => ({ layout: props.layout, texts: props.texts }),
-    [() => props.layout, () => props.texts],
+    () => ({ layout: props.layout, texts: props.texts, slide: activeSlide.value }),
+    [() => props.layout, () => props.texts, activeSlide],
     props.previewPath,
 );
 </script>
@@ -117,6 +136,60 @@ const { html: previewHtml, loading: previewLoading } = useServerPreview(
                     <div v-html="previewHtml" />
                 </div>
                 <AppLoader :active="previewLoading" />
+            </div>
+
+            <!-- The slides. The first is the banner itself, with the page's
+                 <h1>; any added after it take turns in the same place. What
+                 follows - the items and the background - belongs to the slide
+                 chosen here; the width, the height, the fade, the bands and
+                 the logo are shared by all of them. -->
+            <div class="rounded-lg border border-line p-4 space-y-3">
+                <div class="flex items-center gap-2">
+                    <p class="text-sm font-medium text-primary flex-1">{{ t("backend.posts.banner.slides") }}</p>
+                    <AppButton
+                        variant="ghost"
+                        size="sm"
+                        :disabled="!canAddSlide"
+                        v-on:click="addSlide"
+                    >
+                        <Plus class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("backend.posts.banner.add_slide") }}
+                    </AppButton>
+                </div>
+                <p class="text-sm text-secondary">{{ t("backend.posts.banner.slides_hint") }}</p>
+                <AppChoiceRow
+                    :model-value="activeSlide"
+                    :options="slideOptions"
+                    :label="t('backend.posts.banner.slide_open')"
+                    v-on:update:model-value="selectSlide"
+                />
+                <div v-if="activeSlide > 0" class="flex items-center gap-2">
+                    <AppIconButton
+                        color="default"
+                        :title="t('backend.posts.banner.move_slide_left')"
+                        :disabled="activeSlide <= 1"
+                        v-on:click="moveSlide(activeSlide, -1)"
+                    >
+                        <ChevronLeft class="w-4 h-4" :stroke-width="2" />
+                    </AppIconButton>
+                    <AppIconButton
+                        color="default"
+                        :title="t('backend.posts.banner.move_slide_right')"
+                        :disabled="activeSlide >= slideCount - 1"
+                        v-on:click="moveSlide(activeSlide, 1)"
+                    >
+                        <ChevronRight class="w-4 h-4" :stroke-width="2" />
+                    </AppIconButton>
+                    <span class="flex-1" />
+                    <AppButton variant="ghost" size="sm" v-on:click="removeSlide(activeSlide)">
+                        <Trash2 class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("backend.posts.banner.remove_slide") }}
+                    </AppButton>
+                </div>
+                <p v-else-if="isCarousel" class="text-xs text-muted">{{ t("backend.posts.banner.first_slide_hint") }}</p>
+                <BannerColorField
+                    v-model="fields.accentColor.value"
+                    :label="t('backend.posts.banner.accent_color')"
+                    :hint="t('backend.posts.banner.accent_color_hint')"
+                />
             </div>
 
             <div class="space-y-3">
@@ -339,28 +412,12 @@ const { html: previewHtml, loading: previewLoading } = useServerPreview(
                 </div>
             </div>
 
-            <!-- Appearance last: an author fills the banner before deciding
-                 how tall it is or what sits behind it. -->
+            <!-- The open slide's background: each slide of a carousel has
+                 its own, and a plain banner is its own only slide. -->
             <div class="rounded-lg border border-line p-4 space-y-4">
-                <p class="text-sm font-medium text-primary">{{ t("backend.posts.banner.appearance") }}</p>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <AppSelect
-                        v-model="fields.widthMode.value"
-                        :label="t('backend.posts.banner.width_mode')"
-                        :options="widthModeOptions"
-                    />
-                    <AppSelect
-                        v-model="fields.height.value"
-                        :label="t('backend.posts.banner.height')"
-                        :options="heightOptions"
-                    />
-                    <AppSelect
-                        v-model="fields.verticalAlign.value"
-                        :label="t('backend.posts.banner.vertical_align')"
-                        :options="verticalAlignOptions"
-                    />
-                </div>
+                <p class="text-sm font-medium text-primary">
+                    {{ isCarousel ? t("backend.posts.banner.slide_background", { number: activeSlide + 1 }) : t("backend.posts.banner.background_section") }}
+                </p>
 
                 <div class="space-y-3">
                     <div class="flex items-end gap-3">
@@ -459,6 +516,68 @@ const { html: previewHtml, loading: previewLoading } = useServerPreview(
                         {{ t("backend.posts.banner.overlay", { percent: fields.overlay.value }) }}
                     </p>
                     <AppRange v-model="fields.overlay.value" :min="0" :max="100" :step="5" />
+                </div>
+            </div>
+
+            <!-- How the slides take turns, once there is more than one. -->
+            <div v-if="isCarousel" class="rounded-lg border border-line p-4 space-y-4">
+                <p class="text-sm font-medium text-primary">{{ t("backend.posts.banner.carousel") }}</p>
+                <AppToggle
+                    v-model="fields.carouselAutoplay.value"
+                    :label="t('backend.posts.banner.carousel_autoplay')"
+                    :hint="t('backend.posts.banner.carousel_autoplay_hint')"
+                />
+                <template v-if="fields.carouselAutoplay.value">
+                    <div>
+                        <p class="text-sm text-secondary mb-1">
+                            {{ t("backend.posts.banner.carousel_interval", { seconds: fields.carouselInterval.value }) }}
+                        </p>
+                        <AppRange v-model="fields.carouselInterval.value" :min="3" :max="30" :step="1" />
+                    </div>
+                    <AppToggle
+                        v-model="fields.carouselPauseOnHover.value"
+                        :label="t('backend.posts.banner.carousel_pause_on_hover')"
+                        :hint="t('backend.posts.banner.carousel_pause_on_hover_hint')"
+                    />
+                </template>
+                <AppToggle
+                    v-model="fields.carouselArrows.value"
+                    :label="t('backend.posts.banner.carousel_arrows')"
+                    :hint="t('backend.posts.banner.carousel_arrows_hint')"
+                />
+                <AppToggle
+                    v-model="fields.carouselDots.value"
+                    :label="t('backend.posts.banner.carousel_dots')"
+                    :hint="t('backend.posts.banner.carousel_dots_hint')"
+                />
+                <AppChoiceRow
+                    v-model="fields.carouselTransition.value"
+                    :options="transitionOptions"
+                    :label="t('backend.posts.banner.carousel_transition')"
+                />
+            </div>
+
+            <!-- Appearance last: an author fills the banner before deciding
+                 how tall it is. Shared by every slide of a carousel. -->
+            <div class="rounded-lg border border-line p-4 space-y-4">
+                <p class="text-sm font-medium text-primary">{{ t("backend.posts.banner.appearance") }}</p>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <AppSelect
+                        v-model="fields.widthMode.value"
+                        :label="t('backend.posts.banner.width_mode')"
+                        :options="widthModeOptions"
+                    />
+                    <AppSelect
+                        v-model="fields.height.value"
+                        :label="t('backend.posts.banner.height')"
+                        :options="heightOptions"
+                    />
+                    <AppSelect
+                        v-model="fields.verticalAlign.value"
+                        :label="t('backend.posts.banner.vertical_align')"
+                        :options="verticalAlignOptions"
+                    />
                 </div>
 
                 <!-- Not inside the `hasBackgroundImage` branch above: a

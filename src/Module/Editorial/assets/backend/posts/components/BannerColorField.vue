@@ -21,6 +21,8 @@ import { X } from "lucide-vue-next";
 const props = defineProps({
     modelValue: { type: String, default: null },
     label: { type: String, default: "" },
+    /** A line under the field, for a colour whose reach is not obvious. */
+    hint: { type: String, default: "" },
 });
 
 const emit = defineEmits(["update:modelValue"]);
@@ -42,26 +44,29 @@ const value = computed({
 </script>
 
 <template>
-    <div class="flex items-end gap-2">
-        <!-- An `<input type="color">` cannot hold nothing: handed an empty
+    <div class="space-y-1">
+        <div class="flex items-end gap-2">
+            <!-- An `<input type="color">` cannot hold nothing: handed an empty
              value it shows black, so an unset stop looked like a chosen one and
              a gradient that renders nothing looked like a gradient from red to
              black. Dimming it is what separates "black" from "not set" without
              replacing the native picker. -->
-        <AppColorField
-            v-model="value"
-            :label="label"
-            class="flex-1"
-            :class="modelValue ? '' : 'opacity-50'"
-        />
-        <span class="sr-only">{{ label }} - {{ state }}</span>
-        <AppIconButton
-            v-if="modelValue"
-            color="default"
-            :title="t('backend.posts.banner.clear_color')"
-            v-on:click="emit('update:modelValue', null)"
-        >
-            <X class="w-4 h-4" :stroke-width="2" />
-        </AppIconButton>
+            <AppColorField
+                v-model="value"
+                :label="label"
+                class="flex-1"
+                :class="modelValue ? '' : 'opacity-50'"
+            />
+            <span class="sr-only">{{ label }} - {{ state }}</span>
+            <AppIconButton
+                v-if="modelValue"
+                color="default"
+                :title="t('backend.posts.banner.clear_color')"
+                v-on:click="emit('update:modelValue', null)"
+            >
+                <X class="w-4 h-4" :stroke-width="2" />
+            </AppIconButton>
+        </div>
+        <p v-if="hint" class="text-xs text-muted">{{ hint }}</p>
     </div>
 </template>
