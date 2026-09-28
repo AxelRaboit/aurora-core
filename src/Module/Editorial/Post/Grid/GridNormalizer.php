@@ -6,6 +6,7 @@ namespace Aurora\Module\Editorial\Post\Grid;
 
 use Aurora\Core\Content\ContentValueNormalizer;
 use Aurora\Module\Editorial\Instagram\Setting\InstagramSettings;
+use Aurora\Module\Editorial\Post\Banner\BannerNormalizer;
 
 /**
  * Normalises the content grid, which is stored in two halves like the banner.
@@ -355,6 +356,12 @@ final readonly class GridNormalizer
      * and drawn only while the newsletter is switched on.
      */
     public const string ZONE_NEWSLETTER_PRIVACY = 'newsletterPrivacy';
+
+    /**
+     * A page header set in the body: the same picture, words, bands and
+     * carousel as the banner above the page, at the width of its zone.
+     */
+    public const string ZONE_BANNER = 'banner';
 
     /**
      * Another publication's grid, drawn here.
@@ -769,6 +776,7 @@ final readonly class GridNormalizer
         self::ZONE_GOOGLE_REVIEWS,
         self::ZONE_NEWSLETTER_SIGNUP,
         self::ZONE_NEWSLETTER_PRIVACY,
+        self::ZONE_BANNER,
     ];
 
     /**
@@ -781,9 +789,16 @@ final readonly class GridNormalizer
      */
     public const array ZONE_TYPES = [...self::LEAF_ZONE_TYPES, self::ZONE_STACK];
 
+    private BannerNormalizer $banners;
+
     public function __construct(
         private ContentValueNormalizer $values,
-    ) {}
+        ?BannerNormalizer $banners = null,
+    ) {
+        // Optional so the tests that build this by hand keep working; the
+        // container passes the shared one.
+        $this->banners = $banners ?? new BannerNormalizer($values);
+    }
 
     /**
      * The arrangement, shared by every language.
@@ -864,6 +879,12 @@ final readonly class GridNormalizer
                 // declares - so an entry removed from the arrangement takes
                 // its words with it instead of leaving them behind unseen.
                 'items' => $this->itemTexts($entry['items'] ?? null, $zone),
+                // A header zone's words, shaped like a banner's own: its
+                // items and slides keyed by id, and the pictures this language
+                // puts behind them. Null on every other type.
+                'banner' => self::ZONE_BANNER === ($zone['type'] ?? null)
+                    ? $this->banners->normalizeTexts($entry['banner'] ?? null, is_array($zone['banner'] ?? null) ? $zone['banner'] : [])
+                    : null,
             ];
         }
 
@@ -1132,6 +1153,13 @@ final readonly class GridNormalizer
                 // social post's counters. One object on every zone, for the
                 // same reason as the keys above; see GridZoneOptions.
                 'options' => GridZoneOptions::normalize($entry['options'] ?? null),
+                // A header zone's design: the banner's own layout, slides and
+                // carousel included, normalised by the banner's own rules. On
+                // every zone like the keys above, null unless it is one; and
+                // always switched on, since the zone being there is the switch.
+                'banner' => self::ZONE_BANNER === $type
+                    ? [...$this->banners->normalizeLayout($entry['banner'] ?? null), 'enabled' => true]
+                    : null,
                 // Present on every zone, empty unless it is a stack - same
                 // reasoning as the keys above, so nothing has to guard the read.
                 'children' => self::ZONE_STACK === $type

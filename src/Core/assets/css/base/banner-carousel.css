@@ -119,6 +119,17 @@
     }
 }
 
+/* A banner set in the body is as wide as its zone, often a half or a third
+   of the page: whatever the window, its words reach the sides, so its arrows
+   always sit in the bottom corners. */
+[data-banner-embedded] .aurora-banner-arrow {
+    top: auto;
+    bottom: 0.75rem;
+    width: 2.25rem;
+    height: 2.25rem;
+    translate: none;
+}
+
 .aurora-banner-dots {
     position: absolute;
     bottom: 1.25rem;

@@ -180,7 +180,9 @@
                                    has to replace its heading too. #}
                                 {# `is not null` first: the carousel's further slides carry
                                    none, and `0 == null` is true in Twig as in PHP. #}
-                                {% set titleTag = slide.headingIndex is not null and loop.index0 == slide.headingIndex ? 'h1' : 'p' %}
+                                {# A banner set in the body names its sections with `h2`: the
+                                   page keeps one `h1`, the header's. #}
+                                {% set titleTag = slide.headingIndex is not null and loop.index0 == slide.headingIndex ? (banner.headingTag|default('h1')) : 'p' %}
                                 <{{ titleTag }}
                                     class="{{ titleSizes[item.titleSize] }} font-bold leading-tight{{ overPhoto }}"
                                     {% if item.titleColor or item.titleFontStack|default(null) %}style="{% if item.titleColor %}color: {{ item.titleColor }};{% endif %}{% if item.titleFontStack|default(null) %} font-family: {{ item.titleFontStack }};{% endif %}"{% endif %}

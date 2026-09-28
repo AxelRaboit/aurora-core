@@ -9,6 +9,7 @@ use Aurora\Core\Content\EmbedResolver;
 use Aurora\Core\Content\VideoEmbedResolver;
 use Aurora\Module\Configuration\Theme\Service\SurfaceContrast;
 use Aurora\Module\Editorial\GitHub\Service\GitHubActivityView;
+use Aurora\Module\Editorial\Post\Banner\BannerViewBuilder;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Entity\PostTranslationInterface;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
@@ -53,6 +54,7 @@ final readonly class GridViewBuilder
         private ZoneListingViews $listingViews,
         private ZoneMediaViews $mediaViews,
         private ZoneSiteViews $siteViews,
+        private BannerViewBuilder $bannerViews,
     ) {}
 
     /**
@@ -85,6 +87,43 @@ final readonly class GridViewBuilder
     public function buildForEditor(array $layout, array $content, string $locale, ?int $currentPostId = null): array
     {
         return $this->resolve($layout, $content, $locale, $currentPostId, forEditor: true);
+    }
+
+    /**
+     * One language's grid content as the editor reads it.
+     *
+     * The stored shape, untouched, except in header zones: their words carry
+     * pictures of this language's own, and the pickers want those with a
+     * preview rather than as bare ids - as the page's own banner gets them.
+     *
+     * @param array<string, mixed> $rawLayout  the post's raw column value
+     * @param array<string, mixed> $rawContent the translation's raw column value
+     *
+     * @return array<string, mixed>
+     */
+    public function contentForEditor(array $rawLayout, array $rawContent): array
+    {
+        $banners = array_filter(
+            GridNormalizer::flatten($this->gridNormalizer->normalizeLayout($rawLayout)['zones']),
+            static fn (array $zone): bool => GridNormalizer::ZONE_BANNER === $zone['type'],
+        );
+
+        if ([] === $banners || !is_array($rawContent['zones'] ?? null)) {
+            return $rawContent;
+        }
+
+        foreach ($banners as $zone) {
+            $held = $rawContent['zones'][$zone['id']] ?? null;
+
+            if (is_array($held)) {
+                $rawContent['zones'][$zone['id']]['banner'] = $this->bannerViews->textsForEditor(
+                    $zone['banner'] ?? [],
+                    is_array($held['banner'] ?? null) ? $held['banner'] : [],
+                );
+            }
+        }
+
+        return $rawContent;
     }
 
     /**
@@ -322,6 +361,14 @@ final readonly class GridViewBuilder
                 'widget' => $this->widgetViews->build($zone, $held, $locale, fn (?int $id): ?array => null === $id ? null : $this->mediaViews->mediaData($documents[$id] ?? null, $held['alt']), $currentPostId),
                 'newsletterPrivacy' => GridNormalizer::ZONE_NEWSLETTER_PRIVACY === $zone['type']
                     ? $this->integrationViews->newsletterPrivacy($held)
+                    : null,
+                // A header in the body. The editor gets the design with its
+                // pictures resolved, the same shape the page's own banner
+                // panel works on; the page gets it ready to draw, or nothing.
+                'banner' => GridNormalizer::ZONE_BANNER === $zone['type']
+                    ? ($forEditor
+                        ? $this->bannerViews->buildForEditor($zone['banner'] ?? [], [])
+                        : $this->bannerViews->buildEmbedded($zone['banner'] ?? [], $held['banner'] ?? []))
                     : null,
                 'newsletterSignup' => GridNormalizer::ZONE_NEWSLETTER_SIGNUP === $zone['type']
                     ? $this->integrationViews->newsletterSignup($held, $locale)

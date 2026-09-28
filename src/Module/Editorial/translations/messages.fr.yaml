@@ -648,6 +648,7 @@ backend:
         availability: Disponibilité
         openingHours: Horaires
         countdown: Compte à rebours
+        banner: Entête
         contactCard: Carte de visite
         socialPost: Publication façon réseau
         qrCode: QR code

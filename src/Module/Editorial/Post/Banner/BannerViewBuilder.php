@@ -67,6 +67,39 @@ final readonly class BannerViewBuilder
     }
 
     /**
+     * A banner set in the body of a page, as a grid zone.
+     *
+     * The same banner, with one difference in what it says about the page:
+     * it is never the page's title. The first title of each slide becomes an
+     * `<h2>` - a section's heading - where the header above the page promotes
+     * one to the `<h1>`; a page keeps a single `<h1>` however many banners
+     * its body holds.
+     *
+     * @param array<string, mixed> $layout the zone's banner layout
+     * @param array<string, mixed> $texts  the zone's banner words, one language
+     *
+     * @return array<string, mixed>|null null when there is nothing to draw
+     */
+    public function buildEmbedded(array $layout, array $texts): ?array
+    {
+        $banner = $this->build([...$layout, 'enabled' => true], $texts);
+
+        if (null === $banner) {
+            return null;
+        }
+
+        return [
+            ...$banner,
+            'embedded' => true,
+            'headingTag' => 'h2',
+            'slides' => array_map(
+                fn (array $slide): array => [...$slide, 'headingIndex' => $this->headingIndex($slide['items'])],
+                $banner['slides'],
+            ),
+        ];
+    }
+
+    /**
      * The editor needs the same resolved media, but unconditionally: a
      * disabled banner still has to show its picture in the picker, and an
      * empty one still has to render its form.
