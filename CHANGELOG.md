@@ -5,6 +5,18 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.286] - 2026-09-28
+
+### Corrigé
+
+#### Les flèches du carrousel ne passent plus sur le titre
+Sur tablette et sur les écrans de moins de 1400 px, les flèches, posées à
+mi-hauteur sur les bords, recouvraient le début du titre : le texte de
+l'en-tête commence presque au bord de la fenêtre tant que la colonne du site
+n'a pas atteint sa largeur maximale. En dessous de 1400 px, elles descendent
+dans les coins du bas, sur la ligne des points ; au-delà, elles restent sur
+les côtés.
+
 ## [0.9.285] - 2026-09-28
 
 ### Ajouté
