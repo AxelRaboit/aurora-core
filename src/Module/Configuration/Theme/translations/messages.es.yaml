@@ -67,9 +67,9 @@ backend:
         header_content: Contenido
         header_mode_default: 'Nombre del sitio'
         header_mode_text: 'Texto personalizado'
-        header_mode_image: 'Imagen de medios'
+        header_mode_image: 'Logotipo y nombre'
         header_custom_text: 'Texto personalizado'
-        header_logo_media_id: 'ID del medio'
+        header_logo: 'Logotipo'
         footer_text: 'Texto del pie de página'
         content_width: 'Ancho del contenido'
         content_width_narrow: 'Estrecho (columna de lectura)'
@@ -86,7 +86,7 @@ backend:
             playfair-display: 'Con serifa contrastada. El tono editorial y de alta gama, para la fotografía o el lujo.'
             space-grotesk: 'Grotesca de trazo marcado. Títulos que llaman la atención, para un tono moderno.'
         slug_label: Slug
-        header_media_hint: 'Encuentre el ID en Medios → abra un medio → campo ID.'
+        header_media_hint: 'Se muestra a la izquierda del nombre del sitio en la barra superior. Se recomienda una imagen cuadrada.'
         header_text_placeholder: 'Mi sitio'
         config_hint: 'Variables disponibles: --th-bg, --th-surface, --th-surface-2, --th-primary, --th-secondary, --th-muted, --th-accent, --th-accent-hover'
         config_placeholder: |-

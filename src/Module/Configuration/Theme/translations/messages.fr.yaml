@@ -67,9 +67,9 @@ backend:
     header_content: Contenu
     header_mode_default: Nom du site
     header_mode_text: Texte custom
-    header_mode_image: Image média
+    header_mode_image: "Logo et nom"
     header_custom_text: Texte personnalisé
-    header_logo_media_id: ID du média
+    header_logo: "Logo"
     footer_text: Texte du pied de page
     content_width: Largeur du contenu
     content_width_narrow: Étroite (colonne de lecture)
@@ -86,7 +86,7 @@ backend:
       playfair-display: "À empattements contrastés. Le ton éditorial et haut de gamme, pour la photographie ou le luxe."
       space-grotesk: "Grotesque au dessin marqué. Des titres qui se remarquent, pour un ton moderne."
     slug_label: Slug
-    header_media_hint: Trouvez l'ID dans Médias → ouvrez un média → champ ID.
+    header_media_hint: "Affiché à gauche du nom du site dans la barre du haut. Image carrée conseillée."
     header_text_placeholder: Mon site
     config_hint: 'Variables disponibles : --th-bg, --th-surface, --th-surface-2, --th-primary, --th-secondary, --th-muted, --th-accent, --th-accent-hover'
     config_placeholder: "{\n  \"--th-accent\": \"#6366f1\"\n}"

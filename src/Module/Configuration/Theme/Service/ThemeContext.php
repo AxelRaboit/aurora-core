@@ -62,7 +62,18 @@ final class ThemeContext
 
     public function headerLogoUrl(): ?string
     {
-        $rawId = $this->activeTheme()?->getConfig()['header_logo_media_id'] ?? '';
+        $theme = $this->activeTheme();
+
+        return $theme instanceof ThemeInterface ? $this->headerLogoUrlFor($theme) : null;
+    }
+
+    /**
+     * The address of a theme's header logo, active or not: the themes screen
+     * shows the picked picture on each theme's form, not only the live one's.
+     */
+    public function headerLogoUrlFor(ThemeInterface $theme): ?string
+    {
+        $rawId = $theme->getConfig()['header_logo_media_id'] ?? '';
         if (!is_string($rawId) || '' === $rawId) {
             return null;
         }

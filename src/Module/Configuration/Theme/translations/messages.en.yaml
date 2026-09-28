@@ -67,9 +67,9 @@ backend:
     header_content: Content
     header_mode_default: Site name
     header_mode_text: Custom text
-    header_mode_image: Media image
+    header_mode_image: "Logo and name"
     header_custom_text: Custom text
-    header_logo_media_id: Media ID
+    header_logo: "Logo"
     footer_text: Footer text
     content_width: Content width
     content_width_narrow: Narrow (reading column)
@@ -86,7 +86,7 @@ backend:
       playfair-display: "High-contrast serif. An editorial, upscale tone, for photography or luxury."
       space-grotesk: "Grotesque with character. Headings that stand out, for a modern tone."
     slug_label: Slug
-    header_media_hint: Find the ID in Media → open a media → ID field.
+    header_media_hint: "Shown left of the site name in the top bar. A square image works best."
     header_text_placeholder: My site
     config_hint: 'Available variables: --th-bg, --th-surface, --th-surface-2, --th-primary, --th-secondary, --th-muted, --th-accent, --th-accent-hover'
     config_placeholder: "{\n  \"--th-accent\": \"#6366f1\"\n}"
