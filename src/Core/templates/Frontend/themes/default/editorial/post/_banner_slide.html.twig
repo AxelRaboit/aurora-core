@@ -1,0 +1,246 @@
+{# One slide of a banner: its picture, the bands and the fade drawn over it,
+   and its words. Included once by `_banner` for a plain banner, with the
+   header itself as the box, and once per slide for a carousel, where each
+   slide is its own box stacked in the same place.
+
+   `slide` carries what changes from one slide to the next (`items`,
+   `background`, `headingIndex`); `banner` what they share (width, alignment,
+   bands, fade). For a plain banner both are the banner.
+
+   The bands and the fade are drawn here rather than once on the header,
+   although they are the banner's: a carousel slide is its own stacking
+   context, so anything the header drew at `-z-10` would sit behind every
+   slide's picture and never show. #}
+
+{% set alignments = {
+    start: 'text-left items-start',
+    center: 'text-center items-center',
+    end: 'text-right items-end',
+} %}
+
+{% set verticals = {
+    start: 'justify-start',
+    center: 'justify-center',
+    end: 'justify-end',
+} %}
+
+{# Three sizes per title: the base one up to 767px, then `md` from 768px and
+   `lg` from 1024px, each a notch below what a full-width column could take.
+
+   The base size holds from 640 to 767px on purpose, although the banner
+   already lays out in two columns there (`aurora-grid-banner`): its text
+   column is at its narrowest then, and at the `md` size a long word such as
+   « personnelles » ran into the picture beside it.
+
+   The base step itself is sized for the narrowest phone. Measured on a live
+   page, a three-segment title's widest word takes 238px at that size, which
+   fits both the 288px a full-width banner offers at 320px and the 256px a
+   `contained` one leaves. Breaking the words would be the other fix and it is
+   worse: a title split mid-word reads as damage, where a smaller one just
+   reads. #}
+{% set titleSizes = {
+    sm: 'text-lg md:text-xl lg:text-2xl',
+    md: 'text-2xl md:text-3xl lg:text-4xl',
+    lg: 'text-3xl md:text-4xl lg:text-5xl',
+    xl: 'text-4xl md:text-5xl lg:text-6xl',
+} %}
+
+{# The description's four steps. `md` is the size every banner drew before
+   the choice existed: 16px on a phone, 18px from `sm`. #}
+{% set descriptionSizes = {
+    sm: 'text-sm sm:text-base',
+    md: 'text-base sm:text-lg',
+    lg: 'text-lg sm:text-xl',
+    xl: 'text-xl sm:text-2xl',
+} %}
+
+{% set contentBox = {
+    contained: 'p-8 sm:p-12',
+    full_aligned: 'w-full max-w-7xl mx-auto px-4 py-8 sm:py-12',
+} %}
+
+{# Text over a photograph is legible or it is not, and the darkening slider
+   is a blunt instrument: raising it enough for the one bright patch the text
+   crosses flattens the whole picture. A shadow costs the image nothing and
+   works wherever the text lands, so it is applied whenever there is a
+   photograph behind it - and only then, since over a flat colour it would
+   just look smudged. #}
+{% set overPhoto = slide.background.media ? ' [text-shadow:0_2px_14px_rgb(0_0_0/0.55)]' : '' %}
+
+    {% if slide.background.media %}
+        {# A wide header keeps only its middle on a phone, so a picture
+           composed across the width - words set in it, a subject to one side -
+           can bring a version of its own for small screens. Below `sm`, as the
+           rest of the theme counts a phone. The `<img>` stays the fallback and
+           carries the classes: a `<source>` swaps the file, never the box. #}
+        {% set mobile = slide.background.mobileMedia|default(null) %}
+        {# The same between `sm` and `lg`: the header grows there to hold its
+           title, so a wide picture loses its sides. #}
+        {% set tablet = slide.background.tabletMedia|default(null) %}
+        <picture>
+            {% if mobile %}
+                <source media="(max-width: 639px)" srcset="{{ mobile.srcset ?? mobile.url }}" sizes="100vw">
+            {% endif %}
+            {% if tablet %}
+                <source media="(min-width: 640px) and (max-width: 1023px)" srcset="{{ tablet.srcset ?? tablet.url }}" sizes="100vw">
+            {% endif %}
+            {# Each picture keeps its own focal point: the phone one is framed
+               for a narrow box and would be thrown off by the wide one's. #}
+            <img
+                src="{{ slide.background.media.url }}"
+                {# A high-density screen gets the extra-large rendition when the
+                   source had the pixels; the banner is as wide as the window. #}
+                {% if slide.background.media.srcset %}srcset="{{ slide.background.media.srcset }}" sizes="100vw"{% endif %}
+                alt=""
+                aria-hidden="true"
+                {# Every focal point through a class, the wide one included: an
+                   inline `object-position` outranked the phone and tablet
+                   classes, so their pictures were always framed on the centre. #}
+                class="absolute inset-0 -z-10 h-full w-full object-cover [object-position:var(--banner-focal)]{{ mobile ? ' max-sm:[object-position:var(--banner-mobile-focal)]' : '' }}{{ tablet ? ' sm:max-lg:[object-position:var(--banner-tablet-focal)]' : '' }}"
+                style="--banner-focal: {{ slide.background.media.focalPosition }};{% if mobile %} --banner-mobile-focal: {{ mobile.focalPosition }};{% endif %}{% if tablet %} --banner-tablet-focal: {{ tablet.focalPosition }};{% endif %}"
+            >
+        </picture>
+        {% if slide.background.overlay > 0 %}
+            {# Darkens the picture so item text stays readable over it. #}
+            <div class="absolute inset-0 -z-10 bg-black" style="opacity: {{ slide.background.overlay / 100 }};"></div>
+        {% endif %}
+        {% if slide.background.media.credit %}
+            {# A background is still a display: the credit sits in the corner
+               rather than under it, because there is no "under" here. #}
+            <div class="absolute bottom-1 right-2 z-10 opacity-80">
+                {{ include('Frontend/themes/default/editorial/post/_media_credit.html.twig', {credit: slide.background.media.credit}, false) }}
+            </div>
+        {% endif %}
+    {% endif %}
+
+    {% if banner.stripes.enabled|default(false) %}
+        {# Slanted colour bands, over the picture and under the words: `-z-10`
+           like the picture, and later in the document. The style is custom
+           properties built from clamped integers, and each colour a hex the
+           normaliser checked, so `raw` is not a hole. #}
+        <div
+            class="aurora-banner-stripes -z-10"
+            data-side="{{ banner.stripes.side }}"
+            {% if banner.stripes.hideOnPhone %}data-hide-on-phone{% endif %}
+            style="{{ banner.stripes.style|raw }}"
+            aria-hidden="true"
+        >
+            {% for color in banner.stripes.colors %}
+                <span style="background-color: {{ color }};"></span>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% if banner.fadeOut|default(false) %}
+        {# The foot of the banner dissolving into the page rather than ending
+           on an edge. Drawn after the picture and its darkening so it sits
+           over both, and still behind the words - `-z-10` like them, and later
+           in the document, which is what decides between equals.
+
+           `to-bg` is the page's own background token, so the fade lands on
+           whatever colour the theme is wearing rather than on an assumed
+           black. On a banner with no picture it is just as useful: a coloured
+           band stops being a block and becomes the top of the page. #}
+        <div
+            class="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-24 bg-gradient-to-b from-transparent to-bg sm:h-32"
+            aria-hidden="true"
+        ></div>
+    {% endif %}
+
+    {# The box and the grid are two elements, not one, and that is what makes
+       the alignment work.
+
+       `.aurora-grid` spaces its items with their own `padding-inline` - the
+       gutter - so the first item's content sits a gutter inside the grid box.
+       Against a page column that has no such gutter, that is a permanent
+       sixteen-pixel offset: `full_aligned` promised the page's own left edge
+       and missed it by exactly one gutter, every time.
+
+       `.aurora-grid-flush` pulls those two outer edges back, which is the
+       whole reason it exists - but it cannot share an element with `mx-auto`,
+       because a negative `margin-inline` cancels the centring. So the box
+       (`max-w-7xl mx-auto px-4`, or the full-bleed padding) goes on the
+       wrapper, and the grid goes inside it. The negative margin then works
+       against the wrapper's padding and leaves the centring alone.
+
+       This is what `_grid_zone`'s caller already does inside <main>, and why
+       the content grid lines up with the article while the banner did not. #}
+    <div class="flex flex-1 flex-col {{ contentBox[banner.width] }}">
+        {# Row gap only. The column axis belongs to `.aurora-grid`, which spaces
+           items with padding: a column-gap here would be 47 gutters across the
+           48 tracks and push the last item out of the banner. #}
+        <div class="aurora-grid aurora-grid-flush aurora-grid-banner flex-1 gap-y-8">
+            {% for item in slide.items %}
+                <div style="{{ item.spanStyle|raw }}">
+                    {% if item.type == 'text' %}
+                        <div class="flex h-full flex-col gap-3 {{ verticals[banner.verticalAlign] }} {{ alignments[item.align] }}">
+                            {% if item.title %}
+                                {# The first title carries the page's <h1>; the rest
+                                   are paragraphs. A banner that replaces the header
+                                   has to replace its heading too. #}
+                                {# `is not null` first: the carousel's further slides carry
+                                   none, and `0 == null` is true in Twig as in PHP. #}
+                                {% set titleTag = slide.headingIndex is not null and loop.index0 == slide.headingIndex ? 'h1' : 'p' %}
+                                <{{ titleTag }}
+                                    class="{{ titleSizes[item.titleSize] }} font-bold leading-tight{{ overPhoto }}"
+                                    {% if item.titleColor or item.titleFontStack|default(null) %}style="{% if item.titleColor %}color: {{ item.titleColor }};{% endif %}{% if item.titleFontStack|default(null) %} font-family: {{ item.titleFontStack }};{% endif %}"{% endif %}
+                                {# Sanitised on the way in by BannerNormalizer: only
+                                   the colour spans of the editor survive, hence raw. #}
+                                >{{ item.title|raw }}</{{ titleTag }}>
+                            {% endif %}
+                            {% if item.description %}
+                                <p class="{{ descriptionSizes[item.descriptionSize|default('md')] }} max-w-prose{{ overPhoto }}"
+                                   {% if item.descriptionColor or item.descriptionFontStack|default(null) %}style="{% if item.descriptionColor %}color: {{ item.descriptionColor }};{% endif %}{% if item.descriptionFontStack|default(null) %} font-family: {{ item.descriptionFontStack }};{% endif %}"{% endif %}
+                                >{{ item.description }}</p>
+                            {% endif %}
+                            {# A call to action belongs to the sentence that
+                               justifies it. As its own item it lands on the
+                               row below, which in a banner with a tall picture
+                               beside it is half a portrait further down - far
+                               from the words it answers.
+
+                               Both fields already travel with every item and
+                               were simply not drawn here, so a text carrying a
+                               label showed nothing. #}
+                            {% if item.label and item.url %}
+                                <a
+                                    href="{{ item.url }}"
+                                    class="mt-2 inline-flex w-fit items-center justify-center rounded-lg px-6 py-3 font-medium transition-opacity hover:opacity-90 no-underline"
+                                    style="
+                                        background-color: {{ item.buttonColor ?? '#ffffff' }};
+                                        color: {{ item.buttonTextColor ?? '#0f172a' }};
+                                    "
+                                >{{ item.label }}</a>
+                            {% endif %}
+                        </div>
+                    {% elseif item.type == 'button' and item.label and item.url %}
+                        {# Both the label and a link that survived the whitelist are
+                           required: a button with neither is a dead control, and
+                           one with no destination is worse than absent. #}
+                        <div class="flex h-full flex-col gap-3 {{ verticals[banner.verticalAlign] }} {{ alignments[item.align] }}">
+                            <a
+                                href="{{ item.url }}"
+                                class="inline-flex items-center justify-center rounded-lg px-6 py-3 font-medium transition-opacity hover:opacity-90 no-underline"
+                                style="
+                                    background-color: {{ item.buttonColor ?? '#ffffff' }};
+                                    color: {{ item.buttonTextColor ?? '#0f172a' }};
+                                "
+                            >{{ item.label }}</a>
+                        </div>
+                    {% elseif item.type == 'image' and item.media %}
+                        <div class="flex h-full flex-col items-center justify-center">
+                            <img
+                                src="{{ item.media.url }}"
+                                alt="{{ item.media.alt }}"
+                                class="max-h-full w-full rounded-lg object-cover"
+                                style="object-position: {{ item.media.focalPosition }};"
+                            >
+                            {% if item.media.credit %}
+                                {{ include('Frontend/themes/default/editorial/post/_media_credit.html.twig', {credit: item.media.credit}, false) }}
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>

@@ -19,6 +19,7 @@ import "./shared/utils/scrollReveal.js";
 import "./shared/utils/countUp.js";
 import "./shared/utils/tabs.js";
 import "./shared/utils/carousel.js";
+import "./shared/utils/bannerCarousel.js";
 import "./shared/utils/terminal.js";
 import "./shared/utils/countdown.js";
 import "./shared/utils/parallax.js";

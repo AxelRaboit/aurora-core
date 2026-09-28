@@ -62,7 +62,10 @@ final class BannerPreviewController extends AbstractController
         // buildForEditor rather than build: the panel asks for a preview while
         // the banner is still switched off or half-composed, and answering
         // "nothing" there would look like a bug rather than a state.
-        $banner = $this->bannerViewBuilder->buildForEditor($layout, $texts);
+        //
+        // `slide` is the one the panel has open: 0 is the banner's own, 1 and
+        // up the carousel's further slides.
+        $banner = $this->bannerViewBuilder->buildForEditor($layout, $texts, max(0, (int) ($payload['slide'] ?? 0)));
 
         return $this->json([
             'success' => true,

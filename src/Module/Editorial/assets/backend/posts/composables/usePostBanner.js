@@ -1,6 +1,10 @@
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { emptyBannerStripes } from "./usePostEditor.js";
+import {
+    emptyBannerCarousel,
+    emptyBannerLayout,
+    emptyBannerStripes,
+} from "./usePostEditor.js";
 
 /**
  * Drives the banner panel of the post editor.
@@ -23,6 +27,8 @@ import { emptyBannerStripes } from "./usePostEditor.js";
  */
 const COLUMNS = 48;
 const MAX_ITEMS = 6;
+// Mirrors BannerNormalizer::MAX_SLIDES: slides after the banner's own.
+const MAX_EXTRA_SLIDES = 6;
 
 // Widths offered in the picker. All whole numbers on a 48-column grid, which
 // is why 48 was chosen: it is 4 × 12 and 2 × 24.
@@ -109,12 +115,145 @@ function newItemText() {
     return { title: "", description: "", alt: "", label: "", url: "" };
 }
 
+function emptyLocalBackground() {
+    return {
+        mediaId: null,
+        mobileMediaId: null,
+        tabletMediaId: null,
+        media: null,
+        mobileMedia: null,
+        tabletMedia: null,
+    };
+}
+
+/**
+ * A further slide for a carousel, laid out like the one it follows.
+ *
+ * The items are the first slide's, with new ids and no picture: slides that
+ * take turns in the same place read as a set when their words sit in the
+ * same spot at the same size, and starting from that saves rebuilding it
+ * by hand. The words themselves start empty - they are what changes.
+ */
+function newSlide(model) {
+    return {
+        id: newItemId(),
+        accentColor: null,
+        background: { ...emptyBannerLayout().background },
+        items: (model?.items ?? []).map((item) => ({
+            ...item,
+            id: newItemId(),
+            span: { ...item.span },
+            mediaId: null,
+            media: null,
+        })),
+    };
+}
+
 export function usePostBanner(layout, texts) {
     const { t } = useI18n();
 
     // Everything below reads the design here. `banner` is kept as the name so
     // the shape stays recognisable against BannerNormalizer's layout half.
     const banner = layout;
+
+    // The slide the panel has open: 0 is the banner's own, which is also the
+    // first slide of a carousel; 1 and up are `banner.slides[n - 1]`. Items
+    // and background are edited on the open slide, everything else - width,
+    // height, fade, bands, logo - on the banner, since the slides share it.
+    const activeSlide = ref(0);
+
+    const extraSlides = () => {
+        banner.value.slides ??= [];
+
+        return banner.value.slides;
+    };
+
+    // The design of a slide, by number. Falls back to the banner itself when
+    // the number points past the end - a slide just removed in another tab.
+    const layoutOf = (slide) =>
+        slide > 0 ? (extraSlides()[slide - 1] ?? banner.value) : banner.value;
+
+    // The words of a slide in the open language, created on demand like an
+    // item's text: a translation saved before the slide existed has none.
+    const textsOf = (slide) => {
+        const target = layoutOf(slide);
+        if (target === banner.value) {
+            return texts.value;
+        }
+
+        texts.value.slides ??= {};
+        texts.value.slides[target.id] ??= {
+            items: {},
+            background: emptyLocalBackground(),
+        };
+
+        return texts.value.slides[target.id];
+    };
+
+    const slideLayout = () => layoutOf(activeSlide.value);
+    const slideTexts = () => textsOf(activeSlide.value);
+
+    const slideCount = computed(() => 1 + (banner.value.slides?.length ?? 0));
+    const isCarousel = computed(() => slideCount.value > 1);
+    const canAddSlide = computed(
+        () => (banner.value.slides?.length ?? 0) < MAX_EXTRA_SLIDES,
+    );
+
+    function selectSlide(slide) {
+        activeSlide.value = Math.max(0, Math.min(slideCount.value - 1, slide));
+    }
+
+    function addSlide() {
+        if (!canAddSlide.value) {
+            return;
+        }
+
+        extraSlides().push(newSlide(banner.value));
+        activeSlide.value = slideCount.value - 1;
+    }
+
+    /** Only a further slide: the first is the banner itself. */
+    function removeSlide(slide) {
+        if (slide < 1) {
+            return;
+        }
+
+        const [removed] = extraSlides().splice(slide - 1, 1);
+        if (removed && texts.value.slides) {
+            delete texts.value.slides[removed.id];
+        }
+
+        activeSlide.value = Math.min(activeSlide.value, slideCount.value - 1);
+    }
+
+    /**
+     * Among the further slides only. The first one is the banner's own,
+     * with the page's <h1>, and stays first.
+     */
+    function moveSlide(slide, offset) {
+        const list = extraSlides();
+        const from = slide - 1;
+        const to = from + offset;
+        if (from < 0 || to < 0 || to >= list.length) {
+            return;
+        }
+
+        [list[from], list[to]] = [list[to], list[from]];
+        activeSlide.value = to + 1;
+    }
+
+    const carouselSettings = () => {
+        banner.value.carousel ??= emptyBannerCarousel();
+
+        return banner.value.carousel;
+    };
+    const carouselField = (key) =>
+        writable(
+            () => carouselSettings()[key],
+            (value) => {
+                carouselSettings()[key] = value;
+            },
+        );
 
     const options = (values, prefix) =>
         computed(() =>
@@ -146,6 +285,8 @@ export function usePostBanner(layout, texts) {
         ["start", "center", "end"],
         "stripe_sides",
     );
+    // How one slide gives way to the next: a fade, or a slide sideways.
+    const transitionOptions = options(["fade", "slide"], "transitions");
 
     // The bands, ensured on the layout: a post saved before they existed
     // has none, and the fields below write into them.
@@ -194,8 +335,8 @@ export function usePostBanner(layout, texts) {
         ...FONTS,
     ]);
 
-    const items = computed(() => banner.value.items);
-    const canAddItem = computed(() => banner.value.items.length < MAX_ITEMS);
+    const items = computed(() => slideLayout().items);
+    const canAddItem = computed(() => slideLayout().items.length < MAX_ITEMS);
 
     function addItem(type) {
         if (!canAddItem.value) {
@@ -203,19 +344,19 @@ export function usePostBanner(layout, texts) {
         }
 
         const item = newItem(type);
-        banner.value.items.push(item);
+        slideLayout().items.push(item);
         // Only this language's entry. The others gain theirs when the server
         // normalises their texts against the layout - an empty string is what
         // an untranslated item means, and inventing entries here would just be
         // guessing at state the editor cannot see.
-        texts.value.items[item.id] = newItemText();
+        slideTexts().items[item.id] = newItemText();
     }
 
     function removeItem(index) {
-        const [removed] = banner.value.items.splice(index, 1);
+        const [removed] = slideLayout().items.splice(index, 1);
 
         if (removed) {
-            delete texts.value.items[removed.id];
+            delete slideTexts().items[removed.id];
         }
     }
 
@@ -226,30 +367,24 @@ export function usePostBanner(layout, texts) {
      */
     function moveItem(index, offset) {
         const target = index + offset;
-        if (target < 0 || target >= banner.value.items.length) {
+        if (target < 0 || target >= slideLayout().items.length) {
             return;
         }
 
-        const list = banner.value.items;
+        const list = slideLayout().items;
         [list[index], list[target]] = [list[target], list[index]];
     }
 
-    const background = () => banner.value.background;
+    const background = () => slideLayout().background;
 
     // This language's own background, for a picture with words in it. Created
     // on demand like an item's text: a translation saved before it existed
     // arrives without one.
     const localBackground = () => {
-        texts.value.background ??= {
-            mediaId: null,
-            mobileMediaId: null,
-            tabletMediaId: null,
-            media: null,
-            mobileMedia: null,
-            tabletMedia: null,
-        };
+        const target = slideTexts();
+        target.background ??= emptyLocalBackground();
 
-        return texts.value.background;
+        return target.background;
     };
 
     const fields = {
@@ -321,6 +456,20 @@ export function usePostBanner(layout, texts) {
                 banner.value.fadeOut = Boolean(value);
             },
         ),
+        // The open slide's accent: the `×` of its title, and anything else
+        // drawn in the theme's accent. Null keeps the theme's.
+        accentColor: writable(
+            () => slideLayout().accentColor ?? null,
+            (value) => {
+                slideLayout().accentColor = value || null;
+            },
+        ),
+        carouselAutoplay: carouselField("autoplay"),
+        carouselInterval: carouselField("interval"),
+        carouselPauseOnHover: carouselField("pauseOnHover"),
+        carouselArrows: carouselField("arrows"),
+        carouselDots: carouselField("dots"),
+        carouselTransition: carouselField("transition"),
         stripesEnabled: stripeField("enabled"),
         stripesSide: stripeField("side"),
         stripesThickness: stripeField("thickness"),
@@ -396,7 +545,7 @@ export function usePostBanner(layout, texts) {
     const hasBackgroundImage = computed(
         () =>
             Boolean(background().media) ||
-            Boolean(texts.value.background?.media),
+            Boolean(slideTexts().background?.media),
     );
     const isSolidFill = computed(() => "solid" === background().type);
     const isGradientFill = computed(() => "gradient" === background().type);
@@ -457,8 +606,13 @@ export function usePostBanner(layout, texts) {
     const itemFieldsCache = new Map();
 
     function itemFields(index) {
-        if (!itemFieldsCache.has(index)) {
-            const item = () => banner.value.items[index];
+        // Per slide as well as per index: the second item of the first slide
+        // and of the third are two different fields.
+        const slide = activeSlide.value;
+        const key = `${slide}:${index}`;
+
+        if (!itemFieldsCache.has(key)) {
+            const item = () => layoutOf(slide).items[index];
 
             // The words for this item, in whichever language is open. Created
             // on demand rather than assumed present: a layout item added in
@@ -470,9 +624,10 @@ export function usePostBanner(layout, texts) {
                     return {};
                 }
 
-                texts.value.items[id] ??= newItemText();
+                const target = textsOf(slide);
+                target.items[id] ??= newItemText();
 
-                return texts.value.items[id];
+                return target.items[id];
             };
 
             const scalar = (key) =>
@@ -491,7 +646,7 @@ export function usePostBanner(layout, texts) {
                     },
                 );
 
-            itemFieldsCache.set(index, {
+            itemFieldsCache.set(key, {
                 // Per language - the copy.
                 title: localised("title"),
                 description: localised("description"),
@@ -547,10 +702,19 @@ export function usePostBanner(layout, texts) {
             });
         }
 
-        return itemFieldsCache.get(index);
+        return itemFieldsCache.get(key);
     }
 
     return {
+        activeSlide,
+        slideCount,
+        isCarousel,
+        canAddSlide,
+        selectSlide,
+        addSlide,
+        removeSlide,
+        moveSlide,
+        transitionOptions,
         heightOptions,
         alignOptions,
         fillOptions,

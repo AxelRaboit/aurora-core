@@ -391,6 +391,33 @@ backend:
       fade_out_hint: "The foot of the header dissolves into the page instead of ending on an edge."
       stripes: "Stripes"
       stripes_hint: "Slanted colour bands, drawn by the site over the background."
+      slides: "Slides"
+      slides_hint: "The first one is the page's header. Add more and they take turns in the same place."
+      slide: "Slide {number}"
+      slide_open: "Slide being edited"
+      add_slide: "Add a slide"
+      remove_slide: "Remove this slide"
+      move_slide_left: "Move earlier"
+      move_slide_right: "Move later"
+      first_slide_hint: "Slide 1 carries the page's main title and stays first."
+      accent_color: "Accent colour"
+      accent_color_hint: "Replaces the theme's colour on this slide: the « × » of the title, and anything written in the accent colour."
+      background_section: "Background"
+      slide_background: "Background of slide {number}"
+      carousel: "Rotation"
+      carousel_autoplay: "Turn automatically"
+      carousel_autoplay_hint: "A pause button is added beside the dots: anything that moves on its own must be possible to stop."
+      carousel_interval: "Time per slide: {seconds} s"
+      carousel_pause_on_hover: "Pause on hover"
+      carousel_pause_on_hover_hint: "The slides stop while the pointer is over the header."
+      carousel_arrows: "Arrows"
+      carousel_arrows_hint: "On the left and right, from tablet width. On a phone, a swipe turns the slides."
+      carousel_dots: "Dots"
+      carousel_dots_hint: "One dot per slide at the foot of the header, in the colour of the slide shown."
+      carousel_transition: "Transition"
+      transitions:
+        fade: "Fade"
+        slide: "Slide"
       stripe_colors: "One band per colour, in this order"
       stripe_color: "Band {number}"
       stripe_add: "Add a band"
@@ -1487,6 +1514,17 @@ frontend:
     next: Next picture
   editorial:
     reading_time: '%minutes% min read'
+    banner:
+      carousel:
+        role: "carousel"
+        label: "Slideshow"
+        slide_role: "slide"
+        slide: "Slide %index% of %count%"
+        previous: "Previous slide"
+        next: "Next slide"
+        pause: "Pause the slideshow"
+        play: "Resume the slideshow"
+        go_to: "Go to slide %index% of %count%"
     useful_links:
       label: Useful links
     share:

@@ -351,4 +351,130 @@ describe("fillWarning", () => {
 
         expect(api.fillWarning.value).toBeNull();
     });
+
+    describe("slides", () => {
+        function withText() {
+            const made = make({
+                items: [
+                    {
+                        id: "a1",
+                        type: "text",
+                        span: { base: 48, md: 24, lg: 30 },
+                        titleSize: "xl",
+                        mediaId: null,
+                        media: null,
+                    },
+                ],
+            });
+            made.texts.value.items.a1 = { title: "Bonjour" };
+
+            return made;
+        }
+
+        it("starts on the banner's own slide", () => {
+            const { api } = withText();
+
+            expect(api.activeSlide.value).toBe(0);
+            expect(api.slideCount.value).toBe(1);
+            expect(api.isCarousel.value).toBe(false);
+        });
+
+        it("adds a slide laid out like the first, with new ids and no words", () => {
+            const { layout, texts, api } = withText();
+
+            api.addSlide();
+
+            expect(api.slideCount.value).toBe(2);
+            expect(api.activeSlide.value).toBe(1);
+            const [slide] = layout.value.slides;
+            expect(slide.items).toHaveLength(1);
+            expect(slide.items[0].id).not.toBe("a1");
+            expect(slide.items[0].titleSize).toBe("xl");
+            expect(slide.items[0].span).toEqual({ base: 48, md: 24, lg: 30 });
+            expect(slide.items[0].span).not.toBe(layout.value.items[0].span);
+            expect(texts.value.items.a1.title).toBe("Bonjour");
+        });
+
+        it("edits the open slide's items and words, not the first one's", () => {
+            const { layout, texts, api } = withText();
+
+            api.addSlide();
+            api.itemFields(0).title.value = "Deuxième";
+            api.addItem("button");
+
+            const slide = layout.value.slides[0];
+            expect(
+                texts.value.slides[slide.id].items[slide.items[0].id].title,
+            ).toBe("Deuxième");
+            expect(slide.items).toHaveLength(2);
+            expect(layout.value.items).toHaveLength(1);
+            expect(texts.value.items.a1.title).toBe("Bonjour");
+
+            api.selectSlide(0);
+            expect(api.itemFields(0).title.value).toBe("Bonjour");
+        });
+
+        it("gives each slide its own background and accent", () => {
+            const { layout, api } = withText();
+
+            api.addSlide();
+            api.fields.accentColor.value = "#bd4a55";
+            api.fields.fillType.value = "solid";
+
+            expect(layout.value.slides[0].accentColor).toBe("#bd4a55");
+            expect(layout.value.slides[0].background.type).toBe("solid");
+            expect(layout.value.accentColor ?? null).toBeNull();
+            expect(layout.value.background.type).toBe("none");
+        });
+
+        it("removes a slide with its words, and never the first", () => {
+            const { layout, texts, api } = withText();
+
+            api.addSlide();
+            const id = layout.value.slides[0].id;
+            api.itemFields(0).title.value = "Deuxième";
+
+            api.removeSlide(0);
+            expect(api.slideCount.value).toBe(2);
+
+            api.removeSlide(1);
+            expect(api.slideCount.value).toBe(1);
+            expect(api.activeSlide.value).toBe(0);
+            expect(texts.value.slides[id]).toBeUndefined();
+        });
+
+        it("reorders the further slides only", () => {
+            const { layout, api } = withText();
+
+            api.addSlide();
+            api.addSlide();
+            const [first, second] = layout.value.slides.map(
+                (slide) => slide.id,
+            );
+
+            api.moveSlide(2, -1);
+            expect(layout.value.slides.map((slide) => slide.id)).toEqual([
+                second,
+                first,
+            ]);
+            expect(api.activeSlide.value).toBe(1);
+
+            api.moveSlide(1, -1);
+            expect(layout.value.slides.map((slide) => slide.id)).toEqual([
+                second,
+                first,
+            ]);
+        });
+
+        it("writes the carousel's settings on the banner", () => {
+            const { layout, api } = withText();
+
+            api.fields.carouselInterval.value = 12;
+            api.fields.carouselArrows.value = false;
+
+            expect(layout.value.carousel.interval).toBe(12);
+            expect(layout.value.carousel.arrows).toBe(false);
+            expect(layout.value.carousel.dots).toBe(true);
+        });
+    });
 });
