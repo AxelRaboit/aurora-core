@@ -5,6 +5,18 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.284] - 2026-09-28
+
+### Amélioré
+
+#### Le logo de la barre du site se choisit dans la médiathèque
+Dans Thème › En-tête › Contenu, le logo affiché à gauche du nom du site se
+réglait en tapant le numéro d'un document, à retrouver dans la médiathèque :
+c'était le seul champ du back-office qui choisissait une image ainsi. Il se
+choisit maintenant avec le même sélecteur que le logo et le favicon de
+Branding, avec l'aperçu de l'image retenue. Le mode s'appelle « Logo et nom »
+(anciennement « Image média »), puisqu'il affiche les deux.
+
 ## [0.9.283] - 2026-09-28
 
 ### Ajouté

@@ -126,7 +126,9 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
         Object.fromEntries(Object.keys(DEFAULTS).map((k) => [k, ""])),
     );
     const footerText = ref("");
-    const headerLogoMediaId = ref("");
+    // Picked in the library like every other image of the back-office, not
+    // typed as a number: `{ id, url }`, the shape AppImagePickerField speaks.
+    const headerLogo = ref({ id: null, url: null });
     const headerCustomText = ref("");
     const headerMode = ref("default");
     const contentWidth = ref("narrow");
@@ -189,8 +191,8 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
         if (iconMode.value === "custom") result["icon_color"] = iconColor.value;
         if (fontFamily.value !== DEFAULT_FONT_FAMILY)
             result["font_family"] = fontFamily.value;
-        if (headerMode.value === "image" && headerLogoMediaId.value.trim()) {
-            result["header_logo_media_id"] = headerLogoMediaId.value.trim();
+        if (headerMode.value === "image" && headerLogo.value?.id) {
+            result["header_logo_media_id"] = String(headerLogo.value.id);
         }
         if (headerMode.value === "text" && headerCustomText.value.trim()) {
             result["header_custom_text"] = headerCustomText.value.trim();
@@ -227,7 +229,11 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
         contentWidth.value = theme.config?.["content_width"] ?? "narrow";
         highlight.value = theme.config?.["highlight"] ?? "accent";
         fontFamily.value = theme.config?.["font_family"] ?? DEFAULT_FONT_FAMILY;
-        headerLogoMediaId.value = theme.config?.["header_logo_media_id"] ?? "";
+        const logoId = theme.config?.["header_logo_media_id"];
+        headerLogo.value = {
+            id: logoId ? Number(logoId) : null,
+            url: theme.headerLogoUrl ?? null,
+        };
         headerCustomText.value = theme.config?.["header_custom_text"] ?? "";
         headerMode.value = theme.config?.["header_logo_media_id"]
             ? "image"
@@ -300,7 +306,7 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
         editForm,
         colorFields,
         footerText,
-        headerLogoMediaId,
+        headerLogo,
         headerCustomText,
         headerMode,
         primaryColor,

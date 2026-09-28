@@ -47,5 +47,6 @@ final class ThemeSerializerTest extends TestCase
         self::assertSame('A dark variant', $result['description']);
         self::assertTrue($result['active']);
         self::assertSame(['primary' => '#000'], $result['config']);
+        self::assertNull($result['headerLogoUrl'], 'no theme context, no logo address - and no crash');
     }
 }
