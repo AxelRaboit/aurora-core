@@ -75,12 +75,13 @@
        ratio then became a maximum, and a title wrapping onto one more line
        between 640 and 1100px was cut off at the bottom. With `clip` the
        ratio stays a floor and the banner grows to fit its words. #}
-    class="relative isolate flex flex-col overflow-clip not-prose {{ heights[banner.height] }} {{ isFull ? 'mb-8' : 'rounded-xl mb-8' }}{{ hasRatio ? ' [aspect-ratio:var(--banner-ratio)]' : '' }}{{ hasMobileRatio ? ' max-sm:[aspect-ratio:var(--banner-mobile-ratio)]' : '' }}{{ hasTabletRatio ? ' sm:max-lg:[aspect-ratio:var(--banner-tablet-ratio)]' : '' }}"
+    class="relative isolate flex flex-col overflow-clip not-prose {{ heights[banner.height] }} {{ isFull ? '' : 'rounded-xl' }}{{ banner.embedded|default(false) ? '' : ' mb-8' }}{{ hasRatio ? ' [aspect-ratio:var(--banner-ratio)]' : '' }}{{ hasMobileRatio ? ' max-sm:[aspect-ratio:var(--banner-mobile-ratio)]' : '' }}{{ hasTabletRatio ? ' sm:max-lg:[aspect-ratio:var(--banner-tablet-ratio)]' : '' }}"
     {% if headerStyle|trim %}style="{{ headerStyle|trim|raw }}"{% endif %}
     {% if isCarousel %}
         {# Read by bannerCarousel.js. Without the script the first slide
            stays, and the controls stay hidden. #}
         data-banner-carousel
+        {% if banner.embedded|default(false) %}data-banner-embedded{% endif %}
         data-autoplay="{{ (carousel.autoplay ?? true) ? 'true' : 'false' }}"
         data-interval="{{ carousel.interval|default(7) }}"
         data-pause-on-hover="{{ (carousel.pauseOnHover ?? true) ? 'true' : 'false' }}"

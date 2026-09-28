@@ -5,6 +5,22 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.289] - 2026-09-28
+
+### Ajouté
+
+#### Un bloc « Entête » dans le contenu d'une page
+La grille de contenu offre un nouveau type de zone, « Entête » : le même
+visuel que l'en-tête du haut de page, mais posé où l'on veut dans le corps.
+Il s'édite avec le même panneau (diapositives, fonds ordinateur, tablette et
+téléphone, textes et boutons traduits, couleur d'accent, cadrage, carrousel
+et ses réglages, assombrissement, liserés) et prend la largeur de sa zone :
+pleine largeur, moitié, tiers, et bord à bord avec l'option de la zone. Sa
+hauteur se règle comme en haut de page. Ses titres sont des intertitres
+(`h2`) : la page garde un seul titre principal. Dans une zone, les flèches
+du carrousel sont toujours dans les coins du bas, là où elles ne recouvrent
+pas le texte.
+
 ## [0.9.288] - 2026-09-28
 
 ### Corrigé

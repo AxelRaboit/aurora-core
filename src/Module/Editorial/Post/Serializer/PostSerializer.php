@@ -212,7 +212,13 @@ class PostSerializer implements PostSerializerInterface
                 $translation->getPost()->getBannerLayout(),
                 $translation->getBanner(),
             ),
-            'grid' => $translation->getGrid(),
+            // As stored, except the words of a header zone, whose pictures of
+            // this language come back resolved for the same reason as the
+            // banner's just above.
+            'grid' => $this->gridViewBuilder->contentForEditor(
+                $translation->getPost()->getGridLayout(),
+                $translation->getGrid(),
+            ),
             'gallery' => $translation->getGallery(),
             'description' => $translation->getDescription(),
             'metaTitle' => $translation->getMetaTitle(),

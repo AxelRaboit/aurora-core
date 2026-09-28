@@ -602,6 +602,7 @@ function termLabel(term) {
                             :locale="locale"
                             :post-options="relatedPostOptions"
                             :preview-path="gridPreviewPath"
+                            :banner-preview-path="bannerPreviewPath"
                         />
                     </div>
 
