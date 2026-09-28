@@ -297,6 +297,22 @@
         "tour-release-notes": {
             "document": 472,
             "slug": "livraison-et-mises-a-jour"
+        },
+        "tour-site-public-service": {
+            "document": 706,
+            "slug": "site-public"
+        },
+        "tour-site-public-realisation": {
+            "document": 707,
+            "slug": "site-public"
+        },
+        "tour-site-public-galerie": {
+            "document": 708,
+            "slug": "site-public"
+        },
+        "tour-site-public-telephone": {
+            "document": 709,
+            "slug": "site-public"
         }
     }
 }

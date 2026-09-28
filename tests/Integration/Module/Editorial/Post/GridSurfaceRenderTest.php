@@ -433,6 +433,49 @@ final class GridSurfaceRenderTest extends IntegrationTestCase
         }
     }
 
+    // ── A zone's own accent ────────────────────────────────────────────────
+
+    public function testAZoneCanCarryItsOwnAccent(): void
+    {
+        $html = $this->renderGrid(['accentColor' => '#34D399']);
+
+        self::assertStringContainsString('data-zone-accent="z1"', $html);
+        self::assertStringContainsString('[data-zone-accent="z1"]{', $html);
+        self::assertStringContainsString('.dark [data-zone-accent="z1"]{', $html);
+        self::assertStringContainsString('--th-accent: var(--th-accent-500);', $html);
+    }
+
+    public function testAStackChildCanCarryItsOwnAccent(): void
+    {
+        $grid = $this->gridViewBuilder->build(
+            ['enabled' => true, 'zones' => [['id' => 's1', 'type' => 'stack', 'children' => [
+                ['id' => 'c1', 'type' => 'text', 'accentColor' => '#cd8f31'],
+                ['id' => 'c2', 'type' => 'text'],
+            ]]]],
+            ['zones' => [
+                'c1' => ['blocks' => [['type' => 'paragraph', 'data' => ['text' => 'Une.']]]],
+                'c2' => ['blocks' => [['type' => 'paragraph', 'data' => ['text' => 'Deux.']]]],
+            ]],
+            'fr',
+        );
+        $html = $this->twig->render('Frontend/themes/default/editorial/post/_grid.html.twig', ['grid' => $grid, 'locale' => 'fr']);
+
+        self::assertStringContainsString('data-zone-accent="c1"', $html);
+        self::assertStringNotContainsString('data-zone-accent="c2"', $html);
+        self::assertStringNotContainsString('data-zone-accent="s1"', $html);
+    }
+
+    /** Anything but a hex is dropped before it can reach the stylesheet. */
+    public function testAZoneWithoutARealAccentAddsNoRule(): void
+    {
+        foreach ([[], ['accentColor' => 'red;}</style><script>'], ['accentColor' => '#12345']] as $overrides) {
+            $html = $this->renderGrid($overrides);
+
+            self::assertStringNotContainsString('data-zone-accent', $html);
+            self::assertStringNotContainsString('<style>', $html);
+        }
+    }
+
     /** @param array<string, mixed> $overrides */
     private function renderGrid(array $overrides): string
     {

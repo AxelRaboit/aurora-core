@@ -697,6 +697,8 @@ backend:
       highlight: Hovers and markers
       highlight_hint: "The colour of this block's hovers and card markers, over the page's and the theme's."
       highlight_color: Hover colour
+      accent_color: Accent colour
+      accent_color_hint: "This block's buttons, links and markers take this colour instead of the page's. Empty: same as the page."
       highlights:
         inherit: Same as the page
         accent: Primary colour
