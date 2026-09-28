@@ -235,6 +235,7 @@ backend:
       delete_folder_cascade_hint: Documents and sub-folders go with it. Restoring puts everything back in place.
       delete_folder_only: Delete the folder only
       delete_folder_only_hint: Its contents surface at the root. Restoring the folder brings it back empty.
+      delete_folder_with_alternates: "Also take the alternate filed elsewhere | Also take the alternate filed elsewhere | Also take the {count} alternates filed elsewhere"
       folder_name: Folder name
       folder_name_placeholder: Folder name…
       parent_folder: Parent folder

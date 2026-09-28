@@ -235,6 +235,7 @@ backend:
             delete_folder_cascade_hint: 'Los documentos y subcarpetas se van con ella. Al restaurarlos, todo vuelve a su sitio.'
             delete_folder_only: 'Eliminar solo la carpeta'
             delete_folder_only_hint: 'Su contenido sube a la raíz. Al restaurar la carpeta, estará vacía.'
+            delete_folder_with_alternates: 'Llevar también la variante guardada en otro lugar | Llevar también la variante guardada en otro lugar | Llevar también las {count} variantes guardadas en otro lugar'
             folder_name: 'Nombre de la carpeta'
             folder_name_placeholder: 'Nombre de la carpeta…'
             parent_folder: 'Carpeta superior'

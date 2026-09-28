@@ -1,8 +1,9 @@
-import { computed, reactive, ref } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
+import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 import { withDepthLabel } from "./useDocumentSidebarTree.js";
 
 /**
@@ -15,6 +16,8 @@ import { withDepthLabel } from "./useDocumentSidebarTree.js";
 const FOLDER_CREATE = "/backend/ged/folders/create";
 const FOLDER_UPDATE = "/backend/ged/folders/__id__/update";
 const FOLDER_DELETE = "/backend/ged/folders/__id__/delete";
+const FOLDER_ALTERNATES_ELSEWHERE =
+    "/backend/ged/folders/__id__/alternates-elsewhere";
 const FOLDER_MOVE = "/backend/ged/folders/__id__/move";
 const FOLDER_REORDER = "/backend/ged/folders/reorder";
 const DOCUMENT_BULK_MOVE = "/backend/ged/documents/bulk-move";
@@ -45,6 +48,7 @@ export function useFolderPanelActions({ folders, allFlatFolders, onChanged }) {
     const { request: submitRequest } = useRequest();
     const { request: deleteRequest } = useRequest();
     const { request: moveRequest } = useRequest();
+    const { request: countRequest } = useRequest();
 
     const folderModal = reactive({
         open: false,
@@ -58,6 +62,25 @@ export function useFolderPanelActions({ folders, allFlatFolders, onChanged }) {
     // contents and a restore puts the branch back. False: the contents surface
     // at the root, as they always have. The reversible one is the default.
     const deleteCascade = ref(true);
+    // Alternates of the branch's documents filed in other folders or at the
+    // root. Asked for when the modal opens; the checkbox only shows above 0.
+    const strayAlternateCount = ref(0);
+    const deleteWithAlternates = ref(true);
+
+    watch(deletingFolder, async (folder) => {
+        strayAlternateCount.value = 0;
+        deleteWithAlternates.value = true;
+        if (!folder) return;
+
+        const data = await countRequest(
+            buildPath(FOLDER_ALTERNATES_ELSEWHERE, { id: folder.id }),
+            null,
+            { method: HttpMethod.Get, noGuard: true, silent: true },
+        );
+        // The modal may have closed, or moved on to another folder, meanwhile.
+        if (deletingFolder.value?.id !== folder.id) return;
+        strayAlternateCount.value = Number(data?.count ?? 0);
+    });
 
     /**
      * Counts come from the documents listing, not from the folder endpoints, so
@@ -126,7 +149,13 @@ export function useFolderPanelActions({ folders, allFlatFolders, onChanged }) {
         try {
             const data = await deleteRequest(
                 buildPath(FOLDER_DELETE, { id: folder.id }),
-                { cascade: deleteCascade.value },
+                {
+                    cascade: deleteCascade.value,
+                    withAlternates:
+                        deleteCascade.value &&
+                        strayAlternateCount.value > 0 &&
+                        deleteWithAlternates.value,
+                },
             );
             if (!data) return;
             if (!data.success) {
@@ -407,6 +436,8 @@ export function useFolderPanelActions({ folders, allFlatFolders, onChanged }) {
         folderForm,
         deletingFolder,
         deleteCascade,
+        strayAlternateCount,
+        deleteWithAlternates,
         folderParentSelectOptions,
         openCreateFolder,
         openEditFolder,

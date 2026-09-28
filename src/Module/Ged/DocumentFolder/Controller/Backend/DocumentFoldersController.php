@@ -69,14 +69,28 @@ final class DocumentFoldersController extends AbstractController
      * reversible version, where the branch comes back as it was. A screen that
      * wants the old behaviour - contents released at the root - has to ask for
      * it, because that is the one a restore cannot undo.
+     *
+     * `withAlternates` defaults to false: taking documents out of other
+     * folders is only done when the screen asked, after showing how many.
      */
     #[Route('/{id}/delete', name: '_delete', methods: [HttpMethodEnum::Post->value])]
     public function delete(DocumentFolder $folder, Request $request): JsonResponse
     {
         $payload = $this->decodeJson($request);
-        $this->manager->delete($folder, !array_key_exists('cascade', $payload) || (bool) $payload['cascade']);
+        $this->manager->delete(
+            $folder,
+            !array_key_exists('cascade', $payload) || (bool) $payload['cascade'],
+            true === ($payload['withAlternates'] ?? false),
+        );
 
         return $this->jsonSuccess(['folders' => $this->allFolders()]);
+    }
+
+    /** How many alternates of the branch's documents live outside it. */
+    #[Route('/{id}/alternates-elsewhere', name: '_alternates_elsewhere', methods: [HttpMethodEnum::Get->value])]
+    public function alternatesElsewhere(DocumentFolder $folder): JsonResponse
+    {
+        return $this->jsonSuccess(['count' => $this->manager->countAlternatesFiledOutside($folder)]);
     }
 
     #[Route('/{id}/restore', name: '_restore', methods: [HttpMethodEnum::Post->value])]

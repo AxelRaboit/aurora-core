@@ -5,6 +5,26 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [Unreleased]
+
+### Ajouté
+
+#### Un dossier mis à la corbeille emporte ses familles
+Les variantes d'un visuel vivent souvent ailleurs que lui : à la racine, où
+l'import les a laissées, ou dans un dossier à part. Mettre à la corbeille le
+dossier de l'original les laissait derrière, variantes vivantes d'un original
+que plus personne ne voyait. La confirmation compte maintenant les variantes
+rangées hors du dossier et propose de les emporter (case cochée par défaut).
+Restaurer le dossier remet chacune à sa place, et le supprimer pour de bon ne
+retire plus son dossier à une variante venue d'ailleurs.
+
+### Corrigé
+
+#### Un document restauré seul ne suit plus son ancien dossier
+Un document tombé avec un dossier, puis restauré seul, gardait la trace du
+dossier : le restaurer ou le supprimer pour de bon le déplaçait encore. Cette
+trace est effacée dès qu'un document part ou revient seul.
+
 ## [0.9.282] - 2026-09-28
 
 ### Corrigé

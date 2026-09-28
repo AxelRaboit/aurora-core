@@ -40,6 +40,7 @@ import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppMultiselect from "@/shared/components/form/select/AppMultiselect.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
+import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
 import AppModulePanel from "@/shared/nav/AppModulePanel.vue";
 import { askPage } from "@/shared/nav/modulePanelBridge.js";
 import { useModulePanelData } from "@/shared/nav/useModulePanelData.js";
@@ -95,6 +96,8 @@ const {
     folderForm,
     deletingFolder,
     deleteCascade,
+    strayAlternateCount,
+    deleteWithAlternates,
     folderParentSelectOptions,
     openCreateFolder,
     openEditFolder,
@@ -404,6 +407,12 @@ const rowClasses = (active) => itemClasses("ged", { isActive: active });
                         </span>
                     </label>
                 </div>
+                <AppCheckbox
+                    v-if="deleteCascade && strayAlternateCount > 0"
+                    v-model="deleteWithAlternates"
+                    class="pt-3"
+                    :label="t('backend.ged.documents.delete_folder_with_alternates', { count: strayAlternateCount }, strayAlternateCount)"
+                />
                 <template #footer>
                     <AppModalFooter>
                         <AppButton

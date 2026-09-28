@@ -235,6 +235,7 @@ backend:
       delete_folder_cascade_hint: Les documents et sous-dossiers partent avec lui. Les restaurer remet tout en place.
       delete_folder_only: Ne supprimer que le dossier
       delete_folder_only_hint: Son contenu remonte à la racine. Restaurer le dossier le rendra vide.
+      delete_folder_with_alternates: "Emporter aussi la variante rangée ailleurs | Emporter aussi la variante rangée ailleurs | Emporter aussi les {count} variantes rangées ailleurs"
       folder_name: Nom du dossier
       folder_name_placeholder: Nom du dossier…
       parent_folder: Dossier parent

@@ -19,8 +19,16 @@ interface DocumentFolderManagerInterface
      *
      * With `$cascade`, everything under it goes too and a restore puts the
      * branch back as it was. Without, the contents surface at the root.
+     * `$withAlternates` also takes, with the cascade, the alternates of its
+     * documents that are filed outside the branch.
      */
-    public function delete(DocumentFolderInterface $folder, bool $cascade = true): void;
+    public function delete(DocumentFolderInterface $folder, bool $cascade = true, bool $withAlternates = false): void;
+
+    /**
+     * How many living alternates of the documents in this branch are filed
+     * outside it - what `delete()` would take along with `$withAlternates`.
+     */
+    public function countAlternatesFiledOutside(DocumentFolderInterface $folder): int;
 
     /** Brings a folder back, with whatever fell alongside it. */
     public function restore(DocumentFolderInterface $folder): void;
