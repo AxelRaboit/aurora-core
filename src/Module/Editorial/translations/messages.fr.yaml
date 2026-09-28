@@ -445,6 +445,8 @@ backend:
       background_color: Couleur de fond
       background_image: Image de fond
       background_image_hint: Placée derrière le contenu, recadrée selon son point focal.
+      background_focal: "Cadrage de l'image de fond"
+      background_focal_hint: "Le point à garder quand l'image est rognée en bandeau. Sans réglage, celui du document."
       tablet_width: "Largeur sur tablette"
       title_font: "Police du titre"
       description_font: "Police de la description"

@@ -445,6 +445,8 @@ backend:
       background_color: Background colour
       background_image: Background image
       background_image_hint: Sits behind the content, cropped to its focal point.
+      background_focal: "Background framing"
+      background_focal_hint: "The point to keep when the picture is cropped into a band. Unset, the document's own."
       tablet_width: "Width on tablets"
       title_font: "Title font"
       description_font: "Description font"

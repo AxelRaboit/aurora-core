@@ -51,6 +51,10 @@ export function emptyBannerLayout() {
             // And what a tablet gets, between the phone and the wide screen.
             tabletMediaId: null,
             overlay: 0,
+            // Where the banner crops its wide picture; null follows the
+            // document's own point.
+            focalX: null,
+            focalY: null,
             media: null,
             mobileMedia: null,
             tabletMedia: null,

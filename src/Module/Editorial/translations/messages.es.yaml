@@ -445,6 +445,8 @@ backend:
             background_color: 'Color de fondo'
             background_image: 'Imagen de fondo'
             background_image_hint: 'Colocada detrás del contenido, recortada según su punto focal.'
+            background_focal: "Encuadre de la imagen de fondo"
+            background_focal_hint: "El punto que se conserva cuando la imagen se recorta en banda. Sin ajuste, el del documento."
             tablet_width: 'Ancho en tableta'
             title_font: 'Fuente del título'
             description_font: 'Fuente de la descripción'
