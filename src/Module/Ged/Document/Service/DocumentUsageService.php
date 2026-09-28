@@ -6,9 +6,11 @@ namespace Aurora\Module\Ged\Document\Service;
 
 use Aurora\Module\Ged\Document\Contract\BatchDocumentUsageProviderInterface;
 use Aurora\Module\Ged\Document\Contract\DocumentUsageProviderInterface;
+use Aurora\Module\Ged\Document\Contract\TypedDocumentUsageProviderInterface;
 
 use function array_fill_keys;
-use function count;
+use function array_map;
+use function array_sum;
 
 /**
  * Aggregates usages of a GED Document across all modules, grouped by source
@@ -20,6 +22,9 @@ use function count;
  */
 final readonly class DocumentUsageService
 {
+    /** Where a batch provider that does not name its kind of source is counted. */
+    public const string OTHER_TYPE = 'other';
+
     /** @param iterable<DocumentUsageProviderInterface> $providers */
     public function __construct(private iterable $providers) {}
 
@@ -71,23 +76,50 @@ final readonly class DocumentUsageService
      */
     public function countUsagesFor(array $documentIds): array
     {
+        return array_map(array_sum(...), $this->countUsagesByTypeFor($documentIds));
+    }
+
+    /**
+     * The same counts, sorted by kind of source.
+     *
+     * What a family needs: not only whether its green copy is used, but that
+     * it is on two pages while the red one is in a deck. Same cost as
+     * {@see self::countUsagesFor()}, which is this answer summed - a batch
+     * provider files its counts under the type it declares through
+     * {@see TypedDocumentUsageProviderInterface}, or under "other" when it
+     * declares none; the one-by-one fallback reads the type off each item.
+     *
+     * Every id asked for is present, with an empty map when nothing uses it.
+     *
+     * @param list<int> $documentIds
+     *
+     * @return array<int, array<string, int>>
+     */
+    public function countUsagesByTypeFor(array $documentIds): array
+    {
         if ([] === $documentIds) {
             return [];
         }
 
-        $counts = array_fill_keys($documentIds, 0);
+        $counts = array_fill_keys($documentIds, []);
 
         foreach ($this->providers as $provider) {
             if ($provider instanceof BatchDocumentUsageProviderInterface) {
+                $type = $provider instanceof TypedDocumentUsageProviderInterface ? $provider->usageType() : self::OTHER_TYPE;
                 foreach ($provider->countUsagesFor($documentIds) as $documentId => $count) {
-                    $counts[$documentId] = ($counts[$documentId] ?? 0) + $count;
+                    if ($count > 0) {
+                        $counts[$documentId][$type] = ($counts[$documentId][$type] ?? 0) + $count;
+                    }
                 }
 
                 continue;
             }
 
             foreach ($documentIds as $documentId) {
-                $counts[$documentId] += count($provider->findUsages($documentId));
+                foreach ($provider->findUsages($documentId) as $usage) {
+                    $type = $usage['type'];
+                    $counts[$documentId][$type] = ($counts[$documentId][$type] ?? 0) + 1;
+                }
             }
         }
 

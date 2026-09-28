@@ -1,5 +1,6 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
+import { emptyBannerStripes } from "./usePostEditor.js";
 
 /**
  * Drives the banner panel of the post editor.
@@ -141,6 +142,38 @@ export function usePostBanner(layout, texts) {
         "verticals",
     );
     const titleSizeOptions = options(["sm", "md", "lg", "xl"], "title_sizes");
+    const stripeSideOptions = options(
+        ["start", "center", "end"],
+        "stripe_sides",
+    );
+
+    // The bands, ensured on the layout: a post saved before they existed
+    // has none, and the fields below write into them.
+    const stripes = () => {
+        banner.value.stripes ??= emptyBannerStripes();
+
+        return banner.value.stripes;
+    };
+    const MAX_STRIPES = 6;
+    const stripeColors = computed(() => stripes().colors);
+    const canAddStripe = computed(() => stripes().colors.length < MAX_STRIPES);
+    function setStripeColor(index, value) {
+        if (value) stripes().colors[index] = value;
+    }
+    function addStripe() {
+        if (canAddStripe.value) stripes().colors.push("#ffffff");
+    }
+    function removeStripe(index) {
+        // At least one band: none at all is what the switch is for.
+        if (stripes().colors.length > 1) stripes().colors.splice(index, 1);
+    }
+    const stripeField = (key) =>
+        writable(
+            () => stripes()[key],
+            (value) => {
+                stripes()[key] = value;
+            },
+        );
 
     const widthOptions = computed(() =>
         WIDTHS.map(({ columns, key }) => ({
@@ -288,6 +321,14 @@ export function usePostBanner(layout, texts) {
                 banner.value.fadeOut = Boolean(value);
             },
         ),
+        stripesEnabled: stripeField("enabled"),
+        stripesSide: stripeField("side"),
+        stripesThickness: stripeField("thickness"),
+        stripesGap: stripeField("gap"),
+        stripesAngle: stripeField("angle"),
+        stripesOffset: stripeField("offset"),
+        stripesOpacity: stripeField("opacity"),
+        stripesHideOnPhone: stripeField("hideOnPhone"),
         backgroundMedia: writable(
             () => pickerModel(background(), "media", "mediaId"),
             (value) => applyPicked(background(), value, "media", "mediaId"),
@@ -516,6 +557,12 @@ export function usePostBanner(layout, texts) {
         widthModeOptions,
         verticalAlignOptions,
         titleSizeOptions,
+        stripeSideOptions,
+        stripeColors,
+        canAddStripe,
+        setStripeColor,
+        addStripe,
+        removeStripe,
         widthOptions,
         tabletWidthOptions,
         fontOptions,

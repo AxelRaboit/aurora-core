@@ -531,4 +531,31 @@ final class BannerNormalizerTest extends TestCase
             self::assertSame($width, $layout['width']);
         }
     }
+
+    public function testStripesStartOffWithThreeBands(): void
+    {
+        $stripes = $this->normalizer->normalizeLayout([])['stripes'];
+
+        self::assertFalse($stripes['enabled']);
+        self::assertSame(['#34d399', '#bd4a55', '#cd8f31'], $stripes['colors']);
+        self::assertSame('end', $stripes['side']);
+    }
+
+    public function testStripesKeepSixValidColoursAtMost(): void
+    {
+        $colors = $this->normalizer->normalizeLayout(['stripes' => ['colors' => [
+            '#111111', 'nope', '#222222', '#333333', '#444444', '#555555', '#666666', '#777777',
+        ]]])['stripes']['colors'];
+
+        self::assertSame(['#111111', '#222222', '#333333', '#444444', '#555555', '#666666'], $colors);
+    }
+
+    public function testStripesNormalizeToThemselves(): void
+    {
+        $once = $this->normalizer->normalizeLayout(['stripes' => ['enabled' => true, 'colors' => ['#ABCDEF'], 'angle' => 90, 'side' => 'middle']]);
+
+        self::assertSame(60, $once['stripes']['angle']);
+        self::assertSame('end', $once['stripes']['side']);
+        self::assertSame($once, $this->normalizer->normalizeLayout($once));
+    }
 }

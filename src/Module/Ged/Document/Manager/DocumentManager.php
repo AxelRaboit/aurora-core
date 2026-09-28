@@ -134,7 +134,7 @@ class DocumentManager implements DocumentManagerInterface
             return;
         }
 
-        $document->setDeletedAt(new DateTimeImmutable());
+        $document->setDeletedAt(new DateTimeImmutable())->setTrashedWithFolderId(null);
         $this->entityManager->flush();
 
         $this->auditTrashed($document);
@@ -146,7 +146,7 @@ class DocumentManager implements DocumentManagerInterface
             return;
         }
 
-        $document->setDeletedAt(null);
+        $document->setDeletedAt(null)->setTrashedWithFolderId(null);
         $this->entityManager->flush();
 
         $this->auditRestored($document);
@@ -227,7 +227,7 @@ class DocumentManager implements DocumentManagerInterface
                 continue;
             }
 
-            $document->setDeletedAt(new DateTimeImmutable());
+            $document->setDeletedAt(new DateTimeImmutable())->setTrashedWithFolderId(null);
             $trashed[] = $document;
         }
 
@@ -254,7 +254,7 @@ class DocumentManager implements DocumentManagerInterface
                 continue;
             }
 
-            $document->setDeletedAt(null);
+            $document->setDeletedAt(null)->setTrashedWithFolderId(null);
             $restored[] = $document;
         }
 

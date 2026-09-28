@@ -8,7 +8,9 @@ use Aurora\Core\Storage\Adapter\StorageAdapterInterface;
 use Aurora\Core\Storage\Adapter\StoredObject;
 use Aurora\Core\Storage\Enum\MimeTypeEnum;
 use Aurora\Core\Storage\Enum\StorageAreaEnum;
+use Aurora\Core\Storage\Enum\StorageDiskEnum;
 use Aurora\Core\Storage\Service\ImageCropper;
+use Aurora\Core\Storage\Service\ImageRecolorer;
 use Aurora\Core\Storage\Service\PdfThumbnailGenerator;
 use Aurora\Core\Storage\Service\VideoCapture;
 use Aurora\Core\Storage\Service\VideoPosterGenerator;
@@ -16,6 +18,7 @@ use Aurora\Core\Storage\StorageManager;
 use Aurora\Core\Storage\StoredFileName;
 use Aurora\Core\Storage\Workspace\LocalWorkspace;
 use DateTimeImmutable;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
@@ -45,6 +48,9 @@ final readonly class GedDocumentUploader
         private ImageCropper $imageCropper,
         private StorageManager $storageManager,
         private LocalWorkspace $workspace,
+        // Stateless, so a default: the tests and callers that build this
+        // uploader by hand predate colour alternates and need not know them.
+        private ImageRecolorer $imageRecolorer = new ImageRecolorer(new Filesystem()),
     ) {}
 
     /**
@@ -168,6 +174,70 @@ final readonly class GedDocumentUploader
         return [
             'filePath' => $relativePath,
             'fileName' => $newFilename,
+            'size' => $stored instanceof StoredObject ? $stored->size : 0,
+            'width' => $dimensions[0],
+            'height' => $dimensions[1],
+        ];
+    }
+
+    /**
+     * Declines a source image in another colour, to a brand-new file under
+     * `ged/Y/m/…`, and returns the metadata the manager persists on the new
+     * document. Returns null when the source is not a still raster image or
+     * has no colour to replace.
+     *
+     * The source is read from the disk that holds it, which need not be the
+     * active one: a visual uploaded before the library moved to R2 is still
+     * on the server. The copy goes to the active disk, like any new file.
+     *
+     * @param list<string> $spare colours to leave alone, `#rrggbb`
+     *
+     * @return array{filePath: string, fileName: string, mimeType: string, size: int, width: int, height: int}|null
+     */
+    public function recolorToNewFile(
+        string $sourceRelativePath,
+        StorageDiskEnum $sourceDisk,
+        string $mimeType,
+        string $targetColor,
+        ?string $sourceColor = null,
+        array $spare = [],
+        bool $protectDetail = true,
+    ): ?array {
+        $extension = MimeTypeEnum::tryFrom($mimeType)?->extension()
+            ?? pathinfo($sourceRelativePath, PATHINFO_EXTENSION);
+        $newFilename = StoredFileName::withExtension($extension);
+        $relativePath = sprintf('%s/%s/%s', StorageAreaEnum::Ged->value, new DateTimeImmutable()->format('Y/m'), $newFilename);
+
+        $target = $this->storageManager->active();
+
+        $dimensions = $this->workspace->readable(
+            $this->storageManager->forDisk($sourceDisk),
+            $sourceRelativePath,
+            fn (string $source): ?array => $this->workspace->target(
+                $target,
+                $relativePath,
+                fn (string $destination): ?array => $this->imageRecolorer->recolor(
+                    $source,
+                    $destination,
+                    $mimeType,
+                    $targetColor,
+                    $sourceColor,
+                    $spare,
+                    $protectDetail,
+                ),
+            ),
+        );
+
+        if (null === $dimensions) {
+            return null;
+        }
+
+        $stored = $target->stat($relativePath);
+
+        return [
+            'filePath' => $relativePath,
+            'fileName' => $newFilename,
+            'mimeType' => $mimeType,
             'size' => $stored instanceof StoredObject ? $stored->size : 0,
             'width' => $dimensions[0],
             'height' => $dimensions[1],

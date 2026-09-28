@@ -484,3 +484,78 @@ describe("dragging a folder out of the branch it sits in", () => {
         expect(posted()).toHaveLength(before);
     });
 });
+
+describe("trashing a folder with its families", () => {
+    function answerByUrl(strays) {
+        global.fetch = vi.fn().mockImplementation(async (url) => ({
+            ok: true,
+            status: 200,
+            json: async () =>
+                String(url).includes("alternates-elsewhere")
+                    ? { success: true, count: strays }
+                    : { success: true, folders: FOLDERS },
+        }));
+    }
+
+    async function askToDelete(strays) {
+        answerByUrl(strays);
+        const wrapper = await render();
+        const row = wrapper.findAll("[data-folder-depth]")[0];
+        await row.findAll("button").at(-1).trigger("click");
+        await flushPromises();
+
+        return wrapper;
+    }
+
+    const checkbox = () => document.body.querySelector("input[type=checkbox]");
+
+    const deleteBody = () =>
+        JSON.parse(
+            global.fetch.mock.calls
+                .filter(([url]) => String(url).endsWith("/delete"))
+                .at(-1)[1].body,
+        );
+
+    async function confirm() {
+        const button = [...document.body.querySelectorAll("button")].find(
+            (b) =>
+                b.textContent.includes(i18n.global.t("shared.common.delete")) &&
+                !b.title,
+        );
+        button.click();
+        await flushPromises();
+    }
+
+    it("asks how many alternates live outside the folder", async () => {
+        await askToDelete(2);
+
+        expect(global.fetch).toHaveBeenCalledWith(
+            "/backend/ged/folders/1/alternates-elsewhere",
+            expect.anything(),
+        );
+        expect(checkbox()).not.toBeNull();
+        expect(checkbox().checked).toBe(true);
+    });
+
+    it("offers nothing when every alternate is already inside", async () => {
+        await askToDelete(0);
+
+        expect(checkbox()).toBeNull();
+    });
+
+    it("takes them along unless the box is unticked", async () => {
+        await askToDelete(2);
+        await confirm();
+
+        expect(deleteBody()).toEqual({ cascade: true, withAlternates: true });
+    });
+
+    it("leaves them where they are once unticked", async () => {
+        await askToDelete(2);
+        checkbox().click();
+        await flushPromises();
+        await confirm();
+
+        expect(deleteBody()).toEqual({ cascade: true, withAlternates: false });
+    });
+});

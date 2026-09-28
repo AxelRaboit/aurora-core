@@ -354,7 +354,10 @@ function openSearchFromMobile() {
 
     <div class="lg:hidden fixed top-0 inset-x-0 h-14 bg-surface border-b border-line z-30 flex items-center justify-between px-2 sm:px-4">
         <a :href="dashboardPath" class="flex items-center gap-2">
-            <AppLogo :size="28" />
+            <!-- The site's logo on a phone too: it was only read by the wide
+                 sidebar, and the phone bar kept drawing the default mark. -->
+            <img v-if="siteLogoUrl" :src="siteLogoUrl" alt="Logo" class="h-7 w-7 shrink-0 object-cover rounded-lg">
+            <AppLogo v-else :size="28" />
             <span class="text-primary font-bold text-base tracking-tight">{{ siteName }}</span>
         </a>
         <div class="flex items-center gap-1">
@@ -418,7 +421,8 @@ function openSearchFromMobile() {
         >
             <div class="flex items-center justify-between px-4 h-16 border-b border-line shrink-0">
                 <div class="flex items-center gap-2.5">
-                    <AppLogo :size="32" />
+                    <img v-if="siteLogoUrl" :src="siteLogoUrl" alt="Logo" class="h-8 w-8 shrink-0 object-cover rounded-xl">
+                    <AppLogo v-else :size="32" />
                     <div class="flex flex-col">
                         <span class="text-primary font-bold text-lg tracking-tight">{{ siteName }}</span>
                         <span v-if="appVersion" class="text-xs text-muted/50 leading-none">{{ appVersion }}</span>

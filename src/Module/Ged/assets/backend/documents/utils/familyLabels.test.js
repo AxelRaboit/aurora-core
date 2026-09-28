@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { familyMembers, labelSwatch } from "./familyLabels.js";
+import { familyMembers, familyUsage, labelSwatch } from "./familyLabels.js";
 
 describe("labelSwatch", () => {
     it("gives a dot to a colour name, in any of the three languages", () => {
@@ -47,5 +47,39 @@ describe("familyMembers", () => {
 
     it("has no members for a document without alternates", () => {
         expect(familyMembers({ id: 1, alternates: [] })).toEqual([]);
+    });
+});
+
+describe("familyUsage", () => {
+    it("keeps the used members, each with its kinds of source", () => {
+        const used = familyUsage([
+            { id: 1, original: true, usageCount: 0, usageByType: {} },
+            {
+                id: 2,
+                original: false,
+                label: "rouge",
+                usageCount: 3,
+                usageByType: { "editorial.post": 2, "studio.deck": 1 },
+            },
+        ]);
+
+        expect(used).toHaveLength(1);
+        expect(used[0].member.id).toBe(2);
+        expect(used[0].parts).toEqual([
+            { type: "editorial.post", count: 2 },
+            { type: "studio.deck", count: 1 },
+        ]);
+    });
+
+    it("counts a use that came without its kind as other", () => {
+        const used = familyUsage([
+            { id: 1, original: true, usageCount: 2, usageByType: [] },
+        ]);
+
+        expect(used[0].parts).toEqual([{ type: "other", count: 2 }]);
+    });
+
+    it("says nothing about a family nobody uses", () => {
+        expect(familyUsage([{ id: 1, usageCount: 0 }])).toEqual([]);
     });
 });

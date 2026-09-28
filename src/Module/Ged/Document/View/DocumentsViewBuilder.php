@@ -8,6 +8,7 @@ use Aurora\Core\Storage\Enum\MimeGroupEnum;
 use Aurora\Core\Storage\Enum\StorageDiskEnum;
 use Aurora\Core\Validation\Dto\PaginationRequest;
 use Aurora\Module\Configuration\Storage\Setting\StorageSettings;
+use Aurora\Module\Configuration\Theme\Service\ThemeContext;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Document\Serializer\DocumentSerializerInterface;
 use Aurora\Module\Ged\Document\Service\DocumentUsageService;
@@ -21,6 +22,7 @@ use Aurora\Module\Ged\Enum\DocumentStatusEnum;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 use function array_map;
+use function array_sum;
 use function is_int;
 
 final readonly class DocumentsViewBuilder
@@ -37,6 +39,7 @@ final readonly class DocumentsViewBuilder
         private UrlGeneratorInterface $urlGenerator,
         private StorageSettings $storageSettings,
         private DocumentUsageService $usageService,
+        private ThemeContext $themeContext,
     ) {}
 
     public function indexView(PaginationRequest $pagination, bool $originalsOnly = true, string $sort = 'date', string $direction = 'desc'): array
@@ -71,6 +74,9 @@ final readonly class DocumentsViewBuilder
             'updatePath' => $this->urlGenerator->generate('backend_ged_documents_update', ['id' => '__id__']),
             'deletePath' => $this->urlGenerator->generate('backend_ged_documents_delete', ['id' => '__id__']),
             'cropPath' => $this->urlGenerator->generate('backend_ged_documents_crop', ['id' => '__id__']),
+            'recolorPath' => $this->urlGenerator->generate('backend_ged_documents_recolor', ['id' => '__id__']),
+            // Offered first when declining a visual in another colour.
+            'themeColor' => $this->themeContext->primaryColor(),
             'bulkDeletePath' => $this->urlGenerator->generate('backend_ged_documents_bulk_delete'),
             'restorePath' => $this->urlGenerator->generate('backend_ged_documents_restore', ['id' => '__id__']),
             'forceDeletePath' => $this->urlGenerator->generate('backend_ged_documents_force_delete', ['id' => '__id__']),
@@ -196,13 +202,16 @@ final readonly class DocumentsViewBuilder
             }
         }
 
-        $counts = $this->usageService->countUsagesFor([...$ids, ...$alternateIds]);
+        // By kind of source, so the card can say where each member is used
+        // - "two pages, one deck" - and not only whether.
+        $byType = $this->usageService->countUsagesByTypeFor([...$ids, ...$alternateIds]);
+        $counts = array_map(array_sum(...), $byType);
         // Trashed alternates count here: the family rule refuses to make an
         // original of them an alternate, so the screen must not offer it.
         $withTrashed = $this->documentRepository->countAlternatesFor($ids, includeTrashed: true);
 
         return array_map(
-            function (array $item) use ($counts, $family, $withTrashed): array {
+            function (array $item) use ($counts, $byType, $family, $withTrashed): array {
                 $id = $item['id'] ?? null;
                 // Whole documents, not summaries: a picker that chooses the
                 // yellow copy from its original's card hands it to the page
@@ -212,6 +221,7 @@ final readonly class DocumentsViewBuilder
                         ...$this->documentSerializer->serialize($member),
                         'label' => $member->getAlternateLabel(),
                         'usageCount' => $counts[$member->getId()] ?? 0,
+                        'usageByType' => $byType[$member->getId()] ?? [],
                     ],
                     $family[$id] ?? [],
                 );
@@ -219,6 +229,7 @@ final readonly class DocumentsViewBuilder
                 return [
                     ...$item,
                     'usageCount' => $counts[$id] ?? 0,
+                    'usageByType' => $byType[$id] ?? [],
                     'alternateCount' => count($members),
                     'alternates' => $members,
                     'familyLocked' => ($withTrashed[$id] ?? 0) > 0,
