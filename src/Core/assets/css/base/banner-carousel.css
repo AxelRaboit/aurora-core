@@ -104,6 +104,21 @@
     }
 }
 
+/* Halfway up the sides only where the words leave room for them: the text
+   keeps the page's own left edge, which is the window's edge plus a gutter
+   until the column stops growing at 1280px. Below 1400px an arrow there sat
+   on the title, so they move down to the row of the dots, in the corners,
+   where the fade leaves nothing to cover. */
+@media (max-width: 1399px) {
+    .aurora-banner-arrow {
+        top: auto;
+        bottom: 0.75rem;
+        width: 2.25rem;
+        height: 2.25rem;
+        translate: none;
+    }
+}
+
 .aurora-banner-dots {
     position: absolute;
     bottom: 1.25rem;
