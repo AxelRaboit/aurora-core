@@ -865,7 +865,91 @@ const SHOTS = [
      * visite connecté, et il n'a rien à faire sur une image qui montre ce que
      * voit un visiteur.
      */
-    { name: "tour-site-public", path: "/fr", anonymous: true },
+    /**
+     * Le site public, tel qu'un visiteur le voit.
+     *
+     * Refait le 28/09/2026 avec la démonstration habillée (photos, vrais
+     * textes, carrousel d'accueil) : l'accueil, une page de service, une
+     * réalisation, la visionneuse, le site sur téléphone et le contact. Tout
+     * sans session, pour que la barre d'administration n'y soit pas.
+     */
+    {
+        // L'accueil et son carrousel, sur la première diapositive : elle ne
+        // tourne qu'au bout de sept secondes, et la prise est faite avant.
+        name: "tour-site-public",
+        path: "/fr",
+        anonymous: true,
+        async prepare(page) {
+            await page.waitForTimeout(1_200);
+        },
+    },
+    {
+        // Une page composée : l'accroche, puis image et texte en alternance.
+        name: "tour-site-public-service",
+        path: "/fr/services/developpement-web",
+        anonymous: true,
+        async prepare(page) {
+            await page.waitForTimeout(1_500);
+        },
+    },
+    {
+        // Une réalisation : la grande image, le récit et les chiffres.
+        // Défilée jusqu'au récit, que la grande image cache sinon.
+        name: "tour-site-public-realisation",
+        path: "/fr/projets/projet-lumen",
+        anonymous: true,
+        async prepare(page) {
+            await page.evaluate(() => window.scrollTo(0, 380));
+            await page.waitForTimeout(1_500);
+        },
+    },
+    {
+        // La visionneuse, ouverte sur la galerie de l'accueil.
+        name: "tour-site-public-galerie",
+        path: "/fr",
+        anonymous: true,
+        async prepare(page) {
+            const opener = page.locator("[data-gallery-open]").first();
+            await opener.scrollIntoViewIfNeeded();
+            await page.waitForTimeout(800);
+            await opener.click();
+            await page.waitForTimeout(1_500);
+        },
+    },
+    {
+        // Trois pages sur téléphone, côte à côte. Chacune est prise dans un
+        // contexte de 390 px de large, où le site se met en page comme sur un
+        // vrai téléphone, puis les trois images sont posées sur la toile. Des
+        // cadres n'iraient pas : le site refuse d'être affiché dans une page
+        // qui n'est pas la sienne.
+        name: "tour-site-public-telephone",
+        path: "/fr",
+        anonymous: true,
+        async prepare(page) {
+            const phone = await browser.newContext({
+                viewport: { width: 390, height: 844 },
+                deviceScaleFactor: 1,
+                isMobile: true,
+                hasTouch: true,
+                colorScheme: "dark",
+                reducedMotion: "reduce",
+            });
+            const shots = [];
+            for (const path of ["/fr", "/fr/services/photographie", "/fr/projets/projet-atlas"]) {
+                const tab = await phone.newPage();
+                await tab.goto(`${BASE_URL}${path}`, { waitUntil: "networkidle" });
+                await tab.addStyleTag({ content: ".sf-toolbar,.sf-minitoolbar{display:none!important}" });
+                await tab.waitForTimeout(1_200);
+                shots.push((await tab.screenshot()).toString("base64"));
+            }
+            await phone.close();
+
+            await page.setContent(`<!doctype html><html><body style="margin:0;height:1000px;display:flex;align-items:center;justify-content:center;gap:56px;background:radial-gradient(ellipse at 50% 40%,#12302a,#030712 75%)">${shots
+                .map((shot) => `<div style="padding:10px;border-radius:46px;background:#0b0f17;box-shadow:0 30px 60px rgba(0,0,0,.6),inset 0 0 0 1px rgba(255,255,255,.12)"><img src="data:image/png;base64,${shot}" style="display:block;width:390px;height:844px;border-radius:36px"></div>`)
+                .join("")}</body></html>`);
+            await page.waitForTimeout(300);
+        },
+    },
     {
         // Une seconde page publique, celle qui porte le formulaire : elle
         // montre une autre composition et le rendu d'un formulaire côté
