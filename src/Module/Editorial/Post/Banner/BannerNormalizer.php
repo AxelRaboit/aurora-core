@@ -233,9 +233,11 @@ final readonly class BannerNormalizer
             if (!is_array($slide)) {
                 continue;
             }
+
             if (!is_string($slide['id'] ?? null)) {
                 continue;
             }
+
             $entry = is_array($storedSlides[$slide['id']] ?? null) ? $storedSlides[$slide['id']] : [];
 
             $slides[$slide['id']] = [
