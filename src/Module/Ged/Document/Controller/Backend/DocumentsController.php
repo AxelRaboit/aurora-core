@@ -16,6 +16,7 @@ use Aurora\Core\Storage\Service\VideoCapture;
 use Aurora\Core\Validation\Dto\PaginationRequest;
 use Aurora\Core\Validation\Service\PayloadValidator;
 use Aurora\Module\Configuration\Storage\Setting\StorageSettings;
+use Aurora\Module\Ged\Document\Dto\ColorAlternateInput;
 use Aurora\Module\Ged\Document\Dto\DocumentInputFactoryInterface;
 use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
@@ -25,6 +26,7 @@ use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Document\Repository\DocumentVersionRepository;
 use Aurora\Module\Ged\Document\Serializer\DocumentSerializerInterface;
 use Aurora\Module\Ged\Document\Serializer\DocumentVersionSerializerInterface;
+use Aurora\Module\Ged\Document\Service\DocumentColorAlternateCreator;
 use Aurora\Module\Ged\Document\Service\DocumentFamilyRule;
 use Aurora\Module\Ged\Document\Service\DocumentRelocator;
 use Aurora\Module\Ged\Document\Service\DocumentUsageService;
@@ -71,6 +73,7 @@ final class DocumentsController extends AbstractController
         private readonly DocumentVersionSerializerInterface $versionSerializer,
         private readonly GedDocumentUploader $uploader,
         private readonly DocumentUsageService $usageService,
+        private readonly DocumentColorAlternateCreator $colorAlternateCreator,
         private readonly DocumentFolderRepository $folderRepository,
         private readonly InlineImageUploader $inlineImageUploader,
         private readonly DocumentRelocator $relocator,
@@ -221,6 +224,28 @@ final class DocumentsController extends AbstractController
     public function usage(Document $document): JsonResponse
     {
         return $this->jsonSuccess($this->usageService->findUsages((int) $document->getId()));
+    }
+
+    /**
+     * Declines the document - or its original - in another colour, as a new
+     * alternate of the family.
+     */
+    #[Route('/{id}/recolor', name: '_recolor', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('ged.documents.create')]
+    public function recolor(Document $document, Request $request): JsonResponse
+    {
+        $input = ColorAlternateInput::fromArray($this->decodeJson($request));
+        $errors = $this->payloadValidator->errors($input);
+        if ([] !== $errors) {
+            return $this->jsonInvalidInput($errors);
+        }
+
+        $result = $this->colorAlternateCreator->create($document, $input);
+        if (is_array($result)) {
+            return $this->jsonInvalidInput($result);
+        }
+
+        return $this->jsonSuccess(['document' => $this->serializer->serialize($result)]);
     }
 
     #[Route('/create', name: '_create', methods: [HttpMethodEnum::Post->value])]

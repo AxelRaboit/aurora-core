@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { Layers, Plus } from "lucide-vue-next";
+import { Layers, Palette, Plus } from "lucide-vue-next";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
@@ -20,9 +20,11 @@ const props = defineProps({
     doc: { type: Object, default: null },
     alternatesPath: { type: String, default: "" },
     canAdd: { type: Boolean, default: false },
+    // A still image can also be declined in another colour from here.
+    canRecolor: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(["open", "add"]);
+const emit = defineEmits(["open", "add", "recolor"]);
 
 const { t } = useI18n();
 const { request } = useRequest();
@@ -61,7 +63,7 @@ function labelOf(member) {
 </script>
 
 <template>
-    <div v-if="alternates.length || canAdd" class="space-y-2">
+    <div v-if="alternates.length || canAdd || canRecolor" class="space-y-2">
         <p class="text-xs text-muted uppercase tracking-wide flex items-center gap-1.5">
             <Layers class="w-3.5 h-3.5" :stroke-width="2" />
             {{ alternates.length ? t("backend.ged.documents.family.strip_title", { count: alternates.length }) : t("backend.ged.documents.family.strip_empty") }}
@@ -105,6 +107,15 @@ function labelOf(member) {
             >
                 <Plus class="w-4 h-4" :stroke-width="2" />
                 {{ t("backend.ged.documents.family.add_variant") }}
+            </button>
+            <button
+                v-if="canRecolor"
+                type="button"
+                class="flex aspect-square flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-line text-xs text-muted hover:text-primary hover:border-accent-400"
+                v-on:click="emit('recolor', original ?? doc)"
+            >
+                <Palette class="w-4 h-4" :stroke-width="2" />
+                {{ t("backend.ged.documents.recolor.open") }}
             </button>
         </div>
         <p v-if="loading" class="text-xs text-muted">{{ t("shared.common.loading") }}</p>

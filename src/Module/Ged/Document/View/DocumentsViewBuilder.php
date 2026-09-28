@@ -8,6 +8,7 @@ use Aurora\Core\Storage\Enum\MimeGroupEnum;
 use Aurora\Core\Storage\Enum\StorageDiskEnum;
 use Aurora\Core\Validation\Dto\PaginationRequest;
 use Aurora\Module\Configuration\Storage\Setting\StorageSettings;
+use Aurora\Module\Configuration\Theme\Service\ThemeContext;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Document\Serializer\DocumentSerializerInterface;
 use Aurora\Module\Ged\Document\Service\DocumentUsageService;
@@ -38,6 +39,7 @@ final readonly class DocumentsViewBuilder
         private UrlGeneratorInterface $urlGenerator,
         private StorageSettings $storageSettings,
         private DocumentUsageService $usageService,
+        private ThemeContext $themeContext,
     ) {}
 
     public function indexView(PaginationRequest $pagination, bool $originalsOnly = true, string $sort = 'date', string $direction = 'desc'): array
@@ -72,6 +74,9 @@ final readonly class DocumentsViewBuilder
             'updatePath' => $this->urlGenerator->generate('backend_ged_documents_update', ['id' => '__id__']),
             'deletePath' => $this->urlGenerator->generate('backend_ged_documents_delete', ['id' => '__id__']),
             'cropPath' => $this->urlGenerator->generate('backend_ged_documents_crop', ['id' => '__id__']),
+            'recolorPath' => $this->urlGenerator->generate('backend_ged_documents_recolor', ['id' => '__id__']),
+            // Offered first when declining a visual in another colour.
+            'themeColor' => $this->themeContext->primaryColor(),
             'bulkDeletePath' => $this->urlGenerator->generate('backend_ged_documents_bulk_delete'),
             'restorePath' => $this->urlGenerator->generate('backend_ged_documents_restore', ['id' => '__id__']),
             'forceDeletePath' => $this->urlGenerator->generate('backend_ged_documents_force_delete', ['id' => '__id__']),

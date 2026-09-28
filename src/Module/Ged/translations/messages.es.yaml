@@ -220,6 +220,30 @@ backend:
                     studio_space_file: '{count} archivo de espacio | {count} archivo de espacio | {count} archivos de espacio'
                     studio_space_attachment: '{count} adjunto | {count} adjunto | {count} adjuntos'
                     configuration_setting: '{count} ajuste del sitio | {count} ajuste del sitio | {count} ajustes del sitio'
+            recolor:
+                open: "Variante de color"
+                title: "Crear una variante de color"
+                intro: "Una copia de «{title}» en otro color, guardada en su familia. Cada píxel del tono del visual toma el nuevo y conserva su luminosidad."
+                color: "Nuevo color"
+                theme_color: "Color del tema"
+                source: "Color que reemplazar"
+                source_auto: "Detectado"
+                source_pick: "Elegido"
+                source_hint: "Detectado: el tono dominante del visual, por ejemplo el verde de un fondo verde."
+                spare: "Colores que conservar"
+                spare_hint: "Se quedan tal cual, incluso dentro del tono reemplazado: el verde de un logotipo, de una marca."
+                spare_add: "Añadir un color"
+                protect_detail: "Proteger fotos y capturas"
+                protect_detail_hint: "Las zonas detalladas colocadas sobre el visual (una foto, una captura de pantalla) conservan sus colores."
+                working: "Creando la copia… unos segundos para una imagen grande."
+                submit: "Crear la variante"
+                created: "Variante «{label}» creada."
+                errors:
+                    color_required: "Elija el nuevo color."
+                    color_invalid: "Un color en formato #rrggbb."
+                    label_required: "Dé una etiqueta a la variante."
+                    not_an_image: "Solo una imagen fija (PNG, JPEG, WebP) puede declinarse."
+                    nothing_to_replace: "No se encontró ningún color que reemplazar: elíjalo."
             originals_only: 'Agrupar las variantes'
             originals_only_hint: 'Mostrar solo los originales; sus variantes se abren desde cada uno.'
             usage:

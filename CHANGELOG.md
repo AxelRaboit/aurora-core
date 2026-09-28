@@ -32,6 +32,19 @@ part : le favicon du site s'affichait « Inutilisé » et pouvait partir à la
 corbeille sans avertissement. Ils apparaissent maintenant dans l'utilisation
 du document, avec un lien vers l'onglet des paramètres concerné.
 
+#### Créer une variante de couleur depuis la médiathèque
+Un bouton « Variante de couleur », dans l'aperçu d'une image et dans le
+bandeau Famille, décline le visuel dans une autre couleur et range la copie
+dans sa famille, avec le dossier, la catégorie, les étiquettes, le texte
+alternatif et le crédit de l'original, marquée « À conserver ». On choisit la
+nouvelle couleur (celle du thème en un clic), l'étiquette, la couleur à
+remplacer (détectée : la teinte dominante du visuel, ou choisie) et des
+couleurs à épargner. Chaque pixel de la teinte remplacée prend la nouvelle et
+garde sa luminosité, sans seuil qui tracerait un bord dans un dégradé. Les
+photos et captures posées sur le visuel sont protégées par défaut, ciel et
+aplats compris. Demandée depuis une variante, c'est l'original qui est
+décliné. Images fixes seulement (PNG, JPEG, WebP).
+
 ### Corrigé
 
 #### Un document restauré seul ne suit plus son ancien dossier

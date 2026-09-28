@@ -39,7 +39,7 @@ import { useDocumentCrop } from "./composables/useDocumentCrop.js";
 import { useMultiSelection } from "@/shared/composables/list/useMultiSelection.js";
 import AppTab from "@/shared/components/nav/AppTab.vue";
 import AppLoader from "@/shared/components/feedback/AppLoader.vue";
-import { Plus, Eye, Pencil, Trash2, Save, FileText, Paperclip, Upload, X, Folder, Download, QrCode, LayoutGrid, List, SortAsc, SortDesc, CheckSquare, Square, Copy, Crop, ExternalLink, Home, Layers, Star, ChevronRight, ChevronDown, Move, CloudUpload, HardDriveDownload, RotateCcw } from "lucide-vue-next";
+import { Plus, Eye, Pencil, Trash2, Save, FileText, Paperclip, Upload, X, Folder, Download, QrCode, LayoutGrid, List, SortAsc, SortDesc, CheckSquare, Square, Copy, Crop, ExternalLink, Home, Layers, Star, ChevronRight, ChevronDown, Move, CloudUpload, HardDriveDownload, RotateCcw, Palette } from "lucide-vue-next";
 import ImageCropperModal from "@/shared/components/overlay/ImageCropperModal.vue";
 import AppImagePreview from "@/shared/components/display/AppImagePreview.vue";
 import AppImage from "@/shared/components/display/AppImage.vue";
@@ -53,6 +53,7 @@ import DocumentStateBadges from "@ged/backend/documents/components/DocumentState
 import DocumentFamilyFields from "@ged/backend/documents/components/DocumentFamilyFields.vue";
 import DocumentFamilyChips from "@ged/backend/documents/components/DocumentFamilyChips.vue";
 import DocumentFamilyUsage from "@ged/backend/documents/components/DocumentFamilyUsage.vue";
+import DocumentRecolorModal from "@ged/backend/documents/components/DocumentRecolorModal.vue";
 import DocumentFamilyStrip from "@ged/backend/documents/components/DocumentFamilyStrip.vue";
 import { familyMembers } from "@ged/backend/documents/utils/familyLabels.js";
 import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
@@ -79,6 +80,8 @@ const props = defineProps({
     listPath: { type: String, required: true },
     uploadPath: { type: String, required: true },
     cropPath: { type: String, default: "" },
+    recolorPath: { type: String, default: "" },
+    themeColor: { type: String, default: "" },
     movePath: { type: String, default: "" },
     /** The alternate labels already used in the library, offered as suggestions. */
     alternateLabels: { type: Array, default: () => [] },
@@ -327,6 +330,17 @@ const bulkActions = computed(() => {
 });
 
 const { cropTarget, onCropped } = useDocumentCrop(viewingDoc, reset);
+
+// The document a colour alternate is being made from. The new copy is opened
+// once made, so it can be checked straight away, and the listing reloaded.
+const recolorTarget = ref(null);
+const canRecolor = (doc) => !!props.recolorPath && can("ged.documents.create") && /^image\/(png|jpe?g|webp)$/.test(doc?.fileMime ?? "");
+
+function onRecolored(created) {
+    recolorTarget.value = null;
+    reset();
+    if (created) viewDoc(created);
+}
 
 // Whether the selection holds an original with alternates: only then is
 // "with its alternates" a question worth asking.
@@ -1244,8 +1258,10 @@ const pageActions = computed(() => {
                     :doc="viewingDoc"
                     :alternates-path="alternatesPath"
                     :can-add="can('ged.documents.create')"
+                    :can-recolor="canRecolor(viewingDoc)"
                     v-on:open="viewDoc"
                     v-on:add="startVariant"
+                    v-on:recolor="recolorTarget = $event"
                 />
             </template>
             <template #footer>
@@ -1258,6 +1274,14 @@ const pageActions = computed(() => {
                         v-on:click="cropTarget = viewingDoc"
                     >
                         <Crop class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("backend.ged.documents.crop") }}
+                    </AppButton>
+                    <AppButton
+                        v-if="canRecolor(viewingDoc)"
+                        variant="ghost"
+                        size="md"
+                        v-on:click="recolorTarget = viewingDoc"
+                    >
+                        <Palette class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("backend.ged.documents.recolor.open") }}
                     </AppButton>
                     <AppButton
                         v-if="viewingDoc?.fileUrl"
@@ -1279,6 +1303,16 @@ const pageActions = computed(() => {
                 </AppModalFooter>
             </template>
         </AppModal>
+
+        <DocumentRecolorModal
+            v-if="recolorPath"
+            :doc="recolorTarget"
+            :recolor-path="recolorPath"
+            :theme-color="themeColor"
+            :label-suggestions="alternateLabels"
+            v-on:close="recolorTarget = null"
+            v-on:created="onRecolored"
+        />
 
         <AppQrCodeModal :item="qrDoc" v-on:close="closeQr" />
 
