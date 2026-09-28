@@ -508,6 +508,15 @@ function resizeZone(index, columns) {
                         :label="t('backend.posts.grid.highlight_color')"
                     />
 
+                    <!-- A zone that belongs to another trade than the page:
+                         its button in the photographer's colour on a page
+                         that is otherwise the agency's. -->
+                    <BannerColorField
+                        v-model="zoneFields(index).accentColor.value"
+                        :label="t('backend.posts.grid.accent_color')"
+                        :hint="t('backend.posts.grid.accent_color_hint')"
+                    />
+
                     <!-- Comment la zone arrive quand le lecteur la
                          rejoint. Ici, avec le fond et la largeur, parce que
                          c'est la même question posée une troisième fois :

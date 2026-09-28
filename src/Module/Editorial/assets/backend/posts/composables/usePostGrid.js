@@ -657,6 +657,8 @@ function newZone(type) {
         // Hovers and card markers: the page's own, unless this zone chooses.
         highlight: "inherit",
         highlightColor: null,
+        // The page's accent, unless this zone has its own.
+        accentColor: null,
         // Whatever the page says, which is still unless the page says
         // otherwise. A zone only carries its own answer when an author gave
         // it one, so changing the page's moves everything that never
@@ -1572,6 +1574,7 @@ export function usePostGrid(layout, content) {
                 contrast: shared("contrast"),
                 highlight: shared("highlight"),
                 highlightColor: shared("highlightColor"),
+                accentColor: shared("accentColor"),
                 reveal: shared("reveal"),
                 sticky: shared("sticky"),
                 fullBleed: shared("fullBleed"),

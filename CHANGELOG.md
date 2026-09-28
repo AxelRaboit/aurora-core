@@ -5,6 +5,20 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [Unreleased]
+
+### Ajouté
+
+#### Une couleur d'accent par bloc de la grille
+Chaque bloc de la grille de contenu a maintenant sa propre « Couleur
+d'accent », à côté des survols. Ses boutons, liens et repères la prennent à la
+place de celle de la page, en clair comme en sombre, avec la même échelle de
+teintes que la couleur d'accent d'une publication. Une page qui parle de
+plusieurs métiers peut ainsi donner à chaque section la couleur du sien. Vide,
+le bloc suit la page comme avant. Un enfant de pile a la sienne.
+
+---
+
 ## [0.9.290] - 2026-09-28
 
 ### Amélioré

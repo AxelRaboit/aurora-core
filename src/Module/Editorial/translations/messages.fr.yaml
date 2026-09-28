@@ -697,6 +697,8 @@ backend:
       highlight: Survols et repères
       highlight_hint: "La couleur des survols et des repères des cartes de ce bloc, par-dessus celle de la page et du thème."
       highlight_color: Couleur des survols
+      accent_color: Couleur d'accent
+      accent_color_hint: "Les boutons, liens et repères de ce bloc prennent cette couleur plutôt que celle de la page. Vide : comme la page."
       highlights:
         inherit: Comme la page
         accent: Couleur principale
