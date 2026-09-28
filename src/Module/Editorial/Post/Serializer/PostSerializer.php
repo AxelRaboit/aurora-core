@@ -34,6 +34,10 @@ class PostSerializer implements PostSerializerInterface
             'id' => $post->getId(),
             'title' => $this->preferredTitle($post),
             'status' => $post->getStatus()->value,
+            // A post in the trash can still be referenced - a related post, a
+            // grid zone - and nothing on the page shows it any more. The
+            // editor says so, rather than listing it like any other.
+            'trashed' => $post->isTrashed(),
             'postTypeId' => $post->getPostType()->getId(),
             'postType' => $post->getPostType()->getLabel(),
         ];

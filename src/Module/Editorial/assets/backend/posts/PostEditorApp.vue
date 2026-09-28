@@ -404,11 +404,20 @@ const thumbnailFitClass = computed(
     () => THUMBNAIL_FIT_CLASSES[form.value.thumbnailFit] ?? "object-cover",
 );
 
+// Offered to the grid's "Publication" zones. A post in the trash is still
+// named, since a zone may already point at it, but marked: the zone draws
+// nothing while it stays there.
 const relatedPostOptions = computed(() =>
     (props.post?.relatedPosts ?? []).map((related) => ({
         id: related.id,
-        title: related.title,
+        title: related.trashed
+            ? t("backend.posts.related_post_trashed_title", { title: related.title })
+            : related.title,
     })),
+);
+
+const hasTrashedRelatedPosts = computed(() =>
+    selectedRelatedPosts.value.some((related) => related.trashed),
 );
 
 function termLabel(term) {
@@ -780,8 +789,14 @@ function termLabel(term) {
                         <p class="text-xs text-muted">{{ t("backend.posts.related_posts_hint") }}</p>
 
                         <div v-if="selectedRelatedPosts.length" class="flex flex-wrap gap-2">
-                            <AppBadge v-for="related in selectedRelatedPosts" :key="related.id" color="gray">
+                            <AppBadge
+                                v-for="related in selectedRelatedPosts"
+                                :key="related.id"
+                                :color="related.trashed ? 'amber' : 'gray'"
+                                :title="related.trashed ? t('backend.posts.related_post_trashed') : undefined"
+                            >
                                 {{ related.title }}
+                                <span v-if="related.trashed" class="ms-1 opacity-80">· {{ t("backend.posts.related_post_trashed") }}</span>
                                 <button
                                     type="button"
                                     class="ms-1.5 -me-0.5 align-middle hover:text-red-500"
@@ -792,6 +807,9 @@ function termLabel(term) {
                             </AppBadge>
                         </div>
                         <p v-else class="text-xs text-muted">{{ t("backend.posts.related_posts_empty") }}</p>
+                        <p v-if="hasTrashedRelatedPosts" class="text-xs text-amber-600 dark:text-amber-500">
+                            {{ t("backend.posts.related_posts_trashed_hint") }}
+                        </p>
 
                         <AppInput
                             v-model="relatedPostSearch"

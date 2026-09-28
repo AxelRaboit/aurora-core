@@ -188,8 +188,29 @@ describe("usePostEditor related posts", () => {
         });
 
         expect(selectedRelatedPosts.value).toEqual([
-            { id: 5, title: "Stratégie de contenu" },
+            { id: 5, title: "Stratégie de contenu", trashed: false },
         ]);
+    });
+
+    // Onyx and Spendly, trashed on 07/09/2026, stayed listed on the home page
+    // for three weeks like any other related post.
+    it("marks a related post that is in the trash", () => {
+        const { selectedRelatedPosts } = usePostEditor({
+            ...props,
+            post: {
+                id: 1,
+                relatedPostIds: [5, 7],
+                relatedPosts: [
+                    { id: 5, title: "Stratégie de contenu", trashed: false },
+                    { id: 7, title: "Onyx", trashed: true },
+                ],
+                translations: {},
+            },
+        });
+
+        expect(
+            selectedRelatedPosts.value.map((related) => related.trashed),
+        ).toEqual([false, true]);
     });
 
     it("adds a post found by search and clears the search", () => {
@@ -205,7 +226,7 @@ describe("usePostEditor related posts", () => {
 
         expect(form.value.relatedPostIds).toEqual([5]);
         expect(selectedRelatedPosts.value).toEqual([
-            { id: 5, title: "Stratégie de contenu" },
+            { id: 5, title: "Stratégie de contenu", trashed: false },
         ]);
         expect(relatedPostSearch.value).toBe("");
     });

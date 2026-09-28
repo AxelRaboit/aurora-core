@@ -5,6 +5,20 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.288] - 2026-09-28
+
+### Corrigé
+
+#### Une publication liée mise à la corbeille est signalée
+Mettre une publication à la corbeille la laissait dans les « Publications
+liées » des autres, présentée comme n'importe laquelle : deux projets
+supprimés trois semaines plus tôt figuraient encore sur l'accueil. Le lien est
+gardé exprès, pour qu'une publication restaurée retrouve sa place, et le site
+ne l'affiche déjà nulle part. L'éditeur la marque maintenant « à la
+corbeille », en ambre, avec une ligne qui explique quoi en faire ; le choix
+d'une zone « Publication » de la grille la signale aussi. La supprimer
+définitivement retire le lien.
+
 ## [0.9.287] - 2026-09-28
 
 ### Ajouté
