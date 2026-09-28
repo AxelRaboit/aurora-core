@@ -697,6 +697,8 @@ backend:
             highlight: 'Resaltados y marcas'
             highlight_hint: 'El color de los resaltados al pasar el ratón y de las marcas de las tarjetas de este bloque, por encima del de la página y del tema.'
             highlight_color: 'Color al pasar el ratón'
+            accent_color: 'Color de acento'
+            accent_color_hint: 'Los botones, enlaces y marcas de este bloque toman este color en lugar del de la página. Vacío: como la página.'
             highlights:
                 inherit: 'Como la página'
                 accent: 'Color principal'

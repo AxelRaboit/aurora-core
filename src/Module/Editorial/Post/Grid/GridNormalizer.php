@@ -1132,6 +1132,9 @@ final readonly class GridNormalizer
                 // page's and the theme's. `inherit` - the default - follows them.
                 'highlight' => $this->values->oneOf($entry['highlight'] ?? null, self::ZONE_HIGHLIGHTS, self::ZONE_HIGHLIGHTS[0]),
                 'highlightColor' => $this->values->color($entry['highlightColor'] ?? null),
+                // The accent of this zone alone - its buttons, links and
+                // markers - over the page's. Null follows the page.
+                'accentColor' => $this->values->color($entry['accentColor'] ?? null),
                 // How the zone arrives when the reader reaches it. Beside the
                 // surface because it is the same kind of decision - how this
                 // zone presents itself - and shared for the same reason.
