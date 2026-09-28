@@ -45,6 +45,16 @@ photos et captures posées sur le visuel sont protégées par défaut, ciel et
 aplats compris. Demandée depuis une variante, c'est l'original qui est
 décliné. Images fixes seulement (PNG, JPEG, WebP).
 
+#### Des liserés dessinés par le site sur une entête
+Nouvelle option d'entête, onglet En-tête › Apparence : des bandes de couleur
+parallèles et inclinées, posées par-dessus n'importe quel fond, sous le texte.
+Couleurs (une par bande, jusqu'à six, dans l'ordre), côté (gauche, centre,
+droite), épaisseur, écart, inclinaison, distance du bord et opacité se règlent
+page par page ; les bandes s'affinent sur tablette et sur téléphone, où l'on
+peut aussi les masquer. Changer leurs couleurs ou leur angle devient un
+réglage plutôt qu'une nouvelle image à fabriquer. Désactivée par défaut : rien
+ne change sur les pages existantes.
+
 ### Corrigé
 
 #### Un document restauré seul ne suit plus son ancien dossier

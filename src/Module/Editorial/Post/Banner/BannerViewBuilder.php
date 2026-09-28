@@ -59,7 +59,8 @@ final readonly class BannerViewBuilder
         // shipping an empty one.
         $hasContent = null !== $banner['background']['fillStyle']
             || null !== $banner['background']['media']
-            || [] !== $banner['items'];
+            || [] !== $banner['items']
+            || $banner['stripes']['enabled'];
 
         return $hasContent ? $banner : null;
     }
@@ -177,7 +178,31 @@ final readonly class BannerViewBuilder
                 'fillStyle' => $this->fillStyle($layout['background']),
             ],
             'logo' => $this->mediaData($documents[$layout['logoMediaId']] ?? null, ''),
+            'stripes' => [
+                ...$layout['stripes'],
+                // The same reasoning as the fill: custom properties assembled
+                // from integers the normaliser clamped, read by the stripes'
+                // rule in the stylesheet.
+                'style' => $this->stripesStyle($layout['stripes']),
+            ],
         ];
+    }
+
+    /**
+     * The custom properties the bands are drawn from.
+     *
+     * @param array{thickness: int, gap: int, angle: int, offset: int, opacity: int} $stripes
+     */
+    private function stripesStyle(array $stripes): string
+    {
+        return sprintf(
+            '--stripe-thickness: %dpx; --stripe-gap: %dpx; --stripe-angle: %ddeg; --stripe-offset: %d%%; opacity: %s;',
+            $stripes['thickness'],
+            $stripes['gap'],
+            -$stripes['angle'],
+            $stripes['offset'],
+            mb_rtrim(mb_rtrim(number_format($stripes['opacity'] / 100, 2, '.', ''), '0'), '.'),
+        );
     }
 
     /**

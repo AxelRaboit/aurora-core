@@ -389,6 +389,24 @@ backend:
       logo_hint: Affiché en haut à gauche, par-dessus le fond.
       fade_out: Fondu vers le bas
       fade_out_hint: "Le bas de l'en-tête se dissout dans la page au lieu de s'arrêter net."
+      stripes: "Liserés"
+      stripes_hint: "Des bandes de couleur inclinées, dessinées par le site par-dessus le fond."
+      stripe_colors: "Une bande par couleur, dans cet ordre"
+      stripe_color: "Bande {number}"
+      stripe_add: "Ajouter une bande"
+      stripe_remove: "Retirer la bande"
+      stripe_side: "Position"
+      stripe_thickness: "Épaisseur : {px} px"
+      stripe_gap: "Écart : {px} px"
+      stripe_angle: "Inclinaison : {degrees}°"
+      stripe_offset: "Distance du bord : {percent} %"
+      stripe_opacity: "Opacité : {percent} %"
+      stripe_hide_on_phone: "Masquer sur téléphone"
+      stripe_hide_on_phone_hint: "Un téléphone ne garde que le milieu de l'en-tête, là où sont les mots."
+      stripe_sides:
+        start: "Gauche"
+        center: "Centre"
+        end: "Droite"
       fill: Type de fond
       fills:
         none: Aucun

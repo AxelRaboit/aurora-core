@@ -26,6 +26,7 @@ import AppRange from "@/shared/components/form/toggle/AppRange.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
+import AppChoiceRow from "@/shared/components/form/select/AppChoiceRow.vue";
 import BannerColorField from "./BannerColorField.vue";
 import BannerTitleInput from "./BannerTitleInput.vue";
 import { Plus, Trash2, ChevronUp, ChevronDown, Type, Image, MousePointerClick } from "lucide-vue-next";
@@ -51,6 +52,12 @@ const {
     widthModeOptions,
     verticalAlignOptions,
     titleSizeOptions,
+    stripeSideOptions,
+    stripeColors,
+    canAddStripe,
+    setStripeColor,
+    addStripe,
+    removeStripe,
     widthOptions,
     tabletWidthOptions,
     fontOptions,
@@ -462,6 +469,76 @@ const { html: previewHtml, loading: previewLoading } = useServerPreview(
                     :label="t('backend.posts.banner.fade_out')"
                     :hint="t('backend.posts.banner.fade_out_hint')"
                 />
+
+                <!-- Bands drawn by the site, over any background: changing
+                     their colours or their slant is a setting here, not a new
+                     picture to make. -->
+                <AppToggle
+                    v-model="fields.stripesEnabled.value"
+                    :label="t('backend.posts.banner.stripes')"
+                    :hint="t('backend.posts.banner.stripes_hint')"
+                />
+                <div v-if="fields.stripesEnabled.value" class="space-y-3 rounded-lg border border-line p-3">
+                    <div class="space-y-2">
+                        <p class="text-sm text-secondary">{{ t("backend.posts.banner.stripe_colors") }}</p>
+                        <div v-for="(colour, index) in stripeColors" :key="index" class="flex items-end gap-2">
+                            <BannerColorField
+                                class="flex-1"
+                                :model-value="colour"
+                                :label="t('backend.posts.banner.stripe_color', { number: index + 1 })"
+                                v-on:update:model-value="setStripeColor(index, $event)"
+                            />
+                            <AppIconButton
+                                v-if="stripeColors.length > 1"
+                                variant="ghost"
+                                size="sm"
+                                :title="t('backend.posts.banner.stripe_remove')"
+                                v-on:click="removeStripe(index)"
+                            >
+                                <Trash2 class="h-3.5 w-3.5" :stroke-width="2" />
+                            </AppIconButton>
+                        </div>
+                        <AppButton
+                            v-if="canAddStripe"
+                            variant="ghost"
+                            size="sm"
+                            type="button"
+                            v-on:click="addStripe"
+                        >
+                            <Plus class="h-3.5 w-3.5" :stroke-width="2" /> {{ t("backend.posts.banner.stripe_add") }}
+                        </AppButton>
+                    </div>
+                    <AppChoiceRow
+                        v-model="fields.stripesSide.value"
+                        :options="stripeSideOptions"
+                        :label="t('backend.posts.banner.stripe_side')"
+                    />
+                    <div>
+                        <p class="text-sm text-secondary mb-1">{{ t("backend.posts.banner.stripe_thickness", { px: fields.stripesThickness.value }) }}</p>
+                        <AppRange v-model="fields.stripesThickness.value" :min="4" :max="240" :step="2" />
+                    </div>
+                    <div>
+                        <p class="text-sm text-secondary mb-1">{{ t("backend.posts.banner.stripe_gap", { px: fields.stripesGap.value }) }}</p>
+                        <AppRange v-model="fields.stripesGap.value" :min="0" :max="160" :step="2" />
+                    </div>
+                    <div>
+                        <p class="text-sm text-secondary mb-1">{{ t("backend.posts.banner.stripe_angle", { degrees: fields.stripesAngle.value }) }}</p>
+                        <AppRange v-model="fields.stripesAngle.value" :min="-60" :max="60" :step="1" />
+                    </div>
+                    <div>
+                        <p class="text-sm text-secondary mb-1">{{ t("backend.posts.banner.stripe_offset", { percent: fields.stripesOffset.value }) }}</p>
+                        <AppRange v-model="fields.stripesOffset.value" :min="0" :max="90" :step="1" />
+                    </div>
+                    <div>
+                        <p class="text-sm text-secondary mb-1">{{ t("backend.posts.banner.stripe_opacity", { percent: fields.stripesOpacity.value }) }}</p>
+                        <AppRange v-model="fields.stripesOpacity.value" :min="10" :max="100" :step="5" />
+                    </div>
+                    <AppToggle
+                        v-model="fields.stripesHideOnPhone.value"
+                        :label="t('backend.posts.banner.stripe_hide_on_phone')"
+                        :hint="t('backend.posts.banner.stripe_hide_on_phone_hint')"
+                    />
+                </div>
 
                 <AppImagePickerField
                     v-model="fields.logoMedia.value"

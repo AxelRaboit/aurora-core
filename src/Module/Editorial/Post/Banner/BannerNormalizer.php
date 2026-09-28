@@ -121,6 +121,12 @@ final readonly class BannerNormalizer
 
     private const array ALIGNMENTS = ['start', 'center', 'end'];
 
+    /** How many bands a banner can draw. */
+    private const int MAX_STRIPES = 6;
+
+    /** Three bands when nothing is chosen: a green, a red and a yellow. */
+    private const array DEFAULT_STRIPE_COLORS = ['#34d399', '#bd4a55', '#cd8f31'];
+
     public function __construct(
         private ContentValueNormalizer $values,
         private BlockHtmlSanitizer $sanitizer = new BlockHtmlSanitizer(),
@@ -152,6 +158,7 @@ final readonly class BannerNormalizer
             // banner already published has, and a fade is a choice.
             'fadeOut' => (bool) ($data['fadeOut'] ?? false),
             'background' => $this->background(is_array($data['background'] ?? null) ? $data['background'] : []),
+            'stripes' => $this->stripes(is_array($data['stripes'] ?? null) ? $data['stripes'] : []),
             'items' => $this->layoutItems($data),
         ];
     }
@@ -246,6 +253,52 @@ final readonly class BannerNormalizer
             'mediaId' => $this->values->id($data['mediaId'] ?? null),
             'mobileMediaId' => $this->values->id($data['mobileMediaId'] ?? null),
             'tabletMediaId' => $this->values->id($data['tabletMediaId'] ?? null),
+        ];
+    }
+
+    /**
+     * Slanted colour bands drawn by the site over the banner, in the spirit
+     * of a logo made of parallel strokes: one band per colour, set side by
+     * side and leaning together.
+     *
+     * Drawn rather than painted into the picture, so changing a colour or
+     * their slant is a setting and not a new image, on every banner at once
+     * if the same values are used. Off by default: nothing published had them.
+     *
+     * Every value ends up in a `style` attribute, so each is reduced here to
+     * a hex colour or a clamped integer; nothing free-form survives.
+     *
+     * @param array<string, mixed> $data
+     *
+     * @return array{enabled: bool, colors: list<string>, side: string, thickness: int, gap: int, angle: int, offset: int, opacity: int, hideOnPhone: bool}
+     */
+    private function stripes(array $data): array
+    {
+        $colors = [];
+        foreach (is_array($data['colors'] ?? null) ? $data['colors'] : [] as $color) {
+            $color = $this->values->color($color);
+            if (null !== $color && count($colors) < self::MAX_STRIPES) {
+                $colors[] = $color;
+            }
+        }
+
+        return [
+            'enabled' => (bool) ($data['enabled'] ?? false),
+            'colors' => [] !== $colors ? $colors : self::DEFAULT_STRIPE_COLORS,
+            // Which edge of the banner the bands lean against.
+            'side' => $this->values->oneOf($data['side'] ?? null, self::ALIGNMENTS, 'end'),
+            // Width of one band and of the gap between two, in pixels on a
+            // wide screen; a phone and a tablet draw them smaller.
+            'thickness' => max(4, min(240, (int) ($data['thickness'] ?? 48))),
+            'gap' => max(0, min(160, (int) ($data['gap'] ?? 16))),
+            // Degrees from the vertical; positive leans the top to the right.
+            'angle' => max(-60, min(60, (int) ($data['angle'] ?? 22))),
+            // Distance from the edge, as a percentage of the banner's width.
+            'offset' => max(0, min(90, (int) ($data['offset'] ?? 8))),
+            'opacity' => max(10, min(100, (int) ($data['opacity'] ?? 100))),
+            // A phone keeps only the middle of a wide banner, where the words
+            // are: bands at the edge can crowd them there.
+            'hideOnPhone' => (bool) ($data['hideOnPhone'] ?? false),
         ];
     }
 

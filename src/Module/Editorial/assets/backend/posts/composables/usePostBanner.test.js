@@ -71,6 +71,7 @@ describe("usePostBanner", () => {
             widthModeOptions: 2,
             verticalAlignOptions: 3,
             titleSizeOptions: 4,
+            stripeSideOptions: 3,
             widthOptions: 6,
         };
 
