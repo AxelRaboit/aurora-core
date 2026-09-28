@@ -5,6 +5,34 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.290] - 2026-09-28
+
+### Amélioré
+
+#### Une démonstration qui ressemble à un vrai site
+Le site public de la démonstration montrait des images abstraites et du faux
+latin. Il montre maintenant quatorze photos libres de Pexels (crédit du
+photographe sous chaque image, comme le site le fait pour tout document qui
+porte une attribution), un accueil en carrousel sur trois photos, et de vrais
+textes en trois langues : un studio, ses trois services, deux réalisations
+racontées avec leurs chiffres. Les galeries ont chacune leurs photos. Les
+fichiers et leurs licences sont listés dans
+`test_files/images/pexels/CREDITS.md`.
+
+#### Un vrai formulaire de contact dans la démo
+La page Contact de la démonstration posait la demande de devis, qui porte
+exprès un champ de chaque type en deux étapes pour les écrans du module
+Formulaires. Elle pose maintenant un formulaire de contact de trois champs
+(nom, e-mail, message), et n'appelle plus de commentaires. La demande de devis
+reste dans la démo pour le module Formulaires.
+
+#### Le sélecteur de langue n'affiche plus que le drapeau dans la barre
+Dans la barre du site public, le sélecteur de langue montrait le drapeau et
+le nom de la langue à partir de la tablette. Il n'affiche plus que le
+drapeau, à toutes les largeurs ; le nom apparaît au survol et reste lu par les
+lecteurs d'écran. Le menu qu'il ouvre garde les noms en toutes lettres. Une
+langue sans drapeau garde son nom dans la barre.
+
 ## [0.9.289] - 2026-09-28
 
 ### Ajouté

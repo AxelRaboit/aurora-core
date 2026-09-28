@@ -142,7 +142,11 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         // La page de contact pose le formulaire, donc elle attend qu'il
         // existe : une zone de formulaire nomme un identifiant, et un
         // formulaire qui n'est pas encore écrit n'en a pas.
-        $this->layOutContactPage($posts, $this->createQuoteForm());
+        //
+        // Deux formulaires : la demande de devis garde un champ de chaque
+        // type pour les écrans du module, la page de contact pose le court.
+        $this->createQuoteForm();
+        $this->layOutContactPage($posts, $this->createContactForm());
 
         $this->createComments($manager, $posts);
         $manager->flush();
@@ -416,7 +420,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             ],
             'blocks' => [
                 'type' => $types['article'],
-                'media' => 2,
+                'media' => 12,
                 'status' => PostStatusEnum::Published,
                 'publishedAt' => $now->modify('-3 days'),
                 'terms' => ['guides', 'layout', 'media'],
@@ -471,19 +475,19 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             // Ce que la production a et que la démo n'avait pas : des pages
             // institutionnelles, deux types de contenu maison et des
             // réalisations - c'est-à-dire la forme d'un vrai site plutôt que
-            // celle d'un bac à sable. Les titres sont vrais, parce qu'un menu
-            // qui dit « Lorem ipsum » n'apprend rien ; tout ce qui se lit
-            // dessous est du faux latin, pour que personne ne prenne une page
-            // de démonstration pour une page de client.
+            // celle d'un bac à sable. Depuis le 28/09/2026, les textes aussi
+            // sont vrais - ceux d'un petit studio fictif - parce que ces pages
+            // illustrent le site public sur le tour d'Aurora, et le faux latin
+            // s'y voyait sur chaque capture.
             'about' => [
                 'type' => $types['page'],
-                'media' => 1,
+                'media' => 2,
                 'status' => PostStatusEnum::Published,
                 'publishedAt' => $now->modify('-28 days'),
                 'terms' => [],
-                'fr' => ['À propos', 'a-propos', $this->lorem(1)],
-                'en' => ['About', 'about', $this->lorem(1)],
-                'es' => ['Acerca de', 'acerca-de', $this->lorem(1)],
+                'fr' => ['À propos', 'a-propos', 'Un studio de trois personnes, pour les sites, les images et les réseaux.'],
+                'en' => ['About', 'about', 'A three-person studio for websites, pictures and social media.'],
+                'es' => ['Acerca de', 'acerca-de', 'Un estudio de tres personas, para sitios, imágenes y redes sociales.'],
             ],
             'contact' => [
                 'type' => $types['page'],
@@ -497,68 +501,68 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             ],
             'legal' => [
                 'type' => $types['page'],
-                'media' => 2,
+                'media' => 1,
                 'status' => PostStatusEnum::Published,
                 'publishedAt' => $now->modify('-28 days'),
                 'terms' => [],
-                'fr' => ['Mentions légales', 'mentions-legales', $this->lorem(1, 2)],
-                'en' => ['Legal notice', 'legal-notice', $this->lorem(1, 2)],
-                'es' => ['Aviso legal', 'aviso-legal', $this->lorem(1, 2)],
+                'fr' => ['Mentions légales', 'mentions-legales', 'Éditeur, hébergement et données personnelles.'],
+                'en' => ['Legal notice', 'legal-notice', 'Publisher, hosting and personal data.'],
+                'es' => ['Aviso legal', 'aviso-legal', 'Editor, alojamiento y datos personales.'],
             ],
             'service-web' => [
                 'type' => $types['services'],
-                'media' => 0,
+                'media' => 9,
                 'status' => PostStatusEnum::Published,
                 'publishedAt' => $now->modify('-25 days'),
                 'terms' => [],
-                'fr' => ['Développement web', 'developpement-web', $this->lorem(1, 3)],
-                'en' => ['Web development', 'web-development', $this->lorem(1, 3)],
-                'es' => ['Desarrollo web', 'desarrollo-web', $this->lorem(1, 3)],
+                'fr' => ['Développement web', 'developpement-web', 'Des sites sur mesure que vous faites vivre vous-même.'],
+                'en' => ['Web development', 'web-development', 'Bespoke websites you keep up to date yourself.'],
+                'es' => ['Desarrollo web', 'desarrollo-web', 'Sitios a medida que usted mismo mantiene al día.'],
             ],
             'service-photo' => [
                 'type' => $types['services'],
-                'media' => 1,
+                'media' => 7,
                 'status' => PostStatusEnum::Published,
                 'publishedAt' => $now->modify('-24 days'),
                 'terms' => [],
-                'fr' => ['Photographie', 'photographie', $this->lorem(1, 4)],
-                'en' => ['Photography', 'photography', $this->lorem(1, 4)],
-                'es' => ['Fotografía', 'fotografia', $this->lorem(1, 4)],
+                'fr' => ['Photographie', 'photographie', 'Portraits, reportages et photos de produits.'],
+                'en' => ['Photography', 'photography', 'Portraits, reportage and product photography.'],
+                'es' => ['Fotografía', 'fotografia', 'Retratos, reportajes y fotos de producto.'],
             ],
             'service-social' => [
                 'type' => $types['services'],
-                'media' => 2,
+                'media' => 8,
                 'status' => PostStatusEnum::Published,
                 'publishedAt' => $now->modify('-23 days'),
                 'terms' => [],
-                'fr' => ['Réseaux sociaux', 'reseaux-sociaux', $this->lorem(1, 5)],
-                'en' => ['Social media', 'social-media', $this->lorem(1, 5)],
-                'es' => ['Redes sociales', 'redes-sociales', $this->lorem(1, 5)],
+                'fr' => ['Réseaux sociaux', 'reseaux-sociaux', 'Stratégie, contenus et modération, chaque mois.'],
+                'en' => ['Social media', 'social-media', 'Strategy, content and moderation, every month.'],
+                'es' => ['Redes sociales', 'redes-sociales', 'Estrategia, contenidos y moderación, cada mes.'],
             ],
             'project-lumen' => [
                 'type' => $types['projets'],
-                'media' => 3,
+                'media' => 11,
                 'status' => PostStatusEnum::Published,
                 'publishedAt' => $now->modify('-18 days'),
                 'terms' => [],
-                'fr' => ['Projet Lumen', 'projet-lumen', $this->lorem(1, 6)],
-                'en' => ['Lumen project', 'lumen-project', $this->lorem(1, 6)],
-                'es' => ['Proyecto Lumen', 'proyecto-lumen', $this->lorem(1, 6)],
+                'fr' => ['Projet Lumen', 'projet-lumen', "Le site d'un cabinet d'architectes, refait autour de ses photos."],
+                'en' => ['Lumen project', 'lumen-project', "An architecture firm's website, rebuilt around its photographs."],
+                'es' => ['Proyecto Lumen', 'proyecto-lumen', 'El sitio de un estudio de arquitectura, rehecho en torno a sus fotos.'],
             ],
             'project-atlas' => [
                 'type' => $types['projets'],
-                'media' => 0,
+                'media' => 10,
                 'status' => PostStatusEnum::Published,
                 'publishedAt' => $now->modify('-9 days'),
                 'terms' => [],
-                'fr' => ['Projet Atlas', 'projet-atlas', $this->lorem(1, 7)],
-                'en' => ['Atlas project', 'atlas-project', $this->lorem(1, 7)],
-                'es' => ['Proyecto Atlas', 'proyecto-atlas', $this->lorem(1, 7)],
+                'fr' => ['Projet Atlas', 'projet-atlas', 'Une agence de voyages en trois langues, et un Instagram qui vit.'],
+                'en' => ['Atlas project', 'atlas-project', 'A travel agency in three languages, and an Instagram that stays alive.'],
+                'es' => ['Proyecto Atlas', 'proyecto-atlas', 'Una agencia de viajes en tres idiomas, y un Instagram con vida.'],
             ],
             // Last, so that adding it moves no other publication's reference.
             'showcase' => [
                 'type' => $types['page'],
-                'media' => 2,
+                'media' => 15,
                 'status' => PostStatusEnum::Published,
                 'publishedAt' => $now->modify('-1 day'),
                 'terms' => [],
@@ -674,11 +678,16 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
     {
         $welcome = $posts['welcome'];
         $linked = $posts['first-steps'];
-        $picture = $this->getReference(GedDemoFixtures::mediaRef(1), Document::class);
-        // mediaRef(2), not (4): the references are numbered from one and the
-        // fourth is the demo video, which a media zone would render as a
-        // broken `<img>`. A portrait suits the lower half of a stack anyway.
-        $stacked = $this->getReference(GedDemoFixtures::mediaRef(2), Document::class);
+        // A portrait for the tall zone - the glass facade - and the desk for
+        // the lower half of the stack. Never mediaRef(4): that one is the demo
+        // video, which a media zone would render as a broken `<img>`.
+        $picture = $this->getReference(GedDemoFixtures::mediaRef(11), Document::class);
+        $stacked = $this->getReference(GedDemoFixtures::mediaRef(3), Document::class);
+        $slides = [
+            'studio' => $this->getReference(GedDemoFixtures::mediaRef(0), Document::class),
+            'city' => $this->getReference(GedDemoFixtures::mediaRef(6), Document::class),
+            'lake' => $this->getReference(GedDemoFixtures::mediaRef(1), Document::class),
+        ];
 
         $zones = [
             ['id' => 'intro', 'type' => GridNormalizer::ZONE_TEXT, 'span' => ['base' => 48, 'md' => null, 'lg' => 48]],
@@ -735,43 +744,34 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             'zones' => $zones,
         ]));
 
-        // A header, because the demo home page had none and a site whose first
-        // screen is a list of two cards shows the editor and hides everything
-        // the banner can do. Full width, a gradient in the accent of the
-        // shipped palette, and the foot dissolved into the page - the three
-        // choices somebody would actually make, rather than a grey box proving
-        // the field exists.
+        // Un en-tête en carrousel, sur photos : ce que la page d'accueil d'un
+        // vrai site porte, et ce que le tour d'Aurora photographie. Trois
+        // diapositives, chacune assombrie juste assez pour que le texte blanc
+        // se lise, et un bouton vers la page de contact sur la première.
+        $bannerText = static fn (string $id): array => [
+            'id' => $id,
+            'type' => 'text',
+            'span' => ['base' => 48, 'md' => 32, 'lg' => 26],
+            'titleColor' => '#ffffff',
+            'descriptionColor' => '#e5e7eb',
+            'align' => 'start',
+            'titleSize' => 'xl',
+        ];
+        $photo = static fn (Document $document): array => ['type' => 'none', 'mediaId' => $document->getId(), 'overlay' => 35];
+
         $welcome->setBannerLayout($this->bannerNormalizer->normalizeLayout([
             'enabled' => true,
             'height' => 'lg',
             'width' => 'full_aligned',
             'verticalAlign' => 'center',
             'fadeOut' => true,
-            // Les couleurs de la maison, pas l'émeraude pleine.
-            //
-            // `#059669` est l'accent d'Aurora à pleine saturation : posé sur
-            // toute une entête, il pèse une luminance de 116 là où le site
-            // public se tient entre 28 et 50, et il détonne au milieu des
-            // huit autres entêtes. Le même vert en version sourde, avec la
-            // même inclinaison que la production, met la démonstration dans
-            // la même famille visuelle que ce qu'elle sert à montrer.
-            'background' => [
-                'type' => 'gradient',
-                'gradientFrom' => '#054634',
-                'gradientTo' => '#03261d',
-                'gradientAngle' => 160,
+            'background' => $photo($slides['studio']),
+            'items' => [$bannerText('banner-text')],
+            'slides' => [
+                ['id' => 'slide-city', 'background' => $photo($slides['city']), 'items' => [$bannerText('slide-city-text')]],
+                ['id' => 'slide-lake', 'background' => $photo($slides['lake']), 'items' => [$bannerText('slide-lake-text')]],
             ],
-            'items' => [
-                [
-                    'id' => 'banner-text',
-                    'type' => 'text',
-                    'span' => ['base' => 48, 'md' => null, 'lg' => 30],
-                    'titleColor' => '#ffffff',
-                    'descriptionColor' => '#e5e7eb',
-                    'align' => 'start',
-                    'titleSize' => 'lg',
-                ],
-            ],
+            'carousel' => ['autoplay' => true, 'interval' => 7, 'arrows' => true, 'dots' => true, 'transition' => 'fade'],
         ]));
 
         $content = [
@@ -799,23 +799,26 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         ];
 
         $captions = [
-            'fr' => ['alt' => 'Un paysage de démonstration', 'caption' => 'Une image, avec sa légende - les deux se traduisent, l\'image non.'],
-            'en' => ['alt' => 'A demo landscape', 'caption' => 'A picture and its caption - both translated, the picture itself is not.'],
-            'es' => ['alt' => 'Un paisaje de demostración', 'caption' => 'Una imagen, con su pie de foto: los dos se traducen, la imagen no.'],
+            'fr' => ['alt' => 'Une façade de verre aux lignes courbes', 'caption' => 'Une image, avec sa légende - les deux se traduisent, l\'image non.'],
+            'en' => ['alt' => 'A glass facade with curved lines', 'caption' => 'A picture and its caption - both translated, the picture itself is not.'],
+            'es' => ['alt' => 'Una fachada de cristal de líneas curvas', 'caption' => 'Una imagen, con su pie de foto: los dos se traducen, la imagen no.'],
         ];
 
         $bannerTexts = [
             'fr' => [
-                'title' => 'Bienvenue sur Aurora',
-                'description' => "Un en-tête composé dans l'éditeur : hauteur, largeur, dégradé, fondu et boutons.",
+                ['Bienvenue sur Aurora', 'Un site de démonstration, composé de bout en bout depuis l\'administration.', 'Nous écrire', '/fr/page/contact'],
+                ['Des pages composées par zones', 'Textes, images, galeries et formulaires, sur une grille de 48 colonnes.'],
+                ['Trois langues, une seule mise en page', 'Chaque page se traduit ; sa disposition s\'écrit une fois.'],
             ],
             'en' => [
-                'title' => 'Welcome to Aurora',
-                'description' => 'A header composed in the editor: height, width, gradient, fade and buttons.',
+                ['Welcome to Aurora', 'A demo site, composed end to end from the admin.', 'Write to us', '/en/page/contact'],
+                ['Pages laid out in zones', 'Text, pictures, galleries and forms, on a 48-column grid.'],
+                ['Three languages, one layout', 'Every page is translated; its layout is written once.'],
             ],
             'es' => [
-                'title' => 'Bienvenido a Aurora',
-                'description' => 'Un encabezado compuesto en el editor: altura, anchura, degradado, difuminado y botones.',
+                ['Bienvenido a Aurora', 'Un sitio de demostración, compuesto de principio a fin desde la administración.', 'Escríbanos', '/es/page/contacto'],
+                ['Páginas compuestas por zonas', 'Textos, imágenes, galerías y formularios, sobre una cuadrícula de 48 columnas.'],
+                ['Tres idiomas, una sola maquetación', 'Cada página se traduce; su disposición se escribe una vez.'],
             ],
         ];
 
@@ -828,8 +831,13 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         foreach (LocaleEnum::values() as $locale) {
             $translation = $welcome->translate($locale);
 
+            [$first, $second, $third] = $bannerTexts[$locale];
             $translation->setBanner($this->bannerNormalizer->normalizeTexts([
-                'items' => ['banner-text' => $bannerTexts[$locale]],
+                'items' => ['banner-text' => ['title' => $first[0], 'description' => $first[1], 'label' => $first[2], 'url' => $first[3]]],
+                'slides' => [
+                    'slide-city' => ['items' => ['slide-city-text' => ['title' => $second[0], 'description' => $second[1]]]],
+                    'slide-lake' => ['items' => ['slide-lake-text' => ['title' => $third[0], 'description' => $third[1]]]],
+                ],
             ], $welcome->getBannerLayout()));
 
             $translation->setGrid($this->gridNormalizer->normalizeContent([
@@ -869,17 +877,18 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
      * where it lands: under the content, without being asked. A gallery on an
      * otherwise empty page would show it working and not show it fitting.
      *
-     * The library holds four images, so both galleries use the same four. The
-     * normalizer refuses a picture twice **within** one gallery; across two posts
-     * there is nothing to refuse.
+     * Each gallery names its own four pictures: portraits and landscapes mixed
+     * for the masonry, four landscapes cropped square for the grid. The
+     * normalizer refuses a picture twice **within** one gallery; across two
+     * posts there is nothing to refuse.
      *
      * @param array<string, PostInterface> $posts
      */
     private function addGalleries(array $posts): void
     {
-        $media = array_map(
+        $media = fn (array $indexes): array => array_map(
             fn (int $index): Document => $this->getReference(GedDemoFixtures::mediaRef($index), Document::class),
-            [0, 1, 2, 3],
+            $indexes,
         );
 
         $galleries = [
@@ -887,54 +896,58 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             // masonry exists for, and the one where a fixed ratio would crop
             // the tall picture to nothing.
             'first-steps' => [
+                // Deux portraits et deux paysages, en alternance : ce qui fait
+                // que les colonnes ne tombent pas à la même hauteur.
+                'media' => [2, 12, 7, 15],
                 'layout' => GalleryNormalizer::LAYOUT_MASONRY,
                 'columns' => 3,
                 'ratio' => GalleryNormalizer::RATIO_NATURAL,
                 'words' => [
                     'fr' => [
-                        ['Une bannière', 'Chaque image garde ses proportions.'],
-                        ['Un paysage', 'Les colonnes se remplissent indépendamment.'],
-                        ['Un portrait', 'Une image haute reste haute.'],
-                        ['Un poste de travail', 'La lecture se fait colonne par colonne.'],
+                        ['Un portrait', 'Chaque image garde ses proportions.'],
+                        ['Des montagnes', 'Les colonnes se remplissent indépendamment.'],
+                        ['Un appareil photo', 'Une image haute reste haute.'],
+                        ['Des gratte-ciel', 'La lecture se fait colonne par colonne.'],
                     ],
                     'en' => [
-                        ['A banner', 'Every picture keeps its proportions.'],
-                        ['A landscape', 'The columns fill independently.'],
-                        ['A portrait', 'A tall picture stays tall.'],
-                        ['A workstation', 'This reads down a column, not across a row.'],
+                        ['A portrait', 'Every picture keeps its proportions.'],
+                        ['Mountains', 'The columns fill independently.'],
+                        ['A camera', 'A tall picture stays tall.'],
+                        ['Skyscrapers', 'This reads down a column, not across a row.'],
                     ],
                     'es' => [
-                        ['Un banner', 'Cada imagen conserva sus proporciones.'],
-                        ['Un paisaje', 'Las columnas se llenan de forma independiente.'],
-                        ['Un retrato', 'Una imagen alta sigue siendo alta.'],
-                        ['Un puesto de trabajo', 'La lectura va columna por columna, no de fila en fila.'],
+                        ['Un retrato', 'Cada imagen conserva sus proporciones.'],
+                        ['Montañas', 'Las columnas se llenan de forma independiente.'],
+                        ['Una cámara', 'Una imagen alta sigue siendo alta.'],
+                        ['Rascacielos', 'La lectura va columna por columna, no de fila en fila.'],
                     ],
                 ],
             ],
             // The same four, cropped square in four columns: uniform tiles, read
             // in the order they were written.
             'welcome' => [
+                'media' => [13, 14, 12, 15],
                 'layout' => GalleryNormalizer::LAYOUT_GRID,
                 'columns' => 4,
                 'ratio' => '1x1',
                 'words' => [
                     'fr' => [
-                        ['Une bannière', ''],
-                        ['Un paysage', ''],
-                        ['Un portrait', 'Recadrée au carré comme les autres.'],
-                        ['Un poste de travail', ''],
+                        ['Une côte rocheuse', ''],
+                        ['Une plage', ''],
+                        ['Des montagnes', 'Recadrées au carré comme les autres.'],
+                        ['Des gratte-ciel', ''],
                     ],
                     'en' => [
-                        ['A banner', ''],
-                        ['A landscape', ''],
-                        ['A portrait', 'Cropped square like the rest.'],
-                        ['A workstation', ''],
+                        ['A rocky coastline', ''],
+                        ['A beach', ''],
+                        ['Mountains', 'Cropped square like the rest.'],
+                        ['Skyscrapers', ''],
                     ],
                     'es' => [
-                        ['Un banner', ''],
-                        ['Un paisaje', ''],
-                        ['Un retrato', 'Recortada en cuadrado como las demás.'],
-                        ['Un puesto de trabajo', ''],
+                        ['Una costa rocosa', ''],
+                        ['Una playa', ''],
+                        ['Montañas', 'Recortadas en cuadrado como las demás.'],
+                        ['Rascacielos', ''],
                     ],
                 ],
             ],
@@ -947,7 +960,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             }
 
             $items = [];
-            foreach ($media as $index => $document) {
+            foreach ($media($definition['media']) as $index => $document) {
                 $items[] = ['id' => sprintf('shot-%d', $index + 1), 'mediaId' => $document->getId()];
             }
 
@@ -1205,44 +1218,6 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
     }
 
     /**
-     * Du faux latin, par phrases entières.
-     *
-     * Les pages ajoutées à la démo ont la forme de la production et le
-     * contenu de rien du tout, ce qui est voulu : une démo qui porte de vrais
-     * textes finit citée comme si elle disait quelque chose, et une démo dont
-     * les titres sont du latin ne montre pas à quoi sert un menu. Les titres
-     * sont donc vrais et tout le reste vient d'ici.
-     *
-     * Le décalage sert à ce que deux paragraphes voisins ne sortent pas
-     * identiques : une page où le même bloc est recopié quatre fois se lit
-     * comme un gabarit non rempli.
-     */
-    private function lorem(int $sentences, int $from = 0): string
-    {
-        $pool = [
-            'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-            'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
-            'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.',
-            'Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-            'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.',
-            'Totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.',
-            'Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores.',
-            'Neque porro quisquam est qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit.',
-            'At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti.',
-            'Et harum quidem rerum facilis est et expedita distinctio, nam libero tempore cum soluta nobis est eligendi optio.',
-        ];
-
-        $sentences = max(1, $sentences);
-        $out = [];
-
-        for ($i = 0; $i < $sentences; ++$i) {
-            $out[] = $pool[($from + $i) % count($pool)];
-        }
-
-        return implode(' ', $out);
-    }
-
-    /**
      * La page « À propos » : du texte, une liste d'étapes, puis les services.
      *
      * La zone d'étapes et la liste automatique sont les deux qu'une page
@@ -1288,26 +1263,50 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
             ],
         ]));
 
-        $headings = [
-            'fr' => ['Qui nous sommes', 'Nos services'],
-            'en' => ['Who we are', 'Our services'],
-            'es' => ['Quiénes somos', 'Nuestros servicios'],
+        // Du vrai texte : la page « À propos » d'un petit studio, telle
+        // qu'un visiteur la lirait. Le faux latin qu'elle portait se voyait
+        // sur toutes les captures du site public.
+        $words = [
+            'fr' => [
+                'Qui nous sommes',
+                'Un petit studio de trois personnes : une développeuse, un photographe et une responsable des réseaux sociaux. Nous travaillons pour des indépendants, des commerces et des PME qui veulent un site clair, de belles images et une présence régulière en ligne, sans multiplier les prestataires.',
+                [['Écouter', 'Un premier échange pour comprendre votre activité, vos clients et ce que vous attendez.'],
+                    ['Proposer', 'Une proposition écrite, chiffrée, avec un calendrier précis.'],
+                    ['Livrer', 'Des étapes courtes, validées avec vous, jusqu\'à la mise en ligne.']],
+                'Nos services',
+            ],
+            'en' => [
+                'Who we are',
+                'A small three-person studio: a developer, a photographer and a social media manager. We work for freelancers, shops and small businesses that want a clear website, good pictures and a steady presence online, without juggling suppliers.',
+                [['Listen', 'A first conversation to understand your business, your customers and what you expect.'],
+                    ['Propose', 'A written, costed proposal with a precise schedule.'],
+                    ['Deliver', 'Short steps, approved with you, all the way to launch.']],
+                'Our services',
+            ],
+            'es' => [
+                'Quiénes somos',
+                'Un pequeño estudio de tres personas: una desarrolladora, un fotógrafo y una responsable de redes sociales. Trabajamos para autónomos, comercios y pymes que quieren un sitio claro, buenas imágenes y una presencia regular en internet, sin multiplicar proveedores.',
+                [['Escuchar', 'Una primera conversación para entender su actividad, sus clientes y lo que espera.'],
+                    ['Proponer', 'Una propuesta escrita, con presupuesto y un calendario preciso.'],
+                    ['Entregar', 'Etapas cortas, validadas con usted, hasta la puesta en línea.']],
+                'Nuestros servicios',
+            ],
         ];
 
         foreach (LocaleEnum::values() as $locale) {
             $translation = $about->translate($locale);
-            [$heading, $listing] = $headings[$locale];
+            [$heading, $intro, $stepWords, $listing] = $words[$locale];
 
             $translation->setGrid($this->gridNormalizer->normalizeContent([
                 'zones' => [
                     'intro' => ['blocks' => [
                         EditorBlocks::header($heading),
-                        EditorBlocks::paragraph($this->lorem(3)),
+                        EditorBlocks::paragraph($intro),
                     ]],
                     'steps' => ['items' => [
-                        'step-1' => ['title' => 'Lorem ipsum', 'description' => $this->lorem(1, 1)],
-                        'step-2' => ['title' => 'Dolor sit amet', 'description' => $this->lorem(1, 2)],
-                        'step-3' => ['title' => 'Consectetur elit', 'description' => $this->lorem(1, 3)],
+                        'step-1' => ['title' => $stepWords[0][0], 'description' => $stepWords[0][1]],
+                        'step-2' => ['title' => $stepWords[1][0], 'description' => $stepWords[1][1]],
+                        'step-3' => ['title' => $stepWords[2][0], 'description' => $stepWords[2][1]],
                     ]],
                     'listing' => ['blocks' => [EditorBlocks::header($listing)]],
                 ],
@@ -1332,19 +1331,84 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
      */
     private function layOutServicePages(array $posts): void
     {
+        // [première image, seconde image] : la photo du service en haut, une
+        // image d'ambiance en bas.
         $pages = [
-            'service-web' => [0, 2],
-            'service-photo' => [1, 3],
-            'service-social' => [2, 0],
+            'service-web' => [9, 3],
+            'service-photo' => [7, 12],
+            'service-social' => [8, 6],
         ];
 
-        $words = [
-            'fr' => ['Ce que nous faisons', 'Comment nous travaillons', ['Lorem ipsum dolor', 'Consectetur adipiscing', 'Sed do eiusmod tempor']],
-            'en' => ['What we do', 'How we work', ['Lorem ipsum dolor', 'Consectetur adipiscing', 'Sed do eiusmod tempor']],
-            'es' => ['Lo que hacemos', 'Cómo trabajamos', ['Lorem ipsum dolor', 'Consectetur adipiscing', 'Sed do eiusmod tempor']],
+        $headings = [
+            'fr' => ['Ce que nous faisons', 'Comment nous travaillons'],
+            'en' => ['What we do', 'How we work'],
+            'es' => ['Lo que hacemos', 'Cómo trabajamos'],
         ];
 
-        $offset = 0;
+        // Un texte par service, dans les trois langues : [accroche, ce que
+        // nous faisons, trois points, comment nous travaillons].
+        $texts = [
+            'service-web' => [
+                'fr' => [
+                    'Des sites sur mesure, rapides et faciles à faire vivre : vous modifiez vos pages vous-même, sans attendre personne.',
+                    'Nous concevons et développons des sites vitrines, des boutiques et des outils métier. Chaque site est pensé pour le téléphone d\'abord, et livré avec une administration simple.',
+                    ['Sites vitrines et catalogues', 'Boutiques en ligne', 'Outils métier sur mesure'],
+                    'Un atelier pour cadrer le besoin, une maquette à valider, puis le développement par étapes courtes. Vous voyez le site avancer chaque semaine, et vous le prenez en main avant la mise en ligne.',
+                ],
+                'en' => [
+                    'Bespoke websites, fast and easy to keep alive: you edit your pages yourself, without waiting for anyone.',
+                    'We design and build showcase sites, shops and business tools. Every site is designed for the phone first and comes with a simple admin.',
+                    ['Showcase sites and catalogues', 'Online shops', 'Bespoke business tools'],
+                    'A workshop to frame the need, a mock-up to approve, then development in short steps. You see the site move forward every week, and you take it in hand before launch.',
+                ],
+                'es' => [
+                    'Sitios a medida, rápidos y fáciles de mantener: usted mismo modifica sus páginas, sin esperar a nadie.',
+                    'Diseñamos y desarrollamos sitios escaparate, tiendas y herramientas de negocio. Cada sitio se piensa primero para el móvil y se entrega con una administración sencilla.',
+                    ['Sitios escaparate y catálogos', 'Tiendas en línea', 'Herramientas de negocio a medida'],
+                    'Un taller para definir la necesidad, una maqueta que validar y después el desarrollo por etapas cortas. Ve avanzar el sitio cada semana y lo toma en mano antes de la puesta en línea.',
+                ],
+            ],
+            'service-photo' => [
+                'fr' => [
+                    'Des images qui racontent votre activité : portraits, reportages et photos de produits, prêtes pour votre site et vos réseaux.',
+                    'Nous photographions les personnes, les lieux et les produits, en studio ou sur place, et nous livrons des fichiers retouchés aux bons formats.',
+                    ['Portraits et équipes', "Reportages d'entreprise", 'Photos de produits'],
+                    'On prépare la séance ensemble : les images dont vous avez besoin, les lieux, la lumière. Après la prise de vue, une sélection vous est proposée, puis les photos retenues sont retouchées et livrées sous une semaine.',
+                ],
+                'en' => [
+                    'Pictures that tell your story: portraits, reportage and product shots, ready for your website and your social media.',
+                    'We photograph people, places and products, in the studio or on location, and deliver retouched files in the right formats.',
+                    ['Portraits and teams', 'Corporate reportage', 'Product photography'],
+                    'We prepare the shoot together: the pictures you need, the places, the light. After the shoot you get a selection, and the photos you pick are retouched and delivered within a week.',
+                ],
+                'es' => [
+                    'Imágenes que cuentan su actividad: retratos, reportajes y fotos de producto, listas para su sitio y sus redes.',
+                    'Fotografiamos personas, lugares y productos, en estudio o en el sitio, y entregamos archivos retocados en los formatos adecuados.',
+                    ['Retratos y equipos', 'Reportajes de empresa', 'Fotos de producto'],
+                    'Preparamos la sesión juntos: las imágenes que necesita, los lugares, la luz. Tras la sesión le proponemos una selección, y las fotos elegidas se retocan y se entregan en una semana.',
+                ],
+            ],
+            'service-social' => [
+                'fr' => [
+                    'Une présence régulière sur les réseaux, sans y passer vos soirées : stratégie, contenus et modération.',
+                    'Nous définissons avec vous une ligne éditoriale, puis nous produisons et publions chaque mois les contenus qui la font vivre.',
+                    ['Stratégie éditoriale', 'Création de contenus et de Reels', 'Modération et rapport mensuel'],
+                    'Un calendrier mensuel, validé en une fois ; des publications aux heures où votre audience est là ; et un rapport chaque mois pour garder ce qui marche.',
+                ],
+                'en' => [
+                    'A steady presence on social media, without spending your evenings on it: strategy, content and moderation.',
+                    'We set an editorial line with you, then produce and publish every month the content that keeps it alive.',
+                    ['Editorial strategy', 'Content and Reels', 'Moderation and a monthly report'],
+                    'A monthly calendar, approved in one go; posts at the hours your audience is there; and a report every month to keep what works.',
+                ],
+                'es' => [
+                    'Una presencia regular en redes, sin pasar allí sus noches: estrategia, contenidos y moderación.',
+                    'Definimos con usted una línea editorial y después producimos y publicamos cada mes los contenidos que la mantienen viva.',
+                    ['Estrategia editorial', 'Creación de contenidos y Reels', 'Moderación e informe mensual'],
+                    'Un calendario mensual, validado de una vez; publicaciones a las horas en que está su audiencia; y un informe cada mes para conservar lo que funciona.',
+                ],
+            ],
+        ];
 
         foreach ($pages as $key => [$first, $second]) {
             $post = $posts[$key] ?? null;
@@ -1369,33 +1433,31 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
 
             foreach (LocaleEnum::values() as $locale) {
                 $translation = $post->translate($locale);
-                [$doing, $working, $points] = $words[$locale];
-                $title = $translation->getTitle();
+                [$doing, $working] = $headings[$locale];
+                [$lede, $pitch, $points, $method] = $texts[$key][$locale];
 
                 $translation->setGrid($this->gridNormalizer->normalizeContent([
                     'zones' => [
                         // Pas de titre ici : le gabarit imprime déjà celui
                         // de la publication, et un `h2` qui le répète se lit
                         // comme une erreur de saisie.
-                        'lede' => ['blocks' => [EditorBlocks::paragraph($this->lorem(2, $offset))]],
-                        'shot-one' => ['alt' => $title, 'caption' => ''],
+                        'lede' => ['blocks' => [EditorBlocks::paragraph($lede)]],
+                        'shot-one' => ['alt' => (string) $translation->getTitle(), 'caption' => ''],
                         'pitch' => ['blocks' => [
                             EditorBlocks::header($doing, 3),
-                            EditorBlocks::paragraph($this->lorem(2, $offset + 2)),
+                            EditorBlocks::paragraph($pitch),
                             EditorBlocks::list($points),
                         ]],
                         'method' => ['blocks' => [
                             EditorBlocks::header($working, 3),
-                            EditorBlocks::paragraph($this->lorem(3, $offset + 4)),
+                            EditorBlocks::paragraph($method),
                         ]],
-                        'shot-two' => ['alt' => $title, 'caption' => ''],
+                        'shot-two' => ['alt' => (string) $translation->getTitle(), 'caption' => ''],
                     ],
                 ], $post->getGridLayout()));
 
                 $this->indexForSearch($translation);
             }
-
-            ++$offset;
         }
     }
 
@@ -1411,15 +1473,54 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
      */
     private function layOutProjectPages(array $posts): void
     {
-        $pages = ['project-lumen' => 3, 'project-atlas' => 0];
+        $pages = ['project-lumen' => 11, 'project-atlas' => 10];
 
-        $words = [
-            'fr' => ['Le projet', ['Projets livrés', 'Semaines', 'Personnes']],
-            'en' => ['The project', ['Projects shipped', 'Weeks', 'People']],
-            'es' => ['El proyecto', ['Proyectos entregados', 'Semanas', 'Personas']],
+        // [récit, citation, auteur de la citation, trois chiffres avec leur
+        // libellé], par réalisation et par langue.
+        $texts = [
+            'project-lumen' => [
+                'fr' => [
+                    'Lumen est un cabinet d\'architectes lyonnais. Son ancien site ne montrait pas ses réalisations : les photos étaient petites, les textes datés, et rien ne se modifiait sans un prestataire. Nous avons photographié quatre bâtiments, refait le site autour de ces images, et formé l\'équipe à le mettre à jour elle-même.',
+                    'Nous publions un nouveau projet chaque mois, en dix minutes.',
+                    'L\'équipe de Lumen',
+                    [['18', 'Pages'], ['6', 'Semaines'], ['4', 'Bâtiments photographiés']],
+                ],
+                'en' => [
+                    'Lumen is an architecture firm in Lyon. Its old website did not show its work: the photos were small, the copy dated, and nothing could change without a contractor. We photographed four buildings, rebuilt the site around those pictures, and trained the team to keep it up to date themselves.',
+                    'We publish a new project every month, in ten minutes.',
+                    'The Lumen team',
+                    [['18', 'Pages'], ['6', 'Weeks'], ['4', 'Buildings photographed']],
+                ],
+                'es' => [
+                    'Lumen es un estudio de arquitectura de Lyon. Su antiguo sitio no mostraba sus obras: las fotos eran pequeñas, los textos anticuados y nada se modificaba sin un proveedor. Fotografiamos cuatro edificios, rehicimos el sitio en torno a esas imágenes y formamos al equipo para actualizarlo por sí mismo.',
+                    'Publicamos un proyecto nuevo cada mes, en diez minutos.',
+                    'El equipo de Lumen',
+                    [['18', 'Páginas'], ['6', 'Semanas'], ['4', 'Edificios fotografiados']],
+                ],
+            ],
+            'project-atlas' => [
+                'fr' => [
+                    'Atlas est une agence de voyages spécialisée dans les séjours en montagne. Nous avons repensé sa présence en ligne : un site en trois langues, une galerie des destinations, et un compte Instagram alimenté chaque semaine avec les photos de ses guides.',
+                    'Les demandes de devis ont doublé en un trimestre.',
+                    'Atlas',
+                    [['3', 'Langues'], ['8', 'Semaines'], ['x2', 'Demandes de devis']],
+                ],
+                'en' => [
+                    "Atlas is a travel agency specialised in mountain holidays. We rethought its presence online: a website in three languages, a gallery of destinations, and an Instagram account fed every week with its guides' photos.",
+                    'Quote requests doubled within a quarter.',
+                    'Atlas',
+                    [['3', 'Languages'], ['8', 'Weeks'], ['x2', 'Quote requests']],
+                ],
+                'es' => [
+                    'Atlas es una agencia de viajes especializada en estancias de montaña. Replanteamos su presencia en línea: un sitio en tres idiomas, una galería de destinos y una cuenta de Instagram alimentada cada semana con las fotos de sus guías.',
+                    'Las solicitudes de presupuesto se duplicaron en un trimestre.',
+                    'Atlas',
+                    [['3', 'Idiomas'], ['8', 'Semanas'], ['x2', 'Solicitudes de presupuesto']],
+                ],
+            ],
         ];
 
-        $offset = 2;
+        $headings = ['fr' => 'Le projet', 'en' => 'The project', 'es' => 'El proyecto'];
 
         foreach ($pages as $key => $mediaIndex) {
             $post = $posts[$key] ?? null;
@@ -1448,29 +1549,26 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
 
             foreach (LocaleEnum::values() as $locale) {
                 $translation = $post->translate($locale);
-                [$heading, $labels] = $words[$locale];
-                $title = $translation->getTitle();
+                [$story, $quote, $author, $facts] = $texts[$key][$locale];
 
                 $translation->setGrid($this->gridNormalizer->normalizeContent([
                     'zones' => [
-                        'cover' => ['alt' => $title, 'caption' => ''],
+                        'cover' => ['alt' => (string) $translation->getTitle(), 'caption' => ''],
                         'story' => ['blocks' => [
-                            EditorBlocks::header($heading),
-                            EditorBlocks::paragraph($this->lorem(3, $offset)),
-                            EditorBlocks::quote($this->lorem(1, $offset + 3), 'Lorem Ipsum'),
+                            EditorBlocks::header($headings[$locale]),
+                            EditorBlocks::paragraph($story),
+                            EditorBlocks::quote($quote, $author),
                         ]],
                         'facts' => ['items' => [
-                            'fact-1' => ['title' => '24', 'description' => $labels[0]],
-                            'fact-2' => ['title' => '12', 'description' => $labels[1]],
-                            'fact-3' => ['title' => '4', 'description' => $labels[2]],
+                            'fact-1' => ['title' => $facts[0][0], 'description' => $facts[0][1]],
+                            'fact-2' => ['title' => $facts[1][0], 'description' => $facts[1][1]],
+                            'fact-3' => ['title' => $facts[2][0], 'description' => $facts[2][1]],
                         ]],
                     ],
                 ], $post->getGridLayout()));
 
                 $this->indexForSearch($translation);
             }
-
-            $offset += 4;
         }
     }
 
@@ -1489,6 +1587,10 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         if (!$contact instanceof PostInterface) {
             return;
         }
+
+        // Une page de contact n'appelle pas de discussion : le formulaire est
+        // là pour ça.
+        $contact->setCommentsEnabled(false);
 
         $contact->setGridLayout($this->gridNormalizer->normalizeLayout([
             'enabled' => true,
@@ -1510,19 +1612,19 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         $headings = [
             'fr' => [
                 'Nous écrire',
-                'Décrivez votre projet en quelques lignes : ce que vous faites, ce dont vous avez besoin, et sous quel délai. Un devis chiffré suit sous 48 heures, sans engagement.',
+                'Une question, un projet : quelques lignes suffisent. On vous répond sous 48 heures.',
                 'Nous joindre',
                 ['contact@example.com', '+33 1 23 45 67 89', '12 rue des Lilas, 75011 Paris'],
             ],
             'en' => [
                 'Write to us',
-                'Describe your project in a few lines: what you do, what you need, and by when. A costed quote follows within 48 hours, with no commitment.',
+                'A question, a project: a few lines are enough. We answer within 48 hours.',
                 'Reach us',
                 ['contact@example.com', '+33 1 23 45 67 89', '12 rue des Lilas, 75011 Paris'],
             ],
             'es' => [
                 'Escríbanos',
-                'Describa su proyecto en unas líneas: a qué se dedica, qué necesita y en qué plazo. Le enviamos un presupuesto en 48 horas, sin compromiso.',
+                'Una pregunta, un proyecto: bastan unas líneas. Le respondemos en 48 horas.',
                 'Cómo localizarnos',
                 ['contact@example.com', '+33 1 23 45 67 89', '12 rue des Lilas, 75011 Paris'],
             ],
@@ -1766,6 +1868,63 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         }
 
         $this->submitQuoteForm($form, $fields);
+
+        return $form;
+    }
+
+    /**
+     * Un formulaire de contact tel qu'on en pose un sur un site : trois
+     * champs, une seule étape.
+     *
+     * La page de contact posait la demande de devis, qui porte exprès un champ
+     * de chaque type en deux étapes pour les écrans du module Formulaires. Sur
+     * la page, et sur la capture du site public qui la montre, cela donnait un
+     * formulaire de dix champs pour écrire trois lignes.
+     *
+     * Idempotent sur son slug français, comme le devis.
+     */
+    private function createContactForm(): FormInterface
+    {
+        $existing = $this->formTranslationRepository->findOneByLocaleAndSlug('fr', 'nous-ecrire');
+        if ($existing instanceof FormTranslationInterface) {
+            return $existing->getForm();
+        }
+
+        $form = $this->forms->create(new FormInput(
+            translations: [
+                'fr' => ['title' => 'Votre message', 'slug' => 'nous-ecrire', 'description' => null],
+                'en' => ['title' => 'Your message', 'slug' => 'write-to-us', 'description' => null],
+                'es' => ['title' => 'Su mensaje', 'slug' => 'escribanos', 'description' => null],
+            ],
+            notifyEmail: 'contact@example.com',
+        ));
+
+        $fields = [
+            [FormFieldTypeEnum::Text, [
+                'fr' => ['label' => 'Nom', 'placeholder' => 'Camille Durand', 'options' => []],
+                'en' => ['label' => 'Name', 'placeholder' => 'Camille Durand', 'options' => []],
+                'es' => ['label' => 'Nombre', 'placeholder' => 'Camille Durand', 'options' => []],
+            ]],
+            [FormFieldTypeEnum::Email, [
+                'fr' => ['label' => 'Adresse e-mail', 'placeholder' => 'camille@exemple.fr', 'options' => []],
+                'en' => ['label' => 'Email address', 'placeholder' => 'camille@example.com', 'options' => []],
+                'es' => ['label' => 'Correo electrónico', 'placeholder' => 'camille@ejemplo.es', 'options' => []],
+            ]],
+            [FormFieldTypeEnum::Textarea, [
+                'fr' => ['label' => 'Message', 'placeholder' => 'Votre question ou votre projet, en quelques lignes.', 'options' => []],
+                'en' => ['label' => 'Message', 'placeholder' => 'Your question or your project, in a few lines.', 'options' => []],
+                'es' => ['label' => 'Mensaje', 'placeholder' => 'Su pregunta o su proyecto, en unas líneas.', 'options' => []],
+            ]],
+        ];
+
+        foreach ($fields as [$type, $translations]) {
+            $this->forms->createField($form, new FormFieldInput(
+                translations: $translations,
+                type: $type,
+                required: true,
+                step: 1,
+            ));
+        }
 
         return $form;
     }
