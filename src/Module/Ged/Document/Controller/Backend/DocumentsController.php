@@ -18,6 +18,7 @@ use Aurora\Core\Validation\Service\PayloadValidator;
 use Aurora\Module\Configuration\Storage\Setting\StorageSettings;
 use Aurora\Module\Ged\Document\Dto\DocumentInputFactoryInterface;
 use Aurora\Module\Ged\Document\Entity\Document;
+use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Manager\DocumentManagerInterface;
 use Aurora\Module\Ged\Document\Message\RelocateDocumentMessage;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
@@ -193,11 +194,26 @@ final class DocumentsController extends AbstractController
     #[Route('/{id}/alternates', name: '_alternates', methods: [HttpMethodEnum::Get->value])]
     public function alternates(Document $document): JsonResponse
     {
+        $alternates = $this->documentRepository->findAlternatesOf($document);
+        $ids = [(int) $document->getId()];
+        foreach ($alternates as $alternate) {
+            $ids[] = (int) $alternate->getId();
+        }
+
+        // Where each member is used, by kind of source, so the family strip
+        // can say it without a request per member.
+        $usage = $this->usageService->countUsagesByTypeFor($ids);
+        $withUsage = fn (DocumentInterface $member): array => [
+            ...$this->serializer->serialize($member),
+            'usageCount' => array_sum($usage[$member->getId()] ?? []),
+            'usageByType' => $usage[$member->getId()] ?? [],
+        ];
+
         return $this->jsonSuccess([
             // The original too, so a screen showing a family from any of its
             // members draws it whole with one request.
-            'original' => $this->serializer->serialize($document),
-            'alternates' => array_map($this->serializer->serialize(...), $this->documentRepository->findAlternatesOf($document)),
+            'original' => $withUsage($document),
+            'alternates' => array_map($withUsage, $alternates),
         ]);
     }
 

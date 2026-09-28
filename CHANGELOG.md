@@ -18,6 +18,20 @@ rangées hors du dossier et propose de les emporter (case cochée par défaut).
 Restaurer le dossier remet chacune à sa place, et le supprimer pour de bon ne
 retire plus son dossier à une variante venue d'ailleurs.
 
+#### L'usage d'une famille se lit en une ligne
+Sous les puces d'un visuel, dans la liste comme dans le bandeau Famille, une
+ligne dit quelle version est utilisée et par quoi : « Original : 2
+publications · rouge : 1 présentation », ou « Aucune version de la famille
+n'est utilisée ». Sur un original qui a des variantes, cette ligne remplace le
+badge « Inutilisé », qui laissait croire que toute la famille l'était.
+
+#### Le logo, le favicon et l'image de partage comptent comme usages
+Les réglages du site qui pointent vers une image de la médiathèque (logo du
+back-office, favicon, image de partage par défaut) n'étaient signalés nulle
+part : le favicon du site s'affichait « Inutilisé » et pouvait partir à la
+corbeille sans avertissement. Ils apparaissent maintenant dans l'utilisation
+du document, avec un lien vers l'onglet des paramètres concerné.
+
 ### Corrigé
 
 #### Un document restauré seul ne suit plus son ancien dossier

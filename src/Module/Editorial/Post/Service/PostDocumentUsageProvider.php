@@ -7,6 +7,7 @@ namespace Aurora\Module\Editorial\Post\Service;
 use Aurora\Core\Locale\Service\LocaleContextInterface;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
 use Aurora\Module\Ged\Document\Contract\BatchDocumentUsageProviderInterface;
+use Aurora\Module\Ged\Document\Contract\TypedDocumentUsageProviderInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -22,7 +23,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * the first gallery item is one thing to know about, and the person deciding
  * whether to delete opens the post either way.
  */
-final readonly class PostDocumentUsageProvider implements BatchDocumentUsageProviderInterface
+final readonly class PostDocumentUsageProvider implements BatchDocumentUsageProviderInterface, TypedDocumentUsageProviderInterface
 {
     public function __construct(
         private PostRepository $posts,
@@ -30,6 +31,11 @@ final readonly class PostDocumentUsageProvider implements BatchDocumentUsageProv
         private UrlGeneratorInterface $urlGenerator,
         private TranslatorInterface $translator,
     ) {}
+
+    public function usageType(): string
+    {
+        return 'editorial.post';
+    }
 
     /** @return list<array{type: string, label: string, detail?: ?string, href?: ?string}> */
     public function findUsages(int $documentId): array
@@ -39,7 +45,7 @@ final readonly class PostDocumentUsageProvider implements BatchDocumentUsageProv
 
         foreach ($this->posts->findUsingDocument($documentId) as $post) {
             $usages[] = [
-                'type' => 'editorial.post',
+                'type' => $this->usageType(),
                 // A draft in a language that has no title yet still has to be
                 // nameable, or the list shows a blank row and says nothing.
                 'label' => $post->getTranslation($locale)?->getTitle()

@@ -21,6 +21,7 @@ use Aurora\Module\Ged\Enum\DocumentStatusEnum;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 use function array_map;
+use function array_sum;
 use function is_int;
 
 final readonly class DocumentsViewBuilder
@@ -196,13 +197,16 @@ final readonly class DocumentsViewBuilder
             }
         }
 
-        $counts = $this->usageService->countUsagesFor([...$ids, ...$alternateIds]);
+        // By kind of source, so the card can say where each member is used
+        // - "two pages, one deck" - and not only whether.
+        $byType = $this->usageService->countUsagesByTypeFor([...$ids, ...$alternateIds]);
+        $counts = array_map(array_sum(...), $byType);
         // Trashed alternates count here: the family rule refuses to make an
         // original of them an alternate, so the screen must not offer it.
         $withTrashed = $this->documentRepository->countAlternatesFor($ids, includeTrashed: true);
 
         return array_map(
-            function (array $item) use ($counts, $family, $withTrashed): array {
+            function (array $item) use ($counts, $byType, $family, $withTrashed): array {
                 $id = $item['id'] ?? null;
                 // Whole documents, not summaries: a picker that chooses the
                 // yellow copy from its original's card hands it to the page
@@ -212,6 +216,7 @@ final readonly class DocumentsViewBuilder
                         ...$this->documentSerializer->serialize($member),
                         'label' => $member->getAlternateLabel(),
                         'usageCount' => $counts[$member->getId()] ?? 0,
+                        'usageByType' => $byType[$member->getId()] ?? [],
                     ],
                     $family[$id] ?? [],
                 );
@@ -219,6 +224,7 @@ final readonly class DocumentsViewBuilder
                 return [
                     ...$item,
                     'usageCount' => $counts[$id] ?? 0,
+                    'usageByType' => $byType[$id] ?? [],
                     'alternateCount' => count($members),
                     'alternates' => $members,
                     'familyLocked' => ($withTrashed[$id] ?? 0) > 0,

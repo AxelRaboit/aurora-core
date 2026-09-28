@@ -24,8 +24,10 @@ const { t } = useI18n();
 </script>
 
 <template>
+    <!-- An original with alternates says where its family is used on a
+         line of its own: "Inutilisé" on it alone would read as the family's. -->
     <span
-        v-if="0 === doc.usageCount"
+        v-if="0 === doc.usageCount && !(doc.alternateCount > 0)"
         :title="t('backend.ged.documents.usage_unused_hint')"
         class="text-xs px-1.5 py-0.5 rounded border border-amber-500/40 text-amber-600 dark:text-amber-400"
     >{{ t("backend.ged.documents.usage_unused_badge") }}</span>

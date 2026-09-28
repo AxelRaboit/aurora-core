@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\SpaceNote\Service;
 
 use Aurora\Module\Ged\Document\Contract\BatchDocumentUsageProviderInterface;
+use Aurora\Module\Ged\Document\Contract\TypedDocumentUsageProviderInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\SpaceNote\Entity\SpaceNoteInterface;
 use Aurora\Module\Studio\SpaceNote\Repository\SpaceNoteRepository;
@@ -35,7 +36,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * n'en est pas l'auteur. Ce que l'écran a besoin de dire, c'est « quelque
  * chose s'en sert », pas quoi.
  */
-final readonly class SpaceNoteDocumentUsageProvider implements BatchDocumentUsageProviderInterface
+final readonly class SpaceNoteDocumentUsageProvider implements BatchDocumentUsageProviderInterface, TypedDocumentUsageProviderInterface
 {
     public function __construct(
         private SpaceNoteRepository $notes,
@@ -44,6 +45,11 @@ final readonly class SpaceNoteDocumentUsageProvider implements BatchDocumentUsag
         private Security $security,
     ) {}
 
+    public function usageType(): string
+    {
+        return 'studio.space_note';
+    }
+
     /** @return list<array{type: string, label: string, detail?: ?string, href?: ?string}> */
     public function findUsages(int $documentId): array
     {
@@ -51,7 +57,7 @@ final readonly class SpaceNoteDocumentUsageProvider implements BatchDocumentUsag
 
         foreach ($this->notes->findUsingDocument($documentId) as $note) {
             $usages[] = [
-                'type' => 'studio.space_note',
+                'type' => $this->usageType(),
                 'label' => $this->labelOf($note),
                 // Le titre d'une note ne suffit pas à la situer : « Brief » et
                 // « Compte rendu » se répètent d'un espace à l'autre, et ce

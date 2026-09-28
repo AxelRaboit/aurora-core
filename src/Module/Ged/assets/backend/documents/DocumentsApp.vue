@@ -52,6 +52,7 @@ import DocumentStorageChip from "@ged/backend/documents/components/DocumentStora
 import DocumentStateBadges from "@ged/backend/documents/components/DocumentStateBadges.vue";
 import DocumentFamilyFields from "@ged/backend/documents/components/DocumentFamilyFields.vue";
 import DocumentFamilyChips from "@ged/backend/documents/components/DocumentFamilyChips.vue";
+import DocumentFamilyUsage from "@ged/backend/documents/components/DocumentFamilyUsage.vue";
 import DocumentFamilyStrip from "@ged/backend/documents/components/DocumentFamilyStrip.vue";
 import { familyMembers } from "@ged/backend/documents/utils/familyLabels.js";
 import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
@@ -644,6 +645,10 @@ const pageActions = computed(() => {
                                     v-model="previewedMember[doc.id]"
                                     :members="familyOf(doc)"
                                 />
+                                <DocumentFamilyUsage
+                                    v-if="familyOf(doc).length"
+                                    :members="familyOf(doc)"
+                                />
                                 <div v-if="doc.tags?.length || storageRelocationAvailable || 0 === doc.usageCount || doc.kept || doc.alternateCount || doc.originalId" class="flex flex-wrap items-center gap-1 pt-0.5">
                                     <DocumentStateBadges :doc="doc" v-on:open-family="viewDoc" />
                                     <DocumentStorageChip
@@ -715,6 +720,11 @@ const pageActions = computed(() => {
                                             <DocumentFamilyChips
                                                 v-if="familyOf(doc).length"
                                                 v-model="previewedMember[doc.id]"
+                                                :members="familyOf(doc)"
+                                            />
+                                            <DocumentFamilyUsage
+                                                v-if="familyOf(doc).length"
+                                                class="basis-full"
                                                 :members="familyOf(doc)"
                                             />
                                         </div>

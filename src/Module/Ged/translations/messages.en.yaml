@@ -211,6 +211,15 @@ backend:
         with_alternates: "Also delete its alternates | Also delete its alternate | Also delete its {count} alternates"
         move_with_alternates: "Also move the chosen originals' alternates"
         label_suggestions: "Already in use:"
+        usage_none: "No version of the family is used"
+        usage_types:
+          other: "{count} use | {count} use | {count} uses"
+          editorial_post: "{count} post | {count} post | {count} posts"
+          studio_deck: "{count} deck | {count} deck | {count} decks"
+          studio_space_note: "{count} space note | {count} space note | {count} space notes"
+          studio_space_file: "{count} space file | {count} space file | {count} space files"
+          studio_space_attachment: "{count} attachment | {count} attachment | {count} attachments"
+          configuration_setting: "{count} site setting | {count} site setting | {count} site settings"
       originals_only: Group variants
       originals_only_hint: "Show originals only; their variants open from each one."
       usage:

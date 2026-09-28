@@ -211,6 +211,15 @@ backend:
                 with_alternates: "Eliminar también sus variantes | Eliminar también su variante | Eliminar también sus {count} variantes"
                 move_with_alternates: "Mover también las variantes de los originales elegidos"
                 label_suggestions: "Ya en uso:"
+                usage_none: 'Ninguna versión de la familia está en uso'
+                usage_types:
+                    other: '{count} uso | {count} uso | {count} usos'
+                    editorial_post: '{count} publicación | {count} publicación | {count} publicaciones'
+                    studio_deck: '{count} presentación | {count} presentación | {count} presentaciones'
+                    studio_space_note: '{count} nota de espacio | {count} nota de espacio | {count} notas de espacio'
+                    studio_space_file: '{count} archivo de espacio | {count} archivo de espacio | {count} archivos de espacio'
+                    studio_space_attachment: '{count} adjunto | {count} adjunto | {count} adjuntos'
+                    configuration_setting: '{count} ajuste del sitio | {count} ajuste del sitio | {count} ajustes del sitio'
             originals_only: 'Agrupar las variantes'
             originals_only_hint: 'Mostrar solo los originales; sus variantes se abren desde cada uno.'
             usage:

@@ -6,6 +6,7 @@ import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
 import { labelSwatch } from "../utils/familyLabels.js";
+import DocumentFamilyUsage from "./DocumentFamilyUsage.vue";
 
 /**
  * A document's family, whole, wherever the document is shown: its original
@@ -65,6 +66,11 @@ function labelOf(member) {
             <Layers class="w-3.5 h-3.5" :stroke-width="2" />
             {{ alternates.length ? t("backend.ged.documents.family.strip_title", { count: alternates.length }) : t("backend.ged.documents.family.strip_empty") }}
         </p>
+        <DocumentFamilyUsage
+            v-if="alternates.length"
+            :members="members"
+            :original-id="original?.id ?? null"
+        />
         <div class="grid grid-cols-3 sm:grid-cols-5 gap-2">
             <button
                 v-for="member in alternates.length ? members : []"
