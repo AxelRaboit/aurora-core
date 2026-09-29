@@ -87,6 +87,31 @@ final class GridTabsZoneTest extends IntegrationTestCase
         self::assertCount(2, $grid['zones'][0]['tabs']['panels']);
     }
 
+    /**
+     * The editor sends back the list it was given, so it has to be given the
+     * stored one. With `items` left null for a tabs zone, the first save from
+     * the back-office returned no panels and the normaliser dropped every
+     * panel's words with them.
+     */
+    public function testTheEditorReceivesThePanelListItSendsBack(): void
+    {
+        $grid = $this->gridViewBuilder->buildForEditor(
+            ['enabled' => true, 'zones' => [[
+                'id' => 'z1',
+                'type' => 'tabs',
+                'items' => [['id' => 'p1'], ['id' => 'p2']],
+            ]]],
+            ['zones' => ['z1' => ['items' => [
+                'p1' => ['title' => 'Présence'],
+                'p2' => ['title' => 'Croissance'],
+            ]]]],
+            'fr',
+        );
+
+        self::assertNotNull($grid);
+        self::assertSame(['p1', 'p2'], array_column($grid['zones'][0]['items'] ?? [], 'id'));
+    }
+
     /** Six is the cap: past that the strip of labels stops reading as a row. */
     public function testThePanelsAreCapped(): void
     {

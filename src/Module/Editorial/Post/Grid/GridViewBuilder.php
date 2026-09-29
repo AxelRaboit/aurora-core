@@ -276,11 +276,17 @@ final readonly class GridViewBuilder
                 // the list it will hand over again, and giving it the view
                 // instead cost a page its item texts: the arrangement it
                 // returned had no ids the words could hang on.
-                'items' => GridNormalizer::ZONE_ITEMS === $zone['type']
-                    ? ($forEditor
+                // A tabs zone keeps its panels in the same stored list, so the
+                // editor needs it back too: without it the first save returned
+                // no panels and took every panel's words with them. The page
+                // reads its panels from `tabs` below.
+                'items' => match (true) {
+                    GridNormalizer::ZONE_ITEMS === $zone['type'] => $forEditor
                         ? $this->mediaViews->itemsForEditor($zone, $documents)
-                        : $this->mediaViews->itemsView($zone, $held, $documents))
-                    : null,
+                        : $this->mediaViews->itemsView($zone, $held, $documents),
+                    GridNormalizer::ZONE_TABS === $zone['type'] && $forEditor => $this->mediaViews->itemsForEditor($zone, $documents),
+                    default => null,
+                },
                 'postList' => GridNormalizer::ZONE_POST_LIST === $zone['type']
                     ? $this->listingViews->postListView($zone, $locale, $currentPostId)
                     : null,
