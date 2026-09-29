@@ -25,7 +25,8 @@ import { BackgroundColorTool } from "@shared/components/editor/tools/BackgroundC
 import { ClearFormattingTool } from "@shared/components/editor/tools/ClearFormattingTool.js";
 import MediaTextBlock from "@shared/components/editor/tools/MediaTextBlock.js";
 import TwoColumnBlock from "@shared/components/editor/tools/TwoColumnBlock.js";
-import CalloutBlock from "@shared/components/editor/tools/CalloutBlock.js";
+import CalloutBlock, { DEFAULT_TYPES as CALLOUT_TYPES } from "@shared/components/editor/tools/CalloutBlock.js";
+import { CALLOUT_ICONS } from "@shared/components/editor/tools/calloutIcons.js";
 import DragDrop from "editorjs-drag-drop";
 import Undo from "editorjs-undo";
 
@@ -310,6 +311,14 @@ onMounted(async () => {
                 config: {
                     titlePlaceholder:   t("backend.editor.callout.title_placeholder"),
                     messagePlaceholder: t("backend.editor.callout.message_placeholder"),
+                    types: CALLOUT_TYPES.map(({ value }) => ({
+                        value,
+                        label: t(`backend.editor.callout.types.${value}`),
+                    })),
+                    iconLabels: Object.fromEntries(
+                        CALLOUT_ICONS.map(({ value }) => [value, t(`backend.editor.callout.icons.${value}`)]),
+                    ),
+                    noIconLabel: t("backend.editor.callout.no_icon"),
                 },
             },
 

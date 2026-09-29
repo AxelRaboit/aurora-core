@@ -9,6 +9,7 @@ use Aurora\Core\Content\BlockRendererInterface;
 use Aurora\Core\Content\RawHtmlSanitizer;
 use Aurora\Module\Editorial\Post\Service\BlocksRenderer;
 use PHPUnit\Framework\TestCase;
+use ReflectionClassConstant;
 
 /**
  * The block shapes this renderer reads are written by Editor.js, not chosen
@@ -43,6 +44,45 @@ final class BlocksRendererTest extends TestCase
         self::assertStringContainsString('class="callout callout--warning"', $html);
         self::assertStringContainsString('<strong>Attention</strong>', $html);
         self::assertStringContainsString('<p>Ceci compte</p>', $html);
+    }
+
+    /** A chosen icon sits beside the words, drawn in the callout's colour. */
+    public function testRendersACalloutIconBesideItsText(): void
+    {
+        $html = $this->render([
+            ['type' => 'callout', 'data' => ['type' => 'accent', 'icon' => 'calendar', 'title' => 'Disponible', 'message' => 'Dès octobre']],
+        ]);
+
+        self::assertStringContainsString('class="callout callout--accent callout--icon"', $html);
+        self::assertStringContainsString('<span class="callout__icon" aria-hidden="true"><svg', $html);
+        self::assertStringContainsString('<div class="callout__body"><strong>Disponible</strong><p>Dès octobre</p></div>', $html);
+    }
+
+    /**
+     * The icon is a name picked from a closed list, never markup: anything
+     * else is dropped and the callout keeps the shape it had before icons.
+     */
+    public function testACalloutIgnoresAnIconItDoesNotKnow(): void
+    {
+        $html = $this->render([
+            ['type' => 'callout', 'data' => ['type' => 'info', 'icon' => '<script>alert(1)</script>', 'title' => 'T', 'message' => 'M']],
+        ]);
+
+        self::assertSame('<aside class="callout callout--info"><strong>T</strong><p>M</p></aside>', $html);
+    }
+
+    /** The icons the editor offers, in the order it offers them. */
+    public function testTheCalloutIconsAreTheOnesTheEditorOffers(): void
+    {
+        self::assertSame(
+            ['info', 'check-circle', 'alert-triangle', 'clock', 'calendar', 'star', 'lightbulb', 'message-circle', 'pause-circle'],
+            BlocksRenderer::CALLOUT_ICON_NAMES,
+        );
+
+        // Every name the list announces has a drawing, and no drawing goes unannounced.
+        $drawings = (new ReflectionClassConstant(BlocksRenderer::class, 'CALLOUT_ICONS'))->getValue();
+        self::assertIsArray($drawings);
+        self::assertSame(BlocksRenderer::CALLOUT_ICON_NAMES, array_keys($drawings));
     }
 
     /** @editorjs/list v1 stored plain strings, v2 stores {content, meta}. */

@@ -176,6 +176,38 @@
 }
 
 .callout-block__tab:hover  { transform: scale(1.2); }
+
+/* The icon picker, under the colours: the chosen icon is the one ringed. */
+.callout-block__icons {
+    display: flex;
+    gap: 0.25rem;
+    padding: 0.35rem 0.75rem;
+    flex-wrap: wrap;
+    border-top: 1px solid rgba(0,0,0,0.06);
+}
+
+.dark .callout-block__icons {
+    border-top-color: rgba(255,255,255,0.06);
+}
+
+.callout-block__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 0.375rem;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--callout-color, currentColor);
+    cursor: pointer;
+    font-size: 0.9rem;
+    line-height: 1;
+}
+
+.callout-block__icon:hover { background: rgba(127,127,127,0.12); }
+.callout-block__icon--active { border-color: var(--callout-color, currentColor); background: rgba(127,127,127,0.12); }
+
 .callout-block__tab--active { border-color: currentColor; transform: scale(1.15); }
 
 .callout-block__title,
