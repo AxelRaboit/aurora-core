@@ -579,9 +579,39 @@ final class GridViewBuilderTest extends IntegrationTestCase
         $editor = $this->gridViewBuilder->buildForEditor($layout, $content, 'fr');
 
         self::assertSame(
-            [['id' => 'i1', 'mediaId' => null, 'media' => null], ['id' => 'i2', 'mediaId' => null, 'media' => null]],
+            [
+                ['id' => 'i1', 'mediaId' => null, 'media' => null, 'featured' => false],
+                ['id' => 'i2', 'mediaId' => null, 'media' => null, 'featured' => false],
+            ],
             $editor['zones'][0]['items'],
             'the editor needs the entries it will hand over again, ids and all',
+        );
+    }
+
+    /**
+     * The recommended offer, read back by the editor as recommended.
+     *
+     * The editor sends back what it was handed. Without the flag here every
+     * card came back plain, and the next save of the page - from any tab,
+     * about anything - took the badge off.
+     */
+    public function testTheEditorKeepsTheRecommendedOffer(): void
+    {
+        $layout = [
+            'enabled' => true,
+            'zones' => [[
+                'id' => 'z1',
+                'type' => 'items',
+                'display' => 'offers',
+                'items' => [['id' => 'i1'], ['id' => 'i2', 'featured' => true]],
+            ]],
+        ];
+
+        $editor = $this->gridViewBuilder->buildForEditor($layout, ['zones' => []], 'fr');
+
+        self::assertSame(
+            [false, true],
+            array_column($editor['zones'][0]['items'], 'featured'),
         );
     }
 

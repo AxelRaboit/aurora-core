@@ -5,6 +5,17 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [Unreleased]
+
+### Corrigé
+
+#### Enregistrer une page ne retire plus le badge « Recommandé » d'une offre
+Dans une liste affichée en cartes d'offre, l'éditeur ne recevait pas la carte
+marquée comme recommandée : il la croyait ordinaire, et le premier
+enregistrement suivant, quel que soit l'onglet modifié, retirait le badge de la
+page publiée. L'éditeur reçoit maintenant la carte recommandée comme telle, et
+un enregistrement la conserve.
+
 ## [0.9.294] - 2026-09-29
 
 ### Corrigé
