@@ -52,6 +52,31 @@ final class GridTableOfContentsTest extends IntegrationTestCase
         }
     }
 
+    /**
+     * A heading set in a stack, beside a picture, is a section of the page
+     * like any other, and is numbered where a reader meets it.
+     */
+    public function testAHeadingInsideAStackIsListed(): void
+    {
+        $grid = $this->gridViewBuilder->build(
+            ['enabled' => true, 'zones' => [
+                ['id' => 'z0', 'type' => 'toc'],
+                ['id' => 's1', 'type' => 'stack', 'children' => [['id' => 'z1', 'type' => 'text']]],
+                ['id' => 'z2', 'type' => 'text'],
+            ]],
+            ['zones' => [
+                'z1' => ['blocks' => [['type' => 'header', 'data' => ['level' => 2, 'text' => 'Ce que je fais']]]],
+                'z2' => ['blocks' => [['type' => 'header', 'data' => ['level' => 2, 'text' => 'Pour qui']]]],
+            ]],
+            'fr',
+        );
+
+        self::assertNotNull($grid);
+        self::assertSame(['Ce que je fais', 'Pour qui'], array_column($grid['zones'][0]['toc'], 'text'));
+        self::assertStringContainsString('<h2 id="section-1">', $grid['zones'][1]['children'][0]['html']);
+        self::assertStringContainsString('<h2 id="section-2">', $grid['zones'][2]['html']);
+    }
+
     /** The markup of a page that asked for nothing is left exactly as it was. */
     public function testAPageWithNoSummaryKeepsItsHeadingsBare(): void
     {

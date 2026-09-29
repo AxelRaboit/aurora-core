@@ -5,6 +5,27 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.301] - 2026-09-29
+
+### Corrigé
+
+#### Un bloc Entête posé dans la page gardait la hauteur de sa ligne
+Placé en bas d'une page, le bloc Entête s'étirait sur des centaines de pixels,
+son texte tassé tout en bas. Son contenu reprenait le numéro de ligne de la
+zone qui le porte, et s'affichait sous autant de lignes vides. Il retrouve
+maintenant la hauteur choisie, son texte centré.
+
+#### Le sommaire lit les titres d'une pile
+Un titre écrit dans une pile (un texte à côté d'une image, par exemple)
+n'apparaissait pas dans le sommaire de la page. Il y figure maintenant, à sa
+place dans l'ordre de lecture.
+
+#### L'en-tête d'un tableau s'aligne sur ses colonnes
+La première ligne d'un tableau marqué « avec en-tête » était décalée de
+quelques pixels vers la gauche par rapport aux cellules en dessous.
+
+---
+
 ## [0.9.300] - 2026-09-29
 
 ### Ajouté

@@ -226,7 +226,12 @@ final readonly class BlocksRenderer
         $rows = is_array($data['content'] ?? null) ? $data['content'] : [];
         $withHeadings = (bool) ($data['withHeadings'] ?? false);
 
-        $html = '<table>';
+        // The heading row in a `<thead>`, the rest in a `<tbody>`: the
+        // typography plugin styles `thead th` and `tbody td` and nothing in
+        // between, so a `<th>` left among the body rows came out without the
+        // cells' padding and sat a few pixels left of its own column.
+        $head = '';
+        $body = '';
         foreach ($rows as $index => $row) {
             if (!is_array($row)) {
                 continue;
@@ -238,10 +243,14 @@ final readonly class BlocksRenderer
                 $cells .= sprintf('<%s>%s</%s>', $tag, $this->safe($cell), $tag);
             }
 
-            $html .= '<tr>'.$cells.'</tr>';
+            if ('th' === $tag) {
+                $head .= '<tr>'.$cells.'</tr>';
+            } else {
+                $body .= '<tr>'.$cells.'</tr>';
+            }
         }
 
-        return $html.'</table>';
+        return '<table>'.('' !== $head ? '<thead>'.$head.'</thead>' : '').'<tbody>'.$body.'</tbody></table>';
     }
 
     /**

@@ -84,6 +84,24 @@
 }
 
 /*
+ * A grid set inside a zone - a banner placed in the page - starts its own
+ * placement. Custom properties inherit, and the zone around it carries
+ * `--row-lg` and `--start-lg`: the banner's text read the zone's row number
+ * inside its own grid, and a banner on the page's 21st row stood under twenty
+ * empty rows, each with its gap - 900px of background for four lines.
+ * `initial` is the guaranteed-invalid value, so every `var()` falls back as
+ * if nothing had been set.
+ */
+.aurora-grid .aurora-grid {
+    --row-base: initial;
+    --row-md: initial;
+    --row-lg: initial;
+    --start-base: initial;
+    --start-md: initial;
+    --start-lg: initial;
+}
+
+/*
  * Cancels the outer gutter so the first and last column line up with whatever
  * the grid sits under. The inner gutters are untouched - this only pulls the
  * two edges back by what the items add.

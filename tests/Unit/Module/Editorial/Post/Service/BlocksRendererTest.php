@@ -57,6 +57,24 @@ final class BlocksRendererTest extends TestCase
         ]));
     }
 
+    /**
+     * The heading row goes in a `<thead>`: the typography styles read
+     * `thead th` and `tbody td`, and a `<th>` among the body rows came out
+     * without padding, a few pixels left of its column.
+     */
+    public function testRendersATableWithItsHeadingRowApart(): void
+    {
+        self::assertSame(
+            '<table><thead><tr><th></th><th>Minimal</th></tr></thead><tbody><tr><td>Réseaux</td><td>2</td></tr></tbody></table>',
+            $this->render([['type' => 'table', 'data' => ['withHeadings' => true, 'content' => [['', 'Minimal'], ['Réseaux', '2']]]]]),
+        );
+
+        self::assertSame(
+            '<table><tbody><tr><td>a</td></tr></tbody></table>',
+            $this->render([['type' => 'table', 'data' => ['content' => [['a']]]]]),
+        );
+    }
+
     public function testRendersAChecklistWithItsCheckedState(): void
     {
         $html = $this->render([
