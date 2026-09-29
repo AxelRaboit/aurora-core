@@ -304,7 +304,7 @@ export const COMPARE_IMAGES = 2;
 export const CARD_VARIANTS = ["full", "compact", "horizontal"];
 
 /** Mirrors GridNormalizer::MAX_LIST_LIMIT. */
-export const MAX_LIST_LIMIT = 24;
+export const MAX_LIST_LIMIT = 48;
 
 /** Mirrors GridNormalizer::CODE_LANGUAGES. */
 export const CODE_LANGUAGES = [

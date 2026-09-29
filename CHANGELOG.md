@@ -5,6 +5,19 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.293] - 2026-09-29
+
+### Corrigé
+
+#### Une liste automatique peut montrer jusqu'à 48 publications
+Une zone « Liste automatique » s'arrêtait à 24 publications. Sur une page
+sommaire dont les cartes sont les sections du site, la vingt-cinquième
+disparaissait sans rien dire : c'est arrivé au tour d'Aurora quand la page
+des présentations l'a rejoint. Le plafond passe à 48, dans l'éditeur comme
+au rendu.
+
+---
+
 ## [0.9.292] - 2026-09-29
 
 ### Ajouté
