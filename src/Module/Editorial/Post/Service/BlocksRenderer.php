@@ -22,6 +22,30 @@ use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 final readonly class BlocksRenderer
 {
     /**
+     * The icons a callout can carry, as the inside of a 24x24 stroked SVG.
+     *
+     * The same names, in the same order, as `calloutIcons.js`, which draws
+     * the picker in the editor. A closed list rather than a free field: the
+     * value ends up in the page, so only markup written here ever does.
+     */
+    private const array CALLOUT_ICONS = [
+        'info' => '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
+        'check-circle' => '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
+        'alert-triangle' => '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+        'clock' => '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+        'calendar' => '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/>',
+        'star' => '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/>',
+        'lightbulb' => '<path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/>',
+        'message-circle' => '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>',
+        'pause-circle' => '<circle cx="12" cy="12" r="10"/><path d="M10 15V9"/><path d="M14 15V9"/>',
+    ];
+
+    /** @var list<string> */
+    public const array CALLOUT_ICON_NAMES = [
+        'info', 'check-circle', 'alert-triangle', 'clock', 'calendar', 'star', 'lightbulb', 'message-circle', 'pause-circle',
+    ];
+
+    /**
      * @param iterable<BlockRendererInterface> $blockRenderers module-contributed renderers
      *                                                         for block types this one does not know
      */
@@ -266,12 +290,25 @@ final readonly class BlocksRenderer
     {
         $title = $this->safe($data['title'] ?? '');
         $message = $this->safe($data['message'] ?? '');
+        $type = $this->attr($data['type'] ?? 'info');
+        $words = ('' !== $title ? sprintf('<strong>%s</strong>', $title) : '')
+            .('' !== $message ? sprintf('<p>%s</p>', $message) : '');
+
+        // The icon is a name from a closed list, looked up here: whatever
+        // else arrives in the field is dropped, and the callout keeps the
+        // shape it had before icons existed.
+        $icon = $data['icon'] ?? null;
+        if (!is_string($icon) || !isset(self::CALLOUT_ICONS[$icon])) {
+            return sprintf('<aside class="callout callout--%s">%s</aside>', $type, $words);
+        }
 
         return sprintf(
-            '<aside class="callout callout--%s">%s%s</aside>',
-            $this->attr($data['type'] ?? 'info'),
-            '' !== $title ? sprintf('<strong>%s</strong>', $title) : '',
-            '' !== $message ? sprintf('<p>%s</p>', $message) : '',
+            '<aside class="callout callout--%s callout--icon"><span class="callout__icon" aria-hidden="true">'
+            .'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">%s</svg>'
+            .'</span><div class="callout__body">%s</div></aside>',
+            $type,
+            self::CALLOUT_ICONS[$icon],
+            $words,
         );
     }
 
