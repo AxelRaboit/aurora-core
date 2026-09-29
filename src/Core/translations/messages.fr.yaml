@@ -322,7 +322,7 @@ backend:
       text_background: Couleur de fond
       font_size: Taille du texte
       clear_formatting: Effacer le formatage
-      callout: Callout
+      callout: "Encadré"
       media_text: Image + Texte
       two_column: 2 Colonnes
     ui:
@@ -376,3 +376,29 @@ backend:
     callout:
       title_placeholder: Titre…
       message_placeholder: Message…
+      no_icon: "Sans icône"
+      types:
+        info: "Info"
+        success: "Succès"
+        warning: "Attention"
+        danger: "Danger"
+        tip: "Astuce"
+        note: "Note"
+        question: "Question"
+        important: "Important"
+        update: "Mise à jour"
+        rose: "Rose"
+        accent: "Couleur du thème"
+        lime: "Vert clair"
+        amber: "Ambre"
+        fuchsia: "Fuchsia"
+      icons:
+        info: "Information"
+        check-circle: "Validé"
+        alert-triangle: "Alerte"
+        clock: "Horloge"
+        calendar: "Calendrier"
+        star: "Étoile"
+        lightbulb: "Idée"
+        message-circle: "Message"
+        pause-circle: "Pause"

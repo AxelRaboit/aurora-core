@@ -322,7 +322,7 @@ backend:
       text_background: Background Color
       font_size: Font Size
       clear_formatting: Clear formatting
-      callout: Callout
+      callout: "Callout"
       media_text: Image + Text
       two_column: 2 Columns
     ui:
@@ -376,3 +376,29 @@ backend:
     callout:
       title_placeholder: Title…
       message_placeholder: Message…
+      no_icon: "No icon"
+      types:
+        info: "Info"
+        success: "Success"
+        warning: "Warning"
+        danger: "Danger"
+        tip: "Tip"
+        note: "Note"
+        question: "Question"
+        important: "Important"
+        update: "Update"
+        rose: "Rose"
+        accent: "Theme colour"
+        lime: "Lime"
+        amber: "Amber"
+        fuchsia: "Fuchsia"
+      icons:
+        info: "Information"
+        check-circle: "Done"
+        alert-triangle: "Alert"
+        clock: "Clock"
+        calendar: "Calendar"
+        star: "Star"
+        lightbulb: "Idea"
+        message-circle: "Message"
+        pause-circle: "Pause"

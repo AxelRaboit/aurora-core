@@ -318,7 +318,7 @@ backend:
             text_background: 'Color de fondo'
             font_size: 'Tamaño del texto'
             clear_formatting: 'Borrar el formato'
-            callout: Destacado
+            callout: "Destacado"
             media_text: 'Imagen + Texto'
             two_column: '2 columnas'
         ui:
@@ -372,3 +372,29 @@ backend:
         callout:
             title_placeholder: Título…
             message_placeholder: Mensaje…
+            no_icon: "Sin icono"
+            types:
+                info: "Info"
+                success: "Éxito"
+                warning: "Atención"
+                danger: "Peligro"
+                tip: "Consejo"
+                note: "Nota"
+                question: "Pregunta"
+                important: "Importante"
+                update: "Actualización"
+                rose: "Rosa"
+                accent: "Color del tema"
+                lime: "Lima"
+                amber: "Ámbar"
+                fuchsia: "Fucsia"
+            icons:
+                info: "Información"
+                check-circle: "Validado"
+                alert-triangle: "Alerta"
+                clock: "Reloj"
+                calendar: "Calendario"
+                star: "Estrella"
+                lightbulb: "Idea"
+                message-circle: "Mensaje"
+                pause-circle: "Pausa"

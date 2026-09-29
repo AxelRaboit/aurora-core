@@ -1,4 +1,4 @@
-const DEFAULT_TYPES = [
+export const DEFAULT_TYPES = [
     { value: "info", label: "Info" },
     { value: "success", label: "Success" },
     { value: "warning", label: "Warning" },
@@ -16,6 +16,7 @@ const DEFAULT_TYPES = [
 ];
 
 import { handlePlainTextPaste } from "./handlePlainTextPaste.js";
+import { CALLOUT_ICONS, calloutIconSvg } from "./calloutIcons.js";
 
 export default class CalloutBlock {
     #wrapper = null;
@@ -25,6 +26,8 @@ export default class CalloutBlock {
     #types;
     #titlePlaceholder;
     #messagePlaceholder;
+    #iconLabels;
+    #noIconLabel;
 
     static get toolbox() {
         return {
@@ -42,10 +45,15 @@ export default class CalloutBlock {
             type: data.type ?? "info",
             title: data.title ?? "",
             message: data.message ?? "",
+            // A name from CALLOUT_ICONS, or "" for none. Unknown names are
+            // kept as they are: the page simply draws no icon for them.
+            icon: typeof data.icon === "string" ? data.icon : "",
         };
         this.#types = config.types ?? DEFAULT_TYPES;
         this.#titlePlaceholder = config.titlePlaceholder ?? "Title…";
         this.#messagePlaceholder = config.messagePlaceholder ?? "Message…";
+        this.#iconLabels = config.iconLabels ?? {};
+        this.#noIconLabel = config.noIconLabel ?? "No icon";
     }
 
     render() {
@@ -58,6 +66,7 @@ export default class CalloutBlock {
         this.#wrapper.innerHTML = "";
         this.#wrapper.className = `callout-block callout-block--${this.#data.type}`;
         this.#wrapper.appendChild(this.#createTabs());
+        this.#wrapper.appendChild(this.#createIcons());
         this.#titleEl = this.#createEditable(
             "callout-block__title",
             this.#titlePlaceholder,
@@ -79,6 +88,40 @@ export default class CalloutBlock {
             tabs.appendChild(this.#createTab(value, label));
         });
         return tabs;
+    }
+
+    #createIcons() {
+        const row = document.createElement("div");
+        row.className = "callout-block__icons";
+        row.appendChild(this.#createIconButton("", this.#noIconLabel, ""));
+        CALLOUT_ICONS.forEach(({ value }) => {
+            row.appendChild(
+                this.#createIconButton(
+                    value,
+                    this.#iconLabels[value] ?? value,
+                    calloutIconSvg(value),
+                ),
+            );
+        });
+        return row;
+    }
+
+    #createIconButton(value, label, svg) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `callout-block__icon${this.#data.icon === value ? " callout-block__icon--active" : ""}`;
+        btn.title = label;
+        btn.setAttribute("aria-label", label);
+        btn.setAttribute(
+            "aria-pressed",
+            this.#data.icon === value ? "true" : "false",
+        );
+        btn.innerHTML = svg || '<span aria-hidden="true">&#8856;</span>';
+        btn.addEventListener("click", () => {
+            this.#data.icon = value;
+            this.#rebuild();
+        });
+        return btn;
     }
 
     #createTab(value, label) {
@@ -111,6 +154,7 @@ export default class CalloutBlock {
             type: this.#data.type,
             title: this.#titleEl?.innerHTML ?? this.#data.title,
             message: this.#messageEl?.innerHTML ?? this.#data.message,
+            icon: this.#data.icon,
         };
     }
 
