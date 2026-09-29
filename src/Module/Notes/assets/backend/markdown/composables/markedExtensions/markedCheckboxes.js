@@ -15,18 +15,30 @@ export function resetCheckboxCounter() {
 
 export function createCheckboxRenderer() {
     return {
-        listitem({ text, task, checked }) {
-            if (!task) {
-                return `<li>${text}</li>\n`;
+        // The item body goes through the parser, never `item.text`: that
+        // field is the raw source, so bold, links and nested lists would
+        // come out as literal markdown.
+        listitem(item) {
+            if (!item.task) {
+                return `<li>${this.parser.parse(item.tokens)}</li>\n`;
             }
+            // Numbered before the body is parsed, so a parent task takes
+            // its index ahead of the tasks nested under it - the same
+            // order as the `- [ ]` lines in the source.
             const index = checkboxCounter++;
-            const checkedAttr = checked ? "checked" : "";
+            const body = this.parser.parse(item.tokens);
+            const checkedAttr = item.checked ? "checked" : "";
             return (
                 `<li class="task-list-item">` +
                 `<input type="checkbox" class="task-checkbox" data-checkbox-index="${index}" ${checkedAttr} />` +
-                `<span>${text}</span>` +
+                `<div class="task-list-body">${body}</div>` +
                 `</li>\n`
             );
+        },
+        // Marked puts its own disabled box inside the item's first line;
+        // ours is drawn by `listitem`, so this one is dropped.
+        checkbox() {
+            return "";
         },
     };
 }

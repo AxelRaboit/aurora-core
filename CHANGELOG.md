@@ -5,6 +5,26 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.299] - 2026-09-29
+
+### Ajouté
+
+#### Un sommaire peut s'afficher en pastilles
+La zone « Sommaire » a un réglage « Présentation » : la liste habituelle, ou
+une rangée de pastilles qui tient sur une ou deux lignes. C'est utile pour une
+page longue, qui n'a pas besoin d'un grand encadré au-dessus de sa première
+section. Chaque intertitre devient une pastille ; ceux de second niveau sont
+simplement plus discrets.
+
+### Corrigé
+
+#### Une carte horizontale passe à la verticale sur téléphone
+Dans une liste de publications en cartes horizontales, l'image n'occupait
+qu'un tiers de la largeur et s'étirait sur toute la hauteur du texte. Sur
+téléphone, elle devenait une bande étroite qui coupait les logos en deux.
+Elle se place maintenant au-dessus du texte sur téléphone, et à côté à partir
+de la tablette.
+
 ## [0.9.298] - 2026-09-29
 
 ### Ajouté
