@@ -209,6 +209,7 @@ export const GALLERY_LAYOUTS = ["grid", "carousel"];
 export const FRAMES = ["none", "laptop", "phone", "browser"];
 export const CODE_STYLES = ["plain", "terminal", "diff"];
 export const LIST_LAYOUTS = ["cards", "index"];
+export const TOC_LAYOUTS = ["list", "pills"];
 export const GITHUB_MODES = ["activity", "repos", "releases"];
 export const AVAILABILITIES = ["available", "soon", "busy"];
 export const WEEKDAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
@@ -231,6 +232,7 @@ export function defaultZoneOptions() {
         parallax: false,
         codeStyle: "plain",
         listLayout: "cards",
+        tocLayout: "list",
         githubMode: "activity",
         githubRepos: [],
         availability: "available",
@@ -805,6 +807,7 @@ export function usePostGrid(layout, content) {
         frame: labelled(FRAMES, "frames"),
         codeStyle: labelled(CODE_STYLES, "code_styles"),
         listLayout: labelled(LIST_LAYOUTS, "list_layouts"),
+        tocLayout: labelled(TOC_LAYOUTS, "toc_layouts"),
         githubMode: labelled(GITHUB_MODES, "github_modes"),
         availability: labelled(AVAILABILITIES, "availabilities"),
         chartType: labelled(CHART_TYPES, "chart_types"),

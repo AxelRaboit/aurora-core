@@ -51,11 +51,25 @@ final class PostCardHighlightRenderTest extends IntegrationTestCase
         self::assertStringNotContainsString('data-card-highlight', $this->render([]));
     }
 
-    /** @param array<string, mixed> $extra */
-    private function render(array $extra): string
+    /**
+     * A horizontal card sets its picture beside the words from `sm` only. On a
+     * phone a third of the width is a sliver, and the picture stretched to the
+     * height of the words lost its sides - two logos were cut in half.
+     */
+    public function testAHorizontalCardStacksOnAPhone(): void
+    {
+        $html = $this->render(['thumbnailUrl' => '/uploads/logo.webp'], 'horizontal');
+
+        self::assertStringContainsString('flex-col sm:flex-row', $html);
+        self::assertStringContainsString('shrink-0 sm:w-1/3', $html);
+        self::assertStringContainsString('aspect-[16/10] sm:aspect-auto sm:h-full', $html);
+    }
+
+    private function render(array $extra, ?string $variant = null): string
     {
         return $this->twig->render(self::TEMPLATE, [
             'locale' => 'fr',
+            'variant' => $variant,
             'post' => [
                 'id' => 1,
                 'title' => 'Community management',

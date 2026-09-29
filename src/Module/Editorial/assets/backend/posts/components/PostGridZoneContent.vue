@@ -1320,6 +1320,15 @@ const displayHint = computed(() =>
             </div>
         </template>
 
+        <template v-else-if="zone.type === 'toc'">
+            <AppChoiceRow
+                v-model="bound.tocLayout.value"
+                :label="t('backend.posts.grid.toc_layout')"
+                :hint="t('backend.posts.grid.toc_layout_hint')"
+                :options="choices.tocLayout ?? []"
+            />
+        </template>
+
         <template v-else-if="zone.type === 'postList'">
             <AppChoiceRow
                 v-model="bound.listLayout.value"

@@ -6,6 +6,7 @@ namespace Aurora\Tests\Integration\Module\Editorial\Post;
 
 use Aurora\Module\Editorial\Post\Grid\GridViewBuilder;
 use Aurora\Tests\Integration\IntegrationTestCase;
+use Twig\Environment;
 
 /**
  * The one zone with nothing to write in it.
@@ -61,13 +62,40 @@ final class GridTableOfContentsTest extends IntegrationTestCase
         self::assertStringNotContainsString('id="section-', $grid['zones'][0]['html']);
     }
 
+    /**
+     * The same summary as a row of pills: every heading a link to its anchor,
+     * the second level only quieter, and no list down the page.
+     */
+    public function testTheSummaryCanBeARowOfPills(): void
+    {
+        $grid = $this->build(withToc: true, tocLayout: 'pills');
+        self::assertNotNull($grid);
+
+        $html = static::getContainer()->get(Environment::class)->render(
+            'Frontend/themes/default/editorial/post/_grid.html.twig',
+            ['grid' => $grid, 'locale' => 'fr'],
+        );
+
+        self::assertSame(3, mb_substr_count($html, 'rounded-full border border-card-line'));
+        self::assertStringContainsString('href="#section-1"', $html);
+        self::assertStringNotContainsString('<ol class="m-0 list-none space-y-2', $html);
+    }
+
+    public function testAnUnknownLayoutFallsBackToTheList(): void
+    {
+        $grid = $this->build(withToc: true, tocLayout: 'bogus');
+        self::assertNotNull($grid);
+
+        self::assertSame('list', $grid['zones'][0]['options']['tocLayout']);
+    }
+
     /** @return array<string, mixed>|null */
-    private function build(bool $withToc): ?array
+    private function build(bool $withToc, string $tocLayout = 'list'): ?array
     {
         $zones = [['id' => 'z1', 'type' => 'text']];
 
         if ($withToc) {
-            array_unshift($zones, ['id' => 'z0', 'type' => 'toc']);
+            array_unshift($zones, ['id' => 'z0', 'type' => 'toc', 'options' => ['tocLayout' => $tocLayout]]);
         }
 
         return $this->gridViewBuilder->build(

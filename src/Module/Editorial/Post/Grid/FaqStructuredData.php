@@ -100,6 +100,7 @@ final readonly class FaqStructuredData
                     if ('' === $question) {
                         continue;
                     }
+
                     if ('' === $answer) {
                         continue;
                     }

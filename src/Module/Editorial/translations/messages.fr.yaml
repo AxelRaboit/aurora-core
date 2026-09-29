@@ -957,6 +957,11 @@ backend:
         diff: Avant / après
       list_layout: Présentation
       list_layout_hint: "L'index range toutes les publications par lettre, avec les lettres en haut pour sauter ; il ignore le nombre ci-dessous et en affiche jusqu'à 300."
+      toc_layout: "Présentation"
+      toc_layout_hint: "La liste range les titres les uns sous les autres ; les pastilles tiennent sur une ou deux lignes, pour une page longue qui n'a pas besoin d'un grand encadré."
+      toc_layouts:
+        list: "Liste"
+        pills: "Pastilles"
       list_layouts:
         cards: Cartes
         index: Index de A à Z

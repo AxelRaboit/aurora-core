@@ -61,6 +61,7 @@ final class GridContractMirrorTest extends TestCase
         yield 'frames' => [GridZoneOptions::FRAMES, 'FRAMES'];
         yield 'code styles' => [GridZoneOptions::CODE_STYLES, 'CODE_STYLES'];
         yield 'list layouts' => [GridZoneOptions::LIST_LAYOUTS, 'LIST_LAYOUTS'];
+        yield 'toc layouts' => [GridZoneOptions::TOC_LAYOUTS, 'TOC_LAYOUTS'];
         yield 'github modes' => [GridZoneOptions::GITHUB_MODES, 'GITHUB_MODES'];
         yield 'availabilities' => [GridZoneOptions::AVAILABILITIES, 'AVAILABILITIES'];
         yield 'weekdays' => [GridZoneOptions::WEEKDAYS, 'WEEKDAYS'];

@@ -957,6 +957,11 @@ backend:
         diff: Before / after
       list_layout: Presentation
       list_layout_hint: "The index files every publication by letter, with the letters on top to jump; it ignores the count below and shows up to 300."
+      toc_layout: "Presentation"
+      toc_layout_hint: "The list stacks the headings one under another; the pills fit on one or two lines, for a long page that does not need a big box."
+      toc_layouts:
+        list: "List"
+        pills: "Pills"
       list_layouts:
         cards: Cards
         index: A to Z index
