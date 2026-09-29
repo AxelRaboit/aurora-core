@@ -411,3 +411,72 @@ pre .hljs-attribute {
 .doc-prose .doc-figure:focus-visible img {
     border-color: var(--th-accent);
 }
+
+/*
+ * A table scrolls sideways inside its own frame rather than pushing past the
+ * column it sits in. Four columns on a phone squeezed every cell to its
+ * longest word - « 3 au / choix, / YouTube » - and still ran off the edge of a
+ * window. From four columns on, the table keeps a readable width and the
+ * frame scrolls; a narrow table fits and never shows a scrollbar.
+ */
+.content-table {
+    overflow-x: auto;
+}
+
+.content-table table:has(tr > :nth-child(4)) {
+    min-width: 36rem;
+}
+
+/*
+ * A window opened by a button arrives rather than appears: it rises a little
+ * and fades in, its backdrop with it, and leaves the same way. `display` and
+ * `overlay` are transitioned as discrete so the closing half plays before the
+ * top layer lets go of it; `@starting-style` gives the opening half a place
+ * to start from. A browser without either simply shows and hides it.
+ */
+.aurora-modal {
+    opacity: 0;
+    transform: translate3d(0, 0.75rem, 0) scale(0.98);
+    transition:
+        opacity 200ms ease,
+        transform 300ms cubic-bezier(0.16, 1, 0.3, 1),
+        overlay 300ms allow-discrete,
+        display 300ms allow-discrete;
+}
+
+.aurora-modal:popover-open {
+    opacity: 1;
+    transform: none;
+}
+
+@starting-style {
+    .aurora-modal:popover-open {
+        opacity: 0;
+        transform: translate3d(0, 0.75rem, 0) scale(0.98);
+    }
+}
+
+.aurora-modal::backdrop {
+    opacity: 0;
+    transition:
+        opacity 250ms ease,
+        overlay 300ms allow-discrete,
+        display 300ms allow-discrete;
+}
+
+.aurora-modal:popover-open::backdrop {
+    opacity: 1;
+}
+
+@starting-style {
+    .aurora-modal:popover-open::backdrop {
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aurora-modal,
+    .aurora-modal::backdrop {
+        transition: none;
+    }
+}

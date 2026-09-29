@@ -488,8 +488,39 @@ final readonly class GridViewBuilder
 
         $headings = [];
         $number = 0;
+        $zones = $this->anchorHeadings($zones, $headings, $number);
 
         foreach ($zones as $index => $zone) {
+            if (GridNormalizer::ZONE_TOC === $zone['type']) {
+                $zones[$index]['toc'] = $headings;
+            }
+        }
+
+        return $zones;
+    }
+
+    /**
+     * Writes an anchor into every `<h2>` and `<h3>` of the text zones, in
+     * reading order, and lists them.
+     *
+     * A stack's zones are read where the stack stands: a heading set beside a
+     * picture is still a section of the page, and the summary skipped it for
+     * as long as only the top level was read.
+     *
+     * @param list<array<string, mixed>> $zones
+     * @param list<array<string, mixed>> $headings
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function anchorHeadings(array $zones, array &$headings, int &$number): array
+    {
+        foreach ($zones as $index => $zone) {
+            if (is_array($zone['children'] ?? null) && [] !== $zone['children']) {
+                $zones[$index]['children'] = $this->anchorHeadings($zone['children'], $headings, $number);
+
+                continue;
+            }
+
             if (GridNormalizer::ZONE_TEXT !== $zone['type']) {
                 continue;
             }
@@ -514,12 +545,6 @@ final readonly class GridViewBuilder
                 },
                 $zone['html'],
             ) ?? $zone['html'];
-        }
-
-        foreach ($zones as $index => $zone) {
-            if (GridNormalizer::ZONE_TOC === $zone['type']) {
-                $zones[$index]['toc'] = $headings;
-            }
         }
 
         return $zones;

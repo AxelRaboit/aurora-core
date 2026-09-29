@@ -56,8 +56,11 @@ final class GridZoneOptions
 
     public const array LIST_LAYOUTS = ['cards', 'index'];
 
-    /** A summary as a list down the page, or as a row of pills that takes one line. */
-    public const array TOC_LAYOUTS = ['list', 'pills'];
+    /**
+     * A summary as a list down the page, a row of pills that takes one line,
+     * or a numbered index in columns.
+     */
+    public const array TOC_LAYOUTS = ['list', 'pills', 'index'];
 
     /** What a button does: follow its link, or open a window over the page. */
     public const array BUTTON_ACTIONS = ['link', 'modal'];
@@ -105,6 +108,7 @@ final class GridZoneOptions
             'codeStyle' => self::CODE_STYLES[0],
             'listLayout' => self::LIST_LAYOUTS[0],
             'tocLayout' => self::TOC_LAYOUTS[0],
+            'tocFollow' => false,
             'buttonAction' => self::BUTTON_ACTIONS[0],
             'githubMode' => self::GITHUB_MODES[0],
             'githubRepos' => [],
@@ -158,6 +162,10 @@ final class GridZoneOptions
             'codeStyle' => self::oneOf($data['codeStyle'] ?? null, self::CODE_STYLES),
             'listLayout' => self::oneOf($data['listLayout'] ?? null, self::LIST_LAYOUTS),
             'tocLayout' => self::oneOf($data['tocLayout'] ?? null, self::TOC_LAYOUTS),
+            // A slim bar under the site's header, once the summary has
+            // scrolled away: the section being read, how far along the page
+            // is, and the whole list a tap away.
+            'tocFollow' => true === ($data['tocFollow'] ?? false),
             'buttonAction' => self::oneOf($data['buttonAction'] ?? null, self::BUTTON_ACTIONS),
             'githubMode' => self::oneOf($data['githubMode'] ?? null, self::GITHUB_MODES),
             'githubRepos' => self::repos($data['githubRepos'] ?? null),

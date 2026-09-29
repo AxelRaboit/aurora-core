@@ -975,7 +975,9 @@ backend:
             list_layout: Presentación
             list_layout_hint: 'El índice ordena todas las publicaciones por letra, con las letras arriba para saltar; ignora el número de abajo y muestra hasta 300.'
             toc_layout: "Presentación"
-            toc_layout_hint: "La lista coloca los títulos uno debajo de otro; las pastillas caben en una o dos líneas, para una página larga que no necesita un gran recuadro."
+            toc_layout_hint: "La lista coloca los títulos uno debajo de otro; las pastillas caben en una o dos líneas; el índice los numera en columnas."
+            toc_follow: "Seguir la lectura"
+            toc_follow_hint: "Una barra fina bajo la cabecera del sitio, una vez pasado el índice: la sección en curso, el avance en la página y la lista completa a un clic."
             button_action: "Acción"
             button_action_hint: "Un enlace lleva a otra página; una ventana se abre sobre la página, con el contenido escrito debajo."
             button_actions:
@@ -987,6 +989,7 @@ backend:
             toc_layouts:
                 list: "Lista"
                 pills: "Pastillas"
+                index: "Índice numerado"
             list_layouts:
                 cards: Fichas
                 index: 'Índice de la A a la Z'

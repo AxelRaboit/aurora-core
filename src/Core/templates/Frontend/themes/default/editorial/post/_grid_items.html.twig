@@ -30,7 +30,7 @@
            rem short of the words and reading as one run-on line. #}
         <ol class="m-0 list-none space-y-6 border-l border-line p-0 pl-10">
             {% for entry in items.entries %}
-                <li class="relative">
+                <li class="aurora-reveal-item relative" style="--reveal-index: {{ loop.index0 }};">
                     <span
                         class="absolute -left-14 flex h-8 w-8 items-center justify-center rounded-full border border-line bg-surface text-sm font-semibold text-accent"
                         aria-hidden="true"
@@ -47,7 +47,7 @@
            has already lost the glance it was there to catch. #}
         <dl class="m-0 grid grid-cols-1 gap-6 {{ columns[items.columns] }}">
             {% for entry in items.entries %}
-                <div class="aurora-card p-6">
+                <div class="aurora-reveal-item aurora-card p-6" style="--reveal-index: {{ loop.index0 }};">
                     {# `data-count-up` porte la valeur finale, et le texte du
                        `<dt>` aussi : le script lit l'une, compte, et repose
                        l'autre. Sans lui - erreur de chargement, JavaScript
@@ -96,7 +96,7 @@
            "2024", and a history wants the second. #}
         <ol class="m-0 list-none space-y-8 border-l border-line p-0 pl-10">
             {% for entry in items.entries %}
-                <li class="relative">
+                <li class="aurora-reveal-item relative" style="--reveal-index: {{ loop.index0 }};">
                     {# A dot rather than a badge: the date is already the
                        marker, and two markers for one entry is one too many. #}
                     <span
@@ -156,7 +156,7 @@
            count: "01" to "06" line up, where "1" to "6" read as a tally. #}
         <ol class="m-0 grid list-none grid-cols-1 gap-x-12 p-0 {{ columns[items.columns] }}">
             {% for entry in items.entries %}
-                <li class="flex gap-5 border-t border-line py-6">
+                <li class="aurora-reveal-item flex gap-5 border-t border-line py-6" style="--reveal-index: {{ loop.index0 }};">
                     <span class="shrink-0 text-2xl font-medium leading-none text-accent tabular-nums sm:text-3xl" aria-hidden="true">{{ '%02d'|format(entry.position) }}</span>
                     <div class="min-w-0">
                         {% if entry.title %}<h3 class="m-0 text-lg font-semibold text-primary">{{ entry.title }}</h3>{% endif %}
@@ -187,7 +187,7 @@
         } %}
         <ol class="m-0 grid list-none grid-cols-1 gap-8 p-0 lg:gap-x-6 {{ processColumns[perRow]|default('') }}">
             {% for entry in items.entries %}
-                <li class="relative pl-12 lg:pl-0 lg:pt-12">
+                <li class="aurora-reveal-item relative pl-12 lg:pl-0 lg:pt-12" style="--reveal-index: {{ loop.index0 }};">
                     {% if not loop.last and loop.index % perRow != 0 %}
                         <span class="absolute left-4 top-8 -bottom-8 w-px bg-line lg:bottom-auto lg:left-8 lg:-right-6 lg:top-4 lg:h-px lg:w-auto" aria-hidden="true"></span>
                     {% endif %}
@@ -207,30 +207,33 @@
 
     {% elseif items.display == 'features' %}
         {# Cards with a pictogram: what a service covers, what a word means,
-           a note set apart. The pictogram and the pill are both optional; a
-           featured entry has its pill in the accent colour, the others stay
-           quiet - « compté » against « en plus ». #}
-        <div class="grid grid-cols-1 items-stretch gap-4 {{ columns[items.columns] }}">
+           a note set apart. Read across, not down: the pictogram beside the
+           words, the pill beside the title. Stacked - pictogram, then pill
+           row, then title, then sentence - six short cards took a screen and a
+           half for six lines of text, and a card twice the height of its
+           words reads as padding. The pill is loud only on the entries
+           singled out - « compté » against « en plus ». #}
+        <div class="grid grid-cols-1 items-stretch gap-3 {{ columns[items.columns] }}">
             {% for entry in items.entries %}
-                <div class="flex h-full flex-col gap-3 rounded-xl border border-card-line bg-surface p-5">
-                    {% if entry.media or entry.caption %}
-                        <div class="flex items-center justify-between gap-3">
-                            {% if entry.media %}
-                                {% if themeContext.iconTint() and entry.media.url matches '{^/[A-Za-z0-9/_.-]+\\.svg$}' %}
-                                    <span aria-hidden="true" class="aurora-icon-tint h-8 w-8 shrink-0" style="--icon-url: url('{{ entry.media.url }}');"></span>
-                                {% else %}
-                                    <img src="{{ entry.media.url }}" alt="" loading="lazy" class="h-8 w-8 shrink-0 object-contain">
-                                {% endif %}
-                            {% else %}
-                                <span></span>
-                            {% endif %}
-                            {% if entry.caption %}
-                                <span class="rounded-full border px-2 py-0.5 text-xs font-medium {{ entry.featured ? 'border-accent text-accent' : 'border-line text-muted' }}">{{ entry.caption }}</span>
-                            {% endif %}
-                        </div>
+                <div class="aurora-reveal-item flex h-full gap-4 rounded-xl border border-card-line bg-surface p-4 transition-colors hover:border-highlight" style="--reveal-index: {{ loop.index0 }};">
+                    {% if entry.media %}
+                        {% if themeContext.iconTint() and entry.media.url matches '{^/[A-Za-z0-9/_.-]+\\.svg$}' %}
+                            <span aria-hidden="true" class="aurora-icon-tint mt-0.5 h-7 w-7 shrink-0" style="--icon-url: url('{{ entry.media.url }}');"></span>
+                        {% else %}
+                            <img src="{{ entry.media.url }}" alt="" loading="lazy" class="mt-0.5 h-7 w-7 shrink-0 object-contain">
+                        {% endif %}
                     {% endif %}
-                    {% if entry.title %}<h3 class="m-0 text-base font-semibold text-primary">{{ entry.title }}</h3>{% endif %}
-                    {% if entry.description %}<p class="m-0 text-sm leading-relaxed text-secondary">{{ entry.description }}</p>{% endif %}
+                    <div class="flex min-w-0 flex-1 flex-col gap-1">
+                        {% if entry.title or entry.caption %}
+                            <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                {% if entry.title %}<h3 class="m-0 text-base font-semibold text-primary">{{ entry.title }}</h3>{% endif %}
+                                {% if entry.caption %}
+                                    <span class="rounded-full border px-2 py-0.5 text-xs font-medium {{ entry.featured ? 'border-accent text-accent' : 'border-line text-muted' }}">{{ entry.caption }}</span>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                        {% if entry.description %}<p class="m-0 text-sm leading-relaxed text-secondary">{{ entry.description }}</p>{% endif %}
+                    </div>
                 </div>
             {% endfor %}
         </div>
@@ -245,7 +248,7 @@
            that outgrows its neighbours breaks the row it belongs to. #}
         <div class="grid grid-cols-1 items-stretch gap-6 {{ columns[items.columns] }}">
             {% for entry in items.entries %}
-                <div class="relative flex h-full flex-col rounded-xl border p-6 {{ entry.featured ? 'border-accent bg-accent-500/5 shadow-lg shadow-black/20' : 'border-card-line bg-surface' }}">
+                <div class="aurora-reveal-item relative flex h-full flex-col rounded-xl border p-6 {{ entry.featured ? 'border-accent bg-accent-500/5 shadow-lg shadow-black/20' : 'border-card-line bg-surface' }}" style="--reveal-index: {{ loop.index0 }};">
                     {% if entry.featured %}
                         <span class="absolute -top-3 left-6 rounded-full bg-accent px-3 py-0.5 text-xs font-semibold text-white">
                             {{ 'frontend.editorial.grid.recommended'|trans }}
@@ -322,7 +325,7 @@
            read as a row. #}
         <ul class="m-0 grid list-none grid-cols-1 gap-8 p-0 {{ columns[items.columns] }}">
             {% for entry in items.entries %}
-                <li class="m-0 flex flex-col items-center text-center">
+                <li class="aurora-reveal-item m-0 flex flex-col items-center text-center" style="--reveal-index: {{ loop.index0 }};">
                     {% if entry.media %}
                         <img
                             src="{{ entry.media.url }}"
@@ -360,7 +363,7 @@
            `<blockquote>` because that is what it is. #}
         <div class="grid grid-cols-1 gap-6 {{ columns[items.columns] }}">
             {% for entry in items.entries %}
-                <figure class="aurora-card m-0 flex h-full flex-col p-6">
+                <figure class="aurora-reveal-item aurora-card m-0 flex h-full flex-col p-6" style="--reveal-index: {{ loop.index0 }};">
                     {% if entry.description %}
                         <blockquote class="m-0 flex-1 border-0 p-0 text-secondary not-italic">{{ entry.description }}</blockquote>
                     {% endif %}
@@ -389,7 +392,7 @@
            text, which is what a screen reader has to go on. #}
         <ul class="m-0 flex list-none flex-wrap items-center justify-center gap-x-10 gap-y-6 p-0">
             {% for entry in items.entries %}
-                <li class="m-0">
+                <li class="aurora-reveal-item m-0" style="--reveal-index: {{ loop.index0 }};">
                     {% set logo %}
                         {% if entry.media %}
                             <img
