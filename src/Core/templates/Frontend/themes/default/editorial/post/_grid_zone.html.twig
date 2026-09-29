@@ -735,6 +735,23 @@
             </div>
         </div>
 
+    {% elseif zone.type == 'toc' and zone.toc is not empty and zone.options.tocLayout|default('list') == 'pills' %}
+        {# The same summary on one or two lines: a long page gets its map
+           without a box the height of a screen above its first section. Every
+           heading is a pill; the second level is only quieter, since a row
+           has no indent to say it. #}
+        <nav class="not-prose flex flex-wrap items-center gap-2" aria-labelledby="{{ zone.id }}-toc">
+            <p id="{{ zone.id }}-toc" class="m-0 mr-2 text-xs font-semibold uppercase tracking-wider text-muted">
+                {{ 'frontend.editorial.grid.on_this_page'|trans }}
+            </p>
+            {% for heading in zone.toc %}
+                <a
+                    href="#{{ heading.id }}"
+                    class="rounded-full border border-card-line px-3 py-1 text-sm no-underline transition-colors hover:border-highlight hover:text-highlight {{ heading.level == 3 ? 'text-muted' : 'text-secondary' }}"
+                >{{ heading.text }}</a>
+            {% endfor %}
+        </nav>
+
     {% elseif zone.type == 'toc' and zone.toc is not empty %}
         {# A `<nav>` with a name, which is what makes it skippable: a reader
            moving by landmark meets "Sur cette page" and can step over it.

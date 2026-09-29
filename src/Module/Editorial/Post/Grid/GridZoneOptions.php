@@ -56,6 +56,9 @@ final class GridZoneOptions
 
     public const array LIST_LAYOUTS = ['cards', 'index'];
 
+    /** A summary as a list down the page, or as a row of pills that takes one line. */
+    public const array TOC_LAYOUTS = ['list', 'pills'];
+
     public const array GITHUB_MODES = ['activity', 'repos', 'releases'];
 
     public const int MAX_GITHUB_REPOS = 6;
@@ -98,6 +101,7 @@ final class GridZoneOptions
             'parallax' => false,
             'codeStyle' => self::CODE_STYLES[0],
             'listLayout' => self::LIST_LAYOUTS[0],
+            'tocLayout' => self::TOC_LAYOUTS[0],
             'githubMode' => self::GITHUB_MODES[0],
             'githubRepos' => [],
             'availability' => self::AVAILABILITIES[0],
@@ -149,6 +153,7 @@ final class GridZoneOptions
             'parallax' => true === ($data['parallax'] ?? false),
             'codeStyle' => self::oneOf($data['codeStyle'] ?? null, self::CODE_STYLES),
             'listLayout' => self::oneOf($data['listLayout'] ?? null, self::LIST_LAYOUTS),
+            'tocLayout' => self::oneOf($data['tocLayout'] ?? null, self::TOC_LAYOUTS),
             'githubMode' => self::oneOf($data['githubMode'] ?? null, self::GITHUB_MODES),
             'githubRepos' => self::repos($data['githubRepos'] ?? null),
             'availability' => self::oneOf($data['availability'] ?? null, self::AVAILABILITIES),
