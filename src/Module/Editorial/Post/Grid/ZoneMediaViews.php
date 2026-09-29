@@ -403,10 +403,14 @@ final readonly class ZoneMediaViews
      * Blank entries are kept, unlike the page's view: a row typed into
      * tomorrow is a row today.
      *
+     * Every stored field the editor sends back has to come out here too. The
+     * recommended flag of an offer did not, so the editor read every card as
+     * plain and the next save, from any tab, took the badge off the page.
+     *
      * @param array<string, mixed>          $zone
      * @param array<int, DocumentInterface> $documents
      *
-     * @return list<array{id: string, mediaId: int|null, media: array<string, mixed>|null}>
+     * @return list<array{id: string, mediaId: int|null, media: array<string, mixed>|null, featured: bool}>
      */
     public function itemsForEditor(array $zone, array $documents): array
     {
@@ -424,6 +428,7 @@ final readonly class ZoneMediaViews
                 'id' => $id,
                 'mediaId' => is_int($mediaId) ? $mediaId : null,
                 'media' => $this->mediaData($documents[$mediaId] ?? null, ''),
+                'featured' => (bool) ($item['featured'] ?? false),
             ];
         }
 
