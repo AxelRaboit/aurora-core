@@ -848,6 +848,14 @@ backend:
       offer_url: Lien du bouton
       offer_featured: Recommandée
       offer_featured_hint: "La carte mise en avant. Une seule, sinon plus aucune ne ressort."
+      featured_tone: 'Couleur de la mise en avant'
+      featured_tone_hint: 'La couleur de l''entrée mise en avant : son liseré et son badge. Celle du thème par défaut, ou une couleur qui a son propre sens, comme le vert pour une offre recommandée.'
+      featured_tones:
+        accent: 'Thème'
+        success: 'Succès'
+        info: 'Information'
+        warning: 'Attention'
+        danger: 'Alerte'
       offer_name_placeholder: "Site vitrine"
       offer_price_placeholder: "à partir de 1 500 €"
       offer_lines_placeholder: "Cinq pages\nUn formulaire de contact\nMise en ligne comprise"

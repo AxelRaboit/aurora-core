@@ -848,6 +848,14 @@ backend:
       offer_url: Button link
       offer_featured: Recommended
       offer_featured_hint: "The card drawn louder than the others. Only one, or none of them stands out."
+      featured_tone: 'Highlight colour'
+      featured_tone_hint: 'The colour of the entry put forward: its border and its badge. The theme''s by default, or a colour with a meaning of its own, like green for a recommended plan.'
+      featured_tones:
+        accent: 'Theme'
+        success: 'Success'
+        info: 'Information'
+        warning: 'Warning'
+        danger: 'Alert'
       offer_name_placeholder: "Brochure site"
       offer_price_placeholder: "from £1,500"
       offer_lines_placeholder: "Five pages\nA contact form\nGoing live included"

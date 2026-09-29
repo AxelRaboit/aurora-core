@@ -1473,6 +1473,15 @@ const displayHint = computed(() =>
                 :label="t('backend.posts.grid.item_columns')"
                 :options="choices.columns ?? []"
             />
+            <!-- Only where an entry can be put forward: the colour of a mark
+                 nothing carries would be a control that does nothing. -->
+            <AppChoiceRow
+                v-if="itemHasFeatured"
+                v-model="bound.featuredTone.value"
+                :label="t('backend.posts.grid.featured_tone')"
+                :hint="t('backend.posts.grid.featured_tone_hint')"
+                :options="choices.featuredTone ?? []"
+            />
 
             <div class="space-y-3">
                 <div
