@@ -95,10 +95,12 @@ final readonly class FaqStructuredData
                 foreach (is_array($items['entries'] ?? null) ? $items['entries'] : [] as $entry) {
                     $question = is_string($entry['title'] ?? null) ? mb_trim($entry['title']) : '';
                     $answer = is_string($entry['description'] ?? null) ? mb_trim($entry['description']) : '';
-
                     // A question without its answer is a heading, and an
                     // answer without its question answers nothing.
-                    if ('' === $question || '' === $answer) {
+                    if ('' === $question) {
+                        continue;
+                    }
+                    if ('' === $answer) {
                         continue;
                     }
 
