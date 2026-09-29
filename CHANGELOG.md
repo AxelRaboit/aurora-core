@@ -5,6 +5,26 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.303] - 2026-09-30
+
+### Ajouté
+
+#### Un encadré avec une icône, lisible sur un fond sombre
+Le bloc Encadré de l'éditeur propose maintenant une icône à côté du titre, à
+choisir parmi neuf (information, validé, attention, horloge, calendrier,
+étoile, ampoule, message, pause), ou aucune. La couleur « accent » suit le
+thème de la page où l'encadré est posé.
+
+### Corrigé
+
+#### L'encadré ne sort plus en bloc presque blanc sur un site sombre
+Un encadré peignait un fond clair avec un texte foncé, et seul le back-office
+avait une variante sombre : sur le site public en thème sombre, il ressortait
+en rectangle blanc. Le liseré et l'icône prennent désormais la couleur de
+l'encadré, le fond en est un léger voile, et le texte garde la couleur de la
+page : il se lit sur un fond clair comme sur un fond sombre. Le nom du bloc,
+ses couleurs et ses icônes sont traduits en français, anglais et espagnol.
+
 ## [0.9.302] - 2026-09-29
 
 ### Corrigé
