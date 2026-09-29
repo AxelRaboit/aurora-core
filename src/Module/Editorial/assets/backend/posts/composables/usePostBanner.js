@@ -107,6 +107,8 @@ function newItem(type) {
         media: null,
         buttonColor: null,
         buttonTextColor: null,
+        // The site's accent, read from the theme at render.
+        buttonSiteColor: false,
     };
 }
 
@@ -707,6 +709,7 @@ export function usePostBanner(layout, texts) {
                 ),
                 buttonColor: scalar("buttonColor"),
                 buttonTextColor: scalar("buttonTextColor"),
+                buttonSiteColor: scalar("buttonSiteColor"),
                 // The width control drives the large-screen span only. Below
                 // that an item stays full width, which is what the stored
                 // `base` says and what reads best on a phone.

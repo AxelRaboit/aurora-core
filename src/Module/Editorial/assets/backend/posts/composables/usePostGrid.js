@@ -659,6 +659,9 @@ function newZone(type) {
         highlightColor: null,
         // The page's accent, unless this zone has its own.
         accentColor: null,
+        // The site's accent over the page's, for a contact or a closing call
+        // to action on a page dressed in one trade's colour.
+        siteAccent: false,
         // Whatever the page says, which is still unless the page says
         // otherwise. A zone only carries its own answer when an author gave
         // it one, so changing the page's moves everything that never
@@ -1575,6 +1578,7 @@ export function usePostGrid(layout, content) {
                 highlight: shared("highlight"),
                 highlightColor: shared("highlightColor"),
                 accentColor: shared("accentColor"),
+                siteAccent: shared("siteAccent"),
                 reveal: shared("reveal"),
                 sticky: shared("sticky"),
                 fullBleed: shared("fullBleed"),

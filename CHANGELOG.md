@@ -5,6 +5,19 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.298] - 2026-09-29
+
+### Ajouté
+
+#### Une zone ou un bouton de bandeau peut garder la couleur du site
+Sur une page qui a sa propre couleur d'accent, une zone de la grille peut
+maintenant reprendre celle du thème avec l'interrupteur « Couleur du site ». Un
+bouton de bandeau peut faire de même. C'est pour ce qui parle du site plutôt que
+de la page : un contact ou un dernier appel à l'action. La couleur est lue dans
+le thème au moment de l'affichage : changer la couleur du thème déplace ces
+zones et ces boutons avec elle, sans rien ressaisir. L'interrupteur l'emporte
+sur une couleur saisie à la main.
+
 ## [0.9.297] - 2026-09-29
 
 ### Ajouté

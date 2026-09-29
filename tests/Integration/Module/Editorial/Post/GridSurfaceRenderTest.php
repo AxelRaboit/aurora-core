@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Integration\Module\Editorial\Post;
 
+use Aurora\Module\Configuration\Theme\Service\ThemeContext;
+use Aurora\Module\Configuration\Theme\Service\ThemeStyleRenderer;
 use Aurora\Module\Editorial\Post\Grid\GridViewBuilder;
 use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Tests\Integration\IntegrationTestCase;
@@ -443,6 +445,25 @@ final class GridSurfaceRenderTest extends IntegrationTestCase
         self::assertStringContainsString('[data-zone-accent="z1"]{', $html);
         self::assertStringContainsString('.dark [data-zone-accent="z1"]{', $html);
         self::assertStringContainsString('--th-accent: var(--th-accent-500);', $html);
+    }
+
+    /**
+     * The site's accent over the page's: a contact or a closing call to action
+     * on a page dressed in one trade's colour. Read from the theme, so it is
+     * the theme's palette under the zone's selector, and it wins over a colour
+     * the zone also carries.
+     */
+    public function testAZoneCanTakeTheSitesAccentOverThePages(): void
+    {
+        $themeContext = static::getContainer()->get(ThemeContext::class);
+        $styles = static::getContainer()->get(ThemeStyleRenderer::class);
+        $expected = $styles->postAccentCss('[data-zone-accent="z1"]', $themeContext->primaryColor());
+
+        $html = $this->renderGrid(['siteAccent' => true, 'accentColor' => '#bd4a55']);
+
+        self::assertStringContainsString('data-zone-accent="z1"', $html);
+        self::assertStringContainsString($expected, $html);
+        self::assertStringNotContainsString($styles->postAccentCss('[data-zone-accent="z1"]', '#bd4a55'), $html);
     }
 
     public function testAStackChildCanCarryItsOwnAccent(): void
