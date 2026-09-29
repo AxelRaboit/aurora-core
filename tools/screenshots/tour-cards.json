@@ -313,6 +313,18 @@
         "tour-site-public-telephone": {
             "document": 709,
             "slug": "site-public"
+        },
+        "tour-presentations-diaporama": {
+            "document": 717,
+            "slug": "presentations"
+        },
+        "tour-presentations-editeur": {
+            "document": 718,
+            "slug": "presentations"
+        },
+        "tour-presentations": {
+            "document": 719,
+            "slug": "presentations"
         }
     }
 }
