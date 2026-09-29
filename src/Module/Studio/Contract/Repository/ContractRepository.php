@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\Contract\Repository;
 
 use Aurora\Core\Repository\ResolveTargetEntityRepository;
+use Aurora\Core\Search\LikePattern;
 use Aurora\Module\Studio\Contract\Access\Entity\ContractAccessLink;
 use Aurora\Module\Studio\Contract\Entity\Contract;
 use Aurora\Module\Studio\Contract\Entity\ContractInterface;
@@ -226,6 +227,35 @@ class ContractRepository extends ResolveTargetEntityRepository
             ->setParameter('max', $maxReminders)
             ->setParameter('before', $before)
             ->orderBy('c.id', Order::Ascending->value)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Les contrats dont la référence, le client ou la trame contient le terme.
+     *
+     * Un contrat n'a pas de titre à lui : on le retrouve par sa référence, par
+     * la société pour qui il a été écrit, ou par la trame dont il part
+     * (« contrat mensuel »). Les plus récents d'abord, comme la liste.
+     *
+     * @return list<ContractInterface>
+     */
+    public function search(string $term, int $limit): array
+    {
+        if ('' === mb_trim($term)) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('c')
+            ->addSelect('cu', 'bv', 'bt')
+            ->innerJoin('c.customer', 'cu')
+            ->leftJoin('c.bodyVersion', 'bv')
+            ->leftJoin('bv.template', 'bt')
+            ->where('LOWER(c.reference) LIKE :term OR LOWER(cu.legalName) LIKE :term OR LOWER(bt.name) LIKE :term')
+            ->setParameter('term', LikePattern::contains($term))
+            ->orderBy('c.createdAt', Order::Descending->value)
+            ->addOrderBy('c.id', Order::Descending->value)
+            ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
     }

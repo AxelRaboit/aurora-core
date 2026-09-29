@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\Deck\Repository;
 
 use Aurora\Core\Repository\ResolveTargetEntityRepository;
+use Aurora\Core\Search\LikePattern;
 use Aurora\Module\Studio\Deck\Entity\Deck;
 use Aurora\Module\Studio\Deck\Entity\DeckInterface;
 use Doctrine\Persistence\ManagerRegistry;
@@ -82,5 +83,32 @@ class DeckRepository extends ResolveTargetEntityRepository
         }
 
         return $counts;
+    }
+
+    /**
+     * Les présentations dont le titre contient le terme.
+     *
+     * Le client et la catégorie viennent avec, parce que la recherche globale
+     * les affiche sous le titre. Les plus récemment modifiées d'abord, comme
+     * la liste.
+     *
+     * @return list<DeckInterface>
+     */
+    public function searchByTitle(string $term, int $limit): array
+    {
+        if ('' === mb_trim($term)) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('d')
+            ->leftJoin('d.category', 'c')->addSelect('c')
+            ->leftJoin('d.customer', 'cu')->addSelect('cu')
+            ->where('LOWER(d.title) LIKE :term')
+            ->setParameter('term', LikePattern::contains($term))
+            ->orderBy('d.updatedAt', 'DESC')
+            ->addOrderBy('d.id', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
     }
 }

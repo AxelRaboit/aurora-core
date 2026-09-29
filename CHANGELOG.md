@@ -5,6 +5,30 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.292] - 2026-09-29
+
+### Ajouté
+
+#### La recherche globale trouve aussi les notes, les espaces clients et les contrats
+Le champ de recherche du menu ne répondait que pour les publications, la
+médiathèque et les calendriers. Il cherche maintenant aussi dans les notes
+(titre et texte, déchiffrés à la volée, avec un extrait autour du mot trouvé),
+les espaces clients, leurs fiches de contenu, les clients, les contrats, les
+trames de contrat et les présentations. Chaque section suit l'interrupteur de
+son module et le privilège de son écran : on ne trouve que ce qu'on a le droit
+d'ouvrir, et un espace dont on n'est pas membre reste invisible. Un clic ouvre
+la note, l'espace sur la bonne fiche, le contrat ou la présentation.
+
+### Corrigé
+
+#### Un titre contenant du HTML s'exécutait dans la palette de recherche
+Les résultats de la recherche globale affichaient leur titre sans l'échapper.
+Un titre de publication, d'événement ou de fiche contenant une balise pouvait
+donc exécuter du code chez la personne qui le cherchait. Le texte est
+maintenant échappé avant la mise en surbrillance du mot cherché.
+
+---
+
 ## [0.9.291] - 2026-09-28
 
 ### Ajouté

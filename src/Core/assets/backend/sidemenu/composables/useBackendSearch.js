@@ -175,7 +175,7 @@ export function useBackendSearch({ searchPath, navItems, currentRoute }) {
     function openPalette() {
         searchOpen.value = true;
         searchQuery.value = "";
-        apiResults.value = { posts: [], terms: [], media: [] };
+        apiResults.value = emptyResults();
         searchHighlightedIndex.value = 0;
         nextTick(() => searchInputRef.value?.focus());
     }

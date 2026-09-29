@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\Customer\Repository;
 
 use Aurora\Core\Repository\ResolveTargetEntityRepository;
+use Aurora\Core\Search\LikePattern;
 use Aurora\Module\Studio\Customer\Entity\Customer;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Doctrine\Common\Collections\Order;
@@ -50,5 +51,36 @@ class CustomerRepository extends ResolveTargetEntityRepository
     public function findOneBySiret(string $siret): ?CustomerInterface
     {
         return $this->findOneBy(['siret' => $siret]);
+    }
+
+    /**
+     * Les clients dont la raison sociale, le SIRET ou le SIREN contient le
+     * terme.
+     *
+     * Le numéro est comparé sans ses espaces : il s'écrit souvent par groupes
+     * de trois, et il est enregistré d'un seul tenant.
+     *
+     * @return list<CustomerInterface>
+     */
+    public function searchByNameOrNumber(string $term, int $limit): array
+    {
+        if ('' === mb_trim($term)) {
+            return [];
+        }
+
+        $builder = $this->createQueryBuilder('c')
+            ->where('LOWER(c.legalName) LIKE :term')
+            ->setParameter('term', LikePattern::contains($term))
+            ->orderBy('c.legalName', Order::Ascending->value)
+            ->setMaxResults($limit);
+
+        $digits = preg_replace('/\s+/', '', $term) ?? '';
+        if (1 === preg_match('/^\d{3,14}$/', $digits)) {
+            $builder
+                ->orWhere('c.siret LIKE :number OR c.siren LIKE :number')
+                ->setParameter('number', LikePattern::contains($digits));
+        }
+
+        return $builder->getQuery()->getResult();
     }
 }

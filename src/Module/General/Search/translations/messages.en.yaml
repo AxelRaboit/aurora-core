@@ -1,8 +1,8 @@
 backend:
   search:
     button: Search…
-    placeholder: 'Search content, media…'
-    hint: 'Type to search across content, terms and media.'
+    placeholder: 'Search the back-office…'
+    hint: 'Type to search content, media, calendars, notes, client spaces and contracts.'
     empty: No results.
     keys:
       navigate: Navigate
