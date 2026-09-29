@@ -1,8 +1,8 @@
 backend:
   search:
     button: Rechercher…
-    placeholder: 'Rechercher des contenus, médias…'
-    hint: 'Tapez pour rechercher dans les contenus, termes et médias.'
+    placeholder: 'Rechercher dans le back-office…'
+    hint: 'Tapez pour rechercher dans les contenus, les médias, les calendriers, les notes, les espaces clients et les contrats.'
     empty: Aucun résultat.
     keys:
       navigate: Naviguer

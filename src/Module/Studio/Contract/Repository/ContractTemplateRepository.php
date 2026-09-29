@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\Contract\Repository;
 
 use Aurora\Core\Repository\ResolveTargetEntityRepository;
+use Aurora\Core\Search\LikePattern;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplate;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateInterface;
 use Aurora\Module\Studio\Contract\Enum\ContractTemplateKindEnum;
@@ -78,6 +79,58 @@ class ContractTemplateRepository extends ResolveTargetEntityRepository
                 ->getQuery()
                 ->getResult();
         }
+
+        return $templates;
+    }
+
+    /**
+     * Les trames dont le nom contient le terme, avec leurs versions.
+     *
+     * En deux temps : la limite s'applique aux trames, et une jointure sur une
+     * collection la ferait porter sur les lignes (une trame à trois versions
+     * en compterait trois). Les versions viennent ensuite en une requête,
+     * parce que la ligne de résultat ouvre la version en vigueur ou le
+     * brouillon, et les chercher trame par trame coûterait une requête
+     * chacune. Les archivées passent après les autres.
+     *
+     * @return list<ContractTemplateInterface>
+     */
+    public function searchByName(string $term, int $limit): array
+    {
+        if ('' === mb_trim($term)) {
+            return [];
+        }
+
+        $ids = $this->createQueryBuilder('t')
+            ->select('t.id')
+            ->addSelect('CASE WHEN t.archivedAt IS NULL THEN 0 ELSE 1 END AS HIDDEN archivedRank')
+            ->where('LOWER(t.name) LIKE :term')
+            ->setParameter('term', LikePattern::contains($term))
+            ->orderBy('archivedRank', Order::Ascending->value)
+            ->addOrderBy('t.name', Order::Ascending->value)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getSingleColumnResult();
+
+        if ([] === $ids) {
+            return [];
+        }
+
+        /** @var list<ContractTemplateInterface> $templates */
+        $templates = $this->createQueryBuilder('t')
+            ->addSelect('v')
+            ->leftJoin('t.versions', 'v')
+            ->where('t.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->getQuery()
+            ->getResult();
+
+        // Back in the order the first query chose.
+        $position = array_flip(array_map(intval(...), $ids));
+        usort(
+            $templates,
+            static fn (ContractTemplateInterface $a, ContractTemplateInterface $b): int => $position[(int) $a->getId()] <=> $position[(int) $b->getId()],
+        );
 
         return $templates;
     }

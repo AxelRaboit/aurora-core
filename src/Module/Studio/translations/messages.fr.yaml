@@ -1,4 +1,12 @@
 backend:
+    search:
+        sections:
+            spaces: Espaces clients
+            space_contents: Contenus des espaces
+            customers: Clients
+            contracts: Contrats
+            contract_templates: Trames de contrat
+            decks: Présentations
     stats:
         studio:
             spaces: Espaces actifs

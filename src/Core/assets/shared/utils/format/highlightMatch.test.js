@@ -34,4 +34,29 @@ describe("highlightMatch", () => {
         const result = highlightMatch("the quick brown fox", "quick fox");
         expect(result.match(/<mark/g)).toHaveLength(2);
     });
+
+    it("escapes markup in the text, so a title cannot inject HTML", () => {
+        const result = highlightMatch(
+            '<img src=x onerror="alert(1)"> licorne',
+            "licorne",
+        );
+        expect(result).not.toContain("<img");
+        expect(result).toContain(
+            "&lt;img src=x onerror=&quot;alert(1)&quot;&gt;",
+        );
+        expect(result).toContain(">licorne</mark>");
+    });
+
+    it("escapes markup even when there is nothing to highlight", () => {
+        expect(highlightMatch("<b>gras</b>", "")).toBe(
+            "&lt;b&gt;gras&lt;/b&gt;",
+        );
+    });
+
+    it("still finds a query holding an ampersand", () => {
+        expect(highlightMatch("Durand & fils", "& fils")).toContain(
+            ">fils</mark>",
+        );
+        expect(highlightMatch("R&D", "r&d")).toContain(">R&amp;D</mark>");
+    });
 });
