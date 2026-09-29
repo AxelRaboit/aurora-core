@@ -318,6 +318,15 @@ const SHOTS = [
             // d'à côté et qui ressemble assez pour qu'on ne le voie pas.
             await page.getByRole("button", { name: "Contenu", exact: true }).first().click();
             await page.waitForTimeout(2_000);
+            // Jusqu'au bas de la palette : elle compte 44 types, et le haut
+            // de l'onglet n'en montrait que trois rangées.
+            await page
+                .locator("main")
+                .getByRole("button", { name: "Pile", exact: true })
+                .last()
+                .evaluate((el) => el.scrollIntoView({ block: "end" }));
+            await page.mouse.wheel(0, 60);
+            await page.waitForTimeout(1_000);
         },
     },
     // Pas de prise de l'éditeur d'une zone, et j'ai essayé trois fois.
@@ -719,6 +728,50 @@ const SHOTS = [
     { name: "tour-contrats", path: "/backend/studio/contracts" },
     { name: "tour-trames", path: "/backend/studio/contract-templates" },
     { name: "tour-clients", path: "/backend/studio/customers" },
+
+    /**
+     * Le carrousel de l'en-tête : l'accueil de la démo en a trois diapositives.
+     * La deuxième plutôt que la première, pour qu'on voie qu'elle en est une.
+     * « Diapositive 2 » est un onglet, pas un bouton : visé par son texte.
+     */
+    {
+        name: "tour-entete-carrousel",
+        path: "/backend/editorial/posts/1/edit",
+        async prepare(page) {
+            await page.waitForTimeout(4_000);
+            await page.getByRole("button", { name: "En-tête", exact: true }).first().click();
+            await page.waitForTimeout(2_000);
+            await page.locator("main").getByText("Diapositive 2", { exact: true }).first().click();
+            await page.waitForTimeout(1_500);
+            await page
+                .locator("main")
+                .getByRole("button", { name: "Ajouter une diapositive" })
+                .evaluate((el) => el.scrollIntoView({ block: "center" }));
+            await page.mouse.wheel(0, -260);
+            await page.mouse.move(1_590, 990);
+            await page.waitForTimeout(1_200);
+        },
+    },
+
+    /**
+     * Une variante de couleur, par la famille du « Visuel de campagne » que
+     * `make demo` décline en rouge et en bleu. Derrière la fenêtre, le bandeau
+     * de famille déplié montre l'original et sa variante. « Voir la famille »
+     * est une étiquette de bouton, pas un texte : visé par l'attribut.
+     */
+    {
+        name: "tour-mediatheque-variante",
+        path: "/backend/ged/documents",
+        async prepare(page) {
+            await page.locator("main").getByRole("button", { name: "Vue liste" }).click();
+            await page.waitForTimeout(1_500);
+            await page.locator("main").locator('[aria-label="Voir la famille"], [title="Voir la famille"]').first().click();
+            await page.waitForTimeout(2_500);
+            await page.getByRole("button", { name: /Variante de couleur/ }).first().click();
+            await page.mouse.move(1_590, 990);
+            await page.waitForTimeout(2_500);
+        },
+    },
 
     /**
      * Les présentations, par l'audit et nommément : ses onze diapositives
