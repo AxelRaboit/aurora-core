@@ -325,6 +325,14 @@
         "tour-presentations": {
             "document": 719,
             "slug": "presentations"
+        },
+        "tour-entete-carrousel": {
+            "document": 720,
+            "slug": "en-tete-de-page"
+        },
+        "tour-mediatheque-variante": {
+            "document": 721,
+            "slug": "mediatheque"
         }
     }
 }
