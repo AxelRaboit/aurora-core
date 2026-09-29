@@ -207,7 +207,7 @@ function openSearchFromMobile() {
     >
         <div class="sh-wrap flex items-center h-16 border-b border-line shrink-0 transition-all duration-200">
             <a :href="dashboardPath" class="flex items-center gap-2.5 min-w-0 flex-1">
-                <img v-if="siteLogoUrl" :src="siteLogoUrl" alt="Logo" class="h-8 w-8 shrink-0 object-cover rounded-xl">
+                <img v-if="siteLogoUrl" :src="siteLogoUrl" alt="Logo" class="h-8 w-8 shrink-0 object-contain">
                 <AppLogo v-else :size="32" class="shrink-0" />
                 <div class="flex flex-col min-w-0">
                     <span class="text-primary font-bold text-lg tracking-tight truncate leading-tight">{{ siteName }}</span>
@@ -356,7 +356,7 @@ function openSearchFromMobile() {
         <a :href="dashboardPath" class="flex items-center gap-2">
             <!-- The site's logo on a phone too: it was only read by the wide
                  sidebar, and the phone bar kept drawing the default mark. -->
-            <img v-if="siteLogoUrl" :src="siteLogoUrl" alt="Logo" class="h-7 w-7 shrink-0 object-cover rounded-lg">
+            <img v-if="siteLogoUrl" :src="siteLogoUrl" alt="Logo" class="h-7 w-7 shrink-0 object-contain">
             <AppLogo v-else :size="28" />
             <span class="text-primary font-bold text-base tracking-tight">{{ siteName }}</span>
         </a>
@@ -421,7 +421,7 @@ function openSearchFromMobile() {
         >
             <div class="flex items-center justify-between px-4 h-16 border-b border-line shrink-0">
                 <div class="flex items-center gap-2.5">
-                    <img v-if="siteLogoUrl" :src="siteLogoUrl" alt="Logo" class="h-8 w-8 shrink-0 object-cover rounded-xl">
+                    <img v-if="siteLogoUrl" :src="siteLogoUrl" alt="Logo" class="h-8 w-8 shrink-0 object-contain">
                     <AppLogo v-else :size="32" />
                     <div class="flex flex-col">
                         <span class="text-primary font-bold text-lg tracking-tight">{{ siteName }}</span>
