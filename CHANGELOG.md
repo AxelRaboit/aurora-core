@@ -5,6 +5,19 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.304] - 2026-09-30
+
+### Ajouté
+
+#### Choisir la couleur de l'entrée mise en avant
+Une liste en offres ou en points forts peut mettre une entrée en avant, la
+carte « Recommandé » par exemple. Sa couleur était toujours celle du thème de
+la page. Un nouveau réglage de la zone, « Couleur de la mise en avant », laisse
+choisir entre le thème (par défaut, rien ne change) et une couleur qui a son
+propre sens : succès, information, attention ou alerte. Le liseré, le voile de
+fond et le badge prennent cette couleur, et le texte du badge reste lisible sur
+un thème sombre.
+
 ## [0.9.303] - 2026-09-30
 
 ### Ajouté

@@ -385,6 +385,10 @@ final readonly class ZoneMediaViews
             // giving it the whole zone to reach one flag would hand it the
             // span, the surface and the anchor as well.
             'exclusiveOpen' => (bool) ($zone['exclusiveOpen'] ?? false),
+            // The colour of the entry put forward, from the zone's options.
+            // Normalised on the way in; read with a default here so a zone
+            // saved before the setting existed keeps the accent it had.
+            'featuredTone' => (string) ($zone['options']['featuredTone'] ?? 'accent'),
             // The grouping name the browser folds on. Per zone, so two lists
             // on one page do not close each other's panels; `id` is already
             // unique across the grid, stacks included.

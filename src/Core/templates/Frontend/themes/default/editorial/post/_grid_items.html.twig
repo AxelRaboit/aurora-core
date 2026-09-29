@@ -20,6 +20,19 @@
 } %}
 
 <div class="not-prose">
+    {# The colour of the entry a list puts forward: the accent by default,
+       a status colour when the author chose one. Written out whole so the
+       stylesheet build sees every class. A status colour is light on a dark
+       theme, so its badge takes the page's background for its words where
+       the accent keeps white. #}
+    {% set featuredTones = {
+        accent: {card: 'border-accent bg-accent-500/5', badge: 'bg-accent text-white', text: 'border-accent text-accent'},
+        success: {card: 'border-success bg-success/5', badge: 'bg-success text-bg', text: 'border-success text-success'},
+        info: {card: 'border-info bg-info/5', badge: 'bg-info text-bg', text: 'border-info text-info'},
+        warning: {card: 'border-warning bg-warning/5', badge: 'bg-warning text-bg', text: 'border-warning text-warning'},
+        danger: {card: 'border-danger bg-danger/5', badge: 'bg-danger text-bg', text: 'border-danger text-danger'},
+    } %}
+    {% set featuredTone = featuredTones[items.featuredTone|default('accent')]|default(featuredTones.accent) %}
     {% if items.display == 'steps' %}
         {# Numbered, and the number is the point: a process is read in order,
            so it is drawn as an order. The rule down the left is what makes
@@ -228,7 +241,7 @@
                             <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
                                 {% if entry.title %}<h3 class="m-0 text-base font-semibold text-primary">{{ entry.title }}</h3>{% endif %}
                                 {% if entry.caption %}
-                                    <span class="rounded-full border px-2 py-0.5 text-xs font-medium {{ entry.featured ? 'border-accent text-accent' : 'border-line text-muted' }}">{{ entry.caption }}</span>
+                                    <span class="rounded-full border px-2 py-0.5 text-xs font-medium {{ entry.featured ? featuredTone.text : 'border-line text-muted' }}">{{ entry.caption }}</span>
                                 {% endif %}
                             </div>
                         {% endif %}
@@ -248,9 +261,9 @@
            that outgrows its neighbours breaks the row it belongs to. #}
         <div class="grid grid-cols-1 items-stretch gap-6 {{ columns[items.columns] }}">
             {% for entry in items.entries %}
-                <div class="aurora-reveal-item relative flex h-full flex-col rounded-xl border p-6 {{ entry.featured ? 'border-accent bg-accent-500/5 shadow-lg shadow-black/20' : 'border-card-line bg-surface' }}" style="--reveal-index: {{ loop.index0 }};">
+                <div class="aurora-reveal-item relative flex h-full flex-col rounded-xl border p-6 {{ entry.featured ? featuredTone.card ~ ' shadow-lg shadow-black/20' : 'border-card-line bg-surface' }}" style="--reveal-index: {{ loop.index0 }};">
                     {% if entry.featured %}
-                        <span class="absolute -top-3 left-6 rounded-full bg-accent px-3 py-0.5 text-xs font-semibold text-white">
+                        <span class="absolute -top-3 left-6 rounded-full px-3 py-0.5 text-xs font-semibold {{ featuredTone.badge }}">
                             {{ 'frontend.editorial.grid.recommended'|trans }}
                         </span>
                     {% endif %}

@@ -95,6 +95,14 @@ final class GridZoneOptions
     public const array FEED_COUNTS = [6, 9, 12];
 
     /**
+     * The colour of the entry a list puts forward - the recommended offer,
+     * the highlighted feature. The theme's accent by default, as before;
+     * a status colour when the mark means something of its own, like a
+     * green "recommended" on a page whose accent is red.
+     */
+    public const array FEATURED_TONES = ['accent', 'success', 'info', 'warning', 'danger'];
+
+    /**
      * Every key, with the value a zone arrives with.
      *
      * @return array<string, mixed>
@@ -143,6 +151,7 @@ final class GridZoneOptions
             'slotDuration' => self::SLOT_DURATIONS[0],
             'bookingWindowDays' => self::BOOKING_WINDOWS[0],
             'feedCount' => self::FEED_COUNTS[0],
+            'featuredTone' => self::FEATURED_TONES[0],
         ];
     }
 
@@ -218,6 +227,7 @@ final class GridZoneOptions
             'slotDuration' => self::intOneOf($data['slotDuration'] ?? null, self::SLOT_DURATIONS),
             'bookingWindowDays' => self::intOneOf($data['bookingWindowDays'] ?? null, self::BOOKING_WINDOWS),
             'feedCount' => self::intOneOf($data['feedCount'] ?? null, self::FEED_COUNTS),
+            'featuredTone' => self::oneOf($data['featuredTone'] ?? null, self::FEATURED_TONES),
         ];
     }
 
