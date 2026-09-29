@@ -848,6 +848,14 @@ backend:
             offer_url: 'Enlace del botón'
             offer_featured: Recomendada
             offer_featured_hint: 'La ficha destacada. Solo una, si no ninguna resalta.'
+            featured_tone: 'Color del destacado'
+            featured_tone_hint: 'El color de la entrada destacada: su borde y su insignia. El del tema por defecto, o un color con sentido propio, como el verde para una oferta recomendada.'
+            featured_tones:
+                accent: 'Tema'
+                success: 'Éxito'
+                info: 'Información'
+                warning: 'Atención'
+                danger: 'Alerta'
             offer_name_placeholder: 'Sitio corporativo'
             offer_price_placeholder: 'desde 1500 €'
             offer_lines_placeholder: |-

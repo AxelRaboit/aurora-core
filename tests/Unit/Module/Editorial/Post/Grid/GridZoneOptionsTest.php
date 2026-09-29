@@ -30,6 +30,13 @@ final class GridZoneOptionsTest extends TestCase
         self::assertSame('terminal', $options['codeStyle']);
     }
 
+    public function testTheHighlightColourIsAToneOrTheAccent(): void
+    {
+        self::assertSame('accent', GridZoneOptions::normalize([])['featuredTone']);
+        self::assertSame('success', GridZoneOptions::normalize(['featuredTone' => 'success'])['featuredTone']);
+        self::assertSame('accent', GridZoneOptions::normalize(['featuredTone' => '#00ff00'])['featuredTone']);
+    }
+
     /** A range that closes before it opens is dropped, never swapped. */
     public function testOpeningHoursKeepOnlyRealRangesInOrder(): void
     {

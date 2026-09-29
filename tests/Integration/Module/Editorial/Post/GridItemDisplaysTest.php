@@ -212,7 +212,25 @@ final class GridItemDisplaysTest extends IntegrationTestCase
         self::assertStringNotContainsString('justify-between gap-3', $html);
     }
 
-    private function render(string $display, array $items, array $words, bool $exclusiveOpen = false): string
+    /**
+     * The recommended card in a colour with a meaning of its own: a green
+     * "recommended" on a page whose accent is red. Left alone, and on every
+     * zone saved before the setting, it keeps the accent it always had.
+     */
+    public function testTheRecommendedCardTakesTheToneItWasGiven(): void
+    {
+        $green = $this->render('offers', [['id' => 'i1', 'featured' => true]], ['i1' => ['title' => 'Simple']], featuredTone: 'success');
+
+        self::assertStringContainsString('border-success', $green);
+        self::assertStringContainsString('bg-success text-bg', $green);
+        self::assertStringNotContainsString('border-accent', $green);
+
+        $unknown = $this->render('offers', [['id' => 'i1', 'featured' => true]], ['i1' => ['title' => 'Simple']], featuredTone: 'fuchsia');
+
+        self::assertStringContainsString('border-accent', $unknown);
+    }
+
+    private function render(string $display, array $items, array $words, bool $exclusiveOpen = false, ?string $featuredTone = null): string
     {
         $grid = $this->gridViewBuilder->build(
             [
@@ -223,6 +241,7 @@ final class GridItemDisplaysTest extends IntegrationTestCase
                     'display' => $display,
                     'items' => $items,
                     'exclusiveOpen' => $exclusiveOpen,
+                    'options' => null !== $featuredTone ? ['featuredTone' => $featuredTone] : [],
                 ]],
             ],
             ['zones' => ['z1' => ['items' => $words]]],

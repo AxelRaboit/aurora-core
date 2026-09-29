@@ -220,6 +220,14 @@ export const POLL_RESULTS = ["after", "always"];
 export const SLOT_DURATIONS = [15, 30, 45, 60, 90];
 export const BOOKING_WINDOWS = [7, 14, 21, 30, 45];
 export const FEED_COUNTS = [6, 9, 12];
+/** Mirrors GridZoneOptions::FEATURED_TONES. */
+export const FEATURED_TONES = [
+    "accent",
+    "success",
+    "info",
+    "warning",
+    "danger",
+];
 
 /**
  * What `options` holds on a new zone - every key, whatever the type, for the
@@ -269,6 +277,7 @@ export function defaultZoneOptions() {
         slotDuration: 15,
         bookingWindowDays: 7,
         feedCount: 6,
+        featuredTone: "accent",
     };
 }
 
@@ -825,6 +834,7 @@ export function usePostGrid(layout, content) {
             value,
             label: t("backend.posts.grid.days_count", { count: value }),
         })),
+        featuredTone: labelled(FEATURED_TONES, "featured_tones"),
         feedCount: FEED_COUNTS.map((value) => ({
             value,
             label: String(value),
