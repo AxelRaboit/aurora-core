@@ -5,6 +5,17 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.302] - 2026-09-29
+
+### Corrigé
+
+#### Une zone à onglets garde ses onglets quand on enregistre depuis le back-office
+L'éditeur recevait la zone à onglets sans la liste de ses onglets. À
+l'enregistrement suivant, il la renvoyait vide, et le serveur effaçait alors le
+titre et le contenu de chaque onglet : une zone à onglets ne survivait pas à sa
+deuxième sauvegarde. L'éditeur reçoit maintenant la liste des onglets, comme il
+reçoit déjà celle des autres listes, et les onglets restent en place.
+
 ## [0.9.301] - 2026-09-29
 
 ### Ajouté
