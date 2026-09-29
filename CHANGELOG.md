@@ -5,6 +5,18 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.297] - 2026-09-29
+
+### Ajouté
+
+#### Les FAQ d'une page sont déclarées aux moteurs de recherche
+Une zone affichée en questions repliables écrit maintenant ses questions et
+ses réponses en données structurées `FAQPage` dans l'en-tête de la page, sans
+rien à saisir de plus. Seules les questions visibles y figurent : une zone dont
+les dates sont passées ou réservée aux membres n'est pas déclarée. Le JSON-LD
+saisi à la main dans le référencement d'une publication est conservé, et un
+`FAQPage` écrit à la main n'est jamais doublé.
+
 ## [0.9.296] - 2026-09-29
 
 ### Corrigé

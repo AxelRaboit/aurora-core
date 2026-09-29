@@ -12,6 +12,7 @@ use Aurora\Module\Editorial\Post\Banner\BannerViewBuilder;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Entity\PostTranslationInterface;
 use Aurora\Module\Editorial\Post\Gallery\GalleryViewBuilder;
+use Aurora\Module\Editorial\Post\Grid\FaqStructuredData;
 use Aurora\Module\Editorial\Post\Grid\GridViewBuilder;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
 use Aurora\Module\Editorial\Post\Sequence\PostSequenceBuilder;
@@ -48,6 +49,7 @@ final readonly class PostPageRenderer
         private ReadingTimeCalculator $readingTimeCalculator,
         private PostRepository $postRepository,
         private SiteUsefulLinks $siteUsefulLinks,
+        private FaqStructuredData $faqStructuredData,
     ) {}
 
     public function render(PostInterface $post, string $locale): Response
@@ -80,7 +82,7 @@ final readonly class PostPageRenderer
                 'highlight' => $post->getHighlight(),
                 'highlightColor' => $post->getHighlightColor(),
             ],
-            'translationData' => $this->translationData($translation, $post->getThumbnail()),
+            'translationData' => $this->translationData($translation, $post->getThumbnail(), $grid),
             // null when the banner is off or empty, which is what the template
             // reads to fall back to the plain title header.
             'banner' => $this->bannerViewBuilder->build($post->getBannerLayout(), $translation->getBanner()),
@@ -131,8 +133,12 @@ final readonly class PostPageRenderer
         return $response;
     }
 
-    /** @return array<string, mixed> */
-    private function translationData(PostTranslationInterface $translation, ?DocumentInterface $thumbnail): array
+    /**
+     * @param array<string, mixed>|null $grid the page's grid as it renders
+     *
+     * @return array<string, mixed>
+     */
+    private function translationData(PostTranslationInterface $translation, ?DocumentInterface $thumbnail, ?array $grid): array
     {
         // Falls back to the thumbnail: a post shared without an explicit social
         // image should still show the picture that stands for it everywhere
@@ -176,7 +182,9 @@ final readonly class PostPageRenderer
                     'focalPosition' => $this->documentUrlGenerator->focalPositionCss($ogImage),
                 ]
                 : null,
-            'jsonLd' => $translation->getJsonLd(),
+            // The author's own block, plus the questions the page folds: a
+            // FAQ zone is already a list of questions with their answers.
+            'jsonLd' => $this->faqStructuredData->combine($translation->getJsonLd(), $this->faqStructuredData->fromGrid($grid)),
             // Same gap the listing cards had: a post type whose meaning lives
             // in its custom fields could not render them on its own page.
             'customFields' => $translation->getCustomFields(),
