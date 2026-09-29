@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\SpaceContent\Repository;
 
 use Aurora\Core\Repository\ResolveTargetEntityRepository;
+use Aurora\Core\Search\LikePattern;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumnInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItem;
@@ -229,5 +230,41 @@ class SpaceContentItemRepository extends ResolveTargetEntityRepository
             ->setParameter('space', $space)
             ->getQuery()
             ->getSingleScalarResult();
+    }
+
+    /**
+     * Les cartes dont le titre contient le terme, dans les espaces donnés.
+     *
+     * `$spaceIds` à null veut dire « tous les espaces » ; une liste vide ne
+     * rend rien. L'espace et l'étape viennent avec la carte, parce que la
+     * recherche globale les affiche sous son titre. Les plus récemment
+     * touchées d'abord : une carte se cherche le plus souvent parce qu'on
+     * vient d'y travailler.
+     *
+     * @param list<int>|null $spaceIds
+     *
+     * @return list<SpaceContentItemInterface>
+     */
+    public function searchByTitle(string $term, ?array $spaceIds, int $limit): array
+    {
+        if ('' === mb_trim($term) || [] === $spaceIds) {
+            return [];
+        }
+
+        $builder = $this->createQueryBuilder('i')
+            ->addSelect('s', 'col')
+            ->join('i.space', 's')
+            ->join('i.column', 'col')
+            ->where('LOWER(i.title) LIKE :term')
+            ->setParameter('term', LikePattern::contains($term))
+            ->orderBy('i.updatedAt', Order::Descending->value)
+            ->addOrderBy('i.id', Order::Descending->value)
+            ->setMaxResults($limit);
+
+        if (null !== $spaceIds) {
+            $builder->andWhere('s.id IN (:ids)')->setParameter('ids', $spaceIds);
+        }
+
+        return $builder->getQuery()->getResult();
     }
 }

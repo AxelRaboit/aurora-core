@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\CustomerSpace\Repository;
 
 use Aurora\Core\Repository\ResolveTargetEntityRepository;
+use Aurora\Core\Search\LikePattern;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
@@ -228,5 +229,59 @@ class CustomerSpaceRepository extends ResolveTargetEntityRepository
         }
 
         return $best;
+    }
+
+    /**
+     * Les identifiants des espaces dont cette personne est membre.
+     *
+     * La moitié « appartenance » de {@see findVisibleTo()}, sans charger les
+     * espaces : la recherche globale n'a besoin que de savoir où chercher, et
+     * charger chaque espace avec son équipe pour n'en garder que l'identifiant
+     * serait payer la liste entière à chaque frappe.
+     *
+     * @return list<int>
+     */
+    public function findIdsWhereMember(CoreUserInterface $user): array
+    {
+        return array_map(intval(...), $this->createQueryBuilder('s')
+            ->select('s.id')
+            ->join('s.members', 'm')
+            ->where('m.user = :user')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getSingleColumnResult());
+    }
+
+    /**
+     * Les espaces dont le nom, ou celui du client, contient le terme.
+     *
+     * `$spaceIds` à null veut dire « tous » (quelqu'un qui voit tout) ; une
+     * liste restreint la recherche à ces espaces-là, et une liste vide ne rend
+     * rien. Rangés comme la liste des espaces : les actifs d'abord.
+     *
+     * @param list<int>|null $spaceIds
+     *
+     * @return list<CustomerSpaceInterface>
+     */
+    public function searchByName(string $term, ?array $spaceIds, int $limit): array
+    {
+        if ('' === mb_trim($term) || [] === $spaceIds) {
+            return [];
+        }
+
+        $builder = $this->createQueryBuilder('s')
+            ->addSelect('c')
+            ->join('s.customer', 'c')
+            ->where('LOWER(s.name) LIKE :term OR LOWER(c.legalName) LIKE :term')
+            ->setParameter('term', LikePattern::contains($term))
+            ->orderBy('s.status', Order::Ascending->value)
+            ->addOrderBy('s.name', Order::Ascending->value)
+            ->setMaxResults($limit);
+
+        if (null !== $spaceIds) {
+            $builder->andWhere('s.id IN (:ids)')->setParameter('ids', $spaceIds);
+        }
+
+        return $builder->getQuery()->getResult();
     }
 }

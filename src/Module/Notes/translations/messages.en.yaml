@@ -1,4 +1,7 @@
 backend:
+  search:
+    sections:
+      notes: Notes
   parameters:
     notes_markdown_image_max_edge:
       label: Notes Markdown - Max image size (px)
