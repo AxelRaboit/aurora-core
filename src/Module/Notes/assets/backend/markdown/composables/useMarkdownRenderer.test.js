@@ -46,6 +46,56 @@ describe("useMarkdownRenderer", () => {
         expect(match).not.toBeNull();
     });
 
+    it("renders inline formatting inside a plain list item", () => {
+        const html = render(
+            "- **SIREN** : 107 071 508\n- [site](https://example.org) et `code`",
+        );
+        expect(html).toContain("<strong>SIREN</strong>");
+        expect(html).toContain('<a href="https://example.org">site</a>');
+        expect(html).toContain("<code>code</code>");
+        expect(html).not.toContain("**");
+    });
+
+    it("renders inline formatting inside a task item, with one checkbox", () => {
+        const html = render(
+            "- [ ] **Relancer** le [client](https://example.org)",
+        );
+        expect(html).toContain("<strong>Relancer</strong>");
+        expect(html).toContain('<a href="https://example.org">client</a>');
+        expect(html.match(/<input/g)).toHaveLength(1);
+        expect(html).toContain('data-checkbox-index="0"');
+        expect(html).not.toContain("[ ]");
+    });
+
+    it("renders a nested list inside a list item", () => {
+        const html = render("- parent\n  - **child**");
+        expect(html).toMatch(
+            /<li>parent\s*<ul>\s*<li><strong>child<\/strong><\/li>/,
+        );
+    });
+
+    it("numbers nested task checkboxes in source order", () => {
+        const source = "- [ ] parent\n  - [x] child\n- [ ] sibling";
+        const html = render(source);
+        expect(html).toMatch(
+            /data-checkbox-index="0"[^>]*>\s*<div class="task-list-body">parent/,
+        );
+        expect(html).toMatch(
+            /data-checkbox-index="1"[^>]*checked[^>]*>\s*<div class="task-list-body">child/,
+        );
+        expect(html).toMatch(
+            /data-checkbox-index="2"[^>]*>\s*<div class="task-list-body">sibling/,
+        );
+        expect(toggleCheckboxInContent(source, 1)).toBe(
+            "- [ ] parent\n  - [ ] child\n- [ ] sibling",
+        );
+    });
+
+    it("renders a wiki-link inside a list item", () => {
+        const html = render("- voir [[Mes contrats]]");
+        expect(html).toContain('data-note-title="Mes contrats"');
+    });
+
     it("sanitizes embedded script tags", () => {
         const html = render('Hello <script>alert("xss")</script>');
         expect(html).not.toContain("<script");
