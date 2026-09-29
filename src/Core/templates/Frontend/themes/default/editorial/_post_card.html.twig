@@ -24,9 +24,11 @@
 
    - `full`       picture, eyebrow, title, summary, arrow
    - `compact`    a line and an arrow, for a long list in a narrow column
-   - `horizontal` the picture beside the text rather than above it - from `sm`
-     only: on a phone a third of the width is a sliver, and the picture,
-     stretched to the height of the words, lost its sides #}
+   - `horizontal` the picture beside the text rather than above it, once the
+     card itself is 28rem wide - a container query, not a screen width. Keyed
+     on the screen it turned at 640px, where two columns leave each card
+     300px: a third of that is a sliver, and the picture stretched to the
+     height of the words lost its sides. Narrower, it is the full card #}
 {% set variant = variant|default('full') %}
 
 {% set cardTerms = post.terms is defined ? post.terms : [] %}
@@ -38,24 +40,25 @@
    one) must still render. #}
 {% set cardHighlight = post.cardHighlight|default(null) %}
 
-<article class="group not-prose relative flex h-full overflow-hidden rounded-xl border border-card-line bg-surface transition duration-200 hover:-translate-y-1 hover:border-highlight-500/60 hover:shadow-xl hover:shadow-black/30 {{ variant == 'horizontal' ? 'flex-col sm:flex-row sm:items-stretch' : 'flex-col' }}"{% if cardHighlight %} data-card-highlight style="--card-highlight: {{ cardHighlight }};"{% endif %}>
+<article class="group not-prose relative flex h-full overflow-hidden rounded-xl border border-card-line bg-surface transition duration-200 hover:-translate-y-1 hover:border-highlight-500/60 hover:shadow-xl hover:shadow-black/30 {{ variant == 'horizontal' ? 'flex-col @container' : 'flex-col' }}"{% if cardHighlight %} data-card-highlight style="--card-highlight: {{ cardHighlight }};"{% endif %}>
+    {% if variant == 'horizontal' %}<div class="flex flex-1 flex-col @md:flex-row @md:items-stretch">{% endif %}
     {% if post.thumbnailUrl and variant != 'compact' %}
         {# The fit arrives as a class, not a value: Tailwind only emits classes
            it can read in the source, and `object-{{ fit }}` is one it never
            sees. A fixed ratio rather than a fixed height, so a row of cards
            lines up whatever the pictures were. #}
-        <div class="relative overflow-hidden {{ variant == 'horizontal' ? 'shrink-0 sm:w-1/3' : '' }}">
+        <div class="relative overflow-hidden {{ variant == 'horizontal' ? 'shrink-0 @md:w-1/3' : '' }}">
             <img
                 src="{{ post.thumbnailUrl }}"
                 alt=""
                 loading="lazy"
-                class="{{ variant == 'horizontal' ? 'aspect-[16/10] sm:aspect-auto sm:h-full' : 'aspect-[16/10]' }} w-full {{ post.thumbnailFitClass }} transition-transform duration-500 group-hover:scale-105"
+                class="{{ variant == 'horizontal' ? 'aspect-[16/10] @md:aspect-auto @md:h-full' : 'aspect-[16/10]' }} w-full {{ post.thumbnailFitClass }} transition-transform duration-500 group-hover:scale-105"
                 style="object-position: {{ post.thumbnailFocalPosition }};"
             >
         </div>
     {% endif %}
 
-    <div class="flex flex-1 flex-col gap-2 {{ variant == 'compact' ? 'p-4' : 'p-5' }}">
+    <div class="flex min-w-0 flex-1 flex-col gap-2 {{ variant == 'compact' ? 'p-4' : 'p-5' }}">
         {% if eyebrow and variant != 'compact' %}
             {# The first term, above the title rather than as a chip below it.
                It says what kind of thing this is before the reader commits to
@@ -79,10 +82,13 @@
         {# The affordance the card was missing: nothing here said it could be
            clicked. Hidden from assistive technology because the link above
            already carries the destination, and reserved space rather than
-           inserted on hover, so the card does not resize under the cursor. #}
+           inserted on hover, so the card does not resize under the cursor.
+           Gone where nothing hovers: under a finger it never shows, and its
+           reserved line was an empty band at the foot of every card. #}
         <span
             aria-hidden="true"
-            class="text-lg leading-none text-highlight opacity-0 transition duration-200 group-hover:translate-x-1 group-hover:opacity-100 {{ variant == 'compact' ? 'absolute right-4 top-1/2 -translate-y-1/2' : 'mt-auto pt-3' }}"
+            class="text-lg leading-none text-highlight opacity-0 transition duration-200 [@media(hover:none)]:hidden group-hover:translate-x-1 group-hover:opacity-100 {{ variant == 'compact' ? 'absolute right-4 top-1/2 -translate-y-1/2' : 'mt-auto pt-3' }}"
         >&rarr;</span>
     </div>
+    {% if variant == 'horizontal' %}</div>{% endif %}
 </article>

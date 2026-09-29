@@ -40,6 +40,14 @@ son texte tassé tout en bas. Son contenu reprenait le numéro de ligne de la
 zone qui le porte, et s'affichait sous autant de lignes vides. Il retrouve
 maintenant la hauteur choisie, son texte centré.
 
+#### Les cartes horizontales ne coupent plus leur image entre téléphone et tablette
+Une liste de publications en cartes horizontales passait à l'horizontale dès
+640 pixels d'écran, alors que deux colonnes ne laissaient à chaque carte que
+300 pixels : l'image devenait une bande étroite et les logos étaient coupés.
+La carte bascule maintenant selon sa propre largeur. Étroite, elle garde son
+image au-dessus ; large, elle la place à côté du texte. Sur un écran tactile,
+la place réservée à la flèche de survol ne laisse plus de bande vide en bas.
+
 #### Le sommaire lit les titres d'une pile
 Un titre écrit dans une pile (un texte à côté d'une image, par exemple)
 n'apparaissait pas dans le sommaire de la page. Il y figure maintenant, à sa
