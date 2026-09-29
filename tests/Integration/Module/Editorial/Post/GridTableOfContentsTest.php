@@ -106,6 +106,27 @@ final class GridTableOfContentsTest extends IntegrationTestCase
         self::assertStringNotContainsString('<ol class="m-0 list-none space-y-2', $html);
     }
 
+    /** The numbered index: 01 for a section, 01.1 for the heading under it. */
+    public function testTheSummaryCanBeANumberedIndex(): void
+    {
+        $html = $this->renderGrid($this->build(withToc: true, tocLayout: 'index'));
+
+        self::assertMatchesRegularExpression('#>\s*01\s*</span>\s*<span[^>]*>\s*Tarifs#', $html);
+        self::assertMatchesRegularExpression('#>\s*01\.1\s*</span>\s*<span[^>]*>\s*À la journée#', $html);
+        self::assertMatchesRegularExpression('#>\s*02\s*</span>\s*<span[^>]*>\s*Tarifs#', $html);
+    }
+
+    /** The bar that follows the reading is drawn only when the zone asks for it. */
+    public function testTheFollowingBarIsOptIn(): void
+    {
+        self::assertStringNotContainsString('data-toc-follow', $this->renderGrid($this->build(withToc: true)));
+
+        $html = $this->renderGrid($this->build(withToc: true, follow: true));
+        self::assertStringContainsString('data-toc-follow="z0-nav"', $html);
+        self::assertStringContainsString('id="z0-nav"', $html);
+        self::assertSame(6, mb_substr_count($html, 'data-toc-link'), 'three links in the summary, three in the bar');
+    }
+
     public function testAnUnknownLayoutFallsBackToTheList(): void
     {
         $grid = $this->build(withToc: true, tocLayout: 'bogus');
@@ -115,12 +136,23 @@ final class GridTableOfContentsTest extends IntegrationTestCase
     }
 
     /** @return array<string, mixed>|null */
-    private function build(bool $withToc, string $tocLayout = 'list'): ?array
+    /** @param array<string, mixed>|null $grid */
+    private function renderGrid(?array $grid): string
+    {
+        self::assertNotNull($grid);
+
+        return static::getContainer()->get(Environment::class)->render(
+            'Frontend/themes/default/editorial/post/_grid.html.twig',
+            ['grid' => $grid, 'locale' => 'fr'],
+        );
+    }
+
+    private function build(bool $withToc, string $tocLayout = 'list', bool $follow = false): ?array
     {
         $zones = [['id' => 'z1', 'type' => 'text']];
 
         if ($withToc) {
-            array_unshift($zones, ['id' => 'z0', 'type' => 'toc', 'options' => ['tocLayout' => $tocLayout]]);
+            array_unshift($zones, ['id' => 'z0', 'type' => 'toc', 'options' => ['tocLayout' => $tocLayout, 'tocFollow' => $follow]]);
         }
 
         return $this->gridViewBuilder->build(

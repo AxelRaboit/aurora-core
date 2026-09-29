@@ -209,7 +209,7 @@ export const GALLERY_LAYOUTS = ["grid", "carousel"];
 export const FRAMES = ["none", "laptop", "phone", "browser"];
 export const CODE_STYLES = ["plain", "terminal", "diff"];
 export const LIST_LAYOUTS = ["cards", "index"];
-export const TOC_LAYOUTS = ["list", "pills"];
+export const TOC_LAYOUTS = ["list", "pills", "index"];
 export const BUTTON_ACTIONS = ["link", "modal"];
 export const GITHUB_MODES = ["activity", "repos", "releases"];
 export const AVAILABILITIES = ["available", "soon", "busy"];
@@ -234,6 +234,7 @@ export function defaultZoneOptions() {
         codeStyle: "plain",
         listLayout: "cards",
         tocLayout: "list",
+        tocFollow: false,
         buttonAction: "link",
         githubMode: "activity",
         githubRepos: [],

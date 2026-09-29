@@ -16,6 +16,7 @@ import "./shared/utils/codeHighlight.js";
 import "./shared/utils/codeCopy.js";
 import "./shared/utils/compareSlider.js";
 import "./shared/utils/scrollReveal.js";
+import "./shared/utils/tocFollow.js";
 import "./shared/utils/countUp.js";
 import "./shared/utils/tabs.js";
 import "./shared/utils/carousel.js";

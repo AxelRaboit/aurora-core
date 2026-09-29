@@ -126,19 +126,23 @@ function reveal(element, remaining, rank = 0) {
 
     // Rendu une fois posée : `will-change` laissé sur trente zones réserve de
     // la mémoire pour un mouvement qui ne se reproduira pas.
-    element.addEventListener(
-        "transitionend",
-        () => {
-            element.classList.remove(ARMED, REVEALED);
-            element.style.transitionDelay = "";
-            remaining.delete(element);
+    // Only the zone's own transition ends the arrival: the cards inside it
+    // run theirs too, and `transitionend` bubbles - the first card to land
+    // would otherwise disarm the zone while it was still moving.
+    const done = (event) => {
+        if (event.target !== element) {
+            return;
+        }
 
-            if (0 === remaining.size) {
-                document.documentElement.removeAttribute(RUNNING);
-            }
-        },
-        { once: true },
-    );
+        element.removeEventListener("transitionend", done);
+        element.classList.remove(ARMED, REVEALED);
+        element.style.transitionDelay = "";
+        remaining.delete(element);
+        if (0 === remaining.size) {
+            document.documentElement.removeAttribute(RUNNING);
+        }
+    };
+    element.addEventListener("transitionend", done);
 }
 
 function arm() {

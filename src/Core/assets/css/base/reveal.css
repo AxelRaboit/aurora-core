@@ -95,6 +95,36 @@ html[data-reveal-running] body {
     transform: none;
 }
 
+/* Les entrées d'une liste - cartes, étapes, chiffres - arrivent l'une après
+   l'autre, une fois leur zone en route. Une zone de six cartes qui monte d'un
+   bloc se lit comme un seul rectangle ; en cascade, l'œil les compte.
+
+   La transition est déclarée hors de l'état armé, et c'est voulu : le script
+   retire `.aurora-reveal-armed` quand la zone a fini, pendant que les
+   dernières cartes sont encore en chemin. Si leur transition partait avec la
+   classe, elles sauteraient à l'arrivée ; déclarée ici, celle qui court
+   continue jusqu'au bout. Seul le délai dépend de l'état armé, et un délai
+   changé en route ne touche pas une transition déjà partie. */
+:root {
+    --aurora-reveal-item-duration: 600ms;
+    --aurora-reveal-item-step: 90ms;
+}
+
+[data-reveal] .aurora-reveal-item {
+    transition-property: opacity, transform, border-color, background-color, color;
+    transition-duration: var(--aurora-reveal-item-duration);
+    transition-timing-function: var(--aurora-reveal-ease);
+}
+
+[data-reveal].aurora-reveal-armed .aurora-reveal-item {
+    transition-delay: calc(120ms + min(var(--reveal-index, 0), 8) * var(--aurora-reveal-item-step));
+}
+
+[data-reveal].aurora-reveal-armed:not(.aurora-revealed) .aurora-reveal-item {
+    opacity: 0;
+    transform: translate3d(0, 1rem, 0);
+}
+
 /* Un lecteur qui demande moins de mouvement reçoit la zone, pas une version
    ralentie du mouvement. Le script s'arrête déjà de lui-même sur ce réglage ;
    la règle est ici pour le cas où il change d'avis en cours de lecture, après
@@ -106,5 +136,11 @@ html[data-reveal-running] body {
         transform: none;
         transition: none;
         will-change: auto;
+    }
+
+    [data-reveal] .aurora-reveal-item {
+        opacity: 1;
+        transform: none;
+        transition: none;
     }
 }

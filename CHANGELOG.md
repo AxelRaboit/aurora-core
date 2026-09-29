@@ -7,6 +7,31 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ## [0.9.301] - 2026-09-29
 
+### Ajouté
+
+#### Un sommaire en index numéroté, et qui suit la lecture
+Le bloc Sommaire a une troisième présentation, « Index numéroté » : les titres
+de la page en colonnes, numérotés 01, 02, et 04.1 pour un sous-titre. Un
+nouveau réglage, « Suivre la lecture », fait apparaître une fine barre sous
+l'en-tête du site une fois le sommaire dépassé : la section en cours avec son
+numéro, un trait qui avance avec la page, et la liste complète en un clic. La
+section en cours est aussi repérée dans le sommaire de la page.
+
+#### Les cartes d'une liste arrivent l'une après l'autre
+Quand une liste apparaît au défilement, ses cartes, étapes ou chiffres
+arrivent en cascade au lieu d'un seul bloc. Rien ne bouge pour un visiteur qui
+a demandé moins d'animations à son système.
+
+#### La fenêtre d'un bouton s'ouvre en douceur
+Elle monte légèrement en apparaissant et son fond s'assombrit progressivement,
+puis elle repart de même. Elle est aussi un peu plus large.
+
+### Modifié
+
+#### Des cartes à picto plus compactes
+Le pictogramme se place à gauche du texte, et la pastille à côté du titre.
+Six cartes courtes tiennent maintenant sur deux fois moins de hauteur.
+
 ### Corrigé
 
 #### Un bloc Entête posé dans la page gardait la hauteur de sa ligne
