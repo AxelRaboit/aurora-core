@@ -59,6 +59,9 @@ final class GridZoneOptions
     /** A summary as a list down the page, or as a row of pills that takes one line. */
     public const array TOC_LAYOUTS = ['list', 'pills'];
 
+    /** What a button does: follow its link, or open a window over the page. */
+    public const array BUTTON_ACTIONS = ['link', 'modal'];
+
     public const array GITHUB_MODES = ['activity', 'repos', 'releases'];
 
     public const int MAX_GITHUB_REPOS = 6;
@@ -102,6 +105,7 @@ final class GridZoneOptions
             'codeStyle' => self::CODE_STYLES[0],
             'listLayout' => self::LIST_LAYOUTS[0],
             'tocLayout' => self::TOC_LAYOUTS[0],
+            'buttonAction' => self::BUTTON_ACTIONS[0],
             'githubMode' => self::GITHUB_MODES[0],
             'githubRepos' => [],
             'availability' => self::AVAILABILITIES[0],
@@ -154,6 +158,7 @@ final class GridZoneOptions
             'codeStyle' => self::oneOf($data['codeStyle'] ?? null, self::CODE_STYLES),
             'listLayout' => self::oneOf($data['listLayout'] ?? null, self::LIST_LAYOUTS),
             'tocLayout' => self::oneOf($data['tocLayout'] ?? null, self::TOC_LAYOUTS),
+            'buttonAction' => self::oneOf($data['buttonAction'] ?? null, self::BUTTON_ACTIONS),
             'githubMode' => self::oneOf($data['githubMode'] ?? null, self::GITHUB_MODES),
             'githubRepos' => self::repos($data['githubRepos'] ?? null),
             'availability' => self::oneOf($data['availability'] ?? null, self::AVAILABILITIES),

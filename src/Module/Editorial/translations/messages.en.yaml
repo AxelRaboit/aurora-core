@@ -795,6 +795,7 @@ backend:
         scrolly: Photo story
         editorial: Editorial list
         process: Horizontal timeline
+        features: "Icon cards"
       item_columns: Columns
       item_number: "Entry {number}"
       item_add: Add an entry
@@ -830,6 +831,16 @@ backend:
       timeline_date_placeholder: "2024"
       timeline_title_placeholder: "The studio opens"
       timeline_text_placeholder: "What it changed, in one sentence."
+      feature_title: "Title"
+      feature_title_placeholder: "Strategy"
+      feature_text: "Text"
+      feature_text_placeholder: "What it covers, in one sentence."
+      feature_badge: "Pill (optional)"
+      feature_badge_placeholder: "counted"
+      feature_featured: "Coloured pill"
+      feature_featured_hint: "The pill takes the accent colour; otherwise it stays quiet."
+      process_when: "When (optional)"
+      process_when_placeholder: "Day 1"
       offer_name: Plan name
       offer_price: Price
       offer_lines: What is included
@@ -959,6 +970,14 @@ backend:
       list_layout_hint: "The index files every publication by letter, with the letters on top to jump; it ignores the count below and shows up to 300."
       toc_layout: "Presentation"
       toc_layout_hint: "The list stacks the headings one under another; the pills fit on one or two lines, for a long page that does not need a big box."
+      button_action: "Action"
+      button_action_hint: "A link leads to another page; a window opens over the page, with the content written below."
+      button_actions:
+        link: "Link"
+        modal: "Window"
+      modal_title: "Window title"
+      modal_title_placeholder: "The plans in detail"
+      modal_content_placeholder: "What the window shows."
       toc_layouts:
         list: "List"
         pills: "Pills"
@@ -1561,6 +1580,7 @@ frontend:
       copy: Copy
       copied: Copied
       on_this_page: On this page
+      modal_close: "Close"
       terms: Terms
       directions: Directions
       before: Before

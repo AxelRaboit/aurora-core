@@ -795,6 +795,7 @@ backend:
                 scrolly: 'Relato en imágenes'
                 editorial: 'Lista editorial'
                 process: 'Línea de tiempo horizontal'
+                features: "Tarjetas con pictograma"
             item_columns: Columnas
             item_number: 'Entrada {number}'
             item_add: 'Añadir una entrada'
@@ -830,6 +831,16 @@ backend:
             timeline_date_placeholder: '2024'
             timeline_title_placeholder: 'Apertura del estudio'
             timeline_text_placeholder: 'Lo que cambió, en una frase.'
+            feature_title: "Título"
+            feature_title_placeholder: "Estrategia"
+            feature_text: "Texto"
+            feature_text_placeholder: "Lo que cubre, en una frase."
+            feature_badge: "Etiqueta (opcional)"
+            feature_badge_placeholder: "contado"
+            feature_featured: "Etiqueta en color"
+            feature_featured_hint: "La etiqueta toma el color de acento; si no, queda discreta."
+            process_when: "Cuándo (opcional)"
+            process_when_placeholder: "Día 1"
             offer_name: 'Nombre de la oferta'
             offer_price: Precio
             offer_lines: 'Lo que incluye'
@@ -965,6 +976,14 @@ backend:
             list_layout_hint: 'El índice ordena todas las publicaciones por letra, con las letras arriba para saltar; ignora el número de abajo y muestra hasta 300.'
             toc_layout: "Presentación"
             toc_layout_hint: "La lista coloca los títulos uno debajo de otro; las pastillas caben en una o dos líneas, para una página larga que no necesita un gran recuadro."
+            button_action: "Acción"
+            button_action_hint: "Un enlace lleva a otra página; una ventana se abre sobre la página, con el contenido escrito debajo."
+            button_actions:
+                link: "Enlace"
+                modal: "Ventana"
+            modal_title: "Título de la ventana"
+            modal_title_placeholder: "Los planes en detalle"
+            modal_content_placeholder: "Lo que muestra la ventana."
             toc_layouts:
                 list: "Lista"
                 pills: "Pastillas"
@@ -1587,6 +1606,7 @@ frontend:
             copy: Copiar
             copied: Copiado
             on_this_page: 'En esta página'
+            modal_close: "Cerrar"
             terms: Términos
             directions: 'Cómo llegar'
             before: Antes
