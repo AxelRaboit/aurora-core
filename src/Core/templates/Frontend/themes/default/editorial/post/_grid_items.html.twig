@@ -195,11 +195,45 @@
                         class="absolute left-0 top-0 flex h-8 w-8 items-center justify-center rounded-full border-2 border-accent text-sm font-semibold {{ loop.last ? 'bg-accent text-accent-text' : 'bg-surface text-accent' }}"
                         aria-hidden="true"
                     >{{ entry.position }}</span>
+                    {# When the stop happens, above what happens: « Jour 1 »,
+                       « Le 10 ». Optional - a process with no calendar reads
+                       as it always did. #}
+                    {% if entry.caption %}<p class="m-0 mb-1 text-xs font-semibold uppercase tracking-wider text-muted">{{ entry.caption }}</p>{% endif %}
                     {% if entry.title %}<h3 class="m-0 text-lg font-semibold text-primary">{{ entry.title }}</h3>{% endif %}
                     {% if entry.description %}<p class="mt-1 mb-0 text-secondary">{{ entry.description }}</p>{% endif %}
                 </li>
             {% endfor %}
         </ol>
+
+    {% elseif items.display == 'features' %}
+        {# Cards with a pictogram: what a service covers, what a word means,
+           a note set apart. The pictogram and the pill are both optional; a
+           featured entry has its pill in the accent colour, the others stay
+           quiet - « compté » against « en plus ». #}
+        <div class="grid grid-cols-1 items-stretch gap-4 {{ columns[items.columns] }}">
+            {% for entry in items.entries %}
+                <div class="flex h-full flex-col gap-3 rounded-xl border border-card-line bg-surface p-5">
+                    {% if entry.media or entry.caption %}
+                        <div class="flex items-center justify-between gap-3">
+                            {% if entry.media %}
+                                {% if themeContext.iconTint() and entry.media.url matches '{^/[A-Za-z0-9/_.-]+\\.svg$}' %}
+                                    <span aria-hidden="true" class="aurora-icon-tint h-8 w-8 shrink-0" style="--icon-url: url('{{ entry.media.url }}');"></span>
+                                {% else %}
+                                    <img src="{{ entry.media.url }}" alt="" loading="lazy" class="h-8 w-8 shrink-0 object-contain">
+                                {% endif %}
+                            {% else %}
+                                <span></span>
+                            {% endif %}
+                            {% if entry.caption %}
+                                <span class="rounded-full border px-2 py-0.5 text-xs font-medium {{ entry.featured ? 'border-accent text-accent' : 'border-line text-muted' }}">{{ entry.caption }}</span>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                    {% if entry.title %}<h3 class="m-0 text-base font-semibold text-primary">{{ entry.title }}</h3>{% endif %}
+                    {% if entry.description %}<p class="m-0 text-sm leading-relaxed text-secondary">{{ entry.description }}</p>{% endif %}
+                </div>
+            {% endfor %}
+        </div>
 
     {% elseif items.display == 'offers' %}
         {# What each card has to answer, in the order it is asked: what is this,

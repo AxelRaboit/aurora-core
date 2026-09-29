@@ -795,6 +795,7 @@ backend:
         scrolly: Récit en images
         editorial: Liste éditoriale
         process: Frise horizontale
+        features: "Cartes à picto"
       item_columns: Colonnes
       item_number: "Entrée {number}"
       item_add: Ajouter une entrée
@@ -830,6 +831,16 @@ backend:
       timeline_date_placeholder: "2024"
       timeline_title_placeholder: "Lancement du studio"
       timeline_text_placeholder: "Ce que ça a changé, en une phrase."
+      feature_title: "Titre"
+      feature_title_placeholder: "Stratégie"
+      feature_text: "Texte"
+      feature_text_placeholder: "Ce que ça couvre, en une phrase."
+      feature_badge: "Pastille (facultative)"
+      feature_badge_placeholder: "compté"
+      feature_featured: "Pastille en couleur"
+      feature_featured_hint: "La pastille prend la couleur d'accent ; sinon elle reste discrète."
+      process_when: "Quand (facultatif)"
+      process_when_placeholder: "Jour 1"
       offer_name: Nom de l'offre
       offer_price: Prix
       offer_lines: Ce qui est compris
@@ -959,6 +970,14 @@ backend:
       list_layout_hint: "L'index range toutes les publications par lettre, avec les lettres en haut pour sauter ; il ignore le nombre ci-dessous et en affiche jusqu'à 300."
       toc_layout: "Présentation"
       toc_layout_hint: "La liste range les titres les uns sous les autres ; les pastilles tiennent sur une ou deux lignes, pour une page longue qui n'a pas besoin d'un grand encadré."
+      button_action: "Action"
+      button_action_hint: "Un lien mène vers une autre page ; une fenêtre s'ouvre par-dessus la page, avec le contenu écrit ci-dessous."
+      button_actions:
+        link: "Lien"
+        modal: "Fenêtre"
+      modal_title: "Titre de la fenêtre"
+      modal_title_placeholder: "Le détail des formules"
+      modal_content_placeholder: "Ce que montre la fenêtre."
       toc_layouts:
         list: "Liste"
         pills: "Pastilles"
@@ -1561,6 +1580,7 @@ frontend:
       copy: Copier
       copied: Copié
       on_this_page: Sur cette page
+      modal_close: "Fermer"
       terms: Termes
       directions: Itinéraire
       before: Avant

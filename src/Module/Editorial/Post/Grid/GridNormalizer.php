@@ -473,7 +473,7 @@ final readonly class GridNormalizer
      * written. New ones go at the end: the first is the default, and moving it
      * would restyle every list already published.
      */
-    public const array ITEM_DISPLAYS = ['steps', 'stats', 'faq', 'quotes', 'logos', 'timeline', 'offers', 'people', 'scrolly', 'editorial', 'process'];
+    public const array ITEM_DISPLAYS = ['steps', 'stats', 'faq', 'quotes', 'logos', 'timeline', 'offers', 'people', 'scrolly', 'editorial', 'process', 'features'];
 
     /**
      * How densely a publication card is drawn. The same publication either
@@ -863,7 +863,9 @@ final readonly class GridNormalizer
                 // Raw, like `blocks`: Editor.js owns this shape and the
                 // sanitiser runs at render. Only text zones keep it, so
                 // switching a zone to a video drops what no screen can show.
-                'blocks' => self::ZONE_TEXT === ($zone['type'] ?? null) && is_array($entry['blocks'] ?? null)
+                // A button that opens a window keeps them too: they are what
+                // the window shows.
+                'blocks' => in_array($zone['type'] ?? null, [self::ZONE_TEXT, self::ZONE_BUTTON], true) && is_array($entry['blocks'] ?? null)
                     ? array_values($entry['blocks'])
                     : [],
                 'alt' => $this->values->text($entry['alt'] ?? null),

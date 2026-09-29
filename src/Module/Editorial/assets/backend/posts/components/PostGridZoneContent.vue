@@ -239,19 +239,22 @@ const ITEM_LABELS = {
     // A numbered entry like a step: the number is drawn, only the words are typed.
     editorial: { title: "step_title", description: "step_text", caption: null, url: null },
     // Numbered by its place on the line, like a step: no caption to type.
-    process: { title: "step_title", description: "step_text", caption: null, url: null },
+    // The caption is when the stop happens, drawn small above its title.
+    process: { title: "step_title", description: "step_text", caption: "process_when", url: null },
+    // A pictogram, a title, a sentence, and an optional pill in the corner.
+    features: { title: "feature_title", description: "feature_text", caption: "feature_badge", url: null },
 };
 
 const itemLabels = computed(() => ITEM_LABELS[bound.display.value] ?? ITEM_LABELS.steps);
 
 /** The costumes that hang a picture on an entry: a face, a mark, a portrait. */
 const itemHasMedia = computed(() =>
-    ["quotes", "logos", "people"].includes(bound.display.value),
+    ["quotes", "logos", "people", "features"].includes(bound.display.value),
 );
 
 /** Only the displays that lay their entries in a row have a count to choose. */
 const itemHasColumns = computed(() =>
-    ["stats", "quotes", "offers", "people", "editorial"].includes(bound.display.value),
+    ["stats", "quotes", "offers", "people", "editorial", "features"].includes(bound.display.value),
 );
 
 /**
@@ -259,7 +262,7 @@ const itemHasColumns = computed(() =>
  * whatever the costume - like the picture - so switching to offers and back
  * does not lose which one was recommended.
  */
-const itemHasFeatured = computed(() => "offers" === bound.display.value);
+const itemHasFeatured = computed(() => ["offers", "features"].includes(bound.display.value));
 
 /**
  * The one field that needs a word of explanation: what an author types on
@@ -1389,6 +1392,14 @@ const displayHint = computed(() =>
                 :label="t('backend.posts.grid.align')"
                 :options="alignOptions"
             />
+            <!-- Follow a link, or open a window over the page: the same
+                 button, asked to do one of two things. -->
+            <AppChoiceRow
+                v-model="bound.buttonAction.value"
+                :label="t('backend.posts.grid.button_action')"
+                :hint="t('backend.posts.grid.button_action_hint')"
+                :options="choices.buttonAction ?? []"
+            />
             <div class="rounded-lg border border-dashed border-line p-3 space-y-4">
                 <p class="text-xs uppercase tracking-wide text-muted">
                     {{ t("backend.posts.grid.translated_fields", { locale }) }}
@@ -1401,10 +1412,22 @@ const displayHint = computed(() =>
                     :placeholder="t('backend.posts.grid.button_label_placeholder')"
                 />
                 <AppInput
+                    v-if="bound.buttonAction.value !== 'modal'"
                     v-model="bound.url.value"
                     :label="t('backend.posts.grid.button_url')"
                     placeholder="https://…"
                 />
+                <template v-else>
+                    <AppInput
+                        v-model="bound.caption.value"
+                        :label="t('backend.posts.grid.modal_title')"
+                        :placeholder="t('backend.posts.grid.modal_title_placeholder')"
+                    />
+                    <AppBlockEditor
+                        v-model="bound.blocks.value"
+                        :placeholder="t('backend.posts.grid.modal_content_placeholder')"
+                    />
+                </template>
             </div>
         </template>
 
@@ -1525,8 +1548,8 @@ const displayHint = computed(() =>
                     <AppToggle
                         v-if="itemHasFeatured"
                         v-model="itemFields(itemIndex).featured.value"
-                        :label="t('backend.posts.grid.offer_featured')"
-                        :hint="t('backend.posts.grid.offer_featured_hint')"
+                        :label="t(bound.display.value === 'features' ? 'backend.posts.grid.feature_featured' : 'backend.posts.grid.offer_featured')"
+                        :hint="t(bound.display.value === 'features' ? 'backend.posts.grid.feature_featured_hint' : 'backend.posts.grid.offer_featured_hint')"
                     />
                 </div>
 
