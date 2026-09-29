@@ -385,6 +385,8 @@ backend:
       button_url_placeholder: /en/about
       button_color: Button colour
       button_text_color: Button text colour
+      button_site_color: "Site colour"
+      button_site_color_hint: "The button takes the theme's colour, whatever the page: for a button that speaks for the site, such as a contact."
       appearance: Appearance
       logo_hint: Shown top left, over the background.
       fade_out: Fade into the page
@@ -699,6 +701,8 @@ backend:
       highlight_color: Hover colour
       accent_color: Accent colour
       accent_color_hint: "This block's buttons, links and markers take this colour instead of the page's. Empty: same as the page."
+      site_accent: "Site colour"
+      site_accent_hint: "This block keeps the theme's colour, even on a page that has its own: for what speaks for the site rather than the page, a contact or a closing call to action."
       highlights:
         inherit: Same as the page
         accent: Primary colour

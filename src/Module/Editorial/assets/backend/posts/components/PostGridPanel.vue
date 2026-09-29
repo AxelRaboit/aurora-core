@@ -511,7 +511,16 @@ function resizeZone(index, columns) {
                     <!-- A zone that belongs to another trade than the page:
                          its button in the photographer's colour on a page
                          that is otherwise the agency's. -->
+                    <!-- What speaks for the site rather than the page - a
+                         contact, a closing call to action - keeps the site's
+                         colour on a page dressed in one trade's. -->
+                    <AppToggle
+                        v-model="zoneFields(index).siteAccent.value"
+                        :label="t('backend.posts.grid.site_accent')"
+                        :hint="t('backend.posts.grid.site_accent_hint')"
+                    />
                     <BannerColorField
+                        v-if="!zoneFields(index).siteAccent.value"
                         v-model="zoneFields(index).accentColor.value"
                         :label="t('backend.posts.grid.accent_color')"
                         :hint="t('backend.posts.grid.accent_color_hint')"

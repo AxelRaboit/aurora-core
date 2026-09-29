@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Integration\Module\Editorial\Post;
 
+use Aurora\Module\Configuration\Theme\Service\ThemeContext;
 use Aurora\Module\Editorial\Post\Banner\BannerViewBuilder;
 use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Tests\Integration\IntegrationTestCase;
@@ -158,6 +159,33 @@ final class BannerImageHeightTest extends IntegrationTestCase
 
         self::assertSame(2, mb_substr_count($html, '<picture>'), 'both slides draw their picture');
         self::assertSame(1, mb_substr_count($html, 'fetchpriority="high"'));
+    }
+
+    /**
+     * A button in the site's colour takes the theme's, whatever colour the
+     * banner item also carries: a contact belongs to the site, not the page.
+     */
+    public function testAButtonCanTakeTheSitesColour(): void
+    {
+        $primary = static::getContainer()->get(ThemeContext::class)->primaryColor();
+
+        $banner = $this->bannerViewBuilder->build([
+            'enabled' => true,
+            'items' => [
+                ['id' => 'b1', 'type' => 'button', 'buttonSiteColor' => true, 'buttonColor' => '#ffffff'],
+                ['id' => 'b2', 'type' => 'button', 'buttonColor' => '#123456'],
+            ],
+        ], ['items' => [
+            'b1' => ['label' => 'Me contacter', 'url' => '/fr/page/contact'],
+            'b2' => ['label' => 'Autre', 'url' => '/fr/page/autre'],
+        ]]);
+        self::assertNotNull($banner);
+
+        $html = $this->twig->render(self::TEMPLATE, ['banner' => $banner]);
+
+        self::assertStringContainsString('background-color: '.$primary.';', $html);
+        self::assertStringContainsString('background-color: #123456;', $html);
+        self::assertStringNotContainsString('background-color: #ffffff;', $html);
     }
 
     private function render(array $background): string

@@ -39,7 +39,11 @@
 {% set zoneAccentCss %}
     {%- for zone in grid.zones -%}
         {%- for owner in [zone]|merge(zone.children|default([])) -%}
-            {%- if owner.accentColor|default(null) -%}
+            {#- The site's accent is the theme's, read now: a zone set to it
+                follows the theme when the theme changes. -#}
+            {%- if owner.siteAccent|default(false) -%}
+                {{ themeStyles.postAccentCss('[data-zone-accent="' ~ owner.id ~ '"]', themeContext.primaryColor())|raw }}
+            {%- elseif owner.accentColor|default(null) -%}
                 {{ themeStyles.postAccentCss('[data-zone-accent="' ~ owner.id ~ '"]', owner.accentColor)|raw }}
             {%- endif -%}
         {%- endfor -%}
@@ -63,7 +67,7 @@
             {% if zone.anchor|default('') %}id="{{ zone.anchor }}" class="scroll-mt-24"{% endif %}
             {% if reveal != 'none' %}data-reveal="{{ reveal }}"{% endif %}
             {% if zone.highlight|default(null) %}data-zone-highlight="{{ zone.highlight }}"{% endif %}
-            {% if zone.accentColor|default(null) %}data-zone-accent="{{ zone.id }}"{% endif %}
+            {% if zone.accentColor|default(null) or zone.siteAccent|default(false) %}data-zone-accent="{{ zone.id }}"{% endif %}
             style="{{ zone.spanStyle|raw }}{{ zone.startStyle|default('')|raw }}{{ zone.highlightStyle|default('')|raw }}"
         >
             {% if zone.type == 'stack' %}
@@ -103,7 +107,7 @@
                             {% if child.anchor|default('') %}id="{{ child.anchor }}"{% endif %}
                             {% if childReveal != 'none' %}data-reveal="{{ childReveal }}"{% endif %}
                             {% if child.highlight|default(null) %}data-zone-highlight="{{ child.highlight }}"{% endif %}
-                            {% if child.accentColor|default(null) %}data-zone-accent="{{ child.id }}"{% endif %}
+                            {% if child.accentColor|default(null) or child.siteAccent|default(false) %}data-zone-accent="{{ child.id }}"{% endif %}
                             class="min-w-0{{ child.ratio == 'fill' ? ' lg:min-h-0' : '' }}{{ child.anchor|default('') ? ' scroll-mt-24' : '' }}"
                             style="{{ child.shareStyle|raw }}{{ child.highlightStyle|default('')|raw }}"
                         >
