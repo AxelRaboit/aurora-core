@@ -165,6 +165,18 @@ async function openSpace(page) {
 const SPACES = "/backend/studio/spaces";
 
 /**
+ * Une présentation ouverte depuis la liste, par son titre : les identifiants
+ * changent à chaque rechargement des fixtures.
+ */
+function openDeck(title) {
+    return async (page) => {
+        await page.locator("main").getByRole("link", { name: new RegExp(title) }).first().click();
+        await page.waitForLoadState("domcontentloaded");
+        await page.waitForTimeout(2_500);
+    };
+}
+
+/**
  * Une capture par carte du tour, nommée comme le document qu'elle remplace.
  *
  * **Le nom est le lien avec la production.** Chaque carte de /fr/page/aurora
@@ -707,6 +719,26 @@ const SHOTS = [
     { name: "tour-contrats", path: "/backend/studio/contracts" },
     { name: "tour-trames", path: "/backend/studio/contract-templates" },
     { name: "tour-clients", path: "/backend/studio/customers" },
+
+    /**
+     * Les présentations, par l'audit et nommément : ses onze diapositives
+     * passent par tous les gabarits, là où la trame n'en a que quatre.
+     */
+    { name: "tour-presentations", path: "/backend/studio/decks" },
+    { name: "tour-presentations-editeur", path: "/backend/studio/decks", prepare: openDeck("Audit du site") },
+    {
+        name: "tour-presentations-diaporama",
+        path: "/backend/studio/decks",
+        async prepare(page) {
+            await openDeck("Audit du site")(page);
+            await page.locator("main").getByRole("button", { name: "Présenter" }).click();
+            await page.waitForTimeout(1_500);
+            // La quatrième diapositive, une photo pleine page : la première
+            // n'est qu'un titre sur fond uni.
+            for (let i = 0; i < 3; i++) await page.keyboard.press("ArrowRight");
+            await page.waitForTimeout(1_500);
+        },
+    },
     {
         name: "tour-avenant-scelle",
         // Le contresigné : le seul état qui montre à la fois le sceau, les deux
