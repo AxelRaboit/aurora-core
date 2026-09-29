@@ -1,0 +1,63 @@
+/* Le sommaire qui suit la lecture (`shared/utils/tocFollow.js`).
+
+   La barre vit sous l'en-tête du site, à la hauteur que le script mesure :
+   un thème dont l'en-tête change de taille n'a rien à redéclarer ici. Elle
+   entre en glissant depuis l'en-tête et repart de même ; `visibility` suit
+   l'opacité pour qu'une barre partie ne capte plus les clics. */
+.aurora-toc-follow {
+    position: fixed;
+    inset-inline: 0;
+    top: var(--aurora-toc-top, 4rem);
+    z-index: 30;
+    opacity: 0;
+    visibility: hidden;
+    transform: translate3d(0, -0.75rem, 0);
+    transition:
+        opacity 250ms ease,
+        transform 350ms cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0s linear 350ms;
+    pointer-events: none;
+}
+
+.aurora-toc-follow[data-visible] {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition:
+        opacity 250ms ease,
+        transform 350ms cubic-bezier(0.16, 1, 0.3, 1),
+        visibility 0s;
+}
+
+.aurora-toc-follow[data-visible] details {
+    pointer-events: auto;
+}
+
+/* La progression : un trait sous la barre, qui s'allonge avec la page. */
+.aurora-toc-follow [data-toc-progress] {
+    transform: scaleX(var(--aurora-toc-progress, 0));
+    transition: transform 120ms linear;
+}
+
+/* La section en cours, dans le sommaire de la page comme dans la barre. */
+[data-toc-link][aria-current] {
+    background-color: color-mix(in srgb, var(--th-accent-500) 14%, transparent);
+}
+
+[data-toc-link][aria-current] > span {
+    color: var(--th-accent-400);
+}
+
+/* Un titre rejoint par le sommaire s'arrête sous l'en-tête et sous la barre,
+   pas derrière eux. */
+.aurora-grid :is(h2, h3)[id^="section-"] {
+    scroll-margin-top: 7rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .aurora-toc-follow,
+    .aurora-toc-follow[data-visible],
+    .aurora-toc-follow [data-toc-progress] {
+        transition: none;
+    }
+}

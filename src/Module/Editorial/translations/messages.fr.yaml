@@ -969,7 +969,9 @@ backend:
       list_layout: Présentation
       list_layout_hint: "L'index range toutes les publications par lettre, avec les lettres en haut pour sauter ; il ignore le nombre ci-dessous et en affiche jusqu'à 300."
       toc_layout: "Présentation"
-      toc_layout_hint: "La liste range les titres les uns sous les autres ; les pastilles tiennent sur une ou deux lignes, pour une page longue qui n'a pas besoin d'un grand encadré."
+      toc_layout_hint: "La liste range les titres les uns sous les autres ; les pastilles tiennent sur une ou deux lignes ; l'index les numérote en colonnes."
+      toc_follow: "Suivre la lecture"
+      toc_follow_hint: "Une fine barre sous l'en-tête du site, une fois le sommaire dépassé : la section en cours, la progression dans la page, et la liste complète à portée de clic."
       button_action: "Action"
       button_action_hint: "Un lien mène vers une autre page ; une fenêtre s'ouvre par-dessus la page, avec le contenu écrit ci-dessous."
       button_actions:
@@ -981,6 +983,7 @@ backend:
       toc_layouts:
         list: "Liste"
         pills: "Pastilles"
+        index: "Index numéroté"
       list_layouts:
         cards: Cartes
         index: Index de A à Z

@@ -969,7 +969,9 @@ backend:
       list_layout: Presentation
       list_layout_hint: "The index files every publication by letter, with the letters on top to jump; it ignores the count below and shows up to 300."
       toc_layout: "Presentation"
-      toc_layout_hint: "The list stacks the headings one under another; the pills fit on one or two lines, for a long page that does not need a big box."
+      toc_layout_hint: "The list stacks the headings one under another; the pills fit on one or two lines; the index numbers them in columns."
+      toc_follow: "Follow the reading"
+      toc_follow_hint: "A slim bar under the site header once the summary has scrolled away: the section being read, how far along the page is, and the full list one click away."
       button_action: "Action"
       button_action_hint: "A link leads to another page; a window opens over the page, with the content written below."
       button_actions:
@@ -981,6 +983,7 @@ backend:
       toc_layouts:
         list: "List"
         pills: "Pills"
+        index: "Numbered index"
       list_layouts:
         cards: Cards
         index: A to Z index

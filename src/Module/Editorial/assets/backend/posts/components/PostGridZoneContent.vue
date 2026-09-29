@@ -1330,6 +1330,11 @@ const displayHint = computed(() =>
                 :hint="t('backend.posts.grid.toc_layout_hint')"
                 :options="choices.tocLayout ?? []"
             />
+            <AppToggle
+                v-model="bound.tocFollow.value"
+                :label="t('backend.posts.grid.toc_follow')"
+                :hint="t('backend.posts.grid.toc_follow_hint')"
+            />
         </template>
 
         <template v-else-if="zone.type === 'postList'">

@@ -52,17 +52,20 @@ final class PostCardHighlightRenderTest extends IntegrationTestCase
     }
 
     /**
-     * A horizontal card sets its picture beside the words from `sm` only. On a
-     * phone a third of the width is a sliver, and the picture stretched to the
-     * height of the words lost its sides - two logos were cut in half.
+     * A horizontal card sets its picture beside the words once the card itself
+     * is wide enough, not the screen. Keyed on the screen, two columns at 640px
+     * left each card 300px and cut two logos in half; narrower than 28rem the
+     * card stays the full card, picture above.
      */
-    public function testAHorizontalCardStacksOnAPhone(): void
+    public function testAHorizontalCardTurnsOnItsOwnWidth(): void
     {
         $html = $this->render(['thumbnailUrl' => '/uploads/logo.webp'], 'horizontal');
 
-        self::assertStringContainsString('flex-col sm:flex-row', $html);
-        self::assertStringContainsString('shrink-0 sm:w-1/3', $html);
-        self::assertStringContainsString('aspect-[16/10] sm:aspect-auto sm:h-full', $html);
+        self::assertStringContainsString('flex-col @container', $html);
+        self::assertStringContainsString('flex flex-1 flex-col @md:flex-row @md:items-stretch', $html);
+        self::assertStringContainsString('shrink-0 @md:w-1/3', $html);
+        self::assertStringContainsString('aspect-[16/10] @md:aspect-auto @md:h-full', $html);
+        self::assertStringNotContainsString('sm:flex-row', $html);
     }
 
     private function render(array $extra, ?string $variant = null): string
