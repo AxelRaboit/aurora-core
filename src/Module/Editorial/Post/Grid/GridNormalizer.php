@@ -1137,6 +1137,13 @@ final readonly class GridNormalizer
                 // The accent of this zone alone - its buttons, links and
                 // markers - over the page's. Null follows the page.
                 'accentColor' => $this->values->color($entry['accentColor'] ?? null),
+                // The site's own accent, over the page's: for what speaks for
+                // the site rather than the page - a contact, a closing call to
+                // action - on a page dressed in one trade's colour. A switch
+                // rather than a colour: the theme's is read at render, so
+                // changing the theme moves these zones with it. Wins over
+                // `accentColor` when both are set.
+                'siteAccent' => (bool) ($entry['siteAccent'] ?? false),
                 // How the zone arrives when the reader reaches it. Beside the
                 // surface because it is the same kind of decision - how this
                 // zone presents itself - and shared for the same reason.

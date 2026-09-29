@@ -385,6 +385,8 @@ backend:
       button_url_placeholder: /fr/a-propos
       button_color: Couleur du bouton
       button_text_color: Couleur du texte du bouton
+      button_site_color: "Couleur du site"
+      button_site_color_hint: "Le bouton prend la couleur du thème, quelle que soit la page : pour un bouton qui parle du site, comme un contact."
       appearance: Apparence
       logo_hint: Affiché en haut à gauche, par-dessus le fond.
       fade_out: Fondu vers le bas
@@ -699,6 +701,8 @@ backend:
       highlight_color: Couleur des survols
       accent_color: Couleur d'accent
       accent_color_hint: "Les boutons, liens et repères de ce bloc prennent cette couleur plutôt que celle de la page. Vide : comme la page."
+      site_accent: "Couleur du site"
+      site_accent_hint: "Ce bloc garde la couleur du thème, même sur une page qui a la sienne : pour ce qui parle du site plutôt que de la page, un contact ou un dernier appel à l'action."
       highlights:
         inherit: Comme la page
         accent: Couleur principale

@@ -42,7 +42,7 @@ use Aurora\Module\Configuration\Theme\Enum\ThemeFontEnum;
  * than being invented twice.
  *
  * @phpstan-type BannerSpan array{base: int, md: ?int, lg: ?int}
- * @phpstan-type BannerLayoutItem array{id: string, type: string, span: BannerSpan, titleColor: ?string, descriptionColor: ?string, align: string, titleSize: string, descriptionSize: string, titleFont: ?string, descriptionFont: ?string, mediaId: ?int, buttonColor: ?string, buttonTextColor: ?string}
+ * @phpstan-type BannerLayoutItem array{id: string, type: string, span: BannerSpan, titleColor: ?string, descriptionColor: ?string, align: string, titleSize: string, descriptionSize: string, titleFont: ?string, descriptionFont: ?string, mediaId: ?int, buttonColor: ?string, buttonTextColor: ?string, buttonSiteColor: bool}
  * @phpstan-type BannerItemText array{title: string, description: string, alt: string, label: string, url: ?string}
  */
 final readonly class BannerNormalizer
@@ -548,6 +548,10 @@ final readonly class BannerNormalizer
                 'mediaId' => $this->values->id($entry['mediaId'] ?? null),
                 'buttonColor' => $this->values->color($entry['buttonColor'] ?? null),
                 'buttonTextColor' => $this->values->color($entry['buttonTextColor'] ?? null),
+                // The button in the site's own accent, read from the theme at
+                // render: a contact button is the site's, whichever trade the
+                // banner above it speaks for. Wins over `buttonColor`.
+                'buttonSiteColor' => (bool) ($entry['buttonSiteColor'] ?? false),
             ];
         }
 

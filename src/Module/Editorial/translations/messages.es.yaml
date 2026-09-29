@@ -385,6 +385,8 @@ backend:
             button_url_placeholder: /fr/a-propos
             button_color: 'Color del botón'
             button_text_color: 'Color del texto del botón'
+            button_site_color: "Color del sitio"
+            button_site_color_hint: "El botón toma el color del tema, sea cual sea la página: para un botón que habla del sitio, como un contacto."
             appearance: Apariencia
             logo_hint: 'Se muestra arriba a la izquierda, sobre el fondo.'
             fade_out: 'Fundido hacia abajo'
@@ -699,6 +701,8 @@ backend:
             highlight_color: 'Color al pasar el ratón'
             accent_color: 'Color de acento'
             accent_color_hint: 'Los botones, enlaces y marcas de este bloque toman este color en lugar del de la página. Vacío: como la página.'
+            site_accent: "Color del sitio"
+            site_accent_hint: "Este bloque conserva el color del tema, incluso en una página que tiene el suyo: para lo que habla del sitio y no de la página, un contacto o una última llamada a la acción."
             highlights:
                 inherit: 'Como la página'
                 accent: 'Color principal'

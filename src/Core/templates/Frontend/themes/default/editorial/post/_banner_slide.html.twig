@@ -216,7 +216,7 @@
                                     href="{{ item.url }}"
                                     class="mt-2 inline-flex w-fit items-center justify-center rounded-lg px-6 py-3 font-medium transition-opacity hover:opacity-90 no-underline"
                                     style="
-                                        background-color: {{ item.buttonColor ?? '#ffffff' }};
+                                        background-color: {{ item.buttonSiteColor|default(false) ? themeContext.primaryColor() : (item.buttonColor ?? '#ffffff') }};
                                         color: {{ item.buttonTextColor ?? '#0f172a' }};
                                     "
                                 >{{ item.label }}</a>
@@ -231,7 +231,7 @@
                                 href="{{ item.url }}"
                                 class="inline-flex items-center justify-center rounded-lg px-6 py-3 font-medium transition-opacity hover:opacity-90 no-underline"
                                 style="
-                                    background-color: {{ item.buttonColor ?? '#ffffff' }};
+                                    background-color: {{ item.buttonSiteColor|default(false) ? themeContext.primaryColor() : (item.buttonColor ?? '#ffffff') }};
                                     color: {{ item.buttonTextColor ?? '#0f172a' }};
                                 "
                             >{{ item.label }}</a>

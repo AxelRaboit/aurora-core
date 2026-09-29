@@ -294,7 +294,13 @@ const { html: previewHtml, loading: previewLoading } = useServerPreview(
                                 v-model="itemFields(index).descriptionColor.value"
                                 :label="t('backend.posts.banner.slot_description_color')"
                             />
+                            <AppToggle
+                                v-model="itemFields(index).buttonSiteColor.value"
+                                :label="t('backend.posts.banner.button_site_color')"
+                                :hint="t('backend.posts.banner.button_site_color_hint')"
+                            />
                             <BannerColorField
+                                v-if="!itemFields(index).buttonSiteColor.value"
                                 v-model="itemFields(index).buttonColor.value"
                                 :label="t('backend.posts.banner.button_color')"
                             />
@@ -354,7 +360,13 @@ const { html: previewHtml, loading: previewLoading } = useServerPreview(
                             />
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <AppToggle
+                                v-model="itemFields(index).buttonSiteColor.value"
+                                :label="t('backend.posts.banner.button_site_color')"
+                                :hint="t('backend.posts.banner.button_site_color_hint')"
+                            />
                             <BannerColorField
+                                v-if="!itemFields(index).buttonSiteColor.value"
                                 v-model="itemFields(index).buttonColor.value"
                                 :label="t('backend.posts.banner.button_color')"
                             />
