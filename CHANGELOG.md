@@ -5,6 +5,21 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.294] - 2026-09-29
+
+### Corrigé
+
+#### Un logo importé n'est plus enfermé dans une tuile
+Sur les pages de connexion, d'inscription et de mot de passe oublié, le logo
+choisi dans Branding recevait les coins arrondis et le halo coloré du logo par
+défaut. Une ombre suit la boîte de l'image et non son dessin : un logo
+transparent se retrouvait dans un carré arrondi qui n'est pas le sien. Le
+menu latéral, lui, le recadrait en carré et arrondissait ses coins, ce qui
+coupait un logo qui n'est pas carré. Un logo importé s'affiche maintenant tel
+quel, entier, sans ombre ni arrondi ; le logo par défaut garde sa tuile.
+
+---
+
 ## [0.9.293] - 2026-09-29
 
 ### Corrigé
