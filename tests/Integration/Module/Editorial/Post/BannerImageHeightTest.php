@@ -118,7 +118,48 @@ final class BannerImageHeightTest extends IntegrationTestCase
         self::assertStringNotContainsString('--banner-ratio', $html);
     }
 
-    /** @param array<string, mixed> $background */
+    /**
+     * The picture that opens the page is asked for first. Left to its
+     * default it waited behind the page's scripts, and the fill under it -
+     * chosen to be covered - showed alone on every load.
+     */
+    public function testThePictureThatOpensThePageIsFetchedFirst(): void
+    {
+        $html = $this->render(['mediaId' => $this->picture(1920, 682)]);
+
+        self::assertSame(1, mb_substr_count($html, 'fetchpriority="high"'));
+    }
+
+    /** A banner set further down a page is not the first thing anyone sees. */
+    public function testABannerInsideThePageWaitsItsTurn(): void
+    {
+        $banner = $this->bannerViewBuilder->buildEmbedded(
+            ['height' => 'image', 'width' => 'full_aligned', 'background' => ['mediaId' => $this->picture(1920, 682)]],
+            [],
+        );
+        self::assertNotNull($banner);
+
+        self::assertStringNotContainsString('fetchpriority', $this->twig->render(self::TEMPLATE, ['banner' => $banner]));
+    }
+
+    /** In a carousel only the slide on screen at load is hurried. */
+    public function testOnlyTheFirstSlideOfACarouselIsHurried(): void
+    {
+        $banner = $this->bannerViewBuilder->build([
+            'enabled' => true,
+            'height' => 'image',
+            'width' => 'full_aligned',
+            'background' => ['mediaId' => $this->picture(1920, 682)],
+            'slides' => [['id' => 's1', 'background' => ['mediaId' => $this->picture(1920, 682)]]],
+        ], []);
+        self::assertNotNull($banner);
+
+        $html = $this->twig->render(self::TEMPLATE, ['banner' => $banner]);
+
+        self::assertSame(2, mb_substr_count($html, '<picture>'), 'both slides draw their picture');
+        self::assertSame(1, mb_substr_count($html, 'fetchpriority="high"'));
+    }
+
     private function render(array $background): string
     {
         $banner = $this->bannerViewBuilder->build(

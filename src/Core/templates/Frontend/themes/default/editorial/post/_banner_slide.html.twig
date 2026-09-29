@@ -93,6 +93,13 @@
                 {% if slide.background.media.srcset %}srcset="{{ slide.background.media.srcset }}" sizes="100vw"{% endif %}
                 alt=""
                 aria-hidden="true"
+                {# The top of the page is this picture, so it is fetched first.
+                   Left to its default an image waits behind the page's
+                   scripts, and the fill under it - a colour chosen to be
+                   covered - showed alone for a second or more on every load.
+                   Only the banner that opens the page: one set further down,
+                   or a slide still waiting its turn, can wait too. #}
+                {% if leading|default(false) %}fetchpriority="high"{% endif %}
                 {# Every focal point through a class, the wide one included: an
                    inline `object-position` outranked the phone and tablet
                    classes, so their pictures were always framed on the centre. #}
