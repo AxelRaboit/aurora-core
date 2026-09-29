@@ -411,3 +411,18 @@ pre .hljs-attribute {
 .doc-prose .doc-figure:focus-visible img {
     border-color: var(--th-accent);
 }
+
+/*
+ * A table scrolls sideways inside its own frame rather than pushing past the
+ * column it sits in. Four columns on a phone squeezed every cell to its
+ * longest word - « 3 au / choix, / YouTube » - and still ran off the edge of a
+ * window. From four columns on, the table keeps a readable width and the
+ * frame scrolls; a narrow table fits and never shows a scrollbar.
+ */
+.content-table {
+    overflow-x: auto;
+}
+
+.content-table table:has(tr > :nth-child(4)) {
+    min-width: 36rem;
+}

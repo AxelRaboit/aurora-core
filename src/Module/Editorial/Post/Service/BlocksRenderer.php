@@ -250,7 +250,7 @@ final readonly class BlocksRenderer
             }
         }
 
-        return '<table>'.('' !== $head ? '<thead>'.$head.'</thead>' : '').'<tbody>'.$body.'</tbody></table>';
+        return '<div class="content-table"><table>'.('' !== $head ? '<thead>'.$head.'</thead>' : '').'<tbody>'.$body.'</tbody></table></div>';
     }
 
     /**

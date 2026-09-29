@@ -20,9 +20,13 @@ Un titre écrit dans une pile (un texte à côté d'une image, par exemple)
 n'apparaissait pas dans le sommaire de la page. Il y figure maintenant, à sa
 place dans l'ordre de lecture.
 
-#### L'en-tête d'un tableau s'aligne sur ses colonnes
+#### Les tableaux se lisent sur téléphone
 La première ligne d'un tableau marqué « avec en-tête » était décalée de
-quelques pixels vers la gauche par rapport aux cellules en dessous.
+quelques pixels vers la gauche par rapport aux cellules en dessous : elle
+s'aligne maintenant sur ses colonnes. Un tableau trop large défile aussi de
+côté dans son propre cadre au lieu de déborder, et à partir de quatre
+colonnes il garde une largeur lisible plutôt que de couper chaque cellule
+mot par mot.
 
 ---
 

@@ -65,12 +65,12 @@ final class BlocksRendererTest extends TestCase
     public function testRendersATableWithItsHeadingRowApart(): void
     {
         self::assertSame(
-            '<table><thead><tr><th></th><th>Minimal</th></tr></thead><tbody><tr><td>Réseaux</td><td>2</td></tr></tbody></table>',
+            '<div class="content-table"><table><thead><tr><th></th><th>Minimal</th></tr></thead><tbody><tr><td>Réseaux</td><td>2</td></tr></tbody></table></div>',
             $this->render([['type' => 'table', 'data' => ['withHeadings' => true, 'content' => [['', 'Minimal'], ['Réseaux', '2']]]]]),
         );
 
         self::assertSame(
-            '<table><tbody><tr><td>a</td></tr></tbody></table>',
+            '<div class="content-table"><table><tbody><tr><td>a</td></tr></tbody></table></div>',
             $this->render([['type' => 'table', 'data' => ['content' => [['a']]]]]),
         );
     }
