@@ -489,9 +489,11 @@ final readonly class GridNormalizer
      * site and the page would be an archive by accident. Twelve was too tight
      * for the one shape this zone is best at - a hub page whose cards are the
      * site's own sections - where the list is the page rather than a strip on
-     * it, and the eight that did not fit disappeared with nothing said.
+     * it, and the eight that did not fit disappeared with nothing said. The
+     * same happened again at twenty-four, when a twenty-fifth section joined
+     * such a hub, hence forty-eight.
      */
-    public const int MAX_LIST_LIMIT = 24;
+    public const int MAX_LIST_LIMIT = 48;
 
     /** Films on one wall: past a dozen, a page plays more than anyone watches. */
     public const int MAX_VIDEO_WALL = 12;
