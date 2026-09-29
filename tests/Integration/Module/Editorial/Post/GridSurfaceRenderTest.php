@@ -290,6 +290,43 @@ final class GridSurfaceRenderTest extends IntegrationTestCase
         self::assertStringContainsString('justify-end', $this->render($this->buttonZone('right')));
     }
 
+    /**
+     * A button can open a window instead of following a link: the browser's
+     * own popover, so it opens with no script and closes on Escape.
+     */
+    public function testAButtonCanOpenAWindow(): void
+    {
+        $html = $this->render($this->modalZone([['type' => 'paragraph', 'data' => ['text' => 'Le détail des formules.']]]));
+
+        self::assertStringContainsString('popovertarget="modal-b1"', $html);
+        self::assertStringContainsString('id="modal-b1"', $html);
+        self::assertStringContainsString(' popover', $html);
+        self::assertStringContainsString('Comparer les formules', $html);
+        self::assertStringContainsString('Le détail des formules.', $html);
+        self::assertStringContainsString('popovertargetaction="hide"', $html, 'the window can be closed');
+        self::assertStringNotContainsString('<a', $html, 'a window button follows no link');
+    }
+
+    /** A window with nothing in it is a dead control: no button at all. */
+    public function testAnEmptyWindowDrawsNoButton(): void
+    {
+        self::assertStringNotContainsString('popovertarget', $this->render($this->modalZone([])));
+    }
+
+    /** @param list<array<string, mixed>> $blocks */
+    private function modalZone(array $blocks): array
+    {
+        $grid = $this->gridViewBuilder->build(
+            ['enabled' => true, 'zones' => [['id' => 'b1', 'type' => 'button', 'options' => ['buttonAction' => 'modal']]]],
+            ['zones' => ['b1' => ['label' => 'Comparer les formules', 'caption' => 'Les trois formules', 'blocks' => $blocks]]],
+            'fr',
+        );
+
+        self::assertNotNull($grid);
+
+        return $grid['zones'][0];
+    }
+
     // ── The separator's shapes ──────────────────────────────────────────────
 
     public function testALineSeparatorDrawsAnHr(): void

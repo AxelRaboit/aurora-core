@@ -607,11 +607,47 @@
            word nothing writes - so a button aligned right came out on the
            left, and the only alignment that worked was the default. #}
         <div class="not-prose flex {{ zone.align == 'center' ? 'justify-center' : (zone.align == 'right' ? 'justify-end' : 'justify-start') }}">
-            <a
-                href="{{ zone.button.url }}"
-                class="inline-flex items-center gap-2 rounded-lg font-medium no-underline transition {{ buttonSizes[zone.size] }} {{ buttonVariants[zone.variant] }}"
-            >{{ zone.button.label }}</a>
+            {% if zone.button.modal %}
+                {# A window over the page, opened and closed by the browser
+                   itself: `popover` needs no script, closes on Escape and on a
+                   click outside, and a page read without styles still shows
+                   the words, only folded away. #}
+                <button
+                    type="button"
+                    popovertarget="modal-{{ zone.id }}"
+                    class="inline-flex cursor-pointer items-center gap-2 rounded-lg font-medium transition {{ buttonSizes[zone.size] }} {{ buttonVariants[zone.variant] }}"
+                >{{ zone.button.label }}</button>
+            {% else %}
+                <a
+                    href="{{ zone.button.url }}"
+                    class="inline-flex items-center gap-2 rounded-lg font-medium no-underline transition {{ buttonSizes[zone.size] }} {{ buttonVariants[zone.variant] }}"
+                >{{ zone.button.label }}</a>
+            {% endif %}
         </div>
+        {% if zone.button.modal %}
+            <div
+                id="modal-{{ zone.id }}"
+                popover
+                role="dialog"
+                aria-modal="true"
+                {% if zone.button.modal.title %}aria-labelledby="modal-{{ zone.id }}-title"{% else %}aria-label="{{ zone.button.label }}"{% endif %}
+                class="m-auto w-[min(42rem,calc(100%-2rem))] max-h-[85vh] overflow-y-auto rounded-xl border border-card-line bg-surface p-0 text-primary shadow-2xl shadow-black/50 backdrop:bg-black/60 backdrop:backdrop-blur-sm"
+            >
+                <div class="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-line bg-surface px-6 py-4">
+                    <p id="modal-{{ zone.id }}-title" class="m-0 text-lg font-semibold text-primary">{{ zone.button.modal.title ?: zone.button.label }}</p>
+                    <button
+                        type="button"
+                        popovertarget="modal-{{ zone.id }}"
+                        popovertargetaction="hide"
+                        class="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-line text-secondary transition-colors hover:border-highlight hover:text-highlight"
+                        aria-label="{{ 'frontend.editorial.grid.modal_close'|trans }}"
+                    >
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+                    </button>
+                </div>
+                <div class="prose max-w-none px-6 py-5">{{ zone.button.modal.html|raw }}</div>
+            </div>
+        {% endif %}
 
     {% elseif zone.type == 'separator' %}
         {# A rule, or the same room with nothing drawn in it. Both are the

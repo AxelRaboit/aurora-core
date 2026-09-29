@@ -265,11 +265,11 @@ final readonly class GridViewBuilder
                 // A button with no words is a control nobody can read, and one
                 // with nowhere to go is worse than absent - so both or
                 // neither, decided here rather than by the template.
-                'button' => GridNormalizer::ZONE_BUTTON === $zone['type']
-                    && null !== $held['label'] && '' !== $held['label']
-                    && null !== $held['url'] && '' !== $held['url']
-                        ? ['label' => $held['label'], 'url' => $held['url']]
-                        : null,
+                //
+                // A button that opens a window needs its words and something
+                // to show: a link it no longer follows is not asked for, and a
+                // window with nothing in it would be a dead control too.
+                'button' => $this->buttonView($zone, $held, $locale),
                 // Two readers, two shapes, one key - and the key belongs to
                 // the stored list, which is what the editor sends back. A
                 // page reads the entries with their words; the editor reads
@@ -416,6 +416,37 @@ final readonly class GridViewBuilder
             // which is what the template checks before mounting anything.
             'lightbox' => $lightbox,
         ];
+    }
+
+    /**
+     * A button zone as the template draws it: a link, or a window.
+     *
+     * @param array<string, mixed> $zone
+     * @param array<string, mixed> $held
+     *
+     * @return array{label: string, url: string|null, modal: array{title: string, html: string}|null}|null
+     */
+    private function buttonView(array $zone, array $held, string $locale): ?array
+    {
+        if (GridNormalizer::ZONE_BUTTON !== $zone['type'] || null === $held['label'] || '' === $held['label']) {
+            return null;
+        }
+
+        if ('modal' === ($zone['options']['buttonAction'] ?? 'link')) {
+            $html = $this->blocksRenderer->render(is_array($held['blocks'] ?? null) ? $held['blocks'] : [], $locale);
+
+            if ('' === mb_trim(strip_tags($html, '<img><iframe><svg><table>'))) {
+                return null;
+            }
+
+            return ['label' => $held['label'], 'url' => null, 'modal' => ['title' => (string) ($held['caption'] ?? ''), 'html' => $html]];
+        }
+
+        if (null === $held['url'] || '' === $held['url']) {
+            return null;
+        }
+
+        return ['label' => $held['label'], 'url' => $held['url'], 'modal' => null];
     }
 
     /**

@@ -210,6 +210,7 @@ export const FRAMES = ["none", "laptop", "phone", "browser"];
 export const CODE_STYLES = ["plain", "terminal", "diff"];
 export const LIST_LAYOUTS = ["cards", "index"];
 export const TOC_LAYOUTS = ["list", "pills"];
+export const BUTTON_ACTIONS = ["link", "modal"];
 export const GITHUB_MODES = ["activity", "repos", "releases"];
 export const AVAILABILITIES = ["available", "soon", "busy"];
 export const WEEKDAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
@@ -233,6 +234,7 @@ export function defaultZoneOptions() {
         codeStyle: "plain",
         listLayout: "cards",
         tocLayout: "list",
+        buttonAction: "link",
         githubMode: "activity",
         githubRepos: [],
         availability: "available",
@@ -272,7 +274,7 @@ export function defaultZoneOptions() {
 /** Mirrors GridNormalizer::SEPARATOR_STYLES. */
 export const SEPARATOR_STYLES = ["line", "space", "wave", "diagonal", "bevel"];
 
-/** Mirrors GridNormalizer::ITEM_DISPLAYS - the eleven costumes of an item list. */
+/** Mirrors GridNormalizer::ITEM_DISPLAYS - the twelve costumes of an item list. */
 export const ITEM_DISPLAYS = [
     "steps",
     "stats",
@@ -285,6 +287,7 @@ export const ITEM_DISPLAYS = [
     "scrolly",
     "editorial",
     "process",
+    "features",
 ];
 
 /** Mirrors GridNormalizer::ITEM_COLUMNS. */
@@ -808,6 +811,7 @@ export function usePostGrid(layout, content) {
         codeStyle: labelled(CODE_STYLES, "code_styles"),
         listLayout: labelled(LIST_LAYOUTS, "list_layouts"),
         tocLayout: labelled(TOC_LAYOUTS, "toc_layouts"),
+        buttonAction: labelled(BUTTON_ACTIONS, "button_actions"),
         githubMode: labelled(GITHUB_MODES, "github_modes"),
         availability: labelled(AVAILABILITIES, "availabilities"),
         chartType: labelled(CHART_TYPES, "chart_types"),

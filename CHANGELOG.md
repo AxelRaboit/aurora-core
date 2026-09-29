@@ -5,6 +5,29 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.300] - 2026-09-29
+
+### Ajouté
+
+#### Un bouton peut ouvrir une fenêtre
+Le bloc Bouton a une « Action » : suivre un lien, comme avant, ou ouvrir une
+fenêtre par-dessus la page. La fenêtre a son titre et son contenu, écrits avec
+l'éditeur habituel dans chaque langue. Elle s'ouvre et se ferme sans script
+(touche Échap, clic à côté ou bouton de fermeture). Un bouton dont la fenêtre
+est vide ne s'affiche pas.
+
+#### Des cartes à picto pour les listes
+Le bloc Liste a un nouvel affichage, « Cartes à picto » : un pictogramme, un
+titre, une phrase et une pastille facultative dans le coin. La pastille prend
+la couleur d'accent sur les entrées mises en avant, et reste discrète sur les
+autres. C'est pour ce que couvre un service, ce que veut dire un mot, ou un
+encart mis à part.
+
+#### Une étiquette au-dessus des étapes d'une frise
+Dans l'affichage « Frise horizontale », chaque étape peut porter une étiquette
+au-dessus de son titre : « Jour 1 », « Le 10 », « Avant la signature ». Une
+frise sans étiquette s'affiche comme avant.
+
 ## [0.9.299] - 2026-09-29
 
 ### Ajouté
@@ -17,6 +40,12 @@ section. Chaque intertitre devient une pastille ; ceux de second niveau sont
 simplement plus discrets.
 
 ### Corrigé
+
+#### Le gras, les liens et les listes imbriquées s'affichent dans les listes d'une note
+Dans l'aperçu d'une note, un élément de liste qui contenait du gras, un lien,
+du code ou une sous-liste montrait le markdown brut (`**gras**`,
+`[lien](...)`). Il est maintenant mis en forme ; les cases à cocher restent
+cliquables.
 
 #### Une carte horizontale passe à la verticale sur téléphone
 Dans une liste de publications en cartes horizontales, l'image n'occupait

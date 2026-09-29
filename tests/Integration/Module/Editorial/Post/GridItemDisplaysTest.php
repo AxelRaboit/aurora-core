@@ -174,10 +174,44 @@ final class GridItemDisplaysTest extends IntegrationTestCase
         parent::tearDown();
     }
 
+    /** A process stop can say when it happens, above what happens. */
+    public function testAProcessStopCarriesItsWhenAboveItsTitle(): void
+    {
+        $html = $this->render('process', [['id' => 'i1'], ['id' => 'i2']], [
+            'i1' => ['caption' => 'Jour 1', 'title' => 'Signature'],
+            'i2' => ['title' => 'Atelier'],
+        ]);
+
+        self::assertStringContainsString('Jour 1', $html);
+        self::assertLessThan(mb_strpos($html, 'Signature'), (int) mb_strpos($html, 'Jour 1'));
+        self::assertSame(1, mb_substr_count($html, 'tracking-wider text-muted'), 'a stop without a when draws none');
+    }
+
     /**
-     * @param list<array<string, mixed>>          $items
-     * @param array<string, array<string, mixed>> $words
+     * Icon cards: a title, a sentence, and a pill that is loud only on the
+     * entries singled out - « compté » against « en plus ».
      */
+    public function testIconCardsDrawTheirPillLoudOnlyWhenFeatured(): void
+    {
+        $html = $this->render('features', [['id' => 'i1', 'featured' => true], ['id' => 'i2']], [
+            'i1' => ['title' => 'Un contenu', 'description' => 'Ce que je compte.', 'caption' => 'compté'],
+            'i2' => ['title' => 'Une story', 'description' => 'Elle accompagne.', 'caption' => 'en plus'],
+        ]);
+
+        self::assertStringContainsString('Un contenu', $html);
+        self::assertStringContainsString('Elle accompagne.', $html);
+        self::assertSame(1, mb_substr_count($html, 'border-accent text-accent'));
+        self::assertSame(1, mb_substr_count($html, 'border-line text-muted'));
+    }
+
+    /** A card with neither pictogram nor pill has no empty row above its title. */
+    public function testAnIconCardWithoutPictureOrPillHasNoHeaderRow(): void
+    {
+        $html = $this->render('features', [['id' => 'i1']], ['i1' => ['title' => 'Seul', 'description' => 'Une phrase.']]);
+
+        self::assertStringNotContainsString('justify-between gap-3', $html);
+    }
+
     private function render(string $display, array $items, array $words, bool $exclusiveOpen = false): string
     {
         $grid = $this->gridViewBuilder->build(
