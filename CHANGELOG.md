@@ -5,6 +5,17 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.296] - 2026-09-29
+
+### Corrigé
+
+#### L'image d'un bandeau s'affiche dès l'ouverture de la page
+L'image de fond du bandeau qui ouvre une page était téléchargée après les
+scripts, comme n'importe quelle image : pendant une seconde ou plus, on voyait
+seulement la couleur ou le dégradé réglé dessous, prévu pour être couvert. Elle
+est maintenant demandée en priorité. Un bandeau posé plus bas dans une page, et
+les diapositives suivantes d'un carrousel, gardent la priorité normale.
+
 ## [0.9.295] - 2026-09-29
 
 ### Corrigé

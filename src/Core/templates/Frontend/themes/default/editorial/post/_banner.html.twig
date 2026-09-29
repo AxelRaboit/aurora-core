@@ -105,7 +105,7 @@
                     {% set slideStyle = (slide.background.fillStyle ?? '') ~ ' ' ~ (slide.accentStyle ?? '') %}
                     {% if slideStyle|trim %}style="{{ slideStyle|trim|raw }}"{% endif %}
                 >
-                    {{ include('Frontend/themes/default/editorial/post/_banner_slide.html.twig', {slide: slide, banner: banner}) }}
+                    {{ include('Frontend/themes/default/editorial/post/_banner_slide.html.twig', {slide: slide, banner: banner, leading: loop.first and not banner.embedded|default(false)}) }}
                 </div>
             {% endfor %}
         </div>
@@ -155,7 +155,7 @@
             </div>
         {% endif %}
     {% else %}
-        {{ include('Frontend/themes/default/editorial/post/_banner_slide.html.twig', {slide: banner, banner: banner}) }}
+        {{ include('Frontend/themes/default/editorial/post/_banner_slide.html.twig', {slide: banner, banner: banner, leading: not banner.embedded|default(false)}) }}
     {% endif %}
 
     {% if banner.logo %}
