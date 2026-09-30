@@ -123,31 +123,6 @@ abstract class AbstractMarkdownNote implements MarkdownNoteInterface
     #[ORM\Column(length: 20, options: ['default' => 'plain'])]
     protected string $appearance = NoteAppearanceEnum::Plain->value;
 
-    /**
-     * Quand la note a été épinglée, jamais si elle ne l'est pas.
-     *
-     * Une date plutôt qu'un booléen : elle donne l'ordre des favoris sans
-     * rien de plus, et « épinglé le » est une information qu'un booléen
-     * jette.
-     */
-    #[ORM\Column(nullable: true)]
-    protected ?DateTimeImmutable $favoritedAt = null;
-
-    /**
-     * Depuis quand cette note est lisible par les autres, ou jamais.
-     *
-     * **Le partage interne est une date, pas un booléen**, pour la même
-     * raison que l'épinglage : « partagé le » est une information qu'un
-     * booléen jette, et c'est la première chose qu'on veut savoir devant
-     * une note qui n'est plus tout à fait à soi.
-     *
-     * Une note héritée d'un dossier partagé n'a pas besoin de la porter :
-     * c'est le dossier qui décide pour ce qu'il contient. Cette colonne
-     * sert à partager une note **seule**, typiquement à la racine.
-     */
-    #[ORM\Column(nullable: true)]
-    protected ?DateTimeImmutable $sharedAt = null;
-
     /** When the note was moved to the trash. */
     #[ORM\Column(nullable: true)]
     protected ?DateTimeImmutable $deletedAt = null;
@@ -291,30 +266,6 @@ abstract class AbstractMarkdownNote implements MarkdownNoteInterface
     public function setPosition(int $position): static
     {
         $this->position = $position;
-
-        return $this;
-    }
-
-    public function getSharedAt(): ?DateTimeImmutable
-    {
-        return $this->sharedAt;
-    }
-
-    public function setSharedAt(?DateTimeImmutable $sharedAt): static
-    {
-        $this->sharedAt = $sharedAt;
-
-        return $this;
-    }
-
-    public function getFavoritedAt(): ?DateTimeImmutable
-    {
-        return $this->favoritedAt;
-    }
-
-    public function setFavoritedAt(?DateTimeImmutable $favoritedAt): static
-    {
-        $this->favoritedAt = $favoritedAt;
 
         return $this;
     }

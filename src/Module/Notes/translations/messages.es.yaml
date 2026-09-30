@@ -126,26 +126,18 @@ notes:
             new_note: 'Nueva nota'
             recent: 'Editadas recientemente'
             favorites: Favoritos
-            pin: 'Fijar en el menú'
-            unpin: 'Quitar de favoritos'
-            pin_failed: 'No se puede fijar este elemento.'
+            pin: Añadir a favoritos
+            unpin: Quitar de favoritos
+            pin_failed: No se han podido actualizar los favoritos.
             shared:
-                start: 'Hacer visible para el equipo'
-                stop: 'Dejar de hacer visible'
-                started: 'Visible en modo lectura para el equipo'
-                stopped: 'Retirado de la vista del equipo'
-                failed: 'No se puede cambiar la visibilidad.'
                 section: 'Visible para mí'
-                badge: 'Visible para el equipo'
-                via_folder: 'Visible para el equipo a través de la carpeta {folder}'
-                change_on_folder: 'Abra la carpeta para cambiarlo'
-                confirm_folder: 'La carpeta {folder} y las {count} notas que contiene dejarán de ser visibles para el equipo.'
+                badge: En un espacio compartido
                 by: 'Por {name}'
                 read_only: 'Solo lectura'
             visibility:
                 all: 'Filtrar: todo'
-                shared: 'Filtro: visibles para el equipo'
-                private: 'Filtro: privados'
+                shared: 'Filtro: espacios compartidos'
+                private: 'Filtro: mi espacio'
                 clear: 'Quitar el filtro'
             selected: '{count} seleccionado(s)'
             select: Seleccionar
@@ -263,7 +255,6 @@ notes:
             body: 'Alguien modificó esta nota mientras usted escribía. Sus últimos cambios no se han guardado, para no borrar los suyos. Recargue para partir de su versión, o sobrescríbala con la suya.'
             reload: 'Recargar su versión'
             overwrite: 'Sobrescribir con la mía'
-        team_inherited: 'Visible para el equipo, por una carpeta compartida superior'
         breadcrumb: 'Ubicación de la nota'
         add:
             title: 'Añadir'

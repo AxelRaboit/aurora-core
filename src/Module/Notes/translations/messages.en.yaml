@@ -127,26 +127,18 @@ notes:
       new_note: New note
       recent: Recently changed
       favorites: Favourites
-      pin: Pin to the menu
+      pin: Add to favourites
       unpin: Remove from favourites
-      pin_failed: This item could not be pinned.
+      pin_failed: Could not update your favourites.
       shared:
-        start: Make visible to the team
-        stop: Hide from the team
-        started: Visible to the team, read-only
-        stopped: Hidden from the team again
-        failed: Could not change the visibility.
         section: Visible to me
-        badge: Visible to the team
-        via_folder: 'Visible to the team through the {folder} folder'
-        change_on_folder: Open the folder to change this
-        confirm_folder: 'The {folder} folder and the {count} notes it holds will stop being visible to the team.'
+        badge: In a shared space
         by: 'By {name}'
         read_only: Read-only
       visibility:
         all: 'Filter: everything'
-        shared: 'Filter: visible to the team'
-        private: 'Filter: private'
+        shared: 'Filter: shared spaces'
+        private: 'Filter: my space'
         clear: Clear the filter
       selected: '{count} selected'
       select: Select
@@ -261,7 +253,6 @@ notes:
       body: 'Someone edited this note while you were writing. Your latest changes were not saved, so as not to erase theirs. Reload to start from their version, or overwrite it with yours.'
       reload: 'Reload their version'
       overwrite: 'Overwrite with mine'
-    team_inherited: 'Visible to the team, through a shared folder above'
     breadcrumb: 'Where this note lives'
     add:
       title: 'Add'

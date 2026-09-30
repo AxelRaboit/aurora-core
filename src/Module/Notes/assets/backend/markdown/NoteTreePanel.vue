@@ -502,6 +502,33 @@ function onSelect(node) {
     if (!forward("select", Number(node.id))) window.location.assign(hrefFor(node));
 }
 
+/**
+ * Ajouter aux favoris, ou retirer, depuis la ligne.
+ *
+ * La page le fait quand elle est là, pour que la bibliothèque et l'éditeur
+ * suivent. Sinon le panneau le fait seul et corrige sa propre liste.
+ */
+async function toggleFavorite(node) {
+    const kind = "folder" === node.kind ? "folder" : "note";
+    const id = Number(node.id);
+
+    if (forward("favorite", { kind, id })) return;
+
+    const url = "folder" === kind
+        ? `${FOLDERS_ENDPOINT}/${id}/favorite`
+        : `/backend/notes/markdown/${id}/favorite`;
+    const payload = await request(url, {}, { method: HttpMethod.Post });
+
+    if (undefined === payload?.favorite) return;
+
+    const at = payload.favorite ? new Date().toISOString() : null;
+    const patchOne = (list) =>
+        (list ?? []).map((one) => (Number(one.id) === id ? { ...one, favoritedAt: at } : one));
+
+    if ("folder" === kind) announcedFolders.value = patchOne(folders.value);
+    else announcedNotes.value = patchOne(notes.value);
+}
+
 function onFavoriteClick(entry, event) {
     event.preventDefault();
     onSelect(entry);
@@ -869,6 +896,7 @@ onUnmounted(() => {
                 v-on:toggle="toggle"
                 v-on:add="(node) => { open(node.id); forward('add', Number(node.id)); }"
                 v-on:rename="(node) => forward('folder' === node.kind ? 'rename-folder' : 'rename-note', node)"
+                v-on:favorite="toggleFavorite"
                 v-on:delete="(node) => forward('folder' === node.kind ? 'delete-folder' : 'delete', node)"
                 v-on:drag-start="onDragStart"
                 v-on:drag-end="onDragEnd"

@@ -227,46 +227,6 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
         return count($notes);
     }
 
-    /**
-     * Épingle la note, ou la décroche.
-     *
-     * L'heure est celle du geste, et c'est elle qui ordonne le panneau : le
-     * dernier épinglé arrive en tête, là où on vient de le poser.
-     */
-    public function toggleFavorite(MarkdownNoteInterface $note): bool
-    {
-        $pinned = !$note->getFavoritedAt() instanceof DateTimeImmutable;
-
-        $note->setFavoritedAt($pinned ? new DateTimeImmutable() : null);
-
-        $this->entityManager->flush();
-
-        $this->auditUpdated($note);
-
-        return $pinned;
-    }
-
-    /**
-     * Ouvre ou referme cette note au reste du back-office.
-     *
-     * Pour une note **seule** : celles qui vivent dans un dossier partagé
-     * n'ont pas à porter leur propre date, le dossier décide pour elles.
-     * Partager la note d'un dossier partagé ne fait donc rien de plus, et
-     * la refermer ne la retire pas du dossier.
-     */
-    public function toggleShared(MarkdownNoteInterface $note): bool
-    {
-        $partage = !$note->getSharedAt() instanceof DateTimeImmutable;
-
-        $note->setSharedAt($partage ? new DateTimeImmutable() : null);
-
-        $this->entityManager->flush();
-
-        $this->auditUpdated($note);
-
-        return $partage;
-    }
-
     public function move(MarkdownNoteInterface $note, ?NoteFolderInterface $folder, ?NoteSpaceInterface $space = null): void
     {
         $this->changeSpace($note, $folder?->getSpace() ?? $space ?? $note->getSpace());
@@ -282,8 +242,7 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
      * Ses adresses d'images ne portent que le nom du fichier : le fichier doit
      * donc exister dans le compartiment du nouvel espace, sinon ses nouveaux
      * lecteurs verraient des images cassées. L'auteur ne change pas - il a
-     * écrit la note, où qu'elle aille. Le partage en lecture d'avant les
-     * espaces tombe : c'est l'espace qui dit maintenant qui lit.
+     * écrit la note, où qu'elle aille.
      */
     public function changeSpace(MarkdownNoteInterface $note, NoteSpaceInterface $space): void
     {
@@ -294,7 +253,6 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
         $from = $this->imageService->bucketOf($note);
 
         $note->setSpace($space);
-        $note->setSharedAt(null);
 
         $this->imageService->copyReferenced($note->getContent(), $from, $space);
     }

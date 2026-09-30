@@ -20,12 +20,14 @@
  */
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { ArrowLeft, ArrowRight, ChevronRight, ListTree, PanelLeftClose, PanelLeftOpen, Pencil, X } from "lucide-vue-next";
+import { ArrowLeft, ArrowRight, ChevronRight, ListTree, PanelLeftClose, PanelLeftOpen, Pencil, Star, X } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppBackLink from "@/shared/components/nav/AppBackLink.vue";
 import NoteShareApp from "@notes/share/NoteShareApp.vue";
 import NoteReaderNav from "./components/NoteReaderNav.vue";
+import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
+import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 
 const props = defineProps({
     noteId: { type: Number, required: true },
@@ -41,6 +43,9 @@ const props = defineProps({
     breadcrumb: { type: Array, default: () => [] },
     /** Vrai seulement chez soi : la note d'un autre se lit, elle ne s'écrit pas. */
     canEdit: { type: Boolean, default: false },
+    /** Dans les favoris de qui lit, et l'adresse qui l'y met ou l'en retire. */
+    favorited: { type: Boolean, default: false },
+    favoritePath: { type: String, default: "" },
     backPath: { type: String, default: "" },
     previous: { type: Object, default: null },
     next: { type: Object, default: null },
@@ -62,6 +67,22 @@ const exitPath = computed(() => (props.canEdit && props.backPath ? props.backPat
 const exitLabel = computed(() =>
     props.canEdit && props.backPath ? t('notes.markdown.read.back') : t('notes.markdown.library.title'),
 );
+
+/**
+ * L'étoile : on lit une note et on se dit qu'on y reviendra. La mettre en
+ * favori ne demande pas d'aller la chercher ailleurs.
+ */
+const { request } = useRequest();
+const isFavorite = ref(props.favorited);
+const favoriteLabel = computed(() =>
+    isFavorite.value ? t("notes.markdown.library.unpin") : t("notes.markdown.library.pin"),
+);
+
+async function toggleFavorite() {
+    const payload = await request(props.favoritePath, {}, { method: HttpMethod.Post });
+
+    if (undefined !== payload?.favorite) isFavorite.value = Boolean(payload.favorite);
+}
 
 const readUrl = (id) => props.readNotePath.replace("__id__", String(id));
 const folderUrl = (id) => props.folderShowPath.replace("__id__", String(id));
@@ -235,6 +256,21 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
                     <ChevronRight class="hidden h-3 w-3 shrink-0 sm:block" :stroke-width="2" />
                     <span class="min-w-0 truncate px-1 text-secondary" aria-current="page">{{ titleOf({ title: noteTitle }) }}</span>
                 </nav>
+
+                <AppIconButton
+                    v-if="favoritePath"
+                    data-read-favorite
+                    :title="favoriteLabel"
+                    :aria-label="favoriteLabel"
+                    :aria-pressed="isFavorite"
+                    v-on:click="toggleFavorite"
+                >
+                    <Star
+                        class="h-4 w-4"
+                        :class="isFavorite ? 'fill-current text-accent-400' : ''"
+                        :stroke-width="2"
+                    />
+                </AppIconButton>
 
                 <AppButton
                     v-if="canEdit && backPath"

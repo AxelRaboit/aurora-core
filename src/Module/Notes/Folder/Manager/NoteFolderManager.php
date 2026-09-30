@@ -188,40 +188,6 @@ class NoteFolderManager implements NoteFolderManagerInterface
         return count($folders);
     }
 
-    /** Épingle le dossier, ou le décroche. L'heure ordonne le panneau. */
-    public function toggleFavorite(NoteFolderInterface $folder): bool
-    {
-        $pinned = !$folder->getFavoritedAt() instanceof DateTimeImmutable;
-
-        $folder->setFavoritedAt($pinned ? new DateTimeImmutable() : null);
-
-        $this->entityManager->flush();
-
-        $this->auditUpdated($folder);
-
-        return $pinned;
-    }
-
-    /**
-     * Ouvre ou referme ce dossier au reste du back-office.
-     *
-     * Ce qu'il contient suit, sous-dossiers compris : c'est le sens même
-     * de partager un endroit plutôt que chaque feuille qu'on y range.
-     * Rien n'est copié ni déplacé, une seule date change.
-     */
-    public function toggleShared(NoteFolderInterface $folder): bool
-    {
-        $partage = !$folder->getSharedAt() instanceof DateTimeImmutable;
-
-        $folder->setSharedAt($partage ? new DateTimeImmutable() : null);
-
-        $this->entityManager->flush();
-
-        $this->auditUpdated($folder);
-
-        return $partage;
-    }
-
     public function move(NoteFolderInterface $folder, ?NoteFolderInterface $newParent, ?NoteSpaceInterface $space = null): bool
     {
         if ($this->hierarchy->wouldCreateCycle($folder, $newParent)) {
@@ -246,7 +212,7 @@ class NoteFolderManager implements NoteFolderManagerInterface
      *
      * Une note vit toujours dans l'espace de son dossier : laisser la branche
      * derrière ferait un dossier partagé plein de notes que personne d'autre
-     * ne voit. Le partage en lecture d'avant les espaces tombe au passage.
+     * ne voit.
      */
     protected function changeSpace(NoteFolderInterface $folder, NoteSpaceInterface $space): void
     {
@@ -258,7 +224,6 @@ class NoteFolderManager implements NoteFolderManagerInterface
 
         foreach ($branch as $one) {
             $one->setSpace($space);
-            $one->setSharedAt(null);
         }
 
         $ids = array_map(static fn (NoteFolderInterface $one): int => (int) $one->getId(), $branch);

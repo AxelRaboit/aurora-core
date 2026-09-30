@@ -8,6 +8,7 @@ use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Validation\Service\PayloadValidator;
+use Aurora\Module\Notes\Favorite\Service\NoteFavorites;
 use Aurora\Module\Notes\Folder\Dto\NoteFolderInputFactoryInterface;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Folder\Manager\NoteFolderManagerInterface;
@@ -46,6 +47,7 @@ final class NoteFoldersController extends AbstractController
         private readonly NoteFolderSerializerInterface $serializer,
         private readonly PayloadValidator $payloadValidator,
         private readonly NoteSpaceAccess $spaceAccess,
+        private readonly NoteFavorites $favorites,
     ) {}
 
     /**
@@ -92,7 +94,7 @@ final class NoteFoldersController extends AbstractController
 
         $folder = $this->manager->create($user, $input);
 
-        return $this->jsonSuccess(['folder' => $this->serializer->serialize($folder)]);
+        return $this->jsonSuccess(['folder' => $this->serializerFor($user)->serialize($folder)]);
     }
 
     #[Route('/{id}/update', name: '_update', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Post->value])]
@@ -115,7 +117,7 @@ final class NoteFoldersController extends AbstractController
 
         $this->manager->update($folder, $input);
 
-        return $this->jsonSuccess(['folder' => $this->serializer->serialize($folder)]);
+        return $this->jsonSuccess(['folder' => $this->serializerFor($user)->serialize($folder)]);
     }
 
     /**
@@ -160,43 +162,26 @@ final class NoteFoldersController extends AbstractController
             return $this->jsonFailure('refused', extra: ['message' => 'notes.markdown.folders.errors.move_refused']);
         }
 
-        return $this->jsonSuccess(['folder' => $this->serializer->serialize($folder)]);
+        return $this->jsonSuccess(['folder' => $this->serializerFor($user)->serialize($folder)]);
     }
 
-    /** Épingler un dossier au menu, ou l'en décrocher. */
+    /**
+     * Ajouter un dossier à ses favoris, ou l'en retirer.
+     *
+     * Lire suffit : les favoris sont à la personne, pas au dossier.
+     */
     #[Route('/{id}/favorite', name: '_favorite', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Post->value])]
     public function favorite(int $id): JsonResponse
     {
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        $folder = $this->spaceAccess->writableFolder($user, $id);
+        $folder = $this->spaceAccess->readableFolder($user, $id);
         if (!$folder instanceof NoteFolderInterface) {
             return $this->jsonNotFound();
         }
 
-        return $this->jsonSuccess(['favorite' => $this->manager->toggleFavorite($folder)]);
-    }
-
-    /**
-     * Ouvre ou referme ce dossier au reste du back-office.
-     *
-     * Seul son propriétaire décide : la recherche passe par
-     * `findOneByUserAndId`, donc partager le dossier d'un collègue répond
-     * 404 comme n'importe quel dossier qui n'est pas à soi.
-     */
-    #[Route('/{id}/share', name: '_share', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Post->value])]
-    public function share(int $id): JsonResponse
-    {
-        /** @var CoreUserInterface $user */
-        $user = $this->getUser();
-
-        $folder = $this->repository->findOneByUserAndId($user, $id);
-        if (!$folder instanceof NoteFolderInterface) {
-            return $this->jsonNotFound();
-        }
-
-        return $this->jsonSuccess(['shared' => $this->manager->toggleShared($folder)]);
+        return $this->jsonSuccess(['favorite' => $this->favorites->toggle($user, $folder)]);
     }
 
     /** Sends a folder to the trash, with everything inside it. */
@@ -313,7 +298,7 @@ final class NoteFoldersController extends AbstractController
     /** @return list<array<string, mixed>> */
     private function serializeAllFor(CoreUserInterface $user): array
     {
-        $serializer = $this->serializer->withCounts(
+        $serializer = $this->serializerFor($user)->withCounts(
             $this->repository->countNotesPerFolderForUser($user),
             $this->repository->countChildrenPerFolderForUser($user),
         );
@@ -322,5 +307,11 @@ final class NoteFoldersController extends AbstractController
             $serializer->serialize(...),
             $this->repository->findAllForUser($user),
         );
+    }
+
+    /** Le sérialiseur, avec ce que cette personne a épinglé. */
+    private function serializerFor(CoreUserInterface $user): NoteFolderSerializerInterface
+    {
+        return $this->serializer->withFavorites($this->favorites->mapFor($user)['folders']);
     }
 }

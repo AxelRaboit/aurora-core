@@ -6,6 +6,7 @@ namespace Aurora\Module\Notes\Markdown\View;
 
 use Aurora\Core\Support\Num;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
+use Aurora\Module\Notes\Favorite\Service\NoteFavorites;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
 use Aurora\Module\Notes\Folder\Serializer\NoteFolderSerializerInterface;
@@ -17,7 +18,6 @@ use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Notes\Space\Repository\NoteSpaceRepository;
 use Aurora\Module\Notes\Space\Service\NoteSpaceAccess;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
-use DateTimeInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final readonly class MarkdownNotesViewBuilder
@@ -31,6 +31,7 @@ final readonly class MarkdownNotesViewBuilder
         private SettingRepository $settingRepository,
         private NoteSpaceAccess $spaceAccess,
         private NoteSpaceRepository $spaces,
+        private NoteFavorites $favorites,
     ) {}
 
     /**
@@ -43,7 +44,7 @@ final readonly class MarkdownNotesViewBuilder
      */
     public function indexView(CoreUserInterface $user, ?int $activeId = null, ?NoteFolderInterface $folder = null): array
     {
-        $serializer = $this->folderSerializer->withCounts(
+        $serializer = $this->folderSerializer->withFavorites($this->favorites->mapFor($user)['folders'])->withCounts(
             $this->folderRepository->countNotesPerFolderForUser($user),
             $this->folderRepository->countChildrenPerFolderForUser($user),
         );
@@ -55,6 +56,7 @@ final readonly class MarkdownNotesViewBuilder
 
         return [
             'activeId' => $activeId,
+            'personalSpaceId' => $this->spaceAccess->personalSpace($user)->getId(),
             'folderId' => $folder?->getId(),
             'notes' => $this->withExcerpts($this->noteRepository->findFlatListForUser($user), $user),
             'folders' => $folders,
@@ -108,6 +110,9 @@ final readonly class MarkdownNotesViewBuilder
                 $this->hierarchy->pathTo($note->getFolder()),
             ),
             'canEdit' => $this->spaceAccess->canWriteNote($user, $note),
+            // Lire suffit pour épingler : les favoris sont à la personne.
+            'favorited' => isset($this->favorites->mapFor($user)['notes'][(int) $note->getId()]),
+            'favoritePath' => $this->urlGenerator->generate('backend_notes_markdown_favorite', ['id' => $note->getId()]),
             'previous' => $neighbours['previous'],
             'next' => $neighbours['next'],
             'libraryPath' => $this->urlGenerator->generate('backend_notes_markdown'),
@@ -153,7 +158,6 @@ final readonly class MarkdownNotesViewBuilder
             'name' => $one->getName(),
             'color' => $one->getColor(),
             'position' => $one->getPosition(),
-            'sharedAt' => $one->getSharedAt()?->format(DateTimeInterface::ATOM),
             'spaceId' => $one->getSpace()->getId(),
         ], $folders);
 
@@ -162,7 +166,6 @@ final readonly class MarkdownNotesViewBuilder
             'title' => (string) ($row['title'] ?? ''),
             'folderId' => null === ($row['folderId'] ?? null) ? null : (int) $row['folderId'],
             'position' => $row['position'],
-            'sharedAt' => $row['sharedAt'] ?? null,
             'spaceId' => $row['spaceId'],
         ], $rows);
 
@@ -367,7 +370,6 @@ final readonly class MarkdownNotesViewBuilder
             'readPath' => $this->urlGenerator->generate('backend_notes_markdown_read', ['id' => '__id__']),
             'coversSearchPath' => $this->urlGenerator->generate('backend_notes_markdown_covers_search'),
             'sharedPath' => $this->urlGenerator->generate('backend_notes_markdown_shared'),
-            'shareInternallyPath' => $this->urlGenerator->generate('backend_notes_markdown_share_internally', ['id' => '__id__']),
         ];
     }
 
@@ -390,7 +392,6 @@ final readonly class MarkdownNotesViewBuilder
                 'move' => $this->urlGenerator->generate('backend_notes_markdown_folders_move', ['id' => '__id__']),
                 'delete' => $this->urlGenerator->generate('backend_notes_markdown_folders_delete', ['id' => '__id__']),
                 'reorder' => $this->urlGenerator->generate('backend_notes_markdown_folders_reorder'),
-                'share' => $this->urlGenerator->generate('backend_notes_markdown_folders_share', ['id' => '__id__']),
                 'favorite' => $this->urlGenerator->generate('backend_notes_markdown_folders_favorite', ['id' => '__id__']),
                 'show' => $this->urlGenerator->generate('backend_notes_markdown_folder', ['id' => '__id__']),
             ],

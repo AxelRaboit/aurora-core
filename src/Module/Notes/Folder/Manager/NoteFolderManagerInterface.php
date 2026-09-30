@@ -36,19 +36,6 @@ interface NoteFolderManagerInterface
     public function purgeTrashedBefore(DateTimeImmutable $cutoff): int;
 
     /**
-     * Pins the folder to the side menu, or unpins it.
-     *
-     * @return bool whether it is pinned afterwards
-     */
-    /**
-     * Ouvre ou referme ce dossier au reste du back-office, et rend son
-     * nouvel état. Ce qu'il contient suit.
-     */
-    public function toggleShared(NoteFolderInterface $folder): bool;
-
-    public function toggleFavorite(NoteFolderInterface $folder): bool;
-
-    /**
      * Refiles a folder under a new parent, or at the root with null.
      *
      * @return bool false when the move is refused - a cycle, or a branch that

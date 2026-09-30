@@ -10,6 +10,8 @@ use Aurora\Module\Notes\Markdown\Entity\MarkdownNote;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteArchive;
+use Aurora\Module\Notes\Space\Entity\NoteSpace;
+use Aurora\Module\Notes\Space\Enum\NoteSpaceAccessEnum;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 use Aurora\Module\Platform\User\Repository\UserRepository;
@@ -646,23 +648,22 @@ final class MarkdownNoteTest extends IntegrationTestCase
 
         $body = $this->post('backend_notes_markdown_favorite', [], ['id' => $note->getId()]);
         self::assertTrue($body['favorite']);
+        self::assertNotNull($this->listedRow((int) $note->getId())['favoritedAt']);
 
-        $this->entityManager->clear();
-        $pinned = $this->entityManager->find(MarkdownNote::class, $note->getId());
-        self::assertInstanceOf(MarkdownNoteInterface::class, $pinned);
-        self::assertNotNull($pinned->getFavoritedAt());
+        // Le lecteur le sait aussi : son étoile s'allume.
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_read', ['id' => $note->getId()]));
+        self::assertTrue($this->readProps((string) $this->client->getResponse()->getContent())['favorited']);
 
         $body = $this->post('backend_notes_markdown_favorite', [], ['id' => $note->getId()]);
         self::assertFalse($body['favorite']);
-
-        $this->entityManager->clear();
-        $loose = $this->entityManager->find(MarkdownNote::class, $note->getId());
-        self::assertInstanceOf(MarkdownNoteInterface::class, $loose);
-        self::assertNull($loose->getFavoritedAt());
+        self::assertNull($this->listedRow((int) $note->getId())['favoritedAt']);
     }
 
-    /** Un dossier s'épingle aussi, et personne d'autre ne peut l'épingler. */
-    public function testAFolderIsPinnedByItsOwnerOnly(): void
+    /**
+     * Les favoris sont à la personne : on épingle ce qu'on peut lire, pour
+     * soi seul, et jamais ce qu'on ne voit pas.
+     */
+    public function testFavoritesBelongToWhoPinsThem(): void
     {
         $folder = $this->folder($this->owner, 'Clients');
 
@@ -670,9 +671,38 @@ final class MarkdownNoteTest extends IntegrationTestCase
         $this->post('backend_notes_markdown_folders_favorite', [], ['id' => $folder->getId()]);
         self::assertResponseStatusCodeSame(404);
 
+        // Dans un espace ouvert à tous, chacun épingle pour lui.
+        $space = new NoteSpace();
+        $space->setOwner($this->owner)->setName('Équipe')->setAccess(NoteSpaceAccessEnum::Backoffice);
+        $this->entityManager->persist($space);
+        $this->entityManager->flush();
+        $this->created[] = [NoteSpace::class, (int) $space->getId()];
+        $shared = $this->note($this->owner, 'Procédure');
+        $shared->setSpace($space);
+        $this->entityManager->flush();
+
+        $this->client->loginUser($this->other, 'admin');
+        $body = $this->post('backend_notes_markdown_favorite', [], ['id' => $shared->getId()]);
+        self::assertTrue($body['favorite']);
+        self::assertNotNull($this->listedRow((int) $shared->getId())['favoritedAt']);
+
         $this->client->loginUser($this->owner, 'admin');
+        self::assertNull($this->listedRow((int) $shared->getId())['favoritedAt']);
         $body = $this->post('backend_notes_markdown_folders_favorite', [], ['id' => $folder->getId()]);
         self::assertTrue($body['favorite']);
+    }
+
+    /** @return array<string, mixed> */
+    private function listedRow(int $id): array
+    {
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_list'));
+        self::assertResponseIsSuccessful();
+
+        $body = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+        $row = current(array_filter($body['notes'], static fn (array $one): bool => (int) $one['id'] === $id));
+        self::assertIsArray($row);
+
+        return $row;
     }
 
     /**

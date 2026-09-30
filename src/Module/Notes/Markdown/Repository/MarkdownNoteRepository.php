@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Notes\Markdown\Repository;
 
 use Aurora\Core\Repository\ResolveTargetEntityRepository;
+use Aurora\Module\Notes\Favorite\Entity\NoteFavorite;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNote;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
@@ -13,6 +14,7 @@ use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use DateTimeImmutable;
 use DateTimeInterface;
 use Doctrine\Common\Collections\Order;
+use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -45,7 +47,7 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
      * n'affichait aucune date ; le jour où la bibliothèque a montré « modifiée
      * le », le formatage a levé et la page entière est restée blanche.
      *
-     * @return list<array{id: int, title: string|null, tags: list<string>, position: int, createdAt: string, updatedAt: string, favoritedAt: string|null, sharedAt: string|null, coverUrl: string|null, coverPosition: int, appearance: string, version: int, folderId: int|null, spaceId: int}>
+     * @return list<array{id: int, title: string|null, tags: list<string>, position: int, createdAt: string, updatedAt: string, favoritedAt: string|null, coverUrl: string|null, coverPosition: int, appearance: string, version: int, folderId: int|null, spaceId: int}>
      */
     public function findFlatListForUser(CoreUserInterface $user): array
     {
@@ -57,8 +59,13 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
         // requête qui en lisait déjà neuf ; seuls le titre et le texte sont
         // chiffrés, donc elles ne coûtent rien à déchiffrer.
         /** @var list<array<string, mixed>> $rows */
+        // Les favoris de la personne qui demande, joints ici : ils sont à
+        // elle, pas à la note, et une seconde requête les recollerait ligne
+        // par ligne.
         $rows = $this->visibleTo($this->createQueryBuilder('n'), 'n', $user)
-            ->select('n.id', 'n.title', 'n.tags', 'n.position', 'n.createdAt', 'n.updatedAt', 'n.favoritedAt', 'n.sharedAt', 'n.coverUrl', 'n.coverPosition', 'n.appearance', 'n.version', 'IDENTITY(n.folder) AS folderId', 'IDENTITY(n.space) AS spaceId')
+            ->select('n.id', 'n.title', 'n.tags', 'n.position', 'n.createdAt', 'n.updatedAt', 'fav.createdAt AS favoritedAt', 'n.coverUrl', 'n.coverPosition', 'n.appearance', 'n.version', 'IDENTITY(n.folder) AS folderId', 'IDENTITY(n.space) AS spaceId')
+            ->leftJoin(NoteFavorite::class, 'fav', Join::WITH, 'fav.note = n AND fav.user = :favoriteViewer')
+            ->setParameter('favoriteViewer', $user)
             ->andWhere('n.deletedAt IS NULL')
             ->orderBy('n.position', Order::Ascending->value)
             ->addOrderBy('n.createdAt', Order::Descending->value)
@@ -70,13 +77,6 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
             'createdAt' => self::asAtom($row['createdAt'] ?? null),
             'updatedAt' => self::asAtom($row['updatedAt'] ?? null),
             'favoritedAt' => self::asAtom($row['favoritedAt'] ?? null),
-            // Sans cette ligne, l'écran ne savait jamais qu'une note est
-            // ouverte à l'équipe : la marque ne s'affichait pas, le filtre
-            // ne trouvait rien, et la bascule de la barre croyait toujours
-            // partir d'une note privée - donc disait toujours la même
-            // chose. La liste plate ne sert pas le sérialiseur, il faut
-            // lui nommer chaque colonne.
-            'sharedAt' => self::asAtom($row['sharedAt'] ?? null),
             'spaceId' => (int) $row['spaceId'],
         ], $rows);
     }
@@ -232,27 +232,6 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
             ->setParameter('id', $id)
             ->getQuery()
             ->getOneOrNullResult();
-    }
-
-    /**
-     * Les notes que les autres ont partagées une par une.
-     *
-     * Celles qui sont dans un dossier partagé n'ont pas de date à elles :
-     * c'est le dossier qui décide. Cette requête ne rend donc que les
-     * notes partagées **seules**, typiquement à la racine.
-     *
-     * @return list<MarkdownNoteInterface>
-     */
-    public function findSharedByOthers(CoreUserInterface $user): array
-    {
-        return $this->createQueryBuilder('n')
-            ->where('n.user != :user')
-            ->andWhere('n.sharedAt IS NOT NULL')
-            ->andWhere('n.deletedAt IS NULL')
-            ->setParameter('user', $user)
-            ->orderBy('n.sharedAt', Order::Descending->value)
-            ->getQuery()
-            ->getResult();
     }
 
     /**

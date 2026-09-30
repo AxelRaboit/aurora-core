@@ -25,7 +25,7 @@ import AppTab from '@shared/components/nav/AppTab.vue';
 import AppRowActions from '@shared/components/action/AppRowActions.vue';
 import { computed, nextTick, onErrorCaptured, onMounted, onUnmounted, watch } from 'vue';
 import { onPanelRequest, tellPanels } from '@/shared/nav/modulePanelBridge.js';
-import { ChevronRight, Trash2, BookOpen, FileDown, Image, PanelRightOpen, PanelRightClose, Tag, TriangleAlert, Users, X, Network, Share2 } from 'lucide-vue-next';
+import { ChevronRight, Trash2, BookOpen, FileDown, Image, PanelRightOpen, PanelRightClose, Star, StarOff, Tag, TriangleAlert, X, Network, Share2 } from 'lucide-vue-next';
 import AppNoData from '@shared/components/feedback/AppNoData.vue';
 import "@notes/share/appearance.css";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
@@ -54,6 +54,8 @@ const props = defineProps({
     deletePath: { type: String, required: true },
     movePath: { type: String, required: true },
     favoritePath: { type: String, default: '' },
+    /** L'espace personnel de qui lit : ce qui vit ailleurs est partagé. */
+    personalSpaceId: { type: Number, default: null },
     reorderPath: { type: String, required: true },
     backlinksPath: { type: String, required: true },
     unlinkedMentionsPath: { type: String, required: true },
@@ -78,7 +80,6 @@ const props = defineProps({
     coversSearchPath: { type: String, default: '' },
     /** Ce que les autres ont ouvert à tout le back-office. */
     sharedPath: { type: String, default: '' },
-    shareInternallyPath: { type: String, default: '' },
     imageMaxEdge: { type: Number, default: 2048 },
     imageQuality: { type: Number, default: 0.85 },
     /**
@@ -302,97 +303,14 @@ const libraryRef = ref(null);
  */
 const openFolderId = ref(props.folderId);
 
-const sharedWithTeam = computed(() => Boolean(selectedNote.value?.sharedAt));
-
-/**
- * Le dossier qui rend cette note visible sans qu'elle porte rien.
- *
- * Une note rangée dans un dossier ouvert à l'équipe **est** visible, mais
- * sa propre marque est vide : afficher « Rendre visible » sur une note que
- * tout le monde voit déjà serait un mensonge. On remonte donc la chaîne
- * des parents pour nommer le dossier responsable, et la bascule de la note
- * s'efface devant lui - c'est là-bas que ça se change.
- */
-const sharingFolder = computed(() => {
-    const parId = new Map(folders.value.map((one) => [Number(one.id), one]));
-
-    let dossier = parId.get(Number(selectedNote.value?.folderId));
-    const vus = new Set();
-
-    while (dossier && !vus.has(Number(dossier.id))) {
-        vus.add(Number(dossier.id));
-
-        if (dossier.sharedAt) return dossier;
-
-        dossier = parId.get(Number(dossier.parentId));
-    }
-
-    return null;
-});
-
-const visibleToTeam = computed(
-    () => sharedWithTeam.value || null !== sharingFolder.value,
-);
-
-/**
- * Refermer le dossier qui rend cette note visible, en disant quoi.
- *
- * Le geste part d'une note et emporte toutes ses voisines : celui qui le
- * fait n'en voit qu'une, donc la question nomme le dossier **et** compte
- * ce qu'il contient. Sans ce compte, on retire la visibilité à douze notes
- * en croyant en traiter une.
- */
-const pendingUnshare = ref(null);
-const unsharing = ref(false);
-
-const unshareCount = computed(() => {
-    if (!pendingUnshare.value) return 0;
-
-    const dossiers = new Set([Number(pendingUnshare.value.id)]);
-    let change = true;
-
-    while (change) {
-        change = false;
-
-        for (const dossier of folders.value) {
-            const id = Number(dossier.id);
-
-            if (!dossiers.has(id) && dossiers.has(Number(dossier.parentId))) {
-                dossiers.add(id);
-                change = true;
-            }
-        }
-    }
-
-    return notes.value.filter((note) => dossiers.has(Number(note.folderId))).length;
-});
-
-async function confirmUnshare() {
-    if (!pendingUnshare.value) return;
-
-    unsharing.value = true;
-
-    const { ok, reported } = await foldersApi.share(pendingUnshare.value.id);
-
-    unsharing.value = false;
-
-    if (!ok) {
-        if (!reported) toast.error(t('notes.markdown.library.shared.failed'));
-
-        return;
-    }
-
-    pendingUnshare.value = null;
-    toast.success(t('notes.markdown.library.shared.stopped'));
-
-    await Promise.all([refreshFolders(), refreshList()]);
-}
+/** Dans les favoris de qui lit : le menu dit l'inverse de l'état. */
+const isFavorite = computed(() => Boolean(selectedNote.value?.favoritedAt));
 
 /**
  * Ce que le menu de la note porte : les gestes qu'on fait une fois.
  *
- * Exporter, envoyer un lien, choisir une image, ouvrir le graphe, rendre
- * la note visible : chacun se fait une fois par note, quand les modes
+ * Exporter, envoyer un lien, choisir une image, ouvrir le graphe,
+ * l'épingler : chacun se fait une fois par note, quand les modes
  * d'affichage, les étiquettes et les liens se touchent en écrivant. Les
  * douze sur une ligne ne laissaient plus de place au titre.
  */
@@ -430,29 +348,15 @@ const noteActions = computed(() => {
             },
         },
         {
-            key: "team",
-            title: sharingFolder.value
-                ? t('notes.markdown.library.shared.via_folder', {
-                    folder: sharingFolder.value.name || t('notes.markdown.folders.untitled'),
-                })
-                : sharedWithTeam.value
-                    ? t('notes.markdown.library.shared.stop')
-                    : t('notes.markdown.library.shared.start'),
-            icon: Users,
-            // Quand c'est le dossier qui décide, l'entrée le referme -
-            // après avoir dit ce que ça emporte. Elle menait à la page du
-            // dossier, où l'on arrivait devant son contenu sans y trouver
-            // sa carte, donc sans rien à faire : un lien qui dépose le
-            // lecteur devant une porte fermée.
-            onSelect: () => {
-                if (sharingFolder.value) {
-                    pendingUnshare.value = sharingFolder.value;
-
-                    return;
-                }
-
-                void toggleTeamVisibility();
-            },
+            // Les favoris sont à soi : la note s'épingle d'ici, là où l'on
+            // est quand on se dit qu'on y reviendra. Seule la bibliothèque le
+            // proposait, et personne ne l'y trouvait.
+            key: "favorite",
+            title: isFavorite.value
+                ? t('notes.markdown.library.unpin')
+                : t('notes.markdown.library.pin'),
+            icon: isFavorite.value ? StarOff : Star,
+            onSelect: () => void toggleFavorite('note', selectedId.value),
         },
         {
             key: "graph",
@@ -484,25 +388,19 @@ const noteActions = computed(() => {
 });
 
 
-async function toggleTeamVisibility() {
-    if (!selectedId.value) return;
+/** Ajouter aux favoris, ou retirer : une note ou un dossier. */
+async function toggleFavorite(kind, id) {
+    if (!id) return;
 
-    const etait = sharedWithTeam.value;
-    const { ok, reported } = await api.shareInternally(selectedId.value);
+    const { ok, reported } = 'folder' === kind ? await foldersApi.favorite(id) : await api.favorite(id);
 
     if (!ok) {
-        if (!reported) toast.error(t('notes.markdown.library.shared.failed'));
+        if (!reported) toast.error(t('notes.markdown.library.pin_failed'));
 
         return;
     }
 
-    toast.success(
-        etait
-            ? t('notes.markdown.library.shared.stopped')
-            : t('notes.markdown.library.shared.started'),
-    );
-
-    await refreshList();
+    await ('folder' === kind ? refreshFolders() : refreshList());
 }
 
 function folderUrlFor(id) {
@@ -785,6 +683,7 @@ const notePath = computed(() => folderPath(folders.value, selectedNote.value?.fo
 
 const PANEL_INTENTS = {
     select: (id) => openNote(id),
+    favorite: ({ kind, id }) => toggleFavorite(kind, id),
     export: () => exportAll(),
     import: () => askForFiles(),
     create: (folderId) => createNote(folderId ?? null),
@@ -1013,25 +912,6 @@ onUnmounted(() => {
                              son filet et son anneau de focus, et les enlever
                              un par un en classes aurait laissé un composant
                              qui promet une apparence qu'il n'a plus. -->
-                        <!-- L'état, écrit, pas seulement une icône qui change
-                             de teinte. Une infobulle se survole et un message
-                             disparaît : ni l'un ni l'autre ne dit, en arrivant
-                             sur la note, si elle est sortie de chez soi. -->
-                        <!-- La pastille dit l'état, elle ne fait rien.
-                             Elle a été un lien vers le dossier, et c'était
-                             une porte fermée : on arrivait devant son
-                             contenu, sans sa carte, donc sans rien à
-                             faire. Ce qui agit vit dans le menu. -->
-                        <span
-                            v-if="visibleToTeam"
-                            class="inline-flex shrink-0 items-center gap-1 rounded-full bg-accent-600/15 px-2 py-1 text-xs font-medium text-accent-400"
-                        >
-                            <Users class="h-3 w-3" :stroke-width="2" />
-                            {{ sharingFolder
-                                ? t('notes.markdown.library.shared.via_folder', { folder: sharingFolder.name || t('notes.markdown.folders.untitled') })
-                                : t('notes.markdown.library.shared.badge') }}
-                        </span>
-
                         <!-- **Un champ qui ressemble à un titre n'a pas
                              l'air d'un champ.** Sans bordure, sans fond et en
                              2xl, celui-ci se lisait comme le titre de la page,
@@ -1245,6 +1125,7 @@ onUnmounted(() => {
                     ref="libraryRef"
                     :folders="folders"
                     :notes="notes"
+                    :personal-space-id="personalSpaceId"
                     :folders-api="foldersApi"
                     :notes-api="api"
                     :initial-folder-id="folderId"
@@ -1301,33 +1182,6 @@ onUnmounted(() => {
                 v-on:close="sidePanelOpen = false"
                 v-on:navigate="selectNote"
             />
-
-            <AppModal
-                :show="null !== pendingUnshare"
-                max-width="sm"
-                :closeable="!unsharing"
-                :title="t('notes.markdown.library.shared.stop')"
-                :icon="Users"
-                v-on:close="pendingUnshare = null"
-            >
-                <p class="text-sm text-primary">
-                    {{ t('notes.markdown.library.shared.confirm_folder', {
-                        folder: pendingUnshare?.name || t('notes.markdown.folders.untitled'),
-                        count: unshareCount,
-                    }) }}
-                </p>
-                <template #footer>
-                    <AppModalFooter>
-                        <AppButton variant="ghost" size="md" :disabled="unsharing" v-on:click="pendingUnshare = null">
-                            <X class="w-3.5 h-3.5" :stroke-width="2" />
-                            {{ t('notes.markdown.cancel') }}
-                        </AppButton>
-                        <AppButton variant="primary" size="md" :loading="unsharing" v-on:click="confirmUnshare">
-                            {{ t('notes.markdown.library.shared.stop') }}
-                        </AppButton>
-                    </AppModalFooter>
-                </template>
-            </AppModal>
 
             <AppModal
                 :show="!!pendingDelete"

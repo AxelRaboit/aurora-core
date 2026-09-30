@@ -12,6 +12,7 @@ use Aurora\Core\Storage\Access\UploadPolicyProvider;
 use Aurora\Core\Storage\Access\UploadRefusalEnum;
 use Aurora\Core\Validation\Service\PayloadValidator;
 use Aurora\Module\Ged\Pexels\Service\PexelsClient;
+use Aurora\Module\Notes\Favorite\Service\NoteFavorites;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
 use Aurora\Module\Notes\Folder\Serializer\NoteFolderSerializerInterface;
@@ -66,6 +67,7 @@ final class MarkdownNotesController extends AbstractController
         private readonly MarkdownNoteImporter $importer,
         private readonly UploadPolicyProvider $uploadPolicies,
         private readonly NoteSpaceAccess $spaceAccess,
+        private readonly NoteFavorites $favorites,
     ) {}
 
     /**
@@ -479,7 +481,10 @@ final class MarkdownNotesController extends AbstractController
         // L'extrait voyage avec la note enregistrée : la carte de la
         // bibliothèque suit le texte sans attendre un rechargement.
         $excerpt = $this->repository->excerptOf((string) $note->getContent());
-        $serializer = '' !== $excerpt ? $this->serializer->withExcerpts([(int) $note->getId() => $excerpt]) : $this->serializer;
+        $serializer = $this->serializer->withFavorites($this->favorites->mapFor($user)['notes']);
+        if ('' !== $excerpt) {
+            $serializer = $serializer->withExcerpts([(int) $note->getId() => $excerpt]);
+        }
 
         return $this->jsonSuccess(['note' => $serializer->serializeDetail($note)]);
     }
@@ -533,22 +538,26 @@ final class MarkdownNotesController extends AbstractController
 
         $this->manager->move($note, $folder, $space);
 
-        return $this->jsonSuccess(['note' => $this->serializer->serializeListItem($note)]);
+        return $this->jsonSuccess(['note' => $this->serializer->withFavorites($this->favorites->mapFor($user)['notes'])->serializeListItem($note)]);
     }
 
-    /** Épingler une note au menu, ou l'en décrocher. */
+    /**
+     * Ajouter une note à ses favoris, ou l'en retirer.
+     *
+     * Lire suffit : les favoris sont à la personne, pas à la note.
+     */
     #[Route('/{id}/favorite', name: '_favorite', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Post->value])]
     public function favorite(int $id): JsonResponse
     {
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        $note = $this->spaceAccess->writableNote($user, $id);
+        $note = $this->spaceAccess->readableNote($user, $id);
         if (!$note instanceof MarkdownNoteInterface) {
             return $this->jsonNotFound();
         }
 
-        return $this->jsonSuccess(['favorite' => $this->manager->toggleFavorite($note)]);
+        return $this->jsonSuccess(['favorite' => $this->favorites->toggle($user, $note)]);
     }
 
     /**
@@ -565,32 +574,12 @@ final class MarkdownNotesController extends AbstractController
         $user = $this->getUser();
 
         $partage = $scope->sharedWith($user);
+        $pinned = $this->favorites->mapFor($user);
 
         return $this->jsonSuccess([
-            'folders' => array_map($folderSerializer->serialize(...), $partage['folders']),
-            'notes' => array_map($this->serializer->serializeListItem(...), $partage['notes']),
+            'folders' => array_map($folderSerializer->withFavorites($pinned['folders'])->serialize(...), $partage['folders']),
+            'notes' => array_map($this->serializer->withFavorites($pinned['notes'])->serializeListItem(...), $partage['notes']),
         ]);
-    }
-
-    /**
-     * Ouvre ou referme cette note au reste du back-office.
-     *
-     * Pour une note seule : celles d'un dossier partagé le sont déjà par
-     * lui. Et seul son propriétaire décide, la recherche par utilisateur
-     * s'en charge.
-     */
-    #[Route('/{id}/share-internally', name: '_share_internally', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Post->value])]
-    public function shareInternally(int $id): JsonResponse
-    {
-        /** @var CoreUserInterface $user */
-        $user = $this->getUser();
-
-        $note = $this->repository->findOneByUserAndId($user, $id);
-        if (!$note instanceof MarkdownNoteInterface) {
-            return $this->jsonNotFound();
-        }
-
-        return $this->jsonSuccess(['shared' => $this->manager->toggleShared($note)]);
     }
 
     #[Route('/{id}/backlinks', name: '_backlinks', methods: [HttpMethodEnum::Get->value])]

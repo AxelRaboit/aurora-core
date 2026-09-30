@@ -955,9 +955,9 @@ describe("the library", () => {
     });
 
     /**
-     * Une fois le partage possible, « qu'est-ce qui est sorti de chez
-     * moi » devient une vraie question. Y répondre en parcourant les
-     * cartes une par une serait absurde.
+     * « Qu'est-ce qui est sorti de chez moi » : ce qui vit dans un autre
+     * espace que le sien. Y répondre en parcourant les cartes une par une
+     * serait absurde.
      */
     describe("le filtre de visibilité", () => {
         /**
@@ -978,10 +978,17 @@ describe("the library", () => {
 
         it("cycles through everything, shared, then private", async () => {
             const wrapper = render({
-                folders: [
-                    { ...FOLDERS[0], sharedAt: "2026-09-23T10:00:00+00:00" },
+                personalSpaceId: 1,
+                folders: [{ ...FOLDERS[0], spaceId: 7 }],
+                notes: [
+                    {
+                        id: 21,
+                        folderId: null,
+                        title: "Privée",
+                        tags: [],
+                        spaceId: 1,
+                    },
                 ],
-                notes: [{ id: 21, folderId: null, title: "Privée", tags: [] }],
             });
 
             expect(wrapper.text()).toContain("Clients");
@@ -1010,9 +1017,8 @@ describe("the library", () => {
 
         it("marks what is shared, without opening a menu", () => {
             const wrapper = render({
-                folders: [
-                    { ...FOLDERS[0], sharedAt: "2026-09-23T10:00:00+00:00" },
-                ],
+                personalSpaceId: 1,
+                folders: [{ ...FOLDERS[0], spaceId: 7 }],
                 notes: [],
             });
 

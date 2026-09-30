@@ -19,7 +19,7 @@
  */
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { ChevronRight, ChevronDown, FileText, Folder, FolderOpen, Pencil, Plus, Trash2, Users } from 'lucide-vue-next';
+import { ChevronRight, ChevronDown, FileText, Folder, FolderOpen, Pencil, Plus, Star, StarOff, Trash2 } from 'lucide-vue-next';
 import AppIconButton from '@shared/components/action/AppIconButton.vue';
 import AppRowActions from '@shared/components/action/AppRowActions.vue';
 
@@ -54,6 +54,7 @@ const emit = defineEmits([
     'toggle',
     'add',
     'rename',
+    'favorite',
     'delete',
     'drag-start',
     'drag-end',
@@ -89,6 +90,13 @@ const rowActions = computed(() => [
         title: isFolder.value ? t('notes.markdown.folders.rename') : t('notes.markdown.rename'),
         icon: Pencil,
         onSelect: () => emit('rename', props.node),
+    },
+    {
+        // Les favoris sont à soi : on épingle ce qu'on lit, là où on le voit.
+        key: 'favorite',
+        title: props.node.favoritedAt ? t('notes.markdown.library.unpin') : t('notes.markdown.library.pin'),
+        icon: props.node.favoritedAt ? StarOff : Star,
+        onSelect: () => emit('favorite', props.node),
     },
     {
         key: 'delete',
@@ -162,22 +170,6 @@ function onDoubleClick(event) {
 
     emit('rename', props.node);
 }
-
-/**
- * Qui voit cette ligne, dit sur la ligne.
- *
- * Partager un dossier ouvre tout ce qu'il contient, à n'importe quelle
- * profondeur, et rien dans l'arbre ne le montrait : on rangeait une note
- * privée dans un dossier partagé sans savoir qu'on venait de la publier à
- * toute l'équipe. La marque pleine dit « partagé ici », la marque pâle
- * « visible parce qu'un dossier au-dessus l'est ».
- */
-const teamTitle = computed(() => {
-    if ('direct' === props.node.team) return t('notes.markdown.library.shared.badge');
-    if ('inherited' === props.node.team) return t('notes.markdown.team_inherited');
-
-    return null;
-});
 
 // Indent applied to the row itself so its right edge stays flush with
 // the sidebar (same convention as TermNode / media folder rows).
@@ -262,22 +254,6 @@ const indentStyle = computed(() => ({ marginLeft: `${props.depth * 0.875}rem` })
 
                 <span class="flex-1 truncate min-w-0">{{ displayLabel }}</span>
 
-                <span
-                    v-if="teamTitle"
-                    data-team-mark
-                    :data-team="node.team"
-                    class="inline-flex shrink-0"
-                    :title="teamTitle"
-                    role="img"
-                    :aria-label="teamTitle"
-                >
-                    <Users
-                        class="h-3.5 w-3.5"
-                        :class="'direct' === node.team ? 'text-accent-400' : 'text-muted opacity-60'"
-                        :stroke-width="2"
-                    />
-                </span>
-
                 <!-- Ce qu'un dossier contient, dit une fois, et seulement
                      quand il est replié : déplié, la réponse est sous les
                      yeux, et le nombre ne fait plus que du bruit. -->
@@ -343,6 +319,7 @@ const indentStyle = computed(() => ({ marginLeft: `${props.depth * 0.875}rem` })
                 v-on:toggle="(n) => emit('toggle', n)"
                 v-on:add="(n) => emit('add', n)"
                 v-on:rename="(n) => emit('rename', n)"
+                v-on:favorite="(n) => emit('favorite', n)"
                 v-on:delete="(n) => emit('delete', n)"
                 v-on:drag-start="(n, e) => emit('drag-start', n, e)"
                 v-on:drag-end="(e) => emit('drag-end', e)"

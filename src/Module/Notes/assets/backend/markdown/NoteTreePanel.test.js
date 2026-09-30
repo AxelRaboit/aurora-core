@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
 import { createTestI18n } from "@/tests/helpers/createTestI18n.js";
 import { onPanelRequest, tellPanels } from "@/shared/nav/modulePanelBridge.js";
+import NoteTreeItem from "./components/NoteTreeItem.vue";
 
 window.__isAdmin__ = true;
 
@@ -337,6 +338,34 @@ describe("the folders panel", () => {
         await plus.trigger("click");
 
         expect(handler).toHaveBeenCalledWith({ args: [null] });
+    });
+
+    /**
+     * Le cas d'Axel : il ne trouvait pas où mettre en favori. La ligne le
+     * propose, et c'est la page qui le fait pour que tout suive.
+     */
+    it("asks the page to toggle a favourite from a row", async () => {
+        const handler = vi.fn();
+        stops.push(onPanelRequest("notes:favorite", handler));
+
+        const wrapper = await render("/backend/notes/markdown", {
+            expanded: [1],
+        });
+        const row = wrapper
+            .findAllComponents(NoteTreeItem)
+            .find((item) => "note:11" === item.props("node").key);
+        const action = row.vm.$.setupState.rowActions.find(
+            (one) => "favorite" === one.key,
+        );
+
+        expect(action.title).toBe("notes.markdown.library.pin");
+
+        action.onSelect();
+        await flushPromises();
+
+        expect(handler).toHaveBeenCalledWith({
+            args: [{ kind: "note", id: 11 }],
+        });
     });
 
     /** Le cas d'Axel : le plus d'un dossier ne savait créer qu'une note. */
@@ -776,52 +805,7 @@ describe("passer en lecture", () => {
     });
 });
 
-describe("qui voit quoi, dans l'arbre", () => {
-    /**
-     * Partager un dossier ouvre tout ce qu'il contient, à n'importe quelle
-     * profondeur : l'arbre le dit maintenant, plein sur ce qui est partagé,
-     * pâle sur ce qui l'est par un dossier au-dessus.
-     */
-    it("marks what the team can read, directly or through a folder above", async () => {
-        answerWith({
-            folders: FOLDERS.map((f) =>
-                1 === f.id
-                    ? { ...f, sharedAt: "2026-09-30T08:00:00+00:00" }
-                    : f,
-            ),
-            notes: [
-                ...NOTES,
-                {
-                    id: 13,
-                    title: "Seule",
-                    folderId: 3,
-                    tags: [],
-                    sharedAt: "2026-09-30T08:00:00+00:00",
-                },
-            ],
-        });
-
-        const wrapper = await render("/backend/notes/markdown", {
-            expanded: [1, 3],
-        });
-        const mark = (selector) =>
-            wrapper.find(selector).find("[data-team-mark]");
-
-        expect(mark('[data-folder-row="1"]').attributes("data-team")).toBe(
-            "direct",
-        );
-        expect(mark('[data-folder-row="2"]').attributes("data-team")).toBe(
-            "inherited",
-        );
-        expect(mark('[data-note-row="11"]').attributes("data-team")).toBe(
-            "inherited",
-        );
-        expect(mark('[data-note-row="13"]').attributes("data-team")).toBe(
-            "direct",
-        );
-        expect(mark('[data-note-row="12"]').exists()).toBe(false);
-    });
-
+describe("ce que les autres partagent, dans l'arbre", () => {
     /**
      * Les notes d'un sous-dossier partagé sont lisibles, et n'apparaissaient
      * nulle part : le panneau ne montrait que celles de la racine.

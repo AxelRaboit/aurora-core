@@ -73,22 +73,6 @@ abstract class AbstractNoteFolder implements NoteFolderInterface
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     protected NoteSpaceInterface $space;
 
-    /** Quand le dossier a été épinglé, jamais s'il ne l'est pas. */
-    #[ORM\Column(nullable: true)]
-    protected ?DateTimeImmutable $favoritedAt = null;
-
-    /**
-     * Depuis quand ce dossier, et tout ce qu'il contient, est lisible par
-     * les autres.
-     *
-     * **Le partage se pose sur le dossier**, et ce qu'il range suit. Poser
-     * la question note par note devient ingérable au bout de trente notes :
-     * plus personne ne sait qui voit quoi. Un dossier est un endroit, et un
-     * endroit se partage.
-     */
-    #[ORM\Column(nullable: true)]
-    protected ?DateTimeImmutable $sharedAt = null;
-
     /** When the folder was moved to the trash. */
     #[ORM\Column(nullable: true)]
     protected ?DateTimeImmutable $deletedAt = null;
@@ -171,30 +155,6 @@ abstract class AbstractNoteFolder implements NoteFolderInterface
     public function setPosition(int $position): static
     {
         $this->position = $position;
-
-        return $this;
-    }
-
-    public function getSharedAt(): ?DateTimeImmutable
-    {
-        return $this->sharedAt;
-    }
-
-    public function setSharedAt(?DateTimeImmutable $sharedAt): static
-    {
-        $this->sharedAt = $sharedAt;
-
-        return $this;
-    }
-
-    public function getFavoritedAt(): ?DateTimeImmutable
-    {
-        return $this->favoritedAt;
-    }
-
-    public function setFavoritedAt(?DateTimeImmutable $favoritedAt): static
-    {
-        $this->favoritedAt = $favoritedAt;
 
         return $this;
     }

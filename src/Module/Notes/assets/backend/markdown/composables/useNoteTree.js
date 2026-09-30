@@ -50,12 +50,11 @@ export function useNoteTree(
                 key: `note:${note.id}`,
                 children: [],
                 matched: true,
-                team: note.sharedAt ? "direct" : null,
             });
         }
 
         const folders = buildHierarchicalTree(foldersRef.value).map((node) =>
-            decorate(node, notesByFolder, false),
+            decorate(node, notesByFolder),
         );
 
         // Les notes de la racine ferment la liste : elles sont à côté des
@@ -66,23 +65,9 @@ export function useNoteTree(
         tree.value = "" === query ? full : filterTree(full, query, contentIds);
     });
 
-    /**
-     * `team` dit qui voit la ligne : `direct` quand elle est partagée
-     * elle-même, `inherited` quand un dossier au-dessus l'est - la règle de
-     * lecture du serveur, qui remonte tous les parents.
-     */
-    function decorate(node, notesByFolder, insideShared) {
-        const shared = Boolean(node.sharedAt);
-        const visible = shared || insideShared;
-
+    function decorate(node, notesByFolder) {
         const children = (node.children ?? []).map((child) =>
-            decorate(child, notesByFolder, visible),
-        );
-
-        const notes = (notesByFolder.get(Number(node.id)) ?? []).map((note) =>
-            "direct" === note.team || !visible
-                ? note
-                : { ...note, team: "inherited" },
+            decorate(child, notesByFolder),
         );
 
         return {
@@ -90,8 +75,10 @@ export function useNoteTree(
             kind: "folder",
             key: `folder:${node.id}`,
             matched: true,
-            team: shared ? "direct" : insideShared ? "inherited" : null,
-            children: [...children, ...notes],
+            children: [
+                ...children,
+                ...(notesByFolder.get(Number(node.id)) ?? []),
+            ],
         };
     }
 

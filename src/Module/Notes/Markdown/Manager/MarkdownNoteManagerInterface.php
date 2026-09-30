@@ -40,20 +40,6 @@ interface MarkdownNoteManagerInterface
     public function purgeTrashedBefore(DateTimeImmutable $cutoff): int;
 
     /**
-     * Pins the note to the side menu, or unpins it.
-     *
-     * @return bool whether it is pinned afterwards
-     */
-    /**
-     * Ouvre ou referme cette note seule au reste du back-office, et rend
-     * son nouvel état.
-     */
-    public function toggleShared(MarkdownNoteInterface $note): bool;
-
-    public function toggleFavorite(MarkdownNoteInterface $note): bool;
-
-    /** Files a note in a folder, or at the root with null. */
-    /**
      * Range la note dans un dossier, ou à la racine d'un espace. Le dossier
      * impose son espace ; sans dossier, `$space` dit quelle racine.
      */
