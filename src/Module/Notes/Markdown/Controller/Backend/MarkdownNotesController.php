@@ -298,12 +298,23 @@ final class MarkdownNotesController extends AbstractController
      * dans le vide.
      */
     #[Route('/export', name: '_export', methods: [HttpMethodEnum::Get->value])]
-    public function export(): Response
+    public function export(Request $request): Response
     {
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        $path = $this->archive->zipFor($user);
+        // `spaceId` n'emporte que cet espace, s'il est lisible.
+        $space = null;
+        $spaceId = $request->query->get('spaceId');
+        if (is_numeric($spaceId)) {
+            $space = $this->spaceAccess->readableSpace($user, (int) $spaceId);
+
+            if (!$space instanceof NoteSpaceInterface) {
+                throw $this->createNotFoundException();
+            }
+        }
+
+        $path = $this->archive->zipFor($user, $space);
 
         return $this->file($path, sprintf('notes-%s.zip', date('Y-m-d')))->deleteFileAfterSend(true);
     }
@@ -377,6 +388,17 @@ final class MarkdownNotesController extends AbstractController
             }
         }
 
+        // Sans dossier, la racine d'un espace où l'on écrit ; la sienne à défaut.
+        $space = null;
+        $spaceId = $request->request->get('spaceId');
+        if (!$folder instanceof NoteFolderInterface && is_numeric($spaceId)) {
+            $space = $this->spaceAccess->writableSpace($user, (int) $spaceId);
+
+            if (!$space instanceof NoteSpaceInterface) {
+                return $this->jsonNotFound();
+            }
+        }
+
         $created = 0;
 
         foreach ($files as $file) {
@@ -390,7 +412,7 @@ final class MarkdownNotesController extends AbstractController
                 }]);
             }
 
-            $created += $this->importer->import($user, $file, $folder);
+            $created += $this->importer->import($user, $file, $folder, $space);
         }
 
         return $this->jsonSuccess(['created' => $created]);

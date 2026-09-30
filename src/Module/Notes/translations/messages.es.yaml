@@ -99,6 +99,8 @@ notes:
                 expires: 'Este enlace caduca el %date%.'
                 read_only: 'Puede leer esta nota, pero no editarla.'
         spaces:
+            import_here: 'Importar en este espacio'
+            export: 'Exportar este espacio'
             publication:
                 title: 'Publicación en la web'
                 hint: 'El espacio se puede leer entonces sin cuenta, en su dirección. No se puede escribir en él.'

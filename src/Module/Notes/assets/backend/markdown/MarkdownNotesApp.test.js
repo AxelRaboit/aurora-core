@@ -752,3 +752,33 @@ describe("ce que le panneau demande depuis l'éditeur", () => {
         expect(crumbs).toEqual(["Clients"]);
     });
 });
+
+describe("emporter un espace seul", () => {
+    /** L'en-tête d'un espace exporte cet espace, et lui seul. */
+    it("exports the space the panel asks for", async () => {
+        const assign = vi.fn();
+        const original = window.location;
+        Object.defineProperty(window, "location", {
+            configurable: true,
+            value: { ...original, assign },
+        });
+
+        render();
+        await flushPromises();
+
+        askPage("notes:export", { args: [5] });
+        await flushPromises();
+        askPage("notes:export", { args: [] });
+        await flushPromises();
+
+        expect(assign.mock.calls.map((call) => call[0])).toEqual([
+            "/notes/exportPath?spaceId=5",
+            "/notes/exportPath",
+        ]);
+
+        Object.defineProperty(window, "location", {
+            configurable: true,
+            value: original,
+        });
+    });
+});

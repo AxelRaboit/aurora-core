@@ -100,6 +100,8 @@ notes:
         expires: 'Ce lien expire le %date%.'
         read_only: Vous pouvez lire cette note, pas la modifier.
     spaces:
+      import_here: 'Importer dans cet espace'
+      export: 'Exporter cet espace'
       publication:
         title: 'Publication sur le web'
         hint: 'L''espace se lit alors sans compte, à son adresse. Rien ne s''y écrit.'

@@ -30,6 +30,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { BookOpen, ChevronDown, ChevronRight, ChevronsDownUp, Download, FileText, Folder, Globe, Pin, PinOff, Plus, Settings2, Tag, Upload, User, Users } from "lucide-vue-next";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
+import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppModulePanel from "@/shared/nav/AppModulePanel.vue";
 import { useDebounce } from "@/shared/composables/useDebounce.js";
@@ -383,6 +384,26 @@ function toggleSpace(space) {
 /** La racine d'un espace, comme cible d'un dépôt. */
 function spaceRoot(space) {
     return { kind: "folder", id: null, key: `space:${space.id}`, spaceId: Number(space.id) };
+}
+
+/** Ce que le menu d'un en-tête d'espace propose. */
+function spaceActions(space) {
+    return [
+        ...(space.canWrite
+            ? [{
+                key: "import",
+                title: t("notes.markdown.spaces.import_here"),
+                icon: Upload,
+                onSelect: () => forward("import", Number(space.id)),
+            }]
+            : []),
+        {
+            key: "export",
+            title: t("notes.markdown.spaces.export"),
+            icon: Download,
+            onSelect: () => forward("export", Number(space.id)),
+        },
+    ];
 }
 
 function addInSpace(space) {
@@ -1020,6 +1041,15 @@ onUnmounted(() => {
                     >
                         <Settings2 class="h-3.5 w-3.5" :stroke-width="2" />
                     </AppIconButton>
+                    <!-- Emporter un espace seul, ou y verser des fichiers : les
+                         deux gestes de la barre du panneau, bornés à lui. -->
+                    <AppRowActions
+                        class="shrink-0 sm:opacity-0 sm:group-hover/space:opacity-100"
+                        size="sm"
+                        :data-space-menu="group.space.id"
+                        :actions="spaceActions(group.space)"
+                        :label="spaceLabel(group.space, t)"
+                    />
                 </div>
 
                 <template v-if="!showSpaceHeaders || isSpaceOpen(group.space)">

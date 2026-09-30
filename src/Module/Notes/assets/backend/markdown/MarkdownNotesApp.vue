@@ -545,8 +545,11 @@ function backToLibrary() {
  * un fichier et le ranger, et passer par `fetch` obligerait à garder un zip
  * entier en mémoire pour le redonner à un lien fabriqué.
  */
-function exportAll() {
-    window.location.assign(props.exportPath);
+function exportAll(spaceId = null) {
+    // Un espace seul quand le panneau le demande depuis son en-tête.
+    const url = null == spaceId ? props.exportPath : `${props.exportPath}?spaceId=${encodeURIComponent(String(spaceId))}`;
+
+    window.location.assign(url);
 }
 
 function exportOne(id) {
@@ -555,7 +558,11 @@ function exportOne(id) {
 
 const importInput = ref(null);
 
-function askForFiles() {
+/** La racine d'espace où importer, quand l'import part de son en-tête. */
+const importSpaceId = ref(null);
+
+function askForFiles(spaceId = null) {
+    importSpaceId.value = null == spaceId ? null : Number(spaceId);
     importInput.value?.click();
 }
 
@@ -570,8 +577,11 @@ async function onImportFiles(event) {
     const form = new FormData();
     files.forEach((file) => form.append("files[]", file));
 
-    // Dans le dossier ouvert quand il y en a un : on importe là où on regarde.
-    if (openFolderId.value) form.append("folderId", String(openFolderId.value));
+    // À la racine de l'espace demandé ; sinon dans le dossier ouvert, là
+    // où l'on regarde.
+    if (null !== importSpaceId.value) form.append("spaceId", String(importSpaceId.value));
+    else if (openFolderId.value) form.append("folderId", String(openFolderId.value));
+    importSpaceId.value = null;
 
     const { ok, payload } = await api.import(form);
 
@@ -581,7 +591,7 @@ async function onImportFiles(event) {
         return;
     }
 
-    await refreshList();
+    await Promise.all([refreshList(), refreshFolders()]);
     toast.success(t("notes.markdown.import.done", { count: payload.created ?? 0 }));
 }
 
@@ -746,8 +756,8 @@ const PANEL_INTENTS = {
         settingsSpaceId.value = Number(id);
     },
     favorite: ({ kind, id }) => toggleFavorite(kind, id),
-    export: () => exportAll(),
-    import: () => askForFiles(),
+    export: (spaceId) => exportAll(spaceId ?? null),
+    import: (spaceId) => askForFiles(spaceId ?? null),
     create: (folderId) => createNote(folderId ?? null),
     delete: (note) => requestDelete(note),
     'open-folder': async (id) => {

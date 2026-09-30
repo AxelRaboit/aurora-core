@@ -6,6 +6,7 @@ namespace Aurora\Tests\Integration\Module\Notes;
 
 use Aurora\Module\Notes\Folder\Entity\NoteFolder;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNote;
+use Aurora\Module\Notes\Markdown\Service\MarkdownNoteArchive;
 use Aurora\Module\Notes\Share\Entity\MarkdownNoteShareLink;
 use Aurora\Module\Notes\Share\Service\SharedNoteScope;
 use Aurora\Module\Notes\Space\Entity\NoteSpace;
@@ -22,6 +23,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use ZipArchive;
 
 use function array_column;
 use function array_map;
@@ -332,6 +334,55 @@ final class NoteSpacesTest extends IntegrationTestCase
         $this->client->restart();
         $this->client->request('GET', $this->urlGenerator->generate('notes_share_image', ['token' => $link->getToken(), 'filename' => $filename]));
         self::assertResponseIsSuccessful();
+    }
+
+    /**
+     * Un espace s'emporte seul, à la racine de l'archive, et une archive se
+     * verse à la racine d'un espace où l'on écrit - jamais d'un autre.
+     */
+    public function testASpaceIsExportedAndImportedOnItsOwn(): void
+    {
+        $space = $this->space(NoteSpaceAccessEnum::Members);
+        $folder = $this->folder($this->owner, 'Guides', $space);
+        $this->note($this->owner, 'Accueil', $space, $folder);
+        $this->note($this->owner, 'Journal', $this->personalSpaceOf($this->owner));
+
+        $this->client->loginUser($this->outsider, 'admin');
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_export', ['spaceId' => $space->getId()]));
+        self::assertResponseStatusCodeSame(404);
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_export', ['spaceId' => $space->getId()]));
+        self::assertResponseIsSuccessful();
+
+        $path = static::getContainer()->get(MarkdownNoteArchive::class)->zipFor($this->managed($this->owner), $this->managed($space));
+        $archive = new ZipArchive();
+        self::assertTrue($archive->open($path));
+        $entries = [];
+        for ($i = 0; $i < $archive->numFiles; ++$i) {
+            $entries[] = (string) $archive->getNameIndex($i);
+        }
+        $archive->close();
+
+        self::assertContains('Guides/Accueil.md', $entries, 'à la racine, sans le dossier de l\'espace');
+        self::assertNotContains('Journal.md', $entries, 'rien de son carnet personnel');
+
+        $target = $this->space(NoteSpaceAccessEnum::Members);
+
+        // Un lecteur ne verse rien dans l'espace.
+        $this->client->loginUser($this->reader, 'admin');
+        $this->client->request('POST', $this->urlGenerator->generate('backend_notes_markdown_import'), ['spaceId' => (string) $target->getId()], ['files' => [new UploadedFile($path, 'espace.zip', 'application/zip', null, true)]]);
+        self::assertResponseStatusCodeSame(404);
+
+        $this->client->loginUser($this->editor, 'admin');
+        $this->client->request('POST', $this->urlGenerator->generate('backend_notes_markdown_import'), ['spaceId' => (string) $target->getId()], ['files' => [new UploadedFile($path, 'espace.zip', 'application/zip', null, true)]]);
+        self::assertResponseIsSuccessful();
+
+        $this->entityManager->clear();
+        $imported = $this->entityManager->getRepository(MarkdownNote::class)->findBy(['space' => $target->getId()]);
+        self::assertSame(['Accueil'], array_map(static fn (MarkdownNote $one): string => (string) $one->getTitle(), $imported));
+        self::assertSame('Guides', $imported[0]->getFolder()?->getName());
+        self::assertSame($target->getId(), $imported[0]->getFolder()?->getSpace()->getId());
     }
 
     /** Un lien public ne suit jamais un wiki-lien hors de son espace. */

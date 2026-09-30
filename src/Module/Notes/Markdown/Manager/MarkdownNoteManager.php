@@ -80,11 +80,12 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
 
         foreach ($inputs as $input) {
             $folderId = $input->getFolderId();
-            $key = $folderId ?? 'root';
+            // Une racine par espace : sans dossier, `spaceId` dit laquelle.
+            $key = $folderId ?? 'root:'.($input->getSpaceId() ?? 'personal');
 
             if (!array_key_exists($key, $folders)) {
                 $folders[$key] = null === $folderId ? null : $this->folderRepository->findOneByUserAndId($user, $folderId);
-                $spaces[$key] = $folders[$key]?->getSpace() ?? $this->spaceAccess->personalSpace($user);
+                $spaces[$key] = $folders[$key]?->getSpace() ?? $this->targetSpace($user, null, $input->getSpaceId());
                 $max = $this->noteRepository->findMaxPositionForUserAndFolder($spaces[$key], $folders[$key]?->getId());
                 $nextPosition[$key] = null === $max ? 0 : $max + 1;
             }

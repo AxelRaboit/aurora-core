@@ -60,9 +60,11 @@ final readonly class MarkdownNoteArchive
      * travailler que sur un fichier, et un carnet de plusieurs milliers de
      * notes n'a pas à tenir deux fois en RAM pour être téléchargé.
      *
+     * @param ?NoteSpaceInterface $only un seul espace, rangé à la racine de l'archive ; tout ce que la personne lit à défaut
+     *
      * @return string le chemin du zip, à supprimer par l'appelant
      */
-    public function zipFor(CoreUserInterface $user): string
+    public function zipFor(CoreUserInterface $user, ?NoteSpaceInterface $only = null): string
     {
         $path = (string) tempnam(sys_get_temp_dir(), 'aurora-notes-');
 
@@ -83,6 +85,10 @@ final readonly class MarkdownNoteArchive
         /** @var array<int, NoteSpaceInterface> $spaces */
         $spaces = [];
         foreach ($notes as $note) {
+            if ($only instanceof NoteSpaceInterface && $note->getSpace()->getId() !== $only->getId()) {
+                continue;
+            }
+
             $spaces[(int) $note->getSpace()->getId()] = $note->getSpace();
             $notesByFolder[$note->getFolder()?->getId() ?? -(int) $note->getSpace()->getId()][] = $note;
         }
@@ -90,6 +96,10 @@ final readonly class MarkdownNoteArchive
         /** @var array<int, list<NoteFolderInterface>> $foldersByParent */
         $foldersByParent = [];
         foreach ($this->folders->findAllForUser($user) as $folder) {
+            if ($only instanceof NoteSpaceInterface && $folder->getSpace()->getId() !== $only->getId()) {
+                continue;
+            }
+
             $spaces[(int) $folder->getSpace()->getId()] = $folder->getSpace();
             $foldersByParent[$folder->getParent()?->getId() ?? -(int) $folder->getSpace()->getId()][] = $folder;
         }
@@ -97,7 +107,7 @@ final readonly class MarkdownNoteArchive
         // Un carnet vide donnerait un zip sans entrée, que certains outils
         // refusent d'ouvrir. Une ligne suffit à le rendre valide et à dire
         // pourquoi il est vide.
-        if ([] === $notes && [] === $foldersByParent) {
+        if ([] === $notesByFolder && [] === $foldersByParent) {
             $zip->addFromString('notes.md', "# Aucune note\n");
         }
 
@@ -107,7 +117,8 @@ final readonly class MarkdownNoteArchive
 
         $seenSpaces = [];
         foreach ($spaces as $id => $space) {
-            if ($space->isPersonal()) {
+            // Un seul espace demandé : il est toute l'archive, à sa racine.
+            if ($space->isPersonal() || $only instanceof NoteSpaceInterface) {
                 $this->addBranch($zip, $notesByFolder, $foldersByParent, -$id, '', $user, $ajoutees);
 
                 continue;
