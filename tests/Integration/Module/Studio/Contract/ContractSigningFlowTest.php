@@ -309,10 +309,12 @@ final class ContractSigningFlowTest extends IntegrationTestCase
         $guest->jsonRequest('POST', $url.'/sign', $this->signPayload($this->latestCode()));
         self::assertSame(200, $guest->getResponse()->getStatusCode());
 
-        // A second code, and a second attempt at the same role.
+        // No second code: there is nothing left to sign, and a code mailed
+        // for a signed contract is mail about nothing.
         $guest->jsonRequest('POST', $url.'/code');
-        self::assertSame(200, $guest->getResponse()->getStatusCode());
+        self::assertSame(422, $guest->getResponse()->getStatusCode());
 
+        // And a second attempt with the old one is refused on the status.
         $guest->jsonRequest('POST', $url.'/sign', $this->signPayload($this->latestCode()));
 
         self::assertSame(422, $guest->getResponse()->getStatusCode());

@@ -18,7 +18,9 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Throwable;
 
+use function array_filter;
 use function hash_equals;
 
 /**
@@ -145,6 +147,10 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
             throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.already_engaged'));
         }
 
+        if (ContractStatusEnum::Cancelled === $contract->getStatus()) {
+            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.contract_closed'));
+        }
+
         $recipient = $contract->getCustomer()->getContractualEmail();
 
         if (null === $recipient || '' === $recipient) {
@@ -163,19 +169,46 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
             ->setRecipientEmail($recipient)
             ->setExpiresAt(new DateTimeImmutable(sprintf('+%d days', self::DEFAULT_LIFETIME_DAYS)));
 
-        // Any address handed out before is revoked. A resend replaces, it does
-        // not add: two live links means two answers to "is this address valid".
-        foreach ($this->links->findForContract($contract) as $previous) {
-            if (!$previous->isRevoked()) {
-                $previous->revoke(new DateTimeImmutable());
-            }
-        }
+        // Saved before the mail so the address it carries opens something,
+        // and the addresses handed out before are left alone until the mail
+        // has gone: revoked first, a mail that failed left the customer's
+        // only link dead and a new one nobody received.
+        $previousLinks = array_filter($this->links->findForContract($contract), static fn (ContractAccessLinkInterface $previous): bool => !$previous->isRevoked());
 
         $this->entityManager->persist($link);
         $this->entityManager->flush();
 
         $url = $this->urlFor($link, $token);
 
+        try {
+            $this->sendLink($link, $contract, $url, $subjectKey, $template);
+        } catch (Throwable $throwable) {
+            $this->entityManager->remove($link);
+            $this->entityManager->flush();
+
+            throw $throwable;
+        }
+
+        // A resend replaces, it does not add: two live links means two answers
+        // to "is this address valid".
+        foreach ($previousLinks as $previous) {
+            $previous->revoke(new DateTimeImmutable());
+        }
+
+        $link->markSent(new DateTimeImmutable());
+        $contract->setStatus(ContractStatusEnum::Sent);
+        // A new address is a new ask, so a refusal recorded against the old
+        // one stops being the current state. The audit trail keeps it, which
+        // is where the history of an answer belongs.
+        $contract->clearRefusal();
+
+        $this->entityManager->flush();
+
+        return $link;
+    }
+
+    protected function sendLink(ContractAccessLinkInterface $link, ContractInterface $contract, string $url, string $subjectKey, string $template): void
+    {
         $this->mail->send(
             to: $link->getRecipientEmail(),
             subjectKey: $subjectKey,
@@ -196,28 +229,54 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
             // ignores it.
             subjectParams: ['{reference}' => (string) $contract->getReference()],
         );
-
-        $link->markSent(new DateTimeImmutable());
-        $contract->setStatus(ContractStatusEnum::Sent);
-        // A new address is a new ask, so a refusal recorded against the old
-        // one stops being the current state. The audit trail keeps it, which
-        // is where the history of an answer belongs.
-        $contract->clearRefusal();
-
-        $this->entityManager->flush();
-
-        return $link;
     }
 
     public function revoke(ContractAccessLinkInterface $link): void
     {
         $link->revoke(new DateTimeImmutable());
+
+        // The contract says so too. It used to stay « Envoyé » with no link
+        // that opened it, and the dashboard counted it as waiting for a
+        // signature for ever.
+        $contract = $link->getContract();
+
+        if ($contract->getStatus()->isWaitingForCustomer()) {
+            $contract->setStatus(ContractStatusEnum::Revoked);
+        }
+
         $this->entityManager->flush();
 
         $this->auditLogger->log('studio', 'contract.link_revoked', 'Contract', $link->getContract()->getId(), [
             'reference' => $link->getContract()->getReference(),
             'selector' => $link->getSelector(),
         ]);
+    }
+
+    /**
+     * Marks as expired the contracts whose last address has run out.
+     *
+     * Run once a day. The status used to stay « Envoyé » after the thirty
+     * days, and a contract nobody could sign any more still counted as
+     * waiting for a signature.
+     *
+     * @return int how many were marked
+     */
+    public function expireLapsed(): int
+    {
+        $count = 0;
+
+        foreach ($this->links->findContractsWaitingWithoutActiveLink() as $contract) {
+            $contract->setStatus(ContractStatusEnum::Expired);
+            ++$count;
+
+            $this->auditLogger->log('studio', 'contract.expired', 'Contract', $contract->getId(), [
+                'reference' => $contract->getReference(),
+            ]);
+        }
+
+        $this->entityManager->flush();
+
+        return $count;
     }
 
     /**

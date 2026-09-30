@@ -89,8 +89,10 @@ final class PublicContractController extends AbstractController
             return $this->unavailable();
         }
 
-        $this->links->markOpened($link);
-
+        // Not marked opened here: mail scanners (Outlook's Safe Links and the
+        // like) fetch every link they see, and the contract said « Ouvert »
+        // before the customer had even read their mail. The page tells the
+        // server once it is displayed in a browser, through `openedPath`.
         $contract = $link->getContract();
 
         return $this->privately($this->render('@Studio/public/contract.html.twig', [
@@ -104,6 +106,7 @@ final class PublicContractController extends AbstractController
             'documentHtml' => $this->signedDocument->html($contract),
             'isSigned' => $contract->getStatus()->isEngaged(),
             'codePath' => $this->generateUrl('public_contract_code', ['selector' => $selector, 'token' => $token]),
+            'openedPath' => $this->generateUrl('public_contract_opened', ['selector' => $selector, 'token' => $token]),
             'signPath' => $this->generateUrl('public_contract_sign', ['selector' => $selector, 'token' => $token]),
             'refusePath' => $this->generateUrl('public_contract_refuse', ['selector' => $selector, 'token' => $token]),
             'isConcluded' => ContractStatusEnum::Countersigned === $contract->getStatus(),
@@ -121,6 +124,32 @@ final class PublicContractController extends AbstractController
      * the ten-minute window are the ones that hold, because an IP is the
      * attacker's to rotate.
      */
+    /**
+     * The page, displayed in a browser, says it has been opened.
+     *
+     * A POST sent by the page's own script, which a link scanner does not
+     * run: the GET used to mark the contract « Ouvert » as soon as a mail
+     * security filter followed the link.
+     */
+    #[Route(
+        '/{selector}/{token}/opened',
+        name: '_opened',
+        requirements: ['selector' => '[a-f0-9]{32}', 'token' => '[a-f0-9]{64}'],
+        methods: [HttpMethodEnum::Post->value],
+    )]
+    public function opened(string $selector, string $token): JsonResponse
+    {
+        $link = $this->links->resolveUsable($selector, $token);
+
+        if (!$link instanceof ContractAccessLinkInterface) {
+            throw $this->createNotFoundException();
+        }
+
+        $this->links->markOpened($link);
+
+        return $this->jsonSuccess();
+    }
+
     #[Route(
         '/{selector}/{token}/code',
         name: '_code',

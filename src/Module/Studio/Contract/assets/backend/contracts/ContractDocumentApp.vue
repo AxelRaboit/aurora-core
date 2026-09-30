@@ -1,4 +1,5 @@
 <script setup>
+import { localIsoDate } from "@/shared/utils/format/localDate.js";
 /**
  * One contract: the document that was sealed, and the seal itself.
  *
@@ -79,7 +80,7 @@ const countersignForm = ref({
     lastName: "",
     email: "",
     place: "",
-    date: new Date().toISOString().slice(0, 10),
+    date: localIsoDate(),
     signatureImage: "",
     consent: true,
     // Unused by this path: the provider is authenticated, so identity comes
@@ -163,7 +164,7 @@ const termination = ref({
     // Today for the notice, because that is when somebody records it, and
     // nothing for the effective date: the notice period is a decision, and a
     // default would quietly make it whatever this form guessed.
-    noticedAt: new Date().toISOString().slice(0, 10),
+    noticedAt: localIsoDate(),
     effectiveAt: "",
     origin: "",
     reason: "",

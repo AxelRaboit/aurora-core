@@ -150,6 +150,25 @@ class ContractRepository extends ResolveTargetEntityRepository
      * trail from it to the wording it was made from is part of what makes it
      * one.
      */
+    /**
+     * Every contract built on the template, drafts included.
+     *
+     * A template cannot be deleted while any of them exists: its versions are
+     * `SET NULL` on the contracts, so deleting it used to leave its drafts with
+     * no body and no warning.
+     */
+    public function countUsingTemplate(ContractTemplateInterface $template): int
+    {
+        return (int) $this->createQueryBuilder('c')
+            ->select('COUNT(c.id)')
+            ->leftJoin('c.bodyVersion', 'bv')
+            ->leftJoin('c.annexVersion', 'av')
+            ->andWhere('bv.template = :template OR av.template = :template')
+            ->setParameter('template', $template)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
     public function countFrozenUsingTemplate(ContractTemplateInterface $template): int
     {
         return (int) $this->createQueryBuilder('c')

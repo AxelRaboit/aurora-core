@@ -165,7 +165,7 @@ class ContractsController extends AbstractController
         }
 
         return $this->jsonSuccess([
-            'contract' => $this->serializer->serialize($contract),
+            'contract' => $this->serializer->serializeDocument($contract),
             'contracts' => $this->viewBuilder->contracts(),
             'showPath' => $this->generateUrl('backend_studio_contracts_show', ['id' => $contract->getId()]),
         ]);
@@ -189,9 +189,73 @@ class ContractsController extends AbstractController
         }
 
         return $this->jsonSuccess([
-            'contract' => $this->serializer->serialize($contract),
+            'contract' => $this->serializer->serializeDocument($contract),
             'contracts' => $this->viewBuilder->contracts(),
             'sentTo' => $link->getRecipientEmail(),
+        ]);
+    }
+
+    /**
+     * Chases the customer by hand, with a new address as the scheduled
+     * reminder does. Only while the contract is out with them: before, it is
+     * a first send; after, there is nothing left to ask.
+     */
+    #[Route('/{id}/remind', name: '_remind', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.contracts.send')]
+    public function remind(Contract $contract): JsonResponse
+    {
+        if (!$contract->getStatus()->isWaitingForCustomer()) {
+            return $this->jsonInvalidInput(['status' => $this->translator->trans('backend.studio.contracts.errors.nothing_to_remind')]);
+        }
+
+        try {
+            $link = $this->accessLinks->remind($contract);
+        } catch (FieldException $fieldException) {
+            return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
+        }
+
+        return $this->jsonSuccess([
+            'contract' => $this->serializer->serializeDocument($contract),
+            'contracts' => $this->viewBuilder->contracts(),
+            'sentTo' => $link->getRecipientEmail(),
+        ]);
+    }
+
+    /**
+     * Withdraws a sealed contract nobody has signed. Under `edit`: nothing is
+     * destroyed, the document and its reference stay, marked « Annulé ».
+     */
+    #[Route('/{id}/cancel', name: '_cancel', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.contracts.edit')]
+    public function cancel(Contract $contract): JsonResponse
+    {
+        try {
+            $this->contractManager->cancel($contract);
+        } catch (FieldException $fieldException) {
+            return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
+        }
+
+        return $this->jsonSuccess([
+            'contract' => $this->serializer->serializeDocument($contract),
+            'contracts' => $this->viewBuilder->contracts(),
+        ]);
+    }
+
+    /** A new draft with the same choices, to correct and seal again. */
+    #[Route('/{id}/duplicate', name: '_duplicate', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.contracts.create')]
+    public function duplicate(Contract $contract): JsonResponse
+    {
+        try {
+            $copy = $this->contractManager->duplicate($contract);
+        } catch (FieldException $fieldException) {
+            return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
+        }
+
+        return $this->jsonSuccess([
+            'contract' => $this->serializer->serializeDocument($copy),
+            'contracts' => $this->viewBuilder->contracts(),
+            'showPath' => $this->generateUrl('backend_studio_contracts_show', ['id' => $copy->getId()]),
         ]);
     }
 
@@ -247,7 +311,7 @@ class ContractsController extends AbstractController
         $this->accessLinks->revoke($link);
 
         return $this->jsonSuccess([
-            'contract' => $this->serializer->serialize($contract),
+            'contract' => $this->serializer->serializeDocument($contract),
             'contracts' => $this->viewBuilder->contracts(),
         ]);
     }

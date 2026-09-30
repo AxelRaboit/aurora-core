@@ -59,6 +59,13 @@ class ContractSignatureChallengeManager implements ContractSignatureChallengeMan
 
     public function issue(ContractAccessLinkInterface $link): ContractSignatureChallengeInterface
     {
+        // Only while there is something to sign: the form is hidden once the
+        // customer has answered, and a code mailed for a concluded, refused or
+        // cancelled contract is mail about nothing.
+        if (!$link->getContract()->getStatus()->isWaitingForCustomer()) {
+            throw new FieldException('code', $this->translator->trans('backend.studio.contracts.errors.contract_closed', [], null, $link->getContract()->getLocale()));
+        }
+
         $issued = $this->challenges->countIssuedSince($link, new DateTimeImmutable('-1 hour'));
 
         if ($issued >= self::MAX_ISSUED_PER_HOUR) {

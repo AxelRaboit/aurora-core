@@ -167,12 +167,16 @@ class ContractSignatureManager implements ContractSignatureManagerInterface
      */
     protected function assertSignable(ContractInterface $contract, ContractSignatureRoleEnum $role): void
     {
+        // The customer reads these on the signing page, in the contract's
+        // language; they used to come in the back office's.
+        $locale = ContractSignatureRoleEnum::Customer === $role ? $contract->getLocale() : null;
+
         if (!$contract->isFrozen()) {
-            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.seal_before_signing'));
+            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.seal_before_signing', [], null, $locale));
         }
 
         if (ContractStatusEnum::Countersigned === $contract->getStatus()) {
-            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.already_concluded'));
+            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.already_concluded', [], null, $locale));
         }
 
         // Checked at the moment it matters: a signature binds whoever gives it
@@ -180,19 +184,24 @@ class ContractSignatureManager implements ContractSignatureManagerInterface
         // It was checked nowhere, and an altered document would have been
         // signed, then printed.
         if (!$this->seal->verify($contract)) {
-            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.seal_broken'));
+            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.seal_broken', [], null, $locale));
         }
 
-        foreach ([ContractStatusEnum::Refused, ContractStatusEnum::Expired, ContractStatusEnum::Revoked] as $closed) {
+        foreach ([ContractStatusEnum::Refused, ContractStatusEnum::Expired, ContractStatusEnum::Revoked, ContractStatusEnum::Cancelled] as $closed) {
             if ($closed === $contract->getStatus()) {
-                throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.contract_closed'));
+                throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.contract_closed', [], null, $locale));
             }
+        }
+
+        // An amendment binds nothing once the contract it modifies has ended.
+        if ($contract->getAmends()?->isTerminationEffective() ?? false) {
+            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.amends_terminated', [], null, $locale));
         }
 
         if ($this->signatures->findOneForRole($contract, $role) instanceof ContractSignatureInterface) {
             // The unique index says the same thing, as a driver exception. This
             // says it as a sentence.
-            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.role_already_signed'));
+            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.role_already_signed', [], null, $locale));
         }
     }
 
@@ -301,7 +310,9 @@ class ContractSignatureManager implements ContractSignatureManagerInterface
         $this->mail->sendToAdmin(
             subjectKey: 'studio.email.concluded.subject',
             template: '@Studio/email/concluded.html.twig',
-            context: ['contract' => $contract],
+            // The provider's copy links to the back office; the customer's
+            // has no back office to link to.
+            context: ['contract' => $contract, 'forProvider' => true],
             subjectParams: ['{reference}' => (string) $contract->getReference()],
         );
     }

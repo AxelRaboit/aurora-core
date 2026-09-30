@@ -1,4 +1,5 @@
 <script setup>
+import { localIsoDate } from "@/shared/utils/format/localDate.js";
 /**
  * The form a customer signs with.
  *
@@ -37,6 +38,8 @@ import { Ban, Check, Mail, PenLine, X } from "lucide-vue-next";
 
 const props = defineProps({
     codePath: { type: String, required: true },
+    /** Told once the page is displayed, which a mail scanner never does. */
+    openedPath: { type: String, default: "" },
     signPath: { type: String, required: true },
     refusePath: { type: String, required: true },
     documentSelector: { type: String, default: ".contract-document" },
@@ -50,7 +53,7 @@ const form = ref({
     lastName: "",
     email: "",
     place: "",
-    date: new Date().toISOString().slice(0, 10),
+    date: localIsoDate(),
     signatureImage: "",
     consent: false,
     code: "",
@@ -74,6 +77,10 @@ const signed = ref(false);
 let observer = null;
 
 onMounted(() => {
+    if (props.openedPath) {
+        void request(props.openedPath, {}, { noGuard: true, silent: true });
+    }
+
     const article = document.querySelector(props.documentSelector);
 
     if (!article) {

@@ -17,6 +17,8 @@ use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
+use function in_array;
+
 /**
  * The other answer a contract can get.
  *
@@ -98,15 +100,21 @@ class ContractRefusalManager implements ContractRefusalManagerInterface
     protected function assertRefusable(ContractInterface $contract): void
     {
         if (!$contract->isFrozen()) {
-            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.seal_before_signing'));
+            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.seal_before_signing', [], null, $contract->getLocale()));
         }
 
         if ($contract->getStatus()->isEngaged()) {
-            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.already_engaged'));
+            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.already_engaged', [], null, $contract->getLocale()));
+        }
+
+        // Read by the customer on the signing page, so in the contract's
+        // language rather than the back office's.
+        if (in_array($contract->getStatus(), [ContractStatusEnum::Expired, ContractStatusEnum::Revoked, ContractStatusEnum::Cancelled], true)) {
+            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.contract_closed', [], null, $contract->getLocale()));
         }
 
         if (ContractStatusEnum::Refused === $contract->getStatus()) {
-            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.already_refused'));
+            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.already_refused', [], null, $contract->getLocale()));
         }
     }
 

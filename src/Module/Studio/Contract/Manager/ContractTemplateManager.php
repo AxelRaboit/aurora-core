@@ -118,9 +118,11 @@ class ContractTemplateManager implements ContractTemplateManagerInterface
      */
     public function delete(ContractTemplateInterface $template): void
     {
-        $frozen = $this->contractRepository->countFrozenUsingTemplate($template);
-        if ($frozen > 0) {
-            throw new FieldException('template', $this->translator->trans('backend.studio.contract_templates.errors.used_by_contracts', ['{count}' => (string) $frozen]));
+        // Any contract, a draft included: the drafts used to lose their body in
+        // silence. Archiving is the way to retire a template that has served.
+        $used = $this->contractRepository->countUsingTemplate($template);
+        if ($used > 0) {
+            throw new FieldException('template', $this->translator->trans('backend.studio.contract_templates.errors.used_by_contracts', ['{count}' => (string) $used]));
         }
 
         $this->auditLogger->log('studio', 'contract_template.deleted', 'ContractTemplate', $template->getId(), $this->auditPayload($template));

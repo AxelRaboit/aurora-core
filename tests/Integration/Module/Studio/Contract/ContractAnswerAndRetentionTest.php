@@ -265,6 +265,78 @@ final class ContractAnswerAndRetentionTest extends IntegrationTestCase
         }
     }
 
+    /**
+     * Revoking the only link says so on the contract. It used to stay
+     * « Envoyé » with nothing that opened it, counted as waiting for a
+     * signature for ever.
+     */
+    public function testRevokingTheLinkMarksTheContractRevoked(): void
+    {
+        $contract = $this->sentContract();
+        $link = $this->links->send($contract);
+
+        $this->links->revoke($link);
+
+        self::assertSame(ContractStatusEnum::Revoked, $contract->getStatus());
+    }
+
+    /** Thirty days on, nobody can sign it, and the contract says so. */
+    public function testALapsedContractIsMarkedExpired(): void
+    {
+        $contract = $this->sentContract();
+        $this->links->send($contract);
+        $id = $contract->getId();
+
+        $this->entityManager->getConnection()->executeStatement(
+            'UPDATE core_contract_access_links SET expires_at = :past WHERE contract_id = :id',
+            ['past' => new DateTimeImmutable('-1 day')->format('Y-m-d H:i:s'), 'id' => $id],
+        );
+        $this->entityManager->clear();
+
+        self::assertGreaterThanOrEqual(1, $this->links->expireLapsed());
+
+        $this->entityManager->clear();
+        self::assertSame(ContractStatusEnum::Expired, $this->repository->find($id)?->getStatus());
+    }
+
+    /**
+     * A contract sealed by mistake is cancelled, not deleted: its reference
+     * stays, and a draft carrying the same choices is there to correct.
+     */
+    public function testACancelledContractKeepsItsReferenceAndItsCopyIsADraft(): void
+    {
+        $contract = $this->sentContract();
+        $reference = $contract->getReference();
+
+        $this->contracts->cancel($contract);
+        $copy = $this->contracts->duplicate($contract);
+
+        self::assertSame(ContractStatusEnum::Cancelled, $contract->getStatus());
+        self::assertSame($reference, $contract->getReference());
+
+        self::assertSame(ContractStatusEnum::Draft, $copy->getStatus());
+        self::assertNull($copy->getReference());
+        self::assertSame($contract->getCustomer()->getId(), $copy->getCustomer()->getId());
+        self::assertSame($contract->getAmountCents(), $copy->getAmountCents());
+        self::assertSame($contract->getBodyVersion()?->getTemplate()->getId(), $copy->getBodyVersion()?->getTemplate()->getId());
+
+        // Nothing goes out from a cancelled contract.
+        $this->expectException(FieldException::class);
+        $this->links->send($contract);
+    }
+
+    public function testASignedContractCannotBeCancelled(): void
+    {
+        $contract = $this->sentContract();
+        $this->links->send($contract);
+        $contract->setStatus(ContractStatusEnum::SignedByCustomer);
+        $this->entityManager->flush();
+
+        $this->expectException(FieldException::class);
+
+        $this->contracts->cancel($contract);
+    }
+
     public function testAReminderIsRefusedOnceSomebodyHasSigned(): void
     {
         $contract = $this->sentContract();

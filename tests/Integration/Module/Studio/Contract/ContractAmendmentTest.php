@@ -369,19 +369,37 @@ final class ContractAmendmentTest extends IntegrationTestCase
     }
 
     /** A terminated contract has nothing left to modify. */
-    public function testATerminatedContractCannotBeAmended(): void
+    public function testAContractWhoseTerminationHasTakenEffectCannotBeAmended(): void
     {
         $contract = $this->concludedContract();
 
         $this->contracts->terminate($contract, new ContractTerminationInput(
-            noticedAt: '2026-09-30',
-            effectiveAt: '2026-10-31',
+            noticedAt: '2026-08-01',
+            effectiveAt: '2026-09-01',
             origin: ContractTerminationOriginEnum::Customer->value,
         ));
 
         $this->expectException(FieldException::class);
 
         $this->amendmentOf($contract);
+    }
+
+    /**
+     * During the notice the contract still binds, and an amendment is how its
+     * last months get changed: refused from the day notice was given, it
+     * could not be.
+     */
+    public function testAContractCanBeAmendedDuringItsNotice(): void
+    {
+        $contract = $this->concludedContract();
+
+        $this->contracts->terminate($contract, new ContractTerminationInput(
+            noticedAt: new DateTimeImmutable('today')->format('Y-m-d'),
+            effectiveAt: new DateTimeImmutable('+2 months')->format('Y-m-d'),
+            origin: ContractTerminationOriginEnum::Customer->value,
+        ));
+
+        self::assertTrue($this->amendmentOf($contract)->isAmendment());
     }
 
     /**

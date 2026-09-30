@@ -44,11 +44,15 @@ final readonly class StudioStatsProvider implements DashboardStatsProviderInterf
     /** Au-delà, la liste cesse d'être une liste qu'on lit en arrivant. */
     private const int ATTENTION_LIMIT = 8;
 
-    /** Les contrats qui attendent une signature, d'un côté ou de l'autre. */
-    private const array AWAITING_SIGNATURE = [
+    /**
+     * Les contrats partis chez le client, qui n'a pas encore répondu.
+     *
+     * Séparés de ceux qui m'attendent : un seul compteur mêlait les deux
+     * attentes, et celle qui demande un geste de ma part s'y perdait.
+     */
+    private const array WITH_CUSTOMER = [
         ContractStatusEnum::Sent,
         ContractStatusEnum::Opened,
-        ContractStatusEnum::SignedByCustomer,
     ];
 
     public function __construct(
@@ -88,17 +92,27 @@ final readonly class StudioStatsProvider implements DashboardStatsProviderInterf
                 'missed' => $sum('missed'),
                 'upcoming' => $sum('upcoming'),
                 'upcomingDays' => SpaceWorkload::HORIZON_DAYS,
-                'awaitingSignature' => $this->awaitingSignature(),
+                'awaitingSignature' => $this->countContracts(self::WITH_CUSTOMER),
+                'awaitingCountersignature' => $this->countContracts([ContractStatusEnum::SignedByCustomer]),
                 'decks' => $this->authorizationChecker->isGranted('studio.decks.view') ? $this->deckRepository->count([]) : null,
                 'attention' => $this->attention($rows, $spaces),
                 'calendarPath' => $this->urlGenerator->generate('backend_studio_calendar'),
                 'contractsPath' => $this->authorizationChecker->isGranted('studio.contracts.view') ? $this->urlGenerator->generate('backend_studio_contracts') : null,
+                // Chaque compteur ouvre la liste sur son étape, et non la
+                // liste entière.
+                'contractsWithCustomerPath' => $this->contractsPathFor('with_customer'),
+                'contractsToCountersignPath' => $this->contractsPathFor('to_countersign'),
             ],
         ];
     }
 
-    /** Null for a reader who may not look at contracts: no tile rather than a figure they cannot open. */
-    private function awaitingSignature(): ?int
+    /**
+     * Null for a reader who may not look at contracts: no tile rather than a
+     * figure they cannot open.
+     *
+     * @param list<ContractStatusEnum> $statuses
+     */
+    private function countContracts(array $statuses): ?int
     {
         if (!$this->authorizationChecker->isGranted('studio.contracts.view')) {
             return null;
@@ -106,7 +120,14 @@ final readonly class StudioStatsProvider implements DashboardStatsProviderInterf
 
         $counts = $this->contractRepository->countGroupedByStatus();
 
-        return array_sum(array_map(static fn (ContractStatusEnum $status): int => $counts[$status->value] ?? 0, self::AWAITING_SIGNATURE));
+        return array_sum(array_map(static fn (ContractStatusEnum $status): int => $counts[$status->value] ?? 0, $statuses));
+    }
+
+    private function contractsPathFor(string $step): ?string
+    {
+        return $this->authorizationChecker->isGranted('studio.contracts.view')
+            ? $this->urlGenerator->generate('backend_studio_contracts', ['step' => $step])
+            : null;
     }
 
     /**

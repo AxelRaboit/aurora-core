@@ -15,7 +15,8 @@ backend:
             changes_requested: To rework
             with_client: With the client
             upcoming: "Going out within 7 days"
-            awaiting_signature: Contracts to sign
+            awaiting_countersignature: Contracts to countersign
+            awaiting_signature: Contracts with the customer
             decks: Decks
             scope_label: Spaces counted
             scopes:
@@ -121,11 +122,14 @@ backend:
                     frozen: Contract sealed
                     link_sent: Signing link sent
                     link_revoked: Signing link revoked
+                    expired: Contract expired unsigned
+                    cancelled: Contract cancelled
+                    duplicated: Contract duplicated as a draft
                     reminder_sent: Reminder sent to the customer
                     refused: Contract refused by the customer
                     terminated: Contract terminated
                     signed_by_customer: 'Contract signed by the customer'
-                    countersigned: 'Contract countersigned and concluded'
+                    countersigned: 'Contract concluded'
                     deleted: Contract deleted
     permissions:
         names:
@@ -255,7 +259,7 @@ backend:
             export_pdf: 'Export as PDF'
             countersign: 'Countersign'
             countersign_intro: 'Your countersignature concludes the contract. The customer is notified by email.'
-            countersigned: 'Contract countersigned and concluded.'
+            countersigned: 'Contract concluded.'
             send: Send to the customer
             send_confirm: 'Send the contract to {email}?'
             send_warning: 'A secret link goes out by email. Any link sent before is revoked: there is never more than one valid address.'
@@ -308,7 +312,7 @@ backend:
                 edit_description: Edits the draft. Nothing is sealed until you ask for it.
                 freeze_description: Freezes the text, mints the reference and makes it sendable. Permanent.
                 delete_description: Deletes the draft. Nothing has been sent to the customer yet.
-                send_description: Sends the customer a single-use signing link.
+                send_description: 'Sends the customer a signing link, valid for thirty days.'
                 revoke_description: Kills the current link. Its verification codes go with it.
                 preview_description: Shows the document as the client will read it, before sealing.
                 document_description: Opens the sealed document and its proof block.
@@ -327,11 +331,12 @@ backend:
                 sealed: Sealed
                 sent: Sent
                 opened: Opened
-                signed_by_customer: Signed by the customer
-                countersigned: Countersigned
+                signed_by_customer: 'To countersign'
+                countersigned: 'Concluded'
                 refused: Refused
                 expired: Expired
                 revoked: Revoked
+                cancelled: 'Cancelled'
             errors:
                 preview_sealed: "This contract is already sealed: its stored document is the reference, and it is never re-rendered."
                 body_required: A contract needs a contract body.
@@ -348,6 +353,8 @@ backend:
                 customer_has_no_address: "This customer has no contractual address. Fill it in on their record before sending."
                 seal_before_sending: Seal the contract before sending it.
                 already_engaged: This contract is already signed. It cannot be sent again.
+                cannot_cancel: 'Only a sealed contract nobody has signed can be cancelled.'
+                nothing_to_remind: 'Only a contract that was sent and not yet signed can be chased.'
                 no_active_link: No active link to revoke.
                 seal_before_signing: 'Seal the contract before it can be signed.'
                 already_concluded: 'This contract is already signed by both parties.'
@@ -393,7 +400,7 @@ backend:
                 draft_already_open: 'A draft is already open on this template (version {number}). Finish or discard it before opening another.'
                 nothing_to_publish: This version has no wording to publish.
                 already_published: 'This version is published: its wording can no longer be changed. Open a new version.'
-                used_by_contracts: '{count} sealed contract(s) were built from this template. Deleting it would erase the link between them and the wording that was signed: archive it instead.'
+                used_by_contracts: '{count} contract(s), drafts included, are built on this template: it cannot be deleted. Archive it instead; it will no longer be offered and these contracts keep their text.'
                 governing_locale_unknown: This language is not one the application offers.
                 governing_locale_not_written: 'The governing language ({locale}) is not written in this version.'
                 governing_locale_required: 'This version is written in several languages: say which one prevails before publishing it.'
@@ -426,7 +433,7 @@ backend:
             empty: No contract templates yet.
             search_placeholder: Search a template…
             delete_confirm: 'Delete {name}?'
-            delete_warning: 'Contracts already signed keep their own copy of the wording. If one of them was built from this template, deleting is refused: archive it instead.'
+            delete_warning: 'Permanent. A template any contract is built on, even a draft, cannot be deleted: archive it instead.'
             in_force: In force
             never_published: Never published
             no_draft: No draft
@@ -450,7 +457,7 @@ backend:
                 rename_description: Changes the name and the kind, leaving the text alone.
                 archive_description: Takes it out of the pickers. Signed contracts are untouched.
                 restore_description: Puts it back in the pickers.
-                delete_description: Permanent. Signed contracts keep their own copy of the text.
+                delete_description: 'Permanent, and only for a template no contract is built on.'
             state_published: Published
             state_draft: Draft
             state_archived: Archived
@@ -1773,6 +1780,7 @@ studio:
             cta: 'Open the contract and sign it'
             replaces: 'This link replaces the one in the previous message, which no longer works.'
             expires: 'This link is valid until {date}.'
+        open_contract: 'Open the contract'
         customer_signed:
             subject: 'Contract {reference} signed by the customer'
             body: 'Contract {reference} has just been signed by {name}. It is waiting for your countersignature.'

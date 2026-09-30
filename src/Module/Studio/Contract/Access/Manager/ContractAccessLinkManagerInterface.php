@@ -25,6 +25,9 @@ interface ContractAccessLinkManagerInterface
 
     public function revoke(ContractAccessLinkInterface $link): void;
 
+    /** Marks as expired the contracts whose last address has run out; returns how many. */
+    public function expireLapsed(): int;
+
     /** The link a selector and a secret name, or null for every kind of failure. */
     public function resolveUsable(string $selector, string $token): ?ContractAccessLinkInterface;
 

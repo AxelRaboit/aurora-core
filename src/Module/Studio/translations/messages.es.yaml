@@ -15,7 +15,8 @@ backend:
             changes_requested: 'Por rehacer'
             with_client: 'Con el cliente'
             upcoming: 'Por publicar en 7 días'
-            awaiting_signature: 'Contratos por firmar'
+            awaiting_countersignature: 'Contratos por contrafirmar'
+            awaiting_signature: 'Contratos en manos del cliente'
             decks: Presentaciones
             scope_label: 'Espacios contados'
             scopes:
@@ -121,11 +122,14 @@ backend:
                     frozen: 'Contrato sellado'
                     link_sent: 'Enlace de firma enviado'
                     link_revoked: 'Enlace de firma revocado'
+                    expired: 'Contrato caducado sin firmar'
+                    cancelled: 'Contrato anulado'
+                    duplicated: 'Contrato duplicado como borrador'
                     reminder_sent: 'Recordatorio enviado al cliente'
                     refused: 'Contrato rechazado por el cliente'
                     terminated: 'Contrato rescindido'
                     signed_by_customer: 'Contrato firmado por el cliente'
-                    countersigned: 'Contrato contrafirmado y formalizado'
+                    countersigned: 'Contrato concluido'
                     deleted: 'Contrato eliminado'
     permissions:
         names:
@@ -255,7 +259,7 @@ backend:
             export_pdf: 'Exportar a PDF'
             countersign: Contrafirmar
             countersign_intro: 'Su contrafirma formaliza el contrato. Se informará al cliente por correo electrónico.'
-            countersigned: 'Contrato contrafirmado y formalizado.'
+            countersigned: 'Contrato concluido.'
             send: 'Enviar al cliente'
             send_confirm: '¿Enviar el contrato a {email}?'
             send_warning: 'Se envía un enlace secreto por correo electrónico. Cualquier enlace enviado anteriormente queda revocado: nunca hay más de una dirección válida.'
@@ -308,7 +312,7 @@ backend:
                 edit_description: 'Edita el borrador. No se sella nada hasta que se solicite.'
                 freeze_description: 'Fija el texto, asigna la referencia y deja el contrato listo para enviar. Definitivo.'
                 delete_description: 'Elimina el borrador. Todavía no se ha enviado nada al cliente.'
-                send_description: 'Envía al cliente un enlace de firma de un solo uso.'
+                send_description: 'Envía al cliente un enlace de firma, válido durante treinta días.'
                 revoke_description: 'Corta el enlace en curso. Sus códigos de verificación quedan anulados con él.'
                 preview_description: 'Muestra el documento tal como lo leerá el cliente, antes del sellado.'
                 document_description: 'Abre el documento sellado y su bloque de prueba.'
@@ -327,11 +331,12 @@ backend:
                 sealed: Sellado
                 sent: Enviado
                 opened: Abierto
-                signed_by_customer: 'Firmado por el cliente'
-                countersigned: Contrafirmado
+                signed_by_customer: 'Por contrafirmar'
+                countersigned: 'Concluido'
                 refused: Rechazado
                 expired: Caducado
                 revoked: Revocado
+                cancelled: 'Anulado'
             errors:
                 preview_sealed: 'Este contrato ya está sellado: su documento almacenado es la referencia, no se vuelve a generar.'
                 body_required: 'Un contrato necesita un cuerpo de contrato.'
@@ -348,6 +353,8 @@ backend:
                 customer_has_no_address: 'Este cliente no tiene dirección contractual. Indíquela en su ficha antes de enviar.'
                 seal_before_sending: 'Selle el contrato antes de enviarlo.'
                 already_engaged: 'Este contrato ya está firmado. Ya no se puede volver a enviar.'
+                cannot_cancel: 'Solo se puede anular un contrato sellado que nadie ha firmado.'
+                nothing_to_remind: 'Solo se puede recordar un contrato enviado y aún sin firmar.'
                 no_active_link: 'Ningún enlace activo que revocar.'
                 seal_before_signing: 'Selle el contrato antes de enviarlo a firmar.'
                 already_concluded: 'Este contrato ya está firmado por ambas partes.'
@@ -393,7 +400,7 @@ backend:
                 draft_already_open: 'Ya hay un borrador abierto en esta plantilla (versión {number}). Termínelo o descártelo antes de abrir otro.'
                 nothing_to_publish: 'Esta versión no tiene ningún texto que publicar.'
                 already_published: 'Esta versión está publicada: su texto ya no se puede modificar. Abra una nueva versión.'
-                used_by_contracts: '{count} contrato(s) sellado(s) se han elaborado a partir de esta plantilla. Eliminarla borraría el vínculo entre ellos y el texto firmado: archívela en su lugar.'
+                used_by_contracts: '{count} contrato(s), borradores incluidos, parten de esta plantilla: no puede eliminarse. Archívela; dejará de proponerse y esos contratos conservan su texto.'
                 governing_locale_unknown: 'La aplicación no admite este idioma.'
                 governing_locale_not_written: 'El idioma de referencia ({locale}) no está redactado en esta versión.'
                 governing_locale_required: 'Esta versión está redactada en varios idiomas: indique cuál es el de referencia antes de publicar.'
@@ -426,7 +433,7 @@ backend:
             empty: 'Todavía no hay ninguna plantilla de contrato.'
             search_placeholder: 'Buscar una plantilla…'
             delete_confirm: '¿Eliminar {name}?'
-            delete_warning: 'Los contratos ya firmados conservan su propia copia del texto. Si alguno procede de esta plantilla, se rechaza la eliminación: archívela en su lugar.'
+            delete_warning: 'Definitivo. Una plantilla de la que parte un contrato, aunque sea un borrador, no puede eliminarse: archívela.'
             in_force: 'En vigor'
             never_published: 'Nunca publicada'
             no_draft: 'Ningún borrador'
@@ -450,7 +457,7 @@ backend:
                 rename_description: 'Cambia el nombre y el tipo de la plantilla, sin tocar el texto.'
                 archive_description: 'La retira de las listas de selección. Los contratos ya firmados no cambian.'
                 restore_description: 'La vuelve a poner en las listas de selección.'
-                delete_description: 'Definitivo. Los contratos firmados conservan su propia copia del texto.'
+                delete_description: 'Definitivo, y solo para una plantilla de la que no parte ningún contrato.'
             state_published: Publicada
             state_draft: Borrador
             state_archived: Archivada
@@ -1741,6 +1748,7 @@ studio:
             cta: 'Abrir el contrato y firmarlo'
             replaces: 'Este enlace sustituye al del mensaje anterior, que ya no es válido.'
             expires: 'Este enlace es válido hasta el {date}.'
+        open_contract: 'Abrir el contrato'
         customer_signed:
             subject: 'Contrato {reference} firmado por el cliente'
             body: 'El contrato {reference} acaba de ser firmado por {name}. Espera su contrafirma.'

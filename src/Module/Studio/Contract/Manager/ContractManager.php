@@ -13,6 +13,9 @@ use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Studio\Contract\Dto\ContractInputInterface;
 use Aurora\Module\Studio\Contract\Entity\Contract;
+use Aurora\Module\Studio\Contract\Access\Entity\ContractAccessLinkInterface;
+use Aurora\Module\Studio\Contract\Dto\ContractInput;
+use Aurora\Module\Studio\Contract\Enum\ContractStatusEnum;
 use Aurora\Module\Studio\Contract\Entity\ContractInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersionInterface;
@@ -192,7 +195,10 @@ class ContractManager implements ContractManagerInterface
             throw new FieldException('amendsId', $this->translator->trans('backend.studio.contracts.errors.amends_is_amendment'));
         }
 
-        if ($parent->isTerminated()) {
+        // Refused once the termination has taken effect, not from the day
+        // notice was given: during the notice the contract still binds, and an
+        // amendment is how its last months get changed.
+        if ($parent->isTerminationEffective()) {
             throw new FieldException('amendsId', $this->translator->trans('backend.studio.contracts.errors.amends_terminated'));
         }
 
@@ -277,6 +283,62 @@ class ContractManager implements ContractManagerInterface
 
         $this->entityManager->remove($contract);
         $this->entityManager->flush();
+    }
+
+    /**
+     * Withdraws a contract sealed by mistake.
+     *
+     * Sealed, refused, expired or revoked: nobody has signed and, once its
+     * links are revoked, nobody holds an address that opens it. The row stays,
+     * reference and document included, marked « Annulé »: the number was drawn
+     * and may already have been written down somewhere, and a numbering with a
+     * hole is harder to explain than a line that says why.
+     */
+    public function cancel(ContractInterface $contract): void
+    {
+        if (!$contract->getStatus()->canBeCancelled()) {
+            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.cannot_cancel'));
+        }
+
+        $now = new DateTimeImmutable();
+
+        foreach ($this->entityManager->getRepository(ContractAccessLinkInterface::class)->findBy(['contract' => $contract, 'revokedAt' => null]) as $link) {
+            $link->revoke($now);
+        }
+
+        $contract->setStatus(ContractStatusEnum::Cancelled);
+        $this->entityManager->flush();
+
+        $this->auditLogger->log('studio', 'contract.cancelled', 'Contract', $contract->getId(), $this->auditPayload($contract));
+    }
+
+    /**
+     * A new draft with the same customer, trames, amount, dates and blanks.
+     *
+     * For the contract to correct: a wrong amount sealed, a refusal to answer.
+     * The trames are taken at their version in force today, as any new draft
+     * is, and the copy is a draft like any other, sealed when it is ready.
+     */
+    public function duplicate(ContractInterface $contract): ContractInterface
+    {
+        $copy = $this->create(new ContractInput(
+            customerId: $contract->getCustomer()->getId(),
+            bodyTemplateId: $contract->getBodyVersion()?->getTemplate()->getId(),
+            annexTemplateId: $contract->getAnnexVersion()?->getTemplate()->getId(),
+            locale: $contract->getLocale(),
+            amountCents: $contract->getAmountCents(),
+            amountCurrency: $contract->getAmountCurrency()?->value,
+            effectiveDate: $contract->getEffectiveDate()?->format('Y-m-d'),
+            customFields: $contract->getCustomFields(),
+            amendsId: $contract->getAmends()?->getId(),
+        ));
+
+        $this->auditLogger->log('studio', 'contract.duplicated', 'Contract', $copy->getId(), [
+            ...$this->auditPayload($copy),
+            'from' => $contract->getReference() ?? $contract->getId(),
+        ]);
+
+        return $copy;
     }
 
     public function terminate(ContractInterface $contract, ContractTerminationInputInterface $input): void
@@ -462,6 +524,13 @@ class ContractManager implements ContractManagerInterface
 
         if ($annex instanceof ContractTemplateVersionInterface) {
             $this->assertPublished($annex, 'annexVersion');
+        }
+
+        // Checked again here and at each signature, not only when the parent
+        // was picked: a contract can end between the day its amendment is
+        // drafted and the day it is sealed.
+        if ($contract->getAmends()?->isTerminationEffective() ?? false) {
+            throw new FieldException('amendsId', $this->translator->trans('backend.studio.contracts.errors.amends_terminated'));
         }
 
         // Checked before a reference is minted: a contract refused here has

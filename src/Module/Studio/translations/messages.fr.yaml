@@ -15,7 +15,8 @@ backend:
             changes_requested: À reprendre
             with_client: Chez le client
             upcoming: "À paraître sous 7 jours"
-            awaiting_signature: Contrats à signer
+            awaiting_countersignature: Contrats à contresigner
+            awaiting_signature: Contrats chez le client
             decks: Présentations
             scope_label: Espaces comptés
             scopes:
@@ -121,11 +122,14 @@ backend:
                     frozen: Contrat scellé
                     link_sent: Lien de signature envoyé
                     link_revoked: Lien de signature révoqué
+                    expired: Contrat expiré sans signature
+                    cancelled: Contrat annulé
+                    duplicated: Contrat dupliqué en brouillon
                     reminder_sent: Relance envoyée au client
                     refused: Contrat refusé par le client
                     terminated: Contrat résilié
                     signed_by_customer: 'Contrat signé par le client'
-                    countersigned: 'Contrat contresigné et conclu'
+                    countersigned: 'Contrat conclu'
                     deleted: Contrat supprimé
     permissions:
         names:
@@ -255,7 +259,7 @@ backend:
             export_pdf: 'Exporter en PDF'
             countersign: 'Contresigner'
             countersign_intro: 'Votre contresignature conclut le contrat. Le client en sera informé par email.'
-            countersigned: 'Contrat contresigné et conclu.'
+            countersigned: 'Contrat conclu.'
             send: Envoyer au client
             send_confirm: 'Envoyer le contrat à {email} ?'
             send_warning: 'Un lien secret part par email. Tout lien envoyé auparavant est révoqué : il n''y a jamais qu''une seule adresse valide.'
@@ -308,7 +312,7 @@ backend:
                 edit_description: Modifie le brouillon. Rien n'est scellé tant qu'on ne le demande pas.
                 freeze_description: Fige le texte, tire la référence et rend le contrat envoyable. Définitif.
                 delete_description: Supprime le brouillon. Rien n'a encore été envoyé au client.
-                send_description: Envoie au client un lien de signature à usage unique.
+                send_description: 'Envoie au client un lien de signature, valable trente jours.'
                 revoke_description: Coupe le lien en cours. Ses codes de vérification tombent avec lui.
                 preview_description: Montre le document tel que le client le lira, avant scellement.
                 document_description: Ouvre le document scellé et son bloc de preuve.
@@ -327,11 +331,12 @@ backend:
                 sealed: Scellé
                 sent: Envoyé
                 opened: Ouvert
-                signed_by_customer: Signé par le client
-                countersigned: Contresigné
+                signed_by_customer: 'À contresigner'
+                countersigned: 'Conclu'
                 refused: Refusé
                 expired: Expiré
                 revoked: Révoqué
+                cancelled: 'Annulé'
             errors:
                 preview_sealed: "Ce contrat est déjà scellé : son document stocké est la référence, il ne se rejoue pas."
                 body_required: Un contrat a besoin d'un corps de contrat.
@@ -348,6 +353,8 @@ backend:
                 customer_has_no_address: "Ce client n'a pas d'adresse contractuelle. Renseignez-la sur sa fiche avant d'envoyer."
                 seal_before_sending: Scellez le contrat avant de l'envoyer.
                 already_engaged: Ce contrat est déjà signé. Il ne peut plus être renvoyé.
+                cannot_cancel: 'Seul un contrat scellé que personne n''a signé peut être annulé.'
+                nothing_to_remind: 'Seul un contrat envoyé, et pas encore signé, peut être relancé.'
                 no_active_link: Aucun lien actif à révoquer.
                 seal_before_signing: 'Scellez le contrat avant de le faire signer.'
                 already_concluded: 'Ce contrat est déjà signé par les deux parties.'
@@ -393,7 +400,7 @@ backend:
                 draft_already_open: 'Un brouillon est déjà ouvert sur cette trame (version {number}). Terminez-le ou abandonnez-le avant d''en ouvrir un autre.'
                 nothing_to_publish: Cette version n'a aucun texte à publier.
                 already_published: 'Cette version est publiée : son texte ne peut plus être modifié. Ouvrez une nouvelle version.'
-                used_by_contracts: '{count} contrat(s) scellé(s) ont été établis à partir de cette trame. La supprimer effacerait le lien entre eux et le texte signé : archivez-la plutôt.'
+                used_by_contracts: '{count} contrat(s), brouillons compris, partent de cette trame : elle ne peut pas être supprimée. Archivez-la, elle ne sera plus proposée et ces contrats gardent leur texte.'
                 governing_locale_unknown: Cette langue n'est pas gérée par l'application.
                 governing_locale_not_written: 'La langue faisant foi ({locale}) n''est pas rédigée dans cette version.'
                 governing_locale_required: 'Cette version est rédigée en plusieurs langues : indiquez laquelle fait foi avant de publier.'
@@ -426,7 +433,7 @@ backend:
             empty: Aucune trame de contrat pour le moment.
             search_placeholder: Rechercher une trame…
             delete_confirm: 'Supprimer {name} ?'
-            delete_warning: 'Les contrats déjà signés gardent leur propre copie du texte. Si l''un d''eux est issu de cette trame, la suppression est refusée : archivez-la plutôt.'
+            delete_warning: 'Définitif. Une trame dont part un contrat, même en brouillon, ne peut pas être supprimée : archivez-la plutôt.'
             in_force: En vigueur
             never_published: Jamais publiée
             no_draft: Aucun brouillon
@@ -450,7 +457,7 @@ backend:
                 rename_description: Change le nom et le type de la trame, sans toucher au texte.
                 archive_description: La retire des listes de choix. Les contrats déjà signés ne bougent pas.
                 restore_description: La remet dans les listes de choix.
-                delete_description: Définitif. Les contrats signés gardent leur propre copie du texte.
+                delete_description: 'Définitif, et seulement pour une trame dont aucun contrat ne part.'
             state_published: Publiée
             state_draft: Brouillon
             state_archived: Archivée
@@ -1784,6 +1791,7 @@ studio:
             cta: 'Ouvrir le contrat et le signer'
             replaces: 'Ce lien remplace celui du message précédent, qui n''est plus valide.'
             expires: 'Ce lien est valide jusqu''au {date}.'
+        open_contract: 'Ouvrir le contrat'
         customer_signed:
             subject: 'Contrat {reference} signé par le client'
             body: 'Le contrat {reference} vient d''être signé par {name}. Il attend votre contresignature.'

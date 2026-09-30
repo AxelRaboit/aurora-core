@@ -126,8 +126,18 @@ final class PublicContractLinkTest extends IntegrationTestCase
         $url = $this->sentContractUrl();
 
         $guest = $this->asGuest();
+
+        // Fetching the page is not opening it: a mail scanner follows every
+        // link it sees, and the contract used to say « Ouvert » before the
+        // customer had read their mail.
         $guest->request('GET', $url);
-        $guest->request('GET', $url);
+        $this->entityManager->clear();
+        self::assertSame('sent', $this->links->findAll()[0]->getContract()->getStatus()->value);
+
+        // The page, displayed in a browser, says so.
+        $guest->jsonRequest('POST', $url.'/opened');
+        $guest->jsonRequest('POST', $url.'/opened');
+        self::assertSame(200, $guest->getResponse()->getStatusCode());
 
         $this->entityManager->clear();
         $link = $this->links->findAll()[0];
