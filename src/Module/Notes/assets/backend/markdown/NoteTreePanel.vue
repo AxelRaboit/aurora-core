@@ -346,10 +346,14 @@ const spaceGroups = computed(() => {
     return searching.value ? groups.filter((group) => group.nodes.length) : groups;
 });
 
-/** Seul, son espace n'a pas besoin d'en-tête : le panneau reste celui d'avant. */
-const showSpaceHeaders = computed(
-    () => spaceGroups.value.length > 1 || spaceGroups.value.some((group) => group.space && !group.space.personal),
-);
+/**
+ * L'en-tête d'un espace se montre toujours, le sien compris.
+ *
+ * Seul, son espace s'affichait sans en-tête, pour garder le panneau d'avant :
+ * les notes y étaient, mais rien ne disait où elles vivaient, et « Mon espace »
+ * restait introuvable tant qu'on n'en avait pas créé un second.
+ */
+const showSpaceHeaders = computed(() => spaceGroups.value.some((group) => null !== group.space));
 
 function readClosed() {
     try {

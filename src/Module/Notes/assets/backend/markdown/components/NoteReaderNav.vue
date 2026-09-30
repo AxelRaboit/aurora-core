@@ -141,7 +141,9 @@ const groups = computed(() => {
     return list.filter((group) => group.nodes.length);
 });
 
-const showHeaders = computed(() => groups.value.length > 1 || groups.value.some((group) => group.space && !group.space.personal));
+// Toujours, comme le panneau : sans en-tête, rien ne disait dans quel
+// espace on lisait. La lecture publique n'en reçoit pas, et n'en montre pas.
+const showHeaders = computed(() => groups.value.some((group) => null !== group.space));
 </script>
 
 <template>

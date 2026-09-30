@@ -166,9 +166,23 @@ describe("les espaces du panneau", () => {
     });
 
     /** Seul avec son espace, le panneau reste celui d'avant, sans en-tête. */
-    it("keeps a plain tree when there is only one's own space", async () => {
+    /**
+     * Seul, son espace garde son en-tête : sans lui, rien ne disait où
+     * vivaient les notes, et « Mon espace » restait introuvable.
+     */
+    it("names one's own space even when it is the only one", async () => {
         answerWith({ spaces: [SPACES[0]] });
 
+        const wrapper = await render();
+        const headers = wrapper.findAll("[data-space-header]");
+
+        expect(headers).toHaveLength(1);
+        expect(headers[0].text()).toContain("notes.markdown.spaces.my_space");
+        expect(wrapper.text()).toContain("Journal");
+    });
+
+    /** Tant que les espaces ne sont pas connus, l'arbre s'affiche sans en-tête. */
+    it("draws the tree without a header before the spaces arrive", async () => {
         const wrapper = await render();
 
         expect(wrapper.find("[data-space-header]").exists()).toBe(false);
