@@ -389,6 +389,21 @@ final class MarkdownNoteTest extends IntegrationTestCase
     }
 
     /**
+     * Entrer dans le lecteur sans note : l'adresse qu'on met en favori.
+     * Elle ouvre la première note du carnet, ou la bibliothèque s'il est vide.
+     */
+    public function testTheReaderHasAnEntryOfItsOwn(): void
+    {
+        $this->client->loginUser($this->other, 'admin');
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_read_entry'));
+        self::assertResponseRedirects($this->urlGenerator->generate('backend_notes_markdown'));
+
+        $note = $this->note($this->other, 'Seule note');
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_read_entry'));
+        self::assertResponseRedirects($this->urlGenerator->generate('backend_notes_markdown_read', ['id' => $note->getId()]));
+    }
+
+    /**
      * Un lien dans la note d'un autre mène chez lui, pas chez soi.
      *
      * L'index des titres était celui du lecteur : un `[[Budget]]` écrit par un

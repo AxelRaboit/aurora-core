@@ -268,6 +268,18 @@ function openReader() {
 }
 
 /**
+ * Alt+R, depuis n'importe quel écran des notes : le lecteur sans chercher
+ * de bouton. Lu sur `code` et non sur `key`, parce qu'Alt+R écrit « ® »
+ * sur un Mac et que la touche, elle, reste la même.
+ */
+function onShortcut(event) {
+    if (!event.altKey || event.ctrlKey || event.metaKey || "KeyR" !== event.code) return;
+
+    event.preventDefault();
+    openReader();
+}
+
+/**
  * Ce qui est épinglé, dossiers puis notes, le plus récent d'abord.
  *
  * Craft ouvre son menu là-dessus, et c'est le seul endroit du module d'où
@@ -761,6 +773,9 @@ function onTreeKeydown(event) {
 const stopListening = [];
 
 onMounted(() => {
+    window.addEventListener("keydown", onShortcut);
+    stopListening.push(() => window.removeEventListener("keydown", onShortcut));
+
     stopListening.push(
         onPageNotice("notes:changed", (detail) => {
             if (Array.isArray(detail?.notes)) announcedNotes.value = detail.notes;
@@ -803,7 +818,7 @@ onUnmounted(() => {
             <AppIconButton
                 size="sm"
                 data-read-mode-toggle
-                :title="t('notes.markdown.read.mode')"
+                :title="`${t('notes.markdown.read.mode')} (Alt+R)`"
                 :disabled="null === readTargetId"
                 v-on:click="openReader"
             >

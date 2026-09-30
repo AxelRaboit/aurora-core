@@ -100,6 +100,16 @@ function toggleNav() {
  * quand on tape : la recherche garde ses touches.
  */
 function onKeydown(event) {
+    // Alt+R, la même touche qui a ouvert le lecteur, ramène à l'écriture.
+    if (event.altKey && !event.ctrlKey && !event.metaKey && "KeyR" === event.code) {
+        if (props.canEdit && props.backPath) {
+            event.preventDefault();
+            window.location.assign(props.backPath);
+        }
+
+        return;
+    }
+
     if ("Escape" === event.key && drawerOpen.value) {
         drawerOpen.value = false;
 

@@ -720,6 +720,25 @@ describe("le confort de l'arbre", () => {
 });
 
 describe("passer en lecture", () => {
+    it("opens the reader with Alt+R from any notes screen", async () => {
+        const assign = vi.fn();
+        vi.spyOn(window, "location", "get").mockReturnValue({
+            ...window.location,
+            assign,
+        });
+
+        await render();
+        window.dispatchEvent(
+            new KeyboardEvent("keydown", {
+                altKey: true,
+                code: "KeyR",
+                key: "®",
+            }),
+        );
+
+        expect(assign).toHaveBeenCalledWith("/backend/notes/markdown/11/read");
+    });
+
     /**
      * Il fallait ouvrir une note puis chercher « Lire » dans ses trois
      * points. Le panneau porte maintenant le bouton, toujours là.

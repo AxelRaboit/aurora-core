@@ -146,6 +146,25 @@ final class MarkdownNotesController extends AbstractController
     // remplir plutôt qu'une adresse par note : il arrive ici en zéro, qui
     // n'appartient à personne, donc il répond 404 comme n'importe quel
     // identifiant inconnu.
+    /**
+     * Entrer dans le lecteur sans choisir de note : par un favori du
+     * navigateur ou par le raccourci. On arrive sur la première note du
+     * carnet ; un carnet vide renvoie à la bibliothèque, où l'on en écrit une.
+     */
+    #[Route('/read', name: '_read_entry', methods: [HttpMethodEnum::Get->value])]
+    public function readEntry(): Response
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        $first = $this->viewBuilder->firstInReadingOrder($user);
+
+        return $this->redirectToRoute(
+            null === $first ? 'backend_notes_markdown' : 'backend_notes_markdown_read',
+            null === $first ? [] : ['id' => $first],
+        );
+    }
+
     #[Route('/{id}/read', name: '_read', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Get->value])]
     public function read(int $id, NoteReadScope $scope): Response
     {

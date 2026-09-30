@@ -229,16 +229,20 @@ final readonly class MarkdownNotesViewBuilder
     }
 
     /**
-     * La note d'avant et celle d'après, dans l'ordre de l'arborescence.
-     *
-     * C'est ce qui fait du mode lecture une lecture du carnet et pas d'une
-     * note : on avance d'une note à la suivante comme on tourne une page, dans
-     * l'ordre où le panneau les range - les sous-dossiers d'abord, puis les
-     * notes, chaque niveau selon sa position.
-     *
-     * @return array{previous: ?array{id: int, title: string}, next: ?array{id: int, title: string}}
+     * La première note du carnet, dans l'ordre de lecture : là où s'ouvre le
+     * lecteur quand on y entre sans note, par son adresse ou son raccourci.
      */
-    private function readingNeighbours(CoreUserInterface $user, int $noteId): array
+    public function firstInReadingOrder(CoreUserInterface $user): ?int
+    {
+        return $this->readingOrder($user)['order'][0] ?? null;
+    }
+
+    /**
+     * Toutes les notes de la personne, dans l'ordre de l'arborescence.
+     *
+     * @return array{order: list<int>, titles: array<int, string>}
+     */
+    private function readingOrder(CoreUserInterface $user): array
     {
         $foldersByParent = [];
         foreach ($this->folderRepository->findAllForUser($user) as $folder) {
@@ -272,6 +276,23 @@ final readonly class MarkdownNotesViewBuilder
             }
         };
         $walk(0);
+
+        return ['order' => $order, 'titles' => $titles];
+    }
+
+    /**
+     * La note d'avant et celle d'après, dans l'ordre de l'arborescence.
+     *
+     * C'est ce qui fait du mode lecture une lecture du carnet et pas d'une
+     * note : on avance d'une note à la suivante comme on tourne une page, dans
+     * l'ordre où le panneau les range - les sous-dossiers d'abord, puis les
+     * notes, chaque niveau selon sa position.
+     *
+     * @return array{previous: ?array{id: int, title: string}, next: ?array{id: int, title: string}}
+     */
+    private function readingNeighbours(CoreUserInterface $user, int $noteId): array
+    {
+        ['order' => $order, 'titles' => $titles] = $this->readingOrder($user);
 
         $at = array_search($noteId, $order, true);
         if (false === $at) {
