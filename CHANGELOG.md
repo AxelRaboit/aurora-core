@@ -5,6 +5,91 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.308] - 2026-09-30
+
+La remise à plat des contrats et des trames : un parcours lisible de bout en bout, des statuts qui disent ce qui est vrai, et les défauts trouvés en route.
+
+### Changé
+
+#### Un contrat se lit par étape
+La liste n'a plus deux tableaux aux colonnes différentes. Un seul, rangé par étape en onglets avec leur compte : Brouillons, À envoyer, Chez le client, À contresigner, En cours, Terminés. Colonnes Référence, Client, Trame et version, Montant, Prise d'effet, Statut et Dernière activité, la plus récente en haut. Filtres par client et par trame, recherche, pagination, et des cartes lisibles sur téléphone. La fiche d'un client indique combien il a de contrats et y mène.
+
+#### Chaque contrat a son écran, avec l'étape suivante en évidence
+L'écran d'un contrat dit en une phrase où il en est (envoyé à qui, valable jusqu'à quand, signé quel jour) et met en avant le seul geste qui fait avancer : sceller, envoyer, relancer, contresigner ou télécharger. Les autres sont dans le menu, et seulement ceux que le statut et vos droits permettent : « Envoyer au client » n'apparaît plus sur un contrat conclu. À côté du document : les informations, le lien envoyé, les signatures (avec l'adresse du code), la chaîne des avenants, le sceau et l'historique de tout ce qui lui est arrivé.
+
+#### Des statuts qui disent ce qui est vrai
+« Conclu » remplace « Contresigné », « À contresigner » remplace « Signé par le client ». « Ouvert » ne s'affiche plus quand un robot de messagerie suit le lien : il faut que la page ait été réellement vue. Un lien arrivé à ses 30 jours passe le contrat en « Expiré » le lendemain matin, au lieu de le laisser « en attente de signature » sur le tableau de bord. Le tableau de bord compte à part ce qui attend le client et ce qui vous attend.
+
+#### Annuler plutôt que supprimer
+Un contrat scellé par erreur (pas encore signé) s'annule : il reste dans l'historique, son lien cesse de fonctionner, et le même geste peut en créer une copie en brouillon pour corriger. « Dupliquer » existe aussi seul, sur tout contrat.
+
+#### Relancer quand vous le décidez
+Un bouton « Relancer » renvoie le lien au client, en plus des relances automatiques. Si le mail ne part pas, l'écran le dit et l'ancien lien reste valable.
+
+#### Avenants pendant le préavis
+Un contrat résilié reste modifiable par avenant jusqu'à sa date de fin effective.
+
+#### Les trames sans comptabilité de versions
+« Modifier le texte » ouvre directement l'éditeur, sur un brouillon s'il en faut un. L'éditeur dit si l'on regarde la version en vigueur, un brouillon ou une ancienne version, avec Enregistrer et Publier visibles, et prévient avant de quitter une page non enregistrée. La liste montre les langues, le nombre de contrats et la date de publication. Une trame utilisée par au moins un contrat, même brouillon, ne se supprime plus : elle s'archive. Un utilisateur sans le droit de modifier lit la trame sans pouvoir l'éditer.
+
+### Ajouté
+
+#### Les sceaux sont vérifiés chaque matin
+La vérification des contrats scellés tourne maintenant toute seule à 6 h 05. Elle contrôle le texte, chaque signature, et le PDF signé (présent, et identique à celui généré à la contresignature). Rien ne se passe quand tout correspond ; sinon l'administrateur reçoit la liste par mail. La commande `aurora:contracts:verify` fait les mêmes contrôles.
+
+#### Forme juridique et capital en une variable
+`{{customer.legal_status}}` écrit « SARL au capital de 10 000 € », ou la forme seule quand il n'y a pas de capital. Avec `{{customer.legal_form}} au capital de {{customer.share_capital}}`, une entreprise individuelle lisait « au capital de , ». Pensez à la reprendre dans vos trames.
+
+#### Le contresignataire coche son consentement
+La contresignature envoyait un consentement sans case à l'écran. Il se coche maintenant, comme côté client.
+
+### Corrigé
+
+#### La ville et la date de signature s'écrivent dans le contrat
+« Fait à {{contract.signature_city}}, le {{contract.signature_date}} » s'imprimait tel quel, accolades comprises, dans le PDF signé, sur la page de signature et au back-office. La ville et la date déclarées par le client s'y écrivent maintenant, et une ligne pointillée les remplace tant qu'il n'a pas signé. Le texte scellé, lui, ne change pas : son sceau reste valide.
+
+#### Contresigner n'annonce plus un sceau altéré
+Juste après la contresignature, l'écran affichait « le sceau ne correspond plus » jusqu'au rechargement. Il reçoit maintenant le document complet.
+
+#### Modifier un brouillon d'avenant le garde attaché à son contrat
+Enregistrer une correction détachait l'avenant de son contrat d'origine. Choisir le contrat d'origine remplit aussi le client, ce qu'il ne faisait qu'en arrivant par un lien.
+
+#### Une trame qu'un contrat ne sait pas imprimer ne se publie plus
+Une image, un encadré ou une variable mal écrite passaient à la publication, puis chaque contrat créé sur cette version était refusé au scellement. La publication vérifie maintenant chaque langue, l'éditeur ne propose plus que les blocs qu'un contrat imprime (titre, paragraphe, liste, citation, tableau), et l'aperçu de trame signale les variables inconnues. Le message d'erreur est traduit, au lieu d'une phrase technique en anglais.
+
+#### L'éditeur de trames n'annonce plus un succès refusé
+Un enregistrement, une publication ou un abandon refusés affichaient quand même « Brouillon enregistré », « Version publiée » ou revenaient à la liste. Même chose pour archiver, dupliquer, ouvrir ou abandonner depuis la liste.
+
+#### Le titre d'une trame est protégé dans le document scellé
+Il entrait tel quel dans le texte scellé, imprimé sans filtre sur la page de signature et dans le PDF : un mot entre chevrons disparaissait.
+
+#### Les mails de relance et de refus nomment le contrat
+Leur objet affichait « {reference} » en clair.
+
+#### Plus de trou dans la numérotation
+Un scellement refusé (langue manquante, bloc non imprimable, variable inconnue) consommait quand même un numéro. Les vérifications passent maintenant avant de tirer la référence.
+
+#### La langue et la date d'effet sont contrôlées à la saisie
+Un contrat dans une langue que la trame ne contient pas est refusé dès sa création, et non plus au scellement. Une date impossible (2026-13-45) est refusée au lieu d'être convertie en une autre date. L'aperçu et l'export disent pourquoi ils échouent au lieu de répondre une erreur.
+
+#### Signer devient sûr
+- La contresignature écrit le PDF avant de rien enregistrer : un échec ne laisse plus un contrat conclu sans fichier.
+- Le sceau est vérifié avant chaque signature.
+- La signature garde l'adresse à laquelle son code a été envoyé, et le PDF imprime celle-là plutôt que l'adresse actuelle du client. Les signatures existantes la reprennent de l'historique des codes.
+- Un contrat signé se supprime enfin une fois sa durée de conservation écoulée, au lieu d'une erreur.
+
+#### Les petites choses trouvées en route
+- Trop de tentatives sur la page de signature affichait « Une erreur est survenue » ; le client lit maintenant qu'il doit patienter quelques minutes.
+- Un SIREN invalide affichait sa clé de traduction au lieu de la phrase.
+- Le préfixe des références (réglage développeur) n'accepte plus que des majuscules et des chiffres : un espace ou une barre se retrouvaient dans chaque référence, nom de fichier et objet de mail.
+- Une relance automatique qui échoue n'empêche plus les suivantes de partir.
+- Chaque geste sur un contrat ou une trame est refusé par le serveur à qui n'en a pas le droit, et c'est maintenant testé.
+- La démonstration : des contrats scellés avant d'être signés, un lien derrière chaque contrat envoyé, et plus de « au capital de , ».
+
+### Dans aurora-client
+
+`make aurora-update` puis `make migrate` : une colonne s'ajoute aux signatures, remplie depuis l'historique des codes.
+
 ## [0.9.307] - 2026-09-30
 
 ### Corrigé

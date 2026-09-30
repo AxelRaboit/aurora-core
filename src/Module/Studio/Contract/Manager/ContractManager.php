@@ -11,12 +11,15 @@ use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
+use Aurora\Module\Studio\Contract\Access\Entity\ContractAccessLinkInterface;
+use Aurora\Module\Studio\Contract\Dto\ContractInput;
 use Aurora\Module\Studio\Contract\Dto\ContractInputInterface;
 use Aurora\Module\Studio\Contract\Entity\Contract;
 use Aurora\Module\Studio\Contract\Entity\ContractInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersionInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersionTranslationInterface;
+use Aurora\Module\Studio\Contract\Enum\ContractStatusEnum;
 use Aurora\Module\Studio\Contract\Enum\ContractTemplateKindEnum;
 use Aurora\Module\Studio\Contract\Enum\ContractTerminationOriginEnum;
 use Aurora\Module\Studio\Contract\Exception\UnrenderableBlockException;
@@ -28,6 +31,7 @@ use Aurora\Module\Studio\Contract\Service\ContractDocumentRenderer;
 use Aurora\Module\Studio\Contract\Service\ContractRetentionPolicy;
 use Aurora\Module\Studio\Contract\Service\ContractSeal;
 use Aurora\Module\Studio\Contract\Service\ContractVariableResolver;
+use Aurora\Module\Studio\Contract\Signature\Entity\ContractSignatureInterface;
 use Aurora\Module\Studio\Contract\Termination\Dto\ContractTerminationInputInterface;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\Customer\Repository\CustomerRepository;
@@ -64,6 +68,13 @@ class ContractManager implements ContractManagerInterface
      * list to keep in step with the catalogue.
      */
     public const string AMENDS_PREFIX = 'contract.amends_';
+
+    /**
+     * The reference a contract carries while it is rendered to be checked,
+     * before a real one is drawn. As long as a real one, so a clause that
+     * wraps around it wraps the same way.
+     */
+    public const string PROBE_REFERENCE = 'XXX-0000-0000';
 
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
@@ -133,6 +144,15 @@ class ContractManager implements ContractManagerInterface
             ->setEffectiveDate($this->effectiveDate($input))
             ->setBodyVersion($this->publishedVersionOf($input->getBodyTemplateId(), ContractTemplateKindEnum::Body, 'bodyTemplateId'))
             ->setAnnexVersion($this->publishedVersionOf($input->getAnnexTemplateId(), ContractTemplateKindEnum::Annex, 'annexTemplateId'));
+
+        // Checked here, on the language picker, rather than at the freeze: a
+        // contract in Spanish on a trame written only in French was accepted,
+        // then its preview and its export failed and its seal was refused.
+        foreach ([$contract->getBodyVersion(), $contract->getAnnexVersion()] as $version) {
+            if ($version instanceof ContractTemplateVersionInterface && !$version->getTranslation($contract->getLocale()) instanceof ContractTemplateVersionTranslationInterface) {
+                throw new FieldException('locale', $this->translator->trans('backend.studio.contracts.errors.locale_missing', ['{locale}' => $contract->getLocale(), '{template}' => $version->getTemplate()->getName()]));
+            }
+        }
     }
 
     /**
@@ -175,7 +195,10 @@ class ContractManager implements ContractManagerInterface
             throw new FieldException('amendsId', $this->translator->trans('backend.studio.contracts.errors.amends_is_amendment'));
         }
 
-        if ($parent->isTerminated()) {
+        // Refused once the termination has taken effect, not from the day
+        // notice was given: during the notice the contract still binds, and an
+        // amendment is how its last months get changed.
+        if ($parent->isTerminationEffective()) {
             throw new FieldException('amendsId', $this->translator->trans('backend.studio.contracts.errors.amends_terminated'));
         }
 
@@ -223,7 +246,9 @@ class ContractManager implements ContractManagerInterface
 
         $date = DateTimeImmutable::createFromFormat('!Y-m-d', $raw);
 
-        if (false === $date) {
+        // Compared back, because PHP rolls an impossible date over rather
+        // than refusing it: 2026-13-45 became the 14th of February 2027.
+        if (false === $date || $date->format('Y-m-d') !== $raw) {
             throw new FieldException('effectiveDate', $this->translator->trans('backend.studio.contracts.errors.effective_date_invalid'));
         }
 
@@ -247,8 +272,73 @@ class ContractManager implements ContractManagerInterface
             'frozenAt' => $contract->getFrozenAt()?->format(DATE_ATOM),
         ]);
 
+        // The signatures first. Their key refuses a cascade on purpose, so
+        // that no signature can vanish with a careless delete; the retention
+        // having run out is the one moment they may go, and they go here,
+        // explicitly. Left to the key, deleting a signed contract answered a
+        // 500 however old it was.
+        foreach ($this->entityManager->getRepository(ContractSignatureInterface::class)->findBy(['contract' => $contract]) as $signature) {
+            $this->entityManager->remove($signature);
+        }
+
         $this->entityManager->remove($contract);
         $this->entityManager->flush();
+    }
+
+    /**
+     * Withdraws a contract sealed by mistake.
+     *
+     * Sealed, refused, expired or revoked: nobody has signed and, once its
+     * links are revoked, nobody holds an address that opens it. The row stays,
+     * reference and document included, marked « Annulé »: the number was drawn
+     * and may already have been written down somewhere, and a numbering with a
+     * hole is harder to explain than a line that says why.
+     */
+    public function cancel(ContractInterface $contract): void
+    {
+        if (!$contract->getStatus()->canBeCancelled()) {
+            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.cannot_cancel'));
+        }
+
+        $now = new DateTimeImmutable();
+
+        foreach ($this->entityManager->getRepository(ContractAccessLinkInterface::class)->findBy(['contract' => $contract, 'revokedAt' => null]) as $link) {
+            $link->revoke($now);
+        }
+
+        $contract->setStatus(ContractStatusEnum::Cancelled);
+        $this->entityManager->flush();
+
+        $this->auditLogger->log('studio', 'contract.cancelled', 'Contract', $contract->getId(), $this->auditPayload($contract));
+    }
+
+    /**
+     * A new draft with the same customer, trames, amount, dates and blanks.
+     *
+     * For the contract to correct: a wrong amount sealed, a refusal to answer.
+     * The trames are taken at their version in force today, as any new draft
+     * is, and the copy is a draft like any other, sealed when it is ready.
+     */
+    public function duplicate(ContractInterface $contract): ContractInterface
+    {
+        $copy = $this->create(new ContractInput(
+            customerId: $contract->getCustomer()->getId(),
+            bodyTemplateId: $contract->getBodyVersion()?->getTemplate()->getId(),
+            annexTemplateId: $contract->getAnnexVersion()?->getTemplate()->getId(),
+            locale: $contract->getLocale(),
+            amountCents: $contract->getAmountCents(),
+            amountCurrency: $contract->getAmountCurrency()?->value,
+            effectiveDate: $contract->getEffectiveDate()?->format('Y-m-d'),
+            customFields: $contract->getCustomFields(),
+            amendsId: $contract->getAmends()?->getId(),
+        ));
+
+        $this->auditLogger->log('studio', 'contract.duplicated', 'Contract', $copy->getId(), [
+            ...$this->auditPayload($copy),
+            'from' => $contract->getReference() ?? $contract->getId(),
+        ]);
+
+        return $copy;
     }
 
     public function terminate(ContractInterface $contract, ContractTerminationInputInterface $input): void
@@ -436,6 +526,13 @@ class ContractManager implements ContractManagerInterface
             $this->assertPublished($annex, 'annexVersion');
         }
 
+        // Checked again here and at each signature, not only when the parent
+        // was picked: a contract can end between the day its amendment is
+        // drafted and the day it is sealed.
+        if ($contract->getAmends()?->isTerminationEffective() ?? false) {
+            throw new FieldException('amendsId', $this->translator->trans('backend.studio.contracts.errors.amends_terminated'));
+        }
+
         // Checked before a reference is minted: a contract refused here has
         // consumed nothing, and the sequence has no gap to explain.
         $missing = $this->missingCustomFields($contract);
@@ -463,39 +560,27 @@ class ContractManager implements ContractManagerInterface
             throw new FieldException('amendsId', $this->translator->trans('backend.studio.contracts.errors.amendment_tokens_without_parent', ['{fields}' => implode(', ', $unsetAmendment)]));
         }
 
-        // Minted before the rendering, because the reference is printed inside
-        // the document and therefore has to be part of what the hash covers.
+        // Rendered once with a stand-in reference, so every refusal below
+        // (a language the trame lacks, a block it cannot print, a variable
+        // that fills nothing) lands before a number is drawn. The sequence is
+        // committed as soon as it is incremented, and a refused seal used to
+        // leave a gap nobody could explain.
+        $previous = $contract->getReference();
+        $contract->setReference($this->amendmentReference($contract) ?? self::PROBE_REFERENCE);
+
+        try {
+            $this->renderDocument($contract);
+        } finally {
+            $contract->setReference($previous);
+        }
+
+        // Minted before the real rendering, because the reference is printed
+        // inside the document and therefore has to be part of what the hash
+        // covers.
         $reference = $this->amendmentReference($contract) ?? $this->nextReference();
         $contract->setReference($reference);
 
-        $values = $this->variables->resolve($contract);
-        $deferred = $this->variables->deferredTokens();
-
-        $parts = [];
-        $html = '';
-
-        foreach ($this->partsOf($contract) as $role => $version) {
-            $part = $this->renderPart($role, $version, $contract->getLocale(), $values);
-            $parts[] = $part['snapshot'];
-            $html .= $part['html'];
-        }
-
-        // Appended after the last part, which is where a governing-language
-        // clause belongs on paper too: after everything it arbitrates.
-        $governingLocale = $this->governingLocaleOf($contract);
-
-        if (null !== $governingLocale) {
-            $html .= $this->governingLanguageClause($contract->getLocale(), $governingLocale);
-        }
-
-        $unknown = $this->renderer->unknownTokens($html, $values, $deferred);
-
-        if ([] !== $unknown) {
-            // Named, and refused. A token nobody will ever fill would reach the
-            // signer as literal braces in the middle of a clause, and by then
-            // the document is sealed.
-            throw new FieldException('bodyVersion', $this->translator->trans('backend.studio.contracts.errors.unknown_tokens', ['{tokens}' => implode(', ', $unknown)]));
-        }
+        ['values' => $values, 'deferred' => $deferred, 'parts' => $parts, 'html' => $html, 'governingLocale' => $governingLocale] = $this->renderDocument($contract);
 
         $snapshot = [
             'canonicalVersion' => ContractCanonicalizer::VERSION,
@@ -527,6 +612,47 @@ class ContractManager implements ContractManagerInterface
             'bodyVersion' => $body->getNumber(),
             'annexVersion' => $annex?->getNumber(),
         ]);
+    }
+
+    /**
+     * The document as it would be sealed, refused if it cannot be.
+     *
+     * @return array{values: array<string, string>, deferred: list<string>, parts: list<array<string, mixed>>, html: string, governingLocale: ?string}
+     *
+     * @throws FieldException when a part cannot be rendered or a variable fills nothing
+     */
+    protected function renderDocument(ContractInterface $contract): array
+    {
+        $values = $this->variables->resolve($contract);
+        $deferred = $this->variables->deferredTokens();
+
+        $parts = [];
+        $html = '';
+
+        foreach ($this->partsOf($contract) as $role => $version) {
+            $part = $this->renderPart($role, $version, $contract->getLocale(), $values);
+            $parts[] = $part['snapshot'];
+            $html .= $part['html'];
+        }
+
+        // Appended after the last part, which is where a governing-language
+        // clause belongs on paper too: after everything it arbitrates.
+        $governingLocale = $this->governingLocaleOf($contract);
+
+        if (null !== $governingLocale) {
+            $html .= $this->governingLanguageClause($contract->getLocale(), $governingLocale);
+        }
+
+        $unknown = $this->renderer->unknownTokens($html, $values, $deferred);
+
+        if ([] !== $unknown) {
+            // Named, and refused. A token nobody will ever fill would reach the
+            // signer as literal braces in the middle of a clause, and by then
+            // the document is sealed.
+            throw new FieldException('bodyVersion', $this->translator->trans('backend.studio.contracts.errors.unknown_tokens', ['{tokens}' => implode(', ', $unknown)]));
+        }
+
+        return ['values' => $values, 'deferred' => $deferred, 'parts' => $parts, 'html' => $html, 'governingLocale' => $governingLocale];
     }
 
     /**
@@ -707,10 +833,10 @@ class ContractManager implements ContractManagerInterface
             // Turned into a field error rather than left to bubble: this is a
             // template somebody has to go and fix, and a 500 does not say
             // which block of which trame.
-            throw new FieldException('bodyVersion', sprintf('%s (%s)', $unrenderableBlockException->getMessage(), $version->getTemplate()->getName()));
+            throw new FieldException('bodyVersion', sprintf('%s (%s)', $unrenderableBlockException->describe($this->translator, $locale), $version->getTemplate()->getName()));
         }
 
-        $title = $this->renderer->substitute($translation->getTitle(), $values);
+        $title = $this->renderer->title($translation->getTitle(), $values);
 
         return [
             'snapshot' => [

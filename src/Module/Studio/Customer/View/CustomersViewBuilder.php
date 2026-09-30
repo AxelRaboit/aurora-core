@@ -9,12 +9,14 @@ use Aurora\Core\Routing\PathTemplateGenerator;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Repository\UserRepository;
+use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\Customer\Repository\CustomerRepository;
 use Aurora\Module\Studio\Customer\Serializer\CustomerSerializerInterface;
 use Aurora\Module\Studio\CustomerSpace\Security\SpaceVisibility;
 use Aurora\Module\Studio\StudioContext;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 final readonly class CustomersViewBuilder
 {
@@ -26,6 +28,8 @@ final readonly class CustomersViewBuilder
         private UrlGeneratorInterface $urlGenerator,
         private SpaceVisibility $visibility,
         private StudioContext $studioContext,
+        private ContractRepository $contractRepository,
+        private AuthorizationCheckerInterface $authorizationChecker,
     ) {}
 
     /**
@@ -67,10 +71,19 @@ final readonly class CustomersViewBuilder
             ];
         }
 
+        // Ses contrats aussi, en nombre, et la liste des contrats filtrée sur
+        // lui d'un clic : la fiche ne disait rien de ce qui avait été signé.
+        $contractsShown = $this->studioContext->areContractsEnabled() && $this->authorizationChecker->isGranted('studio.contracts.view');
+        $contractCounts = $contractsShown ? $this->contractRepository->countByCustomer() : [];
+
         return array_map(
             fn (CustomerInterface $customer): array => [
                 ...$this->customerSerializer->serialize($customer),
                 'spaces' => $spacesByCustomer[(int) $customer->getId()] ?? [],
+                'contracts' => $contractsShown ? [
+                    'count' => $contractCounts[(int) $customer->getId()] ?? 0,
+                    'url' => $this->urlGenerator->generate('backend_studio_contracts', ['customer' => $customer->getId()]),
+                ] : null,
             ],
             $this->customerRepository->findAllOrdered(),
         );

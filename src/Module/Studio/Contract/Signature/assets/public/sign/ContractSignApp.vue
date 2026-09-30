@@ -1,4 +1,5 @@
 <script setup>
+import { localIsoDate } from "@/shared/utils/format/localDate.js";
 /**
  * The form a customer signs with.
  *
@@ -26,6 +27,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
+import { HttpStatus } from "@/shared/utils/http/HttpStatus.js";
 import AppSignaturePad from "@/shared/components/form/input/AppSignaturePad.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
@@ -37,6 +39,8 @@ import { Ban, Check, Mail, PenLine, X } from "lucide-vue-next";
 
 const props = defineProps({
     codePath: { type: String, required: true },
+    /** Told once the page is displayed, which a mail scanner never does. */
+    openedPath: { type: String, default: "" },
     signPath: { type: String, required: true },
     refusePath: { type: String, required: true },
     documentSelector: { type: String, default: ".contract-document" },
@@ -50,13 +54,19 @@ const form = ref({
     lastName: "",
     email: "",
     place: "",
-    date: new Date().toISOString().slice(0, 10),
+    date: localIsoDate(),
     signatureImage: "",
     consent: false,
     code: "",
 });
 
 const errors = ref({});
+
+// The three writes are rate limited, and a 429 comes back as a body to read:
+// without `accept` it became a generic toast, and a customer who hit the
+// limit was told « Une erreur est survenue » and tried again into it.
+const WRITE = { noGuard: true, accept: [HttpStatus.TooManyRequests] };
+const TOO_MANY = "studio.public.sign.errors.too_many_requests";
 const hasDrawn = ref(false);
 const hasRead = ref(false);
 const codeSentTo = ref(null);
@@ -74,6 +84,10 @@ const signed = ref(false);
 let observer = null;
 
 onMounted(() => {
+    if (props.openedPath) {
+        void request(props.openedPath, {}, { noGuard: true, silent: true });
+    }
+
     const article = document.querySelector(props.documentSelector);
 
     if (!article) {
@@ -142,7 +156,7 @@ async function requestCode() {
     errors.value = {};
 
     try {
-        const data = await request(props.codePath, {}, { noGuard: true });
+        const data = await request(props.codePath, {}, WRITE);
 
         if (data?.errors) {
             errors.value = data.errors;
@@ -151,7 +165,7 @@ async function requestCode() {
         }
 
         if (data?.error) {
-            errors.value = { code: t("studio.public.sign.errors.too_many_requests") };
+            errors.value = { code: t(TOO_MANY) };
 
             return;
         }
@@ -184,12 +198,16 @@ async function refuse() {
     errors.value = {};
 
     try {
-        const data = await request(props.refusePath, refusal.value, {
-            noGuard: true,
-        });
+        const data = await request(props.refusePath, refusal.value, WRITE);
 
         if (data?.errors) {
             errors.value = data.errors;
+
+            return;
+        }
+
+        if (data?.error) {
+            errors.value = { reason: t(TOO_MANY) };
 
             return;
         }
@@ -213,10 +231,16 @@ async function sign() {
     errors.value = {};
 
     try {
-        const data = await request(props.signPath, form.value, { noGuard: true });
+        const data = await request(props.signPath, form.value, WRITE);
 
         if (data?.errors) {
             errors.value = data.errors;
+
+            return;
+        }
+
+        if (data?.error) {
+            errors.value = { status: t(TOO_MANY) };
 
             return;
         }

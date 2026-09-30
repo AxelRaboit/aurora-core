@@ -32,6 +32,9 @@ final class SettingsController extends AbstractController
 {
     use JsonResponseTrait;
 
+    /** Capitals and digits, as the defaults are (`CTR`, `ART`), and short. */
+    private const string PREFIX_PATTERN = '/^[A-Z0-9]{1,10}$/';
+
     public function __construct(
         private readonly SettingsService $settingsManager,
         private readonly SettingsViewBuilder $viewBuilder,
@@ -118,6 +121,17 @@ final class SettingsController extends AbstractController
             }
 
             $value = $normalised;
+        }
+
+        // A numbering prefix goes into every reference it numbers, and from
+        // there into file names, mail subjects and exports. Anything was
+        // accepted: « cm 2026/ » made references with a space and a slash.
+        if (str_ends_with($key, '_prefix')) {
+            $value = mb_strtoupper(mb_trim((string) $value));
+
+            if (1 !== preg_match(self::PREFIX_PATTERN, $value)) {
+                return $this->jsonFailure(SettingErrorCodeEnum::InvalidPrefix->value);
+            }
         }
 
         try {

@@ -16,6 +16,7 @@ use Aurora\Module\Studio\Contract\Enum\ContractStatusEnum;
 use Aurora\Module\Studio\Contract\Refusal\Dto\ContractRefusalInputFactoryInterface;
 use Aurora\Module\Studio\Contract\Refusal\Manager\ContractRefusalManagerInterface;
 use Aurora\Module\Studio\Contract\Service\ContractPrivacyNotice;
+use Aurora\Module\Studio\Contract\Service\ContractSignedDocument;
 use Aurora\Module\Studio\Contract\Signature\Dto\ContractSignatureInputFactoryInterface;
 use Aurora\Module\Studio\Contract\Signature\Manager\ContractSignatureChallengeManagerInterface;
 use Aurora\Module\Studio\Contract\Signature\Manager\ContractSignatureManagerInterface;
@@ -61,6 +62,7 @@ final class PublicContractController extends AbstractController
         private readonly ContractRefusalManagerInterface $refusals,
         private readonly ContractRefusalInputFactoryInterface $refusalInputFactory,
         private readonly ContractPrivacyNotice $privacyNotice,
+        private readonly ContractSignedDocument $signedDocument,
         private readonly PayloadValidator $payloadValidator,
         // Autowired by parameter name: `$contractSignatureLimiter` resolves to
         // the `contract_signature` limiter declared in config, the same way the
@@ -87,20 +89,24 @@ final class PublicContractController extends AbstractController
             return $this->unavailable();
         }
 
-        $this->links->markOpened($link);
-
+        // Not marked opened here: mail scanners (Outlook's Safe Links and the
+        // like) fetch every link they see, and the contract said « Ouvert »
+        // before the customer had even read their mail. The page tells the
+        // server once it is displayed in a browser, through `openedPath`.
         $contract = $link->getContract();
 
         return $this->privately($this->render('@Studio/public/contract.html.twig', [
             'contract' => $contract,
             'customer' => $contract->getCustomer(),
             'link' => $link,
-            // The document is handed over as it was stored. The template prints
-            // it raw on purpose: it is the only markup on this page that must
-            // not be regenerated.
-            'documentHtml' => $contract->getRenderedHtml() ?? '',
+            // The document is handed over as it was stored, with only the
+            // signer's city and date written in. The template prints it raw on
+            // purpose: it is the only markup on this page that must not be
+            // regenerated.
+            'documentHtml' => $this->signedDocument->html($contract),
             'isSigned' => $contract->getStatus()->isEngaged(),
             'codePath' => $this->generateUrl('public_contract_code', ['selector' => $selector, 'token' => $token]),
+            'openedPath' => $this->generateUrl('public_contract_opened', ['selector' => $selector, 'token' => $token]),
             'signPath' => $this->generateUrl('public_contract_sign', ['selector' => $selector, 'token' => $token]),
             'refusePath' => $this->generateUrl('public_contract_refuse', ['selector' => $selector, 'token' => $token]),
             'isConcluded' => ContractStatusEnum::Countersigned === $contract->getStatus(),
@@ -118,6 +124,32 @@ final class PublicContractController extends AbstractController
      * the ten-minute window are the ones that hold, because an IP is the
      * attacker's to rotate.
      */
+    /**
+     * The page, displayed in a browser, says it has been opened.
+     *
+     * A POST sent by the page's own script, which a link scanner does not
+     * run: the GET used to mark the contract « Ouvert » as soon as a mail
+     * security filter followed the link.
+     */
+    #[Route(
+        '/{selector}/{token}/opened',
+        name: '_opened',
+        requirements: ['selector' => '[a-f0-9]{32}', 'token' => '[a-f0-9]{64}'],
+        methods: [HttpMethodEnum::Post->value],
+    )]
+    public function opened(string $selector, string $token): JsonResponse
+    {
+        $link = $this->links->resolveUsable($selector, $token);
+
+        if (!$link instanceof ContractAccessLinkInterface) {
+            throw $this->createNotFoundException();
+        }
+
+        $this->links->markOpened($link);
+
+        return $this->jsonSuccess();
+    }
+
     #[Route(
         '/{selector}/{token}/code',
         name: '_code',

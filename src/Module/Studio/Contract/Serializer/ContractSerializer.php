@@ -4,14 +4,26 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\Contract\Serializer;
 
+use Aurora\Module\Dev\Audit\Entity\AuditLogInterface;
+use Aurora\Module\Dev\Audit\Repository\AuditLogRepository;
 use Aurora\Module\Studio\Contract\Access\Entity\ContractAccessLinkInterface;
 use Aurora\Module\Studio\Contract\Access\Repository\ContractAccessLinkRepository;
 use Aurora\Module\Studio\Contract\Entity\ContractInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersionInterface;
+use Aurora\Module\Studio\Contract\Enum\ContractStatusEnum;
 use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\Contract\Service\ContractRetentionPolicy;
 use Aurora\Module\Studio\Contract\Service\ContractSeal;
+use Aurora\Module\Studio\Contract\Service\ContractSignedDocument;
+use Aurora\Module\Studio\Contract\Signature\Entity\ContractSignatureInterface;
+use Aurora\Module\Studio\Contract\Signature\Repository\ContractSignatureRepository;
+use DateTimeImmutable;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
+use Symfony\Contracts\Translation\TranslatorInterface;
+
+use function array_filter;
+use function array_map;
+use function max;
 
 use const DATE_ATOM;
 
@@ -23,6 +35,10 @@ class ContractSerializer implements ContractSerializerInterface
         protected readonly ContractAccessLinkRepository $links,
         protected readonly ContractRetentionPolicy $retention,
         protected readonly ContractRepository $contracts,
+        protected readonly ContractSignedDocument $signedDocument,
+        protected readonly ContractSignatureRepository $signatures,
+        protected readonly AuditLogRepository $auditLogs,
+        protected readonly TranslatorInterface $translator,
     ) {}
 
     /** @return array<string, mixed> */
@@ -51,6 +67,16 @@ class ContractSerializer implements ContractSerializerInterface
             'reference' => $contract->getReference(),
             'status' => $contract->getStatus()->value,
             'statusLabel' => $contract->getStatus()->getLabel(),
+            // Where it stands in the journey, which is what the list's tabs
+            // and the dashboard's counters are built on: one answer, given
+            // here, rather than a status list repeated on every screen.
+            'step' => $this->step($contract),
+            // Sealed contracts can be deleted once their retention has run
+            // out, drafts at any time; the screen only offers what will work.
+            'isDeletable' => !$contract->isFrozen() || $this->retention->hasElapsed($contract),
+            // Where a first send would go, so the confirmation can say it.
+            'customerEmail' => $customer->getContractualEmail(),
+            'lastActivityAt' => $this->lastActivity($contract, $link)->format(DATE_ATOM),
             'isFrozen' => $contract->isFrozen(),
             'isEditable' => $contract->getStatus()->isEditable() && !$contract->isFrozen(),
             'locale' => $contract->getLocale(),
@@ -111,7 +137,9 @@ class ContractSerializer implements ContractSerializerInterface
     {
         return [
             ...$this->serialize($contract),
-            'renderedHtml' => $contract->getRenderedHtml(),
+            // Null for a draft, which has no sealed text yet; otherwise the
+            // sealed text with the signer's city and date written in.
+            'renderedHtml' => null === $contract->getRenderedHtml() ? null : $this->signedDocument->html($contract),
             // The seal, as a block a human can read and check. A hash shown
             // without its algorithm and its canonical form is a string nobody
             // can do anything with.
@@ -129,6 +157,8 @@ class ContractSerializer implements ContractSerializerInterface
                 ],
                 $this->contracts->findAmendmentsOf($contract),
             ),
+            'signatures' => $this->signatures($contract),
+            'history' => $this->history($contract),
             'seal' => [
                 'contentHash' => $contract->getContentHash(),
                 'hashAlgo' => $contract->getHashAlgo(),
@@ -140,6 +170,92 @@ class ContractSerializer implements ContractSerializerInterface
                 'verified' => $contract->isFrozen() && $this->seal->verify($contract),
             ],
         ];
+    }
+
+    /**
+     * The step of the journey a contract is at.
+     *
+     * - `draft`: being written;
+     * - `to_send`: sealed and not out, or back after a refusal, an expiry or a
+     *   revocation, waiting to be sent or cancelled;
+     * - `with_customer`: out, no answer yet;
+     * - `to_countersign`: signed by the customer, waiting for the provider;
+     * - `active`: concluded and running, a notice included until it bites;
+     * - `ended`: terminated for good, or cancelled.
+     */
+    protected function step(ContractInterface $contract): string
+    {
+        return match ($contract->getStatus()) {
+            ContractStatusEnum::Draft => 'draft',
+            ContractStatusEnum::Sealed, ContractStatusEnum::Refused, ContractStatusEnum::Expired, ContractStatusEnum::Revoked => 'to_send',
+            ContractStatusEnum::Sent, ContractStatusEnum::Opened => 'with_customer',
+            ContractStatusEnum::SignedByCustomer => 'to_countersign',
+            ContractStatusEnum::Countersigned => $contract->isTerminationEffective() ? 'ended' : 'active',
+            ContractStatusEnum::Cancelled => 'ended',
+        };
+    }
+
+    /**
+     * The most recent thing that happened to it, for a list sorted by what
+     * moved. Never empty: a contract always has the day it was created.
+     */
+    protected function lastActivity(ContractInterface $contract, ?ContractAccessLinkInterface $link): DateTimeImmutable
+    {
+        $dates = array_filter([
+            $contract->getCreatedAt(),
+            $contract->getFrozenAt(),
+            $link?->getSentAt(),
+            $link?->getLastUsedAt(),
+            $contract->getRefusedAt(),
+            $contract->getLastReminderAt(),
+            $contract->getPdfGeneratedAt(),
+            $contract->getTerminationNoticedAt(),
+        ]);
+
+        return max($dates);
+    }
+
+    /**
+     * The signatures as proof: who, where, when, from which address, and how
+     * they were identified.
+     *
+     * @return list<array<string, mixed>>
+     */
+    protected function signatures(ContractInterface $contract): array
+    {
+        return array_map(static fn (ContractSignatureInterface $signature): array => [
+            'role' => $signature->getRole()->value,
+            'name' => $signature->getDeclaredFullName(),
+            'email' => $signature->getDeclaredEmail(),
+            'place' => $signature->getDeclaredPlace(),
+            'date' => $signature->getDeclaredDate()->format('Y-m-d'),
+            'signedAt' => $signature->getSignedAt()->format(DATE_ATOM),
+            'ip' => $signature->getIpAddress(),
+            'codeSentTo' => $signature->getChallengeSentTo(),
+            'codeVerifiedAt' => $signature->getChallengeVerifiedAt()?->format(DATE_ATOM),
+            'byUser' => $signature->getUser()?->getName(),
+            'hashMatches' => $signature->getSignedContentHash() === $contract->getContentHash(),
+        ], $this->signatures->findForContract($contract));
+    }
+
+    /**
+     * What happened to it, newest first, as the audit trail recorded it.
+     *
+     * @return list<array<string, mixed>>
+     */
+    protected function history(ContractInterface $contract): array
+    {
+        if (null === $contract->getId()) {
+            return [];
+        }
+
+        $page = $this->auditLogs->findPaginatedForEntity('Contract', $contract->getId(), 1, 50);
+
+        return array_map(fn (AuditLogInterface $log): array => [
+            'label' => $this->translator->trans('backend.audit.actions.'.$log->getModule().'.'.$log->getAction()),
+            'userName' => $log->getUserName(),
+            'at' => $log->getCreatedAt()->format(DATE_ATOM),
+        ], $page['items'] ?? []);
     }
 
     /**

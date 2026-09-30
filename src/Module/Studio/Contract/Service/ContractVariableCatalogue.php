@@ -68,6 +68,7 @@ final readonly class ContractVariableCatalogue
                     $this->variable('customer.legal_name', 'Boulangerie Durand'),
                     $this->variable('customer.legal_form', 'SARL'),
                     $this->variable('customer.share_capital', '10 000 €'),
+                    $this->variable('customer.legal_status', 'SARL au capital de 10 000 €'),
                     $this->variable('customer.registered_office', '12 rue des Lilas, 69003 Lyon'),
                     $this->variable('customer.siret', '732 829 320 00074'),
                     $this->variable('customer.trade_register', 'Lyon B 732 829 320'),

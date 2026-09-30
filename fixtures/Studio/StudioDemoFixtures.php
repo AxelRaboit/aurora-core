@@ -15,6 +15,7 @@ use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 use Aurora\Module\Platform\User\Repository\UserRepository;
+use Aurora\Module\Studio\Contract\Access\Entity\ContractAccessLink;
 use Aurora\Module\Studio\Contract\Dto\ContractInput;
 use Aurora\Module\Studio\Contract\Dto\ContractTemplateInput;
 use Aurora\Module\Studio\Contract\Dto\ContractTemplateVersionInput;
@@ -283,7 +284,8 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             'formule' => 'Suivi',
             'duree' => '24 mois',
         ]);
-        $this->seal($waiting, ContractStatusEnum::Sent);
+        $this->seal($waiting, ContractStatusEnum::Sent, '-4 days');
+        $this->link($waiting, sentAt: '-4 days');
         $waiting->markReminded(new DateTimeImmutable('-1 day'));
 
         // 3. Signed by the customer and countersigned: a concluded contract,
@@ -292,7 +294,8 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             'formule' => 'Essentiel',
             'duree' => '12 mois',
         ]);
-        $this->seal($concluded, ContractStatusEnum::Countersigned);
+        $this->seal($concluded, ContractStatusEnum::Countersigned, '-5 days');
+        $this->link($concluded, sentAt: '-5 days', openedAt: '-2 days', revokedAt: '-1 day');
         $this->sign($concluded, ContractSignatureRoleEnum::Customer, $sophie, '-2 days');
         $this->sign($concluded, ContractSignatureRoleEnum::Provider, $sophie, '-1 day');
 
@@ -301,10 +304,11 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         //    changes.
         $amendment = $this->amendment($concluded, $amendmentTrame, 490_00, '+1 month', [
             'avenant_objet' => 'Passage de la formule Essentiel à la formule Suivi',
-            'avenant_duree' => "Jusqu'au terme du contrat initial",
+            'avenant_duree' => "jusqu'au terme du contrat initial",
         ]);
 
-        $this->seal($amendment, ContractStatusEnum::Countersigned);
+        $this->seal($amendment, ContractStatusEnum::Countersigned, '-2 days');
+        $this->link($amendment, sentAt: '-2 days', openedAt: '-1 day', revokedAt: 'now');
         $this->sign($amendment, ContractSignatureRoleEnum::Customer, $sophie, '-1 day');
         $this->sign($amendment, ContractSignatureRoleEnum::Provider, $sophie, 'now');
 
@@ -314,7 +318,9 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             'formule' => 'Suivi',
             'duree' => '36 mois',
         ]);
-        $this->seal($refused, ContractStatusEnum::Sent);
+        $this->seal($refused, ContractStatusEnum::Sent, '-6 days');
+        // A refusal revokes the address it came through, as the real path does.
+        $this->link($refused, sentAt: '-6 days', openedAt: '-1 day', revokedAt: '-1 day');
         $refused->refuse(
             new DateTimeImmutable('-1 day'),
             'Budget reporte au prochain exercice.',
@@ -327,9 +333,12 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             'formule' => 'Essentiel',
             'duree' => '12 mois',
         ]);
-        $this->seal($ended, ContractStatusEnum::Countersigned);
-        $this->sign($ended, ContractSignatureRoleEnum::Customer, $jean, '-4 days');
-        $this->sign($ended, ContractSignatureRoleEnum::Provider, $jean, '-3 days');
+        // Signed a year ago, before it took effect: a relationship that ends
+        // today began well before, and its dates have to say so.
+        $this->seal($ended, ContractStatusEnum::Countersigned, '-1 year -12 days');
+        $this->link($ended, sentAt: '-1 year -12 days', openedAt: '-1 year -9 days', revokedAt: '-1 year -8 days');
+        $this->sign($ended, ContractSignatureRoleEnum::Customer, $jean, '-1 year -9 days');
+        $this->sign($ended, ContractSignatureRoleEnum::Provider, $jean, '-1 year -8 days');
         $ended->terminate(
             new DateTimeImmutable('now'),
             new DateTimeImmutable('+2 months'),
@@ -363,7 +372,8 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             'formule' => 'Suivi',
             'duree' => '12 mois',
         ]);
-        $this->seal($opened, ContractStatusEnum::Opened);
+        $this->seal($opened, ContractStatusEnum::Opened, '-3 days');
+        $this->link($opened, sentAt: '-3 days', openedAt: '-1 day');
 
         // Signé par le client, en attente de contresignature : la balle est
         // dans votre camp, et c'est le seul etat qui le dit.
@@ -371,7 +381,8 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             'formule' => 'Suivi',
             'duree' => '18 mois',
         ]);
-        $this->seal($waitingCountersign, ContractStatusEnum::SignedByCustomer);
+        $this->seal($waitingCountersign, ContractStatusEnum::SignedByCustomer, '-7 days');
+        $this->link($waitingCountersign, sentAt: '-7 days', openedAt: '-3 days', revokedAt: '-3 days');
         $this->sign($waitingCountersign, ContractSignatureRoleEnum::Customer, $jean, '-3 days');
 
         // Expire : personne n'a signe a temps. Une date d'effet passee, pour
@@ -379,7 +390,9 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         $expired = $this->contract($sophie, $oneShot, null, 320_00, '-2 months', [
             'acompte' => '50 %',
         ]);
-        $this->seal($expired, ContractStatusEnum::Expired);
+        // Sent more than thirty days ago: the address lapsed unanswered.
+        $this->seal($expired, ContractStatusEnum::Expired, '-40 days');
+        $this->link($expired, sentAt: '-40 days');
 
         // Revoque : retire avant signature, de votre fait. A ne pas confondre
         // avec un refus, qui vient du client.
@@ -387,7 +400,8 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             'formule' => 'Essentiel',
             'duree' => '12 mois',
         ]);
-        $this->seal($revoked, ContractStatusEnum::Revoked);
+        $this->seal($revoked, ContractStatusEnum::Revoked, '-3 days');
+        $this->link($revoked, sentAt: '-3 days', revokedAt: '-1 day');
 
         $this->entityManager->flush();
     }
@@ -1683,17 +1697,60 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
      * and a fixture that fills a mailbox every time it loads is a fixture
      * people stop loading.
      *
-     * The seal date is not back-dated, and cannot be: `frozenAt` is written by
-     * the seal and has no setter, which is the immutability doing its job. So
-     * every demo contract reads as sealed today, and the dates that do vary -
-     * effective date, signature, notice - are set around that.
+     * `frozenAt` has no setter, which is the immutability doing its job, so the
+     * demo moves it back in the database once the seal is written. It is not
+     * part of what the hash covers, so the seal still verifies. Without it
+     * every contract read as sealed today and signed two days earlier: signed
+     * before it existed.
      */
-    private function seal(ContractInterface $contract, ContractStatusEnum $status): void
+    private function seal(ContractInterface $contract, ContractStatusEnum $status, string $sealedAt = 'now'): void
     {
         $this->contracts->freeze($contract);
         $this->entityManager->flush();
 
+        if ('now' !== $sealedAt) {
+            $this->entityManager->getConnection()->executeStatement(
+                'UPDATE core_contracts SET frozen_at = :at WHERE id = :id',
+                ['at' => new DateTimeImmutable($sealedAt)->format('Y-m-d H:i:s'), 'id' => $contract->getId()],
+            );
+        }
+
         $contract->setStatus($status);
+    }
+
+    /**
+     * The address the contract went out under.
+     *
+     * A contract « Envoyé » with no link behind it showed an empty panel and
+     * a summary with no date, and the morning job would have marked it
+     * expired: nothing it can find says it is still out with the customer.
+     * The token is minted and thrown away; the demo only needs the dates.
+     */
+    private function link(
+        ContractInterface $contract,
+        string $sentAt,
+        ?string $openedAt = null,
+        ?string $revokedAt = null,
+    ): void {
+        $sent = new DateTimeImmutable($sentAt);
+
+        $link = new ContractAccessLink();
+        $link
+            ->setContract($contract)
+            ->setRecipientEmail((string) $contract->getCustomer()->getContractualEmail())
+            ->setExpiresAt($sent->modify('+30 days'));
+        $link->mint();
+        $link->markSent($sent);
+
+        if (null !== $openedAt) {
+            $link->markUsed(new DateTimeImmutable($openedAt));
+        }
+
+        if (null !== $revokedAt) {
+            $link->revoke(new DateTimeImmutable($revokedAt));
+        }
+
+        $this->entityManager->persist($link);
     }
 
     private function sign(
@@ -1731,7 +1788,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             $this->paragraph('Le présent contrat définit les conditions dans lesquelles {{provider.name}}, représentée par {{provider.representative}}, assure pour {{customer.legal_name}} une prestation de suivi mensuel de son site internet.'),
             $this->header('Les parties'),
             $this->paragraph('Le prestataire : {{provider.name}}, {{provider.address}}, SIRET {{provider.siret}}, code APE {{provider.ape_code}}. {{provider.vat_mention}}.'),
-            $this->paragraph('Le client : {{customer.legal_name}}, {{customer.legal_form}} au capital de {{customer.share_capital}}, dont le siège est {{customer.registered_office}}, SIRET {{customer.siret}}, représentée par {{customer.representative_full_name}} en qualité de {{customer.representative_role}}.'),
+            $this->paragraph('Le client : {{customer.legal_name}}, {{customer.legal_status}}, dont le siège est {{customer.registered_office}}, SIRET {{customer.siret}}, représentée par {{customer.representative_full_name}} en qualité de {{customer.representative_role}}.'),
             $this->header('Durée et formule'),
             $this->paragraph('La formule retenue est la formule {{contract.custom.formule}}, pour une durée de {{contract.custom.duree}} à compter du {{contract.effective_date}}.'),
             $this->header('Prix'),

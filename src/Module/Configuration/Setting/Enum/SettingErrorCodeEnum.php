@@ -12,4 +12,5 @@ namespace Aurora\Module\Configuration\Setting\Enum;
 enum SettingErrorCodeEnum: string
 {
     case CascadeViolation = 'cascade_violation';
+    case InvalidPrefix = 'invalid_prefix';
 }

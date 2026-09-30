@@ -91,15 +91,18 @@ const amendableOptions = computed(() =>
  * came from, and the manager is what actually holds the rule.
  */
 const amendedContract = computed(() =>
-    props.amendable.find((contract) => contract.id === form.value.amendsId),
+    props.amendable.find((contract) => contract.id === Number(form.value.amendsId)),
 );
 
 function setAmends(value) {
-    const parent = props.amendable.find((contract) => contract.id === value);
+    // AppSelect answers with a string and the ids are numbers: compared as
+    // they came, the parent was never found and the customer never filled in.
+    const id = null === value || "" === value ? null : Number(value);
+    const parent = props.amendable.find((contract) => contract.id === id);
 
     emit("update:modelValue", {
         ...props.modelValue,
-        amendsId: value,
+        amendsId: id,
         // Follows the parent when there is one, and is left alone when the
         // choice is cleared: somebody who picked a customer first should not
         // lose it by opening and closing this select.

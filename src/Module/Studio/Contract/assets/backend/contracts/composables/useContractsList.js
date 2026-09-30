@@ -1,11 +1,23 @@
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
-import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { useFormAction } from "@/shared/composables/form/useFormAction.js";
-import { useClientFilteredList } from "@/shared/composables/list/useClientFilteredList.js";
 import { required } from "@/shared/utils/validation/validators.js";
+import { formFromContract } from "./contractForm.js";
+
+/** The steps of the journey, in the order a contract travels them. */
+export const STEPS = [
+    "draft",
+    "to_send",
+    "with_customer",
+    "to_countersign",
+    "active",
+    "ended",
+];
+
+/** Rows per page: a screen's worth, and the rest one click away. */
+export const PAGE_SIZE = 25;
 
 function emptyForm(locales) {
     return {
@@ -27,35 +39,124 @@ function emptyForm(locales) {
     };
 }
 
+/**
+ * The list of contracts: one list, read by step.
+ *
+ * It used to be two tables, « En préparation » and « Scellés », which did not
+ * show the same columns, sorted in an order nobody chose, and let a concluded
+ * contract sit beside one waiting for a signature with nothing to tell them
+ * apart but a grey word. Now every contract is in one list, filed by the step
+ * it is at (see the serializer's `step`), searchable by reference, customer or
+ * trame, filtered by customer or trame, newest activity first.
+ *
+ * Creating and editing a draft stay here; every other gesture belongs to the
+ * contract's own screen, which the rows open.
+ */
 export function useContractsList(props) {
     const { t } = useI18n();
-    const { request } = useRequest();
 
-    const {
-        items,
-        searchInput: search,
-        filteredItems,
-    } = useClientFilteredList(props.contracts, null, (contract, query) =>
-        [contract.reference, contract.customerName]
-            .filter(Boolean)
-            .some((field) => String(field).toLowerCase().includes(query)),
-    );
+    const items = ref([...(props.contracts ?? [])]);
 
-    /**
-     * Drafts are what somebody is working on; the rest is history. Both are
-     * always reachable, but the one being worked on comes first.
-     */
-    const drafts = computed(() =>
-        filteredItems.value.filter((contract) => contract.isEditable),
+    const query = new URLSearchParams(window.location.search);
+    const step = ref(
+        STEPS.includes(query.get("step")) ? query.get("step") : "all",
     );
-
-    const sealed = computed(() =>
-        filteredItems.value.filter((contract) => !contract.isEditable),
-    );
+    const customerFilter = ref(query.get("customer") ?? "");
+    const templateFilter = ref(query.get("template") ?? "");
+    const search = ref("");
+    const page = ref(1);
 
     function applyList(data) {
         if (Array.isArray(data?.contracts)) items.value = data.contracts;
     }
+
+    function matchesSearch(contract, needle) {
+        if (!needle) return true;
+
+        return [
+            contract.reference,
+            contract.customerName,
+            contract.body?.templateName,
+            contract.annex?.templateName,
+        ]
+            .filter(Boolean)
+            .some((value) => value.toLowerCase().includes(needle));
+    }
+
+    function matchesFilters(contract) {
+        if (
+            customerFilter.value &&
+            String(contract.customerId) !== String(customerFilter.value)
+        )
+            return false;
+
+        if (
+            templateFilter.value &&
+            String(contract.body?.templateId ?? "") !==
+                String(templateFilter.value) &&
+            String(contract.annex?.templateId ?? "") !==
+                String(templateFilter.value)
+        ) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /** Everything the search and the filters keep, before the step. */
+    const filtered = computed(() => {
+        const needle = search.value.trim().toLowerCase();
+
+        return (
+            items.value
+                .filter(
+                    (contract) =>
+                        matchesSearch(contract, needle) &&
+                        matchesFilters(contract),
+                )
+                // Newest activity first, then newest contract: two rows with the
+                // same day used to come in whatever order the query returned.
+                .sort(
+                    (a, b) =>
+                        String(b.lastActivityAt ?? "").localeCompare(
+                            String(a.lastActivityAt ?? ""),
+                        ) || (b.id ?? 0) - (a.id ?? 0),
+                )
+        );
+    });
+
+    /** How many at each step, so a tab says whether it is worth opening. */
+    const counts = computed(() => {
+        const result = { all: filtered.value.length };
+
+        for (const key of STEPS) result[key] = 0;
+        for (const contract of filtered.value)
+            result[contract.step] = (result[contract.step] ?? 0) + 1;
+
+        return result;
+    });
+
+    const inStep = computed(() =>
+        "all" === step.value
+            ? filtered.value
+            : filtered.value.filter((contract) => contract.step === step.value),
+    );
+
+    const totalPages = computed(() =>
+        Math.max(1, Math.ceil(inStep.value.length / PAGE_SIZE)),
+    );
+    const rows = computed(() =>
+        inStep.value.slice(
+            (page.value - 1) * PAGE_SIZE,
+            page.value * PAGE_SIZE,
+        ),
+    );
+
+    watch([step, search, customerFilter, templateFilter], () => {
+        page.value = 1;
+    });
+
+    /* Creation: the draft opens on its own screen, where « Sceller » is. */
 
     const showCreate = ref(false);
     const newContract = ref(emptyForm(props.locales));
@@ -82,16 +183,20 @@ export function useContractsList(props) {
             showCreate.value = false;
             toast.success(t("backend.studio.contracts.created"));
             applyList(data);
+
+            if (data?.contract?.id)
+                window.location.assign(
+                    buildPath(props.showPath, { id: data.contract.id }),
+                );
         },
     });
 
     /**
      * Opens the form, optionally on an amendment of a given contract.
      *
-     * The document page links here with `?amends=<id>`, which is how an
-     * amendment is started from the thing it amends rather than from a select
-     * of every contract ever signed. The customer follows the parent, exactly
-     * as the manager requires.
+     * An amendment is started from the contract it amends (its screen links
+     * here with `?amends=<id>`), never from the general form: a new contract
+     * used to open on « Avenant au contrat », before even the customer.
      */
     function openCreate(amendsId = null) {
         const form = emptyForm(props.locales);
@@ -101,13 +206,15 @@ export function useContractsList(props) {
 
         if (parent) {
             form.amendsId = parent.id;
-            form.customerId = parent.customerId;
+            form.customerId = String(parent.customerId);
         }
 
         newContract.value = form;
         clearCreate();
         showCreate.value = true;
     }
+
+    /* Editing a draft from its row. */
 
     const showEdit = ref(false);
     const editing = ref(null);
@@ -140,180 +247,34 @@ export function useContractsList(props) {
 
     function openEdit(contract) {
         editing.value = contract;
-        editForm.value = {
-            customerId: String(contract.customerId ?? ""),
-            bodyTemplateId: String(contract.body?.templateId ?? ""),
-            annexTemplateId: String(contract.annex?.templateId ?? ""),
-            locale: contract.locale,
-            amount:
-                contract.amountCents === null ||
-                contract.amountCents === undefined
-                    ? ""
-                    : String(contract.amountCents / 100),
-            amountCurrency: contract.amountCurrency ?? "EUR",
-            effectiveDate: contract.effectiveDate ?? "",
-            customFields: { ...(contract.customFields ?? {}) },
-        };
+        // Built by the helper the contract's own screen uses too: two copies
+        // drifted, and this one forgot the parent of an amendment.
+        editForm.value = formFromContract(contract);
         clearEdit();
         showEdit.value = true;
     }
 
-    const pendingDelete = ref(null);
-    const pendingFreeze = ref(null);
-    const pendingSend = ref(null);
-    const pendingRevoke = ref(null);
-    const busy = ref(false);
-
-    async function confirmDelete() {
-        const contract = pendingDelete.value;
-        pendingDelete.value = null;
-
-        if (!contract || busy.value) return;
-        busy.value = true;
-
-        try {
-            const data = await request(
-                buildPath(props.deletePath, { id: contract.id }),
-                {},
-            );
-
-            if (data?.errors) {
-                toast.error(Object.values(data.errors)[0]);
-
-                return;
-            }
-
-            applyList(data);
-            toast.success(t("backend.studio.contracts.deleted"));
-        } finally {
-            busy.value = false;
-        }
-    }
-
-    /**
-     * Sealing, which is the point of no return.
-     *
-     * On success the page goes to the document: what somebody wants to see
-     * immediately after sealing is what was sealed.
-     */
-    async function confirmFreeze() {
-        const contract = pendingFreeze.value;
-
-        if (!contract || busy.value) return;
-        busy.value = true;
-
-        try {
-            const data = await request(
-                buildPath(props.freezePath, { id: contract.id }),
-                {},
-            );
-
-            if (data?.errors) {
-                // Named on the toast: the refusals here say which trame or
-                // which token is at fault, and that sentence is the whole
-                // value of the message.
-                toast.error(Object.values(data.errors)[0]);
-                pendingFreeze.value = null;
-
-                return;
-            }
-
-            applyList(data);
-
-            if (data?.showPath) {
-                window.location.assign(data.showPath);
-            }
-        } finally {
-            busy.value = false;
-        }
-    }
-
-    /**
-     * Sending, which is the act that reaches somebody outside.
-     *
-     * Kept apart from sealing on purpose: sealing makes the document final,
-     * sending hands out an address. A day can pass between the two.
-     */
-    async function confirmSend() {
-        const contract = pendingSend.value;
-
-        if (!contract || busy.value) return;
-        busy.value = true;
-
-        try {
-            const data = await request(
-                buildPath(props.sendPath, { id: contract.id }),
-                {},
-            );
-
-            if (data?.errors) {
-                toast.error(Object.values(data.errors)[0]);
-
-                return;
-            }
-
-            applyList(data);
-            toast.success(
-                t("backend.studio.contracts.sent_to", {
-                    email: data?.sentTo ?? "",
-                }),
-            );
-        } finally {
-            pendingSend.value = null;
-            busy.value = false;
-        }
-    }
-
-    async function confirmRevoke() {
-        const contract = pendingRevoke.value;
-
-        if (!contract || busy.value) return;
-        busy.value = true;
-
-        try {
-            const data = await request(
-                buildPath(props.revokeLinkPath, { id: contract.id }),
-                {},
-            );
-
-            if (data?.errors) {
-                toast.error(Object.values(data.errors)[0]);
-
-                return;
-            }
-
-            applyList(data);
-            toast.success(t("backend.studio.contracts.revoke_link"));
-        } finally {
-            pendingRevoke.value = null;
-            busy.value = false;
-        }
-    }
-
-    function documentPath(contract) {
-        return buildPath(props.showPath, { id: contract.id });
-    }
-
     function formatAmount(contract) {
-        if (
-            contract.amountCents === null ||
-            contract.amountCents === undefined
-        ) {
+        if (null === contract.amountCents || undefined === contract.amountCents)
             return null;
-        }
 
         return new Intl.NumberFormat(undefined, {
             style: "currency",
             currency: contract.amountCurrency ?? "EUR",
-            minimumFractionDigits: contract.amountCents % 100 === 0 ? 0 : 2,
+            minimumFractionDigits: 0 === contract.amountCents % 100 ? 0 : 2,
         }).format(contract.amountCents / 100);
     }
 
     return {
         items,
         search,
-        drafts,
-        sealed,
+        step,
+        customerFilter,
+        templateFilter,
+        page,
+        totalPages,
+        counts,
+        rows,
         showCreate,
         newContract,
         createErrors,
@@ -327,16 +288,6 @@ export function useContractsList(props) {
         editLoading,
         openEdit,
         submitEdit,
-        pendingDelete,
-        pendingFreeze,
-        pendingSend,
-        pendingRevoke,
-        busy,
-        confirmDelete,
-        confirmFreeze,
-        confirmSend,
-        confirmRevoke,
-        documentPath,
         formatAmount,
     };
 }

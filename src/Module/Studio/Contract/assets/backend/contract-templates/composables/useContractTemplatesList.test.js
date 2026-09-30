@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 // Relative rather than aliased: the Studio module keeps its assets under
 // its sub-domains (Contract/assets, Customer/assets) instead of at the module
 // root, so there is no `@studio` alias to import through.
+import { toast } from "vue-sonner";
 import { useContractTemplatesList } from "./useContractTemplatesList.js";
 
 const request = vi.fn();
@@ -104,7 +105,11 @@ describe("useContractTemplatesList", () => {
         expect(state.visibleItems.value[1].draftId).toBeNull();
     });
 
-    it("opens a draft without leaving the list", async () => {
+    /**
+     * « Modifier le texte » goes into the draft it opens: staying on the list
+     * left the reader to find an amber badge and click again.
+     */
+    it("opens a draft and goes into it", async () => {
         request.mockResolvedValue({
             success: true,
             draftId: 90,
@@ -114,8 +119,7 @@ describe("useContractTemplatesList", () => {
         const state = list();
         await state.openDraft(BODY);
 
-        expect(assign).not.toHaveBeenCalled();
-        expect(state.visibleItems.value[0].draftId).toBe(90);
+        expect(assign).toHaveBeenCalledWith("/1/versions/90");
     });
 
     it("duplicates without leaving the list", async () => {
@@ -200,5 +204,21 @@ describe("the category filter", () => {
         expect(categoryCounts.value.community_management).toBe(1);
         expect(categoryCounts.value[NO_CATEGORY]).toBe(1);
         expect(categoryCounts.value.photography).toBe(0);
+    });
+
+    /**
+     * `request` answers null when it has already reported a refusal or a
+     * failure. Read as a success, archiving a trame the account may not touch
+     * showed « Trame archivée » beside the red toast.
+     */
+    it("announces nothing when the server refused", async () => {
+        request.mockResolvedValue(null);
+        toast.success.mockClear();
+
+        const templates = list();
+        await templates.archive(BODY);
+        await templates.openDraft(BODY);
+
+        expect(toast.success).not.toHaveBeenCalled();
     });
 });

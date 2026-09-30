@@ -51,19 +51,14 @@ final readonly class ContractsViewBuilder
             'currencies' => $this->currencyOptions(),
             'createPath' => $this->urlGenerator->generate('backend_studio_contracts_create'),
             'updatePath' => $this->pathTemplates->generate('backend_studio_contracts_update', ['id' => '__id__']),
-            'deletePath' => $this->pathTemplates->generate('backend_studio_contracts_delete', ['id' => '__id__']),
-            'freezePath' => $this->pathTemplates->generate('backend_studio_contracts_freeze', ['id' => '__id__']),
             'previewPath' => $this->pathTemplates->generate('backend_studio_contracts_preview', ['id' => '__id__']),
-            'sendPath' => $this->pathTemplates->generate('backend_studio_contracts_send', ['id' => '__id__']),
-            'revokeLinkPath' => $this->pathTemplates->generate('backend_studio_contracts_revoke_link', ['id' => '__id__']),
-            'countersignPath' => $this->pathTemplates->generate('backend_studio_contracts_countersign', ['id' => '__id__']),
+            'duplicatePath' => $this->pathTemplates->generate('backend_studio_contracts_duplicate', ['id' => '__id__']),
             'pdfPath' => $this->pathTemplates->generate('backend_studio_contracts_pdf', ['id' => '__id__']),
             // One address for every row, whatever state it is in: the signed
             // file when there is one, a working copy otherwise.
             'exportPath' => $this->pathTemplates->generate('backend_studio_contracts_export', ['id' => '__id__']),
+            // The contract's own screen, where every other gesture is.
             'showPath' => $this->pathTemplates->generate('backend_studio_contracts_show', ['id' => '__id__']),
-            'terminatePath' => $this->pathTemplates->generate('backend_studio_contracts_terminate', ['id' => '__id__']),
-            'terminationOrigins' => $this->terminationOrigins(),
             // What an amendment may be attached to. Only concluded, running,
             // non-amendment contracts, so the picker cannot offer a choice the
             // manager would refuse a second later.
@@ -74,20 +69,42 @@ final readonly class ContractsViewBuilder
     /** @return array<string, mixed> */
     public function showView(ContractInterface $contract): array
     {
+        $id = $contract->getId();
+        $path = fn (string $route): string => $this->urlGenerator->generate($route, ['id' => $id]);
+
         return [
             'contract' => $this->serializer->serializeDocument($contract),
             'indexPath' => $this->urlGenerator->generate('backend_studio_contracts'),
-            'freezePath' => $this->urlGenerator->generate('backend_studio_contracts_freeze', ['id' => $contract->getId()]),
-            'sendPath' => $this->urlGenerator->generate('backend_studio_contracts_send', ['id' => $contract->getId()]),
-            'revokeLinkPath' => $this->urlGenerator->generate('backend_studio_contracts_revoke_link', ['id' => $contract->getId()]),
-            'countersignPath' => $this->urlGenerator->generate('backend_studio_contracts_countersign', ['id' => $contract->getId()]),
-            'pdfPath' => $this->urlGenerator->generate('backend_studio_contracts_pdf', ['id' => $contract->getId()]),
-            'terminatePath' => $this->urlGenerator->generate('backend_studio_contracts_terminate', ['id' => $contract->getId()]),
+            // Every gesture the screen can offer, so the next step is always a
+            // button on this page rather than a trip back to the list.
+            'updatePath' => $path('backend_studio_contracts_update'),
+            'deletePath' => $path('backend_studio_contracts_delete'),
+            'previewPath' => $path('backend_studio_contracts_preview'),
+            'freezePath' => $path('backend_studio_contracts_freeze'),
+            'sendPath' => $path('backend_studio_contracts_send'),
+            'remindPath' => $path('backend_studio_contracts_remind'),
+            'revokeLinkPath' => $path('backend_studio_contracts_revoke_link'),
+            'cancelPath' => $path('backend_studio_contracts_cancel'),
+            'duplicatePath' => $path('backend_studio_contracts_duplicate'),
+            'countersignPath' => $path('backend_studio_contracts_countersign'),
+            'pdfPath' => $path('backend_studio_contracts_pdf'),
+            'exportPath' => $path('backend_studio_contracts_export'),
+            'terminatePath' => $path('backend_studio_contracts_terminate'),
             'terminationOrigins' => $this->terminationOrigins(),
             // Where an amendment starts from: the list, with this contract
             // already chosen. One screen creates contracts, and an amendment
             // is a contract.
-            'amendPath' => $this->urlGenerator->generate('backend_studio_contracts', ['amends' => $contract->getId()]),
+            'amendPath' => $this->urlGenerator->generate('backend_studio_contracts', ['amends' => $id]),
+            'showPath' => $this->pathTemplates->generate('backend_studio_contracts_show', ['id' => '__id__']),
+            'templateVersionPath' => $this->pathTemplates->generate('backend_studio_contract_templates_editor', ['id' => '__id__', 'versionId' => '__versionId__']),
+            // What the edit form offers, as on the list: a draft is corrected
+            // where it is read.
+            'customers' => $contract->isFrozen() ? [] : $this->customerOptions(),
+            'bodies' => $contract->isFrozen() ? [] : $this->templateOptions(ContractTemplateKindEnum::Body),
+            'annexes' => $contract->isFrozen() ? [] : $this->templateOptions(ContractTemplateKindEnum::Annex),
+            'locales' => $this->localeOptions->getActiveOptions(),
+            'currencies' => $this->currencyOptions(),
+            'amendable' => $contract->isFrozen() ? [] : $this->amendable($this->contractRepository->findAllForIndex()),
         ];
     }
 
@@ -116,7 +133,9 @@ final readonly class ContractsViewBuilder
                 continue;
             }
 
-            if ($contract->isTerminated()) {
+            // Until the termination takes effect: during the notice the contract
+            // still binds, and an amendment is how its last months change.
+            if ($contract->isTerminationEffective()) {
                 continue;
             }
 

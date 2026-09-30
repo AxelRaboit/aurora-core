@@ -15,6 +15,7 @@ use Aurora\Module\Studio\Contract\Entity\ContractTemplate;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateInterface;
 use Aurora\Module\Studio\Contract\Enum\ContractTemplateKindEnum;
 use Aurora\Module\Studio\Contract\Manager\ContractTemplateManager;
+use Aurora\Module\Studio\Contract\Preview\ContractTemplatePreviewer;
 use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\Contract\Repository\ContractTemplateVersionRepository;
 use Aurora\Module\Studio\Contract\Signature\Entity\ContractSignature;
@@ -92,6 +93,7 @@ final class ContractSigningFlowTest extends IntegrationTestCase
             $container->get(ContractTemplateVersionRepository::class),
             $container->get(TranslatorInterface::class),
             $container->get(ContractRepository::class),
+            $container->get(ContractTemplatePreviewer::class),
         );
     }
 
@@ -307,10 +309,12 @@ final class ContractSigningFlowTest extends IntegrationTestCase
         $guest->jsonRequest('POST', $url.'/sign', $this->signPayload($this->latestCode()));
         self::assertSame(200, $guest->getResponse()->getStatusCode());
 
-        // A second code, and a second attempt at the same role.
+        // No second code: there is nothing left to sign, and a code mailed
+        // for a signed contract is mail about nothing.
         $guest->jsonRequest('POST', $url.'/code');
-        self::assertSame(200, $guest->getResponse()->getStatusCode());
+        self::assertSame(422, $guest->getResponse()->getStatusCode());
 
+        // And a second attempt with the old one is refused on the status.
         $guest->jsonRequest('POST', $url.'/sign', $this->signPayload($this->latestCode()));
 
         self::assertSame(422, $guest->getResponse()->getStatusCode());

@@ -12,3 +12,7 @@
 </ul>
 
 <p>{{ 'studio.email.customer_signed.action'|trans }}</p>
+
+{# The contract itself, one click away: the mail said « depuis le back-office »
+   and gave no address. #}
+<p><a href="{{ url('backend_studio_contracts_show', {id: contract.id}) }}">{{ 'studio.email.open_contract'|trans }}</a></p>

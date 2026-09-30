@@ -22,6 +22,11 @@ import { HttpStatus } from "@/shared/utils/http/HttpStatus.js";
  *               does not. For a request the reader never asked for - a side
  *               panel filling itself on arrival - a red toast on every page of
  *               the module is louder than the thing it reports.
+ *   accept    - further statuses whose JSON body goes back to the caller
+ *               rather than into a generic toast. A 429 from a rate limiter
+ *               says which limit and what to do, and a public page that
+ *               showed « Une erreur est survenue » instead left a customer
+ *               retrying into the same wall.
  */
 export function useRequest() {
     const { t } = useI18n();
@@ -37,6 +42,7 @@ export function useRequest() {
         const noGuard = isOpts ? (methodOrOpts.noGuard ?? false) : false;
         const rawBody = isOpts ? (methodOrOpts.rawBody ?? null) : null;
         const silent = isOpts ? (methodOrOpts.silent ?? false) : false;
+        const accept = isOpts ? (methodOrOpts.accept ?? []) : [];
 
         if (!noGuard && loading.value) return null;
         if (!noGuard) loading.value = true;
@@ -69,7 +75,8 @@ export function useRequest() {
                 !response.ok &&
                 response.status !== HttpStatus.UnprocessableEntity &&
                 response.status !== HttpStatus.Conflict &&
-                response.status !== HttpStatus.BadRequest
+                response.status !== HttpStatus.BadRequest &&
+                !accept.includes(response.status)
             )
                 throw new Error(`HTTP ${response.status}`);
             return await response.json();

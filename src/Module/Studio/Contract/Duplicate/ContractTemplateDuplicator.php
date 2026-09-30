@@ -9,9 +9,11 @@ use Aurora\Module\Studio\Contract\Dto\ContractTemplateVersionInput;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersionInterface;
 use Aurora\Module\Studio\Contract\Manager\ContractTemplateManagerInterface;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
-use function sprintf;
+use function mb_strlen;
+use function mb_substr;
 
 /**
  * Copies a trame into a new one whose first version is a draft.
@@ -38,12 +40,25 @@ use function sprintf;
  */
 final readonly class ContractTemplateDuplicator
 {
+    /** What the name column holds. */
+    private const int NAME_MAX = 180;
+
     public function __construct(
         private ContractTemplateManagerInterface $templates,
         private TranslatorInterface $translator,
+        private EntityManagerInterface $entityManager,
     ) {}
 
+    /**
+     * In one transaction: the copy and its wording are written by two saves,
+     * and a failure between them used to leave an empty template behind.
+     */
     public function duplicate(ContractTemplateInterface $source): ContractTemplateInterface
+    {
+        return $this->entityManager->wrapInTransaction(fn (): ContractTemplateInterface => $this->copy($source));
+    }
+
+    private function copy(ContractTemplateInterface $source): ContractTemplateInterface
     {
         $copy = $this->templates->create(new ContractTemplateInput(
             name: $this->copyName($source),
@@ -103,10 +118,10 @@ final readonly class ContractTemplateDuplicator
      */
     private function copyName(ContractTemplateInterface $source): string
     {
-        return sprintf(
-            '%s %s',
-            $source->getName(),
-            $this->translator->trans('backend.studio.contract_templates.duplicate_suffix'),
-        );
+        $suffix = ' '.$this->translator->trans('backend.studio.contract_templates.duplicate_suffix');
+
+        // Cut to fit the column with its suffix: a name of 172 characters or
+        // more plus « (copie) » passed 180 and came back as a 500.
+        return mb_substr($source->getName(), 0, self::NAME_MAX - mb_strlen($suffix)).$suffix;
     }
 }

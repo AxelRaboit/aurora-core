@@ -22,6 +22,7 @@ use Aurora\Module\Studio\Contract\Enum\ContractStatusEnum;
 use Aurora\Module\Studio\Contract\Enum\ContractTemplateKindEnum;
 use Aurora\Module\Studio\Contract\Manager\ContractManager;
 use Aurora\Module\Studio\Contract\Manager\ContractTemplateManager;
+use Aurora\Module\Studio\Contract\Preview\ContractTemplatePreviewer;
 use Aurora\Module\Studio\Contract\Refusal\Dto\ContractRefusalInput;
 use Aurora\Module\Studio\Contract\Refusal\Manager\ContractRefusalManagerInterface;
 use Aurora\Module\Studio\Contract\Repository\ContractRepository;
@@ -44,6 +45,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
+use function array_slice;
 use function sprintf;
 
 /**
@@ -96,12 +98,13 @@ final class ContractAnswerAndRetentionTest extends IntegrationTestCase
             $container->get(ContractTemplateVersionRepository::class),
             $container->get(TranslatorInterface::class),
             $container->get(ContractRepository::class),
+            $container->get(ContractTemplatePreviewer::class),
         );
 
         $this->contracts = new ContractManager(
             $this->entityManager,
             $container->get(AuditLogger::class),
-            new ContractVariableResolver(new ContractVariableCatalogue(), $this->settings),
+            new ContractVariableResolver(new ContractVariableCatalogue(), $this->settings, static::getContainer()->get(TranslatorInterface::class)),
             new ContractDocumentRenderer(new BlockHtmlSanitizer()),
             $canonicalizer,
             new ContractSeal($canonicalizer),
@@ -234,6 +237,104 @@ final class ContractAnswerAndRetentionTest extends IntegrationTestCase
         self::assertFalse($second->isRevoked());
         self::assertSame(1, $contract->getReminderCount());
         self::assertInstanceOf(DateTimeImmutable::class, $contract->getLastReminderAt());
+    }
+
+    /**
+     * Both subjects name the contract. The reminder and the refusal were
+     * sent without the value, and read « le contrat {reference} attend votre
+     * signature », braces included, in the client's mailbox.
+     */
+    public function testTheReminderAndTheRefusalSubjectsNameTheContract(): void
+    {
+        $contract = $this->sentContract();
+        $this->links->send($contract);
+        $link = $this->links->remind($contract);
+        $this->refusals->refuseAsCustomer($link, new ContractRefusalInput(''), $this->requestFrom());
+
+        $subjects = [];
+        foreach ($this->getMailerEvents() as $event) {
+            if (!$event->isQueued()) {
+                $subjects[] = (string) $event->getMessage()->getSubject();
+            }
+        }
+
+        self::assertCount(3, $subjects, 'The sending, the reminder and the refusal.');
+        foreach (array_slice($subjects, 1) as $subject) {
+            self::assertStringContainsString((string) $contract->getReference(), $subject);
+            self::assertStringNotContainsString('{', $subject);
+        }
+    }
+
+    /**
+     * Revoking the only link says so on the contract. It used to stay
+     * « Envoyé » with nothing that opened it, counted as waiting for a
+     * signature for ever.
+     */
+    public function testRevokingTheLinkMarksTheContractRevoked(): void
+    {
+        $contract = $this->sentContract();
+        $link = $this->links->send($contract);
+
+        $this->links->revoke($link);
+
+        self::assertSame(ContractStatusEnum::Revoked, $contract->getStatus());
+    }
+
+    /** Thirty days on, nobody can sign it, and the contract says so. */
+    public function testALapsedContractIsMarkedExpired(): void
+    {
+        $contract = $this->sentContract();
+        $this->links->send($contract);
+        $id = $contract->getId();
+
+        $this->entityManager->getConnection()->executeStatement(
+            'UPDATE core_contract_access_links SET expires_at = :past WHERE contract_id = :id',
+            ['past' => new DateTimeImmutable('-1 day')->format('Y-m-d H:i:s'), 'id' => $id],
+        );
+        $this->entityManager->clear();
+
+        self::assertGreaterThanOrEqual(1, $this->links->expireLapsed());
+
+        $this->entityManager->clear();
+        self::assertSame(ContractStatusEnum::Expired, $this->repository->find($id)?->getStatus());
+    }
+
+    /**
+     * A contract sealed by mistake is cancelled, not deleted: its reference
+     * stays, and a draft carrying the same choices is there to correct.
+     */
+    public function testACancelledContractKeepsItsReferenceAndItsCopyIsADraft(): void
+    {
+        $contract = $this->sentContract();
+        $reference = $contract->getReference();
+
+        $this->contracts->cancel($contract);
+        $copy = $this->contracts->duplicate($contract);
+
+        self::assertSame(ContractStatusEnum::Cancelled, $contract->getStatus());
+        self::assertSame($reference, $contract->getReference());
+
+        self::assertSame(ContractStatusEnum::Draft, $copy->getStatus());
+        self::assertNull($copy->getReference());
+        self::assertSame($contract->getCustomer()->getId(), $copy->getCustomer()->getId());
+        self::assertSame($contract->getAmountCents(), $copy->getAmountCents());
+        self::assertSame($contract->getBodyVersion()?->getTemplate()->getId(), $copy->getBodyVersion()?->getTemplate()->getId());
+
+        // Nothing goes out from a cancelled contract.
+        $this->expectException(FieldException::class);
+        $this->links->send($contract);
+    }
+
+    public function testASignedContractCannotBeCancelled(): void
+    {
+        $contract = $this->sentContract();
+        $this->links->send($contract);
+        $contract->setStatus(ContractStatusEnum::SignedByCustomer);
+        $this->entityManager->flush();
+
+        $this->expectException(FieldException::class);
+
+        $this->contracts->cancel($contract);
     }
 
     public function testAReminderIsRefusedOnceSomebodyHasSigned(): void

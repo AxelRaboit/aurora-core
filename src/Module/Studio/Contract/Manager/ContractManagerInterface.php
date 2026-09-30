@@ -55,4 +55,14 @@ interface ContractManagerInterface
      * @throws FieldException                     when the wording cannot produce a document
      */
     public function freeze(ContractInterface $contract): void;
+
+    /**
+     * Withdraws a sealed contract nobody has signed, keeping its reference.
+     *
+     * @throws FieldException when somebody has signed, or it is not sealed
+     */
+    public function cancel(ContractInterface $contract): void;
+
+    /** A new draft carrying the same choices, to correct and seal again. */
+    public function duplicate(ContractInterface $contract): ContractInterface;
 }

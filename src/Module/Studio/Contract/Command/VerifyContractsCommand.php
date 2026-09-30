@@ -4,18 +4,13 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\Contract\Command;
 
-use Aurora\Module\Studio\Contract\Entity\ContractInterface;
-use Aurora\Module\Studio\Contract\Repository\ContractRepository;
-use Aurora\Module\Studio\Contract\Service\ContractSeal;
-use RuntimeException;
+use Aurora\Module\Studio\Contract\Integrity\ContractIntegrityChecker;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Throwable;
 
-use function count;
 use function sprintf;
 
 /**
@@ -28,21 +23,22 @@ use function sprintf;
  * failure mode the whole design is built against: silent, and irreversible by
  * the time it surfaces.
  *
- * Meant to be run on a schedule and after every deployment that touched this
- * module. It reads and never writes, so running it is always safe.
+ * The same check runs every morning on its own and mails the administrator
+ * when something moved (`VerifyContractsHandler`); this command is for after
+ * a deployment that touched this module, or to see the list at once. It
+ * reads and never writes, so running it is always safe.
  *
  * Exit code 1 on any mismatch, so a scheduler or a CI step fails on it rather
  * than printing red text nobody reads.
  */
 #[AsCommand(
     name: 'aurora:contracts:verify',
-    description: 'Recompute the hash of every frozen contract and report any that no longer match',
+    description: 'Check every sealed contract, its signatures and its signed PDF against their hashes',
 )]
 final class VerifyContractsCommand extends Command
 {
     public function __construct(
-        private readonly ContractRepository $contracts,
-        private readonly ContractSeal $seal,
+        private readonly ContractIntegrityChecker $checker,
     ) {
         parent::__construct();
     }
@@ -50,64 +46,35 @@ final class VerifyContractsCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $frozen = $this->contracts->findFrozen();
+        $report = $this->checker->check();
 
-        if ([] === $frozen) {
+        if (0 === $report->checked) {
             $io->success('No frozen contract to verify.');
 
             return Command::SUCCESS;
         }
 
-        $altered = [];
-        $unverifiable = [];
+        $io->writeln(sprintf('%d frozen contract(s) checked.', $report->checked));
 
-        foreach ($frozen as $contract) {
-            try {
-                if (!$this->seal->verify($contract)) {
-                    $altered[] = $this->describe($contract);
-                }
-            } catch (RuntimeException $exception) {
-                // A contract sealed under a canonical form this code no longer
-                // implements is not evidence of tampering, and reporting it as
-                // such would be the fastest way to make this command
-                // untrustworthy. It is listed apart.
-                $unverifiable[] = sprintf('%s: %s', $this->describe($contract), $exception->getMessage());
-            } catch (Throwable $throwable) {
-                $unverifiable[] = sprintf('%s: %s', $this->describe($contract), $throwable->getMessage());
-            }
-        }
-
-        $io->writeln(sprintf('%d frozen contract(s) checked.', count($frozen)));
-
-        if ([] !== $unverifiable) {
+        if ([] !== $report->unverifiable) {
             $io->warning('These contracts could not be verified by this version of the code:');
-            $io->listing($unverifiable);
+            $io->listing($report->unverifiable);
         }
 
-        if ([] !== $altered) {
-            $io->error('These contracts no longer match the hash they were sealed with:');
-            $io->listing($altered);
+        if ([] !== $report->altered) {
+            $io->error('These contracts no longer match what was sealed:');
+            $io->listing($report->altered);
             $io->writeln('A signed document has changed since it was sealed. Do not repair the hash: find out what wrote to it.');
 
             return Command::FAILURE;
         }
 
-        if ([] !== $unverifiable) {
+        if ([] !== $report->unverifiable) {
             return Command::FAILURE;
         }
 
-        $io->success(sprintf('Every one of the %d frozen contracts still matches its hash.', count($frozen)));
+        $io->success(sprintf('Every one of the %d frozen contracts still matches what was sealed.', $report->checked));
 
         return Command::SUCCESS;
-    }
-
-    private function describe(ContractInterface $contract): string
-    {
-        return sprintf(
-            '%s (id %d, %s)',
-            $contract->getReference() ?? 'no reference',
-            (int) $contract->getId(),
-            $contract->getCustomer()->getLegalName(),
-        );
     }
 }

@@ -10,8 +10,10 @@ use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use Aurora\Module\Studio\Contract\Access\Manager\ContractAccessLinkManagerInterface;
 use Aurora\Module\Studio\Contract\Message\RemindUnsignedContractsMessage;
 use Aurora\Module\Studio\Contract\Repository\ContractRepository;
+use Aurora\Module\Studio\StudioContext;
 use DateTimeImmutable;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 use function sprintf;
@@ -46,10 +48,17 @@ final readonly class RemindUnsignedContractsHandler
         private ContractAccessLinkManagerInterface $links,
         private SettingRepository $settings,
         private LoggerInterface $logger,
+        private StudioContext $studio,
     ) {}
 
     public function __invoke(RemindUnsignedContractsMessage $message): void
     {
+        // Contracts switched off answer 404 on the signing page, so a reminder
+        // would mail a customer a link that leads nowhere.
+        if (!$this->studio->areContractsEnabled()) {
+            return;
+        }
+
         if (!$this->settings->getBoolean(ApplicationParameterEnum::StudioContractReminderEnabled->value)) {
             return;
         }
@@ -74,6 +83,14 @@ final readonly class RemindUnsignedContractsHandler
                     'contract' => $contract->getId(),
                     'reference' => $contract->getReference(),
                     'reason' => $fieldException->getMessage(),
+                ]);
+            } catch (TransportExceptionInterface $transportException) {
+                // One mailbox the server refused is no reason to skip every
+                // contract after it in the list: the next morning tries again.
+                $this->logger->error('Contract reminder not sent', [
+                    'contract' => $contract->getId(),
+                    'reference' => $contract->getReference(),
+                    'reason' => $transportException->getMessage(),
                 ]);
             }
         }

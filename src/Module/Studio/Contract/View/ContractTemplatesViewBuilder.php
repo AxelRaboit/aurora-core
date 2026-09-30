@@ -10,10 +10,13 @@ use Aurora\Module\Studio\Contract\Entity\ContractTemplateInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersionInterface;
 use Aurora\Module\Studio\Contract\Enum\ContractTemplateCategoryEnum;
 use Aurora\Module\Studio\Contract\Enum\ContractTemplateKindEnum;
+use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\Contract\Repository\ContractTemplateRepository;
 use Aurora\Module\Studio\Contract\Serializer\ContractTemplateSerializerInterface;
 use Aurora\Module\Studio\Contract\Service\ContractVariableCatalogue;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+
+use const DATE_ATOM;
 
 final readonly class ContractTemplatesViewBuilder
 {
@@ -24,6 +27,7 @@ final readonly class ContractTemplatesViewBuilder
         private LocaleOptionsProviderInterface $localeOptions,
         private PathTemplateGenerator $pathTemplates,
         private UrlGeneratorInterface $urlGenerator,
+        private ContractRepository $contractRepository,
     ) {}
 
     /** @return array<string, mixed> */
@@ -62,9 +66,16 @@ final readonly class ContractTemplatesViewBuilder
                     'id' => $each->getId(),
                     'number' => $each->getNumber(),
                     'isPublished' => $each->isPublished(),
+                    // When, so the history reads as one: « version 2, publiée
+                    // le … » rather than a list of numbers.
+                    'publishedAt' => $each->getPublishedAt()?->format(DATE_ATOM),
                 ],
                 $template->getVersions()->toArray(),
             ),
+            // The version in force, so the editor can name the three states -
+            // draft, in force, replaced - instead of calling every published
+            // version « Publiée ».
+            'inForceVersionId' => $template->getLatestPublishedVersion()?->getId(),
             // The locales the application actually offers, never a hardcoded
             // fr/en pair: a document has to be writable in every language the
             // deployment turned on.
@@ -87,6 +98,9 @@ final readonly class ContractTemplatesViewBuilder
                 'versionId' => $version->getId(),
             ]),
             'indexPath' => $this->urlGenerator->generate('backend_studio_contract_templates'),
+            // « Modifier le texte » from the version in force opens the next
+            // draft without a trip back to the list.
+            'openDraftPath' => $this->urlGenerator->generate('backend_studio_contract_templates_open_draft', ['id' => $template->getId()]),
             'editorPath' => $this->urlGenerator->generate('backend_studio_contract_templates_editor', [
                 'id' => $template->getId(),
                 'versionId' => '__versionId__',
@@ -97,8 +111,15 @@ final readonly class ContractTemplatesViewBuilder
     /** @return list<array<string, mixed>> */
     public function templates(): array
     {
+        // How many contracts start from each: the list says it, and does not
+        // offer to delete what the server would refuse.
+        $counts = $this->contractRepository->countByTemplate();
+
         return array_map(
-            $this->serializer->serialize(...),
+            fn (ContractTemplateInterface $template): array => [
+                ...$this->serializer->serialize($template),
+                'contractsCount' => $counts[(int) $template->getId()] ?? 0,
+            ],
             $this->templateRepository->findAllForIndex(),
         );
     }

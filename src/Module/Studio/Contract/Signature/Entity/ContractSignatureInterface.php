@@ -63,6 +63,10 @@ interface ContractSignatureInterface
 
     public function setLinkSelector(?string $linkSelector): static;
 
+    public function getChallengeSentTo(): ?string;
+
+    public function setChallengeSentTo(?string $challengeSentTo): static;
+
     public function getChallengeVerifiedAt(): ?DateTimeImmutable;
 
     public function setChallengeVerifiedAt(?DateTimeImmutable $challengeVerifiedAt): static;
