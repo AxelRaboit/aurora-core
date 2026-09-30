@@ -78,8 +78,12 @@ export function useContractTemplateActions(editorPath) {
                           key: "editText",
                           color: "accent",
                           icon: Pencil,
-                          title: t(`${prefix}.continue_draft`, { number: template.draftVersion }),
-                          description: t(`${prefix}.row_actions.continue_draft_description`),
+                          title: t(`${prefix}.continue_draft`, {
+                              number: template.draftVersion,
+                          }),
+                          description: t(
+                              `${prefix}.row_actions.continue_draft_description`,
+                          ),
                           href: editorPath?.(template.id, template.draftId),
                       }
                     : {
@@ -87,7 +91,9 @@ export function useContractTemplateActions(editorPath) {
                           color: "accent",
                           icon: FilePlus2,
                           title: t(`${prefix}.edit_text`),
-                          description: t(`${prefix}.row_actions.edit_text_description`),
+                          description: t(
+                              `${prefix}.row_actions.edit_text_description`,
+                          ),
                           onSelect: () => handlers.openDraft(template),
                       },
             );
@@ -154,7 +160,10 @@ export function useContractTemplateActions(editorPath) {
 
         // Only when no contract starts from it: the server refuses otherwise,
         // and archiving is the way to retire a trame that has served.
-        if (can("studio.contract_templates.delete") && 0 === (template.contractsCount ?? 0)) {
+        if (
+            can("studio.contract_templates.delete") &&
+            0 === (template.contractsCount ?? 0)
+        ) {
             actions.push({
                 key: "delete",
                 color: "rose",

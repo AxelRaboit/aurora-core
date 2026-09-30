@@ -259,6 +259,7 @@ backend:
             export_pdf: 'Exporter en PDF'
             countersign: 'Contresigner'
             countersign_intro: 'Votre contresignature conclut le contrat. Le client en sera informé par email.'
+            countersign_consent: 'J''ai relu le contrat et la signature du client, et j''en accepte les termes. Ma signature électronique a la même valeur qu''une signature manuscrite.'
             countersigned: 'Contrat conclu.'
             send: Envoyer au client
             send_confirm: 'Envoyer le contrat à {email} ?'
@@ -528,6 +529,7 @@ backend:
                 provider_settings_missing: 'Ces informations du prestataire ne sont pas renseignées dans les réglages, et la trame les imprime : {fields}'
                 custom_field_too_long: Un complément ne peut pas dépasser 500 caractères.
         contract_templates:
+            legal_status: '{form} au capital de {capital}'
             title: Trames de contrat
             kind:
                 body: Corps de contrat
@@ -653,6 +655,7 @@ backend:
                 customer_legal_name: Raison sociale
                 customer_legal_form: Forme juridique
                 customer_share_capital: Capital social
+                customer_legal_status: 'Forme et capital (« SARL au capital de 10 000 € », la forme seule sans capital)'
                 customer_registered_office: Siège social
                 customer_siret: SIRET
                 customer_trade_register: RCS
@@ -1951,6 +1954,12 @@ studio:
             cta: 'Ouvrir le contrat et le signer'
             replaces: 'Ce lien remplace celui du message précédent, qui n''est plus valide.'
             expires: 'Ce lien est valide jusqu''au {date}.'
+        contracts_integrity:
+            subject: 'Contrats : un document scellé a changé'
+            body: 'La vérification quotidienne a relu les contrats scellés ({count}), et tout ne correspond plus à ce qui a été scellé.'
+            altered: 'Ces documents ne correspondent plus à leur empreinte :'
+            unverifiable: 'Ces contrats n''ont pas pu être vérifiés par cette version de l''application :'
+            action: 'Ne recalculez pas l''empreinte : cherchez ce qui a écrit dans le document.'
         open_contract: 'Ouvrir le contrat'
         customer_signed:
             subject: 'Contrat {reference} signé par le client'

@@ -136,6 +136,7 @@ backend:
       save: Save
       drag_handle: Drag to reorder
     cascade_locked: 'Enable "{parent}" first to edit this setting.'
+    invalid_prefix: '"{label}": 1 to 10 capital letters or digits, no space or dash.'
     media_square_hint: 'Recommended: square image (1:1).'
     modules_intro: Enable or disable application modules. Changes are saved immediately.
     modules_empty: No module found.

@@ -12,6 +12,7 @@ use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use DateTimeImmutable;
 use IntlDateFormatter;
 use NumberFormatter;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 use function preg_match;
 use function preg_replace;
@@ -59,6 +60,7 @@ final readonly class ContractVariableResolver
     public function __construct(
         private ContractVariableCatalogue $catalogue,
         private SettingRepository $settings,
+        private TranslatorInterface $translator,
     ) {}
 
     /**
@@ -80,6 +82,7 @@ final readonly class ContractVariableResolver
             'customer.legal_name' => $customer->getLegalName(),
             'customer.legal_form' => $customer->getLegalForm() ?? '',
             'customer.share_capital' => $this->capital($customer, $locale),
+            'customer.legal_status' => $this->legalStatus($customer, $locale),
             'customer.registered_office' => $customer->getRegisteredOffice() ?? '',
             'customer.siret' => $this->groupedSiret($customer->getSiret()),
             'customer.trade_register' => $customer->getTradeRegister() ?? '',
@@ -183,6 +186,32 @@ final readonly class ContractVariableResolver
             'contract.signature_city' => $place ?? '',
             'contract.signature_date' => $this->formatDate($date, $locale),
         ];
+    }
+
+    /**
+     * « SARL au capital de 10 000 € », or « Entreprise individuelle » alone.
+     *
+     * A trame writing `{{customer.legal_form}} au capital de
+     * {{customer.share_capital}}` printed « Entreprise individuelle au capital
+     * de , » for everybody without a share capital, which is every sole
+     * trader. The phrase is composed here, in the contract's language, and
+     * the capital only said when there is one.
+     */
+    private function legalStatus(CustomerInterface $customer, string $locale): string
+    {
+        $form = mb_trim($customer->getLegalForm() ?? '');
+        $capital = $this->capital($customer, $locale);
+
+        if ('' === $capital) {
+            return $form;
+        }
+
+        return mb_trim($this->translator->trans(
+            'backend.studio.contract_templates.legal_status',
+            ['{form}' => $form, '{capital}' => $capital],
+            'messages',
+            $locale,
+        ));
     }
 
     private function capital(CustomerInterface $customer, string $locale): string

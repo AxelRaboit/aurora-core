@@ -136,6 +136,7 @@ backend:
             save: Guardar
             drag_handle: 'Arrastrar para reordenar'
         cascade_locked: 'Active primero «{parent}» para poder editar este ajuste.'
+        invalid_prefix: '«{label}»: de 1 a 10 letras mayúsculas o cifras, sin espacios ni guiones.'
         media_square_hint: 'Recomendado: imagen cuadrada (1:1).'
         modules_intro: 'Active o desactive los módulos de la aplicación. Los cambios se guardan de inmediato.'
         modules_empty: 'No se ha encontrado ningún módulo.'

@@ -90,7 +90,7 @@ final class ContractGoverningLanguageTest extends IntegrationTestCase
         $this->contracts = new ContractManager(
             $this->entityManager,
             $container->get(AuditLogger::class),
-            new ContractVariableResolver(new ContractVariableCatalogue(), $container->get(SettingRepository::class)),
+            new ContractVariableResolver(new ContractVariableCatalogue(), $container->get(SettingRepository::class), static::getContainer()->get(TranslatorInterface::class)),
             new ContractDocumentRenderer(new BlockHtmlSanitizer()),
             $canonicalizer,
             $this->seal,

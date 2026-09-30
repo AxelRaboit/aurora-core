@@ -136,6 +136,7 @@ backend:
       save: Enregistrer
       drag_handle: Glisser pour réordonner
     cascade_locked: "Activez d'abord « {parent} » pour pouvoir modifier ce paramètre."
+    invalid_prefix: "« {label} » : de 1 à 10 lettres majuscules ou chiffres, sans espace ni tiret."
     media_square_hint: 'Recommandé : image carrée (1:1).'
     modules_intro: Activez ou désactivez les modules de l'application. Les modifications sont enregistrées immédiatement.
     modules_empty: Aucun module trouvé.

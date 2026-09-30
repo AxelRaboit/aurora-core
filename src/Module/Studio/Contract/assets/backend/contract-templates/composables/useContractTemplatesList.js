@@ -303,7 +303,12 @@ export function useContractTemplatesList(props) {
             applyList(data);
 
             if (data.draftId) {
-                window.location.assign(buildPath(props.editorPath, { id: template.id, versionId: data.draftId }));
+                window.location.assign(
+                    buildPath(props.editorPath, {
+                        id: template.id,
+                        versionId: data.draftId,
+                    }),
+                );
             }
         } finally {
             busy.value = false;

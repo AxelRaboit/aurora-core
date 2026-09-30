@@ -13,6 +13,7 @@ use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\StudioContext;
 use DateTimeImmutable;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 use function sprintf;
@@ -82,6 +83,14 @@ final readonly class RemindUnsignedContractsHandler
                     'contract' => $contract->getId(),
                     'reference' => $contract->getReference(),
                     'reason' => $fieldException->getMessage(),
+                ]);
+            } catch (TransportExceptionInterface $transportException) {
+                // One mailbox the server refused is no reason to skip every
+                // contract after it in the list: the next morning tries again.
+                $this->logger->error('Contract reminder not sent', [
+                    'contract' => $contract->getId(),
+                    'reference' => $contract->getReference(),
+                    'reason' => $transportException->getMessage(),
                 ]);
             }
         }

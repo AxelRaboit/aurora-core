@@ -17,7 +17,7 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { AlarmClock, CalendarClock, CalendarX, FileSignature,
-    PenLine, MessageSquareWarning, Presentation, UserRoundCheck } from "lucide-vue-next";
+         PenLine, MessageSquareWarning, Presentation, UserRoundCheck } from "lucide-vue-next";
 import AppStatTile from "@/shared/components/display/AppStatTile.vue";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import SpaceWorkloadBadges from "../../../SpaceContent/assets/shared/SpaceWorkloadBadges.vue";

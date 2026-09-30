@@ -92,16 +92,29 @@ describe("the view action", () => {
     });
 
     it("reads the version in force first for somebody who may only read", () => {
-        const actions = actionsFor(PUBLISHED, ["studio.contract_templates.view"]);
+        const actions = actionsFor(PUBLISHED, [
+            "studio.contract_templates.view",
+        ]);
 
         expect(actions[0].key).toBe("view");
     });
 
     it("does not offer to delete a trame a contract starts from", () => {
-        const all = ["studio.contract_templates.view", "studio.contract_templates.delete"];
+        const all = [
+            "studio.contract_templates.view",
+            "studio.contract_templates.delete",
+        ];
 
-        expect(actionsFor({ ...PUBLISHED, contractsCount: 2 }, all).map((each) => each.key)).not.toContain("delete");
-        expect(actionsFor({ ...PUBLISHED, contractsCount: 0 }, all).map((each) => each.key)).toContain("delete");
+        expect(
+            actionsFor({ ...PUBLISHED, contractsCount: 2 }, all).map(
+                (each) => each.key,
+            ),
+        ).not.toContain("delete");
+        expect(
+            actionsFor({ ...PUBLISHED, contractsCount: 0 }, all).map(
+                (each) => each.key,
+            ),
+        ).toContain("delete");
     });
 
     it("is absent from a trame that has never been published", () => {

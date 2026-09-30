@@ -259,6 +259,7 @@ backend:
             export_pdf: 'Exportar a PDF'
             countersign: Contrafirmar
             countersign_intro: 'Su contrafirma formaliza el contrato. Se informará al cliente por correo electrónico.'
+            countersign_consent: 'He leído el contrato y la firma del cliente, y acepto sus términos. Mi firma electrónica tiene el mismo valor que una firma manuscrita.'
             countersigned: 'Contrato concluido.'
             send: 'Enviar al cliente'
             send_confirm: '¿Enviar el contrato a {email}?'
@@ -528,6 +529,7 @@ backend:
                 provider_settings_missing: 'Estos datos del prestador no están indicados en los ajustes, y la plantilla los imprime: {fields}'
                 custom_field_too_long: 'Un complemento no puede superar los 500 caracteres.'
         contract_templates:
+            legal_status: '{form} con un capital social de {capital}'
             title: 'Plantillas de contrato'
             kind:
                 body: 'Cuerpo de contrato'
@@ -653,6 +655,7 @@ backend:
                 customer_legal_name: 'Razón social'
                 customer_legal_form: 'Forma jurídica'
                 customer_share_capital: 'Capital social'
+                customer_legal_status: 'Forma y capital («SARL con un capital social de 10 000 €», solo la forma si no hay capital)'
                 customer_registered_office: 'Domicilio social'
                 customer_siret: SIRET
                 customer_trade_register: RCS
@@ -1908,6 +1911,12 @@ studio:
             cta: 'Abrir el contrato y firmarlo'
             replaces: 'Este enlace sustituye al del mensaje anterior, que ya no es válido.'
             expires: 'Este enlace es válido hasta el {date}.'
+        contracts_integrity:
+            subject: 'Contratos: un documento sellado ha cambiado'
+            body: 'La verificación diaria ha revisado los contratos sellados ({count}), y no todo coincide ya con lo que se selló.'
+            altered: 'Estos documentos ya no coinciden con su huella:'
+            unverifiable: 'Estos contratos no se han podido verificar con esta versión de la aplicación:'
+            action: 'No recalcule la huella: busque qué escribió en el documento.'
         open_contract: 'Abrir el contrato'
         customer_signed:
             subject: 'Contrato {reference} firmado por el cliente'

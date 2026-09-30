@@ -7,7 +7,14 @@ import { required } from "@/shared/utils/validation/validators.js";
 import { formFromContract } from "./contractForm.js";
 
 /** The steps of the journey, in the order a contract travels them. */
-export const STEPS = ["draft", "to_send", "with_customer", "to_countersign", "active", "ended"];
+export const STEPS = [
+    "draft",
+    "to_send",
+    "with_customer",
+    "to_countersign",
+    "active",
+    "ended",
+];
 
 /** Rows per page: a screen's worth, and the rest one click away. */
 export const PAGE_SIZE = 25;
@@ -51,7 +58,9 @@ export function useContractsList(props) {
     const items = ref([...(props.contracts ?? [])]);
 
     const query = new URLSearchParams(window.location.search);
-    const step = ref(STEPS.includes(query.get("step")) ? query.get("step") : "all");
+    const step = ref(
+        STEPS.includes(query.get("step")) ? query.get("step") : "all",
+    );
     const customerFilter = ref(query.get("customer") ?? "");
     const templateFilter = ref(query.get("template") ?? "");
     const search = ref("");
@@ -64,18 +73,29 @@ export function useContractsList(props) {
     function matchesSearch(contract, needle) {
         if (!needle) return true;
 
-        return [contract.reference, contract.customerName, contract.body?.templateName, contract.annex?.templateName]
+        return [
+            contract.reference,
+            contract.customerName,
+            contract.body?.templateName,
+            contract.annex?.templateName,
+        ]
             .filter(Boolean)
             .some((value) => value.toLowerCase().includes(needle));
     }
 
     function matchesFilters(contract) {
-        if (customerFilter.value && String(contract.customerId) !== String(customerFilter.value)) return false;
+        if (
+            customerFilter.value &&
+            String(contract.customerId) !== String(customerFilter.value)
+        )
+            return false;
 
         if (
             templateFilter.value &&
-            String(contract.body?.templateId ?? "") !== String(templateFilter.value) &&
-            String(contract.annex?.templateId ?? "") !== String(templateFilter.value)
+            String(contract.body?.templateId ?? "") !==
+                String(templateFilter.value) &&
+            String(contract.annex?.templateId ?? "") !==
+                String(templateFilter.value)
         ) {
             return false;
         }
@@ -87,15 +107,22 @@ export function useContractsList(props) {
     const filtered = computed(() => {
         const needle = search.value.trim().toLowerCase();
 
-        return items.value
-            .filter((contract) => matchesSearch(contract, needle) && matchesFilters(contract))
-            // Newest activity first, then newest contract: two rows with the
-            // same day used to come in whatever order the query returned.
-            .sort(
-                (a, b) =>
-                    String(b.lastActivityAt ?? "").localeCompare(String(a.lastActivityAt ?? "")) ||
-                    (b.id ?? 0) - (a.id ?? 0),
-            );
+        return (
+            items.value
+                .filter(
+                    (contract) =>
+                        matchesSearch(contract, needle) &&
+                        matchesFilters(contract),
+                )
+                // Newest activity first, then newest contract: two rows with the
+                // same day used to come in whatever order the query returned.
+                .sort(
+                    (a, b) =>
+                        String(b.lastActivityAt ?? "").localeCompare(
+                            String(a.lastActivityAt ?? ""),
+                        ) || (b.id ?? 0) - (a.id ?? 0),
+                )
+        );
     });
 
     /** How many at each step, so a tab says whether it is worth opening. */
@@ -103,17 +130,27 @@ export function useContractsList(props) {
         const result = { all: filtered.value.length };
 
         for (const key of STEPS) result[key] = 0;
-        for (const contract of filtered.value) result[contract.step] = (result[contract.step] ?? 0) + 1;
+        for (const contract of filtered.value)
+            result[contract.step] = (result[contract.step] ?? 0) + 1;
 
         return result;
     });
 
     const inStep = computed(() =>
-        "all" === step.value ? filtered.value : filtered.value.filter((contract) => contract.step === step.value),
+        "all" === step.value
+            ? filtered.value
+            : filtered.value.filter((contract) => contract.step === step.value),
     );
 
-    const totalPages = computed(() => Math.max(1, Math.ceil(inStep.value.length / PAGE_SIZE)));
-    const rows = computed(() => inStep.value.slice((page.value - 1) * PAGE_SIZE, page.value * PAGE_SIZE));
+    const totalPages = computed(() =>
+        Math.max(1, Math.ceil(inStep.value.length / PAGE_SIZE)),
+    );
+    const rows = computed(() =>
+        inStep.value.slice(
+            (page.value - 1) * PAGE_SIZE,
+            page.value * PAGE_SIZE,
+        ),
+    );
 
     watch([step, search, customerFilter, templateFilter], () => {
         page.value = 1;
@@ -132,9 +169,13 @@ export function useContractsList(props) {
     } = useFormAction({
         rules: () => ({
             customerId: () =>
-                required(t("backend.studio.contracts.errors.customer_required"))(newContract.value.customerId),
+                required(
+                    t("backend.studio.contracts.errors.customer_required"),
+                )(newContract.value.customerId),
             bodyTemplateId: () =>
-                required(t("backend.studio.contracts.errors.body_required"))(newContract.value.bodyTemplateId),
+                required(t("backend.studio.contracts.errors.body_required"))(
+                    newContract.value.bodyTemplateId,
+                ),
         }),
         url: () => props.createPath,
         body: () => newContract.value,
@@ -143,7 +184,10 @@ export function useContractsList(props) {
             toast.success(t("backend.studio.contracts.created"));
             applyList(data);
 
-            if (data?.contract?.id) window.location.assign(buildPath(props.showPath, { id: data.contract.id }));
+            if (data?.contract?.id)
+                window.location.assign(
+                    buildPath(props.showPath, { id: data.contract.id }),
+                );
         },
     });
 
@@ -156,7 +200,9 @@ export function useContractsList(props) {
      */
     function openCreate(amendsId = null) {
         const form = emptyForm(props.locales);
-        const parent = amendsId ? props.amendable.find((contract) => contract.id === amendsId) : null;
+        const parent = amendsId
+            ? props.amendable.find((contract) => contract.id === amendsId)
+            : null;
 
         if (parent) {
             form.amendsId = parent.id;
@@ -182,9 +228,13 @@ export function useContractsList(props) {
     } = useFormAction({
         rules: () => ({
             customerId: () =>
-                required(t("backend.studio.contracts.errors.customer_required"))(editForm.value.customerId),
+                required(
+                    t("backend.studio.contracts.errors.customer_required"),
+                )(editForm.value.customerId),
             bodyTemplateId: () =>
-                required(t("backend.studio.contracts.errors.body_required"))(editForm.value.bodyTemplateId),
+                required(t("backend.studio.contracts.errors.body_required"))(
+                    editForm.value.bodyTemplateId,
+                ),
         }),
         url: () => buildPath(props.updatePath, { id: editing.value.id }),
         body: () => editForm.value,
@@ -205,7 +255,8 @@ export function useContractsList(props) {
     }
 
     function formatAmount(contract) {
-        if (null === contract.amountCents || undefined === contract.amountCents) return null;
+        if (null === contract.amountCents || undefined === contract.amountCents)
+            return null;
 
         return new Intl.NumberFormat(undefined, {
             style: "currency",

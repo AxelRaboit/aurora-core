@@ -39,7 +39,7 @@ class ContractTemplateRepository extends ResolveTargetEntityRepository
             // Live templates before archived ones, bodies before annexes, then
             // by name: « annex » sorted before « body » alphabetically, and
             // retired templates were mixed with the ones in use.
-            ->addSelect("CASE WHEN t.archivedAt IS NULL THEN 0 ELSE 1 END AS HIDDEN archived_rank")
+            ->addSelect('CASE WHEN t.archivedAt IS NULL THEN 0 ELSE 1 END AS HIDDEN archived_rank')
             ->addSelect("CASE WHEN t.kind = 'body' THEN 0 ELSE 1 END AS HIDDEN kind_rank")
             ->orderBy('archived_rank', Order::Ascending->value)
             ->addOrderBy('kind_rank', Order::Ascending->value)

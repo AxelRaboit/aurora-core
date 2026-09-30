@@ -259,6 +259,7 @@ backend:
             export_pdf: 'Export as PDF'
             countersign: 'Countersign'
             countersign_intro: 'Your countersignature concludes the contract. The customer is notified by email.'
+            countersign_consent: 'I have read the contract and the customer''s signature, and I accept its terms. My electronic signature has the same value as a handwritten one.'
             countersigned: 'Contract concluded.'
             send: Send to the customer
             send_confirm: 'Send the contract to {email}?'
@@ -528,6 +529,7 @@ backend:
                 provider_settings_missing: 'These provider details are not set in the settings, and the trame prints them: {fields}'
                 custom_field_too_long: A complement cannot exceed 500 characters.
         contract_templates:
+            legal_status: '{form} with a share capital of {capital}'
             title: Contract templates
             kind:
                 body: Contract body
@@ -653,6 +655,7 @@ backend:
                 customer_legal_name: Company name
                 customer_legal_form: Legal form
                 customer_share_capital: Share capital
+                customer_legal_status: 'Form and capital ("SARL with a share capital of €10,000", the form alone without one)'
                 customer_registered_office: Registered office
                 customer_siret: Registration number
                 customer_trade_register: Trade register
@@ -1940,6 +1943,12 @@ studio:
             cta: 'Open the contract and sign it'
             replaces: 'This link replaces the one in the previous message, which no longer works.'
             expires: 'This link is valid until {date}.'
+        contracts_integrity:
+            subject: 'Contracts: a sealed document has changed'
+            body: 'The daily check read the sealed contracts ({count}), and not everything still matches what was sealed.'
+            altered: 'These documents no longer match their hash:'
+            unverifiable: 'These contracts could not be checked by this version of the application:'
+            action: 'Do not recompute the hash: find out what wrote to the document.'
         open_contract: 'Open the contract'
         customer_signed:
             subject: 'Contract {reference} signed by the customer'

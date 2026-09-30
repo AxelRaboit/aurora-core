@@ -18,8 +18,12 @@ use Aurora\Module\Studio\Contract\Entity\ContractTemplateInterface;
 use Aurora\Module\Studio\Contract\Enum\ContractStatusEnum;
 use Aurora\Module\Studio\Contract\Enum\ContractTemplateKindEnum;
 use Aurora\Module\Studio\Contract\Exception\ContractPdfAlreadyGeneratedException;
+use Aurora\Module\Studio\Contract\Integrity\ContractIntegrityChecker;
 use Aurora\Module\Studio\Contract\Manager\ContractManagerInterface;
 use Aurora\Module\Studio\Contract\Manager\ContractTemplateManager;
+use Aurora\Module\Studio\Contract\Message\VerifyContractsMessage;
+use Aurora\Module\Studio\Contract\MessageHandler\VerifyContractsHandler;
+use Aurora\Module\Studio\Contract\Orphan\ContractReferencedKeysProvider;
 use Aurora\Module\Studio\Contract\Preview\ContractTemplatePreviewer;
 use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\Contract\Repository\ContractTemplateVersionRepository;
@@ -33,10 +37,17 @@ use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Mime\Email;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
+use function count;
+use function end;
+use function implode;
+use function iterator_to_array;
 use function json_decode;
 use function preg_match;
 use function sprintf;
@@ -426,6 +437,91 @@ final class ContractPdfTest extends IntegrationTestCase
         }
 
         self::assertTrue($attached, 'The concluded mail has to carry the signed PDF.');
+    }
+
+    /**
+     * The morning check: silent while everything matches, and the one
+     * contract that moved named, whichever of its three hashes moved.
+     */
+    public function testTheIntegrityCheckIsCleanOnAConcludedContract(): void
+    {
+        $contract = $this->concludedContract();
+        $report = static::getContainer()->get(ContractIntegrityChecker::class)->check();
+
+        self::assertTrue($report->isClean(), implode("\n", $report->altered));
+        self::assertSame(1, $report->checked);
+
+        // The file the check reads is one the orphan sweep keeps.
+        $keys = iterator_to_array(static::getContainer()->get(ContractReferencedKeysProvider::class)->referencedKeys(), false);
+        self::assertContains($contract->getPdfPath(), $keys);
+    }
+
+    public function testTheIntegrityCheckNamesAReplacedPdf(): void
+    {
+        $contract = $this->concludedContract();
+        $this->storage->active()->write((string) $contract->getPdfPath(), 'a different file');
+
+        $altered = static::getContainer()->get(ContractIntegrityChecker::class)->check()->altered;
+
+        self::assertCount(1, $altered);
+        self::assertStringContainsString((string) $contract->getReference(), $altered[0]);
+        self::assertStringContainsString('PDF no longer matches', $altered[0]);
+    }
+
+    public function testTheIntegrityCheckNamesAMissingPdf(): void
+    {
+        $contract = $this->concludedContract();
+        $this->storage->active()->delete((string) $contract->getPdfPath());
+
+        $altered = static::getContainer()->get(ContractIntegrityChecker::class)->check()->altered;
+
+        self::assertCount(1, $altered);
+        self::assertStringContainsString('missing', $altered[0]);
+    }
+
+    /** A document re-sealed under a signature verifies, and is still caught. */
+    public function testTheIntegrityCheckNamesASignatureGivenOnAnotherText(): void
+    {
+        $contractId = $this->signedByCustomer();
+
+        $this->entityManager->getConnection()->executeStatement(
+            "UPDATE core_contract_signatures SET signed_content_hash = 'sha256:autre' WHERE contract_id = :id",
+            ['id' => $contractId],
+        );
+
+        $altered = static::getContainer()->get(ContractIntegrityChecker::class)->check()->altered;
+
+        self::assertCount(1, $altered);
+        self::assertStringContainsString('customer signature', $altered[0]);
+    }
+
+    /**
+     * The scheduled run mails the administrator when a document moved, and
+     * the command exits 1 on the same finding.
+     */
+    public function testAnAlteredDocumentIsReportedByTheScheduleAndTheCommand(): void
+    {
+        $contractId = $this->signedByCustomer();
+
+        $tester = new CommandTester((new Application(static::$kernel))->find('aurora:contracts:verify'));
+        self::assertSame(Command::SUCCESS, $tester->execute([]), $tester->getDisplay());
+
+        $this->entityManager->getConnection()->executeStatement(
+            "UPDATE core_contracts SET rendered_html = rendered_html || '<p>Clause ajoutée.</p>' WHERE id = :id",
+            ['id' => $contractId],
+        );
+        // The first run left the contract in the identity map, as it was.
+        static::getContainer()->get(EntityManagerInterface::class)->clear();
+
+        self::assertSame(Command::FAILURE, $tester->execute([]));
+        self::assertStringContainsString('no longer matches its seal', $tester->getDisplay());
+
+        $before = count($this->mailerMessages());
+        static::getContainer()->get(VerifyContractsHandler::class)(new VerifyContractsMessage());
+        $mails = $this->mailerMessages();
+
+        self::assertCount($before + 1, $mails);
+        self::assertStringContainsString('scellé', (string) end($mails)->getSubject());
     }
 
     /**

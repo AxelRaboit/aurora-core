@@ -117,7 +117,7 @@ class ContractAccessLinkRepository extends ResolveTargetEntityRepository
             ->andWhere('l.sentAt IS NOT NULL')
             ->andWhere('l.expiresAt > :now');
 
-        /** @var list<ContractInterface> */
+        /* @var list<ContractInterface> */
         return $this->getEntityManager()->createQueryBuilder()
             ->select('c')
             ->from(ContractInterface::class, 'c')

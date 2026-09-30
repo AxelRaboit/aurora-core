@@ -68,7 +68,9 @@ describe("the Studio panel", () => {
         // to mix what waits for the customer with what waits for the
         // countersignature, and opened the whole list.
         expect(hrefs).toContain("/backend/studio/contracts?step=with_customer");
-        expect(hrefs).toContain("/backend/studio/contracts?step=to_countersign");
+        expect(hrefs).toContain(
+            "/backend/studio/contracts?step=to_countersign",
+        );
     });
 
     /** A figure the reader may not open is not drawn at all. */

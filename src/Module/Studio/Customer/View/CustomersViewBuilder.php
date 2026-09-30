@@ -9,6 +9,7 @@ use Aurora\Core\Routing\PathTemplateGenerator;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Repository\UserRepository;
+use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\Customer\Repository\CustomerRepository;
 use Aurora\Module\Studio\Customer\Serializer\CustomerSerializerInterface;
@@ -16,7 +17,6 @@ use Aurora\Module\Studio\CustomerSpace\Security\SpaceVisibility;
 use Aurora\Module\Studio\StudioContext;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
-use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 
 final readonly class CustomersViewBuilder
 {

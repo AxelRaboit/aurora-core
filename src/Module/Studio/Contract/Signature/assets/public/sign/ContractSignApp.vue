@@ -27,6 +27,7 @@ import { localIsoDate } from "@/shared/utils/format/localDate.js";
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
+import { HttpStatus } from "@/shared/utils/http/HttpStatus.js";
 import AppSignaturePad from "@/shared/components/form/input/AppSignaturePad.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
@@ -60,6 +61,12 @@ const form = ref({
 });
 
 const errors = ref({});
+
+// The three writes are rate limited, and a 429 comes back as a body to read:
+// without `accept` it became a generic toast, and a customer who hit the
+// limit was told « Une erreur est survenue » and tried again into it.
+const WRITE = { noGuard: true, accept: [HttpStatus.TooManyRequests] };
+const TOO_MANY = "studio.public.sign.errors.too_many_requests";
 const hasDrawn = ref(false);
 const hasRead = ref(false);
 const codeSentTo = ref(null);
@@ -149,7 +156,7 @@ async function requestCode() {
     errors.value = {};
 
     try {
-        const data = await request(props.codePath, {}, { noGuard: true });
+        const data = await request(props.codePath, {}, WRITE);
 
         if (data?.errors) {
             errors.value = data.errors;
@@ -158,7 +165,7 @@ async function requestCode() {
         }
 
         if (data?.error) {
-            errors.value = { code: t("studio.public.sign.errors.too_many_requests") };
+            errors.value = { code: t(TOO_MANY) };
 
             return;
         }
@@ -191,12 +198,16 @@ async function refuse() {
     errors.value = {};
 
     try {
-        const data = await request(props.refusePath, refusal.value, {
-            noGuard: true,
-        });
+        const data = await request(props.refusePath, refusal.value, WRITE);
 
         if (data?.errors) {
             errors.value = data.errors;
+
+            return;
+        }
+
+        if (data?.error) {
+            errors.value = { reason: t(TOO_MANY) };
 
             return;
         }
@@ -220,10 +231,16 @@ async function sign() {
     errors.value = {};
 
     try {
-        const data = await request(props.signPath, form.value, { noGuard: true });
+        const data = await request(props.signPath, form.value, WRITE);
 
         if (data?.errors) {
             errors.value = data.errors;
+
+            return;
+        }
+
+        if (data?.error) {
+            errors.value = { status: t(TOO_MANY) };
 
             return;
         }

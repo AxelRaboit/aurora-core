@@ -290,7 +290,10 @@ const countersignForm = ref({
     place: "",
     date: localIsoDate(),
     signatureImage: "",
-    consent: true,
+    // Ticked by the countersigner, like the customer ticks theirs: it used to
+    // be sent as true without a box on screen, so the provider's signature
+    // carried a consent nobody had given.
+    consent: false,
     // The provider is authenticated: identity comes from the session, not
     // from a mailed code. Sent because the payload is shared with the public
     // form, where it is the credential.
@@ -304,6 +307,7 @@ const canSubmitCountersign = computed(
         "" !== countersignForm.value.email.trim() &&
         "" !== countersignForm.value.place.trim() &&
         "" !== countersignForm.value.signatureImage &&
+        countersignForm.value.consent &&
         !countersigning.value,
 );
 
@@ -412,15 +416,15 @@ const confirmText = computed(() => {
     const email = contract.value.link?.recipientEmail ?? contract.value.customerEmail ?? "";
 
     switch (pending.value) {
-        case "freeze":
-            return t(`${P}.freeze_confirm`, { name: contract.value.customerName });
-        case "send":
-        case "resend":
-            return email ? t(`${F}.confirm.send`, { email }) : t(`${F}.confirm.send_no_address`);
-        case "remind":
-            return t(`${F}.confirm.remind`, { email });
-        default:
-            return pending.value ? t(`${F}.confirm.${pending.value}`) : "";
+    case "freeze":
+        return t(`${P}.freeze_confirm`, { name: contract.value.customerName });
+    case "send":
+    case "resend":
+        return email ? t(`${F}.confirm.send`, { email }) : t(`${F}.confirm.send_no_address`);
+    case "remind":
+        return t(`${F}.confirm.remind`, { email });
+    default:
+        return pending.value ? t(`${F}.confirm.${pending.value}`) : "";
     }
 });
 
@@ -765,6 +769,8 @@ const confirmBlocked = computed(
                 </div>
                 <AppSignaturePad v-model="countersignForm.signatureImage" :label="t('studio.public.sign.signature')" />
                 <p v-if="countersignErrors.signatureImage" class="text-xs text-red-500">{{ countersignErrors.signatureImage }}</p>
+                <AppCheckbox v-model="countersignForm.consent" :label="t(`${P}.countersign_consent`)" />
+                <p v-if="countersignErrors.consent" class="text-xs text-red-500">{{ countersignErrors.consent }}</p>
             </div>
             <template #footer>
                 <AppModalFooter>
@@ -772,7 +778,13 @@ const confirmBlocked = computed(
                         <X class="w-3.5 h-3.5" :stroke-width="2" />
                         {{ t("shared.common.cancel") }}
                     </AppButton>
-                    <AppButton variant="primary" size="md" :disabled="!canSubmitCountersign" :loading="countersigning" v-on:click="countersign">
+                    <AppButton
+                        variant="primary"
+                        size="md"
+                        :disabled="!canSubmitCountersign"
+                        :loading="countersigning"
+                        v-on:click="countersign"
+                    >
                         <Check class="w-3.5 h-3.5" :stroke-width="2" />
                         {{ t(`${P}.countersign`) }}
                     </AppButton>
@@ -780,7 +792,13 @@ const confirmBlocked = computed(
             </template>
         </AppModal>
 
-        <AppModal :show="showTerminate" max-width="lg" :title="t(`${P}.terminate`)" :icon="CalendarX" v-on:close="showTerminate = false">
+        <AppModal
+            :show="showTerminate"
+            max-width="lg"
+            :title="t(`${P}.terminate`)"
+            :icon="CalendarX"
+            v-on:close="showTerminate = false"
+        >
             <div class="space-y-4">
                 <AppMessage v-if="terminationErrors.status" variant="danger">{{ terminationErrors.status }}</AppMessage>
                 <p class="text-sm text-secondary">{{ t(`${P}.termination.intro`) }}</p>
@@ -822,7 +840,13 @@ const confirmBlocked = computed(
                         <X class="w-3.5 h-3.5" :stroke-width="2" />
                         {{ t("shared.common.cancel") }}
                     </AppButton>
-                    <AppButton variant="primary" size="md" :disabled="!canSubmitTerminate" :loading="terminating" v-on:click="terminate">
+                    <AppButton
+                        variant="primary"
+                        size="md"
+                        :disabled="!canSubmitTerminate"
+                        :loading="terminating"
+                        v-on:click="terminate"
+                    >
                         <CalendarX class="w-3.5 h-3.5" :stroke-width="2" />
                         {{ t(`${P}.terminate`) }}
                     </AppButton>

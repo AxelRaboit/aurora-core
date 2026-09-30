@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Tests\Integration\Module\Studio\Contract;
 
 use Aurora\Core\Content\BlockHtmlSanitizer;
+use Aurora\Core\Money\Enum\CurrencyEnum;
 use Aurora\Core\Sequence\SequenceGenerator;
 use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
@@ -75,7 +76,7 @@ final class ContractFreezeTest extends IntegrationTestCase
         // exercises exactly the code that will run in production.
         $canonicalizer = new ContractCanonicalizer();
         $this->seal = new ContractSeal($canonicalizer);
-        $resolver = new ContractVariableResolver(new ContractVariableCatalogue(), $container->get(SettingRepository::class));
+        $resolver = new ContractVariableResolver(new ContractVariableCatalogue(), $container->get(SettingRepository::class), static::getContainer()->get(TranslatorInterface::class));
         $renderer = new ContractDocumentRenderer(new BlockHtmlSanitizer());
 
         // Built by hand: neither manager has a controller yet, so the container
@@ -173,6 +174,36 @@ final class ContractFreezeTest extends IntegrationTestCase
         // "fait à …, le …" is a blank on paper.
         self::assertStringContainsString('{{contract.signature_city}}', $html);
         self::assertStringContainsString('{{contract.signature_date}}', $html);
+    }
+
+    /**
+     * A sole trader has no share capital, and the trame used to say
+     * « Entreprise individuelle au capital de , » all the same.
+     */
+    public function testTheLegalStatusSaysTheCapitalOnlyWhenThereIsOne(): void
+    {
+        $body = [['type' => 'paragraph', 'data' => ['text' => '{{customer.legal_name}}, {{customer.legal_status}}, dont le siège']]];
+
+        $soleTrader = $this->customer();
+        $soleTrader->setLegalForm('Entreprise individuelle');
+        $withoutCapital = $this->draft(body: $body, customer: $soleTrader);
+        $this->contracts->freeze($withoutCapital);
+
+        self::assertStringContainsString('Boulangerie Durand, Entreprise individuelle, dont le siège', (string) $withoutCapital->getRenderedHtml());
+
+        $company = new Customer();
+        $company
+            ->setLegalName('Boulangerie Durand')
+            ->setContractualEmail('contact@durand.test')
+            ->setLegalForm('SARL')
+            ->setShareCapitalCents(1_000_000)
+            ->setShareCapitalCurrency(CurrencyEnum::EUR);
+        $this->entityManager->persist($company);
+        $this->entityManager->flush();
+        $withCapital = $this->draft(body: $body, customer: $company);
+        $this->contracts->freeze($withCapital);
+
+        self::assertMatchesRegularExpression('/SARL au capital de 10.000[^,]*€, dont le siège/u', (string) $withCapital->getRenderedHtml());
     }
 
     public function testAFrozenContractRefusesEveryWrite(): void

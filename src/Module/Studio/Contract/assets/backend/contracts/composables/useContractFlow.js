@@ -84,20 +84,39 @@ export function useContractFlow() {
      */
     function keysFor(contract) {
         const concluded = "countersigned" === contract.status;
-        const running = concluded && !contract.amends && !contract.termination?.isEffective;
+        const running =
+            concluded && !contract.amends && !contract.termination?.isEffective;
 
         switch (contract.status) {
             case "draft":
-                return { next: "freeze", others: ["edit", "preview", "export", "duplicate", "delete"] };
+                return {
+                    next: "freeze",
+                    others: [
+                        "edit",
+                        "preview",
+                        "export",
+                        "duplicate",
+                        "delete",
+                    ],
+                };
             case "sealed":
-                return { next: "send", others: ["export", "cancel", "duplicate", "delete"] };
+                return {
+                    next: "send",
+                    others: ["export", "cancel", "duplicate", "delete"],
+                };
             case "sent":
             case "opened":
-                return { next: "remind", others: ["revoke", "export", "duplicate"] };
+                return {
+                    next: "remind",
+                    others: ["revoke", "export", "duplicate"],
+                };
             case "refused":
             case "expired":
             case "revoked":
-                return { next: "resend", others: ["cancel", "duplicate", "export", "delete"] };
+                return {
+                    next: "resend",
+                    others: ["cancel", "duplicate", "export", "delete"],
+                };
             case "signed_by_customer":
                 return { next: "countersign", others: ["export"] };
             case "countersigned":
@@ -105,12 +124,17 @@ export function useContractFlow() {
                     next: contract.hasPdf ? "download" : "export",
                     others: [
                         ...(running ? ["amend"] : []),
-                        ...(running && !contract.termination ? ["terminate"] : []),
+                        ...(running && !contract.termination
+                            ? ["terminate"]
+                            : []),
                         "delete",
                     ],
                 };
             case "cancelled":
-                return { next: null, others: ["duplicate", "export", "delete"] };
+                return {
+                    next: null,
+                    others: ["duplicate", "export", "delete"],
+                };
             default:
                 return { next: null, others: ["export"] };
         }
@@ -149,12 +173,19 @@ export function useContractFlow() {
      */
     function flowOf(contract, { list = false } = {}) {
         const keys = keysFor(contract);
-        const next = keys.next && allowed(contract, keys.next) ? action(keys.next) : null;
-        const others = keys.others.filter((key) => allowed(contract, key)).map(action);
+        const next =
+            keys.next && allowed(contract, keys.next)
+                ? action(keys.next)
+                : null;
+        const others = keys.others
+            .filter((key) => allowed(contract, key))
+            .map(action);
 
         // On the contract's own screen the document is already on the page,
         // so « Aperçu » has nothing to add there.
-        const shown = list ? [action("open"), ...others] : others.filter((each) => "preview" !== each.key);
+        const shown = list
+            ? [action("open"), ...others]
+            : others.filter((each) => "preview" !== each.key);
 
         return { next, others: shown };
     }
@@ -170,8 +201,12 @@ export function useContractFlow() {
 
         if (contract.termination) {
             return contract.termination.isEffective
-                ? t(`${PREFIX}.summary.terminated`, { date: date(contract.termination.effectiveAt) })
-                : t(`${PREFIX}.summary.notice`, { date: date(contract.termination.effectiveAt) });
+                ? t(`${PREFIX}.summary.terminated`, {
+                      date: date(contract.termination.effectiveAt),
+                  })
+                : t(`${PREFIX}.summary.notice`, {
+                      date: date(contract.termination.effectiveAt),
+                  });
         }
 
         // Without a link, the dates of one cannot be quoted: say where it
@@ -184,21 +219,32 @@ export function useContractFlow() {
             return t(`${PREFIX}.summary.concluded_no_pdf`);
         }
 
-        const customerSigned = (contract.signatures ?? []).find((each) => "customer" === each.role);
+        const customerSigned = (contract.signatures ?? []).find(
+            (each) => "customer" === each.role,
+        );
 
         const params = {
             sealed: { date: date(contract.frozenAt) },
             refused: { date: date(contract.refusal?.refusedAt) },
             sent: {
-                email: contract.link?.recipientEmail ?? contract.customerEmail ?? "",
+                email:
+                    contract.link?.recipientEmail ??
+                    contract.customerEmail ??
+                    "",
                 date: date(contract.link?.sentAt),
                 until: date(contract.link?.expiresAt),
             },
-            opened: { date: date(contract.link?.firstOpenedAt), until: date(contract.link?.expiresAt) },
+            opened: {
+                date: date(contract.link?.firstOpenedAt),
+                until: date(contract.link?.expiresAt),
+            },
             signed_by_customer: { date: date(customerSigned?.signedAt) },
         };
 
-        return t(`${PREFIX}.summary.${contract.status}`, params[contract.status] ?? {});
+        return t(
+            `${PREFIX}.summary.${contract.status}`,
+            params[contract.status] ?? {},
+        );
     }
 
     return { flowOf, summaryOf, keysFor };

@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\Contract\Serializer;
 
+use Aurora\Module\Dev\Audit\Entity\AuditLogInterface;
+use Aurora\Module\Dev\Audit\Repository\AuditLogRepository;
 use Aurora\Module\Studio\Contract\Access\Entity\ContractAccessLinkInterface;
 use Aurora\Module\Studio\Contract\Access\Repository\ContractAccessLinkRepository;
 use Aurora\Module\Studio\Contract\Entity\ContractInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersionInterface;
+use Aurora\Module\Studio\Contract\Enum\ContractStatusEnum;
 use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\Contract\Service\ContractRetentionPolicy;
 use Aurora\Module\Studio\Contract\Service\ContractSeal;
 use Aurora\Module\Studio\Contract\Service\ContractSignedDocument;
-use Aurora\Module\Dev\Audit\Entity\AuditLogInterface;
-use Aurora\Module\Dev\Audit\Repository\AuditLogRepository;
-use Aurora\Module\Studio\Contract\Enum\ContractStatusEnum;
 use Aurora\Module\Studio\Contract\Signature\Entity\ContractSignatureInterface;
 use Aurora\Module\Studio\Contract\Signature\Repository\ContractSignatureRepository;
 use DateTimeImmutable;
@@ -76,7 +76,7 @@ class ContractSerializer implements ContractSerializerInterface
             'isDeletable' => !$contract->isFrozen() || $this->retention->hasElapsed($contract),
             // Where a first send would go, so the confirmation can say it.
             'customerEmail' => $customer->getContractualEmail(),
-            'lastActivityAt' => $this->lastActivity($contract, $link)?->format(DATE_ATOM),
+            'lastActivityAt' => $this->lastActivity($contract, $link)->format(DATE_ATOM),
             'isFrozen' => $contract->isFrozen(),
             'isEditable' => $contract->getStatus()->isEditable() && !$contract->isFrozen(),
             'locale' => $contract->getLocale(),
@@ -195,8 +195,11 @@ class ContractSerializer implements ContractSerializerInterface
         };
     }
 
-    /** The most recent thing that happened to it, for a list sorted by what moved. */
-    protected function lastActivity(ContractInterface $contract, ?ContractAccessLinkInterface $link): ?DateTimeImmutable
+    /**
+     * The most recent thing that happened to it, for a list sorted by what
+     * moved. Never empty: a contract always has the day it was created.
+     */
+    protected function lastActivity(ContractInterface $contract, ?ContractAccessLinkInterface $link): DateTimeImmutable
     {
         $dates = array_filter([
             $contract->getCreatedAt(),
@@ -209,7 +212,7 @@ class ContractSerializer implements ContractSerializerInterface
             $contract->getTerminationNoticedAt(),
         ]);
 
-        return [] === $dates ? null : max($dates);
+        return max($dates);
     }
 
     /**
@@ -246,7 +249,7 @@ class ContractSerializer implements ContractSerializerInterface
             return [];
         }
 
-        $page = $this->auditLogs->findPaginatedForEntity('Contract', (int) $contract->getId(), 1, 50);
+        $page = $this->auditLogs->findPaginatedForEntity('Contract', $contract->getId(), 1, 50);
 
         return array_map(fn (AuditLogInterface $log): array => [
             'label' => $this->translator->trans('backend.audit.actions.'.$log->getModule().'.'.$log->getAction()),

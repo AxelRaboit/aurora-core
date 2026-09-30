@@ -104,7 +104,7 @@ final class ContractAnswerAndRetentionTest extends IntegrationTestCase
         $this->contracts = new ContractManager(
             $this->entityManager,
             $container->get(AuditLogger::class),
-            new ContractVariableResolver(new ContractVariableCatalogue(), $this->settings),
+            new ContractVariableResolver(new ContractVariableCatalogue(), $this->settings, static::getContainer()->get(TranslatorInterface::class)),
             new ContractDocumentRenderer(new BlockHtmlSanitizer()),
             $canonicalizer,
             new ContractSeal($canonicalizer),

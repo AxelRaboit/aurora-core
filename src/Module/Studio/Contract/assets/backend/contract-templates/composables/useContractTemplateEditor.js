@@ -105,7 +105,10 @@ export function useContractTemplateEditor(props) {
         const translations = {};
 
         for (const [locale, entry] of Object.entries(inactiveTranslations)) {
-            translations[locale] = { title: entry.title, content: entry.content ?? { blocks: [] } };
+            translations[locale] = {
+                title: entry.title,
+                content: entry.content ?? { blocks: [] },
+            };
         }
 
         for (const [locale, entry] of Object.entries(wording.value)) {
@@ -148,14 +151,23 @@ export function useContractTemplateEditor(props) {
      */
     const untitledWithText = computed(() =>
         Object.entries(wording.value)
-            .filter(([, entry]) => !entry.title.trim() && (entry.blocks ?? []).length > 0)
+            .filter(
+                ([, entry]) =>
+                    !entry.title.trim() && (entry.blocks ?? []).length > 0,
+            )
             .map(([locale]) => locale),
     );
 
     /* What is on screen against what was last saved. */
-    const snapshot = () => JSON.stringify({ wording: wording.value, governing: governingLocale.value });
+    const snapshot = () =>
+        JSON.stringify({
+            wording: wording.value,
+            governing: governingLocale.value,
+        });
     const saved = ref(snapshot());
-    const isDirty = computed(() => !isPublished.value && snapshot() !== saved.value);
+    const isDirty = computed(
+        () => !isPublished.value && snapshot() !== saved.value,
+    );
 
     const writtenLocales = computed(() =>
         Object.entries(wording.value)
@@ -195,9 +207,14 @@ export function useContractTemplateEditor(props) {
 
         if (untitledWithText.value.length > 0) {
             errors.value = {
-                translations: t("backend.studio.contract_templates.untitled_text", {
-                    locales: untitledWithText.value.map((code) => code.toUpperCase()).join(", "),
-                }),
+                translations: t(
+                    "backend.studio.contract_templates.untitled_text",
+                    {
+                        locales: untitledWithText.value
+                            .map((code) => code.toUpperCase())
+                            .join(", "),
+                    },
+                ),
             };
 
             return false;
