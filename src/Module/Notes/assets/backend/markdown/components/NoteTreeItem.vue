@@ -19,7 +19,7 @@
  */
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { ChevronRight, ChevronDown, FileText, Folder, FolderOpen, Pencil, Plus, Trash2 } from 'lucide-vue-next';
+import { ChevronRight, ChevronDown, FileText, Folder, FolderOpen, Pencil, Plus, Trash2, Users } from 'lucide-vue-next';
 import AppIconButton from '@shared/components/action/AppIconButton.vue';
 import AppRowActions from '@shared/components/action/AppRowActions.vue';
 
@@ -30,6 +30,8 @@ const props = defineProps({
     /** Les identifiants des dossiers dépliés, tenus par le panneau. */
     expanded: { type: Set, default: () => new Set() },
     draggable: { type: Boolean, default: false },
+    /** Le mode lecture : la ligne mène, elle ne propose rien d'autre. */
+    readonly: { type: Boolean, default: false },
     draggingKey: { type: String, default: null },
     /** Où tomberait ce qu'on tient : `{ key, zone }`, zone avant, dedans ou après. */
     dropHint: { type: Object, default: null },
@@ -143,9 +145,31 @@ function onRowClick(event) {
 const actionsRef = ref(null);
 
 function onContextMenu(event) {
+    if (props.readonly) return;
+
     event.preventDefault();
     actionsRef.value?.open();
 }
+
+function onDoubleClick() {
+    if (!props.readonly) emit('rename', props.node);
+}
+
+/**
+ * Qui voit cette ligne, dit sur la ligne.
+ *
+ * Partager un dossier ouvre tout ce qu'il contient, à n'importe quelle
+ * profondeur, et rien dans l'arbre ne le montrait : on rangeait une note
+ * privée dans un dossier partagé sans savoir qu'on venait de la publier à
+ * toute l'équipe. La marque pleine dit « partagé ici », la marque pâle
+ * « visible parce qu'un dossier au-dessus l'est ».
+ */
+const teamTitle = computed(() => {
+    if ('direct' === props.node.team) return t('notes.markdown.library.shared.badge');
+    if ('inherited' === props.node.team) return t('notes.markdown.team_inherited');
+
+    return null;
+});
 
 // Indent applied to the row itself so its right edge stays flush with
 // the sidebar (same convention as TermNode / media folder rows).
@@ -189,7 +213,7 @@ const indentStyle = computed(() => ({ marginLeft: `${props.depth * 0.875}rem` })
             v-on:dragleave="emit('drag-leave', node, $event)"
             v-on:drop="emit('drop', node, $event)"
             v-on:contextmenu="onContextMenu"
-            v-on:dblclick="emit('rename', node)"
+            v-on:dblclick="onDoubleClick"
         >
             <!-- Le trait d'insertion : on range à ce rang-là, pas au fond. -->
             <span
@@ -230,6 +254,22 @@ const indentStyle = computed(() => ({ marginLeft: `${props.depth * 0.875}rem` })
 
                 <span class="flex-1 truncate min-w-0">{{ displayLabel }}</span>
 
+                <span
+                    v-if="teamTitle"
+                    data-team-mark
+                    :data-team="node.team"
+                    class="inline-flex shrink-0"
+                    :title="teamTitle"
+                    role="img"
+                    :aria-label="teamTitle"
+                >
+                    <Users
+                        class="h-3.5 w-3.5"
+                        :class="'direct' === node.team ? 'text-accent-400' : 'text-muted opacity-60'"
+                        :stroke-width="2"
+                    />
+                </span>
+
                 <!-- Ce qu'un dossier contient, dit une fois, et seulement
                      quand il est replié : déplié, la réponse est sous les
                      yeux, et le nombre ne fait plus que du bruit. -->
@@ -248,7 +288,7 @@ const indentStyle = computed(() => ({ marginLeft: `${props.depth * 0.875}rem` })
             <!-- En marges négatives : les boutons gardent leur zone de clic sans
                  étirer la ligne. Ils la faisaient monter à 42 pixels, une
                  hauteur de formulaire, là où un explorateur tient en 30. -->
-            <div class="-my-1.5 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-visible:opacity-100 flex items-center gap-0.5 transition-opacity shrink-0">
+            <div v-if="!readonly" class="-my-1.5 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-visible:opacity-100 flex items-center gap-0.5 transition-opacity shrink-0">
                 <AppIconButton
                     v-if="isFolder"
                     size="sm"
@@ -285,6 +325,7 @@ const indentStyle = computed(() => ({ marginLeft: `${props.depth * 0.875}rem` })
                 :selected-key="selectedKey"
                 :expanded="expanded"
                 :draggable="draggable"
+                :readonly="readonly"
                 :dragging-key="draggingKey"
                 :drop-hint="dropHint"
                 :parent-key="node.key"

@@ -28,7 +28,7 @@
  */
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { ChevronDown, ChevronRight, ChevronsDownUp, Download, FileText, Folder, Pin, PinOff, Plus, Tag, Upload, Users } from "lucide-vue-next";
+import { BookOpen, ChevronDown, ChevronRight, ChevronsDownUp, Download, FileText, Folder, Pin, PinOff, Plus, Tag, Upload, Users } from "lucide-vue-next";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppModulePanel from "@/shared/nav/AppModulePanel.vue";
@@ -151,12 +151,12 @@ const expanded = computed(() =>
  * lui-même ferait tourner la page sans rien afficher.
  */
 function revealNote(noteId) {
-    const note = announcedNotes.value.find((n) => Number(n.id) === Number(noteId));
+    const note = notes.value.find((n) => Number(n.id) === Number(noteId));
 
     if (!note?.folderId) return;
 
     const parents = new Map(
-        announcedFolders.value.map((f) => [Number(f.id), Number(f.parentId) || null]),
+        folders.value.map((f) => [Number(f.id), Number(f.parentId) || null]),
     );
 
     const next = new Set(openedIds.value);
@@ -240,6 +240,34 @@ const hrefFor = (node) =>
         : `${LIBRARY_URL}/${node.id}`;
 
 /**
+ * Passer en lecture, d'un clic, depuis n'importe où dans le module.
+ *
+ * Il fallait ouvrir une note puis chercher « Lire » dans ses trois points :
+ * deux gestes et un menu pour changer de façon d'être dans son carnet. On
+ * lit la note ouverte, ou la première du carnet quand rien ne l'est.
+ */
+function firstNoteIn(nodes) {
+    for (const node of nodes) {
+        if ("note" === node.kind) return node;
+
+        const found = firstNoteIn(node.children ?? []);
+        if (found) return found;
+    }
+
+    return null;
+}
+
+const readTargetId = computed(() => {
+    if (selectedKey.value?.startsWith("note:")) return Number(selectedKey.value.slice(5));
+
+    return firstNoteIn(tree.value)?.id ?? null;
+});
+
+function openReader() {
+    if (null !== readTargetId.value) window.location.assign(`${LIBRARY_URL}/${readTargetId.value}/read`);
+}
+
+/**
  * Ce qui est épinglé, dossiers puis notes, le plus récent d'abord.
  *
  * Craft ouvre son menu là-dessus, et c'est le seul endroit du module d'où
@@ -300,33 +328,60 @@ onMounted(async () => {
 const sharedGroups = computed(() => {
     if (searching.value) return [];
 
-    const ids = new Set(shared.value.folders.map((one) => Number(one.id)));
+    const byId = new Map(shared.value.folders.map((one) => [Number(one.id), one]));
     const racines = shared.value.folders.filter(
-        (one) => !ids.has(Number(one.parentId)),
+        (one) => !byId.has(Number(one.parentId)),
     );
 
-    const parDossier = new Map();
+    /**
+     * La racine partagée d'un dossier, en remontant ses parents.
+     *
+     * Les notes d'un sous-dossier n'apparaissaient nulle part : le serveur
+     * les rend lisibles - partager un dossier ouvre tout ce qu'il contient,
+     * à n'importe quelle profondeur - mais le panneau ne montrait que celles
+     * posées à la racine. On les rattache à leur racine, avec le nom de leur
+     * sous-dossier pour qu'on sache d'où elles viennent.
+     */
+    const rootOf = (folderId) => {
+        let current = byId.get(Number(folderId));
+
+        for (let guard = 0; current && guard <= byId.size; guard += 1) {
+            if (!byId.has(Number(current.parentId))) return Number(current.id);
+
+            current = byId.get(Number(current.parentId));
+        }
+
+        return null;
+    };
+
+    const parRacine = new Map();
+    const seules = [];
+
     for (const note of shared.value.notes) {
-        const cle = Number(note.folderId) || 0;
+        const racine = null == note.folderId ? null : rootOf(note.folderId);
 
-        if (!parDossier.has(cle)) parDossier.set(cle, []);
+        if (null === racine) {
+            seules.push(note);
 
-        parDossier.get(cle).push(note);
+            continue;
+        }
+
+        const sub = Number(note.folderId) === racine ? null : byId.get(Number(note.folderId))?.name ?? null;
+
+        if (!parRacine.has(racine)) parRacine.set(racine, []);
+
+        parRacine.get(racine).push({ ...note, subfolder: sub });
     }
 
     const groupes = racines.map((dossier) => ({
         key: `folder:${dossier.id}`,
         name: dossier.name,
         owner: dossier.ownerName,
-        notes: parDossier.get(Number(dossier.id)) ?? [],
+        notes: parRacine.get(Number(dossier.id)) ?? [],
     }));
 
     // Les notes partagées seules : celles dont le dossier n'est pas
     // lui-même partagé.
-    const seules = shared.value.notes.filter(
-        (note) => !ids.has(Number(note.folderId)),
-    );
-
     return seules.length
         ? [...groupes, { key: "loose", name: null, owner: null, notes: seules }]
         : groupes;
@@ -481,7 +536,7 @@ function clearHover() {
 }
 
 function forward(name, ...args) {
-    askPage(`notes:${name}`, { args });
+    return askPage(`notes:${name}`, { args });
 }
 
 /**
@@ -497,7 +552,11 @@ function onSelect(node) {
         // La racine n'a pas d'identifiant, et `Number(null)` vaut zéro :
         // le panneau demandait donc le dossier 0, que la bibliothèque
         // affichait vide et dont l'adresse rendait un 404.
-        forward("open-folder", null === node.id ? null : Number(node.id));
+        // Personne à l'écoute : le lecteur est ailleurs dans le module, et la
+        // ligne, qui a annulé son lien pour laisser la page faire, navigue.
+        if (!forward("open-folder", null === node.id ? null : Number(node.id))) {
+            window.location.assign(null === node.id ? LIBRARY_URL : hrefFor(node));
+        }
 
         // Un dossier qu'on ouvre se déplie aussi : on vient voir ce qu'il
         // contient, et la flèche n'était qu'un détour de plus.
@@ -506,7 +565,7 @@ function onSelect(node) {
         return;
     }
 
-    forward("select", Number(node.id));
+    if (!forward("select", Number(node.id))) window.location.assign(hrefFor(node));
 }
 
 function onFavoriteClick(entry, event) {
@@ -740,9 +799,24 @@ onUnmounted(() => {
         :failed="failed"
     >
         <template #action>
-            <!-- Emporter et rendre, à côté de « nouveau dossier » et
-                 « nouvelle note » : ce sont des gestes sur le carnet entier,
-                 pas sur une note. -->
+            <!-- Lire le carnet, d'un clic : l'espace de lecture, épuré. -->
+            <AppIconButton
+                size="sm"
+                data-read-mode-toggle
+                :title="t('notes.markdown.read.mode')"
+                :disabled="null === readTargetId"
+                v-on:click="openReader"
+            >
+                <BookOpen class="h-3.5 w-3.5" :stroke-width="2" />
+            </AppIconButton>
+            <AppIconButton
+                v-if="anyOpen"
+                size="sm"
+                :title="t('notes.markdown.collapse_all')"
+                v-on:click="collapseAll"
+            >
+                <ChevronsDownUp class="h-3.5 w-3.5" :stroke-width="2" />
+            </AppIconButton>
             <AppIconButton
                 size="sm"
                 :title="t('notes.markdown.import.button')"
@@ -757,17 +831,9 @@ onUnmounted(() => {
             >
                 <Download class="h-3.5 w-3.5" :stroke-width="2" />
             </AppIconButton>
-            <AppIconButton
-                v-if="anyOpen"
-                size="sm"
-                :title="t('notes.markdown.collapse_all')"
-                v-on:click="collapseAll"
-            >
-                <ChevronsDownUp class="h-3.5 w-3.5" :stroke-width="2" />
-            </AppIconButton>
             <!-- Un seul plus, qui demande quoi : une note ou un dossier.
-                 Deux boutons côte à côte obligeaient à deviner lequel était
-                 lequel à la seule forme de leur icône. -->
+                     Deux boutons côte à côte obligeaient à deviner lequel était
+                     lequel à la seule forme de leur icône. -->
             <AppIconButton
                 size="sm"
                 :title="t('notes.markdown.add.title')"
@@ -896,7 +962,7 @@ onUnmounted(() => {
                 >
                     <FileText class="h-4 w-4 shrink-0 text-muted" :stroke-width="2" />
                     <span class="min-w-0 flex-1 truncate">
-                        {{ note.title || t('notes.markdown.untitled') }}
+                        <span v-if="note.subfolder" class="text-muted">{{ note.subfolder }} › </span>{{ note.title || t('notes.markdown.untitled') }}
                     </span>
                 </a>
             </div>

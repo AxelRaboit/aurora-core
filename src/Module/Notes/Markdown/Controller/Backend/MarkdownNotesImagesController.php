@@ -7,7 +7,9 @@ namespace Aurora\Module\Notes\Markdown\Controller\Backend;
 use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Storage\StoredFileResponder;
+use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteImageService;
+use Aurora\Module\Notes\Markdown\Service\NoteReadScope;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
@@ -30,7 +32,46 @@ final class MarkdownNotesImagesController extends AbstractController
         private readonly MarkdownNoteImageService $imageService,
         private readonly StoredFileResponder $storedFileResponder,
         private readonly UrlGeneratorInterface $urlGenerator,
+        private readonly NoteReadScope $readScope,
     ) {}
+
+    /**
+     * Une image d'une note qu'on lit sans en être l'auteur.
+     *
+     * Les images sont rangées par propriétaire, et la route ordinaire
+     * construit sa clé avec la personne connectée : une note partagée lue par
+     * quelqu'un d'autre s'affichait donc sans ses images. Ici la clé est celle
+     * de l'auteur, et c'est la règle de lecture de la note - la sienne,
+     * partagée, ou rangée dans un dossier partagé - qui décide, la même que
+     * pour le texte.
+     */
+    #[Route(
+        '/of/{noteId}/{filename}',
+        name: '_read',
+        requirements: ['noteId' => '\d+', 'filename' => '[A-Za-z0-9._-]+'],
+        methods: [HttpMethodEnum::Get->value],
+    )]
+    public function read(int $noteId, string $filename): Response
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        $note = $this->readScope->readableNote($user, $noteId);
+        if (!$note instanceof MarkdownNoteInterface) {
+            return $this->jsonNotFound();
+        }
+
+        $key = $this->imageService->keyOrNull($filename, $note->getUser());
+        if (null === $key) {
+            return $this->jsonNotFound();
+        }
+
+        try {
+            return $this->storedFileResponder->respond($key);
+        } catch (NotFoundHttpException) {
+            return $this->jsonNotFound();
+        }
+    }
 
     /**
      * Accepts a single file via the `image` multipart field. Returns the

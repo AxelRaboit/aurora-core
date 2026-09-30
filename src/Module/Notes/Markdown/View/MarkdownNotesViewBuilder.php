@@ -12,8 +12,10 @@ use Aurora\Module\Notes\Folder\Serializer\NoteFolderSerializerInterface;
 use Aurora\Module\Notes\Folder\Service\NoteFolderHierarchy;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
+use Aurora\Module\Notes\Markdown\Service\NoteReadScope;
 use Aurora\Module\Notes\Markdown\Setting\MarkdownNoteSettingEnum;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
+use DateTimeInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final readonly class MarkdownNotesViewBuilder
@@ -25,6 +27,7 @@ final readonly class MarkdownNotesViewBuilder
         private NoteFolderHierarchy $hierarchy,
         private UrlGeneratorInterface $urlGenerator,
         private SettingRepository $settingRepository,
+        private NoteReadScope $readScope,
     ) {}
 
     /**
@@ -78,23 +81,34 @@ final readonly class MarkdownNotesViewBuilder
      */
     public function readView(CoreUserInterface $user, MarkdownNoteInterface $note): array
     {
-        $titles = [];
+        $mine = $note->getUser()->getId() === $user->getId();
+        $titles = $mine ? $this->ownTitleIndex($user) : $this->sharedTitleIndex($user, $note);
 
-        // La liste à plat plutôt que les entités : elle porte les titres et
-        // les identifiants, et rien d'autre. Charger neuf cents corps
-        // chiffrés pour construire un index de titres serait le prix d'un
-        // déchiffrement par note, pour rien.
-        foreach ($this->noteRepository->findFlatListForUser($user) as $one) {
-            $title = mb_strtolower(mb_trim((string) ($one['title'] ?? '')));
-
-            if ('' !== $title) {
-                $titles[$title] = (int) $one['id'];
-            }
-        }
+        $neighbours = $mine ? $this->readingNeighbours($user, (int) $note->getId()) : ['previous' => null, 'next' => null];
 
         return [
             'note' => $note,
+            // Le chemin de la note depuis la racine, pour le fil d'Ariane.
+            // Seulement chez soi : le dossier d'une note partagée est dans le
+            // carnet de quelqu'un d'autre, et le montrer n'aurait nulle part
+            // où mener.
+            'breadcrumb' => $mine
+                ? array_map(
+                    static fn (NoteFolderInterface $one): array => ['id' => $one->getId(), 'name' => $one->getName(), 'color' => $one->getColor()],
+                    $this->hierarchy->pathTo($note->getFolder()),
+                )
+                : [],
+            'canEdit' => $mine,
+            'previous' => $neighbours['previous'],
+            'next' => $neighbours['next'],
+            'libraryPath' => $this->urlGenerator->generate('backend_notes_markdown'),
+            'folderShowPath' => $this->urlGenerator->generate('backend_notes_markdown_folder', ['id' => '__id__']),
             'readNotePath' => $this->urlGenerator->generate('backend_notes_markdown_read', ['id' => '__id__']),
+            // Les images passent par une route qui applique la règle de
+            // lecture de la note et la clé de son auteur : l'adresse écrite
+            // dans le texte est celle de l'auteur, que l'on réécrit.
+            'imagePrefix' => str_replace('__filename__', '', $this->urlGenerator->generate('backend_notes_markdown_images_serve', ['filename' => '__filename__'])),
+            'noteImagePath' => $this->urlGenerator->generate('backend_notes_markdown_images_read', ['noteId' => $note->getId(), 'filename' => '__filename__']),
             'backPath' => $this->urlGenerator->generate('backend_notes_markdown_show', ['id' => $note->getId()]),
             'cover' => [
                 'url' => $note->getCoverUrl(),
@@ -104,6 +118,171 @@ final readonly class MarkdownNotesViewBuilder
             ],
             'appearance' => $note->getAppearance()->value,
             'titleIndex' => $titles,
+            ...$this->readerTree($user),
+        ];
+    }
+
+    /**
+     * Ce que le lecteur montre à gauche : tout son carnet, et ce qu'on lui a
+     * partagé, à part.
+     *
+     * Le mode lecture est un espace à lui, sans le back-office autour : il
+     * porte donc sa propre arborescence plutôt que le panneau du menu. Les
+     * titres seulement - aucun corps n'est déchiffré pour dessiner un arbre.
+     *
+     * @return array{treeFolders: list<array<string, mixed>>, treeNotes: list<array<string, mixed>>, sharedFolders: list<array<string, mixed>>, sharedNotes: list<array<string, mixed>>}
+     */
+    private function readerTree(CoreUserInterface $user): array
+    {
+        $folders = array_map(static fn (NoteFolderInterface $one): array => [
+            'id' => $one->getId(),
+            'parentId' => $one->getParent()?->getId(),
+            'name' => $one->getName(),
+            'color' => $one->getColor(),
+            'position' => $one->getPosition(),
+            'sharedAt' => $one->getSharedAt()?->format(DateTimeInterface::ATOM),
+        ], $this->folderRepository->findAllForUser($user));
+
+        $notes = array_map(static fn (array $row): array => [
+            'id' => (int) $row['id'],
+            'title' => (string) ($row['title'] ?? ''),
+            'folderId' => null === ($row['folderId'] ?? null) ? null : (int) $row['folderId'],
+            'position' => $row['position'],
+            'sharedAt' => $row['sharedAt'] ?? null,
+        ], $this->noteRepository->findFlatListForUser($user));
+
+        $shared = $this->readScope->sharedWith($user);
+
+        return [
+            'treeFolders' => $folders,
+            'treeNotes' => $notes,
+            'sharedFolders' => array_map(static fn (NoteFolderInterface $one): array => [
+                'id' => $one->getId(),
+                'parentId' => $one->getParent()?->getId(),
+                'name' => $one->getName(),
+                'ownerName' => $one->getUser()->getName(),
+            ], $shared['folders']),
+            'sharedNotes' => array_map(static fn (MarkdownNoteInterface $one): array => [
+                'id' => $one->getId(),
+                'title' => (string) $one->getTitle(),
+                'folderId' => $one->getFolder()?->getId(),
+                'ownerName' => $one->getUser()->getName(),
+            ], $shared['notes']),
+        ];
+    }
+
+    /**
+     * Les titres de tout son carnet : chez soi, un wiki-lien mène toujours
+     * quelque part.
+     *
+     * La liste à plat plutôt que les entités : elle porte les titres et les
+     * identifiants, et rien d'autre. Charger neuf cents corps chiffrés pour
+     * construire un index de titres serait le prix d'un déchiffrement par
+     * note, pour rien.
+     *
+     * @return array<string, int>
+     */
+    private function ownTitleIndex(CoreUserInterface $user): array
+    {
+        $titles = [];
+
+        foreach ($this->noteRepository->findFlatListForUser($user) as $one) {
+            $title = mb_strtolower(mb_trim((string) ($one['title'] ?? '')));
+
+            if ('' !== $title) {
+                $titles[$title] = (int) $one['id'];
+            }
+        }
+
+        return $titles;
+    }
+
+    /**
+     * Les titres qu'un lien dans la note d'un autre peut atteindre.
+     *
+     * Celles de l'auteur que le lecteur a le droit de lire, et rien d'autre.
+     * L'index était celui du carnet du **lecteur** : un `[[Budget]]` écrit par
+     * un collègue ouvrait la note « Budget » de celui qui lisait, qui n'avait
+     * rien à voir. Un lien vers une note privée de l'auteur reste du texte,
+     * ce qui ne dit même pas qu'elle existe.
+     *
+     * @return array<string, int>
+     */
+    private function sharedTitleIndex(CoreUserInterface $user, MarkdownNoteInterface $note): array
+    {
+        $author = $note->getUser()->getId();
+        $titles = [];
+
+        foreach ($this->readScope->sharedWith($user)['notes'] as $one) {
+            if ($one->getUser()->getId() !== $author) {
+                continue;
+            }
+
+            $title = mb_strtolower(mb_trim((string) $one->getTitle()));
+
+            if ('' !== $title) {
+                $titles[$title] = (int) $one->getId();
+            }
+        }
+
+        return $titles;
+    }
+
+    /**
+     * La note d'avant et celle d'après, dans l'ordre de l'arborescence.
+     *
+     * C'est ce qui fait du mode lecture une lecture du carnet et pas d'une
+     * note : on avance d'une note à la suivante comme on tourne une page, dans
+     * l'ordre où le panneau les range - les sous-dossiers d'abord, puis les
+     * notes, chaque niveau selon sa position.
+     *
+     * @return array{previous: ?array{id: int, title: string}, next: ?array{id: int, title: string}}
+     */
+    private function readingNeighbours(CoreUserInterface $user, int $noteId): array
+    {
+        $foldersByParent = [];
+        foreach ($this->folderRepository->findAllForUser($user) as $folder) {
+            $foldersByParent[(int) ($folder->getParent()?->getId() ?? 0)][] = (int) $folder->getId();
+        }
+
+        $notesByFolder = [];
+        $titles = [];
+        foreach ($this->noteRepository->findFlatListForUser($user) as $row) {
+            $notesByFolder[(int) ($row['folderId'] ?? 0)][] = (int) $row['id'];
+            $titles[(int) $row['id']] = (string) ($row['title'] ?? '');
+        }
+
+        $order = [];
+        $seen = [];
+        $walk = static function (int $folderId) use (&$walk, &$order, &$seen, $foldersByParent, $notesByFolder): void {
+            // Un carnet abîmé dont un dossier se contiendrait lui-même ne
+            // doit pas faire tourner la page.
+            if (isset($seen[$folderId])) {
+                return;
+            }
+
+            $seen[$folderId] = true;
+
+            foreach ($foldersByParent[$folderId] ?? [] as $child) {
+                $walk($child);
+            }
+
+            foreach ($notesByFolder[$folderId] ?? [] as $id) {
+                $order[] = $id;
+            }
+        };
+        $walk(0);
+
+        $at = array_search($noteId, $order, true);
+        if (false === $at) {
+            return ['previous' => null, 'next' => null];
+        }
+
+        $pick = static fn (?int $id): ?array => null === $id ? null : ['id' => $id, 'title' => $titles[$id] ?? ''];
+
+        return [
+            'previous' => $pick($order[$at - 1] ?? null),
+            'next' => $pick($order[$at + 1] ?? null),
         ];
     }
 

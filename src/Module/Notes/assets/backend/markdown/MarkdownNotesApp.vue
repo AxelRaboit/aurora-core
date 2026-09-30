@@ -1074,6 +1074,18 @@ onUnmounted(() => {
                                  règle de la maison le dit déjà pour les
                                  cartes - au-delà de cinq, on garde la
                                  feuille. -->
+                            <!-- Lire, d'un clic et à la vue : c'était une ligne
+                                 cachée dans le menu, et passer en lecture
+                                 demandait de la chercher à chaque fois. -->
+                            <AppIconButton
+                                v-if="readHref"
+                                data-note-read
+                                :href="readHref"
+                                :title="t('notes.markdown.read.mode')"
+                            >
+                                <BookOpen class="h-4 w-4" :stroke-width="2" />
+                            </AppIconButton>
+
                             <AppRowActions
                                 :actions="noteActions"
                                 :label="form.title || t('notes.markdown.untitled')"

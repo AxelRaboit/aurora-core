@@ -342,33 +342,134 @@ final class MarkdownNoteTest extends IntegrationTestCase
     }
 
     /**
-     * La note seule, sans le back-office autour.
+     * Le lecteur : un espace épuré, avec tout le carnet à gauche.
      *
-     * Et seulement la sienne : la vue de lecture n'a pas de jeton, c'est le
-     * compte qui fait la portée.
+     * Il montrait une note seule. Il porte maintenant sa propre
+     * arborescence - pas le menu du back-office, que la lecture n'a pas à
+     * traîner - et il tourne les pages dans l'ordre de l'arborescence. Seule la personne qui a le droit de lire y
+     * entre : c'est le compte qui fait la portée, il n'y a pas de jeton.
      */
-    public function testTheReadingViewRendersTheNoteAlone(): void
+    public function testTheReadingModeKeepsTheNotebookAroundTheNote(): void
     {
-        $note = $this->note($this->owner, 'À lire', content: '# Titre');
+        $folder = $this->folder($this->owner, 'Lecture suivie');
+        $first = $this->note($this->owner, 'Chapitre un', $folder, content: '# Un');
+        $second = $this->note($this->owner, 'Chapitre deux', $folder, content: '# Deux');
+        $second->setPosition(1);
+        $this->entityManager->flush();
 
         $this->client->loginUser($this->owner, 'admin');
         $this->client->request('GET', $this->urlGenerator->generate(
             'backend_notes_markdown_read',
-            ['id' => $note->getId()],
+            ['id' => $first->getId()],
         ));
 
         self::assertResponseIsSuccessful();
 
         $html = (string) $this->client->getResponse()->getContent();
-        self::assertStringContainsString('notes/share/NoteShareApp', $html);
-        self::assertStringNotContainsString('sidemenu-nav', $html);
+        self::assertStringContainsString('notes/backend/markdown/NoteReadApp', $html);
+        // Un espace épuré : pas le menu du back-office, sa propre
+        // arborescence à la place.
+        self::assertStringNotContainsString('core/backend/sidemenu/AppSidemenu', $html);
+
+        $props = $this->readProps($html);
+        $inTree = array_column($props['treeNotes'], 'id');
+        self::assertContains($first->getId(), $inTree);
+        self::assertContains($second->getId(), $inTree);
+        self::assertTrue($props['canEdit']);
+        self::assertSame('Lecture suivie', $props['breadcrumb'][0]['name'] ?? null);
+        self::assertSame($second->getId(), $props['next']['id'] ?? null);
 
         $this->client->loginUser($this->other, 'admin');
         $this->client->request('GET', $this->urlGenerator->generate(
             'backend_notes_markdown_read',
-            ['id' => $note->getId()],
+            ['id' => $first->getId()],
         ));
 
+        self::assertResponseStatusCodeSame(404);
+    }
+
+    /**
+     * Un lien dans la note d'un autre mène chez lui, pas chez soi.
+     *
+     * L'index des titres était celui du lecteur : un `[[Budget]]` écrit par un
+     * collègue ouvrait la note « Budget » de celui qui lisait. Il est
+     * maintenant fait des notes de l'auteur que le lecteur peut lire ; une
+     * note privée de l'auteur n'y est pas, pas même son existence. Et la
+     * note d'un autre ne se modifie pas, ne montre pas son rangement, ne
+     * tourne pas les pages de son carnet.
+     */
+    public function testLinksInSomebodyElsesNoteResolveInTheirSharedNotes(): void
+    {
+        $folder = $this->folder($this->owner, 'Équipe');
+        $guide = $this->note($this->owner, 'Guide', $folder, content: 'Voir [[Budget]] et [[Secret]]');
+        $budget = $this->note($this->owner, 'Budget', $folder, content: 'Chiffres');
+        $this->note($this->owner, 'Secret', content: 'Privé');
+        $mine = $this->note($this->other, 'Budget', content: 'Le mien');
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->post('backend_notes_markdown_folders_share', [], ['id' => $folder->getId()]);
+
+        $this->client->loginUser($this->other, 'admin');
+        $this->client->request('GET', $this->urlGenerator->generate(
+            'backend_notes_markdown_read',
+            ['id' => $guide->getId()],
+        ));
+        self::assertResponseIsSuccessful();
+
+        $props = $this->readProps((string) $this->client->getResponse()->getContent());
+
+        self::assertSame($budget->getId(), $props['titleIndex']['budget'] ?? null);
+        self::assertNotSame($mine->getId(), $props['titleIndex']['budget'] ?? null);
+        self::assertArrayNotHasKey('secret', $props['titleIndex']);
+        self::assertFalse($props['canEdit']);
+        self::assertSame([], $props['breadcrumb']);
+        self::assertNull($props['next']);
+    }
+
+    /**
+     * Les images d'une note partagée s'affichent chez ceux qui la lisent.
+     *
+     * Elles sont rangées par auteur, et la route ordinaire cherche dans le
+     * dossier de la personne connectée : une note partagée s'affichait sans
+     * ses images. La route de lecture prend la clé de l'auteur, derrière la
+     * même règle que le texte - et rien de plus : une note qui n'est plus
+     * partagée ne sert plus ses images.
+     */
+    public function testASharedNoteShowsItsImagesToItsReaders(): void
+    {
+        $this->client->loginUser($this->owner, 'admin');
+
+        $pixel = (string) base64_decode(
+            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+            true,
+        );
+        $source = (string) tempnam(sys_get_temp_dir(), 'aurora-test-image-');
+        file_put_contents($source, $pixel);
+
+        $this->client->request(
+            'POST',
+            $this->urlGenerator->generate('backend_notes_markdown_images_upload'),
+            files: ['image' => new UploadedFile($source, 'pixel.png', 'image/png', null, true)],
+        );
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+        $filename = (string) json_decode((string) $this->client->getResponse()->getContent(), true)['filename'];
+
+        $note = $this->note($this->owner, 'Illustrée', content: sprintf('![pixel](/x/%s)', $filename));
+        $url = $this->urlGenerator->generate('backend_notes_markdown_images_read', ['noteId' => $note->getId(), 'filename' => $filename]);
+
+        $this->client->loginUser($this->other, 'admin');
+        $this->client->request('GET', $url);
+        self::assertResponseStatusCodeSame(404);
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->post('backend_notes_markdown_share_internally', [], ['id' => $note->getId()]);
+
+        $this->client->loginUser($this->other, 'admin');
+        $this->client->request('GET', $url);
+        self::assertResponseIsSuccessful();
+
+        // La route ordinaire, elle, reste celle de l'auteur.
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_images_serve', ['filename' => $filename]));
         self::assertResponseStatusCodeSame(404);
     }
 
@@ -743,6 +844,14 @@ final class MarkdownNoteTest extends IntegrationTestCase
         $fresh = $this->entityManager->find(MarkdownNote::class, $note->getId());
         self::assertInstanceOf(MarkdownNoteInterface::class, $fresh);
         self::assertSame($secret, $fresh->getContent());
+    }
+
+    /** Les propriétés passées à la page de lecture. */
+    private function readProps(string $html): array
+    {
+        self::assertSame(1, preg_match('/data-symfony--ux-vue--vue-props-value="([^"]*readNotePath[^"]*)"/', $html, $match));
+
+        return (array) json_decode(html_entity_decode($match[1], ENT_QUOTES | ENT_HTML5), true, flags: JSON_THROW_ON_ERROR);
     }
 
     private function note(User $user, string $title, ?NoteFolder $folder = null, string $content = ''): MarkdownNote

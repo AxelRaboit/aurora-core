@@ -200,6 +200,13 @@ notes:
     title: Notes Markdown
     save: Enregistrer
     read:
+      edit: 'Modifier'
+      previous: 'Précédente'
+      next: 'Suivante'
+      pager: 'Note précédente et suivante'
+      mode: 'Mode lecture'
+      mode_edit: 'Revenir à l''édition'
+      contents: 'Sommaire'
       open: Lire la note seule
       subheading: Vue de lecture
       back: Retour à l'éditeur
@@ -246,6 +253,7 @@ notes:
         required: Choisissez au moins un fichier.
     create_in_folder: 'Ajouter dans ce dossier'
     collapse_all: 'Tout replier'
+    team_inherited: 'Visible par l''équipe, par un dossier partagé au-dessus'
     breadcrumb: 'Emplacement de la note'
     add:
       title: 'Ajouter'

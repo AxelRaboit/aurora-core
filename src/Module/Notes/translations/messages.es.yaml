@@ -199,6 +199,13 @@ notes:
         title: 'Notas Markdown'
         save: Guardar
         read:
+            edit: 'Editar'
+            previous: 'Anterior'
+            next: 'Siguiente'
+            pager: 'Nota anterior y siguiente'
+            mode: 'Modo lectura'
+            mode_edit: 'Volver a la edición'
+            contents: 'Índice'
             open: 'Leer solo la nota'
             subheading: 'Vista de lectura'
             back: 'Volver al editor'
@@ -248,6 +255,7 @@ notes:
                 required: 'Elija al menos un archivo.'
         create_in_folder: 'Añadir a esta carpeta'
         collapse_all: 'Plegar todo'
+        team_inherited: 'Visible para el equipo, por una carpeta compartida superior'
         breadcrumb: 'Ubicación de la nota'
         add:
             title: 'Añadir'

@@ -200,6 +200,13 @@ notes:
     title: Markdown notes
     save: Save
     read:
+      edit: 'Edit'
+      previous: 'Previous'
+      next: 'Next'
+      pager: 'Previous and next note'
+      mode: 'Reading mode'
+      mode_edit: 'Back to editing'
+      contents: 'Contents'
       open: Read the note on its own
       subheading: Reading view
       back: Back to the editor
@@ -246,6 +253,7 @@ notes:
         required: Choose at least one file.
     create_in_folder: 'Add to this folder'
     collapse_all: 'Collapse all'
+    team_inherited: 'Visible to the team, through a shared folder above'
     breadcrumb: 'Where this note lives'
     add:
       title: 'Add'

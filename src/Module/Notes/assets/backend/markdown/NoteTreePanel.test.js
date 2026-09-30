@@ -36,6 +36,7 @@ function answerWith({
     notes = NOTES,
     ids = [],
     ok = true,
+    shared = { folders: [], notes: [] },
 } = {}) {
     global.fetch = vi.fn().mockImplementation(async (url) => {
         const path = String(url);
@@ -48,7 +49,7 @@ function answerWith({
                 // le panneau affichait tout le carnet une seconde fois,
                 // dans la section « Partagé avec moi ».
                 path.includes("/shared")
-                ? { success: true, folders: [], notes: [] }
+                ? { success: true, ...shared }
                 : { success: true, notes };
 
         return {
@@ -715,5 +716,125 @@ describe("le confort de l'arbre", () => {
 
         await rows[0].trigger("keydown", { key: "ArrowRight" });
         expect(wrapper.text()).toContain("Lundi");
+    });
+});
+
+describe("passer en lecture", () => {
+    /**
+     * Il fallait ouvrir une note puis chercher « Lire » dans ses trois
+     * points. Le panneau porte maintenant le bouton, toujours là.
+     */
+    it("opens the reader on the first note when none is open", async () => {
+        const assign = vi.fn();
+        vi.spyOn(window, "location", "get").mockReturnValue({
+            ...window.location,
+            assign,
+        });
+
+        const wrapper = await render();
+        await wrapper.find("[data-read-mode-toggle]").trigger("click");
+
+        expect(assign).toHaveBeenCalledWith("/backend/notes/markdown/11/read");
+    });
+
+    it("opens the reader on the note the page says is open", async () => {
+        const assign = vi.fn();
+        vi.spyOn(window, "location", "get").mockReturnValue({
+            ...window.location,
+            assign,
+        });
+
+        const wrapper = await render();
+        tellPanels("notes:changed", {
+            notes: NOTES,
+            folders: FOLDERS,
+            noteId: 12,
+        });
+        await flushPromises();
+        await wrapper.find("[data-read-mode-toggle]").trigger("click");
+
+        expect(assign).toHaveBeenCalledWith("/backend/notes/markdown/12/read");
+    });
+});
+
+describe("qui voit quoi, dans l'arbre", () => {
+    /**
+     * Partager un dossier ouvre tout ce qu'il contient, à n'importe quelle
+     * profondeur : l'arbre le dit maintenant, plein sur ce qui est partagé,
+     * pâle sur ce qui l'est par un dossier au-dessus.
+     */
+    it("marks what the team can read, directly or through a folder above", async () => {
+        answerWith({
+            folders: FOLDERS.map((f) =>
+                1 === f.id
+                    ? { ...f, sharedAt: "2026-09-30T08:00:00+00:00" }
+                    : f,
+            ),
+            notes: [
+                ...NOTES,
+                {
+                    id: 13,
+                    title: "Seule",
+                    folderId: 3,
+                    tags: [],
+                    sharedAt: "2026-09-30T08:00:00+00:00",
+                },
+            ],
+        });
+
+        const wrapper = await render("/backend/notes/markdown", {
+            expanded: [1, 3],
+        });
+        const mark = (selector) =>
+            wrapper.find(selector).find("[data-team-mark]");
+
+        expect(mark('[data-folder-row="1"]').attributes("data-team")).toBe(
+            "direct",
+        );
+        expect(mark('[data-folder-row="2"]').attributes("data-team")).toBe(
+            "inherited",
+        );
+        expect(mark('[data-note-row="11"]').attributes("data-team")).toBe(
+            "inherited",
+        );
+        expect(mark('[data-note-row="13"]').attributes("data-team")).toBe(
+            "direct",
+        );
+        expect(mark('[data-note-row="12"]').exists()).toBe(false);
+    });
+
+    /**
+     * Les notes d'un sous-dossier partagé sont lisibles, et n'apparaissaient
+     * nulle part : le panneau ne montrait que celles de la racine.
+     */
+    it("lists the notes of a shared folder's subfolders too", async () => {
+        answerWith({
+            shared: {
+                folders: [
+                    {
+                        id: 90,
+                        name: "Équipe",
+                        parentId: null,
+                        ownerName: "Marie",
+                    },
+                    {
+                        id: 91,
+                        name: "Réunions",
+                        parentId: 90,
+                        ownerName: "Marie",
+                    },
+                ],
+                notes: [
+                    { id: 900, title: "Charte", folderId: 90 },
+                    { id: 901, title: "Lundi", folderId: 91 },
+                ],
+            },
+        });
+
+        const wrapper = await render();
+        const text = wrapper.text();
+
+        expect(text).toContain("Charte");
+        expect(text).toContain("Réunions › Lundi");
     });
 });
