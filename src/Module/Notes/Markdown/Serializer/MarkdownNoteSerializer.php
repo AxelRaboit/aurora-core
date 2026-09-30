@@ -35,6 +35,7 @@ class MarkdownNoteSerializer implements MarkdownNoteSerializerInterface
     {
         return [
             'id' => $note->getId(),
+            'version' => $note->getVersion(),
             'folderId' => $note->getFolder()?->getId(),
             'title' => $note->getTitle(),
             'tags' => $note->getTags(),

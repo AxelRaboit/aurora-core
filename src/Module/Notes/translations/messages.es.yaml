@@ -255,6 +255,11 @@ notes:
                 required: 'Elija al menos un archivo.'
         create_in_folder: 'Añadir a esta carpeta'
         collapse_all: 'Plegar todo'
+        conflict:
+            title: 'Esta nota ha cambiado en otro lugar'
+            body: 'Alguien modificó esta nota mientras usted escribía. Sus últimos cambios no se han guardado, para no borrar los suyos. Recargue para partir de su versión, o sobrescríbala con la suya.'
+            reload: 'Recargar su versión'
+            overwrite: 'Sobrescribir con la mía'
         team_inherited: 'Visible para el equipo, por una carpeta compartida superior'
         breadcrumb: 'Ubicación de la nota'
         add:

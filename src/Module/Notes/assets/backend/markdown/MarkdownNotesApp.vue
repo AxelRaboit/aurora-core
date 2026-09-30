@@ -130,6 +130,9 @@ const {
     navigateFromGraph,
     refreshList,
     flushPendingSave,
+    conflict,
+    saveAnyway,
+    reloadDiscarding,
 } = useMarkdownNotesPage(props, t);
 
 // Local to this component rather than folded into `useMarkdownNotesPage`:
@@ -1349,6 +1352,29 @@ onUnmounted(() => {
                         <AppButton variant="danger" size="md" :loading="deleting" v-on:click="confirmDelete">
                             <Trash2 class="w-3.5 h-3.5" :stroke-width="2" />
                             {{ t('notes.markdown.delete') }}
+                        </AppButton>
+                    </AppModalFooter>
+                </template>
+            </AppModal>
+
+            <!-- Quelqu'un a écrit dans la note entre-temps. On ne décide pas à
+                 la place de la personne : reprendre sa version, ou écraser la
+                 sienne en le sachant. -->
+            <AppModal
+                :show="conflict"
+                max-width="md"
+                :closeable="false"
+                :title="t('notes.markdown.conflict.title')"
+                :icon="TriangleAlert"
+            >
+                <p class="text-sm text-primary" data-note-conflict>{{ t('notes.markdown.conflict.body') }}</p>
+                <template #footer>
+                    <AppModalFooter>
+                        <AppButton variant="danger" size="md" data-conflict-overwrite v-on:click="saveAnyway">
+                            {{ t('notes.markdown.conflict.overwrite') }}
+                        </AppButton>
+                        <AppButton variant="primary" size="md" data-conflict-reload v-on:click="reloadDiscarding">
+                            {{ t('notes.markdown.conflict.reload') }}
                         </AppButton>
                     </AppModalFooter>
                 </template>

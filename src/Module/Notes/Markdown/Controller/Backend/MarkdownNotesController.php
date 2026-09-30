@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Notes\Markdown\Controller\Backend;
 
 use Aurora\Core\Enum\HttpMethodEnum;
+use Aurora\Core\Enum\HttpStatusEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Storage\Access\UploadPolicyProvider;
@@ -434,6 +435,15 @@ final class MarkdownNotesController extends AbstractController
         }
 
         $input = $this->inputFactory->fromArray($this->decodeJson($request));
+
+        // Parti d'une version dépassée : quelqu'un a écrit entre-temps, et
+        // enregistrer maintenant effacerait son texte sans qu'il le sache.
+        // On refuse, et c'est la personne qui choisit - recharger, ou écraser
+        // en connaissance de cause. Un appel qui ne dit pas sa version passe,
+        // comme avant.
+        if (!$input->isForce() && null !== $input->getVersion() && $input->getVersion() !== $note->getVersion()) {
+            return $this->jsonFailure('conflict', HttpStatusEnum::Conflict->value, ['conflict' => true, 'version' => $note->getVersion()]);
+        }
 
         $errors = $this->payloadValidator->errors($input);
         if ([] !== $errors) {

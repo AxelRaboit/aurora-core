@@ -453,6 +453,37 @@ final class MarkdownNoteTest extends IntegrationTestCase
     }
 
     /**
+     * Un enregistrement parti d'une version dépassée est refusé.
+     *
+     * L'éditeur enregistre tout seul : sans ce contrôle, à deux sur une même
+     * note, le dernier qui tapait effaçait l'autre sans que personne le sache.
+     */
+    public function testASaveFromAnOutdatedVersionIsRefused(): void
+    {
+        $note = $this->note($this->owner, 'Versionnée', content: 'v1');
+        $this->client->loginUser($this->owner, 'admin');
+
+        $saved = $this->post('backend_notes_markdown_update', ['title' => 'Versionnée', 'content' => 'v2', 'version' => 1], ['id' => $note->getId()]);
+        self::assertResponseIsSuccessful();
+        self::assertSame(2, $saved['note']['version']);
+
+        // Parti de la version 1 alors que la note est en 2 : refusé.
+        $this->post('backend_notes_markdown_update', ['title' => 'Versionnée', 'content' => 'écrasé', 'version' => 1], ['id' => $note->getId()]);
+        self::assertResponseStatusCodeSame(409);
+        $body = json_decode((string) $this->client->getResponse()->getContent(), true);
+        self::assertTrue($body['conflict']);
+
+        // Écraser en le sachant passe, et un appel sans version aussi.
+        $this->post('backend_notes_markdown_update', ['title' => 'Versionnée', 'content' => 'forcé', 'version' => 1, 'force' => true], ['id' => $note->getId()]);
+        self::assertResponseIsSuccessful();
+        $this->post('backend_notes_markdown_update', ['title' => 'Versionnée', 'content' => 'sans version'], ['id' => $note->getId()]);
+        self::assertResponseIsSuccessful();
+
+        $this->entityManager->clear();
+        self::assertSame('sans version', $this->entityManager->find(MarkdownNote::class, $note->getId())?->getContent());
+    }
+
+    /**
      * Un lien dans la note d'un autre mène chez lui, pas chez soi.
      *
      * L'index des titres était celui du lecteur : un `[[Budget]]` écrit par un

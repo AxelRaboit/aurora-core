@@ -253,6 +253,11 @@ notes:
         required: Choisissez au moins un fichier.
     create_in_folder: 'Ajouter dans ce dossier'
     collapse_all: 'Tout replier'
+    conflict:
+      title: 'Cette note a changé ailleurs'
+      body: 'Quelqu''un a modifié cette note pendant que vous écriviez. Vos derniers changements n''ont pas été enregistrés, pour ne pas effacer les siens. Rechargez pour repartir de sa version, ou écrasez-la avec la vôtre.'
+      reload: 'Recharger sa version'
+      overwrite: 'Écraser avec la mienne'
     team_inherited: 'Visible par l''équipe, par un dossier partagé au-dessus'
     breadcrumb: 'Emplacement de la note'
     add:

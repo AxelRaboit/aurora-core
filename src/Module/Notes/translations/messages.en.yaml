@@ -253,6 +253,11 @@ notes:
         required: Choose at least one file.
     create_in_folder: 'Add to this folder'
     collapse_all: 'Collapse all'
+    conflict:
+      title: 'This note changed elsewhere'
+      body: 'Someone edited this note while you were writing. Your latest changes were not saved, so as not to erase theirs. Reload to start from their version, or overwrite it with yours.'
+      reload: 'Reload their version'
+      overwrite: 'Overwrite with mine'
     team_inherited: 'Visible to the team, through a shared folder above'
     breadcrumb: 'Where this note lives'
     add:

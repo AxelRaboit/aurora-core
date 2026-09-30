@@ -83,4 +83,9 @@ interface MarkdownNoteInterface extends TimestampableInterface
     public function getTrashedWithFolderId(): ?int;
 
     public function setTrashedWithFolderId(?int $trashedWithFolderId): static;
+
+    /** Avance à chaque écriture du contenu : un enregistrement parti d'une version dépassée est refusé. */
+    public function getVersion(): int;
+
+    public function bumpVersion(): void;
 }

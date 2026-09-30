@@ -58,6 +58,17 @@ abstract class AbstractMarkdownNote implements MarkdownNoteInterface
     protected int $position = 0;
 
     /**
+     * Avance à chaque écriture du contenu, et seulement là.
+     *
+     * Pas le verrou de Doctrine : lui avance à chaque écriture de la ligne,
+     * et déplacer ou épingler la note ouverte aurait fait refuser son
+     * enregistrement suivant pour un conflit qui n'existe pas. Ce qui compte
+     * ici, c'est que deux personnes n'écrasent pas le texte l'une de l'autre.
+     */
+    #[ORM\Column(type: Types::INTEGER, options: ['default' => 1])]
+    protected int $version = 1;
+
+    /**
      * L'image d'entête, chez celui qui l'héberge.
      *
      * **Une adresse, pas un fichier.** La photo reste chez Pexels : rien
@@ -304,6 +315,16 @@ abstract class AbstractMarkdownNote implements MarkdownNoteInterface
         $this->deletedAt = $deletedAt;
 
         return $this;
+    }
+
+    public function getVersion(): int
+    {
+        return $this->version;
+    }
+
+    public function bumpVersion(): void
+    {
+        ++$this->version;
     }
 
     public function isTrashed(): bool

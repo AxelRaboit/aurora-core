@@ -115,6 +115,7 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
         $oldContent = $note->getContent();
 
         $this->applyInput($note, $input);
+        $note->bumpVersion();
 
         $newTitle = $note->getTitle();
         if (null !== $oldTitle && null !== $newTitle && '' !== $oldTitle && $oldTitle !== $newTitle) {
@@ -538,6 +539,7 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
             }
 
             $note->setTags(array_values(array_filter($tags, static fn (string $existing): bool => $existing !== $tag)));
+            $note->bumpVersion();
             ++$affected;
         }
 
@@ -581,6 +583,7 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
 
             if ($changed) {
                 $note->setTags($next);
+                $note->bumpVersion();
                 ++$affected;
             }
         }
@@ -658,6 +661,9 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
             }
 
             $other->setContent(str_replace($oldPattern, $newPattern, $content));
+            // Une autre note réécrite : ouverte ailleurs, son éditeur doit le
+            // savoir plutôt que remettre l'ancien lien au prochain enregistrement.
+            $other->bumpVersion();
         }
     }
 
