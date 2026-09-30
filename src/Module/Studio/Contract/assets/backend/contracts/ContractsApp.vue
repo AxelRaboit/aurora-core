@@ -1,4 +1,5 @@
 <script setup>
+import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
@@ -172,8 +173,10 @@ async function openPreview(contract) {
         reference: contract.reference ?? contract.customerName ?? "",
     };
 
-    const data = await request(buildPath(props.previewPath, { id: contract.id }), {
-        method: "GET",
+    // Les options en troisième argument, pas en deuxième : voir l'aperçu
+    // d'une trame, qui avait la même erreur.
+    const data = await request(buildPath(props.previewPath, { id: contract.id }), null, {
+        method: HttpMethod.Get,
     });
 
     if (!data?.success) {
