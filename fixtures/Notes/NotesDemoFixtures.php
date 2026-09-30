@@ -13,6 +13,10 @@ use Aurora\Module\Notes\Markdown\Enum\NoteAppearanceEnum;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteImageService;
 use Aurora\Module\Notes\Share\Manager\MarkdownNoteShareLinkManagerInterface;
 use Aurora\Module\Notes\Share\Repository\MarkdownNoteShareLinkRepository;
+use Aurora\Module\Notes\Space\Entity\NoteSpace;
+use Aurora\Module\Notes\Space\Entity\NoteSpaceMember;
+use Aurora\Module\Notes\Space\Enum\NoteSpaceAccessEnum;
+use Aurora\Module\Notes\Space\Enum\NoteSpaceRoleEnum;
 use Aurora\Module\Notes\Space\Service\NoteSpaceAccess;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
@@ -187,6 +191,141 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
         $this->pin($manager, $owner, $pinned);
 
         $this->shareLinkFor($notes['clients'] ?? null);
+
+        $this->teamSpace($manager, $owner);
+    }
+
+    /**
+     * Un espace partagé, pour que le panneau montre ses sections et que la
+     * lecture publique ait quelque chose à lire.
+     *
+     * Le guide d'une petite agence : ouvert à tout le back-office en lecture,
+     * Marie y écrit, Jean le lit, et il est publié sur le web. Retrouvé par
+     * son adresse publique à chaque exécution, donc jamais en double.
+     */
+    private function teamSpace(EntityManagerInterface $manager, User $owner): void
+    {
+        $space = $manager->getRepository(NoteSpace::class)->findOneBy(['slug' => 'guide-agence']) ?? new NoteSpace();
+        $space->setOwner($owner)
+            ->setName("Guide de l'agence")
+            ->setColor('#14b8a6')
+            ->setAccess(NoteSpaceAccessEnum::Backoffice)
+            ->setDefaultRole(NoteSpaceRoleEnum::Reader)
+            ->setSlug('guide-agence')
+            ->setIndexable(false)
+            ->setDeletedAt(null);
+
+        if (null === $space->getPublishedAt()) {
+            $space->setPublishedAt(new DateTimeImmutable('-2 days'));
+        }
+
+        $manager->persist($space);
+
+        foreach (['marie.dupont@aurora.app' => NoteSpaceRoleEnum::Editor, 'jean.martin@aurora.app' => NoteSpaceRoleEnum::Reader] as $email => $role) {
+            $user = $this->userRepository->findOneBy(['email' => $email, 'type' => UserTypeEnum::Backend->value]);
+            if (!$user instanceof User) {
+                continue;
+            }
+
+            $member = $manager->getRepository(NoteSpaceMember::class)->findOneBy(['space' => $space, 'user' => $user]) ?? new NoteSpaceMember();
+            $member->setSpace($space)->setUser($user)->setRole($role);
+            $manager->persist($member);
+        }
+
+        $manager->flush();
+
+        $folder = $manager->getRepository(NoteFolder::class)->findOneBy(['space' => $space, 'parent' => null]) ?? new NoteFolder();
+        $folder->setUser($owner)->setSpace($space)->setName('Procédures')->setColor('#14b8a6')->setPosition(0)->setParent(null);
+        $manager->persist($folder);
+
+        $existing = [];
+        foreach ($manager->getRepository(MarkdownNote::class)->findBy(['space' => $space]) as $note) {
+            $existing[(string) $note->getTitle()] = $note;
+        }
+
+        $position = 0;
+        foreach ($this->teamNotes() as $definition) {
+            $note = $existing[$definition['title']] ?? new MarkdownNote();
+            $note->setUser($owner)
+                ->setSpace($space)
+                ->setTitle($definition['title'])
+                ->setContent($definition['content'])
+                ->setTags($definition['tags'])
+                ->setPosition($position++)
+                ->setFolder($definition['inFolder'] ? $folder : null)
+                ->setDeletedAt(null);
+            $manager->persist($note);
+        }
+
+        $manager->flush();
+    }
+
+    /** @return list<array{title: string, tags: list<string>, inFolder: bool, content: string}> */
+    private function teamNotes(): array
+    {
+        return [
+            [
+                'title' => "Bienvenue dans l'agence",
+                'tags' => ['onboarding'],
+                'inFolder' => false,
+                'content' => <<<'MD'
+                    # Bienvenue dans l'agence
+
+                    Ce guide rassemble ce qu'on se répète : comment on accueille un client, comment on produit, comment on livre. Il est ouvert à toute l'équipe en lecture ; Marie le tient à jour.
+
+                    - Premiers jours : [[Accueillir un nouveau client]]
+                    - Chaque semaine : [[Les rituels de la semaine]]
+
+                    > Une question sans réponse ici ? Elle mérite une note.
+                    MD,
+            ],
+            [
+                'title' => 'Accueillir un nouveau client',
+                'tags' => ['onboarding', 'client'],
+                'inFolder' => true,
+                'content' => <<<'MD'
+                    # Accueillir un nouveau client
+
+                    1. Ouvrir son espace client et lui envoyer le lien d'accès.
+                    2. Caler l'appel de lancement dans les cinq jours.
+                    3. Poser le brief et le calendrier du premier mois.
+                    4. Rappeler qui valide, et sous quel délai.
+
+                    Le rythme de production est décrit dans [[Les rituels de la semaine]].
+                    MD,
+            ],
+            [
+                'title' => 'Les rituels de la semaine',
+                'tags' => ['organisation'],
+                'inFolder' => true,
+                'content' => <<<'MD'
+                    # Les rituels de la semaine
+
+                    | Jour | Rituel | Durée |
+                    | --- | --- | --- |
+                    | Lundi | Point de production | 20 min |
+                    | Mercredi | Relecture croisée | 45 min |
+                    | Vendredi | Envoi des validations | 15 min |
+
+                    Le sommaire du guide : [[Bienvenue dans l'agence]].
+                    MD,
+            ],
+            [
+                'title' => 'Livrer une série de contenus',
+                'tags' => ['production', 'client'],
+                'inFolder' => true,
+                'content' => <<<'MD'
+                    # Livrer une série de contenus
+
+                    - [x] Textes relus par une deuxième personne
+                    - [x] Visuels exportés aux formats de chaque réseau
+                    - [ ] Fiches posées dans l'espace du client, à la bonne date
+                    - [ ] Validation demandée, avec le délai rappelé
+
+                    Si le client demande une reprise, on la note sur la fiche, pas dans un message : voir [[Accueillir un nouveau client]].
+                    MD,
+            ],
+        ];
     }
 
     /**
