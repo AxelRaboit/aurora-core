@@ -338,6 +338,11 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
             ['name' => 'Présentations',  'parent' => 1,    'position' => 1],
             ['name' => 'RH',             'parent' => 2,    'position' => 0],
             ['name' => 'Finance',        'parent' => 2,    'position' => 1],
+            // À la corbeille, comme la catégorie et les trois documents plus
+            // bas : l'écran qui réunit les corbeilles de tous les modules ne
+            // montrait que des notes, et la page du tour qui le présente
+            // n'avait rien d'autre à photographier.
+            ['name' => 'Anciens devis',  'parent' => 1,    'position' => 2, 'trashed' => '-8 days'],
         ];
         $folders = [];
         $folderRepository = $em->getRepository(DocumentFolder::class);
@@ -346,7 +351,8 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
             // and the library ended up with three "Clients" folders holding
             // nothing.
             $folder = $folderRepository->findOneBy(['name' => $def['name']]) ?? new DocumentFolder();
-            $folder->setName($def['name'])->setPosition($def['position']);
+            $folder->setName($def['name'])->setPosition($def['position'])
+                ->setDeletedAt(isset($def['trashed']) ? new DateTimeImmutable($def['trashed']) : null);
             if (null !== $def['parent']) {
                 $folder->setParent($folders[$def['parent']]);
             }
@@ -365,6 +371,7 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
             ['name' => 'Ressources Humaines',      'slug' => 'ressources-humaines',    'desc' => 'Fiches de poste, procédures RH et documents administratifs du personnel.'],
             ['name' => 'Finance & Comptabilité',   'slug' => 'finance-comptabilite',   'desc' => 'Rapports financiers, budgets et documents comptables.'],
             ['name' => 'Qualité & Conformité',     'slug' => 'qualite-conformite',     'desc' => 'Politiques qualité, audits et certifications.'],
+            ['name' => 'Événements 2023',          'slug' => 'evenements-2023',        'desc' => 'Supports des salons et journées portes ouvertes de 2023.', 'trashed' => '-20 days'],
         ];
         $categories = [];
         // Through the interface, not the concrete class. A client may map
@@ -382,7 +389,8 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
             // and die on the unique slug - after the target had purged
             // var/uploads, which left the pictures gone and the rows unchanged.
             $c = $categoryRepository->findOneBy(['slug' => $def['slug']]) ?? new $categoryClass();
-            $c->setName($def['name'])->setSlug($def['slug'])->setDescription($def['desc']);
+            $c->setName($def['name'])->setSlug($def['slug'])->setDescription($def['desc'])
+                ->setDeletedAt(isset($def['trashed']) ? new DateTimeImmutable($def['trashed']) : null);
             $em->persist($c);
             $categories[] = $c;
         }
@@ -421,6 +429,13 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
             ['title' => 'Bureau - Illustration article',               'cat' => 1, 'folder' => 0, 'tags' => [],         'status' => DocumentStatusEnum::Draft,     'desc' => 'Illustration en cours de sélection pour l\'article sur l\'installation.', 'file' => 'images/bureau-illustration.webp', 'w' => 1600, 'h' => 1067],
             ['title' => 'Plan des locaux - Étage 2',                   'cat' => 3, 'folder' => 5, 'tags' => [4],        'status' => DocumentStatusEnum::Published, 'desc' => 'Plan d\'évacuation du deuxième étage, affiché près des ascenseurs.', 'file' => 'images/plan-etage-2.png',       'w' => 1240, 'h' => 1754],
             ['title' => 'Capture - Tableau de bord client',            'cat' => 1, 'folder' => 0, 'tags' => [0],        'status' => DocumentStatusEnum::Published, 'desc' => 'Capture d\'écran du tableau de bord, jointe à la documentation de prise en main.', 'file' => 'images/capture-tableau-de-bord.png', 'w' => 1600, 'h' => 1000],
+
+            // À la corbeille, à des dates différentes, pour que l'écran dise
+            // ce qu'il dit d'ordinaire : ce qui part bientôt et ce qui a le
+            // temps. En fin de liste, pour ne renommer aucun fichier d'avant.
+            ['title' => 'Devis Menuiserie - première version',        'cat' => 0, 'folder' => 7, 'tags' => [],         'status' => DocumentStatusEnum::Draft,     'desc' => 'Premier chiffrage, remplacé par le devis signé.', 'file' => $samplePdf, 'trashed' => '-2 days'],
+            ['title' => 'Brochure commerciale 2023',                  'cat' => 2, 'folder' => 4, 'tags' => [3],        'status' => DocumentStatusEnum::Archived,  'desc' => 'Ancienne brochure, retirée depuis la nouvelle charte.', 'file' => $samplePdf, 'trashed' => '-11 days'],
+            ['title' => 'Photo d\'équipe - prise floue',              'cat' => 2, 'folder' => 4, 'tags' => [],         'status' => DocumentStatusEnum::Draft,     'desc' => 'Doublon raté de la photo du séminaire.', 'file' => 'images/equipe-seminaire.jpg', 'w' => 1400, 'h' => 933, 'trashed' => '-1 day'],
         ];
 
         // `2` et non `4`, comme vingt lignes plus haut : quatre niveaux
@@ -454,7 +469,8 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
               ->setDescription($def['desc'])
               ->setStatus($def['status'])
               ->setCategory($categories[$def['cat']])
-              ->setFolder($folders[$def['folder']]);
+              ->setFolder($folders[$def['folder']])
+              ->setDeletedAt(isset($def['trashed']) ? new DateTimeImmutable($def['trashed']) : null);
             // Emptied first, so the set of badges is the one written here and
             // not the sum of every run: a document reused by title keeps the
             // links it already had, and the definition is the authority.

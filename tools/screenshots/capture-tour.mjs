@@ -76,6 +76,22 @@ async function flatten(page) {
 }
 
 /**
+ * Fait défiler la page pour que `element` commence à `top` pixels du haut.
+ *
+ * Pour les blocs d'une longue page publique : `scrollIntoViewIfNeeded` les
+ * colle au bord, sous l'entête collante, ou les laisse où ils sont s'ils
+ * dépassent à peine. Mesuré après coup, parce qu'un bloc qui s'ouvre (le
+ * formulaire d'un rendez-vous) a changé de hauteur entre-temps.
+ */
+async function placeAt(page, element, top) {
+    await element.scrollIntoViewIfNeeded();
+    const box = await element.boundingBox();
+    await page.evaluate((delta) => window.scrollBy(0, delta), box.y - top);
+    // Les zones apparaissent en glissant quand elles entrent dans l'écran.
+    await page.waitForTimeout(1_500);
+}
+
+/**
  * Une prise sur un onglet de l'éditeur de publication.
  *
  * Quatre cartes racontent chacune un onglet - l'entête, la galerie, le
@@ -1038,6 +1054,149 @@ const SHOTS = [
             const adresse = (await page.locator("code").first().innerText()).trim();
             await page.goto(adresse, { waitUntil: "networkidle" });
             await page.waitForTimeout(2_500);
+        },
+    },
+
+    /**
+     * La page « La corbeille » du tour.
+     *
+     * La démonstration en remplit plusieurs, à des dates différentes : une
+     * publication, trois documents, un dossier, une catégorie et deux notes.
+     * L'écran s'ouvre sur la plus pleine, les documents.
+     */
+    {
+        name: "tour-corbeille",
+        path: "/backend/trash",
+        async prepare(page) {
+            await page.waitForTimeout(1_500);
+        },
+    },
+    {
+        // Un autre module dans le même écran : la publication supprimée,
+        // avec le lien vers la liste d'où elle vient.
+        name: "tour-corbeille-publications",
+        path: "/backend/trash",
+        async prepare(page) {
+            await page.locator("main").getByRole("button", { name: /Publications/ }).first().click();
+            await page.waitForTimeout(1_200);
+        },
+    },
+    {
+        // Vider demande confirmation, et dit que c'est sans retour.
+        name: "tour-corbeille-vider",
+        path: "/backend/trash",
+        async prepare(page) {
+            await page.locator("main").getByRole("button", { name: "Vider", exact: true }).click();
+            await page.waitForTimeout(1_000);
+        },
+    },
+
+    /**
+     * Les deux gestes de la liste des publications que la carte
+     * « Publier, programmer, archiver » ne montrait pas : agir sur plusieurs
+     * lignes à la fois, et dupliquer.
+     *
+     * La barre de sélection porte son propre bouton « Actions », en plus de
+     * celui de la page : c'est le second.
+     */
+    {
+        name: "tour-publications-selection",
+        path: "/backend/editorial/posts",
+        async prepare(page) {
+            const cases = page.locator("main tbody input[type=checkbox]");
+
+            for (const ligne of [3, 4, 5]) {
+                await cases.nth(ligne).check();
+            }
+
+            await page.waitForTimeout(500);
+            await page.locator("main").getByRole("button", { name: "Actions", exact: true }).nth(1).click();
+            await page.waitForTimeout(800);
+        },
+    },
+    {
+        name: "tour-publications-dupliquer",
+        path: "/backend/editorial/posts",
+        async prepare(page) {
+            // La première ligne, quelle qu'elle soit : l'ordre de la liste
+            // suit la date de modification, et un titre nommé ici passait en
+            // page deux au rechargement suivant de la démo.
+            await page.locator("main").getByRole("button", { name: /^Actions pour / }).first().click();
+            await page.waitForTimeout(800);
+        },
+    },
+
+    /**
+     * Le profil, pour « Comptes, rôles et privilèges ».
+     *
+     * La phrase d'humeur est tapée et pas enregistrée : l'enregistrer la
+     * mettrait sur toutes les autres prises qui montrent ce compte.
+     */
+    {
+        name: "tour-profil",
+        path: "/backend/general/profile",
+        async prepare(page) {
+            await page.locator("main textarea").first().fill("En séance photo jusqu'à 18 h, je réponds le soir.");
+            await page.locator("main textarea").first().blur();
+            await page.waitForTimeout(600);
+        },
+    },
+    {
+        // Le menu latéral à sa main : une couleur pour une section, un module
+        // masqué. Rien n'est enregistré, pour la même raison.
+        name: "tour-profil-menu",
+        path: "/backend/general/profile/sidemenu",
+        async prepare(page) {
+            await page.locator("main [title='amber']").first().click();
+            const ligne = page.locator("main .divide-y > div", { has: page.getByText("Corbeille", { exact: true }) }).first();
+            await ligne.locator("button, [role=switch], input[type=checkbox]").last().click();
+            await page.waitForTimeout(800);
+        },
+    },
+
+    /**
+     * Ce que le visiteur remplit en dehors d'un formulaire, pour la carte
+     * « Les formulaires » : un rendez-vous et un sondage, sur la page des
+     * nouveaux blocs de la démonstration.
+     *
+     * Sans session, comme le site public. Le rendez-vous est rempli et pas
+     * envoyé : l'envoyer poserait un événement dans l'agenda de la démo à
+     * chaque prise, et prendrait le créneau.
+     */
+    {
+        name: "tour-reservation",
+        path: "/fr/page/nouveaux-blocs",
+        anonymous: true,
+        async prepare(page) {
+            const zone = page.locator("[data-booking]").first();
+            await zone.locator("[data-booking-slots]:not([hidden]) [data-booking-slot]").nth(2).click();
+            await zone.locator("[data-booking-name]").fill("Camille Laurent");
+            await zone.locator("[data-booking-email]").fill("camille.laurent@example.com");
+            await zone.locator("[data-booking-message]").fill("Séance portrait en extérieur, si possible en fin de journée.");
+            await zone.locator("[data-booking-message]").blur();
+            await placeAt(page, zone, 140);
+        },
+    },
+    {
+        // Le vote fait apparaître les résultats. Déjà voté depuis ce
+        // navigateur, ils sont là d'emblée : le bouton n'est cliqué que s'il
+        // attend encore une voix.
+        name: "tour-sondage",
+        path: "/fr/page/nouveaux-blocs",
+        anonymous: true,
+        async prepare(page) {
+            const titre = page.getByText("Quel format préférez-vous ?", { exact: true }).first();
+            await titre.scrollIntoViewIfNeeded();
+
+            // Visible, et pas seulement présent : les résultats sont dans la
+            // page avant le vote, cachés, et les compter suffisait à ne
+            // jamais voter.
+            if (!(await page.getByText(/^Votes :/).first().isVisible())) {
+                await page.getByRole("button", { name: /Les réels/ }).click();
+                await page.getByText(/^Votes :/).first().waitFor({ state: "visible" });
+            }
+
+            await placeAt(page, titre, 220);
         },
     },
 
