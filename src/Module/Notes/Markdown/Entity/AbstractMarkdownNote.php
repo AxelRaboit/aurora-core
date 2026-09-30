@@ -8,6 +8,7 @@ use Aurora\Core\Encryption\Doctrine\EncryptedTextType;
 use Aurora\Core\Timestampable\TimestampableTrait;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Markdown\Enum\NoteAppearanceEnum;
+use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
 use DateTimeImmutable;
@@ -29,9 +30,14 @@ abstract class AbstractMarkdownNote implements MarkdownNoteInterface
 {
     use TimestampableTrait;
 
+    /**
+     * L'auteur. Null quand son compte a été supprimé : dans un espace partagé,
+     * ce qu'il a écrit reste à l'équipe. Son espace personnel, lui, part avec
+     * lui, par la cascade de l'espace.
+     */
     #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
-    protected CoreUserInterface $user;
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    protected ?CoreUserInterface $user = null;
 
     /**
      * The folder this note is filed in, null at the root.
@@ -43,6 +49,14 @@ abstract class AbstractMarkdownNote implements MarkdownNoteInterface
     #[ORM\ManyToOne(targetEntity: NoteFolderInterface::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     protected ?NoteFolderInterface $folder = null;
+
+    /**
+     * L'espace où vit la ligne. Toujours celui de son dossier : c'est lui qui
+     * dit qui la lit et qui l'écrit. Supprimer l'espace emporte ce qu'il range.
+     */
+    #[ORM\ManyToOne(targetEntity: NoteSpaceInterface::class)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    protected NoteSpaceInterface $space;
 
     #[ORM\Column(type: EncryptedTextType::NAME, nullable: true)]
     protected ?string $title = null;
@@ -56,6 +70,17 @@ abstract class AbstractMarkdownNote implements MarkdownNoteInterface
 
     #[ORM\Column(type: Types::INTEGER, options: ['unsigned' => true, 'default' => 0])]
     protected int $position = 0;
+
+    /**
+     * Avance à chaque écriture du contenu, et seulement là.
+     *
+     * Pas le verrou de Doctrine : lui avance à chaque écriture de la ligne,
+     * et déplacer ou épingler la note ouverte aurait fait refuser son
+     * enregistrement suivant pour un conflit qui n'existe pas. Ce qui compte
+     * ici, c'est que deux personnes n'écrasent pas le texte l'une de l'autre.
+     */
+    #[ORM\Column(type: Types::INTEGER, options: ['default' => 1])]
+    protected int $version = 1;
 
     /**
      * L'image d'entête, chez celui qui l'héberge.
@@ -98,31 +123,6 @@ abstract class AbstractMarkdownNote implements MarkdownNoteInterface
     #[ORM\Column(length: 20, options: ['default' => 'plain'])]
     protected string $appearance = NoteAppearanceEnum::Plain->value;
 
-    /**
-     * Quand la note a été épinglée, jamais si elle ne l'est pas.
-     *
-     * Une date plutôt qu'un booléen : elle donne l'ordre des favoris sans
-     * rien de plus, et « épinglé le » est une information qu'un booléen
-     * jette.
-     */
-    #[ORM\Column(nullable: true)]
-    protected ?DateTimeImmutable $favoritedAt = null;
-
-    /**
-     * Depuis quand cette note est lisible par les autres, ou jamais.
-     *
-     * **Le partage interne est une date, pas un booléen**, pour la même
-     * raison que l'épinglage : « partagé le » est une information qu'un
-     * booléen jette, et c'est la première chose qu'on veut savoir devant
-     * une note qui n'est plus tout à fait à soi.
-     *
-     * Une note héritée d'un dossier partagé n'a pas besoin de la porter :
-     * c'est le dossier qui décide pour ce qu'il contient. Cette colonne
-     * sert à partager une note **seule**, typiquement à la racine.
-     */
-    #[ORM\Column(nullable: true)]
-    protected ?DateTimeImmutable $sharedAt = null;
-
     /** When the note was moved to the trash. */
     #[ORM\Column(nullable: true)]
     protected ?DateTimeImmutable $deletedAt = null;
@@ -137,12 +137,12 @@ abstract class AbstractMarkdownNote implements MarkdownNoteInterface
     #[ORM\Column(nullable: true)]
     protected ?int $trashedWithFolderId = null;
 
-    public function getUser(): CoreUserInterface
+    public function getUser(): ?CoreUserInterface
     {
         return $this->user;
     }
 
-    public function setUser(CoreUserInterface $user): static
+    public function setUser(?CoreUserInterface $user): static
     {
         $this->user = $user;
 
@@ -270,30 +270,6 @@ abstract class AbstractMarkdownNote implements MarkdownNoteInterface
         return $this;
     }
 
-    public function getSharedAt(): ?DateTimeImmutable
-    {
-        return $this->sharedAt;
-    }
-
-    public function setSharedAt(?DateTimeImmutable $sharedAt): static
-    {
-        $this->sharedAt = $sharedAt;
-
-        return $this;
-    }
-
-    public function getFavoritedAt(): ?DateTimeImmutable
-    {
-        return $this->favoritedAt;
-    }
-
-    public function setFavoritedAt(?DateTimeImmutable $favoritedAt): static
-    {
-        $this->favoritedAt = $favoritedAt;
-
-        return $this;
-    }
-
     public function getDeletedAt(): ?DateTimeImmutable
     {
         return $this->deletedAt;
@@ -304,6 +280,28 @@ abstract class AbstractMarkdownNote implements MarkdownNoteInterface
         $this->deletedAt = $deletedAt;
 
         return $this;
+    }
+
+    public function getSpace(): NoteSpaceInterface
+    {
+        return $this->space;
+    }
+
+    public function setSpace(NoteSpaceInterface $space): static
+    {
+        $this->space = $space;
+
+        return $this;
+    }
+
+    public function getVersion(): int
+    {
+        return $this->version;
+    }
+
+    public function bumpVersion(): void
+    {
+        ++$this->version;
     }
 
     public function isTrashed(): bool

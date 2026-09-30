@@ -9,6 +9,7 @@ use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Folder\Manager\NoteFolderManagerInterface;
 use Aurora\Module\Notes\Markdown\Dto\MarkdownNoteInput;
 use Aurora\Module\Notes\Markdown\Manager\MarkdownNoteManagerInterface;
+use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
@@ -74,15 +75,20 @@ final readonly class MarkdownNoteImporter
      *
      * @return int le nombre de notes et de dossiers créés
      */
-    public function import(CoreUserInterface $user, UploadedFile $file, ?NoteFolderInterface $folder): int
+    /**
+     * @param ?NoteSpaceInterface $space la racine où importer quand il n'y a pas de dossier ; son espace personnel à défaut
+     */
+    public function import(CoreUserInterface $user, UploadedFile $file, ?NoteFolderInterface $folder, ?NoteSpaceInterface $space = null): int
     {
         $name = $file->getClientOriginalName();
+        // Un dossier impose son espace ; sans lui, la racine demandée.
+        $space = $folder?->getSpace() ?? $space;
 
         if (str_ends_with(mb_strtolower($name), '.zip')) {
-            return $this->importZip($user, $file, $folder);
+            return $this->importZip($user, $file, $folder, $space);
         }
 
-        $this->createNote($user, $folder, $this->titleOf($name), (string) file_get_contents($file->getPathname()));
+        $this->createNote($user, $folder, $space, $this->titleOf($name), (string) file_get_contents($file->getPathname()));
 
         return 1;
     }
@@ -96,7 +102,7 @@ final readonly class MarkdownNoteImporter
      * répertoire déclaré vide et un répertoire déduit d'un chemin aboutissent
      * au même dossier.
      */
-    private function importZip(CoreUserInterface $user, UploadedFile $file, ?NoteFolderInterface $folder): int
+    private function importZip(CoreUserInterface $user, UploadedFile $file, ?NoteFolderInterface $folder, ?NoteSpaceInterface $space): int
     {
         $zip = new ZipArchive();
 
@@ -112,7 +118,9 @@ final readonly class MarkdownNoteImporter
 
         // Les images d'abord, parce qu'une note qui en cite une a besoin de
         // sa nouvelle adresse au moment où on l'écrit.
-        $imported = $this->importImages($zip, $user);
+        // Les images vont dans le compartiment de l'espace d'arrivée, pour que
+        // tous ses lecteurs les voient.
+        $imported = $this->importImages($zip, $space ?? $user);
 
         for ($i = 0; $i < $zip->numFiles; ++$i) {
             $entry = (string) $zip->getNameIndex($i);
@@ -145,6 +153,7 @@ final readonly class MarkdownNoteImporter
                     $byPath[$path] = $this->folders->create($user, new NoteFolderInput(
                         name: $segment,
                         parentId: $under?->getId(),
+                        spaceId: null === $under ? $space?->getId() : null,
                     ));
                     ++$created;
                 }
@@ -156,7 +165,7 @@ final readonly class MarkdownNoteImporter
                 continue;
             }
 
-            $notes[] = $this->noteInput($under, $this->titleOf($fileName), $this->relink((string) $zip->getFromIndex($i), $imported));
+            $notes[] = $this->noteInput($under, $space, $this->titleOf($fileName), $this->relink((string) $zip->getFromIndex($i), $imported));
             ++$created;
         }
 
@@ -186,7 +195,7 @@ final readonly class MarkdownNoteImporter
      *
      * @return array<string, string> nom de base dans l'archive => adresse à écrire
      */
-    private function importImages(ZipArchive $zip, CoreUserInterface $user): array
+    private function importImages(ZipArchive $zip, CoreUserInterface|NoteSpaceInterface $bucket): array
     {
         $imported = [];
 
@@ -230,7 +239,7 @@ final readonly class MarkdownNoteImporter
             try {
                 $filename = $this->images->store(
                     new UploadedFile($temporaire, $base, null, null, true),
-                    $user,
+                    $bucket,
                 );
                 $imported[$base] = '/backend/notes/markdown/images/'.$filename;
             } catch (FileException) {
@@ -287,13 +296,14 @@ final readonly class MarkdownNoteImporter
     private function createNote(
         CoreUserInterface $user,
         ?NoteFolderInterface $folder,
+        ?NoteSpaceInterface $space,
         string $title,
         string $raw,
     ): void {
-        $this->notes->create($user, $this->noteInput($folder, $title, $raw));
+        $this->notes->create($user, $this->noteInput($folder, $space, $title, $raw));
     }
 
-    private function noteInput(?NoteFolderInterface $folder, string $title, string $raw): MarkdownNoteInput
+    private function noteInput(?NoteFolderInterface $folder, ?NoteSpaceInterface $space, string $title, string $raw): MarkdownNoteInput
     {
         [$tags, $content] = $this->split($raw);
 
@@ -302,6 +312,7 @@ final readonly class MarkdownNoteImporter
             title: $title,
             content: $content,
             tags: $tags,
+            spaceId: $folder instanceof NoteFolderInterface ? null : $space?->getId(),
         );
     }
 

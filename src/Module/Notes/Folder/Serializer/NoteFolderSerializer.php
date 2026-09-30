@@ -17,6 +17,9 @@ class NoteFolderSerializer implements NoteFolderSerializerInterface
     /** @var array<int, int> */
     protected array $childCounts = [];
 
+    /** @var array<int, string> */
+    protected array $favorites = [];
+
     /**
      * The counts arrive from one grouped query rather than from the folder,
      * which would count its contents one card at a time.
@@ -26,6 +29,14 @@ class NoteFolderSerializer implements NoteFolderSerializerInterface
         $clone = clone $this;
         $clone->noteCounts = $noteCounts;
         $clone->childCounts = $childCounts;
+
+        return $clone;
+    }
+
+    public function withFavorites(array $favorites): static
+    {
+        $clone = clone $this;
+        $clone->favorites = $favorites;
 
         return $clone;
     }
@@ -40,10 +51,10 @@ class NoteFolderSerializer implements NoteFolderSerializerInterface
             'name' => $folder->getName(),
             'color' => $folder->getColor(),
             'position' => $folder->getPosition(),
-            'favoritedAt' => $folder->getFavoritedAt()?->format(DateTimeInterface::ATOM),
-            'sharedAt' => $folder->getSharedAt()?->format(DateTimeInterface::ATOM),
-            'ownerId' => $folder->getUser()->getId(),
-            'ownerName' => $folder->getUser()->getName(),
+            'favoritedAt' => $this->favorites[$id] ?? null,
+            'spaceId' => $folder->getSpace()->getId(),
+            'ownerId' => $folder->getUser()?->getId(),
+            'ownerName' => $folder->getUser()?->getName(),
             'noteCount' => $this->noteCounts[$id] ?? 0,
             'folderCount' => $this->childCounts[$id] ?? 0,
             'createdAt' => $folder->getCreatedAt()->format(DateTimeInterface::ATOM),

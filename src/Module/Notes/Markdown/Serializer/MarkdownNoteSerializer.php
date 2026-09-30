@@ -14,6 +14,9 @@ class MarkdownNoteSerializer implements MarkdownNoteSerializerInterface
     /** @var array<int, string> */
     protected array $excerpts = [];
 
+    /** @var array<int, string> */
+    protected array $favorites = [];
+
     /**
      * Les extraits à joindre aux lignes, venus d'une requête groupée.
      *
@@ -31,10 +34,19 @@ class MarkdownNoteSerializer implements MarkdownNoteSerializerInterface
         return $clone;
     }
 
+    public function withFavorites(array $favorites): static
+    {
+        $clone = clone $this;
+        $clone->favorites = $favorites;
+
+        return $clone;
+    }
+
     public function serializeListItem(MarkdownNoteInterface $note): array
     {
         return [
             'id' => $note->getId(),
+            'version' => $note->getVersion(),
             'folderId' => $note->getFolder()?->getId(),
             'title' => $note->getTitle(),
             'tags' => $note->getTags(),
@@ -42,12 +54,12 @@ class MarkdownNoteSerializer implements MarkdownNoteSerializerInterface
             'createdAt' => $note->getCreatedAt()->format(DateTimeInterface::ATOM),
             'updatedAt' => $note->getUpdatedAt()->format(DateTimeInterface::ATOM),
             'excerpt' => $this->excerpts[(int) $note->getId()] ?? null,
-            'favoritedAt' => $note->getFavoritedAt()?->format(DateTimeInterface::ATOM),
-            'sharedAt' => $note->getSharedAt()?->format(DateTimeInterface::ATOM),
+            'favoritedAt' => $this->favorites[(int) $note->getId()] ?? null,
+            'spaceId' => $note->getSpace()->getId(),
             // Qui l'a écrite, pour que l'écran puisse dire « partagé par ».
             // L'identifiant seul ne dit rien à personne.
-            'ownerId' => $note->getUser()->getId(),
-            'ownerName' => $note->getUser()->getName(),
+            'ownerId' => $note->getUser()?->getId(),
+            'ownerName' => $note->getUser()?->getName(),
             'coverUrl' => $note->getCoverUrl(),
             'coverCreditName' => $note->getCoverCreditName(),
             'coverCreditUrl' => $note->getCoverCreditUrl(),

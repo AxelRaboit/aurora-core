@@ -7,6 +7,8 @@ namespace Aurora\Module\Notes\Markdown\Dto;
 use Aurora\Core\Support\Str;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
+use function is_numeric;
+
 #[AsAlias(MarkdownNoteInputFactoryInterface::class)]
 class MarkdownNoteInputFactory implements MarkdownNoteInputFactoryInterface
 {
@@ -23,6 +25,9 @@ class MarkdownNoteInputFactory implements MarkdownNoteInputFactoryInterface
             coverCreditUrl: $this->stringOrNull($data, 'coverCreditUrl'),
             coverPosition: isset($data['coverPosition']) ? (int) $data['coverPosition'] : null,
             appearance: Str::trimOrNullFromArray($data, 'appearance'),
+            version: isset($data['version']) && (int) $data['version'] > 0 ? (int) $data['version'] : null,
+            force: true === ($data['force'] ?? false),
+            spaceId: isset($data['spaceId']) && is_numeric($data['spaceId']) ? (int) $data['spaceId'] : null,
         );
     }
 

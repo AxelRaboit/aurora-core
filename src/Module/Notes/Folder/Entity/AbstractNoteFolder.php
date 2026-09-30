@@ -6,6 +6,7 @@ namespace Aurora\Module\Notes\Folder\Entity;
 
 use Aurora\Core\Encryption\Doctrine\EncryptedTextType;
 use Aurora\Core\Timestampable\TimestampableTrait;
+use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
 use DateTimeImmutable;
@@ -32,9 +33,14 @@ abstract class AbstractNoteFolder implements NoteFolderInterface
 {
     use TimestampableTrait;
 
+    /**
+     * L'auteur. Null quand son compte a été supprimé : dans un espace partagé,
+     * ce qu'il a écrit reste à l'équipe. Son espace personnel, lui, part avec
+     * lui, par la cascade de l'espace.
+     */
     #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
-    protected CoreUserInterface $user;
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    protected ?CoreUserInterface $user = null;
 
     #[ORM\ManyToOne(targetEntity: NoteFolderInterface::class, inversedBy: 'children')]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
@@ -59,21 +65,13 @@ abstract class AbstractNoteFolder implements NoteFolderInterface
     #[ORM\Column(type: Types::INTEGER, options: ['unsigned' => true, 'default' => 0])]
     protected int $position = 0;
 
-    /** Quand le dossier a été épinglé, jamais s'il ne l'est pas. */
-    #[ORM\Column(nullable: true)]
-    protected ?DateTimeImmutable $favoritedAt = null;
-
     /**
-     * Depuis quand ce dossier, et tout ce qu'il contient, est lisible par
-     * les autres.
-     *
-     * **Le partage se pose sur le dossier**, et ce qu'il range suit. Poser
-     * la question note par note devient ingérable au bout de trente notes :
-     * plus personne ne sait qui voit quoi. Un dossier est un endroit, et un
-     * endroit se partage.
+     * L'espace où vit la ligne. Toujours celui de son dossier : c'est lui qui
+     * dit qui la lit et qui l'écrit. Supprimer l'espace emporte ce qu'il range.
      */
-    #[ORM\Column(nullable: true)]
-    protected ?DateTimeImmutable $sharedAt = null;
+    #[ORM\ManyToOne(targetEntity: NoteSpaceInterface::class)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    protected NoteSpaceInterface $space;
 
     /** When the folder was moved to the trash. */
     #[ORM\Column(nullable: true)]
@@ -89,12 +87,24 @@ abstract class AbstractNoteFolder implements NoteFolderInterface
     #[ORM\Column(nullable: true)]
     protected ?int $trashedWithFolderId = null;
 
-    public function getUser(): CoreUserInterface
+    public function getSpace(): NoteSpaceInterface
+    {
+        return $this->space;
+    }
+
+    public function setSpace(NoteSpaceInterface $space): static
+    {
+        $this->space = $space;
+
+        return $this;
+    }
+
+    public function getUser(): ?CoreUserInterface
     {
         return $this->user;
     }
 
-    public function setUser(CoreUserInterface $user): static
+    public function setUser(?CoreUserInterface $user): static
     {
         $this->user = $user;
 
@@ -145,30 +155,6 @@ abstract class AbstractNoteFolder implements NoteFolderInterface
     public function setPosition(int $position): static
     {
         $this->position = $position;
-
-        return $this;
-    }
-
-    public function getSharedAt(): ?DateTimeImmutable
-    {
-        return $this->sharedAt;
-    }
-
-    public function setSharedAt(?DateTimeImmutable $sharedAt): static
-    {
-        $this->sharedAt = $sharedAt;
-
-        return $this;
-    }
-
-    public function getFavoritedAt(): ?DateTimeImmutable
-    {
-        return $this->favoritedAt;
-    }
-
-    public function setFavoritedAt(?DateTimeImmutable $favoritedAt): static
-    {
-        $this->favoritedAt = $favoritedAt;
 
         return $this;
     }

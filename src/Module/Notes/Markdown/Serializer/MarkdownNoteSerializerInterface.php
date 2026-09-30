@@ -16,6 +16,14 @@ interface MarkdownNoteSerializerInterface
     public function withExcerpts(array $excerpts): static;
 
     /**
+     * A copy carrying what the viewer pinned: favourites belong to a person,
+     * not to the note.
+     *
+     * @param array<int, string> $favorites note id => when it was pinned
+     */
+    public function withFavorites(array $favorites): static;
+
+    /**
      * Lightweight payload for tree/list views - excludes content for perf.
      *
      * @return array<string, mixed>

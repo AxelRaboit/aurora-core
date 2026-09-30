@@ -53,6 +53,10 @@ export function useMarkdownNotesPage(props, t) {
         onImageResize,
         refreshList,
         reloadCurrent,
+        flushPendingSave,
+        conflict,
+        saveAnyway,
+        reloadDiscarding,
     } = editor;
 
     // ── UI-only state ──────────────────────────────────────────────
@@ -191,6 +195,10 @@ export function useMarkdownNotesPage(props, t) {
         cancelDelete,
         confirmDelete,
         refreshList,
+        flushPendingSave,
+        conflict,
+        saveAnyway,
+        reloadDiscarding,
         onWikiLinkClick,
         onCheckboxToggle,
         onImageResize,

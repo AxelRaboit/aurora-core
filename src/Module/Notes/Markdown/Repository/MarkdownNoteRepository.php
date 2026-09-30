@@ -5,13 +5,21 @@ declare(strict_types=1);
 namespace Aurora\Module\Notes\Markdown\Repository;
 
 use Aurora\Core\Repository\ResolveTargetEntityRepository;
+use Aurora\Module\Notes\Favorite\Entity\NoteFavorite;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNote;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
+use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
+use Aurora\Module\Notes\Space\Repository\NoteSpaceRepository;
+use Aurora\Module\Notes\Space\Service\NoteSpaceAccess;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use DateTimeImmutable;
 use DateTimeInterface;
 use Doctrine\Common\Collections\Order;
+use Doctrine\ORM\Query\Expr\Join;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
+
+use function sprintf;
 
 /** @extends ResolveTargetEntityRepository<MarkdownNoteInterface> */
 class MarkdownNoteRepository extends ResolveTargetEntityRepository
@@ -40,7 +48,7 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
      * n'affichait aucune date ; le jour où la bibliothèque a montré « modifiée
      * le », le formatage a levé et la page entière est restée blanche.
      *
-     * @return list<array{id: int, title: string|null, tags: list<string>, position: int, createdAt: string, updatedAt: string, favoritedAt: string|null, sharedAt: string|null, coverUrl: string|null, coverPosition: int, appearance: string, folderId: int|null}>
+     * @return list<array{id: int, title: string|null, tags: list<string>, position: int, createdAt: string, updatedAt: string, favoritedAt: string|null, coverUrl: string|null, coverPosition: int, appearance: string, version: int, folderId: int|null, spaceId: int}>
      */
     public function findFlatListForUser(CoreUserInterface $user): array
     {
@@ -52,11 +60,14 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
         // requête qui en lisait déjà neuf ; seuls le titre et le texte sont
         // chiffrés, donc elles ne coûtent rien à déchiffrer.
         /** @var list<array<string, mixed>> $rows */
-        $rows = $this->createQueryBuilder('n')
-            ->select('n.id', 'n.title', 'n.tags', 'n.position', 'n.createdAt', 'n.updatedAt', 'n.favoritedAt', 'n.sharedAt', 'n.coverUrl', 'n.coverPosition', 'n.appearance', 'IDENTITY(n.folder) AS folderId')
-            ->where('n.user = :user')
+        // Les favoris de la personne qui demande, joints ici : ils sont à
+        // elle, pas à la note, et une seconde requête les recollerait ligne
+        // par ligne.
+        $rows = $this->visibleTo($this->createQueryBuilder('n'), 'n', $user)
+            ->select('n.id', 'n.title', 'n.tags', 'n.position', 'n.createdAt', 'n.updatedAt', 'fav.createdAt AS favoritedAt', 'n.coverUrl', 'n.coverPosition', 'n.appearance', 'n.version', 'IDENTITY(n.folder) AS folderId', 'IDENTITY(n.space) AS spaceId')
+            ->leftJoin(NoteFavorite::class, 'fav', Join::WITH, 'fav.note = n AND fav.user = :favoriteViewer')
+            ->setParameter('favoriteViewer', $user)
             ->andWhere('n.deletedAt IS NULL')
-            ->setParameter('user', $user)
             ->orderBy('n.position', Order::Ascending->value)
             ->addOrderBy('n.createdAt', Order::Descending->value)
             ->getQuery()
@@ -67,14 +78,39 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
             'createdAt' => self::asAtom($row['createdAt'] ?? null),
             'updatedAt' => self::asAtom($row['updatedAt'] ?? null),
             'favoritedAt' => self::asAtom($row['favoritedAt'] ?? null),
-            // Sans cette ligne, l'écran ne savait jamais qu'une note est
-            // ouverte à l'équipe : la marque ne s'affichait pas, le filtre
-            // ne trouvait rien, et la bascule de la barre croyait toujours
-            // partir d'une note privée - donc disait toujours la même
-            // chose. La liste plate ne sert pas le sérialiseur, il faut
-            // lui nommer chaque colonne.
-            'sharedAt' => self::asAtom($row['sharedAt'] ?? null),
+            'spaceId' => (int) $row['spaceId'],
         ], $rows);
+    }
+
+    /**
+     * Ce qu'une personne peut lire : les notes des espaces qui lui sont
+     * ouverts, selon la seule règle de {@see NoteSpaceRepository::readableSubquery()}.
+     */
+    private function visibleTo(QueryBuilder $qb, string $alias, CoreUserInterface $user): QueryBuilder
+    {
+        $qb->andWhere(sprintf('IDENTITY(%s.space) IN (%s)', $alias, NoteSpaceRepository::readableSubquery()));
+
+        return NoteSpaceRepository::bindViewer($qb, $user);
+    }
+
+    /** Ce qu'une personne peut écrire : les espaces où elle est rédactrice ou plus. */
+    private function writableTo(QueryBuilder $qb, string $alias, CoreUserInterface $user): QueryBuilder
+    {
+        $qb->andWhere(sprintf('IDENTITY(%s.space) IN (%s)', $alias, NoteSpaceRepository::writableSubquery()));
+
+        return NoteSpaceRepository::bindViewer($qb, $user);
+    }
+
+    /** La corbeille qu'une personne gère : celle des espaces où elle écrit. */
+    private function trashOf(QueryBuilder $qb, string $alias, CoreUserInterface $user): QueryBuilder
+    {
+        return $this->writableTo($qb, $alias, $user);
+    }
+
+    /** La racine d'un espace. */
+    private function rootOf(QueryBuilder $qb, string $alias, NoteSpaceInterface $space): void
+    {
+        $qb->andWhere(sprintf('%s.space = :rootSpace', $alias))->setParameter('rootSpace', $space);
     }
 
     /** Une date de l'hydratation en tableau, rendue lisible par un navigateur. */
@@ -101,11 +137,9 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
     public function findExcerptsForUser(CoreUserInterface $user, int $length = self::EXCERPT_LENGTH): array
     {
         /** @var list<array{id: int, content: string|null}> $rows */
-        $rows = $this->createQueryBuilder('n')
+        $rows = $this->visibleTo($this->createQueryBuilder('n'), 'n', $user)
             ->select('n.id', 'n.content')
-            ->where('n.user = :user')
             ->andWhere('n.deletedAt IS NULL')
-            ->setParameter('user', $user)
             ->getQuery()
             ->getArrayResult();
 
@@ -165,44 +199,69 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
      */
     public function findAllWithContentForUser(CoreUserInterface $user): array
     {
-        return $this->createQueryBuilder('n')
-            ->where('n.user = :user')
+        return $this->visibleTo($this->createQueryBuilder('n'), 'n', $user)
             ->andWhere('n.deletedAt IS NULL')
-            ->setParameter('user', $user)
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * Les notes vivantes d'un espace, avec leur texte.
+     *
+     * Pour ce qui ne doit jamais sortir d'un espace : un lien public qui suit
+     * les wiki-liens d'une note, une réécriture de liens après un changement
+     * de titre.
+     *
+     * @return list<MarkdownNoteInterface>
+     */
+    public function findLivingInSpace(NoteSpaceInterface $space): array
+    {
+        return $this->createQueryBuilder('n')
+            ->where('n.space = :space')
+            ->andWhere('n.deletedAt IS NULL')
+            ->setParameter('space', $space)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Les notes vivantes d'un espace, à plat et sans leur texte : de quoi
+     * dessiner son arbre et son ordre de lecture, pour qui n'a pas de
+     * compte - la lecture publique d'un espace.
+     *
+     * @return list<array{id: int, title: string|null, position: int, folderId: int|null, spaceId: int}>
+     */
+    public function findFlatListInSpace(NoteSpaceInterface $space): array
+    {
+        /** @var list<array<string, mixed>> $rows */
+        $rows = $this->createQueryBuilder('n')
+            ->select('n.id', 'n.title', 'n.position', 'IDENTITY(n.folder) AS folderId', 'IDENTITY(n.space) AS spaceId')
+            ->where('n.space = :space')
+            ->andWhere('n.deletedAt IS NULL')
+            ->setParameter('space', $space)
+            ->orderBy('n.position', Order::Ascending->value)
+            ->addOrderBy('n.createdAt', Order::Descending->value)
+            ->getQuery()
+            ->getArrayResult();
+
+        return array_map(static fn (array $row): array => [
+            'id' => (int) $row['id'],
+            'title' => $row['title'],
+            'position' => (int) $row['position'],
+            'folderId' => null === $row['folderId'] ? null : (int) $row['folderId'],
+            'spaceId' => (int) $row['spaceId'],
+        ], $rows);
     }
 
     public function findOneByUserAndId(CoreUserInterface $user, int $id): ?MarkdownNoteInterface
     {
-        return $this->createQueryBuilder('n')
-            ->where('n.user = :user')
+        // Une note qu'on peut écrire, pas une note dont on est l'auteur : c'est
+        // l'espace qui décide.
+        return $this->writableTo($this->createQueryBuilder('n'), 'n', $user)
             ->andWhere('n.id = :id')
-            ->setParameter('user', $user)
             ->setParameter('id', $id)
             ->getQuery()
             ->getOneOrNullResult();
-    }
-
-    /**
-     * Les notes que les autres ont partagées une par une.
-     *
-     * Celles qui sont dans un dossier partagé n'ont pas de date à elles :
-     * c'est le dossier qui décide. Cette requête ne rend donc que les
-     * notes partagées **seules**, typiquement à la racine.
-     *
-     * @return list<MarkdownNoteInterface>
-     */
-    public function findSharedByOthers(CoreUserInterface $user): array
-    {
-        return $this->createQueryBuilder('n')
-            ->where('n.user != :user')
-            ->andWhere('n.sharedAt IS NOT NULL')
-            ->andWhere('n.deletedAt IS NULL')
-            ->setParameter('user', $user)
-            ->orderBy('n.sharedAt', Order::Descending->value)
-            ->getQuery()
-            ->getResult();
     }
 
     /**
@@ -231,8 +290,8 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
      * Une note par son identifiant, sans regarder à qui elle est.
      *
      * La question du droit de lecture est posée ailleurs, par
-     * {@see NoteReadScope} : la mêler à la requête donnerait deux endroits
-     * qui décident de la même chose.
+     * {@see NoteSpaceAccess} : la mêler
+     * à la requête donnerait deux endroits qui décident de la même chose.
      */
     public function findOneLiving(int $id): ?MarkdownNoteInterface
     {
@@ -254,10 +313,9 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
      */
     public function findTagCountsForUser(CoreUserInterface $user): array
     {
-        $rows = $this->createQueryBuilder('n')
+        $rows = $this->visibleTo($this->createQueryBuilder('n'), 'n', $user)
             ->select('n.tags')
-            ->where('n.user = :user')
-            ->setParameter('user', $user)
+            ->andWhere('n.deletedAt IS NULL')
             ->getQuery()
             ->getArrayResult();
 
@@ -297,11 +355,9 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
      */
     public function findTrashedRootsForUser(CoreUserInterface $user): array
     {
-        return $this->createQueryBuilder('n')
-            ->where('n.user = :user')
+        return $this->trashOf($this->createQueryBuilder('n'), 'n', $user)
             ->andWhere('n.deletedAt IS NOT NULL')
             ->andWhere('n.trashedWithFolderId IS NULL')
-            ->setParameter('user', $user)
             ->orderBy('n.deletedAt', Order::Descending->value)
             ->getQuery()
             ->getResult();
@@ -317,6 +373,27 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
         return $this->createQueryBuilder('n')
             ->where('n.trashedWithFolderId = :id')
             ->setParameter('id', $folderId)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Les notes de ces dossiers, corbeille comprise - pour un changement
+     * d'espace, qui emporte tout ce que la branche range.
+     *
+     * @param list<int> $folderIds
+     *
+     * @return list<MarkdownNoteInterface>
+     */
+    public function findAllInFolders(array $folderIds): array
+    {
+        if ([] === $folderIds) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('n')
+            ->where('IDENTITY(n.folder) IN (:ids)')
+            ->setParameter('ids', $folderIds)
             ->getQuery()
             ->getResult();
     }
@@ -350,15 +427,16 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
      *
      * @return list<MarkdownNoteInterface>
      */
-    public function findLivingInFolder(CoreUserInterface $user, ?int $folderId): array
+    public function findLivingInFolder(NoteSpaceInterface $space, ?int $folderId): array
     {
         $qb = $this->createQueryBuilder('n')
-            ->where('n.user = :user')
-            ->andWhere('n.deletedAt IS NULL')
-            ->setParameter('user', $user)
+            ->where('n.deletedAt IS NULL')
             ->orderBy('n.position', Order::Ascending->value);
 
+        // Un dossier dit à lui seul où il est ; la racine, elle, n'est à
+        // personne : celle d'un carnet, ou celle de l'équipe.
         if (null === $folderId) {
+            $this->rootOf($qb, 'n', $space);
             $qb->andWhere('n.folder IS NULL');
         } else {
             $qb->andWhere('IDENTITY(n.folder) = :folderId')
@@ -370,12 +448,10 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
 
     public function countTrashedForUser(CoreUserInterface $user): int
     {
-        return (int) $this->createQueryBuilder('n')
+        return (int) $this->trashOf($this->createQueryBuilder('n'), 'n', $user)
             ->select('COUNT(n.id)')
-            ->where('n.user = :user')
             ->andWhere('n.deletedAt IS NOT NULL')
             ->andWhere('n.trashedWithFolderId IS NULL')
-            ->setParameter('user', $user)
             ->getQuery()
             ->getSingleScalarResult();
     }
@@ -390,12 +466,10 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
      */
     public function oldestTrashedAtForUser(CoreUserInterface $user): ?DateTimeImmutable
     {
-        $value = $this->createQueryBuilder('n')
+        $value = $this->trashOf($this->createQueryBuilder('n'), 'n', $user)
             ->select('MIN(n.deletedAt)')
-            ->where('n.user = :user')
             ->andWhere('n.deletedAt IS NOT NULL')
             ->andWhere('n.trashedWithFolderId IS NULL')
-            ->setParameter('user', $user)
             ->getQuery()
             ->getSingleScalarResult();
 
@@ -413,14 +487,13 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
             ->getResult();
     }
 
-    public function findMaxPositionForUserAndFolder(CoreUserInterface $user, ?int $folderId): ?int
+    public function findMaxPositionForUserAndFolder(NoteSpaceInterface $space, ?int $folderId): ?int
     {
         $qb = $this->createQueryBuilder('n')
-            ->select('MAX(n.position)')
-            ->where('n.user = :user')
-            ->setParameter('user', $user);
+            ->select('MAX(n.position)');
 
         if (null === $folderId) {
+            $this->rootOf($qb, 'n', $space);
             $qb->andWhere('n.folder IS NULL');
         } else {
             $qb->andWhere('IDENTITY(n.folder) = :folderId')

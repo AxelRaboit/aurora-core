@@ -5,6 +5,45 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.305] - 2026-09-30
+
+### Ajouté
+
+#### Des espaces de notes, chacun avec ses lecteurs
+Les notes vivent maintenant dans des espaces. Chacun a le sien, privé, créé tout seul. Qui en a le droit (`notes.spaces.create`) crée des espaces partagés et choisit qui y entre : lui seul, des personnes inscrites, ou tout le back-office. Chaque personne y a un rôle, lecture, écriture ou gestion, qui décide seul de ce qu'elle peut faire. Le panneau range l'arbre en une section par espace, avec son nom, la mention « Lecture » quand on ne peut qu'y lire, l'ajout à sa racine et, pour qui le gère, ses réglages et ses membres. Glisser un dossier ou une note sur un autre espace l'y emporte, images comprises. Ce qu'une personne a écrit dans un espace partagé reste quand son compte est supprimé ; un espace dont le propriétaire est parti revient aux administrateurs.
+
+#### Publier un espace sur le web
+Un espace partagé peut s'ouvrir en lecture sans compte, à l'adresse `/p/{adresse}`, avec son arbre à gauche. Il faut un droit à part, `notes.spaces.publish` ; l'espace personnel ne se publie jamais. Les moteurs de recherche sont tenus à l'écart par défaut, sauf si l'espace le demande. Rien d'autre que l'espace publié ne s'ouvre par son adresse.
+
+#### Des favoris à soi, partout
+Les favoris sont personnels : dans un espace partagé, chacun épingle pour lui, et lire suffit. On épingle depuis l'arborescence (menu et clic droit), le menu de l'éditeur, une étoile dans le lecteur, et toujours la bibliothèque.
+
+#### Un arbre qui se manie comme un explorateur
+Le plus d'un dossier demande quoi ajouter, note ou dossier. Glisser-déposer range avant, dans ou après une ligne, ouvre un dossier fermé si l'on attend dessus, et marche depuis n'importe quel écran. Clavier, clic droit, double-clic pour renommer, tout replier. Le fil d'Ariane de la note montre son chemin depuis la racine.
+
+#### Un mode lecture pour tout le carnet
+Une lecture épurée, sans le back-office autour : l'arborescence à gauche (un tiroir sur téléphone), la note au centre, la suivante et la précédente aux flèches. On y entre par un bouton du panneau ou Alt+R, et on en sort par un retour vers l'édition.
+
+#### Emporter ou verser un espace seul
+Le menu de chaque espace exporte cet espace seul, ou importe une archive à sa racine.
+
+### Modifié
+
+#### Le partage « visible par l'équipe » laisse la place aux espaces
+Les dossiers déjà partagés en lecture deviennent des espaces ouverts à tout le back-office, en lecture : personne ne voit plus qu'avant. La migration donne à chaque personne son espace personnel avec toutes ses notes.
+
+### Corrigé
+
+#### Une note enregistrée depuis une version dépassée n'écrase plus l'autre
+Deux personnes sur la même note : la seconde sauvegarde est refusée et propose de recharger ou d'écraser, au lieu d'effacer en silence.
+
+#### Les images d'un lien de partage
+Une note d'un espace partagé, partagée par lien, montre de nouveau ses images.
+
+### Dans aurora-client
+
+Rien à faire : `make aurora-update`, puis les migrations au déploiement. Donner `notes.spaces.create` et `notes.spaces.publish` aux comptes qui doivent créer et publier des espaces.
+
 ## [0.9.304] - 2026-09-30
 
 ### Ajouté

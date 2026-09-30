@@ -14,6 +14,9 @@ backend:
       notes:
         markdown:
           use: Use Markdown notes
+        spaces:
+          create: 'Create shared note spaces'
+          publish: 'Publish note spaces on the web'
   modules:
     notes_backend: Notes
     # The module string an audit row carries, which is not the toggle key.
@@ -27,6 +30,12 @@ backend:
   audit:
     actions:
       notes_markdown:
+        space:
+          published: 'Space published'
+          unpublished: 'Space unpublished'
+          created: Space created
+          updated: Space updated
+          deleted: Space removed
         note:
           trashed: Note moved to trash
           restored: Note restored
@@ -90,6 +99,72 @@ notes:
         open: Open the note
         expires: 'This link expires on %date%.'
         read_only: You can read this note, not edit it.
+    spaces:
+      import_here: 'Import into this space'
+      export: 'Export this space'
+      publication:
+        title: 'Web publication'
+        hint: 'The space can then be read without an account, at its address. Nothing can be written there.'
+        slug: 'Address'
+        slug_placeholder: 'Taken from the name when empty'
+        indexable: 'Let search engines index it'
+        indexable_hint: 'When off, the page asks search engines not to list it.'
+        copy: 'Copy the address'
+        copied: 'Address copied'
+        publish: 'Publish'
+        update: 'Update'
+        unpublish: 'Unpublish'
+        published: 'Space published'
+        unpublished: 'Space unpublished'
+        badge: 'Published on the web'
+      my_space: 'My space'
+      errors:
+        private_owner_only: 'Only the owner can keep the space to themselves.'
+        bad_slug: 'Invalid address: letters, digits and hyphens only.'
+        slug_taken: 'This address is already taken.'
+        name_required: 'Give the space a name.'
+        bad_access: 'Unknown access.'
+        bad_role: 'Unknown role.'
+        bad_member: 'This person cannot be added.'
+        save_failed: 'Could not save the space.'
+        load_failed: 'Could not load the space.'
+      name: 'Name'
+      name_placeholder: 'Space name'
+      label: 'Space'
+      loading: 'Loading…'
+      personal_hint: 'Your personal space stays private: nobody else sees it. Only its colour can be set.'
+      owner: 'Owner: {name}'
+      settings: 'Space settings'
+      members: 'Members'
+      members_hint: 'Only the people you add get in, each with their role.'
+      members_hint_backoffice: 'The whole back office gets in with the default role; adding someone can give them more.'
+      no_members: 'Nobody has been added yet.'
+      pick_person: 'Pick someone'
+      add_member: 'Add'
+      remove_member: 'Remove {name}'
+      delete: 'Remove space'
+      delete_confirm: 'Confirm removal'
+      confirm_delete: 'The space {name} and everything in it will disappear for everyone. Its owner can bring it back.'
+      save: 'Save'
+      created: 'Space created'
+      updated: 'Space saved'
+      deleted: 'Space removed'
+      read_only: 'Read'
+      add_here: 'Add in {name}'
+      empty: 'Nothing here yet.'
+      access:
+        label: 'Who gets in'
+        private: 'Only me'
+        members: 'Some people'
+        backoffice: 'The whole back office'
+        private_hint: 'Nobody else sees it.'
+        members_hint: 'Only the people you add.'
+        backoffice_hint: 'Anyone who uses the notes.'
+      role:
+        label: 'Default role'
+        reader: 'Read'
+        editor: 'Write'
+        manager: 'Manage'
     folders:
       title: Folders
       trash_label: Note folders
@@ -124,26 +199,18 @@ notes:
       new_note: New note
       recent: Recently changed
       favorites: Favourites
-      pin: Pin to the menu
+      pin: Add to favourites
       unpin: Remove from favourites
-      pin_failed: This item could not be pinned.
+      pin_failed: Could not update your favourites.
       shared:
-        start: Make visible to the team
-        stop: Hide from the team
-        started: Visible to the team, read-only
-        stopped: Hidden from the team again
-        failed: Could not change the visibility.
         section: Visible to me
-        badge: Visible to the team
-        via_folder: 'Visible to the team through the {folder} folder'
-        change_on_folder: Open the folder to change this
-        confirm_folder: 'The {folder} folder and the {count} notes it holds will stop being visible to the team.'
+        badge: In a shared space
         by: 'By {name}'
         read_only: Read-only
       visibility:
         all: 'Filter: everything'
-        shared: 'Filter: visible to the team'
-        private: 'Filter: private'
+        shared: 'Filter: shared spaces'
+        private: 'Filter: my space'
         clear: Clear the filter
       selected: '{count} selected'
       select: Select
@@ -200,6 +267,13 @@ notes:
     title: Markdown notes
     save: Save
     read:
+      edit: 'Edit'
+      previous: 'Previous'
+      next: 'Next'
+      pager: 'Previous and next note'
+      mode: 'Reading mode'
+      mode_edit: 'Back to editing'
+      contents: 'Contents'
       open: Read the note on its own
       subheading: Reading view
       back: Back to the editor
@@ -244,7 +318,25 @@ notes:
       done: "No note imported | 1 note imported | {count} notes imported"
       errors:
         required: Choose at least one file.
-    create_in_folder: New note in this folder
+    create_in_folder: 'Add to this folder'
+    collapse_all: 'Collapse all'
+    conflict:
+      title: 'This note changed elsewhere'
+      body: 'Someone edited this note while you were writing. Your latest changes were not saved, so as not to erase theirs. Reload to start from their version, or overwrite it with yours.'
+      reload: 'Reload their version'
+      overwrite: 'Overwrite with mine'
+    breadcrumb: 'Where this note lives'
+    add:
+      space: 'Space'
+      create_space: 'Create space'
+      title: 'Add'
+      kind: 'Add a note or a folder'
+      note: 'Note'
+      folder: 'Folder'
+      where: 'In:'
+      create_note: 'Create the note'
+      create_folder: 'Create the folder'
+      here: 'Add here'
     confirm_delete: 'Permanently delete "{title}"?'
     confirm_discard_changes: You have unsaved changes. Discard them?
     wiki_link_not_found: 'No note matches "{title}".'

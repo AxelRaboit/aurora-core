@@ -66,7 +66,10 @@ final readonly class SharedNoteScope
         // queried per hop: a query per level is a round trip per level, and one
         // person's notes fit in memory by a wide margin. The bodies are needed
         // anyway, to read the links out of them.
-        $all = $this->notes->findAllWithContentForUser($root->getUser());
+        // L'espace de la note partagée, et lui seul : un lien public qui
+        // suit les wiki-liens ne doit jamais s'échapper vers un autre
+        // espace, que personne dehors n'a à lire.
+        $all = $this->notes->findLivingInSpace($root->getSpace());
 
         $byTitle = [];
         foreach ($all as $note) {

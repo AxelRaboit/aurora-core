@@ -14,6 +14,9 @@ backend:
       notes:
         markdown:
           use: Utiliser les notes Markdown
+        spaces:
+          create: 'Créer des espaces de notes partagés'
+          publish: 'Publier des espaces de notes sur le web'
   modules:
     notes_backend: Notes
     # The module string an audit row carries, which is not the toggle key.
@@ -27,6 +30,12 @@ backend:
   audit:
     actions:
       notes_markdown:
+        space:
+          published: 'Espace publié'
+          unpublished: 'Espace dépublié'
+          created: Espace créé
+          updated: Espace modifié
+          deleted: Espace retiré
         note:
           trashed: Note mise à la corbeille
           restored: Note restaurée
@@ -90,6 +99,72 @@ notes:
         open: Ouvrir la note
         expires: 'Ce lien expire le %date%.'
         read_only: Vous pouvez lire cette note, pas la modifier.
+    spaces:
+      import_here: 'Importer dans cet espace'
+      export: 'Exporter cet espace'
+      publication:
+        title: 'Publication sur le web'
+        hint: 'L''espace se lit alors sans compte, à son adresse. Rien ne s''y écrit.'
+        slug: 'Adresse'
+        slug_placeholder: 'Déduite du nom si vide'
+        indexable: 'Laisser les moteurs de recherche l''indexer'
+        indexable_hint: 'Désactivé, la page demande aux moteurs de ne pas la référencer.'
+        copy: 'Copier l''adresse'
+        copied: 'Adresse copiée'
+        publish: 'Publier'
+        update: 'Mettre à jour'
+        unpublish: 'Dépublier'
+        published: 'Espace publié'
+        unpublished: 'Espace dépublié'
+        badge: 'Publié sur le web'
+      my_space: 'Mon espace'
+      errors:
+        private_owner_only: 'Seul le propriétaire peut réserver l''espace à lui seul.'
+        bad_slug: 'Adresse invalide : lettres, chiffres et tirets seulement.'
+        slug_taken: 'Cette adresse est déjà prise.'
+        name_required: 'Donnez un nom à l''espace.'
+        bad_access: 'Accès inconnu.'
+        bad_role: 'Rôle inconnu.'
+        bad_member: 'Cette personne ne peut pas être inscrite.'
+        save_failed: 'Impossible d''enregistrer l''espace.'
+        load_failed: 'Impossible de charger l''espace.'
+      name: 'Nom'
+      name_placeholder: 'Nom de l''espace'
+      label: 'Espace'
+      loading: 'Chargement…'
+      personal_hint: 'Votre espace personnel reste privé : personne d''autre ne le voit. Seule sa couleur se règle.'
+      owner: 'Propriétaire : {name}'
+      settings: 'Réglages de l''espace'
+      members: 'Membres'
+      members_hint: 'Seules les personnes inscrites entrent, chacune avec son rôle.'
+      members_hint_backoffice: 'Tout le back-office entre avec le rôle par défaut ; une inscription peut donner plus.'
+      no_members: 'Personne n''est inscrit pour l''instant.'
+      pick_person: 'Choisir une personne'
+      add_member: 'Inscrire'
+      remove_member: 'Retirer {name}'
+      delete: 'Retirer l''espace'
+      delete_confirm: 'Confirmer le retrait'
+      confirm_delete: 'L''espace {name} et tout ce qu''il contient disparaîtront pour tout le monde. Son propriétaire pourra le faire revenir.'
+      save: 'Enregistrer'
+      created: 'Espace créé'
+      updated: 'Espace enregistré'
+      deleted: 'Espace retiré'
+      read_only: 'Lecture'
+      add_here: 'Ajouter dans {name}'
+      empty: 'Rien ici pour l''instant.'
+      access:
+        label: 'Qui y a accès'
+        private: 'Moi seul'
+        members: 'Certaines personnes'
+        backoffice: 'Tout le back-office'
+        private_hint: 'Personne d''autre ne le voit.'
+        members_hint: 'Seules les personnes que vous inscrivez.'
+        backoffice_hint: 'Toute personne qui utilise les notes.'
+      role:
+        label: 'Rôle par défaut'
+        reader: 'Lecture'
+        editor: 'Écriture'
+        manager: 'Gestion'
     folders:
       title: Dossiers
       trash_label: Dossiers de notes
@@ -124,26 +199,18 @@ notes:
       new_note: Nouvelle note
       recent: Récemment modifiées
       favorites: Favoris
-      pin: Épingler au menu
+      pin: Ajouter aux favoris
       unpin: Retirer des favoris
-      pin_failed: Impossible d'épingler cet élément.
+      pin_failed: Impossible de modifier les favoris.
       shared:
-        start: Rendre visible par l'équipe
-        stop: Ne plus rendre visible
-        started: Visible en lecture par l'équipe
-        stopped: Retiré de la vue de l'équipe
-        failed: Impossible de changer la visibilité.
         section: Visible pour moi
-        badge: Visible par l'équipe
-        via_folder: 'Visible par l''équipe via le dossier {folder}'
-        change_on_folder: Ouvrir le dossier pour changer cela
-        confirm_folder: 'Le dossier {folder} et les {count} notes qu''il contient cesseront d''être visibles par l''équipe.'
+        badge: Dans un espace partagé
         by: 'Par {name}'
         read_only: Lecture seule
       visibility:
         all: 'Filtrer : tout'
-        shared: 'Filtre : visibles par l''équipe'
-        private: 'Filtre : privés'
+        shared: 'Filtre : espaces partagés'
+        private: 'Filtre : mon espace'
         clear: Retirer le filtre
       selected: '{count} sélectionné(s)'
       select: Sélectionner
@@ -200,6 +267,13 @@ notes:
     title: Notes Markdown
     save: Enregistrer
     read:
+      edit: 'Modifier'
+      previous: 'Précédente'
+      next: 'Suivante'
+      pager: 'Note précédente et suivante'
+      mode: 'Mode lecture'
+      mode_edit: 'Revenir à l''édition'
+      contents: 'Sommaire'
       open: Lire la note seule
       subheading: Vue de lecture
       back: Retour à l'éditeur
@@ -244,7 +318,25 @@ notes:
       done: "Aucune note importée | 1 note importée | {count} notes importées"
       errors:
         required: Choisissez au moins un fichier.
-    create_in_folder: Nouvelle note dans ce dossier
+    create_in_folder: 'Ajouter dans ce dossier'
+    collapse_all: 'Tout replier'
+    conflict:
+      title: 'Cette note a changé ailleurs'
+      body: 'Quelqu''un a modifié cette note pendant que vous écriviez. Vos derniers changements n''ont pas été enregistrés, pour ne pas effacer les siens. Rechargez pour repartir de sa version, ou écrasez-la avec la vôtre.'
+      reload: 'Recharger sa version'
+      overwrite: 'Écraser avec la mienne'
+    breadcrumb: 'Emplacement de la note'
+    add:
+      space: 'Espace'
+      create_space: 'Créer l''espace'
+      title: 'Ajouter'
+      kind: 'Ajouter une note ou un dossier'
+      note: 'Note'
+      folder: 'Dossier'
+      where: 'Dans :'
+      create_note: 'Créer la note'
+      create_folder: 'Créer le dossier'
+      here: 'Ajouter ici'
     confirm_delete: 'Supprimer définitivement « {title} » ?'
 
     confirm_discard_changes: Vous avez des modifications non enregistrées. Les abandonner ?

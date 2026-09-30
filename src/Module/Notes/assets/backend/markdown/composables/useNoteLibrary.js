@@ -40,6 +40,7 @@ export function useNoteLibrary({
     breadcrumb = [],
     urlFor,
     rootUrl,
+    personalSpaceId = null,
 }) {
     const currentFolderId = ref(
         null === initialFolderId ? null : Number(initialFolderId),
@@ -150,11 +151,16 @@ export function useNoteLibrary({
     // À plat comme sous une étiquette, il n'y a pas de dossier à montrer :
     // les notes sont déjà toutes là, et les redonner en cartes doublerait
     // l'affichage. Un dossier ne porte d'ailleurs pas d'étiquette.
-    /** Le filtre de visibilité, posé sur un dossier comme sur une note. */
+    /**
+     * Le filtre de visibilité, posé sur un dossier comme sur une note.
+     *
+     * « Partagé » veut dire : dans un autre espace que le sien. C'est
+     * l'espace qui dit qui lit, plus une marque posée sur la ligne.
+     */
     function matchesVisibility(item) {
         if ("all" === visibility.value) return true;
 
-        const partage = null !== (item.sharedAt ?? null);
+        const partage = isShared(item);
 
         return "shared" === visibility.value ? partage : !partage;
     }
@@ -349,6 +355,15 @@ export function useNoteLibrary({
                 : String(value);
     }
 
+    /** Dans un espace partagé, donc lisible par d'autres que soi. */
+    function isShared(item) {
+        return (
+            null !== personalSpaceId &&
+            null != item.spaceId &&
+            Number(item.spaceId) !== Number(personalSpaceId)
+        );
+    }
+
     /**
      * Fait tourner le filtre : tout, partagés, privés, et retour.
      *
@@ -379,6 +394,7 @@ export function useNoteLibrary({
         flat,
         tag,
         visibility,
+        isShared,
         folders: sortedFolders,
         notes: sortedNotes,
         isEmpty,

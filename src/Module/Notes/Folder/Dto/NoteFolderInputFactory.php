@@ -19,6 +19,7 @@ class NoteFolderInputFactory implements NoteFolderInputFactoryInterface
             color: Str::trimOrNullFromArray($data, 'color'),
             parentId: $this->intOrNull($data, 'parentId'),
             position: $this->intOrNull($data, 'position'),
+            spaceId: isset($data['spaceId']) && is_numeric($data['spaceId']) ? (int) $data['spaceId'] : null,
         );
     }
 

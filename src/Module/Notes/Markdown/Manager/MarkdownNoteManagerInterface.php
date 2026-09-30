@@ -7,6 +7,7 @@ namespace Aurora\Module\Notes\Markdown\Manager;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Markdown\Dto\MarkdownNoteInputInterface;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
+use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use DateTimeImmutable;
 
@@ -39,20 +40,13 @@ interface MarkdownNoteManagerInterface
     public function purgeTrashedBefore(DateTimeImmutable $cutoff): int;
 
     /**
-     * Pins the note to the side menu, or unpins it.
-     *
-     * @return bool whether it is pinned afterwards
+     * Range la note dans un dossier, ou à la racine d'un espace. Le dossier
+     * impose son espace ; sans dossier, `$space` dit quelle racine.
      */
-    /**
-     * Ouvre ou referme cette note seule au reste du back-office, et rend
-     * son nouvel état.
-     */
-    public function toggleShared(MarkdownNoteInterface $note): bool;
+    public function move(MarkdownNoteInterface $note, ?NoteFolderInterface $folder, ?NoteSpaceInterface $space = null): void;
 
-    public function toggleFavorite(MarkdownNoteInterface $note): bool;
-
-    /** Files a note in a folder, or at the root with null. */
-    public function move(MarkdownNoteInterface $note, ?NoteFolderInterface $folder): void;
+    /** Fait passer une note dans un autre espace, images comprises. */
+    public function changeSpace(MarkdownNoteInterface $note, NoteSpaceInterface $space): void;
 
     /**
      * Files and ranks a set of notes in one shot. Each entry carries the
