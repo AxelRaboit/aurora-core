@@ -29,6 +29,10 @@ backend:
     audit:
         actions:
             notes_markdown:
+                space:
+                    created: Espacio creado
+                    updated: Espacio modificado
+                    deleted: Espacio retirado
                 note:
                     trashed: 'Nota enviada a la papelera'
                     restored: 'Nota restaurada'
@@ -92,6 +96,13 @@ notes:
                 open: 'Abrir la nota'
                 expires: 'Este enlace caduca el %date%.'
                 read_only: 'Puede leer esta nota, pero no editarla.'
+        spaces:
+            my_space: 'Mi espacio'
+            errors:
+                name_required: 'Pon un nombre al espacio.'
+                bad_access: 'Acceso desconocido.'
+                bad_role: 'Rol desconocido.'
+                bad_member: 'Esta persona no se puede añadir.'
         folders:
             title: Carpetas
             trash_label: 'Carpetas de notas'

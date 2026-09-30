@@ -12,7 +12,7 @@ use Aurora\Core\Storage\Access\UploadPolicyProvider;
 use Aurora\Core\Storage\Access\UploadRefusalEnum;
 use Aurora\Core\Validation\Service\PayloadValidator;
 use Aurora\Module\Ged\Pexels\Service\PexelsClient;
-use Aurora\Module\Notes\Favorite\Service\NoteFavorites;
+use Aurora\Module\Notes\Favorite\Manager\NoteFavoriteManagerInterface;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
 use Aurora\Module\Notes\Folder\Serializer\NoteFolderSerializerInterface;
@@ -67,7 +67,7 @@ final class MarkdownNotesController extends AbstractController
         private readonly MarkdownNoteImporter $importer,
         private readonly UploadPolicyProvider $uploadPolicies,
         private readonly NoteSpaceAccess $spaceAccess,
-        private readonly NoteFavorites $favorites,
+        private readonly NoteFavoriteManagerInterface $favorites,
     ) {}
 
     /**

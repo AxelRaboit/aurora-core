@@ -8,7 +8,7 @@ use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Validation\Service\PayloadValidator;
-use Aurora\Module\Notes\Favorite\Service\NoteFavorites;
+use Aurora\Module\Notes\Favorite\Manager\NoteFavoriteManagerInterface;
 use Aurora\Module\Notes\Folder\Dto\NoteFolderInputFactoryInterface;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Folder\Manager\NoteFolderManagerInterface;
@@ -47,7 +47,7 @@ final class NoteFoldersController extends AbstractController
         private readonly NoteFolderSerializerInterface $serializer,
         private readonly PayloadValidator $payloadValidator,
         private readonly NoteSpaceAccess $spaceAccess,
-        private readonly NoteFavorites $favorites,
+        private readonly NoteFavoriteManagerInterface $favorites,
     ) {}
 
     /**

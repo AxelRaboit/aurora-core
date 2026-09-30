@@ -8,6 +8,7 @@ use Aurora\Core\Repository\ResolveTargetEntityRepository;
 use Aurora\Module\Notes\Space\Entity\NoteSpace;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceMember;
+use Aurora\Module\Notes\Space\Entity\NoteSpaceMemberInterface;
 use Aurora\Module\Notes\Space\Enum\NoteSpaceAccessEnum;
 use Aurora\Module\Notes\Space\Enum\NoteSpaceRoleEnum;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
@@ -106,9 +107,14 @@ class NoteSpaceRepository extends ResolveTargetEntityRepository
      */
     public function findReadableFor(CoreUserInterface $user): array
     {
+        // Le sien d'abord, par une expression et non par un tri décroissant
+        // sur la colonne : PostgreSQL range les valeurs nulles en tête d'un
+        // tri décroissant, et c'étaient alors les espaces partagés qui
+        // passaient devant.
         $qb = $this->createQueryBuilder('s')
+            ->addSelect('CASE WHEN s.personalUser IS NULL THEN 1 ELSE 0 END AS HIDDEN sharedLast')
             ->where(sprintf('s.id IN (%s)', self::readableSubquery()))
-            ->orderBy('s.personalUser', Order::Descending->value)
+            ->orderBy('sharedLast', Order::Ascending->value)
             ->addOrderBy('s.position', Order::Ascending->value)
             ->addOrderBy('s.id', Order::Ascending->value);
 
@@ -140,9 +146,43 @@ class NoteSpaceRepository extends ResolveTargetEntityRepository
         return (int) $qb->getQuery()->getSingleScalarResult() > 0;
     }
 
-    /** La membre d'une personne sur un espace, si elle y est inscrite. */
-    public function findMembership(NoteSpaceInterface $space, CoreUserInterface $user): ?NoteSpaceMember
+    /** L'inscription d'une personne à un espace, si elle y est inscrite. */
+    public function findMembership(NoteSpaceInterface $space, CoreUserInterface $user): ?NoteSpaceMemberInterface
     {
         return $this->getEntityManager()->getRepository(NoteSpaceMember::class)->findOneBy(['space' => $space, 'user' => $user]);
+    }
+
+    /**
+     * Les inscriptions d'une personne à ces espaces, en une requête.
+     *
+     * @param list<NoteSpaceInterface> $spaces
+     *
+     * @return list<NoteSpaceMemberInterface>
+     */
+    public function findMembershipsOf(CoreUserInterface $user, array $spaces): array
+    {
+        if ([] === $spaces) {
+            return [];
+        }
+
+        return $this->getEntityManager()->getRepository(NoteSpaceMember::class)->findBy(['space' => $spaces, 'user' => $user]);
+    }
+
+    /**
+     * Les inscrits d'un espace avec leur compte, en une requête.
+     *
+     * @return list<NoteSpaceMemberInterface>
+     */
+    public function findMembersOf(NoteSpaceInterface $space): array
+    {
+        return $this->getEntityManager()->createQueryBuilder()
+            ->select('m', 'u')
+            ->from(NoteSpaceMember::class, 'm')
+            ->join('m.user', 'u')
+            ->where('m.space = :space')
+            ->setParameter('space', $space)
+            ->orderBy('m.id', Order::Ascending->value)
+            ->getQuery()
+            ->getResult();
     }
 }

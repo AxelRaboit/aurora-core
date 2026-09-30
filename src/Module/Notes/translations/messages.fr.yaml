@@ -30,6 +30,10 @@ backend:
   audit:
     actions:
       notes_markdown:
+        space:
+          created: Espace créé
+          updated: Espace modifié
+          deleted: Espace retiré
         note:
           trashed: Note mise à la corbeille
           restored: Note restaurée
@@ -93,6 +97,13 @@ notes:
         open: Ouvrir la note
         expires: 'Ce lien expire le %date%.'
         read_only: Vous pouvez lire cette note, pas la modifier.
+    spaces:
+      my_space: 'Mon espace'
+      errors:
+        name_required: 'Donnez un nom à l''espace.'
+        bad_access: 'Accès inconnu.'
+        bad_role: 'Rôle inconnu.'
+        bad_member: 'Cette personne ne peut pas être inscrite.'
     folders:
       title: Dossiers
       trash_label: Dossiers de notes

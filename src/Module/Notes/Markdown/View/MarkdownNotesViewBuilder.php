@@ -6,7 +6,7 @@ namespace Aurora\Module\Notes\Markdown\View;
 
 use Aurora\Core\Support\Num;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
-use Aurora\Module\Notes\Favorite\Service\NoteFavorites;
+use Aurora\Module\Notes\Favorite\Manager\NoteFavoriteManagerInterface;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
 use Aurora\Module\Notes\Folder\Serializer\NoteFolderSerializerInterface;
@@ -16,6 +16,7 @@ use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
 use Aurora\Module\Notes\Markdown\Setting\MarkdownNoteSettingEnum;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Notes\Space\Repository\NoteSpaceRepository;
+use Aurora\Module\Notes\Space\Serializer\NoteSpaceSerializerInterface;
 use Aurora\Module\Notes\Space\Service\NoteSpaceAccess;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -31,7 +32,8 @@ final readonly class MarkdownNotesViewBuilder
         private SettingRepository $settingRepository,
         private NoteSpaceAccess $spaceAccess,
         private NoteSpaceRepository $spaces,
-        private NoteFavorites $favorites,
+        private NoteFavoriteManagerInterface $favorites,
+        private NoteSpaceSerializerInterface $spaceSerializer,
     ) {}
 
     /**
@@ -174,17 +176,28 @@ final readonly class MarkdownNotesViewBuilder
             'treeNotes' => $notes,
             // Les espaces lisibles, le personnel d'abord : l'arbre du lecteur
             // se range par espace.
-            'treeSpaces' => array_map(fn (NoteSpaceInterface $space): array => [
-                'id' => $space->getId(),
-                'name' => $space->getName(),
-                'color' => $space->getColor(),
-                'personal' => $space->isPersonal(),
-                'published' => $space->isPublished(),
-                'canWrite' => $this->spaceAccess->canWrite($user, $space),
-            ], $this->spaces->findReadableFor($user)),
+            'treeSpaces' => $this->spacesFor($user),
             'sharedFolders' => [],
             'sharedNotes' => [],
         ];
+    }
+
+    /**
+     * Les espaces qu'une personne lit, le sien d'abord, avec son rôle dans
+     * chacun - calculé en une fois, pas espace par espace.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function spacesFor(CoreUserInterface $user): array
+    {
+        $this->spaceAccess->personalSpace($user);
+        $spaces = $this->spaces->findReadableFor($user);
+        $roles = $this->spaceAccess->rolesFor($user, $spaces);
+
+        return array_map(
+            fn (NoteSpaceInterface $space): array => $this->spaceSerializer->serialize($space, $user, $roles[(int) $space->getId()] ?? null),
+            $spaces,
+        );
     }
 
     /**

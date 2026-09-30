@@ -21,6 +21,7 @@ use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
+use function array_column;
 use function array_map;
 use function base64_decode;
 use function bin2hex;
@@ -364,6 +365,132 @@ final class NoteSpacesTest extends IntegrationTestCase
         self::assertNull($this->entityManager->find(MarkdownNote::class, $private->getId()));
     }
 
+    /** Créer un espace partagé est un droit ; qui le crée le gère. */
+    public function testCreatingASpaceNeedsTheRight(): void
+    {
+        $this->client->loginUser($this->reader, 'admin');
+        $this->post('backend_notes_spaces_create', ['name' => 'Refusé', 'access' => 'backoffice']);
+        self::assertResponseStatusCodeSame(403);
+
+        $creator = $this->user('createur', ['notes.markdown.use', 'notes.spaces.create']);
+        $this->client->loginUser($creator, 'admin');
+        $this->post('backend_notes_spaces_create', ['name' => '', 'access' => 'backoffice']);
+        self::assertResponseStatusCodeSame(422);
+
+        $body = $this->post('backend_notes_spaces_create', ['name' => 'Documentation', 'access' => 'members', 'defaultRole' => 'reader']);
+        self::assertResponseIsSuccessful();
+        self::assertSame('manager', $body['space']['role']);
+        self::assertTrue($body['space']['isOwner']);
+        self::assertSame('members', $body['space']['access']);
+
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_spaces_list'));
+        $list = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+        self::assertTrue($list['canCreate']);
+        self::assertTrue($list['spaces'][0]['personal'], 'le sien en tête');
+        self::assertContains($body['space']['id'], array_column($list['spaces'], 'id'));
+    }
+
+    /** La liste dit le rôle de chacun dans chaque espace. */
+    public function testTheListCarriesEachRole(): void
+    {
+        $space = $this->space(NoteSpaceAccessEnum::Members);
+
+        $this->client->loginUser($this->reader, 'admin');
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_spaces_list'));
+        $list = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+        $byId = array_column($list['spaces'], null, 'id');
+
+        self::assertSame('reader', $byId[$space->getId()]['role']);
+        self::assertFalse($byId[$space->getId()]['canWrite']);
+        self::assertFalse($list['canCreate']);
+
+        $this->client->loginUser($this->outsider, 'admin');
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_spaces_list'));
+        $list = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+        self::assertNotContains($space->getId(), array_column($list['spaces'], 'id'));
+    }
+
+    /**
+     * Seul qui gère règle l'espace et ses inscrits ; une inscription ouvre
+     * l'espace, la retirer le referme.
+     */
+    public function testOnlyManagersChangeSettingsAndMembers(): void
+    {
+        $space = $this->space(NoteSpaceAccessEnum::Members);
+        $note = $this->note($this->owner, 'Devis', $space);
+
+        $this->client->loginUser($this->editor, 'admin');
+        $this->post('backend_notes_spaces_update', ['name' => 'Détourné', 'access' => 'backoffice'], ['id' => $space->getId()]);
+        self::assertResponseStatusCodeSame(404);
+        $this->post('backend_notes_spaces_members_set', ['userId' => $this->outsider->getId(), 'role' => 'editor'], ['id' => $space->getId()]);
+        self::assertResponseStatusCodeSame(404);
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->post('backend_notes_spaces_members_set', ['userId' => $this->outsider->getId(), 'role' => 'reader'], ['id' => $space->getId()]);
+        self::assertResponseIsSuccessful();
+        $this->post('backend_notes_spaces_members_set', ['userId' => $this->owner->getId(), 'role' => 'reader'], ['id' => $space->getId()]);
+        self::assertResponseStatusCodeSame(422, 'le propriétaire ne se rétrograde pas');
+
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_spaces_show', ['id' => $space->getId()]));
+        $shown = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+        self::assertContains($this->outsider->getId(), array_column($shown['members'], 'userId'));
+
+        $this->client->loginUser($this->outsider, 'admin');
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_read', ['id' => $note->getId()]));
+        self::assertResponseIsSuccessful();
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->post('backend_notes_spaces_members_remove', [], ['id' => $space->getId(), 'userId' => $this->outsider->getId()]);
+        self::assertResponseIsSuccessful();
+
+        $this->client->loginUser($this->outsider, 'admin');
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_read', ['id' => $note->getId()]));
+        self::assertResponseStatusCodeSame(404);
+    }
+
+    /** Son espace personnel ne s'ouvre à personne et ne se retire pas. */
+    public function testThePersonalSpaceStaysClosed(): void
+    {
+        $personal = $this->personalSpaceOf($this->owner);
+
+        $this->client->loginUser($this->owner, 'admin');
+        $body = $this->post('backend_notes_spaces_update', ['name' => 'Ouvert', 'access' => 'backoffice', 'color' => '#aa3300'], ['id' => $personal->getId()]);
+        self::assertResponseIsSuccessful();
+        self::assertSame('private', $body['space']['access']);
+        self::assertNull($body['space']['name']);
+        self::assertSame('#aa3300', $body['space']['color']);
+
+        $this->post('backend_notes_spaces_delete', [], ['id' => $personal->getId()]);
+        self::assertResponseStatusCodeSame(404);
+        $this->post('backend_notes_spaces_members_set', ['userId' => $this->reader->getId(), 'role' => 'reader'], ['id' => $personal->getId()]);
+        self::assertResponseStatusCodeSame(404);
+    }
+
+    /** Un espace retiré disparaît pour tout le monde, et son propriétaire le fait revenir. */
+    public function testARemovedSpaceComesBackWithItsNotes(): void
+    {
+        $space = $this->space(NoteSpaceAccessEnum::Backoffice);
+        $note = $this->note($this->owner, 'Procédure', $space);
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->post('backend_notes_spaces_delete', [], ['id' => $space->getId()]);
+        self::assertResponseIsSuccessful();
+
+        $this->client->loginUser($this->reader, 'admin');
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_read', ['id' => $note->getId()]));
+        self::assertResponseStatusCodeSame(404);
+        $this->post('backend_notes_spaces_restore', [], ['id' => $space->getId()]);
+        self::assertResponseStatusCodeSame(404);
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->post('backend_notes_spaces_restore', [], ['id' => $space->getId()]);
+        self::assertResponseIsSuccessful();
+
+        $this->client->loginUser($this->reader, 'admin');
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_read', ['id' => $note->getId()]));
+        self::assertResponseIsSuccessful();
+    }
+
     /**
      * Un espace partagé, dont le propriétaire est `owner`, où `editor` est
      * rédacteur et `reader` lecteur.
@@ -429,14 +556,15 @@ final class NoteSpacesTest extends IntegrationTestCase
         return $this->entityManager->getReference($entity::class, $entity->getId());
     }
 
-    private function user(string $name): User
+    /** @param list<string> $privileges */
+    private function user(string $name, array $privileges = ['notes.markdown.use']): User
     {
         $user = new User();
         $user->setEmail(sprintf('espaces-%s-%s@aurora.test', $name, bin2hex(random_bytes(4))))
             ->setName($name)
             ->setType(UserTypeEnum::Backend)
             ->setRoles([UserRoleEnum::User->value])
-            ->setPrivileges(['notes.markdown.use'])
+            ->setPrivileges($privileges)
             ->setPassword('x');
         $this->entityManager->persist($user);
         $this->entityManager->flush();

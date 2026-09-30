@@ -2,14 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Aurora\Module\Notes\Favorite\Service;
+namespace Aurora\Module\Notes\Favorite\Manager;
 
 use Aurora\Module\Notes\Favorite\Entity\NoteFavorite;
+use Aurora\Module\Notes\Favorite\Entity\NoteFavoriteInterface;
 use Aurora\Module\Notes\Favorite\Repository\NoteFavoriteRepository;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
 /**
  * Les favoris d'une personne.
@@ -20,17 +22,14 @@ use Doctrine\ORM\EntityManagerInterface;
  * qu'elle peut lire, pour elle seule, et l'ordre du panneau est celui de ses
  * gestes.
  */
-final readonly class NoteFavorites
+#[AsAlias(NoteFavoriteManagerInterface::class)]
+class NoteFavoriteManager implements NoteFavoriteManagerInterface
 {
     public function __construct(
-        private NoteFavoriteRepository $favorites,
-        private EntityManagerInterface $entityManager,
+        protected readonly NoteFavoriteRepository $favorites,
+        protected readonly EntityManagerInterface $entityManager,
     ) {}
 
-    /**
-     * Épingle, ou décroche ce qui l'était. Rend vrai quand l'élément est
-     * épinglé à la sortie.
-     */
     public function toggle(CoreUserInterface $user, MarkdownNoteInterface|NoteFolderInterface $item): bool
     {
         $criteria = $item instanceof MarkdownNoteInterface ? ['user' => $user, 'note' => $item] : ['user' => $user, 'folder' => $item];
@@ -43,7 +42,7 @@ final readonly class NoteFavorites
             return false;
         }
 
-        $favorite = new NoteFavorite();
+        $favorite = $this->createFavorite();
         $favorite->setUser($user);
         if ($item instanceof MarkdownNoteInterface) {
             $favorite->setNote($item);
@@ -57,13 +56,13 @@ final readonly class NoteFavorites
         return true;
     }
 
-    /**
-     * Ce qu'une personne a épinglé, par identifiant, avec l'heure du geste.
-     *
-     * @return array{notes: array<int, string>, folders: array<int, string>}
-     */
     public function mapFor(CoreUserInterface $user): array
     {
         return $this->favorites->mapFor($user);
+    }
+
+    protected function createFavorite(): NoteFavoriteInterface
+    {
+        return new NoteFavorite();
     }
 }

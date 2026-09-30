@@ -10,7 +10,7 @@ use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
 use Aurora\Module\Notes\Space\Entity\NoteSpace;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
-use Aurora\Module\Notes\Space\Entity\NoteSpaceMember;
+use Aurora\Module\Notes\Space\Entity\NoteSpaceMemberInterface;
 use Aurora\Module\Notes\Space\Enum\NoteSpaceAccessEnum;
 use Aurora\Module\Notes\Space\Enum\NoteSpaceRoleEnum;
 use Aurora\Module\Notes\Space\Repository\NoteSpaceRepository;
@@ -53,6 +53,42 @@ final readonly class NoteSpaceAccess
 
     public function roleIn(CoreUserInterface $user, NoteSpaceInterface $space): ?NoteSpaceRoleEnum
     {
+        $needsMembership = !$space->isPersonal() && !$this->isOwner($user, $space) && NoteSpaceAccessEnum::Private !== $space->getAccess();
+
+        return $this->roleWith($user, $space, $needsMembership ? $this->spaces->findMembership($space, $user) : null);
+    }
+
+    /**
+     * Le rôle d'une personne dans plusieurs espaces, en une requête.
+     *
+     * Pour une liste : `roleIn()` cherche l'inscription espace par espace, ce
+     * qui ferait une requête par ligne.
+     *
+     * @param list<NoteSpaceInterface> $spaces
+     *
+     * @return array<int, NoteSpaceRoleEnum> identifiant d'espace => rôle, sans les espaces fermés à la personne
+     */
+    public function rolesFor(CoreUserInterface $user, array $spaces): array
+    {
+        $memberships = [];
+        foreach ($this->spaces->findMembershipsOf($user, $spaces) as $membership) {
+            $memberships[(int) $membership->getSpace()->getId()] = $membership;
+        }
+
+        $roles = [];
+        foreach ($spaces as $space) {
+            $role = $this->roleWith($user, $space, $memberships[(int) $space->getId()] ?? null);
+            if ($role instanceof NoteSpaceRoleEnum) {
+                $roles[(int) $space->getId()] = $role;
+            }
+        }
+
+        return $roles;
+    }
+
+    /** La règle, une fois l'inscription connue. */
+    private function roleWith(CoreUserInterface $user, NoteSpaceInterface $space, ?NoteSpaceMemberInterface $membership): ?NoteSpaceRoleEnum
+    {
         if ($space->getDeletedAt() instanceof DateTimeImmutable) {
             return null;
         }
@@ -65,12 +101,10 @@ final readonly class NoteSpaceAccess
             return NoteSpaceRoleEnum::Manager;
         }
 
-        $membership = NoteSpaceAccessEnum::Private === $space->getAccess() ? null : $this->spaces->findMembership($space, $user);
-
         return match ($space->getAccess()) {
             NoteSpaceAccessEnum::Private => null,
             NoteSpaceAccessEnum::Members => $membership?->getRole(),
-            NoteSpaceAccessEnum::Backoffice => $membership instanceof NoteSpaceMember
+            NoteSpaceAccessEnum::Backoffice => $membership instanceof NoteSpaceMemberInterface
                 ? $membership->getRole()->atLeast($space->getDefaultRole())
                 : $space->getDefaultRole(),
         };
