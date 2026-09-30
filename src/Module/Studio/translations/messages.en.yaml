@@ -354,6 +354,7 @@ backend:
                 contract_closed: 'This contract is closed and can no longer be signed.'
                 role_already_signed: 'This party has already signed.'
                 customer_has_not_signed: 'The customer has not signed yet. The countersignature comes after.'
+                seal_broken: 'The stored document no longer matches its seal: it has been altered since it was sealed and cannot be signed.'
                 already_refused: 'This contract has already been refused by the customer.'
                 amends_invalid: 'That contract to amend is not valid.'
                 amends_not_found: 'The contract to amend cannot be found.'

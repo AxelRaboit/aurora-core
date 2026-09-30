@@ -278,10 +278,13 @@
                             '{at}': signature.signedAt|date('d/m/Y H:i:s'),
                             '{ip}': signature.ipAddress ?? '-',
                         }, null, contract.locale) }}
+                        {# The address the code actually went to. The customer's current
+                           one is only a fallback for signatures older than the column:
+                           it may have changed since. #}
                         {% if signature.challengeVerifiedAt %}
                             <br>{{ 'studio.pdf.seal.code_verified'|trans({
                                 '{at}': signature.challengeVerifiedAt|date('d/m/Y H:i:s'),
-                                '{email}': signature.contract.customer.contractualEmail,
+                                '{email}': signature.challengeSentTo ?? signature.contract.customer.contractualEmail,
                             }, null, contract.locale) }}
                         {% elseif signature.user %}
                             <br>{{ 'studio.pdf.seal.authenticated'|trans({}, null, contract.locale) }}

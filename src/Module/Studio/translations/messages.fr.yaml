@@ -354,6 +354,7 @@ backend:
                 contract_closed: 'Ce contrat est clos et ne peut plus être signé.'
                 role_already_signed: 'Cette partie a déjà signé.'
                 customer_has_not_signed: 'Le client n''a pas encore signé. La contresignature vient après.'
+                seal_broken: 'Le document stocké ne correspond plus à son sceau : il a été modifié depuis le scellement et ne peut pas être signé.'
                 already_refused: 'Ce contrat a déjà été refusé par le client.'
                 amends_invalid: 'Ce contrat à amender n''est pas valide.'
                 amends_not_found: 'Le contrat à amender est introuvable.'

@@ -354,6 +354,7 @@ backend:
                 contract_closed: 'Este contrato está cerrado y ya no se puede firmar.'
                 role_already_signed: 'Esta parte ya ha firmado.'
                 customer_has_not_signed: 'El cliente aún no ha firmado. La contrafirma viene después.'
+                seal_broken: 'El documento almacenado ya no coincide con su sello: se ha modificado desde el sellado y no puede firmarse.'
                 already_refused: 'El cliente ya ha rechazado este contrato.'
                 amends_invalid: 'El contrato que se desea modificar no es válido.'
                 amends_not_found: 'No se encuentra el contrato que se desea modificar.'

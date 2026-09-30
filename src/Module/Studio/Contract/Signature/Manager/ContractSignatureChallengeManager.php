@@ -136,6 +136,17 @@ class ContractSignatureChallengeManager implements ContractSignatureChallengeMan
         return $now;
     }
 
+    /**
+     * Where the code about to be checked was sent.
+     *
+     * Read before `verify()`, which consumes it: it is the latest code of the
+     * link, the one the signer is typing.
+     */
+    public function recipientOf(ContractAccessLinkInterface $link): ?string
+    {
+        return $this->challenges->findLatestFor($link)?->getSentTo();
+    }
+
     protected function createChallenge(): ContractSignatureChallengeInterface
     {
         return new ContractSignatureChallenge();

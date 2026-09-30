@@ -93,6 +93,21 @@ final readonly class ContractPdfGenerator
     }
 
     /**
+     * Takes back a file whose contract was not saved as concluded.
+     *
+     * The one case where a signed PDF may be deleted: it was written a moment
+     * ago, the save that would have attached it failed, and nobody holds it.
+     */
+    public function remove(string $relative): void
+    {
+        $adapter = $this->storageManager->active();
+
+        if ($adapter->exists($relative)) {
+            $adapter->delete($relative);
+        }
+    }
+
+    /**
      * The same document, rendered now and kept by nobody.
      *
      * The counterpart of `generate()`, and everything it is not: nothing is

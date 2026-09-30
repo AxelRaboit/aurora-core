@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Integration\Module\Studio\Contract;
 
+use Aurora\Core\Storage\StorageManager;
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Repository\UserRepository;
@@ -14,8 +15,10 @@ use Aurora\Module\Studio\Contract\Entity\Contract;
 use Aurora\Module\Studio\Contract\Entity\ContractInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplate;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateInterface;
+use Aurora\Module\Studio\Contract\Enum\ContractStatusEnum;
 use Aurora\Module\Studio\Contract\Enum\ContractTemplateKindEnum;
 use Aurora\Module\Studio\Contract\Exception\ContractPdfAlreadyGeneratedException;
+use Aurora\Module\Studio\Contract\Manager\ContractManagerInterface;
 use Aurora\Module\Studio\Contract\Manager\ContractTemplateManager;
 use Aurora\Module\Studio\Contract\Preview\ContractTemplatePreviewer;
 use Aurora\Module\Studio\Contract\Repository\ContractRepository;
@@ -66,6 +69,8 @@ final class ContractPdfTest extends IntegrationTestCase
 
     private ContractPdfGenerator $pdf;
 
+    private StorageManager $storage;
+
     private EntityManagerInterface $entityManager;
 
     /** @var array<string, mixed> what the countersignature answered, for the screen */
@@ -96,6 +101,7 @@ final class ContractPdfTest extends IntegrationTestCase
         $this->signatures = $container->get(ContractSignatureRepository::class);
         $this->contracts = $container->get(ContractRepository::class);
         $this->pdf = $container->get(ContractPdfGenerator::class);
+        $this->storage = $container->get(StorageManager::class);
 
         $this->templates = new ContractTemplateManager(
             $this->entityManager,
@@ -223,6 +229,92 @@ final class ContractPdfTest extends IntegrationTestCase
         self::assertTrue($this->countersigned['contract']['seal']['verified'] ?? false);
         self::assertArrayHasKey('amendments', $this->countersigned['contract']);
         self::assertArrayHasKey('renderedHtml', $this->countersigned['contract']);
+    }
+
+    /**
+     * The signature keeps the address its code went to. The PDF used to print
+     * the customer's current address, which may have changed since.
+     */
+    public function testTheSignatureKeepsTheAddressTheCodeWentTo(): void
+    {
+        $contract = $this->concludedContract();
+        $customer = $this->signatures->findForContract($contract)[0];
+
+        self::assertSame('contact@durand.test', $customer->getChallengeSentTo());
+    }
+
+    /**
+     * A PDF that cannot be written concludes nothing.
+     *
+     * The status used to be saved before the file was generated: a failure
+     * then left a contract concluded with no PDF, and a second
+     * countersignature is refused, so nothing could ever make one.
+     */
+    public function testAFailedPdfLeavesTheContractWaitingForTheCountersignature(): void
+    {
+        $contractId = $this->signedByCustomer();
+        $contract = $this->contracts->find($contractId);
+
+        // A file already where the PDF goes: the generator refuses to write
+        // over a signed document, which is the failure this simulates.
+        $this->storage->active()->write($this->pdf->relativePathFor($contract), 'in the way');
+
+        $this->client->catchExceptions(true);
+        $this->countersign($contractId);
+        self::assertSame(500, $this->client->getResponse()->getStatusCode());
+
+        $this->entityManager->clear();
+        $reloaded = $this->contracts->find($contractId);
+
+        self::assertSame(ContractStatusEnum::SignedByCustomer, $reloaded->getStatus());
+        self::assertFalse($reloaded->hasPdf());
+        self::assertCount(1, $this->signatures->findForContract($reloaded));
+
+        $this->storage->active()->delete($this->pdf->relativePathFor($reloaded));
+    }
+
+    /**
+     * Once the retention has run out, a signed contract can go too.
+     *
+     * The signatures' key refuses a cascade, and the delete did not remove
+     * them first: a signed contract answered a 500 however old it was, while
+     * the tests only ever deleted one nobody had signed.
+     */
+    public function testASignedContractIsDeletableOnceTheRetentionHasElapsed(): void
+    {
+        $contract = $this->concludedContract();
+        $id = $contract->getId();
+
+        $this->entityManager->getConnection()->executeStatement(
+            'UPDATE core_contracts SET frozen_at = :frozenAt WHERE id = :id',
+            ['frozenAt' => new DateTimeImmutable('-30 years')->format('Y-m-d H:i:s'), 'id' => $id],
+        );
+
+        // Through the container of the last request: the client rebooted the
+        // kernel, and the manager has to delete an entity its own manager holds.
+        $container = static::getContainer();
+        $repository = $container->get(ContractRepository::class);
+        $container->get(EntityManagerInterface::class)->clear();
+        $container->get(ContractManagerInterface::class)->delete($repository->find($id));
+
+        $container->get(EntityManagerInterface::class)->clear();
+        self::assertNull($repository->find($id));
+    }
+
+    /** Nobody signs a document that no longer matches its seal. */
+    public function testAnAlteredDocumentCannotBeSigned(): void
+    {
+        $contractId = $this->signedByCustomer();
+
+        $this->entityManager->getConnection()->executeStatement(
+            "UPDATE core_contracts SET rendered_html = rendered_html || '<p>Clause ajoutée.</p>' WHERE id = :id",
+            ['id' => $contractId],
+        );
+
+        $this->countersign($contractId);
+
+        self::assertSame(422, $this->client->getResponse()->getStatusCode());
+        self::assertStringContainsString('sceau', (string) $this->client->getResponse()->getContent());
     }
 
     public function testThePdfIsServedThroughItsOwnGatedRouteAndNotTheCatchAll(): void
@@ -365,7 +457,8 @@ final class ContractPdfTest extends IntegrationTestCase
         return $bytes;
     }
 
-    private function concludedContract(): Contract
+    /** Signed by the customer, not yet countersigned. */
+    private function signedByCustomer(): int
     {
         $url = $this->sentContractUrl();
         $contractId = $this->links->findAll()[0]->getContract()->getId();
@@ -384,6 +477,11 @@ final class ContractPdfTest extends IntegrationTestCase
         ]);
         self::assertSame(200, $guest->getResponse()->getStatusCode());
 
+        return $contractId;
+    }
+
+    private function countersign(int $contractId): void
+    {
         $this->login();
         $this->client->jsonRequest('POST', sprintf('/backend/studio/contracts/%d/countersign', $contractId), [
             'firstName' => 'Axel',
@@ -395,8 +493,14 @@ final class ContractPdfTest extends IntegrationTestCase
             'consent' => true,
             'code' => 'n/a',
         ]);
+        $this->countersigned = json_decode((string) $this->client->getResponse()->getContent(), true) ?? [];
+    }
+
+    private function concludedContract(): Contract
+    {
+        $contractId = $this->signedByCustomer();
+        $this->countersign($contractId);
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
-        $this->countersigned = json_decode((string) $this->client->getResponse()->getContent(), true);
 
         $this->entityManager->clear();
 

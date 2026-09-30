@@ -28,6 +28,7 @@ use Aurora\Module\Studio\Contract\Service\ContractDocumentRenderer;
 use Aurora\Module\Studio\Contract\Service\ContractRetentionPolicy;
 use Aurora\Module\Studio\Contract\Service\ContractSeal;
 use Aurora\Module\Studio\Contract\Service\ContractVariableResolver;
+use Aurora\Module\Studio\Contract\Signature\Entity\ContractSignatureInterface;
 use Aurora\Module\Studio\Contract\Termination\Dto\ContractTerminationInputInterface;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\Customer\Repository\CustomerRepository;
@@ -264,6 +265,15 @@ class ContractManager implements ContractManagerInterface
             'wasFrozen' => $contract->isFrozen(),
             'frozenAt' => $contract->getFrozenAt()?->format(DATE_ATOM),
         ]);
+
+        // The signatures first. Their key refuses a cascade on purpose, so
+        // that no signature can vanish with a careless delete; the retention
+        // having run out is the one moment they may go, and they go here,
+        // explicitly. Left to the key, deleting a signed contract answered a
+        // 500 however old it was.
+        foreach ($this->entityManager->getRepository(ContractSignatureInterface::class)->findBy(['contract' => $contract]) as $signature) {
+            $this->entityManager->remove($signature);
+        }
 
         $this->entityManager->remove($contract);
         $this->entityManager->flush();
