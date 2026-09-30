@@ -372,8 +372,11 @@ class ContractsController extends AbstractController
             return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
         }
 
+        // The whole document, as `terminate` answers: the screen replaces its
+        // state with this, and the short form has no seal, so the page used to
+        // announce a broken seal the moment the contract was concluded.
         return $this->jsonSuccess([
-            'contract' => $this->serializer->serialize($contract),
+            'contract' => $this->serializer->serializeDocument($contract),
             'contracts' => $this->viewBuilder->contracts(),
         ]);
     }

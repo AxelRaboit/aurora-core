@@ -16,6 +16,7 @@ use Aurora\Module\Studio\Contract\Enum\ContractStatusEnum;
 use Aurora\Module\Studio\Contract\Refusal\Dto\ContractRefusalInputFactoryInterface;
 use Aurora\Module\Studio\Contract\Refusal\Manager\ContractRefusalManagerInterface;
 use Aurora\Module\Studio\Contract\Service\ContractPrivacyNotice;
+use Aurora\Module\Studio\Contract\Service\ContractSignedDocument;
 use Aurora\Module\Studio\Contract\Signature\Dto\ContractSignatureInputFactoryInterface;
 use Aurora\Module\Studio\Contract\Signature\Manager\ContractSignatureChallengeManagerInterface;
 use Aurora\Module\Studio\Contract\Signature\Manager\ContractSignatureManagerInterface;
@@ -61,6 +62,7 @@ final class PublicContractController extends AbstractController
         private readonly ContractRefusalManagerInterface $refusals,
         private readonly ContractRefusalInputFactoryInterface $refusalInputFactory,
         private readonly ContractPrivacyNotice $privacyNotice,
+        private readonly ContractSignedDocument $signedDocument,
         private readonly PayloadValidator $payloadValidator,
         // Autowired by parameter name: `$contractSignatureLimiter` resolves to
         // the `contract_signature` limiter declared in config, the same way the
@@ -95,10 +97,11 @@ final class PublicContractController extends AbstractController
             'contract' => $contract,
             'customer' => $contract->getCustomer(),
             'link' => $link,
-            // The document is handed over as it was stored. The template prints
-            // it raw on purpose: it is the only markup on this page that must
-            // not be regenerated.
-            'documentHtml' => $contract->getRenderedHtml() ?? '',
+            // The document is handed over as it was stored, with only the
+            // signer's city and date written in. The template prints it raw on
+            // purpose: it is the only markup on this page that must not be
+            // regenerated.
+            'documentHtml' => $this->signedDocument->html($contract),
             'isSigned' => $contract->getStatus()->isEngaged(),
             'codePath' => $this->generateUrl('public_contract_code', ['selector' => $selector, 'token' => $token]),
             'signPath' => $this->generateUrl('public_contract_sign', ['selector' => $selector, 'token' => $token]),

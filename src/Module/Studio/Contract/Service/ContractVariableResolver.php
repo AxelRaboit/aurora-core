@@ -168,6 +168,23 @@ final readonly class ContractVariableResolver
         return $this->catalogue->signatureTokens();
     }
 
+    /**
+     * The city and the date the signer declared, as the document prints them.
+     *
+     * Empty strings while nobody has signed: the caller decides what a blank
+     * looks like, because a page shown to the client and a PDF for the file do
+     * not draw it the same way.
+     *
+     * @return array<string, string> keyed by the deferred tokens
+     */
+    public function signatureValues(?string $place, ?DateTimeImmutable $date, string $locale): array
+    {
+        return [
+            'contract.signature_city' => $place ?? '',
+            'contract.signature_date' => $this->formatDate($date, $locale),
+        ];
+    }
+
     private function capital(CustomerInterface $customer, string $locale): string
     {
         $cents = $customer->getShareCapitalCents();

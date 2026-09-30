@@ -145,6 +145,9 @@ const lastReminderAt = computed(() =>
 );
 
 const isConcluded = computed(() => "countersigned" === contract.value.status);
+const customerHasSigned = computed(() =>
+    ["signed_by_customer", "countersigned"].includes(contract.value.status),
+);
 
 const originOptions = computed(() =>
     props.terminationOrigins.map((origin) => ({
@@ -543,7 +546,9 @@ const contractActions = computed(() => {
                 v-html="documentHtml"
             />
 
-            <p class="text-xs text-muted">
+            <!-- Seulement tant que le client n'a pas signé : ensuite, sa ville
+                 et sa date sont écrites dans le texte ci-dessus. -->
+            <p v-if="!customerHasSigned" class="text-xs text-muted">
                 {{ t("backend.studio.contracts.deferred_tokens_hint") }}
             </p>
         </template>

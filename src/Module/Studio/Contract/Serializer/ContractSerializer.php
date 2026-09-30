@@ -11,6 +11,7 @@ use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersionInterface;
 use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\Contract\Service\ContractRetentionPolicy;
 use Aurora\Module\Studio\Contract\Service\ContractSeal;
+use Aurora\Module\Studio\Contract\Service\ContractSignedDocument;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
 use const DATE_ATOM;
@@ -23,6 +24,7 @@ class ContractSerializer implements ContractSerializerInterface
         protected readonly ContractAccessLinkRepository $links,
         protected readonly ContractRetentionPolicy $retention,
         protected readonly ContractRepository $contracts,
+        protected readonly ContractSignedDocument $signedDocument,
     ) {}
 
     /** @return array<string, mixed> */
@@ -111,7 +113,9 @@ class ContractSerializer implements ContractSerializerInterface
     {
         return [
             ...$this->serialize($contract),
-            'renderedHtml' => $contract->getRenderedHtml(),
+            // Null for a draft, which has no sealed text yet; otherwise the
+            // sealed text with the signer's city and date written in.
+            'renderedHtml' => null === $contract->getRenderedHtml() ? null : $this->signedDocument->html($contract),
             // The seal, as a block a human can read and check. A hash shown
             // without its algorithm and its canonical form is a string nobody
             // can do anything with.

@@ -20,6 +20,7 @@ use Aurora\Module\Studio\Contract\Manager\ContractTemplateManager;
 use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\Contract\Repository\ContractTemplateVersionRepository;
 use Aurora\Module\Studio\Contract\Service\ContractPdfGenerator;
+use Aurora\Module\Studio\Contract\Service\ContractSignedDocument;
 use Aurora\Module\Studio\Contract\Signature\Entity\ContractSignature;
 use Aurora\Module\Studio\Contract\Signature\Repository\ContractSignatureChallengeRepository;
 use Aurora\Module\Studio\Contract\Signature\Repository\ContractSignatureRepository;
@@ -65,6 +66,9 @@ final class ContractPdfTest extends IntegrationTestCase
     private ContractPdfGenerator $pdf;
 
     private EntityManagerInterface $entityManager;
+
+    /** @var array<string, mixed> what the countersignature answered, for the screen */
+    private array $countersigned = [];
 
     protected function setUp(): void
     {
@@ -169,6 +173,54 @@ final class ContractPdfTest extends IntegrationTestCase
         // content rather than an empty shell.
         self::assertGreaterThan(3000, mb_strlen($bytes), 'A contract with two signatures and a seal block is not a 3 KB file.');
         self::assertCount(2, $this->signatures->findForContract($contract));
+    }
+
+    /**
+     * « Fait à …, le … », written in from the customer's signature.
+     *
+     * The two tokens stay in the sealed HTML, which is what the hash covers,
+     * and are filled only when the document is shown. Nothing filled them: the
+     * signed PDF printed the braces.
+     */
+    public function testTheSignersCityAndDateAreWrittenIntoTheDocument(): void
+    {
+        $contract = $this->concludedContract();
+        $html = static::getContainer()->get(ContractSignedDocument::class)->html($contract);
+
+        self::assertStringContainsString('Fait à Lyon, le 08/09/2026.', $html);
+        self::assertStringNotContainsString('{{', $html);
+
+        // The sealed text itself is untouched, so the seal still holds.
+        self::assertStringContainsString('{{contract.signature_city}}', (string) $contract->getRenderedHtml());
+    }
+
+    public function testBeforeAnySignatureTheCityAndDateAreADottedBlank(): void
+    {
+        $url = $this->sentContractUrl();
+        $contract = $this->links->findAll()[0]->getContract();
+
+        $html = static::getContainer()->get(ContractSignedDocument::class)->html($contract);
+        self::assertStringContainsString(sprintf('Fait à %s, le %s.', ContractSignedDocument::BLANK, ContractSignedDocument::BLANK), $html);
+
+        // And the page the client signs on shows the same blank, not the token.
+        $guest = $this->asGuest();
+        $guest->request('GET', $url);
+        self::assertSame(200, $guest->getResponse()->getStatusCode());
+        self::assertStringNotContainsString('{{contract.signature_city}}', (string) $guest->getResponse()->getContent());
+    }
+
+    /**
+     * The screen replaces its state with this answer, so it has to carry the
+     * seal: without it the page said « le sceau ne correspond plus » the moment
+     * the contract was concluded.
+     */
+    public function testTheCountersignatureAnswersWithTheSealIntact(): void
+    {
+        $this->concludedContract();
+
+        self::assertTrue($this->countersigned['contract']['seal']['verified'] ?? false);
+        self::assertArrayHasKey('amendments', $this->countersigned['contract']);
+        self::assertArrayHasKey('renderedHtml', $this->countersigned['contract']);
     }
 
     public function testThePdfIsServedThroughItsOwnGatedRouteAndNotTheCatchAll(): void
@@ -342,6 +394,7 @@ final class ContractPdfTest extends IntegrationTestCase
             'code' => 'n/a',
         ]);
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
+        $this->countersigned = json_decode((string) $this->client->getResponse()->getContent(), true);
 
         $this->entityManager->clear();
 

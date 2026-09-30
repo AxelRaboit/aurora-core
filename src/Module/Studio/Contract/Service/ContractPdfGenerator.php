@@ -51,6 +51,7 @@ final readonly class ContractPdfGenerator
         private Environment $twig,
         private StorageManager $storageManager,
         private LocalWorkspace $workspace,
+        private ContractSignedDocument $signedDocument,
     ) {}
 
     /**
@@ -196,7 +197,10 @@ final readonly class ContractPdfGenerator
             'contract' => $contract,
             'customer' => $contract->getCustomer(),
             'signatures' => $signatures,
-            'documentHtml' => $documentHtml,
+            // « Fait à …, le … » filled from the signature, both in the signed
+            // file and in a working copy, where it stays a dotted blank until
+            // the customer has signed.
+            'documentHtml' => $this->signedDocument->fill($contract, $documentHtml, $signatures),
             // Says which of the two files the reader is holding. A PDF that
             // leaves the building without saying it is a working copy is the
             // one way this feature could do harm.
