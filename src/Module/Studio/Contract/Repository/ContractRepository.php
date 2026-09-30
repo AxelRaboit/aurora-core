@@ -97,6 +97,28 @@ class ContractRepository extends ResolveTargetEntityRepository
     }
 
     /**
+     * How many contracts each customer has, keyed by customer id.
+     *
+     * @return array<int, int>
+     */
+    public function countByCustomer(): array
+    {
+        $rows = $this->createQueryBuilder('c')
+            ->select('IDENTITY(c.customer) AS customer, COUNT(c.id) AS total')
+            ->groupBy('c.customer')
+            ->getQuery()
+            ->getScalarResult();
+
+        $counts = [];
+
+        foreach ($rows as $row) {
+            $counts[(int) $row['customer']] = (int) $row['total'];
+        }
+
+        return $counts;
+    }
+
+    /**
      * Combien de contrats par état.
      *
      * Les neuf états en une requête. Le tableau de bord n'en met en avant

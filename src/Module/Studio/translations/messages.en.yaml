@@ -215,7 +215,7 @@ backend:
             deleted: Contract deleted.
             empty: No contracts yet.
             search_placeholder: Search by reference or customer…
-            draft_title: Contract in preparation
+            draft_title: Draft contract
             in_preparation: In preparation
             sealed: Sealed
             customer: Customer
@@ -326,6 +326,148 @@ backend:
             seal_algo: Algorithm and canonical form
             seal_sealed_at: Sealed on
             deferred_tokens_hint: 'The city and date of signature stay as variables: the signer states them.'
+            flow:
+                next_step: Next step
+                more_actions: Other actions
+                list:
+                    reference: Reference
+                    customer: Customer
+                    template: Template
+                    amount: Amount
+                    effective_date: Effective date
+                    status: Where it stands
+                    last_activity: Last activity
+                    all_customers: All customers
+                    all_templates: All templates
+                    search: 'Search by reference, customer or template…'
+                    draft_reference: Draft
+                    amends: 'amendment to {reference}'
+                steps:
+                    all: All
+                    draft: Drafts
+                    to_send: To send
+                    with_customer: With the customer
+                    to_countersign: To countersign
+                    active: Running
+                    ended: Ended
+                steps_hint:
+                    draft: 'Being written: the text still follows the templates.'
+                    to_send: 'Sealed, or back after a refusal, an expiry or a revocation: to send, or to cancel.'
+                    with_customer: Out with the customer, who has not answered yet.
+                    to_countersign: 'Signed by the customer: waiting for your countersignature.'
+                    active: 'Concluded and in force, notice included.'
+                    ended: Terminated or cancelled.
+                empty_step: No contract at this step.
+                summary:
+                    waiting: 'With the customer, waiting for their signature.'
+                    concluded_no_pdf: 'Concluded.'
+                    draft: 'Draft. Read it through, then seal it: the text will be fixed and the contract will get its reference.'
+                    sealed: 'Sealed on {date}. The text is fixed; send it to the customer to sign.'
+                    refused: 'Refused by the customer on {date}. Send it again as it is, or cancel it and correct its copy.'
+                    expired: 'The link expired unsigned. Send it again, or cancel the contract.'
+                    revoked: 'The link was revoked. Send it again, or cancel the contract.'
+                    sent: 'Sent to {email} on {date}. The link is valid until {until}.'
+                    opened: 'Opened by the customer on {date}. Not signed yet; the link is valid until {until}.'
+                    signed_by_customer: 'Signed by the customer on {date}. Countersign it to conclude it.'
+                    countersigned: 'Concluded. The signed PDF is available.'
+                    notice: 'Concluded, with a termination on {date}.'
+                    terminated: 'Terminated since {date}.'
+                    cancelled: 'Cancelled. This contract has no effect; its reference stays for the record.'
+                actions:
+                    open:
+                        title: Open
+                        description: The document, its signatures and its history.
+                    edit:
+                        title: Edit
+                        description: 'Customer, templates, amount, dates and blanks. Nothing is fixed before the seal.'
+                    preview:
+                        title: Preview
+                        description: The document as the customer will read it.
+                    freeze:
+                        title: Seal
+                        description: 'Fixes the text and draws the reference. Final.'
+                    send:
+                        title: Send to the customer
+                        description: 'A signing link, valid for thirty days.'
+                    resend:
+                        title: Send again
+                        description: 'A new link, valid for thirty days. The old one stops working.'
+                    remind:
+                        title: Send a reminder
+                        description: 'A reminder with a new link. The old one stops working.'
+                    revoke:
+                        title: Revoke the link
+                        description: 'The link stops working. The contract becomes « Revoked ».'
+                    countersign:
+                        title: Countersign
+                        description: Your signature concludes the contract.
+                    download:
+                        title: Download the signed PDF
+                        description: The document signed by both parties.
+                    export:
+                        title: Export as PDF
+                        description: 'A working copy, marked as such.'
+                    amend:
+                        title: Create an amendment
+                        description: 'A separate document, signed too. This contract keeps its text.'
+                    terminate:
+                        title: Terminate
+                        description: 'Records the end of the contract, on a date.'
+                    cancel:
+                        title: Cancel the contract
+                        description: 'The contract has no effect any more; its reference stays. Offered while nobody has signed.'
+                    duplicate:
+                        title: Duplicate as a draft
+                        description: A new draft with the same choices, to correct.
+                    delete:
+                        title: Delete
+                        description: 'Permanent. A draft at any time, a sealed contract once its retention has run out.'
+                confirm:
+                    send: 'Send the contract to {email}? They will get a signing link valid for thirty days.'
+                    send_no_address: 'This customer has no contractual address: add it to their file before sending.'
+                    remind: 'Send a reminder to {email}? They will get a new link; the old one will stop working.'
+                    revoke: 'Revoke the link? The customer will no longer be able to open the contract, which becomes « Revoked ». You can send it again.'
+                    cancel: 'Cancel this contract? It will have no effect and can no longer be sent. Its reference stays in the list.'
+                    cancel_duplicate: Also create a draft with the same choices, to correct it
+                    delete: 'Delete this contract? This is permanent.'
+                done:
+                    frozen: 'Contract sealed: it has its reference.'
+                    sent: 'Contract sent to {email}.'
+                    reminded: 'Reminder sent to {email}.'
+                    revoked: Link revoked.
+                    cancelled: Contract cancelled.
+                    duplicated: Draft created.
+                    deleted: Contract deleted.
+                panels:
+                    information: Details
+                    customer: Customer
+                    template: Template
+                    annex: Annex
+                    amount: Amount
+                    effective_date: Effective date
+                    language: Language
+                    created_at: Created on
+                    sealed_at: Sealed on
+                    link: Signing link
+                    recipient: Sent to
+                    sent_at: Sent on
+                    opened_at: Opened on
+                    expires_at: Valid until
+                    reminders: Reminders
+                    no_link: No active link.
+                    signatures: Signatures
+                    no_signature: Nobody has signed yet.
+                    role_customer: The customer
+                    role_provider: You
+                    signed_in: 'Signed in {place} on {date}'
+                    signed_at_trace: 'Recorded on {at}, IP address {ip}'
+                    code_sent_to: 'Verification code sent to {email}'
+                    by_account: 'Signed in as {name}'
+                    hash_mismatch: 'This signature covers a different fingerprint from the current document.'
+                    history: History
+                    no_history: Nothing recorded yet.
+                    version_outdated: 'Version {number}; version {latest} has been in force since.'
+                    version: 'version {number}'
             status:
                 draft: Draft
                 sealed: Sealed
@@ -355,6 +497,7 @@ backend:
                 already_engaged: This contract is already signed. It cannot be sent again.
                 cannot_cancel: 'Only a sealed contract nobody has signed can be cancelled.'
                 nothing_to_remind: 'Only a contract that was sent and not yet signed can be chased.'
+                mail_failed: 'The mail could not be sent. Nothing changed: try again in a moment.'
                 no_active_link: No active link to revoke.
                 seal_before_signing: 'Seal the contract before it can be signed.'
                 already_concluded: 'This contract is already signed by both parties.'
@@ -920,6 +1063,7 @@ backend:
             delete_warning: 'A customer a contract names is not deleted: this will be refused for as long as one remains.'
             linked_account: 'Account: {name}'
 
+            contracts_count: '{count} contract(s)'
             col_company: Company
             col_representative: Representative
             col_siret: Registration no.

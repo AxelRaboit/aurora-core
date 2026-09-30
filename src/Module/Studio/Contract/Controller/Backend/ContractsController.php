@@ -29,6 +29,7 @@ use Aurora\Module\Studio\Contract\View\ContractsViewBuilder;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -98,7 +99,11 @@ class ContractsController extends AbstractController
                 return $this->frozenRefusal();
             }
 
-            return $this->jsonSuccess($this->viewBuilder->listPayload());
+            // The list takes the rows, the contract's own screen the document.
+            return $this->jsonSuccess([
+                ...$this->viewBuilder->listPayload(),
+                'contract' => $this->serializer->serializeDocument($contract),
+            ]);
         });
     }
 
@@ -186,6 +191,11 @@ class ContractsController extends AbstractController
             $link = $this->accessLinks->send($contract);
         } catch (FieldException $fieldException) {
             return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
+        } catch (TransportExceptionInterface) {
+            // The mail did not leave, and nothing changed: the previous link
+            // still opens the contract and no new one is live. Said as such
+            // rather than as a 500.
+            return $this->jsonInvalidInput(['status' => $this->translator->trans('backend.studio.contracts.errors.mail_failed')]);
         }
 
         return $this->jsonSuccess([
@@ -212,6 +222,11 @@ class ContractsController extends AbstractController
             $link = $this->accessLinks->remind($contract);
         } catch (FieldException $fieldException) {
             return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
+        } catch (TransportExceptionInterface) {
+            // The mail did not leave, and nothing changed: the previous link
+            // still opens the contract and no new one is live. Said as such
+            // rather than as a 500.
+            return $this->jsonInvalidInput(['status' => $this->translator->trans('backend.studio.contracts.errors.mail_failed')]);
         }
 
         return $this->jsonSuccess([

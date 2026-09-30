@@ -215,7 +215,7 @@ backend:
             deleted: 'Contrato eliminado.'
             empty: 'Todavía no hay ningún contrato.'
             search_placeholder: 'Buscar por referencia o por cliente…'
-            draft_title: 'Contrato en preparación'
+            draft_title: 'Borrador de contrato'
             in_preparation: 'En preparación'
             sealed: Sellados
             customer: Cliente
@@ -326,6 +326,148 @@ backend:
             seal_algo: 'Algoritmo y forma canónica'
             seal_sealed_at: 'Sellado el'
             deferred_tokens_hint: 'La ciudad y la fecha de firma siguen siendo variables: es el firmante quien las declarará.'
+            flow:
+                next_step: Siguiente paso
+                more_actions: Otras acciones
+                list:
+                    reference: Referencia
+                    customer: Cliente
+                    template: Plantilla
+                    amount: Importe
+                    effective_date: Entrada en vigor
+                    status: Dónde está
+                    last_activity: Última actividad
+                    all_customers: Todos los clientes
+                    all_templates: Todas las plantillas
+                    search: 'Buscar por referencia, cliente o plantilla…'
+                    draft_reference: Borrador
+                    amends: 'adenda a {reference}'
+                steps:
+                    all: Todos
+                    draft: Borradores
+                    to_send: Por enviar
+                    with_customer: En manos del cliente
+                    to_countersign: Por contrafirmar
+                    active: En vigor
+                    ended: Terminados
+                steps_hint:
+                    draft: 'En redacción: el texto aún sigue las plantillas.'
+                    to_send: 'Sellados, o de vuelta tras un rechazo, una caducidad o una revocación: por enviar, o por anular.'
+                    with_customer: Enviados al cliente, que aún no ha respondido.
+                    to_countersign: 'Firmados por el cliente: esperan su contrafirma.'
+                    active: 'Concluidos y en vigor, preaviso incluido.'
+                    ended: Rescindidos o anulados.
+                empty_step: Ningún contrato en este paso.
+                summary:
+                    waiting: 'En manos del cliente, a la espera de su firma.'
+                    concluded_no_pdf: 'Concluido.'
+                    draft: 'Borrador. Reléalo y séllelo: el texto quedará fijado y el contrato recibirá su referencia.'
+                    sealed: 'Sellado el {date}. El texto está fijado; envíelo al cliente para que lo firme.'
+                    refused: 'Rechazado por el cliente el {date}. Vuelva a enviarlo tal cual, o anúlelo y corrija su copia.'
+                    expired: 'El enlace caducó sin firma. Vuelva a enviarlo, o anule el contrato.'
+                    revoked: 'El enlace fue revocado. Vuelva a enviarlo, o anule el contrato.'
+                    sent: 'Enviado a {email} el {date}. El enlace es válido hasta el {until}.'
+                    opened: 'Abierto por el cliente el {date}. Aún no ha firmado; el enlace es válido hasta el {until}.'
+                    signed_by_customer: 'Firmado por el cliente el {date}. Contrafírmelo para concluirlo.'
+                    countersigned: 'Concluido. El PDF firmado está disponible.'
+                    notice: 'Concluido, con una rescisión el {date}.'
+                    terminated: 'Rescindido desde el {date}.'
+                    cancelled: 'Anulado. Este contrato no tiene efecto; su referencia se conserva como constancia.'
+                actions:
+                    open:
+                        title: Abrir
+                        description: El documento, sus firmas y su historial.
+                    edit:
+                        title: Editar
+                        description: 'Cliente, plantillas, importe, fechas y campos. Nada se fija antes del sellado.'
+                    preview:
+                        title: Vista previa
+                        description: El documento tal como lo leerá el cliente.
+                    freeze:
+                        title: Sellar
+                        description: 'Fija el texto y asigna la referencia. Definitivo.'
+                    send:
+                        title: Enviar al cliente
+                        description: 'Un enlace de firma, válido durante treinta días.'
+                    resend:
+                        title: Volver a enviar
+                        description: 'Un enlace nuevo, válido durante treinta días. El anterior deja de funcionar.'
+                    remind:
+                        title: Enviar un recordatorio
+                        description: 'Un recordatorio con un enlace nuevo. El anterior deja de funcionar.'
+                    revoke:
+                        title: Revocar el enlace
+                        description: 'El enlace deja de funcionar. El contrato pasa a « Revocado ».'
+                    countersign:
+                        title: Contrafirmar
+                        description: Su firma concluye el contrato.
+                    download:
+                        title: Descargar el PDF firmado
+                        description: El documento firmado por ambas partes.
+                    export:
+                        title: Exportar en PDF
+                        description: 'Una copia de trabajo, marcada como tal.'
+                    amend:
+                        title: Crear una adenda
+                        description: 'Un documento aparte, firmado también. Este contrato conserva su texto.'
+                    terminate:
+                        title: Rescindir
+                        description: 'Registra el fin del contrato, en una fecha.'
+                    cancel:
+                        title: Anular el contrato
+                        description: 'El contrato deja de tener efecto; su referencia se conserva. Disponible mientras nadie haya firmado.'
+                    duplicate:
+                        title: Duplicar como borrador
+                        description: Un borrador nuevo con las mismas opciones, para corregir.
+                    delete:
+                        title: Eliminar
+                        description: 'Definitivo. Un borrador en cualquier momento, un contrato sellado cuando termina su conservación.'
+                confirm:
+                    send: '¿Enviar el contrato a {email}? Recibirá un enlace de firma válido durante treinta días.'
+                    send_no_address: 'Este cliente no tiene dirección contractual: añádala en su ficha antes de enviar.'
+                    remind: '¿Enviar un recordatorio a {email}? Recibirá un enlace nuevo; el anterior dejará de funcionar.'
+                    revoke: '¿Revocar el enlace? El cliente ya no podrá abrir el contrato, que pasará a « Revocado ». Podrá volver a enviarlo.'
+                    cancel: '¿Anular este contrato? No tendrá efecto y ya no podrá enviarse. Su referencia se queda en la lista.'
+                    cancel_duplicate: Crear también un borrador con las mismas opciones, para corregirlo
+                    delete: '¿Eliminar este contrato? Es definitivo.'
+                done:
+                    frozen: 'Contrato sellado: ya tiene su referencia.'
+                    sent: 'Contrato enviado a {email}.'
+                    reminded: 'Recordatorio enviado a {email}.'
+                    revoked: Enlace revocado.
+                    cancelled: Contrato anulado.
+                    duplicated: Borrador creado.
+                    deleted: Contrato eliminado.
+                panels:
+                    information: Datos
+                    customer: Cliente
+                    template: Plantilla
+                    annex: Anexo
+                    amount: Importe
+                    effective_date: Entrada en vigor
+                    language: Idioma
+                    created_at: Creado el
+                    sealed_at: Sellado el
+                    link: Enlace de firma
+                    recipient: Enviado a
+                    sent_at: Enviado el
+                    opened_at: Abierto el
+                    expires_at: Válido hasta el
+                    reminders: Recordatorios
+                    no_link: Ningún enlace activo.
+                    signatures: Firmas
+                    no_signature: Nadie ha firmado todavía.
+                    role_customer: El cliente
+                    role_provider: Usted
+                    signed_in: 'Firmado en {place} el {date}'
+                    signed_at_trace: 'Registrado el {at}, dirección IP {ip}'
+                    code_sent_to: 'Código de verificación enviado a {email}'
+                    by_account: 'Conectado como {name}'
+                    hash_mismatch: 'Esta firma corresponde a una huella distinta de la del documento actual.'
+                    history: Historial
+                    no_history: Nada registrado por ahora.
+                    version_outdated: 'Versión {number}; la versión {latest} está en vigor desde entonces.'
+                    version: 'versión {number}'
             status:
                 draft: Borrador
                 sealed: Sellado
@@ -355,6 +497,7 @@ backend:
                 already_engaged: 'Este contrato ya está firmado. Ya no se puede volver a enviar.'
                 cannot_cancel: 'Solo se puede anular un contrato sellado que nadie ha firmado.'
                 nothing_to_remind: 'Solo se puede recordar un contrato enviado y aún sin firmar.'
+                mail_failed: 'No se pudo enviar el correo. No ha cambiado nada: inténtelo de nuevo en un momento.'
                 no_active_link: 'Ningún enlace activo que revocar.'
                 seal_before_signing: 'Selle el contrato antes de enviarlo a firmar.'
                 already_concluded: 'Este contrato ya está firmado por ambas partes.'
@@ -919,6 +1062,7 @@ backend:
             delete_confirm: '¿Eliminar {name}?'
             delete_warning: 'Un cliente mencionado en un contrato no se puede eliminar: la eliminación se rechazará mientras quede alguno.'
             linked_account: 'Cuenta: {name}'
+            contracts_count: '{count} contrato(s)'
             col_company: Empresa
             col_representative: Representante
             col_siret: SIRET

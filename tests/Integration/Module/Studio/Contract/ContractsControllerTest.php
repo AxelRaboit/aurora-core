@@ -101,6 +101,50 @@ final class ContractsControllerTest extends IntegrationTestCase
         self::assertStringContainsString((string) $id, (string) $sealed['showPath']);
     }
 
+    /**
+     * The journey through the routes the contract's screen calls: seal, send,
+     * remind, cancel is refused while the customer holds a link, revoke,
+     * cancel, and a draft to correct.
+     */
+    public function testTheJourneyThroughTheContractsScreenRoutes(): void
+    {
+        $id = $this->createContract()['contract']['id'];
+        $post = function (string $gesture) use ($id): array {
+            $this->client->jsonRequest('POST', sprintf('/backend/studio/contracts/%d/%s', $id, $gesture));
+
+            return ['status' => $this->client->getResponse()->getStatusCode(), 'body' => json_decode((string) $this->client->getResponse()->getContent(), true)];
+        };
+
+        self::assertSame('draft', $this->createContract()['contract']['step']);
+
+        // A reminder before anything went out is refused, with a sentence.
+        $post('freeze');
+        self::assertSame(422, $post('remind')['status']);
+
+        $sent = $post('send');
+        self::assertSame(200, $sent['status']);
+        self::assertSame('with_customer', $sent['body']['contract']['step']);
+        // The whole document comes back, seal included, for the screen.
+        self::assertTrue($sent['body']['contract']['seal']['verified']);
+
+        self::assertSame(200, $post('remind')['status']);
+
+        // Out with the customer: revoke first, then cancel.
+        self::assertSame(422, $post('cancel')['status']);
+        self::assertSame('revoked', $post('revoke-link')['body']['contract']['status']);
+
+        $cancelled = $post('cancel');
+        self::assertSame(200, $cancelled['status']);
+        self::assertSame('cancelled', $cancelled['body']['contract']['status']);
+        self::assertSame('ended', $cancelled['body']['contract']['step']);
+
+        $copy = $post('duplicate');
+        self::assertSame(200, $copy['status']);
+        self::assertSame('draft', $copy['body']['contract']['status']);
+        self::assertNotSame($id, $copy['body']['contract']['id']);
+        self::assertStringContainsString((string) $copy['body']['contract']['id'], (string) $copy['body']['showPath']);
+    }
+
     public function testASealedContractRefusesEveryFurtherWrite(): void
     {
         $created = $this->createContract();
