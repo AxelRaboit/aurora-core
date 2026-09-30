@@ -220,7 +220,25 @@ class NoteFolderManager implements NoteFolderManagerInterface
             return;
         }
 
-        $branch = [$folder, ...$this->descendantsOf($folder)];
+        // Toute la branche, corbeille comprise : un dossier ou une note jeté
+        // puis restauré doit retrouver son parent dans le même espace.
+        $branch = [$folder];
+        $level = [(int) $folder->getId()];
+        $seen = [(int) $folder->getId() => true];
+
+        while ([] !== $level) {
+            $next = [];
+            foreach ($this->folderRepository->findAllChildrenOfAny($level) as $child) {
+                $id = (int) $child->getId();
+                if (!isset($seen[$id])) {
+                    $seen[$id] = true;
+                    $branch[] = $child;
+                    $next[] = $id;
+                }
+            }
+
+            $level = $next;
+        }
 
         foreach ($branch as $one) {
             $one->setSpace($space);
@@ -228,7 +246,7 @@ class NoteFolderManager implements NoteFolderManagerInterface
 
         $ids = array_map(static fn (NoteFolderInterface $one): int => (int) $one->getId(), $branch);
 
-        foreach ($this->noteRepository->findLivingInFolders($ids) as $note) {
+        foreach ($this->noteRepository->findAllInFolders($ids) as $note) {
             $this->noteManager->changeSpace($note, $space);
         }
     }

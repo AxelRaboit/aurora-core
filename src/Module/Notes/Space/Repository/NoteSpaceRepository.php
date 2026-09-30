@@ -12,10 +12,12 @@ use Aurora\Module\Notes\Space\Entity\NoteSpaceMemberInterface;
 use Aurora\Module\Notes\Space\Enum\NoteSpaceAccessEnum;
 use Aurora\Module\Notes\Space\Enum\NoteSpaceRoleEnum;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
+use Aurora\Module\Platform\User\Enum\UserRoleEnum;
 use Doctrine\Common\Collections\Order;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
+use function array_intersect;
 use function sprintf;
 use function str_contains;
 
@@ -48,6 +50,7 @@ class NoteSpaceRepository extends ResolveTargetEntityRepository
             'SELECT %1$s.id FROM %2$s %1$s LEFT JOIN %1$s.members %1$sm WITH %1$sm.user = :spaceViewer '
             .'WHERE %1$s.deletedAt IS NULL AND ('
             .'%1$s.personalUser = :spaceViewer OR %1$s.owner = :spaceViewer '
+            .'OR (%1$s.owner IS NULL AND %1$s.personalUser IS NULL AND :spaceViewerAdopts = TRUE) '
             .'OR %1$s.access = :spaceAccessBackoffice '
             .'OR (%1$s.access = :spaceAccessMembers AND %1$sm.id IS NOT NULL))',
             $prefix,
@@ -67,6 +70,7 @@ class NoteSpaceRepository extends ResolveTargetEntityRepository
             'SELECT %1$s.id FROM %2$s %1$s LEFT JOIN %1$s.members %1$sm WITH %1$sm.user = :spaceViewer '
             .'WHERE %1$s.deletedAt IS NULL AND ('
             .'%1$s.personalUser = :spaceViewer OR %1$s.owner = :spaceViewer '
+            .'OR (%1$s.owner IS NULL AND %1$s.personalUser IS NULL AND :spaceViewerAdopts = TRUE) '
             .'OR (%1$s.access = :spaceAccessBackoffice AND (%1$s.defaultRole IN (:spaceWriterRoles) OR %1$sm.role IN (:spaceWriterRoles))) '
             .'OR (%1$s.access = :spaceAccessMembers AND %1$sm.role IN (:spaceWriterRoles)))',
             $prefix,
@@ -84,6 +88,7 @@ class NoteSpaceRepository extends ResolveTargetEntityRepository
     {
         $qb
             ->setParameter('spaceViewer', $user)
+            ->setParameter('spaceViewerAdopts', self::isAdmin($user))
             ->setParameter('spaceAccessBackoffice', NoteSpaceAccessEnum::Backoffice)
             ->setParameter('spaceAccessMembers', NoteSpaceAccessEnum::Members);
 
@@ -92,6 +97,15 @@ class NoteSpaceRepository extends ResolveTargetEntityRepository
         }
 
         return $qb;
+    }
+
+    /**
+     * Administrateur, au sens des espaces orphelins : ceux-là reviennent aux
+     * administrateurs quand leur propriétaire est parti.
+     */
+    public static function isAdmin(CoreUserInterface $user): bool
+    {
+        return [] !== array_intersect([UserRoleEnum::Admin->value, UserRoleEnum::Dev->value], $user->getRoles());
     }
 
     public function findPersonalFor(CoreUserInterface $user): ?NoteSpaceInterface

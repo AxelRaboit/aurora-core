@@ -385,6 +385,86 @@ final class NoteSpacesTest extends IntegrationTestCase
         self::assertSame($target->getId(), $imported[0]->getFolder()?->getSpace()->getId());
     }
 
+    /**
+     * Ce qui dort à la corbeille suit sa branche : restauré, il retrouve son
+     * dossier dans le même espace.
+     */
+    public function testATrashedNoteFollowsItsFolderAcrossSpaces(): void
+    {
+        $team = $this->space(NoteSpaceAccessEnum::Backoffice);
+        $personal = $this->personalSpaceOf($this->editor);
+        $folder = $this->folder($this->editor, 'Projet', $personal);
+        $trashed = $this->note($this->editor, 'Brouillon jeté', $personal, $folder);
+
+        $this->client->loginUser($this->editor, 'admin');
+        $this->post('backend_notes_markdown_delete', [], ['id' => $trashed->getId()]);
+        self::assertResponseIsSuccessful();
+        $this->post('backend_notes_markdown_folders_move', ['parentId' => null, 'spaceId' => $team->getId()], ['id' => $folder->getId()]);
+        self::assertResponseIsSuccessful();
+
+        $this->entityManager->clear();
+        self::assertSame($team->getId(), $this->entityManager->find(MarkdownNote::class, $trashed->getId())?->getSpace()->getId());
+    }
+
+    /**
+     * Un espace dont le propriétaire est parti revient aux administrateurs :
+     * sinon plus personne ne pourrait le régler ni le faire revenir.
+     */
+    public function testAnOrphanedSpaceIsAdoptedByAdministrators(): void
+    {
+        $space = $this->space(NoteSpaceAccessEnum::Members);
+        $this->managed($space)->setOwner(null);
+        $this->entityManager->flush();
+
+        $admin = $this->user('admin');
+        $this->managed($admin)->setRoles([UserRoleEnum::Admin->value]);
+        $this->entityManager->flush();
+
+        $this->client->loginUser($this->managed($this->editor), 'admin');
+        $this->post('backend_notes_spaces_update', ['name' => 'Repris', 'access' => 'members'], ['id' => $space->getId()]);
+        self::assertResponseStatusCodeSame(404, 'un rédacteur ne gère pas');
+
+        $this->client->loginUser($this->managed($admin), 'admin');
+        $this->post('backend_notes_spaces_update', ['name' => 'Repris', 'access' => 'members'], ['id' => $space->getId()]);
+        self::assertResponseIsSuccessful();
+        $this->post('backend_notes_spaces_delete', [], ['id' => $space->getId()]);
+        self::assertResponseIsSuccessful();
+        $this->post('backend_notes_spaces_restore', [], ['id' => $space->getId()]);
+        self::assertResponseIsSuccessful();
+    }
+
+    /** Un gestionnaire ne ferme pas l'espace à « moi seul » : il s'en fermerait la porte. */
+    public function testOnlyTheOwnerKeepsASpaceToThemselves(): void
+    {
+        $space = $this->space(NoteSpaceAccessEnum::Members);
+        $manager = $this->managed($this->editor);
+        $member = $this->entityManager->getRepository(NoteSpaceMember::class)->findOneBy(['space' => $space->getId(), 'user' => $manager->getId()]);
+        $member?->setRole(NoteSpaceRoleEnum::Manager);
+        $this->entityManager->flush();
+
+        $this->client->loginUser($manager, 'admin');
+        $body = $this->post('backend_notes_spaces_update', ['name' => 'Fermé', 'access' => 'private'], ['id' => $space->getId()]);
+        self::assertResponseStatusCodeSame(422);
+        self::assertSame('notes.markdown.spaces.errors.private_owner_only', $body['errors']['access'] ?? null);
+
+        $this->client->loginUser($this->managed($this->owner), 'admin');
+        $this->post('backend_notes_spaces_update', ['name' => 'Fermé', 'access' => 'private'], ['id' => $space->getId()]);
+        self::assertResponseIsSuccessful();
+    }
+
+    /** La liste des personnes ne sert qu'à qui peut inscrire quelqu'un. */
+    public function testThePeopleListIsForThoseWhoCanAddSomeone(): void
+    {
+        $this->client->loginUser($this->reader, 'admin');
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_spaces_people'));
+        self::assertSame([], json_decode((string) $this->client->getResponse()->getContent(), true)['people']);
+
+        $this->space(NoteSpaceAccessEnum::Members);
+        $this->client->loginUser($this->managed($this->owner), 'admin');
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_spaces_people'));
+        self::assertNotSame([], json_decode((string) $this->client->getResponse()->getContent(), true)['people']);
+    }
+
     /** Un lien public ne suit jamais un wiki-lien hors de son espace. */
     public function testAPublicLinkNeverWalksOutOfItsSpace(): void
     {

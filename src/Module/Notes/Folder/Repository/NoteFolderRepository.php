@@ -107,6 +107,29 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
      * @return list<NoteFolderInterface>
      */
     /**
+     * Les enfants de ces dossiers, corbeille comprise : ce qui change
+     * d'espace avec sa branche doit emporter aussi ce qui dort à la
+     * corbeille, sinon sa restauration le rendrait dans un espace qui n'est
+     * plus celui de son dossier.
+     *
+     * @param list<int> $folderIds
+     *
+     * @return list<NoteFolderInterface>
+     */
+    public function findAllChildrenOfAny(array $folderIds): array
+    {
+        if ([] === $folderIds) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('f')
+            ->where('IDENTITY(f.parent) IN (:ids)')
+            ->setParameter('ids', $folderIds)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * The living children of several folders at once, their owner with them.
      *
      * For walking a tree a level at a time: one query per depth, where asking
@@ -122,8 +145,10 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
             return [];
         }
 
+        // Jointure externe : l'auteur d'un dossier peut avoir quitté
+        // l'instance, et son dossier reste dans la branche.
         return $this->createQueryBuilder('f')
-            ->innerJoin('f.user', 'u')
+            ->leftJoin('f.user', 'u')
             ->addSelect('u')
             ->where('IDENTITY(f.parent) IN (:ids)')
             ->andWhere('f.deletedAt IS NULL')

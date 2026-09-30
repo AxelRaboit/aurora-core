@@ -144,10 +144,11 @@ final class MarkdownNotesImagesController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        // Son espace personnel d'abord, puis les autres espaces qu'on peut
-        // lire : l'adresse d'une image ne porte que son nom, et une image d'un
+        // Les espaces qu'on peut lire, le sien d'abord - la liste le met en
+        // tête : l'adresse d'une image ne porte que son nom, et une image d'un
         // espace partagé a la même adresse chez tous ses lecteurs.
-        foreach ([$this->spaceAccess->personalSpace($user), ...$this->spaces->findReadableFor($user)] as $bucket) {
+        $this->spaceAccess->personalSpace($user);
+        foreach ($this->spaces->findReadableFor($user) as $bucket) {
             $key = $this->imageService->keyOrNull($filename, $bucket);
 
             if (null === $key) {

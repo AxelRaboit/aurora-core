@@ -118,6 +118,7 @@ notes:
                 badge: 'Publicado en la web'
             my_space: 'Mi espacio'
             errors:
+                private_owner_only: 'Solo el propietario puede reservarse el espacio.'
                 bad_slug: 'Dirección no válida: solo letras, cifras y guiones.'
                 slug_taken: 'Esta dirección ya está ocupada.'
                 name_required: 'Pon un nombre al espacio.'

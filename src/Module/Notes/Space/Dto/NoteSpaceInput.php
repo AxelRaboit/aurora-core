@@ -17,7 +17,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 class NoteSpaceInput implements NoteSpaceInputInterface
 {
     public function __construct(
-        #[Assert\NotBlank(message: 'notes.markdown.spaces.errors.name_required')]
+        // Exigé pour un espace partagé seulement : le contrôleur le vérifie,
+        // l'espace personnel n'ayant pas de nom.
         #[Assert\Length(max: 120)]
         public readonly ?string $name = null,
         #[Assert\Regex(pattern: '/^#[0-9a-fA-F]{6}$/', message: 'notes.markdown.folders.errors.bad_color')]

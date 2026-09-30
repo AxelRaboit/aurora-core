@@ -97,7 +97,7 @@ final readonly class NoteSpaceAccess
             return $space->getPersonalUser()?->getId() === $user->getId() ? NoteSpaceRoleEnum::Manager : null;
         }
 
-        if ($this->isOwner($user, $space)) {
+        if ($this->isOwner($user, $space) || $this->adopts($user, $space)) {
             return NoteSpaceRoleEnum::Manager;
         }
 
@@ -113,6 +113,20 @@ final readonly class NoteSpaceAccess
     public function isOwner(CoreUserInterface $user, NoteSpaceInterface $space): bool
     {
         return $space->getOwner() instanceof CoreUserInterface && $space->getOwner()->getId() === $user->getId();
+    }
+
+    /**
+     * Un espace partagé dont le propriétaire est parti revient aux
+     * administrateurs.
+     *
+     * Sans cette règle, il restait lisible mais plus personne ne pouvait le
+     * régler, y inscrire quelqu'un ou le faire revenir de la corbeille. C'est
+     * la seule exception au principe du contenu : elle ne touche jamais un
+     * espace personnel, qui part avec son compte.
+     */
+    public function adopts(CoreUserInterface $user, NoteSpaceInterface $space): bool
+    {
+        return !$space->isPersonal() && !$space->getOwner() instanceof CoreUserInterface && NoteSpaceRepository::isAdmin($user);
     }
 
     public function canRead(CoreUserInterface $user, NoteSpaceInterface $space): bool

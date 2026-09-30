@@ -56,6 +56,11 @@ class NoteFavoriteManager implements NoteFavoriteManagerInterface
         return true;
     }
 
+    public function favoritedAt(CoreUserInterface $user, MarkdownNoteInterface|NoteFolderInterface $item): ?string
+    {
+        return $this->favorites->favoritedAt($user, $item);
+    }
+
     public function mapFor(CoreUserInterface $user): array
     {
         return $this->favorites->mapFor($user);

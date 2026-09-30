@@ -119,6 +119,7 @@ notes:
         badge: 'Published on the web'
       my_space: 'My space'
       errors:
+        private_owner_only: 'Only the owner can keep the space to themselves.'
         bad_slug: 'Invalid address: letters, digits and hyphens only.'
         slug_taken: 'This address is already taken.'
         name_required: 'Give the space a name.'

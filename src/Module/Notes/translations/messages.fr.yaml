@@ -119,6 +119,7 @@ notes:
         badge: 'Publié sur le web'
       my_space: 'Mon espace'
       errors:
+        private_owner_only: 'Seul le propriétaire peut réserver l''espace à lui seul.'
         bad_slug: 'Adresse invalide : lettres, chiffres et tirets seulement.'
         slug_taken: 'Cette adresse est déjà prise.'
         name_required: 'Donnez un nom à l''espace.'

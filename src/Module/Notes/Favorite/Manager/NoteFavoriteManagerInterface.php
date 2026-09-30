@@ -17,6 +17,9 @@ interface NoteFavoriteManagerInterface
      */
     public function toggle(CoreUserInterface $user, MarkdownNoteInterface|NoteFolderInterface $item): bool;
 
+    /** L'heure où cet élément a été épinglé par cette personne, ou rien. */
+    public function favoritedAt(CoreUserInterface $user, MarkdownNoteInterface|NoteFolderInterface $item): ?string;
+
     /**
      * Ce qu'une personne a épinglé, par identifiant, avec l'heure du geste.
      *

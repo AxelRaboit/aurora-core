@@ -116,7 +116,7 @@ final readonly class MarkdownNotesViewBuilder
             ),
             'canEdit' => $this->spaceAccess->canWriteNote($user, $note),
             // Lire suffit pour épingler : les favoris sont à la personne.
-            'favorited' => isset($this->favorites->mapFor($user)['notes'][(int) $note->getId()]),
+            'favorited' => null !== $this->favorites->favoritedAt($user, $note),
             'favoritePath' => $this->urlGenerator->generate('backend_notes_markdown_favorite', ['id' => $note->getId()]),
             'previous' => $neighbours['previous'],
             'next' => $neighbours['next'],

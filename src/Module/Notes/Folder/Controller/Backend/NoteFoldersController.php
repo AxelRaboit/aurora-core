@@ -94,7 +94,7 @@ final class NoteFoldersController extends AbstractController
 
         $folder = $this->manager->create($user, $input);
 
-        return $this->jsonSuccess(['folder' => $this->serializerFor($user)->serialize($folder)]);
+        return $this->jsonSuccess(['folder' => $this->serializerFor($user, $folder)->serialize($folder)]);
     }
 
     #[Route('/{id}/update', name: '_update', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Post->value])]
@@ -117,7 +117,7 @@ final class NoteFoldersController extends AbstractController
 
         $this->manager->update($folder, $input);
 
-        return $this->jsonSuccess(['folder' => $this->serializerFor($user)->serialize($folder)]);
+        return $this->jsonSuccess(['folder' => $this->serializerFor($user, $folder)->serialize($folder)]);
     }
 
     /**
@@ -162,7 +162,7 @@ final class NoteFoldersController extends AbstractController
             return $this->jsonFailure('refused', extra: ['message' => 'notes.markdown.folders.errors.move_refused']);
         }
 
-        return $this->jsonSuccess(['folder' => $this->serializerFor($user)->serialize($folder)]);
+        return $this->jsonSuccess(['folder' => $this->serializerFor($user, $folder)->serialize($folder)]);
     }
 
     /**
@@ -298,7 +298,7 @@ final class NoteFoldersController extends AbstractController
     /** @return list<array<string, mixed>> */
     private function serializeAllFor(CoreUserInterface $user): array
     {
-        $serializer = $this->serializerFor($user)->withCounts(
+        $serializer = $this->serializer->withFavorites($this->favorites->mapFor($user)['folders'])->withCounts(
             $this->repository->countNotesPerFolderForUser($user),
             $this->repository->countChildrenPerFolderForUser($user),
         );
@@ -309,9 +309,11 @@ final class NoteFoldersController extends AbstractController
         );
     }
 
-    /** Le sérialiseur, avec ce que cette personne a épinglé. */
-    private function serializerFor(CoreUserInterface $user): NoteFolderSerializerInterface
+    /** Le sérialiseur, avec l'épinglage de ce dossier par cette personne. */
+    private function serializerFor(CoreUserInterface $user, NoteFolderInterface $folder): NoteFolderSerializerInterface
     {
-        return $this->serializer->withFavorites($this->favorites->mapFor($user)['folders']);
+        $at = $this->favorites->favoritedAt($user, $folder);
+
+        return $this->serializer->withFavorites(null === $at ? [] : [(int) $folder->getId() => $at]);
     }
 }

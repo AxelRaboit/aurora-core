@@ -378,6 +378,27 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
     }
 
     /**
+     * Les notes de ces dossiers, corbeille comprise - pour un changement
+     * d'espace, qui emporte tout ce que la branche range.
+     *
+     * @param list<int> $folderIds
+     *
+     * @return list<MarkdownNoteInterface>
+     */
+    public function findAllInFolders(array $folderIds): array
+    {
+        if ([] === $folderIds) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('n')
+            ->where('IDENTITY(n.folder) IN (:ids)')
+            ->setParameter('ids', $folderIds)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * The living notes filed in any of these folders.
      *
      * Takes a list rather than one id because the caller that needs it is

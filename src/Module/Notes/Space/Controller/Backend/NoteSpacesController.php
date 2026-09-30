@@ -9,7 +9,9 @@ use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Validation\Service\PayloadValidator;
 use Aurora\Module\Notes\Space\Dto\NoteSpaceInputFactoryInterface;
+use Aurora\Module\Notes\Space\Dto\NoteSpaceInputInterface;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
+use Aurora\Module\Notes\Space\Enum\NoteSpaceAccessEnum;
 use Aurora\Module\Notes\Space\Enum\NoteSpaceRoleEnum;
 use Aurora\Module\Notes\Space\Manager\NoteSpaceManagerInterface;
 use Aurora\Module\Notes\Space\Repository\NoteSpaceRepository;
@@ -86,7 +88,7 @@ final class NoteSpacesController extends AbstractController
 
         $input = $this->inputFactory->fromArray($this->decodeJson($request));
 
-        $errors = $this->payloadValidator->errors($input);
+        $errors = $this->payloadValidator->errors($input) + $this->nameErrors($input);
         if ([] !== $errors) {
             return $this->jsonInvalidInput($errors);
         }
@@ -126,16 +128,20 @@ final class NoteSpacesController extends AbstractController
             return $this->jsonNotFound();
         }
 
-        $data = $this->decodeJson($request);
+        $input = $this->inputFactory->fromArray($this->decodeJson($request));
 
-        // L'espace personnel n'a pas de nom à exiger : il n'en porte pas.
-        if ($space->isPersonal()) {
-            $data['name'] = 'personal';
+        // L'espace personnel ne porte pas de nom : le manager l'ignore, rien
+        // à exiger. Et refermer un espace à « moi seul » revient au seul
+        // propriétaire : un gestionnaire qui le ferait s'en fermerait la
+        // porte, avec celle de tous les inscrits.
+        $errors = $this->payloadValidator->errors($input) + ($space->isPersonal() ? [] : $this->nameErrors($input));
+        $closing = !$space->isPersonal()
+            && NoteSpaceAccessEnum::Private->value === $input->getAccess()
+            && NoteSpaceAccessEnum::Private !== $space->getAccess();
+        if ($closing && !$this->spaceAccess->isOwner($user, $space) && !$this->spaceAccess->adopts($user, $space)) {
+            $errors['access'] = 'notes.markdown.spaces.errors.private_owner_only';
         }
 
-        $input = $this->inputFactory->fromArray($data);
-
-        $errors = $this->payloadValidator->errors($input);
         if ([] !== $errors) {
             return $this->jsonInvalidInput($errors);
         }
@@ -216,7 +222,7 @@ final class NoteSpacesController extends AbstractController
         $user = $this->getUser();
 
         $space = $this->repository->find($id);
-        if (!$space instanceof NoteSpaceInterface || !$space->getDeletedAt() instanceof DateTimeImmutable || !$this->spaceAccess->isOwner($user, $space)) {
+        if (!$space instanceof NoteSpaceInterface || !$space->getDeletedAt() instanceof DateTimeImmutable || (!$this->spaceAccess->isOwner($user, $space) && !$this->spaceAccess->adopts($user, $space))) {
             return $this->jsonNotFound();
         }
 
@@ -283,11 +289,32 @@ final class NoteSpacesController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
+        // Seulement pour qui peut inscrire quelqu'un : créer un espace, ou en
+        // gérer un partagé. Les autres n'ont rien à faire de la liste.
+        $spaces = $this->repository->findReadableFor($user);
+        $roles = $this->spaceAccess->rolesFor($user, $spaces);
+        $manages = [] !== array_filter($spaces, static fn (NoteSpaceInterface $space): bool => !$space->isPersonal() && true === ($roles[(int) $space->getId()] ?? null)?->canManage());
+        if (!$manages && !$this->spaceAccess->canCreateShared()) {
+            return $this->jsonSuccess(['people' => []]);
+        }
+
         $people = $users->findBy(['type' => UserTypeEnum::Backend->value], ['name' => 'ASC']);
 
         return $this->jsonSuccess(['people' => array_values(array_filter(array_map(
             static fn (CoreUserInterface $one): ?array => $one->getId() === $user->getId() ? null : ['id' => $one->getId(), 'name' => $one->getName()],
             $people,
         )))]);
+    }
+
+    /**
+     * Un espace partagé se range par son nom : il en faut un. L'exigence vit
+     * ici plutôt que dans le DTO, parce que l'espace personnel, lui, n'en a
+     * pas.
+     *
+     * @return array<string, string>
+     */
+    private function nameErrors(NoteSpaceInputInterface $input): array
+    {
+        return '' === mb_trim((string) $input->getName()) ? ['name' => 'notes.markdown.spaces.errors.name_required'] : [];
     }
 }
