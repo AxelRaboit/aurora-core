@@ -53,8 +53,8 @@ const props = defineProps({
     folderShowPath: { type: String, required: true },
     treeFolders: { type: Array, default: () => [] },
     treeNotes: { type: Array, default: () => [] },
-    sharedFolders: { type: Array, default: () => [] },
-    sharedNotes: { type: Array, default: () => [] },
+    /** Les espaces lisibles, le sien d'abord : l'arbre se range par espace. */
+    treeSpaces: { type: Array, default: () => [] },
     searchPath: { type: String, default: "" },
 });
 
@@ -183,8 +183,7 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
                 :note-id="noteId"
                 :folders="treeFolders"
                 :notes="treeNotes"
-                :shared-folders="sharedFolders"
-                :shared-notes="sharedNotes"
+                :spaces="treeSpaces"
                 :read-note-path="readNotePath"
                 :search-path="searchPath"
             />
@@ -212,8 +211,7 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
                     :note-id="noteId"
                     :folders="treeFolders"
                     :notes="treeNotes"
-                    :shared-folders="sharedFolders"
-                    :shared-notes="sharedNotes"
+                    :spaces="treeSpaces"
                     :read-note-path="readNotePath"
                     :search-path="searchPath"
                     v-on:navigate="drawerOpen = false"

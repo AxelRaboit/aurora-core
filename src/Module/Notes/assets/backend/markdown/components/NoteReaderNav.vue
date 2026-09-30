@@ -8,27 +8,27 @@
  * dossiers ouverts d'un espace à l'autre - et la note lue s'allume, son
  * dossier ouvert.
  *
- * Ce qui est partagé par les autres vient après, à part, comme dans le
- * panneau : ce qui n'est pas à soi ne se range pas dans son arbre.
+ * Rangé par espace, comme le panneau : le sien d'abord, puis chaque espace
+ * partagé sous son nom. Un seul espace n'a pas besoin d'en-tête.
  */
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { FileText, Users } from "lucide-vue-next";
+import { User, Users } from "lucide-vue-next";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import { useDebounce } from "@/shared/composables/useDebounce.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 import NoteTreeItem from "./NoteTreeItem.vue";
 import { folderIdsIn, useNoteTree } from "../composables/useNoteTree.js";
-import { groupShared } from "../composables/sharedGroups.js";
+import { sortSpaces, spaceLabel } from "../composables/noteSpaces.js";
 import { readExpanded, storeExpanded } from "../composables/expandedStore.js";
 
 const props = defineProps({
     noteId: { type: Number, required: true },
     folders: { type: Array, default: () => [] },
     notes: { type: Array, default: () => [] },
-    sharedFolders: { type: Array, default: () => [] },
-    sharedNotes: { type: Array, default: () => [] },
+    /** Les espaces lisibles ; l'arbre se découpe par eux. */
+    spaces: { type: Array, default: () => [] },
     readNotePath: { type: String, required: true },
     /** La recherche dans le texte, côté serveur : les corps sont chiffrés. */
     searchPath: { type: String, default: "" },
@@ -122,10 +122,26 @@ function onSelect(node) {
     window.location.assign(readUrl(node.id));
 }
 
-/** Ce qu'on a partagé avec soi, regroupé par dossier partagé d'origine. */
-const sharedGroups = computed(() =>
-    searching.value ? [] : groupShared(props.sharedFolders, props.sharedNotes),
-);
+/** L'arbre découpé par espace ; une ligne de premier niveau dit le sien. */
+const groups = computed(() => {
+    const spaces = sortSpaces(props.spaces);
+
+    if (!spaces.length) return [{ space: null, nodes: tree.value }];
+
+    const bySpace = new Map(spaces.map((space) => [Number(space.id), []]));
+    const unplaced = [];
+
+    for (const node of tree.value) {
+        (bySpace.get(Number(node.spaceId)) ?? unplaced).push(node);
+    }
+
+    const list = spaces.map((space) => ({ space, nodes: bySpace.get(Number(space.id)) }));
+    if (unplaced.length) list[0].nodes = [...list[0].nodes, ...unplaced];
+
+    return list.filter((group) => group.nodes.length);
+});
+
+const showHeaders = computed(() => groups.value.length > 1 || groups.value.some((group) => group.space && !group.space.personal));
 </script>
 
 <template>
@@ -142,49 +158,33 @@ const sharedGroups = computed(() =>
                 {{ t('notes.markdown.search_no_results') }}
             </p>
 
-            <NoteTreeItem
-                v-for="node in tree"
-                :key="node.key"
-                :node="node"
-                :selected-key="`note:${noteId}`"
-                :expanded="expanded"
-                :readonly="true"
-                :href-for="hrefFor"
-                v-on:select="onSelect"
-                v-on:toggle="toggle"
-            />
-
-            <div v-if="sharedGroups.length" class="mt-3 border-t border-line pt-2">
-                <p class="px-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted">
-                    {{ t('notes.markdown.library.shared.section') }}
+            <template v-for="group in groups" :key="group.space ? `space:${group.space.id}` : 'all'">
+                <p
+                    v-if="showHeaders && group.space"
+                    :data-reader-space="group.space.id"
+                    class="mt-3 flex min-w-0 items-center gap-1.5 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted first:mt-0"
+                >
+                    <component
+                        :is="group.space.personal ? User : Users"
+                        class="h-3.5 w-3.5 shrink-0"
+                        :style="group.space.color ? { color: group.space.color } : null"
+                        :stroke-width="2"
+                    />
+                    <span class="min-w-0 truncate">{{ spaceLabel(group.space, t) }}</span>
                 </p>
 
-                <div v-for="group in sharedGroups" :key="group.key" class="mb-1">
-                    <p
-                        v-if="group.name"
-                        class="flex min-w-0 items-center gap-2 px-3 py-1 text-sm text-secondary"
-                        :title="group.owner ? t('notes.markdown.library.shared.by', { name: group.owner }) : undefined"
-                    >
-                        <Users class="h-3.5 w-3.5 shrink-0 text-muted" :stroke-width="2" />
-                        <span class="min-w-0 flex-1 truncate">{{ group.name }}</span>
-                    </p>
-
-                    <a
-                        v-for="note in group.notes"
-                        :key="`shared-${note.id}`"
-                        :href="readUrl(note.id)"
-                        data-reader-shared
-                        class="flex min-w-0 items-center gap-2 rounded-md py-1.5 pl-6 pr-3 text-sm no-underline transition-colors"
-                        :class="note.id === noteId ? 'bg-accent-600/15 text-accent-400' : 'text-primary hover:bg-surface-2'"
-                        :title="note.ownerName ? t('notes.markdown.library.shared.by', { name: note.ownerName }) : undefined"
-                    >
-                        <FileText class="h-4 w-4 shrink-0 text-muted" :stroke-width="2" />
-                        <span class="min-w-0 flex-1 truncate">
-                            <span v-if="note.subfolder" class="text-muted">{{ note.subfolder }} › </span>{{ note.title || t('notes.markdown.untitled') }}
-                        </span>
-                    </a>
-                </div>
-            </div>
+                <NoteTreeItem
+                    v-for="node in group.nodes"
+                    :key="node.key"
+                    :node="node"
+                    :selected-key="`note:${noteId}`"
+                    :expanded="expanded"
+                    :readonly="true"
+                    :href-for="hrefFor"
+                    v-on:select="onSelect"
+                    v-on:toggle="toggle"
+                />
+            </template>
         </nav>
     </div>
 </template>

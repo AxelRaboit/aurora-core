@@ -9,7 +9,6 @@ use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Storage\StoredFileResponder;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteImageService;
-use Aurora\Module\Notes\Markdown\Service\NoteReadScope;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Notes\Space\Repository\NoteSpaceRepository;
 use Aurora\Module\Notes\Space\Service\NoteSpaceAccess;
@@ -38,7 +37,6 @@ final class MarkdownNotesImagesController extends AbstractController
         private readonly MarkdownNoteImageService $imageService,
         private readonly StoredFileResponder $storedFileResponder,
         private readonly UrlGeneratorInterface $urlGenerator,
-        private readonly NoteReadScope $readScope,
         private readonly NoteSpaceAccess $spaceAccess,
         private readonly NoteSpaceRepository $spaces,
     ) {}
@@ -67,7 +65,7 @@ final class MarkdownNotesImagesController extends AbstractController
         // Lisible, et citée par cette note : lire une note partagée ne doit
         // pas ouvrir les images des notes privées de son auteur, même à qui
         // en connaîtrait le nom.
-        $note = $this->readScope->readableNote($user, $noteId);
+        $note = $this->spaceAccess->readableNote($user, $noteId);
         if (!$note instanceof MarkdownNoteInterface || !str_contains((string) $note->getContent(), $filename)) {
             return $this->jsonNotFound();
         }

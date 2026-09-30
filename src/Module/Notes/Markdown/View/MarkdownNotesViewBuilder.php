@@ -59,6 +59,8 @@ final readonly class MarkdownNotesViewBuilder
         return [
             'activeId' => $activeId,
             'personalSpaceId' => $this->spaceAccess->personalSpace($user)->getId(),
+            'spaces' => $this->spacesFor($user),
+            'canCreateSpace' => $this->spaceAccess->canCreateShared(),
             'folderId' => $folder?->getId(),
             'notes' => $this->withExcerpts($this->noteRepository->findFlatListForUser($user), $user),
             'folders' => $folders,
@@ -72,6 +74,7 @@ final readonly class MarkdownNotesViewBuilder
             'maxDepth' => NoteFolderHierarchy::MAX_DEPTH,
             ...$this->notePaths(),
             ...$this->folderPaths(),
+            ...$this->spacePaths(),
             'imageMaxEdge' => (int) $this->settingRepository->getOrDefault(MarkdownNoteSettingEnum::ImageMaxEdge),
             'imageQuality' => $this->imageQualityRatio(),
         ];
@@ -150,7 +153,7 @@ final readonly class MarkdownNotesViewBuilder
      * @param list<NoteFolderInterface>  $folders
      * @param list<array<string, mixed>> $rows
      *
-     * @return array{treeFolders: list<array<string, mixed>>, treeNotes: list<array<string, mixed>>, treeSpaces: list<array<string, mixed>>, sharedFolders: list<never>, sharedNotes: list<never>}
+     * @return array{treeFolders: list<array<string, mixed>>, treeNotes: list<array<string, mixed>>, treeSpaces: list<array<string, mixed>>}
      */
     private function readerTree(CoreUserInterface $user, array $folders, array $rows): array
     {
@@ -177,8 +180,6 @@ final readonly class MarkdownNotesViewBuilder
             // Les espaces lisibles, le personnel d'abord : l'arbre du lecteur
             // se range par espace.
             'treeSpaces' => $this->spacesFor($user),
-            'sharedFolders' => [],
-            'sharedNotes' => [],
         ];
     }
 
@@ -382,7 +383,27 @@ final readonly class MarkdownNotesViewBuilder
             'imageUploadPath' => $this->urlGenerator->generate('backend_notes_markdown_images_upload'),
             'readPath' => $this->urlGenerator->generate('backend_notes_markdown_read', ['id' => '__id__']),
             'coversSearchPath' => $this->urlGenerator->generate('backend_notes_markdown_covers_search'),
-            'sharedPath' => $this->urlGenerator->generate('backend_notes_markdown_shared'),
+        ];
+    }
+
+    /**
+     * Les routes des espaces, en un objet, comme celles des dossiers.
+     *
+     * @return array<string, array<string, string>>
+     */
+    private function spacePaths(): array
+    {
+        return [
+            'spacePaths' => [
+                'list' => $this->urlGenerator->generate('backend_notes_spaces_list'),
+                'create' => $this->urlGenerator->generate('backend_notes_spaces_create'),
+                'show' => $this->urlGenerator->generate('backend_notes_spaces_show', ['id' => '__id__']),
+                'update' => $this->urlGenerator->generate('backend_notes_spaces_update', ['id' => '__id__']),
+                'delete' => $this->urlGenerator->generate('backend_notes_spaces_delete', ['id' => '__id__']),
+                'membersSet' => $this->urlGenerator->generate('backend_notes_spaces_members_set', ['id' => '__id__']),
+                'membersRemove' => $this->urlGenerator->generate('backend_notes_spaces_members_remove', ['id' => '__id__', 'userId' => '__user__']),
+                'people' => $this->urlGenerator->generate('backend_notes_spaces_people'),
+            ],
         ];
     }
 

@@ -48,14 +48,14 @@ export function useMarkdownNotesApi(props) {
             call(HttpMethod.Post, resolvePath(props.updatePath, id), payload),
         remove: (id) =>
             call(HttpMethod.Post, resolvePath(props.deletePath, id), {}),
-        move: (id, folderId) =>
+        /** `spaceId` dit quelle racine quand `folderId` est nul. */
+        move: (id, folderId, spaceId = null) =>
             call(HttpMethod.Post, resolvePath(props.movePath, id), {
                 folderId,
+                spaceId,
             }),
         favorite: (id) =>
             call(HttpMethod.Post, resolvePath(props.favoritePath, id), {}),
-        /** Ce que les autres ont partagé : dossiers et notes, en lecture. */
-        sharedWithMe: () => call(HttpMethod.Get, props.sharedPath),
         /**
          * Les notes d'un dossier, dans l'ordre voulu.
          *

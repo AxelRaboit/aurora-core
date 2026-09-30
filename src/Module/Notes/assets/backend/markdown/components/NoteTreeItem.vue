@@ -32,6 +32,11 @@ const props = defineProps({
     draggable: { type: Boolean, default: false },
     /** Le mode lecture : la ligne mène, elle ne propose rien d'autre. */
     readonly: { type: Boolean, default: false },
+    /**
+     * Faux dans un espace qu'on lit sans y écrire : la ligne ne propose que
+     * ce qui est à soi - les favoris -, ni renommer, ni ranger, ni jeter.
+     */
+    editable: { type: Boolean, default: true },
     draggingKey: { type: String, default: null },
     /** Où tomberait ce qu'on tient : `{ key, zone }`, zone avant, dedans ou après. */
     dropHint: { type: Object, default: null },
@@ -76,7 +81,15 @@ const isFolder = computed(() => 'folder' === props.node.kind);
  * répète ; il est aussi dans la feuille, parce que le clic droit n'ouvre
  * qu'elle.
  */
-const rowActions = computed(() => [
+const favoriteAction = computed(() => ({
+    // Les favoris sont à soi : on épingle ce qu'on lit, là où on le voit.
+    key: 'favorite',
+    title: props.node.favoritedAt ? t('notes.markdown.library.unpin') : t('notes.markdown.library.pin'),
+    icon: props.node.favoritedAt ? StarOff : Star,
+    onSelect: () => emit('favorite', props.node),
+}));
+
+const editActions = computed(() => [
     ...(isFolder.value
         ? [{
             key: 'add',
@@ -91,13 +104,7 @@ const rowActions = computed(() => [
         icon: Pencil,
         onSelect: () => emit('rename', props.node),
     },
-    {
-        // Les favoris sont à soi : on épingle ce qu'on lit, là où on le voit.
-        key: 'favorite',
-        title: props.node.favoritedAt ? t('notes.markdown.library.unpin') : t('notes.markdown.library.pin'),
-        icon: props.node.favoritedAt ? StarOff : Star,
-        onSelect: () => emit('favorite', props.node),
-    },
+    favoriteAction.value,
     {
         key: 'delete',
         title: isFolder.value ? t('notes.markdown.folders.delete') : t('notes.markdown.delete'),
@@ -106,6 +113,8 @@ const rowActions = computed(() => [
         onSelect: () => emit('delete', props.node),
     },
 ]);
+
+const rowActions = computed(() => (props.editable ? editActions.value : [favoriteAction.value]));
 const children = computed(() => props.node.children ?? []);
 const hasChildren = computed(() => children.value.length > 0);
 const isOpen = computed(() => props.expanded.has(Number(props.node.id)));
@@ -166,7 +175,7 @@ function onContextMenu(event) {
  * modale de renommage.
  */
 function onDoubleClick(event) {
-    if (props.readonly || event.target?.closest?.('button')) return;
+    if (props.readonly || !props.editable || event.target?.closest?.('button')) return;
 
     emit('rename', props.node);
 }
@@ -274,7 +283,7 @@ const indentStyle = computed(() => ({ marginLeft: `${props.depth * 0.875}rem` })
                  hauteur de formulaire, là où un explorateur tient en 30. -->
             <div v-if="!readonly" class="-my-1.5 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-visible:opacity-100 flex items-center gap-0.5 transition-opacity shrink-0">
                 <AppIconButton
-                    v-if="isFolder"
+                    v-if="isFolder && editable"
                     size="sm"
                     color="accent"
                     tabindex="-1"
@@ -310,6 +319,7 @@ const indentStyle = computed(() => ({ marginLeft: `${props.depth * 0.875}rem` })
                 :expanded="expanded"
                 :draggable="draggable"
                 :readonly="readonly"
+                :editable="editable"
                 :dragging-key="draggingKey"
                 :drop-hint="dropHint"
                 :parent-key="node.key"

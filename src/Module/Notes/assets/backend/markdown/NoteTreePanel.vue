@@ -28,7 +28,7 @@
  */
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { BookOpen, ChevronDown, ChevronRight, ChevronsDownUp, Download, FileText, Folder, Pin, PinOff, Plus, Tag, Upload, Users } from "lucide-vue-next";
+import { BookOpen, ChevronDown, ChevronRight, ChevronsDownUp, Download, FileText, Folder, Pin, PinOff, Plus, Settings2, Tag, Upload, User, Users } from "lucide-vue-next";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppModulePanel from "@/shared/nav/AppModulePanel.vue";
@@ -40,17 +40,18 @@ import { useModulePanelData } from "@/shared/nav/useModulePanelData.js";
 import { folderIdsIn, useNoteTree } from "./composables/useNoteTree.js";
 import { peekNoteDrag, readNoteDrag, startNoteDrag } from "./composables/noteDrag.js";
 import { dropZone, planDrop } from "./composables/noteDropPlan.js";
-import { groupShared } from "./composables/sharedGroups.js";
+import { sortSpaces, spaceLabel } from "./composables/noteSpaces.js";
 import { readExpanded, storeExpanded } from "./composables/expandedStore.js";
 import NoteTreeItem from "./components/NoteTreeItem.vue";
 
 const FOLDERS_ENDPOINT = "/backend/notes/markdown/folders";
 const NOTES_ENDPOINT = "/backend/notes/markdown/list";
 const SEARCH_ENDPOINT = "/backend/notes/markdown/search";
-const SHARED_ENDPOINT = "/backend/notes/markdown/shared";
+const SPACES_ENDPOINT = "/backend/notes/spaces";
 const LIBRARY_URL = "/backend/notes/markdown";
 const PINNED_TAGS_KEY = "aurora.notes.panel.pinnedTags";
 const TAGS_OPEN_KEY = "aurora.notes.panel.tagsOpen";
+const SPACES_CLOSED_KEY = "aurora.notes.panel.spacesClosed";
 
 /** Combien d'étiquettes non épinglées on montre avant de replier. */
 const TAGS_SHOWN = 8;
@@ -281,47 +282,113 @@ const favorites = computed(() => {
     ].sort((a, b) => Date.parse(b.favoritedAt) - Date.parse(a.favoritedAt));
 });
 
-// ── Ce que les autres ont partagé ──────────────────────────────────
+// ── Les espaces ────────────────────────────────────────────────────
 
 /**
- * Le carnet des autres, en lecture.
+ * Les espaces que la personne lit, chacun avec son rôle.
  *
- * **Jamais mêlé au sien.** Ce qui n'appartient pas à la personne ne se
- * range pas dans son arborescence : les mélanger ferait croire qu'on peut
- * déplacer le dossier d'un collègue, et un glisser qui échoue au bout de
- * trois secondes vaut moins qu'une section qui dit ce qu'elle est.
- *
- * Une note partagée mène à la vue de lecture, pas à l'éditeur : elle n'est
- * pas à écrire, et lui ouvrir l'éditeur promettrait le contraire.
+ * **Une section par espace**, le sien d'abord : ce qui vit dans un espace
+ * partagé se range sous son nom, et l'en-tête dit d'un coup d'œil qui le
+ * lit et si l'on peut y écrire. Mélanger les racines de plusieurs espaces
+ * dans un seul arbre ferait croire qu'une note glissée d'un dossier à
+ * l'autre reste chez soi, alors qu'elle change de lecteurs.
  */
-const shared = ref({ folders: [], notes: [] });
+const fetchedSpaces = ref(null);
+const announcedSpaces = ref(null);
+const canCreateSpace = ref(false);
+
+const spaces = computed(() => sortSpaces(announcedSpaces.value ?? fetchedSpaces.value ?? []));
 
 onMounted(async () => {
-    const payload = await request(SHARED_ENDPOINT, null, {
+    const payload = await request(SPACES_ENDPOINT, null, {
         method: HttpMethod.Get,
         noGuard: true,
     });
 
     if (payload) {
-        shared.value = {
-            folders: payload.folders ?? [],
-            notes: payload.notes ?? [],
-        };
+        fetchedSpaces.value = payload.spaces ?? [];
+        canCreateSpace.value = Boolean(payload.canCreate);
     }
 });
 
+function spaceById(id) {
+    return spaces.value.find((space) => Number(space.id) === Number(id)) ?? null;
+}
+
+/** Tant que les espaces ne sont pas connus, on ne refuse rien : le serveur tranchera. */
+function canWriteIn(spaceId) {
+    if (null == spaceId || !spaces.value.length) return true;
+
+    return Boolean(spaceById(spaceId)?.canWrite);
+}
+
 /**
- * Les racines du partage, avec ce qu'elles portent.
- *
- * Le serveur rend les dossiers partagés **et** leurs descendants, parce
- * qu'il faut pouvoir descendre ; ici on ne montre que les racines, chacune
- * suivie de ses notes, pour que la section tienne dans un panneau.
+ * L'arbre découpé par espace. Une ligne de premier niveau dit son espace ;
+ * ce qu'elle contient est forcément du même.
  */
-const sharedGroups = computed(() =>
-    searching.value ? [] : groupShared(shared.value.folders, shared.value.notes),
+const spaceGroups = computed(() => {
+    if (!spaces.value.length) return [{ space: null, nodes: tree.value }];
+
+    const bySpace = new Map(spaces.value.map((space) => [Number(space.id), []]));
+    const unplaced = [];
+
+    for (const node of tree.value) {
+        (bySpace.get(Number(node.spaceId)) ?? unplaced).push(node);
+    }
+
+    const groups = spaces.value.map((space) => ({ space, nodes: bySpace.get(Number(space.id)) }));
+
+    // Une ligne d'un espace que la liste ne connaît pas encore - créé à
+    // l'instant ailleurs - reste visible plutôt que de disparaître.
+    if (unplaced.length) groups[0].nodes = [...groups[0].nodes, ...unplaced];
+
+    return searching.value ? groups.filter((group) => group.nodes.length) : groups;
+});
+
+/** Seul, son espace n'a pas besoin d'en-tête : le panneau reste celui d'avant. */
+const showSpaceHeaders = computed(
+    () => spaceGroups.value.length > 1 || spaceGroups.value.some((group) => group.space && !group.space.personal),
 );
 
-const hasShared = computed(() => sharedGroups.value.length > 0);
+function readClosed() {
+    try {
+        return new Set(JSON.parse(window.localStorage.getItem(SPACES_CLOSED_KEY) ?? "[]").map(Number));
+    } catch {
+        return new Set();
+    }
+}
+
+const closedSpaces = ref(readClosed());
+
+function isSpaceOpen(space) {
+    return searching.value || !space || !closedSpaces.value.has(Number(space.id));
+}
+
+function toggleSpace(space) {
+    const next = new Set(closedSpaces.value);
+    const id = Number(space.id);
+
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+
+    closedSpaces.value = next;
+
+    try {
+        window.localStorage.setItem(SPACES_CLOSED_KEY, JSON.stringify([...next]));
+    } catch {
+        // Le repli reste valable pour la visite ; il ne sera pas retenu.
+    }
+}
+
+/** La racine d'un espace, comme cible d'un dépôt. */
+function spaceRoot(space) {
+    return { kind: "folder", id: null, key: `space:${space.id}`, spaceId: Number(space.id) };
+}
+
+function addInSpace(space) {
+    if (!isSpaceOpen(space)) toggleSpace(space);
+    forward("add", { folderId: null, spaceId: Number(space.id) });
+}
 
 // ── Les étiquettes ─────────────────────────────────────────────────
 
@@ -540,13 +607,17 @@ function planFor(node, event, dragged) {
         ? "inside"
         : dropZone(event.currentTarget.getBoundingClientRect(), event.clientY, node.kind);
 
-    const plan = planDrop({
+    const planned = planDrop({
         dragged,
-        target: { kind: node.kind, id: node.id },
+        target: { kind: node.kind, id: node.id, spaceId: node.spaceId ?? null },
         zone,
         folders: folders.value,
         notes: notes.value,
     });
+
+    // Un espace où l'on ne peut pas écrire ne reçoit rien : autant le dire
+    // par le curseur que par un refus après coup.
+    const plan = planned && canWriteIn(planned.spaceId) ? planned : null;
 
     return { zone, plan };
 }
@@ -734,6 +805,8 @@ onMounted(() => {
             if (Array.isArray(detail?.folders)) {
                 announcedFolders.value = detail.folders;
             }
+            if (Array.isArray(detail?.spaces)) announcedSpaces.value = detail.spaces;
+            if ("canCreateSpace" in (detail ?? {})) canCreateSpace.value = Boolean(detail.canCreateSpace);
 
             // La page dit ce qu'elle montre : un dossier, une note, ou la
             // racine. La ligne correspondante s'allume, et son dossier
@@ -882,61 +955,97 @@ onUnmounted(() => {
             v-on:focus="onTreeFocus"
             v-on:keydown="onTreeKeydown"
         >
-            <NoteTreeItem
-                v-for="node in tree"
-                :key="node.key"
-                :node="node"
-                :selected-key="selectedKey"
-                :expanded="expanded"
-                :draggable="true"
-                :dragging-key="draggingKey"
-                :drop-hint="dropHint"
-                :href-for="hrefFor"
-                v-on:select="onSelect"
-                v-on:toggle="toggle"
-                v-on:add="(node) => { open(node.id); forward('add', Number(node.id)); }"
-                v-on:rename="(node) => forward('folder' === node.kind ? 'rename-folder' : 'rename-note', node)"
-                v-on:favorite="toggleFavorite"
-                v-on:delete="(node) => forward('folder' === node.kind ? 'delete-folder' : 'delete', node)"
-                v-on:drag-start="onDragStart"
-                v-on:drag-end="onDragEnd"
-                v-on:drag-over="onDragOver"
-                v-on:drag-leave="onDragLeave"
-                v-on:drop="onDrop"
-            />
-        </div>
-        <!-- Le carnet des autres, en lecture, et à part. Ce qui n'est
-             pas à soi ne se range pas dans son arborescence. -->
-        <div v-if="hasShared" class="mt-2 border-t border-line pt-2">
-            <p class="px-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted">
-                {{ t('notes.markdown.library.shared.section') }}
-            </p>
-
-            <div v-for="groupe in sharedGroups" :key="groupe.key" class="mb-1">
-                <p
-                    v-if="groupe.name"
-                    class="flex min-w-0 items-center gap-2 px-3 py-1 text-sm text-secondary"
-                    :title="groupe.owner ? t('notes.markdown.library.shared.by', { name: groupe.owner }) : undefined"
+            <template v-for="group in spaceGroups" :key="group.space ? `space:${group.space.id}` : 'all'">
+                <!-- L'en-tête d'un espace : son nom, s'il se lit seulement,
+                     et ce qu'on y fait. Lâcher quelque chose dessus le range
+                     à sa racine. -->
+                <div
+                    v-if="showSpaceHeaders && group.space"
+                    :data-space-header="group.space.id"
+                    class="group/space mt-2 flex min-w-0 items-center gap-1 rounded-md border px-1 py-1 first:mt-0"
+                    :class="`space:${group.space.id}` === dropHint?.key
+                        ? 'border-accent-600/40 bg-accent-600/15 ring-2 ring-accent-500'
+                        : 'border-transparent'"
+                    v-on:dragover="onDragOver(spaceRoot(group.space), $event)"
+                    v-on:dragleave="onDragLeave(spaceRoot(group.space), $event)"
+                    v-on:drop="onDrop(spaceRoot(group.space), $event)"
                 >
-                    <Users class="h-3.5 w-3.5 shrink-0 text-muted" :stroke-width="2" />
-                    <span class="min-w-0 flex-1 truncate">{{ groupe.name }}</span>
-                </p>
+                    <button
+                        type="button"
+                        class="flex min-w-0 flex-1 items-center gap-1.5 rounded px-1 text-left text-xs font-semibold uppercase tracking-wide text-muted transition-colors hover:text-primary"
+                        :aria-expanded="isSpaceOpen(group.space)"
+                        v-on:click="toggleSpace(group.space)"
+                    >
+                        <ChevronDown v-if="isSpaceOpen(group.space)" class="h-3 w-3 shrink-0" :stroke-width="2" />
+                        <ChevronRight v-else class="h-3 w-3 shrink-0" :stroke-width="2" />
+                        <component
+                            :is="group.space.personal ? User : Users"
+                            class="h-3.5 w-3.5 shrink-0"
+                            :style="group.space.color ? { color: group.space.color } : null"
+                            :stroke-width="2"
+                        />
+                        <span class="min-w-0 truncate">{{ spaceLabel(group.space, t) }}</span>
+                    </button>
+                    <span
+                        v-if="!group.space.canWrite"
+                        data-space-readonly
+                        class="shrink-0 rounded-full bg-surface-2 px-1.5 py-0.5 text-[10px] font-medium text-muted"
+                    >{{ t('notes.markdown.spaces.read_only') }}</span>
+                    <AppIconButton
+                        v-if="group.space.canWrite"
+                        size="sm"
+                        class="shrink-0 sm:opacity-0 sm:group-hover/space:opacity-100"
+                        :title="t('notes.markdown.spaces.add_here', { name: spaceLabel(group.space, t) })"
+                        :data-space-add="group.space.id"
+                        v-on:click="addInSpace(group.space)"
+                    >
+                        <Plus class="h-3.5 w-3.5" :stroke-width="2" />
+                    </AppIconButton>
+                    <AppIconButton
+                        v-if="group.space.canManage"
+                        size="sm"
+                        class="shrink-0 sm:opacity-0 sm:group-hover/space:opacity-100"
+                        :title="t('notes.markdown.spaces.settings')"
+                        :data-space-settings="group.space.id"
+                        v-on:click="forward('space-settings', Number(group.space.id))"
+                    >
+                        <Settings2 class="h-3.5 w-3.5" :stroke-width="2" />
+                    </AppIconButton>
+                </div>
 
-                <a
-                    v-for="note in groupe.notes"
-                    :key="`shared-${note.id}`"
-                    :href="`${LIBRARY_URL}/${note.id}/read`"
-                    class="flex min-w-0 items-center gap-2 rounded-lg py-1.5 pl-6 pr-3 text-sm text-primary no-underline transition-colors hover:bg-surface-2"
-                    :title="note.ownerName ? t('notes.markdown.library.shared.by', { name: note.ownerName }) : undefined"
-                >
-                    <FileText class="h-4 w-4 shrink-0 text-muted" :stroke-width="2" />
-                    <span class="min-w-0 flex-1 truncate">
-                        <span v-if="note.subfolder" class="text-muted">{{ note.subfolder }} › </span>{{ note.title || t('notes.markdown.untitled') }}
-                    </span>
-                </a>
-            </div>
+                <template v-if="!showSpaceHeaders || isSpaceOpen(group.space)">
+                    <NoteTreeItem
+                        v-for="node in group.nodes"
+                        :key="node.key"
+                        :node="node"
+                        :selected-key="selectedKey"
+                        :expanded="expanded"
+                        :draggable="group.space ? group.space.canWrite : true"
+                        :editable="group.space ? group.space.canWrite : true"
+                        :dragging-key="draggingKey"
+                        :drop-hint="dropHint"
+                        :href-for="hrefFor"
+                        v-on:select="onSelect"
+                        v-on:toggle="toggle"
+                        v-on:add="(node) => { open(node.id); forward('add', Number(node.id)); }"
+                        v-on:rename="(node) => forward('folder' === node.kind ? 'rename-folder' : 'rename-note', node)"
+                        v-on:favorite="toggleFavorite"
+                        v-on:delete="(node) => forward('folder' === node.kind ? 'delete-folder' : 'delete', node)"
+                        v-on:drag-start="onDragStart"
+                        v-on:drag-end="onDragEnd"
+                        v-on:drag-over="onDragOver"
+                        v-on:drag-leave="onDragLeave"
+                        v-on:drop="onDrop"
+                    />
+                    <p
+                        v-if="showSpaceHeaders && group.space && !group.nodes.length && !searching"
+                        class="px-3 py-1 text-xs text-muted"
+                    >
+                        {{ t('notes.markdown.spaces.empty') }}
+                    </p>
+                </template>
+            </template>
         </div>
-
         <!-- Les étiquettes, sous l'arborescence : elles traversent le
              rangement, donc elles ne peuvent pas y tenir une place. Cliquer
              l'une d'elles montre ses notes, où qu'elles soient. -->

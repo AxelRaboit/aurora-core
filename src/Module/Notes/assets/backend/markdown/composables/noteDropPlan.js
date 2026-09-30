@@ -67,10 +67,26 @@ function parentOf(item, kind) {
     return null == raw ? null : Number(raw);
 }
 
-/** Les frères d'une même nature dans un dossier, dans l'ordre affiché. */
-function siblings(items, kind, parentId) {
+/** L'espace d'une ligne, `null` quand la liste ne le dit pas. */
+function spaceOf(item) {
+    return null == item?.spaceId ? null : Number(item.spaceId);
+}
+
+/**
+ * Les frères d'une même nature dans un dossier, dans l'ordre affiché.
+ *
+ * À la racine, seulement ceux du même espace : chaque espace a la sienne, et
+ * compter ensemble les racines de deux espaces mélangerait deux ordres.
+ */
+function siblings(items, kind, parentId, spaceId = null) {
     return items
-        .filter((one) => parentOf(one, kind) === parentId)
+        .filter(
+            (one) =>
+                parentOf(one, kind) === parentId &&
+                (null !== parentId ||
+                    null === spaceId ||
+                    spaceOf(one) === spaceId),
+        )
         .sort(
             (a, b) =>
                 (a.position ?? 0) - (b.position ?? 0) ||
@@ -90,8 +106,9 @@ function siblings(items, kind, parentId) {
  *
  * @param {object} args
  * @param {{kind: string, id: number}} args.dragged      ce qu'on tient
- * @param {{kind: string, id: number|null}} args.target  la ligne visée ;
- *        `{kind: "folder", id: null}` est la racine
+ * @param {{kind: string, id: number|null, spaceId?: number}} args.target
+ *        la ligne visée ; `{kind: "folder", id: null}` est la racine, celle
+ *        de l'espace `spaceId` quand il est dit, sinon celle où l'on est
  * @param {"before"|"inside"|"after"} args.zone
  * @param {Array} args.folders
  * @param {Array} args.notes
@@ -111,11 +128,22 @@ export function planDrop({ dragged, target, zone, folders, notes }) {
         null === target.id || ("folder" === target.kind && "inside" === zone);
 
     let folderId;
+    let spaceId;
     let anchorId = null;
     let after = true;
 
     if (intoFolder) {
         folderId = null === target.id ? null : Number(target.id);
+        const folder =
+            null === folderId
+                ? null
+                : folders.find((one) => Number(one.id) === folderId);
+        spaceId =
+            null === target.id
+                ? null == target.spaceId
+                    ? spaceOf(moving)
+                    : Number(target.spaceId)
+                : spaceOf(folder);
     } else {
         const list = "folder" === target.kind ? folders : notes;
         const row = list.find((one) => Number(one.id) === Number(target.id));
@@ -123,6 +151,7 @@ export function planDrop({ dragged, target, zone, folders, notes }) {
         if (!row) return null;
 
         folderId = parentOf(row, target.kind);
+        spaceId = spaceOf(row);
 
         // Même nature : l'ordre suit exactement la ligne visée. Nature
         // différente : on tombe au bord du groupe, le seul endroit qui existe
@@ -147,7 +176,7 @@ export function planDrop({ dragged, target, zone, folders, notes }) {
         return null;
     }
 
-    const order = siblings(items, kind, folderId)
+    const order = siblings(items, kind, folderId, spaceId)
         .map((one) => Number(one.id))
         .filter((one) => one !== id);
 
@@ -163,11 +192,19 @@ export function planDrop({ dragged, target, zone, folders, notes }) {
     }
 
     const fromFolderId = parentOf(moving, kind);
-    const before = siblings(items, kind, folderId).map((one) => Number(one.id));
+    const fromSpaceId = spaceOf(moving);
+    const before = siblings(items, kind, folderId, spaceId).map((one) =>
+        Number(one.id),
+    );
 
-    // Rien ne bouge : même dossier, même rang. Pas d'appel, pas de message.
-    if (fromFolderId === folderId && before.join(",") === order.join(","))
+    // Rien ne bouge : même dossier, même espace, même rang. Pas d'appel, pas
+    // de message.
+    if (
+        fromFolderId === folderId &&
+        fromSpaceId === spaceId &&
+        before.join(",") === order.join(",")
+    )
         return null;
 
-    return { kind, id, folderId, fromFolderId, order };
+    return { kind, id, folderId, fromFolderId, spaceId, fromSpaceId, order };
 }

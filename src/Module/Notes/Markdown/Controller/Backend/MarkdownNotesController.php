@@ -15,7 +15,6 @@ use Aurora\Module\Ged\Pexels\Service\PexelsClient;
 use Aurora\Module\Notes\Favorite\Manager\NoteFavoriteManagerInterface;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
-use Aurora\Module\Notes\Folder\Serializer\NoteFolderSerializerInterface;
 use Aurora\Module\Notes\Markdown\Dto\MarkdownNoteInputFactoryInterface;
 use Aurora\Module\Notes\Markdown\Dto\MarkdownNoteReorderInputFactoryInterface;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
@@ -24,7 +23,6 @@ use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
 use Aurora\Module\Notes\Markdown\Serializer\MarkdownNoteSerializerInterface;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteArchive;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteImporter;
-use Aurora\Module\Notes\Markdown\Service\NoteReadScope;
 use Aurora\Module\Notes\Markdown\View\MarkdownNotesViewBuilder;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Notes\Space\Service\NoteSpaceAccess;
@@ -173,16 +171,14 @@ final class MarkdownNotesController extends AbstractController
     }
 
     #[Route('/{id}/read', name: '_read', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Get->value])]
-    public function read(int $id, NoteReadScope $scope): Response
+    public function read(int $id): Response
     {
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        // La seule porte de lecture qui accepte autre chose que son
-        // propriétaire : une note partagée, ou rangée dans un dossier
-        // partagé, se lit ici. Tout ce qui écrit continue de passer par
-        // `findOneByUserAndId`.
-        $note = $scope->readableNote($user, $id);
+        // Tout ce que l'espace de la note laisse lire ; écrire se décide
+        // ailleurs, par le rôle.
+        $note = $this->spaceAccess->readableNote($user, $id);
 
         if (!$note instanceof MarkdownNoteInterface) {
             throw $this->createNotFoundException();
@@ -558,28 +554,6 @@ final class MarkdownNotesController extends AbstractController
         }
 
         return $this->jsonSuccess(['favorite' => $this->favorites->toggle($user, $note)]);
-    }
-
-    /**
-     * Ce que les autres ont partagé avec tout le monde.
-     *
-     * Une liste à part, jamais mêlée au carnet de la personne : ce qui
-     * n'est pas à soi ne se range pas chez soi, et les mélanger ferait
-     * croire qu'on peut les déplacer.
-     */
-    #[Route('/shared', name: '_shared', methods: [HttpMethodEnum::Get->value])]
-    public function shared(NoteReadScope $scope, NoteFolderSerializerInterface $folderSerializer): JsonResponse
-    {
-        /** @var CoreUserInterface $user */
-        $user = $this->getUser();
-
-        $partage = $scope->sharedWith($user);
-        $pinned = $this->favorites->mapFor($user);
-
-        return $this->jsonSuccess([
-            'folders' => array_map($folderSerializer->withFavorites($pinned['folders'])->serialize(...), $partage['folders']),
-            'notes' => array_map($this->serializer->withFavorites($pinned['notes'])->serializeListItem(...), $partage['notes']),
-        ]);
     }
 
     #[Route('/{id}/backlinks', name: '_backlinks', methods: [HttpMethodEnum::Get->value])]

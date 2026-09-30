@@ -66,6 +66,16 @@ PATHS.folderPaths = {
     reorder: "/notes/folders/reorder",
     show: "/notes/folders/__id__",
 };
+PATHS.spacePaths = {
+    list: "/notes/spaces",
+    create: "/notes/spaces/create",
+    show: "/notes/spaces/__id__",
+    update: "/notes/spaces/__id__/update",
+    delete: "/notes/spaces/__id__/delete",
+    membersSet: "/notes/spaces/__id__/members",
+    membersRemove: "/notes/spaces/__id__/members/__user__/remove",
+    people: "/notes/spaces/people",
+};
 
 const NOTES = [
     { id: 1, title: "Journal", folderId: null, tags: [] },
@@ -585,7 +595,7 @@ describe("ce que le panneau demande depuis l'éditeur", () => {
         const made = calls();
         expect(made[0]).toEqual({
             url: "/notes/movePath",
-            body: { folderId: 7 },
+            body: { folderId: 7, spaceId: null },
         });
         expect(made[1]).toEqual({
             url: "/notes/reorderPath",
@@ -648,7 +658,84 @@ describe("ce que le panneau demande depuis l'éditeur", () => {
 
         expect(calls()[0]).toEqual({
             url: "/notes/folders/create",
-            body: { name: "Devis 2026", parentId: 7, color: null },
+            body: {
+                name: "Devis 2026",
+                parentId: 7,
+                color: null,
+                spaceId: null,
+            },
+        });
+    });
+
+    /** Qui en a le droit crée un espace depuis la même modale. */
+    it("creates a space from the add modal", async () => {
+        render({ canCreateSpace: true });
+        await flushPromises();
+        global.fetch.mockClear();
+
+        askPage("notes:add", { args: [null] });
+        await flushPromises();
+
+        document.body.querySelector('[data-add-kind="space"]').click();
+        await flushPromises();
+
+        const input = document.body.querySelector(
+            "[data-add-name] input, input[data-add-name]",
+        );
+        input.value = "Documentation";
+        input.dispatchEvent(new Event("input"));
+        await flushPromises();
+
+        document.body.querySelector("[data-add-submit]").click();
+        await flushPromises();
+
+        expect(calls()[0]).toEqual({
+            url: "/notes/spaces/create",
+            body: {
+                name: "Documentation",
+                color: null,
+                access: "backoffice",
+                defaultRole: "reader",
+            },
+        });
+    });
+
+    it("offers no space without the right to create one", async () => {
+        render();
+        await flushPromises();
+
+        askPage("notes:add", { args: [null] });
+        await flushPromises();
+
+        expect(
+            document.body.querySelector('[data-add-kind="space"]'),
+        ).toBeNull();
+    });
+
+    /** Le plus d'un en-tête d'espace range à la racine de cet espace. */
+    it("files a new note at the root of the space it was asked for", async () => {
+        render({
+            spaces: [
+                { id: 1, personal: true, canWrite: true },
+                { id: 5, name: "Équipe", personal: false, canWrite: true },
+            ],
+        });
+        await flushPromises();
+        global.fetch.mockClear();
+
+        askPage("notes:add", { args: [{ folderId: null, spaceId: 5 }] });
+        await flushPromises();
+
+        expect(
+            document.body.querySelector("[data-add-where]").textContent,
+        ).toContain("Équipe");
+
+        document.body.querySelector("[data-add-submit]").click();
+        await flushPromises();
+
+        expect(calls()[0]).toEqual({
+            url: "/notes/createPath",
+            body: { folderId: null, spaceId: 5, title: "", content: "" },
         });
     });
 

@@ -10,6 +10,7 @@ use Aurora\Module\Notes\Markdown\Entity\MarkdownNote;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Notes\Space\Repository\NoteSpaceRepository;
+use Aurora\Module\Notes\Space\Service\NoteSpaceAccess;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use DateTimeImmutable;
 use DateTimeInterface;
@@ -260,8 +261,8 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
      * Une note par son identifiant, sans regarder à qui elle est.
      *
      * La question du droit de lecture est posée ailleurs, par
-     * {@see NoteReadScope} : la mêler à la requête donnerait deux endroits
-     * qui décident de la même chose.
+     * {@see NoteSpaceAccess} : la mêler
+     * à la requête donnerait deux endroits qui décident de la même chose.
      */
     public function findOneLiving(int $id): ?MarkdownNoteInterface
     {

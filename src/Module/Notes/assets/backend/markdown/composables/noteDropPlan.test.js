@@ -66,6 +66,8 @@ describe("planDrop", () => {
             id: 12,
             folderId: 2,
             fromFolderId: 3,
+            spaceId: null,
+            fromSpaceId: null,
             order: [13, 12],
         });
     });
@@ -152,6 +154,69 @@ describe("planDrop", () => {
         ).toBeNull();
         expect(
             plan({ kind: "note", id: 12 }, { kind: "note", id: 999 }, "after"),
+        ).toBeNull();
+    });
+});
+
+describe("planDrop across spaces", () => {
+    const folders = [
+        { id: 1, name: "Perso", parentId: null, position: 0, spaceId: 1 },
+        { id: 2, name: "Équipe", parentId: null, position: 0, spaceId: 7 },
+    ];
+    const notes = [
+        { id: 10, title: "Brouillon", folderId: null, position: 0, spaceId: 1 },
+        { id: 11, title: "Procédure", folderId: null, position: 0, spaceId: 7 },
+        { id: 12, title: "Charte", folderId: 2, position: 0, spaceId: 7 },
+    ];
+    const across = (dragged, target, zone) =>
+        planDrop({ dragged, target, zone, folders, notes });
+
+    /** Glisser sur l'en-tête d'un espace range à sa racine. */
+    it("files at the root of the space whose header it was dropped on", () => {
+        expect(
+            across(
+                { kind: "note", id: 10 },
+                { kind: "folder", id: null, spaceId: 7 },
+                "inside",
+            ),
+        ).toMatchObject({
+            folderId: null,
+            spaceId: 7,
+            fromSpaceId: 1,
+            order: [11, 10],
+        });
+    });
+
+    /** Un dossier d'un autre espace emmène la note dans cet espace. */
+    it("takes the space of the folder it lands in", () => {
+        expect(
+            across(
+                { kind: "note", id: 10 },
+                { kind: "folder", id: 2 },
+                "inside",
+            ),
+        ).toMatchObject({ folderId: 2, spaceId: 7, order: [12, 10] });
+    });
+
+    /** La racine d'un espace ne compte pas les notes d'un autre. */
+    it("orders the root of a space on its own", () => {
+        expect(
+            across(
+                { kind: "note", id: 11 },
+                { kind: "folder", id: null, spaceId: 1 },
+                "inside",
+            ),
+        ).toMatchObject({ spaceId: 1, order: [10, 11] });
+    });
+
+    /** Revenir à la racine de son propre espace, déjà en place : rien à faire. */
+    it("does nothing when the note is already last at that root", () => {
+        expect(
+            across(
+                { kind: "note", id: 10 },
+                { kind: "folder", id: null, spaceId: 1 },
+                "inside",
+            ),
         ).toBeNull();
     });
 });

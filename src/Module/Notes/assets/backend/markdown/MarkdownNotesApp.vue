@@ -4,6 +4,8 @@ import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 import { useMarkdownNotesPage } from '@notes/backend/markdown/composables/useMarkdownNotesPage.js';
 import { useNoteFoldersApi } from '@notes/backend/markdown/composables/useNoteFoldersApi.js';
+import { sortSpaces, useNoteSpacesApi } from '@notes/backend/markdown/composables/noteSpaces.js';
+import NoteSpaceSettingsModal from '@notes/backend/markdown/components/NoteSpaceSettingsModal.vue';
 import AppBackLink from '@/shared/components/nav/AppBackLink.vue';
 import NoteLibrary from '@notes/backend/markdown/components/NoteLibrary.vue';
 import NotePreview from '@notes/backend/markdown/components/NotePreview.vue';
@@ -44,6 +46,11 @@ const props = defineProps({
     breadcrumb: { type: Array, default: () => [] },
     /** Les routes des dossiers, en un objet plutôt qu'en sept props. */
     folderPaths: { type: Object, required: true },
+    /** Les routes des espaces, en un objet comme celles des dossiers. */
+    spacePaths: { type: Object, default: () => ({}) },
+    /** Les espaces lisibles, le sien d'abord, avec le rôle de qui lit. */
+    spaces: { type: Array, default: () => [] },
+    canCreateSpace: { type: Boolean, default: false },
     /** L'adresse de la bibliothèque, c'est-à-dire du carnet à sa racine. */
     libraryPath: { type: String, required: true },
     maxDepth: { type: Number, default: 8 },
@@ -79,7 +86,6 @@ const props = defineProps({
     /** Le relais vers Pexels pour le bandeau : aucune image n'entre en GED. */
     coversSearchPath: { type: String, default: '' },
     /** Ce que les autres ont ouvert à tout le back-office. */
-    sharedPath: { type: String, default: '' },
     imageMaxEdge: { type: Number, default: 2048 },
     imageQuality: { type: Number, default: 0.85 },
     /**
@@ -286,6 +292,23 @@ onErrorCaptured((error) => {
  */
 const foldersApi = useNoteFoldersApi(props.folderPaths);
 const folders = ref([...props.folders]);
+
+const spacesApi = useNoteSpacesApi(props.spacePaths);
+const spaces = ref(sortSpaces(props.spaces));
+
+async function refreshSpaces() {
+    const { ok, payload } = await spacesApi.list();
+
+    if (ok) spaces.value = sortSpaces(payload.spaces ?? []);
+}
+
+/** L'espace dont on ouvre les réglages, ou rien. */
+const settingsSpaceId = ref(null);
+
+/** Après un changement de réglages : l'espace, et ce qu'il range, ont pu changer. */
+async function onSpaceChanged() {
+    await Promise.all([refreshSpaces(), refreshList(), refreshFolders()]);
+}
 
 /**
  * La bibliothèque, quand elle est là.
@@ -567,8 +590,21 @@ async function onImportFiles(event) {
 const addModal = ref(null);
 const addSaving = ref(false);
 
-function openAdd(folderId) {
-    addModal.value = { folderId: null == folderId ? null : Number(folderId) };
+/**
+ * Ouvrir la modale d'ajout : dans un dossier (son identifiant), ou à la
+ * racine d'un espace (`{ spaceId }`), ou sans rien dire - la racine du sien.
+ */
+function openAdd(target) {
+    if (null !== target && 'object' === typeof target) {
+        addModal.value = {
+            folderId: null == target.folderId ? null : Number(target.folderId),
+            spaceId: null == target.spaceId ? null : Number(target.spaceId),
+        };
+
+        return;
+    }
+
+    addModal.value = { folderId: null == target ? null : Number(target), spaceId: null };
 }
 
 /**
@@ -578,22 +614,29 @@ function openAdd(folderId) {
  * veut écrire dedans. Un dossier reste où il est créé, et le panneau le
  * montre - on range souvent plusieurs dossiers d'affilée.
  */
-async function submitAdd({ kind, name, color }) {
+async function submitAdd({ kind, name, color, spaceId, access, defaultRole }) {
     const folderId = addModal.value?.folderId ?? null;
+    // Un dossier impose son espace ; sans dossier, la racine choisie.
+    const rootSpaceId = null === folderId ? spaceId ?? null : null;
 
     addSaving.value = true;
 
-    const { ok, reported, payload } = 'folder' === kind
-        ? await foldersApi.create(name, folderId, color)
-        : await api.create({ folderId, title: name, content: '' });
+    const request = {
+        space: () => spacesApi.create({ name, color, access, defaultRole }),
+        folder: () => foldersApi.create(name, folderId, color, rootSpaceId),
+        note: () => api.create({ folderId, spaceId: rootSpaceId, title: name, content: '' }),
+    }[kind];
+    const { ok, reported, payload } = await request();
 
     addSaving.value = false;
 
     if (!ok) {
         if (!reported) {
-            const failed = 'folder' === kind
-                ? 'notes.markdown.folders.errors.create_failed'
-                : 'notes.markdown.errors.create_failed';
+            const failed = {
+                space: 'notes.markdown.spaces.errors.save_failed',
+                folder: 'notes.markdown.folders.errors.create_failed',
+                note: 'notes.markdown.errors.create_failed',
+            }[kind];
 
             toast.error(t(failed));
         }
@@ -602,6 +645,17 @@ async function submitAdd({ kind, name, color }) {
     }
 
     addModal.value = null;
+
+    if ('space' === kind) {
+        await refreshSpaces();
+        toast.success(t('notes.markdown.spaces.created'));
+
+        // Un espace ouvert à des personnes choisies ne sert à rien tant que
+        // personne n'y est : on ouvre tout de suite de quoi les inscrire.
+        if ('members' === access) settingsSpaceId.value = Number(payload.space.id);
+
+        return;
+    }
 
     if ('folder' === kind) {
         await refreshFolders();
@@ -632,17 +686,22 @@ async function applyDropPlan(plan) {
     // L'enregistrement automatique envoie le dossier de la liste, et un envoi
     // parti avec l'ancien, après le déplacement, remettait la note où elle
     // était.
-    if (!isFolder && plan.id === selectedId.value && plan.fromFolderId !== plan.folderId) {
+    const moves = plan.fromFolderId !== plan.folderId || (plan.fromSpaceId ?? null) !== (plan.spaceId ?? null);
+
+    if (!isFolder && plan.id === selectedId.value && moves) {
         await flushPendingSave();
 
         const row = notes.value.find((one) => one.id === plan.id);
-        if (row) row.folderId = plan.folderId;
+        if (row) {
+            row.folderId = plan.folderId;
+            if (null != plan.spaceId) row.spaceId = plan.spaceId;
+        }
     }
 
-    if (plan.fromFolderId !== plan.folderId) {
+    if (moves) {
         const { ok, reported, payload } = isFolder
-            ? await foldersApi.move(plan.id, plan.folderId)
-            : await api.move(plan.id, plan.folderId);
+            ? await foldersApi.move(plan.id, plan.folderId, plan.spaceId ?? null)
+            : await api.move(plan.id, plan.folderId, plan.spaceId ?? null);
 
         if (!ok) {
             if (!reported) {
@@ -669,7 +728,7 @@ async function applyDropPlan(plan) {
 
     await Promise.all([refreshList(), refreshFolders()]);
 
-    if (plan.fromFolderId !== plan.folderId) toast.success(t('notes.markdown.folders.moved'));
+    if (moves) toast.success(t('notes.markdown.folders.moved'));
 }
 
 /**
@@ -683,6 +742,9 @@ const notePath = computed(() => folderPath(folders.value, selectedNote.value?.fo
 
 const PANEL_INTENTS = {
     select: (id) => openNote(id),
+    'space-settings': (id) => {
+        settingsSpaceId.value = Number(id);
+    },
     favorite: ({ kind, id }) => toggleFavorite(kind, id),
     export: () => exportAll(),
     import: () => askForFiles(),
@@ -737,7 +799,7 @@ const PANEL_INTENTS = {
     // Le « + » du panneau : une note ou un dossier, au choix, là où l'on a
     // cliqué. La modale vit ici et non dans la bibliothèque, pour marcher
     // aussi quand une note est ouverte.
-    add: (folderId) => openAdd(folderId ?? null),
+    add: (target) => openAdd(target ?? null),
     // Un dépôt dans le panneau, déjà calculé là-bas : où ranger, dans quel
     // ordre. On l'écrit quel que soit l'écran affiché.
     move: (plan) => applyDropPlan(plan),
@@ -749,6 +811,8 @@ function announce() {
     tellPanels('notes:changed', {
         notes: notes.value,
         folders: folders.value,
+        spaces: spaces.value,
+        canCreateSpace: props.canCreateSpace,
         selectedId: selectedId.value,
         folderId: openFolderId.value,
         noteId: selectedId.value,
@@ -767,6 +831,7 @@ onMounted(() => {
     announce();
     stopListening.push(watch(notes, announce, { deep: true }));
     stopListening.push(watch(folders, announce, { deep: true }));
+    stopListening.push(watch(spaces, announce, { deep: true }));
     stopListening.push(watch(openFolderId, announce));
     stopListening.push(watch(selectedId, announce));
 
@@ -1237,10 +1302,20 @@ onUnmounted(() => {
             <NoteCreateModal
                 :show="null !== addModal"
                 :folder-id="addModal?.folderId ?? null"
+                :space-id="addModal?.spaceId ?? null"
                 :folders="folders"
+                :spaces="spaces"
+                :can-create-space="canCreateSpace"
                 :saving="addSaving"
                 v-on:close="addModal = null"
                 v-on:submit="submitAdd"
+            />
+
+            <NoteSpaceSettingsModal
+                :space-id="settingsSpaceId"
+                :api="spacesApi"
+                v-on:close="settingsSpaceId = null"
+                v-on:changed="onSpaceChanged"
             />
         </div>
     </div>

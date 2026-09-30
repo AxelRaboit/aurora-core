@@ -323,27 +323,6 @@ final class NoteSpacesTest extends IntegrationTestCase
         self::assertNotContains('Tarifs internes', $titles);
     }
 
-    /** « Partagé avec moi » : les espaces des autres, jamais son carnet. */
-    public function testTheSharedListCarriesTheSpacesOfOthers(): void
-    {
-        $space = $this->space(NoteSpaceAccessEnum::Backoffice);
-        $folder = $this->folder($this->owner, 'Équipe', $space);
-        $inside = $this->note($this->owner, 'Dedans', $space, $folder);
-        $own = $this->folder($this->reader, 'Mon coin', $this->personalSpaceOf($this->reader));
-
-        $this->client->loginUser($this->reader, 'admin');
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_shared'));
-        self::assertResponseIsSuccessful();
-
-        $body = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
-        $folders = array_map(static fn (array $one): int => (int) $one['id'], $body['folders']);
-        $notes = array_map(static fn (array $one): int => (int) $one['id'], $body['notes']);
-
-        self::assertContains((int) $folder->getId(), $folders);
-        self::assertNotContains((int) $own->getId(), $folders);
-        self::assertContains((int) $inside->getId(), $notes);
-    }
-
     /**
      * Ce qu'une personne a écrit dans un espace partagé lui survit ; son
      * carnet personnel part avec elle.
