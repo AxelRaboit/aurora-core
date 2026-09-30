@@ -17,6 +17,7 @@ use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
+use function array_key_exists;
 use function count;
 
 #[AsAlias(NoteFolderManagerInterface::class)]
@@ -230,11 +231,23 @@ class NoteFolderManager implements NoteFolderManagerInterface
             return;
         }
 
-        $ids = array_map(static fn (array $entry): int => (int) $entry['id'], $entries);
+        // Every folder of the person, not only those named: a parent is
+        // usually *not* among the siblings being reordered, and it used to
+        // resolve to null - reordering the folders of a subfolder sent all of
+        // them to the root. The stored parents also close the cycle check,
+        // which only looked at the entries and let "A under its own child B"
+        // through when B was not sent.
+        $all = [];
+        foreach ($this->folderRepository->findAllForUser($user) as $folder) {
+            $all[(int) $folder->getId()] = $folder;
+        }
 
         $byId = [];
-        foreach ($this->folderRepository->findBy(['id' => $ids, 'user' => $user]) as $folder) {
-            $byId[(int) $folder->getId()] = $folder;
+        foreach ($entries as $entry) {
+            $id = (int) $entry['id'];
+            if (isset($all[$id])) {
+                $byId[$id] = $all[$id];
+            }
         }
 
         // The intended shape is built before anything is written, so a cycle
@@ -247,12 +260,22 @@ class NoteFolderManager implements NoteFolderManagerInterface
             }
 
             $parentId = $entry['parentId'] ?? null;
+
+            // A parent that is not the person's folder is refused whole too:
+            // silently falling back to the root would move it somewhere
+            // nobody asked for.
+            if (null !== $parentId && !isset($all[(int) $parentId])) {
+                return;
+            }
+
             $parentMap[$id] = null === $parentId ? null : (int) $parentId;
         }
 
+        $storedParent = static fn (int $id): ?int => ($all[$id] ?? null)?->getParent()?->getId();
+
         foreach ($parentMap as $id => $firstParentId) {
             $visited = [$id => true];
-            for ($current = $firstParentId; null !== $current; $current = $parentMap[$current] ?? null) {
+            for ($current = $firstParentId; null !== $current; $current = array_key_exists($current, $parentMap) ? $parentMap[$current] : $storedParent($current)) {
                 if (isset($visited[$current])) {
                     return;
                 }
@@ -275,7 +298,7 @@ class NoteFolderManager implements NoteFolderManagerInterface
             }
 
             $parentId = $parentMap[$id] ?? null;
-            $folder->setParent(null !== $parentId ? ($byId[$parentId] ?? null) : null);
+            $folder->setParent(null !== $parentId ? $all[$parentId] : null);
             $folder->setPosition((int) $entry['position']);
         }
 

@@ -22,6 +22,8 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+use function str_contains;
+
 #[Route('/backend/notes/markdown/images', name: 'backend_notes_markdown_images')]
 #[IsGranted('notes.markdown.use')]
 final class MarkdownNotesImagesController extends AbstractController
@@ -56,8 +58,11 @@ final class MarkdownNotesImagesController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
+        // Lisible, et citée par cette note : lire une note partagée ne doit
+        // pas ouvrir les images des notes privées de son auteur, même à qui
+        // en connaîtrait le nom.
         $note = $this->readScope->readableNote($user, $noteId);
-        if (!$note instanceof MarkdownNoteInterface) {
+        if (!$note instanceof MarkdownNoteInterface || !str_contains((string) $note->getContent(), $filename)) {
             return $this->jsonNotFound();
         }
 

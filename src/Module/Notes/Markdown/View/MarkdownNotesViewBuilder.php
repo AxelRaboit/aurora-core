@@ -82,9 +82,17 @@ final readonly class MarkdownNotesViewBuilder
     public function readView(CoreUserInterface $user, MarkdownNoteInterface $note): array
     {
         $mine = $note->getUser()->getId() === $user->getId();
-        $titles = $mine ? $this->ownTitleIndex($user) : $this->sharedTitleIndex($user, $note);
 
-        $neighbours = $mine ? $this->readingNeighbours($user, (int) $note->getId()) : ['previous' => null, 'next' => null];
+        // Chargés une fois et passés à qui en a besoin : l'index des titres,
+        // l'ordre de lecture et l'arborescence lisaient chacun la même liste,
+        // et chaque lecture déchiffre tous les titres du carnet.
+        $rows = $this->noteRepository->findFlatListForUser($user);
+        $folders = $this->folderRepository->findAllForUser($user);
+        $shared = $this->readScope->sharedWith($user);
+
+        $titles = $mine ? $this->ownTitleIndex($rows) : $this->sharedTitleIndex($shared['notes'], $note);
+
+        $neighbours = $mine ? $this->readingNeighbours($folders, $rows, (int) $note->getId()) : ['previous' => null, 'next' => null];
 
         return [
             'note' => $note,
@@ -104,6 +112,7 @@ final readonly class MarkdownNotesViewBuilder
             'libraryPath' => $this->urlGenerator->generate('backend_notes_markdown'),
             'folderShowPath' => $this->urlGenerator->generate('backend_notes_markdown_folder', ['id' => '__id__']),
             'readNotePath' => $this->urlGenerator->generate('backend_notes_markdown_read', ['id' => '__id__']),
+            'searchPath' => $this->urlGenerator->generate('backend_notes_markdown_search'),
             // Les images passent par une route qui applique la règle de
             // lecture de la note et la clé de son auteur : l'adresse écrite
             // dans le texte est celle de l'auteur, que l'on réécrit.
@@ -118,7 +127,7 @@ final readonly class MarkdownNotesViewBuilder
             ],
             'appearance' => $note->getAppearance()->value,
             'titleIndex' => $titles,
-            ...$this->readerTree($user),
+            ...$this->readerTree($folders, $rows, $shared),
         ];
     }
 
@@ -130,9 +139,13 @@ final readonly class MarkdownNotesViewBuilder
      * porte donc sa propre arborescence plutôt que le panneau du menu. Les
      * titres seulement - aucun corps n'est déchiffré pour dessiner un arbre.
      *
+     * @param list<NoteFolderInterface>                                                     $folders
+     * @param list<array<string, mixed>>                                                    $rows
+     * @param array{folders: list<NoteFolderInterface>, notes: list<MarkdownNoteInterface>} $shared
+     *
      * @return array{treeFolders: list<array<string, mixed>>, treeNotes: list<array<string, mixed>>, sharedFolders: list<array<string, mixed>>, sharedNotes: list<array<string, mixed>>}
      */
-    private function readerTree(CoreUserInterface $user): array
+    private function readerTree(array $folders, array $rows, array $shared): array
     {
         $folders = array_map(static fn (NoteFolderInterface $one): array => [
             'id' => $one->getId(),
@@ -141,7 +154,7 @@ final readonly class MarkdownNotesViewBuilder
             'color' => $one->getColor(),
             'position' => $one->getPosition(),
             'sharedAt' => $one->getSharedAt()?->format(DateTimeInterface::ATOM),
-        ], $this->folderRepository->findAllForUser($user));
+        ], $folders);
 
         $notes = array_map(static fn (array $row): array => [
             'id' => (int) $row['id'],
@@ -149,9 +162,7 @@ final readonly class MarkdownNotesViewBuilder
             'folderId' => null === ($row['folderId'] ?? null) ? null : (int) $row['folderId'],
             'position' => $row['position'],
             'sharedAt' => $row['sharedAt'] ?? null,
-        ], $this->noteRepository->findFlatListForUser($user));
-
-        $shared = $this->readScope->sharedWith($user);
+        ], $rows);
 
         return [
             'treeFolders' => $folders,
@@ -180,13 +191,15 @@ final readonly class MarkdownNotesViewBuilder
      * construire un index de titres serait le prix d'un déchiffrement par
      * note, pour rien.
      *
+     * @param list<array<string, mixed>> $rows
+     *
      * @return array<string, int>
      */
-    private function ownTitleIndex(CoreUserInterface $user): array
+    private function ownTitleIndex(array $rows): array
     {
         $titles = [];
 
-        foreach ($this->noteRepository->findFlatListForUser($user) as $one) {
+        foreach ($rows as $one) {
             $title = mb_strtolower(mb_trim((string) ($one['title'] ?? '')));
 
             if ('' !== $title) {
@@ -206,14 +219,16 @@ final readonly class MarkdownNotesViewBuilder
      * rien à voir. Un lien vers une note privée de l'auteur reste du texte,
      * ce qui ne dit même pas qu'elle existe.
      *
+     * @param list<MarkdownNoteInterface> $sharedNotes
+     *
      * @return array<string, int>
      */
-    private function sharedTitleIndex(CoreUserInterface $user, MarkdownNoteInterface $note): array
+    private function sharedTitleIndex(array $sharedNotes, MarkdownNoteInterface $note): array
     {
         $author = $note->getUser()->getId();
         $titles = [];
 
-        foreach ($this->readScope->sharedWith($user)['notes'] as $one) {
+        foreach ($sharedNotes as $one) {
             if ($one->getUser()->getId() !== $author) {
                 continue;
             }
@@ -234,24 +249,30 @@ final readonly class MarkdownNotesViewBuilder
      */
     public function firstInReadingOrder(CoreUserInterface $user): ?int
     {
-        return $this->readingOrder($user)['order'][0] ?? null;
+        return $this->readingOrder(
+            $this->folderRepository->findAllForUser($user),
+            $this->noteRepository->findFlatListForUser($user),
+        )['order'][0] ?? null;
     }
 
     /**
      * Toutes les notes de la personne, dans l'ordre de l'arborescence.
      *
+     * @param list<NoteFolderInterface>  $folders
+     * @param list<array<string, mixed>> $rows
+     *
      * @return array{order: list<int>, titles: array<int, string>}
      */
-    private function readingOrder(CoreUserInterface $user): array
+    private function readingOrder(array $folders, array $rows): array
     {
         $foldersByParent = [];
-        foreach ($this->folderRepository->findAllForUser($user) as $folder) {
+        foreach ($folders as $folder) {
             $foldersByParent[(int) ($folder->getParent()?->getId() ?? 0)][] = (int) $folder->getId();
         }
 
         $notesByFolder = [];
         $titles = [];
-        foreach ($this->noteRepository->findFlatListForUser($user) as $row) {
+        foreach ($rows as $row) {
             $notesByFolder[(int) ($row['folderId'] ?? 0)][] = (int) $row['id'];
             $titles[(int) $row['id']] = (string) ($row['title'] ?? '');
         }
@@ -288,11 +309,14 @@ final readonly class MarkdownNotesViewBuilder
      * l'ordre où le panneau les range - les sous-dossiers d'abord, puis les
      * notes, chaque niveau selon sa position.
      *
+     * @param list<NoteFolderInterface>  $folders
+     * @param list<array<string, mixed>> $rows
+     *
      * @return array{previous: ?array{id: int, title: string}, next: ?array{id: int, title: string}}
      */
-    private function readingNeighbours(CoreUserInterface $user, int $noteId): array
+    private function readingNeighbours(array $folders, array $rows, int $noteId): array
     {
-        ['order' => $order, 'titles' => $titles] = $this->readingOrder($user);
+        ['order' => $order, 'titles' => $titles] = $this->readingOrder($folders, $rows);
 
         $at = array_search($noteId, $order, true);
         if (false === $at) {

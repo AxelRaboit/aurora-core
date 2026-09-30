@@ -129,6 +129,7 @@ const {
     splitDragging,
     navigateFromGraph,
     refreshList,
+    flushPendingSave,
 } = useMarkdownNotesPage(props, t);
 
 // Local to this component rather than folded into `useMarkdownNotesPage`:
@@ -724,6 +725,18 @@ async function applyDropPlan(plan) {
     if (!plan?.id) return;
 
     const isFolder = 'folder' === plan.kind;
+
+    // La note ouverte se range : ce qui attend d'être enregistré part
+    // d'abord, puis sa ligne prend son nouveau dossier tout de suite.
+    // L'enregistrement automatique envoie le dossier de la liste, et un envoi
+    // parti avec l'ancien, après le déplacement, remettait la note où elle
+    // était.
+    if (!isFolder && plan.id === selectedId.value && plan.fromFolderId !== plan.folderId) {
+        await flushPendingSave();
+
+        const row = notes.value.find((one) => one.id === plan.id);
+        if (row) row.folderId = plan.folderId;
+    }
 
     if (plan.fromFolderId !== plan.folderId) {
         const { ok, reported, payload } = isFolder

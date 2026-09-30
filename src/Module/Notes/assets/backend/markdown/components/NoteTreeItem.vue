@@ -151,8 +151,16 @@ function onContextMenu(event) {
     actionsRef.value?.open();
 }
 
-function onDoubleClick() {
-    if (!props.readonly) emit('rename', props.node);
+/**
+ * Double-cliquer le nom renomme ; double-cliquer un bouton de la ligne - la
+ * flèche qu'on referme et rouvre, le plus, les trois points - ne fait que ce
+ * que fait le bouton. Sans cette garde, replier puis déplier vite ouvrait la
+ * modale de renommage.
+ */
+function onDoubleClick(event) {
+    if (props.readonly || event.target?.closest?.('button')) return;
+
+    emit('rename', props.node);
 }
 
 /**

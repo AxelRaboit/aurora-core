@@ -50,6 +50,7 @@ const props = defineProps({
     treeNotes: { type: Array, default: () => [] },
     sharedFolders: { type: Array, default: () => [] },
     sharedNotes: { type: Array, default: () => [] },
+    searchPath: { type: String, default: "" },
 });
 
 const { t } = useI18n();
@@ -164,6 +165,7 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
                 :shared-folders="sharedFolders"
                 :shared-notes="sharedNotes"
                 :read-note-path="readNotePath"
+                :search-path="searchPath"
             />
         </aside>
 
@@ -192,6 +194,7 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
                     :shared-folders="sharedFolders"
                     :shared-notes="sharedNotes"
                     :read-note-path="readNotePath"
+                    :search-path="searchPath"
                     v-on:navigate="drawerOpen = false"
                 />
             </div>

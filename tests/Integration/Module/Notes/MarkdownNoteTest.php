@@ -404,6 +404,55 @@ final class MarkdownNoteTest extends IntegrationTestCase
     }
 
     /**
+     * Réordonner les sous-dossiers d'un dossier les laisse dedans.
+     *
+     * Le serveur ne rattachait un dossier qu'à un parent présent dans la
+     * requête ; le glisser n'envoie que les frères, sans leur parent, et
+     * ranger deux sous-dossiers l'un avant l'autre les renvoyait à la racine.
+     */
+    public function testReorderingSubfoldersKeepsThemInTheirParent(): void
+    {
+        $parent = $this->folder($this->owner, 'Parent');
+        $a = $this->folder($this->owner, 'A', $parent);
+        $b = $this->folder($this->owner, 'B', $parent);
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->post('backend_notes_markdown_folders_reorder', ['entries' => [
+            ['id' => $b->getId(), 'parentId' => $parent->getId(), 'position' => 0],
+            ['id' => $a->getId(), 'parentId' => $parent->getId(), 'position' => 1],
+        ]]);
+        self::assertResponseIsSuccessful();
+
+        $this->entityManager->clear();
+        $freshA = $this->entityManager->find(NoteFolder::class, $a->getId());
+        $freshB = $this->entityManager->find(NoteFolder::class, $b->getId());
+
+        self::assertSame($parent->getId(), $freshA?->getParent()?->getId());
+        self::assertSame($parent->getId(), $freshB?->getParent()?->getId());
+        self::assertSame(0, $freshB?->getPosition());
+        self::assertSame(1, $freshA?->getPosition());
+    }
+
+    /**
+     * Un dossier ne se range pas sous son propre enfant, même quand l'enfant
+     * n'est pas dans la requête : la boucle se lit aussi dans les parents
+     * déjà enregistrés.
+     */
+    public function testReorderRefusesACycleThroughStoredParents(): void
+    {
+        $top = $this->folder($this->owner, 'Haut');
+        $child = $this->folder($this->owner, 'Enfant', $top);
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->post('backend_notes_markdown_folders_reorder', ['entries' => [
+            ['id' => $top->getId(), 'parentId' => $child->getId(), 'position' => 0],
+        ]]);
+
+        $this->entityManager->clear();
+        self::assertNull($this->entityManager->find(NoteFolder::class, $top->getId())?->getParent());
+    }
+
+    /**
      * Un lien dans la note d'un autre mène chez lui, pas chez soi.
      *
      * L'index des titres était celui du lecteur : un `[[Budget]]` écrit par un
@@ -482,6 +531,11 @@ final class MarkdownNoteTest extends IntegrationTestCase
         $this->client->loginUser($this->other, 'admin');
         $this->client->request('GET', $url);
         self::assertResponseIsSuccessful();
+
+        // Une image de l'auteur que cette note ne cite pas reste fermée,
+        // même par la note partagée.
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_images_read', ['noteId' => $note->getId(), 'filename' => 'autre-'.$filename]));
+        self::assertResponseStatusCodeSame(404);
 
         // La route ordinaire, elle, reste celle de l'auteur.
         $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_images_serve', ['filename' => $filename]));

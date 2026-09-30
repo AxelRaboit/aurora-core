@@ -168,3 +168,31 @@ describe("le retour", () => {
         );
     });
 });
+
+describe("la recherche du lecteur", () => {
+    /** Comme dans le panneau : un mot du texte trouve la note, pas seulement son titre. */
+    it("finds a note by a word of its text", async () => {
+        global.fetch = vi.fn().mockResolvedValue({
+            ok: true,
+            status: 200,
+            json: async () => ({ success: true, ids: [9] }),
+        });
+
+        const wrapper = render({ searchPath: "/notes/search" });
+        const input = wrapper.find("[data-reader-sidebar] input");
+
+        await input.setValue("facture");
+        await new Promise((resolve) => setTimeout(resolve, 350));
+        await wrapper.vm.$nextTick();
+
+        expect(String(global.fetch.mock.calls[0][0])).toContain(
+            "/notes/search?q=facture",
+        );
+        expect(
+            wrapper.find('[data-reader-sidebar] [data-note-row="9"]').exists(),
+        ).toBe(true);
+        expect(
+            wrapper.find('[data-reader-sidebar] [data-note-row="5"]').exists(),
+        ).toBe(false);
+    });
+});

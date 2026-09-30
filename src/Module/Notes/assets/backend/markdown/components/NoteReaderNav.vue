@@ -11,12 +11,17 @@
  * Ce qui est partagé par les autres vient après, à part, comme dans le
  * panneau : ce qui n'est pas à soi ne se range pas dans son arbre.
  */
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { FileText, Users } from "lucide-vue-next";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
+import { useDebounce } from "@/shared/composables/useDebounce.js";
+import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
+import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 import NoteTreeItem from "./NoteTreeItem.vue";
 import { folderIdsIn, useNoteTree } from "../composables/useNoteTree.js";
+import { groupShared } from "../composables/sharedGroups.js";
+import { readExpanded, storeExpanded } from "../composables/expandedStore.js";
 
 const props = defineProps({
     noteId: { type: Number, required: true },
@@ -25,48 +30,59 @@ const props = defineProps({
     sharedFolders: { type: Array, default: () => [] },
     sharedNotes: { type: Array, default: () => [] },
     readNotePath: { type: String, required: true },
+    /** La recherche dans le texte, côté serveur : les corps sont chiffrés. */
+    searchPath: { type: String, default: "" },
 });
 
 const emit = defineEmits(["navigate"]);
 
 const { t } = useI18n();
 
-const EXPANDED_KEY = "aurora.notes.panel.expanded";
-
 const query = ref("");
 const searching = computed(() => "" !== query.value.trim());
 
 const foldersRef = computed(() => props.folders);
 const notesRef = computed(() => props.notes);
-const { tree } = useNoteTree(foldersRef, query, notesRef);
+/**
+ * Le texte des notes, cherché côté serveur, comme dans le panneau : sans lui
+ * la même boîte de recherche trouvait par le corps d'un côté et seulement par
+ * le titre de l'autre.
+ */
+const { request } = useRequest();
+const contentMatchIds = ref(new Set());
+
+const runContentSearch = useDebounce(async (value) => {
+    const payload = await request(`${props.searchPath}?q=${encodeURIComponent(value)}`, null, {
+        method: HttpMethod.Get,
+        noGuard: true,
+    });
+
+    contentMatchIds.value = new Set((payload?.ids ?? []).map(Number));
+}, 300);
+
+watch(query, (value) => {
+    const trimmed = value.trim();
+
+    if ("" === trimmed || !props.searchPath) {
+        contentMatchIds.value = new Set();
+
+        return;
+    }
+
+    runContentSearch(trimmed);
+});
+
+const { tree } = useNoteTree(foldersRef, query, notesRef, contentMatchIds);
 
 const readUrl = (id) => props.readNotePath.replace("__id__", String(id));
 const hrefFor = (node) => ("note" === node.kind ? readUrl(node.id) : "#");
-
-function readStored() {
-    try {
-        const ids = JSON.parse(window.localStorage.getItem(EXPANDED_KEY) ?? "[]");
-
-        return new Set(Array.isArray(ids) ? ids.map(Number) : []);
-    } catch {
-        return new Set();
-    }
-}
-
-function store(ids) {
-    try {
-        window.localStorage.setItem(EXPANDED_KEY, JSON.stringify([...ids]));
-    } catch {
-        // Une habitude de lecture, pas un état du carnet.
-    }
-}
 
 /**
  * Ce qui est ouvert : ce que la personne a déplié, plus le chemin de la note
  * lue - on arrive sur une note, on doit la voir dans l'arbre.
  */
 function initialOpen() {
-    const open = readStored();
+    const open = readExpanded();
     const parents = new Map(props.folders.map((f) => [Number(f.id), null == f.parentId ? null : Number(f.parentId)]));
     const note = props.notes.find((one) => Number(one.id) === props.noteId);
 
@@ -91,7 +107,7 @@ function toggle(node) {
     else next.add(id);
 
     opened.value = next;
-    store(next);
+    storeExpanded(next);
 }
 
 /** Une note s'ouvre en lecture, un dossier se déplie. */
@@ -107,51 +123,9 @@ function onSelect(node) {
 }
 
 /** Ce qu'on a partagé avec soi, regroupé par dossier partagé d'origine. */
-const sharedGroups = computed(() => {
-    if (searching.value) return [];
-
-    const byId = new Map(props.sharedFolders.map((one) => [Number(one.id), one]));
-
-    const rootOf = (folderId) => {
-        let current = byId.get(Number(folderId));
-
-        for (let guard = 0; current && guard <= byId.size; guard += 1) {
-            if (!byId.has(Number(current.parentId))) return Number(current.id);
-
-            current = byId.get(Number(current.parentId));
-        }
-
-        return null;
-    };
-
-    const groups = new Map();
-    const loose = [];
-
-    for (const note of props.sharedNotes) {
-        const root = null == note.folderId ? null : rootOf(note.folderId);
-
-        if (null === root) {
-            loose.push(note);
-
-            continue;
-        }
-
-        const sub = Number(note.folderId) === root ? null : byId.get(Number(note.folderId))?.name ?? null;
-
-        if (!groups.has(root)) groups.set(root, []);
-
-        groups.get(root).push({ ...note, subfolder: sub });
-    }
-
-    const list = [...groups.entries()].map(([id, notes]) => ({
-        key: `folder:${id}`,
-        name: byId.get(id)?.name ?? "",
-        owner: byId.get(id)?.ownerName ?? null,
-        notes,
-    }));
-
-    return loose.length ? [...list, { key: "loose", name: null, owner: null, notes: loose }] : list;
-});
+const sharedGroups = computed(() =>
+    searching.value ? [] : groupShared(props.sharedFolders, props.sharedNotes),
+);
 </script>
 
 <template>

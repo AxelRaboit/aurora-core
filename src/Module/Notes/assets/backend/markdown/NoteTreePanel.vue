@@ -40,6 +40,8 @@ import { useModulePanelData } from "@/shared/nav/useModulePanelData.js";
 import { folderIdsIn, useNoteTree } from "./composables/useNoteTree.js";
 import { peekNoteDrag, readNoteDrag, startNoteDrag } from "./composables/noteDrag.js";
 import { dropZone, planDrop } from "./composables/noteDropPlan.js";
+import { groupShared } from "./composables/sharedGroups.js";
+import { readExpanded, storeExpanded } from "./composables/expandedStore.js";
 import NoteTreeItem from "./components/NoteTreeItem.vue";
 
 const FOLDERS_ENDPOINT = "/backend/notes/markdown/folders";
@@ -47,7 +49,6 @@ const NOTES_ENDPOINT = "/backend/notes/markdown/list";
 const SEARCH_ENDPOINT = "/backend/notes/markdown/search";
 const SHARED_ENDPOINT = "/backend/notes/markdown/shared";
 const LIBRARY_URL = "/backend/notes/markdown";
-const EXPANDED_KEY = "aurora.notes.panel.expanded";
 const PINNED_TAGS_KEY = "aurora.notes.panel.pinnedTags";
 const TAGS_OPEN_KEY = "aurora.notes.panel.tagsOpen";
 
@@ -124,7 +125,7 @@ const isEmpty = computed(() => 0 === folders.value.length && 0 === notes.value.l
 
 // ── Plier, déplier ─────────────────────────────────────────────────
 
-const openedIds = ref(readStoredExpanded());
+const openedIds = ref(readExpanded());
 
 /**
  * Ce qui est ouvert à l'écran : ce que la personne a déplié, et pendant une
@@ -209,27 +210,6 @@ function collapseAll() {
 }
 
 const anyOpen = computed(() => !searching.value && openedIds.value.size > 0);
-
-function readStoredExpanded() {
-    try {
-        const raw = window.localStorage.getItem(EXPANDED_KEY);
-        const ids = JSON.parse(raw ?? "[]");
-
-        return new Set(Array.isArray(ids) ? ids.map(Number) : []);
-    } catch {
-        // Stockage indisponible ou contenu abîmé : l'arbre s'ouvre fermé,
-        // ce qui est un défaut d'agrément, pas une panne.
-        return new Set();
-    }
-}
-
-function storeExpanded(ids) {
-    try {
-        window.localStorage.setItem(EXPANDED_KEY, JSON.stringify([...ids]));
-    } catch {
-        // Idem : une préférence de lecture, pas un état du carnet.
-    }
-}
 
 // ── Les favoris ────────────────────────────────────────────────────
 
@@ -337,67 +317,9 @@ onMounted(async () => {
  * qu'il faut pouvoir descendre ; ici on ne montre que les racines, chacune
  * suivie de ses notes, pour que la section tienne dans un panneau.
  */
-const sharedGroups = computed(() => {
-    if (searching.value) return [];
-
-    const byId = new Map(shared.value.folders.map((one) => [Number(one.id), one]));
-    const racines = shared.value.folders.filter(
-        (one) => !byId.has(Number(one.parentId)),
-    );
-
-    /**
-     * La racine partagée d'un dossier, en remontant ses parents.
-     *
-     * Les notes d'un sous-dossier n'apparaissaient nulle part : le serveur
-     * les rend lisibles - partager un dossier ouvre tout ce qu'il contient,
-     * à n'importe quelle profondeur - mais le panneau ne montrait que celles
-     * posées à la racine. On les rattache à leur racine, avec le nom de leur
-     * sous-dossier pour qu'on sache d'où elles viennent.
-     */
-    const rootOf = (folderId) => {
-        let current = byId.get(Number(folderId));
-
-        for (let guard = 0; current && guard <= byId.size; guard += 1) {
-            if (!byId.has(Number(current.parentId))) return Number(current.id);
-
-            current = byId.get(Number(current.parentId));
-        }
-
-        return null;
-    };
-
-    const parRacine = new Map();
-    const seules = [];
-
-    for (const note of shared.value.notes) {
-        const racine = null == note.folderId ? null : rootOf(note.folderId);
-
-        if (null === racine) {
-            seules.push(note);
-
-            continue;
-        }
-
-        const sub = Number(note.folderId) === racine ? null : byId.get(Number(note.folderId))?.name ?? null;
-
-        if (!parRacine.has(racine)) parRacine.set(racine, []);
-
-        parRacine.get(racine).push({ ...note, subfolder: sub });
-    }
-
-    const groupes = racines.map((dossier) => ({
-        key: `folder:${dossier.id}`,
-        name: dossier.name,
-        owner: dossier.ownerName,
-        notes: parRacine.get(Number(dossier.id)) ?? [],
-    }));
-
-    // Les notes partagées seules : celles dont le dossier n'est pas
-    // lui-même partagé.
-    return seules.length
-        ? [...groupes, { key: "loose", name: null, owner: null, notes: seules }]
-        : groupes;
-});
+const sharedGroups = computed(() =>
+    searching.value ? [] : groupShared(shared.value.folders, shared.value.notes),
+);
 
 const hasShared = computed(() => sharedGroups.value.length > 0);
 
@@ -728,8 +650,11 @@ function onTreeFocus(event) {
 }
 
 function onTreeKeydown(event) {
-    const current = event.target.closest?.("[data-tree-row]");
-    if (!current) return;
+    // Seulement quand c'est la ligne qui a le focus : un bouton de la ligne
+    // - ses trois points - garde Entrée pour lui, sinon il ouvrait la ligne
+    // au lieu de son menu.
+    const current = event.target;
+    if (!current?.matches?.("[data-tree-row]")) return;
 
     const all = rows();
     const index = all.indexOf(current);
@@ -804,6 +729,7 @@ onMounted(() => {
 
 onUnmounted(() => {
     while (stopListening.length) stopListening.pop()();
+    clearHover();
 });
 </script>
 
