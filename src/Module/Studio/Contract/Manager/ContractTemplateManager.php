@@ -268,10 +268,7 @@ class ContractTemplateManager implements ContractTemplateManagerInterface
             }
 
             if ([] !== $unknown) {
-                throw new FieldException('translations', $this->translator->trans('backend.studio.contract_templates.errors.unknown_tokens', [
-                    '{locale}' => mb_strtoupper($locale),
-                    '{tokens}' => implode(', ', array_map(static fn (string $token): string => sprintf('{{%s}}', $token), $unknown)),
-                ]));
+                throw new FieldException('translations', $this->translator->trans('backend.studio.contract_templates.errors.unknown_tokens', ['{locale}' => mb_strtoupper($locale), '{tokens}' => implode(', ', array_map(static fn (string $token): string => sprintf('{{%s}}', $token), $unknown))]));
             }
         }
     }

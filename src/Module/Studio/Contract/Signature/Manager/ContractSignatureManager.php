@@ -22,8 +22,8 @@ use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\HttpFoundation\Request;
-use Throwable;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Throwable;
 
 use function mb_substr;
 

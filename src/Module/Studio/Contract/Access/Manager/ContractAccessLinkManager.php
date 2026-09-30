@@ -179,11 +179,6 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
         $this->mail->send(
             to: $link->getRecipientEmail(),
             subjectKey: $subjectKey,
-            // The reminder's subject names the contract; without the value
-            // the client read « le contrat {reference} attend votre
-            // signature ». The first sending's subject has no placeholder and
-            // ignores it.
-            subjectParams: ['{reference}' => (string) $contract->getReference()],
             template: $template,
             context: [
                 'contract' => $contract,
@@ -195,6 +190,11 @@ class ContractAccessLinkManager implements ContractAccessLinkManagerInterface
                 'expiresAt' => $link->getExpiresAt(),
             ],
             locale: $contract->getLocale(),
+            // The reminder's subject names the contract; without the value
+            // the client read « le contrat {reference} attend votre
+            // signature ». The first sending's subject has no placeholder and
+            // ignores it.
+            subjectParams: ['{reference}' => (string) $contract->getReference()],
         );
 
         $link->markSent(new DateTimeImmutable());
