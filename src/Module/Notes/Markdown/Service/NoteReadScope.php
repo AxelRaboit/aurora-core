@@ -52,6 +52,12 @@ final readonly class NoteReadScope
 
     public function canRead(CoreUserInterface $user, MarkdownNoteInterface $note): bool
     {
+        // Le carnet de l'équipe se lit par tous ceux qui ont le module ; le
+        // contrôleur a déjà vérifié le module, il n'y a rien de plus à savoir.
+        if ($note->isTeam()) {
+            return true;
+        }
+
         if ($note->getUser()->getId() === $user->getId()) {
             return true;
         }

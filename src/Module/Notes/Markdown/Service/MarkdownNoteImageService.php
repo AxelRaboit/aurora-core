@@ -9,6 +9,8 @@ use Aurora\Core\Storage\Enum\StorageAreaEnum;
 use Aurora\Core\Storage\Enum\StorageDiskEnum;
 use Aurora\Core\Storage\StorageManager;
 use Aurora\Core\Storage\StoredFileName;
+use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
+use Aurora\Module\Notes\Space\NoteSpaceEnum;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -99,7 +101,7 @@ final readonly class MarkdownNoteImageService
      *
      * @throws FileException when validation fails (bad MIME, too big)
      */
-    public function store(UploadedFile $file, CoreUserInterface $user): string
+    public function store(UploadedFile $file, CoreUserInterface|NoteSpaceEnum $user): string
     {
         $size = $file->getSize();
         if (false !== $size && $size > self::MAX_FILE_SIZE) {
@@ -134,7 +136,7 @@ final readonly class MarkdownNoteImageService
      * n'existe pas. Distinguer les deux dirait à qui demande si le fichier
      * existe chez quelqu'un d'autre.
      */
-    public function keyOrNull(string $filename, CoreUserInterface $user): ?string
+    public function keyOrNull(string $filename, CoreUserInterface|NoteSpaceEnum $user): ?string
     {
         if (1 !== preg_match(self::FILENAME_SHAPE, $filename)) {
             return null;
@@ -153,7 +155,7 @@ final readonly class MarkdownNoteImageService
      *
      * Silencieux sur un fichier absent, pour que le nettoyage reste rejouable.
      */
-    public function delete(string $filename, CoreUserInterface $user): void
+    public function delete(string $filename, CoreUserInterface|NoteSpaceEnum $user): void
     {
         $key = $this->keyOrNull($filename, $user);
 
@@ -174,7 +176,7 @@ final readonly class MarkdownNoteImageService
      * supprimée entre-temps, et un export qui lèverait pour ça refuserait de
      * sortir un carnet entier à cause d'un fichier manquant.
      */
-    public function contents(string $filename, CoreUserInterface $user): ?string
+    public function contents(string $filename, CoreUserInterface|NoteSpaceEnum $user): ?string
     {
         $key = $this->keyOrNull($filename, $user);
 
@@ -189,6 +191,31 @@ final readonly class MarkdownNoteImageService
         }
 
         return null;
+    }
+
+    /**
+     * Recopie les images d'un texte d'un compartiment à l'autre.
+     *
+     * Une note qui change d'espace garde ses adresses d'images telles quelles
+     * - elles ne portent que le nom du fichier -, donc le fichier doit exister
+     * dans le compartiment de son nouvel espace. Recopier plutôt que déplacer :
+     * une image citée ailleurs dans l'ancien espace ne disparaît pas sous une
+     * autre note.
+     */
+    public function copyReferenced(?string $content, CoreUserInterface|NoteSpaceEnum $from, CoreUserInterface|NoteSpaceEnum $to): void
+    {
+        foreach ($this->extractFilenames($content) as $filename) {
+            $bytes = $this->contents($filename, $from);
+            $target = $this->keyOrNull($filename, $to);
+            if (null === $bytes) {
+                continue;
+            }
+            if (null === $target) {
+                continue;
+            }
+
+            $this->storageManager->active()->write($target, $bytes);
+        }
     }
 
     /**
@@ -211,8 +238,19 @@ final readonly class MarkdownNoteImageService
         return array_values(array_unique($matches[1]));
     }
 
-    private function keyFor(string $filename, CoreUserInterface $user): string
+    private function keyFor(string $filename, CoreUserInterface|NoteSpaceEnum $user): string
     {
-        return sprintf('%s/%s/%s', StorageAreaEnum::NotesMarkdown->value, (string) $user->getId(), $filename);
+        // Le compartiment d'une personne, ou celui de l'équipe : une image
+        // d'une note d'équipe doit s'afficher chez tous ceux qui la lisent,
+        // pas seulement chez qui l'a posée.
+        $bucket = $user instanceof NoteSpaceEnum ? 'team' : (string) $user->getId();
+
+        return sprintf('%s/%s/%s', StorageAreaEnum::NotesMarkdown->value, $bucket, $filename);
+    }
+
+    /** Le compartiment des images d'une note : celui de son auteur, ou celui de l'équipe. */
+    public function bucketOf(MarkdownNoteInterface $note): CoreUserInterface|NoteSpaceEnum
+    {
+        return $note->isTeam() ? NoteSpaceEnum::Team : $note->getUser();
     }
 }

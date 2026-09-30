@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Notes\Markdown\Dto;
 
 use Aurora\Core\Support\Str;
+use Aurora\Module\Notes\Space\NoteSpaceEnum;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
 #[AsAlias(MarkdownNoteInputFactoryInterface::class)]
@@ -25,6 +26,7 @@ class MarkdownNoteInputFactory implements MarkdownNoteInputFactoryInterface
             appearance: Str::trimOrNullFromArray($data, 'appearance'),
             version: isset($data['version']) && (int) $data['version'] > 0 ? (int) $data['version'] : null,
             force: true === ($data['force'] ?? false),
+            space: NoteSpaceEnum::fromInput($data['space'] ?? null),
         );
     }
 

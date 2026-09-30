@@ -7,6 +7,7 @@ namespace Aurora\Module\Notes\Markdown\Entity;
 use Aurora\Core\Timestampable\TimestampableInterface;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Markdown\Enum\NoteAppearanceEnum;
+use Aurora\Module\Notes\Space\NoteSpaceEnum;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use DateTimeImmutable;
 
@@ -88,4 +89,11 @@ interface MarkdownNoteInterface extends TimestampableInterface
     public function getVersion(): int;
 
     public function bumpVersion(): void;
+
+    public function getSpace(): NoteSpaceEnum;
+
+    public function setSpace(NoteSpaceEnum $space): static;
+
+    /** Vrai dans le carnet de l'équipe. */
+    public function isTeam(): bool;
 }

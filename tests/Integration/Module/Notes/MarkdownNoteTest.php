@@ -653,12 +653,12 @@ final class MarkdownNoteTest extends IntegrationTestCase
         self::assertResponseStatusCodeSame(404);
 
         // Et la page de l'éditeur ne s'ouvre pas non plus : elle sert à
-        // écrire, donc au propriétaire. La lecture a son adresse à elle.
+        // écrire. Qui peut lire est conduit au lecteur, qui est fait pour ça.
         $this->client->request('GET', $this->urlGenerator->generate(
             'backend_notes_markdown_show',
             ['id' => $note->getId()],
         ));
-        self::assertResponseStatusCodeSame(404);
+        self::assertResponseRedirects($this->urlGenerator->generate('backend_notes_markdown_read', ['id' => $note->getId()]));
 
         $this->entityManager->clear();
         $fresh = $this->entityManager->find(MarkdownNote::class, $note->getId());

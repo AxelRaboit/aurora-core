@@ -6,6 +6,7 @@ namespace Aurora\Module\Notes\Folder\Manager;
 
 use Aurora\Module\Notes\Folder\Dto\NoteFolderInputInterface;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
+use Aurora\Module\Notes\Space\NoteSpaceEnum;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use DateTimeImmutable;
 
@@ -54,7 +55,11 @@ interface NoteFolderManagerInterface
      *              would sit deeper than a breadcrumb can show. Nothing is
      *              written in that case.
      */
-    public function move(NoteFolderInterface $folder, ?NoteFolderInterface $newParent): bool;
+    /**
+     * Range le dossier sous un autre, ou à la racine d'un espace. Changer
+     * d'espace emporte toute la branche : sous-dossiers et notes.
+     */
+    public function move(NoteFolderInterface $folder, ?NoteFolderInterface $newParent, ?NoteSpaceEnum $space = null, ?CoreUserInterface $actor = null): bool;
 
     /**
      * Persists the order of a set of folders.

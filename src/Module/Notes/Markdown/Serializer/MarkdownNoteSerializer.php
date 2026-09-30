@@ -45,6 +45,7 @@ class MarkdownNoteSerializer implements MarkdownNoteSerializerInterface
             'excerpt' => $this->excerpts[(int) $note->getId()] ?? null,
             'favoritedAt' => $note->getFavoritedAt()?->format(DateTimeInterface::ATOM),
             'sharedAt' => $note->getSharedAt()?->format(DateTimeInterface::ATOM),
+            'space' => $note->getSpace()->value,
             // Qui l'a écrite, pour que l'écran puisse dire « partagé par ».
             // L'identifiant seul ne dit rien à personne.
             'ownerId' => $note->getUser()->getId(),

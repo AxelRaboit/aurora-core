@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Notes\Folder\Entity;
 
 use Aurora\Core\Timestampable\TimestampableInterface;
+use Aurora\Module\Notes\Space\NoteSpaceEnum;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\Collection;
@@ -72,4 +73,11 @@ interface NoteFolderInterface extends TimestampableInterface
     public function getTrashedWithFolderId(): ?int;
 
     public function setTrashedWithFolderId(?int $trashedWithFolderId): static;
+
+    public function getSpace(): NoteSpaceEnum;
+
+    public function setSpace(NoteSpaceEnum $space): static;
+
+    /** Vrai dans le carnet de l'équipe. */
+    public function isTeam(): bool;
 }

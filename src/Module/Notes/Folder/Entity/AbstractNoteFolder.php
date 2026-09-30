@@ -6,6 +6,7 @@ namespace Aurora\Module\Notes\Folder\Entity;
 
 use Aurora\Core\Encryption\Doctrine\EncryptedTextType;
 use Aurora\Core\Timestampable\TimestampableTrait;
+use Aurora\Module\Notes\Space\NoteSpaceEnum;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
 use DateTimeImmutable;
@@ -59,6 +60,13 @@ abstract class AbstractNoteFolder implements NoteFolderInterface
     #[ORM\Column(type: Types::INTEGER, options: ['unsigned' => true, 'default' => 0])]
     protected int $position = 0;
 
+    /**
+     * Où vit la ligne : le carnet de son auteur, ou celui de l'équipe.
+     * Toujours l'espace de son dossier ; {@see NoteSpaceEnum}.
+     */
+    #[ORM\Column(length: 16, enumType: NoteSpaceEnum::class, options: ['default' => 'personal'])]
+    protected NoteSpaceEnum $space = NoteSpaceEnum::Personal;
+
     /** Quand le dossier a été épinglé, jamais s'il ne l'est pas. */
     #[ORM\Column(nullable: true)]
     protected ?DateTimeImmutable $favoritedAt = null;
@@ -88,6 +96,23 @@ abstract class AbstractNoteFolder implements NoteFolderInterface
      */
     #[ORM\Column(nullable: true)]
     protected ?int $trashedWithFolderId = null;
+
+    public function getSpace(): NoteSpaceEnum
+    {
+        return $this->space;
+    }
+
+    public function setSpace(NoteSpaceEnum $space): static
+    {
+        $this->space = $space;
+
+        return $this;
+    }
+
+    public function isTeam(): bool
+    {
+        return NoteSpaceEnum::Team === $this->space;
+    }
 
     public function getUser(): CoreUserInterface
     {

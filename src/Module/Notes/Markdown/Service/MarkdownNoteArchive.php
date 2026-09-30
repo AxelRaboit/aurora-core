@@ -8,6 +8,7 @@ use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
+use Aurora\Module\Notes\Space\NoteSpaceEnum;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use RuntimeException;
 use ZipArchive;
@@ -46,6 +47,9 @@ final readonly class MarkdownNoteArchive
      */
     private const string IMAGE_DIR = '_images';
 
+    /** Le dossier de l'archive où part le carnet de l'équipe. */
+    private const string TEAM_DIR = 'Équipe';
+
     public function __construct(
         private MarkdownNoteRepository $notes,
         private NoteFolderRepository $folders,
@@ -73,16 +77,20 @@ final readonly class MarkdownNoteArchive
 
         $notes = $this->notes->findAllWithContentForUser($user);
 
+        // Le carnet de l'équipe part dans son propre dossier, « Équipe » : à
+        // la racine de l'archive, ses dossiers se mêleraient aux siens, et
+        // un réimport rangerait tout dans le carnet personnel sans prévenir.
+        // La racine de l'équipe est la clé -1, celle du carnet la clé 0.
         /** @var array<int, list<MarkdownNoteInterface>> $notesByFolder */
         $notesByFolder = [];
         foreach ($notes as $note) {
-            $notesByFolder[$note->getFolder()?->getId() ?? 0][] = $note;
+            $notesByFolder[$note->getFolder()?->getId() ?? ($note->isTeam() ? -1 : 0)][] = $note;
         }
 
         /** @var array<int, list<NoteFolderInterface>> $foldersByParent */
         $foldersByParent = [];
         foreach ($this->folders->findAllForUser($user) as $folder) {
-            $foldersByParent[$folder->getParent()?->getId() ?? 0][] = $folder;
+            $foldersByParent[$folder->getParent()?->getId() ?? ($folder->isTeam() ? -1 : 0)][] = $folder;
         }
 
         // Un carnet vide donnerait un zip sans entrée, que certains outils
@@ -97,6 +105,11 @@ final readonly class MarkdownNoteArchive
         $ajoutees = [];
 
         $this->addBranch($zip, $notesByFolder, $foldersByParent, 0, '', $user, $ajoutees);
+
+        if (isset($notesByFolder[-1]) || isset($foldersByParent[-1])) {
+            $zip->addEmptyDir(self::TEAM_DIR);
+            $this->addBranch($zip, $notesByFolder, $foldersByParent, -1, self::TEAM_DIR.'/', $user, $ajoutees);
+        }
 
         $zip->close();
 
@@ -213,7 +226,7 @@ final readonly class MarkdownNoteArchive
         array &$ajoutees,
     ): string {
         $tags = $note->getTags();
-        $content = $this->withImages((string) $note->getContent(), $prefix, $user, $zip, $ajoutees);
+        $content = $this->withImages((string) $note->getContent(), $prefix, $this->images->bucketOf($note), $zip, $ajoutees);
 
         if (0 === count($tags)) {
             return $content;
@@ -246,7 +259,7 @@ final readonly class MarkdownNoteArchive
     private function withImages(
         string $content,
         string $prefix,
-        CoreUserInterface $user,
+        CoreUserInterface|NoteSpaceEnum $user,
         ZipArchive $zip,
         array &$ajoutees,
     ): string {

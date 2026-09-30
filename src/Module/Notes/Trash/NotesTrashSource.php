@@ -9,6 +9,7 @@ use Aurora\Core\Trash\TrashSourceInterface;
 use Aurora\Core\Trash\TrashSummary;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
+use Aurora\Module\Notes\Space\NoteSpaceAccess;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 
@@ -25,6 +26,7 @@ final readonly class NotesTrashSource implements TrashSourceInterface
     public function __construct(
         private MarkdownNoteRepository $noteRepository,
         private Security $security,
+        private NoteSpaceAccess $spaceAccess,
     ) {}
 
     public function getModuleKey(): string
@@ -41,7 +43,7 @@ final readonly class NotesTrashSource implements TrashSourceInterface
     {
         $user = $this->security->getUser();
         $roots = $user instanceof CoreUserInterface
-            ? $this->noteRepository->findTrashedRootsForUser($user)
+            ? $this->noteRepository->findTrashedRootsForUser($user, $this->spaceAccess->canWriteTeam())
             : [];
 
         return new TrashSummary(
@@ -52,7 +54,7 @@ final readonly class NotesTrashSource implements TrashSourceInterface
             count: count($roots),
             items: array_map($this->present(...), array_slice($roots, 0, $limit)),
             oldestDeletedAt: $user instanceof CoreUserInterface
-                ? $this->noteRepository->oldestTrashedAtForUser($user)
+                ? $this->noteRepository->oldestTrashedAtForUser($user, $this->spaceAccess->canWriteTeam())
                 : null,
             restoreRoute: 'backend_notes_markdown_restore',
             forceDeleteRoute: 'backend_notes_markdown_force_delete',

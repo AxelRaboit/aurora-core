@@ -8,6 +8,7 @@ use Aurora\Core\Encryption\Doctrine\EncryptedTextType;
 use Aurora\Core\Timestampable\TimestampableTrait;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Markdown\Enum\NoteAppearanceEnum;
+use Aurora\Module\Notes\Space\NoteSpaceEnum;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
 use DateTimeImmutable;
@@ -43,6 +44,13 @@ abstract class AbstractMarkdownNote implements MarkdownNoteInterface
     #[ORM\ManyToOne(targetEntity: NoteFolderInterface::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     protected ?NoteFolderInterface $folder = null;
+
+    /**
+     * Où vit la ligne : le carnet de son auteur, ou celui de l'équipe.
+     * Toujours l'espace de son dossier ; {@see NoteSpaceEnum}.
+     */
+    #[ORM\Column(length: 16, enumType: NoteSpaceEnum::class, options: ['default' => 'personal'])]
+    protected NoteSpaceEnum $space = NoteSpaceEnum::Personal;
 
     #[ORM\Column(type: EncryptedTextType::NAME, nullable: true)]
     protected ?string $title = null;
@@ -315,6 +323,23 @@ abstract class AbstractMarkdownNote implements MarkdownNoteInterface
         $this->deletedAt = $deletedAt;
 
         return $this;
+    }
+
+    public function getSpace(): NoteSpaceEnum
+    {
+        return $this->space;
+    }
+
+    public function setSpace(NoteSpaceEnum $space): static
+    {
+        $this->space = $space;
+
+        return $this;
+    }
+
+    public function isTeam(): bool
+    {
+        return NoteSpaceEnum::Team === $this->space;
     }
 
     public function getVersion(): int

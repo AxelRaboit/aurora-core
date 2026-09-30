@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Notes\Markdown\Dto;
 
 use Aurora\Module\Notes\Markdown\Enum\NoteAppearanceEnum;
+use Aurora\Module\Notes\Space\NoteSpaceEnum;
 
 interface MarkdownNoteInputInterface
 {
@@ -35,4 +36,6 @@ interface MarkdownNoteInputInterface
     public function getVersion(): ?int;
 
     public function isForce(): bool;
+
+    public function getSpace(): NoteSpaceEnum;
 }

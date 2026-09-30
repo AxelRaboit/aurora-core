@@ -14,6 +14,7 @@ use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
 use Aurora\Module\Notes\Markdown\Service\NoteReadScope;
 use Aurora\Module\Notes\Markdown\Setting\MarkdownNoteSettingEnum;
+use Aurora\Module\Notes\Space\NoteSpaceAccess;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use DateTimeInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -28,6 +29,7 @@ final readonly class MarkdownNotesViewBuilder
         private UrlGeneratorInterface $urlGenerator,
         private SettingRepository $settingRepository,
         private NoteReadScope $readScope,
+        private NoteSpaceAccess $spaceAccess,
     ) {}
 
     /**
@@ -81,7 +83,10 @@ final readonly class MarkdownNotesViewBuilder
      */
     public function readView(CoreUserInterface $user, MarkdownNoteInterface $note): array
     {
-        $mine = $note->getUser()->getId() === $user->getId();
+        // « Chez soi » : son carnet, ou celui de l'équipe. Le fil d'Ariane,
+        // l'ordre de lecture et l'index des liens valent pour les deux ; la
+        // note partagée d'un collègue reste lue à part.
+        $mine = $note->isTeam() || $note->getUser()->getId() === $user->getId();
 
         // Chargés une fois et passés à qui en a besoin : l'index des titres,
         // l'ordre de lecture et l'arborescence lisaient chacun la même liste,
@@ -106,7 +111,7 @@ final readonly class MarkdownNotesViewBuilder
                     $this->hierarchy->pathTo($note->getFolder()),
                 )
                 : [],
-            'canEdit' => $mine,
+            'canEdit' => $this->spaceAccess->canWriteNote($user, $note),
             'previous' => $neighbours['previous'],
             'next' => $neighbours['next'],
             'libraryPath' => $this->urlGenerator->generate('backend_notes_markdown'),
@@ -154,6 +159,7 @@ final readonly class MarkdownNotesViewBuilder
             'color' => $one->getColor(),
             'position' => $one->getPosition(),
             'sharedAt' => $one->getSharedAt()?->format(DateTimeInterface::ATOM),
+            'space' => $one->getSpace()->value,
         ], $folders);
 
         $notes = array_map(static fn (array $row): array => [
@@ -162,6 +168,7 @@ final readonly class MarkdownNotesViewBuilder
             'folderId' => null === ($row['folderId'] ?? null) ? null : (int) $row['folderId'],
             'position' => $row['position'],
             'sharedAt' => $row['sharedAt'] ?? null,
+            'space' => $row['space'],
         ], $rows);
 
         return [

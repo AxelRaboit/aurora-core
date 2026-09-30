@@ -27,6 +27,9 @@ final readonly class NotesModule implements ModuleInterface, ModuleNavViewProvid
     {
         return [
             new NavPermission('notes.markdown.use'),
+            // Écrire dans le carnet de l'équipe. Le lire ne demande que le
+            // module : c'est un carnet commun.
+            new NavPermission('notes.team.edit'),
         ];
     }
 

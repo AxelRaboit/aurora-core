@@ -10,6 +10,8 @@ use Aurora\Core\Storage\StoredFileResponder;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteImageService;
 use Aurora\Module\Notes\Markdown\Service\NoteReadScope;
+use Aurora\Module\Notes\Space\NoteSpaceAccess;
+use Aurora\Module\Notes\Space\NoteSpaceEnum;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
@@ -35,6 +37,7 @@ final class MarkdownNotesImagesController extends AbstractController
         private readonly StoredFileResponder $storedFileResponder,
         private readonly UrlGeneratorInterface $urlGenerator,
         private readonly NoteReadScope $readScope,
+        private readonly NoteSpaceAccess $spaceAccess,
     ) {}
 
     /**
@@ -66,7 +69,7 @@ final class MarkdownNotesImagesController extends AbstractController
             return $this->jsonNotFound();
         }
 
-        $key = $this->imageService->keyOrNull($filename, $note->getUser());
+        $key = $this->imageService->keyOrNull($filename, $this->imageService->bucketOf($note));
         if (null === $key) {
             return $this->jsonNotFound();
         }
@@ -94,8 +97,16 @@ final class MarkdownNotesImagesController extends AbstractController
             return $this->jsonInvalidInput(['image' => 'Missing or invalid upload.']);
         }
 
+        // Une image posée dans une note d'équipe va dans le compartiment de
+        // l'équipe, pour que tous ses lecteurs la voient ; il faut pouvoir y
+        // écrire.
+        $team = NoteSpaceEnum::Team === NoteSpaceEnum::fromInput($request->request->get('space') ?? $request->query->get('space'));
+        if ($team && !$this->spaceAccess->canWriteTeam()) {
+            return $this->jsonNotFound();
+        }
+
         try {
-            $filename = $this->imageService->store($file, $user);
+            $filename = $this->imageService->store($file, $team ? NoteSpaceEnum::Team : $user);
         } catch (FileException $fileException) {
             return $this->jsonInvalidInput(['image' => $fileException->getMessage()]);
         }
@@ -131,23 +142,27 @@ final class MarkdownNotesImagesController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        $key = $this->imageService->keyOrNull($filename, $user);
+        // Son compartiment d'abord, puis celui de l'équipe, que tout le monde
+        // lit : une image d'une note d'équipe a la même adresse chez chacun.
+        foreach ([$user, NoteSpaceEnum::Team] as $bucket) {
+            $key = $this->imageService->keyOrNull($filename, $bucket);
 
-        if (null === $key) {
-            return $this->jsonNotFound();
+            if (null === $key) {
+                return $this->jsonNotFound();
+            }
+
+            try {
+                // Par le répondeur partagé plutôt qu'une réponse fabriquée ici :
+                // c'est lui qui pose `nosniff`, qui rend en téléchargement ce
+                // qu'un navigateur exécuterait comme un document, et qui sait
+                // servir un fichier local tel quel et diffuser un distant par
+                // morceaux.
+                return $this->storedFileResponder->respond($key);
+            } catch (NotFoundHttpException) {
+                continue;
+            }
         }
 
-        try {
-            // Par le répondeur partagé plutôt qu'une réponse fabriquée ici :
-            // c'est lui qui pose `nosniff`, qui rend en téléchargement ce
-            // qu'un navigateur exécuterait comme un document, et qui sait
-            // servir un fichier local tel quel et diffuser un distant par
-            // morceaux. Sa politique - privé, une heure - est celle que cette
-            // route veut : les noms sont des uuid, donc un autre fichier est
-            // une autre adresse, et le contenu est derrière une autorisation.
-            return $this->storedFileResponder->respond($key);
-        } catch (NotFoundHttpException) {
-            return $this->jsonNotFound();
-        }
+        return $this->jsonNotFound();
     }
 }

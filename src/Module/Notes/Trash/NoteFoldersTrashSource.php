@@ -9,6 +9,7 @@ use Aurora\Core\Trash\TrashSourceInterface;
 use Aurora\Core\Trash\TrashSummary;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
+use Aurora\Module\Notes\Space\NoteSpaceAccess;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 
@@ -29,6 +30,7 @@ final readonly class NoteFoldersTrashSource implements TrashSourceInterface
     public function __construct(
         private NoteFolderRepository $folderRepository,
         private Security $security,
+        private NoteSpaceAccess $spaceAccess,
     ) {}
 
     public function getModuleKey(): string
@@ -45,7 +47,7 @@ final readonly class NoteFoldersTrashSource implements TrashSourceInterface
     {
         $user = $this->security->getUser();
         $roots = $user instanceof CoreUserInterface
-            ? $this->folderRepository->findTrashedRootsForUser($user)
+            ? $this->folderRepository->findTrashedRootsForUser($user, $this->spaceAccess->canWriteTeam())
             : [];
 
         return new TrashSummary(
@@ -56,7 +58,7 @@ final readonly class NoteFoldersTrashSource implements TrashSourceInterface
             count: count($roots),
             items: array_map($this->present(...), array_slice($roots, 0, $limit)),
             oldestDeletedAt: $user instanceof CoreUserInterface
-                ? $this->folderRepository->oldestTrashedAtForUser($user)
+                ? $this->folderRepository->oldestTrashedAtForUser($user, $this->spaceAccess->canWriteTeam())
                 : null,
             restoreRoute: 'backend_notes_markdown_folders_restore',
             forceDeleteRoute: 'backend_notes_markdown_folders_force_delete',
