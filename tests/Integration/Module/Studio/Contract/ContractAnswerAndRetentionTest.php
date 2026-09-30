@@ -45,6 +45,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
+use function array_slice;
 use function sprintf;
 
 /**
@@ -236,6 +237,32 @@ final class ContractAnswerAndRetentionTest extends IntegrationTestCase
         self::assertFalse($second->isRevoked());
         self::assertSame(1, $contract->getReminderCount());
         self::assertInstanceOf(DateTimeImmutable::class, $contract->getLastReminderAt());
+    }
+
+    /**
+     * Both subjects name the contract. The reminder and the refusal were
+     * sent without the value, and read « le contrat {reference} attend votre
+     * signature », braces included, in the client's mailbox.
+     */
+    public function testTheReminderAndTheRefusalSubjectsNameTheContract(): void
+    {
+        $contract = $this->sentContract();
+        $this->links->send($contract);
+        $link = $this->links->remind($contract);
+        $this->refusals->refuseAsCustomer($link, new ContractRefusalInput(''), $this->requestFrom());
+
+        $subjects = [];
+        foreach ($this->getMailerEvents() as $event) {
+            if (!$event->isQueued()) {
+                $subjects[] = (string) $event->getMessage()->getSubject();
+            }
+        }
+
+        self::assertCount(3, $subjects, 'The sending, the reminder and the refusal.');
+        foreach (array_slice($subjects, 1) as $subject) {
+            self::assertStringContainsString((string) $contract->getReference(), $subject);
+            self::assertStringNotContainsString('{', $subject);
+        }
     }
 
     public function testAReminderIsRefusedOnceSomebodyHasSigned(): void

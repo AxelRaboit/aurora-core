@@ -121,6 +121,9 @@ class ContractRefusalManager implements ContractRefusalManagerInterface
     {
         $this->mail->sendToAdmin(
             subjectKey: 'studio.email.customer_refused.subject',
+            // Without it the subject read « Contrat {reference} : refus du
+            // client », braces included.
+            subjectParams: ['{reference}' => (string) $contract->getReference()],
             template: '@Studio/email/customer_refused.html.twig',
             context: [
                 'contract' => $contract,
