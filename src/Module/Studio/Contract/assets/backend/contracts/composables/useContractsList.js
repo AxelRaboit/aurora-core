@@ -141,6 +141,10 @@ export function useContractsList(props) {
     function openEdit(contract) {
         editing.value = contract;
         editForm.value = {
+            // Kept, or saving the draft of an amendment detached it from the
+            // contract it amends: the form sent no parent, and the manager
+            // read that as « not an amendment ».
+            amendsId: contract.amends?.id ?? null,
             customerId: String(contract.customerId ?? ""),
             bodyTemplateId: String(contract.body?.templateId ?? ""),
             annexTemplateId: String(contract.annex?.templateId ?? ""),

@@ -696,6 +696,7 @@ const pageActions = computed(() => {
                 <ContractFormFields
                     v-model="editForm"
                     :errors="editErrors"
+                    :amendable="amendable"
                     :customers="customers"
                     :bodies="bodies"
                     :annexes="annexes"
