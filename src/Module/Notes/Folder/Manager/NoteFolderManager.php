@@ -12,11 +12,15 @@ use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
 use Aurora\Module\Notes\Folder\Service\NoteFolderHierarchy;
 use Aurora\Module\Notes\Markdown\Manager\MarkdownNoteManagerInterface;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
+use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
+use Aurora\Module\Notes\Space\Repository\NoteSpaceRepository;
+use Aurora\Module\Notes\Space\Service\NoteSpaceAccess;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
+use function array_key_exists;
 use function count;
 
 #[AsAlias(NoteFolderManagerInterface::class)]
@@ -29,6 +33,8 @@ class NoteFolderManager implements NoteFolderManagerInterface
         protected readonly MarkdownNoteManagerInterface $noteManager,
         protected readonly NoteFolderHierarchy $hierarchy,
         protected readonly AuditLogger $auditLogger,
+        protected readonly NoteSpaceAccess $spaceAccess,
+        protected readonly NoteSpaceRepository $spaceRepository,
     ) {}
 
     public function create(CoreUserInterface $user, NoteFolderInputInterface $input): NoteFolderInterface
@@ -36,10 +42,20 @@ class NoteFolderManager implements NoteFolderManagerInterface
         $folder = $this->createFolder();
         $folder->setUser($user);
 
+        // Un parent impose son espace ; à la racine, c'est celui demandé, et
+        // par défaut son espace personnel.
+        $parent = null === $input->getParentId() ? null : $this->folderRepository->find($input->getParentId());
+        $space = null === $input->getSpaceId() ? null : $this->spaceRepository->find($input->getSpaceId());
+        $folder->setSpace(match (true) {
+            $parent instanceof NoteFolderInterface => $parent->getSpace(),
+            $space instanceof NoteSpaceInterface => $space,
+            default => $this->spaceAccess->personalSpace($user),
+        });
+
         $this->applyInput($folder, $input);
 
         if (null === $input->getPosition()) {
-            $maxPosition = $this->folderRepository->findMaxPositionForUserAndParent($user, $input->getParentId());
+            $maxPosition = $this->folderRepository->findMaxPositionForUserAndParent($folder->getSpace(), $folder->getParent()?->getId());
             $folder->setPosition(null === $maxPosition ? 0 : $maxPosition + 1);
         }
 
@@ -172,41 +188,7 @@ class NoteFolderManager implements NoteFolderManagerInterface
         return count($folders);
     }
 
-    /** Épingle le dossier, ou le décroche. L'heure ordonne le panneau. */
-    public function toggleFavorite(NoteFolderInterface $folder): bool
-    {
-        $pinned = !$folder->getFavoritedAt() instanceof DateTimeImmutable;
-
-        $folder->setFavoritedAt($pinned ? new DateTimeImmutable() : null);
-
-        $this->entityManager->flush();
-
-        $this->auditUpdated($folder);
-
-        return $pinned;
-    }
-
-    /**
-     * Ouvre ou referme ce dossier au reste du back-office.
-     *
-     * Ce qu'il contient suit, sous-dossiers compris : c'est le sens même
-     * de partager un endroit plutôt que chaque feuille qu'on y range.
-     * Rien n'est copié ni déplacé, une seule date change.
-     */
-    public function toggleShared(NoteFolderInterface $folder): bool
-    {
-        $partage = !$folder->getSharedAt() instanceof DateTimeImmutable;
-
-        $folder->setSharedAt($partage ? new DateTimeImmutable() : null);
-
-        $this->entityManager->flush();
-
-        $this->auditUpdated($folder);
-
-        return $partage;
-    }
-
-    public function move(NoteFolderInterface $folder, ?NoteFolderInterface $newParent): bool
+    public function move(NoteFolderInterface $folder, ?NoteFolderInterface $newParent, ?NoteSpaceInterface $space = null): bool
     {
         if ($this->hierarchy->wouldCreateCycle($folder, $newParent)) {
             return false;
@@ -216,6 +198,7 @@ class NoteFolderManager implements NoteFolderManagerInterface
             return false;
         }
 
+        $this->changeSpace($folder, $newParent?->getSpace() ?? $space ?? $folder->getSpace());
         $folder->setParent($newParent);
         $this->entityManager->flush();
 
@@ -224,17 +207,75 @@ class NoteFolderManager implements NoteFolderManagerInterface
         return true;
     }
 
+    /**
+     * Fait passer un dossier dans un autre espace, avec tout ce qu'il range.
+     *
+     * Une note vit toujours dans l'espace de son dossier : laisser la branche
+     * derrière ferait un dossier partagé plein de notes que personne d'autre
+     * ne voit.
+     */
+    protected function changeSpace(NoteFolderInterface $folder, NoteSpaceInterface $space): void
+    {
+        if ($space->getId() === $folder->getSpace()->getId()) {
+            return;
+        }
+
+        // Toute la branche, corbeille comprise : un dossier ou une note jeté
+        // puis restauré doit retrouver son parent dans le même espace.
+        $branch = [$folder];
+        $level = [(int) $folder->getId()];
+        $seen = [(int) $folder->getId() => true];
+
+        while ([] !== $level) {
+            $next = [];
+            foreach ($this->folderRepository->findAllChildrenOfAny($level) as $child) {
+                $id = (int) $child->getId();
+                if (!isset($seen[$id])) {
+                    $seen[$id] = true;
+                    $branch[] = $child;
+                    $next[] = $id;
+                }
+            }
+
+            $level = $next;
+        }
+
+        foreach ($branch as $one) {
+            $one->setSpace($space);
+        }
+
+        $ids = array_map(static fn (NoteFolderInterface $one): int => (int) $one->getId(), $branch);
+
+        foreach ($this->noteRepository->findAllInFolders($ids) as $note) {
+            $this->noteManager->changeSpace($note, $space);
+        }
+    }
+
     public function reorder(CoreUserInterface $user, array $entries): void
     {
         if ([] === $entries) {
             return;
         }
 
-        $ids = array_map(static fn (array $entry): int => (int) $entry['id'], $entries);
+        // Every folder of the person, not only those named: a parent is
+        // usually *not* among the siblings being reordered, and it used to
+        // resolve to null - reordering the folders of a subfolder sent all of
+        // them to the root. The stored parents also close the cycle check,
+        // which only looked at the entries and let "A under its own child B"
+        // through when B was not sent.
+        $all = [];
+        foreach ($this->folderRepository->findAllForUser($user) as $folder) {
+            $all[(int) $folder->getId()] = $folder;
+        }
 
+        // Seulement ce que la personne peut écrire : un dossier d'équipe se
+        // range par ceux qui en ont le droit.
         $byId = [];
-        foreach ($this->folderRepository->findBy(['id' => $ids, 'user' => $user]) as $folder) {
-            $byId[(int) $folder->getId()] = $folder;
+        foreach ($entries as $entry) {
+            $id = (int) $entry['id'];
+            if (isset($all[$id]) && $this->spaceAccess->canWriteFolder($user, $all[$id])) {
+                $byId[$id] = $all[$id];
+            }
         }
 
         // The intended shape is built before anything is written, so a cycle
@@ -247,12 +288,28 @@ class NoteFolderManager implements NoteFolderManagerInterface
             }
 
             $parentId = $entry['parentId'] ?? null;
+
+            // A parent that is not the person's folder is refused whole too:
+            // silently falling back to the root would move it somewhere
+            // nobody asked for.
+            if (null !== $parentId && !isset($all[(int) $parentId])) {
+                return;
+            }
+
+            // Changer d'espace n'est pas l'affaire d'un réordonnancement : la
+            // branche entière doit suivre, et c'est move() qui le fait.
+            if (null !== $parentId && $all[(int) $parentId]->getSpace()->getId() !== $byId[$id]->getSpace()->getId()) {
+                return;
+            }
+
             $parentMap[$id] = null === $parentId ? null : (int) $parentId;
         }
 
+        $storedParent = static fn (int $id): ?int => ($all[$id] ?? null)?->getParent()?->getId();
+
         foreach ($parentMap as $id => $firstParentId) {
             $visited = [$id => true];
-            for ($current = $firstParentId; null !== $current; $current = $parentMap[$current] ?? null) {
+            for ($current = $firstParentId; null !== $current; $current = array_key_exists($current, $parentMap) ? $parentMap[$current] : $storedParent($current)) {
                 if (isset($visited[$current])) {
                     return;
                 }
@@ -275,7 +332,7 @@ class NoteFolderManager implements NoteFolderManagerInterface
             }
 
             $parentId = $parentMap[$id] ?? null;
-            $folder->setParent(null !== $parentId ? ($byId[$parentId] ?? null) : null);
+            $folder->setParent(null !== $parentId ? $all[$parentId] : null);
             $folder->setPosition((int) $entry['position']);
         }
 
@@ -337,6 +394,24 @@ class NoteFolderManager implements NoteFolderManagerInterface
         return $height;
     }
 
+    /**
+     * Le parent où un dossier peut être rangé : du même espace. Null sinon.
+     */
+    protected function parentFor(NoteFolderInterface $folder, ?int $parentId): ?NoteFolderInterface
+    {
+        if (null === $parentId) {
+            return null;
+        }
+
+        $parent = $this->folderRepository->find($parentId);
+
+        if (!$parent instanceof NoteFolderInterface || $parent->getSpace()->getId() !== $folder->getSpace()->getId()) {
+            return null;
+        }
+
+        return $parent;
+    }
+
     protected function createFolder(): NoteFolderInterface
     {
         return new NoteFolder();
@@ -347,10 +422,7 @@ class NoteFolderManager implements NoteFolderManagerInterface
         $folder->setName($input->getName());
         $folder->setColor($input->getColor());
 
-        $parentId = $input->getParentId();
-        $parent = null === $parentId
-            ? null
-            : $this->folderRepository->findOneByUserAndId($folder->getUser(), $parentId);
+        $parent = $this->parentFor($folder, $input->getParentId());
 
         // A parent that would make a cycle is dropped rather than refused:
         // `applyInput` is also the client extension point, and a hook that

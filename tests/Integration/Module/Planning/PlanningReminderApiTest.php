@@ -11,6 +11,7 @@ use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use DateTimeImmutable;
+use DateTimeInterface;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -130,11 +131,15 @@ final class PlanningReminderApiTest extends IntegrationTestCase
      */
     public function testLatenessComesFromTheServer(): void
     {
-        $late = $this->reminder('2026-08-10T09:00:00+02:00');
-        $soon = $this->reminder('2026-09-30T09:00:00+02:00');
+        // Relative to today, window included. The first version pinned both
+        // dates, and "soon" was the morning of 30/09/2026: from ten o'clock
+        // that day it was late, and the test went red for everyone.
+        $now = new DateTimeImmutable();
+        $late = $this->reminder($now->modify('-10 days')->format(DateTimeInterface::ATOM));
+        $soon = $this->reminder($now->modify('+10 days')->format(DateTimeInterface::ATOM));
 
         $rows = [];
-        foreach ($this->window()['reminders'] as $row) {
+        foreach ($this->window($now->modify('-30 days'), $now->modify('+30 days'))['reminders'] as $row) {
             $rows[(int) $row['id']] = $row;
         }
 
@@ -208,11 +213,11 @@ final class PlanningReminderApiTest extends IntegrationTestCase
     }
 
     /** @return array<string, mixed> */
-    private function window(): array
+    private function window(?DateTimeImmutable $from = null, ?DateTimeImmutable $to = null): array
     {
         $this->client->request('GET', $this->urlGenerator->generate('backend_planning_events', [
-            'from' => '2026-08-01T00:00:00+00:00',
-            'to' => '2026-10-05T00:00:00+00:00',
+            'from' => $from?->format(DateTimeInterface::ATOM) ?? '2026-08-01T00:00:00+00:00',
+            'to' => $to?->format(DateTimeInterface::ATOM) ?? '2026-10-05T00:00:00+00:00',
         ]));
 
         self::assertResponseIsSuccessful();

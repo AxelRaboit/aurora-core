@@ -13,6 +13,9 @@ use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Markdown\Enum\NoteAppearanceEnum;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteImageService;
+use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
+use Aurora\Module\Notes\Space\Repository\NoteSpaceRepository;
+use Aurora\Module\Notes\Space\Service\NoteSpaceAccess;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -30,6 +33,8 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
         protected readonly NoteFolderRepository $folderRepository,
         protected readonly AuditLogger $auditLogger,
         protected readonly MarkdownNoteImageService $imageService,
+        protected readonly NoteSpaceAccess $spaceAccess,
+        protected readonly NoteSpaceRepository $spaceRepository,
     ) {}
 
     public function create(CoreUserInterface $user, MarkdownNoteInputInterface $input): MarkdownNoteInterface
@@ -37,10 +42,12 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
         $note = $this->createNote();
         $note->setUser($user);
 
+        $note->setSpace($this->targetSpace($user, $input->getFolderId(), $input->getSpaceId()));
+
         $this->applyInput($note, $input);
 
         if (null === $input->getPosition()) {
-            $maxPosition = $this->noteRepository->findMaxPositionForUserAndFolder($user, $input->getFolderId());
+            $maxPosition = $this->noteRepository->findMaxPositionForUserAndFolder($note->getSpace(), $note->getFolder()?->getId());
             $note->setPosition(null === $maxPosition ? 0 : $maxPosition + 1);
         }
 
@@ -67,20 +74,25 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
         $folders = [];
         /** @var array<int|string, int> $nextPosition */
         $nextPosition = [];
+        /** @var array<int|string, NoteSpaceInterface> $spaces */
+        $spaces = [];
         $notes = [];
 
         foreach ($inputs as $input) {
             $folderId = $input->getFolderId();
-            $key = $folderId ?? 'root';
+            // Une racine par espace : sans dossier, `spaceId` dit laquelle.
+            $key = $folderId ?? 'root:'.($input->getSpaceId() ?? 'personal');
 
             if (!array_key_exists($key, $folders)) {
                 $folders[$key] = null === $folderId ? null : $this->folderRepository->findOneByUserAndId($user, $folderId);
-                $max = $this->noteRepository->findMaxPositionForUserAndFolder($user, $folderId);
+                $spaces[$key] = $folders[$key]?->getSpace() ?? $this->targetSpace($user, null, $input->getSpaceId());
+                $max = $this->noteRepository->findMaxPositionForUserAndFolder($spaces[$key], $folders[$key]?->getId());
                 $nextPosition[$key] = null === $max ? 0 : $max + 1;
             }
 
             $note = $this->createNote();
             $note->setUser($user);
+            $note->setSpace($spaces[$key]);
             $note->setTitle($input->getTitle());
             $note->setContent($input->getContent());
             $note->setTags($input->getTags());
@@ -115,13 +127,14 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
         $oldContent = $note->getContent();
 
         $this->applyInput($note, $input);
+        $note->bumpVersion();
 
         $newTitle = $note->getTitle();
         if (null !== $oldTitle && null !== $newTitle && '' !== $oldTitle && $oldTitle !== $newTitle) {
-            $this->renameWikiLinks($note->getUser(), $note->getId(), $oldTitle, $newTitle);
+            $this->renameWikiLinks($note, $oldTitle, $newTitle);
         }
 
-        $this->cleanupOrphanedImages($note->getUser(), $oldContent, $note->getContent());
+        $this->cleanupOrphanedImages($this->imageService->bucketOf($note), $oldContent, $note->getContent());
 
         $this->entityManager->flush();
 
@@ -206,7 +219,7 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
         ));
 
         foreach ($notes as $note) {
-            $this->cleanupOrphanedImages($note->getUser(), $note->getContent(), null);
+            $this->cleanupOrphanedImages($this->imageService->bucketOf($note), $note->getContent(), null);
             $this->entityManager->remove($note);
         }
 
@@ -215,52 +228,50 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
         return count($notes);
     }
 
-    /**
-     * Épingle la note, ou la décroche.
-     *
-     * L'heure est celle du geste, et c'est elle qui ordonne le panneau : le
-     * dernier épinglé arrive en tête, là où on vient de le poser.
-     */
-    public function toggleFavorite(MarkdownNoteInterface $note): bool
+    public function move(MarkdownNoteInterface $note, ?NoteFolderInterface $folder, ?NoteSpaceInterface $space = null): void
     {
-        $pinned = !$note->getFavoritedAt() instanceof DateTimeImmutable;
-
-        $note->setFavoritedAt($pinned ? new DateTimeImmutable() : null);
-
-        $this->entityManager->flush();
-
-        $this->auditUpdated($note);
-
-        return $pinned;
-    }
-
-    /**
-     * Ouvre ou referme cette note au reste du back-office.
-     *
-     * Pour une note **seule** : celles qui vivent dans un dossier partagé
-     * n'ont pas à porter leur propre date, le dossier décide pour elles.
-     * Partager la note d'un dossier partagé ne fait donc rien de plus, et
-     * la refermer ne la retire pas du dossier.
-     */
-    public function toggleShared(MarkdownNoteInterface $note): bool
-    {
-        $partage = !$note->getSharedAt() instanceof DateTimeImmutable;
-
-        $note->setSharedAt($partage ? new DateTimeImmutable() : null);
-
-        $this->entityManager->flush();
-
-        $this->auditUpdated($note);
-
-        return $partage;
-    }
-
-    public function move(MarkdownNoteInterface $note, ?NoteFolderInterface $folder): void
-    {
+        $this->changeSpace($note, $folder?->getSpace() ?? $space ?? $note->getSpace());
         $note->setFolder($folder);
         $this->entityManager->flush();
 
         $this->auditUpdated($note);
+    }
+
+    /**
+     * Fait passer une note dans un autre espace, images comprises.
+     *
+     * Ses adresses d'images ne portent que le nom du fichier : le fichier doit
+     * donc exister dans le compartiment du nouvel espace, sinon ses nouveaux
+     * lecteurs verraient des images cassées. L'auteur ne change pas - il a
+     * écrit la note, où qu'elle aille.
+     */
+    public function changeSpace(MarkdownNoteInterface $note, NoteSpaceInterface $space): void
+    {
+        if ($space->getId() === $note->getSpace()->getId()) {
+            return;
+        }
+
+        $from = $this->imageService->bucketOf($note);
+
+        $note->setSpace($space);
+
+        $this->imageService->copyReferenced($note->getContent(), $from, $space);
+    }
+
+    /**
+     * L'espace d'une création : celui du dossier, sinon celui demandé, sinon
+     * l'espace personnel. Le contrôleur a déjà vérifié qu'on y écrit.
+     */
+    protected function targetSpace(CoreUserInterface $user, ?int $folderId, ?int $spaceId): NoteSpaceInterface
+    {
+        $folder = null === $folderId ? null : $this->folderRepository->find($folderId);
+        if ($folder instanceof NoteFolderInterface) {
+            return $folder->getSpace();
+        }
+
+        $space = null === $spaceId ? null : $this->spaceRepository->find($spaceId);
+
+        return $space instanceof NoteSpaceInterface ? $space : $this->spaceAccess->personalSpace($user);
     }
 
     /**
@@ -278,23 +289,13 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
 
         $ids = array_map(static fn (array $entry): int => (int) $entry['id'], $entries);
 
+        // Ce que la personne peut écrire, dans les deux espaces : une note
+        // d'équipe se range par ceux qui en ont le droit, pas par son auteur.
         $byId = [];
-        foreach ($this->noteRepository->findBy(['id' => $ids, 'user' => $user]) as $note) {
-            $byId[(int) $note->getId()] = $note;
-        }
-
-        $folders = [];
-        foreach ($entries as $entry) {
-            $folderId = $entry['folderId'] ?? null;
-            if (null === $folderId) {
-                continue;
+        foreach ($this->noteRepository->findBy(['id' => $ids]) as $note) {
+            if ($this->spaceAccess->canWriteNote($user, $note)) {
+                $byId[(int) $note->getId()] = $note;
             }
-
-            if (isset($folders[(int) $folderId])) {
-                continue;
-            }
-
-            $folders[(int) $folderId] = $this->folderRepository->findOneByUserAndId($user, (int) $folderId);
         }
 
         foreach ($entries as $entry) {
@@ -304,7 +305,16 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
             }
 
             $folderId = $entry['folderId'] ?? null;
-            $note->setFolder(null === $folderId ? null : ($folders[(int) $folderId] ?? null));
+            $folder = $this->folderFor($note, null === $folderId ? null : (int) $folderId);
+
+            // Un dossier d'un autre espace, ou d'un autre carnet : on ne range
+            // pas là, et on ne range pas non plus à la racine par défaut - la
+            // note reste où elle est. Changer d'espace est l'affaire de move().
+            if (null !== $folderId && !$folder instanceof NoteFolderInterface) {
+                continue;
+            }
+
+            $note->setFolder($folder);
             $note->setPosition((int) $entry['position']);
         }
 
@@ -531,13 +541,14 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
         }
 
         $affected = 0;
-        foreach ($this->noteRepository->findAllWithContentForUser($user) as $note) {
+        foreach ($this->writableNotes($user) as $note) {
             $tags = $note->getTags();
             if (!in_array($tag, $tags, true)) {
                 continue;
             }
 
             $note->setTags(array_values(array_filter($tags, static fn (string $existing): bool => $existing !== $tag)));
+            $note->bumpVersion();
             ++$affected;
         }
 
@@ -558,7 +569,7 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
     protected function rewriteTags(CoreUserInterface $user, array $rewrite): int
     {
         $affected = 0;
-        foreach ($this->noteRepository->findAllWithContentForUser($user) as $note) {
+        foreach ($this->writableNotes($user) as $note) {
             $current = $note->getTags();
             $next = [];
             $seen = [];
@@ -581,6 +592,7 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
 
             if ($changed) {
                 $note->setTags($next);
+                $note->bumpVersion();
                 ++$affected;
             }
         }
@@ -638,12 +650,18 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
      * the user's other notes. Case-sensitive substring (matches Onyx).
      * Clients override to customize the wiki-link syntax.
      */
-    protected function renameWikiLinks(CoreUserInterface $user, ?int $excludeId, string $oldTitle, string $newTitle): void
+    protected function renameWikiLinks(MarkdownNoteInterface $note, string $oldTitle, string $newTitle): void
     {
         $oldPattern = '[['.$oldTitle.']]';
         $newPattern = '[['.$newTitle.']]';
+        $excludeId = $note->getId();
 
-        foreach ($this->noteRepository->findAllWithContentForUser($user) as $other) {
+        // Dans l'espace de la note seulement : renommer une note d'un espace
+        // partagé ne touche pas aux carnets des autres, qu'on n'a pas le
+        // droit d'écrire.
+        $scope = $this->noteRepository->findLivingInSpace($note->getSpace());
+
+        foreach ($scope as $other) {
             if (null !== $excludeId && $other->getId() === $excludeId) {
                 continue;
             }
@@ -658,6 +676,9 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
             }
 
             $other->setContent(str_replace($oldPattern, $newPattern, $content));
+            // Une autre note réécrite : ouverte ailleurs, son éditeur doit le
+            // savoir plutôt que remettre l'ancien lien au prochain enregistrement.
+            $other->bumpVersion();
         }
     }
 
@@ -678,7 +699,7 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
      * client that picks a different image URL scheme can override this
      * method to scan its own pattern instead.
      */
-    protected function cleanupOrphanedImages(CoreUserInterface $user, ?string $oldContent, ?string $newContent): void
+    protected function cleanupOrphanedImages(CoreUserInterface|NoteSpaceInterface $user, ?string $oldContent, ?string $newContent): void
     {
         $oldFilenames = $this->imageService->extractFilenames($oldContent);
         if ([] === $oldFilenames) {
@@ -718,12 +739,41 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
             $note->setPosition($input->getPosition());
         }
 
-        $folderId = $input->getFolderId();
-        $note->setFolder(
-            null === $folderId
-                ? null
-                : $this->folderRepository->findOneByUserAndId($note->getUser(), $folderId),
-        );
+        $note->setFolder($this->folderFor($note, $input->getFolderId()));
+    }
+
+    /**
+     * Le dossier où une note peut être rangée : du même espace qu'elle. Null
+     * sinon - changer d'espace est l'affaire de move(), pas d'un
+     * enregistrement.
+     */
+    protected function folderFor(MarkdownNoteInterface $note, ?int $folderId): ?NoteFolderInterface
+    {
+        if (null === $folderId) {
+            return null;
+        }
+
+        $folder = $this->folderRepository->find($folderId);
+
+        if (!$folder instanceof NoteFolderInterface || $folder->getSpace()->getId() !== $note->getSpace()->getId()) {
+            return null;
+        }
+
+        return $folder;
+    }
+
+    /**
+     * Les notes qu'une personne peut réécrire en masse : celles des espaces
+     * où elle écrit.
+     *
+     * @return list<MarkdownNoteInterface>
+     */
+    protected function writableNotes(CoreUserInterface $user): array
+    {
+        return array_values(array_filter(
+            $this->noteRepository->findAllWithContentForUser($user),
+            fn (MarkdownNoteInterface $note): bool => $this->spaceAccess->canWriteNote($user, $note),
+        ));
     }
 
     protected function auditCreated(MarkdownNoteInterface $note): void

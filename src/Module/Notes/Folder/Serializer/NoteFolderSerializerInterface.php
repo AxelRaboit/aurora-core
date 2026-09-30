@@ -14,6 +14,14 @@ interface NoteFolderSerializerInterface
      */
     public function withCounts(array $noteCounts, array $childCounts): static;
 
+    /**
+     * A copy carrying what the viewer pinned: favourites belong to a person,
+     * not to the folder.
+     *
+     * @param array<int, string> $favorites folder id => when it was pinned
+     */
+    public function withFavorites(array $favorites): static;
+
     /** @return array<string, mixed> */
     public function serialize(NoteFolderInterface $folder): array;
 }

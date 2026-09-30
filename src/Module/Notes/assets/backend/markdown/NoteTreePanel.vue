@@ -28,8 +28,9 @@
  */
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { ChevronDown, ChevronRight, Download, FileText, Folder, FolderPlus, Pin, PinOff, Plus, Tag, Upload, Users } from "lucide-vue-next";
+import { BookOpen, ChevronDown, ChevronRight, ChevronsDownUp, Download, FileText, Folder, Globe, Pin, PinOff, Plus, Settings2, Tag, Upload, User, Users } from "lucide-vue-next";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
+import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppModulePanel from "@/shared/nav/AppModulePanel.vue";
 import { useDebounce } from "@/shared/composables/useDebounce.js";
@@ -38,17 +39,20 @@ import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 import { askPage, onPageNotice } from "@/shared/nav/modulePanelBridge.js";
 import { useModulePanelData } from "@/shared/nav/useModulePanelData.js";
 import { folderIdsIn, useNoteTree } from "./composables/useNoteTree.js";
-import { startNoteDrag } from "./composables/noteDrag.js";
+import { peekNoteDrag, readNoteDrag, startNoteDrag } from "./composables/noteDrag.js";
+import { dropZone, planDrop } from "./composables/noteDropPlan.js";
+import { sortSpaces, spaceLabel } from "./composables/noteSpaces.js";
+import { readExpanded, storeExpanded } from "./composables/expandedStore.js";
 import NoteTreeItem from "./components/NoteTreeItem.vue";
 
 const FOLDERS_ENDPOINT = "/backend/notes/markdown/folders";
 const NOTES_ENDPOINT = "/backend/notes/markdown/list";
 const SEARCH_ENDPOINT = "/backend/notes/markdown/search";
-const SHARED_ENDPOINT = "/backend/notes/markdown/shared";
+const SPACES_ENDPOINT = "/backend/notes/spaces";
 const LIBRARY_URL = "/backend/notes/markdown";
-const EXPANDED_KEY = "aurora.notes.panel.expanded";
 const PINNED_TAGS_KEY = "aurora.notes.panel.pinnedTags";
 const TAGS_OPEN_KEY = "aurora.notes.panel.tagsOpen";
+const SPACES_CLOSED_KEY = "aurora.notes.panel.spacesClosed";
 
 /** Combien d'étiquettes non épinglées on montre avant de replier. */
 const TAGS_SHOWN = 8;
@@ -123,7 +127,7 @@ const isEmpty = computed(() => 0 === folders.value.length && 0 === notes.value.l
 
 // ── Plier, déplier ─────────────────────────────────────────────────
 
-const openedIds = ref(readStoredExpanded());
+const openedIds = ref(readExpanded());
 
 /**
  * Ce qui est ouvert à l'écran : ce que la personne a déplié, et pendant une
@@ -150,12 +154,12 @@ const expanded = computed(() =>
  * lui-même ferait tourner la page sans rien afficher.
  */
 function revealNote(noteId) {
-    const note = announcedNotes.value.find((n) => Number(n.id) === Number(noteId));
+    const note = notes.value.find((n) => Number(n.id) === Number(noteId));
 
     if (!note?.folderId) return;
 
     const parents = new Map(
-        announcedFolders.value.map((f) => [Number(f.id), Number(f.parentId) || null]),
+        folders.value.map((f) => [Number(f.id), Number(f.parentId) || null]),
     );
 
     const next = new Set(openedIds.value);
@@ -186,26 +190,28 @@ function toggle(node) {
     storeExpanded(next);
 }
 
-function readStoredExpanded() {
-    try {
-        const raw = window.localStorage.getItem(EXPANDED_KEY);
-        const ids = JSON.parse(raw ?? "[]");
+/** Déplier sans jamais replier : ce que fait un clic sur un dossier. */
+function open(id) {
+    if (null === id || openedIds.value.has(Number(id))) return;
 
-        return new Set(Array.isArray(ids) ? ids.map(Number) : []);
-    } catch {
-        // Stockage indisponible ou contenu abîmé : l'arbre s'ouvre fermé,
-        // ce qui est un défaut d'agrément, pas une panne.
-        return new Set();
-    }
+    const next = new Set(openedIds.value);
+    next.add(Number(id));
+    openedIds.value = next;
+    storeExpanded(next);
 }
 
-function storeExpanded(ids) {
-    try {
-        window.localStorage.setItem(EXPANDED_KEY, JSON.stringify([...ids]));
-    } catch {
-        // Idem : une préférence de lecture, pas un état du carnet.
-    }
+/**
+ * Tout replier d'un geste, comme Obsidian.
+ *
+ * Un carnet qu'on a parcouru finit déplié partout, et replier dossier par
+ * dossier est exactement le genre de ménage qu'on ne fait jamais.
+ */
+function collapseAll() {
+    openedIds.value = new Set();
+    storeExpanded(openedIds.value);
 }
+
+const anyOpen = computed(() => !searching.value && openedIds.value.size > 0);
 
 // ── Les favoris ────────────────────────────────────────────────────
 
@@ -214,6 +220,46 @@ const hrefFor = (node) =>
     "folder" === node.kind
         ? `${LIBRARY_URL}/folder/${node.id}`
         : `${LIBRARY_URL}/${node.id}`;
+
+/**
+ * Passer en lecture, d'un clic, depuis n'importe où dans le module.
+ *
+ * Il fallait ouvrir une note puis chercher « Lire » dans ses trois points :
+ * deux gestes et un menu pour changer de façon d'être dans son carnet. On
+ * lit la note ouverte, ou la première du carnet quand rien ne l'est.
+ */
+function firstNoteIn(nodes) {
+    for (const node of nodes) {
+        if ("note" === node.kind) return node;
+
+        const found = firstNoteIn(node.children ?? []);
+        if (found) return found;
+    }
+
+    return null;
+}
+
+const readTargetId = computed(() => {
+    if (selectedKey.value?.startsWith("note:")) return Number(selectedKey.value.slice(5));
+
+    return firstNoteIn(tree.value)?.id ?? null;
+});
+
+function openReader() {
+    if (null !== readTargetId.value) window.location.assign(`${LIBRARY_URL}/${readTargetId.value}/read`);
+}
+
+/**
+ * Alt+R, depuis n'importe quel écran des notes : le lecteur sans chercher
+ * de bouton. Lu sur `code` et non sur `key`, parce qu'Alt+R écrit « ® »
+ * sur un Mac et que la touche, elle, reste la même.
+ */
+function onShortcut(event) {
+    if (!event.altKey || event.ctrlKey || event.metaKey || "KeyR" !== event.code) return;
+
+    event.preventDefault();
+    openReader();
+}
 
 /**
  * Ce qui est épinglé, dossiers puis notes, le plus récent d'abord.
@@ -237,78 +283,133 @@ const favorites = computed(() => {
     ].sort((a, b) => Date.parse(b.favoritedAt) - Date.parse(a.favoritedAt));
 });
 
-// ── Ce que les autres ont partagé ──────────────────────────────────
+// ── Les espaces ────────────────────────────────────────────────────
 
 /**
- * Le carnet des autres, en lecture.
+ * Les espaces que la personne lit, chacun avec son rôle.
  *
- * **Jamais mêlé au sien.** Ce qui n'appartient pas à la personne ne se
- * range pas dans son arborescence : les mélanger ferait croire qu'on peut
- * déplacer le dossier d'un collègue, et un glisser qui échoue au bout de
- * trois secondes vaut moins qu'une section qui dit ce qu'elle est.
- *
- * Une note partagée mène à la vue de lecture, pas à l'éditeur : elle n'est
- * pas à écrire, et lui ouvrir l'éditeur promettrait le contraire.
+ * **Une section par espace**, le sien d'abord : ce qui vit dans un espace
+ * partagé se range sous son nom, et l'en-tête dit d'un coup d'œil qui le
+ * lit et si l'on peut y écrire. Mélanger les racines de plusieurs espaces
+ * dans un seul arbre ferait croire qu'une note glissée d'un dossier à
+ * l'autre reste chez soi, alors qu'elle change de lecteurs.
  */
-const shared = ref({ folders: [], notes: [] });
+const fetchedSpaces = ref(null);
+const announcedSpaces = ref(null);
+const canCreateSpace = ref(false);
+
+const spaces = computed(() => sortSpaces(announcedSpaces.value ?? fetchedSpaces.value ?? []));
 
 onMounted(async () => {
-    const payload = await request(SHARED_ENDPOINT, null, {
+    const payload = await request(SPACES_ENDPOINT, null, {
         method: HttpMethod.Get,
         noGuard: true,
     });
 
     if (payload) {
-        shared.value = {
-            folders: payload.folders ?? [],
-            notes: payload.notes ?? [],
-        };
+        fetchedSpaces.value = payload.spaces ?? [];
+        canCreateSpace.value = Boolean(payload.canCreate);
     }
 });
+
+function spaceById(id) {
+    return spaces.value.find((space) => Number(space.id) === Number(id)) ?? null;
+}
+
+/** Tant que les espaces ne sont pas connus, on ne refuse rien : le serveur tranchera. */
+function canWriteIn(spaceId) {
+    if (null == spaceId || !spaces.value.length) return true;
+
+    return Boolean(spaceById(spaceId)?.canWrite);
+}
 
 /**
- * Les racines du partage, avec ce qu'elles portent.
- *
- * Le serveur rend les dossiers partagés **et** leurs descendants, parce
- * qu'il faut pouvoir descendre ; ici on ne montre que les racines, chacune
- * suivie de ses notes, pour que la section tienne dans un panneau.
+ * L'arbre découpé par espace. Une ligne de premier niveau dit son espace ;
+ * ce qu'elle contient est forcément du même.
  */
-const sharedGroups = computed(() => {
-    if (searching.value) return [];
+const spaceGroups = computed(() => {
+    if (!spaces.value.length) return [{ space: null, nodes: tree.value }];
 
-    const ids = new Set(shared.value.folders.map((one) => Number(one.id)));
-    const racines = shared.value.folders.filter(
-        (one) => !ids.has(Number(one.parentId)),
-    );
+    const bySpace = new Map(spaces.value.map((space) => [Number(space.id), []]));
+    const unplaced = [];
 
-    const parDossier = new Map();
-    for (const note of shared.value.notes) {
-        const cle = Number(note.folderId) || 0;
-
-        if (!parDossier.has(cle)) parDossier.set(cle, []);
-
-        parDossier.get(cle).push(note);
+    for (const node of tree.value) {
+        (bySpace.get(Number(node.spaceId)) ?? unplaced).push(node);
     }
 
-    const groupes = racines.map((dossier) => ({
-        key: `folder:${dossier.id}`,
-        name: dossier.name,
-        owner: dossier.ownerName,
-        notes: parDossier.get(Number(dossier.id)) ?? [],
-    }));
+    const groups = spaces.value.map((space) => ({ space, nodes: bySpace.get(Number(space.id)) }));
 
-    // Les notes partagées seules : celles dont le dossier n'est pas
-    // lui-même partagé.
-    const seules = shared.value.notes.filter(
-        (note) => !ids.has(Number(note.folderId)),
-    );
+    // Une ligne d'un espace que la liste ne connaît pas encore - créé à
+    // l'instant ailleurs - reste visible plutôt que de disparaître.
+    if (unplaced.length) groups[0].nodes = [...groups[0].nodes, ...unplaced];
 
-    return seules.length
-        ? [...groupes, { key: "loose", name: null, owner: null, notes: seules }]
-        : groupes;
+    return searching.value ? groups.filter((group) => group.nodes.length) : groups;
 });
 
-const hasShared = computed(() => sharedGroups.value.length > 0);
+/** Seul, son espace n'a pas besoin d'en-tête : le panneau reste celui d'avant. */
+const showSpaceHeaders = computed(
+    () => spaceGroups.value.length > 1 || spaceGroups.value.some((group) => group.space && !group.space.personal),
+);
+
+function readClosed() {
+    try {
+        return new Set(JSON.parse(window.localStorage.getItem(SPACES_CLOSED_KEY) ?? "[]").map(Number));
+    } catch {
+        return new Set();
+    }
+}
+
+const closedSpaces = ref(readClosed());
+
+function isSpaceOpen(space) {
+    return searching.value || !space || !closedSpaces.value.has(Number(space.id));
+}
+
+function toggleSpace(space) {
+    const next = new Set(closedSpaces.value);
+    const id = Number(space.id);
+
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+
+    closedSpaces.value = next;
+
+    try {
+        window.localStorage.setItem(SPACES_CLOSED_KEY, JSON.stringify([...next]));
+    } catch {
+        // Le repli reste valable pour la visite ; il ne sera pas retenu.
+    }
+}
+
+/** La racine d'un espace, comme cible d'un dépôt. */
+function spaceRoot(space) {
+    return { kind: "folder", id: null, key: `space:${space.id}`, spaceId: Number(space.id) };
+}
+
+/** Ce que le menu d'un en-tête d'espace propose. */
+function spaceActions(space) {
+    return [
+        ...(space.canWrite
+            ? [{
+                key: "import",
+                title: t("notes.markdown.spaces.import_here"),
+                icon: Upload,
+                onSelect: () => forward("import", Number(space.id)),
+            }]
+            : []),
+        {
+            key: "export",
+            title: t("notes.markdown.spaces.export"),
+            icon: Download,
+            onSelect: () => forward("export", Number(space.id)),
+        },
+    ];
+}
+
+function addInSpace(space) {
+    if (!isSpaceOpen(space)) toggleSpace(space);
+    forward("add", { folderId: null, spaceId: Number(space.id) });
+}
 
 // ── Les étiquettes ─────────────────────────────────────────────────
 
@@ -431,17 +532,33 @@ function labelOf(node) {
 // ── Ce que le panneau demande à la page ────────────────────────────
 
 /**
- * Notre propre copie de ce qui est glissé, pour que les lignes s'allument.
+ * Ce qu'on tient, et où ça tomberait.
  *
- * La page tient le même état - il le faut, c'est elle qui écrit - mais le
- * refléter ici coûte une affectation par événement qu'on transmet déjà, là
- * où le relire demanderait une annonce à chaque `dragover`.
+ * **Le panneau range lui-même.** Il transmettait le dépôt à la
+ * bibliothèque, qui n'existe pas quand une note est ouverte : glisser une
+ * note sur un dossier depuis l'éditeur ne faisait rien, sans un mot. Il
+ * calcule maintenant le résultat - quel dossier, quel rang - et le confie à
+ * la page sous forme de données simples, qu'elle écrit quel que soit l'écran
+ * affiché.
  */
 const draggingKey = ref(null);
-const dragOverKey = ref(null);
+const dropHint = ref(null);
+
+/** Le dossier survolé qui s'ouvrira si l'on attend dessus. */
+let hoverTimer = null;
+let hoverKey = null;
+
+/** Le temps de survol qui déplie un dossier fermé, comme dans le Finder. */
+const HOVER_OPEN_MS = 600;
+
+function clearHover() {
+    if (hoverTimer) clearTimeout(hoverTimer);
+    hoverTimer = null;
+    hoverKey = null;
+}
 
 function forward(name, ...args) {
-    askPage(`notes:${name}`, { args });
+    return askPage(`notes:${name}`, { args });
 }
 
 /**
@@ -457,12 +574,47 @@ function onSelect(node) {
         // La racine n'a pas d'identifiant, et `Number(null)` vaut zéro :
         // le panneau demandait donc le dossier 0, que la bibliothèque
         // affichait vide et dont l'adresse rendait un 404.
-        forward("open-folder", null === node.id ? null : Number(node.id));
+        // Personne à l'écoute : le lecteur est ailleurs dans le module, et la
+        // ligne, qui a annulé son lien pour laisser la page faire, navigue.
+        if (!forward("open-folder", null === node.id ? null : Number(node.id))) {
+            window.location.assign(null === node.id ? LIBRARY_URL : hrefFor(node));
+        }
+
+        // Un dossier qu'on ouvre se déplie aussi : on vient voir ce qu'il
+        // contient, et la flèche n'était qu'un détour de plus.
+        open(node.id);
 
         return;
     }
 
-    forward("select", Number(node.id));
+    if (!forward("select", Number(node.id))) window.location.assign(hrefFor(node));
+}
+
+/**
+ * Ajouter aux favoris, ou retirer, depuis la ligne.
+ *
+ * La page le fait quand elle est là, pour que la bibliothèque et l'éditeur
+ * suivent. Sinon le panneau le fait seul et corrige sa propre liste.
+ */
+async function toggleFavorite(node) {
+    const kind = "folder" === node.kind ? "folder" : "note";
+    const id = Number(node.id);
+
+    if (forward("favorite", { kind, id })) return;
+
+    const url = "folder" === kind
+        ? `${FOLDERS_ENDPOINT}/${id}/favorite`
+        : `/backend/notes/markdown/${id}/favorite`;
+    const payload = await request(url, {}, { method: HttpMethod.Post });
+
+    if (undefined === payload?.favorite) return;
+
+    const at = payload.favorite ? new Date().toISOString() : null;
+    const patchOne = (list) =>
+        (list ?? []).map((one) => (Number(one.id) === id ? { ...one, favoritedAt: at } : one));
+
+    if ("folder" === kind) announcedFolders.value = patchOne(folders.value);
+    else announcedNotes.value = patchOne(notes.value);
 }
 
 function onFavoriteClick(entry, event) {
@@ -470,13 +622,32 @@ function onFavoriteClick(entry, event) {
     onSelect(entry);
 }
 
+/** Ce qu'un dépôt sur cette ligne, à cette hauteur, écrirait. */
+function planFor(node, event, dragged) {
+    const zone = null === node.id
+        ? "inside"
+        : dropZone(event.currentTarget.getBoundingClientRect(), event.clientY, node.kind);
+
+    const planned = planDrop({
+        dragged,
+        target: { kind: node.kind, id: node.id, spaceId: node.spaceId ?? null },
+        zone,
+        folders: folders.value,
+        notes: notes.value,
+    });
+
+    // Un espace où l'on ne peut pas écrire ne reçoit rien : autant le dire
+    // par le curseur que par un refus après coup.
+    const plan = planned && canWriteIn(planned.spaceId) ? planned : null;
+
+    return { zone, plan };
+}
+
 /**
  * Le glisser part d'ici, donc le presse-papier se remplit ici.
  *
  * La page ne peut pas le faire à notre place : elle reçoit l'événement une
- * fois le glisser commencé, et `setData` n'a plus d'effet à ce moment. Les
- * lignes se laissaient saisir sans rien transporter, et le dépôt ne faisait
- * rien du tout.
+ * fois le glisser commencé, et `setData` n'a plus d'effet à ce moment.
  */
 function onDragStart(node, event) {
     draggingKey.value = node.key;
@@ -485,42 +656,178 @@ function onDragStart(node, event) {
 
 function onDragEnd() {
     draggingKey.value = null;
-    dragOverKey.value = null;
+    dropHint.value = null;
+    clearHover();
 }
 
 function onDragOver(node, event) {
-    // Une note ne reçoit rien : elle ne range pas.
-    if ("folder" !== node.kind || node.key === draggingKey.value) return;
+    const dragged = peekNoteDrag(event);
+    if (!dragged) return;
+
+    event.stopPropagation();
+
+    const { zone, plan } = planFor(node, event, dragged);
+
+    // Un dépôt impossible - un dossier dans son propre enfant, une ligne sur
+    // elle-même - n'allume rien et montre le curseur d'interdiction : mieux
+    // vaut le savoir avant de lâcher qu'après.
+    if (!plan) {
+        if (event.dataTransfer) event.dataTransfer.dropEffect = "none";
+        dropHint.value = null;
+        clearHover();
+
+        return;
+    }
 
     event.preventDefault();
-    event.stopPropagation();
-    dragOverKey.value = node.key;
+    if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
+
+    dropHint.value = { key: node.key, zone };
+
+    // Attendre sur un dossier fermé l'ouvre : on descend dans l'arbre sans
+    // lâcher ce qu'on tient.
+    const closed = "folder" === node.kind && null !== node.id && !expanded.value.has(Number(node.id));
+
+    if ("inside" === zone && closed && (node.children ?? []).length) {
+        if (hoverKey !== node.key) {
+            clearHover();
+            hoverKey = node.key;
+            hoverTimer = setTimeout(() => {
+                open(node.id);
+                clearHover();
+            }, HOVER_OPEN_MS);
+        }
+    } else {
+        clearHover();
+    }
 }
 
 function onDragLeave(node, event) {
     const related = event.relatedTarget;
     if (related && event.currentTarget.contains(related)) return;
-    if (dragOverKey.value === node.key) dragOverKey.value = null;
+    if (dropHint.value?.key === node.key) dropHint.value = null;
+    if (hoverKey === node.key) clearHover();
 }
 
 function onDrop(node, event) {
-    dragOverKey.value = null;
+    const dragged = readNoteDrag(event) ?? peekNoteDrag(event);
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const { plan } = dragged ? planFor(node, event, dragged) : { plan: null };
+
     draggingKey.value = null;
+    dropHint.value = null;
+    clearHover();
 
-    if ("folder" !== node.kind) return;
+    if (plan) forward("move", plan);
+}
 
-    forward("drop", { id: node.id }, event);
+/** La racine est une cible comme une autre : on y remonte ce qu'on lâche. */
+const rootNode = { kind: "folder", id: null, key: "root" };
+
+// ── Le clavier ─────────────────────────────────────────────────────
+
+/**
+ * Parcourir l'arbre sans la souris, comme dans un explorateur.
+ *
+ * Haut et bas passent d'une ligne visible à l'autre, droite déplie puis
+ * descend, gauche replie puis remonte au dossier parent, Entrée ouvre, F2
+ * renomme. Une seule ligne à la fois porte le focus : l'arbre compte pour
+ * une tabulation, pas pour cent.
+ */
+const treeRef = ref(null);
+
+function rows() {
+    return [...(treeRef.value?.querySelectorAll("[data-tree-row]") ?? [])];
+}
+
+function nodeByKey(key, list = tree.value) {
+    for (const node of list) {
+        if (node.key === key) return node;
+
+        const found = nodeByKey(key, node.children ?? []);
+        if (found) return found;
+    }
+
+    return null;
+}
+
+function focusRow(element) {
+    element?.focus();
+    element?.scrollIntoView?.({ block: "nearest" });
+}
+
+function onTreeFocus(event) {
+    if (event.target !== treeRef.value) return;
+
+    const all = rows();
+    const selected = all.find((row) => row.dataset.treeKey === selectedKey.value);
+
+    focusRow(selected ?? all[0]);
+}
+
+function onTreeKeydown(event) {
+    // Seulement quand c'est la ligne qui a le focus : un bouton de la ligne
+    // - ses trois points - garde Entrée pour lui, sinon il ouvrait la ligne
+    // au lieu de son menu.
+    const current = event.target;
+    if (!current?.matches?.("[data-tree-row]")) return;
+
+    const all = rows();
+    const index = all.indexOf(current);
+    const node = nodeByKey(current.dataset.treeKey);
+
+    if (!node) return;
+
+    const isFolder = "folder" === node.kind;
+    const isOpen = isFolder && expanded.value.has(Number(node.id));
+    const hasChildren = (node.children ?? []).length > 0;
+
+    const handled = {
+        ArrowDown: () => focusRow(all[index + 1]),
+        ArrowUp: () => focusRow(all[index - 1]),
+        Home: () => focusRow(all[0]),
+        End: () => focusRow(all[all.length - 1]),
+        ArrowRight: () => {
+            if (isFolder && hasChildren && !isOpen) toggle(node);
+            else if (isOpen) focusRow(all[index + 1]);
+        },
+        ArrowLeft: () => {
+            if (isOpen && !searching.value) {
+                toggle(node);
+
+                return;
+            }
+
+            const parent = all.find((row) => row.dataset.treeKey === current.dataset.parentKey);
+            focusRow(parent);
+        },
+        Enter: () => onSelect(node),
+        F2: () => forward(isFolder ? "rename-folder" : "rename-note", node),
+    }[event.key];
+
+    if (!handled) return;
+
+    event.preventDefault();
+    handled();
 }
 
 const stopListening = [];
 
 onMounted(() => {
+    window.addEventListener("keydown", onShortcut);
+    stopListening.push(() => window.removeEventListener("keydown", onShortcut));
+
     stopListening.push(
         onPageNotice("notes:changed", (detail) => {
             if (Array.isArray(detail?.notes)) announcedNotes.value = detail.notes;
             if (Array.isArray(detail?.folders)) {
                 announcedFolders.value = detail.folders;
             }
+            if (Array.isArray(detail?.spaces)) announcedSpaces.value = detail.spaces;
+            if ("canCreateSpace" in (detail ?? {})) canCreateSpace.value = Boolean(detail.canCreateSpace);
 
             // La page dit ce qu'elle montre : un dossier, une note, ou la
             // racine. La ligne correspondante s'allume, et son dossier
@@ -543,6 +850,7 @@ onMounted(() => {
 
 onUnmounted(() => {
     while (stopListening.length) stopListening.pop()();
+    clearHover();
 });
 </script>
 
@@ -553,9 +861,24 @@ onUnmounted(() => {
         :failed="failed"
     >
         <template #action>
-            <!-- Emporter et rendre, à côté de « nouveau dossier » et
-                 « nouvelle note » : ce sont des gestes sur le carnet entier,
-                 pas sur une note. -->
+            <!-- Lire le carnet, d'un clic : l'espace de lecture, épuré. -->
+            <AppIconButton
+                size="sm"
+                data-read-mode-toggle
+                :title="`${t('notes.markdown.read.mode')} (Alt+R)`"
+                :disabled="null === readTargetId"
+                v-on:click="openReader"
+            >
+                <BookOpen class="h-3.5 w-3.5" :stroke-width="2" />
+            </AppIconButton>
+            <AppIconButton
+                v-if="anyOpen"
+                size="sm"
+                :title="t('notes.markdown.collapse_all')"
+                v-on:click="collapseAll"
+            >
+                <ChevronsDownUp class="h-3.5 w-3.5" :stroke-width="2" />
+            </AppIconButton>
             <AppIconButton
                 size="sm"
                 :title="t('notes.markdown.import.button')"
@@ -570,17 +893,13 @@ onUnmounted(() => {
             >
                 <Download class="h-3.5 w-3.5" :stroke-width="2" />
             </AppIconButton>
+            <!-- Un seul plus, qui demande quoi : une note ou un dossier.
+                     Deux boutons côte à côte obligeaient à deviner lequel était
+                     lequel à la seule forme de leur icône. -->
             <AppIconButton
                 size="sm"
-                :title="t('notes.markdown.folders.create')"
-                v-on:click="forward('create-folder', null)"
-            >
-                <FolderPlus class="h-3.5 w-3.5" :stroke-width="2" />
-            </AppIconButton>
-            <AppIconButton
-                size="sm"
-                :title="t('notes.markdown.create_root')"
-                v-on:click="forward('create', null)"
+                :title="t('notes.markdown.add.title')"
+                v-on:click="forward('add', null)"
             >
                 <Plus class="h-3.5 w-3.5" :stroke-width="2" />
             </AppIconButton>
@@ -625,9 +944,14 @@ onUnmounted(() => {
         <a
             :href="LIBRARY_URL"
             data-root-row
-            class="group mb-0.5 flex min-w-0 items-center gap-2 rounded-lg border border-transparent px-3 py-2 text-sm no-underline transition-colors"
-            :class="null === selectedKey ? 'border-accent-600/30 bg-accent-600/15 text-accent-400' : 'text-primary hover:bg-surface-2'"
+            class="group mb-0.5 flex min-w-0 items-center gap-2 rounded-md border px-2 py-1.5 text-sm no-underline transition-colors"
+            :class="'root' === dropHint?.key
+                ? 'border-accent-600/40 bg-accent-600/15 text-accent-400 ring-2 ring-accent-500'
+                : null === selectedKey ? 'border-accent-600/30 bg-accent-600/15 text-accent-400' : 'border-transparent text-primary hover:bg-surface-2'"
             v-on:click.prevent="onSelect({ kind: 'folder', id: null, key: null })"
+            v-on:dragover="onDragOver(rootNode, $event)"
+            v-on:dragleave="onDragLeave(rootNode, $event)"
+            v-on:drop="onDrop(rootNode, $event)"
         >
             <FileText class="h-4 w-4 shrink-0" :stroke-width="2" />
             <span class="flex-1 truncate">{{ t('notes.markdown.library.title') }}</span>
@@ -641,59 +965,126 @@ onUnmounted(() => {
             {{ t("notes.markdown.search_no_results") }}
         </p>
 
-        <NoteTreeItem
-            v-for="node in tree"
-            :key="node.key"
-            :node="node"
-            :selected-key="selectedKey"
-            :expanded="expanded"
-            :draggable="true"
-            :dragging-key="draggingKey"
-            :drag-over-key="dragOverKey"
-            :href-for="hrefFor"
-            v-on:select="onSelect"
-            v-on:toggle="toggle"
-            v-on:create-note="(id) => forward('create', id)"
-            v-on:rename="(node) => forward('folder' === node.kind ? 'rename-folder' : 'rename-note', node)"
-            v-on:delete="(node) => forward('folder' === node.kind ? 'delete-folder' : 'delete', node)"
-            v-on:drag-start="onDragStart"
-            v-on:drag-end="onDragEnd"
-            v-on:drag-over="onDragOver"
-            v-on:drag-leave="onDragLeave"
-            v-on:drop="onDrop"
-        />
-        <!-- Le carnet des autres, en lecture, et à part. Ce qui n'est
-             pas à soi ne se range pas dans son arborescence. -->
-        <div v-if="hasShared" class="mt-2 border-t border-line pt-2">
-            <p class="px-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted">
-                {{ t('notes.markdown.library.shared.section') }}
-            </p>
-
-            <div v-for="groupe in sharedGroups" :key="groupe.key" class="mb-1">
-                <p
-                    v-if="groupe.name"
-                    class="flex min-w-0 items-center gap-2 px-3 py-1 text-sm text-secondary"
-                    :title="groupe.owner ? t('notes.markdown.library.shared.by', { name: groupe.owner }) : undefined"
+        <!-- L'arbre compte pour une seule tabulation : on y entre, puis les
+             flèches font le reste. -->
+        <div
+            ref="treeRef"
+            role="tree"
+            tabindex="0"
+            class="space-y-0.5 outline-none"
+            :aria-label="t('notes.markdown.title')"
+            v-on:focus="onTreeFocus"
+            v-on:keydown="onTreeKeydown"
+        >
+            <template v-for="group in spaceGroups" :key="group.space ? `space:${group.space.id}` : 'all'">
+                <!-- L'en-tête d'un espace : son nom, s'il se lit seulement,
+                     et ce qu'on y fait. Lâcher quelque chose dessus le range
+                     à sa racine. -->
+                <div
+                    v-if="showSpaceHeaders && group.space"
+                    :data-space-header="group.space.id"
+                    class="group/space mt-2 flex min-w-0 items-center gap-1 rounded-md border px-1 py-1 first:mt-0"
+                    :class="`space:${group.space.id}` === dropHint?.key
+                        ? 'border-accent-600/40 bg-accent-600/15 ring-2 ring-accent-500'
+                        : 'border-transparent'"
+                    v-on:dragover="onDragOver(spaceRoot(group.space), $event)"
+                    v-on:dragleave="onDragLeave(spaceRoot(group.space), $event)"
+                    v-on:drop="onDrop(spaceRoot(group.space), $event)"
                 >
-                    <Users class="h-3.5 w-3.5 shrink-0 text-muted" :stroke-width="2" />
-                    <span class="min-w-0 flex-1 truncate">{{ groupe.name }}</span>
-                </p>
+                    <button
+                        type="button"
+                        class="flex min-w-0 flex-1 items-center gap-1.5 rounded px-1 text-left text-xs font-semibold uppercase tracking-wide text-muted transition-colors hover:text-primary"
+                        :aria-expanded="isSpaceOpen(group.space)"
+                        v-on:click="toggleSpace(group.space)"
+                    >
+                        <ChevronDown v-if="isSpaceOpen(group.space)" class="h-3 w-3 shrink-0" :stroke-width="2" />
+                        <ChevronRight v-else class="h-3 w-3 shrink-0" :stroke-width="2" />
+                        <component
+                            :is="group.space.personal ? User : Users"
+                            class="h-3.5 w-3.5 shrink-0"
+                            :style="group.space.color ? { color: group.space.color } : null"
+                            :stroke-width="2"
+                        />
+                        <span class="min-w-0 truncate">{{ spaceLabel(group.space, t) }}</span>
+                    </button>
+                    <Globe
+                        v-if="group.space.published"
+                        data-space-published
+                        class="h-3.5 w-3.5 shrink-0 text-accent-400"
+                        :stroke-width="2"
+                        :aria-label="t('notes.markdown.spaces.publication.badge')"
+                    >
+                        <title>{{ t('notes.markdown.spaces.publication.badge') }}</title>
+                    </Globe>
+                    <span
+                        v-if="!group.space.canWrite"
+                        data-space-readonly
+                        class="shrink-0 rounded-full bg-surface-2 px-1.5 py-0.5 text-[10px] font-medium text-muted"
+                    >{{ t('notes.markdown.spaces.read_only') }}</span>
+                    <AppIconButton
+                        v-if="group.space.canWrite"
+                        size="sm"
+                        class="shrink-0 sm:opacity-0 sm:group-hover/space:opacity-100"
+                        :title="t('notes.markdown.spaces.add_here', { name: spaceLabel(group.space, t) })"
+                        :data-space-add="group.space.id"
+                        v-on:click="addInSpace(group.space)"
+                    >
+                        <Plus class="h-3.5 w-3.5" :stroke-width="2" />
+                    </AppIconButton>
+                    <AppIconButton
+                        v-if="group.space.canManage"
+                        size="sm"
+                        class="shrink-0 sm:opacity-0 sm:group-hover/space:opacity-100"
+                        :title="t('notes.markdown.spaces.settings')"
+                        :data-space-settings="group.space.id"
+                        v-on:click="forward('space-settings', Number(group.space.id))"
+                    >
+                        <Settings2 class="h-3.5 w-3.5" :stroke-width="2" />
+                    </AppIconButton>
+                    <!-- Emporter un espace seul, ou y verser des fichiers : les
+                         deux gestes de la barre du panneau, bornés à lui. -->
+                    <AppRowActions
+                        class="shrink-0 sm:opacity-0 sm:group-hover/space:opacity-100"
+                        size="sm"
+                        :data-space-menu="group.space.id"
+                        :actions="spaceActions(group.space)"
+                        :label="spaceLabel(group.space, t)"
+                    />
+                </div>
 
-                <a
-                    v-for="note in groupe.notes"
-                    :key="`shared-${note.id}`"
-                    :href="`${LIBRARY_URL}/${note.id}/read`"
-                    class="flex min-w-0 items-center gap-2 rounded-lg py-1.5 pl-6 pr-3 text-sm text-primary no-underline transition-colors hover:bg-surface-2"
-                    :title="note.ownerName ? t('notes.markdown.library.shared.by', { name: note.ownerName }) : undefined"
-                >
-                    <FileText class="h-4 w-4 shrink-0 text-muted" :stroke-width="2" />
-                    <span class="min-w-0 flex-1 truncate">
-                        {{ note.title || t('notes.markdown.untitled') }}
-                    </span>
-                </a>
-            </div>
+                <template v-if="!showSpaceHeaders || isSpaceOpen(group.space)">
+                    <NoteTreeItem
+                        v-for="node in group.nodes"
+                        :key="node.key"
+                        :node="node"
+                        :selected-key="selectedKey"
+                        :expanded="expanded"
+                        :draggable="group.space ? group.space.canWrite : true"
+                        :editable="group.space ? group.space.canWrite : true"
+                        :dragging-key="draggingKey"
+                        :drop-hint="dropHint"
+                        :href-for="hrefFor"
+                        v-on:select="onSelect"
+                        v-on:toggle="toggle"
+                        v-on:add="(node) => { open(node.id); forward('add', Number(node.id)); }"
+                        v-on:rename="(node) => forward('folder' === node.kind ? 'rename-folder' : 'rename-note', node)"
+                        v-on:favorite="toggleFavorite"
+                        v-on:delete="(node) => forward('folder' === node.kind ? 'delete-folder' : 'delete', node)"
+                        v-on:drag-start="onDragStart"
+                        v-on:drag-end="onDragEnd"
+                        v-on:drag-over="onDragOver"
+                        v-on:drag-leave="onDragLeave"
+                        v-on:drop="onDrop"
+                    />
+                    <p
+                        v-if="showSpaceHeaders && group.space && !group.nodes.length && !searching"
+                        class="px-3 py-1 text-xs text-muted"
+                    >
+                        {{ t('notes.markdown.spaces.empty') }}
+                    </p>
+                </template>
+            </template>
         </div>
-
         <!-- Les étiquettes, sous l'arborescence : elles traversent le
              rangement, donc elles ne peuvent pas y tenir une place. Cliquer
              l'une d'elles montre ses notes, où qu'elles soient. -->

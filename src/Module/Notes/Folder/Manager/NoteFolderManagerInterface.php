@@ -6,6 +6,7 @@ namespace Aurora\Module\Notes\Folder\Manager;
 
 use Aurora\Module\Notes\Folder\Dto\NoteFolderInputInterface;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
+use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use DateTimeImmutable;
 
@@ -35,26 +36,17 @@ interface NoteFolderManagerInterface
     public function purgeTrashedBefore(DateTimeImmutable $cutoff): int;
 
     /**
-     * Pins the folder to the side menu, or unpins it.
-     *
-     * @return bool whether it is pinned afterwards
-     */
-    /**
-     * Ouvre ou referme ce dossier au reste du back-office, et rend son
-     * nouvel état. Ce qu'il contient suit.
-     */
-    public function toggleShared(NoteFolderInterface $folder): bool;
-
-    public function toggleFavorite(NoteFolderInterface $folder): bool;
-
-    /**
      * Refiles a folder under a new parent, or at the root with null.
      *
      * @return bool false when the move is refused - a cycle, or a branch that
      *              would sit deeper than a breadcrumb can show. Nothing is
      *              written in that case.
      */
-    public function move(NoteFolderInterface $folder, ?NoteFolderInterface $newParent): bool;
+    /**
+     * Range le dossier sous un autre, ou à la racine d'un espace. Changer
+     * d'espace emporte toute la branche : sous-dossiers et notes.
+     */
+    public function move(NoteFolderInterface $folder, ?NoteFolderInterface $newParent, ?NoteSpaceInterface $space = null): bool;
 
     /**
      * Persists the order of a set of folders.

@@ -8,10 +8,15 @@ use Aurora\Core\Repository\ResolveTargetEntityRepository;
 use Aurora\Module\Notes\Folder\Entity\NoteFolder;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
+use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
+use Aurora\Module\Notes\Space\Repository\NoteSpaceRepository;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\Order;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
+
+use function sprintf;
 
 /**
  * Every query here is scoped to one person.
@@ -40,10 +45,25 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
      */
     public function findAllForUser(CoreUserInterface $user): array
     {
-        return $this->createQueryBuilder('f')
-            ->where('f.user = :user')
+        return $this->visibleTo($this->createQueryBuilder('f'), 'f', $user)
             ->andWhere('f.deletedAt IS NULL')
-            ->setParameter('user', $user)
+            ->orderBy('f.position', Order::Ascending->value)
+            ->addOrderBy('f.id', Order::Ascending->value)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Les dossiers vivants d'un espace, dans l'ordre du panneau.
+     *
+     * @return list<NoteFolderInterface>
+     */
+    public function findLivingInSpace(NoteSpaceInterface $space): array
+    {
+        return $this->createQueryBuilder('f')
+            ->where('f.space = :space')
+            ->andWhere('f.deletedAt IS NULL')
+            ->setParameter('space', $space)
             ->orderBy('f.position', Order::Ascending->value)
             ->addOrderBy('f.id', Order::Ascending->value)
             ->getQuery()
@@ -52,53 +72,12 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
 
     public function findOneByUserAndId(CoreUserInterface $user, int $id): ?NoteFolderInterface
     {
-        return $this->createQueryBuilder('f')
-            ->where('f.user = :user')
+        // Un dossier qu'on peut écrire : c'est l'espace qui décide.
+        return $this->writableTo($this->createQueryBuilder('f'), 'f', $user)
             ->andWhere('f.id = :id')
-            ->setParameter('user', $user)
             ->setParameter('id', $id)
             ->getQuery()
             ->getOneOrNullResult();
-    }
-
-    /**
-     * Les dossiers que les autres ont partagés.
-     *
-     * Ce sont les **racines** du partage : un dossier partagé entraîne ce
-     * qu'il contient, donc un sous-dossier d'un dossier déjà partagé n'a
-     * pas à porter sa propre date, et n'apparaît pas ici. Les siens sont
-     * exclus - on ne se voit pas partager avec soi-même.
-     *
-     * @return list<NoteFolderInterface>
-     */
-    public function findSharedByOthers(CoreUserInterface $user): array
-    {
-        return $this->createQueryBuilder('f')
-            ->where('f.user != :user')
-            ->andWhere('f.sharedAt IS NOT NULL')
-            ->andWhere('f.deletedAt IS NULL')
-            ->setParameter('user', $user)
-            ->orderBy('f.sharedAt', Order::Descending->value)
-            ->getQuery()
-            ->getResult();
-    }
-
-    /**
-     * Tous les dossiers partagés, les siens compris.
-     *
-     * Sert à calculer une portée de lecture : pour savoir si une note est
-     * lisible, il faut connaître toute la chaîne de ses parents, et un
-     * dossier partagé peut appartenir à n'importe qui.
-     *
-     * @return list<NoteFolderInterface>
-     */
-    public function findAllShared(): array
-    {
-        return $this->createQueryBuilder('f')
-            ->where('f.sharedAt IS NOT NULL')
-            ->andWhere('f.deletedAt IS NULL')
-            ->getQuery()
-            ->getResult();
     }
 
     /**
@@ -128,6 +107,29 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
      * @return list<NoteFolderInterface>
      */
     /**
+     * Les enfants de ces dossiers, corbeille comprise : ce qui change
+     * d'espace avec sa branche doit emporter aussi ce qui dort à la
+     * corbeille, sinon sa restauration le rendrait dans un espace qui n'est
+     * plus celui de son dossier.
+     *
+     * @param list<int> $folderIds
+     *
+     * @return list<NoteFolderInterface>
+     */
+    public function findAllChildrenOfAny(array $folderIds): array
+    {
+        if ([] === $folderIds) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('f')
+            ->where('IDENTITY(f.parent) IN (:ids)')
+            ->setParameter('ids', $folderIds)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * The living children of several folders at once, their owner with them.
      *
      * For walking a tree a level at a time: one query per depth, where asking
@@ -143,8 +145,10 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
             return [];
         }
 
+        // Jointure externe : l'auteur d'un dossier peut avoir quitté
+        // l'instance, et son dossier reste dans la branche.
         return $this->createQueryBuilder('f')
-            ->innerJoin('f.user', 'u')
+            ->leftJoin('f.user', 'u')
             ->addSelect('u')
             ->where('IDENTITY(f.parent) IN (:ids)')
             ->andWhere('f.deletedAt IS NULL')
@@ -177,13 +181,11 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
     public function findTrashedRootsForUser(CoreUserInterface $user): array
     {
         // The parent comes along: the trash names it beside each folder.
-        return $this->createQueryBuilder('f')
+        return $this->trashOf($this->createQueryBuilder('f'), 'f', $user)
             ->leftJoin('f.parent', 'p')
             ->addSelect('p')
-            ->where('f.user = :user')
             ->andWhere('f.deletedAt IS NOT NULL')
             ->andWhere('f.trashedWithFolderId IS NULL')
-            ->setParameter('user', $user)
             ->orderBy('f.deletedAt', Order::Descending->value)
             ->getQuery()
             ->getResult();
@@ -212,38 +214,33 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
 
     public function countTrashedForUser(CoreUserInterface $user): int
     {
-        return (int) $this->createQueryBuilder('f')
+        return (int) $this->trashOf($this->createQueryBuilder('f'), 'f', $user)
             ->select('COUNT(f.id)')
-            ->where('f.user = :user')
             ->andWhere('f.deletedAt IS NOT NULL')
             ->andWhere('f.trashedWithFolderId IS NULL')
-            ->setParameter('user', $user)
             ->getQuery()
             ->getSingleScalarResult();
     }
 
     public function oldestTrashedAtForUser(CoreUserInterface $user): ?DateTimeImmutable
     {
-        $value = $this->createQueryBuilder('f')
+        $value = $this->trashOf($this->createQueryBuilder('f'), 'f', $user)
             ->select('MIN(f.deletedAt)')
-            ->where('f.user = :user')
             ->andWhere('f.deletedAt IS NOT NULL')
             ->andWhere('f.trashedWithFolderId IS NULL')
-            ->setParameter('user', $user)
             ->getQuery()
             ->getSingleScalarResult();
 
         return null === $value ? null : new DateTimeImmutable((string) $value);
     }
 
-    public function findMaxPositionForUserAndParent(CoreUserInterface $user, ?int $parentId): ?int
+    public function findMaxPositionForUserAndParent(NoteSpaceInterface $space, ?int $parentId): ?int
     {
         $qb = $this->createQueryBuilder('f')
-            ->select('MAX(f.position)')
-            ->where('f.user = :user')
-            ->setParameter('user', $user);
+            ->select('MAX(f.position)');
 
         if (null === $parentId) {
+            $qb->andWhere('f.space = :rootSpace')->setParameter('rootSpace', $space);
             $qb->andWhere('f.parent IS NULL');
         } else {
             $qb->andWhere('IDENTITY(f.parent) = :parentId')
@@ -266,15 +263,16 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
      */
     public function countNotesPerFolderForUser(CoreUserInterface $user): array
     {
-        /** @var list<array{folderId: int|string|null, total: int|string}> $rows */
-        $rows = $this->getEntityManager()->createQueryBuilder()
+        $qb = $this->getEntityManager()->createQueryBuilder()
             ->select('IDENTITY(n.folder) AS folderId', 'COUNT(n.id) AS total')
             ->from(MarkdownNoteInterface::class, 'n')
-            ->where('n.user = :user')
+            ->andWhere(sprintf('IDENTITY(n.space) IN (%s)', NoteSpaceRepository::readableSubquery()))
             ->andWhere('n.deletedAt IS NULL')
             ->andWhere('n.folder IS NOT NULL')
-            ->setParameter('user', $user)
-            ->groupBy('n.folder')
+            ->groupBy('n.folder');
+
+        /** @var list<array{folderId: int|string|null, total: int|string}> $rows */
+        $rows = NoteSpaceRepository::bindViewer($qb, $user)
             ->getQuery()
             ->getArrayResult();
 
@@ -299,12 +297,10 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
     public function countChildrenPerFolderForUser(CoreUserInterface $user): array
     {
         /** @var list<array{parentId: int|string|null, total: int|string}> $rows */
-        $rows = $this->createQueryBuilder('f')
+        $rows = $this->visibleTo($this->createQueryBuilder('f'), 'f', $user)
             ->select('IDENTITY(f.parent) AS parentId', 'COUNT(f.id) AS total')
-            ->where('f.user = :user')
             ->andWhere('f.deletedAt IS NULL')
             ->andWhere('f.parent IS NOT NULL')
-            ->setParameter('user', $user)
             ->groupBy('f.parent')
             ->getQuery()
             ->getArrayResult();
@@ -319,5 +315,27 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
         }
 
         return $counts;
+    }
+
+    /** Les dossiers des espaces qu'une personne peut lire. */
+    private function visibleTo(QueryBuilder $qb, string $alias, CoreUserInterface $user): QueryBuilder
+    {
+        $qb->andWhere(sprintf('IDENTITY(%s.space) IN (%s)', $alias, NoteSpaceRepository::readableSubquery()));
+
+        return NoteSpaceRepository::bindViewer($qb, $user);
+    }
+
+    /** Les dossiers des espaces où une personne écrit. */
+    private function writableTo(QueryBuilder $qb, string $alias, CoreUserInterface $user): QueryBuilder
+    {
+        $qb->andWhere(sprintf('IDENTITY(%s.space) IN (%s)', $alias, NoteSpaceRepository::writableSubquery()));
+
+        return NoteSpaceRepository::bindViewer($qb, $user);
+    }
+
+    /** La corbeille qu'une personne gère : celle des espaces où elle écrit. */
+    private function trashOf(QueryBuilder $qb, string $alias, CoreUserInterface $user): QueryBuilder
+    {
+        return $this->writableTo($qb, $alias, $user);
     }
 }

@@ -28,6 +28,8 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  */
 final class NoteShareTest extends IntegrationTestCase
 {
+    use PersonalSpaceTrait;
+
     use ComparesRefusalPages;
 
     private KernelBrowser $client;
@@ -145,6 +147,7 @@ final class NoteShareTest extends IntegrationTestCase
     {
         $folder = new NoteFolder();
         $folder->setUser($this->owner);
+        $folder->setSpace($this->personalSpaceOf($this->owner));
         $folder->setName('Clients');
         $this->entityManager->persist($folder);
         $this->entityManager->flush();
@@ -401,6 +404,7 @@ final class NoteShareTest extends IntegrationTestCase
     {
         $note = new MarkdownNote();
         $note->setUser($this->owner);
+        $note->setSpace($folder?->getSpace() ?? $this->personalSpaceOf($this->owner));
         $note->setTitle($title);
         $note->setContent($content);
         if (null !== $folder) {

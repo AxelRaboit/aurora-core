@@ -95,6 +95,19 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
     const deleting = ref(false);
     const pendingDelete = ref(null);
 
+    /**
+     * La version de la note telle qu'elle a été chargée, et ce qui arrive
+     * quand le serveur en a une plus récente.
+     *
+     * Un enregistrement parti d'une version dépassée est refusé : quelqu'un
+     * a écrit entre-temps. L'éditeur s'arrête alors d'enregistrer - il ne
+     * doit ni réessayer en boucle ni écraser - et la personne choisit :
+     * recharger, ou écraser en connaissance de cause.
+     */
+    const loadedVersion = ref(null);
+    const conflict = ref(false);
+    let forceNextSave = false;
+
     const selectedNote = computed(
         () => notes.value.find((n) => n.id === selectedId.value) ?? null,
     );
@@ -113,6 +126,8 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
 
     const isDirty = computed(() => {
         if (!loadedSnapshot.value) return false;
+        // En conflit, rien ne part tout seul : c'est la personne qui décide.
+        if (conflict.value) return false;
         if (loadedSnapshot.value.title !== form.value.title) return true;
         if (loadedSnapshot.value.content !== form.value.content) return true;
         const a = loadedSnapshot.value.tags;
@@ -146,7 +161,12 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
     } = useAutoSave({
         isDirty: () => isDirty.value,
         save: performSave,
-        onError: () => toast.error(t("notes.markdown.errors.save_failed")),
+        onError: () => {
+            // Un conflit a sa propre modale : un second message par-dessus
+            // dirait deux fois la même chose, et la moins claire des deux.
+            if (!conflict.value)
+                toast.error(t("notes.markdown.errors.save_failed"));
+        },
     });
 
     async function refreshList() {
@@ -214,6 +234,8 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
         loadedSnapshot.value = snapshot;
         form.value = { ...snapshot, tags: [...snapshot.tags] };
         loadedId.value = id;
+        loadedVersion.value = payload.note.version ?? null;
+        conflict.value = false;
         cancelAutoSave();
     }
 
@@ -257,11 +279,23 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
         };
 
         try {
+            const force = forceNextSave;
+            forceNextSave = false;
+
             const { ok, payload } = await api.update(noteId, {
                 folderId,
                 ...snapshot,
+                version: loadedVersion.value,
+                force,
             });
-            if (!ok) return false;
+            if (!ok) {
+                if (payload?.conflict) conflict.value = true;
+
+                return false;
+            }
+
+            if (payload?.note?.version)
+                loadedVersion.value = payload.note.version;
 
             // Update the snapshot so isDirty drops to false - without
             // overwriting `form` (the user may have typed more chars
@@ -381,6 +415,30 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
      * touching multiple notes) so both the sidebar and the editor pane
      * reflect the new server state in one call.
      */
+    /** Écraser la version du serveur avec ce qui est à l'écran, sciemment. */
+    async function saveAnyway() {
+        conflict.value = false;
+        forceNextSave = true;
+        await flushPendingSave();
+        forceNextSave = false;
+    }
+
+    /**
+     * Reprendre la version du serveur, en laissant tomber ce qui n'a pas pu
+     * être enregistré. Le formulaire est d'abord déclaré propre : sans cela,
+     * le changement de note tenterait un dernier enregistrement, refusé à
+     * son tour.
+     */
+    async function reloadDiscarding() {
+        cancelAutoSave();
+        loadedSnapshot.value = {
+            ...form.value,
+            tags: [...(form.value.tags ?? [])],
+        };
+        conflict.value = false;
+        await reloadCurrent();
+    }
+
     async function reloadCurrent() {
         await refreshList();
         if (selectedId.value !== null) {
@@ -474,9 +532,12 @@ export function useNotesEditor({ api, initialNotes, extraFields = {} }) {
         pendingDelete,
         saveStatus,
         lastSavedAt,
+        conflict,
         // actions
         refreshList,
         reloadCurrent,
+        saveAnyway,
+        reloadDiscarding,
         selectNote,
         createNote,
         saveSelected,

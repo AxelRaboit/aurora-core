@@ -14,6 +14,9 @@ backend:
             notes:
                 markdown:
                     use: 'Usar las notas Markdown'
+                spaces:
+                    create: 'Crear espacios de notas compartidos'
+                    publish: 'Publicar espacios de notas en la web'
     modules:
         notes_backend: Notas
         notes_markdown: 'Notas Markdown'
@@ -26,6 +29,12 @@ backend:
     audit:
         actions:
             notes_markdown:
+                space:
+                    published: 'Espacio publicado'
+                    unpublished: 'Espacio despublicado'
+                    created: Espacio creado
+                    updated: Espacio modificado
+                    deleted: Espacio retirado
                 note:
                     trashed: 'Nota enviada a la papelera'
                     restored: 'Nota restaurada'
@@ -89,6 +98,72 @@ notes:
                 open: 'Abrir la nota'
                 expires: 'Este enlace caduca el %date%.'
                 read_only: 'Puede leer esta nota, pero no editarla.'
+        spaces:
+            import_here: 'Importar en este espacio'
+            export: 'Exportar este espacio'
+            publication:
+                title: 'Publicación en la web'
+                hint: 'El espacio se puede leer entonces sin cuenta, en su dirección. No se puede escribir en él.'
+                slug: 'Dirección'
+                slug_placeholder: 'Se toma del nombre si está vacía'
+                indexable: 'Dejar que los buscadores lo indexen'
+                indexable_hint: 'Desactivado, la página pide a los buscadores que no la listen.'
+                copy: 'Copiar la dirección'
+                copied: 'Dirección copiada'
+                publish: 'Publicar'
+                update: 'Actualizar'
+                unpublish: 'Despublicar'
+                published: 'Espacio publicado'
+                unpublished: 'Espacio despublicado'
+                badge: 'Publicado en la web'
+            my_space: 'Mi espacio'
+            errors:
+                private_owner_only: 'Solo el propietario puede reservarse el espacio.'
+                bad_slug: 'Dirección no válida: solo letras, cifras y guiones.'
+                slug_taken: 'Esta dirección ya está ocupada.'
+                name_required: 'Pon un nombre al espacio.'
+                bad_access: 'Acceso desconocido.'
+                bad_role: 'Rol desconocido.'
+                bad_member: 'Esta persona no se puede añadir.'
+                save_failed: 'No se ha podido guardar el espacio.'
+                load_failed: 'No se ha podido cargar el espacio.'
+            name: 'Nombre'
+            name_placeholder: 'Nombre del espacio'
+            label: 'Espacio'
+            loading: 'Cargando…'
+            personal_hint: 'Tu espacio personal sigue siendo privado: nadie más lo ve. Solo se puede ajustar su color.'
+            owner: 'Propietario: {name}'
+            settings: 'Ajustes del espacio'
+            members: 'Miembros'
+            members_hint: 'Solo entran las personas que añades, cada una con su rol.'
+            members_hint_backoffice: 'Todo el back-office entra con el rol por defecto; añadir a alguien puede darle más.'
+            no_members: 'Todavía no hay nadie.'
+            pick_person: 'Elegir una persona'
+            add_member: 'Añadir'
+            remove_member: 'Quitar a {name}'
+            delete: 'Retirar el espacio'
+            delete_confirm: 'Confirmar la retirada'
+            confirm_delete: 'El espacio {name} y todo lo que contiene desaparecerán para todos. Su propietario podrá recuperarlo.'
+            save: 'Guardar'
+            created: 'Espacio creado'
+            updated: 'Espacio guardado'
+            deleted: 'Espacio retirado'
+            read_only: 'Lectura'
+            add_here: 'Añadir en {name}'
+            empty: 'Nada aquí por ahora.'
+            access:
+                label: 'Quién entra'
+                private: 'Solo yo'
+                members: 'Algunas personas'
+                backoffice: 'Todo el back-office'
+                private_hint: 'Nadie más lo ve.'
+                members_hint: 'Solo las personas que añades.'
+                backoffice_hint: 'Cualquiera que use las notas.'
+            role:
+                label: 'Rol por defecto'
+                reader: 'Lectura'
+                editor: 'Escritura'
+                manager: 'Gestión'
         folders:
             title: Carpetas
             trash_label: 'Carpetas de notas'
@@ -123,26 +198,18 @@ notes:
             new_note: 'Nueva nota'
             recent: 'Editadas recientemente'
             favorites: Favoritos
-            pin: 'Fijar en el menú'
-            unpin: 'Quitar de favoritos'
-            pin_failed: 'No se puede fijar este elemento.'
+            pin: Añadir a favoritos
+            unpin: Quitar de favoritos
+            pin_failed: No se han podido actualizar los favoritos.
             shared:
-                start: 'Hacer visible para el equipo'
-                stop: 'Dejar de hacer visible'
-                started: 'Visible en modo lectura para el equipo'
-                stopped: 'Retirado de la vista del equipo'
-                failed: 'No se puede cambiar la visibilidad.'
                 section: 'Visible para mí'
-                badge: 'Visible para el equipo'
-                via_folder: 'Visible para el equipo a través de la carpeta {folder}'
-                change_on_folder: 'Abra la carpeta para cambiarlo'
-                confirm_folder: 'La carpeta {folder} y las {count} notas que contiene dejarán de ser visibles para el equipo.'
+                badge: En un espacio compartido
                 by: 'Por {name}'
                 read_only: 'Solo lectura'
             visibility:
                 all: 'Filtrar: todo'
-                shared: 'Filtro: visibles para el equipo'
-                private: 'Filtro: privados'
+                shared: 'Filtro: espacios compartidos'
+                private: 'Filtro: mi espacio'
                 clear: 'Quitar el filtro'
             selected: '{count} seleccionado(s)'
             select: Seleccionar
@@ -199,6 +266,13 @@ notes:
         title: 'Notas Markdown'
         save: Guardar
         read:
+            edit: 'Editar'
+            previous: 'Anterior'
+            next: 'Siguiente'
+            pager: 'Nota anterior y siguiente'
+            mode: 'Modo lectura'
+            mode_edit: 'Volver a la edición'
+            contents: 'Índice'
             open: 'Leer solo la nota'
             subheading: 'Vista de lectura'
             back: 'Volver al editor'
@@ -246,7 +320,25 @@ notes:
             done: 'Ninguna nota importada | 1 nota importada | {count} notas importadas'
             errors:
                 required: 'Elija al menos un archivo.'
-        create_in_folder: 'Nueva nota en esta carpeta'
+        create_in_folder: 'Añadir a esta carpeta'
+        collapse_all: 'Plegar todo'
+        conflict:
+            title: 'Esta nota ha cambiado en otro lugar'
+            body: 'Alguien modificó esta nota mientras usted escribía. Sus últimos cambios no se han guardado, para no borrar los suyos. Recargue para partir de su versión, o sobrescríbala con la suya.'
+            reload: 'Recargar su versión'
+            overwrite: 'Sobrescribir con la mía'
+        breadcrumb: 'Ubicación de la nota'
+        add:
+            space: 'Espacio'
+            create_space: 'Crear el espacio'
+            title: 'Añadir'
+            kind: 'Añadir una nota o una carpeta'
+            note: 'Nota'
+            folder: 'Carpeta'
+            where: 'En:'
+            create_note: 'Crear la nota'
+            create_folder: 'Crear la carpeta'
+            here: 'Añadir aquí'
         confirm_delete: '¿Eliminar definitivamente «{title}»?'
         confirm_discard_changes: 'Tiene cambios sin guardar. ¿Descartarlos?'
         wiki_link_not_found: 'Ninguna nota coincide con «{title}».'

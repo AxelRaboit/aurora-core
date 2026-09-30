@@ -14,4 +14,7 @@ interface NoteFolderInputInterface
     public function getParentId(): ?int;
 
     public function getPosition(): ?int;
+
+    /** L'espace d'une création à la racine ; null pour son espace personnel. */
+    public function getSpaceId(): ?int;
 }

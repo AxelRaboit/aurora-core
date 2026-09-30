@@ -4,6 +4,8 @@ import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 import { useMarkdownNotesPage } from '@notes/backend/markdown/composables/useMarkdownNotesPage.js';
 import { useNoteFoldersApi } from '@notes/backend/markdown/composables/useNoteFoldersApi.js';
+import { sortSpaces, useNoteSpacesApi } from '@notes/backend/markdown/composables/noteSpaces.js';
+import NoteSpaceSettingsModal from '@notes/backend/markdown/components/NoteSpaceSettingsModal.vue';
 import AppBackLink from '@/shared/components/nav/AppBackLink.vue';
 import NoteLibrary from '@notes/backend/markdown/components/NoteLibrary.vue';
 import NotePreview from '@notes/backend/markdown/components/NotePreview.vue';
@@ -13,6 +15,8 @@ import NoteShareModal from '@notes/backend/markdown/components/NoteShareModal.vu
 import NoteCoverModal from '@notes/backend/markdown/components/NoteCoverModal.vue';
 import NoteEditor from '@notes/backend/markdown/components/NoteEditor.vue';
 import NoteGraph from '@notes/backend/markdown/components/NoteGraph.vue';
+import NoteCreateModal from '@notes/backend/markdown/components/NoteCreateModal.vue';
+import { folderPath } from '@notes/backend/markdown/composables/noteBreadcrumb.js';
 import AppButton from '@shared/components/action/AppButton.vue';
 import AppIconButton from '@shared/components/action/AppIconButton.vue';
 import AppSearchInput from '@shared/components/form/input/AppSearchInput.vue';
@@ -23,7 +27,7 @@ import AppTab from '@shared/components/nav/AppTab.vue';
 import AppRowActions from '@shared/components/action/AppRowActions.vue';
 import { computed, nextTick, onErrorCaptured, onMounted, onUnmounted, watch } from 'vue';
 import { onPanelRequest, tellPanels } from '@/shared/nav/modulePanelBridge.js';
-import { Trash2, BookOpen, FileDown, Image, PanelRightOpen, PanelRightClose, Tag, TriangleAlert, Users, X, Network, Share2 } from 'lucide-vue-next';
+import { ChevronRight, Trash2, BookOpen, FileDown, Image, PanelRightOpen, PanelRightClose, Star, StarOff, Tag, TriangleAlert, X, Network, Share2 } from 'lucide-vue-next';
 import AppNoData from '@shared/components/feedback/AppNoData.vue';
 import "@notes/share/appearance.css";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
@@ -42,6 +46,11 @@ const props = defineProps({
     breadcrumb: { type: Array, default: () => [] },
     /** Les routes des dossiers, en un objet plutôt qu'en sept props. */
     folderPaths: { type: Object, required: true },
+    /** Les routes des espaces, en un objet comme celles des dossiers. */
+    spacePaths: { type: Object, default: () => ({}) },
+    /** Les espaces lisibles, le sien d'abord, avec le rôle de qui lit. */
+    spaces: { type: Array, default: () => [] },
+    canCreateSpace: { type: Boolean, default: false },
     /** L'adresse de la bibliothèque, c'est-à-dire du carnet à sa racine. */
     libraryPath: { type: String, required: true },
     maxDepth: { type: Number, default: 8 },
@@ -52,6 +61,8 @@ const props = defineProps({
     deletePath: { type: String, required: true },
     movePath: { type: String, required: true },
     favoritePath: { type: String, default: '' },
+    /** L'espace personnel de qui lit : ce qui vit ailleurs est partagé. */
+    personalSpaceId: { type: Number, default: null },
     reorderPath: { type: String, required: true },
     backlinksPath: { type: String, required: true },
     unlinkedMentionsPath: { type: String, required: true },
@@ -75,8 +86,6 @@ const props = defineProps({
     /** Le relais vers Pexels pour le bandeau : aucune image n'entre en GED. */
     coversSearchPath: { type: String, default: '' },
     /** Ce que les autres ont ouvert à tout le back-office. */
-    sharedPath: { type: String, default: '' },
-    shareInternallyPath: { type: String, default: '' },
     imageMaxEdge: { type: Number, default: 2048 },
     imageQuality: { type: Number, default: 0.85 },
     /**
@@ -127,6 +136,10 @@ const {
     splitDragging,
     navigateFromGraph,
     refreshList,
+    flushPendingSave,
+    conflict,
+    saveAnyway,
+    reloadDiscarding,
 } = useMarkdownNotesPage(props, t);
 
 // Local to this component rather than folded into `useMarkdownNotesPage`:
@@ -280,6 +293,23 @@ onErrorCaptured((error) => {
 const foldersApi = useNoteFoldersApi(props.folderPaths);
 const folders = ref([...props.folders]);
 
+const spacesApi = useNoteSpacesApi(props.spacePaths);
+const spaces = ref(sortSpaces(props.spaces));
+
+async function refreshSpaces() {
+    const { ok, payload } = await spacesApi.list();
+
+    if (ok) spaces.value = sortSpaces(payload.spaces ?? []);
+}
+
+/** L'espace dont on ouvre les réglages, ou rien. */
+const settingsSpaceId = ref(null);
+
+/** Après un changement de réglages : l'espace, et ce qu'il range, ont pu changer. */
+async function onSpaceChanged() {
+    await Promise.all([refreshSpaces(), refreshList(), refreshFolders()]);
+}
+
 /**
  * La bibliothèque, quand elle est là.
  *
@@ -296,97 +326,14 @@ const libraryRef = ref(null);
  */
 const openFolderId = ref(props.folderId);
 
-const sharedWithTeam = computed(() => Boolean(selectedNote.value?.sharedAt));
-
-/**
- * Le dossier qui rend cette note visible sans qu'elle porte rien.
- *
- * Une note rangée dans un dossier ouvert à l'équipe **est** visible, mais
- * sa propre marque est vide : afficher « Rendre visible » sur une note que
- * tout le monde voit déjà serait un mensonge. On remonte donc la chaîne
- * des parents pour nommer le dossier responsable, et la bascule de la note
- * s'efface devant lui - c'est là-bas que ça se change.
- */
-const sharingFolder = computed(() => {
-    const parId = new Map(folders.value.map((one) => [Number(one.id), one]));
-
-    let dossier = parId.get(Number(selectedNote.value?.folderId));
-    const vus = new Set();
-
-    while (dossier && !vus.has(Number(dossier.id))) {
-        vus.add(Number(dossier.id));
-
-        if (dossier.sharedAt) return dossier;
-
-        dossier = parId.get(Number(dossier.parentId));
-    }
-
-    return null;
-});
-
-const visibleToTeam = computed(
-    () => sharedWithTeam.value || null !== sharingFolder.value,
-);
-
-/**
- * Refermer le dossier qui rend cette note visible, en disant quoi.
- *
- * Le geste part d'une note et emporte toutes ses voisines : celui qui le
- * fait n'en voit qu'une, donc la question nomme le dossier **et** compte
- * ce qu'il contient. Sans ce compte, on retire la visibilité à douze notes
- * en croyant en traiter une.
- */
-const pendingUnshare = ref(null);
-const unsharing = ref(false);
-
-const unshareCount = computed(() => {
-    if (!pendingUnshare.value) return 0;
-
-    const dossiers = new Set([Number(pendingUnshare.value.id)]);
-    let change = true;
-
-    while (change) {
-        change = false;
-
-        for (const dossier of folders.value) {
-            const id = Number(dossier.id);
-
-            if (!dossiers.has(id) && dossiers.has(Number(dossier.parentId))) {
-                dossiers.add(id);
-                change = true;
-            }
-        }
-    }
-
-    return notes.value.filter((note) => dossiers.has(Number(note.folderId))).length;
-});
-
-async function confirmUnshare() {
-    if (!pendingUnshare.value) return;
-
-    unsharing.value = true;
-
-    const { ok, reported } = await foldersApi.share(pendingUnshare.value.id);
-
-    unsharing.value = false;
-
-    if (!ok) {
-        if (!reported) toast.error(t('notes.markdown.library.shared.failed'));
-
-        return;
-    }
-
-    pendingUnshare.value = null;
-    toast.success(t('notes.markdown.library.shared.stopped'));
-
-    await Promise.all([refreshFolders(), refreshList()]);
-}
+/** Dans les favoris de qui lit : le menu dit l'inverse de l'état. */
+const isFavorite = computed(() => Boolean(selectedNote.value?.favoritedAt));
 
 /**
  * Ce que le menu de la note porte : les gestes qu'on fait une fois.
  *
- * Exporter, envoyer un lien, choisir une image, ouvrir le graphe, rendre
- * la note visible : chacun se fait une fois par note, quand les modes
+ * Exporter, envoyer un lien, choisir une image, ouvrir le graphe,
+ * l'épingler : chacun se fait une fois par note, quand les modes
  * d'affichage, les étiquettes et les liens se touchent en écrivant. Les
  * douze sur une ligne ne laissaient plus de place au titre.
  */
@@ -424,29 +371,15 @@ const noteActions = computed(() => {
             },
         },
         {
-            key: "team",
-            title: sharingFolder.value
-                ? t('notes.markdown.library.shared.via_folder', {
-                    folder: sharingFolder.value.name || t('notes.markdown.folders.untitled'),
-                })
-                : sharedWithTeam.value
-                    ? t('notes.markdown.library.shared.stop')
-                    : t('notes.markdown.library.shared.start'),
-            icon: Users,
-            // Quand c'est le dossier qui décide, l'entrée le referme -
-            // après avoir dit ce que ça emporte. Elle menait à la page du
-            // dossier, où l'on arrivait devant son contenu sans y trouver
-            // sa carte, donc sans rien à faire : un lien qui dépose le
-            // lecteur devant une porte fermée.
-            onSelect: () => {
-                if (sharingFolder.value) {
-                    pendingUnshare.value = sharingFolder.value;
-
-                    return;
-                }
-
-                void toggleTeamVisibility();
-            },
+            // Les favoris sont à soi : la note s'épingle d'ici, là où l'on
+            // est quand on se dit qu'on y reviendra. Seule la bibliothèque le
+            // proposait, et personne ne l'y trouvait.
+            key: "favorite",
+            title: isFavorite.value
+                ? t('notes.markdown.library.unpin')
+                : t('notes.markdown.library.pin'),
+            icon: isFavorite.value ? StarOff : Star,
+            onSelect: () => void toggleFavorite('note', selectedId.value),
         },
         {
             key: "graph",
@@ -478,25 +411,19 @@ const noteActions = computed(() => {
 });
 
 
-async function toggleTeamVisibility() {
-    if (!selectedId.value) return;
+/** Ajouter aux favoris, ou retirer : une note ou un dossier. */
+async function toggleFavorite(kind, id) {
+    if (!id) return;
 
-    const etait = sharedWithTeam.value;
-    const { ok, reported } = await api.shareInternally(selectedId.value);
+    const { ok, reported } = 'folder' === kind ? await foldersApi.favorite(id) : await api.favorite(id);
 
     if (!ok) {
-        if (!reported) toast.error(t('notes.markdown.library.shared.failed'));
+        if (!reported) toast.error(t('notes.markdown.library.pin_failed'));
 
         return;
     }
 
-    toast.success(
-        etait
-            ? t('notes.markdown.library.shared.stopped')
-            : t('notes.markdown.library.shared.started'),
-    );
-
-    await refreshList();
+    await ('folder' === kind ? refreshFolders() : refreshList());
 }
 
 function folderUrlFor(id) {
@@ -618,8 +545,11 @@ function backToLibrary() {
  * un fichier et le ranger, et passer par `fetch` obligerait à garder un zip
  * entier en mémoire pour le redonner à un lien fabriqué.
  */
-function exportAll() {
-    window.location.assign(props.exportPath);
+function exportAll(spaceId = null) {
+    // Un espace seul quand le panneau le demande depuis son en-tête.
+    const url = null == spaceId ? props.exportPath : `${props.exportPath}?spaceId=${encodeURIComponent(String(spaceId))}`;
+
+    window.location.assign(url);
 }
 
 function exportOne(id) {
@@ -628,7 +558,11 @@ function exportOne(id) {
 
 const importInput = ref(null);
 
-function askForFiles() {
+/** La racine d'espace où importer, quand l'import part de son en-tête. */
+const importSpaceId = ref(null);
+
+function askForFiles(spaceId = null) {
+    importSpaceId.value = null == spaceId ? null : Number(spaceId);
     importInput.value?.click();
 }
 
@@ -643,8 +577,11 @@ async function onImportFiles(event) {
     const form = new FormData();
     files.forEach((file) => form.append("files[]", file));
 
-    // Dans le dossier ouvert quand il y en a un : on importe là où on regarde.
-    if (openFolderId.value) form.append("folderId", String(openFolderId.value));
+    // À la racine de l'espace demandé ; sinon dans le dossier ouvert, là
+    // où l'on regarde.
+    if (null !== importSpaceId.value) form.append("spaceId", String(importSpaceId.value));
+    else if (openFolderId.value) form.append("folderId", String(openFolderId.value));
+    importSpaceId.value = null;
 
     const { ok, payload } = await api.import(form);
 
@@ -654,14 +591,173 @@ async function onImportFiles(event) {
         return;
     }
 
-    await refreshList();
+    await Promise.all([refreshList(), refreshFolders()]);
     toast.success(t("notes.markdown.import.done", { count: payload.created ?? 0 }));
 }
 
+// ── Ajouter, déplacer : ce que le panneau demande ──────────────────
+
+const addModal = ref(null);
+const addSaving = ref(false);
+
+/**
+ * Ouvrir la modale d'ajout : dans un dossier (son identifiant), ou à la
+ * racine d'un espace (`{ spaceId }`), ou sans rien dire - la racine du sien.
+ */
+function openAdd(target) {
+    if (null !== target && 'object' === typeof target) {
+        addModal.value = {
+            folderId: null == target.folderId ? null : Number(target.folderId),
+            spaceId: null == target.spaceId ? null : Number(target.spaceId),
+        };
+
+        return;
+    }
+
+    addModal.value = { folderId: null == target ? null : Number(target), spaceId: null };
+}
+
+/**
+ * Créer ce que la modale demande, là où elle le dit.
+ *
+ * Une note s'ouvre tout de suite, titre compris : on vient de la nommer, on
+ * veut écrire dedans. Un dossier reste où il est créé, et le panneau le
+ * montre - on range souvent plusieurs dossiers d'affilée.
+ */
+async function submitAdd({ kind, name, color, spaceId, access, defaultRole }) {
+    const folderId = addModal.value?.folderId ?? null;
+    // Un dossier impose son espace ; sans dossier, la racine choisie.
+    const rootSpaceId = null === folderId ? spaceId ?? null : null;
+
+    addSaving.value = true;
+
+    const request = {
+        space: () => spacesApi.create({ name, color, access, defaultRole }),
+        folder: () => foldersApi.create(name, folderId, color, rootSpaceId),
+        note: () => api.create({ folderId, spaceId: rootSpaceId, title: name, content: '' }),
+    }[kind];
+    const { ok, reported, payload } = await request();
+
+    addSaving.value = false;
+
+    if (!ok) {
+        if (!reported) {
+            const failed = {
+                space: 'notes.markdown.spaces.errors.save_failed',
+                folder: 'notes.markdown.folders.errors.create_failed',
+                note: 'notes.markdown.errors.create_failed',
+            }[kind];
+
+            toast.error(t(failed));
+        }
+
+        return;
+    }
+
+    addModal.value = null;
+
+    if ('space' === kind) {
+        await refreshSpaces();
+        toast.success(t('notes.markdown.spaces.created'));
+
+        // Un espace ouvert à des personnes choisies ne sert à rien tant que
+        // personne n'y est : on ouvre tout de suite de quoi les inscrire.
+        if ('members' === access) settingsSpaceId.value = Number(payload.space.id);
+
+        return;
+    }
+
+    if ('folder' === kind) {
+        await refreshFolders();
+        toast.success(t('notes.markdown.folders.created'));
+
+        return;
+    }
+
+    await refreshList();
+    await openNote(payload.note.id);
+}
+
+/**
+ * Écrire un dépôt : changer de dossier s'il le faut, puis l'ordre.
+ *
+ * Deux appels et pas un : le déplacement passe par la route qui refuse une
+ * boucle ou une profondeur de trop, et c'est elle qui doit trancher. Le
+ * réordonnancement vient ensuite, entre frères d'un même dossier, là où il
+ * ne peut rien casser.
+ */
+async function applyDropPlan(plan) {
+    if (!plan?.id) return;
+
+    const isFolder = 'folder' === plan.kind;
+
+    // La note ouverte se range : ce qui attend d'être enregistré part
+    // d'abord, puis sa ligne prend son nouveau dossier tout de suite.
+    // L'enregistrement automatique envoie le dossier de la liste, et un envoi
+    // parti avec l'ancien, après le déplacement, remettait la note où elle
+    // était.
+    const moves = plan.fromFolderId !== plan.folderId || (plan.fromSpaceId ?? null) !== (plan.spaceId ?? null);
+
+    if (!isFolder && plan.id === selectedId.value && moves) {
+        await flushPendingSave();
+
+        const row = notes.value.find((one) => one.id === plan.id);
+        if (row) {
+            row.folderId = plan.folderId;
+            if (null != plan.spaceId) row.spaceId = plan.spaceId;
+        }
+    }
+
+    if (moves) {
+        const { ok, reported, payload } = isFolder
+            ? await foldersApi.move(plan.id, plan.folderId, plan.spaceId ?? null)
+            : await api.move(plan.id, plan.folderId, plan.spaceId ?? null);
+
+        if (!ok) {
+            if (!reported) {
+                const failed = 'refused' === payload?.error
+                    ? 'notes.markdown.folders.errors.move_refused'
+                    : 'notes.markdown.folders.errors.move_failed';
+
+                toast.error(t(failed, { max: props.maxDepth }));
+            }
+
+            await Promise.all([refreshList(), refreshFolders()]);
+
+            return;
+        }
+    }
+
+    const entries = plan.order.map((id, position) => (isFolder
+        ? { id, parentId: plan.folderId, position }
+        : { id, folderId: plan.folderId, position }));
+
+    if (entries.length) {
+        await (isFolder ? foldersApi.reorder(entries) : api.reorder(entries));
+    }
+
+    await Promise.all([refreshList(), refreshFolders()]);
+
+    if (moves) toast.success(t('notes.markdown.folders.moved'));
+}
+
+/**
+ * Le chemin de la note ouverte, depuis la racine.
+ *
+ * Une note n'avait que son titre au-dessus d'elle : on ne savait plus dans
+ * quel dossier on écrivait, ni comment y remonter, sans aller chercher dans
+ * le panneau. Chaque étape ramène à son dossier.
+ */
+const notePath = computed(() => folderPath(folders.value, selectedNote.value?.folderId ?? null));
+
 const PANEL_INTENTS = {
     select: (id) => openNote(id),
-    export: () => exportAll(),
-    import: () => askForFiles(),
+    'space-settings': (id) => {
+        settingsSpaceId.value = Number(id);
+    },
+    favorite: ({ kind, id }) => toggleFavorite(kind, id),
+    export: (spaceId) => exportAll(spaceId ?? null),
+    import: (spaceId) => askForFiles(spaceId ?? null),
     create: (folderId) => createNote(folderId ?? null),
     delete: (note) => requestDelete(note),
     'open-folder': async (id) => {
@@ -710,6 +806,13 @@ const PANEL_INTENTS = {
     // est déplacé voyage dans le presse-papier de l'événement, donc la
     // bibliothèque sait quoi en faire sans qu'on le lui répète.
     drop: (folder, event) => libraryRef.value?.dropInto(Number(folder.id), event),
+    // Le « + » du panneau : une note ou un dossier, au choix, là où l'on a
+    // cliqué. La modale vit ici et non dans la bibliothèque, pour marcher
+    // aussi quand une note est ouverte.
+    add: (target) => openAdd(target ?? null),
+    // Un dépôt dans le panneau, déjà calculé là-bas : où ranger, dans quel
+    // ordre. On l'écrit quel que soit l'écran affiché.
+    move: (plan) => applyDropPlan(plan),
 };
 
 const stopListening = [];
@@ -718,6 +821,8 @@ function announce() {
     tellPanels('notes:changed', {
         notes: notes.value,
         folders: folders.value,
+        spaces: spaces.value,
+        canCreateSpace: props.canCreateSpace,
         selectedId: selectedId.value,
         folderId: openFolderId.value,
         noteId: selectedId.value,
@@ -736,6 +841,7 @@ onMounted(() => {
     announce();
     stopListening.push(watch(notes, announce, { deep: true }));
     stopListening.push(watch(folders, announce, { deep: true }));
+    stopListening.push(watch(spaces, announce, { deep: true }));
     stopListening.push(watch(openFolderId, announce));
     stopListening.push(watch(selectedId, announce));
 
@@ -782,12 +888,37 @@ onUnmounted(() => {
          évite d'écrire sa hauteur en soustrayant celle du lien, un nombre
          qui serait faux au premier changement de taille de police. -->
     <div class="flex h-[calc(100dvh-var(--aurora-topbar)-var(--aurora-page-margin)*2)] flex-col gap-1.5">
-        <AppBackLink
+        <!-- Le fil d'Ariane prolonge le lien de retour : la racine, puis
+             chaque dossier jusqu'à la note, chacun cliquable. Une note
+             n'avait que son titre au-dessus d'elle, et l'on ne savait plus
+             dans quel dossier on écrivait sans aller le chercher dans le
+             panneau. Hors de la carte pour la même raison que le lien. -->
+        <nav
             v-if="selectedNote && !crashed"
-            class="self-start"
-            :label="t('notes.markdown.library.title')"
-            v-on:back="backToLibrary"
-        />
+            data-note-breadcrumb
+            class="flex min-w-0 flex-wrap items-center gap-x-1 gap-y-0.5 text-xs text-muted"
+            :aria-label="t('notes.markdown.breadcrumb')"
+        >
+            <AppBackLink
+                class="shrink-0"
+                :label="t('notes.markdown.library.title')"
+                v-on:back="backToLibrary"
+            />
+            <template v-for="crumb in notePath" :key="crumb.id">
+                <ChevronRight class="h-3 w-3 shrink-0" :stroke-width="2" />
+                <a
+                    :href="folderUrlFor(crumb.id)"
+                    data-note-crumb
+                    class="max-w-[12rem] truncate rounded px-1 py-0.5 no-underline transition-colors hover:bg-surface-2 hover:text-primary"
+                    :style="crumb.color ? { color: crumb.color } : null"
+                    v-on:click.prevent="showLibrary(crumb.id)"
+                >{{ crumb.name || t('notes.markdown.folders.untitled') }}</a>
+            </template>
+            <ChevronRight class="h-3 w-3 shrink-0" :stroke-width="2" />
+            <span class="min-w-0 truncate px-1 text-secondary" aria-current="page">
+                {{ form.title || t('notes.markdown.untitled') }}
+            </span>
+        </nav>
 
         <div class="aurora-card relative flex min-h-0 flex-1 overflow-hidden">
             <!-- No tree column and no drawer of its own: the notes are in the
@@ -856,25 +987,6 @@ onUnmounted(() => {
                              son filet et son anneau de focus, et les enlever
                              un par un en classes aurait laissé un composant
                              qui promet une apparence qu'il n'a plus. -->
-                        <!-- L'état, écrit, pas seulement une icône qui change
-                             de teinte. Une infobulle se survole et un message
-                             disparaît : ni l'un ni l'autre ne dit, en arrivant
-                             sur la note, si elle est sortie de chez soi. -->
-                        <!-- La pastille dit l'état, elle ne fait rien.
-                             Elle a été un lien vers le dossier, et c'était
-                             une porte fermée : on arrivait devant son
-                             contenu, sans sa carte, donc sans rien à
-                             faire. Ce qui agit vit dans le menu. -->
-                        <span
-                            v-if="visibleToTeam"
-                            class="inline-flex shrink-0 items-center gap-1 rounded-full bg-accent-600/15 px-2 py-1 text-xs font-medium text-accent-400"
-                        >
-                            <Users class="h-3 w-3" :stroke-width="2" />
-                            {{ sharingFolder
-                                ? t('notes.markdown.library.shared.via_folder', { folder: sharingFolder.name || t('notes.markdown.folders.untitled') })
-                                : t('notes.markdown.library.shared.badge') }}
-                        </span>
-
                         <!-- **Un champ qui ressemble à un titre n'a pas
                              l'air d'un champ.** Sans bordure, sans fond et en
                              2xl, celui-ci se lisait comme le titre de la page,
@@ -933,6 +1045,18 @@ onUnmounted(() => {
                                  règle de la maison le dit déjà pour les
                                  cartes - au-delà de cinq, on garde la
                                  feuille. -->
+                            <!-- Lire, d'un clic et à la vue : c'était une ligne
+                                 cachée dans le menu, et passer en lecture
+                                 demandait de la chercher à chaque fois. -->
+                            <AppIconButton
+                                v-if="readHref"
+                                data-note-read
+                                :href="readHref"
+                                :title="t('notes.markdown.read.mode')"
+                            >
+                                <BookOpen class="h-4 w-4" :stroke-width="2" />
+                            </AppIconButton>
+
                             <AppRowActions
                                 :actions="noteActions"
                                 :label="form.title || t('notes.markdown.untitled')"
@@ -1076,6 +1200,7 @@ onUnmounted(() => {
                     ref="libraryRef"
                     :folders="folders"
                     :notes="notes"
+                    :personal-space-id="personalSpaceId"
                     :folders-api="foldersApi"
                     :notes-api="api"
                     :initial-folder-id="folderId"
@@ -1134,33 +1259,6 @@ onUnmounted(() => {
             />
 
             <AppModal
-                :show="null !== pendingUnshare"
-                max-width="sm"
-                :closeable="!unsharing"
-                :title="t('notes.markdown.library.shared.stop')"
-                :icon="Users"
-                v-on:close="pendingUnshare = null"
-            >
-                <p class="text-sm text-primary">
-                    {{ t('notes.markdown.library.shared.confirm_folder', {
-                        folder: pendingUnshare?.name || t('notes.markdown.folders.untitled'),
-                        count: unshareCount,
-                    }) }}
-                </p>
-                <template #footer>
-                    <AppModalFooter>
-                        <AppButton variant="ghost" size="md" :disabled="unsharing" v-on:click="pendingUnshare = null">
-                            <X class="w-3.5 h-3.5" :stroke-width="2" />
-                            {{ t('notes.markdown.cancel') }}
-                        </AppButton>
-                        <AppButton variant="primary" size="md" :loading="unsharing" v-on:click="confirmUnshare">
-                            {{ t('notes.markdown.library.shared.stop') }}
-                        </AppButton>
-                    </AppModalFooter>
-                </template>
-            </AppModal>
-
-            <AppModal
                 :show="!!pendingDelete"
                 max-width="sm"
                 :closeable="!deleting"
@@ -1187,6 +1285,48 @@ onUnmounted(() => {
                     </AppModalFooter>
                 </template>
             </AppModal>
+
+            <!-- Quelqu'un a écrit dans la note entre-temps. On ne décide pas à
+                 la place de la personne : reprendre sa version, ou écraser la
+                 sienne en le sachant. -->
+            <AppModal
+                :show="conflict"
+                max-width="md"
+                :closeable="false"
+                :title="t('notes.markdown.conflict.title')"
+                :icon="TriangleAlert"
+            >
+                <p class="text-sm text-primary" data-note-conflict>{{ t('notes.markdown.conflict.body') }}</p>
+                <template #footer>
+                    <AppModalFooter>
+                        <AppButton variant="danger" size="md" data-conflict-overwrite v-on:click="saveAnyway">
+                            {{ t('notes.markdown.conflict.overwrite') }}
+                        </AppButton>
+                        <AppButton variant="primary" size="md" data-conflict-reload v-on:click="reloadDiscarding">
+                            {{ t('notes.markdown.conflict.reload') }}
+                        </AppButton>
+                    </AppModalFooter>
+                </template>
+            </AppModal>
+
+            <NoteCreateModal
+                :show="null !== addModal"
+                :folder-id="addModal?.folderId ?? null"
+                :space-id="addModal?.spaceId ?? null"
+                :folders="folders"
+                :spaces="spaces"
+                :can-create-space="canCreateSpace"
+                :saving="addSaving"
+                v-on:close="addModal = null"
+                v-on:submit="submitAdd"
+            />
+
+            <NoteSpaceSettingsModal
+                :space-id="settingsSpaceId"
+                :api="spacesApi"
+                v-on:close="settingsSpaceId = null"
+                v-on:changed="onSpaceChanged"
+            />
         </div>
     </div>
 </template>

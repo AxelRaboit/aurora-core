@@ -6,12 +6,14 @@ namespace Aurora\Fixtures\Notes;
 
 use Aurora\Fixtures\Core\AppFixtures;
 use Aurora\Fixtures\Core\CoreDemoFixtures;
+use Aurora\Module\Notes\Favorite\Entity\NoteFavorite;
 use Aurora\Module\Notes\Folder\Entity\NoteFolder;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNote;
 use Aurora\Module\Notes\Markdown\Enum\NoteAppearanceEnum;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteImageService;
 use Aurora\Module\Notes\Share\Manager\MarkdownNoteShareLinkManagerInterface;
 use Aurora\Module\Notes\Share\Repository\MarkdownNoteShareLinkRepository;
+use Aurora\Module\Notes\Space\Service\NoteSpaceAccess;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
@@ -60,6 +62,7 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
         private readonly MarkdownNoteShareLinkManagerInterface $shareLinks,
         private readonly MarkdownNoteShareLinkRepository $shareLinkRepository,
         private readonly MarkdownNoteImageService $images,
+        private readonly NoteSpaceAccess $spaces,
         private readonly HttpClientInterface $http,
         private readonly Filesystem $filesystem = new Filesystem(),
     ) {}
@@ -91,6 +94,9 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
             throw new RuntimeException('The demo backend account is missing - run the core fixtures first.');
         }
 
+        // Tout le carnet de démo vit dans l'espace personnel du compte.
+        $space = $this->spaces->personalSpace($owner);
+
         $repository = $manager->getRepository(MarkdownNote::class);
 
         // Les titres sont chiffrés en base, donc `findOneBy(['title' => …])`
@@ -113,6 +119,9 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
         $folders = [];
         $folderPosition = 0;
 
+        /** @var list<array{string, NoteFolder|MarkdownNote, DateTimeImmutable}> $pinned */
+        $pinned = [];
+
         // Les parents sont déclarés avant leurs enfants, donc une seule
         // passe suffit : un dossier ne peut pointer que vers un dossier
         // déjà construit.
@@ -120,17 +129,18 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
             $folder = $existingFolders[$definition['name']] ?? new NoteFolder();
             $folder
                 ->setUser($owner)
+                ->setSpace($space)
                 ->setName($definition['name'])
                 ->setColor($definition['color'] ?? null)
                 ->setParent(isset($definition['parent']) ? $folders[$definition['parent']] : null)
                 ->setPosition($folderPosition++);
 
-            if ($definition['favorite'] ?? false) {
-                $folder->setFavoritedAt(new DateTimeImmutable('-3 days'));
-            }
-
             $manager->persist($folder);
             $folders[$key] = $folder;
+
+            if ($definition['favorite'] ?? false) {
+                $pinned[] = ['folder', $folder, new DateTimeImmutable('-3 days')];
+            }
         }
 
         $notes = [];
@@ -141,6 +151,7 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
 
             $note
                 ->setUser($owner)
+                ->setSpace($space)
                 ->setTitle($definition['title'])
                 ->setContent($this->withImages($definition, $note, $owner))
                 ->setTags($definition['tags'])
@@ -156,9 +167,9 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                 ->setCoverPosition($definition['coverPosition'] ?? 50)
                 ->setFolder(isset($definition['folder']) ? $folders[$definition['folder']] : null);
 
-            $note->setFavoritedAt(
-                ($definition['favorite'] ?? false) ? new DateTimeImmutable('-2 days') : null,
-            );
+            if ($definition['favorite'] ?? false) {
+                $pinned[] = ['note', $note, new DateTimeImmutable('-2 days')];
+            }
 
             // Une note à la corbeille, pour que l'écran global en montre
             // une. Reposée à chaque exécution : elle est le décor, pas le
@@ -173,7 +184,34 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
 
         $manager->flush();
 
+        $this->pin($manager, $owner, $pinned);
+
         $this->shareLinkFor($notes['clients'] ?? null);
+    }
+
+    /**
+     * Les favoris du compte de démo : ils sont à la personne, dans leur
+     * table, et reposés à chaque exécution comme le reste du décor.
+     *
+     * @param list<array{string, NoteFolder|MarkdownNote, DateTimeImmutable}> $pinned
+     */
+    private function pin(EntityManagerInterface $manager, User $owner, array $pinned): void
+    {
+        $repository = $manager->getRepository(NoteFavorite::class);
+
+        foreach ($pinned as [$kind, $item, $at]) {
+            $favorite = $repository->findOneBy(['user' => $owner, $kind => $item]) ?? new NoteFavorite();
+            $favorite->setUser($owner)->setCreatedAt($at);
+            if ($item instanceof MarkdownNote) {
+                $favorite->setNote($item);
+            } else {
+                $favorite->setFolder($item);
+            }
+
+            $manager->persist($favorite);
+        }
+
+        $manager->flush();
     }
 
     /**

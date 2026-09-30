@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Notes\Folder\Entity;
 
 use Aurora\Core\Timestampable\TimestampableInterface;
+use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\Collection;
@@ -21,9 +22,10 @@ interface NoteFolderInterface extends TimestampableInterface
 {
     public function getId(): ?int;
 
-    public function getUser(): CoreUserInterface;
+    /** L'auteur ; null quand son compte a été supprimé. */
+    public function getUser(): ?CoreUserInterface;
 
-    public function setUser(CoreUserInterface $user): static;
+    public function setUser(?CoreUserInterface $user): static;
 
     public function getParent(): ?self;
 
@@ -51,16 +53,6 @@ interface NoteFolderInterface extends TimestampableInterface
 
     public function setPosition(int $position): static;
 
-    /** When the folder was pinned, null when it is not. */
-    /** Depuis quand c'est lisible par les autres, ou jamais. */
-    public function getSharedAt(): ?DateTimeImmutable;
-
-    public function setSharedAt(?DateTimeImmutable $sharedAt): static;
-
-    public function getFavoritedAt(): ?DateTimeImmutable;
-
-    public function setFavoritedAt(?DateTimeImmutable $favoritedAt): static;
-
     public function getDeletedAt(): ?DateTimeImmutable;
 
     public function setDeletedAt(?DateTimeImmutable $deletedAt): static;
@@ -72,4 +64,9 @@ interface NoteFolderInterface extends TimestampableInterface
     public function getTrashedWithFolderId(): ?int;
 
     public function setTrashedWithFolderId(?int $trashedWithFolderId): static;
+
+    /** L'espace où vit la ligne : c'est lui qui dit qui la lit et qui l'écrit. */
+    public function getSpace(): NoteSpaceInterface;
+
+    public function setSpace(NoteSpaceInterface $space): static;
 }

@@ -66,6 +66,16 @@ PATHS.folderPaths = {
     reorder: "/notes/folders/reorder",
     show: "/notes/folders/__id__",
 };
+PATHS.spacePaths = {
+    list: "/notes/spaces",
+    create: "/notes/spaces/create",
+    show: "/notes/spaces/__id__",
+    update: "/notes/spaces/__id__/update",
+    delete: "/notes/spaces/__id__/delete",
+    membersSet: "/notes/spaces/__id__/members",
+    membersRemove: "/notes/spaces/__id__/members/__user__/remove",
+    people: "/notes/spaces/people",
+};
 
 const NOTES = [
     { id: 1, title: "Journal", folderId: null, tags: [] },
@@ -544,5 +554,231 @@ describe("the way into the graph", () => {
         expect(wrapper.findComponent({ name: "NoteGraph" }).props("show")).toBe(
             true,
         );
+    });
+});
+
+describe("ce que le panneau demande depuis l'éditeur", () => {
+    /** Les appels faits, adresse et corps, dans l'ordre. */
+    const calls = () =>
+        global.fetch.mock.calls.map(([url, init]) => ({
+            url: String(url),
+            body: init?.body ? JSON.parse(init.body) : null,
+        }));
+
+    /**
+     * Le bug d'Axel : une note glissée sur un dossier pendant qu'une note est
+     * ouverte ne bougeait pas. La page écrit maintenant le dépôt elle-même,
+     * sans passer par la bibliothèque.
+     */
+    it("files a dropped note even while a note is open", async () => {
+        render();
+        await flushPromises();
+        askPage("notes:select", { args: [1] });
+        await flushPromises();
+        global.fetch.mockClear();
+
+        expect(
+            askPage("notes:move", {
+                args: [
+                    {
+                        kind: "note",
+                        id: 1,
+                        folderId: 7,
+                        fromFolderId: null,
+                        order: [2, 1],
+                    },
+                ],
+            }),
+        ).toBe(true);
+        await flushPromises();
+
+        const made = calls();
+        expect(made[0]).toEqual({
+            url: "/notes/movePath",
+            body: { folderId: 7, spaceId: null },
+        });
+        expect(made[1]).toEqual({
+            url: "/notes/reorderPath",
+            body: {
+                entries: [
+                    { id: 2, folderId: 7, position: 0 },
+                    { id: 1, folderId: 7, position: 1 },
+                ],
+            },
+        });
+    });
+
+    it("only reorders when the item stays in its folder", async () => {
+        render();
+        await flushPromises();
+        global.fetch.mockClear();
+
+        askPage("notes:move", {
+            args: [
+                {
+                    kind: "folder",
+                    id: 7,
+                    folderId: null,
+                    fromFolderId: null,
+                    order: [7],
+                },
+            ],
+        });
+        await flushPromises();
+
+        const made = calls();
+        expect(made.some((one) => one.url.includes("/move"))).toBe(false);
+        expect(made[0]).toEqual({
+            url: "/notes/folders/reorder",
+            body: { entries: [{ id: 7, parentId: null, position: 0 }] },
+        });
+    });
+
+    /** Le plus d'un dossier ouvre une modale qui crée une note ou un dossier. */
+    it("creates a folder where the plus was pressed", async () => {
+        render();
+        await flushPromises();
+        global.fetch.mockClear();
+
+        askPage("notes:add", { args: [7] });
+        await flushPromises();
+
+        document.body.querySelector('[data-add-kind="folder"]').click();
+        await flushPromises();
+
+        const input = document.body.querySelector(
+            "[data-add-name] input, input[data-add-name]",
+        );
+        input.value = "Devis 2026";
+        input.dispatchEvent(new Event("input"));
+        await flushPromises();
+
+        document.body.querySelector("[data-add-submit]").click();
+        await flushPromises();
+
+        expect(calls()[0]).toEqual({
+            url: "/notes/folders/create",
+            body: {
+                name: "Devis 2026",
+                parentId: 7,
+                color: null,
+                spaceId: null,
+            },
+        });
+    });
+
+    /** Qui en a le droit crée un espace depuis la même modale. */
+    it("creates a space from the add modal", async () => {
+        render({ canCreateSpace: true });
+        await flushPromises();
+        global.fetch.mockClear();
+
+        askPage("notes:add", { args: [null] });
+        await flushPromises();
+
+        document.body.querySelector('[data-add-kind="space"]').click();
+        await flushPromises();
+
+        const input = document.body.querySelector(
+            "[data-add-name] input, input[data-add-name]",
+        );
+        input.value = "Documentation";
+        input.dispatchEvent(new Event("input"));
+        await flushPromises();
+
+        document.body.querySelector("[data-add-submit]").click();
+        await flushPromises();
+
+        expect(calls()[0]).toEqual({
+            url: "/notes/spaces/create",
+            body: {
+                name: "Documentation",
+                color: null,
+                access: "backoffice",
+                defaultRole: "reader",
+            },
+        });
+    });
+
+    it("offers no space without the right to create one", async () => {
+        render();
+        await flushPromises();
+
+        askPage("notes:add", { args: [null] });
+        await flushPromises();
+
+        expect(
+            document.body.querySelector('[data-add-kind="space"]'),
+        ).toBeNull();
+    });
+
+    /** Le plus d'un en-tête d'espace range à la racine de cet espace. */
+    it("files a new note at the root of the space it was asked for", async () => {
+        render({
+            spaces: [
+                { id: 1, personal: true, canWrite: true },
+                { id: 5, name: "Équipe", personal: false, canWrite: true },
+            ],
+        });
+        await flushPromises();
+        global.fetch.mockClear();
+
+        askPage("notes:add", { args: [{ folderId: null, spaceId: 5 }] });
+        await flushPromises();
+
+        expect(
+            document.body.querySelector("[data-add-where]").textContent,
+        ).toContain("Équipe");
+
+        document.body.querySelector("[data-add-submit]").click();
+        await flushPromises();
+
+        expect(calls()[0]).toEqual({
+            url: "/notes/createPath",
+            body: { folderId: null, spaceId: 5, title: "", content: "" },
+        });
+    });
+
+    it("writes where the open note lives, from the root", async () => {
+        const wrapper = render({ folders: FOLDERS });
+        await flushPromises();
+        askPage("notes:select", { args: [2] });
+        await flushPromises();
+
+        const crumbs = wrapper
+            .findAll("[data-note-crumb]")
+            .map((one) => one.text());
+
+        expect(crumbs).toEqual(["Clients"]);
+    });
+});
+
+describe("emporter un espace seul", () => {
+    /** L'en-tête d'un espace exporte cet espace, et lui seul. */
+    it("exports the space the panel asks for", async () => {
+        const assign = vi.fn();
+        const original = window.location;
+        Object.defineProperty(window, "location", {
+            configurable: true,
+            value: { ...original, assign },
+        });
+
+        render();
+        await flushPromises();
+
+        askPage("notes:export", { args: [5] });
+        await flushPromises();
+        askPage("notes:export", { args: [] });
+        await flushPromises();
+
+        expect(assign.mock.calls.map((call) => call[0])).toEqual([
+            "/notes/exportPath?spaceId=5",
+            "/notes/exportPath",
+        ]);
+
+        Object.defineProperty(window, "location", {
+            configurable: true,
+            value: original,
+        });
     });
 });

@@ -68,7 +68,7 @@ describe("useMarkdownNotesApi", () => {
 
         expect(requestMock).toHaveBeenCalledWith(
             "/api/notes/3/move",
-            { folderId: 9 },
+            { folderId: 9, spaceId: null },
             expect.anything(),
         );
     });

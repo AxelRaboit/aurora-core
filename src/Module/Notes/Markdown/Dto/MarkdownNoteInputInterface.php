@@ -31,4 +31,11 @@ interface MarkdownNoteInputInterface
 
     /** {@see NoteAppearanceEnum} */
     public function getAppearance(): ?string;
+
+    public function getVersion(): ?int;
+
+    public function isForce(): bool;
+
+    /** L'espace d'une création à la racine ; null pour son espace personnel. */
+    public function getSpaceId(): ?int;
 }

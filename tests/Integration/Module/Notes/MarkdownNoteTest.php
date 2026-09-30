@@ -10,6 +10,8 @@ use Aurora\Module\Notes\Markdown\Entity\MarkdownNote;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteArchive;
+use Aurora\Module\Notes\Space\Entity\NoteSpace;
+use Aurora\Module\Notes\Space\Enum\NoteSpaceAccessEnum;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 use Aurora\Module\Platform\User\Repository\UserRepository;
@@ -32,6 +34,8 @@ use ZipArchive;
  */
 final class MarkdownNoteTest extends IntegrationTestCase
 {
+    use PersonalSpaceTrait;
+
     private KernelBrowser $client;
 
     private EntityManagerInterface $entityManager;
@@ -342,168 +346,145 @@ final class MarkdownNoteTest extends IntegrationTestCase
     }
 
     /**
-     * La note seule, sans le back-office autour.
+     * Le lecteur : un espace épuré, avec tout le carnet à gauche.
      *
-     * Et seulement la sienne : la vue de lecture n'a pas de jeton, c'est le
-     * compte qui fait la portée.
+     * Il montrait une note seule. Il porte maintenant sa propre
+     * arborescence - pas le menu du back-office, que la lecture n'a pas à
+     * traîner - et il tourne les pages dans l'ordre de l'arborescence. Seule la personne qui a le droit de lire y
+     * entre : c'est le compte qui fait la portée, il n'y a pas de jeton.
      */
-    public function testTheReadingViewRendersTheNoteAlone(): void
+    public function testTheReadingModeKeepsTheNotebookAroundTheNote(): void
     {
-        $note = $this->note($this->owner, 'À lire', content: '# Titre');
+        $folder = $this->folder($this->owner, 'Lecture suivie');
+        $first = $this->note($this->owner, 'Chapitre un', $folder, content: '# Un');
+        $second = $this->note($this->owner, 'Chapitre deux', $folder, content: '# Deux');
+        $second->setPosition(1);
+        $this->entityManager->flush();
 
         $this->client->loginUser($this->owner, 'admin');
         $this->client->request('GET', $this->urlGenerator->generate(
             'backend_notes_markdown_read',
-            ['id' => $note->getId()],
+            ['id' => $first->getId()],
         ));
 
         self::assertResponseIsSuccessful();
 
         $html = (string) $this->client->getResponse()->getContent();
-        self::assertStringContainsString('notes/share/NoteShareApp', $html);
-        self::assertStringNotContainsString('sidemenu-nav', $html);
+        self::assertStringContainsString('notes/backend/markdown/NoteReadApp', $html);
+        // Un espace épuré : pas le menu du back-office, sa propre
+        // arborescence à la place.
+        self::assertStringNotContainsString('core/backend/sidemenu/AppSidemenu', $html);
+
+        $props = $this->readProps($html);
+        $inTree = array_column($props['treeNotes'], 'id');
+        self::assertContains($first->getId(), $inTree);
+        self::assertContains($second->getId(), $inTree);
+        self::assertTrue($props['canEdit']);
+        self::assertSame('Lecture suivie', $props['breadcrumb'][0]['name'] ?? null);
+        self::assertSame($second->getId(), $props['next']['id'] ?? null);
 
         $this->client->loginUser($this->other, 'admin');
         $this->client->request('GET', $this->urlGenerator->generate(
             'backend_notes_markdown_read',
-            ['id' => $note->getId()],
+            ['id' => $first->getId()],
         ));
 
         self::assertResponseStatusCodeSame(404);
     }
 
     /**
-     * Un dossier partagé s'ouvre chez les autres, en lecture.
-     *
-     * Le partage se pose sur le dossier et ce qu'il contient suit : c'est
-     * toute la règle, et c'est elle qu'on vérifie ici plutôt que la
-     * colonne.
+     * Entrer dans le lecteur sans note : l'adresse qu'on met en favori.
+     * Elle ouvre la première note du carnet, ou la bibliothèque s'il est vide.
      */
-    public function testASharedFolderLetsOthersReadWhatIsInside(): void
+    public function testTheReaderHasAnEntryOfItsOwn(): void
     {
-        $folder = $this->folder($this->owner, 'Équipe');
-        $note = $this->note($this->owner, 'Compte rendu', $folder, content: '# Compte rendu');
-        $privee = $this->note($this->owner, 'Pour moi seul', content: 'Rien à voir');
-
-        $this->client->loginUser($this->owner, 'admin');
-        $this->post('backend_notes_markdown_folders_share', [], ['id' => $folder->getId()]);
-        self::assertResponseIsSuccessful();
-
         $this->client->loginUser($this->other, 'admin');
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_read_entry'));
+        self::assertResponseRedirects($this->urlGenerator->generate('backend_notes_markdown'));
 
-        $this->client->request('GET', $this->urlGenerator->generate(
-            'backend_notes_markdown_read',
-            ['id' => $note->getId()],
-        ));
-        self::assertResponseIsSuccessful();
-
-        // Ce qui n'est pas dedans reste dehors.
-        $this->client->request('GET', $this->urlGenerator->generate(
-            'backend_notes_markdown_read',
-            ['id' => $privee->getId()],
-        ));
-        self::assertResponseStatusCodeSame(404);
-    }
-
-    /** Une note partagée seule, sans dossier autour. */
-    public function testANoteCanBeSharedOnItsOwn(): void
-    {
-        $note = $this->note($this->owner, 'Note isolée', content: 'Texte');
-
-        $this->client->loginUser($this->other, 'admin');
-        $this->client->request('GET', $this->urlGenerator->generate(
-            'backend_notes_markdown_read',
-            ['id' => $note->getId()],
-        ));
-        self::assertResponseStatusCodeSame(404);
-
-        $this->client->loginUser($this->owner, 'admin');
-        $this->post('backend_notes_markdown_share_internally', [], ['id' => $note->getId()]);
-
-        $this->client->loginUser($this->other, 'admin');
-        $this->client->request('GET', $this->urlGenerator->generate(
-            'backend_notes_markdown_read',
-            ['id' => $note->getId()],
-        ));
-        self::assertResponseIsSuccessful();
+        $note = $this->note($this->other, 'Seule note');
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_read_entry'));
+        self::assertResponseRedirects($this->urlGenerator->generate('backend_notes_markdown_read', ['id' => $note->getId()]));
     }
 
     /**
-     * Partagé veut dire lisible, pas modifiable.
+     * Réordonner les sous-dossiers d'un dossier les laisse dedans.
      *
-     * L'éditeur enregistre tout seul et sans contrôle de concurrence : à
-     * deux sur une note, le dernier qui tape écraserait l'autre en
-     * silence. Tant que ce n'est pas traité, l'écriture reste au
-     * propriétaire, et c'est un test qui le tient.
+     * Le serveur ne rattachait un dossier qu'à un parent présent dans la
+     * requête ; le glisser n'envoie que les frères, sans leur parent, et
+     * ranger deux sous-dossiers l'un avant l'autre les renvoyait à la racine.
      */
-    public function testASharedNoteStaysReadOnlyForEverybodyElse(): void
+    public function testReorderingSubfoldersKeepsThemInTheirParent(): void
     {
-        $note = $this->note($this->owner, 'Partagée', content: 'Le texte d\'origine');
+        $parent = $this->folder($this->owner, 'Parent');
+        $a = $this->folder($this->owner, 'A', $parent);
+        $b = $this->folder($this->owner, 'B', $parent);
 
         $this->client->loginUser($this->owner, 'admin');
-        $this->post('backend_notes_markdown_share_internally', [], ['id' => $note->getId()]);
-
-        $this->client->loginUser($this->other, 'admin');
-        $this->post(
-            'backend_notes_markdown_update',
-            ['title' => 'Détournée', 'content' => 'Réécrite par quelqu\'un d\'autre'],
-            ['id' => $note->getId()],
-        );
-        self::assertResponseStatusCodeSame(404);
-
-        // Et la page de l'éditeur ne s'ouvre pas non plus : elle sert à
-        // écrire, donc au propriétaire. La lecture a son adresse à elle.
-        $this->client->request('GET', $this->urlGenerator->generate(
-            'backend_notes_markdown_show',
-            ['id' => $note->getId()],
-        ));
-        self::assertResponseStatusCodeSame(404);
-
-        $this->entityManager->clear();
-        $fresh = $this->entityManager->find(MarkdownNote::class, $note->getId());
-        self::assertInstanceOf(MarkdownNote::class, $fresh);
-        self::assertSame('Le texte d\'origine', $fresh->getContent());
-    }
-
-    /** On ne partage pas le dossier d'un autre. */
-    public function testOnlyTheOwnerDecidesWhatIsShared(): void
-    {
-        $folder = $this->folder($this->owner, 'Privé');
-
-        $this->client->loginUser($this->other, 'admin');
-        $this->post('backend_notes_markdown_folders_share', [], ['id' => $folder->getId()]);
-
-        self::assertResponseStatusCodeSame(404);
-
-        $this->entityManager->clear();
-        $fresh = $this->entityManager->find(NoteFolder::class, $folder->getId());
-        self::assertInstanceOf(NoteFolder::class, $fresh);
-        self::assertNull($fresh->getSharedAt());
-    }
-
-    /** La liste de ce que les autres ont partagé, et rien de soi. */
-    public function testTheSharedListCarriesWhatOthersOpened(): void
-    {
-        $folder = $this->folder($this->owner, 'Équipe');
-        $dedans = $this->note($this->owner, 'Dedans', $folder);
-        $aMoi = $this->folder($this->other, 'Mon coin');
-
-        $this->client->loginUser($this->owner, 'admin');
-        $this->post('backend_notes_markdown_folders_share', [], ['id' => $folder->getId()]);
-
-        $this->client->loginUser($this->other, 'admin');
-        $this->post('backend_notes_markdown_folders_share', [], ['id' => $aMoi->getId()]);
-
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_shared'));
+        $this->post('backend_notes_markdown_folders_reorder', ['entries' => [
+            ['id' => $b->getId(), 'parentId' => $parent->getId(), 'position' => 0],
+            ['id' => $a->getId(), 'parentId' => $parent->getId(), 'position' => 1],
+        ]]);
         self::assertResponseIsSuccessful();
 
-        $body = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
-        $dossiers = array_map(static fn (array $one): int => (int) $one['id'], $body['folders']);
-        $notes = array_map(static fn (array $one): int => (int) $one['id'], $body['notes']);
+        $this->entityManager->clear();
+        $freshA = $this->entityManager->find(NoteFolder::class, $a->getId());
+        $freshB = $this->entityManager->find(NoteFolder::class, $b->getId());
 
-        self::assertContains((int) $folder->getId(), $dossiers);
-        self::assertNotContains((int) $aMoi->getId(), $dossiers, 'Son propre dossier partagé ne lui est pas rendu.');
-        self::assertContains((int) $dedans->getId(), $notes);
+        self::assertSame($parent->getId(), $freshA?->getParent()?->getId());
+        self::assertSame($parent->getId(), $freshB?->getParent()?->getId());
+        self::assertSame(0, $freshB?->getPosition());
+        self::assertSame(1, $freshA?->getPosition());
+    }
+
+    /**
+     * Un dossier ne se range pas sous son propre enfant, même quand l'enfant
+     * n'est pas dans la requête : la boucle se lit aussi dans les parents
+     * déjà enregistrés.
+     */
+    public function testReorderRefusesACycleThroughStoredParents(): void
+    {
+        $top = $this->folder($this->owner, 'Haut');
+        $child = $this->folder($this->owner, 'Enfant', $top);
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->post('backend_notes_markdown_folders_reorder', ['entries' => [
+            ['id' => $top->getId(), 'parentId' => $child->getId(), 'position' => 0],
+        ]]);
+
+        $this->entityManager->clear();
+        self::assertNull($this->entityManager->find(NoteFolder::class, $top->getId())?->getParent());
+    }
+
+    /**
+     * Un enregistrement parti d'une version dépassée est refusé.
+     *
+     * L'éditeur enregistre tout seul : sans ce contrôle, à deux sur une même
+     * note, le dernier qui tapait effaçait l'autre sans que personne le sache.
+     */
+    public function testASaveFromAnOutdatedVersionIsRefused(): void
+    {
+        $note = $this->note($this->owner, 'Versionnée', content: 'v1');
+        $this->client->loginUser($this->owner, 'admin');
+
+        $saved = $this->post('backend_notes_markdown_update', ['title' => 'Versionnée', 'content' => 'v2', 'version' => 1], ['id' => $note->getId()]);
+        self::assertResponseIsSuccessful();
+        self::assertSame(2, $saved['note']['version']);
+
+        // Parti de la version 1 alors que la note est en 2 : refusé.
+        $this->post('backend_notes_markdown_update', ['title' => 'Versionnée', 'content' => 'écrasé', 'version' => 1], ['id' => $note->getId()]);
+        self::assertResponseStatusCodeSame(409);
+        $body = json_decode((string) $this->client->getResponse()->getContent(), true);
+        self::assertTrue($body['conflict']);
+
+        // Écraser en le sachant passe, et un appel sans version aussi.
+        $this->post('backend_notes_markdown_update', ['title' => 'Versionnée', 'content' => 'forcé', 'version' => 1, 'force' => true], ['id' => $note->getId()]);
+        self::assertResponseIsSuccessful();
+        $this->post('backend_notes_markdown_update', ['title' => 'Versionnée', 'content' => 'sans version'], ['id' => $note->getId()]);
+        self::assertResponseIsSuccessful();
+
+        $this->entityManager->clear();
+        self::assertSame('sans version', $this->entityManager->find(MarkdownNote::class, $note->getId())?->getContent());
     }
 
     /** Somebody else's folder is neither listed nor reachable. */
@@ -667,23 +648,22 @@ final class MarkdownNoteTest extends IntegrationTestCase
 
         $body = $this->post('backend_notes_markdown_favorite', [], ['id' => $note->getId()]);
         self::assertTrue($body['favorite']);
+        self::assertNotNull($this->listedRow((int) $note->getId())['favoritedAt']);
 
-        $this->entityManager->clear();
-        $pinned = $this->entityManager->find(MarkdownNote::class, $note->getId());
-        self::assertInstanceOf(MarkdownNoteInterface::class, $pinned);
-        self::assertNotNull($pinned->getFavoritedAt());
+        // Le lecteur le sait aussi : son étoile s'allume.
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_read', ['id' => $note->getId()]));
+        self::assertTrue($this->readProps((string) $this->client->getResponse()->getContent())['favorited']);
 
         $body = $this->post('backend_notes_markdown_favorite', [], ['id' => $note->getId()]);
         self::assertFalse($body['favorite']);
-
-        $this->entityManager->clear();
-        $loose = $this->entityManager->find(MarkdownNote::class, $note->getId());
-        self::assertInstanceOf(MarkdownNoteInterface::class, $loose);
-        self::assertNull($loose->getFavoritedAt());
+        self::assertNull($this->listedRow((int) $note->getId())['favoritedAt']);
     }
 
-    /** Un dossier s'épingle aussi, et personne d'autre ne peut l'épingler. */
-    public function testAFolderIsPinnedByItsOwnerOnly(): void
+    /**
+     * Les favoris sont à la personne : on épingle ce qu'on peut lire, pour
+     * soi seul, et jamais ce qu'on ne voit pas.
+     */
+    public function testFavoritesBelongToWhoPinsThem(): void
     {
         $folder = $this->folder($this->owner, 'Clients');
 
@@ -691,9 +671,38 @@ final class MarkdownNoteTest extends IntegrationTestCase
         $this->post('backend_notes_markdown_folders_favorite', [], ['id' => $folder->getId()]);
         self::assertResponseStatusCodeSame(404);
 
+        // Dans un espace ouvert à tous, chacun épingle pour lui.
+        $space = new NoteSpace();
+        $space->setOwner($this->owner)->setName('Équipe')->setAccess(NoteSpaceAccessEnum::Backoffice);
+        $this->entityManager->persist($space);
+        $this->entityManager->flush();
+        $this->created[] = [NoteSpace::class, (int) $space->getId()];
+        $shared = $this->note($this->owner, 'Procédure');
+        $shared->setSpace($space);
+        $this->entityManager->flush();
+
+        $this->client->loginUser($this->other, 'admin');
+        $body = $this->post('backend_notes_markdown_favorite', [], ['id' => $shared->getId()]);
+        self::assertTrue($body['favorite']);
+        self::assertNotNull($this->listedRow((int) $shared->getId())['favoritedAt']);
+
         $this->client->loginUser($this->owner, 'admin');
+        self::assertNull($this->listedRow((int) $shared->getId())['favoritedAt']);
         $body = $this->post('backend_notes_markdown_folders_favorite', [], ['id' => $folder->getId()]);
         self::assertTrue($body['favorite']);
+    }
+
+    /** @return array<string, mixed> */
+    private function listedRow(int $id): array
+    {
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_list'));
+        self::assertResponseIsSuccessful();
+
+        $body = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+        $row = current(array_filter($body['notes'], static fn (array $one): bool => (int) $one['id'] === $id));
+        self::assertIsArray($row);
+
+        return $row;
     }
 
     /**
@@ -745,10 +754,19 @@ final class MarkdownNoteTest extends IntegrationTestCase
         self::assertSame($secret, $fresh->getContent());
     }
 
+    /** Les propriétés passées à la page de lecture. */
+    private function readProps(string $html): array
+    {
+        self::assertSame(1, preg_match('/data-symfony--ux-vue--vue-props-value="([^"]*readNotePath[^"]*)"/', $html, $match));
+
+        return (array) json_decode(html_entity_decode($match[1], ENT_QUOTES | ENT_HTML5), true, flags: JSON_THROW_ON_ERROR);
+    }
+
     private function note(User $user, string $title, ?NoteFolder $folder = null, string $content = ''): MarkdownNote
     {
         $note = new MarkdownNote();
         $note->setUser($user);
+        $note->setSpace($folder?->getSpace() ?? $this->personalSpaceOf($user));
         $note->setTitle($title);
         $note->setContent($content);
         if (null !== $folder) {
@@ -765,6 +783,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
     {
         $folder = new NoteFolder();
         $folder->setUser($user);
+        $folder->setSpace($parent?->getSpace() ?? $this->personalSpaceOf($user));
         $folder->setName($name);
         $folder->setParent($parent);
         $this->entityManager->persist($folder);

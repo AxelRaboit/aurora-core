@@ -284,3 +284,117 @@ describe("useNotesEditor", () => {
         );
     });
 });
+
+describe("à deux sur une même note", () => {
+    beforeEach(() => vi.clearAllMocks());
+
+    function apiWithVersion(update) {
+        return {
+            show: vi.fn().mockResolvedValue({
+                ok: true,
+                payload: {
+                    note: {
+                        id: 2,
+                        title: "Studio Lumen",
+                        content: "Texte.",
+                        tags: [],
+                        version: 4,
+                    },
+                },
+            }),
+            update,
+            list: vi
+                .fn()
+                .mockResolvedValue({ ok: true, payload: { notes: NOTES } }),
+        };
+    }
+
+    it("sends the version it loaded, and keeps the one the server returns", async () => {
+        const update = vi.fn().mockResolvedValue({
+            ok: true,
+            payload: { note: { id: 2, version: 5 } },
+        });
+        const editor = editorWith(apiWithVersion(update));
+
+        await editor.selectNote(2);
+        editor.form.value.content = "Texte modifié.";
+        await editor.flushPendingSave();
+
+        expect(update.mock.calls[0][1]).toMatchObject({
+            version: 4,
+            force: false,
+        });
+
+        editor.form.value.content = "Encore.";
+        await editor.flushPendingSave();
+
+        expect(update.mock.calls[1][1]).toMatchObject({ version: 5 });
+    });
+
+    /**
+     * Quelqu'un a écrit entre-temps : l'éditeur s'arrête, sans message
+     * d'erreur ni nouvelle tentative, et attend que la personne choisisse.
+     */
+    it("stops and waits when the server has a newer version", async () => {
+        const { toast } = await import("vue-sonner");
+        const update = vi.fn().mockResolvedValue({
+            ok: false,
+            payload: { success: false, conflict: true },
+        });
+        const editor = editorWith(apiWithVersion(update));
+
+        await editor.selectNote(2);
+        editor.form.value.content = "Texte modifié.";
+        await editor.flushPendingSave();
+
+        expect(editor.conflict.value).toBe(true);
+        expect(toast.error).not.toHaveBeenCalled();
+
+        editor.form.value.content = "Et encore.";
+        await editor.flushPendingSave();
+        expect(update).toHaveBeenCalledTimes(1);
+    });
+
+    it("overwrites on purpose when asked", async () => {
+        const update = vi
+            .fn()
+            .mockResolvedValueOnce({
+                ok: false,
+                payload: { success: false, conflict: true },
+            })
+            .mockResolvedValueOnce({
+                ok: true,
+                payload: { note: { id: 2, version: 9 } },
+            });
+        const editor = editorWith(apiWithVersion(update));
+
+        await editor.selectNote(2);
+        editor.form.value.content = "Le mien.";
+        await editor.flushPendingSave();
+        await editor.saveAnyway();
+
+        expect(update.mock.calls[1][1]).toMatchObject({
+            content: "Le mien.",
+            force: true,
+        });
+        expect(editor.conflict.value).toBe(false);
+    });
+
+    it("drops what could not be saved when reloading", async () => {
+        const update = vi.fn().mockResolvedValue({
+            ok: false,
+            payload: { success: false, conflict: true },
+        });
+        const api = apiWithVersion(update);
+        const editor = editorWith(api);
+
+        await editor.selectNote(2);
+        editor.form.value.content = "Le mien.";
+        await editor.flushPendingSave();
+        await editor.reloadDiscarding();
+
+        expect(update).toHaveBeenCalledTimes(1);
+        expect(editor.form.value.content).toBe("Texte.");
+        expect(editor.conflict.value).toBe(false);
+    });
+});

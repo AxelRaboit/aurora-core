@@ -8,11 +8,14 @@ use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Validation\Service\PayloadValidator;
+use Aurora\Module\Notes\Favorite\Manager\NoteFavoriteManagerInterface;
 use Aurora\Module\Notes\Folder\Dto\NoteFolderInputFactoryInterface;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Folder\Manager\NoteFolderManagerInterface;
 use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
 use Aurora\Module\Notes\Folder\Serializer\NoteFolderSerializerInterface;
+use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
+use Aurora\Module\Notes\Space\Service\NoteSpaceAccess;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -21,6 +24,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 use function is_array;
+use function is_numeric;
 
 /**
  * The folders of the person asking, and nobody else's.
@@ -42,6 +46,8 @@ final class NoteFoldersController extends AbstractController
         private readonly NoteFolderInputFactoryInterface $inputFactory,
         private readonly NoteFolderSerializerInterface $serializer,
         private readonly PayloadValidator $payloadValidator,
+        private readonly NoteSpaceAccess $spaceAccess,
+        private readonly NoteFavoriteManagerInterface $favorites,
     ) {}
 
     /**
@@ -68,6 +74,19 @@ final class NoteFoldersController extends AbstractController
 
         $input = $this->inputFactory->fromArray($this->decodeJson($request));
 
+        // Là où l'on crée, on doit pouvoir écrire : le parent demandé, la
+        // racine de l'espace demandé, ou son espace personnel.
+        $parentId = $input->getParentId();
+        $spaceId = $input->getSpaceId();
+        $allowed = match (true) {
+            null !== $parentId => $this->spaceAccess->writableFolder($user, $parentId) instanceof NoteFolderInterface,
+            null !== $spaceId => $this->spaceAccess->writableSpace($user, $spaceId) instanceof NoteSpaceInterface,
+            default => true,
+        };
+        if (!$allowed) {
+            return $this->jsonNotFound();
+        }
+
         $errors = $this->payloadValidator->errors($input);
         if ([] !== $errors) {
             return $this->jsonInvalidInput($errors);
@@ -75,7 +94,7 @@ final class NoteFoldersController extends AbstractController
 
         $folder = $this->manager->create($user, $input);
 
-        return $this->jsonSuccess(['folder' => $this->serializer->serialize($folder)]);
+        return $this->jsonSuccess(['folder' => $this->serializerFor($user, $folder)->serialize($folder)]);
     }
 
     #[Route('/{id}/update', name: '_update', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Post->value])]
@@ -84,7 +103,7 @@ final class NoteFoldersController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        $folder = $this->repository->findOneByUserAndId($user, $id);
+        $folder = $this->spaceAccess->writableFolder($user, $id);
         if (!$folder instanceof NoteFolderInterface) {
             return $this->jsonNotFound();
         }
@@ -98,7 +117,7 @@ final class NoteFoldersController extends AbstractController
 
         $this->manager->update($folder, $input);
 
-        return $this->jsonSuccess(['folder' => $this->serializer->serialize($folder)]);
+        return $this->jsonSuccess(['folder' => $this->serializerFor($user, $folder)->serialize($folder)]);
     }
 
     /**
@@ -115,62 +134,54 @@ final class NoteFoldersController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        $folder = $this->repository->findOneByUserAndId($user, $id);
+        $folder = $this->spaceAccess->writableFolder($user, $id);
         if (!$folder instanceof NoteFolderInterface) {
             return $this->jsonNotFound();
         }
 
-        $raw = $this->decodeJson($request)['parentId'] ?? null;
+        $data = $this->decodeJson($request);
+        $raw = $data['parentId'] ?? null;
 
+        // Sous un dossier où l'on peut écrire, ou à la racine d'un espace où
+        // l'on peut écrire - celle où le dossier est déjà, sauf avis contraire.
         $parent = null;
+        $space = $folder->getSpace();
         if (null !== $raw && '' !== $raw) {
-            $parent = $this->repository->findOneByUserAndId($user, (int) $raw);
-            if (!$parent instanceof NoteFolderInterface) {
+            $parent = $this->spaceAccess->writableFolder($user, (int) $raw);
+            if (!$parent instanceof NoteFolderInterface || $parent->isTrashed()) {
+                return $this->jsonNotFound();
+            }
+        } elseif (isset($data['spaceId']) && is_numeric($data['spaceId'])) {
+            $space = $this->spaceAccess->writableSpace($user, (int) $data['spaceId']);
+            if (!$space instanceof NoteSpaceInterface) {
                 return $this->jsonNotFound();
             }
         }
 
-        if (!$this->manager->move($folder, $parent)) {
+        if (!$this->manager->move($folder, $parent, $space)) {
             return $this->jsonFailure('refused', extra: ['message' => 'notes.markdown.folders.errors.move_refused']);
         }
 
-        return $this->jsonSuccess(['folder' => $this->serializer->serialize($folder)]);
+        return $this->jsonSuccess(['folder' => $this->serializerFor($user, $folder)->serialize($folder)]);
     }
 
-    /** Épingler un dossier au menu, ou l'en décrocher. */
+    /**
+     * Ajouter un dossier à ses favoris, ou l'en retirer.
+     *
+     * Lire suffit : les favoris sont à la personne, pas au dossier.
+     */
     #[Route('/{id}/favorite', name: '_favorite', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Post->value])]
     public function favorite(int $id): JsonResponse
     {
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        $folder = $this->repository->findOneByUserAndId($user, $id);
+        $folder = $this->spaceAccess->readableFolder($user, $id);
         if (!$folder instanceof NoteFolderInterface) {
             return $this->jsonNotFound();
         }
 
-        return $this->jsonSuccess(['favorite' => $this->manager->toggleFavorite($folder)]);
-    }
-
-    /**
-     * Ouvre ou referme ce dossier au reste du back-office.
-     *
-     * Seul son propriétaire décide : la recherche passe par
-     * `findOneByUserAndId`, donc partager le dossier d'un collègue répond
-     * 404 comme n'importe quel dossier qui n'est pas à soi.
-     */
-    #[Route('/{id}/share', name: '_share', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Post->value])]
-    public function share(int $id): JsonResponse
-    {
-        /** @var CoreUserInterface $user */
-        $user = $this->getUser();
-
-        $folder = $this->repository->findOneByUserAndId($user, $id);
-        if (!$folder instanceof NoteFolderInterface) {
-            return $this->jsonNotFound();
-        }
-
-        return $this->jsonSuccess(['shared' => $this->manager->toggleShared($folder)]);
+        return $this->jsonSuccess(['favorite' => $this->favorites->toggle($user, $folder)]);
     }
 
     /** Sends a folder to the trash, with everything inside it. */
@@ -180,7 +191,7 @@ final class NoteFoldersController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        $folder = $this->repository->findOneByUserAndId($user, $id);
+        $folder = $this->spaceAccess->writableFolder($user, $id);
         if (!$folder instanceof NoteFolderInterface) {
             return $this->jsonNotFound();
         }
@@ -196,7 +207,7 @@ final class NoteFoldersController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        $folder = $this->repository->findOneByUserAndId($user, $id);
+        $folder = $this->spaceAccess->writableFolder($user, $id);
         if (!$folder instanceof NoteFolderInterface) {
             return $this->jsonNotFound();
         }
@@ -212,7 +223,7 @@ final class NoteFoldersController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        $folder = $this->repository->findOneByUserAndId($user, $id);
+        $folder = $this->spaceAccess->writableFolder($user, $id);
         if (!$folder instanceof NoteFolderInterface) {
             return $this->jsonNotFound();
         }
@@ -235,7 +246,12 @@ final class NoteFoldersController extends AbstractController
         $user = $this->getUser();
 
         $deleted = 0;
+        // Définitif : seulement dans les espaces qu'on gère.
         foreach ($this->repository->findTrashedRootsForUser($user) as $folder) {
+            if (!$this->spaceAccess->canManage($user, $folder->getSpace())) {
+                continue;
+            }
+
             $this->manager->forceDelete($folder);
             ++$deleted;
         }
@@ -282,7 +298,7 @@ final class NoteFoldersController extends AbstractController
     /** @return list<array<string, mixed>> */
     private function serializeAllFor(CoreUserInterface $user): array
     {
-        $serializer = $this->serializer->withCounts(
+        $serializer = $this->serializer->withFavorites($this->favorites->mapFor($user)['folders'])->withCounts(
             $this->repository->countNotesPerFolderForUser($user),
             $this->repository->countChildrenPerFolderForUser($user),
         );
@@ -291,5 +307,13 @@ final class NoteFoldersController extends AbstractController
             $serializer->serialize(...),
             $this->repository->findAllForUser($user),
         );
+    }
+
+    /** Le sérialiseur, avec l'épinglage de ce dossier par cette personne. */
+    private function serializerFor(CoreUserInterface $user, NoteFolderInterface $folder): NoteFolderSerializerInterface
+    {
+        $at = $this->favorites->favoritedAt($user, $folder);
+
+        return $this->serializer->withFavorites(null === $at ? [] : [(int) $folder->getId() => $at]);
     }
 }
