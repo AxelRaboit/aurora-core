@@ -970,6 +970,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             if (!$item instanceof SpaceContentItemInterface) {
                 continue;
             }
+
             if (SpaceContentApprovalEnum::Pending !== $item->getApproval()) {
                 continue;
             }
