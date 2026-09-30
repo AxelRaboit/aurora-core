@@ -7,6 +7,7 @@ import {
     FilePlus2,
     FileX2,
     Pencil,
+    Tag,
     Trash2,
 } from "lucide-vue-next";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
@@ -66,26 +67,36 @@ export function useContractTemplateActions(editorPath) {
             });
         }
 
-        if (
-            !template.draftId &&
-            !template.isArchived &&
-            can("studio.contract_templates.edit")
-        ) {
-            actions.push({
-                key: "openDraft",
-                color: "accent",
-                icon: FilePlus2,
-                title: t(`${prefix}.open_draft`),
-                description: t(`${prefix}.row_actions.open_draft_description`),
-                onSelect: () => handlers.openDraft(template),
-            });
+        // The gesture most people come for, first and in colour: change the
+        // text. With a draft open it goes back into it; otherwise it opens the
+        // next version and goes in. The version in force does not change
+        // until the draft is published.
+        if (!template.isArchived && can("studio.contract_templates.edit")) {
+            actions.unshift(
+                template.draftId
+                    ? {
+                          key: "editText",
+                          color: "accent",
+                          icon: Pencil,
+                          title: t(`${prefix}.continue_draft`, { number: template.draftVersion }),
+                          description: t(`${prefix}.row_actions.continue_draft_description`),
+                          href: editorPath?.(template.id, template.draftId),
+                      }
+                    : {
+                          key: "editText",
+                          color: "accent",
+                          icon: FilePlus2,
+                          title: t(`${prefix}.edit_text`),
+                          description: t(`${prefix}.row_actions.edit_text_description`),
+                          onSelect: () => handlers.openDraft(template),
+                      },
+            );
         }
 
-        // The way back out of a draft opened by mistake. Offered here rather
-        // than only inside the editor, and under the delete permission: it
-        // destroys a text nobody has published, which is exactly what the
-        // editor's own Abandon button does.
-        if (template.draftId && can("studio.contract_templates.delete")) {
+        // The way back out of a draft opened by mistake, under the same right
+        // as opening one: an account allowed to open drafts but not to delete
+        // templates used to be stuck with the first one.
+        if (template.draftId && can("studio.contract_templates.edit")) {
             actions.push({
                 key: "discard",
                 color: "amber",
@@ -110,8 +121,10 @@ export function useContractTemplateActions(editorPath) {
         if (can("studio.contract_templates.edit")) {
             actions.push({
                 key: "rename",
-                icon: Pencil,
-                title: t("shared.common.edit"),
+                icon: Tag,
+                // It renames and files the trame; it never opened the text,
+                // which « Modifier » promised.
+                title: t(`${prefix}.rename_title`),
                 description: t(`${prefix}.row_actions.rename_description`),
                 onSelect: () => handlers.rename(template),
             });
@@ -139,7 +152,9 @@ export function useContractTemplateActions(editorPath) {
             });
         }
 
-        if (can("studio.contract_templates.delete")) {
+        // Only when no contract starts from it: the server refuses otherwise,
+        // and archiving is the way to retire a trame that has served.
+        if (can("studio.contract_templates.delete") && 0 === (template.contractsCount ?? 0)) {
             actions.push({
                 key: "delete",
                 color: "rose",

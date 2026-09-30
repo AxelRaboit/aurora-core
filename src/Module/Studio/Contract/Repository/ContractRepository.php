@@ -97,6 +97,32 @@ class ContractRepository extends ResolveTargetEntityRepository
     }
 
     /**
+     * How many contracts each template is used by, drafts included, keyed by
+     * template id: as body or as annex, counted once per contract.
+     *
+     * @return array<int, int>
+     */
+    public function countByTemplate(): array
+    {
+        $counts = [];
+
+        foreach (['bodyVersion', 'annexVersion'] as $relation) {
+            $rows = $this->createQueryBuilder('c')
+                ->select('IDENTITY(v.template) AS template, COUNT(c.id) AS total')
+                ->innerJoin('c.'.$relation, 'v')
+                ->groupBy('v.template')
+                ->getQuery()
+                ->getScalarResult();
+
+            foreach ($rows as $row) {
+                $counts[(int) $row['template']] = ($counts[(int) $row['template']] ?? 0) + (int) $row['total'];
+            }
+        }
+
+        return $counts;
+    }
+
+    /**
      * How many contracts each customer has, keyed by customer id.
      *
      * @return array<int, int>

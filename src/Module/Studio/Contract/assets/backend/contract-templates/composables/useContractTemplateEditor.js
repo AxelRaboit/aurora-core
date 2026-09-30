@@ -54,6 +54,18 @@ export function useContractTemplateEditor(props) {
     );
 
     /**
+     * The languages this version is written in that the application no longer
+     * offers. Kept and sent back untouched: the editor only built tabs for the
+     * active languages, so saving used to erase a Spanish wording the day
+     * Spanish was switched off, and the governing clause with it.
+     */
+    const inactiveTranslations = Object.fromEntries(
+        Object.entries(props.version.translations ?? {}).filter(
+            ([code]) => !locales.value.some((locale) => locale.code === code),
+        ),
+    );
+
+    /**
      * Which language prevails between the translations.
      *
      * Null while the version has one language, because there is nothing to
@@ -92,6 +104,10 @@ export function useContractTemplateEditor(props) {
     function payload() {
         const translations = {};
 
+        for (const [locale, entry] of Object.entries(inactiveTranslations)) {
+            translations[locale] = { title: entry.title, content: entry.content ?? { blocks: [] } };
+        }
+
         for (const [locale, entry] of Object.entries(wording.value)) {
             if (!entry.title.trim()) continue;
 
@@ -122,6 +138,24 @@ export function useContractTemplateEditor(props) {
     const errors = ref({});
     const showPublish = ref(false);
     const showDiscard = ref(false);
+
+    /**
+     * Languages with text and no title. The title is how the editor says « I
+     * write this one », so a wording under an empty title was dropped at the
+     * next save without a word: somebody who cleared the English title to
+     * retype it lost the nineteen English articles. Now it is named, and the
+     * save waits for a title or for the text to be emptied.
+     */
+    const untitledWithText = computed(() =>
+        Object.entries(wording.value)
+            .filter(([, entry]) => !entry.title.trim() && (entry.blocks ?? []).length > 0)
+            .map(([locale]) => locale),
+    );
+
+    /* What is on screen against what was last saved. */
+    const snapshot = () => JSON.stringify({ wording: wording.value, governing: governingLocale.value });
+    const saved = ref(snapshot());
+    const isDirty = computed(() => !isPublished.value && snapshot() !== saved.value);
 
     const writtenLocales = computed(() =>
         Object.entries(wording.value)
@@ -159,6 +193,16 @@ export function useContractTemplateEditor(props) {
 
         await flushEditors();
 
+        if (untitledWithText.value.length > 0) {
+            errors.value = {
+                translations: t("backend.studio.contract_templates.untitled_text", {
+                    locales: untitledWithText.value.map((code) => code.toUpperCase()).join(", "),
+                }),
+            };
+
+            return false;
+        }
+
         saving.value = true;
         errors.value = {};
 
@@ -180,6 +224,7 @@ export function useContractTemplateEditor(props) {
             }
 
             if (data.version) version.value = data.version;
+            saved.value = snapshot();
 
             if (!silent)
                 toast.success(t("backend.studio.contract_templates.saved"));
@@ -240,6 +285,8 @@ export function useContractTemplateEditor(props) {
             return;
         }
 
+        // Abandoned on purpose: nothing left to warn about on the way out.
+        saved.value = snapshot();
         window.location.assign(data?.indexPath ?? props.indexPath);
     }
 
@@ -248,6 +295,8 @@ export function useContractTemplateEditor(props) {
     }
 
     return {
+        untitledWithText,
+        isDirty,
         version,
         isPublished,
         locales,

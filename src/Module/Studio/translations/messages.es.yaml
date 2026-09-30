@@ -547,6 +547,9 @@ backend:
                 governing_locale_unknown: 'La aplicación no admite este idioma.'
                 governing_locale_not_written: 'El idioma de referencia ({locale}) no está redactado en esta versión.'
                 governing_locale_required: 'Esta versión está redactada en varios idiomas: indique cuál es el de referencia antes de publicar.'
+                kind_locked: 'Hay contratos basados en esta plantilla: su tipo ya no puede cambiar. Duplíquela para crear otra.'
+                archived: 'Esta plantilla está archivada. Reactívela para editarla o publicarla.'
+                title_too_long: 'El título no puede superar los 250 caracteres.'
                 unrenderable_block: 'El bloque n.º {number} del texto {locale} es de tipo «{type}», que un contrato no puede imprimir: quítelo.'
                 malformed_block: 'El bloque n.º {number} del texto {locale} es ilegible: quítelo.'
                 unknown_tokens: 'Estas variables del texto {locale} no corresponden a nada: {tokens}. Corríjalas antes de publicar.'
@@ -582,17 +585,24 @@ backend:
             no_draft: 'Ningún borrador'
             view: Consultar
             open_draft: 'Abrir un borrador'
+            untitled_text: 'Hay texto sin título en {locales}: sin título, ese idioma no se guardaría. Póngale un título o vacíe su texto.'
+            edit_text: 'Editar el texto'
+            continue_draft: 'Volver al borrador (versión {number})'
+            rename_title: 'Renombrar, clasificar'
             duplicate: Duplicar
             duplicate_suffix: (copia)
             duplicate_confirm: '¿Duplicar {name}?'
             duplicate_hint: 'La copia retoma el texto vigente en un borrador, con un nombre nuevo. No se publica nada.'
             duplicated: 'Plantilla duplicada.'
             col_locales: Idiomas
+            col_contracts: Contratos
             archive: Archivar
             restore: Reactivar
             show_archived: 'Mostrar las archivadas ({count})'
             hide_archived: 'Ocultar las archivadas'
             row_actions:
+                edit_text_description: 'Abre la versión siguiente como borrador. La versión en vigor no cambia hasta que se publique.'
+                continue_draft_description: 'Vuelve al texto en redacción.'
                 view_description: 'Abre la versión vigente, en solo lectura.'
                 open_draft_description: 'Abre una nueva versión editable, a partir del texto vigente.'
                 discard_description: 'Elimina el borrador y deja la plantilla tal como está publicada.'
@@ -604,6 +614,12 @@ backend:
             state_published: Publicada
             state_draft: Borrador
             state_archived: Archivada
+            state_in_force: 'En vigor'
+            state_replaced: Sustituida
+            in_force_notice: 'Versión {number}, en vigor: los nuevos contratos parten de este texto. Está fijado; « Editar el texto » abre la versión siguiente como borrador.'
+            replaced_notice: 'Versión {number}, sustituida por la versión {latest}. Los contratos ya establecidos sobre ella conservan este texto.'
+            open_in_force: 'Abrir la versión en vigor'
+            archived_notice: 'Esta plantilla está archivada: ya no se propone para nuevos contratos. Reactívela desde la lista para editarla.'
             version_label: 'Versión {number}'
             other_versions: 'Otras versiones'
             locale_written: 'Este idioma está redactado'

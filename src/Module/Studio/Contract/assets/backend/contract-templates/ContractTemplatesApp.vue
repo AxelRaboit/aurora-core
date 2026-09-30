@@ -1,4 +1,5 @@
 <script setup>
+import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
@@ -33,6 +34,7 @@ import {
     X,
 } from "lucide-vue-next";
 
+const { formatDateNumeric } = useDateFormat();
 const { t } = useI18n();
 const { can } = usePrivileges();
 
@@ -421,6 +423,12 @@ const pageActions = computed(() => {
                         <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden md:table-cell">
                             {{ t("backend.studio.contract_templates.state_draft") }}
                         </th>
+                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">
+                            {{ t("backend.studio.contract_templates.col_locales") }}
+                        </th>
+                        <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">
+                            {{ t("backend.studio.contract_templates.col_contracts") }}
+                        </th>
                         <!-- Named, and the only column aligned right: it is
                              where the hand goes, not something to read across
                              with the rest. -->
@@ -485,6 +493,9 @@ const pageActions = computed(() => {
                             <span v-else class="text-muted text-xs">
                                 {{ t("backend.studio.contract_templates.never_published") }}
                             </span>
+                            <span v-if="template.publishedAt" class="block text-2xs text-muted">
+                                {{ formatDateNumeric(template.publishedAt) }}
+                            </span>
                         </td>
                         <!-- The draft is amber and clickable: on this screen it
                              is the one state somebody is meant to act on, and
@@ -504,6 +515,18 @@ const pageActions = computed(() => {
                             <span v-else class="text-muted text-xs">
                                 {{ t("backend.studio.contract_templates.no_draft") }}
                             </span>
+                        </td>
+                        <!-- The languages it is written in: the list only said
+                             so in cards, and a contract in a language its
+                             trame lacks is refused at creation. -->
+                        <td class="px-4 py-2 hidden lg:table-cell whitespace-nowrap text-xs text-secondary uppercase">
+                            {{ (template.locales ?? []).join(" · ") || "-" }}
+                        </td>
+                        <!-- How many contracts start from it, drafts included:
+                             why it cannot be deleted, and what a change of
+                             text will not touch. -->
+                        <td class="px-4 py-2 hidden lg:table-cell whitespace-nowrap tabular-nums text-secondary">
+                            {{ template.contractsCount ?? 0 }}
                         </td>
                         <td class="px-4 py-2 sticky right-0 bg-surface border-l border-line/40">
                             <AppRowActions

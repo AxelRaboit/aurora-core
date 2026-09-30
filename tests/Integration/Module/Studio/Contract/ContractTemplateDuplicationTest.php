@@ -57,6 +57,7 @@ final class ContractTemplateDuplicationTest extends IntegrationTestCase
         $this->duplicator = new ContractTemplateDuplicator(
             $this->templates,
             $container->get(TranslatorInterface::class),
+            $this->entityManager,
         );
     }
 
@@ -163,6 +164,17 @@ final class ContractTemplateDuplicationTest extends IntegrationTestCase
         $copy = $this->duplicator->duplicate($template);
 
         self::assertSame('BROUILLON', $copy->getDraft()?->getTranslation('fr')?->getTitle());
+    }
+
+    /** A long name keeps its suffix and fits its column. */
+    public function testALongNameIsCutToFitWithItsSuffix(): void
+    {
+        $source = $this->templates->create(new ContractTemplateInput(str_repeat('a', 178), ContractTemplateKindEnum::Body));
+
+        $copy = $this->duplicator->duplicate($source);
+
+        self::assertLessThanOrEqual(180, mb_strlen($copy->getName()));
+        self::assertStringEndsWith(')', $copy->getName());
     }
 
     private function publishedTemplate(ContractTemplateKindEnum $kind = ContractTemplateKindEnum::Body): ContractTemplateInterface

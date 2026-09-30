@@ -273,13 +273,14 @@ export function useContractTemplatesList(props) {
     }
 
     /**
-     * Opens a draft and stays on the list.
+     * « Modifier le texte »: opens the next version as a draft and goes into
+     * it.
      *
-     * An action taken on a row answers on that row: the draft badge appears,
-     * amber and clickable, and going in is the reader's next click rather
-     * than something the list decides for them. Jumping straight into the
-     * editor also stranded whoever opened a draft on the wrong trame - the way
-     * back was the browser's Back button and a draft nobody wanted.
+     * It used to stay on the list, so that a draft opened on the wrong trame
+     * would not strand anybody in the editor. The editor now offers « Abandonner »
+     * to anyone who may open a draft, and going in is what somebody asking to
+     * edit a text wants: two clicks and a badge to find was the complicated
+     * part.
      */
     async function openDraft(template) {
         if (busy.value) return;
@@ -300,7 +301,10 @@ export function useContractTemplatesList(props) {
             }
 
             applyList(data);
-            toast.success(t("backend.studio.contract_templates.draft_opened"));
+
+            if (data.draftId) {
+                window.location.assign(buildPath(props.editorPath, { id: template.id, versionId: data.draftId }));
+            }
         } finally {
             busy.value = false;
         }

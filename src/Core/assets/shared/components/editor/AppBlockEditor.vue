@@ -73,6 +73,12 @@ const props = defineProps({
      * inline tools (bold, colour...) are not filtered here.
      */
     blockTools: { type: Array, default: null },
+    /**
+     * Shows the blocks without letting them be edited: a published contract
+     * wording was only covered by `pointer-events-none`, and the keyboard
+     * still typed into it.
+     */
+    readOnly: { type: Boolean, default: false },
 });
 
 /** The block tools of the built-in set, as opposed to the inline ones. */
@@ -207,6 +213,7 @@ onMounted(async () => {
                 },
             },
         },
+        readOnly: props.readOnly,
         tools: offered({
             // Blocs de texte
             header: {

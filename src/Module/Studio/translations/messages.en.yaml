@@ -547,6 +547,9 @@ backend:
                 governing_locale_unknown: This language is not one the application offers.
                 governing_locale_not_written: 'The governing language ({locale}) is not written in this version.'
                 governing_locale_required: 'This version is written in several languages: say which one prevails before publishing it.'
+                kind_locked: 'Contracts are built on this template: its kind can no longer change. Duplicate it to make another.'
+                archived: 'This template is archived. Restore it to edit or publish it.'
+                title_too_long: 'The title cannot exceed 250 characters.'
                 unrenderable_block: 'Block {number} of the {locale} wording is a "{type}" block, which a contract cannot print: remove it.'
                 malformed_block: 'Block {number} of the {locale} wording cannot be read: remove it.'
                 unknown_tokens: 'These variables in the {locale} wording match nothing: {tokens}. Fix them before publishing.'
@@ -582,17 +585,24 @@ backend:
             no_draft: No draft
             view: View
             open_draft: Open a draft
+            untitled_text: 'There is text without a title in {locales}: without a title, that language would not be saved. Give it a title, or empty its text.'
+            edit_text: Edit the text
+            continue_draft: 'Back to the draft (version {number})'
+            rename_title: 'Rename, file'
             duplicate: Duplicate
             duplicate_suffix: (copy)
             duplicate_confirm: 'Duplicate {name}?'
             duplicate_hint: The copy takes the wording in force into a draft, under a new name. Nothing is published.
             duplicated: Trame duplicated.
             col_locales: Languages
+            col_contracts: Contracts
             archive: Archive
             restore: Restore
             show_archived: 'Show archived ({count})'
             hide_archived: Hide archived
             row_actions:
+                edit_text_description: 'Opens the next version as a draft. The version in force does not change until it is published.'
+                continue_draft_description: 'Back to the text being written.'
                 view_description: Opens the version in force, read only.
                 open_draft_description: Opens a new editable version, from the text in force.
                 discard_description: Deletes the draft and leaves the trame as it is published.
@@ -604,6 +614,12 @@ backend:
             state_published: Published
             state_draft: Draft
             state_archived: Archived
+            state_in_force: In force
+            state_replaced: Replaced
+            in_force_notice: 'Version {number}, in force: new contracts are built on this text. It is fixed; « Edit the text » opens the next version as a draft.'
+            replaced_notice: 'Version {number}, replaced by version {latest}. Contracts already built on it keep this text.'
+            open_in_force: Open the version in force
+            archived_notice: 'This template is archived: it is no longer offered for new contracts. Restore it from the list to edit it.'
             version_label: 'Version {number}'
             other_versions: Other versions
             locale_written: This language is written

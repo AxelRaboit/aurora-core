@@ -547,6 +547,9 @@ backend:
                 governing_locale_unknown: Cette langue n'est pas gérée par l'application.
                 governing_locale_not_written: 'La langue faisant foi ({locale}) n''est pas rédigée dans cette version.'
                 governing_locale_required: 'Cette version est rédigée en plusieurs langues : indiquez laquelle fait foi avant de publier.'
+                kind_locked: 'Des contrats partent de cette trame : son type ne peut plus changer. Dupliquez-la pour en faire une autre.'
+                archived: 'Cette trame est archivée. Réactivez-la pour la modifier ou la publier.'
+                title_too_long: 'Le titre ne peut pas dépasser 250 caractères.'
                 unrenderable_block: 'Le bloc n° {number} du texte {locale} est de type « {type} », qu''un contrat ne sait pas imprimer : retirez-le.'
                 malformed_block: 'Le bloc n° {number} du texte {locale} est illisible : retirez-le.'
                 unknown_tokens: 'Ces variables du texte {locale} ne correspondent à rien : {tokens}. Corrigez-les avant de publier.'
@@ -582,17 +585,24 @@ backend:
             no_draft: Aucun brouillon
             view: Consulter
             open_draft: Ouvrir un brouillon
+            untitled_text: 'Du texte est rédigé sans titre en {locales} : sans titre, cette langue ne serait pas enregistrée. Donnez-lui un titre, ou videz son texte.'
+            edit_text: Modifier le texte
+            continue_draft: 'Reprendre le brouillon (version {number})'
+            rename_title: 'Renommer, classer'
             duplicate: Dupliquer
             duplicate_suffix: (copie)
             duplicate_confirm: 'Dupliquer {name} ?'
             duplicate_hint: La copie reprend le texte en vigueur dans un brouillon, sous un nouveau nom. Rien n'est publié.
             duplicated: Trame dupliquée.
             col_locales: Langues
+            col_contracts: Contrats
             archive: Archiver
             restore: Réactiver
             show_archived: 'Afficher les archivées ({count})'
             hide_archived: Masquer les archivées
             row_actions:
+                edit_text_description: 'Ouvre la version suivante en brouillon. La version en vigueur ne change pas avant la publication.'
+                continue_draft_description: 'Reprend le texte en cours de rédaction.'
                 view_description: Ouvre la version en vigueur, en lecture seule.
                 open_draft_description: Ouvre une nouvelle version modifiable, à partir du texte en vigueur.
                 discard_description: Supprime le brouillon et laisse la trame telle qu'elle est publiée.
@@ -604,6 +614,12 @@ backend:
             state_published: Publiée
             state_draft: Brouillon
             state_archived: Archivée
+            state_in_force: En vigueur
+            state_replaced: Remplacée
+            in_force_notice: 'Version {number}, en vigueur : les nouveaux contrats partent de ce texte. Il est figé ; « Modifier le texte » ouvre la version suivante en brouillon.'
+            replaced_notice: 'Version {number}, remplacée par la version {latest}. Les contrats déjà établis sur elle gardent ce texte.'
+            open_in_force: Ouvrir la version en vigueur
+            archived_notice: 'Cette trame est archivée : elle n''est plus proposée pour de nouveaux contrats. Réactivez-la depuis la liste pour la modifier.'
             version_label: 'Version {number}'
             other_versions: Autres versions
             locale_written: Cette langue est rédigée

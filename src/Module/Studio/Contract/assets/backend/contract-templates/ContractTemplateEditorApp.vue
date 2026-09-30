@@ -1,8 +1,11 @@
 <script setup>
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
-import { computed, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
+import { usePrivileges } from "@/shared/composables/usePrivileges.js";
+import { buildPath } from "@/shared/utils/http/buildPath.js";
+import { toast } from "vue-sonner";
 import { safeContractHtml } from "../shared/contractHtml.js";
 import { useContractTemplateEditor } from "./composables/useContractTemplateEditor.js";
 import ContractVariablePanel from "./components/ContractVariablePanel.vue";
@@ -13,9 +16,10 @@ import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppMessage from "@/shared/components/feedback/AppMessage.vue";
+import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
-import { Check, Eye, Lock, Save, ScrollText, Trash2, X } from "lucide-vue-next";
+import { Archive, Check, Eye, FilePlus2, Lock, Save, ScrollText, Trash2, X } from "lucide-vue-next";
 
 /**
  * What a contract can print, and so all the editor offers: anything else was
@@ -38,9 +42,17 @@ const props = defineProps({
     indexPath: { type: String, required: true },
     editorPath: { type: String, required: true },
     previewPath: { type: String, required: true },
+    openDraftPath: { type: String, default: "" },
+    inForceVersionId: { type: Number, default: null },
 });
 
+const { can } = usePrivileges();
+/** Everything that writes needs this: the buttons used to show for readers. */
+const canEdit = computed(() => can("studio.contract_templates.edit") && !props.template.isArchived);
+
 const {
+    untitledWithText,
+    isDirty,
     version,
     isPublished,
     locales,
@@ -62,6 +74,62 @@ const {
     discard,
     versionPath,
 } = useContractTemplateEditor(props);
+
+/**
+ * Three states, named the same everywhere: the draft being written, the
+ * version in force, and a version that was in force and has been replaced.
+ * Every published version used to say « Publiée », the first as much as the
+ * one contracts are built on today.
+ */
+const state = computed(() => {
+    if (!isPublished.value) return "draft";
+
+    return version.value.id === props.inForceVersionId ? "in_force" : "replaced";
+});
+
+const inForceHref = computed(() => (props.inForceVersionId ? versionPath(props.inForceVersionId) : null));
+const inForceNumber = computed(() => props.versions.find((each) => each.id === props.inForceVersionId)?.number ?? null);
+
+/**
+ * « Modifier le texte » from a published version: back into the draft if one
+ * is open, otherwise the next version, opened and entered.
+ */
+const opening = ref(false);
+
+async function editText() {
+    if (props.template.draftId) {
+        window.location.assign(versionPath(props.template.draftId));
+
+        return;
+    }
+
+    opening.value = true;
+
+    try {
+        const data = await request(props.openDraftPath, {}, { noGuard: true });
+
+        if (!data?.success) {
+            if (data?.errors) toast.error(Object.values(data.errors)[0]);
+
+            return;
+        }
+
+        if (data.draftId) window.location.assign(versionPath(data.draftId));
+    } finally {
+        opening.value = false;
+    }
+}
+
+/* Unsaved text is not lost to a click on « Retour » or a closed tab. */
+function warnBeforeLeaving(event) {
+    if (!isDirty.value) return;
+
+    event.preventDefault();
+    event.returnValue = "";
+}
+
+onMounted(() => window.addEventListener("beforeunload", warnBeforeLeaving));
+onBeforeUnmount(() => window.removeEventListener("beforeunload", warnBeforeLeaving));
 
 const otherVersions = computed(() =>
     props.versions.filter((each) => each.id !== version.value.id),
@@ -103,15 +171,9 @@ const templateActions = computed(() => {
         },
     ];
 
-    if (!isPublished.value) {
-        actions.push({
-            key: "publish",
-            color: "emerald",
-            icon: Check,
-            title: t("backend.studio.contract_templates.publish"),
-            disabled: !canPublish.value,
-            onSelect: () => (showPublish.value = true),
-        });
+    // « Publier » is a button of its own now, beside « Enregistrer »: hidden
+    // in this menu, it was the step people could not find.
+    if (!isPublished.value && canEdit.value) {
         actions.push({
             key: "discard",
             color: "rose",
@@ -200,15 +262,29 @@ const governingLabel = computed(
         <!-- A published version is readable but not writable, and the page says
              so before the reader tries. Hiding the fields instead would leave
              them wondering where the text went. -->
-        <AppMessage v-if="isPublished" variant="info">
+        <!-- What this version is, and what to do from here. -->
+        <AppMessage v-if="template.isArchived" variant="warning">
+            <span class="flex items-center gap-2">
+                <Archive class="w-4 h-4 shrink-0" :stroke-width="2" />
+                {{ t("backend.studio.contract_templates.archived_notice") }}
+            </span>
+        </AppMessage>
+        <AppMessage v-else-if="'in_force' === state" variant="info">
             <span class="flex items-center gap-2">
                 <Lock class="w-4 h-4 shrink-0" :stroke-width="2" />
-                {{
-                    t("backend.studio.contract_templates.published_notice", {
-                        number: version.number,
-                    })
-                }}
+                {{ t("backend.studio.contract_templates.in_force_notice", { number: version.number }) }}
             </span>
+        </AppMessage>
+        <AppMessage v-else-if="'replaced' === state" variant="warning">
+            <span class="flex flex-wrap items-center gap-2">
+                <Lock class="w-4 h-4 shrink-0" :stroke-width="2" />
+                {{ t("backend.studio.contract_templates.replaced_notice", { number: version.number, latest: inForceNumber ?? "-" }) }}
+                <a v-if="inForceHref" :href="inForceHref" class="underline">{{ t("backend.studio.contract_templates.open_in_force") }}</a>
+            </span>
+        </AppMessage>
+
+        <AppMessage v-if="untitledWithText.length && !isPublished" variant="warning">
+            {{ t("backend.studio.contract_templates.untitled_text", { locales: untitledWithText.map((code) => code.toUpperCase()).join(", ") }) }}
         </AppMessage>
 
         <AppMessage v-if="errors.version" variant="danger">
@@ -230,20 +306,12 @@ const governingLabel = computed(
                         })
                     }}
                 </span>
-                <span
-                    class="text-xs px-2 py-0.5 rounded-full border"
-                    :class="
-                        isPublished
-                            ? 'border-emerald-500/40 text-emerald-500'
-                            : 'border-amber-500/40 text-amber-500'
-                    "
-                >
-                    {{
-                        isPublished
-                            ? t("backend.studio.contract_templates.state_published")
-                            : t("backend.studio.contract_templates.state_draft")
-                    }}
-                </span>
+                <AppBadge :color="{ draft: 'amber', in_force: 'emerald', replaced: 'slate' }[state]">
+                    {{ t(`backend.studio.contract_templates.state_${state}`) }}
+                </AppBadge>
+                <AppBadge v-if="template.isArchived" color="slate">
+                    {{ t("backend.studio.contract_templates.state_archived") }}
+                </AppBadge>
             </div>
 
             <div class="flex flex-wrap items-center gap-2">
@@ -255,18 +323,44 @@ const governingLabel = computed(
                     :busy="preview.loading && !preview.open"
                     icon-only-on-phone
                 />
-                <!-- Promoted from secondary: it is now the only button on the
-                     row that does something to the draft. -->
+                <!-- The draft's two gestures, both in sight: save, then publish.
+                     Publishing sat in the « … » menu, and people looked for it. -->
+                <template v-if="!isPublished && canEdit">
+                    <AppButton
+                        variant="secondary"
+                        size="md"
+                        :loading="saving"
+                        :title="t('shared.common.save')"
+                        v-on:click="save"
+                    >
+                        <Save class="w-3.5 h-3.5" :stroke-width="2" />
+                        <span class="sr-only sm:not-sr-only">{{ t("shared.common.save") }}</span>
+                    </AppButton>
+                    <AppButton
+                        variant="primary"
+                        size="md"
+                        :disabled="!canPublish"
+                        :loading="publishing"
+                        v-on:click="showPublish = true"
+                    >
+                        <Check class="w-3.5 h-3.5" :stroke-width="2" />
+                        {{ t("backend.studio.contract_templates.publish") }}
+                    </AppButton>
+                </template>
+                <!-- From the version in force: the next draft, one click. -->
                 <AppButton
-                    v-if="!isPublished"
+                    v-else-if="'in_force' === state && canEdit"
                     variant="primary"
                     size="md"
-                    :loading="saving"
-                    :title="t('shared.common.save')"
-                    v-on:click="save"
+                    :loading="opening"
+                    v-on:click="editText"
                 >
-                    <Save class="w-3.5 h-3.5" :stroke-width="2" />
-                    <span class="sr-only sm:not-sr-only">{{ t("shared.common.save") }}</span>
+                    <FilePlus2 class="w-3.5 h-3.5" :stroke-width="2" />
+                    {{
+                        template.draftId
+                            ? t("backend.studio.contract_templates.continue_draft", { number: template.draftVersion })
+                            : t("backend.studio.contract_templates.edit_text")
+                    }}
                 </AppButton>
             </div>
         </div>
@@ -321,6 +415,7 @@ const governingLabel = computed(
                             <AppBlockEditor
                                 v-model="wording[locale.code].blocks"
                                 :block-tools="CONTRACT_BLOCKS"
+                                :read-only="isPublished || !canEdit"
                                 :placeholder="
                                     t('backend.studio.contract_templates.content_placeholder')
                                 "

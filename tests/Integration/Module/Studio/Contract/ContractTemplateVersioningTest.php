@@ -277,6 +277,29 @@ final class ContractTemplateVersioningTest extends IntegrationTestCase
         self::assertTrue($draft->isPublished());
     }
 
+    /** An archived template is retired: the server refuses to publish it too. */
+    public function testAnArchivedTemplateCannotBePublished(): void
+    {
+        $draft = $this->draftWith([['type' => 'paragraph', 'data' => ['text' => 'Article 1']]]);
+        $this->manager->archive($draft->getTemplate());
+
+        $this->expectException(FieldException::class);
+
+        $this->manager->publish($draft);
+    }
+
+    /** Longer than the column is a sentence on the field, not a 500. */
+    public function testATitleLongerThanItsColumnIsRefused(): void
+    {
+        $draft = $this->createTemplate('Contrat au long titre')->getDraft();
+
+        $this->expectException(FieldException::class);
+
+        $this->manager->updateDraft($draft, new ContractTemplateVersionInput([
+            'fr' => ['title' => str_repeat('a', 251), 'content' => ['blocks' => []]],
+        ]));
+    }
+
     /**
      * @param list<array<string, mixed>> $blocks
      */

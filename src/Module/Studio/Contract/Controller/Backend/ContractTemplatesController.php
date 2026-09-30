@@ -243,6 +243,10 @@ class ContractTemplatesController extends AbstractController
 
         try {
             $this->templateManager->updateDraft($version, $input);
+        } catch (FieldException $fieldException) {
+            // A governing language not written, a title too long: said on the
+            // field rather than answered with a 500.
+            return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
         } catch (PublishedVersionIsImmutableException) {
             return $this->publishedRefusal();
         }
@@ -267,8 +271,12 @@ class ContractTemplatesController extends AbstractController
         return $this->jsonSuccess(['version' => $this->serializer->serializeVersion($version)]);
     }
 
+    // Under `edit`, like opening one: a draft is work in progress, and an
+    // account allowed to open drafts but not to delete templates used to be
+    // stuck with the first one it opened, told to « abandon it » by a
+    // button it did not have.
     #[Route('/{id}/versions/{versionId}/discard', name: '_discard', methods: [HttpMethodEnum::Post->value])]
-    #[IsGranted('studio.contract_templates.delete')]
+    #[IsGranted('studio.contract_templates.edit')]
     public function discard(ContractTemplate $template, int $versionId): JsonResponse
     {
         $version = $this->versionOf($template, $versionId);

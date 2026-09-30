@@ -105,7 +105,11 @@ describe("useContractTemplatesList", () => {
         expect(state.visibleItems.value[1].draftId).toBeNull();
     });
 
-    it("opens a draft without leaving the list", async () => {
+    /**
+     * « Modifier le texte » goes into the draft it opens: staying on the list
+     * left the reader to find an amber badge and click again.
+     */
+    it("opens a draft and goes into it", async () => {
         request.mockResolvedValue({
             success: true,
             draftId: 90,
@@ -115,8 +119,7 @@ describe("useContractTemplatesList", () => {
         const state = list();
         await state.openDraft(BODY);
 
-        expect(assign).not.toHaveBeenCalled();
-        expect(state.visibleItems.value[0].draftId).toBe(90);
+        expect(assign).toHaveBeenCalledWith("/1/versions/90");
     });
 
     it("duplicates without leaving the list", async () => {

@@ -26,6 +26,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 use function array_key_exists;
 use function array_map;
 use function implode;
+use function mb_strlen;
 use function mb_strtoupper;
 use function sprintf;
 
@@ -80,6 +81,13 @@ class ContractTemplateManager implements ContractTemplateManagerInterface
 
     public function update(ContractTemplateInterface $template, ContractTemplateInputInterface $input): void
     {
+        // A body turned into an annex, or the reverse, leaves the contracts
+        // built on it pointing at a template of the wrong kind: their drafts
+        // could no longer be saved. Refused once any contract uses it.
+        if ($input->getKind() !== $template->getKind() && $this->contractRepository->countUsingTemplate($template) > 0) {
+            throw new FieldException('kind', $this->translator->trans('backend.studio.contract_templates.errors.kind_locked'));
+        }
+
         $this->applyInput($template, $input);
         $this->entityManager->flush();
 
@@ -133,6 +141,8 @@ class ContractTemplateManager implements ContractTemplateManagerInterface
 
     public function openDraft(ContractTemplateInterface $template): ContractTemplateVersionInterface
     {
+        $this->assertNotArchived($template);
+
         // Asked of the database, not of the loaded collection: the rule is
         // about what exists, and a template hydrated without its versions
         // would happily report none.
@@ -203,6 +213,14 @@ class ContractTemplateManager implements ContractTemplateManagerInterface
 
         $version->setGoverningLocale($governing);
 
+        // Checked before anything is written. The column holds 250 characters;
+        // longer used to reach the database and come back as a 500.
+        foreach ($incoming as $wording) {
+            if (mb_strlen($wording['title']) > 250) {
+                throw new FieldException('title', $this->translator->trans('backend.studio.contract_templates.errors.title_too_long'));
+            }
+        }
+
         foreach ($incoming as $locale => $wording) {
             $existing = $version->getTranslation($locale);
 
@@ -249,6 +267,18 @@ class ContractTemplateManager implements ContractTemplateManagerInterface
     }
 
     /**
+     * An archived template is retired: the list hides its drafts and its
+     * publication, and the server now refuses them too instead of trusting
+     * the screen to.
+     */
+    protected function assertNotArchived(ContractTemplateInterface $template): void
+    {
+        if ($template->isArchived()) {
+            throw new FieldException('template', $this->translator->trans('backend.studio.contract_templates.errors.archived'));
+        }
+    }
+
+    /**
      * Refuses a wording a contract could not be built from.
      *
      * A published version is immutable and becomes the one in force, so what
@@ -277,6 +307,8 @@ class ContractTemplateManager implements ContractTemplateManagerInterface
 
     public function publish(ContractTemplateVersionInterface $version): void
     {
+        $this->assertNotArchived($version->getTemplate());
+
         $version->assertEditable();
 
         if (0 === $version->getTranslations()->count()) {
