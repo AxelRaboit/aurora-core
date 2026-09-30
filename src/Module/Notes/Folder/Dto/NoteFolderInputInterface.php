@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Notes\Folder\Dto;
 
-use Aurora\Module\Notes\Space\NoteSpaceEnum;
-
 interface NoteFolderInputInterface
 {
     public function getName(): ?string;
@@ -17,5 +15,6 @@ interface NoteFolderInputInterface
 
     public function getPosition(): ?int;
 
-    public function getSpace(): NoteSpaceEnum;
+    /** L'espace d'une création à la racine ; null pour son espace personnel. */
+    public function getSpaceId(): ?int;
 }

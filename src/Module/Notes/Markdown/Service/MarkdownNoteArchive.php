@@ -8,7 +8,7 @@ use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
-use Aurora\Module\Notes\Space\NoteSpaceEnum;
+use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use RuntimeException;
 use ZipArchive;
@@ -47,9 +47,6 @@ final readonly class MarkdownNoteArchive
      */
     private const string IMAGE_DIR = '_images';
 
-    /** Le dossier de l'archive où part le carnet de l'équipe. */
-    private const string TEAM_DIR = 'Équipe';
-
     public function __construct(
         private MarkdownNoteRepository $notes,
         private NoteFolderRepository $folders,
@@ -77,20 +74,24 @@ final readonly class MarkdownNoteArchive
 
         $notes = $this->notes->findAllWithContentForUser($user);
 
-        // Le carnet de l'équipe part dans son propre dossier, « Équipe » : à
-        // la racine de l'archive, ses dossiers se mêleraient aux siens, et
-        // un réimport rangerait tout dans le carnet personnel sans prévenir.
-        // La racine de l'équipe est la clé -1, celle du carnet la clé 0.
+        // Chaque espace partagé part dans son propre dossier, à son nom : à la
+        // racine de l'archive, ses dossiers se mêleraient à ceux du carnet
+        // personnel, et un réimport rangerait tout chez soi sans prévenir. La
+        // racine d'un espace est la clé négative de son identifiant.
         /** @var array<int, list<MarkdownNoteInterface>> $notesByFolder */
         $notesByFolder = [];
+        /** @var array<int, NoteSpaceInterface> $spaces */
+        $spaces = [];
         foreach ($notes as $note) {
-            $notesByFolder[$note->getFolder()?->getId() ?? ($note->isTeam() ? -1 : 0)][] = $note;
+            $spaces[(int) $note->getSpace()->getId()] = $note->getSpace();
+            $notesByFolder[$note->getFolder()?->getId() ?? -(int) $note->getSpace()->getId()][] = $note;
         }
 
         /** @var array<int, list<NoteFolderInterface>> $foldersByParent */
         $foldersByParent = [];
         foreach ($this->folders->findAllForUser($user) as $folder) {
-            $foldersByParent[$folder->getParent()?->getId() ?? ($folder->isTeam() ? -1 : 0)][] = $folder;
+            $spaces[(int) $folder->getSpace()->getId()] = $folder->getSpace();
+            $foldersByParent[$folder->getParent()?->getId() ?? -(int) $folder->getSpace()->getId()][] = $folder;
         }
 
         // Un carnet vide donnerait un zip sans entrée, que certains outils
@@ -104,11 +105,17 @@ final readonly class MarkdownNoteArchive
         // deux fois : deux notes peuvent citer la même.
         $ajoutees = [];
 
-        $this->addBranch($zip, $notesByFolder, $foldersByParent, 0, '', $user, $ajoutees);
+        $seenSpaces = [];
+        foreach ($spaces as $id => $space) {
+            if ($space->isPersonal()) {
+                $this->addBranch($zip, $notesByFolder, $foldersByParent, -$id, '', $user, $ajoutees);
 
-        if (isset($notesByFolder[-1]) || isset($foldersByParent[-1])) {
-            $zip->addEmptyDir(self::TEAM_DIR);
-            $this->addBranch($zip, $notesByFolder, $foldersByParent, -1, self::TEAM_DIR.'/', $user, $ajoutees);
+                continue;
+            }
+
+            $dir = $this->uniqueName($this->safeName((string) $space->getName(), sprintf('espace-%d', $id)), $seenSpaces);
+            $zip->addEmptyDir($dir);
+            $this->addBranch($zip, $notesByFolder, $foldersByParent, -$id, $dir.'/', $user, $ajoutees);
         }
 
         $zip->close();
@@ -259,7 +266,7 @@ final readonly class MarkdownNoteArchive
     private function withImages(
         string $content,
         string $prefix,
-        CoreUserInterface|NoteSpaceEnum $user,
+        CoreUserInterface|NoteSpaceInterface $user,
         ZipArchive $zip,
         array &$ajoutees,
     ): string {

@@ -14,8 +14,9 @@ backend:
       notes:
         markdown:
           use: Use Markdown notes
-        team:
-          edit: 'Write in the team notes'
+        spaces:
+          create: 'Create shared note spaces'
+          publish: 'Publish note spaces on the web'
   modules:
     notes_backend: Notes
     # The module string an audit row carries, which is not the toggle key.

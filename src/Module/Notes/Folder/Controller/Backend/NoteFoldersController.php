@@ -13,8 +13,8 @@ use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Folder\Manager\NoteFolderManagerInterface;
 use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
 use Aurora\Module\Notes\Folder\Serializer\NoteFolderSerializerInterface;
-use Aurora\Module\Notes\Space\NoteSpaceAccess;
-use Aurora\Module\Notes\Space\NoteSpaceEnum;
+use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
+use Aurora\Module\Notes\Space\Service\NoteSpaceAccess;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -22,8 +22,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-use function array_key_exists;
 use function is_array;
+use function is_numeric;
 
 /**
  * The folders of the person asking, and nobody else's.
@@ -72,11 +72,15 @@ final class NoteFoldersController extends AbstractController
 
         $input = $this->inputFactory->fromArray($this->decodeJson($request));
 
-        // Là où l'on crée, on doit pouvoir écrire.
+        // Là où l'on crée, on doit pouvoir écrire : le parent demandé, la
+        // racine de l'espace demandé, ou son espace personnel.
         $parentId = $input->getParentId();
-        $allowed = null === $parentId
-            ? $this->spaceAccess->canWriteSpace($input->getSpace())
-            : $this->spaceAccess->writableFolder($user, $parentId) instanceof NoteFolderInterface;
+        $spaceId = $input->getSpaceId();
+        $allowed = match (true) {
+            null !== $parentId => $this->spaceAccess->writableFolder($user, $parentId) instanceof NoteFolderInterface,
+            null !== $spaceId => $this->spaceAccess->writableSpace($user, $spaceId) instanceof NoteSpaceInterface,
+            default => true,
+        };
         if (!$allowed) {
             return $this->jsonNotFound();
         }
@@ -139,17 +143,20 @@ final class NoteFoldersController extends AbstractController
         // Sous un dossier où l'on peut écrire, ou à la racine d'un espace où
         // l'on peut écrire - celle où le dossier est déjà, sauf avis contraire.
         $parent = null;
-        $space = array_key_exists('space', $data) ? NoteSpaceEnum::fromInput($data['space']) : $folder->getSpace();
+        $space = $folder->getSpace();
         if (null !== $raw && '' !== $raw) {
             $parent = $this->spaceAccess->writableFolder($user, (int) $raw);
             if (!$parent instanceof NoteFolderInterface || $parent->isTrashed()) {
                 return $this->jsonNotFound();
             }
-        } elseif (!$this->spaceAccess->canWriteSpace($space)) {
-            return $this->jsonNotFound();
+        } elseif (isset($data['spaceId']) && is_numeric($data['spaceId'])) {
+            $space = $this->spaceAccess->writableSpace($user, (int) $data['spaceId']);
+            if (!$space instanceof NoteSpaceInterface) {
+                return $this->jsonNotFound();
+            }
         }
 
-        if (!$this->manager->move($folder, $parent, $space, $user)) {
+        if (!$this->manager->move($folder, $parent, $space)) {
             return $this->jsonFailure('refused', extra: ['message' => 'notes.markdown.folders.errors.move_refused']);
         }
 
@@ -254,7 +261,12 @@ final class NoteFoldersController extends AbstractController
         $user = $this->getUser();
 
         $deleted = 0;
-        foreach ($this->repository->findTrashedRootsForUser($user, $this->spaceAccess->canWriteTeam()) as $folder) {
+        // Définitif : seulement dans les espaces qu'on gère.
+        foreach ($this->repository->findTrashedRootsForUser($user) as $folder) {
+            if (!$this->spaceAccess->canManage($user, $folder->getSpace())) {
+                continue;
+            }
+
             $this->manager->forceDelete($folder);
             ++$deleted;
         }

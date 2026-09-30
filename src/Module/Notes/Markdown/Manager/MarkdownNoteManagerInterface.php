@@ -7,7 +7,7 @@ namespace Aurora\Module\Notes\Markdown\Manager;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Markdown\Dto\MarkdownNoteInputInterface;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
-use Aurora\Module\Notes\Space\NoteSpaceEnum;
+use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use DateTimeImmutable;
 
@@ -55,14 +55,12 @@ interface MarkdownNoteManagerInterface
     /** Files a note in a folder, or at the root with null. */
     /**
      * Range la note dans un dossier, ou à la racine d'un espace. Le dossier
-     * impose son espace ; sans dossier, `$space` dit quelle racine, et
-     * `$actor` qui devient l'auteur d'une note qui rejoint un carnet
-     * personnel.
+     * impose son espace ; sans dossier, `$space` dit quelle racine.
      */
-    public function move(MarkdownNoteInterface $note, ?NoteFolderInterface $folder, ?NoteSpaceEnum $space = null, ?CoreUserInterface $actor = null): void;
+    public function move(MarkdownNoteInterface $note, ?NoteFolderInterface $folder, ?NoteSpaceInterface $space = null): void;
 
     /** Fait passer une note dans un autre espace, images comprises. */
-    public function changeSpace(MarkdownNoteInterface $note, NoteSpaceEnum $space, CoreUserInterface $actor): void;
+    public function changeSpace(MarkdownNoteInterface $note, NoteSpaceInterface $space): void;
 
     /**
      * Files and ranks a set of notes in one shot. Each entry carries the

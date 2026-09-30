@@ -14,8 +14,9 @@ backend:
             notes:
                 markdown:
                     use: 'Usar las notas Markdown'
-                team:
-                    edit: 'Escribir en las notas del equipo'
+                spaces:
+                    create: 'Crear espacios de notas compartidos'
+                    publish: 'Publicar espacios de notas en la web'
     modules:
         notes_backend: Notas
         notes_markdown: 'Notas Markdown'

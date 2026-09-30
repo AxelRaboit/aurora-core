@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Notes\Folder\Dto;
 
-use Aurora\Module\Notes\Space\NoteSpaceEnum;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
@@ -33,8 +32,8 @@ class NoteFolderInput implements NoteFolderInputInterface
         public readonly ?int $parentId = null,
         #[Assert\PositiveOrZero]
         public readonly ?int $position = null,
-        /** L'espace d'un dossier créé à la racine ; un parent impose le sien. */
-        public readonly NoteSpaceEnum $space = NoteSpaceEnum::Personal,
+        /** L'espace d'une création à la racine ; null pour son espace personnel. Un dossier impose le sien. */
+        public readonly ?int $spaceId = null,
     ) {}
 
     public function getName(): ?string
@@ -57,8 +56,8 @@ class NoteFolderInput implements NoteFolderInputInterface
         return $this->position;
     }
 
-    public function getSpace(): NoteSpaceEnum
+    public function getSpaceId(): ?int
     {
-        return $this->space;
+        return $this->spaceId;
     }
 }

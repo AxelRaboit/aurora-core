@@ -67,11 +67,9 @@ final readonly class SharedNoteScope
         // person's notes fit in memory by a wide margin. The bodies are needed
         // anyway, to read the links out of them.
         // L'espace de la note partagée, et lui seul : un lien public qui
-        // suit les wiki-liens d'une note personnelle ne doit jamais
-        // s'échapper vers le carnet de l'équipe.
-        $all = $root->isTeam()
-            ? $this->notes->findTeamWithContent()
-            : $this->notes->findPersonalWithContentForUser($root->getUser());
+        // suit les wiki-liens ne doit jamais s'échapper vers un autre
+        // espace, que personne dehors n'a à lire.
+        $all = $this->notes->findLivingInSpace($root->getSpace());
 
         $byTitle = [];
         foreach ($all as $note) {

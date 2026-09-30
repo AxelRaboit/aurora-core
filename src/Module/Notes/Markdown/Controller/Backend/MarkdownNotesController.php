@@ -25,8 +25,8 @@ use Aurora\Module\Notes\Markdown\Service\MarkdownNoteArchive;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteImporter;
 use Aurora\Module\Notes\Markdown\Service\NoteReadScope;
 use Aurora\Module\Notes\Markdown\View\MarkdownNotesViewBuilder;
-use Aurora\Module\Notes\Space\NoteSpaceAccess;
-use Aurora\Module\Notes\Space\NoteSpaceEnum;
+use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
+use Aurora\Module\Notes\Space\Service\NoteSpaceAccess;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -38,7 +38,6 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 use function array_filter;
-use function array_key_exists;
 use function array_values;
 use function date;
 use function iconv;
@@ -67,7 +66,6 @@ final class MarkdownNotesController extends AbstractController
         private readonly MarkdownNoteImporter $importer,
         private readonly UploadPolicyProvider $uploadPolicies,
         private readonly NoteSpaceAccess $spaceAccess,
-        private readonly NoteReadScope $readScope,
     ) {}
 
     /**
@@ -101,11 +99,10 @@ final class MarkdownNotesController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        // Un dossier de son carnet, ou de celui de l'équipe.
-        $folder = $this->folders->find($id);
+        // Un dossier d'un espace qu'on peut lire.
+        $folder = $this->spaceAccess->readableFolder($user, $id);
 
-        if (!$folder instanceof NoteFolderInterface || $folder->isTrashed()
-            || (!$folder->isTeam() && $folder->getUser()->getId() !== $user->getId())) {
+        if (!$folder instanceof NoteFolderInterface) {
             throw $this->createNotFoundException();
         }
 
@@ -276,8 +273,13 @@ final class MarkdownNotesController extends AbstractController
         $user = $this->getUser();
 
         $deleted = 0;
-        // Sa corbeille, plus celle de l'équipe quand on a le droit d'y écrire.
-        foreach ($this->repository->findTrashedRootsForUser($user, $this->spaceAccess->canWriteTeam()) as $note) {
+        // Vider une corbeille est définitif : seulement dans les espaces qu'on
+        // gère. Le rédacteur restaure, il ne détruit pas.
+        foreach ($this->repository->findTrashedRootsForUser($user) as $note) {
+            if (!$this->spaceAccess->canManage($user, $note->getSpace())) {
+                continue;
+            }
+
             $this->manager->forceDelete($note);
             ++$deleted;
         }
@@ -319,7 +321,7 @@ final class MarkdownNotesController extends AbstractController
         $user = $this->getUser();
 
         // Emporter une note, c'est la lire : l'équipe s'emporte aussi.
-        $note = $this->readScope->readableNote($user, $id);
+        $note = $this->spaceAccess->readableNote($user, $id);
 
         if (!$note instanceof MarkdownNoteInterface) {
             throw $this->createNotFoundException();
@@ -422,12 +424,15 @@ final class MarkdownNotesController extends AbstractController
 
         $input = $this->inputFactory->fromArray($this->decodeJson($request));
 
-        // Là où l'on crée, on doit pouvoir écrire : le dossier demandé, ou la
-        // racine de l'espace demandé.
+        // Là où l'on crée, on doit pouvoir écrire : le dossier demandé, la
+        // racine de l'espace demandé, ou son espace personnel.
         $folderId = $input->getFolderId();
-        $allowed = null === $folderId
-            ? $this->spaceAccess->canWriteSpace($input->getSpace())
-            : $this->spaceAccess->writableFolder($user, $folderId) instanceof NoteFolderInterface;
+        $spaceId = $input->getSpaceId();
+        $allowed = match (true) {
+            null !== $folderId => $this->spaceAccess->writableFolder($user, $folderId) instanceof NoteFolderInterface,
+            null !== $spaceId => $this->spaceAccess->writableSpace($user, $spaceId) instanceof NoteSpaceInterface,
+            default => true,
+        };
         if (!$allowed) {
             return $this->jsonNotFound();
         }
@@ -510,20 +515,23 @@ final class MarkdownNotesController extends AbstractController
         $raw = $data['folderId'] ?? null;
 
         // Un dossier où l'on peut écrire, ou la racine d'un espace où l'on
-        // peut écrire : `space` dit laquelle, et vaut par défaut celle où la
-        // note est déjà.
+        // peut écrire : `spaceId` dit laquelle, et vaut par défaut celle où
+        // la note est déjà.
         $folder = null;
-        $space = array_key_exists('space', $data) ? NoteSpaceEnum::fromInput($data['space']) : $note->getSpace();
+        $space = $note->getSpace();
         if (null !== $raw && '' !== $raw) {
             $folder = $this->spaceAccess->writableFolder($user, (int) $raw);
             if (!$folder instanceof NoteFolderInterface || $folder->isTrashed()) {
                 return $this->jsonNotFound();
             }
-        } elseif (!$this->spaceAccess->canWriteSpace($space)) {
-            return $this->jsonNotFound();
+        } elseif (isset($data['spaceId']) && is_numeric($data['spaceId'])) {
+            $space = $this->spaceAccess->writableSpace($user, (int) $data['spaceId']);
+            if (!$space instanceof NoteSpaceInterface) {
+                return $this->jsonNotFound();
+            }
         }
 
-        $this->manager->move($note, $folder, $space, $user);
+        $this->manager->move($note, $folder, $space);
 
         return $this->jsonSuccess(['note' => $this->serializer->serializeListItem($note)]);
     }
@@ -591,7 +599,7 @@ final class MarkdownNotesController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        $note = $this->readScope->readableNote($user, $id);
+        $note = $this->spaceAccess->readableNote($user, $id);
         if (!$note instanceof MarkdownNoteInterface) {
             return $this->jsonNotFound();
         }
@@ -605,7 +613,7 @@ final class MarkdownNotesController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        $note = $this->readScope->readableNote($user, $id);
+        $note = $this->spaceAccess->readableNote($user, $id);
         if (!$note instanceof MarkdownNoteInterface) {
             return $this->jsonNotFound();
         }
@@ -674,7 +682,7 @@ final class MarkdownNotesController extends AbstractController
 
         if (!$request->isXmlHttpRequest()) {
             if (!$note instanceof MarkdownNoteInterface) {
-                if ($this->readScope->readableNote($user, $id) instanceof MarkdownNoteInterface) {
+                if ($this->spaceAccess->readableNote($user, $id) instanceof MarkdownNoteInterface) {
                     return $this->redirectToRoute('backend_notes_markdown_read', ['id' => $id]);
                 }
 

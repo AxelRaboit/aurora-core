@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Aurora\Module\Notes\Folder\Dto;
 
 use Aurora\Core\Support\Str;
-use Aurora\Module\Notes\Space\NoteSpaceEnum;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 
 use function is_numeric;
@@ -20,7 +19,7 @@ class NoteFolderInputFactory implements NoteFolderInputFactoryInterface
             color: Str::trimOrNullFromArray($data, 'color'),
             parentId: $this->intOrNull($data, 'parentId'),
             position: $this->intOrNull($data, 'position'),
-            space: NoteSpaceEnum::fromInput($data['space'] ?? null),
+            spaceId: isset($data['spaceId']) && is_numeric($data['spaceId']) ? (int) $data['spaceId'] : null,
         );
     }
 

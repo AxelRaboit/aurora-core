@@ -12,9 +12,10 @@ use Aurora\Module\Notes\Folder\Serializer\NoteFolderSerializerInterface;
 use Aurora\Module\Notes\Folder\Service\NoteFolderHierarchy;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
-use Aurora\Module\Notes\Markdown\Service\NoteReadScope;
 use Aurora\Module\Notes\Markdown\Setting\MarkdownNoteSettingEnum;
-use Aurora\Module\Notes\Space\NoteSpaceAccess;
+use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
+use Aurora\Module\Notes\Space\Repository\NoteSpaceRepository;
+use Aurora\Module\Notes\Space\Service\NoteSpaceAccess;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use DateTimeInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -28,8 +29,8 @@ final readonly class MarkdownNotesViewBuilder
         private NoteFolderHierarchy $hierarchy,
         private UrlGeneratorInterface $urlGenerator,
         private SettingRepository $settingRepository,
-        private NoteReadScope $readScope,
         private NoteSpaceAccess $spaceAccess,
+        private NoteSpaceRepository $spaces,
     ) {}
 
     /**
@@ -83,34 +84,29 @@ final readonly class MarkdownNotesViewBuilder
      */
     public function readView(CoreUserInterface $user, MarkdownNoteInterface $note): array
     {
-        // « Chez soi » : son carnet, ou celui de l'équipe. Le fil d'Ariane,
-        // l'ordre de lecture et l'index des liens valent pour les deux ; la
-        // note partagée d'un collègue reste lue à part.
-        $mine = $note->isTeam() || $note->getUser()->getId() === $user->getId();
-
         // Chargés une fois et passés à qui en a besoin : l'index des titres,
         // l'ordre de lecture et l'arborescence lisaient chacun la même liste,
-        // et chaque lecture déchiffre tous les titres du carnet.
+        // et chaque lecture déchiffre tous les titres visibles.
         $rows = $this->noteRepository->findFlatListForUser($user);
         $folders = $this->folderRepository->findAllForUser($user);
-        $shared = $this->readScope->sharedWith($user);
 
-        $titles = $mine ? $this->ownTitleIndex($rows) : $this->sharedTitleIndex($shared['notes'], $note);
+        // Les liens et les pages suivantes restent dans l'espace de la note :
+        // un `[[Budget]]` écrit dans un espace mène au « Budget » de cet
+        // espace, pas à celui d'un autre carnet qui porterait le même titre.
+        $spaceId = (int) $note->getSpace()->getId();
+        $spaceRows = array_values(array_filter($rows, static fn (array $row): bool => (int) $row['spaceId'] === $spaceId));
+        $spaceFolders = array_values(array_filter($folders, static fn (NoteFolderInterface $folder): bool => (int) $folder->getSpace()->getId() === $spaceId));
 
-        $neighbours = $mine ? $this->readingNeighbours($folders, $rows, (int) $note->getId()) : ['previous' => null, 'next' => null];
+        $titles = $this->ownTitleIndex($spaceRows);
+        $neighbours = $this->readingNeighbours($spaceFolders, $spaceRows, (int) $note->getId());
 
         return [
             'note' => $note,
-            // Le chemin de la note depuis la racine, pour le fil d'Ariane.
-            // Seulement chez soi : le dossier d'une note partagée est dans le
-            // carnet de quelqu'un d'autre, et le montrer n'aurait nulle part
-            // où mener.
-            'breadcrumb' => $mine
-                ? array_map(
-                    static fn (NoteFolderInterface $one): array => ['id' => $one->getId(), 'name' => $one->getName(), 'color' => $one->getColor()],
-                    $this->hierarchy->pathTo($note->getFolder()),
-                )
-                : [],
+            // Le chemin de la note depuis la racine de son espace.
+            'breadcrumb' => array_map(
+                static fn (NoteFolderInterface $one): array => ['id' => $one->getId(), 'name' => $one->getName(), 'color' => $one->getColor()],
+                $this->hierarchy->pathTo($note->getFolder()),
+            ),
             'canEdit' => $this->spaceAccess->canWriteNote($user, $note),
             'previous' => $neighbours['previous'],
             'next' => $neighbours['next'],
@@ -132,7 +128,7 @@ final readonly class MarkdownNotesViewBuilder
             ],
             'appearance' => $note->getAppearance()->value,
             'titleIndex' => $titles,
-            ...$this->readerTree($folders, $rows, $shared),
+            ...$this->readerTree($user, $folders, $rows),
         ];
     }
 
@@ -144,13 +140,12 @@ final readonly class MarkdownNotesViewBuilder
      * porte donc sa propre arborescence plutôt que le panneau du menu. Les
      * titres seulement - aucun corps n'est déchiffré pour dessiner un arbre.
      *
-     * @param list<NoteFolderInterface>                                                     $folders
-     * @param list<array<string, mixed>>                                                    $rows
-     * @param array{folders: list<NoteFolderInterface>, notes: list<MarkdownNoteInterface>} $shared
+     * @param list<NoteFolderInterface>  $folders
+     * @param list<array<string, mixed>> $rows
      *
-     * @return array{treeFolders: list<array<string, mixed>>, treeNotes: list<array<string, mixed>>, sharedFolders: list<array<string, mixed>>, sharedNotes: list<array<string, mixed>>}
+     * @return array{treeFolders: list<array<string, mixed>>, treeNotes: list<array<string, mixed>>, treeSpaces: list<array<string, mixed>>, sharedFolders: list<never>, sharedNotes: list<never>}
      */
-    private function readerTree(array $folders, array $rows, array $shared): array
+    private function readerTree(CoreUserInterface $user, array $folders, array $rows): array
     {
         $folders = array_map(static fn (NoteFolderInterface $one): array => [
             'id' => $one->getId(),
@@ -159,7 +154,7 @@ final readonly class MarkdownNotesViewBuilder
             'color' => $one->getColor(),
             'position' => $one->getPosition(),
             'sharedAt' => $one->getSharedAt()?->format(DateTimeInterface::ATOM),
-            'space' => $one->getSpace()->value,
+            'spaceId' => $one->getSpace()->getId(),
         ], $folders);
 
         $notes = array_map(static fn (array $row): array => [
@@ -168,24 +163,24 @@ final readonly class MarkdownNotesViewBuilder
             'folderId' => null === ($row['folderId'] ?? null) ? null : (int) $row['folderId'],
             'position' => $row['position'],
             'sharedAt' => $row['sharedAt'] ?? null,
-            'space' => $row['space'],
+            'spaceId' => $row['spaceId'],
         ], $rows);
 
         return [
             'treeFolders' => $folders,
             'treeNotes' => $notes,
-            'sharedFolders' => array_map(static fn (NoteFolderInterface $one): array => [
-                'id' => $one->getId(),
-                'parentId' => $one->getParent()?->getId(),
-                'name' => $one->getName(),
-                'ownerName' => $one->getUser()->getName(),
-            ], $shared['folders']),
-            'sharedNotes' => array_map(static fn (MarkdownNoteInterface $one): array => [
-                'id' => $one->getId(),
-                'title' => (string) $one->getTitle(),
-                'folderId' => $one->getFolder()?->getId(),
-                'ownerName' => $one->getUser()->getName(),
-            ], $shared['notes']),
+            // Les espaces lisibles, le personnel d'abord : l'arbre du lecteur
+            // se range par espace.
+            'treeSpaces' => array_map(fn (NoteSpaceInterface $space): array => [
+                'id' => $space->getId(),
+                'name' => $space->getName(),
+                'color' => $space->getColor(),
+                'personal' => $space->isPersonal(),
+                'published' => $space->isPublished(),
+                'canWrite' => $this->spaceAccess->canWrite($user, $space),
+            ], $this->spaces->findReadableFor($user)),
+            'sharedFolders' => [],
+            'sharedNotes' => [],
         ];
     }
 
@@ -218,48 +213,28 @@ final readonly class MarkdownNotesViewBuilder
     }
 
     /**
-     * Les titres qu'un lien dans la note d'un autre peut atteindre.
-     *
-     * Celles de l'auteur que le lecteur a le droit de lire, et rien d'autre.
-     * L'index était celui du carnet du **lecteur** : un `[[Budget]]` écrit par
-     * un collègue ouvrait la note « Budget » de celui qui lisait, qui n'avait
-     * rien à voir. Un lien vers une note privée de l'auteur reste du texte,
-     * ce qui ne dit même pas qu'elle existe.
-     *
-     * @param list<MarkdownNoteInterface> $sharedNotes
-     *
-     * @return array<string, int>
-     */
-    private function sharedTitleIndex(array $sharedNotes, MarkdownNoteInterface $note): array
-    {
-        $author = $note->getUser()->getId();
-        $titles = [];
-
-        foreach ($sharedNotes as $one) {
-            if ($one->getUser()->getId() !== $author) {
-                continue;
-            }
-
-            $title = mb_strtolower(mb_trim((string) $one->getTitle()));
-
-            if ('' !== $title) {
-                $titles[$title] = (int) $one->getId();
-            }
-        }
-
-        return $titles;
-    }
-
-    /**
      * La première note du carnet, dans l'ordre de lecture : là où s'ouvre le
      * lecteur quand on y entre sans note, par son adresse ou son raccourci.
      */
     public function firstInReadingOrder(CoreUserInterface $user): ?int
     {
-        return $this->readingOrder(
-            $this->folderRepository->findAllForUser($user),
-            $this->noteRepository->findFlatListForUser($user),
-        )['order'][0] ?? null;
+        // Le premier espace qui a des notes, le personnel d'abord.
+        $rows = $this->noteRepository->findFlatListForUser($user);
+        $folders = $this->folderRepository->findAllForUser($user);
+
+        foreach ($this->spaces->findReadableFor($user) as $space) {
+            $id = (int) $space->getId();
+            $first = $this->readingOrder(
+                array_values(array_filter($folders, static fn (NoteFolderInterface $folder): bool => (int) $folder->getSpace()->getId() === $id)),
+                array_values(array_filter($rows, static fn (array $row): bool => (int) $row['spaceId'] === $id)),
+            )['order'][0] ?? null;
+
+            if (null !== $first) {
+                return $first;
+            }
+        }
+
+        return null;
     }
 
     /**

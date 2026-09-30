@@ -39,6 +39,8 @@ use function random_bytes;
  */
 final class NotesSearchTest extends IntegrationTestCase
 {
+    use PersonalSpaceTrait;
+
     private KernelBrowser $client;
 
     private EntityManagerInterface $entityManager;
@@ -67,6 +69,10 @@ final class NotesSearchTest extends IntegrationTestCase
 
     protected function tearDown(): void
     {
+        // L'espace personnel d'un compte part avec lui, par la base : Doctrine
+        // ne doit plus le suivre quand le compte est supprimé.
+        $this->entityManager->clear();
+
         foreach (array_reverse($this->created) as $entity) {
             $managed = $this->entityManager->find($entity::class, $entity->getId());
             if (null !== $managed) {
@@ -231,6 +237,7 @@ final class NotesSearchTest extends IntegrationTestCase
     {
         $folder = new NoteFolder();
         $folder->setUser($owner);
+        $folder->setSpace($this->personalSpaceOf($owner));
         $folder->setName($name);
 
         $this->entityManager->persist($folder);
@@ -244,6 +251,7 @@ final class NotesSearchTest extends IntegrationTestCase
     {
         $note = new MarkdownNote();
         $note->setUser($owner);
+        $note->setSpace($folder?->getSpace() ?? $this->personalSpaceOf($owner));
         $note->setTitle($title);
         $note->setContent($content);
         $note->setFolder($folder);

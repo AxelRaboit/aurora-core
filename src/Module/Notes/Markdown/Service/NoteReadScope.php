@@ -8,32 +8,33 @@ use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
+use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
+use Aurora\Module\Notes\Space\Repository\NoteSpaceRepository;
+use Aurora\Module\Notes\Space\Service\NoteSpaceAccess;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
-use DateTimeImmutable;
+
+use function array_filter;
+use function array_map;
+use function array_values;
+use function in_array;
 
 /**
- * Ce qu'une personne a le droit de lire, au-delà de son propre carnet.
+ * Ce qu'une personne a le droit de lire.
  *
- * **Un seul endroit décide.** La question « ai-je le droit de lire cette
- * note » se pose dans l'écran de lecture, dans l'endpoint qui rend une
- * note, et dans la liste : trois réponses écrites à trois endroits auraient
- * fini par diverger, et c'est comme ça qu'on ouvre une note par accident.
+ * Depuis les espaces, la réponse est celle de l'espace : on lit une note si
+ * l'on peut lire l'espace où elle vit, et {@see NoteSpaceAccess} est le seul
+ * à en décider. Ce service garde son nom et ses méthodes pour ceux qui
+ * l'appelaient - la vue de lecture, les images, la liste « partagé avec moi ».
  *
- * **La règle tient en trois lignes.** Une note est lisible si elle est à
- * vous ; ou si elle porte sa propre date de partage ; ou si l'un de ses
- * dossiers parents en porte une. Rien d'autre - pas de liste de personnes,
- * pas de niveaux : c'est le choix du 23/09, partagé veut dire partagé avec
- * tout le back-office, en lecture seule.
- *
- * **L'écriture n'est jamais concernée.** Les endpoints qui écrivent passent
- * par `findOneByUserAndId`, donc par le propriétaire, et ce service ne leur
- * sert pas. Tant que l'éditeur enregistre tout seul sans contrôle de
- * concurrence, deux personnes sur une note seraient le dernier qui tape qui
- * écrase l'autre, en silence.
+ * Le partage en lecture d'avant, une date posée sur un dossier ou une note et
+ * remontée de parent en parent, a disparu : la migration en a fait des
+ * espaces ouverts à tout le back-office.
  */
 final readonly class NoteReadScope
 {
     public function __construct(
+        private NoteSpaceAccess $access,
+        private NoteSpaceRepository $spaces,
         private MarkdownNoteRepository $notes,
         private NoteFolderRepository $folders,
     ) {}
@@ -41,134 +42,44 @@ final readonly class NoteReadScope
     /** La note demandée si la personne peut la lire, null sinon. */
     public function readableNote(CoreUserInterface $user, int $id): ?MarkdownNoteInterface
     {
-        $note = $this->notes->findOneLiving($id);
-
-        if (!$note instanceof MarkdownNoteInterface) {
-            return null;
-        }
-
-        return $this->canRead($user, $note) ? $note : null;
+        return $this->access->readableNote($user, $id);
     }
 
     public function canRead(CoreUserInterface $user, MarkdownNoteInterface $note): bool
     {
-        // Le carnet de l'équipe se lit par tous ceux qui ont le module ; le
-        // contrôleur a déjà vérifié le module, il n'y a rien de plus à savoir.
-        if ($note->isTeam()) {
-            return true;
-        }
-
-        if ($note->getUser()->getId() === $user->getId()) {
-            return true;
-        }
-
-        if ($note->getSharedAt() instanceof DateTimeImmutable) {
-            return true;
-        }
-
-        return $this->insideSharedFolder($note->getFolder());
+        return $this->access->canReadNote($user, $note);
     }
 
     /**
-     * Ce que les autres ont partagé : les racines, et ce qu'elles portent.
-     *
-     * Les dossiers rendus sont les racines du partage **et** leurs
-     * descendants, parce qu'un écran qui montre un dossier partagé doit
-     * pouvoir l'ouvrir et y descendre.
+     * Ce que les autres ouvrent à la personne : le contenu des espaces
+     * qu'elle lit sans en être propriétaire.
      *
      * @return array{folders: list<NoteFolderInterface>, notes: list<MarkdownNoteInterface>}
      */
     public function sharedWith(CoreUserInterface $user): array
     {
-        $racines = $this->folders->findSharedByOthers($user);
-        $dossiers = $this->withDescendants($racines);
-        $ids = array_map(static fn (NoteFolderInterface $one): int => (int) $one->getId(), $dossiers);
+        $ids = array_map(
+            static fn (NoteSpaceInterface $space): int => (int) $space->getId(),
+            array_values(array_filter(
+                $this->spaces->findReadableFor($user),
+                fn (NoteSpaceInterface $space): bool => !$space->isPersonal() && !$this->access->isOwner($user, $space),
+            )),
+        );
 
-        $notes = [
-            ...$this->notes->findLivingInFoldersRegardlessOfOwner($ids),
-            ...$this->notes->findSharedByOthers($user),
-        ];
-
-        // Une note partagée seule qui se trouve aussi dans un dossier
-        // partagé remonterait deux fois : l'écran l'afficherait en double
-        // sans que personne ne comprenne pourquoi.
-        $uniques = [];
-        foreach ($notes as $note) {
-            $uniques[(int) $note->getId()] = $note;
+        if ([] === $ids) {
+            return ['folders' => [], 'notes' => []];
         }
 
-        return ['folders' => $dossiers, 'notes' => array_values($uniques)];
-    }
+        $folders = array_values(array_filter(
+            $this->folders->findAllForUser($user),
+            static fn (NoteFolderInterface $folder): bool => in_array((int) $folder->getSpace()->getId(), $ids, true),
+        ));
 
-    /**
-     * Un dossier, ou l'un de ses parents, porte-t-il une date de partage ?
-     *
-     * La remontée est bornée par le nombre de dossiers partagés chargés :
-     * une boucle dans les parents ne doit pas figer une page, ici pas plus
-     * qu'ailleurs.
-     */
-    private function insideSharedFolder(?NoteFolderInterface $folder): bool
-    {
-        $vus = [];
+        $notes = array_values(array_filter(
+            $this->notes->findAllWithContentForUser($user),
+            static fn (MarkdownNoteInterface $note): bool => in_array((int) $note->getSpace()->getId(), $ids, true),
+        ));
 
-        while ($folder instanceof NoteFolderInterface) {
-            $id = (int) $folder->getId();
-
-            if (isset($vus[$id])) {
-                return false;
-            }
-
-            $vus[$id] = true;
-
-            if ($folder->getSharedAt() instanceof DateTimeImmutable && !$folder->getDeletedAt() instanceof DateTimeImmutable) {
-                return true;
-            }
-
-            $folder = $folder->getParent();
-        }
-
-        return false;
-    }
-
-    /**
-     * Les racines données, plus tout ce qui est rangé dessous.
-     *
-     * @param list<NoteFolderInterface> $racines
-     *
-     * @return list<NoteFolderInterface>
-     */
-    private function withDescendants(array $racines): array
-    {
-        if ([] === $racines) {
-            return [];
-        }
-
-        $tous = [];
-        foreach ($racines as $racine) {
-            $tous[(int) $racine->getId()] = $racine;
-        }
-
-        // Un niveau par requête : demander dossier par dossier coûtait une
-        // requête par nœud, feuilles comprises.
-        $niveau = array_keys($tous);
-
-        while ([] !== $niveau) {
-            $suivant = [];
-
-            foreach ($this->folders->findLivingChildrenOfAny($niveau) as $enfant) {
-                $id = (int) $enfant->getId();
-
-                if (isset($tous[$id])) {
-                    continue;
-                }
-
-                $tous[$id] = $enfant;
-                $suivant[] = $id;
-            }
-
-            $niveau = $suivant;
-        }
-
-        return array_values($tous);
+        return ['folders' => $folders, 'notes' => $notes];
     }
 }

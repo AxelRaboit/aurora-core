@@ -12,6 +12,7 @@ use Aurora\Module\Notes\Markdown\Enum\NoteAppearanceEnum;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteImageService;
 use Aurora\Module\Notes\Share\Manager\MarkdownNoteShareLinkManagerInterface;
 use Aurora\Module\Notes\Share\Repository\MarkdownNoteShareLinkRepository;
+use Aurora\Module\Notes\Space\Service\NoteSpaceAccess;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
@@ -60,6 +61,7 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
         private readonly MarkdownNoteShareLinkManagerInterface $shareLinks,
         private readonly MarkdownNoteShareLinkRepository $shareLinkRepository,
         private readonly MarkdownNoteImageService $images,
+        private readonly NoteSpaceAccess $spaces,
         private readonly HttpClientInterface $http,
         private readonly Filesystem $filesystem = new Filesystem(),
     ) {}
@@ -91,6 +93,9 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
             throw new RuntimeException('The demo backend account is missing - run the core fixtures first.');
         }
 
+        // Tout le carnet de démo vit dans l'espace personnel du compte.
+        $space = $this->spaces->personalSpace($owner);
+
         $repository = $manager->getRepository(MarkdownNote::class);
 
         // Les titres sont chiffrés en base, donc `findOneBy(['title' => …])`
@@ -120,6 +125,7 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
             $folder = $existingFolders[$definition['name']] ?? new NoteFolder();
             $folder
                 ->setUser($owner)
+                ->setSpace($space)
                 ->setName($definition['name'])
                 ->setColor($definition['color'] ?? null)
                 ->setParent(isset($definition['parent']) ? $folders[$definition['parent']] : null)
@@ -141,6 +147,7 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
 
             $note
                 ->setUser($owner)
+                ->setSpace($space)
                 ->setTitle($definition['title'])
                 ->setContent($this->withImages($definition, $note, $owner))
                 ->setTags($definition['tags'])

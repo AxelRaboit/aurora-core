@@ -10,8 +10,9 @@ use Aurora\Core\Storage\StoredFileResponder;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteImageService;
 use Aurora\Module\Notes\Markdown\Service\NoteReadScope;
-use Aurora\Module\Notes\Space\NoteSpaceAccess;
-use Aurora\Module\Notes\Space\NoteSpaceEnum;
+use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
+use Aurora\Module\Notes\Space\Repository\NoteSpaceRepository;
+use Aurora\Module\Notes\Space\Service\NoteSpaceAccess;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
@@ -24,6 +25,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+use function is_numeric;
 use function str_contains;
 
 #[Route('/backend/notes/markdown/images', name: 'backend_notes_markdown_images')]
@@ -38,6 +40,7 @@ final class MarkdownNotesImagesController extends AbstractController
         private readonly UrlGeneratorInterface $urlGenerator,
         private readonly NoteReadScope $readScope,
         private readonly NoteSpaceAccess $spaceAccess,
+        private readonly NoteSpaceRepository $spaces,
     ) {}
 
     /**
@@ -97,16 +100,17 @@ final class MarkdownNotesImagesController extends AbstractController
             return $this->jsonInvalidInput(['image' => 'Missing or invalid upload.']);
         }
 
-        // Une image posée dans une note d'équipe va dans le compartiment de
-        // l'équipe, pour que tous ses lecteurs la voient ; il faut pouvoir y
-        // écrire.
-        $team = NoteSpaceEnum::Team === NoteSpaceEnum::fromInput($request->request->get('space') ?? $request->query->get('space'));
-        if ($team && !$this->spaceAccess->canWriteTeam()) {
+        // Une image rejoint le compartiment de l'espace de sa note, pour que
+        // tous ses lecteurs la voient : il faut pouvoir écrire dans cet
+        // espace. Sans espace dit, c'est son espace personnel.
+        $raw = $request->request->get('spaceId') ?? $request->query->get('spaceId');
+        $space = is_numeric($raw) ? $this->spaceAccess->writableSpace($user, (int) $raw) : $this->spaceAccess->personalSpace($user);
+        if (!$space instanceof NoteSpaceInterface) {
             return $this->jsonNotFound();
         }
 
         try {
-            $filename = $this->imageService->store($file, $team ? NoteSpaceEnum::Team : $user);
+            $filename = $this->imageService->store($file, $space);
         } catch (FileException $fileException) {
             return $this->jsonInvalidInput(['image' => $fileException->getMessage()]);
         }
@@ -142,9 +146,10 @@ final class MarkdownNotesImagesController extends AbstractController
         /** @var CoreUserInterface $user */
         $user = $this->getUser();
 
-        // Son compartiment d'abord, puis celui de l'équipe, que tout le monde
-        // lit : une image d'une note d'équipe a la même adresse chez chacun.
-        foreach ([$user, NoteSpaceEnum::Team] as $bucket) {
+        // Son espace personnel d'abord, puis les autres espaces qu'on peut
+        // lire : l'adresse d'une image ne porte que son nom, et une image d'un
+        // espace partagé a la même adresse chez tous ses lecteurs.
+        foreach ([$this->spaceAccess->personalSpace($user), ...$this->spaces->findReadableFor($user)] as $bucket) {
             $key = $this->imageService->keyOrNull($filename, $bucket);
 
             if (null === $key) {

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Aurora\Module\Notes\Markdown\Dto;
 
 use Aurora\Module\Notes\Markdown\Enum\NoteAppearanceEnum;
-use Aurora\Module\Notes\Space\NoteSpaceEnum;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class MarkdownNoteInput implements MarkdownNoteInputInterface
@@ -44,8 +43,8 @@ class MarkdownNoteInput implements MarkdownNoteInputInterface
         public readonly ?int $version = null,
         /** Écraser malgré une version dépassée : le choix explicite de la personne. */
         public readonly bool $force = false,
-        /** L'espace d'une note créée à la racine ; un dossier impose le sien. */
-        public readonly NoteSpaceEnum $space = NoteSpaceEnum::Personal,
+        /** L'espace d'une création à la racine ; null pour son espace personnel. Un dossier impose le sien. */
+        public readonly ?int $spaceId = null,
     ) {}
 
     public function getFolderId(): ?int
@@ -108,8 +107,8 @@ class MarkdownNoteInput implements MarkdownNoteInputInterface
         return $this->force;
     }
 
-    public function getSpace(): NoteSpaceEnum
+    public function getSpaceId(): ?int
     {
-        return $this->space;
+        return $this->spaceId;
     }
 }

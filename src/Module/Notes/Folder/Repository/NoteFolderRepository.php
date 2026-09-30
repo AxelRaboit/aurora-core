@@ -8,12 +8,15 @@ use Aurora\Core\Repository\ResolveTargetEntityRepository;
 use Aurora\Module\Notes\Folder\Entity\NoteFolder;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
-use Aurora\Module\Notes\Space\NoteSpaceEnum;
+use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
+use Aurora\Module\Notes\Space\Repository\NoteSpaceRepository;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\Order;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
+
+use function sprintf;
 
 /**
  * Every query here is scoped to one person.
@@ -52,9 +55,8 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
 
     public function findOneByUserAndId(CoreUserInterface $user, int $id): ?NoteFolderInterface
     {
-        // Le carnet personnel seulement ; un dossier d'équipe passe par
-        // NoteSpaceAccess, qui regarde le droit et non l'auteur.
-        return $this->personalOf($this->createQueryBuilder('f'), 'f', $user)
+        // Un dossier qu'on peut écrire : c'est l'espace qui décide.
+        return $this->writableTo($this->createQueryBuilder('f'), 'f', $user)
             ->andWhere('f.id = :id')
             ->setParameter('id', $id)
             ->getQuery()
@@ -77,9 +79,7 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
             ->where('f.user != :user')
             ->andWhere('f.sharedAt IS NOT NULL')
             ->andWhere('f.deletedAt IS NULL')
-            ->andWhere('f.space = :personalSpace')
             ->setParameter('user', $user)
-            ->setParameter('personalSpace', NoteSpaceEnum::Personal)
             ->orderBy('f.sharedAt', Order::Descending->value)
             ->getQuery()
             ->getResult();
@@ -176,10 +176,10 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
      *
      * @return list<NoteFolderInterface>
      */
-    public function findTrashedRootsForUser(CoreUserInterface $user, bool $withTeam = false): array
+    public function findTrashedRootsForUser(CoreUserInterface $user): array
     {
         // The parent comes along: the trash names it beside each folder.
-        return $this->trashOf($this->createQueryBuilder('f'), 'f', $user, $withTeam)
+        return $this->trashOf($this->createQueryBuilder('f'), 'f', $user)
             ->leftJoin('f.parent', 'p')
             ->addSelect('p')
             ->andWhere('f.deletedAt IS NOT NULL')
@@ -210,9 +210,9 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
             ->getResult();
     }
 
-    public function countTrashedForUser(CoreUserInterface $user, bool $withTeam = false): int
+    public function countTrashedForUser(CoreUserInterface $user): int
     {
-        return (int) $this->trashOf($this->createQueryBuilder('f'), 'f', $user, $withTeam)
+        return (int) $this->trashOf($this->createQueryBuilder('f'), 'f', $user)
             ->select('COUNT(f.id)')
             ->andWhere('f.deletedAt IS NOT NULL')
             ->andWhere('f.trashedWithFolderId IS NULL')
@@ -220,9 +220,9 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
             ->getSingleScalarResult();
     }
 
-    public function oldestTrashedAtForUser(CoreUserInterface $user, bool $withTeam = false): ?DateTimeImmutable
+    public function oldestTrashedAtForUser(CoreUserInterface $user): ?DateTimeImmutable
     {
-        $value = $this->trashOf($this->createQueryBuilder('f'), 'f', $user, $withTeam)
+        $value = $this->trashOf($this->createQueryBuilder('f'), 'f', $user)
             ->select('MIN(f.deletedAt)')
             ->andWhere('f.deletedAt IS NOT NULL')
             ->andWhere('f.trashedWithFolderId IS NULL')
@@ -232,16 +232,13 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
         return null === $value ? null : new DateTimeImmutable((string) $value);
     }
 
-    public function findMaxPositionForUserAndParent(CoreUserInterface $user, ?int $parentId, NoteSpaceEnum $space = NoteSpaceEnum::Personal): ?int
+    public function findMaxPositionForUserAndParent(NoteSpaceInterface $space, ?int $parentId): ?int
     {
         $qb = $this->createQueryBuilder('f')
             ->select('MAX(f.position)');
 
         if (null === $parentId) {
-            // La racine d'un espace : le carnet de quelqu'un, ou l'équipe.
-            NoteSpaceEnum::Team === $space
-                ? $qb->andWhere('f.space = :teamSpace')->setParameter('teamSpace', NoteSpaceEnum::Team)
-                : $this->personalOf($qb, 'f', $user);
+            $qb->andWhere('f.space = :rootSpace')->setParameter('rootSpace', $space);
             $qb->andWhere('f.parent IS NULL');
         } else {
             $qb->andWhere('IDENTITY(f.parent) = :parentId')
@@ -264,17 +261,16 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
      */
     public function countNotesPerFolderForUser(CoreUserInterface $user): array
     {
-        /** @var list<array{folderId: int|string|null, total: int|string}> $rows */
-        $rows = $this->getEntityManager()->createQueryBuilder()
+        $qb = $this->getEntityManager()->createQueryBuilder()
             ->select('IDENTITY(n.folder) AS folderId', 'COUNT(n.id) AS total')
             ->from(MarkdownNoteInterface::class, 'n')
-            ->andWhere('(n.user = :visibleUser AND n.space = :personalSpace) OR n.space = :teamSpace')
+            ->andWhere(sprintf('IDENTITY(n.space) IN (%s)', NoteSpaceRepository::readableSubquery()))
             ->andWhere('n.deletedAt IS NULL')
             ->andWhere('n.folder IS NOT NULL')
-            ->setParameter('visibleUser', $user)
-            ->setParameter('personalSpace', NoteSpaceEnum::Personal)
-            ->setParameter('teamSpace', NoteSpaceEnum::Team)
-            ->groupBy('n.folder')
+            ->groupBy('n.folder');
+
+        /** @var list<array{folderId: int|string|null, total: int|string}> $rows */
+        $rows = NoteSpaceRepository::bindViewer($qb, $user)
             ->getQuery()
             ->getArrayResult();
 
@@ -319,27 +315,25 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
         return $counts;
     }
 
-    /** Ce qu'une personne voit : ses dossiers, et ceux de l'équipe. */
+    /** Les dossiers des espaces qu'une personne peut lire. */
     private function visibleTo(QueryBuilder $qb, string $alias, CoreUserInterface $user): QueryBuilder
     {
-        return $qb
-            ->andWhere(sprintf('(%1$s.user = :visibleUser AND %1$s.space = :personalSpace) OR %1$s.space = :teamSpace', $alias))
-            ->setParameter('visibleUser', $user)
-            ->setParameter('personalSpace', NoteSpaceEnum::Personal)
-            ->setParameter('teamSpace', NoteSpaceEnum::Team);
+        $qb->andWhere(sprintf('IDENTITY(%s.space) IN (%s)', $alias, NoteSpaceRepository::readableSubquery()));
+
+        return NoteSpaceRepository::bindViewer($qb, $user);
     }
 
-    private function personalOf(QueryBuilder $qb, string $alias, CoreUserInterface $user): QueryBuilder
+    /** Les dossiers des espaces où une personne écrit. */
+    private function writableTo(QueryBuilder $qb, string $alias, CoreUserInterface $user): QueryBuilder
     {
-        return $qb
-            ->andWhere(sprintf('%1$s.user = :ownerUser AND %1$s.space = :personalSpace', $alias))
-            ->setParameter('ownerUser', $user)
-            ->setParameter('personalSpace', NoteSpaceEnum::Personal);
+        $qb->andWhere(sprintf('IDENTITY(%s.space) IN (%s)', $alias, NoteSpaceRepository::writableSubquery()));
+
+        return NoteSpaceRepository::bindViewer($qb, $user);
     }
 
-    /** Sa corbeille, plus celle de l'équipe quand on a le droit d'y écrire. */
-    private function trashOf(QueryBuilder $qb, string $alias, CoreUserInterface $user, bool $withTeam): QueryBuilder
+    /** La corbeille qu'une personne gère : celle des espaces où elle écrit. */
+    private function trashOf(QueryBuilder $qb, string $alias, CoreUserInterface $user): QueryBuilder
     {
-        return $withTeam ? $this->visibleTo($qb, $alias, $user) : $this->personalOf($qb, $alias, $user);
+        return $this->writableTo($qb, $alias, $user);
     }
 }
