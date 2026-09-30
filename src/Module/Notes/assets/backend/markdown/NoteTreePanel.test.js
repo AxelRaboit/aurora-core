@@ -321,36 +321,39 @@ describe("the folders panel", () => {
         expect(handler).toHaveBeenCalledWith({ args: [3] });
     });
 
-    /** Making a note is naming it and putting the cursor in it - the page's job. */
-    it("asks the page to create rather than doing it itself", async () => {
+    /**
+     * Un seul plus, qui demande quoi. Il y en avait deux côte à côte, une
+     * note et un dossier, qu'on ne distinguait qu'à la forme de l'icône.
+     */
+    it("asks the page to add something at the root", async () => {
         const handler = vi.fn();
-        stops.push(onPanelRequest("notes:create", handler));
+        stops.push(onPanelRequest("notes:add", handler));
 
         const wrapper = await render();
         const plus = wrapper
             .findAll("button")
-            .find(
-                (b) => b.attributes("title") === "notes.markdown.create_root",
-            );
+            .find((b) => b.attributes("title") === "notes.markdown.add.title");
         await plus.trigger("click");
 
-        expect(handler).toHaveBeenCalled();
+        expect(handler).toHaveBeenCalledWith({ args: [null] });
     });
 
-    it("asks the page for a new folder too", async () => {
+    /** Le cas d'Axel : le plus d'un dossier ne savait créer qu'une note. */
+    it("asks the page to add inside the folder whose plus was pressed", async () => {
         const handler = vi.fn();
-        stops.push(onPanelRequest("notes:create-folder", handler));
+        stops.push(onPanelRequest("notes:add", handler));
 
         const wrapper = await render();
-        const button = wrapper
+        const plus = wrapper
+            .find('[data-folder-row="3"]')
             .findAll("button")
             .find(
                 (b) =>
-                    b.attributes("title") === "notes.markdown.folders.create",
+                    b.attributes("title") === "notes.markdown.create_in_folder",
             );
-        await button.trigger("click");
+        await plus.trigger("click");
 
-        expect(handler).toHaveBeenCalled();
+        expect(handler).toHaveBeenCalledWith({ args: [3] });
     });
 
     it("filters the tree on what the reader typed", async () => {
@@ -540,5 +543,177 @@ describe("what the panel kept from the aside", () => {
         await flushPromises();
 
         expect(folderLinks(wrapper).map((a) => a.text())).toContain("Neuf");
+    });
+});
+
+/**
+ * Un glisser simulé : ce que le navigateur donne, les types lisibles au
+ * survol et le contenu au dépôt seulement.
+ */
+function transferFor(kind, id) {
+    const data = {};
+    const transfer = {
+        setData: (type, value) => {
+            data[type] = value;
+        },
+        getData: (type) => data[type] ?? "",
+        get types() {
+            return Object.keys(data);
+        },
+        effectAllowed: "",
+        dropEffect: "",
+    };
+
+    transfer.setData("application/x-aurora-note-item", `${kind}:${id}`);
+    transfer.setData(`application/x-aurora-note-kind-${kind}`, "");
+    transfer.setData(`application/x-aurora-note-id-${id}`, "");
+
+    return transfer;
+}
+
+/** Le milieu d'une ligne : « dedans » pour un dossier. */
+function middleOf(row) {
+    row.element.getBoundingClientRect = () => ({
+        top: 0,
+        height: 40,
+        left: 0,
+        width: 200,
+        bottom: 40,
+        right: 200,
+    });
+
+    return { clientY: 20 };
+}
+
+describe("le glisser-déposer du panneau", () => {
+    /**
+     * Le bug d'Axel : glisser une note sur un dossier depuis l'éditeur ne
+     * faisait rien, parce que le panneau confiait le dépôt à la bibliothèque,
+     * absente quand une note est ouverte. Le panneau calcule maintenant le
+     * rangement et le demande à la page sous forme de données.
+     */
+    it("asks the page to file a note into the folder it was dropped on", async () => {
+        const handler = vi.fn();
+        stops.push(onPanelRequest("notes:move", handler));
+
+        const wrapper = await render();
+        const row = wrapper.find('[data-folder-row="1"]');
+        const dataTransfer = transferFor("note", 12);
+
+        await row.trigger("dragover", { dataTransfer, ...middleOf(row) });
+        expect(row.attributes("data-drop-zone")).toBe("inside");
+
+        await row.trigger("drop", { dataTransfer, ...middleOf(row) });
+
+        expect(handler).toHaveBeenCalledWith({
+            args: [
+                {
+                    kind: "note",
+                    id: 12,
+                    folderId: 1,
+                    fromFolderId: 3,
+                    order: [11, 12],
+                },
+            ],
+        });
+    });
+
+    it("lights nothing and files nothing for a folder dropped into its own child", async () => {
+        const handler = vi.fn();
+        stops.push(onPanelRequest("notes:move", handler));
+
+        const wrapper = await render("/backend/notes/markdown", {
+            expanded: [1],
+        });
+        const row = wrapper.find('[data-folder-row="2"]');
+        const dataTransfer = transferFor("folder", 1);
+
+        await row.trigger("dragover", { dataTransfer, ...middleOf(row) });
+        expect(row.attributes("data-drop-zone")).toBeUndefined();
+
+        await row.trigger("drop", { dataTransfer, ...middleOf(row) });
+        expect(handler).not.toHaveBeenCalled();
+    });
+
+    it("brings a folder back to the root when dropped on the root row", async () => {
+        const handler = vi.fn();
+        stops.push(onPanelRequest("notes:move", handler));
+
+        const wrapper = await render();
+        const root = wrapper.find("[data-root-row]");
+
+        await root.trigger("drop", { dataTransfer: transferFor("folder", 2) });
+
+        expect(handler).toHaveBeenCalledWith({
+            args: [
+                expect.objectContaining({
+                    kind: "folder",
+                    id: 2,
+                    folderId: null,
+                    fromFolderId: 1,
+                }),
+            ],
+        });
+    });
+
+    it("ignores what is not one of ours, like a file from the desktop", async () => {
+        const handler = vi.fn();
+        stops.push(onPanelRequest("notes:move", handler));
+
+        const wrapper = await render();
+        const row = wrapper.find('[data-folder-row="3"]');
+        const dataTransfer = {
+            types: ["Files"],
+            getData: () => "",
+            effectAllowed: "",
+            dropEffect: "",
+        };
+
+        await row.trigger("drop", { dataTransfer, ...middleOf(row) });
+
+        expect(handler).not.toHaveBeenCalled();
+    });
+});
+
+describe("le confort de l'arbre", () => {
+    it("unfolds a folder when it is opened", async () => {
+        const wrapper = await render();
+
+        await folderLinks(wrapper)
+            .find((a) => a.text().includes("Journal"))
+            .trigger("click");
+
+        expect(wrapper.text()).toContain("Lundi");
+    });
+
+    it("folds everything back in one gesture", async () => {
+        const wrapper = await render("/backend/notes/markdown", {
+            expanded: [1, 3],
+        });
+        expect(wrapper.text()).toContain("Tarte");
+
+        await wrapper
+            .findAll("button")
+            .find(
+                (b) => b.attributes("title") === "notes.markdown.collapse_all",
+            )
+            .trigger("click");
+
+        expect(wrapper.text()).not.toContain("Tarte");
+    });
+
+    /** Haut et bas passent d'une ligne à l'autre, droite déplie. */
+    it("walks the tree with the arrow keys", async () => {
+        const wrapper = await render();
+        const rows = wrapper.findAll("[data-tree-row]");
+
+        rows[0].element.focus = vi.fn();
+        rows[1].element.focus = vi.fn();
+
+        await rows[0].trigger("keydown", { key: "ArrowDown" });
+        expect(rows[1].element.focus).toHaveBeenCalled();
+
+        await rows[0].trigger("keydown", { key: "ArrowRight" });
+        expect(wrapper.text()).toContain("Lundi");
     });
 });

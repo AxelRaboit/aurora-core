@@ -244,7 +244,18 @@ notes:
       done: "Aucune note importée | 1 note importée | {count} notes importées"
       errors:
         required: Choisissez au moins un fichier.
-    create_in_folder: Nouvelle note dans ce dossier
+    create_in_folder: 'Ajouter dans ce dossier'
+    collapse_all: 'Tout replier'
+    breadcrumb: 'Emplacement de la note'
+    add:
+      title: 'Ajouter'
+      kind: 'Ajouter une note ou un dossier'
+      note: 'Note'
+      folder: 'Dossier'
+      where: 'Dans :'
+      create_note: 'Créer la note'
+      create_folder: 'Créer le dossier'
+      here: 'Ajouter ici'
     confirm_delete: 'Supprimer définitivement « {title} » ?'
 
     confirm_discard_changes: Vous avez des modifications non enregistrées. Les abandonner ?

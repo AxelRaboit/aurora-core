@@ -546,3 +546,122 @@ describe("the way into the graph", () => {
         );
     });
 });
+
+describe("ce que le panneau demande depuis l'éditeur", () => {
+    /** Les appels faits, adresse et corps, dans l'ordre. */
+    const calls = () =>
+        global.fetch.mock.calls.map(([url, init]) => ({
+            url: String(url),
+            body: init?.body ? JSON.parse(init.body) : null,
+        }));
+
+    /**
+     * Le bug d'Axel : une note glissée sur un dossier pendant qu'une note est
+     * ouverte ne bougeait pas. La page écrit maintenant le dépôt elle-même,
+     * sans passer par la bibliothèque.
+     */
+    it("files a dropped note even while a note is open", async () => {
+        render();
+        await flushPromises();
+        askPage("notes:select", { args: [1] });
+        await flushPromises();
+        global.fetch.mockClear();
+
+        expect(
+            askPage("notes:move", {
+                args: [
+                    {
+                        kind: "note",
+                        id: 1,
+                        folderId: 7,
+                        fromFolderId: null,
+                        order: [2, 1],
+                    },
+                ],
+            }),
+        ).toBe(true);
+        await flushPromises();
+
+        const made = calls();
+        expect(made[0]).toEqual({
+            url: "/notes/movePath",
+            body: { folderId: 7 },
+        });
+        expect(made[1]).toEqual({
+            url: "/notes/reorderPath",
+            body: {
+                entries: [
+                    { id: 2, folderId: 7, position: 0 },
+                    { id: 1, folderId: 7, position: 1 },
+                ],
+            },
+        });
+    });
+
+    it("only reorders when the item stays in its folder", async () => {
+        render();
+        await flushPromises();
+        global.fetch.mockClear();
+
+        askPage("notes:move", {
+            args: [
+                {
+                    kind: "folder",
+                    id: 7,
+                    folderId: null,
+                    fromFolderId: null,
+                    order: [7],
+                },
+            ],
+        });
+        await flushPromises();
+
+        const made = calls();
+        expect(made.some((one) => one.url.includes("/move"))).toBe(false);
+        expect(made[0]).toEqual({
+            url: "/notes/folders/reorder",
+            body: { entries: [{ id: 7, parentId: null, position: 0 }] },
+        });
+    });
+
+    /** Le plus d'un dossier ouvre une modale qui crée une note ou un dossier. */
+    it("creates a folder where the plus was pressed", async () => {
+        render();
+        await flushPromises();
+        global.fetch.mockClear();
+
+        askPage("notes:add", { args: [7] });
+        await flushPromises();
+
+        document.body.querySelector('[data-add-kind="folder"]').click();
+        await flushPromises();
+
+        const input = document.body.querySelector(
+            "[data-add-name] input, input[data-add-name]",
+        );
+        input.value = "Devis 2026";
+        input.dispatchEvent(new Event("input"));
+        await flushPromises();
+
+        document.body.querySelector("[data-add-submit]").click();
+        await flushPromises();
+
+        expect(calls()[0]).toEqual({
+            url: "/notes/folders/create",
+            body: { name: "Devis 2026", parentId: 7, color: null },
+        });
+    });
+
+    it("writes where the open note lives, from the root", async () => {
+        const wrapper = render({ folders: FOLDERS });
+        await flushPromises();
+        askPage("notes:select", { args: [2] });
+        await flushPromises();
+
+        const crumbs = wrapper
+            .findAll("[data-note-crumb]")
+            .map((one) => one.text());
+
+        expect(crumbs).toEqual(["Clients"]);
+    });
+});

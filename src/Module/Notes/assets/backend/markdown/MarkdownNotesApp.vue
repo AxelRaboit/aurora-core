@@ -13,6 +13,8 @@ import NoteShareModal from '@notes/backend/markdown/components/NoteShareModal.vu
 import NoteCoverModal from '@notes/backend/markdown/components/NoteCoverModal.vue';
 import NoteEditor from '@notes/backend/markdown/components/NoteEditor.vue';
 import NoteGraph from '@notes/backend/markdown/components/NoteGraph.vue';
+import NoteCreateModal from '@notes/backend/markdown/components/NoteCreateModal.vue';
+import { folderPath } from '@notes/backend/markdown/composables/noteBreadcrumb.js';
 import AppButton from '@shared/components/action/AppButton.vue';
 import AppIconButton from '@shared/components/action/AppIconButton.vue';
 import AppSearchInput from '@shared/components/form/input/AppSearchInput.vue';
@@ -23,7 +25,7 @@ import AppTab from '@shared/components/nav/AppTab.vue';
 import AppRowActions from '@shared/components/action/AppRowActions.vue';
 import { computed, nextTick, onErrorCaptured, onMounted, onUnmounted, watch } from 'vue';
 import { onPanelRequest, tellPanels } from '@/shared/nav/modulePanelBridge.js';
-import { Trash2, BookOpen, FileDown, Image, PanelRightOpen, PanelRightClose, Tag, TriangleAlert, Users, X, Network, Share2 } from 'lucide-vue-next';
+import { ChevronRight, Trash2, BookOpen, FileDown, Image, PanelRightOpen, PanelRightClose, Tag, TriangleAlert, Users, X, Network, Share2 } from 'lucide-vue-next';
 import AppNoData from '@shared/components/feedback/AppNoData.vue';
 import "@notes/share/appearance.css";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
@@ -658,6 +660,113 @@ async function onImportFiles(event) {
     toast.success(t("notes.markdown.import.done", { count: payload.created ?? 0 }));
 }
 
+// ── Ajouter, déplacer : ce que le panneau demande ──────────────────
+
+const addModal = ref(null);
+const addSaving = ref(false);
+
+function openAdd(folderId) {
+    addModal.value = { folderId: null == folderId ? null : Number(folderId) };
+}
+
+/**
+ * Créer ce que la modale demande, là où elle le dit.
+ *
+ * Une note s'ouvre tout de suite, titre compris : on vient de la nommer, on
+ * veut écrire dedans. Un dossier reste où il est créé, et le panneau le
+ * montre - on range souvent plusieurs dossiers d'affilée.
+ */
+async function submitAdd({ kind, name, color }) {
+    const folderId = addModal.value?.folderId ?? null;
+
+    addSaving.value = true;
+
+    const { ok, reported, payload } = 'folder' === kind
+        ? await foldersApi.create(name, folderId, color)
+        : await api.create({ folderId, title: name, content: '' });
+
+    addSaving.value = false;
+
+    if (!ok) {
+        if (!reported) {
+            const failed = 'folder' === kind
+                ? 'notes.markdown.folders.errors.create_failed'
+                : 'notes.markdown.errors.create_failed';
+
+            toast.error(t(failed));
+        }
+
+        return;
+    }
+
+    addModal.value = null;
+
+    if ('folder' === kind) {
+        await refreshFolders();
+        toast.success(t('notes.markdown.folders.created'));
+
+        return;
+    }
+
+    await refreshList();
+    await openNote(payload.note.id);
+}
+
+/**
+ * Écrire un dépôt : changer de dossier s'il le faut, puis l'ordre.
+ *
+ * Deux appels et pas un : le déplacement passe par la route qui refuse une
+ * boucle ou une profondeur de trop, et c'est elle qui doit trancher. Le
+ * réordonnancement vient ensuite, entre frères d'un même dossier, là où il
+ * ne peut rien casser.
+ */
+async function applyDropPlan(plan) {
+    if (!plan?.id) return;
+
+    const isFolder = 'folder' === plan.kind;
+
+    if (plan.fromFolderId !== plan.folderId) {
+        const { ok, reported, payload } = isFolder
+            ? await foldersApi.move(plan.id, plan.folderId)
+            : await api.move(plan.id, plan.folderId);
+
+        if (!ok) {
+            if (!reported) {
+                const failed = 'refused' === payload?.error
+                    ? 'notes.markdown.folders.errors.move_refused'
+                    : 'notes.markdown.folders.errors.move_failed';
+
+                toast.error(t(failed, { max: props.maxDepth }));
+            }
+
+            await Promise.all([refreshList(), refreshFolders()]);
+
+            return;
+        }
+    }
+
+    const entries = plan.order.map((id, position) => (isFolder
+        ? { id, parentId: plan.folderId, position }
+        : { id, folderId: plan.folderId, position }));
+
+    if (entries.length) {
+        await (isFolder ? foldersApi.reorder(entries) : api.reorder(entries));
+    }
+
+    await Promise.all([refreshList(), refreshFolders()]);
+
+    if (plan.fromFolderId !== plan.folderId) toast.success(t('notes.markdown.folders.moved'));
+}
+
+/**
+ * Le chemin de la note ouverte, depuis la racine.
+ *
+ * Une note n'avait que son titre au-dessus d'elle : on ne savait plus dans
+ * quel dossier on écrivait, ni comment y remonter, sans aller chercher dans
+ * le panneau. Chaque étape ramène à son dossier.
+ */
+const notePath = computed(() => folderPath(folders.value, selectedNote.value?.folderId ?? null));
+
 const PANEL_INTENTS = {
     select: (id) => openNote(id),
     export: () => exportAll(),
@@ -710,6 +819,13 @@ const PANEL_INTENTS = {
     // est déplacé voyage dans le presse-papier de l'événement, donc la
     // bibliothèque sait quoi en faire sans qu'on le lui répète.
     drop: (folder, event) => libraryRef.value?.dropInto(Number(folder.id), event),
+    // Le « + » du panneau : une note ou un dossier, au choix, là où l'on a
+    // cliqué. La modale vit ici et non dans la bibliothèque, pour marcher
+    // aussi quand une note est ouverte.
+    add: (folderId) => openAdd(folderId ?? null),
+    // Un dépôt dans le panneau, déjà calculé là-bas : où ranger, dans quel
+    // ordre. On l'écrit quel que soit l'écran affiché.
+    move: (plan) => applyDropPlan(plan),
 };
 
 const stopListening = [];
@@ -782,12 +898,37 @@ onUnmounted(() => {
          évite d'écrire sa hauteur en soustrayant celle du lien, un nombre
          qui serait faux au premier changement de taille de police. -->
     <div class="flex h-[calc(100dvh-var(--aurora-topbar)-var(--aurora-page-margin)*2)] flex-col gap-1.5">
-        <AppBackLink
+        <!-- Le fil d'Ariane prolonge le lien de retour : la racine, puis
+             chaque dossier jusqu'à la note, chacun cliquable. Une note
+             n'avait que son titre au-dessus d'elle, et l'on ne savait plus
+             dans quel dossier on écrivait sans aller le chercher dans le
+             panneau. Hors de la carte pour la même raison que le lien. -->
+        <nav
             v-if="selectedNote && !crashed"
-            class="self-start"
-            :label="t('notes.markdown.library.title')"
-            v-on:back="backToLibrary"
-        />
+            data-note-breadcrumb
+            class="flex min-w-0 flex-wrap items-center gap-x-1 gap-y-0.5 text-xs text-muted"
+            :aria-label="t('notes.markdown.breadcrumb')"
+        >
+            <AppBackLink
+                class="shrink-0"
+                :label="t('notes.markdown.library.title')"
+                v-on:back="backToLibrary"
+            />
+            <template v-for="crumb in notePath" :key="crumb.id">
+                <ChevronRight class="h-3 w-3 shrink-0" :stroke-width="2" />
+                <a
+                    :href="folderUrlFor(crumb.id)"
+                    data-note-crumb
+                    class="max-w-[12rem] truncate rounded px-1 py-0.5 no-underline transition-colors hover:bg-surface-2 hover:text-primary"
+                    :style="crumb.color ? { color: crumb.color } : null"
+                    v-on:click.prevent="showLibrary(crumb.id)"
+                >{{ crumb.name || t('notes.markdown.folders.untitled') }}</a>
+            </template>
+            <ChevronRight class="h-3 w-3 shrink-0" :stroke-width="2" />
+            <span class="min-w-0 truncate px-1 text-secondary" aria-current="page">
+                {{ form.title || t('notes.markdown.untitled') }}
+            </span>
+        </nav>
 
         <div class="aurora-card relative flex min-h-0 flex-1 overflow-hidden">
             <!-- No tree column and no drawer of its own: the notes are in the
@@ -1187,6 +1328,15 @@ onUnmounted(() => {
                     </AppModalFooter>
                 </template>
             </AppModal>
+
+            <NoteCreateModal
+                :show="null !== addModal"
+                :folder-id="addModal?.folderId ?? null"
+                :folders="folders"
+                :saving="addSaving"
+                v-on:close="addModal = null"
+                v-on:submit="submitAdd"
+            />
         </div>
     </div>
 </template>

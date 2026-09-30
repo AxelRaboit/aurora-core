@@ -244,7 +244,18 @@ notes:
       done: "No note imported | 1 note imported | {count} notes imported"
       errors:
         required: Choose at least one file.
-    create_in_folder: New note in this folder
+    create_in_folder: 'Add to this folder'
+    collapse_all: 'Collapse all'
+    breadcrumb: 'Where this note lives'
+    add:
+      title: 'Add'
+      kind: 'Add a note or a folder'
+      note: 'Note'
+      folder: 'Folder'
+      where: 'In:'
+      create_note: 'Create the note'
+      create_folder: 'Create the folder'
+      here: 'Add here'
     confirm_delete: 'Permanently delete "{title}"?'
     confirm_discard_changes: You have unsaved changes. Discard them?
     wiki_link_not_found: 'No note matches "{title}".'

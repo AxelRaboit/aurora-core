@@ -28,7 +28,7 @@
  */
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { ChevronDown, ChevronRight, Download, FileText, Folder, FolderPlus, Pin, PinOff, Plus, Tag, Upload, Users } from "lucide-vue-next";
+import { ChevronDown, ChevronRight, ChevronsDownUp, Download, FileText, Folder, Pin, PinOff, Plus, Tag, Upload, Users } from "lucide-vue-next";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppModulePanel from "@/shared/nav/AppModulePanel.vue";
@@ -38,7 +38,8 @@ import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 import { askPage, onPageNotice } from "@/shared/nav/modulePanelBridge.js";
 import { useModulePanelData } from "@/shared/nav/useModulePanelData.js";
 import { folderIdsIn, useNoteTree } from "./composables/useNoteTree.js";
-import { startNoteDrag } from "./composables/noteDrag.js";
+import { peekNoteDrag, readNoteDrag, startNoteDrag } from "./composables/noteDrag.js";
+import { dropZone, planDrop } from "./composables/noteDropPlan.js";
 import NoteTreeItem from "./components/NoteTreeItem.vue";
 
 const FOLDERS_ENDPOINT = "/backend/notes/markdown/folders";
@@ -185,6 +186,29 @@ function toggle(node) {
     openedIds.value = next;
     storeExpanded(next);
 }
+
+/** Déplier sans jamais replier : ce que fait un clic sur un dossier. */
+function open(id) {
+    if (null === id || openedIds.value.has(Number(id))) return;
+
+    const next = new Set(openedIds.value);
+    next.add(Number(id));
+    openedIds.value = next;
+    storeExpanded(next);
+}
+
+/**
+ * Tout replier d'un geste, comme Obsidian.
+ *
+ * Un carnet qu'on a parcouru finit déplié partout, et replier dossier par
+ * dossier est exactement le genre de ménage qu'on ne fait jamais.
+ */
+function collapseAll() {
+    openedIds.value = new Set();
+    storeExpanded(openedIds.value);
+}
+
+const anyOpen = computed(() => !searching.value && openedIds.value.size > 0);
 
 function readStoredExpanded() {
     try {
@@ -431,14 +455,30 @@ function labelOf(node) {
 // ── Ce que le panneau demande à la page ────────────────────────────
 
 /**
- * Notre propre copie de ce qui est glissé, pour que les lignes s'allument.
+ * Ce qu'on tient, et où ça tomberait.
  *
- * La page tient le même état - il le faut, c'est elle qui écrit - mais le
- * refléter ici coûte une affectation par événement qu'on transmet déjà, là
- * où le relire demanderait une annonce à chaque `dragover`.
+ * **Le panneau range lui-même.** Il transmettait le dépôt à la
+ * bibliothèque, qui n'existe pas quand une note est ouverte : glisser une
+ * note sur un dossier depuis l'éditeur ne faisait rien, sans un mot. Il
+ * calcule maintenant le résultat - quel dossier, quel rang - et le confie à
+ * la page sous forme de données simples, qu'elle écrit quel que soit l'écran
+ * affiché.
  */
 const draggingKey = ref(null);
-const dragOverKey = ref(null);
+const dropHint = ref(null);
+
+/** Le dossier survolé qui s'ouvrira si l'on attend dessus. */
+let hoverTimer = null;
+let hoverKey = null;
+
+/** Le temps de survol qui déplie un dossier fermé, comme dans le Finder. */
+const HOVER_OPEN_MS = 600;
+
+function clearHover() {
+    if (hoverTimer) clearTimeout(hoverTimer);
+    hoverTimer = null;
+    hoverKey = null;
+}
 
 function forward(name, ...args) {
     askPage(`notes:${name}`, { args });
@@ -459,6 +499,10 @@ function onSelect(node) {
         // affichait vide et dont l'adresse rendait un 404.
         forward("open-folder", null === node.id ? null : Number(node.id));
 
+        // Un dossier qu'on ouvre se déplie aussi : on vient voir ce qu'il
+        // contient, et la flèche n'était qu'un détour de plus.
+        open(node.id);
+
         return;
     }
 
@@ -470,13 +514,28 @@ function onFavoriteClick(entry, event) {
     onSelect(entry);
 }
 
+/** Ce qu'un dépôt sur cette ligne, à cette hauteur, écrirait. */
+function planFor(node, event, dragged) {
+    const zone = null === node.id
+        ? "inside"
+        : dropZone(event.currentTarget.getBoundingClientRect(), event.clientY, node.kind);
+
+    const plan = planDrop({
+        dragged,
+        target: { kind: node.kind, id: node.id },
+        zone,
+        folders: folders.value,
+        notes: notes.value,
+    });
+
+    return { zone, plan };
+}
+
 /**
  * Le glisser part d'ici, donc le presse-papier se remplit ici.
  *
  * La page ne peut pas le faire à notre place : elle reçoit l'événement une
- * fois le glisser commencé, et `setData` n'a plus d'effet à ce moment. Les
- * lignes se laissaient saisir sans rien transporter, et le dépôt ne faisait
- * rien du tout.
+ * fois le glisser commencé, et `setData` n'a plus d'effet à ce moment.
  */
 function onDragStart(node, event) {
     draggingKey.value = node.key;
@@ -485,31 +544,159 @@ function onDragStart(node, event) {
 
 function onDragEnd() {
     draggingKey.value = null;
-    dragOverKey.value = null;
+    dropHint.value = null;
+    clearHover();
 }
 
 function onDragOver(node, event) {
-    // Une note ne reçoit rien : elle ne range pas.
-    if ("folder" !== node.kind || node.key === draggingKey.value) return;
+    const dragged = peekNoteDrag(event);
+    if (!dragged) return;
+
+    event.stopPropagation();
+
+    const { zone, plan } = planFor(node, event, dragged);
+
+    // Un dépôt impossible - un dossier dans son propre enfant, une ligne sur
+    // elle-même - n'allume rien et montre le curseur d'interdiction : mieux
+    // vaut le savoir avant de lâcher qu'après.
+    if (!plan) {
+        if (event.dataTransfer) event.dataTransfer.dropEffect = "none";
+        dropHint.value = null;
+        clearHover();
+
+        return;
+    }
 
     event.preventDefault();
-    event.stopPropagation();
-    dragOverKey.value = node.key;
+    if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
+
+    dropHint.value = { key: node.key, zone };
+
+    // Attendre sur un dossier fermé l'ouvre : on descend dans l'arbre sans
+    // lâcher ce qu'on tient.
+    const closed = "folder" === node.kind && null !== node.id && !expanded.value.has(Number(node.id));
+
+    if ("inside" === zone && closed && (node.children ?? []).length) {
+        if (hoverKey !== node.key) {
+            clearHover();
+            hoverKey = node.key;
+            hoverTimer = setTimeout(() => {
+                open(node.id);
+                clearHover();
+            }, HOVER_OPEN_MS);
+        }
+    } else {
+        clearHover();
+    }
 }
 
 function onDragLeave(node, event) {
     const related = event.relatedTarget;
     if (related && event.currentTarget.contains(related)) return;
-    if (dragOverKey.value === node.key) dragOverKey.value = null;
+    if (dropHint.value?.key === node.key) dropHint.value = null;
+    if (hoverKey === node.key) clearHover();
 }
 
 function onDrop(node, event) {
-    dragOverKey.value = null;
+    const dragged = readNoteDrag(event) ?? peekNoteDrag(event);
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const { plan } = dragged ? planFor(node, event, dragged) : { plan: null };
+
     draggingKey.value = null;
+    dropHint.value = null;
+    clearHover();
 
-    if ("folder" !== node.kind) return;
+    if (plan) forward("move", plan);
+}
 
-    forward("drop", { id: node.id }, event);
+/** La racine est une cible comme une autre : on y remonte ce qu'on lâche. */
+const rootNode = { kind: "folder", id: null, key: "root" };
+
+// ── Le clavier ─────────────────────────────────────────────────────
+
+/**
+ * Parcourir l'arbre sans la souris, comme dans un explorateur.
+ *
+ * Haut et bas passent d'une ligne visible à l'autre, droite déplie puis
+ * descend, gauche replie puis remonte au dossier parent, Entrée ouvre, F2
+ * renomme. Une seule ligne à la fois porte le focus : l'arbre compte pour
+ * une tabulation, pas pour cent.
+ */
+const treeRef = ref(null);
+
+function rows() {
+    return [...(treeRef.value?.querySelectorAll("[data-tree-row]") ?? [])];
+}
+
+function nodeByKey(key, list = tree.value) {
+    for (const node of list) {
+        if (node.key === key) return node;
+
+        const found = nodeByKey(key, node.children ?? []);
+        if (found) return found;
+    }
+
+    return null;
+}
+
+function focusRow(element) {
+    element?.focus();
+    element?.scrollIntoView?.({ block: "nearest" });
+}
+
+function onTreeFocus(event) {
+    if (event.target !== treeRef.value) return;
+
+    const all = rows();
+    const selected = all.find((row) => row.dataset.treeKey === selectedKey.value);
+
+    focusRow(selected ?? all[0]);
+}
+
+function onTreeKeydown(event) {
+    const current = event.target.closest?.("[data-tree-row]");
+    if (!current) return;
+
+    const all = rows();
+    const index = all.indexOf(current);
+    const node = nodeByKey(current.dataset.treeKey);
+
+    if (!node) return;
+
+    const isFolder = "folder" === node.kind;
+    const isOpen = isFolder && expanded.value.has(Number(node.id));
+    const hasChildren = (node.children ?? []).length > 0;
+
+    const handled = {
+        ArrowDown: () => focusRow(all[index + 1]),
+        ArrowUp: () => focusRow(all[index - 1]),
+        Home: () => focusRow(all[0]),
+        End: () => focusRow(all[all.length - 1]),
+        ArrowRight: () => {
+            if (isFolder && hasChildren && !isOpen) toggle(node);
+            else if (isOpen) focusRow(all[index + 1]);
+        },
+        ArrowLeft: () => {
+            if (isOpen && !searching.value) {
+                toggle(node);
+
+                return;
+            }
+
+            const parent = all.find((row) => row.dataset.treeKey === current.dataset.parentKey);
+            focusRow(parent);
+        },
+        Enter: () => onSelect(node),
+        F2: () => forward(isFolder ? "rename-folder" : "rename-note", node),
+    }[event.key];
+
+    if (!handled) return;
+
+    event.preventDefault();
+    handled();
 }
 
 const stopListening = [];
@@ -571,16 +758,20 @@ onUnmounted(() => {
                 <Download class="h-3.5 w-3.5" :stroke-width="2" />
             </AppIconButton>
             <AppIconButton
+                v-if="anyOpen"
                 size="sm"
-                :title="t('notes.markdown.folders.create')"
-                v-on:click="forward('create-folder', null)"
+                :title="t('notes.markdown.collapse_all')"
+                v-on:click="collapseAll"
             >
-                <FolderPlus class="h-3.5 w-3.5" :stroke-width="2" />
+                <ChevronsDownUp class="h-3.5 w-3.5" :stroke-width="2" />
             </AppIconButton>
+            <!-- Un seul plus, qui demande quoi : une note ou un dossier.
+                 Deux boutons côte à côte obligeaient à deviner lequel était
+                 lequel à la seule forme de leur icône. -->
             <AppIconButton
                 size="sm"
-                :title="t('notes.markdown.create_root')"
-                v-on:click="forward('create', null)"
+                :title="t('notes.markdown.add.title')"
+                v-on:click="forward('add', null)"
             >
                 <Plus class="h-3.5 w-3.5" :stroke-width="2" />
             </AppIconButton>
@@ -625,9 +816,14 @@ onUnmounted(() => {
         <a
             :href="LIBRARY_URL"
             data-root-row
-            class="group mb-0.5 flex min-w-0 items-center gap-2 rounded-lg border border-transparent px-3 py-2 text-sm no-underline transition-colors"
-            :class="null === selectedKey ? 'border-accent-600/30 bg-accent-600/15 text-accent-400' : 'text-primary hover:bg-surface-2'"
+            class="group mb-0.5 flex min-w-0 items-center gap-2 rounded-md border px-2 py-1.5 text-sm no-underline transition-colors"
+            :class="'root' === dropHint?.key
+                ? 'border-accent-600/40 bg-accent-600/15 text-accent-400 ring-2 ring-accent-500'
+                : null === selectedKey ? 'border-accent-600/30 bg-accent-600/15 text-accent-400' : 'border-transparent text-primary hover:bg-surface-2'"
             v-on:click.prevent="onSelect({ kind: 'folder', id: null, key: null })"
+            v-on:dragover="onDragOver(rootNode, $event)"
+            v-on:dragleave="onDragLeave(rootNode, $event)"
+            v-on:drop="onDrop(rootNode, $event)"
         >
             <FileText class="h-4 w-4 shrink-0" :stroke-width="2" />
             <span class="flex-1 truncate">{{ t('notes.markdown.library.title') }}</span>
@@ -641,27 +837,39 @@ onUnmounted(() => {
             {{ t("notes.markdown.search_no_results") }}
         </p>
 
-        <NoteTreeItem
-            v-for="node in tree"
-            :key="node.key"
-            :node="node"
-            :selected-key="selectedKey"
-            :expanded="expanded"
-            :draggable="true"
-            :dragging-key="draggingKey"
-            :drag-over-key="dragOverKey"
-            :href-for="hrefFor"
-            v-on:select="onSelect"
-            v-on:toggle="toggle"
-            v-on:create-note="(id) => forward('create', id)"
-            v-on:rename="(node) => forward('folder' === node.kind ? 'rename-folder' : 'rename-note', node)"
-            v-on:delete="(node) => forward('folder' === node.kind ? 'delete-folder' : 'delete', node)"
-            v-on:drag-start="onDragStart"
-            v-on:drag-end="onDragEnd"
-            v-on:drag-over="onDragOver"
-            v-on:drag-leave="onDragLeave"
-            v-on:drop="onDrop"
-        />
+        <!-- L'arbre compte pour une seule tabulation : on y entre, puis les
+             flèches font le reste. -->
+        <div
+            ref="treeRef"
+            role="tree"
+            tabindex="0"
+            class="space-y-0.5 outline-none"
+            :aria-label="t('notes.markdown.title')"
+            v-on:focus="onTreeFocus"
+            v-on:keydown="onTreeKeydown"
+        >
+            <NoteTreeItem
+                v-for="node in tree"
+                :key="node.key"
+                :node="node"
+                :selected-key="selectedKey"
+                :expanded="expanded"
+                :draggable="true"
+                :dragging-key="draggingKey"
+                :drop-hint="dropHint"
+                :href-for="hrefFor"
+                v-on:select="onSelect"
+                v-on:toggle="toggle"
+                v-on:add="(node) => { open(node.id); forward('add', Number(node.id)); }"
+                v-on:rename="(node) => forward('folder' === node.kind ? 'rename-folder' : 'rename-note', node)"
+                v-on:delete="(node) => forward('folder' === node.kind ? 'delete-folder' : 'delete', node)"
+                v-on:drag-start="onDragStart"
+                v-on:drag-end="onDragEnd"
+                v-on:drag-over="onDragOver"
+                v-on:drag-leave="onDragLeave"
+                v-on:drop="onDrop"
+            />
+        </div>
         <!-- Le carnet des autres, en lecture, et à part. Ce qui n'est
              pas à soi ne se range pas dans son arborescence. -->
         <div v-if="hasShared" class="mt-2 border-t border-line pt-2">

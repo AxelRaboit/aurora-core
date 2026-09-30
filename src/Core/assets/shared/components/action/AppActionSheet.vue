@@ -41,6 +41,10 @@ function show() {
     open.value = true;
 }
 
+// A caller that opens the sheet from somewhere else than its trigger - a
+// right-click on the row it belongs to - needs the same door.
+defineExpose({ show });
+
 // Closed on the way out rather than on the way back: most of these open a modal
 // of the caller's own, and two stacked overlays is one too many.
 function run(action) {

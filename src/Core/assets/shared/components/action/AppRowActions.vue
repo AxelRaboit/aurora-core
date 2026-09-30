@@ -14,6 +14,7 @@
  *
  * See {@see AppActionSheet} for the shape of an action.
  */
+import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { MoreHorizontal } from "lucide-vue-next";
 import AppIconButton from "./AppIconButton.vue";
@@ -27,11 +28,17 @@ defineProps({
 });
 
 const { t } = useI18n();
+
+const sheet = ref(null);
+
+// Opens the same sheet as the button, for a row that also answers a
+// right-click: one list of actions, two ways to reach it.
+defineExpose({ open: () => sheet.value?.show() });
 </script>
 
 <template>
     <div class="flex items-center justify-end">
-        <AppActionSheet :actions="actions" :label="label">
+        <AppActionSheet ref="sheet" :actions="actions" :label="label">
             <template #trigger="{ open }">
                 <AppIconButton
                     :title="t('shared.actions.open', { name: label })"
