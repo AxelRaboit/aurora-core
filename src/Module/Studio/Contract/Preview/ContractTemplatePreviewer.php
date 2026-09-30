@@ -76,9 +76,27 @@ final readonly class ContractTemplatePreviewer
         // frame would be previewing a different document.
         return sprintf(
             '<section><h1>%s</h1>%s</section>',
-            $this->renderer->substitute($translation->getTitle(), $values),
+            $this->renderer->title($translation->getTitle(), $values),
             $this->renderer->render($blocks, $values),
         );
+    }
+
+    /**
+     * The tokens left standing once every known variable is filled.
+     *
+     * A misspelt `{{client.siret}}` renders as itself, braces included. The
+     * contract preview named them and the template preview did not, which is
+     * the screen where the author can still fix them.
+     *
+     * @return list<string>
+     *
+     * @throws UnrenderableBlockException as `preview()` does
+     */
+    public function unknownTokens(ContractTemplateVersionInterface $version, string $locale): array
+    {
+        $html = $this->preview($version, $locale);
+
+        return null === $html ? [] : $this->renderer->unknownTokens($html, [], $this->catalogue->signatureTokens());
     }
 
     /**

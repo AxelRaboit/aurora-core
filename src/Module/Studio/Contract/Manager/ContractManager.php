@@ -707,10 +707,10 @@ class ContractManager implements ContractManagerInterface
             // Turned into a field error rather than left to bubble: this is a
             // template somebody has to go and fix, and a 500 does not say
             // which block of which trame.
-            throw new FieldException('bodyVersion', sprintf('%s (%s)', $unrenderableBlockException->getMessage(), $version->getTemplate()->getName()));
+            throw new FieldException('bodyVersion', sprintf('%s (%s)', $unrenderableBlockException->describe($this->translator, $locale), $version->getTemplate()->getName()));
         }
 
-        $title = $this->renderer->substitute($translation->getTitle(), $values);
+        $title = $this->renderer->title($translation->getTitle(), $values);
 
         return [
             'snapshot' => [

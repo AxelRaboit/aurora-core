@@ -21,6 +21,7 @@ use Aurora\Module\Studio\Contract\Enum\ContractTemplateKindEnum;
 use Aurora\Module\Studio\Contract\Exception\FrozenContractIsImmutableException;
 use Aurora\Module\Studio\Contract\Manager\ContractManager;
 use Aurora\Module\Studio\Contract\Manager\ContractTemplateManager;
+use Aurora\Module\Studio\Contract\Preview\ContractTemplatePreviewer;
 use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\Contract\Repository\ContractTemplateRepository;
 use Aurora\Module\Studio\Contract\Repository\ContractTemplateVersionRepository;
@@ -35,6 +36,7 @@ use Aurora\Module\Studio\Customer\Entity\Customer;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\Customer\Repository\CustomerRepository;
 use Aurora\Tests\Integration\IntegrationTestCase;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -84,6 +86,7 @@ final class ContractFreezeTest extends IntegrationTestCase
             $container->get(ContractTemplateVersionRepository::class),
             $container->get(TranslatorInterface::class),
             $container->get(ContractRepository::class),
+            $container->get(ContractTemplatePreviewer::class),
         );
 
         $this->contracts = new ContractManager(
@@ -219,6 +222,19 @@ final class ContractFreezeTest extends IntegrationTestCase
     /**
      * A token nobody will fill would reach the signer as literal braces.
      */
+    /**
+     * The title is plain text, escaped like everything else before it enters
+     * the sealed HTML, which the signing page and the PDF print raw.
+     */
+    public function testTheTitleIsEscapedInTheSealedDocument(): void
+    {
+        $contract = $this->draft(title: 'Conditions <générales> & tarifs');
+
+        $this->contracts->freeze($contract);
+
+        self::assertStringContainsString('Conditions &lt;générales&gt; &amp; tarifs', (string) $contract->getRenderedHtml());
+    }
+
     public function testAnUnknownTokenRefusesTheFreezeAndNamesItself(): void
     {
         $contract = $this->draft(body: [
@@ -386,21 +402,31 @@ final class ContractFreezeTest extends IntegrationTestCase
     }
 
     /** @param list<array<string, mixed>>|null $body */
-    private function draft(?array $body = null): ContractInterface
+    private function draft(?array $body = null, string $title = 'CONTRAT DE PRESTATION DE SERVICES'): ContractInterface
     {
         $template = $this->templates->create(new ContractTemplateInput('Contrat mensuel', ContractTemplateKindEnum::Body));
         $version = $template->getDraft();
 
         $this->templates->updateDraft($version, new ContractTemplateVersionInput([
             'fr' => [
-                'title' => 'CONTRAT DE PRESTATION DE SERVICES',
+                'title' => $title,
                 'content' => ['blocks' => $body ?? [
                     ['type' => 'header', 'data' => ['text' => 'ARTICLE 1', 'level' => 2]],
                     ['type' => 'paragraph', 'data' => ['text' => 'Le forfait mensuel est de {{contract.amount}}.']],
                 ]],
             ],
         ]));
-        $this->templates->publish($version);
+
+        // A wording written by the test is published as it stands, around the
+        // manager's own check: publishing now refuses an unknown variable or
+        // a block a contract cannot print, and these tests are about the
+        // freeze still refusing them in a version published before that rule.
+        if (null === $body) {
+            $this->templates->publish($version);
+        } else {
+            $version->publish(new DateTimeImmutable());
+            $this->entityManager->flush();
+        }
 
         return $this->contractFor($this->customer(), $version);
     }

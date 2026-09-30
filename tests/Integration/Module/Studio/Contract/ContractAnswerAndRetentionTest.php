@@ -22,6 +22,7 @@ use Aurora\Module\Studio\Contract\Enum\ContractStatusEnum;
 use Aurora\Module\Studio\Contract\Enum\ContractTemplateKindEnum;
 use Aurora\Module\Studio\Contract\Manager\ContractManager;
 use Aurora\Module\Studio\Contract\Manager\ContractTemplateManager;
+use Aurora\Module\Studio\Contract\Preview\ContractTemplatePreviewer;
 use Aurora\Module\Studio\Contract\Refusal\Dto\ContractRefusalInput;
 use Aurora\Module\Studio\Contract\Refusal\Manager\ContractRefusalManagerInterface;
 use Aurora\Module\Studio\Contract\Repository\ContractRepository;
@@ -96,6 +97,7 @@ final class ContractAnswerAndRetentionTest extends IntegrationTestCase
             $container->get(ContractTemplateVersionRepository::class),
             $container->get(TranslatorInterface::class),
             $container->get(ContractRepository::class),
+            $container->get(ContractTemplatePreviewer::class),
         );
 
         $this->contracts = new ContractManager(

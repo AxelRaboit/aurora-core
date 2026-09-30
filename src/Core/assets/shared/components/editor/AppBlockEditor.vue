@@ -64,7 +64,27 @@ const props = defineProps({
      *   { toolName: { class, config?, inlineToolbar? } | ToolClass }
      */
     extraTools: { type: Object, default: () => ({}) },
+    /**
+     * The block types offered, when a document cannot print them all.
+     *
+     * Null offers the whole set. A contract, for one, prints titles,
+     * paragraphs, lists, quotes and tables, and an image dropped into its
+     * wording used to be published and then refused at every freeze. The
+     * inline tools (bold, colour...) are not filtered here.
+     */
+    blockTools: { type: Array, default: null },
 });
+
+/** The block tools of the built-in set, as opposed to the inline ones. */
+const BLOCK_TOOLS = ["header", "paragraph", "list", "image", "embed", "raw", "table", "quote", "callout", "mediaText", "twoColumn"];
+
+function offered(tools) {
+    if (null === props.blockTools) return tools;
+
+    return Object.fromEntries(
+        Object.entries(tools).filter(([name]) => !BLOCK_TOOLS.includes(name) || props.blockTools.includes(name)),
+    );
+}
 
 const emit = defineEmits(["update:modelValue"]);
 
@@ -187,7 +207,7 @@ onMounted(async () => {
                 },
             },
         },
-        tools: {
+        tools: offered({
             // Blocs de texte
             header: {
                 class: Header,
@@ -346,7 +366,7 @@ onMounted(async () => {
             // `{ toolName: { class, config?, inlineToolbar? } | Class }`.
             // Spread last so a consumer can override built-in configs too.
             ...props.extraTools,
-        },
+        }),
         onChange: async () => {
             if (!editor) return;
             const data = await editor.save();

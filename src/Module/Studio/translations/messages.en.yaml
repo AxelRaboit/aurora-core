@@ -396,6 +396,9 @@ backend:
                 governing_locale_unknown: This language is not one the application offers.
                 governing_locale_not_written: 'The governing language ({locale}) is not written in this version.'
                 governing_locale_required: 'This version is written in several languages: say which one prevails before publishing it.'
+                unrenderable_block: 'Block {number} of the {locale} wording is a "{type}" block, which a contract cannot print: remove it.'
+                malformed_block: 'Block {number} of the {locale} wording cannot be read: remove it.'
+                unknown_tokens: 'These variables in the {locale} wording match nothing: {tokens}. Fix them before publishing.'
             name: Template name
             name_placeholder: Service agreement, monthly plan
             kind_label: Type
@@ -408,6 +411,7 @@ backend:
             preview: Preview
             preview_notice: "Variables are replaced with examples, except your own business details which come from your settings. Fields filled per contract show in square brackets."
             preview_failed: The preview could not be produced.
+            preview_unknown_tokens: 'Unknown variables, they will stop the publication: {tokens}'
             filter_category: 'Category: {name}'
             add: Add a template
             create: New template

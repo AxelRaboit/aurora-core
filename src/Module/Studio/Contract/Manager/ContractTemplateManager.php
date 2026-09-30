@@ -14,6 +14,8 @@ use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersion;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersionInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersionTranslation;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersionTranslationInterface;
+use Aurora\Module\Studio\Contract\Exception\UnrenderableBlockException;
+use Aurora\Module\Studio\Contract\Preview\ContractTemplatePreviewer;
 use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\Contract\Repository\ContractTemplateVersionRepository;
 use DateTimeImmutable;
@@ -22,6 +24,10 @@ use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 use function array_key_exists;
+use function array_map;
+use function implode;
+use function mb_strtoupper;
+use function sprintf;
 
 /**
  * Templates and their versions.
@@ -47,6 +53,7 @@ class ContractTemplateManager implements ContractTemplateManagerInterface
         protected readonly ContractTemplateVersionRepository $versionRepository,
         protected readonly TranslatorInterface $translator,
         protected readonly ContractRepository $contractRepository,
+        protected readonly ContractTemplatePreviewer $previewer,
     ) {}
 
     public function create(ContractTemplateInputInterface $input): ContractTemplateInterface
@@ -239,6 +246,36 @@ class ContractTemplateManager implements ContractTemplateManagerInterface
         ]);
     }
 
+    /**
+     * Refuses a wording a contract could not be built from.
+     *
+     * A published version is immutable and becomes the one in force, so what
+     * it cannot print has to be caught here: an image, a callout or a
+     * misspelt variable used to be published, and every contract created on
+     * it was then refused at the freeze until a new version was opened.
+     *
+     * Each language is rendered as the preview renders it, and what is left
+     * standing once every known variable is filled is a variable that fills
+     * nothing.
+     */
+    protected function assertPrintable(ContractTemplateVersionInterface $version): void
+    {
+        foreach ($this->previewer->locales($version) as $locale) {
+            try {
+                $unknown = $this->previewer->unknownTokens($version, $locale);
+            } catch (UnrenderableBlockException $unrenderableBlockException) {
+                throw new FieldException('translations', $unrenderableBlockException->describe($this->translator, $locale));
+            }
+
+            if ([] !== $unknown) {
+                throw new FieldException('translations', $this->translator->trans('backend.studio.contract_templates.errors.unknown_tokens', [
+                    '{locale}' => mb_strtoupper($locale),
+                    '{tokens}' => implode(', ', array_map(static fn (string $token): string => sprintf('{{%s}}', $token), $unknown)),
+                ]));
+            }
+        }
+    }
+
     public function publish(ContractTemplateVersionInterface $version): void
     {
         $version->assertEditable();
@@ -255,6 +292,8 @@ class ContractTemplateManager implements ContractTemplateManagerInterface
         if ($version->getTranslations()->count() > 1 && null === $version->getGoverningLocale()) {
             throw new FieldException('governingLocale', $this->translator->trans('backend.studio.contract_templates.errors.governing_locale_required'));
         }
+
+        $this->assertPrintable($version);
 
         $version->publish(new DateTimeImmutable());
         $this->entityManager->flush();

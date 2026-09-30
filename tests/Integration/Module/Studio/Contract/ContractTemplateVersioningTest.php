@@ -10,9 +10,11 @@ use Aurora\Module\Studio\Contract\Dto\ContractTemplateInput;
 use Aurora\Module\Studio\Contract\Dto\ContractTemplateVersionInput;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplate;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateInterface;
+use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersionInterface;
 use Aurora\Module\Studio\Contract\Enum\ContractTemplateKindEnum;
 use Aurora\Module\Studio\Contract\Exception\PublishedVersionIsImmutableException;
 use Aurora\Module\Studio\Contract\Manager\ContractTemplateManager;
+use Aurora\Module\Studio\Contract\Preview\ContractTemplatePreviewer;
 use Aurora\Module\Studio\Contract\Manager\ContractTemplateManagerInterface;
 use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\Contract\Repository\ContractTemplateRepository;
@@ -61,6 +63,7 @@ final class ContractTemplateVersioningTest extends IntegrationTestCase
             $container->get(ContractTemplateVersionRepository::class),
             $container->get(TranslatorInterface::class),
             $container->get(ContractRepository::class),
+            $container->get(ContractTemplatePreviewer::class),
         );
     }
 
@@ -90,7 +93,7 @@ final class ContractTemplateVersioningTest extends IntegrationTestCase
         $first = $template->getDraft();
 
         $this->manager->updateDraft($first, new ContractTemplateVersionInput([
-            'fr' => ['title' => 'Contrat de prestation de services', 'content' => ['blocks' => ['article 1']]],
+            'fr' => ['title' => 'Contrat de prestation de services', 'content' => ['blocks' => [['type' => 'paragraph', 'data' => ['text' => 'Article 1']]]]],
         ]));
         $this->manager->publish($first);
 
@@ -100,14 +103,14 @@ final class ContractTemplateVersioningTest extends IntegrationTestCase
         // Seeded, not blank: opening a draft to amend one clause must not
         // start from an empty document.
         self::assertSame('Contrat de prestation de services', $second->getTranslation('fr')?->getTitle());
-        self::assertSame(['blocks' => ['article 1']], $second->getTranslation('fr')?->getContent());
+        self::assertSame(['blocks' => [['type' => 'paragraph', 'data' => ['text' => 'Article 1']]]], $second->getTranslation('fr')?->getContent());
 
         // And the published one is untouched by the editing of its successor.
         $this->manager->updateDraft($second, new ContractTemplateVersionInput([
             'fr' => ['title' => 'Contrat de prestation de services', 'content' => ['blocks' => ['article 1 amendé']]],
         ]));
 
-        self::assertSame(['blocks' => ['article 1']], $first->getTranslation('fr')?->getContent());
+        self::assertSame(['blocks' => [['type' => 'paragraph', 'data' => ['text' => 'Article 1']]]], $first->getTranslation('fr')?->getContent());
         self::assertSame(['blocks' => ['article 1 amendé']], $second->getTranslation('fr')?->getContent());
     }
 
@@ -224,6 +227,67 @@ final class ContractTemplateVersioningTest extends IntegrationTestCase
         // retired on purpose. Offering either means offering a dead end.
         self::assertNotContains($draftOnly->getName(), $names);
         self::assertNotContains($archived->getName(), $names);
+    }
+
+    /**
+     * A published version is immutable and becomes the one in force, so a
+     * variable that fills nothing has to be caught before: it used to be
+     * published, and every contract built on it was refused at the freeze.
+     */
+    public function testPublishingRefusesAVariableThatFillsNothing(): void
+    {
+        $draft = $this->draftWith([['type' => 'paragraph', 'data' => ['text' => 'SIRET {{client.siret}}']]]);
+
+        try {
+            $this->manager->publish($draft);
+            self::fail('A variable that fills nothing should have refused the publication.');
+        } catch (FieldException $exception) {
+            self::assertStringContainsString('{{client.siret}}', $exception->getMessage());
+        }
+
+        self::assertFalse($draft->isPublished());
+    }
+
+    public function testPublishingRefusesABlockAContractCannotPrint(): void
+    {
+        $draft = $this->draftWith([['type' => 'image', 'data' => ['file' => ['url' => '/logo.png']]]]);
+
+        try {
+            $this->manager->publish($draft);
+            self::fail('An image should have refused the publication.');
+        } catch (FieldException $exception) {
+            // Said in the reader's language, naming the block: the message
+            // used to be an English sentence meant for a developer.
+            self::assertStringContainsString('image', $exception->getMessage());
+            self::assertStringNotContainsString('ContractDocumentRenderer', $exception->getMessage());
+        }
+
+        self::assertFalse($draft->isPublished());
+    }
+
+    /** The signer's blanks and the per-contract fields are not unknown. */
+    public function testTheSignersBlanksAndTheCustomFieldsDoNotStopThePublication(): void
+    {
+        $draft = $this->draftWith([['type' => 'paragraph', 'data' => [
+            'text' => '{{contract.amount}} dont {{contract.custom.acompte}}. Fait à {{contract.signature_city}}, le {{contract.signature_date}}.',
+        ]]]);
+
+        $this->manager->publish($draft);
+
+        self::assertTrue($draft->isPublished());
+    }
+
+    /**
+     * @param list<array<string, mixed>> $blocks
+     */
+    private function draftWith(array $blocks): ContractTemplateVersionInterface
+    {
+        $draft = $this->createTemplate('Contrat à vérifier')->getDraft();
+        $this->manager->updateDraft($draft, new ContractTemplateVersionInput([
+            'fr' => ['title' => 'Contrat', 'content' => ['blocks' => $blocks]],
+        ]));
+
+        return $draft;
     }
 
     private function createTemplate(string $name): ContractTemplateInterface

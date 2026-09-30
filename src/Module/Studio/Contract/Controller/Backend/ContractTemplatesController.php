@@ -96,16 +96,21 @@ class ContractTemplatesController extends AbstractController
 
         try {
             $html = $this->previewer->preview($version, $locale);
+            $unknown = $this->previewer->unknownTokens($version, $locale);
         } catch (UnrenderableBlockException $unrenderableBlockException) {
             // The same refusal a freeze would meet, said here where it can be
-            // fixed rather than in the middle of sending a contract.
-            return $this->jsonInvalidInput(['preview' => $unrenderableBlockException->getMessage()]);
+            // fixed rather than in the middle of sending a contract, and in
+            // the reader's language rather than the log's.
+            return $this->jsonInvalidInput(['preview' => $unrenderableBlockException->describe($this->translator, $locale)]);
         }
 
         return $this->jsonSuccess([
             'html' => $html,
             'locale' => $locale,
             'locales' => $locales,
+            // Named, as the contract preview names them: this is the screen
+            // where a misspelt variable can still be fixed.
+            'unknownTokens' => $unknown,
         ]);
     }
 

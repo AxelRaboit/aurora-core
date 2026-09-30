@@ -396,6 +396,9 @@ backend:
                 governing_locale_unknown: 'La aplicación no admite este idioma.'
                 governing_locale_not_written: 'El idioma de referencia ({locale}) no está redactado en esta versión.'
                 governing_locale_required: 'Esta versión está redactada en varios idiomas: indique cuál es el de referencia antes de publicar.'
+                unrenderable_block: 'El bloque n.º {number} del texto {locale} es de tipo «{type}», que un contrato no puede imprimir: quítelo.'
+                malformed_block: 'El bloque n.º {number} del texto {locale} es ilegible: quítelo.'
+                unknown_tokens: 'Estas variables del texto {locale} no corresponden a nada: {tokens}. Corríjalas antes de publicar.'
             name: 'Nombre de la plantilla'
             name_placeholder: 'Contrato de prestación de servicios, fórmula mensual'
             kind_label: Tipo
@@ -407,6 +410,7 @@ backend:
             preview: 'Vista previa'
             preview_notice: 'Las variables se sustituyen por ejemplos, salvo las de su empresa, que proceden de sus ajustes. Los campos propios de cada contrato aparecen entre corchetes.'
             preview_failed: 'No se ha podido generar la vista previa.'
+            preview_unknown_tokens: 'Variables desconocidas, impedirán la publicación: {tokens}'
             filter_category: 'Categoría: {name}'
             kind_hint: 'Un cuerpo se firma solo. Un anexo completa un cuerpo.'
             add: 'Añadir una plantilla'

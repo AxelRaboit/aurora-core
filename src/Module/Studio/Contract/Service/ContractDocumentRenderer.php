@@ -242,6 +242,19 @@ final readonly class ContractDocumentRenderer
         return $this->substitute($this->sanitizer->safe($value), $values);
     }
 
+    /**
+     * A title, which is plain text typed in a field, escaped before its
+     * variables are filled. It used to go into the sealed HTML as typed: a
+     * word between chevrons vanished, and markup reached the signing page and
+     * the PDF, both of which print the document raw.
+     *
+     * @param array<string, string> $values
+     */
+    public function title(string $title, array $values): string
+    {
+        return $this->substitute($this->escape($title), $values);
+    }
+
     private function escape(string $value): string
     {
         return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');

@@ -17,6 +17,12 @@ import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import { Check, Eye, Lock, Save, ScrollText, Trash2, X } from "lucide-vue-next";
 
+/**
+ * What a contract can print, and so all the editor offers: anything else was
+ * published, then refused at every freeze (ContractDocumentRenderer).
+ */
+const CONTRACT_BLOCKS = ["header", "paragraph", "list", "quote", "table"];
+
 const { t } = useI18n();
 const { request } = useRequest();
 
@@ -73,7 +79,7 @@ const otherVersions = computed(() =>
  * stands on screen rather than as it was stored an hour ago is the whole
  * point, and a published version has nothing to save.
  */
-const preview = ref({ open: false, loading: false, html: "", error: "", locale: "" });
+const preview = ref({ open: false, loading: false, html: "", error: "", locale: "", unknownTokens: [] });
 
 /**
  * Everything but Save, which is what a draft editor is for.
@@ -121,6 +127,11 @@ const templateActions = computed(() => {
 /** Cleaned on the way into the DOM, exactly like the sealed document is. */
 const previewHtml = computed(() => safeContractHtml(preview.value.html));
 
+/** Written as the author typed them, braces included, so they can be found. */
+const previewUnknownTokens = computed(() =>
+    preview.value.unknownTokens.map((token) => `{{${token}}}`).join(", "),
+);
+
 /** Only offered when there is a choice to make. */
 const previewLocales = computed(() =>
     props.locales.filter((locale) => writtenLocales.value.includes(locale.code)),
@@ -164,6 +175,7 @@ async function loadPreview(locale) {
         loading: false,
         html: data.html ?? "",
         locale: data.locale ?? locale,
+        unknownTokens: data.unknownTokens ?? [],
         error: "",
     };
 }
@@ -308,6 +320,7 @@ const governingLabel = computed(
                         >
                             <AppBlockEditor
                                 v-model="wording[locale.code].blocks"
+                                :block-tools="CONTRACT_BLOCKS"
                                 :placeholder="
                                     t('backend.studio.contract_templates.content_placeholder')
                                 "
@@ -423,6 +436,13 @@ const governingLabel = computed(
                     </button>
                 </div>
 
+                <AppMessage v-if="preview.unknownTokens.length && !preview.error" variant="warning">
+                    {{
+                        t("backend.studio.contract_templates.preview_unknown_tokens", {
+                            tokens: previewUnknownTokens,
+                        })
+                    }}
+                </AppMessage>
                 <AppMessage v-if="preview.error" variant="danger">
                     {{ preview.error }}
                 </AppMessage>

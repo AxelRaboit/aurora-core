@@ -396,6 +396,9 @@ backend:
                 governing_locale_unknown: Cette langue n'est pas gérée par l'application.
                 governing_locale_not_written: 'La langue faisant foi ({locale}) n''est pas rédigée dans cette version.'
                 governing_locale_required: 'Cette version est rédigée en plusieurs langues : indiquez laquelle fait foi avant de publier.'
+                unrenderable_block: 'Le bloc n° {number} du texte {locale} est de type « {type} », qu''un contrat ne sait pas imprimer : retirez-le.'
+                malformed_block: 'Le bloc n° {number} du texte {locale} est illisible : retirez-le.'
+                unknown_tokens: 'Ces variables du texte {locale} ne correspondent à rien : {tokens}. Corrigez-les avant de publier.'
             name: Nom de la trame
             name_placeholder: Contrat de prestation de services, formule mensuelle
             kind_label: Type
@@ -407,6 +410,7 @@ backend:
             preview: Aperçu
             preview_notice: "Les variables sont remplacées par des exemples, sauf celles de votre entreprise qui viennent de vos réglages. Les champs propres à chaque contrat apparaissent entre crochets."
             preview_failed: L'aperçu n'a pas pu être produit.
+            preview_unknown_tokens: 'Variables inconnues, elles empêcheront la publication : {tokens}'
             filter_category: 'Catégorie : {name}'
             kind_hint: Un corps se signe seul. Une annexe complète un corps.
             add: Ajouter une trame

@@ -20,6 +20,7 @@ use Aurora\Module\Studio\Contract\Enum\ContractTemplateKindEnum;
 use Aurora\Module\Studio\Contract\Enum\ContractTerminationOriginEnum;
 use Aurora\Module\Studio\Contract\Manager\ContractManager;
 use Aurora\Module\Studio\Contract\Manager\ContractTemplateManager;
+use Aurora\Module\Studio\Contract\Preview\ContractTemplatePreviewer;
 use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\Contract\Repository\ContractTemplateRepository;
 use Aurora\Module\Studio\Contract\Repository\ContractTemplateVersionRepository;
@@ -85,6 +86,7 @@ final class ContractAmendmentTest extends IntegrationTestCase
             $container->get(ContractTemplateVersionRepository::class),
             $container->get(TranslatorInterface::class),
             $container->get(ContractRepository::class),
+            $container->get(ContractTemplatePreviewer::class),
         );
 
         $this->contracts = new ContractManager(
