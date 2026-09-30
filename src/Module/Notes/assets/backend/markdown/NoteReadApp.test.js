@@ -149,3 +149,22 @@ describe("l'espace du lecteur", () => {
         window.localStorage.removeItem("aurora.notes.reader.sidebar");
     });
 });
+
+describe("le retour", () => {
+    /** Un retour, pas le nom du site, en haut à gauche. */
+    it("goes back to editing one's own note", () => {
+        const wrapper = render({ canEdit: true });
+
+        expect(wrapper.find("[data-reader-back]").attributes("href")).toBe(
+            "/notes/5",
+        );
+    });
+
+    it("goes back to the library from somebody else's note", () => {
+        const wrapper = render({ canEdit: false });
+
+        expect(wrapper.find("[data-reader-back]").attributes("href")).toBe(
+            "/notes",
+        );
+    });
+});

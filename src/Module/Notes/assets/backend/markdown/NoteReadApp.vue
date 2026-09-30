@@ -18,11 +18,12 @@
  * **Le rendu est celui du partage**, le même composant : ce qu'on lit ici est
  * exactement ce qu'un invité lirait, et les deux ne peuvent pas diverger.
  */
-import { onMounted, onUnmounted, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { ArrowLeft, ArrowRight, ChevronRight, ListTree, PanelLeftClose, PanelLeftOpen, Pencil, X } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
+import AppBackLink from "@/shared/components/nav/AppBackLink.vue";
 import NoteShareApp from "@notes/share/NoteShareApp.vue";
 import NoteReaderNav from "./components/NoteReaderNav.vue";
 
@@ -49,12 +50,17 @@ const props = defineProps({
     treeNotes: { type: Array, default: () => [] },
     sharedFolders: { type: Array, default: () => [] },
     sharedNotes: { type: Array, default: () => [] },
-    siteName: { type: String, default: "" },
 });
 
 const { t } = useI18n();
 
 const SIDEBAR_KEY = "aurora.notes.reader.sidebar";
+
+/** Où ramène le retour : l'édition de sa note, sinon la bibliothèque. */
+const exitPath = computed(() => (props.canEdit && props.backPath ? props.backPath : props.libraryPath));
+const exitLabel = computed(() =>
+    props.canEdit && props.backPath ? t('notes.markdown.read.back') : t('notes.markdown.library.title'),
+);
 
 const readUrl = (id) => props.readNotePath.replace("__id__", String(id));
 const folderUrl = (id) => props.folderShowPath.replace("__id__", String(id));
@@ -141,10 +147,15 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
             data-reader-sidebar
             class="sticky top-0 hidden h-screen w-72 shrink-0 flex-col gap-3 border-r border-line bg-surface p-3 md:flex"
         >
-            <a :href="libraryPath" class="px-1 text-sm font-semibold text-primary no-underline hover:text-accent-400">
-                {{ siteName || t('notes.markdown.title') }}
-                <span class="block text-xs font-normal text-muted">{{ t('notes.markdown.read.mode') }}</span>
-            </a>
+            <!-- Un retour, pas le nom du site : on sort de la lecture pour
+                 revenir là d'où l'on vient - l'édition de la note, ou la
+                 bibliothèque quand la note est à quelqu'un d'autre. -->
+            <AppBackLink
+                data-reader-back
+                class="self-start"
+                :href="exitPath"
+                :label="exitLabel"
+            />
 
             <NoteReaderNav
                 :note-id="noteId"
@@ -167,6 +178,7 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
             />
             <div class="absolute inset-y-0 left-0 flex w-[85vw] max-w-sm flex-col gap-3 bg-surface p-3 shadow-xl">
                 <div class="flex items-center justify-between gap-2">
+                    <AppBackLink :href="exitPath" :label="exitLabel" />
                     <span class="text-sm font-semibold text-primary">{{ t('notes.markdown.read.contents') }}</span>
                     <AppIconButton :title="t('shared.common.close')" v-on:click="drawerOpen = false">
                         <X class="h-4 w-4" :stroke-width="2" />
