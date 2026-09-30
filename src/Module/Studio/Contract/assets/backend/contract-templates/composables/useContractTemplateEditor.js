@@ -169,13 +169,17 @@ export function useContractTemplateEditor(props) {
                 noGuard: true,
             });
 
-            if (data?.errors) {
-                errors.value = data.errors;
+            // `request` answers null on a refusal or a failure it has
+            // already reported: testing only for `errors` read that as a
+            // success, and a refused save showed « Brouillon enregistré »
+            // beside the red toast.
+            if (!data?.success) {
+                if (data?.errors) errors.value = data.errors;
 
                 return false;
             }
 
-            if (data?.version) version.value = data.version;
+            if (data.version) version.value = data.version;
 
             if (!silent)
                 toast.success(t("backend.studio.contract_templates.saved"));
@@ -207,13 +211,16 @@ export function useContractTemplateEditor(props) {
                 { noGuard: true },
             );
 
-            if (data?.errors) {
-                errors.value = data.errors;
+            if (!data?.success) {
+                if (data?.errors) errors.value = data.errors;
+                // Closed, so the reason shows on the page rather than
+                // behind the confirmation.
+                showPublish.value = false;
 
                 return;
             }
 
-            if (data?.version) version.value = data.version;
+            if (data.version) version.value = data.version;
             showPublish.value = false;
             toast.success(t("backend.studio.contract_templates.published"));
         } finally {
@@ -224,8 +231,10 @@ export function useContractTemplateEditor(props) {
     async function discard() {
         const data = await request(props.discardPath, {}, { noGuard: true });
 
-        if (data?.errors) {
-            errors.value = data.errors;
+        // Nothing was abandoned unless the server says so: a refusal used to
+        // send the reader back to the list as if the draft were gone.
+        if (!data?.success) {
+            if (data?.errors) errors.value = data.errors;
             showDiscard.value = false;
 
             return;

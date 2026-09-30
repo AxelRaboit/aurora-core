@@ -228,10 +228,10 @@ export function useContractTemplatesList(props) {
                 {},
             );
 
-            if (data?.errors) {
-                // Pinned nowhere in particular: these actions have no form, so
-                // the only honest place is a toast naming what was refused.
-                toast.error(Object.values(data.errors)[0]);
+            if (!data?.success) {
+                // Null when `request` has already reported a refusal or a
+                // failure: read as a success, it toasted both.
+                if (data?.errors) toast.error(Object.values(data.errors)[0]);
 
                 return;
             }
@@ -291,8 +291,10 @@ export function useContractTemplatesList(props) {
                 {},
             );
 
-            if (data?.errors) {
-                toast.error(Object.values(data.errors)[0]);
+            if (!data?.success) {
+                // Null when `request` has already reported a refusal or a
+                // failure: read as a success, it toasted both.
+                if (data?.errors) toast.error(Object.values(data.errors)[0]);
 
                 return;
             }
@@ -331,8 +333,10 @@ export function useContractTemplatesList(props) {
                 {},
             );
 
-            if (data?.errors) {
-                toast.error(Object.values(data.errors)[0]);
+            if (!data?.success) {
+                // Null when `request` has already reported a refusal or a
+                // failure: read as a success, it toasted both.
+                if (data?.errors) toast.error(Object.values(data.errors)[0]);
 
                 return;
             }
@@ -365,8 +369,10 @@ export function useContractTemplatesList(props) {
                 {},
             );
 
-            if (data?.errors) {
-                toast.error(Object.values(data.errors)[0]);
+            if (!data?.success) {
+                // Null when `request` has already reported a refusal or a
+                // failure: read as a success, it toasted both.
+                if (data?.errors) toast.error(Object.values(data.errors)[0]);
 
                 return;
             }
