@@ -73,6 +73,27 @@ class NoteSpaceManager implements NoteSpaceManagerInterface
         $this->auditUpdated($space);
     }
 
+    public function publish(NoteSpaceInterface $space, string $slug, bool $indexable): void
+    {
+        $space->setSlug($slug)->setIndexable($indexable);
+
+        if (!$space->getPublishedAt() instanceof DateTimeImmutable) {
+            $space->setPublishedAt(new DateTimeImmutable());
+        }
+
+        $this->entityManager->flush();
+
+        $this->auditLogger->log('notes_markdown', 'space.published', 'NoteSpace', $space->getId(), $this->auditPayload($space));
+    }
+
+    public function unpublish(NoteSpaceInterface $space): void
+    {
+        $space->setPublishedAt(null);
+        $this->entityManager->flush();
+
+        $this->auditLogger->log('notes_markdown', 'space.unpublished', 'NoteSpace', $space->getId(), $this->auditPayload($space));
+    }
+
     public function setMember(NoteSpaceInterface $space, CoreUserInterface $user, NoteSpaceRoleEnum $role): NoteSpaceMemberInterface
     {
         $member = $this->spaceRepository->findMembership($space, $user);
@@ -168,6 +189,8 @@ class NoteSpaceManager implements NoteSpaceManagerInterface
             'defaultRole' => $space->getDefaultRole()->value,
             'members' => $space->getMembers()->count(),
             'deleted' => $space->getDeletedAt() instanceof DateTimeImmutable,
+            'published' => $space->isPublished(),
+            'indexable' => $space->isIndexable(),
         ];
     }
 }

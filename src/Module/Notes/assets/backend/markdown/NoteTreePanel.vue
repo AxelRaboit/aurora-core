@@ -28,7 +28,7 @@
  */
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { BookOpen, ChevronDown, ChevronRight, ChevronsDownUp, Download, FileText, Folder, Pin, PinOff, Plus, Settings2, Tag, Upload, User, Users } from "lucide-vue-next";
+import { BookOpen, ChevronDown, ChevronRight, ChevronsDownUp, Download, FileText, Folder, Globe, Pin, PinOff, Plus, Settings2, Tag, Upload, User, Users } from "lucide-vue-next";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppModulePanel from "@/shared/nav/AppModulePanel.vue";
@@ -986,6 +986,15 @@ onUnmounted(() => {
                         />
                         <span class="min-w-0 truncate">{{ spaceLabel(group.space, t) }}</span>
                     </button>
+                    <Globe
+                        v-if="group.space.published"
+                        data-space-published
+                        class="h-3.5 w-3.5 shrink-0 text-accent-400"
+                        :stroke-width="2"
+                        :aria-label="t('notes.markdown.spaces.publication.badge')"
+                    >
+                        <title>{{ t('notes.markdown.spaces.publication.badge') }}</title>
+                    </Globe>
                     <span
                         v-if="!group.space.canWrite"
                         data-space-readonly

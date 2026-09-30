@@ -196,3 +196,29 @@ describe("la recherche du lecteur", () => {
         ).toBe(false);
     });
 });
+
+describe("la lecture publique d'un espace", () => {
+    /**
+     * Sans compte, rien ne mène au back-office : le nom de l'espace remplace
+     * le retour, un dossier se lit sans lien, et ni édition ni étoile.
+     */
+    it("names the space and leads nowhere into the back office", () => {
+        const wrapper = render({
+            publicTitle: "Guide public",
+            libraryPath: "/p/guide",
+            folderShowPath: "",
+            backPath: "",
+            canEdit: false,
+            favoritePath: "",
+            breadcrumb: [{ id: 1, name: "Micro-entreprise" }],
+        });
+
+        const title = wrapper.find("[data-reader-public-title]");
+        expect(title.text()).toBe("Guide public");
+        expect(title.attributes("href")).toBe("/p/guide");
+        expect(wrapper.find("[data-reader-back]").exists()).toBe(false);
+        expect(wrapper.find("[data-read-crumb]").element.tagName).toBe("SPAN");
+        expect(wrapper.find("[data-read-edit]").exists()).toBe(false);
+        expect(wrapper.find("[data-read-favorite]").exists()).toBe(false);
+    });
+});

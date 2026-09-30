@@ -30,6 +30,8 @@ backend:
         actions:
             notes_markdown:
                 space:
+                    published: 'Espacio publicado'
+                    unpublished: 'Espacio despublicado'
                     created: Espacio creado
                     updated: Espacio modificado
                     deleted: Espacio retirado
@@ -97,8 +99,25 @@ notes:
                 expires: 'Este enlace caduca el %date%.'
                 read_only: 'Puede leer esta nota, pero no editarla.'
         spaces:
+            publication:
+                title: 'Publicación en la web'
+                hint: 'El espacio se puede leer entonces sin cuenta, en su dirección. No se puede escribir en él.'
+                slug: 'Dirección'
+                slug_placeholder: 'Se toma del nombre si está vacía'
+                indexable: 'Dejar que los buscadores lo indexen'
+                indexable_hint: 'Desactivado, la página pide a los buscadores que no la listen.'
+                copy: 'Copiar la dirección'
+                copied: 'Dirección copiada'
+                publish: 'Publicar'
+                update: 'Actualizar'
+                unpublish: 'Despublicar'
+                published: 'Espacio publicado'
+                unpublished: 'Espacio despublicado'
+                badge: 'Publicado en la web'
             my_space: 'Mi espacio'
             errors:
+                bad_slug: 'Dirección no válida: solo letras, cifras y guiones.'
+                slug_taken: 'Esta dirección ya está ocupada.'
                 name_required: 'Pon un nombre al espacio.'
                 bad_access: 'Acceso desconocido.'
                 bad_role: 'Rol desconocido.'

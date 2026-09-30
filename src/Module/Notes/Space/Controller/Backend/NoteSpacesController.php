@@ -24,11 +24,15 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\String\Slugger\SluggerInterface;
 
 use function array_filter;
 use function array_map;
 use function array_values;
 use function is_numeric;
+use function mb_substr;
+use function mb_trim;
+use function preg_match;
 
 /**
  * Les espaces de notes : les lister, les créer, les régler, y inscrire.
@@ -107,6 +111,7 @@ final class NoteSpacesController extends AbstractController
         return $this->jsonSuccess([
             'space' => $this->serializer->serialize($space, $user, $this->spaceAccess->roleIn($user, $space)),
             'members' => array_map($this->serializer->serializeMember(...), $this->repository->findMembersOf($space)),
+            'canPublish' => $this->spaceAccess->canPublish($user, $space),
         ]);
     }
 
@@ -136,6 +141,49 @@ final class NoteSpacesController extends AbstractController
         }
 
         $this->manager->update($space, $input);
+
+        return $this->jsonSuccess(['space' => $this->serializer->serialize($space, $user, $this->spaceAccess->roleIn($user, $space))]);
+    }
+
+    /**
+     * Ouvrir l'espace en lecture sur le web, ou le refermer.
+     *
+     * Un droit à part (`notes.spaces.publish`), en plus de gérer l'espace :
+     * mettre un texte sous les yeux de n'importe qui n'est pas la même
+     * décision que le partager avec des collègues. Jamais son espace
+     * personnel. L'adresse se déduit du nom quand on n'en donne pas.
+     */
+    #[Route('/{id}/publish', name: '_publish', requirements: ['id' => '\d+|__id__'], methods: [HttpMethodEnum::Post->value])]
+    public function publish(int $id, Request $request, SluggerInterface $slugger): JsonResponse
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        $space = $this->spaceAccess->managedSpace($user, $id);
+        if (!$space instanceof NoteSpaceInterface || !$this->spaceAccess->canPublish($user, $space)) {
+            return $this->jsonNotFound();
+        }
+
+        $data = $this->decodeJson($request);
+
+        if (true !== ($data['published'] ?? false)) {
+            $this->manager->unpublish($space);
+
+            return $this->jsonSuccess(['space' => $this->serializer->serialize($space, $user, $this->spaceAccess->roleIn($user, $space))]);
+        }
+
+        $wanted = mb_trim((string) ($data['slug'] ?? ''));
+        $slug = mb_substr($slugger->slug('' !== $wanted ? $wanted : (string) $space->getName())->lower()->toString(), 0, 120);
+
+        if (1 !== preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $slug)) {
+            return $this->jsonInvalidInput(['slug' => 'notes.markdown.spaces.errors.bad_slug']);
+        }
+
+        if ($this->repository->slugTaken($slug, (int) $space->getId())) {
+            return $this->jsonInvalidInput(['slug' => 'notes.markdown.spaces.errors.slug_taken']);
+        }
+
+        $this->manager->publish($space, $slug, true === ($data['indexable'] ?? false));
 
         return $this->jsonSuccess(['space' => $this->serializer->serialize($space, $user, $this->spaceAccess->roleIn($user, $space))]);
     }

@@ -128,7 +128,10 @@ final class NoteShareController extends AbstractController
         // que de fabriquer une clé à partir de n'importe quoi. Réutiliser le
         // même point d'entrée que la route authentifiée garde les deux sur la
         // même règle.
-        $key = $this->images->keyOrNull($filename, $link->getNote()->getUser());
+        // Le compartiment est celui de l'espace de la note : une note d'un
+        // espace partagé range ses images là, pas chez son auteur - qui peut
+        // d'ailleurs ne plus exister.
+        $key = $this->images->keyOrNull($filename, $this->images->bucketOf($link->getNote()));
 
         if (null === $key) {
             throw $this->createNotFoundException();

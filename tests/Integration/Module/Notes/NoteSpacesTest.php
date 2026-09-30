@@ -6,6 +6,7 @@ namespace Aurora\Tests\Integration\Module\Notes;
 
 use Aurora\Module\Notes\Folder\Entity\NoteFolder;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNote;
+use Aurora\Module\Notes\Share\Entity\MarkdownNoteShareLink;
 use Aurora\Module\Notes\Share\Service\SharedNoteScope;
 use Aurora\Module\Notes\Space\Entity\NoteSpace;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
@@ -16,6 +17,7 @@ use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserRoleEnum;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 use Aurora\Tests\Integration\IntegrationTestCase;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -308,6 +310,30 @@ final class NoteSpacesTest extends IntegrationTestCase
         self::assertResponseStatusCodeSame(404);
     }
 
+    /**
+     * Le lien de partage d'une note d'espace sert ses images : elles vivent
+     * dans le compartiment de l'espace, pas chez l'auteur.
+     */
+    public function testAShareLinkServesTheImagesOfASpaceNote(): void
+    {
+        $space = $this->space(NoteSpaceAccessEnum::Members);
+
+        $this->client->loginUser($this->editor, 'admin');
+        $this->upload($space);
+        self::assertResponseIsSuccessful();
+        $filename = (string) json_decode((string) $this->client->getResponse()->getContent(), true)['filename'];
+
+        $note = $this->note($this->editor, 'Illustrée', $space, content: sprintf('![pixel](/x/%s)', $filename));
+        $link = new MarkdownNoteShareLink();
+        $link->setNote($this->managed($note));
+        $this->entityManager->persist($link);
+        $this->entityManager->flush();
+
+        $this->client->restart();
+        $this->client->request('GET', $this->urlGenerator->generate('notes_share_image', ['token' => $link->getToken(), 'filename' => $filename]));
+        self::assertResponseIsSuccessful();
+    }
+
     /** Un lien public ne suit jamais un wiki-lien hors de son espace. */
     public function testAPublicLinkNeverWalksOutOfItsSpace(): void
     {
@@ -468,6 +494,133 @@ final class NoteSpacesTest extends IntegrationTestCase
         $this->client->loginUser($this->reader, 'admin');
         $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_read', ['id' => $note->getId()]));
         self::assertResponseIsSuccessful();
+    }
+
+    /** Publier est un droit à part, en plus de gérer l'espace ; jamais son espace personnel. */
+    public function testPublishingNeedsItsOwnRight(): void
+    {
+        $space = $this->space(NoteSpaceAccessEnum::Members);
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->post('backend_notes_spaces_publish', ['published' => true], ['id' => $space->getId()]);
+        self::assertResponseStatusCodeSame(404);
+
+        $this->grantPublishing();
+        $body = $this->post('backend_notes_spaces_publish', ['published' => true, 'slug' => 'Guide Équipe'], ['id' => $space->getId()]);
+        self::assertResponseIsSuccessful();
+        self::assertSame('guide-equipe', $body['space']['slug']);
+        self::assertTrue($body['space']['published']);
+        self::assertStringEndsWith('/p/guide-equipe', (string) $body['space']['publicUrl']);
+
+        $this->post('backend_notes_spaces_publish', ['published' => true], ['id' => $this->personalSpaceOf($this->owner)->getId()]);
+        self::assertResponseStatusCodeSame(404);
+
+        $other = $this->space(NoteSpaceAccessEnum::Members);
+        $this->post('backend_notes_spaces_publish', ['published' => true, 'slug' => 'guide-equipe'], ['id' => $other->getId()]);
+        self::assertResponseStatusCodeSame(422, 'une adresse déjà prise');
+    }
+
+    /**
+     * Un espace publié se lit sans compte : son entrée mène à sa première
+     * note, les liens restent dans l'espace, et les moteurs sont tenus à
+     * l'écart par défaut.
+     */
+    public function testAPublishedSpaceIsReadWithoutAnAccount(): void
+    {
+        $space = $this->space(NoteSpaceAccessEnum::Members);
+        $folder = $this->folder($this->owner, 'Guides', $space);
+        $first = $this->note($this->owner, 'Bienvenue', $space, $folder, 'Voir [[Tarifs]] et [[Secret]]');
+        $tarifs = $this->note($this->owner, 'Tarifs', $space, $folder, 'Chiffres');
+        $this->note($this->owner, 'Secret', $this->personalSpaceOf($this->owner), content: 'Privé');
+        $slug = $this->publish($space);
+
+        $this->client->restart();
+
+        $this->client->request('GET', '/p/'.$slug);
+        self::assertResponseRedirects('/p/'.$slug.'/'.$first->getId());
+
+        $this->client->request('GET', '/p/'.$slug.'/'.$first->getId());
+        self::assertResponseIsSuccessful();
+        self::assertSame('noindex, nofollow, noarchive', $this->client->getResponse()->headers->get('X-Robots-Tag'));
+        $html = (string) $this->client->getResponse()->getContent();
+        self::assertStringContainsString('<meta name="robots" content="noindex, nofollow, noarchive">', $html);
+
+        $props = $this->readProps($html);
+        self::assertSame($tarifs->getId(), $props['titleIndex']['tarifs'] ?? null);
+        self::assertArrayNotHasKey('secret', $props['titleIndex']);
+        self::assertSame('/p/'.$slug.'/__id__', $props['readNotePath']);
+        self::assertSame('', $props['favoritePath']);
+        self::assertFalse($props['canEdit']);
+        self::assertSame($tarifs->getId(), $props['next']['id'] ?? null);
+    }
+
+    /** Rien d'autre ne s'ouvre par l'adresse d'un espace publié. */
+    public function testNothingOutsideThePublishedSpaceLeaks(): void
+    {
+        $space = $this->space(NoteSpaceAccessEnum::Members);
+        $this->note($this->owner, 'Publique', $space);
+        $trashed = $this->note($this->owner, 'Jetée', $space);
+        $trashed->setDeletedAt(new DateTimeImmutable());
+        $this->entityManager->flush();
+        $elsewhere = $this->note($this->owner, 'Ailleurs', $this->space(NoteSpaceAccessEnum::Backoffice));
+        $private = $this->note($this->owner, 'Journal', $this->personalSpaceOf($this->owner));
+        $slug = $this->publish($space);
+
+        $this->client->restart();
+
+        foreach ([$trashed, $elsewhere, $private] as $note) {
+            $this->client->request('GET', '/p/'.$slug.'/'.$note->getId());
+            self::assertResponseStatusCodeSame(404);
+        }
+
+        $this->client->request('GET', '/p/'.$slug.'/'.$private->getId().'/images/abc.webp');
+        self::assertResponseStatusCodeSame(404);
+
+        $this->client->request('GET', '/p/inconnu');
+        self::assertResponseStatusCodeSame(404);
+
+        // Dépublié, il disparaît comme s'il n'avait jamais existé.
+        $this->client->loginUser($this->owner, 'admin');
+        $this->post('backend_notes_spaces_publish', ['published' => false], ['id' => $space->getId()]);
+        self::assertResponseIsSuccessful();
+        $this->client->restart();
+        $this->client->request('GET', '/p/'.$slug);
+        self::assertResponseStatusCodeSame(404);
+    }
+
+    /** Un espace qui le demande laisse les moteurs l'indexer. */
+    public function testAnIndexableSpaceLetsEnginesIn(): void
+    {
+        $space = $this->space(NoteSpaceAccessEnum::Members);
+        $note = $this->note($this->owner, 'Documentation', $space);
+        $slug = $this->publish($space, indexable: true);
+
+        $this->client->restart();
+        $this->client->request('GET', '/p/'.$slug.'/'.$note->getId());
+
+        self::assertResponseIsSuccessful();
+        // Le mode debug de Symfony pose `noindex` sur toute réponse, en dev
+        // comme en test ; ce qui compte ici est que la page ne pose pas le sien.
+        self::assertNotSame('noindex, nofollow, noarchive', $this->client->getResponse()->headers->get('X-Robots-Tag'));
+        self::assertStringContainsString('<meta name="robots" content="index, follow">', (string) $this->client->getResponse()->getContent());
+    }
+
+    /** Le propriétaire reçoit le droit de publier, et l'espace est publié ; rend son adresse. */
+    private function publish(NoteSpaceInterface $space, bool $indexable = false): string
+    {
+        $this->grantPublishing();
+        $body = $this->post('backend_notes_spaces_publish', ['published' => true, 'slug' => 'espace-'.$space->getId(), 'indexable' => $indexable], ['id' => $space->getId()]);
+        self::assertResponseIsSuccessful();
+
+        return (string) $body['space']['slug'];
+    }
+
+    private function grantPublishing(): void
+    {
+        $owner = $this->managed($this->owner);
+        $owner->setPrivileges(['notes.markdown.use', 'notes.spaces.publish']);
+        $this->entityManager->flush();
+        $this->client->loginUser($owner, 'admin');
     }
 
     /**

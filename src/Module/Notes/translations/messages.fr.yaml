@@ -31,6 +31,8 @@ backend:
     actions:
       notes_markdown:
         space:
+          published: 'Espace publié'
+          unpublished: 'Espace dépublié'
           created: Espace créé
           updated: Espace modifié
           deleted: Espace retiré
@@ -98,8 +100,25 @@ notes:
         expires: 'Ce lien expire le %date%.'
         read_only: Vous pouvez lire cette note, pas la modifier.
     spaces:
+      publication:
+        title: 'Publication sur le web'
+        hint: 'L''espace se lit alors sans compte, à son adresse. Rien ne s''y écrit.'
+        slug: 'Adresse'
+        slug_placeholder: 'Déduite du nom si vide'
+        indexable: 'Laisser les moteurs de recherche l''indexer'
+        indexable_hint: 'Désactivé, la page demande aux moteurs de ne pas la référencer.'
+        copy: 'Copier l''adresse'
+        copied: 'Adresse copiée'
+        publish: 'Publier'
+        update: 'Mettre à jour'
+        unpublish: 'Dépublier'
+        published: 'Espace publié'
+        unpublished: 'Espace dépublié'
+        badge: 'Publié sur le web'
       my_space: 'Mon espace'
       errors:
+        bad_slug: 'Adresse invalide : lettres, chiffres et tirets seulement.'
+        slug_taken: 'Cette adresse est déjà prise.'
         name_required: 'Donnez un nom à l''espace.'
         bad_access: 'Accès inconnu.'
         bad_role: 'Rôle inconnu.'

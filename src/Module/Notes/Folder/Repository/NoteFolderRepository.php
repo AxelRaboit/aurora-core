@@ -53,6 +53,23 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
             ->getResult();
     }
 
+    /**
+     * Les dossiers vivants d'un espace, dans l'ordre du panneau.
+     *
+     * @return list<NoteFolderInterface>
+     */
+    public function findLivingInSpace(NoteSpaceInterface $space): array
+    {
+        return $this->createQueryBuilder('f')
+            ->where('f.space = :space')
+            ->andWhere('f.deletedAt IS NULL')
+            ->setParameter('space', $space)
+            ->orderBy('f.position', Order::Ascending->value)
+            ->addOrderBy('f.id', Order::Ascending->value)
+            ->getQuery()
+            ->getResult();
+    }
+
     public function findOneByUserAndId(CoreUserInterface $user, int $id): ?NoteFolderInterface
     {
         // Un dossier qu'on peut écrire : c'est l'espace qui décide.

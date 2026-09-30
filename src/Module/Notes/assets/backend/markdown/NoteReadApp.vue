@@ -50,12 +50,19 @@ const props = defineProps({
     previous: { type: Object, default: null },
     next: { type: Object, default: null },
     libraryPath: { type: String, required: true },
-    folderShowPath: { type: String, required: true },
+    /** Vide sur la lecture publique, où un dossier n'a pas de page. */
+    folderShowPath: { type: String, default: "" },
     treeFolders: { type: Array, default: () => [] },
     treeNotes: { type: Array, default: () => [] },
     /** Les espaces lisibles, le sien d'abord : l'arbre se range par espace. */
     treeSpaces: { type: Array, default: () => [] },
     searchPath: { type: String, default: "" },
+    /**
+     * Le nom d'un espace publié, sur sa page publique : il remplace le
+     * retour vers le back-office, qui ne mène nulle part pour qui n'a pas
+     * de compte.
+     */
+    publicTitle: { type: String, default: "" },
 });
 
 const { t } = useI18n();
@@ -172,7 +179,14 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
             <!-- Un retour, pas le nom du site : on sort de la lecture pour
                  revenir là d'où l'on vient - l'édition de la note, ou la
                  bibliothèque quand la note est à quelqu'un d'autre. -->
+            <a
+                v-if="publicTitle"
+                data-reader-public-title
+                class="truncate px-1 text-sm font-semibold text-primary no-underline"
+                :href="libraryPath"
+            >{{ publicTitle }}</a>
             <AppBackLink
+                v-else
                 data-reader-back
                 class="self-start"
                 :href="exitPath"
@@ -200,8 +214,15 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
             />
             <div class="absolute inset-y-0 left-0 flex w-[85vw] max-w-sm flex-col gap-3 bg-surface p-3 shadow-xl">
                 <div class="flex items-center justify-between gap-2">
-                    <AppBackLink :href="exitPath" :label="exitLabel" />
-                    <span class="text-sm font-semibold text-primary">{{ t('notes.markdown.read.contents') }}</span>
+                    <a
+                        v-if="publicTitle"
+                        class="min-w-0 truncate text-sm font-semibold text-primary no-underline"
+                        :href="libraryPath"
+                    >{{ publicTitle }}</a>
+                    <template v-else>
+                        <AppBackLink :href="exitPath" :label="exitLabel" />
+                        <span class="text-sm font-semibold text-primary">{{ t('notes.markdown.read.contents') }}</span>
+                    </template>
                     <AppIconButton :title="t('shared.common.close')" v-on:click="drawerOpen = false">
                         <X class="h-4 w-4" :stroke-width="2" />
                     </AppIconButton>
@@ -241,10 +262,19 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
                     <a
                         :href="libraryPath"
                         class="hidden shrink-0 rounded px-1 py-0.5 no-underline transition-colors hover:bg-surface-2 hover:text-primary sm:inline"
-                    >{{ t('notes.markdown.library.title') }}</a>
+                    >{{ publicTitle || t('notes.markdown.library.title') }}</a>
                     <template v-for="crumb in breadcrumb" :key="crumb.id">
                         <ChevronRight class="hidden h-3 w-3 shrink-0 sm:block" :stroke-width="2" />
+                        <!-- Un dossier n'a pas de page publique : sur la
+                             lecture publique, il se lit sans mener ailleurs. -->
+                        <span
+                            v-if="!folderShowPath"
+                            data-read-crumb
+                            class="hidden max-w-[10rem] truncate px-1 py-0.5 sm:inline"
+                            :style="crumb.color ? { color: crumb.color } : null"
+                        >{{ crumb.name || t('notes.markdown.folders.untitled') }}</span>
                         <a
+                            v-else
                             :href="folderUrl(crumb.id)"
                             data-read-crumb
                             class="hidden max-w-[10rem] truncate rounded px-1 py-0.5 no-underline transition-colors hover:bg-surface-2 hover:text-primary sm:inline"

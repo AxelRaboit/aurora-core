@@ -25,6 +25,15 @@ interface NoteSpaceManagerInterface
 
     public function restore(NoteSpaceInterface $space): void;
 
+    /**
+     * Ouvre l'espace en lecture sur le web, à cette adresse. L'adresse est
+     * déjà validée et libre : le contrôleur l'a vérifié.
+     */
+    public function publish(NoteSpaceInterface $space, string $slug, bool $indexable): void;
+
+    /** Referme l'espace au web ; son adresse reste la sienne pour une prochaine fois. */
+    public function unpublish(NoteSpaceInterface $space): void;
+
     /** Inscrit une personne, ou change son rôle si elle l'est déjà. */
     public function setMember(NoteSpaceInterface $space, CoreUserInterface $user, NoteSpaceRoleEnum $role): NoteSpaceMemberInterface;
 

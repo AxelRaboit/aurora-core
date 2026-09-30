@@ -157,6 +157,20 @@ final readonly class MarkdownNotesViewBuilder
      */
     private function readerTree(CoreUserInterface $user, array $folders, array $rows): array
     {
+        return [...$this->treeRows($folders, $rows), 'treeSpaces' => $this->spacesFor($user)];
+    }
+
+    /**
+     * Les dossiers et les notes tels que l'arbre du lecteur les veut : les
+     * titres seulement, jamais les corps.
+     *
+     * @param list<NoteFolderInterface>  $folders
+     * @param list<array<string, mixed>> $rows
+     *
+     * @return array{treeFolders: list<array<string, mixed>>, treeNotes: list<array<string, mixed>>}
+     */
+    private function treeRows(array $folders, array $rows): array
+    {
         $folders = array_map(static fn (NoteFolderInterface $one): array => [
             'id' => $one->getId(),
             'parentId' => $one->getParent()?->getId(),
@@ -177,9 +191,6 @@ final readonly class MarkdownNotesViewBuilder
         return [
             'treeFolders' => $folders,
             'treeNotes' => $notes,
-            // Les espaces lisibles, le personnel d'abord : l'arbre du lecteur
-            // se range par espace.
-            'treeSpaces' => $this->spacesFor($user),
         ];
     }
 
@@ -227,6 +238,70 @@ final readonly class MarkdownNotesViewBuilder
         }
 
         return $titles;
+    }
+
+    /**
+     * Ce qu'il faut pour lire une note d'un espace publié, sans compte.
+     *
+     * **Tout vient de l'espace, rien de la personne** : il n'y en a pas.
+     * L'arbre, l'index des titres et les pages voisines sont ceux de l'espace
+     * seul ; un wiki-lien vers une note d'ailleurs ne mène donc nulle part,
+     * ce qui est exactement ce qu'on veut d'une page ouverte à tous. Les
+     * adresses sont celles de la lecture publique, jamais celles du
+     * back-office.
+     *
+     * @return array<string, mixed>
+     */
+    public function publicView(NoteSpaceInterface $space, MarkdownNoteInterface $note): array
+    {
+        $rows = $this->noteRepository->findFlatListInSpace($space);
+        $folders = $this->folderRepository->findLivingInSpace($space);
+        $neighbours = $this->readingNeighbours($folders, $rows, (int) $note->getId());
+        $slug = (string) $space->getSlug();
+
+        return [
+            'note' => $note,
+            'space' => $space,
+            'publicTitle' => (string) $space->getName(),
+            'indexable' => $space->isIndexable(),
+            'breadcrumb' => array_map(
+                static fn (NoteFolderInterface $one): array => ['id' => $one->getId(), 'name' => $one->getName(), 'color' => $one->getColor()],
+                $this->hierarchy->pathTo($note->getFolder()),
+            ),
+            'canEdit' => false,
+            'favorited' => false,
+            'favoritePath' => '',
+            'previous' => $neighbours['previous'],
+            'next' => $neighbours['next'],
+            'libraryPath' => $this->urlGenerator->generate('notes_public_space', ['slug' => $slug]),
+            'folderShowPath' => '',
+            'readNotePath' => $this->urlGenerator->generate('notes_public_note', ['slug' => $slug, 'id' => '__id__']),
+            'searchPath' => '',
+            // Le texte cite ses images par l'adresse du back-office ; la page
+            // les réécrit vers la route publique, bornée à cette note.
+            'imagePrefix' => str_replace('__filename__', '', $this->urlGenerator->generate('backend_notes_markdown_images_serve', ['filename' => '__filename__'])),
+            'noteImagePath' => $this->urlGenerator->generate('notes_public_image', ['slug' => $slug, 'id' => $note->getId(), 'filename' => '__filename__']),
+            'backPath' => '',
+            'cover' => [
+                'url' => $note->getCoverUrl(),
+                'creditName' => $note->getCoverCreditName(),
+                'creditUrl' => $note->getCoverCreditUrl(),
+                'position' => $note->getCoverPosition(),
+            ],
+            'appearance' => $note->getAppearance()->value,
+            'titleIndex' => $this->ownTitleIndex($rows),
+            ...$this->treeRows($folders, $rows),
+            'treeSpaces' => [],
+        ];
+    }
+
+    /** La première note d'un espace dans l'ordre de lecture : là où s'ouvre sa page publique. */
+    public function firstInSpace(NoteSpaceInterface $space): ?int
+    {
+        return $this->readingOrder(
+            $this->folderRepository->findLivingInSpace($space),
+            $this->noteRepository->findFlatListInSpace($space),
+        )['order'][0] ?? null;
     }
 
     /**
@@ -403,6 +478,7 @@ final readonly class MarkdownNotesViewBuilder
                 'membersSet' => $this->urlGenerator->generate('backend_notes_spaces_members_set', ['id' => '__id__']),
                 'membersRemove' => $this->urlGenerator->generate('backend_notes_spaces_members_remove', ['id' => '__id__', 'userId' => '__user__']),
                 'people' => $this->urlGenerator->generate('backend_notes_spaces_people'),
+                'publish' => $this->urlGenerator->generate('backend_notes_spaces_publish', ['id' => '__id__']),
             ],
         ];
     }

@@ -31,6 +31,8 @@ backend:
     actions:
       notes_markdown:
         space:
+          published: 'Space published'
+          unpublished: 'Space unpublished'
           created: Space created
           updated: Space updated
           deleted: Space removed
@@ -98,8 +100,25 @@ notes:
         expires: 'This link expires on %date%.'
         read_only: You can read this note, not edit it.
     spaces:
+      publication:
+        title: 'Web publication'
+        hint: 'The space can then be read without an account, at its address. Nothing can be written there.'
+        slug: 'Address'
+        slug_placeholder: 'Taken from the name when empty'
+        indexable: 'Let search engines index it'
+        indexable_hint: 'When off, the page asks search engines not to list it.'
+        copy: 'Copy the address'
+        copied: 'Address copied'
+        publish: 'Publish'
+        update: 'Update'
+        unpublish: 'Unpublish'
+        published: 'Space published'
+        unpublished: 'Space unpublished'
+        badge: 'Published on the web'
       my_space: 'My space'
       errors:
+        bad_slug: 'Invalid address: letters, digits and hyphens only.'
+        slug_taken: 'This address is already taken.'
         name_required: 'Give the space a name.'
         bad_access: 'Unknown access.'
         bad_role: 'Unknown role.'

@@ -224,6 +224,35 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
             ->getResult();
     }
 
+    /**
+     * Les notes vivantes d'un espace, à plat et sans leur texte : de quoi
+     * dessiner son arbre et son ordre de lecture, pour qui n'a pas de
+     * compte - la lecture publique d'un espace.
+     *
+     * @return list<array{id: int, title: string|null, position: int, folderId: int|null, spaceId: int}>
+     */
+    public function findFlatListInSpace(NoteSpaceInterface $space): array
+    {
+        /** @var list<array<string, mixed>> $rows */
+        $rows = $this->createQueryBuilder('n')
+            ->select('n.id', 'n.title', 'n.position', 'IDENTITY(n.folder) AS folderId', 'IDENTITY(n.space) AS spaceId')
+            ->where('n.space = :space')
+            ->andWhere('n.deletedAt IS NULL')
+            ->setParameter('space', $space)
+            ->orderBy('n.position', Order::Ascending->value)
+            ->addOrderBy('n.createdAt', Order::Descending->value)
+            ->getQuery()
+            ->getArrayResult();
+
+        return array_map(static fn (array $row): array => [
+            'id' => (int) $row['id'],
+            'title' => $row['title'],
+            'position' => (int) $row['position'],
+            'folderId' => null === $row['folderId'] ? null : (int) $row['folderId'],
+            'spaceId' => (int) $row['spaceId'],
+        ], $rows);
+    }
+
     public function findOneByUserAndId(CoreUserInterface $user, int $id): ?MarkdownNoteInterface
     {
         // Une note qu'on peut écrire, pas une note dont on est l'auteur : c'est

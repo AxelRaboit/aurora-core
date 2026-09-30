@@ -66,5 +66,7 @@ export function useNoteSpacesApi(paths) {
         removeMember: (id, userId) =>
             call(HttpMethod.Post, resolve(paths.membersRemove, id, userId), {}),
         people: () => call(HttpMethod.Get, paths.people),
+        publish: (id, input) =>
+            call(HttpMethod.Post, resolve(paths.publish, id), input),
     };
 }

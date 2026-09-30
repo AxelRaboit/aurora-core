@@ -14,13 +14,15 @@
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { Layers, Trash2, UserPlus, X } from "lucide-vue-next";
+import { Copy, Globe, Layers, Trash2, UserPlus, X } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppColorPicker from "@/shared/components/form/picker/AppColorPicker.vue";
 import AppChoiceRow from "@/shared/components/form/select/AppChoiceRow.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
+import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
+import { useClipboard } from "@/shared/composables/useClipboard.js";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import { spaceLabel } from "../composables/noteSpaces.js";
@@ -47,6 +49,12 @@ const name = ref("");
 const color = ref(null);
 const access = ref("private");
 const defaultRole = ref("reader");
+
+const canPublish = ref(false);
+const slug = ref("");
+const indexable = ref(false);
+const publishing = ref(false);
+const { copy } = useClipboard();
 
 const newMemberId = ref(null);
 const newMemberRole = ref("reader");
@@ -78,6 +86,9 @@ watch(
 
         space.value = shown.payload.space;
         members.value = shown.payload.members ?? [];
+        canPublish.value = Boolean(shown.payload.canPublish);
+        slug.value = space.value.slug ?? "";
+        indexable.value = Boolean(space.value.indexable);
         people.value = listed.ok ? listed.payload.people ?? [] : [];
 
         name.value = space.value.name ?? "";
@@ -155,6 +166,33 @@ async function removeMember(member) {
     }
 
     members.value = members.value.filter((one) => one.userId !== member.userId);
+    emit("changed");
+}
+
+/**
+ * La publication s'applique tout de suite, comme une inscription : ouvrir un
+ * espace au web est un geste en soi, et l'adresse qu'il reçoit doit se voir
+ * avant de refermer la fenêtre.
+ */
+async function applyPublication(published) {
+    publishing.value = true;
+    const { ok, reported, payload } = await props.api.publish(props.spaceId, {
+        published,
+        slug: slug.value.trim(),
+        indexable: indexable.value,
+    });
+    publishing.value = false;
+
+    if (!ok) {
+        const error = payload?.errors?.slug;
+        if (!reported) toast.error(t(error ?? "notes.markdown.spaces.errors.save_failed"));
+
+        return;
+    }
+
+    space.value = payload.space;
+    slug.value = payload.space.slug ?? slug.value;
+    toast.success(t(published ? "notes.markdown.spaces.publication.published" : "notes.markdown.spaces.publication.unpublished"));
     emit("changed");
 }
 
@@ -313,6 +351,71 @@ async function removeSpace() {
                     >
                         <UserPlus class="h-3.5 w-3.5" :stroke-width="2" />
                         {{ t('notes.markdown.spaces.add_member') }}
+                    </AppButton>
+                </div>
+            </section>
+
+            <!-- La lecture publique : pour qui en a le droit, jamais pour
+                 son espace personnel. -->
+            <section v-if="canPublish" class="mt-6 border-t border-line pt-4" data-space-publication>
+                <h3 class="flex items-center gap-1.5 text-sm font-semibold text-primary">
+                    <Globe class="h-3.5 w-3.5" :stroke-width="2" />
+                    {{ t('notes.markdown.spaces.publication.title') }}
+                </h3>
+                <p class="mt-1 text-xs text-muted">{{ t('notes.markdown.spaces.publication.hint') }}</p>
+
+                <AppInput
+                    v-model="slug"
+                    data-space-slug
+                    class="mt-3 w-full"
+                    :label="t('notes.markdown.spaces.publication.slug')"
+                    :placeholder="t('notes.markdown.spaces.publication.slug_placeholder')"
+                />
+
+                <AppToggle
+                    v-model="indexable"
+                    class="mt-3"
+                    data-space-indexable
+                    :label="t('notes.markdown.spaces.publication.indexable')"
+                    :hint="t('notes.markdown.spaces.publication.indexable_hint')"
+                />
+
+                <div v-if="space.published && space.publicUrl" class="mt-3 flex min-w-0 items-center gap-2" data-space-public-url>
+                    <a
+                        :href="space.publicUrl"
+                        target="_blank"
+                        rel="noopener"
+                        class="min-w-0 flex-1 truncate text-sm text-accent-400"
+                    >{{ space.publicUrl }}</a>
+                    <AppIconButton
+                        :title="t('notes.markdown.spaces.publication.copy')"
+                        :aria-label="t('notes.markdown.spaces.publication.copy')"
+                        v-on:click="copy(space.publicUrl, 'notes.markdown.spaces.publication.copied')"
+                    >
+                        <Copy class="h-4 w-4" :stroke-width="2" />
+                    </AppIconButton>
+                </div>
+
+                <div class="mt-3 flex flex-wrap gap-2">
+                    <AppButton
+                        variant="secondary"
+                        size="md"
+                        data-space-publish
+                        :loading="publishing"
+                        v-on:click="applyPublication(true)"
+                    >
+                        <Globe class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ space.published ? t('notes.markdown.spaces.publication.update') : t('notes.markdown.spaces.publication.publish') }}
+                    </AppButton>
+                    <AppButton
+                        v-if="space.published"
+                        variant="ghost"
+                        size="md"
+                        data-space-unpublish
+                        :disabled="publishing"
+                        v-on:click="applyPublication(false)"
+                    >
+                        {{ t('notes.markdown.spaces.publication.unpublish') }}
                     </AppButton>
                 </div>
             </section>

@@ -19,11 +19,24 @@ const SHARED = {
 function fakeApi(
     space = SHARED,
     members = [{ userId: 3, name: "Marie", role: "editor" }],
+    canPublish = false,
 ) {
     return {
-        show: vi
-            .fn()
-            .mockResolvedValue({ ok: true, payload: { space, members } }),
+        show: vi.fn().mockResolvedValue({
+            ok: true,
+            payload: { space, members, canPublish },
+        }),
+        publish: vi.fn().mockResolvedValue({
+            ok: true,
+            payload: {
+                space: {
+                    ...space,
+                    published: true,
+                    slug: "equipe",
+                    publicUrl: "https://site.test/p/equipe",
+                },
+            },
+        }),
         people: vi.fn().mockResolvedValue({
             ok: true,
             payload: {
@@ -142,5 +155,31 @@ describe("NoteSpaceSettingsModal", () => {
         expect(document.body.querySelector("[data-space-access]")).toBeNull();
         expect(document.body.querySelector("[data-space-members]")).toBeNull();
         expect(document.body.querySelector("[data-space-delete]")).toBeNull();
+    });
+
+    /** Publier ne s'offre qu'à qui en a le droit ; l'adresse s'affiche aussitôt. */
+    it("offers no publication without the right", async () => {
+        await render(fakeApi());
+
+        expect(
+            document.body.querySelector("[data-space-publication]"),
+        ).toBeNull();
+    });
+
+    it("publishes on the web for whoever may", async () => {
+        const api = fakeApi(SHARED, [], true);
+        await render(api);
+
+        document.body.querySelector("[data-space-publish]").click();
+        await flushPromises();
+
+        expect(api.publish).toHaveBeenCalledWith(7, {
+            published: true,
+            slug: "",
+            indexable: false,
+        });
+        expect(
+            document.body.querySelector("[data-space-public-url]").textContent,
+        ).toContain("https://site.test/p/equipe");
     });
 });
