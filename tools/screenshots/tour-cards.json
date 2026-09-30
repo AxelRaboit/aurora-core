@@ -349,6 +349,18 @@
         "tour-notes-publique": {
             "document": 737,
             "slug": "notes-markdown"
+        },
+        "espace-liste": {
+            "document": 738,
+            "slug": "les-espaces-clients"
+        },
+        "espace-fiche-echanges": {
+            "document": 739,
+            "slug": "les-espaces-clients"
+        },
+        "espace-envoyer-relire": {
+            "document": 740,
+            "slug": "les-espaces-clients"
         }
     }
 }
