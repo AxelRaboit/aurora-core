@@ -1,4 +1,5 @@
 <script setup>
+import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
@@ -138,8 +139,11 @@ async function openPreview() {
 async function loadPreview(locale) {
     preview.value = { ...preview.value, loading: true, error: "" };
 
-    const data = await request(`${props.previewPath}?locale=${encodeURIComponent(locale)}`, {
-        method: "GET",
+    // Le corps en deuxième, les options en troisième : `{ method: "GET" }` en
+    // deuxième position partait comme corps d'un POST, que la route refuse, et
+    // l'aperçu échouait à chaque fois.
+    const data = await request(`${props.previewPath}?locale=${encodeURIComponent(locale)}`, null, {
+        method: HttpMethod.Get,
     });
 
     if (!data?.success) {

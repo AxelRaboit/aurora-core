@@ -5,6 +5,25 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.307] - 2026-09-30
+
+### Corrigé
+
+#### La prise de rendez-vous s'ouvre enfin
+Un visiteur qui choisissait un créneau dans un bloc de prise de rendez-vous ne voyait rien s'ouvrir : le formulaire (nom, e-mail, message) restait caché, et personne ne pouvait réserver. Il s'ouvre maintenant sous les créneaux. Le créneau choisi est mis en évidence dans la grille, et le formulaire rappelle le jour avec l'heure.
+
+#### L'aperçu d'une trame et d'un contrat s'affiche
+« Aperçu », depuis une version de trame comme depuis la liste des contrats, répondait toujours « L'aperçu n'a pas pu être produit ». Le serveur savait le produire, mais l'écran le demandait de travers et la demande était refusée. Les deux aperçus s'ouvrent, et un test empêche l'erreur de revenir ailleurs.
+
+### Modifié
+
+#### Une démonstration qui remplit la corbeille et le sondage
+La démo met à la corbeille une publication, trois documents, un dossier et une catégorie, à des dates différentes, et le sondage de la page « Nouveaux blocs » porte déjà des voix. Neuf captures de plus dans l'outillage du tour public : la corbeille, le profil, les actions groupées et la duplication, la prise de rendez-vous et le sondage.
+
+### Dans aurora-client
+
+Rien à faire : `make aurora-update`.
+
 ## [0.9.306] - 2026-09-30
 
 ### Modifié
