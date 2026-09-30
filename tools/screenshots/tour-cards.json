@@ -333,6 +333,22 @@
         "tour-mediatheque-variante": {
             "document": 721,
             "slug": "mediatheque"
+        },
+        "tour-notes-espaces": {
+            "document": 734,
+            "slug": "notes-markdown"
+        },
+        "tour-notes-nouvel-espace": {
+            "document": 735,
+            "slug": "notes-markdown"
+        },
+        "tour-notes-reglages-espace": {
+            "document": 736,
+            "slug": "notes-markdown"
+        },
+        "tour-notes-publique": {
+            "document": 737,
+            "slug": "notes-markdown"
         }
     }
 }
