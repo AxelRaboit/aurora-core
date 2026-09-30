@@ -32,7 +32,7 @@ function secondArguments(src) {
                 continue;
             }
 
-            if ('"\'`'.includes(char)) quote = char;
+            if ("\"'`".includes(char)) quote = char;
             else if ("([{".includes(char)) depth += 1;
             else if (")]}".includes(char)) {
                 if (0 === depth) break;
@@ -55,14 +55,19 @@ describe("request() arguments", () => {
             .flatMap((file) =>
                 secondArguments(fs.readFileSync(file, "utf8"))
                     .filter(({ rest }) => /^\s*\{\s*method\s*:/.test(rest))
-                    .map(({ line }) => `${path.relative(REPO_ROOT, file)}:${line}`),
+                    .map(
+                        ({ line }) =>
+                            `${path.relative(REPO_ROOT, file)}:${line}`,
+                    ),
             );
 
         expect(offenders).toEqual([]);
     });
 
     it("sees the mistake it guards against", () => {
-        const [call] = secondArguments('await request(`${a}?b=${c}`, {\n    method: "GET",\n});');
+        const [call] = secondArguments(
+            'await request(`${a}?b=${c}`, {\n    method: "GET",\n});',
+        );
 
         expect(call.rest).toMatch(/^\s*\{\s*method\s*:/);
     });
