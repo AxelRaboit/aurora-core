@@ -5,6 +5,49 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.308] - 2026-09-30
+
+Premier lot de la remise à plat des contrats : ce qui cassait, réparé sans changer le parcours.
+
+### Corrigé
+
+#### La ville et la date de signature s'écrivent dans le contrat
+« Fait à {{contract.signature_city}}, le {{contract.signature_date}} » s'imprimait tel quel, accolades comprises, dans le PDF signé, sur la page de signature et au back-office. La ville et la date déclarées par le client s'y écrivent maintenant, et une ligne pointillée les remplace tant qu'il n'a pas signé. Le texte scellé, lui, ne change pas : son sceau reste valide.
+
+#### Contresigner n'annonce plus un sceau altéré
+Juste après la contresignature, l'écran affichait « le sceau ne correspond plus » jusqu'au rechargement. Il reçoit maintenant le document complet.
+
+#### Modifier un brouillon d'avenant le garde attaché à son contrat
+Enregistrer une correction détachait l'avenant de son contrat d'origine. Choisir le contrat d'origine remplit aussi le client, ce qu'il ne faisait qu'en arrivant par un lien.
+
+#### Une trame qu'un contrat ne sait pas imprimer ne se publie plus
+Une image, un encadré ou une variable mal écrite passaient à la publication, puis chaque contrat créé sur cette version était refusé au scellement. La publication vérifie maintenant chaque langue, l'éditeur ne propose plus que les blocs qu'un contrat imprime (titre, paragraphe, liste, citation, tableau), et l'aperçu de trame signale les variables inconnues. Le message d'erreur est traduit, au lieu d'une phrase technique en anglais.
+
+#### L'éditeur de trames n'annonce plus un succès refusé
+Un enregistrement, une publication ou un abandon refusés affichaient quand même « Brouillon enregistré », « Version publiée » ou revenaient à la liste. Même chose pour archiver, dupliquer, ouvrir ou abandonner depuis la liste.
+
+#### Le titre d'une trame est protégé dans le document scellé
+Il entrait tel quel dans le texte scellé, imprimé sans filtre sur la page de signature et dans le PDF : un mot entre chevrons disparaissait.
+
+#### Les mails de relance et de refus nomment le contrat
+Leur objet affichait « {reference} » en clair.
+
+#### Plus de trou dans la numérotation
+Un scellement refusé (langue manquante, bloc non imprimable, variable inconnue) consommait quand même un numéro. Les vérifications passent maintenant avant de tirer la référence.
+
+#### La langue et la date d'effet sont contrôlées à la saisie
+Un contrat dans une langue que la trame ne contient pas est refusé dès sa création, et non plus au scellement. Une date impossible (2026-13-45) est refusée au lieu d'être convertie en une autre date. L'aperçu et l'export disent pourquoi ils échouent au lieu de répondre une erreur.
+
+#### Signer devient sûr
+- La contresignature écrit le PDF avant de rien enregistrer : un échec ne laisse plus un contrat conclu sans fichier.
+- Le sceau est vérifié avant chaque signature.
+- La signature garde l'adresse à laquelle son code a été envoyé, et le PDF imprime celle-là plutôt que l'adresse actuelle du client. Les signatures existantes la reprennent de l'historique des codes.
+- Un contrat signé se supprime enfin une fois sa durée de conservation écoulée, au lieu d'une erreur.
+
+### Dans aurora-client
+
+`make aurora-update` puis `make migrate` : une colonne s'ajoute aux signatures, remplie depuis l'historique des codes.
+
 ## [0.9.307] - 2026-09-30
 
 ### Corrigé
