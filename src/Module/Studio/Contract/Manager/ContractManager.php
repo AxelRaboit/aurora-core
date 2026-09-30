@@ -65,6 +65,13 @@ class ContractManager implements ContractManagerInterface
      */
     public const string AMENDS_PREFIX = 'contract.amends_';
 
+    /**
+     * The reference a contract carries while it is rendered to be checked,
+     * before a real one is drawn. As long as a real one, so a clause that
+     * wraps around it wraps the same way.
+     */
+    public const string PROBE_REFERENCE = 'XXX-0000-0000';
+
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
         protected readonly AuditLogger $auditLogger,
@@ -133,6 +140,15 @@ class ContractManager implements ContractManagerInterface
             ->setEffectiveDate($this->effectiveDate($input))
             ->setBodyVersion($this->publishedVersionOf($input->getBodyTemplateId(), ContractTemplateKindEnum::Body, 'bodyTemplateId'))
             ->setAnnexVersion($this->publishedVersionOf($input->getAnnexTemplateId(), ContractTemplateKindEnum::Annex, 'annexTemplateId'));
+
+        // Checked here, on the language picker, rather than at the freeze: a
+        // contract in Spanish on a trame written only in French was accepted,
+        // then its preview and its export failed and its seal was refused.
+        foreach ([$contract->getBodyVersion(), $contract->getAnnexVersion()] as $version) {
+            if ($version instanceof ContractTemplateVersionInterface && !$version->getTranslation($contract->getLocale()) instanceof ContractTemplateVersionTranslationInterface) {
+                throw new FieldException('locale', $this->translator->trans('backend.studio.contracts.errors.locale_missing', ['{locale}' => $contract->getLocale(), '{template}' => $version->getTemplate()->getName()]));
+            }
+        }
     }
 
     /**
@@ -223,7 +239,9 @@ class ContractManager implements ContractManagerInterface
 
         $date = DateTimeImmutable::createFromFormat('!Y-m-d', $raw);
 
-        if (false === $date) {
+        // Compared back, because PHP rolls an impossible date over rather
+        // than refusing it: 2026-13-45 became the 14th of February 2027.
+        if (false === $date || $date->format('Y-m-d') !== $raw) {
             throw new FieldException('effectiveDate', $this->translator->trans('backend.studio.contracts.errors.effective_date_invalid'));
         }
 
@@ -463,39 +481,27 @@ class ContractManager implements ContractManagerInterface
             throw new FieldException('amendsId', $this->translator->trans('backend.studio.contracts.errors.amendment_tokens_without_parent', ['{fields}' => implode(', ', $unsetAmendment)]));
         }
 
-        // Minted before the rendering, because the reference is printed inside
-        // the document and therefore has to be part of what the hash covers.
+        // Rendered once with a stand-in reference, so every refusal below
+        // (a language the trame lacks, a block it cannot print, a variable
+        // that fills nothing) lands before a number is drawn. The sequence is
+        // committed as soon as it is incremented, and a refused seal used to
+        // leave a gap nobody could explain.
+        $previous = $contract->getReference();
+        $contract->setReference($this->amendmentReference($contract) ?? self::PROBE_REFERENCE);
+
+        try {
+            $this->renderDocument($contract);
+        } finally {
+            $contract->setReference($previous);
+        }
+
+        // Minted before the real rendering, because the reference is printed
+        // inside the document and therefore has to be part of what the hash
+        // covers.
         $reference = $this->amendmentReference($contract) ?? $this->nextReference();
         $contract->setReference($reference);
 
-        $values = $this->variables->resolve($contract);
-        $deferred = $this->variables->deferredTokens();
-
-        $parts = [];
-        $html = '';
-
-        foreach ($this->partsOf($contract) as $role => $version) {
-            $part = $this->renderPart($role, $version, $contract->getLocale(), $values);
-            $parts[] = $part['snapshot'];
-            $html .= $part['html'];
-        }
-
-        // Appended after the last part, which is where a governing-language
-        // clause belongs on paper too: after everything it arbitrates.
-        $governingLocale = $this->governingLocaleOf($contract);
-
-        if (null !== $governingLocale) {
-            $html .= $this->governingLanguageClause($contract->getLocale(), $governingLocale);
-        }
-
-        $unknown = $this->renderer->unknownTokens($html, $values, $deferred);
-
-        if ([] !== $unknown) {
-            // Named, and refused. A token nobody will ever fill would reach the
-            // signer as literal braces in the middle of a clause, and by then
-            // the document is sealed.
-            throw new FieldException('bodyVersion', $this->translator->trans('backend.studio.contracts.errors.unknown_tokens', ['{tokens}' => implode(', ', $unknown)]));
-        }
+        ['values' => $values, 'deferred' => $deferred, 'parts' => $parts, 'html' => $html, 'governingLocale' => $governingLocale] = $this->renderDocument($contract);
 
         $snapshot = [
             'canonicalVersion' => ContractCanonicalizer::VERSION,
@@ -527,6 +533,47 @@ class ContractManager implements ContractManagerInterface
             'bodyVersion' => $body->getNumber(),
             'annexVersion' => $annex?->getNumber(),
         ]);
+    }
+
+    /**
+     * The document as it would be sealed, refused if it cannot be.
+     *
+     * @return array{values: array<string, string>, deferred: list<string>, parts: list<array<string, mixed>>, html: string, governingLocale: ?string}
+     *
+     * @throws FieldException when a part cannot be rendered or a variable fills nothing
+     */
+    protected function renderDocument(ContractInterface $contract): array
+    {
+        $values = $this->variables->resolve($contract);
+        $deferred = $this->variables->deferredTokens();
+
+        $parts = [];
+        $html = '';
+
+        foreach ($this->partsOf($contract) as $role => $version) {
+            $part = $this->renderPart($role, $version, $contract->getLocale(), $values);
+            $parts[] = $part['snapshot'];
+            $html .= $part['html'];
+        }
+
+        // Appended after the last part, which is where a governing-language
+        // clause belongs on paper too: after everything it arbitrates.
+        $governingLocale = $this->governingLocaleOf($contract);
+
+        if (null !== $governingLocale) {
+            $html .= $this->governingLanguageClause($contract->getLocale(), $governingLocale);
+        }
+
+        $unknown = $this->renderer->unknownTokens($html, $values, $deferred);
+
+        if ([] !== $unknown) {
+            // Named, and refused. A token nobody will ever fill would reach the
+            // signer as literal braces in the middle of a clause, and by then
+            // the document is sealed.
+            throw new FieldException('bodyVersion', $this->translator->trans('backend.studio.contracts.errors.unknown_tokens', ['{tokens}' => implode(', ', $unknown)]));
+        }
+
+        return ['values' => $values, 'deferred' => $deferred, 'parts' => $parts, 'html' => $html, 'governingLocale' => $governingLocale];
     }
 
     /**

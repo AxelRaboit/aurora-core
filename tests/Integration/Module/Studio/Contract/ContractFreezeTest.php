@@ -40,6 +40,7 @@ use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
+use function preg_match;
 use function sprintf;
 
 /**
@@ -235,6 +236,70 @@ final class ContractFreezeTest extends IntegrationTestCase
         self::assertStringContainsString('Conditions &lt;générales&gt; &amp; tarifs', (string) $contract->getRenderedHtml());
     }
 
+    /**
+     * A refused seal draws no number.
+     *
+     * The sequence is committed as soon as it moves, so the checks have to
+     * pass before it does: a seal refused for an unknown variable used to
+     * consume CTR-2026-0001, and the next contract became 0002.
+     */
+    public function testARefusedFreezeConsumesNoReference(): void
+    {
+        $before = $this->draft();
+        $this->contracts->freeze($before);
+
+        $refused = $this->draft(body: [['type' => 'paragraph', 'data' => ['text' => 'SIRET {{client.siret}}']]], customer: $before->getCustomer());
+
+        try {
+            $this->contracts->freeze($refused);
+            self::fail('An unknown token should have refused the freeze.');
+        } catch (FieldException) {
+        }
+
+        self::assertNull($refused->getReference());
+
+        $after = $this->draft(customer: $before->getCustomer());
+        $this->contracts->freeze($after);
+
+        // Consecutive: the refusal in between took nothing.
+        self::assertSame($this->sequenceOf($before) + 1, $this->sequenceOf($after));
+    }
+
+    /** Refused on the language picker, not later at the seal. */
+    public function testALanguageTheTrameIsNotWrittenInIsRefusedAtCreation(): void
+    {
+        $contract = $this->draft();
+
+        try {
+            $this->contracts->create(new ContractInput(
+                customerId: $contract->getCustomer()->getId(),
+                bodyTemplateId: $contract->getBodyVersion()?->getTemplate()->getId(),
+                locale: 'es',
+            ));
+            self::fail('A language the trame is not written in should have been refused.');
+        } catch (FieldException $exception) {
+            self::assertSame('locale', $exception->getField());
+        }
+    }
+
+    /** PHP rolls an impossible date over; the contract must not. */
+    public function testAnImpossibleEffectiveDateIsRefused(): void
+    {
+        $contract = $this->draft();
+
+        try {
+            $this->contracts->create(new ContractInput(
+                customerId: $contract->getCustomer()->getId(),
+                bodyTemplateId: $contract->getBodyVersion()?->getTemplate()->getId(),
+                locale: 'fr',
+                effectiveDate: '2026-13-45',
+            ));
+            self::fail('The 45th of the 13th month should have been refused.');
+        } catch (FieldException $exception) {
+            self::assertSame('effectiveDate', $exception->getField());
+        }
+    }
+
     public function testAnUnknownTokenRefusesTheFreezeAndNamesItself(): void
     {
         $contract = $this->draft(body: [
@@ -402,7 +467,7 @@ final class ContractFreezeTest extends IntegrationTestCase
     }
 
     /** @param list<array<string, mixed>>|null $body */
-    private function draft(?array $body = null, string $title = 'CONTRAT DE PRESTATION DE SERVICES'): ContractInterface
+    private function draft(?array $body = null, string $title = 'CONTRAT DE PRESTATION DE SERVICES', ?CustomerInterface $customer = null): ContractInterface
     {
         $template = $this->templates->create(new ContractTemplateInput('Contrat mensuel', ContractTemplateKindEnum::Body));
         $version = $template->getDraft();
@@ -428,7 +493,7 @@ final class ContractFreezeTest extends IntegrationTestCase
             $this->entityManager->flush();
         }
 
-        return $this->contractFor($this->customer(), $version);
+        return $this->contractFor($customer ?? $this->customer(), $version);
     }
 
     /**
@@ -438,6 +503,14 @@ final class ContractFreezeTest extends IntegrationTestCase
      * version published today and pins it, which is the behaviour worth
      * exercising here.
      */
+    /** The last group of digits of a reference: 12 for CTR-2026-0012. */
+    private function sequenceOf(ContractInterface $contract): int
+    {
+        self::assertSame(1, preg_match('/(\d+)$/', (string) $contract->getReference(), $match));
+
+        return (int) $match[1];
+    }
+
     private function contractFor(CustomerInterface $customer, ContractTemplateVersionInterface $version): ContractInterface
     {
         return $this->contracts->create(new ContractInput(

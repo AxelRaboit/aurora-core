@@ -136,7 +136,13 @@ class ContractsController extends AbstractController
             ]);
         }
 
-        return $this->jsonSuccess($this->contractManager->preview($contract));
+        // A trame without a text in the contract's language, or a block it
+        // cannot print, is said on the preview rather than answered with a 500.
+        try {
+            return $this->jsonSuccess($this->contractManager->preview($contract));
+        } catch (FieldException $fieldException) {
+            return $this->jsonInvalidInput(['preview' => $fieldException->getMessage()]);
+        }
     }
 
     /**
@@ -283,7 +289,15 @@ class ContractsController extends AbstractController
             return $this->storedPdf($contract);
         }
 
-        $response = new Response($this->pdfExporter->render($contract));
+        try {
+            $bytes = $this->pdfExporter->render($contract);
+        } catch (FieldException $fieldException) {
+            // Opened as a download, so the reason comes back as readable text
+            // rather than as the 500 it used to be.
+            return new Response($fieldException->getMessage(), Response::HTTP_UNPROCESSABLE_ENTITY, ['Content-Type' => 'text/plain; charset=UTF-8']);
+        }
+
+        $response = new Response($bytes);
         $response->headers->set('Content-Type', 'application/pdf');
         $response->headers->set('Content-Disposition', $response->headers->makeDisposition(
             ResponseHeaderBag::DISPOSITION_ATTACHMENT,
