@@ -5,6 +5,17 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.306] - 2026-09-30
+
+### Modifié
+
+#### « Mon espace » toujours nommé dans l'arborescence
+Seul, l'espace personnel s'affichait sans en-tête : les notes étaient là, mais rien ne disait où elles vivaient, et « Mon espace » restait introuvable tant qu'on n'en avait pas créé un second. L'en-tête se montre maintenant toujours, dans le panneau comme dans le lecteur, avec son « + » pour ajouter à sa racine. La lecture publique d'un espace n'en montre toujours pas.
+
+### Dans aurora-client
+
+Rien à faire : `make aurora-update`.
+
 ## [0.9.305] - 2026-09-30
 
 ### Ajouté
