@@ -81,3 +81,51 @@ describe("ContractSignApp, demande de code", () => {
         expect(wrapper.vm.errors.code).toBeTruthy();
     });
 });
+
+/**
+ * La limite de tentatives se dit en clair.
+ *
+ * Un 429 devenait un toast « Une erreur est survenue » : le client
+ * réessayait, et retombait sur la même limite sans savoir qu'il fallait
+ * attendre.
+ */
+describe("ContractSignApp, limite de tentatives", () => {
+    const LIMITED = {
+        success: false,
+        error: "studio.public.sign.errors.too_many_requests",
+    };
+
+    it("laisse passer le 429 jusqu'à l'écran", async () => {
+        request.mockReset();
+        request.mockResolvedValue(LIMITED);
+
+        const wrapper = build();
+        ready(wrapper);
+        await wrapper.vm.requestCode();
+
+        expect(request.mock.calls[0][2].accept).toContain(429);
+        expect(wrapper.vm.errors.code).toBeTruthy();
+        expect(wrapper.vm.codeSentTo).toBeNull();
+    });
+
+    it("le dit au-dessus du formulaire quand la signature est refusée", async () => {
+        request.mockReset();
+        request.mockResolvedValueOnce({
+            success: true,
+            sentTo: "ma****@societe.fr",
+        });
+
+        const wrapper = build();
+        ready(wrapper);
+        await wrapper.vm.requestCode();
+        Object.assign(wrapper.vm.form, { code: "123456", consent: true });
+        wrapper.vm.hasRead = true;
+
+        request.mockResolvedValueOnce(LIMITED);
+        await wrapper.vm.sign();
+
+        expect(request.mock.calls[1][2].accept).toContain(429);
+        expect(wrapper.vm.errors.status).toBeTruthy();
+        expect(wrapper.vm.signed).toBe(false);
+    });
+});

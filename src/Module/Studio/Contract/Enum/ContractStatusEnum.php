@@ -51,6 +51,14 @@ enum ContractStatusEnum: string
 
     /** Withdrawn before signature. */
     case Revoked = 'revoked';
+    /**
+     * Sealed by mistake and withdrawn before anybody signed.
+     *
+     * Kept rather than deleted: the reference was drawn and may have been
+     * printed or mentioned, and a numbering with a hole in it is harder to
+     * explain than a line that says « annulé ».
+     */
+    case Cancelled = 'cancelled';
 
     public function getLabel(): string
     {
@@ -83,6 +91,31 @@ enum ContractStatusEnum: string
     public function isConcluded(): bool
     {
         return self::Countersigned === $this;
+    }
+
+    /** Out with the customer, and no answer yet. */
+    public function isWaitingForCustomer(): bool
+    {
+        return in_array($this, [self::Sent, self::Opened], true);
+    }
+
+    /**
+     * Whether a link can be handed out now: a first send, or a new one after a
+     * refusal, an expiry or a revocation. Resending while a link is still out
+     * is a reminder, and nothing is sent once somebody has signed.
+     */
+    public function canBeSent(): bool
+    {
+        return in_array($this, [self::Sealed, self::Refused, self::Expired, self::Revoked], true);
+    }
+
+    /**
+     * Whether it can be cancelled: sealed, and nobody has signed or holds an
+     * address that opens it.
+     */
+    public function canBeCancelled(): bool
+    {
+        return in_array($this, [self::Sealed, self::Refused, self::Expired, self::Revoked], true);
     }
 
     /** @return list<string> */

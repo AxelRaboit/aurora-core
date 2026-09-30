@@ -16,6 +16,7 @@ use Aurora\Module\Studio\Contract\Entity\ContractTemplate;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateInterface;
 use Aurora\Module\Studio\Contract\Enum\ContractTemplateKindEnum;
 use Aurora\Module\Studio\Contract\Manager\ContractTemplateManager;
+use Aurora\Module\Studio\Contract\Preview\ContractTemplatePreviewer;
 use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\Contract\Repository\ContractTemplateVersionRepository;
 use Aurora\Module\Studio\Customer\Entity\Customer;
@@ -73,6 +74,7 @@ final class PublicContractLinkTest extends IntegrationTestCase
             $container->get(ContractTemplateVersionRepository::class),
             $container->get(TranslatorInterface::class),
             $container->get(ContractRepository::class),
+            $container->get(ContractTemplatePreviewer::class),
         );
     }
 
@@ -124,8 +126,18 @@ final class PublicContractLinkTest extends IntegrationTestCase
         $url = $this->sentContractUrl();
 
         $guest = $this->asGuest();
+
+        // Fetching the page is not opening it: a mail scanner follows every
+        // link it sees, and the contract used to say « Ouvert » before the
+        // customer had read their mail.
         $guest->request('GET', $url);
-        $guest->request('GET', $url);
+        $this->entityManager->clear();
+        self::assertSame('sent', $this->links->findAll()[0]->getContract()->getStatus()->value);
+
+        // The page, displayed in a browser, says so.
+        $guest->jsonRequest('POST', $url.'/opened');
+        $guest->jsonRequest('POST', $url.'/opened');
+        self::assertSame(200, $guest->getResponse()->getStatusCode());
 
         $this->entityManager->clear();
         $link = $this->links->findAll()[0];

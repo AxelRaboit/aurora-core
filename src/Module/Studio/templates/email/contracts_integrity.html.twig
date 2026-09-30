@@ -1,0 +1,26 @@
+{# The morning check found a sealed contract that moved.
+
+   The lines stay in English, as the command prints them: they are evidence
+   to hand to whoever investigates, not prose, and one wording for the mail
+   and the terminal is what lets the two be compared. #}
+<p>{{ 'studio.email.contracts_integrity.body'|trans({'{count}': report.checked}) }}</p>
+
+{% if report.altered is not empty %}
+    <p>{{ 'studio.email.contracts_integrity.altered'|trans }}</p>
+    <ul>
+        {% for line in report.altered %}
+            <li>{{ line }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+{% if report.unverifiable is not empty %}
+    <p>{{ 'studio.email.contracts_integrity.unverifiable'|trans }}</p>
+    <ul>
+        {% for line in report.unverifiable %}
+            <li>{{ line }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+<p>{{ 'studio.email.contracts_integrity.action'|trans }}</p>

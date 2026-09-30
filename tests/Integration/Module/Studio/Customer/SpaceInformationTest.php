@@ -19,6 +19,7 @@ use Aurora\Module\Studio\SpaceResource\Entity\SpaceResource;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 use function bin2hex;
 use function json_decode;
@@ -155,6 +156,11 @@ final class SpaceInformationTest extends IntegrationTestCase
         ]);
 
         self::assertSame(422, $this->client->getResponse()->getStatusCode());
+
+        // The screen translates the key it is given: the constraint named one
+        // that did not exist, and the field showed it raw.
+        $key = (string) json_decode((string) $this->client->getResponse()->getContent(), true)['errors']['siren'];
+        self::assertNotSame($key, static::getContainer()->get(TranslatorInterface::class)->trans($key));
     }
 
     /**

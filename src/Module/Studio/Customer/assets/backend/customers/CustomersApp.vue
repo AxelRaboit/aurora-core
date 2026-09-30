@@ -317,6 +317,14 @@ const pageActions = computed(() => {
                                     {{ space.name }}
                                 </a>
                             </div>
+                            <!-- Ses contrats, d'un clic : la liste s'ouvre filtrée sur lui. -->
+                            <a
+                                v-if="customer.contracts?.count"
+                                :href="customer.contracts.url"
+                                class="mt-0.5 inline-block text-xs text-accent-500 hover:underline"
+                            >
+                                {{ t("backend.studio.customers.contracts_count", { count: customer.contracts.count }) }}
+                            </a>
                         </td>
                         <td class="px-4 py-2 hidden lg:table-cell">
                             <div v-if="customer.representativeFullName" class="text-primary">

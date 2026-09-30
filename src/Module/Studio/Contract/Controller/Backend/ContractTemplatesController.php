@@ -96,16 +96,21 @@ class ContractTemplatesController extends AbstractController
 
         try {
             $html = $this->previewer->preview($version, $locale);
+            $unknown = $this->previewer->unknownTokens($version, $locale);
         } catch (UnrenderableBlockException $unrenderableBlockException) {
             // The same refusal a freeze would meet, said here where it can be
-            // fixed rather than in the middle of sending a contract.
-            return $this->jsonInvalidInput(['preview' => $unrenderableBlockException->getMessage()]);
+            // fixed rather than in the middle of sending a contract, and in
+            // the reader's language rather than the log's.
+            return $this->jsonInvalidInput(['preview' => $unrenderableBlockException->describe($this->translator, $locale)]);
         }
 
         return $this->jsonSuccess([
             'html' => $html,
             'locale' => $locale,
             'locales' => $locales,
+            // Named, as the contract preview names them: this is the screen
+            // where a misspelt variable can still be fixed.
+            'unknownTokens' => $unknown,
         ]);
     }
 
@@ -238,6 +243,10 @@ class ContractTemplatesController extends AbstractController
 
         try {
             $this->templateManager->updateDraft($version, $input);
+        } catch (FieldException $fieldException) {
+            // A governing language not written, a title too long: said on the
+            // field rather than answered with a 500.
+            return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
         } catch (PublishedVersionIsImmutableException) {
             return $this->publishedRefusal();
         }
@@ -262,8 +271,12 @@ class ContractTemplatesController extends AbstractController
         return $this->jsonSuccess(['version' => $this->serializer->serializeVersion($version)]);
     }
 
+    // Under `edit`, like opening one: a draft is work in progress, and an
+    // account allowed to open drafts but not to delete templates used to be
+    // stuck with the first one it opened, told to « abandon it » by a
+    // button it did not have.
     #[Route('/{id}/versions/{versionId}/discard', name: '_discard', methods: [HttpMethodEnum::Post->value])]
-    #[IsGranted('studio.contract_templates.delete')]
+    #[IsGranted('studio.contract_templates.edit')]
     public function discard(ContractTemplate $template, int $versionId): JsonResponse
     {
         $version = $this->versionOf($template, $versionId);

@@ -43,3 +43,25 @@ const ACCESS_REQUEST_STATUS_COLORS = {
 export function accessRequestStatusBadgeColor(status) {
     return ACCESS_REQUEST_STATUS_COLORS[status] ?? "gray";
 }
+
+/**
+ * One colour per contract status, the same in the list, the contract's own
+ * screen and the customer's file. Amber is kept for what waits on the
+ * provider, rose for an answer that went the wrong way.
+ */
+const CONTRACT_STATUS_COLORS = {
+    draft: "gray",
+    sealed: "accent",
+    sent: "sky",
+    opened: "violet",
+    signed_by_customer: "amber",
+    countersigned: "emerald",
+    refused: "rose",
+    expired: "slate",
+    revoked: "slate",
+    cancelled: "slate",
+};
+
+export function contractStatusColor(status) {
+    return CONTRACT_STATUS_COLORS[status] ?? "gray";
+}

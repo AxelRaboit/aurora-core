@@ -12,6 +12,7 @@ use Aurora\Module\Studio\Contract\Access\Entity\ContractAccessLinkInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractInterface;
 use Aurora\Module\Studio\Contract\Enum\ContractStatusEnum;
 use Aurora\Module\Studio\Contract\Service\ContractPdfGenerator;
+use Aurora\Module\Studio\Contract\Service\ContractSeal;
 use Aurora\Module\Studio\Contract\Signature\Dto\ContractSignatureInputInterface;
 use Aurora\Module\Studio\Contract\Signature\Entity\ContractSignature;
 use Aurora\Module\Studio\Contract\Signature\Entity\ContractSignatureInterface;
@@ -22,6 +23,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Throwable;
 
 use function mb_substr;
 
@@ -57,6 +59,7 @@ class ContractSignatureManager implements ContractSignatureManagerInterface
         protected readonly MailService $mail,
         protected readonly ContractPdfGenerator $pdf,
         protected readonly TranslatorInterface $translator,
+        protected readonly ContractSeal $seal,
     ) {}
 
     public function signAsCustomer(
@@ -72,11 +75,13 @@ class ContractSignatureManager implements ContractSignatureManagerInterface
         // caller. Everything past this line has to succeed or the signer has
         // to ask for a new code, so nothing that can fail on form input is
         // left to happen afterwards.
+        $sentTo = $this->challenges->recipientOf($link);
         $verifiedAt = $this->challenges->verify($link, $input->getCode());
 
         $signature = $this->build($contract, $input, ContractSignatureRoleEnum::Customer, $request);
         $signature
             ->setChallengeVerifiedAt($verifiedAt)
+            ->setChallengeSentTo($sentTo)
             ->setLinkSelector($link->getSelector());
 
         $this->entityManager->persist($signature);
@@ -104,7 +109,9 @@ class ContractSignatureManager implements ContractSignatureManagerInterface
 
         // The order, enforced rather than assumed: the countersignature is what
         // concludes, so there has to be something to conclude.
-        if (!$this->signatures->findOneForRole($contract, ContractSignatureRoleEnum::Customer) instanceof ContractSignatureInterface) {
+        $customerSignature = $this->signatures->findOneForRole($contract, ContractSignatureRoleEnum::Customer);
+
+        if (!$customerSignature instanceof ContractSignatureInterface) {
             throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.customer_has_not_signed'));
         }
 
@@ -117,15 +124,28 @@ class ContractSignatureManager implements ContractSignatureManagerInterface
         $this->entityManager->persist($signature);
 
         $contract->setStatus(ContractStatusEnum::Countersigned);
-        $this->entityManager->flush();
 
         // The PDF is written here and nowhere else: the countersignature is
         // what concludes, so it is the first and only moment the document is
         // complete. Generating it earlier would produce a file missing a
         // signature; generating it later would mean regenerating it.
-        $pdf = $this->pdf->generate($contract, $this->signatures->findForContract($contract));
+        //
+        // Written before anything is saved, and saved in one go with it. The
+        // status used to be stored first: a PDF that failed then left a
+        // contract concluded with no file, and no way to make one, since a
+        // second countersignature is refused.
+        $pdf = $this->pdf->generate($contract, [$customerSignature, $signature]);
         $contract->attachPdf($pdf['path'], $pdf['hash'], new DateTimeImmutable());
-        $this->entityManager->flush();
+
+        try {
+            $this->entityManager->flush();
+        } catch (Throwable $throwable) {
+            // Nothing was concluded, so the file concludes nothing either, and
+            // left behind it would refuse the next attempt as a collision.
+            $this->pdf->remove($pdf['path']);
+
+            throw $throwable;
+        }
 
         $this->auditLogger->log('studio', 'contract.countersigned', 'Contract', $contract->getId(), [
             ...$this->auditPayload($signature),
@@ -147,24 +167,41 @@ class ContractSignatureManager implements ContractSignatureManagerInterface
      */
     protected function assertSignable(ContractInterface $contract, ContractSignatureRoleEnum $role): void
     {
+        // The customer reads these on the signing page, in the contract's
+        // language; they used to come in the back office's.
+        $locale = ContractSignatureRoleEnum::Customer === $role ? $contract->getLocale() : null;
+
         if (!$contract->isFrozen()) {
-            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.seal_before_signing'));
+            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.seal_before_signing', [], null, $locale));
         }
 
         if (ContractStatusEnum::Countersigned === $contract->getStatus()) {
-            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.already_concluded'));
+            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.already_concluded', [], null, $locale));
         }
 
-        foreach ([ContractStatusEnum::Refused, ContractStatusEnum::Expired, ContractStatusEnum::Revoked] as $closed) {
+        // Checked at the moment it matters: a signature binds whoever gives it
+        // to the stored text, so that text has to be the one that was sealed.
+        // It was checked nowhere, and an altered document would have been
+        // signed, then printed.
+        if (!$this->seal->verify($contract)) {
+            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.seal_broken', [], null, $locale));
+        }
+
+        foreach ([ContractStatusEnum::Refused, ContractStatusEnum::Expired, ContractStatusEnum::Revoked, ContractStatusEnum::Cancelled] as $closed) {
             if ($closed === $contract->getStatus()) {
-                throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.contract_closed'));
+                throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.contract_closed', [], null, $locale));
             }
+        }
+
+        // An amendment binds nothing once the contract it modifies has ended.
+        if ($contract->getAmends()?->isTerminationEffective() ?? false) {
+            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.amends_terminated', [], null, $locale));
         }
 
         if ($this->signatures->findOneForRole($contract, $role) instanceof ContractSignatureInterface) {
             // The unique index says the same thing, as a driver exception. This
             // says it as a sentence.
-            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.role_already_signed'));
+            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.role_already_signed', [], null, $locale));
         }
     }
 
@@ -273,7 +310,9 @@ class ContractSignatureManager implements ContractSignatureManagerInterface
         $this->mail->sendToAdmin(
             subjectKey: 'studio.email.concluded.subject',
             template: '@Studio/email/concluded.html.twig',
-            context: ['contract' => $contract],
+            // The provider's copy links to the back office; the customer's
+            // has no back office to link to.
+            context: ['contract' => $contract, 'forProvider' => true],
             subjectParams: ['{reference}' => (string) $contract->getReference()],
         );
     }

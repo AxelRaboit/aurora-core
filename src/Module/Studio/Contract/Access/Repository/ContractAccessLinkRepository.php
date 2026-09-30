@@ -8,9 +8,12 @@ use Aurora\Core\Repository\ResolveTargetEntityRepository;
 use Aurora\Module\Studio\Contract\Access\Entity\ContractAccessLink;
 use Aurora\Module\Studio\Contract\Access\Entity\ContractAccessLinkInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractInterface;
+use Aurora\Module\Studio\Contract\Enum\ContractStatusEnum;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\Order;
 use Doctrine\Persistence\ManagerRegistry;
+
+use function sprintf;
 
 /**
  * @extends ResolveTargetEntityRepository<ContractAccessLinkInterface>
@@ -80,6 +83,9 @@ class ContractAccessLinkRepository extends ResolveTargetEntityRepository
         $links = $this->createQueryBuilder('l')
             ->andWhere('l.contract IN (:contracts)')
             ->andWhere('l.revokedAt IS NULL')
+            // Only an address that went out: one saved for a mail that then
+            // failed opens nothing anybody received.
+            ->andWhere('l.sentAt IS NOT NULL')
             ->andWhere('l.expiresAt > :now')
             ->setParameter('contracts', $contracts)
             ->setParameter('now', new DateTimeImmutable())
@@ -95,12 +101,41 @@ class ContractAccessLinkRepository extends ResolveTargetEntityRepository
         return $byContract;
     }
 
+    /**
+     * Contracts out with the customer that no link opens any more: every
+     * address handed out has run out or been revoked.
+     *
+     * @return list<ContractInterface>
+     */
+    public function findContractsWaitingWithoutActiveLink(): array
+    {
+        $active = $this->getEntityManager()->createQueryBuilder()
+            ->select('1')
+            ->from(ContractAccessLinkInterface::class, 'l')
+            ->andWhere('l.contract = c')
+            ->andWhere('l.revokedAt IS NULL')
+            ->andWhere('l.sentAt IS NOT NULL')
+            ->andWhere('l.expiresAt > :now');
+
+        /* @var list<ContractInterface> */
+        return $this->getEntityManager()->createQueryBuilder()
+            ->select('c')
+            ->from(ContractInterface::class, 'c')
+            ->andWhere('c.status IN (:waiting)')
+            ->andWhere(sprintf('NOT EXISTS (%s)', $active->getDQL()))
+            ->setParameter('waiting', [ContractStatusEnum::Sent->value, ContractStatusEnum::Opened->value])
+            ->setParameter('now', new DateTimeImmutable())
+            ->getQuery()
+            ->getResult();
+    }
+
     /** The link that still opens this contract, if there is one. */
     public function findActiveFor(ContractInterface $contract): ?ContractAccessLinkInterface
     {
         return $this->createQueryBuilder('l')
             ->andWhere('l.contract = :contract')
             ->andWhere('l.revokedAt IS NULL')
+            ->andWhere('l.sentAt IS NOT NULL')
             ->andWhere('l.expiresAt > :now')
             ->setParameter('contract', $contract)
             ->setParameter('now', new DateTimeImmutable())

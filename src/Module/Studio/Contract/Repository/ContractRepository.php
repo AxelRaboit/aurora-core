@@ -97,6 +97,54 @@ class ContractRepository extends ResolveTargetEntityRepository
     }
 
     /**
+     * How many contracts each template is used by, drafts included, keyed by
+     * template id: as body or as annex, counted once per contract.
+     *
+     * @return array<int, int>
+     */
+    public function countByTemplate(): array
+    {
+        $counts = [];
+
+        foreach (['bodyVersion', 'annexVersion'] as $relation) {
+            $rows = $this->createQueryBuilder('c')
+                ->select('IDENTITY(v.template) AS template, COUNT(c.id) AS total')
+                ->innerJoin('c.'.$relation, 'v')
+                ->groupBy('v.template')
+                ->getQuery()
+                ->getScalarResult();
+
+            foreach ($rows as $row) {
+                $counts[(int) $row['template']] = ($counts[(int) $row['template']] ?? 0) + (int) $row['total'];
+            }
+        }
+
+        return $counts;
+    }
+
+    /**
+     * How many contracts each customer has, keyed by customer id.
+     *
+     * @return array<int, int>
+     */
+    public function countByCustomer(): array
+    {
+        $rows = $this->createQueryBuilder('c')
+            ->select('IDENTITY(c.customer) AS customer, COUNT(c.id) AS total')
+            ->groupBy('c.customer')
+            ->getQuery()
+            ->getScalarResult();
+
+        $counts = [];
+
+        foreach ($rows as $row) {
+            $counts[(int) $row['customer']] = (int) $row['total'];
+        }
+
+        return $counts;
+    }
+
+    /**
      * Combien de contrats par état.
      *
      * Les neuf états en une requête. Le tableau de bord n'en met en avant
@@ -150,6 +198,25 @@ class ContractRepository extends ResolveTargetEntityRepository
      * trail from it to the wording it was made from is part of what makes it
      * one.
      */
+    /**
+     * Every contract built on the template, drafts included.
+     *
+     * A template cannot be deleted while any of them exists: its versions are
+     * `SET NULL` on the contracts, so deleting it used to leave its drafts with
+     * no body and no warning.
+     */
+    public function countUsingTemplate(ContractTemplateInterface $template): int
+    {
+        return (int) $this->createQueryBuilder('c')
+            ->select('COUNT(c.id)')
+            ->leftJoin('c.bodyVersion', 'bv')
+            ->leftJoin('c.annexVersion', 'av')
+            ->andWhere('bv.template = :template OR av.template = :template')
+            ->setParameter('template', $template)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
     public function countFrozenUsingTemplate(ContractTemplateInterface $template): int
     {
         return (int) $this->createQueryBuilder('c')

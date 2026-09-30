@@ -76,6 +76,7 @@
     {% if not isSigned and not isRefused %}
         <div {{ vue_component('studio/public/sign/ContractSignApp', {
             codePath: codePath,
+            openedPath: openedPath,
             signPath: signPath,
             refusePath: refusePath,
         }) }}></div>

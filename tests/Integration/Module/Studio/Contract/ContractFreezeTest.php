@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Tests\Integration\Module\Studio\Contract;
 
 use Aurora\Core\Content\BlockHtmlSanitizer;
+use Aurora\Core\Money\Enum\CurrencyEnum;
 use Aurora\Core\Sequence\SequenceGenerator;
 use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
@@ -21,6 +22,7 @@ use Aurora\Module\Studio\Contract\Enum\ContractTemplateKindEnum;
 use Aurora\Module\Studio\Contract\Exception\FrozenContractIsImmutableException;
 use Aurora\Module\Studio\Contract\Manager\ContractManager;
 use Aurora\Module\Studio\Contract\Manager\ContractTemplateManager;
+use Aurora\Module\Studio\Contract\Preview\ContractTemplatePreviewer;
 use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\Contract\Repository\ContractTemplateRepository;
 use Aurora\Module\Studio\Contract\Repository\ContractTemplateVersionRepository;
@@ -35,9 +37,11 @@ use Aurora\Module\Studio\Customer\Entity\Customer;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\Customer\Repository\CustomerRepository;
 use Aurora\Tests\Integration\IntegrationTestCase;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
+use function preg_match;
 use function sprintf;
 
 /**
@@ -72,7 +76,7 @@ final class ContractFreezeTest extends IntegrationTestCase
         // exercises exactly the code that will run in production.
         $canonicalizer = new ContractCanonicalizer();
         $this->seal = new ContractSeal($canonicalizer);
-        $resolver = new ContractVariableResolver(new ContractVariableCatalogue(), $container->get(SettingRepository::class));
+        $resolver = new ContractVariableResolver(new ContractVariableCatalogue(), $container->get(SettingRepository::class), static::getContainer()->get(TranslatorInterface::class));
         $renderer = new ContractDocumentRenderer(new BlockHtmlSanitizer());
 
         // Built by hand: neither manager has a controller yet, so the container
@@ -84,6 +88,7 @@ final class ContractFreezeTest extends IntegrationTestCase
             $container->get(ContractTemplateVersionRepository::class),
             $container->get(TranslatorInterface::class),
             $container->get(ContractRepository::class),
+            $container->get(ContractTemplatePreviewer::class),
         );
 
         $this->contracts = new ContractManager(
@@ -171,6 +176,36 @@ final class ContractFreezeTest extends IntegrationTestCase
         self::assertStringContainsString('{{contract.signature_date}}', $html);
     }
 
+    /**
+     * A sole trader has no share capital, and the trame used to say
+     * « Entreprise individuelle au capital de , » all the same.
+     */
+    public function testTheLegalStatusSaysTheCapitalOnlyWhenThereIsOne(): void
+    {
+        $body = [['type' => 'paragraph', 'data' => ['text' => '{{customer.legal_name}}, {{customer.legal_status}}, dont le siège']]];
+
+        $soleTrader = $this->customer();
+        $soleTrader->setLegalForm('Entreprise individuelle');
+        $withoutCapital = $this->draft(body: $body, customer: $soleTrader);
+        $this->contracts->freeze($withoutCapital);
+
+        self::assertStringContainsString('Boulangerie Durand, Entreprise individuelle, dont le siège', (string) $withoutCapital->getRenderedHtml());
+
+        $company = new Customer();
+        $company
+            ->setLegalName('Boulangerie Durand')
+            ->setContractualEmail('contact@durand.test')
+            ->setLegalForm('SARL')
+            ->setShareCapitalCents(1_000_000)
+            ->setShareCapitalCurrency(CurrencyEnum::EUR);
+        $this->entityManager->persist($company);
+        $this->entityManager->flush();
+        $withCapital = $this->draft(body: $body, customer: $company);
+        $this->contracts->freeze($withCapital);
+
+        self::assertMatchesRegularExpression('/SARL au capital de 10.000[^,]*€, dont le siège/u', (string) $withCapital->getRenderedHtml());
+    }
+
     public function testAFrozenContractRefusesEveryWrite(): void
     {
         $contract = $this->draft();
@@ -219,6 +254,83 @@ final class ContractFreezeTest extends IntegrationTestCase
     /**
      * A token nobody will fill would reach the signer as literal braces.
      */
+    /**
+     * The title is plain text, escaped like everything else before it enters
+     * the sealed HTML, which the signing page and the PDF print raw.
+     */
+    public function testTheTitleIsEscapedInTheSealedDocument(): void
+    {
+        $contract = $this->draft(title: 'Conditions <générales> & tarifs');
+
+        $this->contracts->freeze($contract);
+
+        self::assertStringContainsString('Conditions &lt;générales&gt; &amp; tarifs', (string) $contract->getRenderedHtml());
+    }
+
+    /**
+     * A refused seal draws no number.
+     *
+     * The sequence is committed as soon as it moves, so the checks have to
+     * pass before it does: a seal refused for an unknown variable used to
+     * consume CTR-2026-0001, and the next contract became 0002.
+     */
+    public function testARefusedFreezeConsumesNoReference(): void
+    {
+        $before = $this->draft();
+        $this->contracts->freeze($before);
+
+        $refused = $this->draft(body: [['type' => 'paragraph', 'data' => ['text' => 'SIRET {{client.siret}}']]], customer: $before->getCustomer());
+
+        try {
+            $this->contracts->freeze($refused);
+            self::fail('An unknown token should have refused the freeze.');
+        } catch (FieldException) {
+        }
+
+        self::assertNull($refused->getReference());
+
+        $after = $this->draft(customer: $before->getCustomer());
+        $this->contracts->freeze($after);
+
+        // Consecutive: the refusal in between took nothing.
+        self::assertSame($this->sequenceOf($before) + 1, $this->sequenceOf($after));
+    }
+
+    /** Refused on the language picker, not later at the seal. */
+    public function testALanguageTheTrameIsNotWrittenInIsRefusedAtCreation(): void
+    {
+        $contract = $this->draft();
+
+        try {
+            $this->contracts->create(new ContractInput(
+                customerId: $contract->getCustomer()->getId(),
+                bodyTemplateId: $contract->getBodyVersion()?->getTemplate()->getId(),
+                locale: 'es',
+            ));
+            self::fail('A language the trame is not written in should have been refused.');
+        } catch (FieldException $exception) {
+            self::assertSame('locale', $exception->getField());
+        }
+    }
+
+    /** PHP rolls an impossible date over; the contract must not. */
+    public function testAnImpossibleEffectiveDateIsRefused(): void
+    {
+        $contract = $this->draft();
+
+        try {
+            $this->contracts->create(new ContractInput(
+                customerId: $contract->getCustomer()->getId(),
+                bodyTemplateId: $contract->getBodyVersion()?->getTemplate()->getId(),
+                locale: 'fr',
+                effectiveDate: '2026-13-45',
+            ));
+            self::fail('The 45th of the 13th month should have been refused.');
+        } catch (FieldException $exception) {
+            self::assertSame('effectiveDate', $exception->getField());
+        }
+    }
+
     public function testAnUnknownTokenRefusesTheFreezeAndNamesItself(): void
     {
         $contract = $this->draft(body: [
@@ -386,23 +498,33 @@ final class ContractFreezeTest extends IntegrationTestCase
     }
 
     /** @param list<array<string, mixed>>|null $body */
-    private function draft(?array $body = null): ContractInterface
+    private function draft(?array $body = null, string $title = 'CONTRAT DE PRESTATION DE SERVICES', ?CustomerInterface $customer = null): ContractInterface
     {
         $template = $this->templates->create(new ContractTemplateInput('Contrat mensuel', ContractTemplateKindEnum::Body));
         $version = $template->getDraft();
 
         $this->templates->updateDraft($version, new ContractTemplateVersionInput([
             'fr' => [
-                'title' => 'CONTRAT DE PRESTATION DE SERVICES',
+                'title' => $title,
                 'content' => ['blocks' => $body ?? [
                     ['type' => 'header', 'data' => ['text' => 'ARTICLE 1', 'level' => 2]],
                     ['type' => 'paragraph', 'data' => ['text' => 'Le forfait mensuel est de {{contract.amount}}.']],
                 ]],
             ],
         ]));
-        $this->templates->publish($version);
 
-        return $this->contractFor($this->customer(), $version);
+        // A wording written by the test is published as it stands, around the
+        // manager's own check: publishing now refuses an unknown variable or
+        // a block a contract cannot print, and these tests are about the
+        // freeze still refusing them in a version published before that rule.
+        if (null === $body) {
+            $this->templates->publish($version);
+        } else {
+            $version->publish(new DateTimeImmutable());
+            $this->entityManager->flush();
+        }
+
+        return $this->contractFor($customer ?? $this->customer(), $version);
     }
 
     /**
@@ -412,6 +534,14 @@ final class ContractFreezeTest extends IntegrationTestCase
      * version published today and pins it, which is the behaviour worth
      * exercising here.
      */
+    /** The last group of digits of a reference: 12 for CTR-2026-0012. */
+    private function sequenceOf(ContractInterface $contract): int
+    {
+        self::assertSame(1, preg_match('/(\d+)$/', (string) $contract->getReference(), $match));
+
+        return (int) $match[1];
+    }
+
     private function contractFor(CustomerInterface $customer, ContractTemplateVersionInterface $version): ContractInterface
     {
         return $this->contracts->create(new ContractInput(

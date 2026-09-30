@@ -1,49 +1,40 @@
 <script setup>
-import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
+/**
+ * Every contract, in one list read by step.
+ *
+ * The tabs are the journey: drafts, contracts to send, out with the customer,
+ * waiting for the countersignature, running, ended. Each row says where the
+ * contract stands and offers only what its status allows; opening it leads to
+ * its own screen, where the next step is the main button.
+ */
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { toast } from "vue-sonner";
+import { Eye, FileSignature, Pencil, Plus, Save, X } from "lucide-vue-next";
+import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
+import { buildPath } from "@/shared/utils/http/buildPath.js";
+import { contractStatusColor } from "@/shared/utils/format/statusStyles.js";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
-import { buildPath } from "@/shared/utils/http/buildPath.js";
+import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { safeContractHtml } from "../shared/contractHtml.js";
-import { useContractsList } from "./composables/useContractsList.js";
-import { useContractActions } from "./composables/useContractActions.js";
+import { STEPS, useContractsList } from "./composables/useContractsList.js";
+import { useContractFlow } from "./composables/useContractFlow.js";
 import ContractFormFields from "./components/ContractFormFields.vue";
+import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
-import AppPageActions from "@/shared/components/action/AppPageActions.vue";
-import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
-import AppListToolbar from "@/shared/components/list/AppListToolbar.vue";
-import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppCardActions from "@/shared/components/action/AppCardActions.vue";
-import AppRowActions from "@/shared/components/action/AppRowActions.vue";
-import { useListViewMode } from "@/shared/composables/list/useListViewMode.js";
+import AppListToolbar from "@/shared/components/list/AppListToolbar.vue";
+import AppMessage from "@/shared/components/feedback/AppMessage.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
-import AppMessage from "@/shared/components/feedback/AppMessage.vue";
-import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
-
-const { formatDateNumeric } = useDateFormat();
-import {
-    AlertTriangle,
-    Ban,
-    Eye,
-    FileSignature,
-    LayoutGrid,
-    List,
-    Lock,
-    Mail,
-    MailCheck,
-    Pencil,
-    Plus,
-    Save,
-    Trash2,
-    X,
-} from "lucide-vue-next";
-
-const { t } = useI18n();
-const { request } = useRequest();
-const { can } = usePrivileges();
+import AppPageActions from "@/shared/components/action/AppPageActions.vue";
+import AppPagination from "@/shared/components/nav/AppPagination.vue";
+import AppRowActions from "@/shared/components/action/AppRowActions.vue";
+import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
+import AppSelect from "@/shared/components/form/select/AppSelect.vue";
+import AppTab from "@/shared/components/nav/AppTab.vue";
 
 const props = defineProps({
     contracts: { type: Array, default: () => [] },
@@ -54,24 +45,32 @@ const props = defineProps({
     currencies: { type: Array, default: () => [] },
     createPath: { type: String, required: true },
     updatePath: { type: String, required: true },
-    deletePath: { type: String, required: true },
-    freezePath: { type: String, required: true },
     previewPath: { type: String, required: true },
-    sendPath: { type: String, required: true },
-    revokeLinkPath: { type: String, required: true },
-    countersignPath: { type: String, required: true },
+    duplicatePath: { type: String, required: true },
     pdfPath: { type: String, required: true },
     exportPath: { type: String, required: true },
     showPath: { type: String, required: true },
-    terminatePath: { type: String, required: true },
-    terminationOrigins: { type: Array, default: () => [] },
     amendable: { type: Array, default: () => [] },
 });
 
+const { t } = useI18n();
+const { can } = usePrivileges();
+const { request } = useRequest();
+const { formatDateNumeric } = useDateFormat();
+const { flowOf } = useContractFlow();
+
+const P = "backend.studio.contracts";
+const F = `${P}.flow`;
+
 const {
     search,
-    drafts,
-    sealed,
+    step,
+    customerFilter,
+    templateFilter,
+    page,
+    totalPages,
+    counts,
+    rows,
     showCreate,
     newContract,
     createErrors,
@@ -85,519 +84,217 @@ const {
     editLoading,
     openEdit,
     submitEdit,
-    pendingDelete,
-    pendingFreeze,
-    pendingSend,
-    pendingRevoke,
-    busy,
-    confirmDelete,
-    confirmFreeze,
-    confirmSend,
-    confirmRevoke,
-    documentPath,
     formatAmount,
 } = useContractsList(props);
 
-/**
- * List first here too, and for the same reason: the sealed half of this page
- * is already a table, so the list view makes it one continuous list rather
- * than cards above rows.
- */
-const { viewMode, setViewMode, storedViewMode, isNarrow, container } =
-    useListViewMode(["list", "grid"], "list");
+const steps = computed(() => ["all", ...STEPS]);
+
+const customerOptions = computed(() => [{ value: "", label: t(`${F}.list.all_customers`) }, ...props.customers]);
+const templateOptions = computed(() => [
+    { value: "", label: t(`${F}.list.all_templates`) },
+    ...[...props.bodies, ...props.annexes].map((template) => ({ value: template.value, label: template.label })),
+]);
 
 /**
- * `?amends=<id>` opens the form on an amendment of that contract.
- *
- * The document page of a concluded contract links here rather than growing its
- * own form: one screen creates contracts, and an amendment is a contract. The
- * parameter is dropped from the URL once used, so a reload does not reopen a
- * modal somebody closed.
+ * `?amends=<id>` opens the form on an amendment of that contract: the
+ * contract's own screen links here. Dropped from the address once used, so a
+ * reload does not reopen a form somebody closed.
  */
 onMounted(() => {
-    const requested = Number(
-        new URLSearchParams(window.location.search).get("amends"),
-    );
+    const params = new URLSearchParams(window.location.search);
+    const requested = Number(params.get("amends"));
 
-    if (!requested || !props.amendable.some((each) => each.id === requested)) {
-        return;
+    if (requested && props.amendable.some((each) => each.id === requested)) {
+        openCreate(requested);
     }
 
-    openCreate(requested);
-
-    const params = new URLSearchParams(window.location.search);
-    params.delete("amends");
-    const query = params.toString();
-    window.history.replaceState(
-        window.history.state,
-        "",
-        `${window.location.pathname}${query ? `?${query}` : ""}`,
-    );
+    if (params.has("amends")) {
+        params.delete("amends");
+        const query = params.toString();
+        window.history.replaceState(window.history.state, "", `${window.location.pathname}${query ? `?${query}` : ""}`);
+    }
 });
 
-/**
- * One list of actions per half of the page, two presentations for the drafts.
- *
- * The rows fold them behind a single button, like every other list in the app;
- * the draft cards keep them laid out. Defined once so the two cannot drift.
- */
-const { draftActions, sealedActions } = useContractActions();
+function showHref(contract, gesture = null) {
+    const path = buildPath(props.showPath, { id: contract.id });
 
-/**
- * The contract as the client will read it, before it is sealed.
- *
- * Fetched rather than assembled here: the substitution is the application's,
- * and a second implementation in JavaScript would be a second answer to the
- * only question that matters - what the signer will see. The server renders
- * with the real customer, the real amount and the real date; what is not
- * knowable yet comes back as a slot.
- */
-const preview = ref({
-    open: false,
-    loading: false,
-    html: "",
-    error: "",
-    unknownTokens: [],
-    reference: "",
-});
+    return gesture ? `${path}?do=${gesture}` : path;
+}
 
+/* The preview of a draft, without leaving the list. */
+const preview = ref({ open: false, loading: false, html: "", error: "", unknownTokens: [] });
 const previewHtml = computed(() => safeContractHtml(preview.value.html));
 
 async function openPreview(contract) {
-    preview.value = {
-        open: true,
-        loading: true,
-        html: "",
-        error: "",
-        unknownTokens: [],
-        reference: contract.reference ?? contract.customerName ?? "",
-    };
+    preview.value = { open: true, loading: true, html: "", error: "", unknownTokens: [] };
 
-    // Les options en troisième argument, pas en deuxième : voir l'aperçu
-    // d'une trame, qui avait la même erreur.
-    const data = await request(buildPath(props.previewPath, { id: contract.id }), null, {
-        method: HttpMethod.Get,
-    });
+    const data = await request(buildPath(props.previewPath, { id: contract.id }), null, { method: HttpMethod.Get });
+
+    preview.value = data?.success
+        ? { open: true, loading: false, html: data.html ?? "", error: "", unknownTokens: data.unknownTokens ?? [] }
+        : { open: true, loading: false, html: "", error: data?.errors?.preview ?? t(`${P}.preview_failed`), unknownTokens: [] };
+}
+
+async function duplicate(contract) {
+    const data = await request(buildPath(props.duplicatePath, { id: contract.id }), {});
 
     if (!data?.success) {
-        preview.value = {
-            ...preview.value,
-            loading: false,
-            error: data?.errors?.preview ?? t("backend.studio.contracts.preview_failed"),
-        };
+        if (data?.errors) toast.error(Object.values(data.errors)[0]);
 
         return;
     }
 
-    preview.value = {
-        ...preview.value,
-        loading: false,
-        html: data.html ?? "",
-        // Named rather than counted: these are the tokens that will stop the
-        // seal, and the author needs to know which.
-        unknownTokens: data.unknownTokens ?? [],
-    };
+    toast.success(t(`${F}.done.duplicated`));
+    if (data.showPath) window.location.assign(data.showPath);
 }
 
 /**
- * The address the export link points at.
- *
- * Built here rather than in the composable, which has no idea where the
- * application lives: the path template comes down with the page, and this is
- * the only place that holds it.
+ * What a row's menu does. Reading, exporting, editing a draft and previewing
+ * it happen here; every other gesture opens the contract's screen straight on
+ * its confirmation, so each is written once.
  */
-function exportHref(contract) {
-    return buildPath(props.exportPath, { id: contract.id });
+function bind(contract, action) {
+    const hrefs = {
+        open: showHref(contract),
+        download: buildPath(props.pdfPath, { id: contract.id }),
+        export: buildPath(props.exportPath, { id: contract.id }),
+    };
+
+    if (hrefs[action.key]) return { ...action, href: hrefs[action.key] };
+
+    const handlers = {
+        edit: () => openEdit(contract),
+        preview: () => openPreview(contract),
+        duplicate: () => duplicate(contract),
+        amend: () => openCreate(contract.id),
+    };
+
+    return handlers[action.key]
+        ? { ...action, onSelect: handlers[action.key] }
+        : { ...action, href: showHref(contract, action.key) };
 }
 
-const draftHandlers = {
-    preview: openPreview,
-    exportPath: exportHref,
-    edit: openEdit,
-    freeze: (contract) => (pendingFreeze.value = contract),
-    remove: (contract) => (pendingDelete.value = contract),
-};
+function rowActions(contract) {
+    const { next, others } = flowOf(contract, { list: true });
+    const [open, ...rest] = others;
 
-const sealedHandlers = {
-    send: (contract) => (pendingSend.value = contract),
-    revoke: (contract) => (pendingRevoke.value = contract),
-    documentPath,
-    exportPath: exportHref,
-};
-
-function draftRowActions(contract) {
-    return draftActions(contract, draftHandlers);
+    // « Ouvrir » first, then the next step, then the rest.
+    return [open, ...(next ? [next] : []), ...rest].map((action) => bind(contract, action));
 }
 
-function sealedRowActions(contract) {
-    return sealedActions(contract, sealedHandlers);
-}
-
-// One entry and still a sheet: every list in the backend opens its actions the
-// same way, and a toolbar's width belongs to the search, not to a verb.
-const pageActions = computed(() => {
-    if (!can("studio.contracts.create")) {
-        return [];
-    }
-
-    return [
-        {
-            key: "create",
-            color: "accent",
-            icon: Plus,
-            title: t("backend.studio.contracts.add"),
-            onSelect: () => openCreate(),
-        },
-    ];
-});
+const pageActions = computed(() =>
+    can("studio.contracts.create")
+        ? [{ key: "create", color: "accent", icon: Plus, title: t(`${P}.add`), onSelect: () => openCreate() }]
+        : [],
+);
 </script>
 
 <template>
-    <div ref="container" class="space-y-5">
+    <div class="space-y-4">
         <AppListToolbar>
-            <AppSearchInput
-                v-model="search"
-                :placeholder="t('backend.studio.contracts.search_placeholder')"
-            />
-            <!-- The toggle drives the drafts: sealed contracts are already a
-                 table, so list mode makes the whole page one list. It stays
-                 beside the search on a phone, where stacked under the field it
-                 read as a second filter. -->
+            <AppSearchInput v-model="search" :placeholder="t(`${F}.list.search`)" />
             <template #inline>
-                <div v-if="!isNarrow" class="flex shrink-0 border border-line rounded-lg p-0.5">
-                    <AppIconButton
-                        :title="t('shared.common.list_view')"
-                        :class="storedViewMode === 'list' ? 'bg-surface-3 text-primary' : 'text-muted hover:text-primary'"
-                        v-on:click="setViewMode('list')"
-                    >
-                        <List class="w-4 h-4" :stroke-width="2" />
-                    </AppIconButton>
-                    <AppIconButton
-                        :title="t('shared.common.grid_view')"
-                        :class="storedViewMode === 'grid' ? 'bg-surface-3 text-primary' : 'text-muted hover:text-primary'"
-                        v-on:click="setViewMode('grid')"
-                    >
-                        <LayoutGrid class="w-4 h-4" :stroke-width="2" />
-                    </AppIconButton>
+                <div class="flex flex-wrap gap-2">
+                    <AppSelect v-model="customerFilter" class="min-w-[12rem]" :options="customerOptions" />
+                    <AppSelect v-model="templateFilter" class="min-w-[12rem]" :options="templateOptions" />
                 </div>
             </template>
             <template #actions>
-                <AppPageActions
-                    v-if="pageActions.length"
-                    :actions="pageActions"
-                    class="w-full sm:w-auto"
-                />
+                <AppPageActions v-if="pageActions.length" :actions="pageActions" class="w-full sm:w-auto" />
             </template>
         </AppListToolbar>
 
-        <AppNoData
-            v-if="!drafts.length && !sealed.length"
-            :message="t('backend.studio.contracts.empty')"
-        />
+        <!-- The journey, as tabs. The count says whether a step is worth
+             opening, and the hint what it holds. -->
+        <nav class="flex flex-wrap items-center gap-1" :aria-label="t(`${P}.title`)">
+            <AppTab
+                v-for="key in steps"
+                :key="key"
+                size="sm"
+                :active="step === key"
+                :title="'all' === key ? '' : t(`${F}.steps_hint.${key}`)"
+                v-on:click="step = key"
+            >
+                {{ t(`${F}.steps.${key}`) }}
+                <span class="ml-1 tabular-nums text-muted">{{ counts[key] ?? 0 }}</span>
+            </AppTab>
+        </nav>
+        <p v-if="'all' !== step" class="text-xs text-muted">{{ t(`${F}.steps_hint.${step}`) }}</p>
 
-        <!-- Drafts first: what somebody is working on comes before history. -->
-        <section v-if="drafts.length" class="space-y-2">
-            <h2 class="text-xs font-medium uppercase tracking-wider text-muted">
-                {{ t("backend.studio.contracts.in_preparation") }}
-            </h2>
-            <div v-if="viewMode === 'grid'" class="grid gap-3 md:grid-cols-2">
-                <!-- `min-w-0` for the same reason as on the trames cards next
-                     door: a grid item is `min-width: auto`, so the single
-                     column below `md` sizes itself on the card's minimum
-                     content width rather than on the space there is. Nothing
-                     overflowed here yet, no text in this card being long
-                     enough, but a customer name in one piece would widen the
-                     track - and a widened track hangs every card in the list
-                     past the right edge, not just the one at fault. -->
-                <article
-                    v-for="contract in drafts"
-                    :key="contract.id"
-                    class="aurora-card p-4 space-y-3 min-w-0"
-                >
-                    <div class="space-y-1">
-                        <h3 class="font-medium text-primary">
-                            {{ contract.customerName }}
-                        </h3>
+        <AppNoData v-if="!rows.length" :message="'all' === step ? t(`${P}.empty`) : t(`${F}.empty_step`)" />
+
+        <div v-else class="aurora-card overflow-x-auto scrollbar-thin hidden md:block">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="bg-surface-2/50 border-b border-line/40 text-left text-xs font-medium uppercase tracking-wider text-muted">
+                        <th class="px-4 py-2">{{ t(`${F}.list.reference`) }}</th>
+                        <th class="px-4 py-2">{{ t(`${F}.list.customer`) }}</th>
+                        <th class="px-4 py-2 hidden lg:table-cell">{{ t(`${F}.list.template`) }}</th>
+                        <th class="px-4 py-2 hidden lg:table-cell">{{ t(`${F}.list.amount`) }}</th>
+                        <th class="px-4 py-2 hidden xl:table-cell">{{ t(`${F}.list.effective_date`) }}</th>
+                        <th class="px-4 py-2">{{ t(`${F}.list.status`) }}</th>
+                        <th class="px-4 py-2 hidden xl:table-cell">{{ t(`${F}.list.last_activity`) }}</th>
+                        <th class="px-4 py-2 text-right sticky right-0 bg-surface-2 border-l border-line/40">{{ t("shared.common.actions") }}</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-line/40">
+                    <tr v-for="contract in rows" :key="contract.id" class="hover:bg-surface-2/40 transition-colors">
+                        <td class="px-4 py-2 whitespace-nowrap">
+                            <a class="font-mono text-xs text-primary hover:underline" :href="showHref(contract)">
+                                {{ contract.reference ?? t(`${F}.list.draft_reference`) }}
+                            </a>
+                            <span v-if="contract.amends" class="block text-2xs text-muted">
+                                {{ t(`${F}.list.amends`, { reference: contract.amends.reference }) }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-2 text-primary">{{ contract.customerName }}</td>
+                        <td class="px-4 py-2 text-muted hidden lg:table-cell">
+                            <span class="text-primary">{{ contract.body?.templateName ?? "-" }}</span>
+                            <span v-if="contract.body" class="text-xs"> · v{{ contract.body.versionNumber }}</span>
+                            <span v-if="contract.annex" class="block text-xs">+ {{ contract.annex.templateName }}</span>
+                        </td>
+                        <td class="px-4 py-2 text-primary whitespace-nowrap tabular-nums hidden lg:table-cell">{{ formatAmount(contract) ?? "-" }}</td>
+                        <td class="px-4 py-2 text-muted text-xs whitespace-nowrap hidden xl:table-cell">
+                            {{ contract.effectiveDate ? formatDateNumeric(contract.effectiveDate) : "-" }}
+                        </td>
+                        <td class="px-4 py-2">
+                            <AppBadge :color="contractStatusColor(contract.status)">{{ t(contract.statusLabel) }}</AppBadge>
+                        </td>
+                        <td class="px-4 py-2 text-muted text-xs whitespace-nowrap hidden xl:table-cell">
+                            {{ contract.lastActivityAt ? formatDateNumeric(contract.lastActivityAt) : "-" }}
+                        </td>
+                        <td class="px-4 py-2 sticky right-0 bg-surface border-l border-line/40">
+                            <AppRowActions :actions="rowActions(contract)" :label="contract.reference ?? contract.customerName ?? ''" />
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- The same rows as cards on a phone. -->
+        <div v-if="rows.length" class="space-y-2 md:hidden">
+            <article v-for="contract in rows" :key="contract.id" class="aurora-card p-3 space-y-2 min-w-0">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <a class="font-mono text-xs text-primary hover:underline" :href="showHref(contract)">
+                            {{ contract.reference ?? t(`${F}.list.draft_reference`) }}
+                        </a>
+                        <p class="font-medium text-primary break-words">{{ contract.customerName }}</p>
                         <p class="text-xs text-muted">
-                            {{ contract.body?.templateName ?? "-" }}
-                            <span v-if="contract.body">
-                                ·
-                                {{
-                                    t("backend.studio.contracts.version_label", {
-                                        number: contract.body.versionNumber,
-                                    })
-                                }}
-                            </span>
-                            <span v-if="formatAmount(contract)">
-                                · {{ formatAmount(contract) }}
-                            </span>
-                        </p>
-                        <p v-if="contract.annex" class="text-xs text-muted">
-                            {{ t("backend.studio.contracts.with_annex", {
-                                name: contract.annex.templateName,
-                            }) }}
+                            {{ contract.body?.templateName ?? "-" }}<template v-if="formatAmount(contract)"> · {{ formatAmount(contract) }}</template>
                         </p>
                     </div>
+                    <AppBadge :color="contractStatusColor(contract.status)">{{ t(contract.statusLabel) }}</AppBadge>
+                </div>
+                <div class="border-t border-line/40 pt-2">
+                    <AppCardActions :actions="rowActions(contract)" />
+                </div>
+            </article>
+        </div>
 
-                    <!-- A draft pinned to an older version is not wrong, but it
-                         is a choice somebody should see and be able to redo. -->
-                    <p
-                        v-if="contract.body?.isOutdated || contract.annex?.isOutdated"
-                        class="flex items-start gap-2 text-xs text-amber-500"
-                    >
-                        <AlertTriangle class="w-3.5 h-3.5 shrink-0 mt-0.5" :stroke-width="2" />
-                        {{ t("backend.studio.contracts.outdated_version") }}
-                    </p>
+        <AppPagination v-if="totalPages > 1" :page="page" :total-pages="totalPages" v-on:change="page = $event" />
 
-                    <!-- Les mêmes gestes que la ligne, écrits plutôt que
-                         repliés : une carte a la place, et sceller garde son
-                         poids - c'est celui qui ne se défait pas - par sa
-                         couleur ambre, que la liste des gestes reprend de la
-                         feuille. -->
-                    <div class="pt-1 border-t border-line/40">
-                        <AppCardActions :actions="draftRowActions(contract)" />
-                    </div>
-                </article>
-            </div>
-
-            <!-- The same drafts as rows. No colour: the one thing worth
-                 flagging here is a version left behind, and it says so in
-                 words. -->
-            <div
-                v-else
-                class="aurora-card overflow-x-auto scrollbar-thin"
-            >
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr class="bg-surface-2/50 border-b border-line/40">
-                            <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">
-                                {{ t("backend.studio.contracts.col_customer") }}
-                            </th>
-                            <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">
-                                {{ t("backend.studio.contracts.body") }}
-                            </th>
-                            <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">
-                                {{ t("backend.studio.contracts.annex") }}
-                            </th>
-                            <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden md:table-cell">
-                                {{ t("backend.studio.contracts.amount") }}
-                            </th>
-                            <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden xl:table-cell">
-                                {{ t("backend.studio.contracts.effective_date") }}
-                            </th>
-                            <!-- Named, and the only column aligned right: it is
-                                 where the hand goes, not something to read
-                                 across with the rest. -->
-                            <th class="px-4 py-2 text-right text-xs font-medium uppercase tracking-wider text-muted sticky right-0 bg-surface-2 border-l border-line/40">
-                                {{ t("shared.common.actions") }}
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-line/40">
-                        <tr
-                            v-for="contract in drafts"
-                            :key="contract.id"
-                            class="hover:bg-surface-2/40 transition-colors"
-                        >
-                            <td class="px-4 py-2 text-primary">
-                                {{ contract.customerName }}
-                            </td>
-                            <td class="px-4 py-2 text-muted">
-                                <span class="text-primary">
-                                    {{ contract.body?.templateName ?? "-" }}
-                                </span>
-                                <span v-if="contract.body" class="text-xs">
-                                    ·
-                                    {{
-                                        t("backend.studio.contracts.version_label", {
-                                            number: contract.body.versionNumber,
-                                        })
-                                    }}
-                                </span>
-                                <span
-                                    v-if="contract.body?.isOutdated || contract.annex?.isOutdated"
-                                    class="block text-xs text-amber-500"
-                                >
-                                    {{ t("backend.studio.contracts.outdated_version") }}
-                                </span>
-                            </td>
-                            <td class="px-4 py-2 text-muted hidden lg:table-cell">
-                                {{ contract.annex?.templateName ?? "-" }}
-                            </td>
-                            <td class="px-4 py-2 text-primary hidden md:table-cell whitespace-nowrap">
-                                {{ formatAmount(contract) || "-" }}
-                            </td>
-                            <td class="px-4 py-2 text-muted text-xs hidden xl:table-cell whitespace-nowrap">
-                                {{
-                                    contract.effectiveDate
-                                        ? formatDateNumeric(contract.effectiveDate)
-                                        : "-"
-                                }}
-                            </td>
-                            <td class="px-4 py-2 sticky right-0 bg-surface border-l border-line/40">
-                                <AppRowActions
-                                    :actions="draftRowActions(contract)"
-                                    :label="contract.customerName ?? ''"
-                                />
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <section v-if="sealed.length" class="space-y-2">
-            <h2 class="text-xs font-medium uppercase tracking-wider text-muted">
-                {{ t("backend.studio.contracts.sealed") }}
-            </h2>
-            <div
-                v-if="!isNarrow"
-                class="aurora-card overflow-x-auto scrollbar-thin"
-            >
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr class="bg-surface-2/50 border-b border-line/40">
-                            <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">
-                                {{ t("backend.studio.contracts.col_reference") }}
-                            </th>
-                            <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted">
-                                {{ t("backend.studio.contracts.col_customer") }}
-                            </th>
-                            <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden md:table-cell">
-                                {{ t("backend.studio.contracts.col_status") }}
-                            </th>
-                            <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden lg:table-cell">
-                                {{ t("backend.studio.contracts.col_sealed_at") }}
-                            </th>
-                            <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider text-muted hidden xl:table-cell">
-                                {{ t("backend.studio.contracts.col_link") }}
-                            </th>
-                            <th class="px-4 py-2 text-right text-xs font-medium uppercase tracking-wider text-muted sticky right-0 bg-surface-2 border-l border-line/40">
-                                {{ t("shared.common.actions") }}
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-line/40">
-                        <tr
-                            v-for="contract in sealed"
-                            :key="contract.id"
-                            class="hover:bg-surface-2/40 transition-colors"
-                        >
-                            <td class="px-4 py-2 font-mono text-xs text-primary whitespace-nowrap">
-                                {{ contract.reference }}
-                                <!-- An amendment reads as what it changes: the
-                                     reference already carries the parentage,
-                                     and this says it in words. -->
-                                <span v-if="contract.amends" class="block text-2xs text-muted">
-                                    {{
-                                        t("backend.studio.contracts.amends_short", {
-                                            reference: contract.amends.reference,
-                                        })
-                                    }}
-                                </span>
-                                <span v-if="contract.termination" class="block text-2xs text-amber-500">
-                                    {{
-                                        t("backend.studio.contracts.terminated_short", {
-                                            date: formatDateNumeric(contract.termination.effectiveAt),
-                                        })
-                                    }}
-                                </span>
-                            </td>
-                            <td class="px-4 py-2 text-primary">
-                                {{ contract.customerName }}
-                            </td>
-                            <td class="px-4 py-2 text-muted hidden md:table-cell">
-                                {{ t(contract.statusLabel) }}
-                            </td>
-                            <td class="px-4 py-2 text-muted text-xs hidden lg:table-cell whitespace-nowrap">
-                                {{
-                                    contract.frozenAt
-                                        ? formatDateNumeric(contract.frozenAt)
-                                        : "-"
-                                }}
-                            </td>
-                            <!-- The one thing a link answers that nothing else
-                                 can: whether the customer ever opened it. -->
-                            <td class="px-4 py-2 text-xs hidden xl:table-cell">
-                                <template v-if="contract.link">
-                                    <div class="text-primary truncate max-w-[14rem]">
-                                        {{ contract.link.recipientEmail }}
-                                    </div>
-                                    <div
-                                        class="flex items-center gap-1"
-                                        :class="
-                                            contract.link.firstOpenedAt
-                                                ? 'text-emerald-500'
-                                                : 'text-muted'
-                                        "
-                                    >
-                                        <MailCheck
-                                            v-if="contract.link.firstOpenedAt"
-                                            class="w-3 h-3 shrink-0"
-                                            :stroke-width="2"
-                                        />
-                                        {{
-                                            contract.link.firstOpenedAt
-                                                ? t("backend.studio.contracts.link_opened_at", {
-                                                    date: formatDateNumeric(
-                                                        contract.link.firstOpenedAt,
-                                                    ),
-                                                })
-                                                : t("backend.studio.contracts.link_never_opened")
-                                        }}
-                                    </div>
-                                </template>
-                                <span v-else class="text-muted">
-                                    {{ t("backend.studio.contracts.no_link") }}
-                                </span>
-                            </td>
-                            <td class="px-4 py-2 sticky right-0 bg-surface border-l border-line/40">
-                                <AppRowActions
-                                    :actions="sealedRowActions(contract)"
-                                    :label="contract.reference ?? ''"
-                                />
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div v-else class="space-y-2">
-                <article
-                    v-for="contract in sealed"
-                    :key="contract.id"
-                    class="aurora-card p-3 space-y-2.5"
-                >
-                    <div class="flex items-start justify-between gap-3">
-                        <div class="min-w-0">
-                            <p class="font-mono text-xs text-primary">{{ contract.reference }}</p>
-                            <p class="font-medium text-primary break-words">{{ contract.customerName }}</p>
-                            <p v-if="contract.amends" class="text-2xs text-muted">
-                                {{ t("backend.studio.contracts.amends_short", { reference: contract.amends.reference }) }}
-                            </p>
-                            <p v-if="contract.termination" class="text-2xs text-amber-500">
-                                {{ t("backend.studio.contracts.terminated_short", {
-                                    date: formatDateNumeric(contract.termination.effectiveAt),
-                                }) }}
-                            </p>
-                        </div>
-                        <span class="text-xs text-muted shrink-0">{{ t(contract.statusLabel) }}</span>
-                    </div>
-
-                    <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
-                        <span v-if="contract.frozenAt">{{ formatDateNumeric(contract.frozenAt) }}</span>
-                        <span v-if="contract.link">{{ contract.link.recipientEmail }}</span>
-                    </p>
-
-                    <div class="border-t border-line/40 pt-2">
-                        <AppCardActions :actions="sealedRowActions(contract)" />
-                    </div>
-                </article>
-            </div>
-        </section>
-
-        <!-- The document before it is sealed. Wide, because line length is
-             part of what somebody proofreading is checking. -->
+        <!-- The document before it is sealed, without leaving the list. -->
         <AppModal
             :show="preview.open"
             max-width="4xl"
@@ -649,11 +346,13 @@ const pageActions = computed(() => {
             :show="showCreate"
             max-width="lg"
             :closeable="false"
-            :title="t('backend.studio.contracts.create')"
+            :title="t(`${P}.create`)"
             :icon="FileSignature"
             v-on:close="showCreate = false"
         >
             <form v-on:submit.prevent="submitCreate">
+                <!-- The parent only when coming from a contract: an amendment
+                     is started from what it amends, not from this form. -->
                 <ContractFormFields
                     v-model="newContract"
                     :errors="createErrors"
@@ -662,7 +361,7 @@ const pageActions = computed(() => {
                     :annexes="annexes"
                     :locales="locales"
                     :currencies="currencies"
-                    :amendable="amendable"
+                    :amendable="newContract.amendsId ? amendable : []"
                 />
             </form>
             <template #footer>
@@ -671,12 +370,7 @@ const pageActions = computed(() => {
                         <X class="w-3.5 h-3.5" :stroke-width="2" />
                         {{ t("shared.common.cancel") }}
                     </AppButton>
-                    <AppButton
-                        variant="primary"
-                        size="md"
-                        :loading="createLoading"
-                        v-on:click="submitCreate"
-                    >
+                    <AppButton variant="primary" size="md" :loading="createLoading" v-on:click="submitCreate">
                         <Save class="w-3.5 h-3.5" :stroke-width="2" />
                         {{ t("shared.common.save") }}
                     </AppButton>
@@ -688,7 +382,7 @@ const pageActions = computed(() => {
             :show="showEdit"
             max-width="lg"
             :closeable="false"
-            :title="t('backend.studio.contracts.edit', { name: editing?.customerName ?? '' })"
+            :title="t(`${P}.edit`, { name: editing?.customerName ?? '' })"
             :icon="Pencil"
             v-on:close="showEdit = false"
         >
@@ -696,6 +390,7 @@ const pageActions = computed(() => {
                 <ContractFormFields
                     v-model="editForm"
                     :errors="editErrors"
+                    :amendable="editForm.amendsId ? amendable : []"
                     :customers="customers"
                     :bodies="bodies"
                     :annexes="annexes"
@@ -709,158 +404,9 @@ const pageActions = computed(() => {
                         <X class="w-3.5 h-3.5" :stroke-width="2" />
                         {{ t("shared.common.cancel") }}
                     </AppButton>
-                    <AppButton
-                        variant="primary"
-                        size="md"
-                        :loading="editLoading"
-                        v-on:click="submitEdit"
-                    >
+                    <AppButton variant="primary" size="md" :loading="editLoading" v-on:click="submitEdit">
                         <Save class="w-3.5 h-3.5" :stroke-width="2" />
                         {{ t("shared.common.save") }}
-                    </AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
-
-        <AppModal
-            :show="!!pendingFreeze"
-            max-width="md"
-            :closeable="false"
-            :title="t('backend.studio.contracts.freeze')"
-            :icon="Lock"
-            v-on:close="pendingFreeze = null"
-        >
-            <p class="text-sm text-primary">
-                {{
-                    t("backend.studio.contracts.freeze_confirm", {
-                        name: pendingFreeze?.customerName ?? "",
-                    })
-                }}
-            </p>
-            <!-- The consequence, before the click. This is the one irreversible
-                 action on the page. -->
-            <p class="text-sm text-secondary">
-                {{ t("backend.studio.contracts.freeze_warning") }}
-            </p>
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton variant="ghost" size="md" v-on:click="pendingFreeze = null">
-                        <X class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ t("shared.common.cancel") }}
-                    </AppButton>
-                    <AppButton
-                        variant="primary"
-                        size="md"
-                        :loading="busy"
-                        v-on:click="confirmFreeze"
-                    >
-                        <Lock class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ t("backend.studio.contracts.freeze") }}
-                    </AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
-
-        <AppModal
-            :show="!!pendingSend"
-            max-width="md"
-            :closeable="false"
-            :title="t('backend.studio.contracts.send')"
-            :icon="Mail"
-            v-on:close="pendingSend = null"
-        >
-            <p class="text-sm text-primary">
-                {{
-                    t("backend.studio.contracts.send_confirm", {
-                        email: pendingSend?.link?.recipientEmail ?? "",
-                    })
-                }}
-            </p>
-            <p class="text-sm text-secondary">
-                {{ t("backend.studio.contracts.send_warning") }}
-            </p>
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton variant="ghost" size="md" v-on:click="pendingSend = null">
-                        <X class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ t("shared.common.cancel") }}
-                    </AppButton>
-                    <AppButton
-                        variant="primary"
-                        size="md"
-                        :loading="busy"
-                        v-on:click="confirmSend"
-                    >
-                        <Mail class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ t("backend.studio.contracts.send") }}
-                    </AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
-
-        <AppModal
-            :show="!!pendingRevoke"
-            max-width="md"
-            :closeable="false"
-            :title="t('backend.studio.contracts.revoke_link')"
-            :icon="Ban"
-            v-on:close="pendingRevoke = null"
-        >
-            <p class="text-sm text-primary">
-                {{
-                    t("backend.studio.contracts.revoke_link_confirm", {
-                        email: pendingRevoke?.link?.recipientEmail ?? "",
-                    })
-                }}
-            </p>
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton variant="ghost" size="md" v-on:click="pendingRevoke = null">
-                        <X class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ t("shared.common.cancel") }}
-                    </AppButton>
-                    <AppButton
-                        variant="danger"
-                        size="md"
-                        :loading="busy"
-                        v-on:click="confirmRevoke"
-                    >
-                        <Ban class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ t("backend.studio.contracts.revoke_link") }}
-                    </AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
-
-        <AppModal
-            :show="!!pendingDelete"
-            max-width="sm"
-            :closeable="false"
-            :title="t('shared.common.delete')"
-            :icon="Trash2"
-            v-on:close="pendingDelete = null"
-        >
-            <p class="text-sm text-primary">
-                {{
-                    t("backend.studio.contracts.delete_confirm", {
-                        name: pendingDelete?.customerName ?? "",
-                    })
-                }}
-            </p>
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton variant="ghost" size="md" v-on:click="pendingDelete = null">
-                        <X class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ t("shared.common.cancel") }}
-                    </AppButton>
-                    <AppButton
-                        variant="danger"
-                        size="md"
-                        :loading="busy"
-                        v-on:click="confirmDelete"
-                    >
-                        <Trash2 class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ t("shared.common.delete") }}
                     </AppButton>
                 </AppModalFooter>
             </template>

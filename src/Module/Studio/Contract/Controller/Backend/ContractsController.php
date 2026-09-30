@@ -32,6 +32,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -98,7 +99,11 @@ class ContractsController extends AbstractController
                 return $this->frozenRefusal();
             }
 
-            return $this->jsonSuccess($this->viewBuilder->listPayload());
+            // The list takes the rows, the contract's own screen the document.
+            return $this->jsonSuccess([
+                ...$this->viewBuilder->listPayload(),
+                'contract' => $this->serializer->serializeDocument($contract),
+            ]);
         });
     }
 
@@ -136,7 +141,13 @@ class ContractsController extends AbstractController
             ]);
         }
 
-        return $this->jsonSuccess($this->contractManager->preview($contract));
+        // A trame without a text in the contract's language, or a block it
+        // cannot print, is said on the preview rather than answered with a 500.
+        try {
+            return $this->jsonSuccess($this->contractManager->preview($contract));
+        } catch (FieldException $fieldException) {
+            return $this->jsonInvalidInput(['preview' => $fieldException->getMessage()]);
+        }
     }
 
     /**
@@ -159,7 +170,7 @@ class ContractsController extends AbstractController
         }
 
         return $this->jsonSuccess([
-            'contract' => $this->serializer->serialize($contract),
+            'contract' => $this->serializer->serializeDocument($contract),
             'contracts' => $this->viewBuilder->contracts(),
             'showPath' => $this->generateUrl('backend_studio_contracts_show', ['id' => $contract->getId()]),
         ]);
@@ -180,12 +191,86 @@ class ContractsController extends AbstractController
             $link = $this->accessLinks->send($contract);
         } catch (FieldException $fieldException) {
             return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
+        } catch (TransportExceptionInterface) {
+            // The mail did not leave, and nothing changed: the previous link
+            // still opens the contract and no new one is live. Said as such
+            // rather than as a 500.
+            return $this->jsonInvalidInput(['status' => $this->translator->trans('backend.studio.contracts.errors.mail_failed')]);
         }
 
         return $this->jsonSuccess([
-            'contract' => $this->serializer->serialize($contract),
+            'contract' => $this->serializer->serializeDocument($contract),
             'contracts' => $this->viewBuilder->contracts(),
             'sentTo' => $link->getRecipientEmail(),
+        ]);
+    }
+
+    /**
+     * Chases the customer by hand, with a new address as the scheduled
+     * reminder does. Only while the contract is out with them: before, it is
+     * a first send; after, there is nothing left to ask.
+     */
+    #[Route('/{id}/remind', name: '_remind', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.contracts.send')]
+    public function remind(Contract $contract): JsonResponse
+    {
+        if (!$contract->getStatus()->isWaitingForCustomer()) {
+            return $this->jsonInvalidInput(['status' => $this->translator->trans('backend.studio.contracts.errors.nothing_to_remind')]);
+        }
+
+        try {
+            $link = $this->accessLinks->remind($contract);
+        } catch (FieldException $fieldException) {
+            return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
+        } catch (TransportExceptionInterface) {
+            // The mail did not leave, and nothing changed: the previous link
+            // still opens the contract and no new one is live. Said as such
+            // rather than as a 500.
+            return $this->jsonInvalidInput(['status' => $this->translator->trans('backend.studio.contracts.errors.mail_failed')]);
+        }
+
+        return $this->jsonSuccess([
+            'contract' => $this->serializer->serializeDocument($contract),
+            'contracts' => $this->viewBuilder->contracts(),
+            'sentTo' => $link->getRecipientEmail(),
+        ]);
+    }
+
+    /**
+     * Withdraws a sealed contract nobody has signed. Under `edit`: nothing is
+     * destroyed, the document and its reference stay, marked « Annulé ».
+     */
+    #[Route('/{id}/cancel', name: '_cancel', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.contracts.edit')]
+    public function cancel(Contract $contract): JsonResponse
+    {
+        try {
+            $this->contractManager->cancel($contract);
+        } catch (FieldException $fieldException) {
+            return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
+        }
+
+        return $this->jsonSuccess([
+            'contract' => $this->serializer->serializeDocument($contract),
+            'contracts' => $this->viewBuilder->contracts(),
+        ]);
+    }
+
+    /** A new draft with the same choices, to correct and seal again. */
+    #[Route('/{id}/duplicate', name: '_duplicate', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.contracts.create')]
+    public function duplicate(Contract $contract): JsonResponse
+    {
+        try {
+            $copy = $this->contractManager->duplicate($contract);
+        } catch (FieldException $fieldException) {
+            return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
+        }
+
+        return $this->jsonSuccess([
+            'contract' => $this->serializer->serializeDocument($copy),
+            'contracts' => $this->viewBuilder->contracts(),
+            'showPath' => $this->generateUrl('backend_studio_contracts_show', ['id' => $copy->getId()]),
         ]);
     }
 
@@ -241,7 +326,7 @@ class ContractsController extends AbstractController
         $this->accessLinks->revoke($link);
 
         return $this->jsonSuccess([
-            'contract' => $this->serializer->serialize($contract),
+            'contract' => $this->serializer->serializeDocument($contract),
             'contracts' => $this->viewBuilder->contracts(),
         ]);
     }
@@ -283,7 +368,15 @@ class ContractsController extends AbstractController
             return $this->storedPdf($contract);
         }
 
-        $response = new Response($this->pdfExporter->render($contract));
+        try {
+            $bytes = $this->pdfExporter->render($contract);
+        } catch (FieldException $fieldException) {
+            // Opened as a download, so the reason comes back as readable text
+            // rather than as the 500 it used to be.
+            return new Response($fieldException->getMessage(), Response::HTTP_UNPROCESSABLE_ENTITY, ['Content-Type' => 'text/plain; charset=UTF-8']);
+        }
+
+        $response = new Response($bytes);
         $response->headers->set('Content-Type', 'application/pdf');
         $response->headers->set('Content-Disposition', $response->headers->makeDisposition(
             ResponseHeaderBag::DISPOSITION_ATTACHMENT,
@@ -372,8 +465,11 @@ class ContractsController extends AbstractController
             return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
         }
 
+        // The whole document, as `terminate` answers: the screen replaces its
+        // state with this, and the short form has no seal, so the page used to
+        // announce a broken seal the moment the contract was concluded.
         return $this->jsonSuccess([
-            'contract' => $this->serializer->serialize($contract),
+            'contract' => $this->serializer->serializeDocument($contract),
             'contracts' => $this->viewBuilder->contracts(),
         ]);
     }

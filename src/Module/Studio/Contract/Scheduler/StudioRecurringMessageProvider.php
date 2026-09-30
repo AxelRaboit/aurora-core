@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\Contract\Scheduler;
 
 use Aurora\Core\Scheduler\RecurringMessageProviderInterface;
+use Aurora\Module\Studio\Contract\Message\ExpireLapsedContractsMessage;
 use Aurora\Module\Studio\Contract\Message\RemindUnsignedContractsMessage;
+use Aurora\Module\Studio\Contract\Message\VerifyContractsMessage;
 use Symfony\Component\Scheduler\RecurringMessage;
 
 /**
@@ -25,5 +27,11 @@ final class StudioRecurringMessageProvider implements RecurringMessageProviderIn
     public function getRecurringMessages(): iterable
     {
         yield RecurringMessage::cron('15 7 * * *', new RemindUnsignedContractsMessage());
+        // Before the reminders, so a contract that lapsed overnight is not
+        // chased the same morning.
+        yield RecurringMessage::cron('10 7 * * *', new ExpireLapsedContractsMessage());
+        // Early, and quiet unless a sealed contract moved: then the
+        // administrator has the list in the first mail of the day.
+        yield RecurringMessage::cron('5 6 * * *', new VerifyContractsMessage());
     }
 }

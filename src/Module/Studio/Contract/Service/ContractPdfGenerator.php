@@ -51,6 +51,7 @@ final readonly class ContractPdfGenerator
         private Environment $twig,
         private StorageManager $storageManager,
         private LocalWorkspace $workspace,
+        private ContractSignedDocument $signedDocument,
     ) {}
 
     /**
@@ -89,6 +90,21 @@ final readonly class ContractPdfGenerator
         // would be a second call for the same bytes, and on a remote backend a
         // billed one.
         return ['path' => $relative, 'hash' => hash('sha256', $bytes)];
+    }
+
+    /**
+     * Takes back a file whose contract was not saved as concluded.
+     *
+     * The one case where a signed PDF may be deleted: it was written a moment
+     * ago, the save that would have attached it failed, and nobody holds it.
+     */
+    public function remove(string $relative): void
+    {
+        $adapter = $this->storageManager->active();
+
+        if ($adapter->exists($relative)) {
+            $adapter->delete($relative);
+        }
     }
 
     /**
@@ -196,7 +212,10 @@ final readonly class ContractPdfGenerator
             'contract' => $contract,
             'customer' => $contract->getCustomer(),
             'signatures' => $signatures,
-            'documentHtml' => $documentHtml,
+            // « Fait à …, le … » filled from the signature, both in the signed
+            // file and in a working copy, where it stays a dotted blank until
+            // the customer has signed.
+            'documentHtml' => $this->signedDocument->fill($contract, $documentHtml, $signatures),
             // Says which of the two files the reader is holding. A PDF that
             // leaves the building without saying it is a working copy is the
             // one way this feature could do harm.

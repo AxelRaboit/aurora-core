@@ -20,6 +20,7 @@ use Aurora\Module\Studio\Contract\Enum\ContractTemplateKindEnum;
 use Aurora\Module\Studio\Contract\Enum\ContractTerminationOriginEnum;
 use Aurora\Module\Studio\Contract\Manager\ContractManager;
 use Aurora\Module\Studio\Contract\Manager\ContractTemplateManager;
+use Aurora\Module\Studio\Contract\Preview\ContractTemplatePreviewer;
 use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\Contract\Repository\ContractTemplateRepository;
 use Aurora\Module\Studio\Contract\Repository\ContractTemplateVersionRepository;
@@ -85,12 +86,13 @@ final class ContractAmendmentTest extends IntegrationTestCase
             $container->get(ContractTemplateVersionRepository::class),
             $container->get(TranslatorInterface::class),
             $container->get(ContractRepository::class),
+            $container->get(ContractTemplatePreviewer::class),
         );
 
         $this->contracts = new ContractManager(
             $this->entityManager,
             $container->get(AuditLogger::class),
-            new ContractVariableResolver(new ContractVariableCatalogue(), $settings),
+            new ContractVariableResolver(new ContractVariableCatalogue(), $settings, static::getContainer()->get(TranslatorInterface::class)),
             new ContractDocumentRenderer(new BlockHtmlSanitizer()),
             $canonicalizer,
             new ContractSeal($canonicalizer),
@@ -367,19 +369,37 @@ final class ContractAmendmentTest extends IntegrationTestCase
     }
 
     /** A terminated contract has nothing left to modify. */
-    public function testATerminatedContractCannotBeAmended(): void
+    public function testAContractWhoseTerminationHasTakenEffectCannotBeAmended(): void
     {
         $contract = $this->concludedContract();
 
         $this->contracts->terminate($contract, new ContractTerminationInput(
-            noticedAt: '2026-09-30',
-            effectiveAt: '2026-10-31',
+            noticedAt: '2026-08-01',
+            effectiveAt: '2026-09-01',
             origin: ContractTerminationOriginEnum::Customer->value,
         ));
 
         $this->expectException(FieldException::class);
 
         $this->amendmentOf($contract);
+    }
+
+    /**
+     * During the notice the contract still binds, and an amendment is how its
+     * last months get changed: refused from the day notice was given, it
+     * could not be.
+     */
+    public function testAContractCanBeAmendedDuringItsNotice(): void
+    {
+        $contract = $this->concludedContract();
+
+        $this->contracts->terminate($contract, new ContractTerminationInput(
+            noticedAt: new DateTimeImmutable('today')->format('Y-m-d'),
+            effectiveAt: new DateTimeImmutable('+2 months')->format('Y-m-d'),
+            origin: ContractTerminationOriginEnum::Customer->value,
+        ));
+
+        self::assertTrue($this->amendmentOf($contract)->isAmendment());
     }
 
     /**

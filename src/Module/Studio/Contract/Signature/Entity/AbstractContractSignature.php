@@ -128,6 +128,19 @@ abstract class AbstractContractSignature implements ContractSignatureInterface
     protected ?DateTimeImmutable $challengeVerifiedAt = null;
 
     /**
+     * The address the verified code was mailed to, as it was at that moment.
+     *
+     * Copied from the code rather than read from the customer: the signed
+     * PDF used to print the customer's current address, so a contractual
+     * email changed between the signature and the countersignature made the
+     * document certify a code sent to a mailbox that never received it. Null
+     * for a provider, and for signatures older than the column that no code
+     * could be traced back to.
+     */
+    #[ORM\Column(length: 180, nullable: true)]
+    protected ?string $challengeSentTo = null;
+
+    /**
      * The account that signed, for the provider.
      *
      * The counterpart of the mailed code: a session rather than a mailbox, and
@@ -347,6 +360,18 @@ abstract class AbstractContractSignature implements ContractSignatureInterface
         $this->assertUnrecorded();
 
         $this->linkSelector = $linkSelector;
+
+        return $this;
+    }
+
+    public function getChallengeSentTo(): ?string
+    {
+        return $this->challengeSentTo;
+    }
+
+    public function setChallengeSentTo(?string $challengeSentTo): static
+    {
+        $this->challengeSentTo = $challengeSentTo;
 
         return $this;
     }

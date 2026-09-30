@@ -139,7 +139,15 @@ export function useSettingsForm(groups, availableGroups, updatePath) {
                 );
 
                 if (!result.success) {
-                    if (result.error === SettingErrorCode.CascadeViolation) {
+                    if (result.error === SettingErrorCode.InvalidPrefix) {
+                        toast.error(
+                            t("backend.settings.invalid_prefix", {
+                                label: parameter.label ?? parameter.key,
+                            }),
+                        );
+                    } else if (
+                        result.error === SettingErrorCode.CascadeViolation
+                    ) {
                         const parent = parameterByKey[result.parentKey];
                         toast.error(
                             t("backend.settings.cascade_locked", {
@@ -152,6 +160,10 @@ export function useSettingsForm(groups, availableGroups, updatePath) {
                     return;
                 }
 
+                // The server may have tidied the value (a prefix is upper-cased):
+                // show what it kept.
+                if (typeof result.value === "string")
+                    fieldValues[parameter.key] = result.value;
                 initialValues[parameter.key] = fieldValues[parameter.key];
             }
 

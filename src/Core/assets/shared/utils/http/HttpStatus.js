@@ -8,5 +8,6 @@ export const HttpStatus = Object.freeze({
     NotFound: 404,
     UnprocessableEntity: 422,
     Conflict: 409,
+    TooManyRequests: 429,
     InternalServerError: 500,
 });

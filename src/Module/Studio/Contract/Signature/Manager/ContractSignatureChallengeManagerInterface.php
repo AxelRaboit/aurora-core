@@ -24,4 +24,7 @@ interface ContractSignatureChallengeManagerInterface
      * @throws FieldException for every refusal, all worded identically
      */
     public function verify(ContractAccessLinkInterface $link, string $code): DateTimeImmutable;
+
+    /** Where the latest code of the link was sent, read before verifying it. */
+    public function recipientOf(ContractAccessLinkInterface $link): ?string;
 }

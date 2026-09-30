@@ -15,7 +15,8 @@ backend:
             changes_requested: À reprendre
             with_client: Chez le client
             upcoming: "À paraître sous 7 jours"
-            awaiting_signature: Contrats à signer
+            awaiting_countersignature: Contrats à contresigner
+            awaiting_signature: Contrats chez le client
             decks: Présentations
             scope_label: Espaces comptés
             scopes:
@@ -121,11 +122,14 @@ backend:
                     frozen: Contrat scellé
                     link_sent: Lien de signature envoyé
                     link_revoked: Lien de signature révoqué
+                    expired: Contrat expiré sans signature
+                    cancelled: Contrat annulé
+                    duplicated: Contrat dupliqué en brouillon
                     reminder_sent: Relance envoyée au client
                     refused: Contrat refusé par le client
                     terminated: Contrat résilié
                     signed_by_customer: 'Contrat signé par le client'
-                    countersigned: 'Contrat contresigné et conclu'
+                    countersigned: 'Contrat conclu'
                     deleted: Contrat supprimé
     permissions:
         names:
@@ -211,7 +215,7 @@ backend:
             deleted: Contrat supprimé.
             empty: Aucun contrat pour le moment.
             search_placeholder: Rechercher par référence ou par client…
-            draft_title: Contrat en préparation
+            draft_title: Brouillon de contrat
             in_preparation: En préparation
             sealed: Scellés
             customer: Client
@@ -255,7 +259,8 @@ backend:
             export_pdf: 'Exporter en PDF'
             countersign: 'Contresigner'
             countersign_intro: 'Votre contresignature conclut le contrat. Le client en sera informé par email.'
-            countersigned: 'Contrat contresigné et conclu.'
+            countersign_consent: 'J''ai relu le contrat et la signature du client, et j''en accepte les termes. Ma signature électronique a la même valeur qu''une signature manuscrite.'
+            countersigned: 'Contrat conclu.'
             send: Envoyer au client
             send_confirm: 'Envoyer le contrat à {email} ?'
             send_warning: 'Un lien secret part par email. Tout lien envoyé auparavant est révoqué : il n''y a jamais qu''une seule adresse valide.'
@@ -308,7 +313,7 @@ backend:
                 edit_description: Modifie le brouillon. Rien n'est scellé tant qu'on ne le demande pas.
                 freeze_description: Fige le texte, tire la référence et rend le contrat envoyable. Définitif.
                 delete_description: Supprime le brouillon. Rien n'a encore été envoyé au client.
-                send_description: Envoie au client un lien de signature à usage unique.
+                send_description: 'Envoie au client un lien de signature, valable trente jours.'
                 revoke_description: Coupe le lien en cours. Ses codes de vérification tombent avec lui.
                 preview_description: Montre le document tel que le client le lira, avant scellement.
                 document_description: Ouvre le document scellé et son bloc de preuve.
@@ -322,16 +327,159 @@ backend:
             seal_algo: Algorithme et forme canonique
             seal_sealed_at: Scellé le
             deferred_tokens_hint: 'La ville et la date de signature restent des variables : c''est le signataire qui les déclarera.'
+            flow:
+                next_step: Prochaine étape
+                more_actions: Autres actions
+                list:
+                    reference: Référence
+                    customer: Client
+                    template: Trame
+                    amount: Montant
+                    effective_date: Prise d'effet
+                    status: Où il en est
+                    last_activity: Dernière activité
+                    all_customers: Tous les clients
+                    all_templates: Toutes les trames
+                    search: 'Rechercher par référence, client ou trame…'
+                    draft_reference: Brouillon
+                    amends: 'avenant à {reference}'
+                steps:
+                    all: Tous
+                    draft: Brouillons
+                    to_send: À envoyer
+                    with_customer: Chez le client
+                    to_countersign: À contresigner
+                    active: En cours
+                    ended: Terminés
+                steps_hint:
+                    draft: 'En cours de rédaction : le texte suit encore les trames.'
+                    to_send: 'Scellés, ou revenus après un refus, une expiration ou une révocation : à envoyer, ou à annuler.'
+                    with_customer: Partis chez le client, qui n'a pas encore répondu.
+                    to_countersign: 'Signés par le client : ils attendent votre contresignature.'
+                    active: 'Conclus et en vigueur, préavis compris.'
+                    ended: Résiliés ou annulés.
+                empty_step: Aucun contrat à cette étape.
+                summary:
+                    waiting: 'Chez le client, en attente de sa signature.'
+                    concluded_no_pdf: 'Conclu.'
+                    draft: 'Brouillon. Relisez-le, puis scellez-le : le texte sera figé et le contrat recevra sa référence.'
+                    sealed: 'Scellé le {date}. Le texte est figé ; envoyez-le au client pour qu''il le signe.'
+                    refused: 'Refusé par le client le {date}. Renvoyez-le tel quel, ou annulez-le et corrigez sa copie.'
+                    expired: 'Le lien a expiré sans signature. Renvoyez-le, ou annulez le contrat.'
+                    revoked: 'Le lien a été révoqué. Renvoyez-le, ou annulez le contrat.'
+                    sent: 'Envoyé à {email} le {date}. Le lien est valable jusqu''au {until}.'
+                    opened: 'Ouvert par le client le {date}. Il n''a pas encore signé ; le lien est valable jusqu''au {until}.'
+                    signed_by_customer: 'Signé par le client le {date}. À vous de le contresigner pour le conclure.'
+                    countersigned: 'Conclu. Le PDF signé est disponible.'
+                    notice: 'Conclu, avec une résiliation au {date}.'
+                    terminated: 'Résilié depuis le {date}.'
+                    cancelled: 'Annulé. Ce contrat n''a pas d''effet ; sa référence reste pour la trace.'
+                actions:
+                    open:
+                        title: Ouvrir
+                        description: Le document, ses signatures et son historique.
+                    edit:
+                        title: Modifier
+                        description: 'Client, trames, montant, dates et compléments. Rien n''est figé avant le scellement.'
+                    preview:
+                        title: Aperçu
+                        description: Le document tel que le client le lira.
+                    freeze:
+                        title: Sceller
+                        description: 'Fige le texte et tire la référence. Définitif.'
+                    send:
+                        title: Envoyer au client
+                        description: 'Un lien de signature, valable trente jours.'
+                    resend:
+                        title: Renvoyer au client
+                        description: 'Un nouveau lien, valable trente jours. L''ancien cesse de fonctionner.'
+                    remind:
+                        title: Relancer
+                        description: 'Un rappel avec un nouveau lien. L''ancien cesse de fonctionner.'
+                    revoke:
+                        title: Révoquer le lien
+                        description: 'Le lien cesse de fonctionner. Le contrat passe en « Révoqué ».'
+                    countersign:
+                        title: Contresigner
+                        description: Votre signature conclut le contrat.
+                    download:
+                        title: Télécharger le PDF signé
+                        description: Le document signé par les deux parties.
+                    export:
+                        title: Exporter en PDF
+                        description: 'Une copie de travail, marquée comme telle.'
+                    amend:
+                        title: Créer un avenant
+                        description: 'Un document à part, signé lui aussi. Ce contrat garde son texte.'
+                    terminate:
+                        title: Résilier
+                        description: 'Enregistre la fin du contrat, à une date.'
+                    cancel:
+                        title: Annuler le contrat
+                        description: 'Le contrat n''a plus d''effet ; sa référence reste. Proposé tant que personne n''a signé.'
+                    duplicate:
+                        title: Dupliquer en brouillon
+                        description: Un nouveau brouillon avec les mêmes choix, à corriger.
+                    delete:
+                        title: Supprimer
+                        description: 'Définitif. Un brouillon à tout moment, un contrat scellé après sa durée de conservation.'
+                confirm:
+                    send: 'Envoyer le contrat à {email} ? Il recevra un lien de signature valable trente jours.'
+                    send_no_address: 'Ce client n''a pas d''adresse contractuelle : ajoutez-la sur sa fiche avant d''envoyer.'
+                    remind: 'Relancer {email} ? Il recevra un nouveau lien ; l''ancien cessera de fonctionner.'
+                    revoke: 'Révoquer le lien ? Le client ne pourra plus ouvrir le contrat, qui passera en « Révoqué ». Vous pourrez le renvoyer.'
+                    cancel: 'Annuler ce contrat ? Il n''aura plus d''effet et ne pourra plus être envoyé. Sa référence reste dans la liste.'
+                    cancel_duplicate: Créer aussi un brouillon avec les mêmes choix, pour le corriger
+                    delete: 'Supprimer ce contrat ? C''est définitif.'
+                done:
+                    frozen: 'Contrat scellé : il a reçu sa référence.'
+                    sent: 'Contrat envoyé à {email}.'
+                    reminded: 'Relance envoyée à {email}.'
+                    revoked: Lien révoqué.
+                    cancelled: Contrat annulé.
+                    duplicated: Brouillon créé.
+                    deleted: Contrat supprimé.
+                panels:
+                    information: Informations
+                    customer: Client
+                    template: Trame
+                    annex: Annexe
+                    amount: Montant
+                    effective_date: Prise d'effet
+                    language: Langue
+                    created_at: Créé le
+                    sealed_at: Scellé le
+                    link: Lien de signature
+                    recipient: Envoyé à
+                    sent_at: Envoyé le
+                    opened_at: Ouvert le
+                    expires_at: Valable jusqu'au
+                    reminders: Relances
+                    no_link: Aucun lien actif.
+                    signatures: Signatures
+                    no_signature: Personne n'a encore signé.
+                    role_customer: Le client
+                    role_provider: Vous
+                    signed_in: 'Signé à {place} le {date}'
+                    signed_at_trace: 'Enregistré le {at}, adresse IP {ip}'
+                    code_sent_to: 'Code de vérification envoyé à {email}'
+                    by_account: 'Connecté comme {name}'
+                    hash_mismatch: 'Cette signature porte sur une autre empreinte que le document actuel.'
+                    history: Historique
+                    no_history: Rien d'enregistré pour l'instant.
+                    version_outdated: 'Version {number} ; la version {latest} est en vigueur depuis.'
+                    version: 'version {number}'
             status:
                 draft: Brouillon
                 sealed: Scellé
                 sent: Envoyé
                 opened: Ouvert
-                signed_by_customer: Signé par le client
-                countersigned: Contresigné
+                signed_by_customer: 'À contresigner'
+                countersigned: 'Conclu'
                 refused: Refusé
                 expired: Expiré
                 revoked: Révoqué
+                cancelled: 'Annulé'
             errors:
                 preview_sealed: "Ce contrat est déjà scellé : son document stocké est la référence, il ne se rejoue pas."
                 body_required: Un contrat a besoin d'un corps de contrat.
@@ -348,12 +496,16 @@ backend:
                 customer_has_no_address: "Ce client n'a pas d'adresse contractuelle. Renseignez-la sur sa fiche avant d'envoyer."
                 seal_before_sending: Scellez le contrat avant de l'envoyer.
                 already_engaged: Ce contrat est déjà signé. Il ne peut plus être renvoyé.
+                cannot_cancel: 'Seul un contrat scellé que personne n''a signé peut être annulé.'
+                nothing_to_remind: 'Seul un contrat envoyé, et pas encore signé, peut être relancé.'
+                mail_failed: 'Le mail n''a pas pu partir. Rien n''a changé : réessayez dans un instant.'
                 no_active_link: Aucun lien actif à révoquer.
                 seal_before_signing: 'Scellez le contrat avant de le faire signer.'
                 already_concluded: 'Ce contrat est déjà signé par les deux parties.'
                 contract_closed: 'Ce contrat est clos et ne peut plus être signé.'
                 role_already_signed: 'Cette partie a déjà signé.'
                 customer_has_not_signed: 'Le client n''a pas encore signé. La contresignature vient après.'
+                seal_broken: 'Le document stocké ne correspond plus à son sceau : il a été modifié depuis le scellement et ne peut pas être signé.'
                 already_refused: 'Ce contrat a déjà été refusé par le client.'
                 amends_invalid: 'Ce contrat à amender n''est pas valide.'
                 amends_not_found: 'Le contrat à amender est introuvable.'
@@ -377,6 +529,7 @@ backend:
                 provider_settings_missing: 'Ces informations du prestataire ne sont pas renseignées dans les réglages, et la trame les imprime : {fields}'
                 custom_field_too_long: Un complément ne peut pas dépasser 500 caractères.
         contract_templates:
+            legal_status: '{form} au capital de {capital}'
             title: Trames de contrat
             kind:
                 body: Corps de contrat
@@ -392,10 +545,16 @@ backend:
                 draft_already_open: 'Un brouillon est déjà ouvert sur cette trame (version {number}). Terminez-le ou abandonnez-le avant d''en ouvrir un autre.'
                 nothing_to_publish: Cette version n'a aucun texte à publier.
                 already_published: 'Cette version est publiée : son texte ne peut plus être modifié. Ouvrez une nouvelle version.'
-                used_by_contracts: '{count} contrat(s) scellé(s) ont été établis à partir de cette trame. La supprimer effacerait le lien entre eux et le texte signé : archivez-la plutôt.'
+                used_by_contracts: '{count} contrat(s), brouillons compris, partent de cette trame : elle ne peut pas être supprimée. Archivez-la, elle ne sera plus proposée et ces contrats gardent leur texte.'
                 governing_locale_unknown: Cette langue n'est pas gérée par l'application.
                 governing_locale_not_written: 'La langue faisant foi ({locale}) n''est pas rédigée dans cette version.'
                 governing_locale_required: 'Cette version est rédigée en plusieurs langues : indiquez laquelle fait foi avant de publier.'
+                kind_locked: 'Des contrats partent de cette trame : son type ne peut plus changer. Dupliquez-la pour en faire une autre.'
+                archived: 'Cette trame est archivée. Réactivez-la pour la modifier ou la publier.'
+                title_too_long: 'Le titre ne peut pas dépasser 250 caractères.'
+                unrenderable_block: 'Le bloc n° {number} du texte {locale} est de type « {type} », qu''un contrat ne sait pas imprimer : retirez-le.'
+                malformed_block: 'Le bloc n° {number} du texte {locale} est illisible : retirez-le.'
+                unknown_tokens: 'Ces variables du texte {locale} ne correspondent à rien : {tokens}. Corrigez-les avant de publier.'
             name: Nom de la trame
             name_placeholder: Contrat de prestation de services, formule mensuelle
             kind_label: Type
@@ -407,6 +566,7 @@ backend:
             preview: Aperçu
             preview_notice: "Les variables sont remplacées par des exemples, sauf celles de votre entreprise qui viennent de vos réglages. Les champs propres à chaque contrat apparaissent entre crochets."
             preview_failed: L'aperçu n'a pas pu être produit.
+            preview_unknown_tokens: 'Variables inconnues, elles empêcheront la publication : {tokens}'
             filter_category: 'Catégorie : {name}'
             kind_hint: Un corps se signe seul. Une annexe complète un corps.
             add: Ajouter une trame
@@ -421,23 +581,30 @@ backend:
             empty: Aucune trame de contrat pour le moment.
             search_placeholder: Rechercher une trame…
             delete_confirm: 'Supprimer {name} ?'
-            delete_warning: 'Les contrats déjà signés gardent leur propre copie du texte. Si l''un d''eux est issu de cette trame, la suppression est refusée : archivez-la plutôt.'
+            delete_warning: 'Définitif. Une trame dont part un contrat, même en brouillon, ne peut pas être supprimée : archivez-la plutôt.'
             in_force: En vigueur
             never_published: Jamais publiée
             no_draft: Aucun brouillon
             view: Consulter
             open_draft: Ouvrir un brouillon
+            untitled_text: 'Du texte est rédigé sans titre en {locales} : sans titre, cette langue ne serait pas enregistrée. Donnez-lui un titre, ou videz son texte.'
+            edit_text: Modifier le texte
+            continue_draft: 'Reprendre le brouillon (version {number})'
+            rename_title: 'Renommer, classer'
             duplicate: Dupliquer
             duplicate_suffix: (copie)
             duplicate_confirm: 'Dupliquer {name} ?'
             duplicate_hint: La copie reprend le texte en vigueur dans un brouillon, sous un nouveau nom. Rien n'est publié.
             duplicated: Trame dupliquée.
             col_locales: Langues
+            col_contracts: Contrats
             archive: Archiver
             restore: Réactiver
             show_archived: 'Afficher les archivées ({count})'
             hide_archived: Masquer les archivées
             row_actions:
+                edit_text_description: 'Ouvre la version suivante en brouillon. La version en vigueur ne change pas avant la publication.'
+                continue_draft_description: 'Reprend le texte en cours de rédaction.'
                 view_description: Ouvre la version en vigueur, en lecture seule.
                 open_draft_description: Ouvre une nouvelle version modifiable, à partir du texte en vigueur.
                 discard_description: Supprime le brouillon et laisse la trame telle qu'elle est publiée.
@@ -445,10 +612,16 @@ backend:
                 rename_description: Change le nom et le type de la trame, sans toucher au texte.
                 archive_description: La retire des listes de choix. Les contrats déjà signés ne bougent pas.
                 restore_description: La remet dans les listes de choix.
-                delete_description: Définitif. Les contrats signés gardent leur propre copie du texte.
+                delete_description: 'Définitif, et seulement pour une trame dont aucun contrat ne part.'
             state_published: Publiée
             state_draft: Brouillon
             state_archived: Archivée
+            state_in_force: En vigueur
+            state_replaced: Remplacée
+            in_force_notice: 'Version {number}, en vigueur : les nouveaux contrats partent de ce texte. Il est figé ; « Modifier le texte » ouvre la version suivante en brouillon.'
+            replaced_notice: 'Version {number}, remplacée par la version {latest}. Les contrats déjà établis sur elle gardent ce texte.'
+            open_in_force: Ouvrir la version en vigueur
+            archived_notice: 'Cette trame est archivée : elle n''est plus proposée pour de nouveaux contrats. Réactivez-la depuis la liste pour la modifier.'
             version_label: 'Version {number}'
             other_versions: Autres versions
             locale_written: Cette langue est rédigée
@@ -482,6 +655,7 @@ backend:
                 customer_legal_name: Raison sociale
                 customer_legal_form: Forme juridique
                 customer_share_capital: Capital social
+                customer_legal_status: 'Forme et capital (« SARL au capital de 10 000 € », la forme seule sans capital)'
                 customer_registered_office: Siège social
                 customer_siret: SIRET
                 customer_trade_register: RCS
@@ -908,6 +1082,7 @@ backend:
             delete_warning: 'Un client nommé par un contrat ne se supprime pas : la suppression sera refusée tant qu''il en reste un.'
             linked_account: 'Compte : {name}'
 
+            contracts_count: '{count} contrat(s)'
             col_company: Société
             col_representative: Représentant
             col_siret: SIRET
@@ -1779,6 +1954,13 @@ studio:
             cta: 'Ouvrir le contrat et le signer'
             replaces: 'Ce lien remplace celui du message précédent, qui n''est plus valide.'
             expires: 'Ce lien est valide jusqu''au {date}.'
+        contracts_integrity:
+            subject: 'Contrats : un document scellé a changé'
+            body: 'La vérification quotidienne a relu les contrats scellés ({count}), et tout ne correspond plus à ce qui a été scellé.'
+            altered: 'Ces documents ne correspondent plus à leur empreinte :'
+            unverifiable: 'Ces contrats n''ont pas pu être vérifiés par cette version de l''application :'
+            action: 'Ne recalculez pas l''empreinte : cherchez ce qui a écrit dans le document.'
+        open_contract: 'Ouvrir le contrat'
         customer_signed:
             subject: 'Contrat {reference} signé par le client'
             body: 'Le contrat {reference} vient d''être signé par {name}. Il attend votre contresignature.'
