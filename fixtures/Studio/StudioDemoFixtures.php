@@ -57,6 +57,7 @@ use Aurora\Module\Studio\SpaceContent\Dto\SpaceContentItemInput;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentComment;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItem;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
+use Aurora\Module\Studio\SpaceContent\Enum\SpaceContentApprovalEnum;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentAttachmentManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentColumnManagerInterface;
 use Aurora\Module\Studio\SpaceContent\Manager\SpaceContentItemManagerInterface;
@@ -258,6 +259,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         // where `make demo` had been run once.
         $this->seedDecks($marie);
         $this->seedSpaces($marie, $jean, $sophie);
+        $this->seedApprovals();
 
         // Nothing below is built if the instance already has contracts. The
         // seal mints a reference from a yearly sequence, so a second run would
@@ -915,6 +917,82 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         // Comme la conversation : l'entité horodate à la création et n'a pas
         // de setter pour ça, ce qui est juste - un commentaire ne se
         // rédate pas.
+        foreach ($dates as $id => $at) {
+            $this->entityManager->createQuery(
+                'UPDATE '.SpaceContentComment::class.' c SET c.createdAt = :at WHERE c.id = :id'
+            )->setParameter('at', $at)->setParameter('id', $id)->execute();
+        }
+    }
+
+    /**
+     * Deux avis du client sur le tableau : un contenu validé, un à reprendre.
+     *
+     * Sans eux, la pastille de l'avis ne s'affichait sur aucune carte et la
+     * fiche n'avait jamais de réponse à montrer, alors que c'est le geste que
+     * l'espace existe pour recueillir. Hors du garde des espaces, et rejoué
+     * sans doublon : un avis déjà donné est laissé tel quel, et le fil de la
+     * fiche à reprendre ne s'écrit qu'une fois.
+     */
+    private function seedApprovals(): void
+    {
+        $space = null;
+        foreach ($this->spaceRepository->findAll() as $one) {
+            if ('Atelier Dupont - Réseaux sociaux' === $one->getName()) {
+                $space = $one;
+            }
+        }
+
+        $marie = $this->userRepository->find($this->backendUser('marie.dupont@aurora.app'));
+        $link = $space instanceof CustomerSpaceInterface ? $this->existingLinkFor($space, 'camille@atelier-dupont.fr') : null;
+
+        if (!$link instanceof SpaceAccessLinkInterface || !$marie instanceof User) {
+            return;
+        }
+
+        $byTitle = [];
+        foreach ($this->entityManager->getRepository(SpaceContentItem::class)->findBy(['space' => $space]) as $item) {
+            $byTitle[$item->getTitle()] = $item;
+        }
+
+        $answers = [
+            'Offre de rentrée' => [SpaceContentApprovalEnum::ChangesRequested, '-6 hours', [
+                ['-7 hours', true, "Le montant ne se voit pas assez : on peut l'écrire en gros sur le visuel ?"],
+                ['-5 hours', false, 'Noté, je reprends le visuel ce soir et je vous renvoie la fiche.'],
+            ]],
+            'Journée portes ouvertes' => [SpaceContentApprovalEnum::Approved, '-1 day 11:30', [
+                ['-1 day 11:28', true, "Parfait, le plan d'accès est clair. On valide."],
+            ]],
+        ];
+
+        $dates = [];
+        foreach ($answers as $title => [$verdict, $when, $thread]) {
+            $item = $byTitle[$title] ?? null;
+            if (!$item instanceof SpaceContentItemInterface) {
+                continue;
+            }
+            if (SpaceContentApprovalEnum::Pending !== $item->getApproval()) {
+                continue;
+            }
+
+            $item->answer($verdict, $link, new DateTimeImmutable($when));
+
+            foreach ($thread as [$at, $fromClient, $body]) {
+                $comment = new SpaceContentComment();
+                $comment->setItem($item)->setBody($body);
+                if ($fromClient) {
+                    $comment->writtenByClient($link);
+                } else {
+                    $comment->writtenByStudio($marie, $marie->getName());
+                }
+
+                $this->entityManager->persist($comment);
+                $this->entityManager->flush();
+                $dates[(int) $comment->getId()] = new DateTimeImmutable($at);
+            }
+        }
+
+        $this->entityManager->flush();
+
         foreach ($dates as $id => $at) {
             $this->entityManager->createQuery(
                 'UPDATE '.SpaceContentComment::class.' c SET c.createdAt = :at WHERE c.id = :id'

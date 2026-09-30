@@ -161,6 +161,29 @@ async function openSpace(page) {
     await page.waitForTimeout(3_500);
 }
 
+/**
+ * Les contenus d'un espace, en kanban ou en liste.
+ *
+ * **La forme est retenue d'une visite à l'autre** : une prise en liste
+ * laissait la suivante sur la liste, et le tableau photographié n'en était
+ * plus un. Chaque prise dit donc la sienne.
+ */
+const contents = (shape) => async (page) => {
+    await openSpace(page);
+    await page.getByRole("button", { name: "Contenus", exact: true }).first().click();
+    await page.waitForTimeout(1_500);
+    await page.locator("main").getByTitle(shape, { exact: true }).first().click();
+    await page.waitForTimeout(1_500);
+};
+
+/** Une fiche du tableau ouverte, par son titre. */
+const openCard = (title) => async (page) => {
+    await contents("Kanban")(page);
+    await page.locator("main").getByText(title, { exact: true }).first().click();
+    await page.getByRole("dialog").first().waitFor();
+    await page.waitForTimeout(1_500);
+};
+
 /** Les espaces, d'où toutes les prises d'un espace partent. */
 const SPACES = "/backend/studio/spaces";
 
@@ -895,7 +918,41 @@ const SHOTS = [
      * l'autre, donc l'espace peut s'ouvrir sur Notes selon ce qui a été
      * regardé avant.
      */
-    { name: "tour-espaces-clients", path: SPACES, prepare: spaceView("Contenus") },
+    { name: "tour-espaces-clients", path: SPACES, prepare: contents("Kanban") },
+
+    /** Le même plan en liste : la carte promet « en kanban ou en liste ». */
+    { name: "espace-liste", path: SPACES, prepare: contents("Liste") },
+
+    /**
+     * Une fiche jusqu'en bas : son fil d'échange et l'avis du client, ici
+     * « à reprendre ». La fenêtre défile toute seule jusqu'au fil, que la
+     * prise du haut de la fiche coupait.
+     */
+    {
+        name: "espace-fiche-echanges",
+        path: SPACES,
+        async prepare(page) {
+            await openCard("Offre de rentrée")(page);
+            await page.evaluate(() => {
+                const dialog = document.querySelector("[role='dialog']");
+                const scroller = [...dialog.querySelectorAll("*")].find((el) => el.scrollHeight > el.clientHeight + 20 && /(auto|scroll)/.test(getComputedStyle(el).overflowY));
+                if (scroller) scroller.scrollTop = scroller.scrollHeight;
+            });
+            await page.waitForTimeout(800);
+        },
+    },
+
+    /** Envoyer à relire : ce qui part chez le client, et comment. */
+    {
+        name: "espace-envoyer-relire",
+        path: SPACES,
+        async prepare(page) {
+            await contents("Kanban")(page);
+            await page.locator("main").getByRole("button", { name: /^Envoyer à relire/ }).first().click();
+            await page.getByRole("dialog").first().waitFor();
+            await page.waitForTimeout(1_000);
+        },
+    },
 
     /**
      * Les autres vues du même espace.
@@ -919,11 +976,7 @@ const SHOTS = [
         name: "espace-une-fiche",
         path: SPACES,
         async prepare(page) {
-            await openSpace(page);
-            await page.getByRole("button", { name: "Contenus", exact: true }).first().click();
-            await page.waitForTimeout(1_800);
-            await page.getByText("Portrait de l'équipe", { exact: true }).first().click();
-            await page.waitForTimeout(1_800);
+            await openCard("Portrait de l'équipe")(page);
         },
     },
 
