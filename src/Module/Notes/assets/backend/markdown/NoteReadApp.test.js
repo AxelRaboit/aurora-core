@@ -222,3 +222,26 @@ describe("la lecture publique d'un espace", () => {
         expect(wrapper.find("[data-read-favorite]").exists()).toBe(false);
     });
 });
+
+describe("l'espace de la note, dans l'arbre du lecteur", () => {
+    it("names one's own space even when it is the only one", () => {
+        const wrapper = render({
+            treeSpaces: [{ id: 1, name: null, personal: true, canWrite: true }],
+        });
+
+        const headers = wrapper.findAll("[data-reader-space]");
+        expect(headers.length).toBeGreaterThan(0);
+        expect(headers[0].text()).toContain("notes.markdown.spaces.my_space");
+    });
+
+    /** La lecture publique ne reçoit pas d'espaces, et n'en montre pas. */
+    it("shows no space header on the public page", () => {
+        const wrapper = render({
+            treeSpaces: [],
+            publicTitle: "Guide",
+            folderShowPath: "",
+        });
+
+        expect(wrapper.find("[data-reader-space]").exists()).toBe(false);
+    });
+});

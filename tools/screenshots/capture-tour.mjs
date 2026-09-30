@@ -161,6 +161,29 @@ async function openSpace(page) {
     await page.waitForTimeout(3_500);
 }
 
+/**
+ * Les contenus d'un espace, en kanban ou en liste.
+ *
+ * **La forme est retenue d'une visite à l'autre** : une prise en liste
+ * laissait la suivante sur la liste, et le tableau photographié n'en était
+ * plus un. Chaque prise dit donc la sienne.
+ */
+const contents = (shape) => async (page) => {
+    await openSpace(page);
+    await page.getByRole("button", { name: "Contenus", exact: true }).first().click();
+    await page.waitForTimeout(1_500);
+    await page.locator("main").getByTitle(shape, { exact: true }).first().click();
+    await page.waitForTimeout(1_500);
+};
+
+/** Une fiche du tableau ouverte, par son titre. */
+const openCard = (title) => async (page) => {
+    await contents("Kanban")(page);
+    await page.locator("main").getByText(title, { exact: true }).first().click();
+    await page.getByRole("dialog").first().waitFor();
+    await page.waitForTimeout(1_500);
+};
+
 /** Les espaces, d'où toutes les prises d'un espace partent. */
 const SPACES = "/backend/studio/spaces";
 
@@ -563,9 +586,19 @@ const SHOTS = [
         name: "tour-notes",
         path: "/backend/notes/markdown",
         async prepare(page) {
-            // Un lien et non un bouton : dans la bande « Récemment modifiées »,
-            // chaque note est une ancre vers son adresse.
-            await page.getByRole("link", { name: /^Cabinet Verrier/ }).first().click();
+            // Par son adresse, retrouvée dans la liste : la bande « Récemment
+            // modifiées » ne la montre plus depuis que la démonstration porte
+            // aussi les notes d'un espace partagé, plus récentes qu'elle.
+            const id = await page.evaluate(async () => {
+                const r = await fetch("/backend/notes/markdown/list", { headers: { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" } });
+                const j = await r.json();
+
+                return j.notes.find((n) => "Cabinet Verrier" === n.title)?.id ?? null;
+            });
+
+            if (null === id) throw new Error("la note « Cabinet Verrier » manque à la démonstration");
+
+            await page.goto(`${BASE_URL}/backend/notes/markdown/${id}`, { waitUntil: "domcontentloaded" });
             await page.waitForTimeout(2_500);
             await page.getByTitle("Édition + aperçu").first().click();
             await page.waitForTimeout(1_000);
@@ -723,6 +756,68 @@ const SHOTS = [
             await page.waitForTimeout(2_000);
         },
     },
+    {
+        // Le panneau par espace : son carnet d'abord, puis « Guide de
+        // l'agence », que la démonstration partage avec tout le back-office.
+        // Le dossier de l'espace est déplié pour qu'on voie ce qu'il range.
+        name: "tour-notes-espaces",
+        path: "/backend/notes/markdown",
+        async prepare(page) {
+            const header = page.locator("[data-space-header]").filter({ hasText: /Guide de l.agence/i }).first();
+            await header.waitFor();
+
+            // Tout replié d'abord : son carnet déplié repoussait l'espace
+            // partagé sous le bord de l'image. Le bouton n'existe que si
+            // quelque chose est ouvert.
+            const replier = page.getByTitle("Tout replier").first();
+            if (await replier.count() > 0) await replier.click();
+
+            await page.getByRole("link", { name: /^Procédures/ }).first().click();
+            await page.waitForTimeout(1_500);
+            // La mosaïque, qui montre le début de chaque note ; la vue est
+            // retenue d'un scénario à l'autre.
+            await page.locator("main").getByTitle("Mosaïque").first().click();
+            await page.waitForTimeout(1_000);
+        },
+    },
+    {
+        // Créer un espace : la même fenêtre que pour une note ou un dossier,
+        // avec qui y entre et ce qu'on y fait.
+        name: "tour-notes-nouvel-espace",
+        path: "/backend/notes/markdown",
+        async prepare(page) {
+            await page.getByTitle("Ajouter", { exact: true }).first().click();
+            await page.waitForTimeout(800);
+            await page.locator('[data-add-kind="space"]').click();
+            await page.locator("[data-add-name] input, input[data-add-name]").first().fill("Documentation client");
+            await page.waitForTimeout(600);
+        },
+    },
+    {
+        // Les réglages d'un espace : l'accès, les membres et leur rôle, et
+        // la publication sur le web avec son adresse. Le bouton n'apparaît
+        // qu'au survol de l'en-tête, comme pour une vraie souris.
+        name: "tour-notes-reglages-espace",
+        path: "/backend/notes/markdown",
+        async prepare(page) {
+            const header = page.locator("[data-space-header]").filter({ hasText: /Guide de l.agence/i }).first();
+            await header.hover();
+            await header.locator("[data-space-settings]").click();
+            await page.locator("[data-space-publication]").waitFor();
+            await page.waitForTimeout(1_000);
+        },
+    },
+    {
+        // Un espace publié, lu sans compte : son arbre et sa première note,
+        // rien du back-office autour. L'adresse est celle que les fixtures
+        // donnent à l'espace de démonstration.
+        name: "tour-notes-publique",
+        path: "/p/guide-agence",
+        async prepare(page) {
+            await page.locator("[data-reader-public-title]").waitFor();
+            await page.waitForTimeout(1_500);
+        },
+    },
     { name: "tour-calendrier", path: "/backend/planning/calendar" },
 
     { name: "tour-contrats", path: "/backend/studio/contracts" },
@@ -823,7 +918,41 @@ const SHOTS = [
      * l'autre, donc l'espace peut s'ouvrir sur Notes selon ce qui a été
      * regardé avant.
      */
-    { name: "tour-espaces-clients", path: SPACES, prepare: spaceView("Contenus") },
+    { name: "tour-espaces-clients", path: SPACES, prepare: contents("Kanban") },
+
+    /** Le même plan en liste : la carte promet « en kanban ou en liste ». */
+    { name: "espace-liste", path: SPACES, prepare: contents("Liste") },
+
+    /**
+     * Une fiche jusqu'en bas : son fil d'échange et l'avis du client, ici
+     * « à reprendre ». La fenêtre défile toute seule jusqu'au fil, que la
+     * prise du haut de la fiche coupait.
+     */
+    {
+        name: "espace-fiche-echanges",
+        path: SPACES,
+        async prepare(page) {
+            await openCard("Offre de rentrée")(page);
+            await page.evaluate(() => {
+                const dialog = document.querySelector("[role='dialog']");
+                const scroller = [...dialog.querySelectorAll("*")].find((el) => el.scrollHeight > el.clientHeight + 20 && /(auto|scroll)/.test(getComputedStyle(el).overflowY));
+                if (scroller) scroller.scrollTop = scroller.scrollHeight;
+            });
+            await page.waitForTimeout(800);
+        },
+    },
+
+    /** Envoyer à relire : ce qui part chez le client, et comment. */
+    {
+        name: "espace-envoyer-relire",
+        path: SPACES,
+        async prepare(page) {
+            await contents("Kanban")(page);
+            await page.locator("main").getByRole("button", { name: /^Envoyer à relire/ }).first().click();
+            await page.getByRole("dialog").first().waitFor();
+            await page.waitForTimeout(1_000);
+        },
+    },
 
     /**
      * Les autres vues du même espace.
@@ -847,11 +976,7 @@ const SHOTS = [
         name: "espace-une-fiche",
         path: SPACES,
         async prepare(page) {
-            await openSpace(page);
-            await page.getByRole("button", { name: "Contenus", exact: true }).first().click();
-            await page.waitForTimeout(1_800);
-            await page.getByText("Portrait de l'équipe", { exact: true }).first().click();
-            await page.waitForTimeout(1_800);
+            await openCard("Portrait de l'équipe")(page);
         },
     },
 
