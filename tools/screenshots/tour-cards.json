@@ -361,6 +361,42 @@
         "espace-envoyer-relire": {
             "document": 740,
             "slug": "les-espaces-clients"
+        },
+        "tour-corbeille": {
+            "document": 741,
+            "slug": "corbeille"
+        },
+        "tour-corbeille-publications": {
+            "document": 742,
+            "slug": "corbeille"
+        },
+        "tour-corbeille-vider": {
+            "document": 743,
+            "slug": "corbeille"
+        },
+        "tour-publications-selection": {
+            "document": 744,
+            "slug": "publier-programmer-archiver"
+        },
+        "tour-publications-dupliquer": {
+            "document": 745,
+            "slug": "publier-programmer-archiver"
+        },
+        "tour-profil": {
+            "document": 746,
+            "slug": "comptes-et-privileges"
+        },
+        "tour-profil-menu": {
+            "document": 747,
+            "slug": "comptes-et-privileges"
+        },
+        "tour-reservation": {
+            "document": 748,
+            "slug": "formulaires"
+        },
+        "tour-sondage": {
+            "document": 749,
+            "slug": "formulaires"
         }
     }
 }

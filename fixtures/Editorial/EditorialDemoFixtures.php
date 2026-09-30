@@ -28,6 +28,7 @@ use Aurora\Module\Editorial\Menu\Entity\MenuItem;
 use Aurora\Module\Editorial\Menu\Enum\MenuItemTargetTypeEnum;
 use Aurora\Module\Editorial\Menu\Repository\MenuItemRepository;
 use Aurora\Module\Editorial\Menu\Repository\MenuRepository;
+use Aurora\Module\Editorial\Poll\Entity\PollVote;
 use Aurora\Module\Editorial\Post\Banner\BannerNormalizer;
 use Aurora\Module\Editorial\Post\Entity\Post;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
@@ -149,6 +150,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         $this->layOutContactPage($posts, $this->createContactForm());
 
         $this->createComments($manager, $posts);
+        $this->createPollVotes($manager, $posts);
         $manager->flush();
 
         // Après le dernier `flush` : une révision photographie la publication
@@ -570,6 +572,21 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                 'en' => ['New blocks', 'new-blocks', 'Availability, opening hours, countdown, business card, social post, carousel, screen, terminal and index.'],
                 'es' => ['Nuevos bloques', 'nuevos-bloques', 'Disponibilidad, horarios, cuenta atrás, tarjeta de visita, publicación, carrusel, pantalla, terminal e índice.'],
             ],
+            // À la corbeille, pour que l'écran global en montre une : sans
+            // elle, la page du tour qui présente la corbeille n'avait que des
+            // notes à photographier. Après `showcase`, pour ne déplacer la
+            // référence d'aucune autre publication.
+            'trashed-offer' => [
+                'type' => $types['article'],
+                'media' => 3,
+                'status' => PostStatusEnum::Published,
+                'publishedAt' => $now->modify('-40 days'),
+                'deletedAt' => $now->modify('-4 days'),
+                'terms' => [],
+                'fr' => ['Offre de rentrée', 'offre-de-rentree', 'Une remise sur les séances photo de septembre, terminée depuis.'],
+                'en' => ['Back-to-school offer', 'back-to-school-offer', 'A discount on September photo sessions, since ended.'],
+                'es' => ['Oferta de vuelta al cole', 'oferta-de-vuelta-al-cole', 'Un descuento en las sesiones de fotos de septiembre, ya terminado.'],
+            ],
         ];
 
         $posts = [];
@@ -603,6 +620,7 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
                 ->setStatus($def['status'])
                 ->setPublishedAt($def['publishedAt'])
                 ->setScheduledAt($def['scheduledAt'] ?? null)
+                ->setDeletedAt($def['deletedAt'] ?? null)
                 ->setReference($reference);
 
             foreach ($def['terms'] as $termKey) {
@@ -1215,6 +1233,38 @@ class EditorialDemoFixtures extends Fixture implements DependentFixtureInterface
         }
 
         return $types;
+    }
+
+    /**
+     * Des voix sur le sondage de la page des nouveaux blocs.
+     *
+     * Les résultats ne s'affichent qu'après avoir voté, et sur une démo
+     * fraîche le premier vote donnait 100 % à une réponse et 0 % aux deux
+     * autres : un sondage qui ne montre pas ce qu'est un résultat. Chaque
+     * voix porte un votant factice et stable, donc un second `make demo` ne
+     * la compte pas deux fois.
+     *
+     * @param array<string, PostInterface> $posts
+     */
+    private function createPollVotes(EntityManagerInterface $em, array $posts): void
+    {
+        $page = $posts['showcase'] ?? null;
+
+        if (!$page instanceof PostInterface) {
+            return;
+        }
+
+        $repository = $em->getRepository(PollVote::class);
+
+        foreach ([0 => 23, 1 => 14, 2 => 9] as $answer => $count) {
+            for ($i = 1; $i <= $count; ++$i) {
+                $voter = sprintf('demo-%d-%d', $answer, $i);
+
+                if (null === $repository->findOneBy(['post' => $page, 'zoneId' => 'vote', 'voter' => $voter])) {
+                    $em->persist(new PollVote($page, 'vote', $answer, $voter));
+                }
+            }
+        }
     }
 
     /**

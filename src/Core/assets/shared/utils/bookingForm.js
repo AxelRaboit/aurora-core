@@ -84,10 +84,20 @@ function wire(booking) {
 
     booking.querySelectorAll("[data-booking-slot]").forEach((button) => {
         button.addEventListener("click", () => {
+            // Le jour avec l'heure : « 10:30 » seul, au-dessus du nom à
+            // saisir, ne dit pas quel jour on est en train de réserver.
+            const day = booking.querySelector(
+                "[data-booking-day][data-active]",
+            );
             chosen = {
                 at: button.dataset.bookingSlot,
-                label: button.textContent.trim(),
+                label: [day?.textContent.trim(), button.textContent.trim()]
+                    .filter(Boolean)
+                    .join(" · "),
             };
+            booking.querySelectorAll("[data-booking-slot]").forEach((slot) => {
+                slot.toggleAttribute("data-active", slot === button);
+            });
             const form = booking.querySelector("[data-booking-form]");
             form.hidden = false;
             form.querySelector("[data-booking-chosen]").textContent =
