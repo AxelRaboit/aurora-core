@@ -11,6 +11,7 @@ use Aurora\Module\Studio\Deck\Entity\SlideInterface;
 use Aurora\Module\Studio\Deck\Enum\DeckThemeEnum;
 use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
 use Aurora\Module\Studio\Deck\Service\DeckStyleNormalizer;
+use Aurora\Module\Studio\Deck\Service\FreeSlideNormalizer;
 use Doctrine\ORM\EntityManagerInterface;
 use LogicException;
 
@@ -37,6 +38,7 @@ class DeckManager
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
         protected readonly DeckStyleNormalizer $styleNormalizer,
+        protected readonly FreeSlideNormalizer $freeNormalizer,
     ) {}
 
     public function create(string $title): DeckInterface
@@ -106,6 +108,33 @@ class DeckManager
             }
 
             $value = $content[$slot];
+
+            // A free slide's own three: the elements, the paint under them and
+            // the film behind them. Each has a shape of its own, so each is
+            // cleaned by the class that knows it rather than here.
+            if ('elements' === $slot) {
+                $clean[$slot] = $this->freeNormalizer->elements($value);
+
+                continue;
+            }
+
+            if ('fill' === $slot) {
+                $paint = $this->freeNormalizer->paint($value);
+
+                if (null !== $paint) {
+                    $clean[$slot] = $paint;
+                }
+
+                continue;
+            }
+
+            if ('bgVideoId' === $slot) {
+                if (is_int($value) && $value > 0) {
+                    $clean[$slot] = $value;
+                }
+
+                continue;
+            }
 
             // The two picture slots are not text: they point at a document in
             // the library, and a string there would silently fail to resolve at

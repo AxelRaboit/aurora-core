@@ -21,6 +21,7 @@ use Aurora\Module\Studio\Deck\Repository\DeckRepository;
 use Aurora\Module\Studio\Deck\Serializer\DeckSerializer;
 use Aurora\Module\Studio\Deck\Service\DeckPictures;
 use Aurora\Module\Studio\Deck\Service\DeckStyleNormalizer;
+use Aurora\Module\Studio\Deck\Service\FreeSlideNormalizer;
 use Aurora\Module\Studio\Deck\Share\Entity\DeckShareLinkInterface;
 use Aurora\Module\Studio\Deck\Share\Repository\DeckShareLinkRepository;
 use Aurora\Module\Studio\StudioContext;
@@ -86,6 +87,7 @@ final readonly class DecksViewBuilder
             'layouts' => $this->layoutOptions(),
             'commonSlots' => SlideLayoutEnum::commonSlots(),
             'listSlots' => SlideLayoutEnum::listSlots(),
+            'freeOptions' => FreeSlideNormalizer::options(),
             'themes' => $this->themeOptions(),
             'fontPairs' => $this->fontPairOptions(),
             'logoPlacements' => $this->logoPlacementOptions(),

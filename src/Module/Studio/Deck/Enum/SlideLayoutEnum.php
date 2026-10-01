@@ -7,12 +7,18 @@ namespace Aurora\Module\Studio\Deck\Enum;
 /**
  * The shapes a slide can take.
  *
- * **Fixed layouts rather than free placement**, and that is the central
- * decision of this module. A deck of audit findings or of strategy is text and
- * a few screenshots; free placement would mean building a design tool - drag,
- * resize, rotate, z-order, snapping - to serve a need six shapes already
- * cover. The day a deck genuinely needs a diagram nobody can express here,
- * that is the day to reconsider, with a real example in hand.
+ * **Declared layouts, and one free canvas beside them.** The layouts are what
+ * lets `useSlideFit` shrink a slide's type until it fits and `DeckFromBlocks`
+ * turn a written document into slides: both need to know what each piece of a
+ * slide is. Until 2026-09-30 that was the whole module, and free placement was
+ * refused as a design tool nobody needed.
+ *
+ * Then somebody did need it: decks that look like the ones made in Canva, with
+ * pictures, films and words placed by hand. `Free` is that canvas. It is one
+ * case among the others rather than a mode of the module, so every layout
+ * above keeps fitting its type and the import keeps writing layouts; a free
+ * slide is reached by adding one, or by turning a laid-out slide into one, and
+ * its elements are whitelisted by `FreeSlideNormalizer` the way slots are here.
  *
  * Each layout names the slots its content JSON may carry. The whitelist lives
  * with the layout for the same reason `GridNormalizer` keeps its own: a slot
@@ -76,6 +82,16 @@ enum SlideLayoutEnum: string
 
     /** Two to eight photographs in a declared arrangement. */
     case Mosaic = 'mosaic';
+
+    /**
+     * Elements placed by hand: words, pictures, films, shapes, icons.
+     *
+     * Its slots are not words but a list of elements and the paint under them,
+     * each element carrying its own position, size and look. Nothing in it is
+     * fitted by the frame: a text box shrinks its own type inside its own box,
+     * because only the person who drew the box knows how big it should be.
+     */
+    case Free = 'free';
 
     /**
      * The slots that hold a list of lines rather than one string.
@@ -160,6 +176,7 @@ enum SlideLayoutEnum: string
             self::Portrait => ['quote', 'attribution', 'role', 'mediaId', 'mediaFocus'],
             self::Logos => ['title', 'mediaIds'],
             self::Mosaic => ['title', 'mediaIds'],
+            self::Free => ['fill', 'bgVideoId', 'elements'],
         };
     }
 
@@ -172,6 +189,12 @@ enum SlideLayoutEnum: string
     public function allSlots(): array
     {
         return [...$this->slots(), ...self::commonSlots()];
+    }
+
+    /** Whether this slide is drawn from its elements rather than its slots. */
+    public function isFree(): bool
+    {
+        return self::Free === $this;
     }
 
     public function labelKey(): string

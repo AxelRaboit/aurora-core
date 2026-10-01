@@ -1071,6 +1071,239 @@ backend:
                 attribution: Atribución
                 caption: 'Pie de imagen'
                 mediaId: Imagen
+            free:
+                convert: Convertir en libre
+                converted: "Diapositiva convertida en libre. Cmd+Z para volver a la plantilla."
+                canvas: Diapositiva libre
+                insert: Añadir a la diapositiva
+                insert_title: Título
+                insert_subtitle: Subtítulo
+                insert_body: Texto
+                insert_image: Imagen
+                insert_video: Vídeo
+                insert_embed: YouTube o Vimeo
+                insert_shape: Forma
+                insert_icon: Icono
+                insert_chart: Gráfico
+                insert_table: Tabla
+                text_presets:
+                    title: Su título
+                    subtitle: Un subtítulo
+                    body: Su texto aquí
+                embed_url: Enlace del vídeo
+                embed_placeholder: "https://www.youtube.com/watch?v=..."
+                embed_add: Añadir
+                embed_hint: "YouTube, Vimeo o Dailymotion. El vídeo se reproduce en la diapositiva durante la presentación."
+                icon_search: Buscar un icono
+                undo: Deshacer
+                redo: Rehacer
+                shortcuts: "Doble clic para escribir, Mayús para mantener las proporciones, Alt para ignorar las guías."
+                text_toolbar: Formato del texto
+                bold: Negrita
+                italic: Cursiva
+                underline: Subrayado
+                strike: Tachado
+                word_colour: Color de las palabras
+                word_colour_apply: Aplicar este color
+                highlight: Resaltador
+                highlight_apply: Aplicar este resaltado
+                bullets: Lista con viñetas
+                numbers: Lista numerada
+                clear_format: Borrar el formato
+                slide: Esta diapositiva
+                slide_fill: Fondo de la diapositiva
+                slide_video: Vídeo de fondo
+                slide_video_hint: "Se reproduce en bucle y sin sonido detrás de los elementos. En papel, se imprime su imagen de portada."
+                choose_video: Elegir un vídeo
+                replace: Reemplazar
+                remove: Quitar
+                nothing_selected: "Haga clic en un elemento para ajustarlo, o trace un marco alrededor de varios."
+                duplicate: Duplicar
+                delete: Eliminar
+                lock: Bloquear
+                unlock: Desbloquear
+                bring_front: Traer al frente
+                forward: Avanzar
+                backward: Retroceder
+                send_back: Enviar al fondo
+                group: Agrupar
+                ungroup: Desagrupar
+                flip_x: Voltear horizontalmente
+                flip_y: Voltear verticalmente
+                align:
+                    left: Alinear a la izquierda
+                    center: Centrar horizontalmente
+                    right: Alinear a la derecha
+                    top: Alinear arriba
+                    middle: Centrar verticalmente
+                    bottom: Alinear abajo
+                distribute_x: Distribuir horizontalmente
+                distribute_y: Distribuir verticalmente
+                width: Ancho
+                height: Alto
+                rotation: Rotación
+                opacity: Opacidad
+                font: Fuente
+                font_search: Buscar una fuente
+                font_deck: Fuentes de la presentación
+                font_heading: Fuente de los títulos
+                font_body: Fuente del texto
+                font_uploaded: Sus fuentes
+                font_upload: Importar una fuente
+                font_categories:
+                    sans: Sin serifa
+                    serif: Con serifa
+                    display: Decorativa
+                    script: Manuscrita
+                    mono: Monoespaciada
+                size: Tamaño
+                weight: Grosor
+                weights:
+                    "100": Muy fina
+                    "200": Extra fina
+                    "300": Fina
+                    "400": Normal
+                    "500": Media
+                    "600": Seminegrita
+                    "700": Negrita
+                    "800": Extranegrita
+                    "900": Black
+                case: Mayúsculas y minúsculas
+                cases:
+                    none: Tal cual
+                    upper: Mayúsculas
+                    lower: Minúsculas
+                    title: Mayúscula en cada palabra
+                spacing: Espaciado entre letras
+                line_height: Interlineado
+                pad_x: Margen interior (lados)
+                pad_y: Margen interior (arriba y abajo)
+                aligns:
+                    left: Izquierda
+                    center: Centro
+                    right: Derecha
+                    justify: Justificado
+                valigns:
+                    top: Arriba
+                    middle: Medio
+                    bottom: Abajo
+                text_colour: Color del texto
+                autofit: Ajustar el texto al cuadro
+                autofit_hint: "El texto se reduce para no salirse nunca de su cuadro."
+                text_hint: "Haga doble clic en el cuadro para escribir. Seleccione palabras para ponerlas en negrita, en color o en lista."
+                fit: Relleno
+                mask: Recorte
+                masks:
+                    none: Ninguno
+                    circle: Círculo
+                    arch: Arco
+                    triangle: Triángulo
+                    diamond: Rombo
+                    hexagon: Hexágono
+                    star: Estrella
+                    blob: Guijarro
+                zoom: Zoom
+                focus: Punto de encuadre
+                focus_hint: "El punto que permanece visible cuando se recorta la imagen."
+                adjust: Retoques
+                filters:
+                    brightness: Brillo
+                    contrast: Contraste
+                    saturate: Saturación
+                    grayscale: Blanco y negro
+                    sepia: Sepia
+                    hue: Tono
+                    blur: Desenfoque
+                reset_filters: Deshacer los retoques
+                autoplay: Reproducción automática
+                autoplay_hint: "Un vídeo que se inicia solo no tiene sonido: es una regla de los navegadores."
+                loop: En bucle
+                muted: Sin sonido
+                controls: Mostrar los controles
+                shape: Forma
+                shapes:
+                    rect: Rectángulo
+                    ellipse: Elipse
+                    triangle: Triángulo
+                    right_triangle: Triángulo rectángulo
+                    diamond: Rombo
+                    pentagon: Pentágono
+                    hexagon: Hexágono
+                    octagon: Octógono
+                    star: Estrella
+                    star4: Estrella de cuatro puntas
+                    heart: Corazón
+                    cross: Cruz
+                    parallelogram: Paralelogramo
+                    trapezoid: Trapecio
+                    arrow_right: Flecha hacia la derecha
+                    arrow_left: Flecha hacia la izquierda
+                    chevron: Chevrón
+                    speech: Bocadillo
+                    ring: Anillo
+                    line: Línea
+                head: Extremos
+                heads:
+                    none: Sin flecha
+                    end: Flecha al final
+                    both: Flecha en ambos extremos
+                icon: Icono
+                colour: Color
+                line_weight: Grosor del trazo
+                theme_colours:
+                    ink: Color del texto de la presentación
+                    accent: Color de acento de la presentación
+                    background: Color de fondo de la presentación
+                no_colour: Sin color
+                paints:
+                    none: Ninguno
+                    solid: Color
+                    linear: Degradado
+                    radial: Degradado radial
+                angle: Ángulo
+                add_stop: Añadir un color
+                remove_stop: Quitar este color
+                fill: Relleno
+                box_fill: Fondo del cuadro
+                stroke: Contorno
+                text_outline: Contorno de las letras
+                stroke_width: Grosor
+                stroke_style: Estilo
+                stroke_styles:
+                    solid: Continuo
+                    dashed: Guiones
+                    dotted: Puntos
+                radius: Redondeo
+                shadow: Sombra
+                blur: Desenfoque
+                enter: Aparición
+                enters:
+                    none: Ninguna
+                    fade: Fundido
+                    rise: Ascenso
+                    fall: Descenso
+                    left: Desde la izquierda
+                    right: Desde la derecha
+                    zoom: Zoom
+                    pop: Rebote
+                    blur: Enfoque
+                reveal: En la pulsación n.º
+                reveal_hint: "0: el elemento está ahí en cuanto aparece la diapositiva. 1, 2, 3: entra en la 1.ª, 2.ª, 3.ª pulsación durante la presentación."
+                duration: Duración
+                delay: Retardo
+                link: Enlace al hacer clic
+                link_placeholder: "https://..."
+                layers: Capas
+                layers_empty: "Ningún elemento. Añada uno con la barra situada sobre la diapositiva."
+                types:
+                    text: Texto
+                    image: Imagen
+                    video: Vídeo
+                    embed: Vídeo en línea
+                    shape: Forma
+                    icon: Icono
+                    chart: Gráfico
+                    table: Tabla
             layouts:
                 chart: Gráfico
                 stat: 'Cifra clave'
@@ -1091,6 +1324,7 @@ backend:
                 portrait: 'Cita y retrato'
                 logos: 'Cuadrícula de logotipos'
                 mosaic: 'Mosaico de imágenes'
+                free: Diapositiva libre
             categories:
                 errors:
                     name_required: 'El nombre es obligatorio.'

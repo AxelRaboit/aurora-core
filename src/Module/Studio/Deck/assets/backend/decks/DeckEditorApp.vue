@@ -13,7 +13,7 @@
  * on the wall, which is the whole reason this module has layouts rather than a
  * flowing grid.
  */
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { VueDraggable } from "vue-draggable-plus";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
@@ -24,6 +24,13 @@ import { useDeckChapters } from "./composables/useDeckChapters.js";
 import SlideFrame from "./components/SlideFrame.vue";
 import DeckPlayer from "./components/DeckPlayer.vue";
 import DeckAppearancePanel from "./components/DeckAppearancePanel.vue";
+import FreeCanvas from "./free/FreeCanvas.vue";
+import FreeInsertBar from "./free/FreeInsertBar.vue";
+import FreeInspector from "./free/FreeInspector.vue";
+import FreeLayers from "./free/FreeLayers.vue";
+import { useFreeEditor } from "./free/useFreeEditor.js";
+import { freeFromDrawn } from "./free/fromTemplate.js";
+import { toast } from "vue-sonner";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
@@ -51,6 +58,9 @@ import {
     Plus,
     Presentation,
     Printer,
+    Redo2,
+    Undo2,
+    WandSparkles,
     Share2,
     Trash2,
     X,
@@ -66,6 +76,8 @@ const props = defineProps({
     commonSlots: { type: Array, default: () => [] },
     /** Slots that hold one line per row rather than one string. */
     listSlots: { type: Array, default: () => [] },
+    /** What a free slide's elements may be: shapes, masks, entrances, bounds. */
+    freeOptions: { type: Object, default: () => ({}) },
     slideCreatePath: { type: String, required: true },
     slideUpdatePath: { type: String, required: true },
     slideDeletePath: { type: String, required: true },
@@ -107,11 +119,13 @@ const {
     reorder,
     writeSlot,
     writeLayout,
+    writeSlide,
     writeNotes,
     flushCurrent,
 } = useDeckEditor(props);
 
 const editable = can("studio.decks.edit");
+
 
 /**
  * The chapters, read off the section slides rather than stored.
@@ -147,6 +161,86 @@ const {
     writeLogo,
     save: saveAppearance,
 } = useDeckAppearance(props);
+
+/**
+ * A free slide is edited on the slide itself rather than through a form.
+ *
+ * The canvas, the bar that adds to it and the panel that sets what is picked
+ * all work through one editor, which keeps the selection and a history per
+ * slide; the deck's own saving is unchanged, a slide still goes to the server
+ * when it is left.
+ */
+const isFree = computed(() => selected.value?.layout === "free");
+
+const freeEditor = useFreeEditor({
+    slide: selected,
+    writeSlide,
+    maxElements: props.freeOptions?.maxElements ?? 200,
+});
+
+/**
+ * Saved as it is worked on, a moment after the last change.
+ *
+ * Saving on leaving is right for a form, where the words are the work; on a
+ * canvas an hour can go by on one slide, and a closed laptop lid would take
+ * all of it. A second and a half after the hand stops is long enough not to
+ * save in the middle of a drag.
+ */
+let autosave = null;
+
+/** A save that found another under way, or changes made during it, tries again. */
+async function saveSoon() {
+    clearTimeout(autosave);
+    autosave = setTimeout(async () => {
+        await flushCurrent();
+
+        if (isFree.value && (dirty.value || saving.value)) saveSoon();
+    }, 1500);
+}
+
+watch(
+    () => (isFree.value ? JSON.stringify(selected.value?.content) : null),
+    (now, before) => {
+        if (now && now !== before) saveSoon();
+    },
+);
+
+/** The editor's own preview, which is what a conversion reads. */
+const previewFrame = ref(null);
+
+/**
+ * Turn the slide on screen into a free one that looks the same.
+ *
+ * Recorded first, so the step back is the laid-out slide, words and layout
+ * together: the one way back there is, since a free slide cannot be guessed
+ * back into slots.
+ */
+function convertToFree() {
+    const frame = previewFrame.value?.querySelector(".slide-frame");
+
+    if (!frame || !selected.value || isFree.value) return;
+
+    freeEditor.checkpoint();
+    writeSlide(freeFromDrawn(frame, selected.value, appearance.value));
+    toast.success(t("backend.studio.decks.free.converted"));
+}
+
+/** Choosing "free" in the layout list converts, rather than emptying the slide. */
+function pickLayout(value) {
+    if (value === "free") {
+        convertToFree();
+
+        return;
+    }
+
+    writeLayout(value);
+}
+
+function insertElement(type, overrides) {
+    const element = freeEditor.add(type, overrides);
+
+    if (element?.type === "text" && !element.html) freeEditor.startEditing(element.id);
+}
 
 /**
  * Presenting saves first.
@@ -251,6 +345,9 @@ const layoutOptions = props.layouts.map((layout) => ({
     value: layout.value,
     label: t(layout.labelKey),
 }));
+
+/** A free slide is not turned back into a layout: there is no list to show. */
+const freeLabel = computed(() => t("backend.studio.decks.layouts.free"));
 
 const labelFor = (slot) => t(`backend.studio.decks.slots.${slot}`);
 
@@ -460,6 +557,7 @@ function onLeave() {
 onMounted(() => window.addEventListener("beforeunload", onLeave));
 onBeforeUnmount(() => {
     window.removeEventListener("beforeunload", onLeave);
+    clearTimeout(autosave);
     flushCurrent();
 });
 </script>
@@ -643,24 +741,87 @@ onBeforeUnmount(() => {
                 />
 
                 <template v-else>
-                    <div class="mx-auto max-w-3xl">
+                    <!-- Une slide libre : la barre qui y ajoute, la slide qu'on
+                         prend en main, et à côté ce qui règle ce qui est pris. -->
+                    <div v-if="isFree" class="flex flex-col gap-4 2xl:flex-row 2xl:items-start">
+                        <div class="min-w-0 flex-1 space-y-2">
+                            <FreeInsertBar
+                                v-if="editable"
+                                :shapes="freeOptions.shapes ?? []"
+                                v-on:insert="insertElement"
+                            />
+                            <FreeCanvas
+                                :slide="selected"
+                                :appearance="appearance"
+                                :index="playFrom + 1"
+                                :editor="freeEditor"
+                                :editable="editable"
+                                :keyboard="!playing && !sharing && !appearanceOpen && !pendingDelete"
+                            />
+                            <div class="flex flex-wrap items-center gap-2">
+                                <AppIconButton
+                                    size="sm"
+                                    variant="ghost"
+                                    :disabled="!freeEditor.canUndo.value"
+                                    :title="t('backend.studio.decks.free.undo')"
+                                    v-on:click="freeEditor.undo()"
+                                >
+                                    <Undo2 class="h-4 w-4" :stroke-width="2" />
+                                </AppIconButton>
+                                <AppIconButton
+                                    size="sm"
+                                    variant="ghost"
+                                    :disabled="!freeEditor.canRedo.value"
+                                    :title="t('backend.studio.decks.free.redo')"
+                                    v-on:click="freeEditor.redo()"
+                                >
+                                    <Redo2 class="h-4 w-4" :stroke-width="2" />
+                                </AppIconButton>
+                                <span class="text-xs text-muted">{{ t("backend.studio.decks.free.shortcuts") }}</span>
+                            </div>
+                        </div>
+                        <aside class="aurora-card w-full shrink-0 space-y-5 p-3 2xl:sticky 2xl:top-4 2xl:max-h-[calc(100vh-2rem)] 2xl:w-80 2xl:overflow-y-auto">
+                            <FreeInspector
+                                :editor="freeEditor"
+                                :slide="selected"
+                                :appearance="appearance"
+                                :options="freeOptions"
+                                :editable="editable"
+                            />
+                            <div class="border-t border-line pt-3">
+                                <FreeLayers :editor="freeEditor" :editable="editable" />
+                            </div>
+                        </aside>
+                    </div>
+
+                    <div v-else ref="previewFrame" class="mx-auto max-w-3xl space-y-2">
                         <SlideFrame
                             :slide="selected"
                             :appearance="appearance"
                             :index="playFrom + 1"
                         />
+                        <div v-if="editable" class="flex justify-end">
+                            <AppButton variant="ghost" size="sm" v-on:click="convertToFree">
+                                <WandSparkles class="h-4 w-4" :stroke-width="2" />
+                                {{ t("backend.studio.decks.free.convert") }}
+                            </AppButton>
+                        </div>
                     </div>
 
                     <div class="aurora-card mx-auto max-w-3xl space-y-4 p-2 sm:p-4">
                         <div class="flex items-center justify-between gap-3">
                             <AppSelect
+                                v-if="!isFree"
                                 :model-value="selected.layout"
                                 :options="layoutOptions"
                                 :label="t('backend.studio.decks.layout')"
                                 :disabled="!editable"
                                 class="flex-1"
-                                v-on:update:model-value="writeLayout"
+                                v-on:update:model-value="pickLayout"
                             />
+                            <p v-else class="m-0 flex-1 text-sm font-medium text-primary">
+                                {{ freeLabel }}
+                            </p>
                             <span class="shrink-0 self-end pb-2 text-xs text-muted">
                                 {{ saving
                                     ? t("backend.studio.decks.saving")
@@ -670,7 +831,7 @@ onBeforeUnmount(() => {
                             </span>
                         </div>
 
-                        <template v-for="slot in slots" :key="slot">
+                        <template v-for="slot in isFree ? [] : slots" :key="slot">
                             <AppTextarea
                                 v-if="listSlots.includes(slot)"
                                 :model-value="linesText(slot)"
@@ -801,7 +962,7 @@ onBeforeUnmount(() => {
                             </p>
 
                             <AppInput
-                                v-if="commonSlots.includes('kicker')"
+                                v-if="commonSlots.includes('kicker') && !isFree"
                                 :model-value="selected.content.kicker ?? ''"
                                 :label="labelFor('kicker')"
                                 :placeholder="t('backend.studio.decks.kicker_placeholder')"
@@ -811,6 +972,7 @@ onBeforeUnmount(() => {
 
                             <div v-if="commonSlots.includes('anchor')" class="grid gap-3 sm:grid-cols-3">
                                 <AppSelect
+                                    v-if="!isFree"
                                     :model-value="selected.content.anchor ?? 'center'"
                                     :options="anchorOptions"
                                     :label="labelFor('anchor')"
@@ -818,6 +980,7 @@ onBeforeUnmount(() => {
                                     v-on:update:model-value="(value) => writeSlot('anchor', value)"
                                 />
                                 <AppSelect
+                                    v-if="!isFree"
                                     :model-value="selected.content.align ?? 'left'"
                                     :options="alignOptions"
                                     :label="labelFor('align')"
@@ -825,6 +988,7 @@ onBeforeUnmount(() => {
                                     v-on:update:model-value="(value) => writeSlot('align', value)"
                                 />
                                 <AppSelect
+                                    v-if="!isFree"
                                     :model-value="selected.content.titleScale ?? 'normal'"
                                     :options="titleScaleOptions"
                                     :label="labelFor('titleScale')"
@@ -839,6 +1003,7 @@ onBeforeUnmount(() => {
                                     v-on:update:model-value="(value) => writeSlot('band', value)"
                                 />
                                 <AppSelect
+                                    v-if="!isFree"
                                     :model-value="selected.content.measure ?? 'full'"
                                     :options="measureOptions"
                                     :label="labelFor('measure')"
@@ -916,7 +1081,7 @@ onBeforeUnmount(() => {
                             />
 
                             <AppToggle
-                                v-if="commonSlots.includes('reveal')"
+                                v-if="commonSlots.includes('reveal') && !isFree"
                                 :model-value="selected.content.reveal === true"
                                 :label="labelFor('reveal')"
                                 :hint="t('backend.studio.decks.reveal_hint')"
@@ -943,13 +1108,15 @@ onBeforeUnmount(() => {
                             />
                         </div>
 
-                        <p class="m-0 text-xs text-muted">
-                            {{ t("backend.studio.decks.emphasis_hint") }}
-                        </p>
+                        <template v-if="!isFree">
+                            <p class="m-0 text-xs text-muted">
+                                {{ t("backend.studio.decks.emphasis_hint") }}
+                            </p>
 
-                        <p class="m-0 text-xs text-muted">
-                            {{ t("backend.studio.decks.icons_hint") }}
-                        </p>
+                            <p class="m-0 text-xs text-muted">
+                                {{ t("backend.studio.decks.icons_hint") }}
+                            </p>
+                        </template>
 
                         <AppTextarea
                             :model-value="selected.speakerNotes ?? ''"
