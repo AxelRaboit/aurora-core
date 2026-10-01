@@ -401,6 +401,14 @@
         "tour-contrat-adapte": {
             "document": 750,
             "slug": "clients-et-contrats"
+        },
+        "tour-presentations-libre": {
+            "document": 751,
+            "slug": "presentations"
+        },
+        "tour-presentations-libre-diaporama": {
+            "document": 752,
+            "slug": "presentations"
         }
     }
 }
