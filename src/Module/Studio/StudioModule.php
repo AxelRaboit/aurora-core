@@ -171,6 +171,10 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
             'backend.nav.studio_decks',
             'presentation',
             requiredPrivilege: 'studio.decks.view',
+            // Les pages d'une présentation s'appellent `backend_studio_deck`,
+            // au singulier : l'éditeur, le mode présentateur, l'impression.
+            // Sans ce préfixe, ouvrir une présentation éteignait le menu.
+            activeRoutePrefix: 'backend_studio_deck',
             descriptionKey: 'backend.nav.studio_decks_description',
         );
     }
