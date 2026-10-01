@@ -5,6 +5,19 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.319] - 2026-10-01
+
+### Corrigé
+
+#### Le menu reste allumé dans une présentation
+Ouvrir une présentation (l'éditeur, le mode présentateur, l'impression) éteignait le menu latéral : aucune entrée n'y était surlignée. « Présentations » reste maintenant allumée sur toutes les pages d'une présentation, comme sur leur liste.
+
+### Dans aurora-client
+
+Rien à faire au-delà de `make aurora-update`.
+
+---
+
 ## [0.9.318] - 2026-10-01
 
 ### Amélioré
