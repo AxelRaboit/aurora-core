@@ -1,4 +1,5 @@
 <script setup>
+import { overlaysSettled } from '@/shared/composables/overlay/useBackButtonClose.js';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
@@ -509,6 +510,35 @@ async function onLibraryChanged() {
     // lecteur croirait travailler sur quelque chose qui n'existe plus.
     if (selectedId.value && !notes.value.some((note) => note.id === selectedId.value)) {
         backToLibrary();
+    }
+}
+
+/**
+ * Supprimer, puis rendre l'adresse juste.
+ *
+ * La note ouverte supprimée, l'écran revient à la bibliothèque mais l'adresse
+ * restait la sienne : rafraîchir la page répondait 404. L'adresse est réécrite
+ * une fois la fenêtre de confirmation refermée, pas avant : la fenêtre tient
+ * une entrée d'historique à elle, et la réécrire pendant qu'elle est là, c'est
+ * écrire sur cette entrée, que son propre retour arrière effacerait aussitôt.
+ */
+async function confirmDeleteAndLeave() {
+    const target = pendingDelete.value;
+    const wasOpen = null !== target && selectedId.value === target.id;
+
+    await confirmDelete();
+
+    // Toujours en attente : le serveur a refusé, la note est toujours là.
+    if (!wasOpen || null !== pendingDelete.value) return;
+
+    await overlaysSettled();
+
+    const folderId = openFolderId.value;
+
+    try {
+        window.history.replaceState({ folderId }, '', folderId ? folderUrlFor(folderId) : props.libraryPath);
+    } catch {
+        // Cadre bac à sable : la bibliothèque est affichée, seule l'adresse ne suit pas.
     }
 }
 
@@ -1278,7 +1308,7 @@ onUnmounted(() => {
                             <X class="w-3.5 h-3.5" :stroke-width="2" />
                             {{ t('notes.markdown.cancel') }}
                         </AppButton>
-                        <AppButton variant="danger" size="md" :loading="deleting" v-on:click="confirmDelete">
+                        <AppButton variant="danger" size="md" :loading="deleting" v-on:click="confirmDeleteAndLeave">
                             <Trash2 class="w-3.5 h-3.5" :stroke-width="2" />
                             {{ t('notes.markdown.delete') }}
                         </AppButton>

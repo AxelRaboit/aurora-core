@@ -3,6 +3,7 @@ import { defineComponent, h, ref, nextTick } from "vue";
 import { mount } from "@vue/test-utils";
 import {
     useBackButtonClose,
+    overlaysSettled,
     __resetBackButtonClose,
 } from "./useBackButtonClose.js";
 
@@ -246,5 +247,94 @@ describe("useBackButtonClose", () => {
         await Promise.resolve();
         stack.settle();
         expect(stack.depth).toBe(1);
+    });
+
+    /**
+     * The notes bug: closing the delete confirmation popped our entry, the
+     * page's own listener took it for Back, and reopened the note it had
+     * just deleted. The page must not hear a pop it did not cause.
+     */
+    it("keeps its own pop from reaching the page's listeners", async () => {
+        const page = vi.fn();
+        window.addEventListener("popstate", page);
+        const shown = ref(false);
+        mount(
+            overlay(shown, () => {
+                shown.value = false;
+            }),
+        );
+
+        shown.value = true;
+        await nextTick();
+        shown.value = false;
+        await nextTick();
+        await Promise.resolve();
+        stack.settle();
+
+        expect(stack.depth).toBe(1);
+        expect(page).not.toHaveBeenCalled();
+        window.removeEventListener("popstate", page);
+    });
+
+    it("keeps a Back that only closes an overlay from the page too", async () => {
+        const page = vi.fn();
+        window.addEventListener("popstate", page);
+        const shown = ref(false);
+        mount(
+            overlay(shown, () => {
+                shown.value = false;
+            }),
+        );
+
+        shown.value = true;
+        await nextTick();
+        stack.userPressesBack();
+        await nextTick();
+
+        expect(shown.value).toBe(false);
+        expect(page).not.toHaveBeenCalled();
+        window.removeEventListener("popstate", page);
+    });
+
+    it("lets a Back with no overlay open reach the page", async () => {
+        const page = vi.fn();
+        window.addEventListener("popstate", page);
+        mount(overlay(ref(false), () => {}));
+
+        stack.pushState(null, "", "/list/2");
+        stack.userPressesBack();
+
+        expect(page).toHaveBeenCalledTimes(1);
+        window.removeEventListener("popstate", page);
+    });
+
+    it("says when the last overlay entry is gone", async () => {
+        const shown = ref(false);
+        mount(
+            overlay(shown, () => {
+                shown.value = false;
+            }),
+        );
+
+        shown.value = true;
+        await nextTick();
+        shown.value = false;
+        await nextTick();
+        await Promise.resolve();
+
+        let settled = false;
+        overlaysSettled().then(() => {
+            settled = true;
+        });
+        await Promise.resolve();
+        expect(settled).toBe(false);
+
+        stack.settle();
+        await Promise.resolve();
+        expect(settled).toBe(true);
+    });
+
+    it("settles at once when no overlay was open", async () => {
+        await expect(overlaysSettled()).resolves.toBeUndefined();
     });
 });
