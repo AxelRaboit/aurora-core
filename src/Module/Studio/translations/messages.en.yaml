@@ -605,7 +605,7 @@ backend:
             category_none_hint: The trade has not been set yet. The trame stays usable.
             category_all: All categories
             preview: Preview
-            preview_notice: "Variables are replaced with examples, except your own business details which come from your settings. Fields filled per contract show in square brackets."
+            preview_notice: 'The coloured text comes from variables. These are examples, except your details, taken from your settings. Fields to fill in for each contract are in square brackets.'
             preview_failed: The preview could not be produced.
             preview_unknown_tokens: 'Unknown variables, they will stop the publication: {tokens}'
             filter_category: 'Category: {name}'
@@ -689,8 +689,8 @@ backend:
                 custom_hint: 'Write this token with your own key (lowercase, digits, underscores). It is asked for when each contract is prepared, and sealing refuses to leave it empty.'
                 title: Available variables
                 hint: Copy a token and paste it into the wording. It is replaced when the contract is built; a list line whose variables are all empty (a sole trader's RCS, for instance) is left out.
-                customer: The customer
-                provider: The provider
+                customer: 'The client, whom the contract is for'
+                provider: 'The provider, you'
                 contract: The contract
                 customer_legal_name: Company name
                 customer_legal_form: Legal form
@@ -725,6 +725,8 @@ backend:
                 contract_amends_reference: Amended contract reference
                 contract_amends_effective_date: Amended contract effective date
                 contract_amends_rank: Amendment number
+                examples_notice: 'These values are examples. The contract will use the real ones: the chosen client''s and yours.'
+                example: 'e.g. {value}'
         decks:
             create: New presentation
             created: Presentation created

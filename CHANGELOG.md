@@ -5,6 +5,22 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.317] - 2026-10-01
+
+### Amélioré
+
+#### Les exemples des variables de contrat sont signalés
+Dans la liste des variables, à côté de l'éditeur de trame et du texte adapté d'un contrat, un encadré dit en une phrase que les valeurs affichées sont des exemples, et que le contrat utilisera les vraies : celles du client choisi et les vôtres. Chaque valeur est précédée de « ex. », et les deux groupes s'appellent « Le client, à qui s'adresse le contrat » et « Le prestataire, vous ».
+
+#### Les variables en couleur dans l'aperçu d'une trame
+L'aperçu d'une trame colore chaque valeur qui vient d'une variable, dans la couleur d'accent du thème, pour repérer d'un coup d'œil ce qui changera d'un contrat à l'autre. Le contrat scellé et envoyé au client n'a aucune couleur.
+
+### Dans aurora-client
+
+Rien à faire au-delà de `make aurora-update`.
+
+---
+
 ## [0.9.316] - 2026-10-01
 
 ### Corrigé

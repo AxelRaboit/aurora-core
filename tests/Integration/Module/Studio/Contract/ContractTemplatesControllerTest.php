@@ -433,7 +433,9 @@ final class ContractTemplatesControllerTest extends IntegrationTestCase
         self::assertStringNotContainsString('{{', $html);
 
         // The title is substituted too, and framed the way a freeze frames it.
-        self::assertStringContainsString('<h1>Contrat avec Boulangerie Durand</h1>', $html);
+        // Each filled value is marked, so the author sees what came from a
+        // variable - in the preview only, never in a sealed contract.
+        self::assertStringContainsString('<h1>Contrat avec <mark class="contract-variable">Boulangerie Durand</mark></h1>', $html);
     }
 
     public function testThePreviewIsRefusedALanguageTheVersionIsNotWrittenIn(): void

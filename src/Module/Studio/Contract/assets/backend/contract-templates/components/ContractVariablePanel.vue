@@ -13,6 +13,7 @@
  * leaves the writer guessing whether a date arrives as 08/09/2026 or
  * 2026-09-08, which is the same class of discovery.
  */
+import AppMessage from "@/shared/components/feedback/AppMessage.vue";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { Copy, Check } from "lucide-vue-next";
@@ -65,6 +66,13 @@ async function copy(token) {
             </p>
         </div>
 
+        <!-- Dit avant la liste : une valeur posée à côté d'un jeton se lit
+             comme la vraie, et un SIRET bien formé sous « Le client » faisait
+             croire que la trame connaissait déjà un client. -->
+        <AppMessage variant="info">
+            {{ t("backend.studio.contract_templates.variables.examples_notice") }}
+        </AppMessage>
+
         <div v-for="group in props.groups" :key="group.group" class="space-y-1.5">
             <p class="text-xs font-medium text-secondary">
                 {{ t(group.labelKey) }}
@@ -93,7 +101,7 @@ async function copy(token) {
                             {{ tokenText(variable.token) }}
                         </code>
                         <span class="block text-2xs text-muted">
-                            {{ t(variable.labelKey) }} · {{ variable.example }}
+                            {{ t(variable.labelKey) }} · {{ t("backend.studio.contract_templates.variables.example", { value: variable.example }) }}
                         </span>
                     </span>
                 </li>
