@@ -39,6 +39,14 @@ const props = defineProps({
     unlockPath: { type: String, default: "" },
     /** Vrai pour le référent : lui seul peut aller brancher le dossier. */
     canConfigure: { type: Boolean, default: false },
+    /**
+     * Ce que dit la vue quand aucun dossier n'est désigné. Celui d'un client
+     * se branche dans les réglages de son espace ; celui de l'agence, dans la
+     * configuration du Drive : la même phrase enverrait au mauvais endroit.
+     */
+    emptyKey: { type: String, default: "" },
+    /** La phrase sous le titre : celle du client ne vaut pas pour l'agence. */
+    introKey: { type: String, default: "backend.studio.drive.space.intro" },
 });
 
 const { t } = useI18n();
@@ -249,7 +257,7 @@ async function importToLibrary(file) {
             </div>
         </header>
 
-        <p v-if="!locked" class="text-xs text-muted">{{ t("backend.studio.drive.space.intro") }}</p>
+        <p v-if="!locked" class="text-xs text-muted">{{ t(introKey) }}</p>
 
         <p
             v-if="linked && !loading && files.length && !archivable"
@@ -267,7 +275,7 @@ async function importToLibrary(file) {
             v-if="!linked && !loading"
             class="rounded-lg border border-line bg-surface-2 px-3 py-3 text-xs text-muted"
         >
-            {{ t(canConfigure ? "backend.studio.drive.space.no_folder_referent" : "backend.studio.drive.space.no_folder") }}
+            {{ t(emptyKey || (canConfigure ? "backend.studio.drive.space.no_folder_referent" : "backend.studio.drive.space.no_folder")) }}
         </p>
 
         <!-- La serrure prend toute la place : tant qu'elle est fermée, il n'y

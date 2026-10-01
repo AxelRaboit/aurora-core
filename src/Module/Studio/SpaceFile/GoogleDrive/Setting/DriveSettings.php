@@ -69,6 +69,18 @@ final readonly class DriveSettings
      *
      * @return array{enabled: bool, hasAccount: bool, email: string|null}
      */
+    /**
+     * The agency's own folder: shared resources the team reads from every
+     * space - templates, guidelines. Never shown to a client. Null while
+     * none is set.
+     */
+    public function agencyFolderId(): ?string
+    {
+        $stored = (string) $this->settingRepository->get(DriveSettingEnum::AgencyFolder->value, '');
+
+        return '' === $stored ? null : $stored;
+    }
+
     public function state(): array
     {
         $account = $this->account();
@@ -77,6 +89,7 @@ final readonly class DriveSettings
             'enabled' => $this->settingRepository->getBoolean(DriveSettingEnum::Enabled->value),
             'hasAccount' => $account instanceof GoogleServiceAccount,
             'email' => $account?->email,
+            'agencyFolderId' => $this->agencyFolderId(),
         ];
     }
 
@@ -85,12 +98,21 @@ final readonly class DriveSettings
      *                                    tranquille ; une chaîne vide est un
      *                                    « oublie-la » explicite
      */
+    /**
+     * @param string|null $agencyFolderId null leaves it as it is, an empty
+     *                                    string clears it
+     */
     public function save(
         bool $enabled,
         #[SensitiveParameter]
         ?string $serviceAccount,
+        ?string $agencyFolderId = null,
     ): void {
         $entries = [];
+
+        if (null !== $agencyFolderId) {
+            $entries[] = [DriveSettingEnum::AgencyFolder->value, '' === $agencyFolderId ? null : $agencyFolderId];
+        }
 
         if (null !== $serviceAccount) {
             $json = mb_trim($serviceAccount);

@@ -5,6 +5,24 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.320] - 2026-10-01
+
+### Ajouté
+
+#### Le dossier Drive de l'agence, dans chaque espace
+Un dossier à vous, le même pour tous les espaces (modèles, charte, ressources de l'équipe), se désigne une fois dans Configuration > Google Drive. L'onglet Drive d'un espace propose alors deux onglets : « Dossier du client », celui qui se règle dans les Réglages de l'espace, et « Dossier de l'agence ». On y navigue, télécharge et range dans la médiathèque de la même façon. Seul le studio le voit : il n'apparaît jamais dans l'espace du client. Sans dossier d'agence, l'onglet Drive reste celui du seul client, comme avant.
+
+### Amélioré
+
+#### « Envoyer à relire » devient un bandeau explicite
+Le bouton rangé dans la barre des onglets ne disait ni à qui il écrivait ni pourquoi. Quand des publications attendent l'avis du client, un bandeau s'affiche maintenant sous les onglets, sur toutes les vues de l'espace : il dit combien attendent (et combien sont en retard), explique que le client reçoit un courriel avec un lien pour valider ou demander des changements, et porte le bouton d'envoi. Il disparaît quand rien n'attend.
+
+### Dans aurora-client
+
+Rien à faire au-delà de `make aurora-update`.
+
+---
+
 ## [0.9.319] - 2026-10-01
 
 ### Corrigé

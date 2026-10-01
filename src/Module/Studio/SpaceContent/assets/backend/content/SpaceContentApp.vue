@@ -50,7 +50,7 @@ import SpaceBoardView from "./views/SpaceBoardView.vue";
 import SpaceListView from "./views/SpaceListView.vue";
 import SpaceCalendarView from "./views/SpaceCalendarView.vue";
 import SpaceFilesView from "./views/SpaceFilesView.vue";
-import SpaceDriveView from "../../../../SpaceFile/GoogleDrive/assets/backend/drive/SpaceDriveView.vue";
+import SpaceDriveTabs from "../../../../SpaceFile/GoogleDrive/assets/backend/drive/SpaceDriveTabs.vue";
 import SpaceContentItemFields from "./components/SpaceContentItemFields.vue";
 // Same module, another sub-domain: a relative path rather than an alias,
 // the way the public page already reaches the shared thread.
@@ -61,6 +61,7 @@ import SpaceNoteCraftModal from "../../../../SpaceNote/assets/backend/notes/Spac
 import { useSpaceNotes } from "../../../../SpaceNote/assets/backend/notes/composables/useSpaceNotes.js";
 import { useSpaceOwnFiles } from "../../../../SpaceFile/assets/backend/files/composables/useSpaceOwnFiles.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
+import AppMessage from "@/shared/components/feedback/AppMessage.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
@@ -177,6 +178,12 @@ const props = defineProps({
     driveFilePath: { type: String, default: "" },
     driveArchivePath: { type: String, default: "" },
     driveImportPath: { type: String, default: "" },
+    /** Le dossier de l'agence, le même pour tous les espaces. Studio seulement. */
+    driveAgencyFolderId: { type: String, default: null },
+    driveAgencyListPath: { type: String, default: "" },
+    driveAgencyFilePath: { type: String, default: "" },
+    driveAgencyArchivePath: { type: String, default: "" },
+    driveAgencyImportPath: { type: String, default: "" },
     /** Vrai pour le référent de l'espace, l'administrateur et le développeur. */
     canConfigure: { type: Boolean, default: false },
     settingsPath: { type: String, default: "" },
@@ -599,31 +606,6 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
             </div>
 
             <div class="flex items-center gap-2">
-                <!-- Le studio sait, lui, quand son lot est prêt : rien ne part
-                     tant qu'il ne le demande pas. Absent quand rien n'attend,
-                     parce qu'une invitation à relire zéro publication est ce
-                     qui apprend à ignorer les suivantes. -->
-                <AppButton
-                    v-if="awaitingApproval > 0 && can('studio.spaces.share')"
-                    variant="ghost"
-                    size="sm"
-                    :title="t('backend.studio.space_content.review.hint')"
-                    v-on:click="confirmingReview = true"
-                >
-                    <Send class="h-3.5 w-3.5" :stroke-width="2" />
-                    {{ t("backend.studio.space_content.review.action", { count: awaitingApproval }) }}
-                    <!-- Le retard à côté du nombre, parce que « trois en
-                         attente » et « trois en attente dont deux en retard »
-                         ne décrivent pas la même journée. -->
-                    <span
-                        v-if="lateForReview > 0"
-                        class="rounded-full bg-warning-soft px-1.5 py-0.5 text-2xs font-medium text-warning"
-                        :title="t('backend.studio.space_content.review.late_hint')"
-                    >
-                        {{ t("backend.studio.space_content.review.late", { count: lateForReview }) }}
-                    </span>
-                </AppButton>
-
                 <!-- Les mêmes états que le tableau de bord et le calendrier
                      éditorial, dans l'adresse : un lien « en retard » ouvre
                      l'espace déjà filtré. -->
@@ -682,6 +664,42 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
             </div>
         </div>
 
+        <!-- **Un bandeau, et non un bouton dans la barre.** Rangé parmi les
+             filtres, « Envoyer à relire » ne disait ni à qui ni pourquoi, et
+             il se lisait comme un réglage de l'onglet ouvert. Ici il dit ce
+             qui attend, ce que reçoit le client, et il reste le même sur tous
+             les onglets : le lot à relire ne dépend pas de la vue.
+
+             Absent quand rien n'attend, parce qu'une invitation à relire zéro
+             publication est ce qui apprend à ignorer les suivantes. -->
+        <AppMessage v-if="awaitingApproval > 0 && can('studio.spaces.share')" variant="info">
+            <!-- Le bouton dans le texte plutôt que dans l'emplacement d'action :
+                 sur téléphone il passe dessous, en pleine largeur, au lieu de
+                 réduire le texte à une colonne de trois mots. -->
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div class="min-w-0">
+                    <p class="m-0 flex flex-wrap items-center gap-2 font-medium">
+                        {{ t("backend.studio.space_content.review.banner_title", { count: awaitingApproval }) }}
+                        <!-- Le retard à côté du nombre, parce que « trois en
+                             attente » et « trois en attente dont deux en
+                             retard » ne décrivent pas la même journée. -->
+                        <span
+                            v-if="lateForReview > 0"
+                            class="rounded-full bg-warning-soft px-1.5 py-0.5 text-2xs font-medium text-warning"
+                            :title="t('backend.studio.space_content.review.late_hint')"
+                        >
+                            {{ t("backend.studio.space_content.review.late", { count: lateForReview }) }}
+                        </span>
+                    </p>
+                    <p class="m-0 mt-0.5">{{ t("backend.studio.space_content.review.banner_body") }}</p>
+                </div>
+                <AppButton class="w-full shrink-0 justify-center whitespace-nowrap sm:w-auto" variant="primary" size="sm" v-on:click="confirmingReview = true">
+                    <Send class="h-3.5 w-3.5" :stroke-width="2" />
+                    {{ t("backend.studio.space_content.review.banner_action") }}
+                </AppButton>
+            </div>
+        </AppMessage>
+
         <!-- The container and not the window decides the shape: bound here,
              around both drawings, so a narrow panel gets the list. -->
         <div v-if="view === 'content'" ref="shapeContainer">
@@ -733,7 +751,7 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
              origine - ce qui est sur les fiches, ce qui est à l'espace - et un
              dossier chez le client en est une troisième. En section sous les
              fichiers, il fallait faire défiler tout le reste pour l'atteindre. -->
-        <SpaceDriveView
+        <SpaceDriveTabs
             v-else-if="view === 'drive' && driveEnabled"
             :folder-id="driveFolderNow"
             :list-path="driveListPath"
@@ -742,6 +760,11 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
             :import-path="driveImportPath"
             :unlock-path="driveUnlockPath"
             :can-configure="canConfigure"
+            :agency-folder-id="driveAgencyFolderId"
+            :agency-list-path="driveAgencyListPath"
+            :agency-file-path="driveAgencyFilePath"
+            :agency-archive-path="driveAgencyArchivePath"
+            :agency-import-path="driveAgencyImportPath"
         />
 
         <SpaceInformationView

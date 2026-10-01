@@ -5,6 +5,7 @@ import { toast } from "vue-sonner";
 import { Copy, ExternalLink, Save } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
+import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppLoader from "@/shared/components/feedback/AppLoader.vue";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { useClipboard } from "@/shared/composables/useClipboard.js";
@@ -58,6 +59,10 @@ const email = ref(null);
 // que. Laissée vide, l'enregistrement garde celle qui est stockée.
 const serviceAccount = ref("");
 
+// Le dossier de l'agence, le même pour tous les espaces. Préremplie, elle :
+// ce n'est pas un secret, et un champ vide ne dirait pas s'il y en a un.
+const agencyFolder = ref("");
+
 const canEnable = computed(() => hasAccount.value || "" !== serviceAccount.value.trim());
 
 function apply(state) {
@@ -65,6 +70,7 @@ function apply(state) {
     enabled.value = true === state.enabled;
     hasAccount.value = true === state.hasAccount;
     email.value = state.email ?? null;
+    agencyFolder.value = state.agencyFolderId ?? "";
     serviceAccount.value = "";
 }
 
@@ -79,7 +85,8 @@ onMounted(async () => {
 async function save() {
     saving.value = true;
     try {
-        const payload = { enabled: enabled.value && canEnable.value };
+        // Toujours envoyé, vide compris : vider le champ retire le dossier.
+        const payload = { enabled: enabled.value && canEnable.value, agencyFolderId: agencyFolder.value.trim() };
         if ("" !== serviceAccount.value.trim()) payload.serviceAccount = serviceAccount.value.trim();
 
         const state = await request(SETTINGS_PATH, payload, { noGuard: true });
@@ -176,6 +183,15 @@ defineExpose({ save, apply, canEnable });
                 />
                 <span class="block text-xs text-muted">{{ t("backend.studio.drive.settings.key_hint") }}</span>
             </label>
+
+            <!-- Facultatif, et dit pour quoi faire : sans lui, l'onglet Drive
+                 d'un espace reste celui du seul client, comme avant. -->
+            <AppInput
+                v-model="agencyFolder"
+                :label="t('backend.studio.drive.settings.agency_label')"
+                :hint="t('backend.studio.drive.settings.agency_hint')"
+                placeholder="https://drive.google.com/drive/folders/…"
+            />
 
             <AppCheckbox
                 v-model="enabled"

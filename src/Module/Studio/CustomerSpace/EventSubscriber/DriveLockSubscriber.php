@@ -11,6 +11,7 @@ use Symfony\Component\HttpKernel\Event\ControllerArgumentsEvent;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\KernelEvents;
 
+use function in_array;
 use function str_starts_with;
 
 /**
@@ -36,8 +37,8 @@ final readonly class DriveLockSubscriber implements EventSubscriberInterface
     /** Toutes les routes du Drive d'un espace portent ce préfixe. */
     private const string ROUTE_PREFIX = 'workspace_space_drive';
 
-    /** Celle qui sait dire « fermé » proprement, et se garde elle-même. */
-    private const string LISTING_ROUTE = 'workspace_space_drive_list';
+    /** Celles qui savent dire « fermé » proprement, et se gardent elles-mêmes. */
+    private const array LISTING_ROUTES = ['workspace_space_drive_list', 'workspace_space_drive_agency_list'];
 
     public function __construct(
         private DriveLock $lock,
@@ -56,7 +57,7 @@ final readonly class DriveLockSubscriber implements EventSubscriberInterface
 
         $route = (string) $event->getRequest()->attributes->get('_route');
 
-        if (!str_starts_with($route, self::ROUTE_PREFIX) || self::LISTING_ROUTE === $route) {
+        if (!str_starts_with($route, self::ROUTE_PREFIX) || in_array($route, self::LISTING_ROUTES, true)) {
             return;
         }
 

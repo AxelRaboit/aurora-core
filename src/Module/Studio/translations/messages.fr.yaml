@@ -1696,6 +1696,8 @@ backend:
                 share_body: "Dans Drive, le client partage son dossier avec cette adresse, en Lecteur. Ce qui n'est pas partagé reste invisible."
                 key_label: Clé du compte de service
                 key_hint: "Le fichier JSON en entier. Il contient une clé privée : il est chiffré en base et ne sera plus jamais affiché."
+                agency_label: Dossier de l'agence (facultatif)
+                agency_hint: "Un dossier à vous, le même dans tous les espaces : modèles, charte, ressources de l'équipe. Il s'affiche dans l'onglet Drive à côté de celui du client, et seul le studio le voit. Partagez-le avec l'adresse du compte de service, puis collez son adresse ici."
                 key_stored: Une clé est enregistrée. Laissez vide pour la garder.
                 enabled_label: Activer la lecture des dossiers Drive
                 enabled_hint: Chaque espace peut alors désigner le dossier que son client a partagé.
@@ -1714,6 +1716,10 @@ backend:
                 view_label: Affichage des fichiers
                 no_folder: "Aucun dossier Drive n'est branché sur cet espace."
                 no_folder_referent: "Aucun dossier Drive n'est branché sur cet espace. Rendez-vous dans les Réglages pour en désigner un."
+                no_agency_folder: "Le dossier de l'agence ne contient rien, ou n'a pas été partagé avec le compte de service."
+                source_client: Dossier du client
+                source_agency: Dossier de l'agence
+                agency_intro: "Le même dossier dans tous les espaces, choisi dans Configuration > Google Drive. Le client ne le voit pas."
                 locked_title: Onglet protégé
                 locked_intro: "Le dossier Drive de cet espace est fermé par un mot de passe. Il s'ouvre pour la durée de cette session."
                 locked_placeholder: Mot de passe
@@ -1734,6 +1740,7 @@ backend:
                 submit: Accrocher à la fiche
             errors:
                 key_invalid: "Ce n'est pas une clé de compte de service. Vérifiez d'avoir copié le fichier JSON en entier."
+                agency_folder_invalid: "Le dossier de l'agence n'est pas un dossier Drive. Collez son adresse, ou l'identifiant qui suit /folders/."
                 key_required: Collez une clé de compte de service avant d'activer.
                 folder_invalid: "Ce n'est pas un dossier Drive. Collez son adresse, ou l'identifiant qui suit /folders/."
                 import_failed: "Ce fichier n'a pas pu être recopié. Les documents Google n'ont pas de fichier à télécharger."
@@ -1986,8 +1993,9 @@ backend:
             review_by: Réponse attendue avant le
             review_by_hint: "Facultatif. La date à laquelle il vous faut l'avis du client pour tenir la parution. Rien ne se bloque à l'échéance : elle s'affiche, c'est tout."
             review:
-                action: 'Envoyer à relire ({count})'
-                hint: "Prévient le client par courriel de ce qui attend son avis, et lui envoie une adresse neuve."
+                banner_title: "Rien n'attend l'avis du client | 1 publication attend l'avis du client | {count} publications attendent l'avis du client"
+                banner_body: "Envoyez-les-lui à relire : il reçoit un courriel avec un lien pour les valider ou demander des changements, sans compte à créer."
+                banner_action: Envoyer à relire
                 confirm_title: Envoyer à relire ?
                 confirm_body: "{count} publication(s) attendent une réponse. Chaque destinataire pouvant valider recevra un courriel avec une adresse neuve, et son adresse précédente cessera de fonctionner."
                 confirm_send: Envoyer
