@@ -50,7 +50,8 @@ import FreeFontField from "./FreeFontField.vue";
 import FreeNumberField from "./FreeNumberField.vue";
 import FreePaintField from "./FreePaintField.vue";
 import { FREE_ICONS } from "./icons.js";
-import { embedPreview } from "./model.js";
+import { boundsOf, embedPreview } from "./model.js";
+import { readability } from "../colour.js";
 
 const props = defineProps({
     editor: { type: Object, required: true },
@@ -184,6 +185,50 @@ const writeLines = (key, value) => set(key, value.split("\n").map((line) => line
 function writeEmbed(url) {
     editor.patchSelected(embedPreview(url), { coalesce: "embed" });
 }
+
+/**
+ * Whether the selected words can be read on what is under them.
+ *
+ * What is under them is the first painted thing found going down the stack
+ * from the box: its own fill, a shape or a box drawn beneath it, then the
+ * slide's paint, then the deck's ground. A picture or a film beneath answers
+ * nothing - its colours are not known here - and the panel stays quiet
+ * rather than guessing.
+ */
+const legibility = computed(() => {
+    const element = single.value;
+
+    if (!element || element.type !== "text") return null;
+
+    const look = props.appearance ?? {};
+    const hex = (value) => (["ink", "accent", "background"].includes(value) ? look[value] : value)?.slice(0, 7) ?? null;
+    const solid = (fill) => (fill?.type === "solid" ? fill.color : (fill?.stops?.[0]?.color ?? null));
+
+    let ground = solid(element.fill);
+
+    if (!ground) {
+        const list = editor.elements.value;
+        const at = list.findIndex((row) => row.id === element.id);
+        const centre = boundsOf(element);
+
+        for (let below = at - 1; below >= 0 && !ground; below -= 1) {
+            const other = list[below];
+            const box = boundsOf(other);
+            const covers = box.left <= centre.centreX && box.right >= centre.centreX && box.top <= centre.centreY && box.bottom >= centre.centreY;
+
+            if (!covers) continue;
+            if (["image", "video", "embed"].includes(other.type)) return null;
+
+            ground = solid(other.fill);
+        }
+    }
+
+    ground ??= solid(props.slide.content.fill) ?? "background";
+
+    const result = readability(hex(element.color ?? "ink"), hex(ground));
+
+    return result && result.level !== "good" ? result : null;
+});
 
 const shadowOn = computed(() => !!single.value?.shadow || (many.value && selected.value.every((element) => element.shadow)));
 
@@ -462,6 +507,14 @@ function toggleStroke(on) {
                     :appearance="appearance"
                     v-on:update:model-value="(value) => set('color', value === 'ink' ? null : value)"
                 />
+                <p
+                    v-if="legibility"
+                    class="m-0 rounded-md border px-2 py-1.5 text-xs"
+                    :class="legibility.level === 'poor' ? 'border-rose-500/40 bg-rose-500/10 text-rose-300' : 'border-amber-500/40 bg-amber-500/10 text-amber-300'"
+                    role="status"
+                >
+                    {{ t(`backend.studio.decks.free.contrast_${legibility.level}`, { ratio: legibility.ratio }) }}
+                </p>
                 <AppToggle
                     :model-value="single.autofit !== false"
                     :label="t('backend.studio.decks.free.autofit')"

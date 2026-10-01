@@ -58,6 +58,14 @@ const readout = ref(null);
 /** Read once per gesture: what is under the pointer, and where. */
 let gesture = null;
 
+/**
+ * The fingers on the slide, by pointer id, where they are now.
+ *
+ * Two of them on a selected element is a pinch: the element grows, shrinks
+ * and turns between them, as a photo does in any phone's gallery.
+ */
+const pointers = new Map();
+
 const editor = props.editor;
 const elements = computed(() => editor.elements.value);
 const selected = computed(() => editor.selected.value);
@@ -152,6 +160,14 @@ function onPointerDown(event) {
 
     const start = pointOf(event);
 
+    pointers.set(event.pointerId, start);
+
+    if (pointers.size === 2 && beginPinch()) {
+        event.preventDefault();
+
+        return;
+    }
+
     if (handle) {
         event.preventDefault();
         beginHandle(handle, start, event);
@@ -163,6 +179,14 @@ function onPointerDown(event) {
         event.preventDefault();
 
         const additive = event.shiftKey || event.metaKey || event.ctrlKey;
+
+        // A tap on the text box already picked opens it for typing: on a
+        // phone there is no double click, and on a computer it is what every
+        // editor does with a second click.
+        const tapToType = !additive
+            && element.type === "text"
+            && editor.selection.value.length === 1
+            && editor.selection.value[0] === element.id;
 
         if (additive) {
             editor.select([element.id], { add: true });
@@ -178,6 +202,7 @@ function onPointerDown(event) {
                 start,
                 originals: new Map(movable.map((row) => [row.id, { ...row }])),
                 moved: false,
+                tapToType: tapToType ? element.id : null,
             };
         }
 
@@ -192,6 +217,68 @@ function onPointerDown(event) {
     gesture = { kind: "marquee", start, before: [...editor.selection.value] };
     marquee.value = { left: start.x, top: start.y, right: start.x, bottom: start.y };
     capture(event);
+}
+
+/**
+ * Two fingers down on one selected element: from now on they hold it.
+ *
+ * Measured in the square space, like a turn, so the angle between the
+ * fingers is the angle the element turns by.
+ */
+function beginPinch() {
+    const target = editor.single.value;
+
+    if (!target || target.locked) return false;
+
+    const [first, second] = [...pointers.values()];
+
+    // The first finger may have dragged the element a little before the
+    // second one landed: the pinch starts from where it was, and the step
+    // already recorded for that drag is the one this gesture undoes to.
+    const dragged = gesture?.kind === "move" && gesture.moved;
+    const original = dragged ? gesture.originals.get(target.id) ?? target : target;
+
+    if (dragged) editor.patch([target.id], { x: original.x, y: original.y }, { record: false });
+
+    gesture = {
+        kind: "pinch",
+        originals: new Map([[target.id, { ...original }]]),
+        distance: Math.hypot(second.x - first.x, second.s - first.s),
+        angle: Math.atan2(second.s - first.s, second.x - first.x),
+        moved: dragged,
+    };
+
+    marquee.value = null;
+
+    return true;
+}
+
+function pinchTo() {
+    const [first, second] = [...pointers.values()];
+
+    if (!first || !second || !gesture.distance) return;
+
+    startRecording();
+
+    const [id, original] = [...gesture.originals.entries()][0];
+    const scale = Math.max(0.1, Math.hypot(second.x - first.x, second.s - first.s) / gesture.distance);
+    const turn = ((Math.atan2(second.s - first.s, second.x - first.x) - gesture.angle) * 180) / Math.PI;
+    const centreX = original.x + original.w / 2;
+    const centreY = original.y + original.h / 2;
+    const width = original.w * scale;
+    const height = original.h * scale;
+    const next = {
+        x: round(centreX - width / 2),
+        y: round(centreY - height / 2),
+        w: round(width),
+        h: round(height),
+        rotate: round(snapAngle((original.rotate ?? 0) + turn), 2) || null,
+    };
+
+    if (original.type === "text") next.size = round(Math.max(5, (original.size ?? 40) * scale), 1);
+
+    readout.value = `${Math.round(scale * 100)} % · ${Math.round(next.rotate ?? 0)}°`;
+    editor.patch([id], next, { record: false });
 }
 
 function beginHandle(handle, start, event) {
@@ -247,6 +334,14 @@ function onPointerMove(event) {
     if (!gesture) return;
 
     const point = pointOf(event);
+
+    if (pointers.has(event.pointerId)) pointers.set(event.pointerId, point);
+
+    if (gesture.kind === "pinch") {
+        pinchTo();
+
+        return;
+    }
 
     if (gesture.kind === "move") moveTo(point, event);
     else if (gesture.kind === "resize") resizeTo(point, event);
@@ -481,8 +576,25 @@ function lassoTo(point, event) {
     editor.select([...(event.shiftKey ? gesture.before : []), ...touched]);
 }
 
-function onPointerUp() {
+function onPointerUp(event) {
+    pointers.delete(event?.pointerId);
+
+    // One finger lifted from a pinch: the other one stays put, holding
+    // nothing, until it lifts too.
+    if (gesture?.kind === "pinch" && pointers.size > 0) {
+        gesture = { kind: "idle", originals: new Map() };
+        readout.value = null;
+
+        return;
+    }
+
+    pointers.clear();
     window.removeEventListener("pointermove", onPointerMove);
+
+    if (gesture?.kind === "move" && !gesture.moved && gesture.tapToType) {
+        editor.startEditing(gesture.tapToType);
+    }
+
     gesture = null;
     guides.value = [];
     marquee.value = null;
@@ -806,6 +918,23 @@ const wordHighlight = ref("#fde047");
     height: 12px;
     background: #0284c7;
     transform: translateX(-50%);
+}
+
+/* Au doigt, des poignées qu'un doigt attrape. */
+@media (pointer: coarse) {
+    .fc-handle,
+    .fc-handle.is-n,
+    .fc-handle.is-s,
+    .fc-handle.is-e,
+    .fc-handle.is-w {
+        width: 22px;
+        height: 22px;
+        margin: -11px 0 0 -11px;
+        border-radius: 9999px;
+    }
+
+    .fc-rotate { width: 24px; height: 24px; margin-left: -12px; top: -40px; }
+    .fc-rotate::after { top: 22px; height: 16px; }
 }
 
 .fc-lock {

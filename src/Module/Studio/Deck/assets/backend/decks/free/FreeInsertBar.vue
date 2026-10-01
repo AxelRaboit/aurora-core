@@ -123,7 +123,7 @@ const shapeStyle = (shape) => {
 
 <template>
     <div class="flex flex-col gap-2">
-        <div class="flex flex-wrap items-center gap-1" role="toolbar" :aria-label="t('backend.studio.decks.free.insert')">
+        <div class="flex items-center gap-1 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0 [&>*]:shrink-0" role="toolbar" :aria-label="t('backend.studio.decks.free.insert')">
             <AppButton variant="ghost" size="sm" :disabled="disabled" v-on:click="addText('title')">
                 <Heading1 class="h-4 w-4" :stroke-width="2" />
                 {{ t("backend.studio.decks.free.insert_title") }}

@@ -10,6 +10,7 @@ use Aurora\Module\Studio\Deck\Entity\DeckCategoryInterface;
 use Aurora\Module\Studio\Deck\Entity\DeckInterface;
 use Aurora\Module\Studio\Deck\Entity\SlideInterface;
 use Aurora\Module\Studio\Deck\Service\DeckAppearance;
+use Aurora\Module\Studio\Deck\Service\DeckFonts;
 use Aurora\Module\Studio\Deck\Service\DeckPicture;
 use Aurora\Module\Studio\Deck\Service\DeckPictures;
 use Aurora\Module\Studio\Deck\Service\DeckVideo;
@@ -34,6 +35,7 @@ class DeckSerializer
         private readonly DeckPictures $deckPictures,
         private readonly DeckVideo $videos,
         private readonly VideoEmbedResolver $embeds,
+        private readonly DeckFonts $fonts,
     ) {}
 
     /**
@@ -92,7 +94,10 @@ class DeckSerializer
         return [
             ...$this->summary($deck, count($slides)),
             'style' => $deck->getStyle(),
-            'appearance' => $this->appearance->resolve($deck),
+            // The uploaded fonts its free slides name travel with the look,
+            // because every place that draws the deck - a share link
+            // included - draws it from the look and nothing else.
+            'appearance' => [...$this->appearance->resolve($deck), 'fonts' => $this->fonts->usedBy($deck)],
             'slides' => $slides,
         ];
     }

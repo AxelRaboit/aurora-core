@@ -1098,6 +1098,7 @@ backend:
                 undo: Undo
                 redo: Redo
                 shortcuts: "Double-click to type, Shift to keep proportions, Alt to ignore guides."
+                shortcuts_touch: "Tap a selected text to type, pinch with two fingers to resize and turn."
                 text_toolbar: Text formatting
                 bold: Bold
                 italic: Italic
@@ -1150,6 +1151,11 @@ backend:
                 font_body: Body font
                 font_uploaded: Your fonts
                 font_upload: Upload a font
+                font_uploaded_ok: "Font {name} added."
+                font_errors:
+                    required: Choose a font file.
+                    not_a_font: "This file is not a font a browser can read: woff2, woff, ttf or otf."
+                    refused: The font could not be added.
                 font_categories:
                     sans: Sans serif
                     serif: Serif
@@ -1190,6 +1196,8 @@ backend:
                 text_colour: Text colour
                 autofit: Fit text to box
                 autofit_hint: "The text shrinks so it never overflows its box."
+                contrast_poor: "Hard to read on this background: contrast of {ratio} to 1, at least 3 is needed."
+                contrast_large: "Readable only when large: contrast of {ratio} to 1, 4.5 for running text."
                 text_hint: "Double-click inside the box to type. Select words to make them bold, coloured or a list."
                 fit: Fit
                 mask: Crop shape

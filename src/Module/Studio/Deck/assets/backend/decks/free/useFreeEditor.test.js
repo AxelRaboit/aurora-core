@@ -170,6 +170,17 @@ describe("useFreeEditor", () => {
         expect(slide.value.content.elements).toHaveLength(0);
     });
 
+    it("takes no step for a box opened and closed unchanged", () => {
+        const { editor } = editorOn([
+            { id: "t", type: "text", x: 0, y: 0, w: 10, h: 10, html: "Titre" },
+        ]);
+
+        editor.startEditing("t");
+        editor.stopEditing();
+
+        expect(editor.canUndo.value).toBe(false);
+    });
+
     it("forgets the selection when another slide comes on screen", async () => {
         const { slide, editor } = editorOn([shape("a")]);
 

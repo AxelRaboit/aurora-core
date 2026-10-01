@@ -1098,6 +1098,7 @@ backend:
                 undo: Annuler
                 redo: Rétablir
                 shortcuts: "Double-clic pour écrire, Maj pour garder les proportions, Alt pour ignorer les guides."
+                shortcuts_touch: "Touchez un texte choisi pour écrire, pincez à deux doigts pour agrandir et tourner."
                 text_toolbar: Mise en forme du texte
                 bold: Gras
                 italic: Italique
@@ -1150,6 +1151,11 @@ backend:
                 font_body: Police du texte
                 font_uploaded: Vos polices
                 font_upload: Importer une police
+                font_uploaded_ok: "Police {name} ajoutée."
+                font_errors:
+                    required: Choisissez un fichier de police.
+                    not_a_font: "Ce fichier n'est pas une police lisible par un navigateur : woff2, woff, ttf ou otf."
+                    refused: "La police n'a pas pu être ajoutée."
                 font_categories:
                     sans: Sans empattement
                     serif: Avec empattement
@@ -1190,6 +1196,8 @@ backend:
                 text_colour: Couleur du texte
                 autofit: Ajuster le texte à la boîte
                 autofit_hint: "Le texte rétrécit pour ne jamais sortir de sa boîte."
+                contrast_poor: "Texte peu lisible sur ce fond : contraste de {ratio} pour 1, il en faut au moins 3."
+                contrast_large: "Lisible en grand seulement : contraste de {ratio} pour 1, 4,5 pour un texte courant."
                 text_hint: "Double-cliquez dans la boîte pour écrire. Sélectionnez des mots pour les mettre en gras, en couleur ou en liste."
                 fit: Remplissage
                 mask: Découpe

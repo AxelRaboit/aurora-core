@@ -26,10 +26,25 @@ import {
  * when the typing starts. Taking one step back then undoes what a person
  * remembers doing.
  *
- * The clipboard is shared by every slide of the page, so an element copied on
- * one slide is pasted on another, which is most of what copying is for.
+ * The clipboard is shared by every slide and every deck: kept in the browser
+ * as well as in the page, so an element copied in one deck is pasted in
+ * another, which is how a free slide becomes the model for the next one.
  */
-const clipboard = ref([]);
+const STORED_CLIPBOARD = "aurora.decks.free.clipboard";
+
+function storedClipboard() {
+    try {
+        const stored = JSON.parse(
+            window.localStorage.getItem(STORED_CLIPBOARD) ?? "[]",
+        );
+
+        return Array.isArray(stored) ? stored : [];
+    } catch {
+        return [];
+    }
+}
+
+const clipboard = ref(typeof window === "undefined" ? [] : storedClipboard());
 
 const HISTORY_DEPTH = 100;
 
@@ -90,12 +105,14 @@ export function useFreeEditor({ slide, writeSlide, maxElements = 200 }) {
         const history = historyOf(slide.value.id);
         const now = snapshot();
 
-        if (history.past[history.past.length - 1] === now) return;
+        if (history.past[history.past.length - 1] === now) return false;
 
         history.past.push(now);
         if (history.past.length > HISTORY_DEPTH) history.past.shift();
         history.future = [];
         version.value += 1;
+
+        return true;
     }
 
     const canUndo = computed(
@@ -295,8 +312,18 @@ export function useFreeEditor({ slide, writeSlide, maxElements = 200 }) {
     }
 
     function copy() {
-        if (selected.value.length)
-            clipboard.value = JSON.parse(JSON.stringify(selected.value));
+        if (!selected.value.length) return;
+
+        clipboard.value = JSON.parse(JSON.stringify(selected.value));
+
+        try {
+            window.localStorage.setItem(
+                STORED_CLIPBOARD,
+                JSON.stringify(clipboard.value),
+            );
+        } catch {
+            // A browser that keeps nothing still pastes within this page.
+        }
     }
 
     function cut() {
@@ -310,6 +337,13 @@ export function useFreeEditor({ slide, writeSlide, maxElements = 200 }) {
      * to another slide is usually meant to sit where it sat.
      */
     function paste() {
+        // Copied in another tab or another deck since this page opened.
+        if (typeof window !== "undefined") {
+            const stored = storedClipboard();
+
+            if (stored.length) clipboard.value = stored;
+        }
+
         if (!clipboard.value.length) return;
 
         const here = new Set(elements.value.map((element) => element.id));
@@ -442,13 +476,16 @@ export function useFreeEditor({ slide, writeSlide, maxElements = 200 }) {
         );
     }
 
+    /** The box being typed into, its words before, and whether a step was taken. */
+    let typing = null;
+
     /** Typing started: the step to come back to is the box before it. */
     function startEditing(id) {
         const element = elements.value.find((row) => row.id === id);
 
         if (!element || element.type !== "text" || element.locked) return;
 
-        checkpoint();
+        typing = { id, before: element.html ?? "", recorded: checkpoint() };
         selection.value = [id];
         editingId.value = id;
     }
@@ -468,6 +505,21 @@ export function useFreeEditor({ slide, writeSlide, maxElements = 200 }) {
         editingId.value = null;
 
         const element = elements.value.find((row) => row.id === id);
+
+        // Opened and closed without a change: the step taken when typing
+        // started would undo nothing, so it is given back.
+        if (
+            typing?.id === id &&
+            typing.recorded &&
+            element &&
+            (element.html ?? "") === typing.before
+        ) {
+            historyOf(slide.value.id).past.pop();
+            version.value += 1;
+        }
+
+        typing = null;
+
         const empty =
             element &&
             !String(element.html ?? "")
