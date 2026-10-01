@@ -11,6 +11,8 @@ use function array_key_exists;
 use function array_keys;
 use function in_array;
 use function is_array;
+use function is_string;
+use function mb_trim;
 use function preg_match_all;
 use function sprintf;
 use function str_replace;
@@ -177,10 +179,41 @@ final readonly class ContractDocumentRenderer
             // `{content: …}` in newer ones. Both shapes reach this from the
             // same editor, so both are read rather than one assumed.
             $content = is_array($item) ? ($item['content'] ?? '') : $item;
+
+            if ($this->fillsWithNothing($content, $values)) {
+                continue;
+            }
+
             $html .= sprintf('<li>%s</li>', $this->text($content, $values));
         }
 
+        // Every line was empty: no list at all rather than an empty one.
+        if ('' === $html) {
+            return '';
+        }
+
         return sprintf('<%s>%s</%s>', $tag, $html, $tag);
+    }
+
+    /**
+     * Whether a list line only carries variables that all came back empty.
+     *
+     * The identity block of a contract is a list of « RCS : {{customer.
+     * trade_register}} » lines, and a sole trader has no RCS, no share capital,
+     * often no VAT number: the sealed document printed « RCS : » with nothing
+     * after it, line after line. Such a line is left out. A line with any
+     * value, with no variable, or with a variable the values do not know (one
+     * filled at signature, or a typo the freeze must still name) is kept.
+     *
+     * @param array<string, string> $values
+     */
+    private function fillsWithNothing(mixed $content, array $values): bool
+    {
+        if (!is_string($content) || 0 === preg_match_all('/\{\{([a-z0-9_.]+)\}\}/i', $content, $matches)) {
+            return false;
+        }
+
+        return array_all($matches[1], fn ($token): bool => array_key_exists($token, $values) && '' === mb_trim($values[$token]));
     }
 
     /**

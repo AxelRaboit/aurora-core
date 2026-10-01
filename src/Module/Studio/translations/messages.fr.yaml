@@ -648,7 +648,7 @@ backend:
                 custom: Un champ propre à un contrat
                 custom_hint: 'Écrivez ce jeton avec votre propre clé (minuscules, chiffres, tirets bas). Il sera demandé à la préparation de chaque contrat, et le scellement refuse de le laisser vide.'
                 title: Variables disponibles
-                hint: Copiez un jeton et collez-le dans le texte. Il sera remplacé à la construction du contrat.
+                hint: Copiez un jeton et collez-le dans le texte. Il sera remplacé à la construction du contrat ; une ligne de liste dont toutes les variables sont vides (RCS d'une entreprise individuelle, par exemple) n'y apparaît pas.
                 customer: Le client
                 provider: Le prestataire
                 contract: Le contrat

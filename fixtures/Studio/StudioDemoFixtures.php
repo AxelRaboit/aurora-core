@@ -1709,9 +1709,15 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         $this->entityManager->flush();
 
         if ('now' !== $sealedAt) {
+            // Prepared the day before it was sealed, so the list's « last
+            // activity » does not read today on every row.
             $this->entityManager->getConnection()->executeStatement(
-                'UPDATE core_contracts SET frozen_at = :at WHERE id = :id',
-                ['at' => new DateTimeImmutable($sealedAt)->format('Y-m-d H:i:s'), 'id' => $contract->getId()],
+                'UPDATE core_contracts SET frozen_at = :at, created_at = :created WHERE id = :id',
+                [
+                    'at' => new DateTimeImmutable($sealedAt)->format('Y-m-d H:i:s'),
+                    'created' => new DateTimeImmutable($sealedAt.' -1 day')->format('Y-m-d H:i:s'),
+                    'id' => $contract->getId(),
+                ],
             );
         }
 

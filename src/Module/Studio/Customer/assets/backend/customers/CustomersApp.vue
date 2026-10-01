@@ -341,7 +341,7 @@ const pageActions = computed(() => {
                             {{ formatSiret(customer.siret) }}
                         </td>
                         <td class="px-4 py-2">
-                            <div class="text-primary break-all">
+                            <div class="text-primary whitespace-nowrap">
                                 {{ customer.contractualEmail }}
                             </div>
                             <div v-if="customer.userName" class="text-xs text-muted">
