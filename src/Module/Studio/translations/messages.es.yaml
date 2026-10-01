@@ -604,7 +604,11 @@ backend:
             category_none_hint: 'Aún no se ha precisado el oficio. La plantilla sigue siendo utilizable.'
             category_all: 'Todas las categorías'
             preview: 'Vista previa'
-            preview_notice: 'El texto en color viene de las variables. Son ejemplos, salvo sus datos, tomados de sus ajustes. Los campos que se rellenan en cada contrato van entre corchetes.'
+            preview_notice: 'El texto en color viene de las variables.'
+            preview_legend:
+                example: 'Ejemplo inventado'
+                real: 'Sus datos, tomados de sus ajustes'
+                slot: 'A rellenar en cada contrato'
             preview_failed: 'No se ha podido generar la vista previa.'
             preview_unknown_tokens: 'Variables desconocidas, impedirán la publicación: {tokens}'
             filter_category: 'Categoría: {name}'
