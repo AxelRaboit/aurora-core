@@ -60,7 +60,7 @@ const colorPresets = useColorPickerPresets({ groups: props.groups, updatePath: p
                 </div>
             </div>
             <div v-else class="flex flex-wrap gap-2">
-                <AppButton variant="secondary" size="sm" v-on:click="colorPresets.openAddForm">
+                <AppButton variant="ghost" size="sm" v-on:click="colorPresets.openAddForm">
                     <Plus class="w-3.5 h-3.5" :stroke-width="2" />
                     {{ t('backend.settings.appearance.color_presets.add') }}
                 </AppButton>

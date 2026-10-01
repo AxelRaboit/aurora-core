@@ -107,6 +107,7 @@ function isLast(resource) {
 
             <AppButton
                 v-if="editable"
+                variant="ghost"
                 size="sm"
                 class="w-full justify-center sm:w-auto"
                 v-on:click="openCreate"

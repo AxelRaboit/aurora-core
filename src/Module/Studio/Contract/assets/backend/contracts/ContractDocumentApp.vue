@@ -71,6 +71,7 @@ const props = defineProps({
     amendPath: { type: String, required: true },
     showPath: { type: String, required: true },
     templateVersionPath: { type: String, required: true },
+    wordingPath: { type: String, default: "" },
     customers: { type: Array, default: () => [] },
     bodies: { type: Array, default: () => [] },
     annexes: { type: Array, default: () => [] },
@@ -143,7 +144,18 @@ function openRequestedGesture() {
     const all = [flow.value.next, ...flow.value.others].filter(Boolean);
     const action = all.find((each) => each.key === key);
 
-    if (action) bind(action).onSelect?.();
+    if (!action) return;
+
+    // A gesture that is a page (« Adapter le texte ») is followed there; the
+    // others open their confirmation here.
+    const bound = bind(action);
+
+    if (bound.href) window.location.assign(bound.href);
+    else bound.onSelect?.();
+}
+
+function wordingHref(part) {
+    return props.wordingPath ? buildPath(props.wordingPath, { part }) : null;
 }
 
 /** Cleaned once more on the way into the DOM, like every stored HTML. */
@@ -387,6 +399,7 @@ function bind(action) {
         download: props.pdfPath,
         export: props.exportPath,
         amend: props.amendPath,
+        adapt: props.wordingPath ? buildPath(props.wordingPath, { part: "body" }) : null,
     }[action.key];
 
     if (href) return { ...action, href };
@@ -540,6 +553,10 @@ const confirmBlocked = computed(
                                 <p v-if="contract.body.isOutdated && isDraft" class="text-xs text-amber-500">
                                     {{ t(`${F}.panels.version_outdated`, { number: contract.body.versionNumber, latest: contract.body.latestVersionNumber }) }}
                                 </p>
+                                <p v-if="contract.body.isAdapted" class="flex flex-wrap items-center gap-1.5 text-xs">
+                                    <AppBadge color="violet">{{ t("backend.studio.contracts.wording.badge") }}</AppBadge>
+                                    <a class="text-accent-400 hover:underline" :href="wordingHref('body')">{{ t("backend.studio.contracts.wording.open") }}</a>
+                                </p>
                             </dd>
                         </template>
                         <template v-if="contract.annex">
@@ -547,6 +564,10 @@ const confirmBlocked = computed(
                             <dd class="min-w-0">
                                 <a class="text-accent-400 hover:underline" :href="versionHref(contract.annex)">{{ contract.annex.templateName }}</a>
                                 <span class="text-muted"> · {{ t(`${F}.panels.version`, { number: contract.annex.versionNumber }) }}</span>
+                                <p v-if="contract.annex.isAdapted" class="flex flex-wrap items-center gap-1.5 text-xs">
+                                    <AppBadge color="violet">{{ t("backend.studio.contracts.wording.badge") }}</AppBadge>
+                                    <a class="text-accent-400 hover:underline" :href="wordingHref('annex')">{{ t("backend.studio.contracts.wording.open") }}</a>
+                                </p>
                             </dd>
                         </template>
                         <dt class="text-muted">{{ t(`${F}.panels.amount`) }}</dt>

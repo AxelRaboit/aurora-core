@@ -7,6 +7,7 @@ namespace Aurora\Module\Studio\Contract\Entity;
 use Aurora\Core\Money\Enum\CurrencyEnum;
 use Aurora\Core\Timestampable\TimestampableTrait;
 use Aurora\Module\Studio\Contract\Enum\ContractStatusEnum;
+use Aurora\Module\Studio\Contract\Enum\ContractTemplateKindEnum;
 use Aurora\Module\Studio\Contract\Enum\ContractTerminationOriginEnum;
 use Aurora\Module\Studio\Contract\Exception\ContractPdfAlreadyGeneratedException;
 use Aurora\Module\Studio\Contract\Exception\FrozenContractIsImmutableException;
@@ -14,6 +15,9 @@ use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use LogicException;
+
+use function sprintf;
 
 /**
  * One contract, for one customer, built from templates and then frozen.
@@ -114,6 +118,26 @@ abstract class AbstractContract implements ContractInterface
      */
     #[ORM\Column(type: Types::JSON, options: ['default' => '{}'])]
     protected array $customFields = [];
+
+    /**
+     * The wording adapted for this contract alone, by part (`body`, `annex`).
+     *
+     * A trame is the model; a client sometimes needs a clause moved, added or
+     * struck. Copying the trame into a new one for a single client is how a
+     * list of trames fills with near-duplicates that no longer follow the
+     * original. The adapted text lives here instead, on the contract it was
+     * written for: it is sealed with it, deleted with it, and can never
+     * outlive or leak into another contract.
+     *
+     * Each entry keeps the language it was written in and the version it was
+     * adapted from, so a contract can always say « version 3 of this trame,
+     * adapted », and changing either the trame or the language drops the
+     * adaptation rather than sealing a text written for something else.
+     *
+     * @var array<string, array{locale: string, title: string, blocks: list<mixed>, baseVersionId: int|null, adaptedAt: string}>
+     */
+    #[ORM\Column(type: Types::JSON, options: ['default' => '{}'])]
+    protected array $adaptedWording = [];
 
     #[ORM\Column(nullable: true)]
     protected ?int $amountCents = null;
@@ -327,6 +351,12 @@ abstract class AbstractContract implements ContractInterface
     {
         $this->assertEditable();
 
+        // Another trame is another text: an adaptation of the previous one
+        // would otherwise be sealed under the name of a trame it never was.
+        if ($bodyVersion?->getId() !== $this->bodyVersion?->getId()) {
+            unset($this->adaptedWording[ContractTemplateKindEnum::Body->value]);
+        }
+
         $this->bodyVersion = $bodyVersion;
 
         return $this;
@@ -341,6 +371,10 @@ abstract class AbstractContract implements ContractInterface
     {
         $this->assertEditable();
 
+        if ($annexVersion?->getId() !== $this->annexVersion?->getId()) {
+            unset($this->adaptedWording[ContractTemplateKindEnum::Annex->value]);
+        }
+
         $this->annexVersion = $annexVersion;
 
         return $this;
@@ -354,6 +388,12 @@ abstract class AbstractContract implements ContractInterface
     public function setLocale(string $locale): static
     {
         $this->assertEditable();
+
+        // An adaptation is written in one language; a contract that changes
+        // language starts again from the trame's text in the new one.
+        if ($locale !== $this->locale) {
+            $this->adaptedWording = [];
+        }
 
         $this->locale = $locale;
 
@@ -769,6 +809,75 @@ abstract class AbstractContract implements ContractInterface
         $this->terminationEffectiveAt = $effectiveAt;
         $this->terminationOrigin = $origin;
         $this->terminationReason = '' === $reason ? null : $reason;
+
+        return $this;
+    }
+
+    /**
+     * @return array{locale: string, title: string, blocks: list<mixed>, baseVersionId: int|null, adaptedAt: string}|null
+     */
+    public function getAdaptedWording(ContractTemplateKindEnum $part): ?array
+    {
+        return $this->adaptedWording[$part->value] ?? null;
+    }
+
+    public function isAdapted(?ContractTemplateKindEnum $part = null): bool
+    {
+        return $part instanceof ContractTemplateKindEnum ? isset($this->adaptedWording[$part->value]) : [] !== $this->adaptedWording;
+    }
+
+    /** @param list<mixed> $blocks */
+    public function adaptWording(
+        ContractTemplateKindEnum $part,
+        string $title,
+        array $blocks,
+        DateTimeImmutable $at,
+    ): static {
+        $this->assertEditable();
+
+        $version = ContractTemplateKindEnum::Body === $part ? $this->bodyVersion : $this->annexVersion;
+
+        if (!$version instanceof ContractTemplateVersionInterface) {
+            throw new LogicException(sprintf('Contract %d has no %s to adapt.', (int) $this->getId(), $part->value));
+        }
+
+        $this->adaptedWording[$part->value] = [
+            'locale' => $this->locale,
+            'title' => $title,
+            'blocks' => $blocks,
+            'baseVersionId' => $version->getId(),
+            'adaptedAt' => $at->format(DATE_ATOM),
+        ];
+
+        return $this;
+    }
+
+    public function resetWording(ContractTemplateKindEnum $part): static
+    {
+        $this->assertEditable();
+
+        unset($this->adaptedWording[$part->value]);
+
+        return $this;
+    }
+
+    /**
+     * Copies another contract's adaptations, for a duplicate built on the
+     * same trames and language. Only the parts that still match: a duplicate
+     * of a cancelled contract keeps the text that was negotiated.
+     */
+    public function adoptWordingFrom(ContractInterface $source): static
+    {
+        $this->assertEditable();
+
+        foreach (ContractTemplateKindEnum::cases() as $part) {
+            $adapted = $source->getAdaptedWording($part);
+            $version = ContractTemplateKindEnum::Body === $part ? $this->bodyVersion : $this->annexVersion;
+
+            if (null !== $adapted && $adapted['locale'] === $this->locale && $adapted['baseVersionId'] === $version?->getId()) {
+                $this->adaptedWording[$part->value] = $adapted;
+            }
+        }
 
         return $this;
     }

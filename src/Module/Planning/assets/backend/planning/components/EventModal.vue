@@ -592,14 +592,16 @@ const when = computed(() => {
                     </button>
                 </div>
 
-                <button
+                <AppButton
+                    variant="ghost"
+                    size="sm"
                     type="button"
-                    class="flex items-center gap-1.5 self-start text-xs text-accent-600 hover:underline cursor-pointer"
+                    class="self-start"
                     v-on:click="addAlert"
                 >
                     <Plus class="w-3.5 h-3.5" :stroke-width="2" />
                     {{ t("backend.plannings.alerts.add") }}
-                </button>
+                </AppButton>
 
                 <span v-if="!form.alerts.length" class="text-xs text-muted">
                     {{ t("backend.plannings.alerts.none") }}

@@ -16,7 +16,9 @@ use Aurora\Module\Studio\Contract\Access\Repository\ContractAccessLinkRepository
 use Aurora\Module\Studio\Contract\Dto\ContractInputFactoryInterface;
 use Aurora\Module\Studio\Contract\Dto\ContractInputInterface;
 use Aurora\Module\Studio\Contract\Entity\Contract;
+use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersionInterface;
 use Aurora\Module\Studio\Contract\Enum\ContractStatusEnum;
+use Aurora\Module\Studio\Contract\Enum\ContractTemplateKindEnum;
 use Aurora\Module\Studio\Contract\Exception\FrozenContractIsImmutableException;
 use Aurora\Module\Studio\Contract\Manager\ContractManagerInterface;
 use Aurora\Module\Studio\Contract\Serializer\ContractSerializerInterface;
@@ -122,6 +124,57 @@ class ContractsController extends AbstractController
         }
 
         return $this->jsonSuccess($this->viewBuilder->listPayload());
+    }
+
+    /**
+     * The text of one part, adapted for this contract alone.
+     *
+     * A page rather than a modal, like the trame editor: a contract runs to
+     * two hundred blocks. Readable under the view privilege; the page offers
+     * to write only to whoever may edit, and only before the seal.
+     */
+    #[Route('/{id}/wording/{part}', name: '_wording', requirements: ['id' => '\d+', 'part' => 'body|annex'], methods: [HttpMethodEnum::Get->value])]
+    public function wording(Contract $contract, string $part): Response
+    {
+        $kind = ContractTemplateKindEnum::from($part);
+        $version = ContractTemplateKindEnum::Body === $kind ? $contract->getBodyVersion() : $contract->getAnnexVersion();
+
+        if (!$version instanceof ContractTemplateVersionInterface) {
+            throw $this->createNotFoundException(sprintf('Contract %d has no %s.', (int) $contract->getId(), $part));
+        }
+
+        return $this->render('@Studio/backend/contracts/wording.html.twig', $this->viewBuilder->wordingView($contract, $kind));
+    }
+
+    #[Route('/{id}/wording/{part}/save', name: '_wording_save', requirements: ['id' => '\d+', 'part' => 'body|annex'], methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.contracts.edit')]
+    public function saveWording(Contract $contract, string $part, Request $request): JsonResponse
+    {
+        $data = $this->decodeJson($request);
+        $content = is_array($data['content'] ?? null) ? $data['content'] : [];
+
+        try {
+            $this->contractManager->adaptWording($contract, ContractTemplateKindEnum::from($part), (string) ($data['title'] ?? ''), $content);
+        } catch (FrozenContractIsImmutableException) {
+            return $this->frozenRefusal();
+        } catch (FieldException $fieldException) {
+            return $this->jsonInvalidInput([$fieldException->getField() => $fieldException->getMessage()]);
+        }
+
+        return $this->jsonSuccess(['contract' => $this->serializer->serializeDocument($contract)]);
+    }
+
+    #[Route('/{id}/wording/{part}/reset', name: '_wording_reset', requirements: ['id' => '\d+', 'part' => 'body|annex'], methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.contracts.edit')]
+    public function resetWording(Contract $contract, string $part): JsonResponse
+    {
+        try {
+            $this->contractManager->resetWording($contract, ContractTemplateKindEnum::from($part));
+        } catch (FrozenContractIsImmutableException) {
+            return $this->frozenRefusal();
+        }
+
+        return $this->jsonSuccess(['contract' => $this->serializer->serializeDocument($contract)]);
     }
 
     /**

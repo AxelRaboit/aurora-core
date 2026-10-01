@@ -125,6 +125,8 @@ backend:
                     expired: Contract expired unsigned
                     cancelled: Contract cancelled
                     duplicated: Contract duplicated as a draft
+                    wording_adapted: Wording adapted for this contract
+                    wording_reset: Back to the template's wording
                     reminder_sent: Reminder sent to the customer
                     refused: Contract refused by the customer
                     terminated: Contract terminated
@@ -206,6 +208,41 @@ backend:
                 customer: 'The customer'
                 provider: 'The provider'
         contracts:
+            wording:
+                title: Adapted wording
+                heading: Contract wording for {customer}
+                intro: 'This wording applies to this contract only. The template "{template}" (version {number}) does not change, nor do the other contracts using it.'
+                not_adapted: 'The contract uses the template''s wording for now. Edit it here: the first save creates the adapted version.'
+                adapted_on: Adapted on {date}
+                from_older_version: Adapted from an earlier version of the template.
+                frozen_notice: 'Sealed contract: this is the wording that was sealed, and it can no longer change.'
+                readonly_notice: You can read this wording but not edit it.
+                parts:
+                    body: Contract body
+                    annex: Annex
+                document_title: Document title
+                save: Save
+                saved: Adapted wording saved. It will be sealed with the contract.
+                reset: Back to the template's wording
+                reset_title: Go back to the template's wording?
+                reset_confirm: 'The changes made for this contract will be lost, and the wording of the template "{template}" takes their place again.'
+                reset_done: The contract uses the template's wording again.
+                differences: Differences with the template
+                differences_none: No difference with the template.
+                differences_summary: '{added} added, {removed} removed'
+                diff_added: Added
+                diff_removed: Removed
+                unsaved: Unsaved changes
+                leave_warning: Some changes are not saved.
+                back: Back to the contract
+                badge: Adapted
+                panel: Wording adapted for this contract
+                open: See the wording
+                errors:
+                    no_part: This contract has no such part.
+                    title_required: The document needs a title.
+                    title_too_long: 'The title cannot be longer than {max} characters.'
+                    empty: The wording is empty.
             title: Contracts
             add: Prepare a contract
             create: New contract
@@ -417,6 +454,9 @@ backend:
                     cancel:
                         title: Cancel the contract
                         description: 'The contract has no effect any more; its reference stays. Offered while nobody has signed.'
+                    adapt:
+                        title: Adapt the wording
+                        description: Change it for this customer only, without touching the template.
                     duplicate:
                         title: Duplicate as a draft
                         description: A new draft with the same choices, to correct.

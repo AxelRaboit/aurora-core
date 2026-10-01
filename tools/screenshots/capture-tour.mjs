@@ -925,6 +925,29 @@ const SHOTS = [
     },
 
     /**
+     * Le texte d'un contrat adapté pour son client : le brouillon de la démo
+     * porte une clause ajoutée, et la colonne de droite la montre comme une
+     * différence avec la trame. Atteint par la fiche, comme un lecteur le
+     * ferait, plutôt que par un identifiant qui change à chaque chargement.
+     */
+    {
+        name: "tour-contrat-adapte",
+        path: "/backend/studio/contracts",
+        async prepare(page) {
+            const row = page
+                .locator("main table tbody tr")
+                .filter({ hasText: "Brouillon" })
+                .filter({ hasText: "Atelier Dupont" })
+                .first();
+            await row.locator("a[href*='/backend/studio/contracts/']").first().click();
+            await page.waitForLoadState("networkidle");
+            await page.locator("main").getByRole("link", { name: "Voir le texte" }).first().click();
+            await page.waitForLoadState("networkidle");
+            await page.waitForTimeout(2_000);
+        },
+    },
+
+    /**
      * Le tableau d'un espace client.
      *
      * Par la liste plutôt que par une adresse : les identifiants changent à

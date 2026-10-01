@@ -5,6 +5,36 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.310] - 2026-10-01
+
+### Ajouté
+
+#### Adapter le texte d'un contrat pour son client
+Un contrat en brouillon peut recevoir un texte adapté pour son client, sans créer de trame. « Adapter le texte », à côté de « Modifier », ouvre le texte de la trame dans le même éditeur que les trames : on y ajoute, modifie ou retire des articles pour ce contrat seulement. La trame et les autres contrats ne changent pas.
+
+- Le premier enregistrement crée l'adaptation ; « Revenir au texte de la trame » l'efface tant que le contrat n'est pas scellé.
+- À côté de l'éditeur, les différences avec la trame se mettent à jour pendant la frappe : ce qui est ajouté, ce qui est retiré.
+- Le texte adapté obéit aux mêmes règles qu'une trame (blocs imprimables, variables connues). Un champ propre au contrat qu'il ajoute (`{{contract.custom.…}}`) devient un champ à remplir avant le scellement.
+- C'est lui qui est scellé et signé, et le contrat scellé garde la trace qu'il était adapté. La page reste lisible après le scellement, sans pouvoir être modifiée.
+- Le corps et l'annexe s'adaptent séparément. Changer de trame ou de langue efface l'adaptation de la partie concernée ; dupliquer un contrat la conserve, pour qu'un contrat annulé et corrigé garde ses clauses négociées.
+- La liste et la fiche du contrat affichent « Adapté », et l'historique note chaque adaptation et chaque retour à la trame.
+
+### Changé
+
+#### Les boutons « + Ajouter » sont gris partout
+Ils avaient trois apparences : gris, bloc gris encadré, et texte vert pour les rappels du planning. Tous sont maintenant gris, sans fond, comme la plupart l'étaient déjà : étapes de formulaire, contenus et galeries des zones, couleurs de l'apparence, rappels d'un événement, ressources et notes d'un espace client, insertion d'une rangée dans la grille. Un test garde la règle.
+
+### Corrigé
+
+#### La dernière activité d'un contrat compte ses signatures
+Un contrat signé par le client restait daté, dans la liste, du jour de son envoi : une fois signé, il n'a plus de lien actif, et la signature ne comptait pas. Les signatures et tous les liens, révoqués compris, entrent maintenant dans « Dernière activité », ainsi que le jour où le lien d'un contrat expiré a cessé de fonctionner.
+
+#### Un badge ne passe plus sur deux lignes
+« À contresigner » se coupait en deux dans la liste des contrats. Les badges tiennent sur une ligne, partout.
+
+#### Une démonstration des contrats cohérente
+Chaque contrat a l'historique de ce qui lui est arrivé, à ses dates (création, scellement, envoi, relance, signature, refus, révocation, expiration, résiliation), au lieu de « créé » et « scellé » datés du jour du chargement. Les contrats conclus ont leur PDF signé, vérifié avec le reste chaque matin. Le contrat expiré prend effet après son scellement, et le contrat résilié a été scellé dans l'année de sa référence.
+
 ## [0.9.309] - 2026-10-01
 
 ### Corrigé

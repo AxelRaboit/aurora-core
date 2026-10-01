@@ -125,6 +125,8 @@ backend:
                     expired: Contrat expiré sans signature
                     cancelled: Contrat annulé
                     duplicated: Contrat dupliqué en brouillon
+                    wording_adapted: Texte adapté pour ce contrat
+                    wording_reset: Retour au texte de la trame
                     reminder_sent: Relance envoyée au client
                     refused: Contrat refusé par le client
                     terminated: Contrat résilié
@@ -206,6 +208,41 @@ backend:
                 customer: 'Le client'
                 provider: 'Le prestataire'
         contracts:
+            wording:
+                title: Texte adapté
+                heading: Texte du contrat pour {customer}
+                intro: 'Ce texte ne vaut que pour ce contrat. La trame « {template} » (version {number}) ne change pas, ni les autres contrats qui l''utilisent.'
+                not_adapted: 'Le contrat utilise pour l''instant le texte de la trame. Modifiez-le ici : le premier enregistrement crée la version adaptée.'
+                adapted_on: Adapté le {date}
+                from_older_version: Adapté à partir d'une version précédente de la trame.
+                frozen_notice: 'Contrat scellé : ce texte est celui qui a été figé et ne se modifie plus.'
+                readonly_notice: Vous pouvez lire ce texte, mais pas le modifier.
+                parts:
+                    body: Corps du contrat
+                    annex: Annexe
+                document_title: Titre du document
+                save: Enregistrer
+                saved: Texte adapté enregistré. Il sera scellé avec le contrat.
+                reset: Revenir au texte de la trame
+                reset_title: Revenir au texte de la trame ?
+                reset_confirm: 'Les modifications faites pour ce contrat seront perdues, et le texte de la trame « {template} » reprendra sa place.'
+                reset_done: Le contrat reprend le texte de la trame.
+                differences: Différences avec la trame
+                differences_none: Aucune différence avec la trame.
+                differences_summary: '{added} ajouté(s), {removed} retiré(s)'
+                diff_added: Ajouté
+                diff_removed: Retiré
+                unsaved: Modifications non enregistrées
+                leave_warning: Des modifications ne sont pas enregistrées.
+                back: Retour au contrat
+                badge: Adapté
+                panel: Texte adapté pour ce contrat
+                open: Voir le texte
+                errors:
+                    no_part: Ce contrat n'a pas cette partie.
+                    title_required: Le document a besoin d'un titre.
+                    title_too_long: 'Le titre ne peut pas dépasser {max} caractères.'
+                    empty: Le texte est vide.
             title: Contrats
             add: Préparer un contrat
             create: Nouveau contrat
@@ -417,6 +454,9 @@ backend:
                     cancel:
                         title: Annuler le contrat
                         description: 'Le contrat n''a plus d''effet ; sa référence reste. Proposé tant que personne n''a signé.'
+                    adapt:
+                        title: Adapter le texte
+                        description: Le modifier pour ce client seulement, sans toucher à la trame.
                     duplicate:
                         title: Dupliquer en brouillon
                         description: Un nouveau brouillon avec les mêmes choix, à corriger.

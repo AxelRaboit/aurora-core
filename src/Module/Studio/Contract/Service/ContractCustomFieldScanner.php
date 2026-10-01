@@ -7,6 +7,8 @@ namespace Aurora\Module\Studio\Contract\Service;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersionInterface;
 
 use function array_keys;
+use function array_unique;
+use function array_values;
 use function is_array;
 use function json_encode;
 use function preg_match_all;
@@ -86,6 +88,22 @@ final readonly class ContractCustomFieldScanner
         // shape of every block type to find it - which is exactly the kind of
         // knowledge that goes stale when a block type is added.
         return $this->keysInText((string) json_encode($blocks, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), $prefix);
+    }
+
+    /**
+     * The keys a single wording asks for, title included: a contract's
+     * adapted text, which belongs to no version.
+     *
+     * @param array<string, mixed> $content
+     *
+     * @return list<string>
+     */
+    public function keysInWording(string $title, array $content, string $prefix = self::PREFIX): array
+    {
+        $keys = array_values(array_unique([...$this->keysIn($content, $prefix), ...$this->keysInText($title, $prefix)]));
+        sort($keys);
+
+        return $keys;
     }
 
     /** @return list<string> */
