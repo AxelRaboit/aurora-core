@@ -11,6 +11,7 @@ use Aurora\Module\Studio\Contract\Access\Repository\ContractAccessLinkRepository
 use Aurora\Module\Studio\Contract\Entity\ContractInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersionInterface;
 use Aurora\Module\Studio\Contract\Enum\ContractStatusEnum;
+use Aurora\Module\Studio\Contract\Enum\ContractTemplateKindEnum;
 use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\Contract\Service\ContractRetentionPolicy;
 use Aurora\Module\Studio\Contract\Service\ContractSeal;
@@ -124,8 +125,9 @@ class ContractSerializer implements ContractSerializerInterface
             'customFields' => $contract->getCustomFields(),
             'frozenAt' => $contract->getFrozenAt()?->format(DATE_ATOM),
             'createdAt' => $contract->getCreatedAt()->format(DATE_ATOM),
-            'body' => $this->part($contract->getBodyVersion()),
-            'annex' => $this->part($contract->getAnnexVersion()),
+            'body' => $this->part($contract->getBodyVersion(), $contract->getAdaptedWording(ContractTemplateKindEnum::Body)),
+            'annex' => $this->part($contract->getAnnexVersion(), $contract->getAdaptedWording(ContractTemplateKindEnum::Annex)),
+            'isAdapted' => $contract->isAdapted(),
             'link' => $this->link($link),
             'hasPdf' => $contract->hasPdf(),
             'pdfHash' => $contract->getPdfHash(),
@@ -331,7 +333,12 @@ class ContractSerializer implements ContractSerializerInterface
      *
      * @return array<string, mixed>|null
      */
-    private function part(?ContractTemplateVersionInterface $version): ?array
+    /**
+     * @param array{locale: string, title: string, blocks: list<mixed>, baseVersionId: int|null, adaptedAt: string}|null $adapted
+     *
+     * @return array<string, mixed>|null
+     */
+    private function part(?ContractTemplateVersionInterface $version, ?array $adapted = null): ?array
     {
         if (!$version instanceof ContractTemplateVersionInterface) {
             return null;
@@ -350,6 +357,13 @@ class ContractSerializer implements ContractSerializerInterface
             // able to see and redo.
             'latestVersionNumber' => $latest?->getNumber(),
             'isOutdated' => $latest instanceof ContractTemplateVersionInterface && $latest->getNumber() > $version->getNumber(),
+            // Written for this contract alone: the list says « adapté », the
+            // contract's screen offers the text and what differs.
+            'isAdapted' => null !== $adapted,
+            'adaptedAt' => $adapted['adaptedAt'] ?? null,
+            // The version it was adapted from, which can differ from the one
+            // pinned when a duplicate moved to a newer version.
+            'adaptedFromVersionId' => $adapted['baseVersionId'] ?? null,
         ];
     }
 }

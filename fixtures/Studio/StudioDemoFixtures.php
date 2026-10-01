@@ -23,6 +23,7 @@ use Aurora\Module\Studio\Contract\Dto\ContractTemplateVersionInput;
 use Aurora\Module\Studio\Contract\Entity\ContractInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersionInterface;
+use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersionTranslationInterface;
 use Aurora\Module\Studio\Contract\Enum\ContractStatusEnum;
 use Aurora\Module\Studio\Contract\Enum\ContractTemplateKindEnum;
 use Aurora\Module\Studio\Contract\Enum\ContractTerminationOriginEnum;
@@ -276,11 +277,15 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             return;
         }
 
-        // 1. A draft, still editable, no reference yet.
-        $this->contract($marie, $monthly, $annex, 490_00, '+1 month', [
+        // 1. A draft, still editable, no reference yet, and its wording
+        //    adapted for this client: one clause added to the trame's text,
+        //    without a trame of its own. The list shows « Adapté », and the
+        //    contract's screen leads to the text and what differs.
+        $draft = $this->contract($marie, $monthly, $annex, 490_00, '+1 month', [
             'formule' => 'Suivi',
             'duree' => '12 mois',
         ]);
+        $this->adaptForClient($draft);
 
         // 2. Sealed and sent, waiting for an answer. The state most of the list
         //    is in on any given day.
@@ -1742,6 +1747,25 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         }
 
         $contract->setStatus($status);
+    }
+
+    /**
+     * The demo's adapted wording: the trame's body with one clause negotiated
+     * by this client, through the same path as the screen.
+     */
+    private function adaptForClient(ContractInterface $contract): void
+    {
+        $translation = $contract->getBodyVersion()?->getTranslation($contract->getLocale());
+
+        if (!$translation instanceof ContractTemplateVersionTranslationInterface) {
+            return;
+        }
+
+        $blocks = $translation->getContent()['blocks'] ?? [];
+        $blocks[] = $this->header('Clause particulière');
+        $blocks[] = $this->paragraph("À la demande de {{customer.legal_name}}, les rendez-vous de suivi ont lieu le mardi matin, dans l'atelier, et le compte rendu est envoyé dans les deux jours ouvrés.");
+
+        $this->contracts->adaptWording($contract, ContractTemplateKindEnum::Body, $translation->getTitle(), ['blocks' => $blocks]);
     }
 
     /**

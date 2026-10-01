@@ -6,6 +6,7 @@ import {
     Copy,
     Eye,
     FileDown,
+    FilePen,
     FilePlus2,
     FileSignature,
     FileX2,
@@ -43,6 +44,7 @@ export function useContractFlow() {
     const ICONS = {
         open: FileSignature,
         edit: Pencil,
+        adapt: FilePen,
         preview: Eye,
         freeze: Lock,
         send: Mail,
@@ -91,8 +93,12 @@ export function useContractFlow() {
             case "draft":
                 return {
                     next: "freeze",
+                    // « Adapter le texte » sits next to « Modifier » : one
+                    // changes the contract's choices, the other its wording,
+                    // for this client alone.
                     others: [
                         "edit",
+                        "adapt",
                         "preview",
                         "export",
                         "duplicate",
@@ -142,6 +148,7 @@ export function useContractFlow() {
 
     const PRIVILEGE = {
         edit: "studio.contracts.edit",
+        adapt: "studio.contracts.edit",
         freeze: "studio.contracts.edit",
         cancel: "studio.contracts.edit",
         terminate: "studio.contracts.edit",

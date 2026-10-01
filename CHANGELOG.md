@@ -7,6 +7,18 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ## [0.9.310] - 2026-10-01
 
+### Ajouté
+
+#### Adapter le texte d'un contrat pour son client
+Un contrat en brouillon peut recevoir un texte adapté pour son client, sans créer de trame. « Adapter le texte », à côté de « Modifier », ouvre le texte de la trame dans le même éditeur que les trames : on y ajoute, modifie ou retire des articles pour ce contrat seulement. La trame et les autres contrats ne changent pas.
+
+- Le premier enregistrement crée l'adaptation ; « Revenir au texte de la trame » l'efface tant que le contrat n'est pas scellé.
+- À côté de l'éditeur, les différences avec la trame se mettent à jour pendant la frappe : ce qui est ajouté, ce qui est retiré.
+- Le texte adapté obéit aux mêmes règles qu'une trame (blocs imprimables, variables connues). Un champ propre au contrat qu'il ajoute (`{{contract.custom.…}}`) devient un champ à remplir avant le scellement.
+- C'est lui qui est scellé et signé, et le contrat scellé garde la trace qu'il était adapté. La page reste lisible après le scellement, sans pouvoir être modifiée.
+- Le corps et l'annexe s'adaptent séparément. Changer de trame ou de langue efface l'adaptation de la partie concernée ; dupliquer un contrat la conserve, pour qu'un contrat annulé et corrigé garde ses clauses négociées.
+- La liste et la fiche du contrat affichent « Adapté », et l'historique note chaque adaptation et chaque retour à la trame.
+
 ### Changé
 
 #### Les boutons « + Ajouter » sont gris partout

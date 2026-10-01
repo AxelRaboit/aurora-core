@@ -10,12 +10,14 @@ use Aurora\Core\Routing\PathTemplateGenerator;
 use Aurora\Module\Studio\Contract\Entity\ContractInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersionInterface;
+use Aurora\Module\Studio\Contract\Entity\ContractTemplateVersionTranslationInterface;
 use Aurora\Module\Studio\Contract\Enum\ContractTemplateKindEnum;
 use Aurora\Module\Studio\Contract\Enum\ContractTerminationOriginEnum;
 use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\Contract\Repository\ContractTemplateRepository;
 use Aurora\Module\Studio\Contract\Serializer\ContractSerializerInterface;
 use Aurora\Module\Studio\Contract\Service\ContractCustomFieldScanner;
+use Aurora\Module\Studio\Contract\Service\ContractVariableCatalogue;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\Customer\Repository\CustomerRepository;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -31,7 +33,76 @@ final readonly class ContractsViewBuilder
         private PathTemplateGenerator $pathTemplates,
         private UrlGeneratorInterface $urlGenerator,
         private ContractCustomFieldScanner $customFields,
+        private ContractVariableCatalogue $variables,
     ) {}
+
+    /**
+     * The page where one part of a contract is adapted for its client.
+     *
+     * Carries both texts: the trame's, which is what a reset goes back to
+     * and what the differences are measured against, and the adapted one when
+     * there is one. The editor opens on the adapted text, or on a copy of the
+     * trame's for a first adaptation.
+     *
+     * @return array<string, mixed>
+     */
+    public function wordingView(ContractInterface $contract, ContractTemplateKindEnum $part): array
+    {
+        $id = $contract->getId();
+        $version = $this->versionFor($contract, $part);
+        $translation = $version?->getTranslation($contract->getLocale());
+        $adapted = $contract->getAdaptedWording($part);
+
+        $parts = [];
+        foreach (ContractTemplateKindEnum::cases() as $each) {
+            $eachVersion = $this->versionFor($contract, $each);
+
+            if ($eachVersion instanceof ContractTemplateVersionInterface) {
+                $parts[] = [
+                    'key' => $each->value,
+                    'templateName' => $eachVersion->getTemplate()->getName(),
+                    'versionNumber' => $eachVersion->getNumber(),
+                    'isAdapted' => $contract->isAdapted($each),
+                    'path' => $this->urlGenerator->generate('backend_studio_contracts_wording', ['id' => $id, 'part' => $each->value]),
+                ];
+            }
+        }
+
+        $content = $translation instanceof ContractTemplateVersionTranslationInterface ? $translation->getContent() : [];
+
+        return [
+            'contract' => $this->serializer->serialize($contract),
+            'part' => $part->value,
+            'parts' => $parts,
+            'template' => $version instanceof ContractTemplateVersionInterface ? [
+                'id' => $version->getTemplate()->getId(),
+                'name' => $version->getTemplate()->getName(),
+                'versionId' => $version->getId(),
+                'versionNumber' => $version->getNumber(),
+            ] : null,
+            'original' => $translation instanceof ContractTemplateVersionTranslationInterface ? [
+                'title' => $translation->getTitle(),
+                'blocks' => array_values(is_array($content['blocks'] ?? null) ? $content['blocks'] : []),
+            ] : null,
+            'adapted' => null === $adapted ? null : [
+                'title' => $adapted['title'],
+                'blocks' => $adapted['blocks'],
+                'adaptedAt' => $adapted['adaptedAt'],
+                'baseVersionId' => $adapted['baseVersionId'],
+            ],
+            'locale' => $contract->getLocale(),
+            'variableGroups' => $this->variables->groups(),
+            'savePath' => $this->urlGenerator->generate('backend_studio_contracts_wording_save', ['id' => $id, 'part' => $part->value]),
+            'resetPath' => $this->urlGenerator->generate('backend_studio_contracts_wording_reset', ['id' => $id, 'part' => $part->value]),
+            'showPath' => $this->urlGenerator->generate('backend_studio_contracts_show', ['id' => $id]),
+            'templateVersionPath' => $this->pathTemplates->generate('backend_studio_contract_templates_editor', ['id' => '__id__', 'versionId' => '__versionId__']),
+        ];
+    }
+
+    private function versionFor(ContractInterface $contract, ContractTemplateKindEnum $part): ?ContractTemplateVersionInterface
+    {
+        return ContractTemplateKindEnum::Body === $part ? $contract->getBodyVersion() : $contract->getAnnexVersion();
+    }
 
     /** @return array<string, mixed> */
     public function indexView(): array
@@ -97,6 +168,7 @@ final readonly class ContractsViewBuilder
             'amendPath' => $this->urlGenerator->generate('backend_studio_contracts', ['amends' => $id]),
             'showPath' => $this->pathTemplates->generate('backend_studio_contracts_show', ['id' => '__id__']),
             'templateVersionPath' => $this->pathTemplates->generate('backend_studio_contract_templates_editor', ['id' => '__id__', 'versionId' => '__versionId__']),
+            'wordingPath' => $this->pathTemplates->generate('backend_studio_contracts_wording', ['id' => $id, 'part' => '__part__']),
             // What the edit form offers, as on the list: a draft is corrected
             // where it is read.
             'customers' => $contract->isFrozen() ? [] : $this->customerOptions(),

@@ -7,6 +7,7 @@ namespace Aurora\Module\Studio\Contract\Entity;
 use Aurora\Core\Money\Enum\CurrencyEnum;
 use Aurora\Core\Timestampable\TimestampableInterface;
 use Aurora\Module\Studio\Contract\Enum\ContractStatusEnum;
+use Aurora\Module\Studio\Contract\Enum\ContractTemplateKindEnum;
 use Aurora\Module\Studio\Contract\Enum\ContractTerminationOriginEnum;
 use Aurora\Module\Studio\Contract\Exception\ContractPdfAlreadyGeneratedException;
 use Aurora\Module\Studio\Contract\Exception\FrozenContractIsImmutableException;
@@ -183,4 +184,18 @@ interface ContractInterface extends TimestampableInterface
 
     /** @throws FrozenContractIsImmutableException */
     public function assertEditable(): void;
+
+    /**
+     * @return array{locale: string, title: string, blocks: list<mixed>, baseVersionId: int|null, adaptedAt: string}|null
+     */
+    public function getAdaptedWording(ContractTemplateKindEnum $part): ?array;
+
+    public function isAdapted(?ContractTemplateKindEnum $part = null): bool;
+
+    /** @param list<mixed> $blocks */
+    public function adaptWording(ContractTemplateKindEnum $part, string $title, array $blocks, DateTimeImmutable $at): static;
+
+    public function resetWording(ContractTemplateKindEnum $part): static;
+
+    public function adoptWordingFrom(ContractInterface $source): static;
 }

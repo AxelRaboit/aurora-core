@@ -251,6 +251,7 @@ const pageActions = computed(() =>
                         <td class="px-4 py-2 text-muted hidden lg:table-cell">
                             <span class="text-primary">{{ contract.body?.templateName ?? "-" }}</span>
                             <span v-if="contract.body" class="text-xs"> · v{{ contract.body.versionNumber }}</span>
+                            <AppBadge v-if="contract.isAdapted" color="violet" class="ml-1 align-middle">{{ t("backend.studio.contracts.wording.badge") }}</AppBadge>
                             <span v-if="contract.annex" class="block text-xs">+ {{ contract.annex.templateName }}</span>
                         </td>
                         <td class="px-4 py-2 text-primary whitespace-nowrap tabular-nums hidden lg:table-cell">{{ formatAmount(contract) ?? "-" }}</td>
@@ -282,6 +283,7 @@ const pageActions = computed(() =>
                         <p class="font-medium text-primary break-words">{{ contract.customerName }}</p>
                         <p class="text-xs text-muted">
                             {{ contract.body?.templateName ?? "-" }}<template v-if="formatAmount(contract)"> · {{ formatAmount(contract) }}</template>
+                            <AppBadge v-if="contract.isAdapted" color="violet" class="ml-1 align-middle">{{ t("backend.studio.contracts.wording.badge") }}</AppBadge>
                         </p>
                     </div>
                     <AppBadge :color="contractStatusColor(contract.status)">{{ t(contract.statusLabel) }}</AppBadge>

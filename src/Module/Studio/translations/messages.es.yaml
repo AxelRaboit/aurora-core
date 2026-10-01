@@ -125,6 +125,8 @@ backend:
                     expired: 'Contrato caducado sin firmar'
                     cancelled: 'Contrato anulado'
                     duplicated: 'Contrato duplicado como borrador'
+                    wording_adapted: 'Texto adaptado para este contrato'
+                    wording_reset: 'Vuelta al texto de la plantilla'
                     reminder_sent: 'Recordatorio enviado al cliente'
                     refused: 'Contrato rechazado por el cliente'
                     terminated: 'Contrato rescindido'
@@ -206,6 +208,41 @@ backend:
                 customer: 'El cliente'
                 provider: 'El prestador'
         contracts:
+            wording:
+                title: Texto adaptado
+                heading: Texto del contrato para {customer}
+                intro: 'Este texto solo vale para este contrato. La plantilla «{template}» (versión {number}) no cambia, ni los demás contratos que la usan.'
+                not_adapted: 'Por ahora el contrato usa el texto de la plantilla. Modifíquelo aquí: el primer guardado crea la versión adaptada.'
+                adapted_on: Adaptado el {date}
+                from_older_version: Adaptado a partir de una versión anterior de la plantilla.
+                frozen_notice: 'Contrato sellado: este es el texto que se fijó y ya no se modifica.'
+                readonly_notice: Puede leer este texto, pero no modificarlo.
+                parts:
+                    body: Cuerpo del contrato
+                    annex: Anexo
+                document_title: Título del documento
+                save: Guardar
+                saved: Texto adaptado guardado. Se sellará con el contrato.
+                reset: Volver al texto de la plantilla
+                reset_title: ¿Volver al texto de la plantilla?
+                reset_confirm: 'Se perderán los cambios hechos para este contrato, y el texto de la plantilla «{template}» volverá a su lugar.'
+                reset_done: El contrato vuelve a usar el texto de la plantilla.
+                differences: Diferencias con la plantilla
+                differences_none: Ninguna diferencia con la plantilla.
+                differences_summary: '{added} añadido(s), {removed} retirado(s)'
+                diff_added: Añadido
+                diff_removed: Retirado
+                unsaved: Cambios sin guardar
+                leave_warning: Hay cambios sin guardar.
+                back: Volver al contrato
+                badge: Adaptado
+                panel: Texto adaptado para este contrato
+                open: Ver el texto
+                errors:
+                    no_part: Este contrato no tiene esa parte.
+                    title_required: El documento necesita un título.
+                    title_too_long: 'El título no puede superar los {max} caracteres.'
+                    empty: El texto está vacío.
             title: Contratos
             add: 'Preparar un contrato'
             create: 'Nuevo contrato'
@@ -417,6 +454,9 @@ backend:
                     cancel:
                         title: Anular el contrato
                         description: 'El contrato deja de tener efecto; su referencia se conserva. Disponible mientras nadie haya firmado.'
+                    adapt:
+                        title: Adaptar el texto
+                        description: Modificarlo solo para este cliente, sin tocar la plantilla.
                     duplicate:
                         title: Duplicar como borrador
                         description: Un borrador nuevo con las mismas opciones, para corregir.
