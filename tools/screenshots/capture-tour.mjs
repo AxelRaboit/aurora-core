@@ -159,6 +159,22 @@ const spaceView = (view) => async (page) => {
 };
 
 /**
+ * L'adresse de l'éditeur d'un livrable de l'espace ouvert, par son titre : la
+ * liste est rangée par dernière modification, et la démo y met un brouillon
+ * à côté de l'audit.
+ */
+async function deliverableEditUrl(page, title = "Audit de présence en ligne") {
+    const href = await page
+        .locator("main li")
+        .filter({ hasText: title })
+        .getByRole("link", { name: "Ouvrir dans l'éditeur" })
+        .first()
+        .getAttribute("href");
+
+    return new URL(href, page.url()).toString();
+}
+
+/**
  * Ouvrir l'espace « Réseaux sociaux », d'où partent toutes les prises d'un
  * espace.
  *
@@ -202,6 +218,44 @@ const openCard = (title) => async (page) => {
 
 /** Les espaces, d'où toutes les prises d'un espace partent. */
 const SPACES = "/backend/studio/spaces";
+
+/**
+ * La page que le client ouvre, par une vraie adresse : un lien émis comme le
+ * studio l'émet, puis suivi. Partagé par la prise de l'espace côté client et
+ * par celle de ses livrables.
+ */
+async function openClientSide(page) {
+    await openSpace(page);
+
+    const espace = new URL(page.url());
+    await page.goto(`${espace.origin}${espace.pathname}/access`, { waitUntil: "networkidle" });
+
+    // Attendre le bouton plutôt que compter jusqu'à mille cinq cents.
+    //
+    // Ce scénario passait seul et tombait dans la série complète, sur
+    // un `click` expiré au bout de trente secondes : une pause fixe
+    // suffit sur une machine au repos et plus sur la même machine au
+    // soixante-huitième écran. L'attente porte donc sur ce qu'on
+    // attend vraiment, l'application montée et son bouton présent.
+    const ouvrir = page.getByRole("button", { name: "Créer un lien" }).first();
+    await ouvrir.waitFor({ state: "visible", timeout: 30_000 });
+    await ouvrir.click();
+    await page.waitForTimeout(1_000);
+
+    // Par l'exemple du champ et non par son libellé : les champs de
+    // cette modale n'ont pas d'identifiant, donc rien ne relie le
+    // `<label>` à son `<input>` pour un outil qui lit la page.
+    await page.getByPlaceholder("camille@societe.fr").fill("camille@atelier-dupont.example.com");
+    await page.getByPlaceholder(/^Camille, /).fill("Camille, gérante");
+
+    await page.getByRole("button", { name: "Créer un lien" }).last().click();
+    await page.waitForTimeout(2_500);
+
+    const adresse = (await page.locator("code").first().innerText()).trim();
+    await page.goto(adresse, { waitUntil: "networkidle" });
+    await page.waitForTimeout(2_500);
+}
+
 
 /**
  * Une présentation ouverte depuis la liste, par son titre : les identifiants
@@ -1091,36 +1145,64 @@ const SHOTS = [
     {
         name: "espace-cote-client",
         path: SPACES,
+        prepare: openClientSide,
+    },
+
+    /** Ses livrables, du même côté : ce qu'on lui a écrit, publié. */
+    {
+        name: "espace-cote-client-livrables",
+        path: SPACES,
         async prepare(page) {
-            await openSpace(page);
+            await openClientSide(page);
+            await page.getByRole("button", { name: "Livrables", exact: true }).first().click();
+            await page.waitForTimeout(1_500);
+        },
+    },
 
-            const espace = new URL(page.url());
-            await page.goto(`${espace.origin}${espace.pathname}/access`, { waitUntil: "networkidle" });
+    /** Les livrables d'un espace côté studio : l'audit de la démo, publié. */
+    { name: "espace-livrables", path: SPACES, prepare: spaceView("Livrables") },
 
-            // Attendre le bouton plutôt que compter jusqu'à mille cinq cents.
-            //
-            // Ce scénario passait seul et tombait dans la série complète, sur
-            // un `click` expiré au bout de trente secondes : une pause fixe
-            // suffit sur une machine au repos et plus sur la même machine au
-            // soixante-huitième écran. L'attente porte donc sur ce qu'on
-            // attend vraiment, l'application montée et son bouton présent.
-            const ouvrir = page.getByRole("button", { name: "Créer un lien" }).first();
-            await ouvrir.waitFor({ state: "visible", timeout: 30_000 });
-            await ouvrir.click();
-            await page.waitForTimeout(1_000);
+    /**
+     * Les liens de lecture de l'audit, ouverts depuis son éditeur.
+     *
+     * Atteint par l'espace plutôt que par un identifiant : il change à chaque
+     * rechargement de la démo.
+     */
+    {
+        name: "tour-publications-liens-lecture",
+        path: SPACES,
+        async prepare(page) {
+            await spaceView("Livrables")(page);
+            await page.goto(await deliverableEditUrl(page), { waitUntil: "domcontentloaded" });
+            await page.waitForTimeout(4_000);
+            await page.locator("main").getByRole("button", { name: "Liens de lecture", exact: true }).first().click();
+            await page.getByRole("dialog").first().waitFor();
+            await page.waitForTimeout(1_500);
+        },
+    },
 
-            // Par l'exemple du champ et non par son libellé : les champs de
-            // cette modale n'ont pas d'identifiant, donc rien ne relie le
-            // `<label>` à son `<input>` pour un outil qui lit la page.
-            await page.getByPlaceholder("camille@societe.fr").fill("camille@atelier-dupont.example.com");
-            await page.getByPlaceholder(/^Camille, /).fill("Camille, gérante");
+    /**
+     * La page qu'un lien de lecture ouvre : l'audit, sans le site autour.
+     *
+     * L'adresse se demande au serveur, qui la rend avec la liste des liens :
+     * le jeton est tiré au hasard à chaque chargement de la démo. Attendue
+     * assez longtemps pour que les chiffres clés aient fini de compter.
+     */
+    {
+        name: "tour-publications-page-lecture",
+        path: SPACES,
+        async prepare(page) {
+            await spaceView("Livrables")(page);
+            const edit = new URL(await deliverableEditUrl(page));
+            const links = edit.pathname.replace(/\/edit$/, "/reading-links");
+            const url = await page.evaluate(async (path) => {
+                const response = await fetch(path, { headers: { "X-Requested-With": "XMLHttpRequest" } });
 
-            await page.getByRole("button", { name: "Créer un lien" }).last().click();
-            await page.waitForTimeout(2_500);
-
-            const adresse = (await page.locator("code").first().innerText()).trim();
-            await page.goto(adresse, { waitUntil: "networkidle" });
-            await page.waitForTimeout(2_500);
+                return (await response.json()).links[0].url;
+            }, links);
+            const response = await page.goto(url, { waitUntil: "networkidle" });
+            await assertPage(page, response, url);
+            await page.waitForTimeout(3_500);
         },
     },
 
