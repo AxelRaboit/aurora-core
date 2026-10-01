@@ -604,7 +604,7 @@ backend:
             category_none_hint: Le métier n'a pas encore été précisé. La trame reste utilisable.
             category_all: Toutes les catégories
             preview: Aperçu
-            preview_notice: "Les variables sont remplacées par des exemples, sauf celles de votre entreprise qui viennent de vos réglages. Les champs propres à chaque contrat apparaissent entre crochets."
+            preview_notice: 'Le texte en couleur vient des variables. Ce sont des exemples, sauf vos informations, tirées de vos réglages. Les champs à remplir pour chaque contrat sont entre crochets.'
             preview_failed: L'aperçu n'a pas pu être produit.
             preview_unknown_tokens: 'Variables inconnues, elles empêcheront la publication : {tokens}'
             filter_category: 'Catégorie : {name}'
@@ -689,8 +689,8 @@ backend:
                 custom_hint: 'Écrivez ce jeton avec votre propre clé (minuscules, chiffres, tirets bas). Il sera demandé à la préparation de chaque contrat, et le scellement refuse de le laisser vide.'
                 title: Variables disponibles
                 hint: Copiez un jeton et collez-le dans le texte. Il sera remplacé à la construction du contrat ; une ligne de liste dont toutes les variables sont vides (RCS d'une entreprise individuelle, par exemple) n'y apparaît pas.
-                customer: Le client
-                provider: Le prestataire
+                customer: 'Le client, à qui s''adresse le contrat'
+                provider: 'Le prestataire, vous'
                 contract: Le contrat
                 customer_legal_name: Raison sociale
                 customer_legal_form: Forme juridique
@@ -725,6 +725,8 @@ backend:
                 contract_amends_reference: Référence du contrat modifié
                 contract_amends_effective_date: Date d'effet du contrat modifié
                 contract_amends_rank: Rang de l'avenant
+                examples_notice: 'Ces valeurs sont des exemples. Le contrat utilisera les vraies : celles du client choisi et les vôtres.'
+                example: 'ex. {value}'
         decks:
             create: Créer une présentation
             created: Présentation créée
