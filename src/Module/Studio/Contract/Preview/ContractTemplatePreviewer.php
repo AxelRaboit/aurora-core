@@ -69,6 +69,9 @@ final readonly class ContractTemplatePreviewer
 
         $values = $this->values($version);
         $content = $translation->getContent();
+        // Every filled value marked, so the author sees at a glance what came
+        // from a variable - the examples above all, which are invented.
+        $renderer = $this->renderer->markingValues();
         $blocks = is_array($content['blocks'] ?? null) ? $content['blocks'] : [];
 
         // Assembled exactly as ContractManager assembles a part at freeze: the
@@ -76,8 +79,8 @@ final readonly class ContractTemplatePreviewer
         // frame would be previewing a different document.
         return sprintf(
             '<section><h1>%s</h1>%s</section>',
-            $this->renderer->title($translation->getTitle(), $values),
-            $this->renderer->render($blocks, $values),
+            $renderer->title($translation->getTitle(), $values),
+            $renderer->render($blocks, $values),
         );
     }
 

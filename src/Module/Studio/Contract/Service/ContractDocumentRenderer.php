@@ -35,7 +35,29 @@ use function str_replace;
  */
 final readonly class ContractDocumentRenderer
 {
-    public function __construct(private BlockHtmlSanitizer $sanitizer) {}
+    /**
+     * @param bool $marksValues wrap each filled value in a `<mark>`: for a
+     *                          preview, where the author wants to see what
+     *                          came from a variable. Never for a document
+     *                          that is sealed or sent - see {@see markingValues()}
+     */
+    public function __construct(
+        private BlockHtmlSanitizer $sanitizer,
+        private bool $marksValues = false,
+    ) {}
+
+    /**
+     * The same renderer, marking every value it fills in.
+     *
+     * A copy rather than a flag passed down: the service everybody receives
+     * stays the one that seals, and only a caller that asks for this one gets
+     * the marks. A sealed contract carrying them would be a different
+     * document from the one its hash describes.
+     */
+    public function markingValues(): self
+    {
+        return new self($this->sanitizer, true);
+    }
 
     /**
      * Typed loosely on purpose, like Editorial's renderer: the blocks come out
@@ -73,7 +95,15 @@ final readonly class ContractDocumentRenderer
     public function substitute(string $text, array $values): string
     {
         foreach ($values as $token => $value) {
-            $text = str_replace(sprintf('{{%s}}', $token), $this->escape($value), $text);
+            $filled = $this->escape($value);
+
+            // An empty value stays unmarked: there is nothing to colour, and
+            // the blank it leaves is what the reader needs to see.
+            if ($this->marksValues && '' !== $value) {
+                $filled = '<mark class="contract-variable">'.$filled.'</mark>';
+            }
+
+            $text = str_replace(sprintf('{{%s}}', $token), $filled, $text);
         }
 
         return $text;
