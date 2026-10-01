@@ -139,6 +139,7 @@ backend:
       post_type_required: Le type de contenu est requis.
       status_required: Le statut est requis.
       status_invalid: Statut invalide.
+      visibility_invalid: Diffusion invalide.
   forms:
     errors:
       translations_required: Au moins une langue doit être renseignée.

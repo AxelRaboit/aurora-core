@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Editorial\Post\Entity;
 
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
+use Aurora\Module\Editorial\Post\Enum\PostVisibilityEnum;
 use Aurora\Module\Editorial\Post\Enum\ThumbnailFitEnum;
 use Aurora\Module\Editorial\PostType\Entity\PostTypeInterface;
 use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyTermInterface;
@@ -33,6 +34,29 @@ interface PostInterface
     public function setStatus(PostStatusEnum $status): static;
 
     public function isPublished(): bool;
+
+    public function getVisibility(): PostVisibilityEnum;
+
+    public function setVisibility(PostVisibilityEnum $visibility): static;
+
+    /**
+     * Published, not trashed, and offered by the site. What every listing,
+     * menu and index of the site asks; a publication shared by link answers
+     * no here and yes to {@see isPublished()}.
+     */
+    public function isOnSite(): bool;
+
+    /** The customer space it was written for, if any. */
+    public function getCustomerSpaceId(): ?int;
+
+    /** Attaching it to a space also shares it by link only. */
+    public function setCustomerSpaceId(?int $customerSpaceId): static;
+
+    /** @return array{preparedFor: ?string, showDate: bool, showLogo: bool} */
+    public function getReadingPage(): array;
+
+    /** @param array<string, mixed> $readingPage normalised on the way in */
+    public function setReadingPage(array $readingPage): static;
 
     public function getPublishedAt(): ?DateTimeImmutable;
 

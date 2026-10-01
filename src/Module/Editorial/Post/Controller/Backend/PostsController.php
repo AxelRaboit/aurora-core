@@ -19,6 +19,7 @@ use Aurora\Module\Editorial\Post\Duplicate\PostDuplicator;
 use Aurora\Module\Editorial\Post\Entity\Post;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
+use Aurora\Module\Editorial\Post\Enum\PostVisibilityEnum;
 use Aurora\Module\Editorial\Post\Manager\PostManagerInterface;
 use Aurora\Module\Editorial\Post\Preview\Manager\PostPreviewTokenManagerInterface;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
@@ -79,6 +80,7 @@ class PostsController extends AbstractController
             authorId: $this->postAccessService->scopedAuthorId(),
             termIds: $filters['termIds'],
             statuses: $filters['statuses'],
+            visibilities: $filters['visibilities'],
         );
 
         // The filter bar re-fetches this same payload, so the page render and
@@ -93,6 +95,7 @@ class PostsController extends AbstractController
             $filters['postTypeIds'],
             $filters['termIds'],
             $filters['statuses'],
+            $filters['visibilities'],
         ));
     }
 
@@ -394,7 +397,7 @@ class PostsController extends AbstractController
     }
 
     /**
-     * @return array{postTypeIds: list<int>, termIds: list<int>, statuses: list<string>, trashed: bool}
+     * @return array{postTypeIds: list<int>, termIds: list<int>, statuses: list<string>, visibilities: list<string>, trashed: bool}
      */
     private function readFilters(Request $request): array
     {
@@ -407,6 +410,10 @@ class PostsController extends AbstractController
             'statuses' => array_values(array_intersect(
                 PostStatusEnum::values(),
                 explode(',', (string) $request->query->get('statuses', '')),
+            )),
+            'visibilities' => array_values(array_intersect(
+                PostVisibilityEnum::values(),
+                explode(',', (string) $request->query->get('visibilities', '')),
             )),
             'trashed' => $request->query->getBoolean('trashed'),
         ];

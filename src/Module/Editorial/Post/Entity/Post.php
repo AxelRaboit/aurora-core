@@ -11,6 +11,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: PostRepository::class)]
 #[ORM\Table(name: 'core_posts')]
+#[ORM\Index(name: 'idx_core_posts_customer_space', columns: ['customer_space_id'])]
 class Post extends AbstractPost
 {
     #[ORM\Id]

@@ -6,7 +6,9 @@ namespace Aurora\Module\Editorial\Post\Entity;
 
 use Aurora\Core\Timestampable\TimestampableTrait;
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
+use Aurora\Module\Editorial\Post\Enum\PostVisibilityEnum;
 use Aurora\Module\Editorial\Post\Enum\ThumbnailFitEnum;
+use Aurora\Module\Editorial\Post\Reading\ReadingPageNormalizer;
 use Aurora\Module\Editorial\PostType\Entity\PostTypeInterface;
 use Aurora\Module\Editorial\Taxonomy\Entity\AbstractTaxonomy;
 use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyTermInterface;
@@ -38,6 +40,32 @@ abstract class AbstractPost implements PostInterface
 
     #[ORM\Column(length: 50, enumType: PostStatusEnum::class)]
     protected PostStatusEnum $status = PostStatusEnum::Draft;
+
+    /**
+     * Where the publication can be read once it is published: on the site, or
+     * through a link only. Every listing, menu and index of the site asks
+     * {@see isOnSite()} rather than {@see isPublished()}, so a publication
+     * shared by link never surfaces on the site whatever its status.
+     */
+    #[ORM\Column(length: 20, enumType: PostVisibilityEnum::class, options: ['default' => 'site'])]
+    protected PostVisibilityEnum $visibility = PostVisibilityEnum::Site;
+
+    /**
+     * The customer space this publication was written for, when it was: an
+     * audit or a strategy delivered to one client.
+     *
+     * An id rather than a relation, the way a deck zone names its deck: the
+     * site's module does not map the agency's entities, and a publication
+     * must load whether or not that module is in use. Deleting the space sets
+     * it back to null ({@see PostRepository::detachFromCustomerSpace()}); the
+     * publication stays, shared by link, since it is a deliverable the client
+     * may still hold a link to.
+     *
+     * A publication attached to a space is never on the site:
+     * {@see PostManager} keeps it shared by link whatever the editor sends.
+     */
+    #[ORM\Column(nullable: true)]
+    protected ?int $customerSpaceId = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     protected ?DateTimeImmutable $publishedAt = null;
@@ -98,6 +126,16 @@ abstract class AbstractPost implements PostInterface
      */
     #[ORM\Column(type: Types::JSON, nullable: true)]
     protected ?array $usefulLinks = null;
+
+    /**
+     * How the page a reading link opens introduces itself: who it was prepared
+     * for, whether it shows the date and the site's logo. Shape and defaults
+     * belong to {@see ReadingPageNormalizer}, which every write goes through.
+     *
+     * @var array{preparedFor?: ?string, showDate?: bool, showLogo?: bool}
+     */
+    #[ORM\Column(type: Types::JSON, options: ['default' => '{}'])]
+    protected array $readingPage = [];
 
     /**
      * Whether the published page prints its own title and summary.
@@ -329,6 +367,39 @@ abstract class AbstractPost implements PostInterface
         return $this->status->isPublic();
     }
 
+    public function getVisibility(): PostVisibilityEnum
+    {
+        return $this->visibility;
+    }
+
+    public function setVisibility(PostVisibilityEnum $visibility): static
+    {
+        $this->visibility = $visibility;
+
+        return $this;
+    }
+
+    public function getCustomerSpaceId(): ?int
+    {
+        return $this->customerSpaceId;
+    }
+
+    public function setCustomerSpaceId(?int $customerSpaceId): static
+    {
+        $this->customerSpaceId = $customerSpaceId;
+
+        if (null !== $customerSpaceId) {
+            $this->visibility = PostVisibilityEnum::Link;
+        }
+
+        return $this;
+    }
+
+    public function isOnSite(): bool
+    {
+        return $this->isPublished() && !$this->isTrashed() && PostVisibilityEnum::Site === $this->visibility;
+    }
+
     public function getPublishedAt(): ?DateTimeImmutable
     {
         return $this->publishedAt;
@@ -444,6 +515,18 @@ abstract class AbstractPost implements PostInterface
     public function setShareLinks(?array $shareLinks): static
     {
         $this->shareLinks = $shareLinks;
+
+        return $this;
+    }
+
+    public function getReadingPage(): array
+    {
+        return new ReadingPageNormalizer()->normalize($this->readingPage);
+    }
+
+    public function setReadingPage(array $readingPage): static
+    {
+        $this->readingPage = new ReadingPageNormalizer()->normalize($readingPage);
 
         return $this;
     }

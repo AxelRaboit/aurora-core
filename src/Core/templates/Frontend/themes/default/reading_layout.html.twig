@@ -1,0 +1,63 @@
+{# The page a reading link opens: a publication with none of the site around it.
+
+   It extends the site's layout rather than copying it, so the theme - fonts,
+   colours, the head and its stylesheet - is the same one, and replaces only
+   the two blocks that lead back into the site. No menu, no footer of links:
+   whoever holds the link was sent one document, not the site.
+
+   What the header says is chosen per publication (`reading`, from
+   ReadingPageNormalizer): the site's logo and name, who it was prepared for,
+   and when it was last brought up to date. The language switch lists only the
+   languages the publication is written in, each pointing at this same link. #}
+{% extends 'Frontend/themes/default/layout.html.twig' %}
+
+{% block frontend_header %}
+    {% set reading = reading|default({}) %}
+    {% set readingLocales = context.activeLocales|filter(loc => (reading.localeUrls|default({}))[loc.code] is defined) %}
+    <header class="aurora-surface aurora-surface-header border-b border-line">
+        {# No wrap on the outer row: the language switch stays top right on a
+           phone rather than taking a line of its own under the name. #}
+        <div class="max-w-7xl mx-auto px-4 py-4 flex items-start justify-between gap-4 sm:items-center">
+            <div class="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1">
+                {% if reading.backUrl|default(null) %}
+                    <a href="{{ reading.backUrl }}" class="text-sm text-secondary hover:text-highlight">
+                        ← {{ 'frontend.reading.back'|trans }}
+                    </a>
+                {% endif %}
+                {% if reading.showLogo|default(true) %}
+                    <span class="flex items-center gap-2 text-lg font-semibold text-primary">
+                        {% set headerLogoUrl = themeContext.headerLogoUrl() %}
+                        {% if headerLogoUrl %}<img src="{{ headerLogoUrl }}" alt="" class="h-8 w-8 object-cover rounded-lg shrink-0">{% endif %}
+                        {{ themeContext.headerCustomText() ?: context.siteName }}
+                    </span>
+                {% endif %}
+                {% if reading.preparedFor|default(null) or reading.showDate|default(true) %}
+                    <p class="m-0 flex flex-wrap gap-x-3 text-sm text-secondary">
+                        {% if reading.preparedFor|default(null) %}
+                            <span>{{ 'frontend.reading.prepared_for'|trans({'%name%': reading.preparedFor}) }}</span>
+                        {% endif %}
+                        {% if reading.showDate|default(true) and reading.updatedOn|default(null) %}
+                            <span class="text-muted">{{ 'frontend.reading.updated_on'|trans({'%date%': reading.updatedOn}) }}</span>
+                        {% endif %}
+                    </p>
+                {% endif %}
+            </div>
+
+            {% if readingLocales|length > 1 %}
+                {{ include('Frontend/themes/default/partials/locale_switcher.html.twig', {
+                    locales: readingLocales,
+                    current: locale,
+                    urls: reading.localeUrls,
+                }) }}
+            {% endif %}
+        </div>
+    </header>
+{% endblock %}
+
+{% block frontend_footer %}
+    <footer class="aurora-surface aurora-surface-footer border-t border-line mt-12">
+        <div class="max-w-7xl mx-auto px-4 py-6">
+            <p class="m-0 text-center text-sm text-muted">{{ 'frontend.reading.footer'|trans }}</p>
+        </div>
+    </footer>
+{% endblock %}

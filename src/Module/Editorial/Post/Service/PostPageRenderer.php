@@ -21,6 +21,7 @@ use Aurora\Module\Editorial\Seo\Service\AlternatesBuilder;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Service\DocumentUrlGenerator;
 use DateTimeInterface;
+use IntlDateFormatter;
 use LogicException;
 use Symfony\Component\HttpFoundation\Response;
 use Twig\Environment;
@@ -54,6 +55,39 @@ final readonly class PostPageRenderer
 
     public function render(PostInterface $post, string $locale): Response
     {
+        return $this->renderPage($post, $locale, null);
+    }
+
+    /**
+     * The same page, read through a link rather than on the site.
+     *
+     * One renderer for both, so a publication reads exactly the same in the
+     * two places - only what surrounds it changes. The site's menu and footer
+     * give way to a header of its own, and everything that leads back into
+     * the site or onto the web goes: the comments, the share buttons, the
+     * reading sequence, the language alternates, the term chips, the
+     * canonical address and the structured data. A publication shared by link
+     * has no address on the site for any of them to point at.
+     *
+     * @param array<string, string> $localeUrls the reading address in each
+     *                                          language it is written in, for
+     *                                          the header's language switch
+     * @param string|null           $backUrl    where the reader came from, when
+     *                                          it is a page of their own - a
+     *                                          client's space - rather than a
+     *                                          link received by mail
+     */
+    public function renderForReading(PostInterface $post, string $locale, array $localeUrls, ?string $backUrl = null): Response
+    {
+        return $this->renderPage($post, $locale, $localeUrls, $backUrl);
+    }
+
+    /**
+     * @param array<string, string>|null $readingLocaleUrls null on the site
+     */
+    private function renderPage(PostInterface $post, string $locale, ?array $readingLocaleUrls, ?string $backUrl = null): Response
+    {
+        $reading = null !== $readingLocaleUrls;
         $translation = $post->getTranslation($locale);
         if (!$translation instanceof PostTranslationInterface) {
             // The caller decides what a missing translation means - a 404, or
@@ -69,6 +103,14 @@ final readonly class PostPageRenderer
         // the page is about to render, so the two can never disagree.
         $grid = $this->gridViewBuilder->build($post->getGridLayout(), $translation->getGrid(), $locale, $post->getId());
 
+        $translationData = $this->translationData($translation, $post->getThumbnail(), $grid);
+
+        if ($reading) {
+            $translationData['canonicalUrl'] = null;
+            $translationData['noindex'] = true;
+            $translationData['jsonLd'] = null;
+        }
+
         $body = $this->twig->render($this->themeResolver->resolve('editorial/post/index'), [
             'locale' => $locale,
             'context' => $this->context,
@@ -82,7 +124,7 @@ final readonly class PostPageRenderer
                 'highlight' => $post->getHighlight(),
                 'highlightColor' => $post->getHighlightColor(),
             ],
-            'translationData' => $this->translationData($translation, $post->getThumbnail(), $grid),
+            'translationData' => $translationData,
             // null when the banner is off or empty, which is what the template
             // reads to fall back to the plain title header.
             'banner' => $this->bannerViewBuilder->build($post->getBannerLayout(), $translation->getBanner()),
@@ -96,17 +138,17 @@ final readonly class PostPageRenderer
             // Null when the gallery is off or has nothing to show, so the
             // template leaves the section out rather than printing an empty one.
             'gallery' => $this->galleryViewBuilder->build($post->getGalleryLayout(), $translation->getGallery()),
-            'terms' => $this->postTerms($post, $locale),
+            'terms' => $reading ? [] : $this->postTerms($post, $locale),
             // Null for every type that is not read in sequence, which is all
             // of them but a documentation: the summary and the two neighbours
             // are what a page read in order needs and an article does not.
-            'sequence' => $this->sequenceBuilder->build($post, $locale),
-            'alternates' => $this->alternatesBuilder->forPost($post),
+            'sequence' => $reading ? null : $this->sequenceBuilder->build($post, $locale),
+            'alternates' => $reading ? [] : $this->alternatesBuilder->forPost($post),
             // The thread itself is fetched by the browser rather than
             // rendered here: comments are the one part of the page that
             // changes between two readers of the same cached HTML.
-            'commentsEnabled' => $this->commentManager->areCommentsEnabled($post),
-            'shareEnabled' => $post->isShareEnabled(),
+            'commentsEnabled' => !$reading && $this->commentManager->areCommentsEnabled($post),
+            'shareEnabled' => !$reading && $post->isShareEnabled(),
             'shareLinks' => $post->getShareLinks(),
             // The page's own links, else the site's. Empty when the box is
             // off: the links stay stored for when it is ticked again, but a
@@ -125,6 +167,19 @@ final readonly class PostPageRenderer
                 'header_color' => $post->getHeaderColor(),
                 'footer_color' => $post->getFooterColor(),
             ],
+            // Null on the site. On a reading link, the layout the page extends
+            // instead of the site's, and what its header says.
+            'readingLayout' => $reading ? 'Frontend/themes/default/reading_layout.html.twig' : null,
+            'reading' => $reading ? [
+                ...$post->getReadingPage(),
+                'updatedAt' => $post->getUpdatedAt()->format(DateTimeInterface::ATOM),
+                // Spelled out in the page's language here: Twig has no
+                // localised date filter in this project, and "1 octobre 2026"
+                // is what a client reads, not an ISO string.
+                'updatedOn' => new IntlDateFormatter($locale, IntlDateFormatter::LONG, IntlDateFormatter::NONE)->format($post->getUpdatedAt()),
+                'localeUrls' => $readingLocaleUrls,
+                'backUrl' => $backUrl,
+            ] : null,
         ]);
 
         $response = new Response($body);

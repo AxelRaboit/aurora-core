@@ -139,6 +139,7 @@ backend:
       post_type_required: El tipo de contenido es obligatorio.
       status_required: El estado es obligatorio.
       status_invalid: Estado inválido.
+      visibility_invalid: Difusión no válida.
   forms:
     errors:
       translations_required: Al menos un idioma debe estar rellenado.

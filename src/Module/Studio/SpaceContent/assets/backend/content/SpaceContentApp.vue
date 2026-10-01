@@ -71,6 +71,7 @@ import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import SpaceSettingsView from "../../../../CustomerSpace/assets/backend/settings/SpaceSettingsView.vue";
 import SpaceInformationView from "../../../../Customer/assets/backend/information/SpaceInformationView.vue";
 import SpaceResourcesView from "../../../../SpaceResource/assets/backend/resources/SpaceResourcesView.vue";
+import SpacePublicationsView from "../../../../SpacePublication/assets/backend/publications/SpacePublicationsView.vue";
 import SpaceDrivePicker from "../../../../SpaceFile/GoogleDrive/assets/backend/drive/SpaceDrivePicker.vue";
 import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
@@ -89,6 +90,7 @@ import {
     FolderOpen,
     IdCard,
     Link2,
+    NotebookText,
     Pencil,
     RefreshCw,
     Save,
@@ -189,6 +191,11 @@ const props = defineProps({
     resourceVisibilityPath: { type: String, default: "" },
     resourceDeletePath: { type: String, default: "" },
     resourceReorderPath: { type: String, default: "" },
+    /** Les documents écrits pour ce client avec la grille des publications. */
+    publicationsEnabled: { type: Boolean, default: false },
+    publications: { type: Array, default: () => [] },
+    canCreatePublications: { type: Boolean, default: false },
+    publicationCreatePath: { type: String, default: "" },
 });
 
 /**
@@ -209,6 +216,9 @@ const VIEWS = [
     { key: "drive", labelKey: "backend.studio.space_content.view_drive", icon: FolderOpen },
     { key: "chat", labelKey: "backend.studio.space_content.view_chat", icon: MessagesSquare },
     { key: "notes", labelKey: "backend.studio.space_content.view_notes", icon: StickyNote },
+    // Après les notes, qu'on garde pour soi : ce sont les documents qu'on livre
+    // au client, audits et stratégies, écrits avec la grille des publications.
+    { key: "publications", labelKey: "backend.studio.space_content.view_publications", icon: NotebookText },
     // La fiche du client, puis ce qu'on épingle autour d'elle : deux sujets
     // qui ne sont pas des lectures du tableau, à gauche des réglages parce
     // qu'on les consulte et qu'on ne les règle pas.
@@ -230,6 +240,7 @@ const views = computed(() =>
     VIEWS.filter((entry) => {
         if ("drive" === entry.key) return props.driveEnabled;
         if ("settings" === entry.key) return props.canConfigure;
+        if ("publications" === entry.key) return props.publicationsEnabled;
 
         return true;
     }),
@@ -739,6 +750,13 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
             :save-path="informationSavePath"
             :related="related"
             v-on:saved="informationNow = $event"
+        />
+
+        <SpacePublicationsView
+            v-else-if="view === 'publications' && publicationsEnabled"
+            :publications="publications"
+            :can-create="canCreatePublications"
+            :create-path="publicationCreatePath"
         />
 
         <SpaceResourcesView

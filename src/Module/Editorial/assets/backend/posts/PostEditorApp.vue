@@ -27,7 +27,8 @@ import PostBannerPanel from "./components/PostBannerPanel.vue";
 import PostGridPanel from "./components/PostGridPanel.vue";
 import PostGalleryPanel from "./components/PostGalleryPanel.vue";
 import PostRevisionsModal from "./components/PostRevisionsModal.vue";
-import { Save, AlertTriangle, Check, Eye, History, RefreshCw, X } from "lucide-vue-next";
+import PostReadingLinksModal from "./components/PostReadingLinksModal.vue";
+import { Save, AlertTriangle, Check, Eye, History, Link2, RefreshCw, X } from "lucide-vue-next";
 import { highlightModeOptions } from "@configuration/backend/themes/highlightModes.js";
 
 const { t, d } = useI18n();
@@ -55,6 +56,9 @@ const props = defineProps({
     gridPreviewPath: { type: String, required: true },
     searchPath: { type: String, required: true },
     previewPathTemplate: { type: String, default: "" },
+    readingLinksPathTemplate: { type: String, default: "" },
+    /** The client this document was written for: { id, name, url }, or null. */
+    customerSpace: { type: Object, default: null },
     revisionsPathTemplate: { type: String, default: "" },
     revisionShowPathTemplate: { type: String, default: "" },
     revisionRestorePathTemplate: { type: String, default: "" },
@@ -149,6 +153,7 @@ const STATUS_COLORS = {
  * Tailwind only emits classes it can read in the source.
  */
 const THUMBNAIL_FITS = ["cover", "contain", "fill"];
+const VISIBILITIES = ["site", "link"];
 const THUMBNAIL_FIT_CLASSES = {
     cover: "object-cover",
     contain: "object-contain",
@@ -250,6 +255,10 @@ function hasTitleIn(code) {
 
 const previewing = ref(false);
 const showRevisions = ref(false);
+const showReadingLinks = ref(false);
+// Handing a publication to someone outside the site is publishing it to them,
+// so the links follow the right to publish, as the server's routes do.
+const canShareByLink = computed(() => can("editorial.posts.publish"));
 
 /**
  * Everything the header used to carry, minus the two that stay out of it.
@@ -391,6 +400,13 @@ const SURFACES = computed(() => [
     { key: "headerColor", label: t("backend.posts.appearance.surface_header") },
     { key: "footerColor", label: t("backend.posts.appearance.surface_footer") },
 ]);
+
+const visibilityOptions = computed(() =>
+    VISIBILITIES.map((visibility) => ({
+        value: visibility,
+        label: t(`backend.posts.visibility.${visibility}`),
+    })),
+);
 
 const thumbnailFitOptions = computed(() =>
     THUMBNAIL_FITS.map((fit) => ({
@@ -644,6 +660,19 @@ function termLabel(term) {
                 </div>
 
                 <div v-show="isTabActive('settings')" class="space-y-4">
+                    <!-- Which client this is for, first: everything below is
+                         read differently once it is known. -->
+                    <div
+                        v-if="customerSpace"
+                        class="aurora-card flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4"
+                    >
+                        <p class="m-0 text-sm text-secondary">
+                            {{ t("backend.posts.customer_space.belongs_to", { name: customerSpace.name }) }}
+                        </p>
+                        <AppButton :href="customerSpace.url" variant="ghost" size="sm" class="w-full justify-center sm:w-auto">
+                            {{ t("backend.posts.customer_space.back") }}
+                        </AppButton>
+                    </div>
                     <!-- The record's own name and summary. They are not part of
                          Content, and never were: they identify the publication
                          in the admin list and on any card that embeds it, and
@@ -706,6 +735,22 @@ function termLabel(term) {
                             :options="statusSelectOptions"
                             :error="errors.status"
                         />
+                        <!-- Beside the status because the two answer one
+                             question together: published says a visitor may
+                             read it, this says whether the site offers it. -->
+                        <!-- Locked for a client's document: the server keeps it
+                             shared by link whatever is sent, and a select
+                             that moved and came back would say otherwise. -->
+                        <AppSelect
+                            v-model="form.visibility"
+                            :label="t('backend.posts.field_visibility')"
+                            :options="visibilityOptions"
+                            :disabled="!!customerSpace"
+                            :hint="customerSpace
+                                ? t('backend.posts.visibility_locked', { name: customerSpace.name })
+                                : t(`backend.posts.visibility_hint.${form.visibility}`)"
+                            :error="errors.visibility"
+                        />
                         <AppDatePicker
                             v-if="form.status === 'scheduled'"
                             v-model="form.scheduledAt"
@@ -733,6 +778,34 @@ function termLabel(term) {
                         <ShareLinksField v-if="form.shareEnabled" v-model="form.shareLinks" />
                         <AppToggle v-model="form.usefulLinksEnabled" :label="t('backend.posts.useful_links_enabled')" />
                         <UsefulLinksField v-if="form.usefulLinksEnabled" v-model="form.usefulLinks" :site-links="siteUsefulLinks" />
+                    </div>
+
+                    <!-- Lecture par lien. The page a reading link opens has
+                         none of the site around it, so the little it says of
+                         itself is set here, per publication. -->
+                    <div class="aurora-card p-3 sm:p-5 space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.reading.page_title") }}</h3>
+                            <AppButton
+                                v-if="postId && canShareByLink && readingLinksPathTemplate"
+                                variant="secondary"
+                                size="sm"
+                                v-on:click="showReadingLinks = true"
+                            >
+                                <Link2 class="h-3.5 w-3.5" :stroke-width="2" />
+                                {{ t("backend.posts.reading.manage") }}
+                            </AppButton>
+                        </div>
+                        <p class="text-xs text-muted">{{ t("backend.posts.reading.page_hint") }}</p>
+                        <p v-if="!postId" class="text-xs text-muted">{{ t("backend.posts.reading.save_first") }}</p>
+                        <AppInput
+                            v-model="form.readingPage.preparedFor"
+                            :label="t('backend.posts.reading.prepared_for')"
+                            :placeholder="t('backend.posts.reading.prepared_for_placeholder')"
+                            :hint="t('backend.posts.reading.prepared_for_hint')"
+                        />
+                        <AppToggle v-model="form.readingPage.showDate" :label="t('backend.posts.reading.show_date')" />
+                        <AppToggle v-model="form.readingPage.showLogo" :label="t('backend.posts.reading.show_logo')" />
                     </div>
 
                     <div v-if="supportsThumbnail" class="aurora-card p-3 sm:p-5 space-y-4">
@@ -952,6 +1025,14 @@ function termLabel(term) {
             :can-restore="can('editorial.posts.edit')"
             v-on:close="showRevisions = false"
             v-on:restored="onRestored"
+        />
+
+        <PostReadingLinksModal
+            v-if="postId && readingLinksPathTemplate"
+            :show="showReadingLinks"
+            :post-id="postId"
+            :path-template="readingLinksPathTemplate"
+            v-on:close="showReadingLinks = false"
         />
     </div>
 </template>
