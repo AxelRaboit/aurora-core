@@ -409,6 +409,22 @@
         "tour-presentations-libre-diaporama": {
             "document": 752,
             "slug": "presentations"
+        },
+        "tour-publications-liens-lecture": {
+            "document": 753,
+            "slug": "publier-programmer-archiver"
+        },
+        "tour-publications-page-lecture": {
+            "document": 754,
+            "slug": "publier-programmer-archiver"
+        },
+        "espace-livrables": {
+            "document": 755,
+            "slug": "les-espaces-clients"
+        },
+        "espace-cote-client-livrables": {
+            "document": 756,
+            "slug": "les-espaces-clients"
         }
     }
 }

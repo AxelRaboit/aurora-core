@@ -13,6 +13,7 @@ use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Entity\PostTranslationInterface;
 use Aurora\Module\Editorial\Post\Gallery\GalleryViewBuilder;
 use Aurora\Module\Editorial\Post\Grid\FaqStructuredData;
+use Aurora\Module\Editorial\Post\Grid\GridNormalizer;
 use Aurora\Module\Editorial\Post\Grid\GridViewBuilder;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
 use Aurora\Module\Editorial\Post\Sequence\PostSequenceBuilder;
@@ -105,6 +106,16 @@ final readonly class PostPageRenderer
 
         $translationData = $this->translationData($translation, $post->getThumbnail(), $grid);
 
+        // The comments zone builds its addresses from the publication's
+        // address on the site, which a publication read by link does not
+        // have: on a reading page it could only draw a thread that fails,
+        // with that address printed in the page. Left out, as the thread at
+        // the foot of the page is.
+        if ($reading && null !== $grid) {
+            $grid['zones'] = $this->withoutComments($grid['zones']);
+            $grid['hasComments'] = false;
+        }
+
         if ($reading) {
             $translationData['canonicalUrl'] = null;
             $translationData['noindex'] = true;
@@ -186,6 +197,32 @@ final readonly class PostPageRenderer
         $response->headers->set('Content-Language', $locale);
 
         return $response;
+    }
+
+    /**
+     * These zones without the comments zones, stacks included.
+     *
+     * @param list<array<string, mixed>> $zones
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function withoutComments(array $zones): array
+    {
+        $kept = [];
+
+        foreach ($zones as $zone) {
+            if (GridNormalizer::ZONE_COMMENTS === ($zone['type'] ?? null)) {
+                continue;
+            }
+
+            if (is_array($zone['children'] ?? null)) {
+                $zone['children'] = $this->withoutComments($zone['children']);
+            }
+
+            $kept[] = $zone;
+        }
+
+        return $kept;
     }
 
     /**

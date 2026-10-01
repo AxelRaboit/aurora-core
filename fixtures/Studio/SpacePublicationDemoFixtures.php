@@ -12,7 +12,6 @@ use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
 use Aurora\Module\Editorial\Post\Enum\PostVisibilityEnum;
 use Aurora\Module\Editorial\Post\Grid\GridNormalizer;
 use Aurora\Module\Editorial\Post\Reading\Entity\PostReadingLink;
-use Aurora\Module\Editorial\Post\Repository\PostRepository;
 use Aurora\Module\Editorial\Post\Repository\PostTranslationRepository;
 use Aurora\Module\Editorial\Post\Service\EditorBlocks;
 use Aurora\Module\Editorial\Post\Service\PostTextExtractor;
@@ -47,12 +46,13 @@ class SpacePublicationDemoFixtures extends Fixture implements DependentFixtureIn
 {
     private const string SPACE_NAME = 'Atelier Dupont - Réseaux sociaux';
 
+    private const string STRATEGY_SLUG = 'strategie-atelier-dupont';
+
     public function __construct(
         private readonly PostTypeRepository $postTypes,
         private readonly CustomerSpaceRepository $spaces,
         private readonly GridNormalizer $gridNormalizer,
         private readonly PostTextExtractor $textExtractor,
-        private readonly PostRepository $posts,
         private readonly PostTranslationRepository $translations,
     ) {}
 
@@ -76,9 +76,8 @@ class SpacePublicationDemoFixtures extends Fixture implements DependentFixtureIn
         }
 
         // Run twice on an install - `make fixtures` loads every group, and
-        // `make demo` loads this one again - so nothing is written twice: the
-        // audit is skipped when the space already has a document, the
-        // template when its address is taken.
+        // `make demo` loads this one again - so nothing is written twice:
+        // each document is skipped when its French address is taken.
         $template = null === $this->translations->findOneBy(['locale' => 'fr', 'slug' => self::TEMPLATE['fr']['slug']])
             ? $this->template($page)
             : null;
@@ -87,7 +86,22 @@ class SpacePublicationDemoFixtures extends Fixture implements DependentFixtureIn
             $manager->persist($template);
         }
 
-        if ([] !== $this->posts->findForCustomerSpace((int) $space->getId())) {
+        // The space's second document: a strategy still in draft, which the
+        // team sees in the space and the client does not, until it is
+        // published.
+        if (null === $this->translations->findOneBy(['locale' => 'fr', 'slug' => self::STRATEGY_SLUG])) {
+            $strategy = $this->template(
+                $page,
+                self::STRATEGY_SLUG,
+                'Stratégie de contenus, dernier trimestre',
+                'Les trois axes et le calendrier proposés pour octobre à décembre.',
+            );
+            $strategy->setCustomerSpaceId((int) $space->getId())
+                ->setReadingPage(['preparedFor' => $space->getCustomer()->getLegalName()]);
+            $manager->persist($strategy);
+        }
+
+        if (null !== $this->translations->findOneBy(['locale' => 'fr', 'slug' => self::AUDIT['fr']['slug']])) {
             $manager->flush();
 
             return;
@@ -188,7 +202,12 @@ class SpacePublicationDemoFixtures extends Fixture implements DependentFixtureIn
         return $post;
     }
 
-    private function template(PostTypeInterface $page): PostInterface
+    /**
+     * The strategy template, or a copy of it under another address and, in
+     * French, another title: what a document started from the template looks
+     * like before it is filled in.
+     */
+    private function template(PostTypeInterface $page, ?string $slug = null, ?string $frenchTitle = null, ?string $frenchDescription = null): PostInterface
     {
         $post = new Post();
         $post->setPostType($page)
@@ -217,7 +236,10 @@ class SpacePublicationDemoFixtures extends Fixture implements DependentFixtureIn
         foreach (LocaleEnum::values() as $locale) {
             $text = self::TEMPLATE[$locale];
             $translation = $post->translate($locale);
-            $translation->setTitle($text['title'])->setSlug($text['slug'])->setDescription($text['description']);
+            $translation
+                ->setTitle('fr' === $locale && null !== $frenchTitle ? $frenchTitle : $text['title'])
+                ->setSlug(null === $slug ? $text['slug'] : ('fr' === $locale ? $slug : $slug.'-'.$locale))
+                ->setDescription('fr' === $locale && null !== $frenchDescription ? $frenchDescription : $text['description']);
 
             $translation->setGrid($this->gridNormalizer->normalizeContent([
                 'zones' => [
