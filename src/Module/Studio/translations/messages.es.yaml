@@ -648,7 +648,7 @@ backend:
                 custom: 'Un campo propio de un contrato'
                 custom_hint: 'Escriba este token con su propia clave (minúsculas, cifras, guiones bajos). Se pedirá al preparar cada contrato, y el sellado no permite dejarlo vacío.'
                 title: 'Variables disponibles'
-                hint: 'Copie un token y péguelo en el texto. Se sustituirá al generar el contrato.'
+                hint: 'Copie un token y péguelo en el texto. Se sustituirá al generar el contrato; una línea de lista cuyas variables estén todas vacías (el RCS de un empresario individual, por ejemplo) no aparecerá.'
                 customer: 'El cliente'
                 provider: 'El proveedor'
                 contract: 'El contrato'

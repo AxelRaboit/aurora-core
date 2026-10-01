@@ -5,6 +5,13 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.309] - 2026-10-01
+
+### Corrigé
+
+#### Plus de lignes vides dans l'identité du client
+Une ligne de liste dont toutes les variables sont vides n'apparaît plus dans le contrat scellé. Pour une entreprise individuelle, « RCS : », « TVA intracommunautaire : » ou « Capital social : » s'imprimaient sans rien derrière, ligne après ligne. Une ligne qui a une valeur, ou aucune variable, reste ; une variable inconnue est toujours refusée au scellement. L'aide des variables de l'éditeur de trames le dit.
+
 ## [0.9.308] - 2026-09-30
 
 La remise à plat des contrats et des trames : un parcours lisible de bout en bout, des statuts qui disent ce qui est vrai, et les défauts trouvés en route.

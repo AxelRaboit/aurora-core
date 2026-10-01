@@ -648,7 +648,7 @@ backend:
                 custom: A field of one contract's own
                 custom_hint: 'Write this token with your own key (lowercase, digits, underscores). It is asked for when each contract is prepared, and sealing refuses to leave it empty.'
                 title: Available variables
-                hint: Copy a token and paste it into the wording. It is replaced when the contract is built.
+                hint: Copy a token and paste it into the wording. It is replaced when the contract is built; a list line whose variables are all empty (a sole trader's RCS, for instance) is left out.
                 customer: The customer
                 provider: The provider
                 contract: The contract
