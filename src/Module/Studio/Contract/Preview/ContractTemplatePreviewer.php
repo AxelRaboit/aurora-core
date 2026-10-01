@@ -71,7 +71,7 @@ final readonly class ContractTemplatePreviewer
         $content = $translation->getContent();
         // Every filled value marked, so the author sees at a glance what came
         // from a variable - the examples above all, which are invented.
-        $renderer = $this->renderer->markingValues();
+        $renderer = $this->renderer->markingValues($this->kinds($version));
         $blocks = is_array($content['blocks'] ?? null) ? $content['blocks'] : [];
 
         // Assembled exactly as ContractManager assembles a part at freeze: the
@@ -116,6 +116,23 @@ final readonly class ContractTemplatePreviewer
         }
 
         return $locales;
+    }
+
+    /**
+     * What each value is, for its colour: invented (the catalogue's
+     * examples), real (the provider's own, from the settings) or a slot
+     * answered per contract. Built from the same three sources as
+     * {@see values()}, in the same order, so the later one wins in both.
+     *
+     * @return array<string, string>
+     */
+    private function kinds(ContractTemplateVersionInterface $version): array
+    {
+        return [
+            ...array_map(static fn (): string => 'example', $this->catalogue->examples()),
+            ...array_map(static fn (): string => 'real', $this->resolver->providerValues()),
+            ...array_map(static fn (): string => 'slot', $this->customFieldPlaceholders($version)),
+        ];
     }
 
     /** @return array<string, string> */

@@ -22,6 +22,18 @@ import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import { Archive, Check, Eye, FilePlus2, Lock, Save, ScrollText, Trash2, X } from "lucide-vue-next";
 
 /**
+ * Ce que peut être une valeur de l'aperçu : un exemple inventé, une vraie
+ * donnée (vos réglages), ou un champ à remplir pour chaque contrat. Les
+ * pastilles reprennent les fonds que le document donne aux mêmes valeurs.
+ */
+const VALUE_KINDS = ["example", "real", "slot"];
+const VALUE_KIND_SWATCH = {
+    example: "bg-amber-500/40",
+    real: "bg-accent-500/40",
+    slot: "bg-surface-2 outline-dashed outline-1 outline-line",
+};
+
+/**
  * What a contract can print, and so all the editor offers: anything else was
  * published, then refused at every freeze (ContractDocumentRenderer).
  */
@@ -508,6 +520,15 @@ const governingLabel = computed(
                     {{ t("backend.studio.contract_templates.preview_notice") }}
                 </AppMessage>
 
+                <!-- La légende des trois couleurs, avec les mêmes classes que
+                     le document : elle ne peut pas dire autre chose que lui. -->
+                <ul class="m-0 flex list-none flex-wrap gap-x-4 gap-y-1 p-0 text-xs text-secondary">
+                    <li v-for="kind in VALUE_KINDS" :key="kind" class="flex items-center gap-1.5">
+                        <span class="inline-block h-3 w-3 rounded-sm" :class="VALUE_KIND_SWATCH[kind]" aria-hidden="true" />
+                        {{ t(`backend.studio.contract_templates.preview_legend.${kind}`) }}
+                    </li>
+                </ul>
+
                 <div
                     v-if="previewLocales.length > 1"
                     class="flex flex-wrap gap-1 border-b border-line"
@@ -548,7 +569,7 @@ const governingLabel = computed(
 
                 <article
                     v-else
-                    class="aurora-card p-4 prose-contract max-h-[65vh] overflow-y-auto [&_mark.contract-variable]:rounded [&_mark.contract-variable]:bg-accent-500/25 [&_mark.contract-variable]:px-0.5 [&_mark.contract-variable]:text-inherit"
+                    class="aurora-card p-4 prose-contract max-h-[65vh] overflow-y-auto [&_mark.contract-variable]:rounded [&_mark.contract-variable]:px-0.5 [&_mark.contract-variable]:text-inherit [&_mark.contract-variable--example]:bg-amber-500/25 [&_mark.contract-variable--real]:bg-accent-500/25 [&_mark.contract-variable--slot]:bg-surface-2 [&_mark.contract-variable--slot]:outline-dashed [&_mark.contract-variable--slot]:outline-1 [&_mark.contract-variable--slot]:outline-line"
                     v-html="previewHtml"
                 />
             </div>

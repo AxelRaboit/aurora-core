@@ -5,6 +5,19 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.318] - 2026-10-01
+
+### Amélioré
+
+#### Trois couleurs dans l'aperçu d'une trame
+L'aperçu d'une trame distingue maintenant ce qui vient de chaque variable : en ambre les exemples inventés (le client, le contrat), dans la couleur d'accent du thème vos vraies informations, tirées de vos réglages, et dans un cadre gris pointillé les champs à remplir pour chaque contrat. Une légende sous l'encadré dit ce que veut dire chaque couleur. Le contrat scellé et envoyé au client n'a aucune couleur.
+
+### Dans aurora-client
+
+Rien à faire au-delà de `make aurora-update`.
+
+---
+
 ## [0.9.317] - 2026-10-01
 
 ### Amélioré

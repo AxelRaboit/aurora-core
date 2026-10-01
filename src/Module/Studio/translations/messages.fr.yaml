@@ -604,7 +604,11 @@ backend:
             category_none_hint: Le métier n'a pas encore été précisé. La trame reste utilisable.
             category_all: Toutes les catégories
             preview: Aperçu
-            preview_notice: 'Le texte en couleur vient des variables. Ce sont des exemples, sauf vos informations, tirées de vos réglages. Les champs à remplir pour chaque contrat sont entre crochets.'
+            preview_notice: 'Le texte en couleur vient des variables.'
+            preview_legend:
+              example: 'Exemple inventé'
+              real: 'Vos informations, tirées de vos réglages'
+              slot: 'À remplir pour chaque contrat'
             preview_failed: L'aperçu n'a pas pu être produit.
             preview_unknown_tokens: 'Variables inconnues, elles empêcheront la publication : {tokens}'
             filter_category: 'Catégorie : {name}'
