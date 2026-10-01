@@ -252,7 +252,7 @@ backend:
     seo: Référencement
     seo_description: "Publier le sitemap, le robots.txt et le flux RSS du site public."
     forms: Formulaires
-    forms_description: "Composer des formulaires publics et relire leurs soumissions."
+    forms_description: "Composer des formulaires publics et lire leurs réponses."
     comments: Commentaires
     comments_description: "Modérer les commentaires des lecteurs et écarter les indésirables."
   post_types:
@@ -1429,68 +1429,199 @@ backend:
       approved: Approuvé
       spam: Indésirable
   forms:
-    title: Formulaires
-    empty: Aucun formulaire.
-    create: Nouveau formulaire
-    edit: Modifier le formulaire
-    created: Formulaire créé.
-    updated: Formulaire enregistré.
-    deleted: Formulaire supprimé.
-    delete_confirm: "Supprimer le formulaire « {title} » ? Ses soumissions partent avec lui."
-    title_label: Titre
-    slug: Slug
-    slug_hint: "Laissé vide, il est déduit du titre. Il forme l'URL publique."
-    description: Description
-    active: Publié
-    active_hint: "Un formulaire non publié répond 404 : c'est un brouillon."
-    notify_email: Prévenir à
-    notify_email_hint: "Laissé vide, les soumissions vont à l'administrateur du site."
-    webhook_url: Webhook
-    webhook_url_hint: "Chaque soumission y est envoyée, signée avec le secret de l'application."
-    crm_sync: Signaler le contact
-    standalone_page_indexed: Référencer la page du formulaire
+    title: "Formulaires"
+    empty: "Aucun formulaire."
+    create: "Nouveau formulaire"
+    create_submit: "Créer et ouvrir"
+    create_title_placeholder: "Demande de devis"
+    create_title_hint: "Le même titre dans toutes les langues pour commencer ; chacune se traduit ensuite dans les Réglages du formulaire."
+    created: "Formulaire créé."
+    updated: "Formulaire enregistré."
+    deleted: "Formulaire supprimé."
+    delete_confirm: "Supprimer le formulaire « {title} » ? Ses réponses partent avec lui."
+    title_label: "Titre"
+    slug: "Slug"
+    slug_hint: "Laissée vide, elle est déduite du titre."
+    description: "Description"
+    notify_email_hint: "Laissé vide, les réponses vont à l'administrateur du site."
+    standalone_page_indexed: "Référencer la page du formulaire"
     standalone_page_indexed_hint: "La page du formulaire reste accessible dans tous les cas. Décochée, elle demande aux moteurs de ne pas l'indexer, pour ne pas concurrencer la page où le formulaire est posé."
-    public_url: URL publique
+    list:
+      search_placeholder: "Rechercher un formulaire…"
+      all_statuses: "Tous les états"
+      status_active: "En ligne"
+      status_inactive: "Hors ligne"
+      empty_title: "Aucun formulaire pour le moment"
+      empty_hint: "Un formulaire se pose ensuite dans une publication, comme un bloc. Partez d'un modèle : contact, devis ou inscription."
+      no_match: "Aucun formulaire ne correspond."
+      title_column: "Formulaire"
+      status_column: "État"
+      fields_column: "Questions"
+      submissions_column: "Réponses"
+      last_column: "Dernière réponse"
+      steps: "1 étape | {count} étapes"
+      fields: "Aucune question | 1 question | {count} questions"
+      submissions: "Aucune réponse | 1 réponse | {count} réponses"
+      last_label: "Dernière réponse :"
+      never: "Jamais"
+      open: "Ouvrir"
+      open_hint: "Les questions, les réponses et les réglages du formulaire."
+      delete_hint: "Supprime le formulaire et toutes ses réponses."
+    templates:
+      title: "Point de départ"
+      blank:
+        label: "Vide"
+        description: "Aucune question : vous composez tout."
+      contact:
+        label: "Contact"
+        description: "Nom, e-mail, téléphone et message."
+      quote:
+        label: "Demande de devis"
+        description: "En deux étapes : qui vous êtes, puis le besoin, le budget et l'échéance."
+      event:
+        label: "Inscription à un événement"
+        description: "Nom, e-mail, nombre de personnes et remarques."
+    template_steps:
+      you: "Vous"
+      project: "Votre projet"
+    template_fields:
+      name:
+        label: "Nom complet"
+        placeholder: "Camille Durand"
+      email:
+        label: "Adresse e-mail"
+        placeholder: "camille@exemple.fr"
+      phone:
+        label: "Téléphone"
+        placeholder: "06 12 34 56 78"
+      message:
+        label: "Votre message"
+        placeholder: "Dites-nous en quelques lignes ce dont vous avez besoin."
+      need:
+        label: "Votre besoin"
+        placeholder: "Décrivez le projet : ce qu'il doit faire, pour qui, et ce qui existe déjà."
+      budget:
+        label: "Budget envisagé"
+        placeholder: "Choisissez une fourchette"
+        options:
+          small: "Moins de 1 000 €"
+          medium: "De 1 000 à 5 000 €"
+          large: "Plus de 5 000 €"
+          unknown: "Je ne sais pas encore"
+      deadline:
+        label: "Échéance souhaitée"
+      guests:
+        label: "Nombre de personnes"
+        placeholder: "2"
+      remarks:
+        label: "Remarques"
+        placeholder: "Un régime alimentaire, une question, un besoin d'accessibilité…"
+    editor:
+      back: "Tous les formulaires"
+      view_public: "Voir la page publique"
+      view_public_hint: "Le formulaire seul, à son adresse, dans un nouvel onglet."
+      tabs:
+        fields: "Questions"
+        submissions: "Réponses"
+        settings: "Réglages"
+    preview:
+      title: "Aperçu"
+      hint: "Ce que voit le visiteur, mis à jour pendant que vous tapez. Rien n'est envoyé depuis l'aperçu."
+      empty: "Ajoutez une question pour voir le formulaire prendre forme."
     fields:
       row_actions:
-        edit_description: Libellé, type, obligatoire ou non, conditions d'affichage.
-        delete_description: Supprime le champ. Les réponses déjà reçues le gardent.
-      title: Champs
-      empty: Aucun champ.
-      create: Ajouter un champ
-      edit: Modifier le champ
-      created: Champ ajouté.
-      updated: Champ mis à jour.
-      deleted: Champ supprimé.
-      delete_confirm: "Supprimer le champ « {label} » ? Les conditions qui le citent seront retirées."
-      label: Libellé
-      placeholder: Texte indicatif
-      type: Type
-      required: Obligatoire
-      options: Choix
-      options_hint: 'Un par ligne.'
-      step: Étape
-      conditions: Conditions d'affichage
-      conditions_hint: "Le champ n'apparaît que si ces réponses sont données."
-      condition_field: Champ
-      condition_value: Vaut
-      add_condition: Ajouter une condition
-      move_up: Monter
-      move_down: Descendre
-      step_placeholder: "1"
+        edit_description: "Libellé, type, réponse obligatoire, conditions d'affichage."
+        delete_description: "Retire la question. Les réponses déjà reçues la gardent."
+      title: "Questions"
+      intro: "Dans l'ordre où le visiteur les verra. Cliquez sur une question pour la modifier."
+      empty: "Aucune question."
+      empty_hint: "Ajoutez la première : un nom, une adresse e-mail, un message."
+      create: "Ajouter une question"
+      pick_type: "Quel type de question ?"
+      edit: "Modifier la question"
+      delete: "Supprimer la question"
+      created: "Question ajoutée."
+      updated: "Question enregistrée."
+      deleted: "Question supprimée."
+      delete_confirm: "Supprimer la question « {label} » ? Les conditions qui s'appuient sur elle seront retirées."
+      label: "Question"
       label_placeholder: "Votre nom"
+      placeholder: "Texte d'exemple"
+      placeholder_hint: "Affiché en gris dans la case, tant que le visiteur n'a rien écrit."
+      placeholder_hint_select: "Première ligne de la liste, tant que le visiteur n'a rien choisi."
+      type: "Type de question"
+      required: "Réponse obligatoire"
+      required_hint: "Le visiteur ne peut pas envoyer le formulaire sans y répondre."
+      options: "Choix proposés"
+      options_placeholder: "Oui\nNon"
+      options_hint: "Un choix par ligne."
+      step: "Étape"
+      untranslated: "Pas encore de libellé dans cette langue"
+      visibility: "Quand l'afficher"
+      visibility_always: "Toujours"
+      visibility_conditional: "Selon une réponse"
+      no_condition_source: "Une question ne peut dépendre que d'une question placée avant elle. Ajoutez-en une au-dessus d'abord."
+      logic_label: "L'afficher quand"
+      logic_sentence:
+        and: "Toutes ces conditions sont remplies"
+        or: "Au moins une est remplie"
+      condition_if: "Condition {number} : si la question"
+      condition_field: "Choisir une question"
+      condition_equals: "a reçu la réponse"
+      condition_value: "Réponse attendue"
+      add_condition: "Ajouter une condition"
+      remove_condition: "Retirer la condition"
+      conditional_badge: "Selon une réponse"
+      move_up: "Monter"
+      move_down: "Descendre"
+    field_type_hints:
+      text: "Une réponse courte, sur une ligne : un nom, une ville."
+      email: "Une adresse e-mail, vérifiée avant l'envoi."
+      textarea: "Une réponse longue, sur plusieurs lignes : un message."
+      select: "Un choix dans une liste qui se déroule."
+      checkbox: "Plusieurs choix possibles, cochés un par un."
+      radio: "Un seul choix, parmi des options toutes visibles."
+      number: "Un nombre : une quantité, un âge."
+      date: "Une date, choisie dans un calendrier."
+      tel: "Un numéro de téléphone."
     steps:
-      title: Étapes
-      hint: "Sans étape, le formulaire tient sur une page."
-      add: Ajouter une étape
-      remove: Retirer
-      name: Nom de l'étape
+      title: "Étapes"
+      add: "Ajouter une étape"
+      remove: "Retirer cette étape"
+      remove_blocked: "Seule la dernière étape se retire, une fois vide. Déplacez d'abord ses questions."
+      name: "Nom de l'étape (facultatif)"
+      numbered: "Étape {number}"
+      numbered_titled: "Étape {number} · {title}"
+      single_page: "Tout le formulaire tient sur une page."
+      split: "Découper en étapes"
+      empty: "Aucune question dans cette étape."
+      add_question_here: "Ajouter une question ici"
     submissions:
-      title: Soumissions
-      empty: Aucune soumission.
-      export: Exporter en CSV
-      submitted_at: Reçue le
-      reference: Référence
+      title: "Réponses"
+      intro: "Les plus récentes en premier. L'export reprend toutes les réponses, pour un tableur."
+      empty: "Aucune réponse pour le moment."
+      empty_hint: "Elles apparaîtront ici dès qu'un visiteur aura envoyé le formulaire."
+      export: "Exporter en CSV"
+      previous: "Page précédente"
+      next: "Page suivante"
+    settings:
+      identity_title: "Titre et adresse"
+      identity_hint: "Ce que le visiteur lit en haut du formulaire, et l'adresse de sa page."
+      untranslated: "Pas encore traduit dans cette langue"
+      description_placeholder: "Nous vous répondons sous 48 heures."
+      description_hint: "Affichée sous le titre. Facultative."
+      slug_label: "Adresse de la page"
+      public_address: "Page publique :"
+      online_title: "Mise en ligne"
+      active_label: "En ligne"
+      active_hint: "Hors ligne, le formulaire disparaît des pages où il est posé, et sa page répond 404."
+      answers_title: "Quand quelqu'un répond"
+      answers_hint: "Chaque réponse est rangée dans l'onglet Réponses. Vous pouvez aussi être prévenu, ou la transmettre ailleurs."
+      notify_label: "Prévenir par courriel"
+      crm_label: "Ajouter la personne à vos contacts"
+      crm_hint: "Si un module de contacts est installé, la personne y est ajoutée avec son nom, son adresse e-mail et son téléphone."
+      webhook_label: "Envoyer aussi à une autre application (webhook)"
+      webhook_hint: "Pour les intégrations : chaque réponse est envoyée à cette adresse, signée avec le secret de l'application. Laissez vide si vous n'en avez pas besoin."
     field_types:
       text: Texte
       email: E-mail
@@ -1755,6 +1886,7 @@ frontend:
       previous: Précédent
       step: 'Étape {number}'
       sent: Merci, votre message a bien été envoyé.
+      preview_notice: "Aperçu : le formulaire fonctionne, mais rien n'est envoyé."
       errors:
         required: Ce champ est obligatoire.
         email_invalid: Cette adresse e-mail est invalide.

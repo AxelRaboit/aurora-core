@@ -13,8 +13,6 @@ use Aurora\Core\Module\Nav\NavItem;
 use Aurora\Core\Module\Nav\NavPermission;
 use Aurora\Core\Module\Nav\NavSection;
 use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
-use Aurora\Module\Editorial\Form\Entity\FormInterface;
-use Aurora\Module\Editorial\Form\Repository\FormRepository;
 use Aurora\Module\Editorial\Menu\Repository\MenuRepository;
 use Aurora\Module\Editorial\PostType\Entity\PostTypeInterface;
 use Aurora\Module\Editorial\PostType\Repository\PostTypeRepository;
@@ -36,7 +34,6 @@ final readonly class EditorialModule implements ModuleInterface, ModuleNavViewPr
         private PostTypeRepository $postTypeRepository,
         private TaxonomyRepository $taxonomyRepository,
         private MenuRepository $menuRepository,
-        private FormRepository $formRepository,
         private TranslatorInterface $translator,
     ) {}
 
@@ -225,27 +222,6 @@ final readonly class EditorialModule implements ModuleInterface, ModuleNavViewPr
             }
         }
 
-        if ($this->editorialContext->isFormsEnabled()) {
-            $items = [];
-
-            foreach ($this->formRepository->findAllForIndex() as $form) {
-                $items[] = new NavItem(
-                    route: 'backend_editorial_forms_show',
-                    labelKey: 'backend.nav.forms',
-                    icon: 'clipboard-list',
-                    requiredPrivilege: 'editorial.forms.view',
-                    routeParams: ['id' => $form->getId()],
-                    key: sprintf('editorial.form.%d', $form->getId()),
-                    label: $this->formTitle($form),
-                    description: $this->formDescription($form),
-                );
-            }
-
-            if ([] !== $items) {
-                $groups[] = new ModuleNavGroup('forms', $items, labelKey: 'backend.nav.forms');
-            }
-        }
-
         if ($this->editorialContext->isPostTypesEnabled()) {
             $items = [];
 
@@ -295,6 +271,14 @@ final readonly class EditorialModule implements ModuleInterface, ModuleNavViewPr
             $items[] = $this->commentsNavItem();
         }
 
+        // Une seule entrée, et la liste derrière elle. Un formulaire par ligne
+        // de menu poussait le menu à chaque création, et rien n'y disait ce
+        // qu'un formulaire reçoit ni s'il est en ligne : c'est le travail d'une
+        // liste, qui a des colonnes pour ça.
+        if ($this->editorialContext->isFormsEnabled()) {
+            $items[] = $this->formsNavItem();
+        }
+
         return $items;
     }
 
@@ -320,33 +304,11 @@ final readonly class EditorialModule implements ModuleInterface, ModuleNavViewPr
             ?? $this->translator->trans('backend.nav.counts.terms', ['%count%' => $taxonomy->getTerms()->count()]);
     }
 
-    private function formDescription(FormInterface $form): string
-    {
-        $translation = $form->getTranslation($this->translator->getLocale())
-            ?? ($form->getTranslations()->first() ?: null);
-
-        return $translation?->getDescription()
-            ?? $this->translator->trans('backend.nav.counts.fields', ['%count%' => $form->getFields()->count()]);
-    }
-
     /** @param array<int, int> $postCounts type id → posts, from countPostsByType() */
     private function postTypeDescription(PostTypeInterface $postType, array $postCounts): string
     {
         return $postType->getDescription()
             ?? $this->translator->trans('backend.nav.counts.posts', ['%count%' => $postCounts[(int) $postType->getId()] ?? 0]);
-    }
-
-    /**
-     * A form's title in the reader's language, same shape as a taxonomy's: the
-     * title lives on a translation row, so there is no locale-free name, and an
-     * entry with no name is worse than one named after its reference.
-     */
-    private function formTitle(FormInterface $form): string
-    {
-        $translation = $form->getTranslation($this->translator->getLocale())
-            ?? ($form->getTranslations()->first() ?: null);
-
-        return $translation?->getTitle() ?? ($form->getReference() ?? '#'.$form->getId());
     }
 
     /**

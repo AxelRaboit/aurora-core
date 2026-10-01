@@ -353,15 +353,16 @@ const SHOTS = [
     { name: "tour-commentaires", path: "/backend/editorial/comments" },
     {
         name: "tour-formulaire-champs",
-        path: "/backend/editorial/forms",
-        // Les champs d'un formulaire, pas la liste des formulaires : c'est
-        // l'écran où l'on compose, et donc celui dont la carte parle.
+        // Les questions d'un formulaire, une question ouverte dans le panneau
+        // et l'aperçu dessous : c'est l'écran où l'on compose, et la carte en
+        // parle. Depuis la 0.9.320 chaque formulaire a sa page ; plus de
+        // détour par la liste, ni de repli qui photographierait l'écran
+        // d'avant si le clic ratait.
+        path: "/backend/editorial/forms/1",
         async prepare(page) {
-            await page.getByRole("link", { name: /Modifier|Éditer/ }).first().click()
-                .catch(async () => {
-                    await page.locator("a[href*='/backend/editorial/forms/']").first().click();
-                });
-            await page.waitForTimeout(3_000);
+            await page.waitForTimeout(2_500);
+            await page.locator("main").getByRole("button", { name: /Type de projet/ }).first().click();
+            await page.waitForTimeout(1_500);
         },
     },
 
@@ -548,11 +549,11 @@ const SHOTS = [
         // était un dump de JSON brut, et elle a illustré la carte publique
         // pendant une heure. Une adresse qui répond n'est pas une page.
         name: "tour-formulaire-reponses",
-        path: "/backend/editorial/forms/1",
+        // L'onglet Réponses, par son adresse : depuis la 0.9.320 les réponses
+        // ont leur onglet, et il est dans le fragment de l'URL.
+        path: "/backend/editorial/forms/1#submissions",
         async prepare(page) {
             await page.waitForTimeout(3_000);
-            await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-            await page.waitForTimeout(1_200);
         },
     },
     {

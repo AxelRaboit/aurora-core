@@ -7,13 +7,14 @@ window.__isAdmin__ = true;
 const PostTypesApp = (await import("./post-types/PostTypesApp.vue")).default;
 const TaxonomiesApp = (await import("./taxonomies/TaxonomiesApp.vue")).default;
 const MenusApp = (await import("./menus/MenusApp.vue")).default;
-const FormsApp = (await import("./forms/FormsApp.vue")).default;
 
 const i18n = createTestI18n();
 
 const paths = (names) =>
     names.reduce((all, name) => ({ ...all, [name]: `/${name}` }), {});
 
+// Forms left this family in 0.9.320: they are a list with a page per form,
+// not a record picked from the side menu ({@see forms/FormsApp.test.js}).
 const CASES = [
     {
         name: "post types",
@@ -98,37 +99,6 @@ const CASES = [
                 },
             ],
             locales: ["fr"],
-        },
-    },
-    {
-        name: "forms",
-        component: FormsApp,
-        props: {
-            ...paths([
-                "createPath",
-                "updatePathTemplate",
-                "deletePathTemplate",
-                "fieldCreatePathTemplate",
-                "fieldEditPathTemplate",
-                "fieldDeletePathTemplate",
-                "fieldReorderPathTemplate",
-                "submissionsPathTemplate",
-                "exportPathTemplate",
-            ]),
-            forms: [
-                {
-                    id: 9,
-                    reference: "contact",
-                    // The title lives on a translation, the way the page reads it.
-                    translations: { fr: { title: "Contact" } },
-                    fields: [],
-                    submissionCount: 0,
-                    isActive: true,
-                },
-            ],
-            locales: ["fr"],
-            fieldTypes: [{ value: "text", labelKey: "t", hasOptions: false }],
-            conditionLogics: [{ value: "and", labelKey: "l" }],
         },
     },
 ];

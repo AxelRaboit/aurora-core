@@ -15,14 +15,15 @@ use Aurora\Core\Validation\Service\PayloadValidator;
 use Aurora\Module\Editorial\Form\Dto\FormFieldInputFactoryInterface;
 use Aurora\Module\Editorial\Form\Dto\FormFieldInputInterface;
 use Aurora\Module\Editorial\Form\Dto\FormInputFactoryInterface;
-use Aurora\Module\Editorial\Form\Dto\FormInputInterface;
 use Aurora\Module\Editorial\Form\Entity\Form;
 use Aurora\Module\Editorial\Form\Entity\FormFieldInterface;
 use Aurora\Module\Editorial\Form\Entity\FormSubmissionInterface;
+use Aurora\Module\Editorial\Form\Enum\FormTemplateEnum;
 use Aurora\Module\Editorial\Form\Manager\FormManagerInterface;
 use Aurora\Module\Editorial\Form\Repository\FormSubmissionRepository;
 use Aurora\Module\Editorial\Form\Serializer\FormSerializerInterface;
 use Aurora\Module\Editorial\Form\Service\FormSubmissionExporter;
+use Aurora\Module\Editorial\Form\Service\FormTemplateApplier;
 use Aurora\Module\Editorial\Form\View\FormsViewBuilder;
 use InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -50,22 +51,18 @@ class FormsController extends AbstractController
         private readonly FormSubmissionExporter $exporter,
         private readonly PayloadValidator $payloadValidator,
         private readonly LocaleContextInterface $localeContext,
+        private readonly FormTemplateApplier $templateApplier,
     ) {}
 
     /**
-     * One address per form: a bare `/forms` redirects to the first rather than
-     * showing what `/forms/3` already shows.
+     * The list of forms. It used to redirect to the first, and the side menu
+     * listed the others one entry each: the menu grew with every form, and
+     * nothing anywhere said which were online or received anything.
      */
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
     public function index(): Response
     {
-        $first = $this->viewBuilder->firstId();
-
-        if (null !== $first) {
-            return $this->redirectToRoute('backend_editorial_forms_show', ['id' => $first]);
-        }
-
-        return $this->render('@Editorial/backend/forms/index.html.twig', $this->viewBuilder->indexView());
+        return $this->render('@Editorial/backend/forms/index.html.twig', $this->viewBuilder->listView());
     }
 
     /**
@@ -76,17 +73,43 @@ class FormsController extends AbstractController
     #[Route('/{id}', name: '_show', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Get->value])]
     public function show(Form $form): Response
     {
-        return $this->render('@Editorial/backend/forms/index.html.twig', $this->viewBuilder->indexView($form->getId()));
+        return $this->render('@Editorial/backend/forms/show.html.twig', $this->viewBuilder->editorView($form));
     }
 
+    /**
+     * A title and a template, and the form exists.
+     *
+     * **One title for every language.** Asking for it three times before the
+     * form even has a question was the first thing that made creating one
+     * feel like paperwork; the Settings tab is where each language gets its
+     * own wording. A form left without a translation would, on the other hand,
+     * be missing from the pages of that language.
+     *
+     * The full payload the Settings tab sends is still accepted here, for
+     * whoever already speaks it.
+     */
     #[Route('', name: '_create', methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('editorial.forms.create')]
     public function create(Request $request): JsonResponse
     {
-        return $this->withFormInput($request, function ($input): JsonResponse {
-            $form = $this->formManager->create($input);
+        $data = $this->decodeJson($request);
+        $template = FormTemplateEnum::tryFrom((string) ($data['template'] ?? '')) ?? FormTemplateEnum::Blank;
+        $locales = $this->localeContext->getActiveLocales();
 
-            return $this->jsonSuccess(['form' => $this->formSerializer->serialize($form)]);
+        if (!isset($data['translations']) && isset($data['title'])) {
+            $data['translations'] = array_fill_keys($locales, ['title' => (string) $data['title']]);
+        }
+
+        $data['steps'] ??= $this->templateApplier->steps($template);
+
+        return $this->withFormInput($data, function ($input) use ($template, $locales): JsonResponse {
+            $form = $this->formManager->create($input);
+            $this->templateApplier->apply($form, $template, $locales);
+
+            return $this->jsonSuccess([
+                'form' => $this->formSerializer->serialize($form),
+                'editPath' => $this->generateUrl('backend_editorial_forms_show', ['id' => $form->getId()]),
+            ]);
         });
     }
 
@@ -94,7 +117,7 @@ class FormsController extends AbstractController
     #[IsGranted('editorial.forms.edit')]
     public function update(Form $form, Request $request): JsonResponse
     {
-        return $this->withFormInput($request, function ($input) use ($form): JsonResponse {
+        return $this->withFormInput($this->decodeJson($request), function ($input) use ($form): JsonResponse {
             $this->formManager->update($form, $input);
 
             return $this->jsonSuccess(['form' => $this->formSerializer->serialize($form)]);
@@ -198,9 +221,10 @@ class FormsController extends AbstractController
     }
 
     /** @param callable(FormInputInterface):JsonResponse $save */
-    private function withFormInput(Request $request, callable $save): JsonResponse
+    /** @param array<string, mixed> $data */
+    private function withFormInput(array $data, callable $save): JsonResponse
     {
-        $input = $this->formInputFactory->fromArray($this->decodeJson($request));
+        $input = $this->formInputFactory->fromArray($data);
 
         $errors = $this->payloadValidator->errors($input);
         if ([] !== $errors) {

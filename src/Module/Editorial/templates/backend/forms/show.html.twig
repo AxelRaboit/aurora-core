@@ -1,0 +1,34 @@
+{% extends '@Core/backend/layout.html.twig' %}
+
+{% set form_title = form.translations[app.request.locale].title ?? (form.translations|first).title ?? form.reference %}
+
+{% block title %}{{ form_title }} - {{ 'backend.nav.forms'|trans }} - {{ parent() }}{% endblock %}
+
+{% block page_header_slot %}
+    {{ include('@Shared/components/page_header.html.twig', {
+        crumbs: [
+            {label: 'backend.nav.sections.editorial'|trans},
+            {label: 'backend.nav.forms'|trans, href: path('backend_editorial_forms')},
+            {label: form_title},
+        ],
+    }) }}
+{% endblock %}
+
+{% block body %}
+<div {{ vue_component('editorial/backend/forms/FormEditorApp', {
+    form: form,
+    publicPaths: publicPaths,
+    locales: locales,
+    fieldTypes: fieldTypes,
+    conditionLogics: conditionLogics,
+    listPath: path('backend_editorial_forms'),
+    updatePath: path('backend_editorial_forms_update', {id: form.id}),
+    deletePath: path('backend_editorial_forms_delete', {id: form.id}),
+    fieldCreatePath: path('backend_editorial_forms_field_create', {id: form.id}),
+    fieldEditPathTemplate: path_template('backend_editorial_forms_field_edit', {id: form.id, fieldId: '__fieldId__'}),
+    fieldDeletePathTemplate: path_template('backend_editorial_forms_field_delete', {id: form.id, fieldId: '__fieldId__'}),
+    fieldReorderPath: path('backend_editorial_forms_field_reorder', {id: form.id}),
+    submissionsPath: path('backend_editorial_forms_submissions', {id: form.id}),
+    exportPath: path('backend_editorial_forms_submissions_export', {id: form.id}),
+}) }} class="flex-1 min-w-0"></div>
+{% endblock %}
