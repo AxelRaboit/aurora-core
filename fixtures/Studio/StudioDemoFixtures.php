@@ -1386,6 +1386,36 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             ],
         ], "Dire que la semaine 3 n'est pas négociable : sans mesure, rien ne prouve que ça a marché.");
 
+        // Une slide libre, composée à la main : la démonstration de ce que le
+        // canevas sait faire que les gabarits ne font pas. Un dégradé tiré des
+        // couleurs du deck, une photo découpée en cercle, trois cartes groupées
+        // qui entrent une à une, et une flèche posée en biais.
+        $this->slide($deck, SlideLayoutEnum::Free, [
+            'fill' => ['type' => 'linear', 'angle' => 160, 'stops' => [
+                ['color' => 'background', 'at' => 0],
+                ['color' => 'background', 'at' => 55],
+                ['color' => 'accent', 'at' => 100],
+            ]],
+            'elements' => [
+                ['id' => 'title', 'type' => 'text', 'html' => "Le plan, en un coup d'œil", 'font' => 'heading', 'size' => 64, 'weight' => 700, 'lineHeight' => 1.05, 'x' => 6, 'y' => 9, 'w' => 62, 'h' => 14, 'enter' => 'rise'],
+                ['id' => 'subtitle', 'type' => 'text', 'html' => 'Trois semaines, et <span style="color: #f2b33d">une mesure</span> à chaque étape', 'size' => 28, 'x' => 6, 'y' => 24, 'w' => 60, 'h' => 8, 'enter' => 'fade', 'delay' => 200],
+                ['id' => 'photo', 'type' => 'image', 'mediaId' => $this->mediaId(1), 'mask' => 'circle', 'x' => 76, 'y' => 6, 'w' => 18, 'h' => 32, 'shadow' => ['x' => 0, 'y' => 12, 'blur' => 40, 'color' => '#00000066']],
+                ['id' => 'arrow', 'type' => 'shape', 'shape' => 'line', 'head' => 'end', 'x' => 66, 'y' => 30, 'w' => 9, 'h' => 4, 'rotate' => -24, 'stroke' => ['color' => 'accent', 'width' => 6, 'style' => 'solid']],
+                ['id' => 'card-1', 'type' => 'shape', 'shape' => 'rect', 'x' => 6, 'y' => 42, 'w' => 27, 'h' => 44, 'radius' => 22, 'fill' => ['type' => 'solid', 'color' => '#ffffff12'], 'stroke' => ['color' => 'accent', 'width' => 2, 'style' => 'solid'], 'reveal' => 1, 'enter' => 'rise', 'group' => 'step-1'],
+                ['id' => 'icon-1', 'type' => 'icon', 'icon' => 'image', 'color' => 'accent', 'x' => 8.5, 'y' => 47, 'w' => 5, 'h' => 8.889, 'reveal' => 1, 'enter' => 'rise', 'group' => 'step-1'],
+                ['id' => 'head-1', 'type' => 'text', 'html' => 'Les images', 'font' => 'heading', 'size' => 30, 'weight' => 700, 'x' => 8.5, 'y' => 59, 'w' => 22, 'h' => 8, 'reveal' => 1, 'enter' => 'rise', 'group' => 'step-1'],
+                ['id' => 'body-1', 'type' => 'text', 'html' => 'Servies à la taille affichée, deux secondes de gagnées.', 'size' => 20, 'lineHeight' => 1.35, 'x' => 8.5, 'y' => 68, 'w' => 22, 'h' => 15, 'reveal' => 1, 'enter' => 'rise', 'group' => 'step-1'],
+                ['id' => 'card-2', 'type' => 'shape', 'shape' => 'rect', 'x' => 36.5, 'y' => 42, 'w' => 27, 'h' => 44, 'radius' => 22, 'fill' => ['type' => 'solid', 'color' => '#ffffff12'], 'stroke' => ['color' => 'accent', 'width' => 2, 'style' => 'solid'], 'reveal' => 2, 'enter' => 'rise', 'group' => 'step-2'],
+                ['id' => 'icon-2', 'type' => 'icon', 'icon' => 'settings', 'color' => 'accent', 'x' => 39.0, 'y' => 47, 'w' => 5, 'h' => 8.889, 'reveal' => 2, 'enter' => 'rise', 'group' => 'step-2'],
+                ['id' => 'head-2', 'type' => 'text', 'html' => 'Polices et menu', 'font' => 'heading', 'size' => 30, 'weight' => 700, 'x' => 39.0, 'y' => 59, 'w' => 22, 'h' => 8, 'reveal' => 2, 'enter' => 'rise', 'group' => 'step-2'],
+                ['id' => 'body-2', 'type' => 'text', 'html' => 'Deux polices au lieu de six, un menu calculé une fois.', 'size' => 20, 'lineHeight' => 1.35, 'x' => 39.0, 'y' => 68, 'w' => 22, 'h' => 15, 'reveal' => 2, 'enter' => 'rise', 'group' => 'step-2'],
+                ['id' => 'card-3', 'type' => 'shape', 'shape' => 'rect', 'x' => 67, 'y' => 42, 'w' => 27, 'h' => 44, 'radius' => 22, 'fill' => ['type' => 'solid', 'color' => '#ffffff12'], 'stroke' => ['color' => 'accent', 'width' => 2, 'style' => 'solid'], 'reveal' => 3, 'enter' => 'rise', 'group' => 'step-3'],
+                ['id' => 'icon-3', 'type' => 'icon', 'icon' => 'chart-line', 'color' => 'accent', 'x' => 69.5, 'y' => 47, 'w' => 5, 'h' => 8.889, 'reveal' => 3, 'enter' => 'rise', 'group' => 'step-3'],
+                ['id' => 'head-3', 'type' => 'text', 'html' => 'Les mesures', 'font' => 'heading', 'size' => 30, 'weight' => 700, 'x' => 69.5, 'y' => 59, 'w' => 22, 'h' => 8, 'reveal' => 3, 'enter' => 'rise', 'group' => 'step-3'],
+                ['id' => 'body-3', 'type' => 'text', 'html' => 'Refaites, et affichées sur une page que le client garde.', 'size' => 20, 'lineHeight' => 1.35, 'x' => 69.5, 'y' => 68, 'w' => 22, 'h' => 15, 'reveal' => 3, 'enter' => 'rise', 'group' => 'step-3'],
+            ],
+        ], 'Une carte par pression : laisser lire chacune avant la suivante.');
+
         $this->slide($deck, SlideLayoutEnum::Quote, [
             'quote' => "Trois semaines pour passer de 3,4 secondes à moins d'une. Le reste du site n'y touche pas.",
             'attribution' => "Ce qu'il faut retenir",

@@ -49,6 +49,7 @@ onMounted(() => {
                 :slide="slide"
                 :appearance="deck.appearance"
                 :index="at + 1"
+                still
             />
         </div>
     </div>

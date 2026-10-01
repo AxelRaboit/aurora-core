@@ -397,6 +397,10 @@
         "tour-sondage": {
             "document": 749,
             "slug": "formulaires"
+        },
+        "tour-contrat-adapte": {
+            "document": 750,
+            "slug": "clients-et-contrats"
         }
     }
 }

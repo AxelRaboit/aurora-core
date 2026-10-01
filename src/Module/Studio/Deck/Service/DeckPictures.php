@@ -18,8 +18,10 @@ use function sprintf;
  * Which pictures a deck points at, and which of them a stranger cannot see.
  *
  * **One place that knows where a deck keeps picture ids**, because there are
- * now three: a slide's own picture, the backdrop behind any slide, and the
- * logo in the deck's style. The serializer resolves them in one query and the
+ * several: a slide's own picture, the backdrop behind any slide, the logo in
+ * the deck's style, and on a free slide every picture and film it places and
+ * the film behind them. Films are counted here too: they are documents of the
+ * same library, withheld from a stranger the same way. The serializer resolves them in one query and the
  * share panel asks which of them are withheld; a second list would drift the
  * day a fourth slot appears, and drift silently - the missing picture would
  * simply not be warned about.
@@ -27,7 +29,7 @@ use function sprintf;
 final readonly class DeckPictures
 {
     /** The content slots that hold a document id. */
-    private const array SLIDE_SLOTS = ['mediaId', 'bgMediaId'];
+    private const array SLIDE_SLOTS = ['mediaId', 'bgMediaId', 'bgVideoId'];
 
     public function __construct(private DocumentRepository $documents) {}
 
@@ -57,6 +59,21 @@ final readonly class DeckPictures
 
             if (is_array($several)) {
                 foreach ($several as $id) {
+                    if (is_int($id)) {
+                        $ids[] = $id;
+                    }
+                }
+            }
+
+            // A free slide's pictures and films, one per element. Counted here
+            // for the reason the mosaic is: a film playing on a slide is a
+            // film the library must not call unused.
+            $elements = $slide->getContent()['elements'] ?? null;
+
+            if (is_array($elements)) {
+                foreach ($elements as $element) {
+                    $id = is_array($element) ? ($element['mediaId'] ?? null) : null;
+
                     if (is_int($id)) {
                         $ids[] = $id;
                     }

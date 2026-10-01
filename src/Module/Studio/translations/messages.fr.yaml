@@ -1071,6 +1071,247 @@ backend:
                 attribution: Attribution
                 caption: Légende
                 mediaId: Image
+            free:
+                convert: Rendre libre
+                converted: "Diapo rendue libre. Cmd+Z pour revenir au gabarit."
+                canvas: Diapo libre
+                insert: Ajouter à la diapo
+                insert_title: Titre
+                insert_subtitle: Sous-titre
+                insert_body: Texte
+                insert_image: Image
+                insert_video: Vidéo
+                insert_embed: YouTube ou Vimeo
+                insert_shape: Forme
+                insert_icon: Icône
+                insert_chart: Graphique
+                insert_table: Tableau
+                text_presets:
+                    title: Votre titre
+                    subtitle: Un sous-titre
+                    body: Votre texte ici
+                embed_url: Lien de la vidéo
+                embed_placeholder: "https://www.youtube.com/watch?v=..."
+                embed_add: Ajouter
+                embed_hint: "YouTube, Vimeo ou Dailymotion. La vidéo se lit dans la diapo pendant la présentation."
+                icon_search: Chercher une icône
+                undo: Annuler
+                redo: Rétablir
+                shortcuts: "Double-clic pour écrire, Maj pour garder les proportions, Alt pour ignorer les guides."
+                shortcuts_touch: "Touchez un texte choisi pour écrire, pincez à deux doigts pour agrandir et tourner."
+                text_toolbar: Mise en forme du texte
+                bold: Gras
+                italic: Italique
+                underline: Souligné
+                strike: Barré
+                word_colour: Couleur des mots
+                word_colour_apply: Appliquer cette couleur
+                highlight: Surligneur
+                highlight_apply: Appliquer ce surlignage
+                bullets: Liste à puces
+                numbers: Liste numérotée
+                clear_format: Effacer la mise en forme
+                slide: Cette diapo
+                slide_fill: Fond de la diapo
+                slide_video: Vidéo en fond
+                slide_video_hint: "Lue en boucle et sans le son derrière les éléments. Sur papier, c'est son image d'affiche qui s'imprime."
+                choose_video: Choisir une vidéo
+                replace: Remplacer
+                remove: Retirer
+                nothing_selected: "Cliquez sur un élément pour le régler, ou tracez un cadre autour de plusieurs."
+                duplicate: Dupliquer
+                delete: Supprimer
+                lock: Verrouiller
+                unlock: Déverrouiller
+                bring_front: Mettre au premier plan
+                forward: Avancer
+                backward: Reculer
+                send_back: Mettre à l'arrière-plan
+                group: Grouper
+                ungroup: Dégrouper
+                flip_x: Retourner horizontalement
+                flip_y: Retourner verticalement
+                align:
+                    left: Aligner à gauche
+                    center: Centrer horizontalement
+                    right: Aligner à droite
+                    top: Aligner en haut
+                    middle: Centrer verticalement
+                    bottom: Aligner en bas
+                distribute_x: Répartir horizontalement
+                distribute_y: Répartir verticalement
+                width: Largeur
+                height: Hauteur
+                rotation: Rotation
+                opacity: Opacité
+                font: Police
+                font_search: Chercher une police
+                font_deck: Polices de la présentation
+                font_heading: Police des titres
+                font_body: Police du texte
+                font_uploaded: Vos polices
+                font_upload: Importer une police
+                font_uploaded_ok: "Police {name} ajoutée."
+                font_errors:
+                    required: Choisissez un fichier de police.
+                    not_a_font: "Ce fichier n'est pas une police lisible par un navigateur : woff2, woff, ttf ou otf."
+                    refused: "La police n'a pas pu être ajoutée."
+                font_categories:
+                    sans: Sans empattement
+                    serif: Avec empattement
+                    display: Affiche
+                    script: Manuscrite
+                    mono: Chasse fixe
+                size: Taille
+                weight: Graisse
+                weights:
+                    "100": Très fine
+                    "200": Extra fine
+                    "300": Fine
+                    "400": Normale
+                    "500": Moyenne
+                    "600": Demi-grasse
+                    "700": Grasse
+                    "800": Extra grasse
+                    "900": Noire
+                case: Casse
+                cases:
+                    none: Telle quelle
+                    upper: Majuscules
+                    lower: Minuscules
+                    title: Majuscule à chaque mot
+                spacing: Interlettrage
+                line_height: Interligne
+                pad_x: Marge intérieure (côtés)
+                pad_y: Marge intérieure (haut et bas)
+                aligns:
+                    left: Gauche
+                    center: Centre
+                    right: Droite
+                    justify: Justifié
+                valigns:
+                    top: Haut
+                    middle: Milieu
+                    bottom: Bas
+                text_colour: Couleur du texte
+                autofit: Ajuster le texte à la boîte
+                autofit_hint: "Le texte rétrécit pour ne jamais sortir de sa boîte."
+                contrast_poor: "Texte peu lisible sur ce fond : contraste de {ratio} pour 1, il en faut au moins 3."
+                contrast_large: "Lisible en grand seulement : contraste de {ratio} pour 1, 4,5 pour un texte courant."
+                text_hint: "Double-cliquez dans la boîte pour écrire. Sélectionnez des mots pour les mettre en gras, en couleur ou en liste."
+                fit: Remplissage
+                mask: Découpe
+                masks:
+                    none: Aucune
+                    circle: Cercle
+                    arch: Arche
+                    triangle: Triangle
+                    diamond: Losange
+                    hexagon: Hexagone
+                    star: Étoile
+                    blob: Galet
+                zoom: Zoom
+                focus: Point de cadrage
+                focus_hint: "Le point qui reste visible quand l'image est recadrée."
+                adjust: Retouches
+                filters:
+                    brightness: Luminosité
+                    contrast: Contraste
+                    saturate: Saturation
+                    grayscale: Noir et blanc
+                    sepia: Sépia
+                    hue: Teinte
+                    blur: Flou
+                reset_filters: Annuler les retouches
+                autoplay: Lecture automatique
+                autoplay_hint: "Une vidéo qui démarre seule est muette : c'est la règle des navigateurs."
+                loop: En boucle
+                muted: Sans le son
+                controls: Afficher les commandes
+                shape: Forme
+                shapes:
+                    rect: Rectangle
+                    ellipse: Ellipse
+                    triangle: Triangle
+                    right_triangle: Triangle rectangle
+                    diamond: Losange
+                    pentagon: Pentagone
+                    hexagon: Hexagone
+                    octagon: Octogone
+                    star: Étoile
+                    star4: Étoile à quatre branches
+                    heart: Cœur
+                    cross: Croix
+                    parallelogram: Parallélogramme
+                    trapezoid: Trapèze
+                    arrow_right: Flèche vers la droite
+                    arrow_left: Flèche vers la gauche
+                    chevron: Chevron
+                    speech: Bulle
+                    ring: Anneau
+                    line: Ligne
+                head: Extrémités
+                heads:
+                    none: Aucune flèche
+                    end: Flèche au bout
+                    both: Flèche aux deux bouts
+                icon: Icône
+                colour: Couleur
+                line_weight: Épaisseur du trait
+                theme_colours:
+                    ink: Couleur du texte de la présentation
+                    accent: Couleur d'accent de la présentation
+                    background: Couleur de fond de la présentation
+                no_colour: Sans couleur
+                paints:
+                    none: Aucun
+                    solid: Couleur
+                    linear: Dégradé
+                    radial: Dégradé radial
+                angle: Angle
+                add_stop: Ajouter une couleur
+                remove_stop: Retirer cette couleur
+                fill: Remplissage
+                box_fill: Fond de la boîte
+                stroke: Contour
+                text_outline: Contour des lettres
+                stroke_width: Épaisseur
+                stroke_style: Style
+                stroke_styles:
+                    solid: Plein
+                    dashed: Tirets
+                    dotted: Pointillés
+                radius: Arrondi
+                shadow: Ombre
+                blur: Flou
+                enter: Apparition
+                enters:
+                    none: Aucune
+                    fade: Fondu
+                    rise: Montée
+                    fall: Descente
+                    left: Depuis la gauche
+                    right: Depuis la droite
+                    zoom: Zoom
+                    pop: Rebond
+                    blur: Mise au point
+                reveal: À la pression n°
+                reveal_hint: "0 : l'élément est là dès que la diapo s'affiche. 1, 2, 3 : il entre à la 1re, 2e, 3e pression pendant la présentation."
+                duration: Durée
+                delay: Délai
+                link: Lien au clic
+                link_placeholder: "https://..."
+                layers: Calques
+                layers_empty: "Aucun élément. Ajoutez-en un avec la barre au-dessus de la diapo."
+                types:
+                    text: Texte
+                    image: Image
+                    video: Vidéo
+                    embed: Vidéo en ligne
+                    shape: Forme
+                    icon: Icône
+                    chart: Graphique
+                    table: Tableau
             layouts:
                 chart: Graphique
                 stat: Chiffre clé
@@ -1091,6 +1332,7 @@ backend:
                 portrait: Citation et portrait
                 logos: Grille de logos
                 mosaic: Mosaïque d'images
+                free: Diapo libre
             categories:
                 errors:
                     name_required: Le nom est obligatoire.
