@@ -626,9 +626,9 @@ onBeforeUnmount(() => {
             />
         </div>
 
-        <div class="flex flex-col gap-4 xl:flex-row xl:items-start">
+        <div class="flex flex-col gap-4" :class="isFree ? '' : 'xl:flex-row xl:items-start'">
             <!-- Les slides, dans l'ordre où elles seront montrées. -->
-            <aside class="w-full shrink-0 xl:w-64">
+            <aside class="w-full shrink-0" :class="isFree ? '' : 'xl:w-64'">
                 <div class="mb-2 flex items-center justify-between">
                     <h2 class="m-0 text-xs font-semibold uppercase tracking-wide text-muted">
                         {{ t("backend.studio.decks.slides") }}
@@ -645,15 +645,17 @@ onBeforeUnmount(() => {
                     handle=".slide-drag-handle"
                     :animation="150"
                     :disabled="!editable"
-                    class="flex snap-x gap-2 overflow-x-auto pb-1 xl:snap-none xl:flex-col xl:overflow-visible xl:pb-0"
+                    class="flex snap-x gap-2 overflow-x-auto pb-1"
+                    :class="isFree ? '' : 'xl:snap-none xl:flex-col xl:overflow-visible xl:pb-0'"
                     v-on:update:model-value="reorder"
                 >
                     <div
                         v-for="(slide, at) in slides"
                         v-show="!isHidden(at)"
                         :key="slide.id"
-                        class="group relative w-40 shrink-0 snap-start rounded-lg border p-1 transition-colors sm:w-48 xl:w-auto"
+                        class="group relative w-40 shrink-0 snap-start rounded-lg border p-1 transition-colors sm:w-48"
                         :class="[
+                            isFree ? '' : 'xl:w-auto',
                             slide.id === selectedId
                                 ? 'border-accent bg-accent-600/10'
                                 : 'border-line hover:border-line-strong',
@@ -768,15 +770,16 @@ onBeforeUnmount(() => {
                          téléphone. -->
                     <button
                         type="button"
-                        class="flex w-full cursor-pointer items-center justify-between rounded-md border-0 bg-transparent px-1 py-1 text-xs text-muted xl:hidden"
+                        class="flex w-full cursor-pointer items-center justify-between rounded-md border-0 bg-transparent px-1 py-1 text-xs text-muted"
+                        :class="isFree ? '' : 'xl:hidden'"
                         :aria-expanded="addingOpen"
                         v-on:click="addingOpen = !addingOpen"
                     >
                         {{ t("backend.studio.decks.add_slide") }}
                         <ChevronDown class="h-3.5 w-3.5 transition-transform" :class="addingOpen ? 'rotate-180' : ''" :stroke-width="2" />
                     </button>
-                    <p class="m-0 hidden px-1 text-xs text-muted xl:block">{{ t("backend.studio.decks.add_slide") }}</p>
-                    <div class="grid-cols-2 gap-1 sm:grid-cols-4 xl:grid xl:grid-cols-2" :class="addingOpen ? 'grid' : 'hidden'">
+                    <p class="m-0 hidden px-1 text-xs text-muted" :class="isFree ? '' : 'xl:block'">{{ t("backend.studio.decks.add_slide") }}</p>
+                    <div class="grid-cols-2 gap-1 sm:grid-cols-4" :class="[addingOpen ? 'grid' : 'hidden', isFree ? 'lg:grid-cols-6' : 'xl:grid xl:grid-cols-2']">
                         <AppButton
                             v-for="layout in layouts"
                             :key="layout.value"
@@ -802,7 +805,7 @@ onBeforeUnmount(() => {
                 <template v-else>
                     <!-- Une slide libre : la barre qui y ajoute, la slide qu'on
                          prend en main, et à côté ce qui règle ce qui est pris. -->
-                    <div v-if="isFree" class="flex flex-col gap-4 2xl:flex-row 2xl:items-start">
+                    <div v-if="isFree" class="flex flex-col gap-4 xl:flex-row xl:items-start">
                         <div class="min-w-0 flex-1 space-y-2">
                             <FreeInsertBar
                                 v-if="editable"
@@ -840,7 +843,7 @@ onBeforeUnmount(() => {
                                 <span class="hidden text-xs text-muted pointer-coarse:inline">{{ t("backend.studio.decks.free.shortcuts_touch") }}</span>
                             </div>
                         </div>
-                        <aside class="aurora-card w-full shrink-0 space-y-5 p-3 2xl:sticky 2xl:top-4 2xl:max-h-[calc(100vh-2rem)] 2xl:w-80 2xl:overflow-y-auto">
+                        <aside class="aurora-card w-full shrink-0 space-y-5 p-3 xl:sticky xl:top-4 xl:max-h-[calc(100vh-2rem)] xl:w-72 xl:overflow-y-auto 2xl:w-80">
                             <FreeInspector
                                 :editor="freeEditor"
                                 :slide="selected"

@@ -156,7 +156,7 @@ final readonly class DeckFonts
     /** @return array{key: string, name: string, url: string} */
     public function describe(DocumentInterface $document): array
     {
-        $name = pathinfo((string) ($document->getOriginalName() ?? $document->getTitle()), PATHINFO_FILENAME);
+        $name = pathinfo($document->getOriginalName() ?? $document->getTitle(), PATHINFO_FILENAME);
 
         return [
             'key' => sprintf('upload-%d', (int) $document->getId()),

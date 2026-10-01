@@ -16,6 +16,8 @@ const props = defineProps({
     max: { type: Number, default: null },
     step: { type: Number, default: 1 },
     disabled: { type: Boolean, default: false },
+    /** What a value looks like, shown while the field is empty. */
+    placeholder: { type: String, default: "0" },
 });
 
 const emit = defineEmits(["update:modelValue"]);
@@ -59,6 +61,7 @@ function onInput(event) {
                 :min="min ?? undefined"
                 :max="max ?? undefined"
                 :step="step"
+                :placeholder="placeholder"
                 :disabled="disabled"
                 v-on:input="onInput"
                 v-on:blur="shown = format(modelValue)"

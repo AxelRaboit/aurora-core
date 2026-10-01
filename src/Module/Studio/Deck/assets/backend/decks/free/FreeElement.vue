@@ -177,6 +177,21 @@ watch(
     { flush: "post" },
 );
 
+/**
+ * Pasted as words, not as markup.
+ *
+ * What a clipboard carries from a web page is HTML with its own styles,
+ * classes and, at worst, handlers; the box keeps the words and lets the
+ * person style them here.
+ */
+function onPaste(event) {
+    event.preventDefault();
+
+    const words = event.clipboardData?.getData("text/plain") ?? "";
+
+    document.execCommand("insertText", false, words);
+}
+
 function onInput() {
     emit("text-input", element.value.id, editable.value?.innerHTML ?? "");
     measure();
@@ -223,7 +238,9 @@ function hex(value, fallback) {
 const tableRows = computed(() => (element.value.rows ?? []).map((row) => cells(row)));
 
 /** Where a click takes the reader, only where the slide is watched or read. */
-const link = computed(() => (props.live && element.value.link ? element.value.link : null));
+const link = computed(() =>
+    props.live && /^(?:https?:|mailto:)/i.test(element.value.link ?? "") ? element.value.link : null,
+);
 
 const entering = computed(() => props.live && props.shown && !!element.value.enter && element.value.enter !== "none");
 </script>
@@ -258,6 +275,7 @@ const entering = computed(() => props.live && props.shown && !!element.value.ent
                     contenteditable="true"
                     spellcheck="true"
                     v-on:input="onInput"
+                    v-on:paste="onPaste"
                 />
                 <div v-else class="fe-words" v-html="element.html" />
             </div>
