@@ -56,7 +56,7 @@ function onInput(event) {
         <span class="flex items-center rounded-md border border-line bg-surface px-2 focus-within:border-accent-500">
             <input
                 type="number"
-                class="w-full min-w-0 border-0 bg-transparent py-1.5 text-sm tabular-nums text-primary outline-none"
+                class="w-full min-w-0 border-0 bg-transparent py-1.5 text-sm tabular-nums text-primary outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 :value="shown"
                 :min="min ?? undefined"
                 :max="max ?? undefined"
