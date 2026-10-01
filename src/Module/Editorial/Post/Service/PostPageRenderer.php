@@ -72,16 +72,20 @@ final readonly class PostPageRenderer
      * @param array<string, string> $localeUrls the reading address in each
      *                                          language it is written in, for
      *                                          the header's language switch
+     * @param string|null           $backUrl    where the reader came from, when
+     *                                          it is a page of their own - a
+     *                                          client's space - rather than a
+     *                                          link received by mail
      */
-    public function renderForReading(PostInterface $post, string $locale, array $localeUrls): Response
+    public function renderForReading(PostInterface $post, string $locale, array $localeUrls, ?string $backUrl = null): Response
     {
-        return $this->renderPage($post, $locale, $localeUrls);
+        return $this->renderPage($post, $locale, $localeUrls, $backUrl);
     }
 
     /**
      * @param array<string, string>|null $readingLocaleUrls null on the site
      */
-    private function renderPage(PostInterface $post, string $locale, ?array $readingLocaleUrls): Response
+    private function renderPage(PostInterface $post, string $locale, ?array $readingLocaleUrls, ?string $backUrl = null): Response
     {
         $reading = null !== $readingLocaleUrls;
         $translation = $post->getTranslation($locale);
@@ -174,6 +178,7 @@ final readonly class PostPageRenderer
                 // is what a client reads, not an ISO string.
                 'updatedOn' => new IntlDateFormatter($locale, IntlDateFormatter::LONG, IntlDateFormatter::NONE)->format($post->getUpdatedAt()),
                 'localeUrls' => $readingLocaleUrls,
+                'backUrl' => $backUrl,
             ] : null,
         ]);
 

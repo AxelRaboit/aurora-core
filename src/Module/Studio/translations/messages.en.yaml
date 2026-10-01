@@ -1801,6 +1801,21 @@ backend:
                 link_url_required: This link has no address.
                 link_url_invalid: "This address is not valid. It has to start with http:// or https://."
                 link_url_too_long: This address is too long.
+        space_publications:
+          intro: 'Audits, strategies, reports: documents written with the publications'' grid, delivered to the client by link and never published on the site. Once published, they also appear in their space.'
+          add: 'New document'
+          empty: 'No document for this client.'
+          empty_hint: 'Start an audit or a strategy: it opens in the publications'' editor.'
+          untitled: 'Untitled document'
+          updated_on: 'Edited on {date}'
+          open: 'Open in the editor'
+          create_title: 'New document'
+          title: 'Title'
+          title_placeholder: 'Online presence audit'
+          title_hint: 'A draft, shared by link only, prepared for this client. You finish it in the editor.'
+          create: 'Create and open'
+          errors:
+            title_required: 'Give the document a title.'
         space_resources:
             intro: "What lives elsewhere and gets looked for every time: a mockup, an access, the person who signs off. Each item is shown or hidden from the client, one by one."
             add: Add
@@ -1894,6 +1909,7 @@ backend:
             view_notes: Notes
             view_information: Information
             view_resources: Resources
+            view_publications: 'Deliverables'
             view_settings: Settings
             files_empty: No file on this space yet
             files_empty_hint: Files put on the content, by you or by the client, appear here newest first.
@@ -2154,6 +2170,9 @@ studio:
             tab_chat: Conversation
             tab_files: Documents
             tab_resources: Links
+            tab_documents: 'Deliverables'
+            document_untitled: 'Untitled document'
+            document_updated_on: 'Updated on {date}'
             tab_information: Information
             files_title: This space's files
             files_open: Open

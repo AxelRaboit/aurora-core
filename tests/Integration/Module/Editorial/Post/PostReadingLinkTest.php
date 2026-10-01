@@ -85,6 +85,8 @@ final class PostReadingLinkTest extends IntegrationTestCase
         $body = (string) $this->client->getResponse()->getContent();
         self::assertStringContainsString('Audit de présence '.$this->suffix, $body);
         self::assertStringContainsString('Préparé pour Maison Durand', $body);
+        // Received by mail, it has no space to lead back to.
+        self::assertStringNotContainsString('/spaces/', $body);
         // The canonical names the page itself, never its address under the
         // site: for a publication shared by link that one answers 404.
         $slug = (string) $post->getTranslation('fr')?->getSlug();

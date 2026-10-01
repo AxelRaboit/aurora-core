@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\SpaceAccess\View;
 
+use Aurora\Core\Locale\Service\LocaleContextInterface;
 use Aurora\Core\Routing\PathTemplateGenerator;
+use Aurora\Module\Editorial\EditorialContext;
+use Aurora\Module\Editorial\Post\Repository\PostRepository;
 use Aurora\Module\Studio\Customer\Serializer\CustomerInformationSerializerInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
@@ -21,6 +24,8 @@ use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentItemSerializerInter
 use Aurora\Module\Studio\SpaceResource\Repository\SpaceResourceRepository;
 use Aurora\Module\Studio\SpaceResource\Serializer\SpaceResourceSerializerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+
+use const DATE_ATOM;
 
 /**
  * What a client is shown, which is less than what the studio sees.
@@ -50,7 +55,39 @@ final readonly class PublicSpaceViewBuilder
         private SpaceResourceSerializerInterface $resourceSerializer,
         private PathTemplateGenerator $pathTemplates,
         private UrlGeneratorInterface $urlGenerator,
+        private PostRepository $posts,
+        private EditorialContext $editorialContext,
+        private LocaleContextInterface $localeContext,
     ) {}
+
+    /** @return list<array{id: int, title: ?string, updatedAt: string, url: string}> */
+    private function documents(SpaceAccessLinkInterface $link, string $token): array
+    {
+        if (!$this->editorialContext->isPostsEnabled()) {
+            return [];
+        }
+
+        $default = $this->localeContext->getDefaultLocale();
+        $documents = [];
+
+        foreach ($this->posts->findForCustomerSpace((int) $link->getSpace()->getId(), publishedOnly: true) as $post) {
+            $translation = $post->getTranslation($default) ?? ($post->getTranslations()->first() ?: null);
+
+            $documents[] = [
+                'id' => (int) $post->getId(),
+                'title' => $translation?->getTitle(),
+                'description' => $translation?->getDescription(),
+                'updatedAt' => $post->getUpdatedAt()->format(DATE_ATOM),
+                'url' => $this->urlGenerator->generate('public_space_document', [
+                    'selector' => $link->getSelector(),
+                    'token' => $token,
+                    'postId' => $post->getId(),
+                ]),
+            ];
+        }
+
+        return $documents;
+    }
 
     /**
      * @param string $token the secret half, which only the request that carried
@@ -107,6 +144,10 @@ final readonly class PublicSpaceViewBuilder
                 $this->resourceSerializer->serializeForGuest(...),
                 $this->resources->findForSpace($space, visibleOnly: true),
             ),
+            // Les documents écrits pour ce client et publiés : un brouillon reste
+            // à l'équipe tant qu'elle ne l'a pas publié. Chacun s'ouvre par le
+            // lien de l'espace lui-même, sans mot de passe de plus.
+            'documents' => $this->documents($link, $token),
             'expiresAt' => $link->getExpiresAt(),
             'canApprove' => $link->canApprove(),
             'canComment' => $link->canComment(),

@@ -46,6 +46,12 @@ interface PostInterface
      */
     public function isOnSite(): bool;
 
+    /** The customer space it was written for, if any. */
+    public function getCustomerSpaceId(): ?int;
+
+    /** Attaching it to a space also shares it by link only. */
+    public function setCustomerSpaceId(?int $customerSpaceId): static;
+
     /** @return array{preparedFor: ?string, showDate: bool, showLogo: bool} */
     public function getReadingPage(): array;
 

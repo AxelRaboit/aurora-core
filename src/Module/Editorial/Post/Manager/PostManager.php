@@ -338,7 +338,11 @@ class PostManager implements PostManagerInterface
         $post->setUsefulLinksEnabled($input->isUsefulLinksEnabled());
         $post->setUsefulLinks($input->getUsefulLinks());
         $post->setTitleVisible($input->isTitleVisible());
-        $post->setVisibility(PostVisibilityEnum::from($input->getVisibility()));
+        // A client's deliverable stays off the site whatever the editor sends:
+        // the select is locked on screen, and this is what makes it so.
+        $post->setVisibility(null !== $post->getCustomerSpaceId()
+            ? PostVisibilityEnum::Link
+            : PostVisibilityEnum::from($input->getVisibility()));
         $post->setReadingPage($input->getReadingPage());
         $post->setPosition($input->getPosition());
 

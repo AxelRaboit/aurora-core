@@ -57,6 +57,8 @@ const props = defineProps({
     searchPath: { type: String, required: true },
     previewPathTemplate: { type: String, default: "" },
     readingLinksPathTemplate: { type: String, default: "" },
+    /** The client this document was written for: { id, name, url }, or null. */
+    customerSpace: { type: Object, default: null },
     revisionsPathTemplate: { type: String, default: "" },
     revisionShowPathTemplate: { type: String, default: "" },
     revisionRestorePathTemplate: { type: String, default: "" },
@@ -658,6 +660,19 @@ function termLabel(term) {
                 </div>
 
                 <div v-show="isTabActive('settings')" class="space-y-4">
+                    <!-- Which client this is for, first: everything below is
+                         read differently once it is known. -->
+                    <div
+                        v-if="customerSpace"
+                        class="aurora-card flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4"
+                    >
+                        <p class="m-0 text-sm text-secondary">
+                            {{ t("backend.posts.customer_space.belongs_to", { name: customerSpace.name }) }}
+                        </p>
+                        <AppButton :href="customerSpace.url" variant="ghost" size="sm" class="w-full justify-center sm:w-auto">
+                            {{ t("backend.posts.customer_space.back") }}
+                        </AppButton>
+                    </div>
                     <!-- The record's own name and summary. They are not part of
                          Content, and never were: they identify the publication
                          in the admin list and on any card that embeds it, and
@@ -723,11 +738,17 @@ function termLabel(term) {
                         <!-- Beside the status because the two answer one
                              question together: published says a visitor may
                              read it, this says whether the site offers it. -->
+                        <!-- Locked for a client's document: the server keeps it
+                             shared by link whatever is sent, and a select
+                             that moved and came back would say otherwise. -->
                         <AppSelect
                             v-model="form.visibility"
                             :label="t('backend.posts.field_visibility')"
                             :options="visibilityOptions"
-                            :hint="t(`backend.posts.visibility_hint.${form.visibility}`)"
+                            :disabled="!!customerSpace"
+                            :hint="customerSpace
+                                ? t('backend.posts.visibility_locked', { name: customerSpace.name })
+                                : t(`backend.posts.visibility_hint.${form.visibility}`)"
                             :error="errors.visibility"
                         />
                         <AppDatePicker

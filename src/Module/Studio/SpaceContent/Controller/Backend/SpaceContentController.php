@@ -38,6 +38,7 @@ use Aurora\Module\Studio\SpaceContent\Service\SpaceOrphanedDocumentOffer;
 use Aurora\Module\Studio\SpaceContent\View\SpaceBoardViewBuilder;
 use Aurora\Module\Studio\SpaceFile\View\SpaceFilesViewBuilder;
 use Aurora\Module\Studio\SpaceNote\View\SpaceNotesViewBuilder;
+use Aurora\Module\Studio\SpacePublication\View\SpacePublicationsViewBuilder;
 use Aurora\Module\Studio\SpaceResource\View\SpaceResourcesViewBuilder;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -96,6 +97,7 @@ class SpaceContentController extends AbstractController
         protected readonly SpaceFilesViewBuilder $filesViewBuilder,
         protected readonly SpaceInformationViewBuilder $informationViewBuilder,
         protected readonly SpaceResourcesViewBuilder $resourcesViewBuilder,
+        protected readonly SpacePublicationsViewBuilder $publicationsViewBuilder,
         protected readonly PayloadValidator $payloadValidator,
         protected readonly StoredFileResponder $responder,
         protected readonly UploadPolicyProvider $uploadPolicies,
@@ -134,6 +136,7 @@ class SpaceContentController extends AbstractController
             ...$this->filesViewBuilder->view($space),
             ...$this->informationViewBuilder->view($space),
             ...$this->resourcesViewBuilder->view($space),
+            ...$this->publicationsViewBuilder->view($space),
         ]);
 
         // **Being signed in is not being authorised at the hub.** The hub has

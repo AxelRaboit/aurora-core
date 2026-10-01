@@ -6,10 +6,10 @@ namespace Aurora\Module\Editorial\Post\Controller\Frontend;
 
 use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\PrivateAddressResponseTrait;
-use Aurora\Core\Locale\Service\LocaleContextInterface;
 use Aurora\Module\Editorial\EditorialContext;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Reading\Entity\PostReadingLinkInterface;
+use Aurora\Module\Editorial\Post\Reading\ReadingLocales;
 use Aurora\Module\Editorial\Post\Reading\Repository\PostReadingLinkRepository;
 use Aurora\Module\Editorial\Post\Service\PostPageRenderer;
 use DateTimeImmutable;
@@ -21,9 +21,7 @@ use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
-use function in_array;
 use function is_array;
-use function is_string;
 use function password_verify;
 
 /**
@@ -54,7 +52,7 @@ final class PostReadingController extends AbstractController
     public function __construct(
         private readonly PostReadingLinkRepository $links,
         private readonly PostPageRenderer $renderer,
-        private readonly LocaleContextInterface $localeContext,
+        private readonly ReadingLocales $locales,
         private readonly EditorialContext $editorialContext,
         private readonly EntityManagerInterface $entityManager,
         // The `post_reading_password` limiter declared in config, autowired by
@@ -78,7 +76,7 @@ final class PostReadingController extends AbstractController
         }
 
         $post = $link->getPost();
-        $locale = $this->readingLocale($post, $request->query->get('locale'));
+        $locale = $this->locales->pick($post, $request->query->get('locale'));
 
         if (null === $locale) {
             throw $this->createNotFoundException();
@@ -175,27 +173,6 @@ final class PostReadingController extends AbstractController
     }
 
     /**
-     * The language asked for when the publication is written in it, else the
-     * site's default, else the first it has - a link opens on *something*.
-     */
-    private function readingLocale(PostInterface $post, mixed $requested): ?string
-    {
-        $available = $this->writtenIn($post);
-
-        if ([] === $available) {
-            return null;
-        }
-
-        if (is_string($requested) && in_array($requested, $available, true)) {
-            return $requested;
-        }
-
-        $default = $this->localeContext->getDefaultLocale();
-
-        return in_array($default, $available, true) ? $default : $available[0];
-    }
-
-    /**
      * This same link in each language the publication is written in.
      *
      * @return array<string, string>
@@ -204,24 +181,10 @@ final class PostReadingController extends AbstractController
     {
         $urls = [];
 
-        foreach ($this->writtenIn($post) as $code) {
+        foreach ($this->locales->writtenIn($post) as $code) {
             $urls[$code] = $this->generateUrl('post_reading_show', ['token' => $token, 'locale' => $code]);
         }
 
         return $urls;
-    }
-
-    /** @return list<string> the languages with a title written */
-    private function writtenIn(PostInterface $post): array
-    {
-        $codes = [];
-
-        foreach ($post->getTranslations() as $translation) {
-            if (null !== $translation->getTitle() && '' !== $translation->getTitle()) {
-                $codes[] = $translation->getLocale();
-            }
-        }
-
-        return $codes;
     }
 }

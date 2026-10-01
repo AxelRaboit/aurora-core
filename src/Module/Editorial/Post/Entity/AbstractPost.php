@@ -50,6 +50,23 @@ abstract class AbstractPost implements PostInterface
     #[ORM\Column(length: 20, enumType: PostVisibilityEnum::class, options: ['default' => 'site'])]
     protected PostVisibilityEnum $visibility = PostVisibilityEnum::Site;
 
+    /**
+     * The customer space this publication was written for, when it was: an
+     * audit or a strategy delivered to one client.
+     *
+     * An id rather than a relation, the way a deck zone names its deck: the
+     * site's module does not map the agency's entities, and a publication
+     * must load whether or not that module is in use. Deleting the space sets
+     * it back to null ({@see PostRepository::detachFromCustomerSpace()}); the
+     * publication stays, shared by link, since it is a deliverable the client
+     * may still hold a link to.
+     *
+     * A publication attached to a space is never on the site:
+     * {@see PostManager} keeps it shared by link whatever the editor sends.
+     */
+    #[ORM\Column(nullable: true)]
+    protected ?int $customerSpaceId = null;
+
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     protected ?DateTimeImmutable $publishedAt = null;
 
@@ -358,6 +375,22 @@ abstract class AbstractPost implements PostInterface
     public function setVisibility(PostVisibilityEnum $visibility): static
     {
         $this->visibility = $visibility;
+
+        return $this;
+    }
+
+    public function getCustomerSpaceId(): ?int
+    {
+        return $this->customerSpaceId;
+    }
+
+    public function setCustomerSpaceId(?int $customerSpaceId): static
+    {
+        $this->customerSpaceId = $customerSpaceId;
+
+        if (null !== $customerSpaceId) {
+            $this->visibility = PostVisibilityEnum::Link;
+        }
 
         return $this;
     }

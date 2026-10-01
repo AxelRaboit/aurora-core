@@ -452,6 +452,9 @@ const pageActions = computed(() => {
                                 <AppBadge v-if="post.visibility === 'link'" color="violet">
                                     {{ t("backend.posts.visibility.link") }}
                                 </AppBadge>
+                                <AppBadge v-if="post.customerSpaceName" color="sky">
+                                    {{ post.customerSpaceName }}
+                                </AppBadge>
                             </span>
                         </td>
                         <td class="px-4 py-2 text-muted text-xs hidden lg:table-cell">{{ formatDateTime(post.updatedAt) }}</td>
@@ -497,6 +500,9 @@ const pageActions = computed(() => {
                         </AppBadge>
                         <AppBadge v-if="post.visibility === 'link'" color="violet">
                             {{ t("backend.posts.visibility.link") }}
+                        </AppBadge>
+                        <AppBadge v-if="post.customerSpaceName" color="sky">
+                            {{ post.customerSpaceName }}
                         </AppBadge>
                     </span>
                 </div>

@@ -1242,6 +1242,10 @@ backend:
     field_post_type: Type de contenu
     field_status: Statut
     field_visibility: 'Diffusion'
+    visibility_locked: 'Toujours par lien : ce document appartient à l''espace client {name}.'
+    customer_space:
+      belongs_to: 'Document de l''espace client {name}.'
+      back: 'Retour à l''espace'
     visibility_hint:
       site: 'Une fois publiée, elle a son adresse sur le site et apparaît dans les listes, les menus, la recherche et le sitemap.'
       link: 'Une fois publiée, le site ne la montre nulle part : ni adresse sur le site, ni liste, ni menu, ni recherche, ni sitemap. Pour un document à partager à une personne, comme un audit client.'
@@ -1592,6 +1596,7 @@ backend:
 frontend:
   reading:
     prepared_for: 'Préparé pour %name%'
+    back: 'Retour à l''espace'
     updated_on: 'Mis à jour le %date%'
     footer: 'Ce document vous a été transmis personnellement. Merci de ne pas partager son lien.'
     locked_title: 'Document protégé'
