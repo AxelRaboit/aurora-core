@@ -5,6 +5,22 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.316] - 2026-10-01
+
+### Corrigé
+
+#### Supprimer la note ouverte n'affiche plus d'erreur
+Supprimer la note qu'on était en train de lire affichait « Une erreur est survenue », alors que la suppression avait bien eu lieu, et rafraîchir la page répondait 404. La fenêtre de confirmation, en se refermant, faisait croire à l'écran des notes qu'on revenait en arrière, et il redemandait la note qu'on venait de supprimer. La note est supprimée sans message, et l'adresse revient à la bibliothèque. Plus largement, refermer une fenêtre ne fait plus recharger la note ouverte.
+
+#### Le texte sélectionné reste lisible dans l'éditeur
+Sur un thème sombre, sélectionner du texte dans l'éditeur de blocs (trames de contrat, publications, notes d'espace client) le faisait disparaître dans un bleu très pâle. La sélection prend maintenant la couleur d'accent du thème, et le texte garde la sienne.
+
+### Dans aurora-client
+
+Rien à faire au-delà de `make aurora-update`.
+
+---
+
 ## [0.9.315] - 2026-10-01
 
 ### Corrigé
