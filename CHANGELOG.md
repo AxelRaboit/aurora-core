@@ -5,6 +5,15 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.312] - 2026-10-01
+
+### Corrigé
+
+#### Les champs de position d'une diapo libre affichent leur valeur
+Sur un ordinateur, le panneau des propriétés rangeait X, Y, largeur et hauteur sur quatre colonnes trop étroites : les champs paraissaient vides alors qu'ils portaient leur valeur. Ils sont maintenant sur deux colonnes, sans les petites flèches qui prenaient la place des chiffres.
+
+---
+
 ## [0.9.311] - 2026-10-01
 
 ### Ajouté

@@ -357,7 +357,7 @@ function toggleStroke(on) {
             </div>
 
             <!-- Où, combien grand, combien tourné. -->
-            <div v-if="single" class="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <div v-if="single" class="grid grid-cols-2 gap-2">
                 <FreeNumberField
                     :model-value="single.x"
                     label="X"
@@ -421,7 +421,7 @@ function toggleStroke(on) {
                     v-on:update:model-value="(value) => set('font', value)"
                     v-on:upload="(file) => emit('upload-font', file)"
                 />
-                <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                <div class="grid grid-cols-2 gap-2">
                     <FreeNumberField
                         :model-value="(single.size ?? 40) / 10"
                         :label="t('backend.studio.decks.free.size')"
