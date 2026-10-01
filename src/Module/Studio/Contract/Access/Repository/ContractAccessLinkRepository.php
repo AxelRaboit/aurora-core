@@ -13,6 +13,10 @@ use DateTimeImmutable;
 use Doctrine\Common\Collections\Order;
 use Doctrine\Persistence\ManagerRegistry;
 
+use function array_filter;
+use function array_map;
+use function is_string;
+use function max;
 use function sprintf;
 
 /**
@@ -61,6 +65,48 @@ class ContractAccessLinkRepository extends ResolveTargetEntityRepository
             ->orderBy('l.createdAt', Order::Descending->value)
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * The latest thing any of its addresses saw, per contract id: sent,
+     * opened or revoked, active or not.
+     *
+     * For the list's « last activity ». Reading the active link alone missed
+     * everything that happened on a link since closed, which is every
+     * contract the customer has answered.
+     *
+     * @param list<ContractInterface> $contracts
+     *
+     * @return array<int, DateTimeImmutable>
+     */
+    public function latestActivityForContracts(array $contracts): array
+    {
+        if ([] === $contracts) {
+            return [];
+        }
+
+        /** @var list<array{id: int|string, sent: ?string, used: ?string, revoked: ?string}> $rows */
+        $rows = $this->createQueryBuilder('l')
+            ->select('IDENTITY(l.contract) AS id', 'MAX(l.sentAt) AS sent', 'MAX(l.lastUsedAt) AS used', 'MAX(l.revokedAt) AS revoked')
+            ->andWhere('l.contract IN (:contracts)')
+            ->setParameter('contracts', $contracts)
+            ->groupBy('l.contract')
+            ->getQuery()
+            ->getArrayResult();
+
+        $latest = [];
+        foreach ($rows as $row) {
+            $dates = array_map(
+                static fn (string $value): DateTimeImmutable => new DateTimeImmutable($value),
+                array_filter([$row['sent'], $row['used'], $row['revoked']], is_string(...)),
+            );
+
+            if ([] !== $dates) {
+                $latest[(int) $row['id']] = max($dates);
+            }
+        }
+
+        return $latest;
     }
 
     /**

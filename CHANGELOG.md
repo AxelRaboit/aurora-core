@@ -5,6 +5,21 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.310] - 2026-10-01
+
+### Changé
+
+#### Les boutons « + Ajouter » sont gris partout
+Ils avaient trois apparences : gris, bloc gris encadré, et texte vert pour les rappels du planning. Tous sont maintenant gris, sans fond, comme la plupart l'étaient déjà : étapes de formulaire, contenus et galeries des zones, couleurs de l'apparence, rappels d'un événement, ressources et notes d'un espace client, insertion d'une rangée dans la grille. Un test garde la règle.
+
+### Corrigé
+
+#### La dernière activité d'un contrat compte ses signatures
+Un contrat signé par le client restait daté, dans la liste, du jour de son envoi : une fois signé, il n'a plus de lien actif, et la signature ne comptait pas. Les signatures et tous les liens, révoqués compris, entrent maintenant dans « Dernière activité ».
+
+#### Une démonstration des contrats cohérente
+Chaque contrat a l'historique de ce qui lui est arrivé, à ses dates (création, scellement, envoi, relance, signature, refus, révocation, expiration, résiliation), au lieu de « créé » et « scellé » datés du jour du chargement. Les contrats conclus ont leur PDF signé, vérifié avec le reste chaque matin. Le contrat expiré prend effet après son scellement, et le contrat résilié a été scellé dans l'année de sa référence.
+
 ## [0.9.309] - 2026-10-01
 
 ### Corrigé

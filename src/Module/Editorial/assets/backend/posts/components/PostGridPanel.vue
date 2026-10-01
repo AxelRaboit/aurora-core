@@ -703,7 +703,7 @@ function resizeZone(index, columns) {
                             <AppButton
                                 v-for="option in leafTypeOptions"
                                 :key="option.value"
-                                variant="secondary"
+                                variant="ghost"
                                 size="sm"
                                 type="button"
                                 :disabled="!canAddChild(index)"

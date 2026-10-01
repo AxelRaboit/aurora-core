@@ -475,7 +475,7 @@ const displayHint = computed(() =>
                 </div>
 
                 <AppButton
-                    variant="secondary"
+                    variant="ghost"
                     size="sm"
                     :disabled="!canAddItem"
                     v-on:click="emit('add-item')"
@@ -783,7 +783,7 @@ const displayHint = computed(() =>
                     {{ t("backend.posts.grid.video_wall_count", { count: galleryImages.length, max: MAX_VIDEO_WALL }) }}
                 </span>
                 <AppButton
-                    variant="secondary"
+                    variant="ghost"
                     size="sm"
                     :disabled="galleryImages.length >= MAX_VIDEO_WALL"
                     v-on:click="pickWallVideos"
@@ -923,7 +923,7 @@ const displayHint = computed(() =>
                 <span class="text-sm text-secondary">
                     {{ t("backend.posts.grid.travel_photo_count", { count: galleryImages.length, max: MAX_TRAVEL_STOPS }) }}
                 </span>
-                <AppButton variant="secondary" size="sm" :disabled="galleryImages.length >= MAX_TRAVEL_STOPS" v-on:click="pickTravelPhotos">
+                <AppButton variant="ghost" size="sm" :disabled="galleryImages.length >= MAX_TRAVEL_STOPS" v-on:click="pickTravelPhotos">
                     <Plus class="w-3.5 h-3.5" :stroke-width="2" />
                     {{ t("backend.posts.grid.travel_photo_add") }}
                 </AppButton>
@@ -1193,7 +1193,7 @@ const displayHint = computed(() =>
                     {{ t("backend.posts.grid.gallery_count", { count: galleryImages.length, max: MAX_GALLERY_IMAGES }) }}
                 </span>
                 <AppButton
-                    variant="secondary"
+                    variant="ghost"
                     size="sm"
                     :disabled="galleryIsFull"
                     v-on:click="pickGalleryImages"
@@ -1568,7 +1568,7 @@ const displayHint = computed(() =>
                 </div>
 
                 <AppButton
-                    variant="secondary"
+                    variant="ghost"
                     size="sm"
                     :disabled="!canAddItem"
                     v-on:click="emit('add-item')"

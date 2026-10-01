@@ -44,21 +44,57 @@ class ContractSerializer implements ContractSerializerInterface
     /** @return array<string, mixed> */
     public function serialize(ContractInterface $contract): array
     {
-        return $this->row($contract, $this->links->findActiveFor($contract));
+        return $this->row(
+            $contract,
+            $this->links->findActiveFor($contract),
+            $this->activityOf([$contract])[(int) $contract->getId()] ?? [],
+        );
     }
 
     public function serializeMany(array $contracts): array
     {
         $links = $this->links->findActiveForContracts($contracts);
+        $activity = $this->activityOf($contracts);
 
         return array_map(
-            fn (ContractInterface $contract): array => $this->row($contract, $links[(int) $contract->getId()] ?? null),
+            fn (ContractInterface $contract): array => $this->row(
+                $contract,
+                $links[(int) $contract->getId()] ?? null,
+                $activity[(int) $contract->getId()] ?? [],
+            ),
             $contracts,
         );
     }
 
-    /** @return array<string, mixed> */
-    protected function row(ContractInterface $contract, ?ContractAccessLinkInterface $link): array
+    /**
+     * What happened to each contract away from its own row: on any of its
+     * links, and in its signatures. Two grouped queries for a whole list.
+     *
+     * @param list<ContractInterface> $contracts
+     *
+     * @return array<int, list<DateTimeImmutable>>
+     */
+    protected function activityOf(array $contracts): array
+    {
+        $activity = [];
+
+        foreach ($this->links->latestActivityForContracts($contracts) as $id => $at) {
+            $activity[$id][] = $at;
+        }
+
+        foreach ($this->signatures->latestSignedAtForContracts($contracts) as $id => $at) {
+            $activity[$id][] = $at;
+        }
+
+        return $activity;
+    }
+
+    /**
+     * @param list<DateTimeImmutable> $activity what happened on its links and signatures
+     *
+     * @return array<string, mixed>
+     */
+    protected function row(ContractInterface $contract, ?ContractAccessLinkInterface $link, array $activity = []): array
     {
         $customer = $contract->getCustomer();
 
@@ -76,7 +112,7 @@ class ContractSerializer implements ContractSerializerInterface
             'isDeletable' => !$contract->isFrozen() || $this->retention->hasElapsed($contract),
             // Where a first send would go, so the confirmation can say it.
             'customerEmail' => $customer->getContractualEmail(),
-            'lastActivityAt' => $this->lastActivity($contract, $link)->format(DATE_ATOM),
+            'lastActivityAt' => $this->lastActivity($contract, $activity)->format(DATE_ATOM),
             'isFrozen' => $contract->isFrozen(),
             'isEditable' => $contract->getStatus()->isEditable() && !$contract->isFrozen(),
             'locale' => $contract->getLocale(),
@@ -198,14 +234,19 @@ class ContractSerializer implements ContractSerializerInterface
     /**
      * The most recent thing that happened to it, for a list sorted by what
      * moved. Never empty: a contract always has the day it was created.
+     *
+     * The links and signatures come in from outside (`activityOf`): a
+     * customer's signature used to count for nothing, so a contract signed
+     * yesterday read as last touched the day it was sent.
+     *
+     * @param list<DateTimeImmutable> $activity
      */
-    protected function lastActivity(ContractInterface $contract, ?ContractAccessLinkInterface $link): DateTimeImmutable
+    protected function lastActivity(ContractInterface $contract, array $activity): DateTimeImmutable
     {
         $dates = array_filter([
+            ...$activity,
             $contract->getCreatedAt(),
             $contract->getFrozenAt(),
-            $link?->getSentAt(),
-            $link?->getLastUsedAt(),
             $contract->getRefusedAt(),
             $contract->getLastReminderAt(),
             $contract->getPdfGeneratedAt(),

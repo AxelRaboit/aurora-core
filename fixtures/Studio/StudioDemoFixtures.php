@@ -10,6 +10,7 @@ use Aurora\Fixtures\Core\CoreDemoFixtures;
 use Aurora\Fixtures\Ged\GedDemoFixtures;
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
+use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Platform\User\Entity\User;
@@ -29,6 +30,7 @@ use Aurora\Module\Studio\Contract\Manager\ContractManagerInterface;
 use Aurora\Module\Studio\Contract\Manager\ContractTemplateManagerInterface;
 use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\Contract\Repository\ContractTemplateRepository;
+use Aurora\Module\Studio\Contract\Service\ContractPdfGenerator;
 use Aurora\Module\Studio\Contract\Signature\Entity\ContractSignature;
 use Aurora\Module\Studio\Contract\Signature\Enum\ContractSignatureRoleEnum;
 use Aurora\Module\Studio\Customer\Dto\CustomerInput;
@@ -158,6 +160,8 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         private readonly SpaceAccessLinkRepository $accessLinkRepository,
         private readonly SpaceChatChannelManagerInterface $chatChannels,
         private readonly DriveLock $driveLock,
+        private readonly AuditLogger $audit,
+        private readonly ContractPdfGenerator $pdf,
     ) {}
 
     public static function getGroups(): array
@@ -287,6 +291,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         $this->seal($waiting, ContractStatusEnum::Sent, '-4 days');
         $this->link($waiting, sentAt: '-4 days');
         $waiting->markReminded(new DateTimeImmutable('-1 day'));
+        $this->chronicle($waiting, ['contract.created' => '-5 days', 'contract.frozen' => '-4 days', 'contract.link_sent' => '-4 days', 'contract.reminder_sent' => '-1 day']);
 
         // 3. Signed by the customer and countersigned: a concluded contract,
         //    with both signatures on the same hash.
@@ -296,8 +301,11 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         ]);
         $this->seal($concluded, ContractStatusEnum::Countersigned, '-5 days');
         $this->link($concluded, sentAt: '-5 days', openedAt: '-2 days', revokedAt: '-1 day');
-        $this->sign($concluded, ContractSignatureRoleEnum::Customer, $sophie, '-2 days');
-        $this->sign($concluded, ContractSignatureRoleEnum::Provider, $sophie, '-1 day');
+        $this->conclude($concluded, [
+            $this->sign($concluded, ContractSignatureRoleEnum::Customer, $sophie, '-2 days'),
+            $this->sign($concluded, ContractSignatureRoleEnum::Provider, $sophie, '-1 day'),
+        ], '-1 day');
+        $this->chronicle($concluded, ['contract.created' => '-6 days', 'contract.frozen' => '-5 days', 'contract.link_sent' => '-5 days', 'contract.signed_by_customer' => '-2 days', 'contract.countersigned' => '-1 day']);
 
         // 4. An amendment of the concluded one, which is the whole point of the
         //    design: the parent is untouched and this document says what it
@@ -309,8 +317,11 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
 
         $this->seal($amendment, ContractStatusEnum::Countersigned, '-2 days');
         $this->link($amendment, sentAt: '-2 days', openedAt: '-1 day', revokedAt: 'now');
-        $this->sign($amendment, ContractSignatureRoleEnum::Customer, $sophie, '-1 day');
-        $this->sign($amendment, ContractSignatureRoleEnum::Provider, $sophie, 'now');
+        $this->conclude($amendment, [
+            $this->sign($amendment, ContractSignatureRoleEnum::Customer, $sophie, '-1 day'),
+            $this->sign($amendment, ContractSignatureRoleEnum::Provider, $sophie, 'now'),
+        ], 'now');
+        $this->chronicle($amendment, ['contract.created' => '-3 days', 'contract.frozen' => '-2 days', 'contract.link_sent' => '-2 days', 'contract.signed_by_customer' => '-1 day', 'contract.countersigned' => 'now']);
 
         // 5. A refusal, because a list that only shows agreements teaches the
         //    wrong thing about what the module handles.
@@ -327,24 +338,29 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             '203.0.113.24',
             'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
         );
+        $this->chronicle($refused, ['contract.created' => '-7 days', 'contract.frozen' => '-6 days', 'contract.link_sent' => '-6 days', 'contract.refused' => '-1 day']);
 
         // 6. A terminated relationship: concluded, then ended with notice.
-        $ended = $this->contract($jean, $monthly, $annex, 290_00, '-1 year', [
+        $ended = $this->contract($jean, $monthly, $annex, 290_00, '-6 months', [
             'formule' => 'Essentiel',
             'duree' => '12 mois',
         ]);
-        // Signed a year ago, before it took effect: a relationship that ends
-        // today began well before, and its dates have to say so.
-        $this->seal($ended, ContractStatusEnum::Countersigned, '-1 year -12 days');
-        $this->link($ended, sentAt: '-1 year -12 days', openedAt: '-1 year -9 days', revokedAt: '-1 year -8 days');
-        $this->sign($ended, ContractSignatureRoleEnum::Customer, $jean, '-1 year -9 days');
-        $this->sign($ended, ContractSignatureRoleEnum::Provider, $jean, '-1 year -8 days');
+        // Signed six months ago, before it took effect: a relationship that
+        // ends began well before, and its dates have to say so. Within the
+        // year, so its reference carries the year it was sealed in.
+        $this->seal($ended, ContractStatusEnum::Countersigned, '-6 months -12 days');
+        $this->link($ended, sentAt: '-6 months -12 days', openedAt: '-6 months -9 days', revokedAt: '-6 months -8 days');
+        $this->conclude($ended, [
+            $this->sign($ended, ContractSignatureRoleEnum::Customer, $jean, '-6 months -9 days'),
+            $this->sign($ended, ContractSignatureRoleEnum::Provider, $jean, '-6 months -8 days'),
+        ], '-6 months -8 days');
         $ended->terminate(
             new DateTimeImmutable('now'),
             new DateTimeImmutable('+2 months'),
             ContractTerminationOriginEnum::Customer,
-            "Fin de la mission, arrêt à l'échéance annuelle.",
+            'Fin de la mission, arrêt au terme du préavis de deux mois.',
         );
+        $this->chronicle($ended, ['contract.created' => '-6 months -13 days', 'contract.frozen' => '-6 months -12 days', 'contract.link_sent' => '-6 months -12 days', 'contract.signed_by_customer' => '-6 months -9 days', 'contract.countersigned' => '-6 months -8 days', 'contract.terminated' => 'now']);
 
         // 7 a 11. Les cinq etats qui manquaient, un par ligne.
         //
@@ -374,6 +390,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         ]);
         $this->seal($opened, ContractStatusEnum::Opened, '-3 days');
         $this->link($opened, sentAt: '-3 days', openedAt: '-1 day');
+        $this->chronicle($opened, ['contract.created' => '-4 days', 'contract.frozen' => '-3 days', 'contract.link_sent' => '-3 days']);
 
         // Signé par le client, en attente de contresignature : la balle est
         // dans votre camp, et c'est le seul etat qui le dit.
@@ -384,15 +401,17 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         $this->seal($waitingCountersign, ContractStatusEnum::SignedByCustomer, '-7 days');
         $this->link($waitingCountersign, sentAt: '-7 days', openedAt: '-3 days', revokedAt: '-3 days');
         $this->sign($waitingCountersign, ContractSignatureRoleEnum::Customer, $jean, '-3 days');
+        $this->chronicle($waitingCountersign, ['contract.created' => '-8 days', 'contract.frozen' => '-7 days', 'contract.link_sent' => '-7 days', 'contract.signed_by_customer' => '-3 days']);
 
         // Expire : personne n'a signe a temps. Une date d'effet passee, pour
         // que la ligne se lise sans avoir a la deduire.
-        $expired = $this->contract($sophie, $oneShot, null, 320_00, '-2 months', [
+        $expired = $this->contract($sophie, $oneShot, null, 320_00, '-3 weeks', [
             'acompte' => '50 %',
         ]);
         // Sent more than thirty days ago: the address lapsed unanswered.
         $this->seal($expired, ContractStatusEnum::Expired, '-40 days');
         $this->link($expired, sentAt: '-40 days');
+        $this->chronicle($expired, ['contract.created' => '-41 days', 'contract.frozen' => '-40 days', 'contract.link_sent' => '-40 days', 'contract.expired' => '-10 days']);
 
         // Revoque : retire avant signature, de votre fait. A ne pas confondre
         // avec un refus, qui vient du client.
@@ -402,6 +421,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         ]);
         $this->seal($revoked, ContractStatusEnum::Revoked, '-3 days');
         $this->link($revoked, sentAt: '-3 days', revokedAt: '-1 day');
+        $this->chronicle($revoked, ['contract.created' => '-4 days', 'contract.frozen' => '-3 days', 'contract.link_sent' => '-3 days', 'contract.link_revoked' => '-1 day']);
 
         $this->entityManager->flush();
     }
@@ -1725,6 +1745,57 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
     }
 
     /**
+     * Writes the signed PDF, as the countersignature does.
+     *
+     * Without it every concluded demo contract offered « Exporter en PDF »
+     * where a real one offers its signed copy, and the morning seal check had
+     * no file to verify.
+     *
+     * @param list<ContractSignature> $signatures
+     */
+    private function conclude(ContractInterface $contract, array $signatures, string $at): void
+    {
+        $this->entityManager->flush();
+
+        $pdf = $this->pdf->generate($contract, $signatures);
+        $contract->attachPdf($pdf['path'], $pdf['hash'], new DateTimeImmutable($at));
+    }
+
+    /**
+     * The contract's history, dated as the scenario says.
+     *
+     * The demo sets statuses directly, so the history panel only ever held
+     * « Contrat créé » and « Contrat scellé », both stamped with the day the
+     * fixtures ran, under a summary that said it had been sent and signed.
+     * What is written here is what the real path would have logged.
+     *
+     * @param array<string, string> $events action => relative date, in order
+     */
+    private function chronicle(ContractInterface $contract, array $events): void
+    {
+        $this->entityManager->flush();
+        $connection = $this->entityManager->getConnection();
+
+        $connection->executeStatement(
+            "DELETE FROM core_audit_logs WHERE entity_type = 'Contract' AND entity_id = :id",
+            ['id' => $contract->getId()],
+        );
+
+        // A minute apart: two events of the same day keep their order, the
+        // seal before the link it allowed.
+        $minute = 0;
+        foreach ($events as $action => $at) {
+            $at = new DateTimeImmutable($at)->modify(sprintf('+%d minutes', $minute++));
+            $this->audit->log('studio', $action, 'Contract', $contract->getId(), ['reference' => $contract->getReference()]);
+
+            $connection->executeStatement(
+                "UPDATE core_audit_logs SET created_at = :at WHERE id = (SELECT MAX(id) FROM core_audit_logs WHERE entity_type = 'Contract' AND entity_id = :id AND action = :action)",
+                ['at' => $at->format('Y-m-d H:i:s'), 'id' => $contract->getId(), 'action' => $action],
+            );
+        }
+    }
+
+    /**
      * The address the contract went out under.
      *
      * A contract « Envoyé » with no link behind it showed an empty panel and
@@ -1764,7 +1835,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         ContractSignatureRoleEnum $role,
         CustomerInterface $customer,
         string $signedAt,
-    ): void {
+    ): ContractSignature {
         $signature = new ContractSignature();
         $signature
             ->setContract($contract)
@@ -1784,6 +1855,8 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         }
 
         $this->entityManager->persist($signature);
+
+        return $signature;
     }
 
     /** @return list<array<string, mixed>> */
