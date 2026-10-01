@@ -1687,6 +1687,8 @@ backend:
                 share_body: "In Drive, the client shares their folder with this address, as a Viewer. What is not shared stays invisible."
                 key_label: Service account key
                 key_hint: "The whole JSON file. It carries a private key: it is encrypted at rest and never shown again."
+                agency_label: Agency folder (optional)
+                agency_hint: "A folder of your own, the same in every space: templates, brand guide, team resources. It shows in the Drive tab next to the client's, and only the studio sees it. Share it with the service account address, then paste its address here."
                 key_stored: A key is saved. Leave empty to keep it.
                 enabled_label: Enable reading Drive folders
                 enabled_hint: Each space can then name the folder its client shared.
@@ -1705,6 +1707,10 @@ backend:
                 view_label: How the files are shown
                 no_folder: "No Drive folder is linked to this space."
                 no_folder_referent: "No Drive folder is linked to this space. Go to Settings to name one."
+                no_agency_folder: "The agency folder is empty, or has not been shared with the service account."
+                source_client: Client folder
+                source_agency: Agency folder
+                agency_intro: "The same folder in every space, chosen in Configuration > Google Drive. The client does not see it."
                 locked_title: Protected tab
                 locked_intro: "This space's Drive folder is closed behind a password. It opens for the length of this session."
                 locked_placeholder: Password
@@ -1725,6 +1731,7 @@ backend:
                 submit: Attach to the card
             errors:
                 key_invalid: "That is not a service account key. Check that you copied the whole JSON file."
+                agency_folder_invalid: "The agency folder is not a Drive folder. Paste its address, or the identifier that follows /folders/."
                 key_required: Paste a service account key before enabling.
                 folder_invalid: "That is not a Drive folder. Paste its address, or the identifier that follows /folders/."
                 import_failed: "That file could not be copied. Google documents have no file to download."
@@ -1975,8 +1982,9 @@ backend:
             review_by: Answer needed before
             review_by_hint: 'Optional. The date you need the client answer by to hold the publication date. Nothing is blocked at the deadline: it just shows.'
             review:
-                action: 'Send for review ({count})'
-                hint: 'Tells the client by email what is waiting for them, and sends them a fresh address.'
+                banner_title: "Nothing is waiting for the client | 1 piece of content is waiting for the client's answer | {count} pieces of content are waiting for the client's answer"
+                banner_body: "Send them for review: the client gets an email with a link to approve them or ask for changes, with no account to create."
+                banner_action: Send for review
                 confirm_title: Send for review?
                 confirm_body: '{count} piece(s) of content are waiting for an answer. Every recipient who can approve will get an email with a fresh address, and their previous one will stop working.'
                 confirm_send: Send

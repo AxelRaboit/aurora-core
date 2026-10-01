@@ -14,10 +14,10 @@ use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnumInterface;
  * valeur au navigateur, et la clé d'un compte de service n'a rien à faire dans
  * le source d'une page.
  *
- * **Deux lignes seulement, et pas de dossier ici.** Le compte de service
- * appartient à l'installation ; le dossier appartient à un espace, et vit donc
- * sur l'espace. Brancher un Drive, c'est désigner un dossier par client, pas
- * un pour tout le monde.
+ * **Le dossier d'un client vit sur son espace, pas ici.** Le compte de service
+ * appartient à l'installation, et un seul dossier aussi : celui de l'agence,
+ * le même pour tous les espaces, que l'équipe consulte depuis n'importe
+ * lequel. Brancher le Drive d'un client reste un dossier par client.
  */
 enum DriveSettingEnum: string
 {
@@ -25,4 +25,7 @@ enum DriveSettingEnum: string
 
     /** La clé JSON telle que Google la livre. Stockée chiffrée. */
     case ServiceAccount = 'backend_studio_drive_service_account';
+
+    /** Le dossier de l'agence, commun à tous les espaces. Facultatif. */
+    case AgencyFolder = 'backend_studio_drive_agency_folder';
 }

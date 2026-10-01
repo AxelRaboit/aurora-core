@@ -14,18 +14,8 @@
 {% block body %}
 <div {{ vue_component('editorial/backend/forms/FormsApp', {
     forms: forms,
-    activeId: activeId,
-    locales: locales,
-    fieldTypes: fieldTypes,
-    conditionLogics: conditionLogics,
+    templates: templates,
     createPath: path('backend_editorial_forms_create'),
-    updatePathTemplate: path_template('backend_editorial_forms_update', {id: '__id__'}),
     deletePathTemplate: path_template('backend_editorial_forms_delete', {id: '__id__'}),
-    fieldCreatePathTemplate: path_template('backend_editorial_forms_field_create', {id: '__id__'}),
-    fieldEditPathTemplate: path_template('backend_editorial_forms_field_edit', {id: '__id__', fieldId: '__fieldId__'}),
-    fieldDeletePathTemplate: path_template('backend_editorial_forms_field_delete', {id: '__id__', fieldId: '__fieldId__'}),
-    fieldReorderPathTemplate: path_template('backend_editorial_forms_field_reorder', {id: '__id__'}),
-    submissionsPathTemplate: path_template('backend_editorial_forms_submissions', {id: '__id__'}),
-    exportPathTemplate: path_template('backend_editorial_forms_submissions_export', {id: '__id__'}),
 }) }} class="flex-1 min-w-0"></div>
 {% endblock %}

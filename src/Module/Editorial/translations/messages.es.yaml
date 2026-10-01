@@ -252,7 +252,7 @@ backend:
         seo: Posicionamiento
         seo_description: 'Publicar el sitemap, el robots.txt y el feed RSS del sitio público.'
         forms: Formularios
-        forms_description: 'Componer formularios públicos y revisar sus envíos.'
+        forms_description: 'Componer formularios públicos y leer sus respuestas.'
         comments: Comentarios
         comments_description: 'Moderar los comentarios de los lectores y descartar los no deseados.'
     post_types:
@@ -1455,68 +1455,199 @@ backend:
             approved: Aprobado
             spam: 'No deseado'
     forms:
-        title: Formularios
-        empty: 'Ningún formulario.'
-        create: 'Nuevo formulario'
-        edit: 'Editar el formulario'
-        created: 'Formulario creado.'
-        updated: 'Formulario guardado.'
-        deleted: 'Formulario eliminado.'
-        delete_confirm: '¿Eliminar el formulario «{title}»? Sus envíos se eliminarán con él.'
-        title_label: Título
-        slug: Slug
-        slug_hint: 'Si se deja vacío, se deduce del título. Forma la URL pública.'
-        description: Descripción
-        active: Publicado
-        active_hint: 'Un formulario no publicado responde 404: es un borrador.'
-        notify_email: 'Avisar a'
-        notify_email_hint: 'Si se deja vacío, los envíos van al administrador del sitio.'
-        webhook_url: Webhook
-        webhook_url_hint: 'Cada envío se remite ahí, firmado con el secreto de la aplicación.'
-        crm_sync: 'Notificar el contacto'
-        standalone_page_indexed: 'Indexar la página del formulario'
-        standalone_page_indexed_hint: 'La página del formulario sigue accesible en todos los casos. Si se desmarca, pide a los buscadores que no la indexen, para no competir con la página donde está colocado el formulario.'
-        public_url: 'URL pública'
+        title: "Formularios"
+        empty: "Ningún formulario."
+        create: "Nuevo formulario"
+        create_submit: "Crear y abrir"
+        create_title_placeholder: "Solicitud de presupuesto"
+        create_title_hint: "El mismo título en todos los idiomas para empezar; cada uno se traduce después en los Ajustes del formulario."
+        created: "Formulario creado."
+        updated: "Formulario guardado."
+        deleted: "Formulario eliminado."
+        delete_confirm: "¿Eliminar el formulario «{title}»? Sus respuestas se van con él."
+        title_label: "Título"
+        slug: "Slug"
+        slug_hint: "Si se deja vacía, se deduce del título."
+        description: "Descripción"
+        notify_email_hint: "Si se deja vacío, las respuestas van al administrador del sitio."
+        standalone_page_indexed: "Indexar la página del formulario"
+        standalone_page_indexed_hint: "La página del formulario sigue accesible en todo caso. Desmarcada, pide a los buscadores que no la indexen, para no competir con la página donde está colocado el formulario."
+        list:
+            search_placeholder: "Buscar un formulario…"
+            all_statuses: "Todos los estados"
+            status_active: "En línea"
+            status_inactive: "Fuera de línea"
+            empty_title: "Todavía no hay formularios"
+            empty_hint: "Un formulario se coloca después en una publicación, como un bloque. Parta de una plantilla: contacto, presupuesto o inscripción."
+            no_match: "Ningún formulario coincide."
+            title_column: "Formulario"
+            status_column: "Estado"
+            fields_column: "Preguntas"
+            submissions_column: "Respuestas"
+            last_column: "Última respuesta"
+            steps: "1 paso | {count} pasos"
+            fields: "Ninguna pregunta | 1 pregunta | {count} preguntas"
+            submissions: "Ninguna respuesta | 1 respuesta | {count} respuestas"
+            last_label: "Última respuesta:"
+            never: "Nunca"
+            open: "Abrir"
+            open_hint: "Las preguntas, las respuestas y los ajustes del formulario."
+            delete_hint: "Elimina el formulario y todas sus respuestas."
+        templates:
+            title: "Punto de partida"
+            blank:
+                label: "Vacío"
+                description: "Ninguna pregunta: usted lo compone todo."
+            contact:
+                label: "Contacto"
+                description: "Nombre, correo electrónico, teléfono y mensaje."
+            quote:
+                label: "Solicitud de presupuesto"
+                description: "En dos pasos: quién es usted, y después la necesidad, el presupuesto y el plazo."
+            event:
+                label: "Inscripción a un evento"
+                description: "Nombre, correo electrónico, número de personas y observaciones."
+        template_steps:
+            you: "Usted"
+            project: "Su proyecto"
+        template_fields:
+            name:
+                label: "Nombre completo"
+                placeholder: "Lucía García"
+            email:
+                label: "Correo electrónico"
+                placeholder: "lucia@ejemplo.es"
+            phone:
+                label: "Teléfono"
+                placeholder: "612 34 56 78"
+            message:
+                label: "Su mensaje"
+                placeholder: "Cuéntenos en pocas líneas lo que necesita."
+            need:
+                label: "Su necesidad"
+                placeholder: "Describa el proyecto: qué debe hacer, para quién y qué existe ya."
+            budget:
+                label: "Presupuesto previsto"
+                placeholder: "Elija un rango"
+                options:
+                    small: "Menos de 1000 €"
+                    medium: "De 1000 a 5000 €"
+                    large: "Más de 5000 €"
+                    unknown: "Todavía no lo sé"
+            deadline:
+                label: "Plazo deseado"
+            guests:
+                label: "Número de personas"
+                placeholder: "2"
+            remarks:
+                label: "Observaciones"
+                placeholder: "Una dieta, una pregunta, una necesidad de accesibilidad…"
+        editor:
+            back: "Todos los formularios"
+            view_public: "Ver la página pública"
+            view_public_hint: "El formulario solo, en su dirección, en una pestaña nueva."
+            tabs:
+                fields: "Preguntas"
+                submissions: "Respuestas"
+                settings: "Ajustes"
+        preview:
+            title: "Vista previa"
+            hint: "Lo que ve el visitante, actualizado mientras escribe. Desde la vista previa no se envía nada."
+            empty: "Añada una pregunta para ver cómo toma forma el formulario."
         fields:
             row_actions:
-                edit_description: 'Etiqueta, tipo, obligatorio o no, condiciones de visualización.'
-                delete_description: 'Elimina el campo. Las respuestas ya recibidas lo conservan.'
-            title: Campos
-            empty: 'Ningún campo.'
-            create: 'Añadir un campo'
-            edit: 'Editar el campo'
-            created: 'Campo añadido.'
-            updated: 'Campo actualizado.'
-            deleted: 'Campo eliminado.'
-            delete_confirm: '¿Eliminar el campo «{label}»? Se retirarán las condiciones que lo mencionan.'
-            label: Etiqueta
-            placeholder: 'Texto indicativo'
-            type: Tipo
-            required: Obligatorio
-            options: Opciones
-            options_hint: 'Una por línea.'
-            step: Paso
-            conditions: 'Condiciones de visualización'
-            conditions_hint: 'El campo solo aparece si se dan estas respuestas.'
-            condition_field: Campo
-            condition_value: Vale
-            add_condition: 'Añadir una condición'
-            move_up: Subir
-            move_down: Bajar
-            step_placeholder: '1'
-            label_placeholder: 'Su nombre'
+                edit_description: "Etiqueta, tipo, respuesta obligatoria, condiciones de visualización."
+                delete_description: "Quita la pregunta. Las respuestas ya recibidas la conservan."
+            title: "Preguntas"
+            intro: "En el orden en que las verá el visitante. Haga clic en una pregunta para modificarla."
+            empty: "Ninguna pregunta."
+            empty_hint: "Añada la primera: un nombre, un correo electrónico, un mensaje."
+            create: "Añadir una pregunta"
+            pick_type: "¿Qué tipo de pregunta?"
+            edit: "Modificar la pregunta"
+            delete: "Eliminar la pregunta"
+            created: "Pregunta añadida."
+            updated: "Pregunta guardada."
+            deleted: "Pregunta eliminada."
+            delete_confirm: "¿Eliminar la pregunta «{label}»? Se quitarán las condiciones que dependen de ella."
+            label: "Pregunta"
+            label_placeholder: "Su nombre"
+            placeholder: "Texto de ejemplo"
+            placeholder_hint: "Se muestra en gris en la casilla mientras el visitante no haya escrito nada."
+            placeholder_hint_select: "Primera línea de la lista, mientras el visitante no haya elegido nada."
+            type: "Tipo de pregunta"
+            required: "Respuesta obligatoria"
+            required_hint: "El visitante no puede enviar el formulario sin responderla."
+            options: "Opciones propuestas"
+            options_placeholder: "Sí\nNo"
+            options_hint: "Una opción por línea."
+            step: "Paso"
+            untranslated: "Todavía sin etiqueta en este idioma"
+            visibility: "Cuándo mostrarla"
+            visibility_always: "Siempre"
+            visibility_conditional: "Según una respuesta"
+            no_condition_source: "Una pregunta solo puede depender de una pregunta situada antes. Añada una encima primero."
+            logic_label: "Mostrarla cuando"
+            logic_sentence:
+                and: "Se cumplen todas estas condiciones"
+                or: "Se cumple al menos una"
+            condition_if: "Condición {number}: si la pregunta"
+            condition_field: "Elegir una pregunta"
+            condition_equals: "recibió la respuesta"
+            condition_value: "Respuesta esperada"
+            add_condition: "Añadir una condición"
+            remove_condition: "Quitar la condición"
+            conditional_badge: "Según una respuesta"
+            move_up: "Subir"
+            move_down: "Bajar"
+        field_type_hints:
+            text: "Una respuesta corta, en una línea: un nombre, una ciudad."
+            email: "Un correo electrónico, comprobado antes del envío."
+            textarea: "Una respuesta larga, en varias líneas: un mensaje."
+            select: "Una opción en una lista desplegable."
+            checkbox: "Varias opciones posibles, marcadas una a una."
+            radio: "Una sola opción, entre opciones todas visibles."
+            number: "Un número: una cantidad, una edad."
+            date: "Una fecha, elegida en un calendario."
+            tel: "Un número de teléfono."
         steps:
-            title: Pasos
-            hint: 'Sin pasos, el formulario cabe en una página.'
-            add: 'Añadir un paso'
-            remove: Quitar
-            name: 'Nombre del paso'
+            title: "Pasos"
+            add: "Añadir un paso"
+            remove: "Quitar este paso"
+            remove_blocked: "Solo se puede quitar el último paso, una vez vacío. Mueva antes sus preguntas."
+            name: "Nombre del paso (opcional)"
+            numbered: "Paso {number}"
+            numbered_titled: "Paso {number} · {title}"
+            single_page: "Todo el formulario cabe en una página."
+            split: "Dividir en pasos"
+            empty: "Ninguna pregunta en este paso."
+            add_question_here: "Añadir una pregunta aquí"
         submissions:
-            title: Envíos
-            empty: 'Ningún envío.'
-            export: 'Exportar en CSV'
-            submitted_at: 'Recibido el'
-            reference: Referencia
+            title: "Respuestas"
+            intro: "Las más recientes primero. La exportación incluye todas las respuestas, para una hoja de cálculo."
+            empty: "Todavía no hay respuestas."
+            empty_hint: "Aparecerán aquí en cuanto un visitante envíe el formulario."
+            export: "Exportar en CSV"
+            previous: "Página anterior"
+            next: "Página siguiente"
+        settings:
+            identity_title: "Título y dirección"
+            identity_hint: "Lo que el visitante lee arriba del formulario, y la dirección de su página."
+            untranslated: "Todavía sin traducir a este idioma"
+            description_placeholder: "Respondemos en 48 horas."
+            description_hint: "Se muestra bajo el título. Opcional."
+            slug_label: "Dirección de la página"
+            public_address: "Página pública:"
+            online_title: "Publicación"
+            active_label: "En línea"
+            active_hint: "Fuera de línea, el formulario desaparece de las páginas donde está colocado, y su página responde 404."
+            answers_title: "Cuando alguien responde"
+            answers_hint: "Cada respuesta se guarda en la pestaña Respuestas. También puede recibir un aviso, o enviarla a otro sitio."
+            notify_label: "Avisar por correo electrónico"
+            crm_label: "Añadir a la persona a sus contactos"
+            crm_hint: "Si hay un módulo de contactos instalado, la persona se añade a él con su nombre, su correo electrónico y su teléfono."
+            webhook_label: "Enviar también a otra aplicación (webhook)"
+            webhook_hint: "Para integraciones: cada respuesta se envía a esta dirección, firmada con el secreto de la aplicación. Déjelo vacío si no lo necesita."
         field_types:
             text: Texto
             email: 'Correo electrónico'
@@ -1781,6 +1912,7 @@ frontend:
             previous: Anterior
             step: 'Paso {number}'
             sent: 'Gracias, su mensaje se ha enviado correctamente.'
+            preview_notice: 'Vista previa: el formulario funciona, pero no se envía nada.'
             errors:
                 required: 'Este campo es obligatorio.'
                 email_invalid: 'Esta dirección de correo no es válida.'

@@ -137,4 +137,27 @@ class FormSubmissionRepository extends ResolveTargetEntityRepository
 
         return $counts;
     }
+
+    /**
+     * When each form last received an answer, in one grouped query: the list
+     * shows it on every row, and a form nobody has filled in for months is
+     * what that column is there to reveal.
+     *
+     * @return array<int, string> form id => ISO 8601 date
+     */
+    public function lastSubmittedByForm(): array
+    {
+        $rows = $this->createQueryBuilder('s')
+            ->select('IDENTITY(s.form) AS formId', 'MAX(s.submittedAt) AS lastAt')
+            ->groupBy('s.form')
+            ->getQuery()
+            ->getArrayResult();
+
+        $dates = [];
+        foreach ($rows as $row) {
+            $dates[(int) $row['formId']] = new DateTimeImmutable((string) $row['lastAt'])->format(DATE_ATOM);
+        }
+
+        return $dates;
+    }
 }

@@ -16,44 +16,103 @@ const i18n = createI18n({
     fallbackWarn: false,
 });
 
-function propsWith(forms) {
+const TEMPLATES = [
+    {
+        value: "blank",
+        labelKey: "b",
+        descriptionKey: "bd",
+        fieldCount: 0,
+        stepCount: 0,
+    },
+    {
+        value: "contact",
+        labelKey: "c",
+        descriptionKey: "cd",
+        fieldCount: 4,
+        stepCount: 0,
+    },
+];
+
+function row(overrides = {}) {
     return {
-        forms,
-        locales: ["fr", "en"],
-        fieldTypes: [{ value: "text", labelKey: "t", hasOptions: false }],
-        conditionLogics: [{ value: "and", labelKey: "l" }],
-        createPath: "/forms",
-        updatePathTemplate: "/forms/__id__/update",
-        deletePathTemplate: "/forms/__id__/delete",
-        fieldCreatePathTemplate: "/forms/__id__/fields",
-        fieldEditPathTemplate: "/forms/__id__/fields/__fieldId__/edit",
-        fieldDeletePathTemplate: "/forms/__id__/fields/__fieldId__/delete",
-        fieldReorderPathTemplate: "/forms/__id__/fields/reorder",
-        submissionsPathTemplate: "/forms/__id__/submissions",
-        exportPathTemplate: "/forms/__id__/submissions/export",
+        id: 1,
+        reference: "FRM-1",
+        title: "Contact",
+        description: null,
+        active: true,
+        fieldCount: 4,
+        stepCount: 0,
+        submissionCount: 2,
+        lastSubmittedAt: null,
+        updatedAt: "2026-10-01T10:00:00+02:00",
+        editPath: "/backend/editorial/forms/1",
+        ...overrides,
     };
 }
 
 const render = (forms) =>
-    mount(FormsApp, { props: propsWith(forms), global: { plugins: [i18n] } });
+    mount(FormsApp, {
+        props: {
+            forms,
+            templates: TEMPLATES,
+            createPath: "/forms",
+            deletePathTemplate: "/forms/__id__/delete",
+        },
+        global: { plugins: [i18n] },
+    });
 
 describe("FormsApp", () => {
     /**
-     * The case that was broken, and the only one that mattered: a fresh
-     * installation. The editor modal sat inside the `v-else` branch that only
-     * renders once a form exists, so the empty state's button set the flag and
-     * nothing was mounted to read it. The first form could never be created.
+     * The case that was broken once, and the one that matters on a fresh
+     * installation: the create modal used to live inside a branch that only
+     * rendered once a form existed, so the first form could never be created.
      */
-    it("mounts the editor modal even with no form yet", () => {
+    it("mounts the create modal even with no form yet", () => {
         expect(render([]).findComponent({ name: "AppModal" }).exists()).toBe(
             true,
         );
     });
 
-    it("mounts it with forms too", () => {
+    /** The title is the way into a form: a link, not a menu entry. */
+    it("links each form's title to its own page", () => {
         const wrapper = render([
-            { id: 1, translations: {}, active: true, submissionCount: 0 },
+            row(),
+            row({
+                id: 2,
+                title: "Devis",
+                editPath: "/backend/editorial/forms/2",
+            }),
         ]);
-        expect(wrapper.findComponent({ name: "AppModal" }).exists()).toBe(true);
+        const links = wrapper
+            .findAll("a")
+            .map((link) => link.attributes("href"));
+
+        expect(links).toContain("/backend/editorial/forms/1");
+        expect(links).toContain("/backend/editorial/forms/2");
+    });
+
+    it("offers every template as a starting point", async () => {
+        const wrapper = mount(FormsApp, {
+            props: {
+                forms: [],
+                templates: TEMPLATES,
+                createPath: "/forms",
+                deletePathTemplate: "/forms/__id__/delete",
+            },
+            global: { plugins: [i18n] },
+            attachTo: document.body,
+        });
+
+        // The empty state's own button: the one a fresh installation sees.
+        await wrapper
+            .findComponent({ name: "AppNoData" })
+            .find("button")
+            .trigger("click");
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(document.body.querySelectorAll('[role="radio"]')).toHaveLength(
+            TEMPLATES.length,
+        );
+        wrapper.unmount();
     });
 });

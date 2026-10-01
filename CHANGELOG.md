@@ -5,6 +5,35 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.320] - 2026-10-02
+
+### Ajouté
+
+#### Le dossier Drive de l'agence, dans chaque espace
+Un dossier à vous, le même pour tous les espaces (modèles, charte, ressources de l'équipe), se désigne une fois dans Configuration > Google Drive. L'onglet Drive d'un espace propose alors deux onglets : « Dossier du client », celui qui se règle dans les Réglages de l'espace, et « Dossier de l'agence ». On y navigue, télécharge et range dans la médiathèque de la même façon. Seul le studio le voit : il n'apparaît jamais dans l'espace du client. Sans dossier d'agence, l'onglet Drive reste celui du seul client, comme avant.
+
+#### Des modèles pour créer un formulaire
+Un nouveau formulaire se crée avec un titre et un point de départ : Vide, Contact, Demande de devis (en deux étapes) ou Inscription à un événement. Les questions du modèle sont déjà rédigées dans chaque langue du site, et on arrive directement dans le formulaire pour les ajuster.
+
+### Amélioré
+
+#### Le module Formulaires repensé
+Les formulaires ne s'ajoutent plus un par un dans la sidemenu : une seule entrée « Formulaires » mène à une liste, avec recherche, filtre En ligne / Hors ligne, et pour chacun son nombre de questions, de réponses et la date de la dernière. Chaque formulaire a sa page, en trois onglets :
+- **Questions** : la liste rangée par étape, et à côté l'aperçu du formulaire tel que le visiteur le verra, mis à jour pendant qu'on tape (rien n'est envoyé depuis l'aperçu). Ajouter une question commence par choisir son type parmi des cartes illustrées ; elle se règle ensuite dans un panneau, une langue à la fois, avec sa condition d'affichage écrite en phrase (« si la question… a reçu la réponse… »). Les étapes se nomment et s'ajoutent sur place.
+- **Réponses** : les réponses reçues et l'export CSV.
+- **Réglages** : titre et adresse par langue, mise en ligne, et ce qui se passe quand quelqu'un répond (courriel, contacts, webhook), chaque réglage avec une phrase qui dit à quoi il sert.
+
+Sur téléphone, la page passe en une colonne et une question s'ouvre en plein écran.
+
+#### « Envoyer à relire » devient un bandeau explicite
+Le bouton rangé dans la barre des onglets ne disait ni à qui il écrivait ni pourquoi. Quand des publications attendent l'avis du client, un bandeau s'affiche maintenant sous les onglets, sur toutes les vues de l'espace : il dit combien attendent (et combien sont en retard), explique que le client reçoit un courriel avec un lien pour valider ou demander des changements, et porte le bouton d'envoi. Il disparaît quand rien n'attend.
+
+### Dans aurora-client
+
+Rien à faire au-delà de `make aurora-update`.
+
+---
+
 ## [0.9.319] - 2026-10-01
 
 ### Corrigé

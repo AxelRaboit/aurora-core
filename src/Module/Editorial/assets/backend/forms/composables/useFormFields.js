@@ -5,11 +5,11 @@ import { buildPath } from "@/shared/utils/http/buildPath.js";
 import { useFormAction } from "@/shared/composables/form/useFormAction.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 
-function emptyField(locales) {
+function emptyField(locales, type = "text", step = null) {
     return {
-        type: "text",
+        type,
         required: false,
-        step: null,
+        step,
         conditions: [],
         conditionsLogic: "and",
         translations: Object.fromEntries(
@@ -48,79 +48,90 @@ function fieldFrom(field, locales) {
     };
 }
 
-function toPayload(form) {
+/** One choice per line, blank lines dropped: what the textarea means. */
+export function splitOptions(text) {
+    return (text ?? "")
+        .split("\n")
+        .map((option) => option.trim())
+        .filter(Boolean);
+}
+
+function toPayload(draft, hasSteps) {
     return {
-        ...form,
+        ...draft,
+        // Sans étapes, un champ n'en porte aucune : le serveur refuserait un
+        // numéro d'étape sur un formulaire qui n'en compte pas.
+        step: hasSteps ? (draft.step ?? 1) : null,
+        // Une condition à moitié remplie n'en est pas une.
+        conditions: draft.conditions.filter((condition) => condition.fieldId),
         translations: Object.fromEntries(
-            Object.entries(form.translations).map(([locale, translation]) => [
+            Object.entries(draft.translations).map(([locale, translation]) => [
                 locale,
-                {
-                    ...translation,
-                    options: translation.options
-                        .split("\n")
-                        .map((option) => option.trim())
-                        .filter(Boolean),
-                },
+                { ...translation, options: splitOptions(translation.options) },
             ]),
         ),
     };
 }
 
-export function useFormFields(props, selected, upsert) {
+/**
+ * The questions of one form: their order, the one being edited, and the
+ * requests that change them. Every endpoint answers with the whole form, which
+ * `upsert` puts back on screen.
+ */
+export function useFormFields(props, form, upsert) {
     const { t } = useI18n();
     const { request } = useRequest();
 
     const fields = computed(() =>
-        [...(selected.value?.fields ?? [])].sort(
-            (a, b) => a.position - b.position,
-        ),
+        [...(form.value?.fields ?? [])].sort((a, b) => a.position - b.position),
     );
 
-    const showField = ref(false);
+    const hasSteps = computed(() => (form.value?.steps?.length ?? 0) > 0);
+
+    /** Les questions d'une étape, dans leur ordre ; toutes quand il n'y a pas d'étape. */
+    function fieldsOfStep(number) {
+        if (!hasSteps.value) return fields.value;
+
+        return fields.value.filter((field) => (field.step ?? 1) === number);
+    }
+
+    // ── Édition ─────────────────────────────────────────────────────────────
+
+    /** Vrai tant qu'une question est ouverte, nouvelle ou non. */
+    const editorOpen = ref(false);
     const editingField = ref(null);
-    const fieldForm = ref(emptyField(props.locales));
+    const draft = ref(emptyField(props.locales));
 
     const typeMeta = computed(
         () =>
-            props.fieldTypes.find(
-                (type) => type.value === fieldForm.value.type,
-            ) ?? null,
-    );
-
-    const typeOptions = computed(() =>
-        props.fieldTypes.map((type) => ({
-            value: type.value,
-            label: t(type.labelKey),
-        })),
-    );
-
-    const logicOptions = computed(() =>
-        props.conditionLogics.map((logic) => ({
-            value: logic.value,
-            label: t(logic.labelKey),
-        })),
+            props.fieldTypes.find((type) => type.value === draft.value.type) ??
+            null,
     );
 
     /**
-     * A field can only depend on one that comes before it: a condition on a
-     * later field could never be answered in time, and two fields depending
-     * on each other would hide both for good.
+     * A question can only depend on one placed before it: a condition on a
+     * later one could never be answered in time, and two questions depending
+     * on each other would hide both for good. "Before" is the order the
+     * visitor meets them in - step first, then position.
      */
     const conditionSources = computed(() => {
-        const limit = editingField.value
-            ? fields.value.findIndex(
-                  (field) => field.id === editingField.value.id,
+        const ordered = hasSteps.value
+            ? [...fields.value].sort(
+                  (a, b) =>
+                      (a.step ?? 1) - (b.step ?? 1) || a.position - b.position,
               )
-            : fields.value.length;
+            : fields.value;
 
-        return fields.value
-            .slice(0, limit === -1 ? fields.value.length : limit)
-            .map((field) => ({
-                value: field.id,
-                label:
-                    field.translations?.[props.locales[0]]?.label ??
-                    `#${field.id}`,
-            }));
+        const limit = editingField.value
+            ? ordered.findIndex((field) => field.id === editingField.value.id)
+            : ordered.length;
+
+        return ordered
+            .slice(0, limit === -1 ? ordered.length : limit)
+            .filter(
+                (field) =>
+                    !editingField.value || field.id !== editingField.value.id,
+            );
     });
 
     const {
@@ -132,15 +143,11 @@ export function useFormFields(props, selected, upsert) {
         url: () =>
             editingField.value
                 ? buildPath(props.fieldEditPathTemplate, {
-                      id: selected.value.id,
                       fieldId: editingField.value.id,
                   })
-                : buildPath(props.fieldCreatePathTemplate, {
-                      id: selected.value.id,
-                  }),
-        body: () => toPayload(fieldForm.value),
+                : props.fieldCreatePath,
+        body: () => toPayload(draft.value, hasSteps.value),
         onSuccess: (data) => {
-            showField.value = false;
             toast.success(
                 t(
                     editingField.value
@@ -149,30 +156,42 @@ export function useFormFields(props, selected, upsert) {
                 ),
             );
             upsert(data?.form);
+            closeEditor();
         },
     });
 
-    function openFieldCreate() {
+    function openFieldCreate(type, step = null) {
         editingField.value = null;
-        fieldForm.value = emptyField(props.locales);
+        draft.value = emptyField(
+            props.locales,
+            type,
+            hasSteps.value ? (step ?? 1) : null,
+        );
         clearField();
-        showField.value = true;
+        editorOpen.value = true;
     }
 
     function openFieldEdit(field) {
         editingField.value = field;
-        fieldForm.value = fieldFrom(field, props.locales);
+        draft.value = fieldFrom(field, props.locales);
         clearField();
-        showField.value = true;
+        editorOpen.value = true;
+    }
+
+    function closeEditor() {
+        editorOpen.value = false;
+        editingField.value = null;
     }
 
     function addCondition() {
-        fieldForm.value.conditions.push({ fieldId: null, value: "" });
+        draft.value.conditions.push({ fieldId: null, value: "" });
     }
 
     function removeCondition(index) {
-        fieldForm.value.conditions.splice(index, 1);
+        draft.value.conditions.splice(index, 1);
     }
+
+    // ── Suppression ─────────────────────────────────────────────────────────
 
     const pendingFieldDelete = ref(null);
     const fieldDeleteLoading = ref(false);
@@ -184,12 +203,13 @@ export function useFormFields(props, selected, upsert) {
         try {
             const data = await request(
                 buildPath(props.fieldDeletePathTemplate, {
-                    id: selected.value.id,
                     fieldId: pendingFieldDelete.value.id,
                 }),
             );
             if (data?.success) {
                 toast.success(t("backend.forms.fields.deleted"));
+                if (editingField.value?.id === pendingFieldDelete.value.id)
+                    closeEditor();
                 upsert(data.form);
                 pendingFieldDelete.value = null;
             }
@@ -198,48 +218,63 @@ export function useFormFields(props, selected, upsert) {
         }
     }
 
-    /** Swaps with the neighbour and posts the whole order, like every other list. */
+    // ── Ordre ───────────────────────────────────────────────────────────────
+
+    /**
+     * Swaps with the neighbour *in the same step* and posts the whole order.
+     *
+     * The list is drawn step by step: swapping with the global neighbour would
+     * trade places with a question of another step, and on screen nothing
+     * would move.
+     */
     async function move(field, offset) {
+        const group = fieldsOfStep(field.step ?? 1);
+        const index = group.findIndex((item) => item.id === field.id);
+        const neighbour = group[index + offset];
+        if (!neighbour) return;
+
         const ordered = [...fields.value];
-        const index = ordered.findIndex((item) => item.id === field.id);
-        const target = index + offset;
-        if (target < 0 || target >= ordered.length) return;
+        const from = ordered.findIndex((item) => item.id === field.id);
+        const to = ordered.findIndex((item) => item.id === neighbour.id);
+        [ordered[from], ordered[to]] = [ordered[to], ordered[from]];
 
-        [ordered[index], ordered[target]] = [ordered[target], ordered[index]];
-
-        const data = await request(
-            buildPath(props.fieldReorderPathTemplate, {
-                id: selected.value.id,
-            }),
-            {
-                entries: ordered.map((item, position) => ({
-                    id: item.id,
-                    position,
-                })),
-            },
-        );
+        const data = await request(props.fieldReorderPath, {
+            entries: ordered.map((item, position) => ({
+                id: item.id,
+                position,
+            })),
+        });
         if (data?.success) upsert(data.form);
+    }
+
+    function canMove(field, offset) {
+        const group = fieldsOfStep(field.step ?? 1);
+        const index = group.findIndex((item) => item.id === field.id);
+
+        return index + offset >= 0 && index + offset < group.length;
     }
 
     return {
         fields,
-        showField,
+        hasSteps,
+        fieldsOfStep,
+        editorOpen,
         editingField,
-        fieldForm,
+        draft,
+        typeMeta,
+        conditionSources,
         fieldErrors,
         fieldLoading,
-        typeMeta,
-        typeOptions,
-        logicOptions,
-        conditionSources,
+        submitField,
         openFieldCreate,
         openFieldEdit,
-        submitField,
+        closeEditor,
         addCondition,
         removeCondition,
         pendingFieldDelete,
         fieldDeleteLoading,
         deleteField,
         move,
+        canMove,
     };
 }

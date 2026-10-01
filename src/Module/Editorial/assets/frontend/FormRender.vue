@@ -18,6 +18,8 @@ const props = defineProps({
     // component then draws no box and sends no token, and the server accepts
     // the submission as it always did.
     captcha: { type: Object, default: () => ({ enabled: false }) },
+    /** Monté par l'aperçu du back-office : tout marche, sauf l'envoi. */
+    preview: { type: Boolean, default: false },
 });
 
 const { t } = useI18n();

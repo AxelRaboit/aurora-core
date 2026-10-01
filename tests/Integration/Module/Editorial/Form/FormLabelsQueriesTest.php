@@ -8,7 +8,6 @@ use Aurora\Module\Editorial\Form\Entity\Form;
 use Aurora\Module\Editorial\Form\Entity\FormField;
 use Aurora\Module\Editorial\Form\Entity\FormSubmission;
 use Aurora\Module\Editorial\Form\Enum\FormFieldTypeEnum;
-use Aurora\Module\Editorial\Form\Repository\FormRepository;
 use Aurora\Module\Editorial\Form\Repository\FormSubmissionRepository;
 use Aurora\Module\Editorial\Form\Serializer\FormSerializerInterface;
 use Aurora\Tests\Integration\IntegrationTestCase;
@@ -75,14 +74,6 @@ final class FormLabelsQueriesTest extends IntegrationTestCase
             static fn (array $query): bool => 1 === preg_match('/FROM (core_form_fields|core_form_field_translations) t0 /', (string) $query['sql']),
         );
         self::assertSame([], array_values($alone), 'no field or label is read on its own');
-    }
-
-    public function testTheFirstFormIsFoundWithoutLoadingThemAll(): void
-    {
-        $this->givenForm();
-        $repository = static::getContainer()->get(FormRepository::class);
-
-        self::assertSame($repository->findAllForIndex()[0]->getId(), $repository->firstId());
     }
 
     private function givenForm(): Form
