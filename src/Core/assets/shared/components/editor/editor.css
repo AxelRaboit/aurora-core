@@ -220,3 +220,21 @@
     outline: 2px solid var(--th-accent);
     outline-offset: -1px;
 }
+
+/* La sélection, en couleur du thème plutôt qu'en bleu pâle.
+
+   Editor.js impose `#d4ecff` à la sélection de texte et `#e1f2ff` aux blocs
+   sélectionnés : deux bleus pensés pour un fond blanc. Sur un thème sombre,
+   le texte clair disparaissait dedans au moment précis où on le choisissait.
+   L'accent du thème à 35 %, sans toucher à la couleur du texte, se lit sur les
+   deux fonds. Un cran de plus que le sélecteur d'Editor.js
+   (`.codex-editor ::selection`), qui est injecté après cette feuille. */
+.editor-block-holder .codex-editor ::selection,
+.codex-editor .ce-block ::selection {
+    background-color: color-mix(in srgb, var(--color-accent-500) 35%, transparent);
+}
+
+.codex-editor .ce-block--selected .ce-block__content {
+    background: color-mix(in srgb, var(--color-accent-500) 18%, transparent);
+}
+
