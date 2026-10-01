@@ -71,6 +71,11 @@ export function useDeckEditor(props) {
         if (!selected.value || !dirty.value || saving.value) return;
 
         const slide = selected.value;
+        const sent = JSON.stringify({
+            layout: slide.layout,
+            content: slide.content,
+            speakerNotes: slide.speakerNotes,
+        });
         saving.value = true;
 
         try {
@@ -83,9 +88,27 @@ export function useDeckEditor(props) {
                 },
             );
 
-            if (data?.slide) {
+            if (!data?.slide) return;
+
+            const current = slides.value.find((row) => row.id === slide.id);
+            const unchanged =
+                current &&
+                JSON.stringify({
+                    layout: current.layout,
+                    content: current.content,
+                    speakerNotes: current.speakerNotes,
+                }) === sent;
+
+            // The server's answer replaces the slide only if nothing moved
+            // while it was on its way. A free slide is saved while it is being
+            // worked on, and an answer landing in the middle of a drag would
+            // put the element back where it was a second and a half ago.
+            if (unchanged) {
                 replace(data.slide);
-                takeSnapshot();
+
+                if (selectedId.value === slide.id) takeSnapshot();
+            } else if (selectedId.value === slide.id) {
+                snapshot.value = sent;
             }
         } finally {
             saving.value = false;
@@ -224,6 +247,19 @@ export function useDeckEditor(props) {
         });
     }
 
+    /**
+     * Write the selected slide's layout and content at once.
+     *
+     * What the free canvas writes through: a gesture there changes the whole
+     * list of elements, and a step back changes the layout too when it undoes
+     * a conversion.
+     */
+    function writeSlide({ layout, content }) {
+        if (!selected.value) return;
+
+        replace({ ...selected.value, layout, content });
+    }
+
     function writeLayout(value) {
         if (!selected.value) return;
 
@@ -252,6 +288,7 @@ export function useDeckEditor(props) {
         reorder,
         writeSlot,
         writeLayout,
+        writeSlide,
         writeNotes,
         flushCurrent,
     };

@@ -19,6 +19,17 @@ const REVEAL_SLOTS = ["bullets", "items", "steps", "figures", "lines"];
 export function revealableIn(slide) {
     const content = slide?.content;
 
+    // Une slide libre compte ses pressions sur ses elements : chacun dit a
+    // quelle pression il entre, et la slide en demande autant que le plus
+    // tardif. Deux elements sur la meme pression entrent ensemble.
+    if (slide?.layout === "free") {
+        const ranks = (content?.elements ?? []).map(
+            (element) => element?.reveal ?? 0,
+        );
+
+        return ranks.length ? Math.max(0, ...ranks) : 0;
+    }
+
     if (content?.reveal !== true) return 0;
 
     const slot = REVEAL_SLOTS.find((name) => Array.isArray(content[name]));

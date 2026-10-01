@@ -428,6 +428,13 @@ onBeforeUnmount(() => {
        parce que la barre d'adresse d'un téléphone change la hauteur réelle. */
     width: min(100%, calc((100dvh - 8rem) * 16 / 9));
     max-width: 1600px;
+    /* Le 16/9 par le rapport, ici et seulement ici. Le cadre le tient d'un
+       remplissage en pourcentage, qui se calcule sur la largeur du bloc
+       conteneur ; dans une grille, ce bloc est la cellule et non la slide, et
+       sur un écran plus large que haut la slide prenait la hauteur de la
+       cellule : un rond posé sur une slide libre y devenait un ovale. */
+    padding-top: 0;
+    aspect-ratio: 16 / 9;
 }
 
 .deck-player-bar {

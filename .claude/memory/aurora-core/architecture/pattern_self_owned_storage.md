@@ -116,8 +116,9 @@ protected ?DocumentInterface $document = null;
 - `SpaceContentAttachment.document` - FK, `onDelete: CASCADE`
 - `Post.thumbnail` et `PostTranslation.ogImage` - FK, `SET NULL`
 - `Post.galleryLayout.items[].mediaId` - id **dans du JSON**
-- `Deck` : `mediaId` / `bgMediaId` par slide + `logoMediaId` dans le style,
-  également en JSON (`DeckPictures` est la seule liste qui sait où)
+- `Deck` : `mediaId` / `bgMediaId` / `bgVideoId` par slide, le `mediaId` de
+  chaque élément d'une diapo libre (`elements[]`), et `logoMediaId` dans le
+  style, également en JSON (`DeckPictures` est la seule liste qui sait où)
 
 **Règle d'arbitrage** : « attacher un fichier » à une entité métier =
 FK vers un `Document`. Le self-owned est réservé aux modules dont le

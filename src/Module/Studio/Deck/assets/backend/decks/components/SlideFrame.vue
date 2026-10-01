@@ -22,6 +22,8 @@ import { iconFor } from "../icons.js";
 import { useSlideFit } from "../composables/useSlideFit.js";
 import { emphasis } from "../emphasis.js";
 import SlideChart from "./SlideChart.vue";
+import FreeLayer from "../free/FreeLayer.vue";
+import { paint } from "../free/model.js";
 
 const props = defineProps({
     slide: { type: Object, required: true },
@@ -47,6 +49,45 @@ const props = defineProps({
      * line at a time would resize every word on the slide at every press.
      */
     revealed: { type: Number, default: null },
+    /**
+     * Drawn on paper: the print page. Films stand still as their poster and
+     * nothing enters, since a sheet catches whatever was on screen.
+     */
+    still: { type: Boolean, default: false },
+    /** On a free slide in the editor, the text box being typed into. */
+    editingId: { type: String, default: null },
+});
+
+const emit = defineEmits(["text-input"]);
+
+/**
+ * A free slide: drawn from its elements rather than from slots.
+ *
+ * The rest of the frame stays what it is for every slide - the deck's ground,
+ * its texture and wash, a backdrop picture with its veil, the band, the
+ * footer - so a free slide sits in its deck like any other, and only the
+ * middle is the person's own.
+ */
+const isFree = computed(() => props.slide.layout === "free");
+
+/** The paint under a free slide's elements, over the deck's ground. */
+const fill = computed(() => (isFree.value ? paint(props.slide.content.fill) : null));
+
+/**
+ * The film behind a free slide.
+ *
+ * Its poster on a thumbnail and on paper, the film itself everywhere else,
+ * silent and looping: a backdrop that stopped after eight seconds, or spoke
+ * over the presenter, would be a backdrop nobody wanted.
+ */
+const backgroundFilm = computed(() => {
+    if (!isFree.value || !props.slide.content.bgVideoUrl) return null;
+
+    return {
+        url: props.slide.content.bgVideoUrl,
+        poster: props.slide.content.bgVideoPoster ?? null,
+        plays: !props.compact && !props.still,
+    };
 });
 
 /**
@@ -313,6 +354,8 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
             v-bind="composition"
             :style="[skin, media, { '--title-scale': titleScale }]"
         >
+            <span v-if="fill" class="sf-fill" :style="{ background: fill }" aria-hidden="true" />
+
             <span v-if="pattern !== 'none'" class="sf-pattern" aria-hidden="true" />
 
             <div
@@ -330,6 +373,20 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
                 />
             </div>
 
+            <div v-if="backgroundFilm" class="sf-backdrop" aria-hidden="true">
+                <video
+                    v-if="backgroundFilm.plays"
+                    class="sf-backdrop-file"
+                    :src="backgroundFilm.url"
+                    :poster="backgroundFilm.poster ?? undefined"
+                    autoplay
+                    muted
+                    loop
+                    playsinline
+                />
+                <img v-else-if="backgroundFilm.poster" class="sf-backdrop-file" :src="backgroundFilm.poster" alt="">
+            </div>
+
             <span v-if="vignette" class="sf-vignette" aria-hidden="true" />
 
             <span v-if="gradient !== 'none'" class="sf-wash" aria-hidden="true" />
@@ -338,7 +395,19 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
 
             <span v-if="band !== 'none'" class="sf-band" aria-hidden="true" />
 
-            <div ref="stage" class="slide-stage" :style="{ '--fit': fit }">
+            <FreeLayer
+                v-if="isFree"
+                :elements="slide.content.elements ?? []"
+                :appearance="appearance"
+                :live="live"
+                :still="still"
+                :compact="compact"
+                :revealed="revealed"
+                :editing-id="editingId"
+                v-on:text-input="(id, html) => emit('text-input', id, html)"
+            />
+
+            <div v-else ref="stage" class="slide-stage" :style="{ '--fit': fit }">
                 <p v-if="kicker" class="sf-kicker">{{ kicker }}</p>
 
                 <template v-if="slide.layout === 'title'">
@@ -691,6 +760,9 @@ const { stage, fit } = useSlideFit(() => [props.slide.content, props.slide.layou
    `background-image` sur le cadre, l'image aurait été rognée par le
    remplissage et le voile aurait eu à être une seconde image. */
 .sf-backdrop { position: absolute; inset: 0; overflow: hidden; }
+/* La peinture d'une slide libre, sous tout le reste : une couleur ou un
+   dégradé choisi pour elle, par-dessus le fond du deck. */
+.sf-fill { position: absolute; inset: 0; }
 /* `cover` ici, contrairement à la slide image : un fond est un décor, et une
    bande de couleur sur le côté d'un décor se voit plus que le coin qu'il perd. */
 .sf-backdrop-file { width: 100%; height: 100%; object-fit: cover; }
