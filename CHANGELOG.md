@@ -5,6 +5,32 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.311] - 2026-10-01
+
+### Ajouté
+
+#### Une diapo libre dans les présentations, comme dans Canva
+Un nouveau gabarit, « Diapo libre », rejoint les dix-neuf autres. On y pose à la main du texte, des images, des vidéos de la médiathèque, des vidéos YouTube ou Vimeo, vingt formes, plus de cent icônes, un graphique ou un tableau, et chaque élément se déplace, se redimensionne et se tourne à la souris.
+
+- Guides magnétiques sur les bords et le centre de la diapo et des autres éléments, sélection multiple au cadre ou avec Maj, groupes, calques réordonnables, verrou, copier-coller d'une diapo ou d'une présentation à l'autre, annuler et rétablir, raccourcis clavier.
+- Le texte s'écrit directement dans la diapo : gras, italique, couleur ou surlignage d'un mot, listes. Il rétrécit pour tenir dans sa boîte, et le panneau prévient quand il devient difficile à lire sur son fond.
+- Fond de diapo en couleur, en dégradé, en image ou en vidéo jouée en boucle. Pour chaque élément : remplissage ou dégradé, contour, arrondi, ombre, opacité, découpe (cercle, arche, étoile…), recadrage et retouches de photo.
+- Cinquante-sept polices hébergées par Aurora, sans aucun appel à Google, et l'import de ses propres fichiers de police (woff2, woff, ttf, otf).
+- « Rendre libre » transforme une diapo à gabarit en diapo libre qui lui ressemble à l'identique, pour partir d'une base propre. Cmd+Z revient au gabarit.
+- En présentation, chaque élément peut entrer à une pression donnée avec une animation (fondu, montée, zoom…). Le lecteur, le mode présentateur, le lien public et l'impression dessinent la diapo libre ; sur papier, une vidéo laisse place à son image.
+- Sur téléphone : pincer à deux doigts agrandit et tourne, toucher un texte choisi permet de l'écrire, et la liste des diapos devient un bandeau.
+
+### Corrigé
+
+#### Le lecteur plein écran garde le format 16:9
+Sur un écran plus large que haut, la diapo prenait toute la hauteur disponible et n'était plus en 16:9 : son contenu s'étirait. Elle garde maintenant ses proportions.
+
+### Dans aurora-client
+
+Rien à faire au-delà de `make aurora-update` : les nouvelles polices viennent avec les dépendances JavaScript d'aurora-core.
+
+---
+
 ## [0.9.310] - 2026-10-01
 
 ### Ajouté
