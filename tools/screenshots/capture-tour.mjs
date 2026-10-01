@@ -903,6 +903,44 @@ const SHOTS = [
             await page.waitForTimeout(1_500);
         },
     },
+    /**
+     * La diapo libre de l'audit, prise en main : la photo choisie montre ses
+     * poignées et sa poignée de rotation, et le panneau à côté ce qu'on règle
+     * sur une image. Atteinte par son libellé dans la liste, « 11. Diapo
+     * libre », et non par le bouton du même nom qui en ajoute une.
+     */
+    {
+        name: "tour-presentations-libre",
+        path: "/backend/studio/decks",
+        async prepare(page) {
+            await openDeck("Audit du site")(page);
+            await page.locator("main").getByRole("button", { name: /^\d+\. Diapo libre/ }).first().click();
+            await page.waitForTimeout(1_500);
+            await page.locator("main .fc-stage .fe-image").first().click();
+            // Le clic a fait défiler la page jusqu'à la photo : on remonte,
+            // pour que le bouton « Présenter » ne soit pas coupé en haut.
+            await page.mouse.wheel(0, -2_000);
+            await page.waitForTimeout(800);
+        },
+    },
+    {
+        name: "tour-presentations-libre-diaporama",
+        path: "/backend/studio/decks",
+        async prepare(page) {
+            await openDeck("Audit du site")(page);
+            await page.locator("main").getByRole("button", { name: /^\d+\. Diapo libre/ }).first().click();
+            await page.waitForTimeout(1_000);
+            await page.locator("main").getByRole("button", { name: "Présenter" }).click();
+            await page.waitForTimeout(1_500);
+            // Les trois cartes entrent une à une : trois pressions, et le
+            // temps de leur animation.
+            for (let i = 0; i < 3; i++) {
+                await page.keyboard.press("ArrowRight");
+                await page.waitForTimeout(700);
+            }
+            await page.waitForTimeout(1_500);
+        },
+    },
     {
         name: "tour-avenant-scelle",
         // Le contrat conclu qui a un avenant : le seul état qui montre à la
