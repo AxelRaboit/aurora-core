@@ -5,6 +5,22 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.315] - 2026-10-01
+
+### Corrigé
+
+#### Pas de fil de commentaires dans une page de lecture
+Une zone « Commentaires » posée dans la grille d'un livrable s'affichait sur sa page de lecture, mais le fil ne pouvait que tomber en erreur, et il laissait voir l'adresse de la publication sur le site. La page de lecture ne l'affiche plus, y compris dans une colonne, comme elle n'affichait déjà pas le fil du bas de page. Une zone « Formulaire » y marche, elle, sans changement.
+
+#### La zone « Commentaires » ne fait plus planter une page en local
+Sur une instance de développement, une page du site portant une zone « Commentaires » répondait une erreur. Le site en production n'était pas touché.
+
+### Dans aurora-client
+
+Rien à faire au-delà de `make aurora-update`.
+
+---
+
 ## [0.9.314] - 2026-10-01
 
 ### Ajouté

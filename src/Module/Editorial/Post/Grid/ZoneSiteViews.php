@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Editorial\Post\Grid;
 
+use Aurora\Core\Routing\PathTemplateGenerator;
 use Aurora\Module\Editorial\Form\Entity\FormInterface;
 use Aurora\Module\Editorial\Form\Entity\FormTranslationInterface;
 use Aurora\Module\Editorial\Form\Repository\FormRepository;
@@ -43,6 +44,7 @@ final readonly class ZoneSiteViews
         private TaxonomyRepository $taxonomyRepository,
         private TaxonomyTermRepository $taxonomyTermRepository,
         private BlocksRenderer $blocksRenderer,
+        private PathTemplateGenerator $pathTemplates,
     ) {}
 
     /**
@@ -149,7 +151,12 @@ final readonly class ZoneSiteViews
         return [
             'listPath' => $this->urlGenerator->generate('editorial_post_comments', $parameters),
             'submitPath' => $this->urlGenerator->generate('editorial_post_comment_submit', $parameters),
-            'reactPathTemplate' => $this->urlGenerator->generate(
+            // A template with a hole in it, so through the generator that
+            // allows one: `__commentId__` is not the `\d+` the route wants,
+            // and the plain generator refused it while rendering the page -
+            // a 500 in dev and in test, hidden in production by
+            // `strict_requirements: null`.
+            'reactPathTemplate' => $this->pathTemplates->generate(
                 'editorial_comment_react',
                 [...$parameters, 'commentId' => '__commentId__'],
             ),
