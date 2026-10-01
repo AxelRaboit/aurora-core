@@ -343,7 +343,7 @@ const fillTypes = computed(() =>
                             :class="
                                 picking === `gap-${gap.row}-${gap.start}`
                                     ? 'border-accent bg-accent/5 text-accent opacity-100'
-                                    : 'text-muted opacity-40 hover:border-accent hover:bg-accent/10 hover:text-accent hover:opacity-100'
+                                    : 'text-muted opacity-40 hover:border-accent hover:bg-surface-2 hover:text-primary hover:opacity-100'
                             "
                             v-on:keydown.esc="picking = null"
                         >
@@ -426,7 +426,7 @@ const fillTypes = computed(() =>
                         <button
                             v-else
                             type="button"
-                            class="flex h-4 w-full items-center justify-center gap-2 rounded text-muted opacity-30 transition hover:bg-accent/10 hover:text-accent hover:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent disabled:opacity-20"
+                            class="flex h-4 w-full items-center justify-center gap-2 rounded text-muted opacity-30 transition hover:bg-surface-2 hover:text-primary hover:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent disabled:opacity-20"
                             :title="t('backend.posts.grid.add_row')"
                             :disabled="!canAdd"
                             v-on:click="openPicker(`strip-${strip.track}`)"

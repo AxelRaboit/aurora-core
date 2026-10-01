@@ -42,7 +42,7 @@ const hexStyle = computed(() => isHex.value ? { backgroundColor: props.color, co
     <component
         :is="href ? 'a' : 'span'"
         v-bind="href ? { href } : {}"
-        class="inline-flex items-center gap-1 rounded-full font-medium"
+        class="inline-flex items-center gap-1 whitespace-nowrap rounded-full font-medium"
         :class="[
             sizes[size] ?? sizes.xs,
             presetClasses,

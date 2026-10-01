@@ -133,4 +133,16 @@ describe("useContractFlow", () => {
         );
         expect(keys(flowOf(contract("draft")).others)).not.toContain("preview");
     });
+
+    it("offers to adapt the wording of a draft only, to whoever may edit it", () => {
+        const { flowOf } = useContractFlow();
+
+        expect(keys(flowOf(contract("draft")).others)).toContain("adapt");
+        expect(keys(flowOf(contract("sealed")).others)).not.toContain("adapt");
+
+        granted = ["studio.contracts.send"];
+        expect(
+            keys(useContractFlow().flowOf(contract("draft")).others),
+        ).not.toContain("adapt");
+    });
 });

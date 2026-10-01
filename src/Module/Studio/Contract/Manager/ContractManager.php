@@ -40,8 +40,14 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
+use function array_keys;
+use function array_map;
+use function array_values;
+use function count;
 use function implode;
 use function is_array;
+use function mb_strlen;
+use function mb_trim;
 use function sprintf;
 
 /**
@@ -61,6 +67,9 @@ use function sprintf;
 #[AsAlias(ContractManagerInterface::class)]
 class ContractManager implements ContractManagerInterface
 {
+    /** Same ceiling as a trame's title. */
+    protected const int WORDING_TITLE_MAX = 250;
+
     /**
      * The tokens only an amendment can fill.
      *
@@ -333,6 +342,13 @@ class ContractManager implements ContractManagerInterface
             amendsId: $contract->getAmends()?->getId(),
         ));
 
+        // The negotiated text travels with the copy: a contract cancelled to
+        // correct one detail would otherwise lose every clause adapted for
+        // this client.
+        $copy->adoptWordingFrom($contract);
+
+        $this->entityManager->flush();
+
         $this->auditLogger->log('studio', 'contract.duplicated', 'Contract', $copy->getId(), [
             ...$this->auditPayload($copy),
             'from' => $contract->getReference() ?? $contract->getId(),
@@ -453,7 +469,7 @@ class ContractManager implements ContractManagerInterface
         $html = '';
 
         foreach ($this->partsOf($contract) as $role => $version) {
-            $html .= $this->renderPart($role, $version, $contract->getLocale(), $shown)['html'];
+            $html .= $this->renderPart($contract, $role, $version, $shown)['html'];
         }
 
         $governingLocale = $this->governingLocaleOf($contract);
@@ -630,7 +646,7 @@ class ContractManager implements ContractManagerInterface
         $html = '';
 
         foreach ($this->partsOf($contract) as $role => $version) {
-            $part = $this->renderPart($role, $version, $contract->getLocale(), $values);
+            $part = $this->renderPart($contract, $role, $version, $values);
             $parts[] = $part['snapshot'];
             $html .= $part['html'];
         }
@@ -680,11 +696,9 @@ class ContractManager implements ContractManagerInterface
 
         $missing = [];
 
-        foreach ($this->partsOf($contract) as $version) {
-            foreach ($this->customFields->keysOf($version) as $key) {
-                if (!isset($filled[$key])) {
-                    $missing[$key] = true;
-                }
+        foreach ($this->keysInParts($contract) as $key) {
+            if (!isset($filled[$key])) {
+                $missing[$key] = true;
             }
         }
 
@@ -706,13 +720,11 @@ class ContractManager implements ContractManagerInterface
     {
         $missing = [];
 
-        foreach ($this->partsOf($contract) as $version) {
-            foreach ($this->customFields->keysOf($version, ContractCustomFieldScanner::PROVIDER_PREFIX) as $key) {
-                $token = ContractCustomFieldScanner::PROVIDER_PREFIX.$key;
+        foreach ($this->keysInParts($contract, ContractCustomFieldScanner::PROVIDER_PREFIX) as $key) {
+            $token = ContractCustomFieldScanner::PROVIDER_PREFIX.$key;
 
-                if (!isset($values[$token])) {
-                    $missing[$token] = true;
-                }
+            if (!isset($values[$token])) {
+                $missing[$token] = true;
             }
         }
 
@@ -813,19 +825,13 @@ class ContractManager implements ContractManagerInterface
      * @return array{snapshot: array<string, mixed>, html: string}
      */
     protected function renderPart(
+        ContractInterface $contract,
         string $role,
         ContractTemplateVersionInterface $version,
-        string $locale,
         array $values,
     ): array {
-        $translation = $version->getTranslation($locale);
-
-        if (!$translation instanceof ContractTemplateVersionTranslationInterface) {
-            throw new FieldException('locale', $this->translator->trans('backend.studio.contracts.errors.locale_missing', ['{locale}' => $locale, '{template}' => $version->getTemplate()->getName()]));
-        }
-
-        $content = $translation->getContent();
-        $blocks = is_array($content['blocks'] ?? null) ? $content['blocks'] : [];
+        $locale = $contract->getLocale();
+        ['title' => $wordingTitle, 'blocks' => $blocks, 'adapted' => $adapted] = $this->wordingOf($contract, $role, $version);
 
         try {
             $body = $this->renderer->render($blocks, $values);
@@ -836,11 +842,14 @@ class ContractManager implements ContractManagerInterface
             throw new FieldException('bodyVersion', sprintf('%s (%s)', $unrenderableBlockException->describe($this->translator, $locale), $version->getTemplate()->getName()));
         }
 
-        $title = $this->renderer->title($translation->getTitle(), $values);
+        $title = $this->renderer->title($wordingTitle, $values);
 
         return [
             'snapshot' => [
                 'role' => $role,
+                // Sealed as part of the record: whoever reads this contract in
+                // ten years learns that its text is not the trame's.
+                'adapted' => $adapted,
                 'templateId' => $version->getTemplate()->getId(),
                 'templateName' => $version->getTemplate()->getName(),
                 'versionId' => $version->getId(),
@@ -850,6 +859,154 @@ class ContractManager implements ContractManagerInterface
             ],
             'html' => sprintf('<section><h1>%s</h1>%s</section>', $title, $body),
         ];
+    }
+
+    /**
+     * The text a part of this contract is made of: its adaptation when it has
+     * one in the contract's language, the trame's otherwise.
+     *
+     * The one place that answers. Rendering, sealing and the checks before
+     * the seal all ask here, so none of them can read one text while another
+     * is sealed.
+     *
+     * @return array{title: string, blocks: list<mixed>, adapted: bool, content: array<string, mixed>}
+     */
+    protected function wordingOf(ContractInterface $contract, string $role, ContractTemplateVersionInterface $version): array
+    {
+        $locale = $contract->getLocale();
+        $part = ContractTemplateKindEnum::from($role);
+        $adapted = $contract->getAdaptedWording($part);
+
+        if (null !== $adapted && $adapted['locale'] === $locale) {
+            return ['title' => $adapted['title'], 'blocks' => $adapted['blocks'], 'adapted' => true, 'content' => ['blocks' => $adapted['blocks']]];
+        }
+
+        $translation = $version->getTranslation($locale);
+
+        if (!$translation instanceof ContractTemplateVersionTranslationInterface) {
+            throw new FieldException('locale', $this->translator->trans('backend.studio.contracts.errors.locale_missing', ['{locale}' => $locale, '{template}' => $version->getTemplate()->getName()]));
+        }
+
+        $content = $translation->getContent();
+        $blocks = is_array($content['blocks'] ?? null) ? array_values($content['blocks']) : [];
+
+        return ['title' => $translation->getTitle(), 'blocks' => $blocks, 'adapted' => false, 'content' => $content];
+    }
+
+    /**
+     * The tokens of one family the contract's parts ask for.
+     *
+     * A trame's part is read in every language it is written in, as before:
+     * the preparation screen cannot know which one will be chosen. An adapted
+     * part is read as adapted, in the one language it was written in.
+     *
+     * @return list<string>
+     */
+    protected function keysInParts(ContractInterface $contract, string $prefix = ContractCustomFieldScanner::PREFIX): array
+    {
+        $keys = [];
+
+        foreach ($this->partsOf($contract) as $role => $version) {
+            $adapted = $contract->getAdaptedWording(ContractTemplateKindEnum::from($role));
+
+            $found = null !== $adapted && $adapted['locale'] === $contract->getLocale()
+                ? $this->customFields->keysInWording($adapted['title'], ['blocks' => $adapted['blocks']], $prefix)
+                : $this->customFields->keysOf($version, $prefix);
+
+            foreach ($found as $key) {
+                $keys[$key] = true;
+            }
+        }
+
+        return array_keys($keys);
+    }
+
+    public function adaptWording(ContractInterface $contract, ContractTemplateKindEnum $part, string $title, array $content): void
+    {
+        $contract->assertEditable();
+
+        $version = $this->partsOf($contract)[$part->value] ?? null;
+
+        if (!$version instanceof ContractTemplateVersionInterface) {
+            throw new FieldException('part', $this->translator->trans('backend.studio.contracts.wording.errors.no_part'));
+        }
+
+        $title = mb_trim($title);
+
+        if ('' === $title) {
+            throw new FieldException('title', $this->translator->trans('backend.studio.contracts.wording.errors.title_required'));
+        }
+
+        if (mb_strlen($title) > self::WORDING_TITLE_MAX) {
+            throw new FieldException('title', $this->translator->trans('backend.studio.contracts.wording.errors.title_too_long', ['{max}' => (string) self::WORDING_TITLE_MAX]));
+        }
+
+        $blocks = is_array($content['blocks'] ?? null) ? array_values($content['blocks']) : [];
+
+        if ([] === $blocks) {
+            throw new FieldException('content', $this->translator->trans('backend.studio.contracts.wording.errors.empty'));
+        }
+
+        $this->assertWordingPrintable($contract, $title, $blocks);
+
+        $contract->adaptWording($part, $title, $blocks, new DateTimeImmutable());
+        $this->entityManager->flush();
+
+        $this->auditLogger->log('studio', 'contract.wording_adapted', 'Contract', $contract->getId(), [
+            ...$this->auditPayload($contract),
+            'part' => $part->value,
+            'template' => $version->getTemplate()->getName(),
+            'versionNumber' => $version->getNumber(),
+            'blocks' => count($blocks),
+        ]);
+    }
+
+    public function resetWording(ContractInterface $contract, ContractTemplateKindEnum $part): void
+    {
+        $contract->assertEditable();
+
+        if (!$contract->isAdapted($part)) {
+            return;
+        }
+
+        $contract->resetWording($part);
+        $this->entityManager->flush();
+
+        $this->auditLogger->log('studio', 'contract.wording_reset', 'Contract', $contract->getId(), [
+            ...$this->auditPayload($contract),
+            'part' => $part->value,
+        ]);
+    }
+
+    /**
+     * Refuses a text the seal would refuse, at the moment it is written.
+     *
+     * Held to the trame's rule: only blocks a contract can print, only
+     * variables the catalogue knows. A per-contract field
+     * (`{{contract.custom.…}}`) is allowed, and becomes one more blank the
+     * contract must fill before it is sealed.
+     *
+     * @param list<mixed> $blocks
+     */
+    protected function assertWordingPrintable(ContractInterface $contract, string $title, array $blocks): void
+    {
+        $values = [...$this->variables->examples(), ...$this->variables->resolve($contract)];
+
+        foreach ($this->customFields->keysInWording($title, ['blocks' => $blocks]) as $key) {
+            $values[ContractCustomFieldScanner::PREFIX.$key] = sprintf('[%s]', $key);
+        }
+
+        try {
+            $html = $this->renderer->title($title, $values).$this->renderer->render($blocks, $values);
+        } catch (UnrenderableBlockException $unrenderableBlockException) {
+            throw new FieldException('content', $unrenderableBlockException->describe($this->translator, $contract->getLocale()));
+        }
+
+        $unknown = $this->renderer->unknownTokens($html, $values, $this->variables->deferredTokens());
+
+        if ([] !== $unknown) {
+            throw new FieldException('content', $this->translator->trans('backend.studio.contracts.errors.unknown_tokens', ['{tokens}' => implode(', ', array_map(static fn (string $token): string => sprintf('{{%s}}', $token), $unknown))]));
+        }
     }
 
     protected function assertPublished(ContractTemplateVersionInterface $version, string $field): void
@@ -920,10 +1077,8 @@ class ContractManager implements ContractManagerInterface
 
         $used = [];
 
-        foreach ($this->partsOf($contract) as $version) {
-            foreach ($this->customFields->keysOf($version, self::AMENDS_PREFIX) as $key) {
-                $used[self::AMENDS_PREFIX.$key] = true;
-            }
+        foreach ($this->keysInParts($contract, self::AMENDS_PREFIX) as $key) {
+            $used[self::AMENDS_PREFIX.$key] = true;
         }
 
         return array_keys($used);

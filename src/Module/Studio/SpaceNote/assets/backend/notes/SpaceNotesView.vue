@@ -85,7 +85,7 @@ function tint(note) {
                 <AppButton
                     v-if="editable"
                     class="w-full sm:w-auto"
-                    variant="primary"
+                    variant="ghost"
                     size="sm"
                     v-on:click="emit('create')"
                 >

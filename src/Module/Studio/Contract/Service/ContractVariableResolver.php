@@ -172,6 +172,20 @@ final readonly class ContractVariableResolver
     }
 
     /**
+     * An example for every catalogue token, keyed without braces.
+     *
+     * What a wording is checked against before a contract can fill it: the
+     * same answer the trame editor gets, so a text adapted for one contract
+     * is held to the same rule as the trame it came from.
+     *
+     * @return array<string, string>
+     */
+    public function examples(): array
+    {
+        return $this->catalogue->examples();
+    }
+
+    /**
      * The city and the date the signer declared, as the document prints them.
      *
      * Empty strings while nobody has signed: the caller decides what a blank

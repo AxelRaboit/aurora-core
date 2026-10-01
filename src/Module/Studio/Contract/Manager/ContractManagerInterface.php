@@ -7,6 +7,7 @@ namespace Aurora\Module\Studio\Contract\Manager;
 use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Module\Studio\Contract\Dto\ContractInputInterface;
 use Aurora\Module\Studio\Contract\Entity\ContractInterface;
+use Aurora\Module\Studio\Contract\Enum\ContractTemplateKindEnum;
 use Aurora\Module\Studio\Contract\Exception\FrozenContractIsImmutableException;
 use Aurora\Module\Studio\Contract\Termination\Dto\ContractTerminationInputInterface;
 
@@ -65,4 +66,21 @@ interface ContractManagerInterface
 
     /** A new draft carrying the same choices, to correct and seal again. */
     public function duplicate(ContractInterface $contract): ContractInterface;
+
+    /**
+     * Writes the text of one part for this contract alone.
+     *
+     * @param array<string, mixed> $content Editor.js document (`blocks`)
+     *
+     * @throws FrozenContractIsImmutableException once sealed
+     * @throws FieldException                     when the text could not be sealed
+     */
+    public function adaptWording(ContractInterface $contract, ContractTemplateKindEnum $part, string $title, array $content): void;
+
+    /**
+     * Goes back to the trame's text for one part.
+     *
+     * @throws FrozenContractIsImmutableException once sealed
+     */
+    public function resetWording(ContractInterface $contract, ContractTemplateKindEnum $part): void;
 }

@@ -18,8 +18,10 @@ use Aurora\Module\Studio\Contract\Message\ExpireLapsedContractsMessage;
 use Aurora\Module\Studio\Contract\Message\RemindUnsignedContractsMessage;
 use Aurora\Module\Studio\Contract\MessageHandler\ExpireLapsedContractsHandler;
 use Aurora\Module\Studio\Contract\MessageHandler\RemindUnsignedContractsHandler;
+use Aurora\Module\Studio\Contract\Serializer\ContractSerializer;
 use Aurora\Module\Studio\Customer\Entity\Customer;
 use Aurora\Tests\Integration\IntegrationTestCase;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
@@ -31,6 +33,7 @@ use function array_filter;
 use function array_values;
 use function count;
 use function json_decode;
+use function mb_substr;
 use function sprintf;
 
 /**
@@ -136,13 +139,21 @@ final class ContractScheduledJobsTest extends IntegrationTestCase
     {
         $id = $this->sentContract();
         $this->entityManager->getConnection()->executeStatement(
-            "UPDATE core_contract_access_links SET expires_at = NOW() - INTERVAL '1 day' WHERE contract_id = :id",
+            "UPDATE core_contract_access_links SET sent_at = NOW() - INTERVAL '40 days', expires_at = NOW() - INTERVAL '10 days' WHERE contract_id = :id",
+            ['id' => $id],
+        );
+        $this->entityManager->getConnection()->executeStatement(
+            "UPDATE core_contracts SET created_at = NOW() - INTERVAL '41 days', frozen_at = NOW() - INTERVAL '40 days' WHERE id = :id",
             ['id' => $id],
         );
 
         static::getContainer()->get(ExpireLapsedContractsHandler::class)(new ExpireLapsedContractsMessage());
 
         self::assertSame('expired', $this->contract($id)->getStatus()->value);
+
+        // The lapse is the last thing that happened to it, for the list.
+        $row = static::getContainer()->get(ContractSerializer::class)->serializeMany([$this->contract($id)])[0];
+        self::assertSame(new DateTimeImmutable('-10 days')->format('Y-m-d'), mb_substr((string) $row['lastActivityAt'], 0, 10));
     }
 
     public function testAContractStillOutWithTheCustomerIsNotExpired(): void

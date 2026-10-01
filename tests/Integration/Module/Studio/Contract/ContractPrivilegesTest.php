@@ -59,8 +59,10 @@ final class ContractPrivilegesTest extends IntegrationTestCase
         // Reading stays open: the refusals below are about the gesture.
         $this->client->request('GET', sprintf('/backend/studio/contracts/%d', $contract->getId()));
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
+        $this->client->request('GET', sprintf('/backend/studio/contracts/%d/wording/body', $contract->getId()));
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
-        foreach (['update', 'freeze', 'send', 'remind', 'revoke-link', 'cancel', 'duplicate', 'terminate', 'countersign', 'delete'] as $gesture) {
+        foreach (['update', 'freeze', 'send', 'remind', 'revoke-link', 'cancel', 'duplicate', 'terminate', 'countersign', 'delete', 'wording/body/save', 'wording/body/reset'] as $gesture) {
             $this->client->jsonRequest('POST', sprintf('/backend/studio/contracts/%d/%s', $contract->getId(), $gesture));
 
             self::assertSame(403, $this->client->getResponse()->getStatusCode(), $gesture);
