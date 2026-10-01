@@ -41,6 +41,7 @@ use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
+use function mb_substr_count;
 use function preg_match;
 use function sprintf;
 
@@ -204,6 +205,37 @@ final class ContractFreezeTest extends IntegrationTestCase
         $this->contracts->freeze($withCapital);
 
         self::assertMatchesRegularExpression('/SARL au capital de 10.000[^,]*€, dont le siège/u', (string) $withCapital->getRenderedHtml());
+    }
+
+    /**
+     * The identity list of a sole trader: no RCS, no VAT number. The lines
+     * printed « RCS : » with nothing after them; they are left out now, and
+     * a line with a value, or with no variable at all, stays.
+     */
+    public function testAListLineWhoseVariablesAreAllEmptyIsLeftOut(): void
+    {
+        $contract = $this->draft(body: [
+            ['type' => 'list', 'data' => ['style' => 'unordered', 'items' => [
+                ['content' => '<b>Raison sociale</b> : {{customer.legal_name}}', 'items' => []],
+                ['content' => '<b>RCS</b> : {{customer.trade_register}}', 'items' => []],
+                ['content' => '<b>TVA</b> : {{customer.vat_number}}', 'items' => []],
+                ['content' => 'Une ligne sans variable', 'items' => []],
+            ]]],
+            ['type' => 'list', 'data' => ['style' => 'unordered', 'items' => [
+                ['content' => '<b>Téléphone</b> : {{customer.phone}}', 'items' => []],
+            ]]],
+        ]);
+
+        $this->contracts->freeze($contract);
+        $html = (string) $contract->getRenderedHtml();
+
+        self::assertStringContainsString('Boulangerie Durand', $html);
+        self::assertStringContainsString('Une ligne sans variable', $html);
+        self::assertStringNotContainsString('RCS', $html);
+        self::assertStringNotContainsString('TVA', $html);
+        // A list left with no line is no list at all.
+        self::assertStringNotContainsString('Téléphone', $html);
+        self::assertSame(1, mb_substr_count($html, '<ul>'));
     }
 
     public function testAFrozenContractRefusesEveryWrite(): void

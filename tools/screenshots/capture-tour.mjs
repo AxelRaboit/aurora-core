@@ -905,16 +905,22 @@ const SHOTS = [
     },
     {
         name: "tour-avenant-scelle",
-        // Le contresigné : le seul état qui montre à la fois le sceau, les deux
-        // signatures et la chaîne d'avenants. Atteint par le menu d'une ligne
-        // plutôt que par un identifiant en dur, qui dépend de ce que la base
-        // contenait déjà quand les fixtures ont tourné.
+        // Le contrat conclu qui a un avenant : le seul état qui montre à la
+        // fois le sceau, les deux signatures et la chaîne d'avenants. Atteint
+        // par sa référence dans la liste plutôt que par un identifiant en dur,
+        // qui dépend de ce que la base contenait quand les fixtures ont tourné.
+        // La référence sans suffixe : celle en « -A1 » est l'avenant lui-même.
         path: "/backend/studio/contracts",
         async prepare(page) {
-            const row = page.getByRole("row").filter({ hasText: "Contresigné" }).first();
-            await row.getByRole("button", { name: /^Actions pour/ }).click();
-            await page.locator("a[href*='/backend/studio/contracts/']").first().click();
+            const row = page
+                .locator("main table tbody tr")
+                .filter({ hasText: "Conclu" })
+                .filter({ hasText: "Roux Photographie" })
+                .filter({ hasNotText: "-A1" })
+                .first();
+            await row.locator("a[href*='/backend/studio/contracts/']").first().click();
             await page.waitForLoadState("networkidle");
+            await page.waitForTimeout(1_500);
         },
     },
 
