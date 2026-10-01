@@ -80,10 +80,10 @@ final class PublicDeckController extends AbstractController
         // says nothing about the deck behind it - not its title, not its
         // author, not how many slides it holds.
         if ($link->isLocked() && !$this->isUnlocked($request, $token)) {
-            return $this->render('@Studio/public/deck_locked.html.twig', [
+            return $this->privately($this->render('@Studio/public/deck_locked.html.twig', [
                 'token' => $token,
                 'failed' => false,
-            ]);
+            ]));
         }
 
         $link->touch($now);
@@ -102,10 +102,10 @@ final class PublicDeckController extends AbstractController
             $deck['slides'],
         );
 
-        return $this->render('@Studio/public/deck.html.twig', [
+        return $this->privately($this->render('@Studio/public/deck.html.twig', [
             'deck' => $deck,
             'expiresAt' => $link->getExpiresAt(),
-        ]);
+        ]));
     }
 
     /**
@@ -131,17 +131,29 @@ final class PublicDeckController extends AbstractController
             || !$link->isLocked()
             || !password_verify($password, (string) $link->getPasswordHash())
         ) {
-            return $this->render('@Studio/public/deck_locked.html.twig', [
+            return $this->privately($this->render('@Studio/public/deck_locked.html.twig', [
                 'token' => $token,
                 'failed' => true,
-            ]);
+            ]));
         }
 
         $unlocked = $request->getSession()->get(self::UNLOCKED, []);
         $unlocked[$token] = true;
         $request->getSession()->set(self::UNLOCKED, $unlocked);
 
-        return $this->redirectToRoute('public_deck_show', ['token' => $token]);
+        return $this->privately($this->redirectToRoute('public_deck_show', ['token' => $token]));
+    }
+
+    private function privately(Response $response): Response
+    {
+        // The three headers the space and contract pages set. The address is
+        // the whole secret here, so it must not leak through a referrer, land
+        // in a search index, or sit in a shared cache for the next visitor.
+        $response->headers->set('Referrer-Policy', 'no-referrer');
+        $response->headers->set('X-Robots-Tag', 'noindex, nofollow, noarchive');
+        $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+
+        return $response;
     }
 
     private function isUnlocked(Request $request, string $token): bool

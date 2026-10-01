@@ -194,6 +194,43 @@ final class DeckShareLinkTest extends IntegrationTestCase
     }
 
     /**
+     * The address is the whole secret, so no answer to it may leak it.
+     *
+     * Every page the address can produce is checked: the deck, the door, the
+     * door after a wrong password, and the redirect after the right one.
+     * `Cache-Control` and `Referrer-Policy` carry the proof, because the test
+     * kernel runs in debug and Symfony already sets `X-Robots-Tag: noindex`
+     * on every response there.
+     */
+    public function testTheAddressNeverLeaks(): void
+    {
+        $this->client->request('GET', '/decks/'.$this->link()->getToken());
+        $this->assertKeptPrivate('the deck');
+
+        [$locked, $phrase] = $this->lockedLink();
+
+        $this->client->request('GET', '/decks/'.$locked->getToken());
+        $this->assertKeptPrivate('the door');
+
+        $this->client->request('POST', '/decks/'.$locked->getToken().'/unlock', ['password' => $phrase.'-faux']);
+        $this->assertKeptPrivate('the door after a wrong password');
+
+        $this->client->request('POST', '/decks/'.$locked->getToken().'/unlock', ['password' => $phrase]);
+        self::assertResponseRedirects();
+        $this->assertKeptPrivate('the redirect after the right password');
+    }
+
+    private function assertKeptPrivate(string $page): void
+    {
+        $headers = $this->client->getResponse()->headers;
+
+        self::assertSame('no-referrer', $headers->get('Referrer-Policy'), $page);
+        self::assertStringContainsString('noindex', (string) $headers->get('X-Robots-Tag'), $page);
+        self::assertStringContainsString('no-store', (string) $headers->get('Cache-Control'), $page);
+        self::assertStringContainsString('private', (string) $headers->get('Cache-Control'), $page);
+    }
+
+    /**
      * A link behind a passphrase, and the passphrase.
      *
      * Generated rather than written down, and not for secrecy - this one lives
