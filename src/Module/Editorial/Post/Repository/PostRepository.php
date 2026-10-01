@@ -9,6 +9,7 @@ use Aurora\Core\Repository\Trait\PaginationTrait;
 use Aurora\Module\Editorial\Post\Entity\Post;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
+use Aurora\Module\Editorial\Post\Enum\PostVisibilityEnum;
 use Aurora\Module\Editorial\Post\Service\PostPictures;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\Order;
@@ -51,6 +52,7 @@ class PostRepository extends ResolveTargetEntityRepository
      * @param list<int>    $postTypeIds
      * @param list<int>    $termIds
      * @param list<string> $statuses
+     * @param list<string> $visibilities
      *
      * @return array{items: list<PostInterface>, total: int, page: int, totalPages: int}
      */
@@ -64,6 +66,7 @@ class PostRepository extends ResolveTargetEntityRepository
         ?int $authorId = null,
         array $termIds = [],
         array $statuses = [],
+        array $visibilities = [],
     ): array {
         // The translation of the locale is joined to filter and search on, not
         // selected: a fetch join restricted by `WITH` marks the collection as
@@ -82,7 +85,7 @@ class PostRepository extends ResolveTargetEntityRepository
             ->leftJoin('p.translations', 't', 'WITH', 't.locale = :locale')
             ->setParameter('locale', $locale);
 
-        $this->applyFilters($items, $count, $postTypeIds, $trashed, $authorId, $termIds, $statuses);
+        $this->applyFilters($items, $count, $postTypeIds, $trashed, $authorId, $termIds, $statuses, $visibilities);
 
         if (null !== $search && '' !== mb_trim($search)) {
             $ranked = $this->applySearch($items, $count, $search);
@@ -109,18 +112,18 @@ class PostRepository extends ResolveTargetEntityRepository
      * Left optional because the same lookup, without the type, is what tells
      * the controller that a publication has changed type since the address was
      * shared - which is the one case that must still redirect rather than 404.
+     *
+     * On the site only: a publication shared by link has no address under
+     * the site, and answering here would give it one.
      */
     public function findPublishedBySlug(string $slug, string $locale, ?int $postTypeId = null): ?PostInterface
     {
-        $query = $this->createQueryBuilder('p')
+        $query = $this->onSite($this->createQueryBuilder('p'))
             ->innerJoin('p.translations', 't')
             ->andWhere('t.locale = :locale')
             ->andWhere('t.slug = :slug')
-            ->andWhere('p.status = :status')
-            ->andWhere('p.deletedAt IS NULL')
             ->setParameter('locale', $locale)
             ->setParameter('slug', $slug)
-            ->setParameter('status', PostStatusEnum::Published)
             ->setMaxResults(1);
 
         if (null !== $postTypeId) {
@@ -223,10 +226,6 @@ class PostRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * The shape every public listing starts from. An INNER JOIN on the
-     * translation is what drops posts untranslated in this locale.
-     */
-    /**
      * The newest published posts, for a list zone that keeps itself current.
      *
      * Both filters are optional and combine: a type alone, a term alone, both
@@ -272,14 +271,34 @@ class PostRepository extends ResolveTargetEntityRepository
         return $posts;
     }
 
+    /**
+     * The shape every public listing starts from. An INNER JOIN on the
+     * translation is what drops posts untranslated in this locale.
+     */
     private function publishedQueryBuilder(string $locale): QueryBuilder
     {
-        return $this->createQueryBuilder('p')
+        return $this->onSite($this->createQueryBuilder('p'))
             ->innerJoin('p.translations', 't', 'WITH', 't.locale = :locale')
+            ->setParameter('locale', $locale);
+    }
+
+    /**
+     * Published, not trashed, offered by the site: {@see PostInterface::isOnSite()}
+     * as a query.
+     *
+     * **The one place the site's queries say it.** It used to be written out
+     * in each of them, and the day a third condition joined the first two,
+     * every copy had to learn it. A query of the site that does not go through
+     * here would list a client's audit beside the articles.
+     */
+    private function onSite(QueryBuilder $queryBuilder): QueryBuilder
+    {
+        return $queryBuilder
             ->andWhere('p.status = :published')
             ->andWhere('p.deletedAt IS NULL')
-            ->setParameter('locale', $locale)
-            ->setParameter('published', PostStatusEnum::Published);
+            ->andWhere('p.visibility = :onSite')
+            ->setParameter('published', PostStatusEnum::Published)
+            ->setParameter('onSite', PostVisibilityEnum::Site);
     }
 
     /**
@@ -368,8 +387,7 @@ class PostRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Every published post with its translations and type, for the sitemap
-     * and the feed.
+     * Every post of the site with its translations and type, for the sitemap.
      *
      * Joined and selected in one go: the sitemap walks every translation of
      * every post, and letting Doctrine lazy-load them would be one query per
@@ -379,10 +397,78 @@ class PostRepository extends ResolveTargetEntityRepository
      */
     public function findAllPublishedForSitemap(): array
     {
-        return $this->createQueryBuilder('p')
+        return $this->onSite($this->createQueryBuilder('p'))
             ->leftJoin('p.translations', 't')
             ->leftJoin('p.postType', 'pt')
             ->addSelect('t', 'pt')
+            ->orderBy('p.publishedAt', Order::Descending->value)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * The publications written for one customer space, newest change first,
+     * trashed ones left out.
+     *
+     * @param bool $publishedOnly what the client's own portal lists: a draft
+     *                            is the team's until it is published
+     *
+     * @return list<PostInterface>
+     */
+    public function findForCustomerSpace(int $customerSpaceId, bool $publishedOnly = false): array
+    {
+        $query = $this->createQueryBuilder('p')
+            ->leftJoin('p.translations', 't')
+            ->addSelect('t')
+            ->where('p.customerSpaceId = :space')
+            ->andWhere('p.deletedAt IS NULL')
+            ->setParameter('space', $customerSpaceId)
+            ->orderBy('p.updatedAt', Order::Descending->value);
+
+        if ($publishedOnly) {
+            $query->andWhere('p.status = :status')->setParameter('status', PostStatusEnum::Published);
+        }
+
+        /** @var list<PostInterface> $posts */
+        $posts = $query->getQuery()->getResult();
+
+        return $posts;
+    }
+
+    /**
+     * Lets go of a space that is being deleted.
+     *
+     * Its publications stay - deliverables the client may still hold a link
+     * to - and remain shared by link only. One UPDATE rather than a walk over
+     * the entities: a space can hold a year of them.
+     */
+    public function detachFromCustomerSpace(int $customerSpaceId): void
+    {
+        $this->createQueryBuilder('p')
+            ->update()
+            ->set('p.customerSpaceId', ':none')
+            ->where('p.customerSpaceId = :space')
+            ->setParameter('none', null)
+            ->setParameter('space', $customerSpaceId)
+            ->getQuery()
+            ->execute();
+    }
+
+    /**
+     * Every post a visitor can read, on the site or through a link, with its
+     * translations.
+     *
+     * Wider than the sitemap on purpose: what asks this wants to know what
+     * visitors are served, and a publication shared by link is served to
+     * whoever holds the link - its pictures included.
+     *
+     * @return list<PostInterface>
+     */
+    public function findAllPublished(): array
+    {
+        return $this->createQueryBuilder('p')
+            ->leftJoin('p.translations', 't')
+            ->addSelect('t')
             ->where('p.status = :status')
             ->andWhere('p.deletedAt IS NULL')
             ->setParameter('status', PostStatusEnum::Published)
@@ -394,21 +480,19 @@ class PostRepository extends ResolveTargetEntityRepository
     /**
      * Published publications, for a picker that has to name one.
      *
-     * Published only, and deliberately: an unpublished publication is a draft,
-     * the archive refuses to borrow a draft's header at render, and offering
-     * one here would be offering a choice that silently does nothing.
+     * Published on the site only, and deliberately: an unpublished publication
+     * is a draft, the archive refuses to borrow a draft's header at render -
+     * or one shared by link - and offering one here would be offering a choice
+     * that silently does nothing.
      *
      * @return list<PostInterface>
      */
     public function findAllPublishedForPicker(): array
     {
         /** @var list<PostInterface> $posts */
-        $posts = $this->createQueryBuilder('p')
+        $posts = $this->onSite($this->createQueryBuilder('p'))
             ->leftJoin('p.translations', 't')
             ->addSelect('t')
-            ->where('p.status = :status')
-            ->andWhere('p.deletedAt IS NULL')
-            ->setParameter('status', PostStatusEnum::Published)
             ->orderBy('p.publishedAt', Order::Descending->value)
             ->getQuery()
             ->getResult();
@@ -499,7 +583,11 @@ class PostRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * The terms that carry at least one published, untrashed publication.
+     * The terms that carry at least one publication of the site.
+     *
+     * Of the site, not merely published: a term carried only by a publication
+     * shared by link would otherwise get a page of its own, listing nothing,
+     * and the sitemap would name it.
      *
      * What the sitemap asks of every term. Asked of the entities, it loaded
      * every publication of every term - JSON columns included - to test one
@@ -509,12 +597,9 @@ class PostRepository extends ResolveTargetEntityRepository
      */
     public function findTermIdsWithPublishedPost(): array
     {
-        $ids = $this->createQueryBuilder('p')
+        $ids = $this->onSite($this->createQueryBuilder('p'))
             ->select('DISTINCT te.id')
             ->innerJoin('p.terms', 'te')
-            ->where('p.status = :published')
-            ->andWhere('p.deletedAt IS NULL')
-            ->setParameter('published', PostStatusEnum::Published)
             ->getQuery()
             ->getSingleColumnResult();
 
@@ -669,6 +754,7 @@ class PostRepository extends ResolveTargetEntityRepository
         ?int $authorId,
         array $termIds,
         array $statuses,
+        array $visibilities,
     ): void {
         $both = [$items, $count];
 
@@ -686,6 +772,12 @@ class PostRepository extends ResolveTargetEntityRepository
         if ([] !== $statuses) {
             foreach ($both as $queryBuilder) {
                 $queryBuilder->andWhere('p.status IN (:statuses)')->setParameter('statuses', $statuses);
+            }
+        }
+
+        if ([] !== $visibilities) {
+            foreach ($both as $queryBuilder) {
+                $queryBuilder->andWhere('p.visibility IN (:visibilities)')->setParameter('visibilities', $visibilities);
             }
         }
 

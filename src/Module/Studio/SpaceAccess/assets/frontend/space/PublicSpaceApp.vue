@@ -23,7 +23,7 @@
  */
 import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { CalendarDays, IdCard, Link2, MessagesSquare, Paperclip } from "lucide-vue-next";
+import { CalendarDays, IdCard, Link2, MessagesSquare, NotebookText, Paperclip } from "lucide-vue-next";
 import { useFileSize } from "@/shared/composables/format/useFileSize.js";
 import { toast } from "vue-sonner";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
@@ -98,6 +98,8 @@ const props = defineProps({
     information: { type: Object, default: null },
     /** Ce que le studio a ouvert au client, et rien d'autre. */
     resources: { type: Array, default: () => [] },
+    /** Les documents publiés pour ce client : audits, stratégies. */
+    documents: { type: Array, default: () => [] },
 });
 
 const { t, d } = useI18n();
@@ -238,6 +240,9 @@ const VIEWS = [
     { key: "calendar", labelKey: "studio.public.space.tab_calendar", icon: CalendarDays },
     { key: "chat", labelKey: "studio.public.space.tab_chat", icon: MessagesSquare },
     { key: "files", labelKey: "studio.public.space.tab_files", icon: Paperclip },
+    // Ce que le prestataire a écrit pour ce client, un audit, une stratégie :
+    // on les lit, donc près des fichiers plutôt qu'avec la fiche.
+    { key: "documents", labelKey: "studio.public.space.tab_documents", icon: NotebookText },
     // Ce que le prestataire a épinglé pour ce client, puis la fiche qu'il
     // tient sur lui. En dernier parce qu'on les consulte de temps en temps :
     // ce qu'on vient voir est le calendrier.
@@ -248,12 +253,14 @@ const VIEWS = [
 const hasChat = computed(() => props.chatChannels.length > 0);
 const hasFiles = computed(() => props.spaceFiles.length > 0 || driveFiles.value.length > 0);
 const hasResources = computed(() => props.resources.length > 0);
+const hasDocuments = computed(() => props.documents.length > 0);
 const hasInformation = computed(() => null !== props.information);
 
 const views = computed(() => VIEWS.filter((entry) => {
     if ("chat" === entry.key) return hasChat.value;
     if ("files" === entry.key) return hasFiles.value;
     if ("resources" === entry.key) return hasResources.value;
+    if ("documents" === entry.key) return hasDocuments.value;
     if ("information" === entry.key) return hasInformation.value;
 
     return true;
@@ -880,6 +887,28 @@ function isLate(event) {
                 </ul>
             </section>
         </template>
+
+        <!-- Les documents écrits pour ce client. Chacun s'ouvre dans sa propre
+             page, sans le reste de l'espace autour, par le lien de l'espace :
+             aucun mot de passe de plus. -->
+        <section v-if="'documents' === view" class="space-y-3">
+            <ul class="space-y-2">
+                <li v-for="document in documents" :key="document.id">
+                    <a
+                        :href="document.url"
+                        class="aurora-card flex flex-col gap-1 p-3 no-underline transition-colors hover:bg-surface-2/60"
+                    >
+                        <span class="text-sm font-medium text-primary">
+                            {{ document.title || t("studio.public.space.document_untitled") }}
+                        </span>
+                        <span v-if="document.description" class="text-xs text-secondary">{{ document.description }}</span>
+                        <span class="text-xs text-muted">
+                            {{ t("studio.public.space.document_updated_on", { date: d(new Date(document.updatedAt), "long") }) }}
+                        </span>
+                    </a>
+                </li>
+            </ul>
+        </section>
 
         <!-- Ce que le prestataire a épinglé pour ce client : une maquette, un
              accès, la personne à qui écrire. Ce qui n'a pas été ouvert n'est

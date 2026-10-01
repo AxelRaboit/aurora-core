@@ -6,6 +6,7 @@ namespace Aurora\Module\Studio\CustomerSpace\Manager;
 
 use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
+use Aurora\Module\Editorial\Post\Repository\PostRepository;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\Customer\Dto\CustomerInputFactoryInterface;
@@ -46,6 +47,7 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
         protected readonly SpaceContentItemManagerInterface $contentItems,
         protected readonly SpaceVisibility $visibility,
         protected readonly Security $security,
+        protected readonly PostRepository $posts,
     ) {}
 
     public function create(CustomerSpaceInputInterface $input): CustomerSpaceInterface
@@ -99,6 +101,9 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
     {
         $this->auditDeleted($space);
         $this->contentItems->unscheduleSpace($space);
+        // Its documents are deliverables the client may still hold a link to:
+        // they stay, shared by link, no longer attached to anything.
+        $this->posts->detachFromCustomerSpace((int) $space->getId());
 
         $this->entityManager->remove($space);
         $this->entityManager->flush();

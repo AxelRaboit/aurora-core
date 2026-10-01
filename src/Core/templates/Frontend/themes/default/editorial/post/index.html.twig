@@ -1,14 +1,19 @@
-{% extends 'Frontend/themes/default/layout.html.twig' %}
+{# Read through a link, the page extends a layout of its own instead of the
+   site's: no menu, no footer of links, a header that says who it was prepared
+   for. Everything else is this same template, so the two cannot drift. #}
+{% extends readingLayout|default(null) ?: 'Frontend/themes/default/layout.html.twig' %}
 
 {% block seo_define %}
+    {# Read through a link, there is no address on the site to name as
+       canonical: for a publication shared by link that page answers 404. #}
     {% do seo({
         title: translationData.metaTitle ?: translationData.title,
         description: translationData.metaDescription ?: translationData.description,
         image: translationData.ogImage.publicUrl|default(null),
         imageAlt: translationData.ogImage.alt|default(null),
-        canonical: translationData.canonicalUrl ?: (translationData.slug
+        canonical: reading|default(null) ? '' : (translationData.canonicalUrl ?: (translationData.slug
             ? path('editorial_post', {locale: locale, postTypeSlug: postData.postType.slug, slug: translationData.slug})
-            : ''),
+            : '')),
         type: 'article',
         noindex: translationData.noindex,
         jsonLd: translationData.jsonLd,

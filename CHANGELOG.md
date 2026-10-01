@@ -5,6 +5,35 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.314] - 2026-10-01
+
+### Ajouté
+
+#### Des publications lues par un lien, hors du site
+Une publication peut maintenant être « Lien seulement » : choix « Diffusion » sous le statut, dans l'onglet Paramétrage. Publiée, elle n'apparaît nulle part sur le site : ni adresse sur le site, ni liste, archive, recherche, flux RSS, sitemap, menu, carte de la grille ni page de terme. On la lit par un lien de lecture.
+
+- « Liens de lecture » dans l'éditeur : un lien par destinataire, avec un intitulé, une expiration et un mot de passe facultatifs, et le nombre d'ouvertures. Révoquer coupe un lien sans toucher aux autres. La fenêtre prévient quand la publication n'est pas publiée, ou quand une image n'est pas publiée dans la médiathèque.
+- La page de lecture reprend la publication telle quelle, sans le menu ni le pied du site. Son en-tête se règle par publication : logo et nom du site, « Préparé pour », date de mise à jour. Pas de commentaires, de boutons de partage ni d'indexation, et seules les langues écrites sont proposées.
+- Un lien protégé demande son mot de passe sans rien dire de ce qu'il garde.
+- L'aperçu d'une publication « Lien seulement » montre la page de lecture.
+- La liste des publications marque les publications par lien et permet de les filtrer.
+
+#### Des livrables dans l'espace client
+Un onglet « Livrables » dans chaque espace client : « Nouveau document » crée un brouillon par lien, préparé pour le client, et ouvre l'éditeur des publications, avec toutes les zones de la grille. Un livrable reste toujours par lien. Publié, il apparaît dans l'onglet « Livrables » de l'espace du client, qui le lit sans autre mot de passe. Supprimer l'espace garde ses livrables.
+
+La démo contient un audit d'exemple pour Atelier Dupont et un modèle de stratégie de contenus à dupliquer.
+
+### Corrigé
+
+#### Une carte de publication ne montre plus un brouillon
+La zone « Publication » de la grille affichait aussi une publication en brouillon, avec un lien vers une page introuvable. Elle n'affiche plus que les publications du site.
+
+### Dans aurora-client
+
+Rien à faire au-delà de `make aurora-update` : trois migrations arrivent avec, et ne changent rien aux publications existantes.
+
+---
+
 ## [0.9.313] - 2026-10-01
 
 ### Corrigé

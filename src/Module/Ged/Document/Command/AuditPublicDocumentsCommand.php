@@ -175,8 +175,9 @@ final class AuditPublicDocumentsCommand extends Command
     {
         // The public ones, translations joined: read post by post, each
         // publication's languages cost a query. A trashed publication keeps
-        // its status but no longer has a page, so it is not listed.
-        return $this->postRepository->findAllPublishedForSitemap();
+        // its status but no longer has a page, so it is not listed. Shared by
+        // link counts: whoever holds the link is served its pictures.
+        return $this->postRepository->findAllPublished();
     }
 
     /**

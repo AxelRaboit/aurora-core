@@ -252,6 +252,17 @@ export function usePostEditor(props) {
         // Whether the page prints its own title and summary. On the post like
         // the banner below, for the same reason: it is design, written once.
         titleVisible: props.post?.titleVisible ?? true,
+        // On the site, or read through a link only. A new publication starts on
+        // the site, which is what every publication was before the choice.
+        visibility: props.post?.visibility ?? "site",
+        // How the page a reading link opens introduces itself. The defaults
+        // are the server's, repeated so a new publication shows them.
+        readingPage: {
+            preparedFor: null,
+            showDate: true,
+            showLogo: true,
+            ...(props.post?.readingPage ?? {}),
+        },
         // A string, because the field is one: an emptied box has to reach the
         // server as "" so it can mean "no position" rather than zero.
         position:

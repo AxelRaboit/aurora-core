@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Editorial\Menu\Service;
 
 use Aurora\Module\Editorial\Menu\Enum\MenuItemTargetTypeEnum;
+use Aurora\Module\Editorial\Post\Enum\PostVisibilityEnum;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
 use Aurora\Module\Editorial\PostType\Repository\PostTypeRepository;
 use Aurora\Module\Editorial\Taxonomy\Repository\TaxonomyRepository;
@@ -44,6 +45,9 @@ final readonly class MenuTargetFinder
             locale: $locale,
             limit: self::LIMIT,
             search: '' !== $query ? $query : null,
+            // A menu entry is a link of the site, and a publication shared by
+            // link has no address there to point at.
+            visibilities: [PostVisibilityEnum::Site->value],
         );
 
         $options = [];

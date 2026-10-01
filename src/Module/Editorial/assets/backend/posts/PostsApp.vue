@@ -34,9 +34,11 @@ const props = defineProps({
     taxonomies: { type: Array, default: () => [] },
     locales: { type: Array, default: () => [] },
     statusOptions: { type: Array, default: () => [] },
+    visibilityOptions: { type: Array, default: () => [] },
     postTypeIds: { type: Array, default: () => [] },
     termIds: { type: Array, default: () => [] },
     statuses: { type: Array, default: () => [] },
+    visibilities: { type: Array, default: () => [] },
     listPath: { type: String, required: true },
     newPath: { type: String, required: true },
     editPathTemplate: { type: String, required: true },
@@ -48,7 +50,7 @@ const props = defineProps({
 
 const {
     items, total, page, totalPages, loading,
-    search, postTypeIds, termIds, statuses,
+    search, postTypeIds, termIds, statuses, visibilities,
     activeFilterCount, goToPage, toggleIn, clearFilters,
     pendingDelete, deleteLoading, confirmDelete, doDelete,
     editPath, reload,
@@ -349,6 +351,14 @@ const pageActions = computed(() => {
                             />
                         </template>
                     </AppRevealList>
+                    <p class="pt-2 text-xs uppercase tracking-wide text-muted">{{ t("backend.posts.filter_visibility") }}</p>
+                    <AppCheckbox
+                        v-for="visibility in visibilityOptions"
+                        :key="visibility"
+                        :model-value="visibilities.includes(visibility)"
+                        :label="t(`backend.posts.visibility.${visibility}`)"
+                        v-on:update:model-value="toggleIn(visibilities, visibility)"
+                    />
                 </div>
                 <div class="space-y-1">
                     <p class="text-xs uppercase tracking-wide text-muted">{{ t("backend.posts.filter_term") }}</p>
@@ -433,9 +443,19 @@ const pageActions = computed(() => {
                             </span>
                         </td>
                         <td class="px-4 py-2">
-                            <AppBadge :color="statusColors[post.status] ?? 'gray'">
-                                {{ t(`backend.posts.status.${post.status}`) }}
-                            </AppBadge>
+                            <span class="flex flex-wrap items-center gap-1">
+                                <AppBadge :color="statusColors[post.status] ?? 'gray'">
+                                    {{ t(`backend.posts.status.${post.status}`) }}
+                                </AppBadge>
+                                <!-- Only the exception is marked: a list where
+                                     every row says "on the site" says nothing. -->
+                                <AppBadge v-if="post.visibility === 'link'" color="violet">
+                                    {{ t("backend.posts.visibility.link") }}
+                                </AppBadge>
+                                <AppBadge v-if="post.customerSpaceName" color="sky">
+                                    {{ post.customerSpaceName }}
+                                </AppBadge>
+                            </span>
                         </td>
                         <td class="px-4 py-2 text-muted text-xs hidden lg:table-cell">{{ formatDateTime(post.updatedAt) }}</td>
                         <td class="px-4 py-2 sticky right-0 bg-surface border-l border-line/40">
@@ -474,9 +494,17 @@ const pageActions = computed(() => {
                         <p class="font-medium text-primary break-words">{{ post.title || t("backend.posts.untitled") }}</p>
                         <p class="text-xs text-muted font-mono mt-0.5">{{ post.reference }}</p>
                     </div>
-                    <AppBadge :color="statusColors[post.status] ?? 'gray'">
-                        {{ t(`backend.posts.status.${post.status}`) }}
-                    </AppBadge>
+                    <span class="flex shrink-0 flex-col items-end gap-1">
+                        <AppBadge :color="statusColors[post.status] ?? 'gray'">
+                            {{ t(`backend.posts.status.${post.status}`) }}
+                        </AppBadge>
+                        <AppBadge v-if="post.visibility === 'link'" color="violet">
+                            {{ t("backend.posts.visibility.link") }}
+                        </AppBadge>
+                        <AppBadge v-if="post.customerSpaceName" color="sky">
+                            {{ post.customerSpaceName }}
+                        </AppBadge>
+                    </span>
                 </div>
 
                 <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">

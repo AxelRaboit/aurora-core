@@ -1781,6 +1781,21 @@ backend:
                 link_url_required: 'Este enlace no tiene dirección.'
                 link_url_invalid: 'Esta dirección no es válida. Debe empezar por http:// o https://.'
                 link_url_too_long: 'Esta dirección es demasiado larga.'
+        space_publications:
+            intro: 'Auditorías, estrategias, informes: documentos escritos con la cuadrícula de las publicaciones, entregados al cliente por enlace y nunca publicados en el sitio. Una vez publicados, también aparecen en su espacio.'
+            add: 'Nuevo documento'
+            empty: 'Ningún documento para este cliente.'
+            empty_hint: 'Empiece una auditoría o una estrategia: se abre en el editor de publicaciones.'
+            untitled: 'Documento sin título'
+            updated_on: 'Modificado el {date}'
+            open: 'Abrir en el editor'
+            create_title: 'Nuevo documento'
+            title: 'Título'
+            title_placeholder: 'Auditoría de presencia en línea'
+            title_hint: 'Un borrador, compartido solo por enlace, preparado para este cliente. Lo completa en el editor.'
+            create: 'Crear y abrir'
+            errors:
+                title_required: 'Dé un título al documento.'
         space_resources:
             intro: 'Lo que está en otro sitio y se busca cada vez: una maqueta, un acceso, la persona que valida. Cada elemento se muestra u oculta al cliente, uno a uno.'
             add: Añadir
@@ -1872,6 +1887,7 @@ backend:
             view_notes: Notas
             view_information: Información
             view_resources: Recursos
+            view_publications: 'Entregables'
             view_settings: Ajustes
             files_empty: 'No hay archivos en este espacio'
             files_empty_hint: 'Los archivos subidos a los contenidos, por usted o por el cliente, aparecen aquí del más reciente al más antiguo.'
@@ -2122,6 +2138,9 @@ studio:
             tab_chat: Conversación
             tab_files: Documentos
             tab_resources: Enlaces
+            tab_documents: 'Entregables'
+            document_untitled: 'Documento sin título'
+            document_updated_on: 'Actualizado el {date}'
             tab_information: Información
             files_title: 'Los archivos de este espacio'
             files_open: Abrir

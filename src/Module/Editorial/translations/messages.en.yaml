@@ -1241,6 +1241,14 @@ backend:
     field_description: Summary
     field_post_type: Content type
     field_status: Status
+    field_visibility: 'Visibility'
+    visibility_locked: 'Always by link: this document belongs to the {name} customer space.'
+    customer_space:
+      belongs_to: 'Document of the {name} customer space.'
+      back: 'Back to the space'
+    visibility_hint:
+      site: 'Once published, it has its own address on the site and shows in listings, menus, search and the sitemap.'
+      link: 'Once published, the site shows it nowhere: no address on the site, no listing, no menu, no search, no sitemap. For a document shared with one person, such as a client audit.'
     field_scheduled_at: Publish at
     field_unpublish_at: "Take down on"
     unpublish_at_placeholder: "Never"
@@ -1260,6 +1268,7 @@ backend:
     clear_filters: Clear
     filter_type: Content type
     filter_status: Status
+    filter_visibility: 'Visibility'
     filter_term: Term
     no_terms: No term defined.
     title_column: Title
@@ -1272,12 +1281,55 @@ backend:
       scheduled: Scheduled
       published: Published
       archived: Archived
+    visibility:
+      site: 'On the site'
+      link: 'Link only'
+    reading:
+      page_title: 'Reading by link'
+      page_hint: 'A reading link opens this publication outside the site, without an account: for an audit or a strategy sent to a client. The page has no menu and no site footer; this is what it shows at the top.'
+      save_first: 'Save the publication to create its links.'
+      manage: 'Reading links'
+      prepared_for: 'Prepared for'
+      prepared_for_placeholder: 'Maison Durand'
+      prepared_for_hint: 'Shown at the top of the reading page. Empty: nothing is shown.'
+      show_date: 'Show the date it was last updated'
+      show_logo: 'Show the site''s logo and name'
+      title: 'Reading links'
+      intro: 'A secret address that opens this publication outside the site, without an account. Make one link per recipient: you can cut one person''s access without touching the others.'
+      not_readable: 'This publication is not published: its links will not open until it is. The draft can be read through the preview.'
+      withheld_title: 'One picture in this publication is not published | {count} pictures in this publication are not published'
+      withheld_hint: 'A link''s holder will not see them. Publish them in the library for them to appear.'
+      label: 'Label'
+      label_placeholder: 'Sent to Marie, 12 October'
+      expiry: 'Expiry'
+      no_expiry: 'No expiry'
+      days: '{count} days'
+      create: 'Create the link'
+      created: 'Link created'
+      password: 'Password'
+      password_placeholder: 'Leave empty for a link without a password'
+      password_hint: 'Send it some other way than the message carrying the link.'
+      none: 'No link yet.'
+      untitled: 'Untitled link'
+      copy: 'Copy the address'
+      copied: 'Address copied'
+      copy_manually: 'Copy the address shown; the browser refused the clipboard.'
+      revoke: 'Revoke'
+      revoked: 'Revoked'
+      revoked_toast: 'Link revoked'
+      expires_on: 'Expires on {date}'
+      locked: 'Password protected'
+      opened: 'Opened {count} times'
+      opened_once: 'Opened once'
+      last_used: 'last opened on {date}'
+      never_opened: 'Never opened'
     errors:
       position_invalid: The reading order must be a whole number above zero. Leave it empty to order by date.
       post_type_required: A content type is required.
       post_type_not_found: 'Content type {id} does not exist.'
       status_required: A status is required.
       status_invalid: Unknown status.
+      visibility_invalid: 'Unknown visibility.'
       scheduled_at_required: A scheduled post needs a date.
       scheduled_at_invalid: That date cannot be read.
       scheduled_at_in_past: A scheduled date must be in the future.
@@ -1542,6 +1594,16 @@ backend:
     css_class_placeholder: "menu-item--featured"
     label_placeholder: "Home"
 frontend:
+  reading:
+    prepared_for: 'Prepared for %name%'
+    back: 'Back to the space'
+    updated_on: 'Updated on %date%'
+    footer: 'This document was sent to you personally. Please do not share its link.'
+    locked_title: 'Protected document'
+    locked_intro: 'This address asks for a password. It was given to you with the link.'
+    locked_password: 'Password'
+    locked_submit: 'Open the document'
+    locked_failed: 'That link or that password does not fit.'
   sequence:
     search:
       placeholder: Search the documentation…

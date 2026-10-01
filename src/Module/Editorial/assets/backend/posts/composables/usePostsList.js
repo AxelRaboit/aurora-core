@@ -21,12 +21,14 @@ export function usePostsList(props) {
     const postTypeIds = ref([...(props.postTypeIds ?? [])]);
     const termIds = ref([...(props.termIds ?? [])]);
     const statuses = ref([...(props.statuses ?? [])]);
+    const visibilities = ref([...(props.visibilities ?? [])]);
 
     const activeFilterCount = computed(
         () =>
             postTypeIds.value.length +
             termIds.value.length +
-            statuses.value.length,
+            statuses.value.length +
+            visibilities.value.length,
     );
 
     function queryString() {
@@ -39,6 +41,8 @@ export function usePostsList(props) {
             params.set("termIds", termIds.value.join(","));
         if (statuses.value.length)
             params.set("statuses", statuses.value.join(","));
+        if (visibilities.value.length)
+            params.set("visibilities", visibilities.value.join(","));
 
         return params.toString();
     }
@@ -75,7 +79,7 @@ export function usePostsList(props) {
 
     // Any filter change resets to the first page: staying on page 4 of a
     // result set that now has two pages shows an empty screen.
-    watch([search, postTypeIds, termIds, statuses], () => {
+    watch([search, postTypeIds, termIds, statuses, visibilities], () => {
         page.value = 1;
         reload();
     });
@@ -99,6 +103,7 @@ export function usePostsList(props) {
         postTypeIds.value = [];
         termIds.value = [];
         statuses.value = [];
+        visibilities.value = [];
     }
 
     const {
@@ -126,6 +131,7 @@ export function usePostsList(props) {
         postTypeIds,
         termIds,
         statuses,
+        visibilities,
         activeFilterCount,
         reload,
         goToPage,

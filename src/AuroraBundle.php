@@ -51,6 +51,8 @@ use Aurora\Module\Editorial\Post\Entity\PostTranslation;
 use Aurora\Module\Editorial\Post\Entity\PostTranslationInterface;
 use Aurora\Module\Editorial\Post\Preview\Entity\PostPreviewToken;
 use Aurora\Module\Editorial\Post\Preview\Entity\PostPreviewTokenInterface;
+use Aurora\Module\Editorial\Post\Reading\Entity\PostReadingLink;
+use Aurora\Module\Editorial\Post\Reading\Entity\PostReadingLinkInterface;
 use Aurora\Module\Editorial\PostType\Entity\PostType;
 use Aurora\Module\Editorial\PostType\Entity\PostTypeField;
 use Aurora\Module\Editorial\PostType\Entity\PostTypeFieldInterface;
@@ -279,6 +281,7 @@ class AuroraBundle extends AbstractBundle
                     MenuItemTranslationInterface::class => MenuItemTranslation::class,
                     PostInterface::class => Post::class,
                     PostPreviewTokenInterface::class => PostPreviewToken::class,
+                    PostReadingLinkInterface::class => PostReadingLink::class,
                     PostTranslationInterface::class => PostTranslation::class,
                     PostRevisionInterface::class => PostRevision::class,
                     PostSlugHistoryInterface::class => PostSlugHistory::class,
@@ -559,6 +562,8 @@ class AuroraBundle extends AbstractBundle
                 'contract_signature_code' => ['policy' => 'sliding_window', 'limit' => 15, 'interval' => '1 hour'],
                 // Le mot de passe d'un lien de présentation.
                 'deck_share_password' => ['policy' => 'sliding_window', 'limit' => 20, 'interval' => '1 hour'],
+                // Le mot de passe d'un lien de lecture d'une publication.
+                'post_reading_password' => ['policy' => 'sliding_window', 'limit' => 20, 'interval' => '1 hour'],
                 // Les gestes d'un client sur l'espace qu'un lien lui ouvre :
                 // valider, commenter, écrire. Plus haut que la signature parce
                 // qu'on parcourt un mois et qu'on valide six publications

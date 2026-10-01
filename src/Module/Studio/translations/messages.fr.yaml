@@ -1812,6 +1812,21 @@ backend:
                 link_url_required: Ce lien n'a pas d'adresse.
                 link_url_invalid: "Cette adresse n'est pas valide. Elle doit commencer par http:// ou https://."
                 link_url_too_long: Cette adresse est trop longue.
+        space_publications:
+          intro: 'Audits, stratégies, comptes rendus : des documents écrits avec la grille des publications, livrés au client par un lien et jamais publiés sur le site. Publiés, ils apparaissent aussi dans son espace.'
+          add: 'Nouveau document'
+          empty: 'Aucun document pour ce client.'
+          empty_hint: 'Commencez un audit ou une stratégie : il s''ouvre dans l''éditeur des publications.'
+          untitled: 'Document sans titre'
+          updated_on: 'Modifié le {date}'
+          open: 'Ouvrir dans l''éditeur'
+          create_title: 'Nouveau document'
+          title: 'Titre'
+          title_placeholder: 'Audit de présence en ligne'
+          title_hint: 'Un brouillon, partagé par lien seulement, préparé pour ce client. Vous le complétez dans l''éditeur.'
+          create: 'Créer et ouvrir'
+          errors:
+            title_required: 'Donnez un titre au document.'
         space_resources:
             intro: "Ce qui vit ailleurs et qu'on cherche à chaque fois : une maquette, un accès, la personne qui valide. Chaque élément se montre ou se cache au client, un par un."
             add: Ajouter
@@ -1905,6 +1920,7 @@ backend:
             view_notes: Notes
             view_information: Informations
             view_resources: Ressources
+            view_publications: 'Livrables'
             view_settings: Réglages
             files_empty: Aucun fichier sur cet espace
             files_empty_hint: Les fichiers déposés sur les contenus, par vous ou par le client, apparaissent ici du plus récent au plus ancien.
@@ -2165,6 +2181,9 @@ studio:
             tab_chat: Discussion
             tab_files: Documents
             tab_resources: Liens
+            tab_documents: 'Livrables'
+            document_untitled: 'Document sans titre'
+            document_updated_on: 'Mis à jour le {date}'
             tab_information: Informations
             files_title: Les fichiers de cet espace
             files_open: Ouvrir

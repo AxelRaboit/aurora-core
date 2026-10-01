@@ -9,6 +9,7 @@ use Aurora\Core\Validation\Dto\PaginationRequest;
 use Aurora\Module\Editorial\Form\Repository\FormRepository;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
+use Aurora\Module\Editorial\Post\Enum\PostVisibilityEnum;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
 use Aurora\Module\Editorial\Post\Serializer\PostSerializerInterface;
 use Aurora\Module\Editorial\Post\Share\SiteUsefulLinks;
@@ -16,7 +17,9 @@ use Aurora\Module\Editorial\PostType\Repository\PostTypeRepository;
 use Aurora\Module\Editorial\PostType\Serializer\PostTypeSerializerInterface;
 use Aurora\Module\Editorial\Taxonomy\Repository\TaxonomyRepository;
 use Aurora\Module\Editorial\Taxonomy\Serializer\TaxonomySerializerInterface;
+use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
 use Aurora\Module\Studio\Deck\Repository\DeckRepository;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
  * Builds the payloads for the posts list and the standalone editor page.
@@ -36,6 +39,8 @@ final readonly class PostsViewBuilder
         private FormRepository $formRepository,
         private DeckRepository $deckRepository,
         private SiteUsefulLinks $siteUsefulLinks,
+        private CustomerSpaceRepository $customerSpaceRepository,
+        private UrlGeneratorInterface $urlGenerator,
     ) {}
 
     /**
@@ -46,6 +51,7 @@ final readonly class PostsViewBuilder
      * @param list<int>    $postTypeIds
      * @param list<int>    $termIds
      * @param list<string> $statuses
+     * @param list<string> $visibilities
      *
      * @return array<string, mixed>
      */
@@ -56,6 +62,7 @@ final readonly class PostsViewBuilder
         ?int $authorId = null,
         array $termIds = [],
         array $statuses = [],
+        array $visibilities = [],
     ): array {
         $result = $this->postRepository->findPaginated(
             page: $pagination->page,
@@ -67,11 +74,22 @@ final readonly class PostsViewBuilder
             authorId: $authorId,
             termIds: $termIds,
             statuses: $statuses,
+            visibilities: $visibilities,
         );
+
+        $spaceNames = $this->customerSpaceNames($result['items']);
 
         return [
             'success' => true,
-            'items' => array_map($this->postSerializer->serialize(...), $result['items']),
+            'items' => array_map(
+                fn (PostInterface $post): array => [
+                    ...$this->postSerializer->serialize($post),
+                    // Named in the row, so a client's audit reads as one
+                    // among the site's pages without being opened.
+                    'customerSpaceName' => $spaceNames[$post->getCustomerSpaceId() ?? 0] ?? null,
+                ],
+                $result['items'],
+            ),
             'total' => $result['total'],
             'page' => $result['page'],
             'totalPages' => $result['totalPages'],
@@ -83,6 +101,7 @@ final readonly class PostsViewBuilder
      * @param list<int>            $postTypeIds
      * @param list<int>            $termIds
      * @param list<string>         $statuses
+     * @param list<string>         $visibilities
      *
      * @return array<string, mixed>
      */
@@ -92,6 +111,7 @@ final readonly class PostsViewBuilder
         array $postTypeIds = [],
         array $termIds = [],
         array $statuses = [],
+        array $visibilities = [],
     ): array {
         return [
             'posts' => $listPayload,
@@ -100,6 +120,8 @@ final readonly class PostsViewBuilder
             'termIds' => $termIds,
             'statuses' => $statuses,
             'statusOptions' => PostStatusEnum::values(),
+            'visibilities' => $visibilities,
+            'visibilityOptions' => PostVisibilityEnum::values(),
             ...$this->sharedContext(),
         ];
     }
@@ -125,8 +147,54 @@ final readonly class PostsViewBuilder
             // What a page that follows the site's useful links will show, so
             // the editor can say so rather than show an empty list.
             'siteUsefulLinks' => $this->siteUsefulLinks->links(),
+            // The client this document was written for, and the way back to
+            // its space. Null for a page of the site.
+            'customerSpace' => $post instanceof PostInterface ? $this->customerSpace($post) : null,
             ...$this->sharedContext(),
         ];
+    }
+
+    /** @return array{id: int, name: string, url: string}|null */
+    private function customerSpace(PostInterface $post): ?array
+    {
+        $id = $post->getCustomerSpaceId();
+        $space = null === $id ? null : $this->customerSpaceRepository->find($id);
+
+        if (null === $space) {
+            return null;
+        }
+
+        return [
+            'id' => $id,
+            'name' => $space->getName(),
+            'url' => $this->urlGenerator->generate('workspace_space_content', ['id' => $id, 'view' => 'publications']),
+        ];
+    }
+
+    /**
+     * The names of the spaces these publications belong to, in one query.
+     *
+     * @param list<PostInterface> $posts
+     *
+     * @return array<int, string>
+     */
+    private function customerSpaceNames(array $posts): array
+    {
+        $ids = array_values(array_unique(array_filter(array_map(
+            static fn (PostInterface $post): ?int => $post->getCustomerSpaceId(),
+            $posts,
+        ))));
+
+        if ([] === $ids) {
+            return [];
+        }
+
+        $names = [];
+        foreach ($this->customerSpaceRepository->findBy(['id' => $ids]) as $space) {
+            $names[(int) $space->getId()] = $space->getName();
+        }
+
+        return $names;
     }
 
     /**

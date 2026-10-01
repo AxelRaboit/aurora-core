@@ -175,7 +175,7 @@ final readonly class PageViewBuilder
 
         $post = $this->postRepository->find($postId);
 
-        if (!$post instanceof PostInterface || !$post->isPublished() || $post->isTrashed()) {
+        if (!$post instanceof PostInterface || !$post->isOnSite()) {
             return null;
         }
 

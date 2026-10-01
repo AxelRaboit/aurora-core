@@ -8,6 +8,7 @@ use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Enum\HttpStatusEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
+use Aurora\Core\Http\PrivateAddressResponseTrait;
 use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Core\Validation\Service\PayloadValidator;
 use Aurora\Module\Studio\Contract\Access\Entity\ContractAccessLinkInterface;
@@ -51,6 +52,8 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/contracts', name: 'public_contract')]
 final class PublicContractController extends AbstractController
 {
+    use PrivateAddressResponseTrait;
+
     use JsonRequestTrait;
     use JsonResponseTrait;
 
@@ -319,21 +322,5 @@ final class PublicContractController extends AbstractController
             [],
             new Response(status: Response::HTTP_NOT_FOUND),
         ));
-    }
-
-    /**
-     * Headers that keep a secret address from travelling.
-     *
-     * `no-referrer` so following any link off this page does not hand the URL
-     * to another site. `no-store` so a shared machine's back button and a proxy
-     * cache do not keep a copy of a contract.
-     */
-    private function privately(Response $response): Response
-    {
-        $response->headers->set('Referrer-Policy', 'no-referrer');
-        $response->headers->set('X-Robots-Tag', 'noindex, nofollow, noarchive');
-        $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-
-        return $response;
     }
 }
