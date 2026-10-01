@@ -34,6 +34,9 @@ let entryPushed = false;
 /** A `history.back()` we asked for, whose popstate is not a user gesture. */
 let selfPop = false;
 
+/** Callers of `overlaysSettled()` waiting for our own pop to land. */
+const waiters = [];
+
 /**
  * A drop waiting to see whether another overlay opens in the same turn.
  *
@@ -77,17 +80,32 @@ function dropEntrySoon() {
     });
 }
 
-function onPopState() {
+/**
+ * **A popstate this file accounts for stops here.** The page has listeners of
+ * its own - the notes reopen the note the address names, the lists re-read
+ * their filters - and the address has not moved, since our entry carries the
+ * page's own. Letting the event through made every page react to a modal
+ * closing: the notes reloaded the open note each time, and after deleting it,
+ * asked the server for a note that no longer existed. Listening in the
+ * capture phase is what puts this listener ahead of theirs.
+ */
+function onPopState(event) {
     // Our own `history.back()` coming home. The entry is already accounted
     // for; consuming the event here is what keeps it from reading as a user
     // pressing Back.
     if (selfPop) {
         selfPop = false;
+        event?.stopImmediatePropagation();
+
+        while (waiters.length) waiters.shift()();
 
         return;
     }
 
     if (0 === open.length) return;
+
+    // A Back that closes an overlay is not a navigation either.
+    event?.stopImmediatePropagation();
 
     // The user pressed Back: the entry is gone, and the topmost overlay is
     // what it closes.
@@ -139,7 +157,7 @@ export function useBackButtonClose({ isOpen, onClose }) {
         if (listening) return;
 
         listening = true;
-        window.addEventListener("popstate", onPopState);
+        window.addEventListener("popstate", onPopState, true);
     });
 
     // The listener is module-wide and outlives any single overlay, so it is
@@ -157,6 +175,22 @@ export function useBackButtonClose({ isOpen, onClose }) {
     return { requestClose };
 }
 
+/**
+ * Resolves once no overlay entry is left in history.
+ *
+ * For a page that wants to rewrite its address after something an overlay
+ * did - the notes after deleting the open note. Rewritten earlier, it would
+ * land on the overlay's entry, and the overlay's own `back()` would bring the
+ * old address back.
+ */
+export function overlaysSettled() {
+    if (!entryPushed && !selfPop && !dropQueued) return Promise.resolve();
+
+    return new Promise((resolve) => {
+        waiters.push(resolve);
+    });
+}
+
 /** Test seam: the module-level stack has to start empty in each test. */
 export function __resetBackButtonClose() {
     open.length = 0;
@@ -164,4 +198,5 @@ export function __resetBackButtonClose() {
     selfPop = false;
     dropQueued = false;
     listening = false;
+    waiters.length = 0;
 }
