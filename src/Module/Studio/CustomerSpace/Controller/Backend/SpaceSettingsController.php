@@ -11,6 +11,7 @@ use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\CustomerSpace\Security\DriveLock;
 use Aurora\Module\Studio\CustomerSpace\Security\SpaceVisibility;
+use Aurora\Module\Studio\SpaceFile\GoogleDrive\Service\DriveFolderId;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -20,7 +21,6 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 use function mb_trim;
-use function preg_match;
 use function sprintf;
 
 /**
@@ -41,13 +41,6 @@ final class SpaceSettingsController extends AbstractController
 {
     use JsonRequestTrait;
     use JsonResponseTrait;
-
-    /**
-     * Ce que Google accepte comme identifiant, et ce qu'une adresse de dossier
-     * en contient. Vérifié pour que coller l'adresse entière par erreur donne
-     * un refus lisible plutôt qu'une liste vide inexplicable.
-     */
-    private const string FOLDER_ID = '/^[A-Za-z0-9_-]{10,128}$/';
 
     public function __construct(
         private readonly SpaceVisibility $visibility,
@@ -92,7 +85,7 @@ final class SpaceSettingsController extends AbstractController
             return $this->jsonSuccess(['settings' => $this->state($space)]);
         }
 
-        $folderId = $this->folderIdOf($given);
+        $folderId = DriveFolderId::from($given);
 
         if (null === $folderId) {
             return $this->jsonFailure('backend.studio.drive.errors.folder_invalid');
@@ -237,18 +230,6 @@ final class SpaceSettingsController extends AbstractController
             'driveUnlocked' => $this->lock->isUnlocked($space),
             'minPasswordLength' => DriveLock::MIN_LENGTH,
         ];
-    }
-
-    /**
-     * L'identifiant, qu'on le donne nu ou dans une adresse.
-     */
-    private function folderIdOf(string $given): ?string
-    {
-        if (1 === preg_match('#/folders/([A-Za-z0-9_-]+)#', $given, $match)) {
-            return $match[1];
-        }
-
-        return 1 === preg_match(self::FOLDER_ID, $given) ? $given : null;
     }
 
     private function denyUnlessReferent(CustomerSpace $space): void

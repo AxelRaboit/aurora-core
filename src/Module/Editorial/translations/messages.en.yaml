@@ -1429,68 +1429,199 @@ backend:
       approved: Approved
       spam: Spam
   forms:
-    title: Forms
-    empty: No form yet.
-    create: New form
-    edit: Edit form
-    created: Form created.
-    updated: Form saved.
-    deleted: Form deleted.
-    delete_confirm: 'Delete the "{title}" form? Its submissions go with it.'
-    title_label: Title
-    slug: Slug
-    slug_hint: 'Left blank, it is derived from the title. It forms the public URL.'
-    description: Description
-    active: Published
-    active_hint: 'An unpublished form answers 404: it is a draft.'
-    notify_email: Notify
-    notify_email_hint: 'Left blank, submissions go to the site administrator.'
-    webhook_url: Webhook
-    webhook_url_hint: 'Every submission is posted there, signed with the application secret.'
-    crm_sync: Signal the contact
-    standalone_page_indexed: List the form's own page
-    standalone_page_indexed_hint: "The form's page keeps working either way. Unchecked, it asks search engines to leave it out, so it does not compete with the page the form is posed in."
-    public_url: Public URL
+    title: "Forms"
+    empty: "No forms."
+    create: "New form"
+    create_submit: "Create and open"
+    create_title_placeholder: "Quote request"
+    create_title_hint: "The same title in every language to start with; each one is translated afterwards in the form's Settings."
+    created: "Form created."
+    updated: "Form saved."
+    deleted: "Form deleted."
+    delete_confirm: "Delete the form \"{title}\"? Its answers go with it."
+    title_label: "Title"
+    slug: "Slug"
+    slug_hint: "Left blank, it is derived from the title."
+    description: "Description"
+    notify_email_hint: "Left blank, answers go to the site administrator."
+    standalone_page_indexed: "Index the form's page"
+    standalone_page_indexed_hint: "The form's own page stays reachable either way. Unchecked, it asks search engines not to index it, so it does not compete with the page the form is placed on."
+    list:
+      search_placeholder: "Search a form…"
+      all_statuses: "All states"
+      status_active: "Online"
+      status_inactive: "Offline"
+      empty_title: "No forms yet"
+      empty_hint: "A form is then placed in a post, like a block. Start from a template: contact, quote or registration."
+      no_match: "No form matches."
+      title_column: "Form"
+      status_column: "State"
+      fields_column: "Questions"
+      submissions_column: "Answers"
+      last_column: "Last answer"
+      steps: "1 step | {count} steps"
+      fields: "No questions | 1 question | {count} questions"
+      submissions: "No answers | 1 answer | {count} answers"
+      last_label: "Last answer:"
+      never: "Never"
+      open: "Open"
+      open_hint: "The form's questions, answers and settings."
+      delete_hint: "Deletes the form and all its answers."
+    templates:
+      title: "Starting point"
+      blank:
+        label: "Blank"
+        description: "No questions: you write everything."
+      contact:
+        label: "Contact"
+        description: "Name, email, phone and message."
+      quote:
+        label: "Quote request"
+        description: "In two steps: who you are, then the need, the budget and the deadline."
+      event:
+        label: "Event registration"
+        description: "Name, email, number of guests and remarks."
+    template_steps:
+      you: "You"
+      project: "Your project"
+    template_fields:
+      name:
+        label: "Full name"
+        placeholder: "Sam Taylor"
+      email:
+        label: "Email address"
+        placeholder: "sam@example.com"
+      phone:
+        label: "Phone"
+        placeholder: "+44 7700 900123"
+      message:
+        label: "Your message"
+        placeholder: "Tell us in a few lines what you need."
+      need:
+        label: "What you need"
+        placeholder: "Describe the project: what it should do, for whom, and what already exists."
+      budget:
+        label: "Expected budget"
+        placeholder: "Choose a range"
+        options:
+          small: "Under €1,000"
+          medium: "€1,000 to €5,000"
+          large: "Over €5,000"
+          unknown: "I don't know yet"
+      deadline:
+        label: "Preferred deadline"
+      guests:
+        label: "Number of guests"
+        placeholder: "2"
+      remarks:
+        label: "Remarks"
+        placeholder: "A dietary need, a question, an accessibility request…"
+    editor:
+      back: "All forms"
+      view_public: "View the public page"
+      view_public_hint: "The form on its own, at its address, in a new tab."
+      tabs:
+        fields: "Questions"
+        submissions: "Answers"
+        settings: "Settings"
+    preview:
+      title: "Preview"
+      hint: "What the visitor sees, updated as you type. Nothing is sent from the preview."
+      empty: "Add a question to watch the form take shape."
     fields:
       row_actions:
-        edit_description: Label, type, required or not, display conditions.
-        delete_description: Removes the field. Answers already received keep it.
-      title: Fields
-      empty: No field yet.
-      create: Add a field
-      edit: Edit field
-      created: Field added.
-      updated: Field updated.
-      deleted: Field deleted.
-      delete_confirm: 'Delete the "{label}" field? Conditions naming it will be dropped.'
-      label: Label
-      placeholder: Placeholder
-      type: Type
-      required: Required
-      options: Choices
-      options_hint: 'One per line.'
-      step: Step
-      conditions: Show when
-      conditions_hint: 'The field only appears when these answers are given.'
-      condition_field: Field
-      condition_value: Equals
-      add_condition: Add a condition
-      move_up: Move up
-      move_down: Move down
-      step_placeholder: "1"
+        edit_description: "Label, type, required answer, display conditions."
+        delete_description: "Removes the question. Answers already received keep it."
+      title: "Questions"
+      intro: "In the order the visitor will see them. Click a question to edit it."
+      empty: "No questions."
+      empty_hint: "Add the first one: a name, an email address, a message."
+      create: "Add a question"
+      pick_type: "What kind of question?"
+      edit: "Edit the question"
+      delete: "Delete the question"
+      created: "Question added."
+      updated: "Question saved."
+      deleted: "Question deleted."
+      delete_confirm: "Delete the question \"{label}\"? Conditions relying on it will be removed."
+      label: "Question"
       label_placeholder: "Your name"
+      placeholder: "Example text"
+      placeholder_hint: "Shown in grey in the box until the visitor types something."
+      placeholder_hint_select: "First line of the list, until the visitor picks something."
+      type: "Question type"
+      required: "Required answer"
+      required_hint: "The visitor cannot send the form without answering it."
+      options: "Choices offered"
+      options_placeholder: "Yes\nNo"
+      options_hint: "One choice per line."
+      step: "Step"
+      untranslated: "No label in this language yet"
+      visibility: "When to show it"
+      visibility_always: "Always"
+      visibility_conditional: "Depending on an answer"
+      no_condition_source: "A question can only depend on a question placed before it. Add one above first."
+      logic_label: "Show it when"
+      logic_sentence:
+        and: "All these conditions are met"
+        or: "At least one is met"
+      condition_if: "Condition {number}: if the question"
+      condition_field: "Choose a question"
+      condition_equals: "received the answer"
+      condition_value: "Expected answer"
+      add_condition: "Add a condition"
+      remove_condition: "Remove the condition"
+      conditional_badge: "Depending on an answer"
+      move_up: "Move up"
+      move_down: "Move down"
+    field_type_hints:
+      text: "A short answer, on one line: a name, a city."
+      email: "An email address, checked before sending."
+      textarea: "A long answer, over several lines: a message."
+      select: "One choice from a drop-down list."
+      checkbox: "Several possible choices, ticked one by one."
+      radio: "A single choice, among options all on show."
+      number: "A number: a quantity, an age."
+      date: "A date, picked from a calendar."
+      tel: "A phone number."
     steps:
-      title: Steps
-      hint: 'With no step, the form fits on one page.'
-      add: Add a step
-      remove: Remove
-      name: Step name
+      title: "Steps"
+      add: "Add a step"
+      remove: "Remove this step"
+      remove_blocked: "Only the last step can be removed, once empty. Move its questions first."
+      name: "Step name (optional)"
+      numbered: "Step {number}"
+      numbered_titled: "Step {number} · {title}"
+      single_page: "The whole form fits on one page."
+      split: "Split into steps"
+      empty: "No questions in this step."
+      add_question_here: "Add a question here"
     submissions:
-      title: Submissions
-      empty: No submission yet.
-      export: Export as CSV
-      submitted_at: Received
-      reference: Reference
+      title: "Answers"
+      intro: "Most recent first. The export includes every answer, for a spreadsheet."
+      empty: "No answers yet."
+      empty_hint: "They will appear here as soon as a visitor sends the form."
+      export: "Export as CSV"
+      previous: "Previous page"
+      next: "Next page"
+    settings:
+      identity_title: "Title and address"
+      identity_hint: "What the visitor reads at the top of the form, and the address of its page."
+      untranslated: "Not translated into this language yet"
+      description_placeholder: "We reply within 48 hours."
+      description_hint: "Shown under the title. Optional."
+      slug_label: "Page address"
+      public_address: "Public page:"
+      online_title: "Going online"
+      active_label: "Online"
+      active_hint: "Offline, the form disappears from the pages it is placed on, and its page answers 404."
+      answers_title: "When someone answers"
+      answers_hint: "Every answer is filed in the Answers tab. You can also be notified, or pass it on elsewhere."
+      notify_label: "Notify by email"
+      crm_label: "Add the person to your contacts"
+      crm_hint: "If a contacts module is installed, the person is added to it with their name, email address and phone."
+      webhook_label: "Also send to another application (webhook)"
+      webhook_hint: "For integrations: every answer is sent to this address, signed with the application's secret. Leave blank if you don't need it."
     field_types:
       text: Text
       email: Email
@@ -1755,6 +1886,7 @@ frontend:
       previous: Back
       step: 'Step {number}'
       sent: Thanks, your message has been sent.
+      preview_notice: "Preview: the form works, but nothing is sent."
       errors:
         required: This field is required.
         email_invalid: That email address is invalid.

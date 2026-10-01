@@ -1668,6 +1668,8 @@ backend:
                 share_body: 'En Drive, el cliente comparte su carpeta con esta dirección, como Lector. Lo que no se comparte permanece invisible.'
                 key_label: 'Clave de la cuenta de servicio'
                 key_hint: 'El archivo JSON completo. Contiene una clave privada: se cifra en la base de datos y no se volverá a mostrar nunca.'
+                agency_label: 'Carpeta de la agencia (opcional)'
+                agency_hint: 'Una carpeta propia, la misma en todos los espacios: plantillas, guía de marca, recursos del equipo. Aparece en la pestaña Drive junto a la del cliente, y solo el estudio la ve. Compártala con la dirección de la cuenta de servicio y pegue aquí su dirección.'
                 key_stored: 'Hay una clave guardada. Déjelo vacío para conservarla.'
                 enabled_label: 'Activar la lectura de carpetas de Drive'
                 enabled_hint: 'Cada espacio podrá entonces designar la carpeta que su cliente ha compartido.'
@@ -1686,6 +1688,10 @@ backend:
                 view_label: 'Visualización de archivos'
                 no_folder: 'No hay ninguna carpeta de Drive conectada a este espacio.'
                 no_folder_referent: 'No hay ninguna carpeta de Drive conectada a este espacio. Vaya a Ajustes para designar una.'
+                no_agency_folder: 'La carpeta de la agencia está vacía, o no se ha compartido con la cuenta de servicio.'
+                source_client: 'Carpeta del cliente'
+                source_agency: 'Carpeta de la agencia'
+                agency_intro: 'La misma carpeta en todos los espacios, elegida en Configuración > Google Drive. El cliente no la ve.'
                 locked_title: 'Pestaña protegida'
                 locked_intro: 'La carpeta de Drive de este espacio está protegida con contraseña. Se abre durante esta sesión.'
                 locked_placeholder: Contraseña
@@ -1706,6 +1712,7 @@ backend:
                 submit: 'Adjuntar a la ficha'
             errors:
                 key_invalid: 'No es una clave de cuenta de servicio. Compruebe que ha copiado el archivo JSON completo.'
+                agency_folder_invalid: 'La carpeta de la agencia no es una carpeta de Drive. Pegue su dirección, o el identificador que sigue a /folders/.'
                 key_required: 'Pegue una clave de cuenta de servicio antes de activar.'
                 folder_invalid: 'No es una carpeta de Drive. Pegue su dirección, o el identificador que sigue a /folders/.'
                 import_failed: 'No se ha podido copiar este archivo. Los documentos de Google no tienen un archivo que descargar.'
@@ -1951,8 +1958,9 @@ backend:
             review_by: 'Respuesta esperada antes del'
             review_by_hint: 'Opcional. La fecha en la que necesita la opinión del cliente para cumplir con la publicación. Nada se bloquea al llegar el plazo: se muestra, nada más.'
             review:
-                action: 'Enviar a revisar ({count})'
-                hint: 'Avisa al cliente por correo electrónico de lo que espera su opinión, y le envía una nueva dirección.'
+                banner_title: 'Nada espera la opinión del cliente | 1 publicación espera la opinión del cliente | {count} publicaciones esperan la opinión del cliente'
+                banner_body: 'Envíeselas a revisar: recibe un correo electrónico con un enlace para validarlas o pedir cambios, sin crear ninguna cuenta.'
+                banner_action: 'Enviar a revisar'
                 confirm_title: '¿Enviar a revisar?'
                 confirm_body: '{count} publicación(es) esperan una respuesta. Cada destinatario que pueda validar recibirá un correo electrónico con una nueva dirección, y su dirección anterior dejará de funcionar.'
                 confirm_send: Enviar

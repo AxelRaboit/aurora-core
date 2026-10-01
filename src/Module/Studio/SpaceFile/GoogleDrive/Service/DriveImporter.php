@@ -56,14 +56,20 @@ final readonly class DriveImporter
      * télécharger, et un fichier retiré du partage n'en a plus. L'appelant en
      * fait un 404 plutôt qu'une erreur au milieu d'un écran.
      */
+    /**
+     * @param string|null $folderId the folder the file must be in: the
+     *                              space's own by default, the agency's when
+     *                              importing from it
+     */
     public function import(
         GoogleServiceAccount $account,
         string $fileId,
         CustomerSpaceInterface $space,
+        ?string $folderId = null,
     ): ?DocumentInterface {
-        // Seulement un fichier du dossier de cet espace : le compte de service
-        // en lit d'autres, et un identifiant se devine ou se recopie.
-        $folderId = $space->getDriveFolderId();
+        // Seulement un fichier du dossier visé : le compte de service en lit
+        // d'autres, et un identifiant se devine ou se recopie.
+        $folderId ??= $space->getDriveFolderId();
 
         if (null === $folderId || !$this->drive->contains($account, $folderId, $fileId)) {
             return null;

@@ -35,7 +35,7 @@ backend:
             newsletter: Boletín
             useful_links: 'Enlaces útiles'
             drive: 'Google Drive'
-            drive_description: 'Leer una carpeta de Drive compartida por un cliente: cuenta de servicio, clave, activación.'
+            drive_description: 'Leer las carpetas de Drive de los clientes y la de la agencia: cuenta de servicio, clave, activación.'
             github_description: 'La cuadrícula de contribuciones de sus cuentas de GitHub, para mostrar en una página: cuentas y activación.'
             instagram_description: 'El feed de sus publicaciones de Instagram, para mostrar en una página: cuenta y token de acceso.'
             google_reviews_description: 'Su valoración y sus últimas reseñas de Google, para mostrar en una página: ficha del establecimiento y clave.'

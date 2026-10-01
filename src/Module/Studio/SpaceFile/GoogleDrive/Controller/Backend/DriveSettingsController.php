@@ -7,6 +7,7 @@ namespace Aurora\Module\Studio\SpaceFile\GoogleDrive\Controller\Backend;
 use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
+use Aurora\Module\Studio\SpaceFile\GoogleDrive\Service\DriveFolderId;
 use Aurora\Module\Studio\SpaceFile\GoogleDrive\Service\GoogleServiceAccount;
 use Aurora\Module\Studio\SpaceFile\GoogleDrive\Setting\DriveSettings;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -58,7 +59,19 @@ final class DriveSettingsController extends AbstractController
             return $this->jsonFailure('backend.studio.drive.errors.key_invalid');
         }
 
-        $this->settings->save(enabled: $enabled, serviceAccount: $key);
+        // The agency folder, given bare or as its address. Absent leaves it
+        // alone; empty clears it.
+        $agencyFolderId = null;
+        if (array_key_exists('agencyFolderId', $payload)) {
+            $given = mb_trim((string) $payload['agencyFolderId']);
+            $agencyFolderId = '' === $given ? '' : DriveFolderId::from($given);
+
+            if (null === $agencyFolderId) {
+                return $this->jsonFailure('backend.studio.drive.errors.agency_folder_invalid');
+            }
+        }
+
+        $this->settings->save(enabled: $enabled, serviceAccount: $key, agencyFolderId: $agencyFolderId);
 
         if ($enabled && !$this->settings->isEnabled()) {
             return $this->jsonFailure('backend.studio.drive.errors.key_required');

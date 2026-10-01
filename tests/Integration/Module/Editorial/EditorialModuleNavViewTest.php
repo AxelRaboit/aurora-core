@@ -78,11 +78,10 @@ final class EditorialModuleNavViewTest extends IntegrationTestCase
     }
 
     /**
-     * The other half of the redirect, and the half that would loop: a listing
-     * with nothing to redirect to has to render. The fixtures create no form,
-     * which makes this the one family that exercises it.
+     * Forms are a list of their own rather than a redirect to the first: an
+     * empty one renders too. {@see FormsScreensTest} holds the case with forms.
      */
-    public function testAnEmptyListingRendersInsteadOfRedirecting(): void
+    public function testTheFormsListRendersInsteadOfRedirecting(): void
     {
         $this->client->request('GET', '/backend/editorial/forms');
 
@@ -105,8 +104,7 @@ final class EditorialModuleNavViewTest extends IntegrationTestCase
             self::assertNotEmpty($groups[$family], $family);
         }
 
-        // No form exists in the fixtures, and a family with no records
-        // contributes no group rather than an empty header.
+        // Forms are listed on their own screen, never one entry each here.
         self::assertArrayNotHasKey('forms', $groups);
     }
 

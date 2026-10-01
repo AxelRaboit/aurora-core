@@ -65,8 +65,40 @@ final class SpaceDriveController extends AbstractController
     #[Route('', name: '_list', methods: [HttpMethodEnum::Get->value])]
     public function files(CustomerSpace $space): JsonResponse
     {
+        return $this->listing($space, $space->getDriveFolderId());
+    }
+
+    /**
+     * The agency's folder, read from this space: the same listing, the same
+     * lock. Studio only - no public route serves it.
+     */
+    #[Route('/agency', name: '_agency_list', methods: [HttpMethodEnum::Get->value], priority: 20)]
+    public function agencyFiles(CustomerSpace $space): JsonResponse
+    {
+        return $this->listing($space, $this->settings->agencyFolderId());
+    }
+
+    #[Route('/agency/archive', name: '_agency_archive', methods: [HttpMethodEnum::Get->value], priority: 20)]
+    public function agencyArchive(CustomerSpace $space): Response
+    {
+        return $this->archiveOf($space, $this->settings->agencyFolderId(), 'agence');
+    }
+
+    #[Route('/agency/{fileId}/import', name: '_agency_import', requirements: ['fileId' => '[A-Za-z0-9_-]+'], methods: [HttpMethodEnum::Post->value], priority: 20)]
+    public function agencyImport(CustomerSpace $space, string $fileId): JsonResponse
+    {
+        return $this->importFrom($space, $fileId, $this->settings->agencyFolderId());
+    }
+
+    #[Route('/agency/{fileId}', name: '_agency_file', requirements: ['fileId' => '[A-Za-z0-9_-]+'], methods: [HttpMethodEnum::Get->value], priority: 20)]
+    public function agencyServe(CustomerSpace $space, string $fileId, Request $request): Response
+    {
+        return $this->serveFrom($this->settings->agencyFolderId(), $fileId, $request);
+    }
+
+    private function listing(CustomerSpace $space, ?string $folderId): JsonResponse
+    {
         $account = $this->settings->isEnabled() ? $this->settings->account() : null;
-        $folderId = $space->getDriveFolderId();
 
         // **La serrure se vérifie ici et pas seulement à l'écran.** Un onglet
         // masqué n'a jamais fermé une adresse : sans cette ligne, la liste
@@ -116,8 +148,12 @@ final class SpaceDriveController extends AbstractController
     #[Route('/archive', name: '_archive', methods: [HttpMethodEnum::Get->value], priority: 10)]
     public function archive(CustomerSpace $space): Response
     {
+        return $this->archiveOf($space, $space->getDriveFolderId(), null);
+    }
+
+    private function archiveOf(CustomerSpace $space, ?string $folderId, ?string $suffix): Response
+    {
         $account = $this->settings->isEnabled() ? $this->settings->account() : null;
-        $folderId = $space->getDriveFolderId();
 
         if (!$account instanceof GoogleServiceAccount || null === $folderId) {
             throw $this->createNotFoundException();
@@ -136,7 +172,12 @@ final class SpaceDriveController extends AbstractController
 
         $path = $this->archives->zipFor($account, $files);
 
-        return $this->file($path, $this->archiveName($space))->deleteFileAfterSend(true);
+        $name = $this->archiveName($space);
+        if (null !== $suffix) {
+            $name = preg_replace('/\.zip$/', '-'.$suffix.'.zip', $name) ?? $name;
+        }
+
+        return $this->file($path, $name)->deleteFileAfterSend(true);
     }
 
     /**
@@ -151,13 +192,18 @@ final class SpaceDriveController extends AbstractController
     #[Route('/{fileId}/import', name: '_import', requirements: ['fileId' => '[A-Za-z0-9_-]+'], methods: [HttpMethodEnum::Post->value], priority: 10)]
     public function import(CustomerSpace $space, string $fileId): JsonResponse
     {
+        return $this->importFrom($space, $fileId, $space->getDriveFolderId());
+    }
+
+    private function importFrom(CustomerSpace $space, string $fileId, ?string $folderId): JsonResponse
+    {
         $account = $this->settings->isEnabled() ? $this->settings->account() : null;
 
-        if (!$account instanceof GoogleServiceAccount || null === $space->getDriveFolderId()) {
+        if (!$account instanceof GoogleServiceAccount || null === $folderId) {
             throw $this->createNotFoundException();
         }
 
-        $document = $this->importer->import($account, $fileId, $space);
+        $document = $this->importer->import($account, $fileId, $space, $folderId);
 
         if (!$document instanceof DocumentInterface) {
             return $this->jsonFailure('backend.studio.drive.errors.import_failed');
@@ -181,13 +227,18 @@ final class SpaceDriveController extends AbstractController
     #[Route('/{fileId}', name: '_file', requirements: ['fileId' => '[A-Za-z0-9_-]+'], methods: [HttpMethodEnum::Get->value])]
     public function serve(CustomerSpace $space, string $fileId, Request $request): Response
     {
+        return $this->serveFrom($space->getDriveFolderId(), $fileId, $request);
+    }
+
+    private function serveFrom(?string $folderId, string $fileId, Request $request): Response
+    {
         $account = $this->settings->isEnabled() ? $this->settings->account() : null;
 
-        if (!$account instanceof GoogleServiceAccount || null === $space->getDriveFolderId()) {
+        if (!$account instanceof GoogleServiceAccount || null === $folderId) {
             throw $this->createNotFoundException();
         }
 
-        $response = $this->files->serve($account, $space->getDriveFolderId(), $fileId, $request->query->getBoolean('download'));
+        $response = $this->files->serve($account, $folderId, $fileId, $request->query->getBoolean('download'));
 
         if (!$response instanceof Response) {
             // Retiré du partage, ou supprimé. Un 404 plutôt qu'une erreur : du
