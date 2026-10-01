@@ -605,7 +605,11 @@ backend:
             category_none_hint: The trade has not been set yet. The trame stays usable.
             category_all: All categories
             preview: Preview
-            preview_notice: 'The coloured text comes from variables. These are examples, except your details, taken from your settings. Fields to fill in for each contract are in square brackets.'
+            preview_notice: 'The coloured text comes from variables.'
+            preview_legend:
+              example: 'Made-up example'
+              real: 'Your details, from your settings'
+              slot: 'To fill in for each contract'
             preview_failed: The preview could not be produced.
             preview_unknown_tokens: 'Unknown variables, they will stop the publication: {tokens}'
             filter_category: 'Category: {name}'

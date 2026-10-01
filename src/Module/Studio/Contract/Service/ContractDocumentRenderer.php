@@ -13,6 +13,7 @@ use function in_array;
 use function is_array;
 use function is_string;
 use function mb_trim;
+use function preg_match;
 use function preg_match_all;
 use function sprintf;
 use function str_replace;
@@ -36,14 +37,21 @@ use function str_replace;
 final readonly class ContractDocumentRenderer
 {
     /**
-     * @param bool $marksValues wrap each filled value in a `<mark>`: for a
-     *                          preview, where the author wants to see what
-     *                          came from a variable. Never for a document
-     *                          that is sealed or sent - see {@see markingValues()}
+     * @param bool                  $marksValues wrap each filled value in a
+     *                                           `<mark>`: for a preview, where
+     *                                           the author wants to see what
+     *                                           came from a variable. Never for
+     *                                           a document that is sealed or
+     *                                           sent - see {@see markingValues()}
+     * @param array<string, string> $kinds       token => what kind of value it
+     *                                           holds, written on the mark as a
+     *                                           class: an invented example, a
+     *                                           real value, a slot to fill
      */
     public function __construct(
         private BlockHtmlSanitizer $sanitizer,
         private bool $marksValues = false,
+        private array $kinds = [],
     ) {}
 
     /**
@@ -54,9 +62,9 @@ final readonly class ContractDocumentRenderer
      * the marks. A sealed contract carrying them would be a different
      * document from the one its hash describes.
      */
-    public function markingValues(): self
+    public function markingValues(array $kinds = []): self
     {
-        return new self($this->sanitizer, true);
+        return new self($this->sanitizer, true, $kinds);
     }
 
     /**
@@ -100,7 +108,11 @@ final readonly class ContractDocumentRenderer
             // An empty value stays unmarked: there is nothing to colour, and
             // the blank it leaves is what the reader needs to see.
             if ($this->marksValues && '' !== $value) {
-                $filled = '<mark class="contract-variable">'.$filled.'</mark>';
+                $kind = $this->kinds[$token] ?? null;
+                $class = is_string($kind) && 1 === preg_match('/^[a-z]+$/', $kind)
+                    ? 'contract-variable contract-variable--'.$kind
+                    : 'contract-variable';
+                $filled = '<mark class="'.$class.'">'.$filled.'</mark>';
             }
 
             $text = str_replace(sprintf('{{%s}}', $token), $filled, $text);

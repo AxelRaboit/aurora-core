@@ -65,4 +65,29 @@ final class ContractDocumentRendererMarksTest extends TestCase
         self::assertStringNotContainsString('<script>', $html);
         self::assertStringContainsString('&lt;script&gt;', $html);
     }
+
+    /** Each mark says what its value is, so the preview can colour invented and real apart. */
+    public function testEachMarkSaysWhatItsValueIs(): void
+    {
+        $html = new ContractDocumentRenderer(new BlockHtmlSanitizer())
+            ->markingValues(['customer.legal_name' => 'example', 'customer.siret' => 'real'])
+            ->render(self::BLOCKS, [
+                'customer.legal_name' => 'Maison Durand',
+                'customer.siret' => '732 829 320 00074',
+            ]);
+
+        self::assertStringContainsString('<mark class="contract-variable contract-variable--example">Maison Durand</mark>', $html);
+        self::assertStringContainsString('<mark class="contract-variable contract-variable--real">732 829 320 00074</mark>', $html);
+    }
+
+    /** A kind is a word, so nothing else can reach the class attribute. */
+    public function testAKindThatIsNotAWordIsLeftOut(): void
+    {
+        $html = new ContractDocumentRenderer(new BlockHtmlSanitizer())
+            ->markingValues(['customer.legal_name' => 'x" onmouseover="alert(1)'])
+            ->render(self::BLOCKS, ['customer.legal_name' => 'Maison Durand', 'customer.siret' => '1']);
+
+        self::assertStringNotContainsString('onmouseover', $html);
+        self::assertStringContainsString('<mark class="contract-variable">Maison Durand</mark>', $html);
+    }
 }

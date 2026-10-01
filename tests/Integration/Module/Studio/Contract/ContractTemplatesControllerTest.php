@@ -426,8 +426,9 @@ final class ContractTemplatesControllerTest extends IntegrationTestCase
         self::assertStringContainsString('Boulangerie Durand', $html);
         self::assertStringContainsString('732 829 320 00074', $html);
 
-        // A field answered per contract has no example, so it reads as a slot.
-        self::assertStringContainsString('[plateformes retenues]', $html);
+        // A field answered per contract has no example, so it reads as a slot,
+        // marked as one.
+        self::assertStringContainsString('<mark class="contract-variable contract-variable--slot">[plateformes retenues]</mark>', $html);
 
         // And nothing is left for the reader to decode.
         self::assertStringNotContainsString('{{', $html);
@@ -435,7 +436,7 @@ final class ContractTemplatesControllerTest extends IntegrationTestCase
         // The title is substituted too, and framed the way a freeze frames it.
         // Each filled value is marked, so the author sees what came from a
         // variable - in the preview only, never in a sealed contract.
-        self::assertStringContainsString('<h1>Contrat avec <mark class="contract-variable">Boulangerie Durand</mark></h1>', $html);
+        self::assertStringContainsString('<h1>Contrat avec <mark class="contract-variable contract-variable--example">Boulangerie Durand</mark></h1>', $html);
     }
 
     public function testThePreviewIsRefusedALanguageTheVersionIsNotWrittenIn(): void
