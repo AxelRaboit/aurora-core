@@ -5,6 +5,19 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [Unreleased]
+
+### Corrigé
+
+#### Un deck partagé par lien n'est plus indexable ni gardé en cache
+La page d'un deck ouverte par son lien de partage, sa page de mot de passe et la redirection qui suit le déverrouillage portent maintenant les mêmes protections que l'espace client et la signature de contrat : pas d'indexation par les moteurs de recherche, pas de copie dans un cache, et l'adresse secrète n'est plus transmise aux sites vers lesquels le deck renvoie.
+
+### Dans aurora-client
+
+Rien à faire au-delà de `make aurora-update`.
+
+---
+
 ## [0.9.312] - 2026-10-01
 
 ### Corrigé
