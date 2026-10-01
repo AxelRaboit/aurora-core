@@ -15,7 +15,10 @@ Ils avaient trois apparences : gris, bloc gris encadré, et texte vert pour les 
 ### Corrigé
 
 #### La dernière activité d'un contrat compte ses signatures
-Un contrat signé par le client restait daté, dans la liste, du jour de son envoi : une fois signé, il n'a plus de lien actif, et la signature ne comptait pas. Les signatures et tous les liens, révoqués compris, entrent maintenant dans « Dernière activité ».
+Un contrat signé par le client restait daté, dans la liste, du jour de son envoi : une fois signé, il n'a plus de lien actif, et la signature ne comptait pas. Les signatures et tous les liens, révoqués compris, entrent maintenant dans « Dernière activité », ainsi que le jour où le lien d'un contrat expiré a cessé de fonctionner.
+
+#### Un badge ne passe plus sur deux lignes
+« À contresigner » se coupait en deux dans la liste des contrats. Les badges tiennent sur une ligne, partout.
 
 #### Une démonstration des contrats cohérente
 Chaque contrat a l'historique de ce qui lui est arrivé, à ses dates (création, scellement, envoi, relance, signature, refus, révocation, expiration, résiliation), au lieu de « créé » et « scellé » datés du jour du chargement. Les contrats conclus ont leur PDF signé, vérifié avec le reste chaque matin. Le contrat expiré prend effet après son scellement, et le contrat résilié a été scellé dans l'année de sa référence.

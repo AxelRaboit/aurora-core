@@ -69,7 +69,10 @@ class ContractAccessLinkRepository extends ResolveTargetEntityRepository
 
     /**
      * The latest thing any of its addresses saw, per contract id: sent,
-     * opened or revoked, active or not.
+     * opened or revoked, active or not, and, for a contract that expired, the
+     * day its address lapsed. Only then: a signed contract keeps its link, and
+     * that link running out a month later is not something that happened to
+     * it.
      *
      * For the list's « last activity ». Reading the active link alone missed
      * everything that happened on a link since closed, which is every
@@ -85,20 +88,26 @@ class ContractAccessLinkRepository extends ResolveTargetEntityRepository
             return [];
         }
 
-        /** @var list<array{id: int|string, sent: ?string, used: ?string, revoked: ?string}> $rows */
+        /** @var list<array{id: int|string, sent: ?string, used: ?string, revoked: ?string, expires: ?string}> $rows */
         $rows = $this->createQueryBuilder('l')
-            ->select('IDENTITY(l.contract) AS id', 'MAX(l.sentAt) AS sent', 'MAX(l.lastUsedAt) AS used', 'MAX(l.revokedAt) AS revoked')
+            ->select('IDENTITY(l.contract) AS id', 'MAX(l.sentAt) AS sent', 'MAX(l.lastUsedAt) AS used', 'MAX(l.revokedAt) AS revoked', 'MAX(CASE WHEN c.status = :expired THEN l.expiresAt ELSE :none END) AS expires')
+            ->innerJoin('l.contract', 'c')
             ->andWhere('l.contract IN (:contracts)')
             ->setParameter('contracts', $contracts)
+            ->setParameter('expired', ContractStatusEnum::Expired->value)
+            ->setParameter('none', null)
             ->groupBy('l.contract')
             ->getQuery()
             ->getArrayResult();
 
+        $now = new DateTimeImmutable();
         $latest = [];
         foreach ($rows as $row) {
+            // A lapse is something that happened only once it has.
+            $lapsed = null !== $row['expires'] && new DateTimeImmutable($row['expires']) <= $now ? $row['expires'] : null;
             $dates = array_map(
                 static fn (string $value): DateTimeImmutable => new DateTimeImmutable($value),
-                array_filter([$row['sent'], $row['used'], $row['revoked']], is_string(...)),
+                array_filter([$row['sent'], $row['used'], $row['revoked'], $lapsed], is_string(...)),
             );
 
             if ([] !== $dates) {
