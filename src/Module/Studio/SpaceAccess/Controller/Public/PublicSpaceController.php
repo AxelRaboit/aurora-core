@@ -9,6 +9,7 @@ use Aurora\Core\Enum\HttpStatusEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Http\PageScriptRequestTrait;
+use Aurora\Core\Http\PrivateAddressResponseTrait;
 use Aurora\Core\Storage\Access\UploadPolicy;
 use Aurora\Core\Storage\Access\UploadPolicyProvider;
 use Aurora\Core\Storage\Access\UploadRefusalEnum;
@@ -73,6 +74,8 @@ use function is_string;
 #[Route('/spaces', name: 'public_space')]
 final class PublicSpaceController extends AbstractController
 {
+    use PrivateAddressResponseTrait;
+
     use JsonRequestTrait;
     use JsonResponseTrait;
     use PageScriptRequestTrait;
@@ -837,26 +840,6 @@ final class PublicSpaceController extends AbstractController
         if (!$this->isFromThisPage($request)) {
             throw $this->createNotFoundException();
         }
-    }
-
-    /**
-     * Keeps the page out of every cache between here and the reader.
-     *
-     * The address is a secret handed to one person; a shared proxy holding the
-     * answer would hand it to the next person asking for the same URL, and a
-     * browser cache would leave a client's content plan on a machine after the
-     * link is revoked.
-     */
-    private function privately(Response $response): Response
-    {
-        // The same three headers the contract page sets, and set the same way:
-        // two pages that keep a secret address out of caches should not differ
-        // in how thoroughly they do it.
-        $response->headers->set('Referrer-Policy', 'no-referrer');
-        $response->headers->set('X-Robots-Tag', 'noindex, nofollow, noarchive');
-        $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-
-        return $response;
     }
 
     /**

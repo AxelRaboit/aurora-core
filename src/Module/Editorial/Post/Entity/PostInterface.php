@@ -46,6 +46,12 @@ interface PostInterface
      */
     public function isOnSite(): bool;
 
+    /** @return array{preparedFor: ?string, showDate: bool, showLogo: bool} */
+    public function getReadingPage(): array;
+
+    /** @param array<string, mixed> $readingPage normalised on the way in */
+    public function setReadingPage(array $readingPage): static;
+
     public function getPublishedAt(): ?DateTimeImmutable;
 
     public function setPublishedAt(?DateTimeImmutable $publishedAt): static;

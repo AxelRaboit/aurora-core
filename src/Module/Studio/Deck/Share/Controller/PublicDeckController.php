@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\Deck\Share\Controller;
 
 use Aurora\Core\Enum\HttpMethodEnum;
+use Aurora\Core\Http\PrivateAddressResponseTrait;
 use Aurora\Module\Studio\Deck\Serializer\DeckSerializer;
 use Aurora\Module\Studio\Deck\Share\Entity\DeckShareLinkInterface;
 use Aurora\Module\Studio\Deck\Share\Repository\DeckShareLinkRepository;
@@ -35,6 +36,8 @@ use function password_verify;
 #[Route('/decks', name: 'public_deck')]
 final class PublicDeckController extends AbstractController
 {
+    use PrivateAddressResponseTrait;
+
     /**
      * Which links this browser has already unlocked, in its own session.
      *
@@ -142,18 +145,6 @@ final class PublicDeckController extends AbstractController
         $request->getSession()->set(self::UNLOCKED, $unlocked);
 
         return $this->privately($this->redirectToRoute('public_deck_show', ['token' => $token]));
-    }
-
-    private function privately(Response $response): Response
-    {
-        // The three headers the space and contract pages set. The address is
-        // the whole secret here, so it must not leak through a referrer, land
-        // in a search index, or sit in a shared cache for the next visitor.
-        $response->headers->set('Referrer-Policy', 'no-referrer');
-        $response->headers->set('X-Robots-Tag', 'noindex, nofollow, noarchive');
-        $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-
-        return $response;
     }
 
     private function isUnlocked(Request $request, string $token): bool

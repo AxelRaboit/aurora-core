@@ -56,6 +56,9 @@ interface PostInputInterface
     /** One of PostVisibilityEnum; the validator refuses anything else. */
     public function getVisibility(): string;
 
+    /** @return array<string, mixed> */
+    public function getReadingPage(): array;
+
     public function getPosition(): ?int;
 
     /**

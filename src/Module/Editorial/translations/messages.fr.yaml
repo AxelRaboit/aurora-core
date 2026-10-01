@@ -1280,6 +1280,45 @@ backend:
     visibility:
       site: 'Sur le site'
       link: 'Lien seulement'
+    reading:
+      page_title: 'Lecture par lien'
+      page_hint: 'Un lien de lecture ouvre cette publication hors du site, sans compte : pour un audit ou une stratégie à envoyer à un client. La page n''a ni menu ni pied de site ; voici ce qu''elle affiche en tête.'
+      save_first: 'Enregistrez la publication pour pouvoir créer ses liens.'
+      manage: 'Liens de lecture'
+      prepared_for: 'Préparé pour'
+      prepared_for_placeholder: 'Maison Durand'
+      prepared_for_hint: 'Affiché en tête de la page de lecture. Vide : rien n''est affiché.'
+      show_date: 'Afficher la date de mise à jour'
+      show_logo: 'Afficher le logo et le nom du site'
+      title: 'Liens de lecture'
+      intro: 'Une adresse secrète qui ouvre cette publication hors du site, sans compte. Créez un lien par destinataire : vous pourrez couper l''accès de l''un sans toucher aux autres.'
+      not_readable: 'Cette publication n''est pas publiée : ses liens ne s''ouvriront pas tant qu''elle ne l''est pas. Le brouillon se relit par l''aperçu.'
+      withheld_title: 'Une image de cette publication n''est pas publiée | {count} images de cette publication ne sont pas publiées'
+      withheld_hint: 'Le destinataire d''un lien ne les verra pas. Publiez-les dans la médiathèque pour qu''elles apparaissent.'
+      label: 'Intitulé'
+      label_placeholder: 'Envoyé à Marie, le 12 octobre'
+      expiry: 'Expiration'
+      no_expiry: 'Sans expiration'
+      days: '{count} jours'
+      create: 'Créer le lien'
+      created: 'Lien créé'
+      password: 'Mot de passe'
+      password_placeholder: 'Laisser vide pour un lien sans mot de passe'
+      password_hint: 'Communiquez-le autrement que par le message qui porte le lien.'
+      none: 'Aucun lien pour l''instant.'
+      untitled: 'Lien sans intitulé'
+      copy: 'Copier l''adresse'
+      copied: 'Adresse copiée'
+      copy_manually: 'Copiez l''adresse affichée, le navigateur a refusé le presse-papiers.'
+      revoke: 'Révoquer'
+      revoked: 'Révoqué'
+      revoked_toast: 'Lien révoqué'
+      expires_on: 'Expire le {date}'
+      locked: 'Protégé par mot de passe'
+      opened: 'Ouvert {count} fois'
+      opened_once: 'Ouvert une fois'
+      last_used: 'dernière ouverture le {date}'
+      never_opened: 'Jamais ouvert'
     errors:
       position_invalid: Le rang de lecture doit être un nombre entier supérieur à zéro. Laissez vide pour classer par date.
       post_type_required: Un type de contenu est requis.
@@ -1551,6 +1590,15 @@ backend:
     css_class_placeholder: "menu-item--mis-en-avant"
     label_placeholder: "Accueil"
 frontend:
+  reading:
+    prepared_for: 'Préparé pour %name%'
+    updated_on: 'Mis à jour le %date%'
+    footer: 'Ce document vous a été transmis personnellement. Merci de ne pas partager son lien.'
+    locked_title: 'Document protégé'
+    locked_intro: 'Cette adresse demande un mot de passe. Il vous a été communiqué avec le lien.'
+    locked_password: 'Mot de passe'
+    locked_submit: 'Ouvrir le document'
+    locked_failed: 'Ce lien ou ce mot de passe ne convient pas.'
   sequence:
     search:
       placeholder: Chercher dans la documentation…

@@ -82,6 +82,7 @@ final readonly class PostDuplicator
             // A copy of a client's audit is another client's audit, not a page
             // of the site: it keeps where the original could be read.
             'visibility' => $source->getVisibility()->value,
+            'readingPage' => $source->getReadingPage(),
             // Pas la position de l'originale : deux publications au même rang
             // se départagent par la date, et la copie passerait devant.
             'position' => null,

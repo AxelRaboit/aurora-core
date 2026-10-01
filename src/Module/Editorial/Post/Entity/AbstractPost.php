@@ -8,6 +8,7 @@ use Aurora\Core\Timestampable\TimestampableTrait;
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
 use Aurora\Module\Editorial\Post\Enum\PostVisibilityEnum;
 use Aurora\Module\Editorial\Post\Enum\ThumbnailFitEnum;
+use Aurora\Module\Editorial\Post\Reading\ReadingPageNormalizer;
 use Aurora\Module\Editorial\PostType\Entity\PostTypeInterface;
 use Aurora\Module\Editorial\Taxonomy\Entity\AbstractTaxonomy;
 use Aurora\Module\Editorial\Taxonomy\Entity\TaxonomyTermInterface;
@@ -108,6 +109,16 @@ abstract class AbstractPost implements PostInterface
      */
     #[ORM\Column(type: Types::JSON, nullable: true)]
     protected ?array $usefulLinks = null;
+
+    /**
+     * How the page a reading link opens introduces itself: who it was prepared
+     * for, whether it shows the date and the site's logo. Shape and defaults
+     * belong to {@see ReadingPageNormalizer}, which every write goes through.
+     *
+     * @var array{preparedFor?: ?string, showDate?: bool, showLogo?: bool}
+     */
+    #[ORM\Column(type: Types::JSON, options: ['default' => '{}'])]
+    protected array $readingPage = [];
 
     /**
      * Whether the published page prints its own title and summary.
@@ -471,6 +482,18 @@ abstract class AbstractPost implements PostInterface
     public function setShareLinks(?array $shareLinks): static
     {
         $this->shareLinks = $shareLinks;
+
+        return $this;
+    }
+
+    public function getReadingPage(): array
+    {
+        return new ReadingPageNormalizer()->normalize($this->readingPage);
+    }
+
+    public function setReadingPage(array $readingPage): static
+    {
+        $this->readingPage = new ReadingPageNormalizer()->normalize($readingPage);
 
         return $this;
     }

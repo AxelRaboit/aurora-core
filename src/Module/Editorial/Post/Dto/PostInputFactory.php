@@ -40,6 +40,7 @@ class PostInputFactory implements PostInputFactoryInterface
             usefulLinks: new UsefulLinksNormalizer()->normalize($data['usefulLinks'] ?? null),
             titleVisible: (bool) ($data['titleVisible'] ?? true),
             visibility: Str::trimOrNull((string) ($data['visibility'] ?? '')) ?? PostVisibilityEnum::Site->value,
+            readingPage: is_array($data['readingPage'] ?? null) ? $data['readingPage'] : [],
             // On the post, not the translation: one design for every language.
             bannerLayout: is_array($data['bannerLayout'] ?? null) ? $data['bannerLayout'] : [],
             gridLayout: is_array($data['gridLayout'] ?? null) ? $data['gridLayout'] : [],

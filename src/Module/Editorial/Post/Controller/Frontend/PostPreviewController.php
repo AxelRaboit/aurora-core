@@ -7,6 +7,8 @@ namespace Aurora\Module\Editorial\Post\Controller\Frontend;
 use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Locale\Service\LocaleContextInterface;
 use Aurora\Module\Editorial\EditorialContext;
+use Aurora\Module\Editorial\Post\Entity\PostInterface;
+use Aurora\Module\Editorial\Post\Enum\PostVisibilityEnum;
 use Aurora\Module\Editorial\Post\Preview\Entity\PostPreviewTokenInterface;
 use Aurora\Module\Editorial\Post\Preview\Manager\PostPreviewTokenManagerInterface;
 use Aurora\Module\Editorial\Post\Service\PostPageRenderer;
@@ -73,7 +75,12 @@ final class PostPreviewController extends AbstractController
 
         $request->setLocale($locale);
 
-        $response = $this->renderer->render($post, $locale);
+        // A publication shared by link previews the way its reader will see
+        // it: in the reading layout, without the site around it. Previewing it
+        // inside the site would show the author a page nobody will ever read.
+        $response = PostVisibilityEnum::Link === $post->getVisibility()
+            ? $this->renderer->renderForReading($post, $locale, $this->previewLocaleUrls($post, $token))
+            : $this->renderer->render($post, $locale);
 
         // Never cached and never indexed. This is an unpublished page behind a
         // secret: a shared cache would serve it to whoever asks next, and a crawler
@@ -87,9 +94,23 @@ final class PostPreviewController extends AbstractController
 
     /**
      * The locale to draw, or null when the post has no translation at all.
-     *
-     * @param list<string> $available
      */
+    /**
+     * This same preview in each language the publication has.
+     *
+     * @return array<string, string>
+     */
+    private function previewLocaleUrls(PostInterface $post, string $token): array
+    {
+        $urls = [];
+
+        foreach ($post->getTranslations()->getKeys() as $code) {
+            $urls[(string) $code] = $this->generateUrl('editorial_post_preview_show', ['token' => $token, 'locale' => $code]);
+        }
+
+        return $urls;
+    }
+
     private function previewLocale(array $available, mixed $requested): ?string
     {
         if ([] === $available) {

@@ -27,7 +27,8 @@ import PostBannerPanel from "./components/PostBannerPanel.vue";
 import PostGridPanel from "./components/PostGridPanel.vue";
 import PostGalleryPanel from "./components/PostGalleryPanel.vue";
 import PostRevisionsModal from "./components/PostRevisionsModal.vue";
-import { Save, AlertTriangle, Check, Eye, History, RefreshCw, X } from "lucide-vue-next";
+import PostReadingLinksModal from "./components/PostReadingLinksModal.vue";
+import { Save, AlertTriangle, Check, Eye, History, Link2, RefreshCw, X } from "lucide-vue-next";
 import { highlightModeOptions } from "@configuration/backend/themes/highlightModes.js";
 
 const { t, d } = useI18n();
@@ -55,6 +56,7 @@ const props = defineProps({
     gridPreviewPath: { type: String, required: true },
     searchPath: { type: String, required: true },
     previewPathTemplate: { type: String, default: "" },
+    readingLinksPathTemplate: { type: String, default: "" },
     revisionsPathTemplate: { type: String, default: "" },
     revisionShowPathTemplate: { type: String, default: "" },
     revisionRestorePathTemplate: { type: String, default: "" },
@@ -251,6 +253,10 @@ function hasTitleIn(code) {
 
 const previewing = ref(false);
 const showRevisions = ref(false);
+const showReadingLinks = ref(false);
+// Handing a publication to someone outside the site is publishing it to them,
+// so the links follow the right to publish, as the server's routes do.
+const canShareByLink = computed(() => can("editorial.posts.publish"));
 
 /**
  * Everything the header used to carry, minus the two that stay out of it.
@@ -753,6 +759,34 @@ function termLabel(term) {
                         <UsefulLinksField v-if="form.usefulLinksEnabled" v-model="form.usefulLinks" :site-links="siteUsefulLinks" />
                     </div>
 
+                    <!-- Lecture par lien. The page a reading link opens has
+                         none of the site around it, so the little it says of
+                         itself is set here, per publication. -->
+                    <div class="aurora-card p-3 sm:p-5 space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.reading.page_title") }}</h3>
+                            <AppButton
+                                v-if="postId && canShareByLink && readingLinksPathTemplate"
+                                variant="secondary"
+                                size="sm"
+                                v-on:click="showReadingLinks = true"
+                            >
+                                <Link2 class="h-3.5 w-3.5" :stroke-width="2" />
+                                {{ t("backend.posts.reading.manage") }}
+                            </AppButton>
+                        </div>
+                        <p class="text-xs text-muted">{{ t("backend.posts.reading.page_hint") }}</p>
+                        <p v-if="!postId" class="text-xs text-muted">{{ t("backend.posts.reading.save_first") }}</p>
+                        <AppInput
+                            v-model="form.readingPage.preparedFor"
+                            :label="t('backend.posts.reading.prepared_for')"
+                            :placeholder="t('backend.posts.reading.prepared_for_placeholder')"
+                            :hint="t('backend.posts.reading.prepared_for_hint')"
+                        />
+                        <AppToggle v-model="form.readingPage.showDate" :label="t('backend.posts.reading.show_date')" />
+                        <AppToggle v-model="form.readingPage.showLogo" :label="t('backend.posts.reading.show_logo')" />
+                    </div>
+
                     <div v-if="supportsThumbnail" class="aurora-card p-3 sm:p-5 space-y-4">
                         <h3 class="text-sm font-semibold text-primary">{{ t("backend.posts.thumbnail") }}</h3>
                         <p class="text-xs text-muted">{{ t("backend.posts.thumbnail_hint") }}</p>
@@ -970,6 +1004,14 @@ function termLabel(term) {
             :can-restore="can('editorial.posts.edit')"
             v-on:close="showRevisions = false"
             v-on:restored="onRestored"
+        />
+
+        <PostReadingLinksModal
+            v-if="postId && readingLinksPathTemplate"
+            :show="showReadingLinks"
+            :post-id="postId"
+            :path-template="readingLinksPathTemplate"
+            v-on:close="showReadingLinks = false"
         />
     </div>
 </template>

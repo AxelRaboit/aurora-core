@@ -44,6 +44,8 @@ class PostInput implements PostInputInterface
         public readonly bool $titleVisible = true,
         #[Assert\Choice(callback: [PostVisibilityEnum::class, 'values'], message: 'backend.posts.errors.visibility_invalid')]
         public readonly string $visibility = 'site',
+        /** @var array<string, mixed> raw; normalised by the entity on the way in */
+        public readonly array $readingPage = [],
         public readonly array $bannerLayout = [],
         public readonly array $gridLayout = [],
         public readonly array $galleryLayout = [],
@@ -82,6 +84,7 @@ class PostInput implements PostInputInterface
             usefulLinks: $this->usefulLinks,
             titleVisible: $this->titleVisible,
             visibility: $this->visibility,
+            readingPage: $this->readingPage,
             bannerLayout: $this->bannerLayout,
             gridLayout: $this->gridLayout,
             galleryLayout: $this->galleryLayout,
@@ -196,6 +199,11 @@ class PostInput implements PostInputInterface
     public function getVisibility(): string
     {
         return $this->visibility;
+    }
+
+    public function getReadingPage(): array
+    {
+        return $this->readingPage;
     }
 
     public function getPosition(): ?int
