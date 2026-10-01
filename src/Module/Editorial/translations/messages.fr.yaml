@@ -1241,6 +1241,10 @@ backend:
     field_description: Résumé
     field_post_type: Type de contenu
     field_status: Statut
+    field_visibility: 'Diffusion'
+    visibility_hint:
+      site: 'Une fois publiée, elle a son adresse sur le site et apparaît dans les listes, les menus, la recherche et le sitemap.'
+      link: 'Une fois publiée, le site ne la montre nulle part : ni adresse sur le site, ni liste, ni menu, ni recherche, ni sitemap. Pour un document à partager à une personne, comme un audit client.'
     field_scheduled_at: Publier le
     field_unpublish_at: "Dépublier le"
     unpublish_at_placeholder: "Jamais"
@@ -1260,6 +1264,7 @@ backend:
     clear_filters: Effacer
     filter_type: Type de contenu
     filter_status: Statut
+    filter_visibility: 'Diffusion'
     filter_term: Terme
     no_terms: Aucun terme défini.
     title_column: Titre
@@ -1272,12 +1277,16 @@ backend:
       scheduled: Programmée
       published: Publiée
       archived: Archivée
+    visibility:
+      site: 'Sur le site'
+      link: 'Lien seulement'
     errors:
       position_invalid: Le rang de lecture doit être un nombre entier supérieur à zéro. Laissez vide pour classer par date.
       post_type_required: Un type de contenu est requis.
       post_type_not_found: "Le type de contenu {id} n'existe pas."
       status_required: Un statut est requis.
       status_invalid: Statut inconnu.
+      visibility_invalid: 'Diffusion inconnue.'
       scheduled_at_required: Une publication programmée a besoin d'une date.
       scheduled_at_invalid: Cette date est illisible.
       scheduled_at_in_past: La date de programmation doit être dans le futur.

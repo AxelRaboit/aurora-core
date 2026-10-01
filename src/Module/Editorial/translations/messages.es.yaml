@@ -1267,6 +1267,10 @@ backend:
         field_description: Resumen
         field_post_type: 'Tipo de contenido'
         field_status: Estado
+        field_visibility: 'Difusión'
+        visibility_hint:
+            site: 'Una vez publicada, tiene su dirección en el sitio y aparece en las listas, los menús, la búsqueda y el sitemap.'
+            link: 'Una vez publicada, el sitio no la muestra en ninguna parte: ni dirección en el sitio, ni lista, ni menú, ni búsqueda, ni sitemap. Para un documento que se comparte con una persona, como una auditoría de cliente.'
         field_scheduled_at: 'Publicar el'
         field_unpublish_at: 'Despublicar el'
         unpublish_at_placeholder: Nunca
@@ -1286,6 +1290,7 @@ backend:
         clear_filters: Borrar
         filter_type: 'Tipo de contenido'
         filter_status: Estado
+        filter_visibility: 'Difusión'
         filter_term: Término
         no_terms: 'Ningún término definido.'
         title_column: Título
@@ -1298,12 +1303,16 @@ backend:
             scheduled: Programada
             published: Publicada
             archived: Archivada
+        visibility:
+            site: 'En el sitio'
+            link: 'Solo con enlace'
         errors:
             position_invalid: 'El orden de lectura debe ser un número entero mayor que cero. Déjelo vacío para ordenar por fecha.'
             post_type_required: 'Se requiere un tipo de contenido.'
             post_type_not_found: 'El tipo de contenido {id} no existe.'
             status_required: 'Se requiere un estado.'
             status_invalid: 'Estado desconocido.'
+            visibility_invalid: 'Difusión desconocida.'
             scheduled_at_required: 'Una publicación programada necesita una fecha.'
             scheduled_at_invalid: 'Esta fecha no es legible.'
             scheduled_at_in_past: 'La fecha de programación debe estar en el futuro.'

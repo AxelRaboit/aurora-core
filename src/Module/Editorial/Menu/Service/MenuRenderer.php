@@ -275,7 +275,7 @@ final class MenuRenderer
     private function postUrl(MenuItemInterface $item, string $locale): ?string
     {
         $post = $this->post($item->getTargetId());
-        if (!$post instanceof PostInterface || $post->isTrashed() || !$post->isPublished()) {
+        if (!$post instanceof PostInterface || !$post->isOnSite()) {
             return null;
         }
 

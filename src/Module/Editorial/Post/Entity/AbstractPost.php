@@ -6,6 +6,7 @@ namespace Aurora\Module\Editorial\Post\Entity;
 
 use Aurora\Core\Timestampable\TimestampableTrait;
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
+use Aurora\Module\Editorial\Post\Enum\PostVisibilityEnum;
 use Aurora\Module\Editorial\Post\Enum\ThumbnailFitEnum;
 use Aurora\Module\Editorial\PostType\Entity\PostTypeInterface;
 use Aurora\Module\Editorial\Taxonomy\Entity\AbstractTaxonomy;
@@ -38,6 +39,15 @@ abstract class AbstractPost implements PostInterface
 
     #[ORM\Column(length: 50, enumType: PostStatusEnum::class)]
     protected PostStatusEnum $status = PostStatusEnum::Draft;
+
+    /**
+     * Where the publication can be read once it is published: on the site, or
+     * through a link only. Every listing, menu and index of the site asks
+     * {@see isOnSite()} rather than {@see isPublished()}, so a publication
+     * shared by link never surfaces on the site whatever its status.
+     */
+    #[ORM\Column(length: 20, enumType: PostVisibilityEnum::class, options: ['default' => 'site'])]
+    protected PostVisibilityEnum $visibility = PostVisibilityEnum::Site;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     protected ?DateTimeImmutable $publishedAt = null;
@@ -327,6 +337,23 @@ abstract class AbstractPost implements PostInterface
     public function isPublished(): bool
     {
         return $this->status->isPublic();
+    }
+
+    public function getVisibility(): PostVisibilityEnum
+    {
+        return $this->visibility;
+    }
+
+    public function setVisibility(PostVisibilityEnum $visibility): static
+    {
+        $this->visibility = $visibility;
+
+        return $this;
+    }
+
+    public function isOnSite(): bool
+    {
+        return $this->isPublished() && !$this->isTrashed() && PostVisibilityEnum::Site === $this->visibility;
     }
 
     public function getPublishedAt(): ?DateTimeImmutable

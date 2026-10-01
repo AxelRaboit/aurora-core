@@ -139,6 +139,7 @@ backend:
       post_type_required: Post type is required.
       status_required: Status is required.
       status_invalid: Invalid status.
+      visibility_invalid: Invalid visibility.
   forms:
     errors:
       translations_required: At least one language must be filled in.

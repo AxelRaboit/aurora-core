@@ -8,6 +8,7 @@ use Aurora\Core\Support\Arr;
 use Aurora\Core\Support\Str;
 use Aurora\Module\Configuration\Theme\Service\ThemeContext;
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
+use Aurora\Module\Editorial\Post\Enum\PostVisibilityEnum;
 use Aurora\Module\Editorial\Post\Enum\ThumbnailFitEnum;
 use Aurora\Module\Editorial\Post\Share\ShareLinksNormalizer;
 use Aurora\Module\Editorial\Post\Share\UsefulLinksNormalizer;
@@ -38,6 +39,7 @@ class PostInputFactory implements PostInputFactoryInterface
             usefulLinksEnabled: (bool) ($data['usefulLinksEnabled'] ?? true),
             usefulLinks: new UsefulLinksNormalizer()->normalize($data['usefulLinks'] ?? null),
             titleVisible: (bool) ($data['titleVisible'] ?? true),
+            visibility: Str::trimOrNull((string) ($data['visibility'] ?? '')) ?? PostVisibilityEnum::Site->value,
             // On the post, not the translation: one design for every language.
             bannerLayout: is_array($data['bannerLayout'] ?? null) ? $data['bannerLayout'] : [],
             gridLayout: is_array($data['gridLayout'] ?? null) ? $data['gridLayout'] : [],

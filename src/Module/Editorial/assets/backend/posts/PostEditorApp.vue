@@ -149,6 +149,7 @@ const STATUS_COLORS = {
  * Tailwind only emits classes it can read in the source.
  */
 const THUMBNAIL_FITS = ["cover", "contain", "fill"];
+const VISIBILITIES = ["site", "link"];
 const THUMBNAIL_FIT_CLASSES = {
     cover: "object-cover",
     contain: "object-contain",
@@ -391,6 +392,13 @@ const SURFACES = computed(() => [
     { key: "headerColor", label: t("backend.posts.appearance.surface_header") },
     { key: "footerColor", label: t("backend.posts.appearance.surface_footer") },
 ]);
+
+const visibilityOptions = computed(() =>
+    VISIBILITIES.map((visibility) => ({
+        value: visibility,
+        label: t(`backend.posts.visibility.${visibility}`),
+    })),
+);
 
 const thumbnailFitOptions = computed(() =>
     THUMBNAIL_FITS.map((fit) => ({
@@ -705,6 +713,16 @@ function termLabel(term) {
                             :label="t('backend.posts.field_status')"
                             :options="statusSelectOptions"
                             :error="errors.status"
+                        />
+                        <!-- Beside the status because the two answer one
+                             question together: published says a visitor may
+                             read it, this says whether the site offers it. -->
+                        <AppSelect
+                            v-model="form.visibility"
+                            :label="t('backend.posts.field_visibility')"
+                            :options="visibilityOptions"
+                            :hint="t(`backend.posts.visibility_hint.${form.visibility}`)"
+                            :error="errors.visibility"
                         />
                         <AppDatePicker
                             v-if="form.status === 'scheduled'"

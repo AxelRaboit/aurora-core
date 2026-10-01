@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Editorial\Post\Dto;
 
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
+use Aurora\Module\Editorial\Post\Enum\PostVisibilityEnum;
 use DateTimeImmutable;
 use Exception;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -41,6 +42,8 @@ class PostInput implements PostInputInterface
         /** @var list<array{label: string, url: string, color: ?string}>|null */
         public readonly ?array $usefulLinks = null,
         public readonly bool $titleVisible = true,
+        #[Assert\Choice(callback: [PostVisibilityEnum::class, 'values'], message: 'backend.posts.errors.visibility_invalid')]
+        public readonly string $visibility = 'site',
         public readonly array $bannerLayout = [],
         public readonly array $gridLayout = [],
         public readonly array $galleryLayout = [],
@@ -78,6 +81,7 @@ class PostInput implements PostInputInterface
             usefulLinksEnabled: $this->usefulLinksEnabled,
             usefulLinks: $this->usefulLinks,
             titleVisible: $this->titleVisible,
+            visibility: $this->visibility,
             bannerLayout: $this->bannerLayout,
             gridLayout: $this->gridLayout,
             galleryLayout: $this->galleryLayout,
@@ -187,6 +191,11 @@ class PostInput implements PostInputInterface
     public function isTitleVisible(): bool
     {
         return $this->titleVisible;
+    }
+
+    public function getVisibility(): string
+    {
+        return $this->visibility;
     }
 
     public function getPosition(): ?int

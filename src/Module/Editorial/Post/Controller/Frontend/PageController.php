@@ -255,7 +255,7 @@ class PageController extends AbstractController
         }
 
         $post = $this->postRepository->find($id);
-        if (!$post instanceof PostInterface || !$post->isPublished() || $post->isTrashed()) {
+        if (!$post instanceof PostInterface || !$post->isOnSite()) {
             return null;
         }
 
@@ -269,7 +269,10 @@ class PageController extends AbstractController
     private function redirectFromSlugHistory(string $locale, string $slug): ?RedirectResponse
     {
         $entry = $this->slugHistoryRepository->findOneByLocaleAndSlug($locale, $slug);
-        if (!$entry instanceof PostSlugHistoryInterface) {
+        // An old address of a publication the site no longer offers leads
+        // nowhere: redirecting would name its new address, and that address
+        // answers 404 anyway.
+        if (!$entry instanceof PostSlugHistoryInterface || !$entry->getPost()->isOnSite()) {
             return null;
         }
 

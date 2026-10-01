@@ -53,6 +53,9 @@ interface PostInputInterface
 
     public function isTitleVisible(): bool;
 
+    /** One of PostVisibilityEnum; the validator refuses anything else. */
+    public function getVisibility(): string;
+
     public function getPosition(): ?int;
 
     /**

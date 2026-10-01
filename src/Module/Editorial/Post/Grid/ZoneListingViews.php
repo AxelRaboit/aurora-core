@@ -210,12 +210,16 @@ final readonly class ZoneListingViews
      * fields, which cost queries and which a grid card does not show: six
      * fields is the whole of it.
      *
-     * @return array<string, mixed>|null null when the post is gone, trashed,
-     *                                   or has nothing written in this locale
+     * @return array<string, mixed>|null null when the post is gone, is not on
+     *                                   the site, or has nothing written in this locale
      */
     public function postCard(?PostInterface $post, string $locale): ?array
     {
-        if (!$post instanceof PostInterface || $post->isTrashed()) {
+        // On the site, not merely there: a card links to the publication's
+        // address under the site, and a draft or a publication shared by link
+        // has none - the card would be a link to a 404, and for the second,
+        // a title the site must never show.
+        if (!$post instanceof PostInterface || !$post->isOnSite()) {
             return null;
         }
 

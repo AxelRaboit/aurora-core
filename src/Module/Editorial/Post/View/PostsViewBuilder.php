@@ -9,6 +9,7 @@ use Aurora\Core\Validation\Dto\PaginationRequest;
 use Aurora\Module\Editorial\Form\Repository\FormRepository;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
+use Aurora\Module\Editorial\Post\Enum\PostVisibilityEnum;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
 use Aurora\Module\Editorial\Post\Serializer\PostSerializerInterface;
 use Aurora\Module\Editorial\Post\Share\SiteUsefulLinks;
@@ -46,6 +47,7 @@ final readonly class PostsViewBuilder
      * @param list<int>    $postTypeIds
      * @param list<int>    $termIds
      * @param list<string> $statuses
+     * @param list<string> $visibilities
      *
      * @return array<string, mixed>
      */
@@ -56,6 +58,7 @@ final readonly class PostsViewBuilder
         ?int $authorId = null,
         array $termIds = [],
         array $statuses = [],
+        array $visibilities = [],
     ): array {
         $result = $this->postRepository->findPaginated(
             page: $pagination->page,
@@ -67,6 +70,7 @@ final readonly class PostsViewBuilder
             authorId: $authorId,
             termIds: $termIds,
             statuses: $statuses,
+            visibilities: $visibilities,
         );
 
         return [
@@ -83,6 +87,7 @@ final readonly class PostsViewBuilder
      * @param list<int>            $postTypeIds
      * @param list<int>            $termIds
      * @param list<string>         $statuses
+     * @param list<string>         $visibilities
      *
      * @return array<string, mixed>
      */
@@ -92,6 +97,7 @@ final readonly class PostsViewBuilder
         array $postTypeIds = [],
         array $termIds = [],
         array $statuses = [],
+        array $visibilities = [],
     ): array {
         return [
             'posts' => $listPayload,
@@ -100,6 +106,8 @@ final readonly class PostsViewBuilder
             'termIds' => $termIds,
             'statuses' => $statuses,
             'statusOptions' => PostStatusEnum::values(),
+            'visibilities' => $visibilities,
+            'visibilityOptions' => PostVisibilityEnum::values(),
             ...$this->sharedContext(),
         ];
     }

@@ -72,6 +72,7 @@ class PostSerializer implements PostSerializerInterface
             'usefulLinksEnabled' => $post->isUsefulLinksEnabled(),
             'usefulLinks' => $post->getUsefulLinks(),
             'titleVisible' => $post->isTitleVisible(),
+            'visibility' => $post->getVisibility()->value,
             'position' => $post->getPosition(),
             'createdAt' => $post->getCreatedAt()->format(DateTimeInterface::ATOM),
             'updatedAt' => $post->getUpdatedAt()->format(DateTimeInterface::ATOM),
