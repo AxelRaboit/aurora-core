@@ -10,6 +10,7 @@
  * La grille est celle des pages du site, avec ses zones et son aperçu : un
  * livrable se compose comme une page, il ne se publie pas comme une page.
  */
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
@@ -188,6 +189,15 @@ const headerActions = computed(() => {
                 {{ t("backend.studio.space_deliverables.for_customer", { name: space.customerName }) }}
             </p>
         </div>
+
+
+        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <AppGuide :title="t('backend.studio.space_deliverables.editor_guide.title')" storage-key="deliverable-editor">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 5" :key="step">{{ t(`backend.studio.space_deliverables.editor_guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
 
         <div class="flex max-w-full gap-1 overflow-x-auto border-b border-line scrollbar-thin">
             <AppTab

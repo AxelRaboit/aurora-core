@@ -1,4 +1,5 @@
 <script setup>
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
@@ -320,6 +321,14 @@ const governingLabel = computed(
                 <FilePlus2 class="w-4 h-4" :stroke-width="2" />
             </AppButton>
         </AppPageBar>
+
+        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <AppGuide :title="t('backend.studio.contract_templates.editor_guide.title')" storage-key="contract-template-editor">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 5" :key="step">{{ t(`backend.studio.contract_templates.editor_guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
 
         <!-- A published version is readable but not writable, and the page says
              so before the reader tries. Hiding the fields instead would leave

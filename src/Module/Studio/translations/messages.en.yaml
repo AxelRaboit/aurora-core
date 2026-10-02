@@ -215,6 +215,13 @@ backend:
                 customer: 'The customer'
                 provider: 'The provider'
         contracts:
+            document_guide:
+                title: "How to read a contract's page"
+                step_1: "The “Next step” card says where the contract stands and carries the next action; the other allowed actions are in the menu beside it."
+                step_2: "As a draft, the document shown is a preview with the real data: “Edit” changes the contract's choices, “Adapt the wording” its text for this client alone."
+                step_3: "Once sealed, the document shown is the frozen text, and the seal card confirms it has not changed since."
+                step_4: "Beside the document you find the contract's details, its signing link, the signatures with their proof and the history."
+                step_5: "Once concluded, it downloads as a signed PDF; an original contract in force can then receive an amendment or be terminated."
             guide:
                 title: "How a contract goes"
                 step_1: "Prepare it as a draft: the client, the template, the amount, the dates and the extra fields the template asks for."
@@ -223,6 +230,13 @@ backend:
                 step_4: "The client reads, fills in their identity, signs, then confirms with a code sent by email; they can also decline."
                 step_5: "Countersign: the contract is concluded and both parties get the signed PDF. Declined, expired or revoked, it goes back to “To send”."
             wording:
+                guide:
+                    title: "How to adapt a contract's wording"
+                    step_1: "This wording applies to this contract only: the template and the other contracts using it do not change."
+                    step_2: "Edit the title and the text, then “Save”: the first save creates the adapted version."
+                    step_3: "“Differences with the template” shows what is added and removed as you type, and the variables stay within reach in their panel."
+                    step_4: "When the contract has an annex, the body and the annex are adapted separately, each in its own tab."
+                    step_5: "“Back to the template's wording”, in the menu, removes the adaptation; once the contract is sealed, the text can no longer change."
                 title: Adapted wording
                 heading: Contract wording for {customer}
                 intro: 'This wording applies to this contract only. The template "{template}" (version {number}) does not change, nor do the other contracts using it.'
@@ -583,6 +597,13 @@ backend:
                 provider_settings_missing: 'These provider details are not set in the settings, and the trame prints them: {fields}'
                 custom_field_too_long: A complement cannot exceed 500 characters.
         contract_templates:
+            editor_guide:
+                title: "How to write a template"
+                step_1: "Write the title and the text language by language, in their tabs; a green dot marks each written language."
+                step_2: "Insert the variables from the panel: each contract replaces them with its own data when it is sealed."
+                step_3: "If several languages are written, choose the “Governing language”: without it, the version cannot be published."
+                step_4: "“Save” keeps the draft, and “Preview”, in the menu, shows the document with examples and your own details."
+                step_5: "“Publish” makes the version final; to change it afterwards, “Edit the text” opens the next version as a draft."
             guide:
                 title: "How templates work"
                 step_1: "A template is a contract body, signed on its own, or an appendix, which completes a body."
@@ -753,6 +774,12 @@ backend:
                 examples_notice: 'These values are examples. The contract will use the real ones: the chosen client''s and yours.'
                 example: 'e.g. {value}'
         decks:
+            editor_guide:
+                title: "How to edit a presentation"
+                step_1: "The “Slides” column shows them in order: click a slide to edit it, and move it by its handle or its arrows."
+                step_2: "“Add a slide” offers the layouts; with “Free slide”, you place each element by hand."
+                step_3: "Fill in the layout's fields and the speaker notes, which the audience never sees: everything saves on its own."
+                step_4: "“Present” goes full screen; the menu beside it opens the presenter view, printing, sharing and the appearance."
             guide:
                 title: "How presentations work"
                 step_1: "Create a presentation from scratch, from a template, or by importing a document where each heading opens a slide."
@@ -1918,6 +1945,13 @@ backend:
                 link_url_invalid: "This address is not valid. It has to start with http:// or https://."
                 link_url_too_long: This address is too long.
         space_deliverables:
+            editor_guide:
+                title: "How to put a deliverable together"
+                step_1: "“Content” is built with the site's page grid: add zones and fill them in."
+                step_2: "“Appearance” sets the page and content colours for this document alone, in the client's colours if you like."
+                step_3: "“Settings” holds the title, the summary, the language and the header; tick “Visible to the client” so they can read it in their space."
+                step_4: "Save your changes, then “Preview”, in the menu, opens the page as the client will read it."
+                step_5: "“Reading links” creates a secret address that opens this document alone without an account, with an optional password and expiry."
             guide:
                 title: "How deliverables work"
                 step_1: "“New deliverable” creates a document (audit, strategy, report) built like a page, in your colours or the client's."
@@ -2353,6 +2387,13 @@ studio:
             errors:
                 reason_too_long: 'That reason is too long.'
         sign:
+            guide:
+                title: "How to sign this contract"
+                step_1: "Read the contract to the end: the signing button waits until you have scrolled through it."
+                step_2: "Fill in your first name, last name and email, the place and the date, then sign in the frame with your finger, a mouse or a stylus."
+                step_3: "Click “Send me the code”: it is emailed to the address that received this contract."
+                step_4: "Enter the code, tick the acceptance box, then click “Sign the contract”."
+                step_5: "If you do not wish to sign, “I am not signing” passes your refusal on to the provider, with a reason if you want."
             heading: 'Sign this contract'
             intro: 'Fill in your details, sign in the frame, then confirm with the code we will email you.'
             first_name: 'First name'
@@ -2361,7 +2402,7 @@ studio:
             last_name_placeholder: 'Durand'
             email: 'Your email'
             email_placeholder: 'camille@company.com'
-            email_hint: 'Your own address. The confirmation code goes to the company''s contractual address.'
+            email_hint: 'Your own address. The confirmation code goes to the address that received this contract.'
             place: 'Signed at'
             place_placeholder: 'Lyon'
             date: 'On'
@@ -2400,6 +2441,16 @@ studio:
                 too_many_requests: 'Too many attempts. Wait a few minutes.'
                 code_not_sent: "The code could not be sent. Try again in a moment, or tell your contact."
         space:
+            guide:
+                title: "How to use your space"
+                step_calendar: "The calendar shows, month by month, what is planned for you: click a post to read it with its files."
+                step_answer: "In a post, answer “Approved” or “Needs changes”; the ones awaiting your opinion are one click away above the calendar."
+                step_comment_upload: "Under each post, write to your provider or attach an image, a PDF or a video of up to 25 MB."
+                step_comment: "Under each post, write to your provider to ask a question or say what needs reworking."
+                step_upload: "You can attach an image, a PDF or a video of up to 25 MB to a post."
+                step_chat: "The “Conversation” tab is for talking with your provider outside the posts."
+                step_chat_read: "The “Conversation” tab shows your exchanges with your provider, read only."
+                step_tabs: "The other tabs, at the top of the page, gather what your provider shares with you, such as files or deliverables."
             unavailable_message: The address you opened does not exist, has expired, or has been revoked. If you were expecting a space's content plan, ask your contact for a new link.
             timezone_notice: 'Times in {timezone}'
             calendar_day_empty: Nothing planned that day.

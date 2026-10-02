@@ -7,58 +7,38 @@
  * geste l'est. Il dit ce que fait l'écran, dans l'ordre où on s'en sert, et
  * confirme ce qui va se passer avant qu'on clique.
  *
- * **Repliable, et retenu.** Un mode d'emploi sert tant qu'on découvre ; relu
- * à chaque visite, il devient du bruit. Avec `storageKey`, le choix d'ouvrir
- * ou de replier est gardé dans le navigateur ; sans lui, l'encart suit
- * `open`. Le stockage peut manquer (navigation privée) : l'encart retombe
- * alors sur `open`, sans erreur.
+ * **Un seul choix pour tous les encarts** (`useGuidePreference`) : replier
+ * celui-ci les replie tous, et le choix est retenu. Tant que le lecteur n'a
+ * rien choisi, l'encart suit `open` ; un mode d'emploi d'intégration reste
+ * ainsi ouvert tant que rien n'est branché.
  *
  * Le contenu est libre : des étapes (`<ol>`), une phrase, un lien. Le style
  * du texte est posé ici, pour que tous les encarts se lisent pareil.
  */
-import { ref, watch } from "vue";
+import { computed } from "vue";
 import { BookOpen, ChevronDown } from "lucide-vue-next";
+import { useGuidePreference } from "@/shared/composables/useGuidePreference.js";
 
 const props = defineProps({
     title: { type: String, required: true },
-    /** Ouvert au départ ; ignoré quand le lecteur a déjà choisi (voir `storageKey`). */
+    /** Ouvert au départ, tant que le lecteur n'a rien choisi. */
     open: { type: Boolean, default: true },
-    /** Une clé pour retenir le choix du lecteur d'une visite à l'autre. */
+    /** Accepté et ignoré : le choix d'ouvrir ou de replier est commun à tous les encarts. */
     storageKey: { type: String, default: "" },
 });
 
-const STORAGE_PREFIX = "aurora.guide.";
+const { choice, remember } = useGuidePreference();
 
-function stored() {
-    if (!props.storageKey) return null;
-    try {
-        const value = window.localStorage.getItem(STORAGE_PREFIX + props.storageKey);
+const isOpen = computed(() => choice.value ?? props.open);
 
-        return null === value ? null : "1" === value;
-    } catch {
-        return null;
-    }
-}
-
-const isOpen = ref(stored() ?? props.open);
-
-// Sans choix retenu, l'encart suit son appelant : un mode d'emploi qui se
-// replie une fois l'intégration branchée, par exemple.
-watch(
-    () => props.open,
-    (value) => {
-        if (null === stored()) isOpen.value = value;
-    },
-);
-
+/**
+ * `toggle` part aussi quand l'état change par le code (un autre encart vient
+ * d'être replié) : seul un écart avec l'état attendu vient du lecteur.
+ */
 function onToggle(event) {
-    isOpen.value = event.target.open;
-    if (!props.storageKey) return;
-    try {
-        window.localStorage.setItem(STORAGE_PREFIX + props.storageKey, isOpen.value ? "1" : "0");
-    } catch {
-        // Le stockage refusé ne change rien à l'encart, seulement à la mémoire.
-    }
+    if (event.target.open === isOpen.value) return;
+
+    remember(event.target.open);
 }
 </script>
 

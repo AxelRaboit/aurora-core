@@ -204,7 +204,7 @@ const deckUrl = (deck) => buildPath(props.showPath, { id: deck.id });
             </template>
         </AppListToolbar>
         <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié une fois, il le reste (`storage-key`). -->
+             replié ou déplié, le choix vaut pour tous les encarts. -->
         <AppGuide :title="t('backend.studio.decks.guide.title')" storage-key="decks-list">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 5" :key="step">{{ t(`backend.studio.decks.guide.step_${step}`) }}</li>

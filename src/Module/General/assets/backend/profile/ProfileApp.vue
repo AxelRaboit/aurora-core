@@ -1,4 +1,5 @@
 <script setup>
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { useI18n } from "vue-i18n";
 import { Upload, Trash2, Save, SlidersHorizontal } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
@@ -54,6 +55,13 @@ const { photoUrl, photoLoading, onPhotoSelected, removePhoto } = useProfilePhoto
 
 <template>
     <div class="max-w-5xl mx-auto space-y-5">
+        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <AppGuide :title="t('backend.profile.guide.title')" storage-key="profile">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 5" :key="step">{{ t(`backend.profile.guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
         <div class="grid lg:grid-cols-2 gap-5 items-start">
             <!-- Left column: identity & security -->
             <div class="space-y-5">

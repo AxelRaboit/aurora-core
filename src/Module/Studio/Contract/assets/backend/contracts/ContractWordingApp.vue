@@ -13,6 +13,7 @@
  * Read-only once the contract is sealed, or for a reader who may not edit:
  * the page then shows the text that was (or will be) sealed.
  */
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
@@ -216,6 +217,14 @@ const otherParts = computed(() => props.parts.filter((each) => each.key !== prop
                 <Save class="w-4 h-4" :stroke-width="2" />
             </AppButton>
         </AppPageBar>
+
+        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <AppGuide :title="t('backend.studio.contracts.wording.guide.title')" storage-key="contract-wording">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 5" :key="step">{{ t(`backend.studio.contracts.wording.guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
 
         <AppMessage v-if="isFrozen" variant="info">
             <span class="flex items-center gap-2">

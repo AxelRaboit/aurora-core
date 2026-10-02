@@ -215,6 +215,13 @@ backend:
                 customer: 'El cliente'
                 provider: 'El prestador'
         contracts:
+            document_guide:
+                title: 'Cómo se lee la página de un contrato'
+                step_1: 'El recuadro «Siguiente paso» indica en qué punto está el contrato y lleva la acción siguiente; las demás acciones permitidas están en el menú de al lado.'
+                step_2: 'En borrador, el documento mostrado es una vista previa con los datos reales: «Editar» cambia las opciones del contrato, «Adaptar el texto» su redacción solo para este cliente.'
+                step_3: 'Una vez sellado, el documento mostrado es el texto fijado, y el recuadro del sello confirma que no ha cambiado desde entonces.'
+                step_4: 'Junto al documento encontrará los datos del contrato, su enlace de firma, las firmas con su prueba y el historial.'
+                step_5: 'Concluido, se descarga en PDF firmado; un contrato original vigente puede después recibir una adenda o rescindirse.'
             guide:
                 title: "Cómo avanza un contrato"
                 step_1: "Prepárelo como borrador: el cliente, la plantilla, el importe, las fechas y los campos que pida la plantilla."
@@ -223,6 +230,13 @@ backend:
                 step_4: "El cliente lee, indica su identidad, firma y confirma con un código recibido por correo; también puede rechazarlo."
                 step_5: "Contrafirme: el contrato queda concluido y cada parte recibe el PDF firmado. Rechazado, caducado o revocado, vuelve a «Por enviar»."
             wording:
+                guide:
+                    title: 'Cómo adaptar el texto de un contrato'
+                    step_1: 'Este texto solo vale para este contrato: la plantilla y los demás contratos que la usan no cambian.'
+                    step_2: 'Modifique el título y el texto y pulse «Guardar»: el primer guardado crea la versión adaptada.'
+                    step_3: '«Diferencias con la plantilla» muestra mientras escribe lo que se añade y se quita, y las variables siguen a mano en su panel.'
+                    step_4: 'Cuando el contrato tiene un anexo, el cuerpo y el anexo se adaptan por separado, cada uno en su pestaña.'
+                    step_5: '«Volver al texto de la plantilla», en el menú, borra la adaptación; una vez sellado el contrato, el texto ya no se modifica.'
                 title: Texto adaptado
                 heading: Texto del contrato para {customer}
                 intro: 'Este texto solo vale para este contrato. La plantilla «{template}» (versión {number}) no cambia, ni los demás contratos que la usan.'
@@ -583,6 +597,13 @@ backend:
                 provider_settings_missing: 'Estos datos del prestador no están indicados en los ajustes, y la plantilla los imprime: {fields}'
                 custom_field_too_long: 'Un complemento no puede superar los 500 caracteres.'
         contract_templates:
+            editor_guide:
+                title: 'Cómo redactar una plantilla'
+                step_1: 'Escriba el título y el texto idioma por idioma, en sus pestañas; un punto verde marca cada idioma redactado.'
+                step_2: 'Inserte las variables del panel: cada contrato las sustituye por sus propios datos al sellarse.'
+                step_3: 'Si hay varios idiomas redactados, elija el «Idioma que prevalece»: sin él, la versión no se puede publicar.'
+                step_4: '«Guardar» conserva el borrador, y «Vista previa», en el menú, muestra el documento con ejemplos y sus datos.'
+                step_5: '«Publicar» hace definitiva la versión; para cambiarla después, «Editar el texto» abre la versión siguiente en borrador.'
             guide:
                 title: 'Cómo funcionan las plantillas'
                 step_1: 'Una plantilla es un cuerpo de contrato, que se firma solo, o un anexo, que completa un cuerpo.'
@@ -753,6 +774,12 @@ backend:
                 examples_notice: 'Estos valores son ejemplos. El contrato usará los reales: los del cliente elegido y los suyos.'
                 example: 'ej. {value}'
         decks:
+            editor_guide:
+                title: 'Cómo modificar una presentación'
+                step_1: 'La columna «Diapositivas» las muestra en orden: haga clic en una para modificarla y muévala con su asa o sus flechas.'
+                step_2: '«Añadir una diapositiva» propone las plantillas; con «Diapositiva libre», coloca cada elemento a mano.'
+                step_3: 'Rellene los campos de la plantilla y las notas del orador, que el público nunca ve: todo se guarda solo.'
+                step_4: '«Presentar» pasa a pantalla completa; el menú de al lado abre la vista del presentador, la impresión, el uso compartido y la apariencia.'
             guide:
                 title: 'Cómo funcionan las presentaciones'
                 step_1: 'Cree una presentación desde cero, a partir de una plantilla, o importando un documento en el que cada título abre una diapositiva.'
@@ -1898,6 +1925,13 @@ backend:
                 link_url_invalid: 'Esta dirección no es válida. Debe empezar por http:// o https://.'
                 link_url_too_long: 'Esta dirección es demasiado larga.'
         space_deliverables:
+            editor_guide:
+                title: 'Cómo componer un entregable'
+                step_1: '«Contenido» se compone con la cuadrícula de las páginas del sitio: añada zonas y rellénelas.'
+                step_2: '«Apariencia» ajusta los colores de la página y del contenido solo para este documento, con los colores del cliente si lo desea.'
+                step_3: '«Ajustes» lleva el título, el resumen, el idioma y la cabecera; marque «Visible para el cliente» para que lo lea en su espacio.'
+                step_4: 'Guarde sus cambios y luego «Vista previa», en el menú, abre la página tal como la leerá el cliente.'
+                step_5: '«Enlaces de lectura» crea una dirección secreta que abre solo este documento sin cuenta, con contraseña y caducidad opcionales.'
             guide:
                 title: "Cómo funcionan los entregables"
                 step_1: "«Nuevo entregable» crea un documento (auditoría, estrategia, balance) que se compone como una página, con sus colores o los del cliente."
@@ -2321,6 +2355,13 @@ studio:
             errors:
                 reason_too_long: 'Este motivo es demasiado largo.'
         sign:
+            guide:
+                title: 'Cómo firmar este contrato'
+                step_1: 'Lea el contrato hasta el final: el botón de firma espera a que lo haya recorrido.'
+                step_2: 'Indique su nombre, apellidos y email, el lugar y la fecha, y firme en el recuadro con el dedo, el ratón o un lápiz.'
+                step_3: 'Haga clic en «Recibir el código»: se envía por email a la dirección que recibió este contrato.'
+                step_4: 'Introduzca el código, marque la casilla de aceptación y haga clic en «Firmar el contrato».'
+                step_5: 'Si no desea firmar, «No firmo» transmite su rechazo al proveedor, con un motivo si lo desea.'
             heading: 'Firmar este contrato'
             intro: 'Indique su identidad, firme en el recuadro y confirme con el código que le enviaremos por email.'
             first_name: Nombre
@@ -2329,7 +2370,7 @@ studio:
             last_name_placeholder: Durand
             email: 'Su email'
             email_placeholder: camille@empresa.es
-            email_hint: 'Su dirección personal. El código de confirmación, en cambio, se envía a la dirección contractual de la empresa.'
+            email_hint: 'Su dirección personal. El código de confirmación, en cambio, se envía a la dirección que recibió este contrato.'
             place: 'Firmado en'
             place_placeholder: Lyon
             date: Fecha
@@ -2368,6 +2409,16 @@ studio:
                 too_many_requests: 'Demasiados intentos. Espere unos minutos.'
                 code_not_sent: 'No se ha podido enviar el código. Inténtelo de nuevo en un momento o avise a su interlocutor.'
         space:
+            guide:
+                title: 'Cómo usar su espacio'
+                step_calendar: 'El calendario muestra, mes a mes, lo previsto para usted: haga clic en una publicación para leerla con sus archivos.'
+                step_answer: 'En una publicación, responda «Validado» o «Revisar»; las que esperan su opinión están a un clic, encima del calendario.'
+                step_comment_upload: 'Debajo de cada publicación, escriba a su proveedor o adjunte una imagen, un PDF o un vídeo de 25 MB como máximo.'
+                step_comment: 'Debajo de cada publicación, escriba a su proveedor para hacer una pregunta o decir lo que hay que rehacer.'
+                step_upload: 'Puede adjuntar a una publicación una imagen, un PDF o un vídeo de 25 MB como máximo.'
+                step_chat: 'La pestaña «Conversación» sirve para hablar con su proveedor fuera de las publicaciones.'
+                step_chat_read: 'La pestaña «Conversación» muestra sus intercambios con su proveedor, solo en lectura.'
+                step_tabs: 'Las demás pestañas, en la parte superior de la página, reúnen lo que su proveedor comparte con usted, como archivos o entregables.'
             unavailable_message: 'La dirección que ha abierto no existe, ha caducado o ha sido revocada. Si esperaba el plan de contenidos de un espacio, pida un nuevo enlace a su contacto.'
             timezone_notice: 'Horas en {timezone}'
             calendar_day_empty: 'Nada previsto ese día.'

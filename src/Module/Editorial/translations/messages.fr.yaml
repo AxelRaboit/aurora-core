@@ -112,6 +112,12 @@ backend:
         place_required: "Saisissez l'identifiant de la fiche et la clé d'API pour activer l'intégration."
     useful_links:
       settings:
+        guide:
+          title: "Comment marchent les liens utiles"
+          step_1: "Ajoutez un lien avec son libellé, son adresse et sa couleur ; l'adresse commence par https:// ou mailto:."
+          step_2: "Glissez la poignée pour changer l'ordre, puis enregistrez : un lien sans libellé ou sans adresse valable est retiré à l'enregistrement."
+          step_3: "Ils s'affichent en bas de chaque publication, à côté des boutons de partage quand ceux-ci sont actifs."
+          step_4: "Dans l'onglet Paramétrage d'une publication, vous pouvez les masquer ou les remplacer par des liens propres à cette page."
         title: Les liens utiles du site
         intro: "Posés une fois ici, ils s'affichent en bas de chaque publication, à côté de « Partager » : où retrouver l'auteur, le produit, le code. Une publication peut les masquer ou avoir les siens, dans son onglet Paramétrage."
     newsletter:
@@ -227,6 +233,19 @@ backend:
       comments_by_status: "Commentaires par statut"
       published_per_month: "Publications par mois"
   post_galleries:
+    editor_guide:
+      title: "Comment se compose la galerie"
+      step_1: "Activez la galerie pour l'afficher sous le contenu de la publication, puis choisissez sa disposition, ses colonnes et son rapport."
+      step_2: "« Ajouter une image » en prend une dans la médiathèque ou sur votre ordinateur, et « Importer des images » en envoie plusieurs d'un coup, soixante au plus."
+      step_3: "Glissez une image ou utilisez ses flèches pour changer l'ordre, qui est le même dans toutes les langues."
+      step_4: "« Texte de l'image » donne son texte alternatif et sa légende dans chaque langue ; laissé vide, le texte alternatif vient de la médiathèque."
+      step_5: "Rien n'est gardé tant que vous n'avez pas cliqué sur « Enregistrer »."
+    guide:
+      title: "Comment se remplissent les galeries"
+      step_1: "Chaque publication peut porter une galerie d'images, affichée sous son contenu une fois activée."
+      step_2: "La liste montre combien de photos compte chaque publication : « Aucune photo » repère celles qui restent à remplir."
+      step_3: "« Galerie » ouvre seulement les images de la publication : son texte, son statut et son référencement n'y changent pas."
+      step_4: "Vous y voyez toutes les publications, y compris celles des autres auteurs, hors corbeille."
     search_placeholder: Rechercher une publication
     empty: Aucune publication
     untitled: Sans titre
@@ -256,6 +275,13 @@ backend:
     comments: Commentaires
     comments_description: "Modérer les commentaires des lecteurs et écarter les indésirables."
   post_types:
+    guide:
+      title: "Comment fonctionnent les types de contenu"
+      step_1: "Un type de contenu regroupe des publications de même nature, comme des articles ou des services ; choisissez-le dans le menu latéral pour voir ses réglages."
+      step_2: "Ses publications ont leur adresse sous son slug, et « Possède une page de liste » ajoute sur le site une page qui les liste toutes."
+      step_3: "Les capacités ouvrent à ses publications le contenu en blocs, l'image à la une ou la lecture en séquence."
+      step_4: "Les champs personnalisés ajoutent des cases à remplir dans chaque publication du type, communes à toutes les langues ou propres à chacune avec « Par langue »."
+      step_5: "Un type natif garde son slug et ne se supprime pas ; un autre type ne se supprime que s'il ne porte plus aucune publication, corbeille comprise."
     title: Types de contenu
     empty: Aucun type de contenu.
     created: Type de contenu créé.
@@ -286,7 +312,7 @@ backend:
     fields:
       row_actions:
         edit_description: Libellé, type, obligatoire ou non, options.
-        delete_description: Supprime le champ. Les réponses déjà reçues le gardent.
+        delete_description: Supprime le champ de ce type de contenu.
       title: Champs personnalisés
       empty: Aucun champ personnalisé.
       created: Champ ajouté.
@@ -330,13 +356,20 @@ backend:
     description_placeholder: "À quoi sert ce type de contenu, en une phrase."
     icon_placeholder: "file-text"
   posts:
+    settings_guide:
+      title: "Comment se règle la diffusion"
+      step_1: "Le statut décide si la page se lit : « Brouillon » la garde dans l'administration, « Publiée » la met en ligne, « Programmée » la publie toute seule à la date choisie."
+      step_2: "« Sur le site » la montre dans les listes, les menus, la recherche et le sitemap ; « Lien seulement » ne la montre nulle part et se lit par un lien de lecture."
+      step_3: "Avec le droit de publier, « Liens de lecture » crée une adresse secrète par destinataire, qui ne s'ouvre que lorsque la publication est publiée."
+      step_4: "« Dépublier le » fait passer une publication en ligne en « Archivée » à la date choisie ; laissé vide, elle reste en ligne."
+      step_5: "« Prévisualiser » enregistre puis ouvre une adresse secrète valable sept jours, et « Historique » restaure une version enregistrée auparavant."
     guide:
       title: "Comment se publie une page"
       step_1: "Une publication commence en brouillon : elle n'est visible que dans l'administration."
       step_2: "« Publiée » la met en ligne ; « Programmée », avec une date, la publie toute seule à la minute prévue."
-      step_3: "Sans le droit de publier, choisir « Publiée » la met « En attente de revue » : un relecteur l'approuve ou la renvoie en brouillon."
+      step_3: "Sans le droit de publier, choisir « Publiée » ou « Programmée » la met « En attente de revue » : approuvée, elle part à la date voulue, sinon elle revient en brouillon."
       step_4: "« Sur le site » la montre dans les listes, les menus et la recherche ; « Lien seulement » ne la montre nulle part et se partage par un lien de lecture."
-      step_5: "Chaque enregistrement garde une version (les vingt dernières), et « Prévisualiser » donne une adresse secrète valable sept jours."
+      step_5: "Chaque enregistrement garde une version (vingt par défaut), et « Prévisualiser » donne une adresse secrète valable sept jours."
     usage_detail: Publication
     usage_untitled: Publication sans titre
     banner:
@@ -1358,6 +1391,13 @@ backend:
       highlight_inherit: Comme le thème
       highlight_hint: "Liserés et titres au survol, catégorie et flèche des cartes, pour le contenu de cette page seulement. La barre de navigation et le pied de page gardent le réglage du thème."
   taxonomies:
+    guide:
+      title: "Comment fonctionnent les taxonomies"
+      step_1: "Une taxonomie classe les publications en catégories ou en étiquettes ; choisissez-la dans le menu latéral pour voir ses termes."
+      step_2: "« S'applique à » choisit les types de contenu concernés : leurs publications cochent ses termes dans l'onglet Paramétrage."
+      step_3: "Avec « Termes imbriqués », un terme se range sous un parent comme une catégorie ; sans, les termes restent sur un seul niveau comme des étiquettes."
+      step_4: "Chaque terme a un nom et un slug par langue, et sa page sur le site liste les publications publiées qui le portent, lui ou l'un de ses enfants."
+      step_5: "Supprimer un terme fait remonter ses enfants d'un niveau ; supprimer une taxonomie emporte ses termes, et une taxonomie native ne se supprime pas."
     title: Taxonomies
     empty: Aucune taxonomie.
     create: Nouvelle taxonomie
@@ -1439,6 +1479,13 @@ backend:
       approved: Approuvé
       spam: Indésirable
   forms:
+    editor_guide:
+      title: "Comment se règle ce formulaire"
+      step_1: "Dans « Questions », ajoutez une question en choisissant son type, puis cliquez dessus pour la modifier ; l'aperçu montre ce que verra le visiteur."
+      step_2: "« Découper en étapes » répartit les questions sur plusieurs pages, et une question peut ne s'afficher que selon la réponse à une question placée avant elle."
+      step_3: "« Réponses » liste les envois, les plus récents en premier, et « Exporter en CSV » les reprend tous pour un tableur."
+      step_4: "« Réglages » donne le titre et l'adresse dans chaque langue, met le formulaire en ligne ou hors ligne, et choisit qui est prévenu de chaque réponse."
+      step_5: "Sans adresse de courriel, chaque réponse est envoyée à l'administrateur du site ; hors ligne, le formulaire disparaît des pages où il est posé."
     guide:
       title: "Comment fonctionnent les formulaires"
       step_1: "Créez un formulaire à partir d'un modèle : vide, contact, demande de devis en deux étapes, inscription à un événement."

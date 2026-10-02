@@ -9,7 +9,7 @@ backend:
   parameters:
     ged_document_prefix:
       label: DMS document reference prefix
-      description: Auto-generated DMS document reference prefix (e.g. DOC). Leave empty to disable.
+      description: Auto-generated DMS document reference prefix (e.g. DOC). 1 to 10 capital letters or digits, required.
   permissions:
     names:
       ged:
@@ -87,6 +87,12 @@ backend:
         inline_uploads: Editorial media
         inline_uploads_description: "Images uploaded from an editing form : banners, featured images, custom fields."
     documents:
+      show_guide:
+        title: "What you can do here"
+        step_1: "The actions button at the top lets you download the file, edit the document or send it to the trash."
+        step_2: "Only a document with the “Published” status is served to the site's visitors; a draft or an archive stays in the back office."
+        step_3: "On an image, “Crop” saves a new version of the file, regenerates its sizes and keeps the previous one in the history."
+        step_4: "If the document has variants, its family appears at the bottom with where each one is used, and a click opens a variant's page."
       guide:
         title: "How the media library is organised"
         step_1: "An uploaded file becomes a document, filed in a folder, with one category (its nature) and as many tags as you like."
@@ -320,9 +326,16 @@ backend:
         upload_type_refused: That file type is not accepted here.
         upload_failed: "The upload did not arrive complete. Try again."
     categories:
+      guide:
+        title: "Category, tag or folder"
+        step_1: "The category states what a document is, such as an invoice, a photo or a logo: each document has one at most."
+        step_2: "Tags are free keywords: a document carries as many as you like, on top of its category."
+        step_3: "The folder states where the document is filed in the tree, whatever its nature."
+        step_4: "Images uploaded from an editing form or imported from Pexels are filed under “Editorial media” automatically."
+        step_5: "Deleting a category sends it to the trash, where you can restore it; no document is deleted."
       row_actions:
         edit_description: Rename the category and change its description.
-        delete_description: Removes the category. Documents that carried it will have none.
+        delete_description: "Sends the category to the trash. Its documents keep it until the purge or a permanent delete."
       name: Name
       slug: Identifier
       description: Description
@@ -341,6 +354,13 @@ backend:
       errors:
         name_required: Name is required
     tags:
+      guide:
+        title: "What tags are for"
+        step_1: "A tag is a free keyword: a document can carry as many as you like, on top of its category and its folder."
+        step_2: "You add them to a document when you upload it or edit it, from the media library."
+        step_3: "In the document list, the tag filter finds the documents that carry it, or those that have none, and search also reads tag names."
+        step_4: "The colour is optional: it tints the tag's chip in the media library."
+        step_5: "Deleting a tag removes it from every document, without deleting any document."
       row_actions:
         edit_description: Rename the tag and change its colour.
         delete_description: Removes the tag, and takes it off every document.

@@ -7,6 +7,7 @@
  * event is `EventModal`. What is left here is the toolbar, the sidebar, and
  * turning a click into a request.
  */
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { onPanelRequest, tellPanels } from "@/shared/nav/modulePanelBridge.js";
@@ -321,6 +322,13 @@ onUnmounted(() => {
         <AppLoader :active="loading" />
 
         <div class="min-w-0 space-y-3">
+            <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+                 replié ou déplié, le choix vaut pour tous les encarts. -->
+            <AppGuide :title="t('backend.plannings.guide.title')" storage-key="planning">
+                <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                    <li v-for="step in 5" :key="step">{{ t(`backend.plannings.guide.step_${step}`) }}</li>
+                </ol>
+            </AppGuide>
             <!-- No calendar bar: the side menu's panel draws the list, the
                  toggles and the two create buttons. It was a 13 rem column
                  beside the grid before it was a row above it - one cost width,

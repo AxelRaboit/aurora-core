@@ -7,9 +7,6 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ## [0.9.328] - 2026-10-02
 
-### Corrigé
-- **« Ouvrir » dans le menu d'un livrable ne faisait rien** : la fenêtre se fermait sans ouvrir l'éditeur. L'action est désormais un vrai lien, comme le prévoit la feuille d'actions (on peut aussi l'ouvrir dans un nouvel onglet).
-
 ### Amélioré
 
 #### Les intégrations de la Configuration, sur un même gabarit
@@ -21,16 +18,27 @@ Google Drive, Instagram, Pexels, Lettre d'information, Avis Google, GitHub, Anti
 - L'anti-robots gagne son mode d'emploi, propre au service choisi (Cloudflare Turnstile ou reCAPTCHA v3), avec le lien vers la console.
 
 #### Des encarts « Comment ça marche »
-Nouveau composant partagé `AppGuide` : un encart repliable, posé à côté de ce qu'il explique, qui retient dans le navigateur le choix de l'ouvrir ou de le replier (`storageKey`). Chaque écran principal a maintenant le sien, rédigé d'après ce que fait vraiment le code, en français, anglais et espagnol :
-- **Studio** : espaces clients, contrats, trames de contrat, présentations, clients, calendrier éditorial.
-- **Dans un espace** : accès client, tableau des contenus et relecture, livrables, ressources, fichiers, Drive, notes, discussion.
-- **Le reste** : publications, formulaires, menus, commentaires, médiathèque, notes, utilisateurs, thèmes, corbeille ; plus les intégrations de la Configuration.
+Nouveau composant partagé `AppGuide` : un encart repliable, posé à côté de ce qu'il explique. Chaque écran principal a maintenant le sien, rédigé d'après ce que fait vraiment le code, en français, anglais et espagnol :
+- **Studio** : espaces clients, contrats et la page d'un contrat, texte adapté, trames et leur éditeur, présentations et leur éditeur, clients, calendrier éditorial.
+- **Dans un espace** : accès client, tableau des contenus et relecture, livrables et leur éditeur, ressources, fichiers, Drive, notes, discussion.
+- **Éditorial** : publications et l'onglet Paramétrage de l'éditeur, formulaires et la page d'un formulaire, types de contenu, taxonomies, galeries, menus, commentaires, liens utiles.
+- **Médiathèque** : documents, page d'un document, catégories, étiquettes.
+- **Le reste** : tableau de bord, profil et préférences du menu, calendrier, notes, utilisateurs, thèmes, corbeille, administration, et chaque onglet des Réglages (intégrations comprises).
+- **Côté client** : l'espace du client, dont l'encart ne montre que ce que son lien d'accès permet, et la page de signature d'un contrat.
 
-Replié une fois, un encart le reste d'une visite à l'autre.
+**Un seul choix pour tous les encarts** : en replier un les replie tous, sur l'écran ouvert comme ailleurs et d'un onglet à l'autre, et le choix est retenu dans le navigateur ; tant que rien n'est choisi, chaque encart suit son réglage (un mode d'emploi d'intégration reste ouvert tant qu'elle n'est pas branchée).
 
 ### Corrigé
+- **« Ouvrir » dans le menu d'un livrable ne faisait rien** : la fenêtre se fermait sans ouvrir l'éditeur. L'action est désormais un vrai lien, comme le prévoit la feuille d'actions (on peut aussi l'ouvrir dans un nouvel onglet).
+- **Renommer une catégorie de la médiathèque changeait son identifiant** (le slug) : une adresse ou un filtre qui le citait cessait de répondre. Le slug est fixé à la création et ne bouge plus.
+- **L'aperçu de l'Administration était vide** : ni modules ni chiffres, parce que la page ne recevait pas les données du tableau de bord. Il montre maintenant les modules actifs et leurs compteurs.
+- **La fenêtre « Modifier » de la page d'un document** ne proposait que le titre, la description et le statut, alors que son menu annonçait aussi la catégorie, les étiquettes et le dossier. Elle les propose, comme celle de la liste.
+- **Programmer une publication contournait la relecture.** Sans le droit de publier, choisir « Publiée » la mettait en attente de revue, mais choisir « Programmée » avec une date la laissait passer : la tâche planifiée la publiait à l'heure dite sans que personne ne l'ait relue. « Programmée » part désormais en relecture comme « Publiée », en gardant la date demandée (visible dans l'éditeur pendant la relecture) ; l'approbation la programme si la date est encore à venir, et la publie, datée du jour voulu, si elle est passée. La tâche planifiée ne publie jamais une publication en attente de revue.
 - Supprimer une entrée de menu annonçait que ses sous-entrées partaient avec elle : elles remontent d'un niveau, et le message le dit maintenant.
 - Le menu d'un document de la médiathèque annonçait une suppression « sans retour possible » : le document va à la corbeille, d'où il se restaure.
+- La page de signature disait que le code de confirmation part à l'adresse contractuelle de la société : il part à l'adresse qui a reçu le contrat.
+- Supprimer un champ d'un type de contenu annonçait que « les réponses déjà reçues le gardent », phrase reprise des formulaires.
+- Espagnol : les liens utiles renvoyaient à un onglet « Configuración » qui s'appelle « Ajustes » ; anglais : guillemets français remplacés.
 
 #### La navigation d'un espace, en rail
 Les dix onglets d'un espace tenaient sur une ligne qui débordait dès 1 024 px, et sur téléphone il ne restait que des icônes. Sur ordinateur, ils passent dans un rail à gauche, regroupés : **Travail** (Contenus, Calendrier, Discussion), **Documents** (Fichiers, Drive, Livrables, Notes), **Client** (Informations, Ressources), et Réglages en bas. Une entrée porte un compteur quand quelque chose attend un geste : les publications à faire relire sur Contenus, en orange s'il y a du retard. Sur téléphone et tablette, un bouton dit la section ouverte et ouvre la même liste. La discussion garde toute la hauteur de la fenêtre.

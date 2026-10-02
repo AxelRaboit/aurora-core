@@ -468,7 +468,7 @@ const pageActions = computed(() => {
         </div>
 
         <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-     replié une fois, il le reste (`storage-key`). -->
+     replié ou déplié, le choix vaut pour tous les encarts. -->
         <AppGuide :title="t('backend.ged.documents.guide.title')" storage-key="ged-documents">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 5" :key="step">{{ t(`backend.ged.documents.guide.step_${step}`) }}</li>

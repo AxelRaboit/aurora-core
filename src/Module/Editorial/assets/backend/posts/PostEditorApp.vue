@@ -1,4 +1,5 @@
 <script setup>
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
@@ -654,6 +655,13 @@ function termLabel(term) {
                 </div>
 
                 <div v-show="isTabActive('settings')" class="space-y-4">
+                    <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+                         replié ou déplié, le choix vaut pour tous les encarts. -->
+                    <AppGuide :title="t('backend.posts.settings_guide.title')" storage-key="post-settings">
+                        <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                            <li v-for="step in 5" :key="step">{{ t(`backend.posts.settings_guide.step_${step}`) }}</li>
+                        </ol>
+                    </AppGuide>
                     <!-- The record's own name and summary. They are not part of
                          Content, and never were: they identify the publication
                          in the admin list and on any card that embeds it, and
@@ -726,8 +734,11 @@ function termLabel(term) {
                             :hint="t(`backend.posts.visibility_hint.${form.visibility}`)"
                             :error="errors.visibility"
                         />
+                        <!-- Aussi en relecture quand une date est demandée : la
+                             publication part en revue avec elle, et l'approbation
+                             la programme à cette date. -->
                         <AppDatePicker
-                            v-if="form.status === 'scheduled'"
+                            v-if="form.status === 'scheduled' || (form.status === 'pending_review' && form.scheduledAt)"
                             v-model="form.scheduledAt"
                             enable-time
                             :label="t('backend.posts.field_scheduled_at')"

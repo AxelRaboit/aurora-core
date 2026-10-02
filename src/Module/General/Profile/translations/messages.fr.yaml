@@ -1,5 +1,12 @@
 backend:
   profile:
+    guide:
+      title: "Votre profil en bref"
+      step_1: "La photo s'enregistre dès que vous la choisissez, sans autre bouton."
+      step_2: "Le nom, l'adresse e-mail, le mot de passe et la phrase de mood ont chacun leur bouton Enregistrer, qui n'envoie que sa carte."
+      step_3: "Changer de langue recharge aussitôt l'administration dans la langue choisie."
+      step_4: "La carte Préférences mène au réglage de votre menu latéral : sections cachées et couleurs."
+      step_5: "La suppression du compte, en bas de page, est définitive, et le dernier développeur de l'instance ne peut pas supprimer le sien."
     errors:
       current_password_invalid: Le mot de passe actuel est incorrect.
       email_invalid: Adresse e-mail invalide.
@@ -59,6 +66,13 @@ backend:
       tabs:
         sidemenu: Menu latéral
     sidemenu:
+      guide:
+        title: "Régler votre menu latéral"
+        step_1: "Ces réglages ne valent que pour vous : les autres utilisateurs gardent leur propre menu."
+        step_2: "L'interrupteur d'une section la cache en entier ; ceux de ses lignes cachent un module à la fois."
+        step_3: "Une couleur donnée à une section aide à la repérer plus vite dans le menu."
+        step_4: "Rien ne change avant Enregistrer : les couleurs s'appliquent aussitôt, les éléments cachés à la page suivante."
+        step_5: "Une page cachée reste accessible par son adresse, et « Tout réafficher » efface tous vos réglages d'un coup."
       title: Préférences du menu latéral
       subtitle: "Personnaliser la navigation : cacher les sections ou modules non utilisés, ou changer la couleur d'une section pour mieux la repérer. Les pages restent accessibles par URL directe."
       section_hint: Désactiver le bouton pour cacher toute la section, ou ajuster module par module.

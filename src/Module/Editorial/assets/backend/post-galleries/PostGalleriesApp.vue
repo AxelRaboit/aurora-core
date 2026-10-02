@@ -11,6 +11,7 @@
  * change has no business taking up space in it - and a control that cannot be
  * acted on reads as broken rather than absent.
  */
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { useI18n } from "vue-i18n";
 import { Images } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
@@ -51,6 +52,13 @@ function editPath(post) {
                 v-on:update:model-value="onSearch"
             />
         </AppListToolbar>
+        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <AppGuide :title="t('backend.post_galleries.guide.title')" storage-key="post-galleries">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 4" :key="step">{{ t(`backend.post_galleries.guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
 
         <AppNoData v-if="!items.length" :message="t('backend.post_galleries.empty')" />
 

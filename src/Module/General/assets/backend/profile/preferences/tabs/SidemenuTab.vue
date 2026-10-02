@@ -1,4 +1,5 @@
 <script setup>
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { Save, RotateCcw, EyeOff, Eye } from "lucide-vue-next";
@@ -38,6 +39,13 @@ const totalCustomisations = computed(() => prefs.hiddenCount.value + prefs.custo
 
 <template>
     <div>
+        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <AppGuide :title="t('backend.profile.sidemenu.guide.title')" storage-key="profile-sidemenu" class="mb-4">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 5" :key="step">{{ t(`backend.profile.sidemenu.guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
         <header class="mb-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
             <p class="text-sm text-secondary min-w-0">
                 {{ t('backend.profile.sidemenu.subtitle') }}

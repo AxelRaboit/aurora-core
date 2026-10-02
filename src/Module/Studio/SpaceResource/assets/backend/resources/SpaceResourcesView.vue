@@ -119,7 +119,7 @@ function isLast(resource) {
         </div>
 
         <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-     replié une fois, il le reste (`storage-key`). -->
+     replié ou déplié, le choix vaut pour tous les encarts. -->
         <AppGuide :title="t('backend.studio.space_resources.guide.title')" storage-key="space-resources">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 4" :key="step">{{ t(`backend.studio.space_resources.guide.step_${step}`) }}</li>

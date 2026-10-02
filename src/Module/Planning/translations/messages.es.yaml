@@ -37,6 +37,13 @@ backend:
         planning: Calendario
         planning_description: 'Ver los eventos y recordatorios de los calendarios, por mes, semana o día.'
     plannings:
+        guide:
+            title: 'Cómo funciona el calendario'
+            step_1: 'El menú lateral lista sus calendarios: oculte uno para quitar sus eventos de la cuadrícula, o cree un evento, un recordatorio o un calendario.'
+            step_2: 'Las flechas cambian de periodo, Día, Semana, Mes y Agenda cambian la vista, y Hoy vuelve a la fecha actual.'
+            step_3: 'En el ordenador, haga clic en un día o en una franja libre para crear un evento, y arrastre un evento para moverlo.'
+            step_4: 'Un recordatorio es un vencimiento que se marca una vez hecho; editar un evento recurrente pregunta si se trata de esta ocurrencia, de las siguientes o de toda la serie.'
+            step_5: 'Compartir un calendario lo abre a otros usuarios, o crea un enlace secreto legible sin cuenta, como página web o como suscripción.'
         title: Calendario
         upcoming: Próximamente
         nothing_upcoming: 'Nada previsto por ahora.'
