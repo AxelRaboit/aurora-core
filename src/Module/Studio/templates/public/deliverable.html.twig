@@ -1,0 +1,58 @@
+{# La page d'un livrable : le gabarit de lecture autour, la grille des pages
+   du site dedans. Rien ici n'a d'adresse sur le site, donc rien à référencer :
+   pas de canonique, pas d'indexation. #}
+{% extends 'Frontend/themes/default/reading_layout.html.twig' %}
+
+{% block seo_define %}
+    {% do seo({
+        title: deliverable.title,
+        description: deliverable.summary,
+        canonical: '',
+        noindex: true,
+    }) %}
+{% endblock %}
+
+{% block body %}
+{# Les couleurs du livrable, portées par l'article seul : l'en-tête et le pied
+   ont les leurs, repeintes par le thème à partir de `surfaceOverrides`. #}
+{% if appearance.accentColor %}
+    <style>{{ themeStyles.postAccentCss('.aurora-post-accent', appearance.accentColor)|raw }}</style>
+{% endif %}
+{% set deliverableHighlightCss = themeStyles.postHighlightCss('.aurora-post-highlight', appearance.highlight, appearance.highlightColor) %}
+{% if deliverableHighlightCss %}
+    <style>{{ deliverableHighlightCss|raw }}</style>
+{% endif %}
+{# Titres et chiffres clés : des jetons du thème, posés ici pour l'article seul.
+   Les valeurs sont des hexadécimaux vérifiés à l'écriture
+   (DeliverableAppearance). #}
+{% if appearance.headingColor or appearance.figureColor %}
+    {# Une zone en contraste forcé (un dégradé sombre, une photo) repose ses
+       propres couleurs de texte : ses titres suivent les siennes, pas celle du
+       livrable, qui serait illisible dessus. Ces zones portent leurs jetons en
+       style en ligne, d'où le sélecteur. #}
+    <style>html[data-theme] .aurora-deliverable{
+        {%- if appearance.headingColor %}--th-heading: {{ appearance.headingColor }};{% endif -%}
+        {%- if appearance.figureColor %}--th-figure: {{ appearance.figureColor }};{% endif -%}
+    }
+    html[data-theme] .aurora-deliverable [style*="--th-primary"]{--th-heading: var(--th-primary);}</style>
+{% endif %}
+
+<article class="prose max-w-none aurora-deliverable{{ appearance.accentColor ? ' aurora-post-accent' : '' }}{{ deliverableHighlightCss ? ' aurora-post-highlight' : '' }}">
+    {# Le titre reste dans le document quand il est caché : c'est le seul
+       `<h1>` de la page, et une zone de texte n'en fait pas. #}
+    {% set hasSummary = appearance.titleVisible and deliverable.summary %}
+    <h1 class="{{ appearance.titleVisible ? '' : 'sr-only' }}{{ hasSummary ? ' mb-3' : '' }}">{{ deliverable.title }}</h1>
+    {% if hasSummary %}
+        <p class="mt-0 text-secondary">{{ deliverable.summary }}</p>
+    {% endif %}
+    {% if appearance.titleVisible and readingTimeMinutes %}
+        <p class="mt-0 text-sm text-muted not-prose">
+            {{ 'frontend.editorial.reading_time'|trans({'%minutes%': readingTimeMinutes}) }}
+        </p>
+    {% endif %}
+
+    {% if grid %}
+        {{ include('Frontend/themes/default/editorial/post/_grid.html.twig', {grid: grid, locale: locale}) }}
+    {% endif %}
+</article>
+{% endblock %}

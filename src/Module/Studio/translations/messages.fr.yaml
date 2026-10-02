@@ -1825,21 +1825,126 @@ backend:
                 link_url_required: Ce lien n'a pas d'adresse.
                 link_url_invalid: "Cette adresse n'est pas valide. Elle doit commencer par http:// ou https://."
                 link_url_too_long: Cette adresse est trop longue.
-        space_publications:
-          intro: 'Audits, stratégies, comptes rendus : des documents écrits avec la grille des publications, livrés au client par un lien et jamais publiés sur le site. Publiés, ils apparaissent aussi dans son espace.'
-          add: 'Nouveau document'
-          empty: 'Aucun document pour ce client.'
-          empty_hint: 'Commencez un audit ou une stratégie : il s''ouvre dans l''éditeur des publications.'
-          untitled: 'Document sans titre'
-          updated_on: 'Modifié le {date}'
-          open: 'Ouvrir dans l''éditeur'
-          create_title: 'Nouveau document'
-          title: 'Titre'
-          title_placeholder: 'Audit de présence en ligne'
-          title_hint: 'Un brouillon, partagé par lien seulement, préparé pour ce client. Vous le complétez dans l''éditeur.'
-          create: 'Créer et ouvrir'
-          errors:
-            title_required: 'Donnez un titre au document.'
+        space_deliverables:
+            intro: "Les documents écrits pour ce client : audits, stratégies, bilans. Chacun se compose comme une page, à ses couleurs, et le client le lit dans son espace dès que vous l'ouvrez."
+            add: "Nouveau livrable"
+            empty: "Aucun livrable pour ce client."
+            empty_hint: "Commencez un audit, une stratégie ou un bilan : il se compose avec la grille des pages, et reste fermé au client tant que vous ne l'ouvrez pas."
+            create_title: "Nouveau livrable"
+            create: "Créer et ouvrir"
+            title: "Titre"
+            title_placeholder: "Audit de présence en ligne"
+            title_hint: "Ce que le client lit dans la liste de son espace et en tête du document."
+            updated_on: "Modifié le {date}"
+            open: "Ouvrir"
+            open_hint: "Composer le document, régler ses couleurs et ce que voit le client."
+            preview: "Aperçu"
+            preview_hint: "La page telle que le client la lira, dans un nouvel onglet."
+            show: "Montrer au client"
+            show_hint: "Il apparaît dans l'espace du client, qui peut le lire."
+            hide: "Cacher au client"
+            hide_hint: "Il disparaît de l'espace du client ; les liens de lecture restent valables."
+            shown_toast: "Le client voit maintenant ce livrable."
+            hidden_toast: "Ce livrable est caché au client."
+            visible_badge: "Visible par le client"
+            hidden_badge: "Caché au client"
+            duplicate: "Dupliquer"
+            duplicate_hint: "Une copie à reprendre, cachée au client : le bilan du mois dernier pour écrire celui-ci."
+            duplicated: "Copie créée."
+            copy_title: "%title% (copie)"
+            delete_hint: "Supprime le livrable et ses liens de lecture."
+            delete_confirm: "Supprimer le livrable « {title} » ? Ses liens de lecture cesseront de fonctionner."
+            deleted: "Livrable supprimé."
+            back: "Livrables de {space}"
+            for_customer: "Préparé pour {name}"
+            saved: "Livrable enregistré."
+            save_failed: "Le livrable n'a pas pu être enregistré."
+            unsaved: "Modifications non enregistrées"
+            links_hint: "Une adresse secrète par destinataire, pour transmettre le document sans ouvrir l'espace."
+            tabs:
+                content: "Contenu"
+                appearance: "Apparence"
+                settings: "Réglages"
+            appearance:
+                preview_title: "Aperçu des couleurs"
+                preview_hint: "Indicatif : « Aperçu » montre la page exacte."
+                sample_header: "En-tête de la page"
+                sample_title: "Titre du livrable"
+                sample_button: "Bouton"
+                sample_footer: "Pied de page"
+                page_title: "Couleurs de la page"
+                page_hint: "Le fond, l'en-tête et le pied. Vide : la couleur du thème. Le texte posé dessus s'accorde tout seul pour rester lisible."
+                background: "Fond"
+                background_hint: "Derrière tout le document."
+                header: "En-tête"
+                header_hint: "La bande du haut : logo, « préparé pour », date."
+                footer: "Pied de page"
+                footer_hint: "La bande du bas."
+                content_title: "Couleurs du contenu"
+                content_hint: "Par-dessus celles du thème, pour ce document seulement : aux couleurs du client si vous voulez."
+                accent: "Accent"
+                accent_hint: "Boutons, liens et repères."
+                heading: "Titres"
+                heading_hint: "Les titres des zones de texte."
+                figure: "Chiffres clés"
+                figure_hint: "Les grands nombres des zones de chiffres."
+                highlight: "Survols"
+                highlight_inherit: "Comme le thème"
+                highlight_color: "Couleur des survols"
+                title_section: "Titre"
+                title_visible: "Afficher le titre et le résumé en tête de page"
+                title_visible_hint: "Décochez-le si le document s'ouvre sur un bloc d'entête qui porte déjà son titre. Le titre reste lisible par les lecteurs d'écran."
+            settings:
+                document_title: "Le document"
+                summary: "Résumé"
+                summary_placeholder: "Où en est votre présence en ligne, et ce que nous proposons pour les trois prochains mois."
+                summary_hint: "Sous le titre, dans la liste du client et en tête de la page."
+                locale: "Langue"
+                locale_hint: "Celle du document : elle règle les dates et les libellés de la page."
+                client_title: "Ce que voit le client"
+                visible: "Visible par le client"
+                visible_hint: "Coché, le livrable apparaît dans l'espace du client. Décoché, il reste en cours chez vous ; un lien de lecture l'ouvre quand même."
+                header_title: "En-tête de la page"
+                header_hint: "La bande du haut de la page, que le client lise depuis son espace ou par un lien."
+                prepared_for: "Préparé pour"
+                prepared_for_hint: "Affiché en tête de la page. Vide : rien n'est affiché."
+                show_date: "Afficher la date de mise à jour"
+                show_logo: "Afficher le logo et le nom du studio"
+            links:
+                title: "Liens de lecture"
+                intro: "Une adresse secrète qui ouvre ce livrable sans l'espace du client, sans compte. Créez un lien par destinataire : vous pourrez couper l'accès de l'un sans toucher aux autres."
+                not_readable: "Ce livrable ne peut pas s'ouvrir par lien pour le moment."
+                withheld_title: "Une image de ce livrable n'est pas publiée | {count} images de ce livrable ne sont pas publiées"
+                withheld_hint: "Le destinataire d'un lien ne les verra pas. Publiez-les dans la médiathèque pour qu'elles apparaissent."
+                label: "Intitulé"
+                label_placeholder: "Envoyé à Marie, le 12 octobre"
+                expiry: "Expiration"
+                no_expiry: "Sans expiration"
+                days: "{count} jours"
+                create: "Créer le lien"
+                created: "Lien créé"
+                password: "Mot de passe"
+                password_placeholder: "Laisser vide pour un lien sans mot de passe"
+                password_hint: "Communiquez-le autrement que par le message qui porte le lien."
+                none: "Aucun lien pour l'instant."
+                untitled: "Lien sans intitulé"
+                copy: "Copier l'adresse"
+                copied: "Adresse copiée"
+                copy_manually: "Copiez l'adresse affichée, le navigateur a refusé le presse-papiers."
+                revoke: "Révoquer"
+                revoked: "Révoqué"
+                revoked_toast: "Lien révoqué"
+                expires_on: "Expire le {date}"
+                locked: "Protégé par mot de passe"
+                opened: "Ouvert {count} fois"
+                opened_once: "Ouvert une fois"
+                last_used: "dernière ouverture le {date}"
+                never_opened: "Jamais ouvert"
+            errors:
+                title_required: "Donnez un titre au livrable."
+                title_too_long: "Le titre dépasse 255 caractères."
+                locale_invalid: "Cette langue n'est pas active sur le site."
+                grid_invalid: "La grille envoyée est illisible."
         space_resources:
             intro: "Ce qui vit ailleurs et qu'on cherche à chaque fois : une maquette, un accès, la personne qui valide. Chaque élément se montre ou se cache au client, un par un."
             add: Ajouter
@@ -1933,7 +2038,7 @@ backend:
             view_notes: Notes
             view_information: Informations
             view_resources: Ressources
-            view_publications: 'Livrables'
+            view_deliverables: 'Livrables'
             view_settings: Réglages
             files_empty: Aucun fichier sur cet espace
             files_empty_hint: Les fichiers déposés sur les contenus, par vous ou par le client, apparaissent ici du plus récent au plus ancien.
