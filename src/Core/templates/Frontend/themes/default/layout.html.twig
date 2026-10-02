@@ -42,7 +42,10 @@
             <a href="{{ default_front_home_path(locale) }}" class="flex items-center gap-2 text-lg font-semibold text-primary hover:opacity-80 transition-opacity">
                 {% set headerLogoUrl = themeContext.headerLogoUrl() %}
                 {% if headerLogoUrl %}<img src="{{ headerLogoUrl }}" alt="" class="h-8 w-8 object-cover rounded-lg shrink-0">{% endif %}
-                {{ themeContext.headerCustomText() ?: context.siteName }}
+                {# Le réglage « logo seul sur téléphone » du thème : le nom
+                   reste lu par les lecteurs d'écran, il ne se voit qu'à partir
+                   de `sm`. #}
+                <span class="{{ themeContext.headerTextHiddenOnPhone() ? 'sr-only sm:not-sr-only' : '' }}">{{ themeContext.headerCustomText() ?: context.siteName }}</span>
             </a>
 
             {# Le menu déplié ne vit qu'à partir de `md`. En dessous il passe

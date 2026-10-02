@@ -9,6 +9,7 @@ import AppTextLinkButton from "@/shared/components/action/AppTextLinkButton.vue"
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppImagePickerField from "@/shared/components/form/file/AppImagePickerField.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
+import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import AppColorSwatch from "@/shared/components/form/picker/AppColorSwatch.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
@@ -57,7 +58,7 @@ const props = defineProps({
 const { themeList, accentColor } = useThemesList(props.themes);
 const { activateTheme } = useThemesActivate(themeList, props.activatePath);
 const { createModal, createForm, openCreate, submitCreate } = useThemesCreate(themeList, props.createPath, { extraFields: props.extraFields });
-const { CSS_SECTIONS, DEFAULTS, editModal, editForm, colorFields, contentWidth, highlight, highlightColor, menuActive, menuActiveColor, iconMode, iconColor, fontFamily, footerText, headerLogo, headerCustomText, headerMode, primaryColor, surfaceColors, openEdit, resetPrimaryColor, submitEdit } = useThemesEdit(themeList, props.updatePath, { extraFields: props.extraFields });
+const { CSS_SECTIONS, DEFAULTS, editModal, editForm, colorFields, contentWidth, highlight, highlightColor, menuActive, menuActiveColor, iconMode, iconColor, fontFamily, footerText, headerLogo, headerCustomText, headerTextHiddenOnPhone, headerMode, primaryColor, surfaceColors, openEdit, resetPrimaryColor, submitEdit } = useThemesEdit(themeList, props.updatePath, { extraFields: props.extraFields });
 
 const fontOptions = computed(() => props.fonts.map((font) => ({ value: font.value, label: font.label })));
 const selectedFont = computed(() => props.fonts.find((font) => font.value === fontFamily.value) ?? null);
@@ -454,6 +455,12 @@ const pageActions = computed(() => {
                                 :label="t('backend.themes.header_logo')"
                                 :hint="t('backend.themes.header_media_hint')"
                                 :size="96"
+                            />
+                            <AppToggle
+                                v-if="headerMode === 'image'"
+                                v-model="headerTextHiddenOnPhone"
+                                :label="t('backend.themes.header_text_hidden_on_phone')"
+                                :hint="t('backend.themes.header_text_hidden_on_phone_hint')"
                             />
                         </div>
                     </template>
