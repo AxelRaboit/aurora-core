@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Integration\Module\Ged;
 
+use Aurora\Module\Ged\DocumentCategory\Dto\DocumentCategoryInputFactoryInterface;
 use Aurora\Module\Ged\DocumentCategory\Entity\DocumentCategory;
 use Aurora\Module\Ged\DocumentCategory\Manager\DocumentCategoryManagerInterface;
 use Aurora\Tests\Integration\IntegrationTestCase;
@@ -91,5 +92,28 @@ final class CategorySlugIsUniqueAmongTheLivingTest extends IntegrationTestCase
         self::assertFalse($trashed->isTrashed());
         self::assertNotSame($slug, $trashed->getSlug(), 'the newcomer keeps the name it took');
         self::assertStringStartsWith($slug, $trashed->getSlug());
+    }
+
+    /**
+     * Renommer garde l'identifiant. D'autres parties de l'application
+     * retrouvent une catégorie par lui : « Médias éditoriaux », renommée,
+     * était recréée sous l'ancien nom au dépôt suivant d'une image.
+     */
+    public function testRenamingKeepsTheSlug(): void
+    {
+        static::createClient();
+        $container = static::getContainer();
+        $manager = $container->get(DocumentCategoryManagerInterface::class);
+        $inputs = $container->get(DocumentCategoryInputFactoryInterface::class);
+
+        $category = $manager->create($inputs->fromArray(['name' => 'Rubrique '.uniqid()]));
+        $slug = $category->getSlug();
+
+        $manager->update($category, $inputs->fromArray(['name' => 'Tout autre nom']));
+
+        self::assertSame($slug, $category->getSlug());
+        self::assertSame('Tout autre nom', $category->getName());
+
+        $manager->forceDelete($category);
     }
 }
