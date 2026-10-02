@@ -5,6 +5,21 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.324] - 2026-10-02
+
+### Ajouté
+
+#### Le logo seul dans la barre du haut sur téléphone, au choix
+Sur un téléphone, le nom du site à côté du logo prenait la place des commandes. Deux réglages, qui ne changent rien tant qu'on ne les touche pas :
+- **Site public** : dans le thème (entête en mode image), « Logo seul sur téléphone ». Le nom (ou le texte personnalisé) passe sous 640 px et reste lu par les lecteurs d'écran ; sans logo, il reste toujours (`ThemeContext::headerTextHiddenOnPhone()`, clé `header_text_on_phone`).
+- **Back-office** : Réglages > Marque, « Nom du site dans la barre du back-office sur téléphone » (`backend_bar_site_name_on_phone`, activé par défaut).
+
+### Dans aurora-client
+
+Rien à faire au-delà de `make aurora-update`.
+
+---
+
 ## [0.9.323] - 2026-10-02
 
 ### Amélioré

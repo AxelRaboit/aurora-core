@@ -29,6 +29,7 @@ final class SiteBrandingExtension extends AbstractExtension implements GlobalsIn
             ) ?? '',
             'siteLogoUrl' => $this->resolveMediaUrl(ApplicationParameterEnum::LogoMediaId),
             'siteFaviconUrl' => $this->resolveMediaUrl(ApplicationParameterEnum::FaviconMediaId),
+            'siteNameOnPhone' => $this->settingRepository->getBoolean(ApplicationParameterEnum::BackendBarSiteNameOnPhone->value, true),
         ];
     }
 

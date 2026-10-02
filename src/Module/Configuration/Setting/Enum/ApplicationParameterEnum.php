@@ -52,6 +52,9 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
     case DefaultFront = 'default_front';
     case LogoMediaId = 'logo_media_id';
     case FaviconMediaId = 'favicon_media_id';
+    // Le nom du site à côté du logo, dans la barre du haut du back-office sur
+    // téléphone. Affiché par défaut ; désactivé, le logo reste seul (02/10/2026).
+    case BackendBarSiteNameOnPhone = 'backend_bar_site_name_on_phone';
     case SeoTitleTemplate = 'seo_title_template';
     case SeoDefaultDescription = 'seo_default_description';
     case SeoDefaultOgImage = 'seo_default_og_image';
@@ -158,6 +161,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::DefaultFront => 'backend.parameters.default_front.label',
             self::LogoMediaId => 'backend.parameters.logo_media_id.label',
             self::FaviconMediaId => 'backend.parameters.favicon_media_id.label',
+            self::BackendBarSiteNameOnPhone => 'backend.parameters.backend_bar_site_name_on_phone.label',
             self::SeoTitleTemplate => 'backend.parameters.seo_title_template.label',
             self::SeoDefaultDescription => 'backend.parameters.seo_default_description.label',
             self::SeoDefaultOgImage => 'backend.parameters.seo_default_og_image.label',
@@ -224,6 +228,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::DefaultFront => 'backend.parameters.default_front.description',
             self::LogoMediaId => 'backend.parameters.logo_media_id.description',
             self::FaviconMediaId => 'backend.parameters.favicon_media_id.description',
+            self::BackendBarSiteNameOnPhone => 'backend.parameters.backend_bar_site_name_on_phone.description',
             self::SeoTitleTemplate => 'backend.parameters.seo_title_template.description',
             self::SeoDefaultDescription => 'backend.parameters.seo_default_description.description',
             self::SeoDefaultOgImage => 'backend.parameters.seo_default_og_image.description',
@@ -299,6 +304,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::DefaultFront => '',
             self::LogoMediaId => '',
             self::FaviconMediaId => '',
+            self::BackendBarSiteNameOnPhone => '1',
             self::SeoTitleTemplate => '{title} - {siteName}',
             self::SeoDefaultDescription => '',
             self::SeoDefaultOgImage => '',
@@ -342,7 +348,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::PostsPerPage, self::MaxUploadSizeMb, self::PostRevisionsLimit, self::TrashAutoPurgeDays, self::FormSubmissionRetentionDays, self::FileVersionsLimit, self::StudioContractRetentionYears, self::StudioContractReminderDays, self::StudioContractReminderMax => 'int',
             self::HomepagePostId => 'post',
             self::DefaultFront, self::DefaultLocale, self::EmailLocale, self::Timezone => 'select',
-            self::CommentsEnabled, self::CommentModerationEnabled, self::MaintenanceMode, self::AdminRegistrationEnabled, self::AdminAccessRequestEnabled, self::FrontLoginEnabled, self::FrontRegistrationEnabled, self::SingleLocaleMode, self::MediaCreditVisible, self::StudioContractReminderEnabled => 'bool',
+            self::CommentsEnabled, self::CommentModerationEnabled, self::MaintenanceMode, self::AdminRegistrationEnabled, self::AdminAccessRequestEnabled, self::FrontLoginEnabled, self::FrontRegistrationEnabled, self::SingleLocaleMode, self::MediaCreditVisible, self::StudioContractReminderEnabled, self::BackendBarSiteNameOnPhone => 'bool',
             self::LogoMediaId, self::FaviconMediaId, self::SeoDefaultOgImage => 'media',
             self::ColorPickerPresets => 'json',
             default => 'string',
@@ -365,7 +371,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::PostsPerPage, self::CommentsEnabled, self::CommentModerationEnabled, self::PostRevisionsLimit, self::TrashAutoPurgeDays, self::FormSubmissionRetentionDays, self::HomepagePostId, self::DefaultFront => 'reading',
             self::MaxUploadSizeMb, self::FileVersionsLimit, self::MediaCreditVisible => 'media',
             self::MaintenanceMode, self::AdminRegistrationEnabled, self::AdminAccessRequestEnabled, self::FrontLoginEnabled, self::FrontRegistrationEnabled => 'system',
-            self::LogoMediaId, self::FaviconMediaId => 'branding',
+            self::LogoMediaId, self::FaviconMediaId, self::BackendBarSiteNameOnPhone => 'branding',
             self::SeoTitleTemplate, self::SeoDefaultDescription, self::SeoDefaultOgImage, self::SeoTwitterHandle => 'seo',
             self::CoreUserPrefix, self::CoreMediaPrefix, self::CoreAccessRequestPrefix, self::CoreAuditLogPrefix, self::CoreResetPasswordPrefix, self::CoreMediaFolderPrefix, self::CoreMenuItemPrefix, self::StudioContractPrefix => 'sequences',
             self::StudioProviderName, self::StudioProviderRepresentative, self::StudioProviderAddress, self::StudioProviderSiret, self::StudioProviderApeCode, self::StudioProviderVatMention, self::StudioProviderEmail, self::StudioProviderPhone, self::StudioProviderBankHolder, self::StudioProviderBankIban, self::StudioProviderBankBic, self::StudioProviderBankName, self::StudioContractRetentionYears, self::StudioContractReminderEnabled, self::StudioContractReminderDays, self::StudioContractReminderMax => 'studio',

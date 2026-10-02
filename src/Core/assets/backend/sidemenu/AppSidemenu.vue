@@ -77,6 +77,8 @@ const props = defineProps({
     mailpitUrl: { type: String, default: "" },
     siteName: { type: String, default: "Aurora" },
     siteLogoUrl: { type: String, default: "" },
+    /** Réglage du site : le nom à côté du logo dans la barre du haut sur téléphone. */
+    siteNameOnPhone: { type: Boolean, default: true },
     appVersion: { type: String, default: "" },
     searchPath: { type: String, default: "/backend/general/search" },
     notificationsListPath: { type: String, default: "" },
@@ -358,7 +360,13 @@ function openSearchFromMobile() {
                  sidebar, and the phone bar kept drawing the default mark. -->
             <img v-if="siteLogoUrl" :src="siteLogoUrl" alt="Logo" class="h-7 w-7 shrink-0 object-contain">
             <AppLogo v-else :size="28" />
-            <span class="text-primary font-bold text-base tracking-tight">{{ siteName }}</span>
+            <!-- Le nom à côté du logo, ou le logo seul sous `sm` : un réglage du
+                 site (Réglages > Marque, 02/10/2026). Masqué, il reste lu par
+                 les lecteurs d'écran. Sans logo, le nom reste toujours. -->
+            <span
+                class="text-primary font-bold text-base tracking-tight"
+                :class="siteNameOnPhone || !siteLogoUrl ? '' : 'sr-only sm:not-sr-only'"
+            >{{ siteName }}</span>
         </a>
         <div class="flex items-center gap-1">
             <!-- La barre de l'application : des icônes nues, comme la cloche

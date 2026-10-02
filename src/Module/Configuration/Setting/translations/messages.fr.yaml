@@ -261,6 +261,9 @@ backend:
     favicon_media_id:
       label: Favicon
       description: ID du média utilisé comme favicon
+    backend_bar_site_name_on_phone:
+      label: "Nom du site dans la barre du back-office sur téléphone"
+      description: "Affiche le nom du site à côté du logo dans la barre du haut du back-office, sous 640 px de large. Désactivé, seul le logo reste ; le nom est toujours lu par les lecteurs d'écran. Pour le site public, le réglage équivalent est dans le thème."
     seo_title_template:
       label: Template de titre SEO
       description: 'Template pour le titre des pages. Utilisez {title} et {siteName}. Ex. : {title} · {siteName}'
