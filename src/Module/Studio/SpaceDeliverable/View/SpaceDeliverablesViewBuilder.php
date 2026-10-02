@@ -57,6 +57,9 @@ final readonly class SpaceDeliverablesViewBuilder
             'deliverableVisibilityPathTemplate' => $this->pathTemplates->generate('workspace_space_deliverables_visibility', ['id' => $id, 'deliverableId' => '__id__']),
             'deliverableDuplicatePathTemplate' => $this->pathTemplates->generate('workspace_space_deliverables_duplicate', ['id' => $id, 'deliverableId' => '__id__']),
             'deliverableDeletePathTemplate' => $this->pathTemplates->generate('workspace_space_deliverables_delete', ['id' => $id, 'deliverableId' => '__id__']),
+            // The reading links, from the list as from the editor: creating
+            // one for a recipient should not mean opening the document first.
+            'deliverableLinksPathTemplate' => $this->pathTemplates->generate('workspace_space_deliverables_links', ['id' => $id, 'deliverableId' => '__id__']),
         ];
     }
 

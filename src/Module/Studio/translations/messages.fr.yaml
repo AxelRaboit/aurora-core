@@ -1967,7 +1967,7 @@ backend:
                 title: "Comment fonctionnent les livrables"
                 step_1: "« Nouveau livrable » crée un document (audit, stratégie, bilan) qui se compose comme une page, à vos couleurs ou à celles du client."
                 step_2: "Il reste caché au client tant que vous ne cliquez pas sur « Montrer au client »."
-                step_3: "Depuis le livrable ouvert, « Liens de lecture » donne à quelqu'un une adresse secrète qui ouvre ce seul document, sans l'espace."
+                step_3: "« Liens de lecture », dans le menu ⋯ d'un livrable ou dans son éditeur, donne à quelqu'un une adresse secrète qui ouvre ce seul document, sans l'espace."
                 step_4: "Un lien peut avoir un mot de passe et une expiration, et se révoque un par un ; cacher le livrable ne coupe pas ses liens."
                 step_5: "« Dupliquer » crée une copie cachée au client, pratique pour repartir du bilan du mois dernier."
             intro: "Les documents écrits pour ce client : audits, stratégies, bilans. Chacun se compose comme une page, à ses couleurs, et le client le lit dans son espace dès que vous l'ouvrez."
