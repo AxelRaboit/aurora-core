@@ -1495,9 +1495,13 @@ backend:
 
             settings:
                 section_drive: Google Drive
-                folder_title: Dossier partagé
-                folder_intro: "Le dossier Drive que ce client a partagé avec l'adresse du compte de service."
+                folder_title: Dossier Drive du client
+                folder_intro: "Le dossier propre à ce client, qu'il a partagé avec l'adresse du compte de service. Il s'affiche dans l'onglet Drive de cet espace, sous « Dossier du client »."
                 folder_hint: "Collez l'adresse du dossier, ou videz le champ pour le débrancher."
+                agency_title: Dossier de l'agence
+                agency_set: "Commun à tous les espaces, il s'affiche aussi dans l'onglet Drive, sous « Dossier de l'agence », et seul le studio le voit. Il ne se règle pas ici, mais dans Configuration > Google Drive."
+                agency_unset: "Aucun dossier de l'agence n'est choisi. Commun à tous les espaces et visible du seul studio, il se règle dans Configuration > Google Drive, pas ici."
+                agency_open: Ouvrir la configuration du Drive
                 folder_saved: Dossier branché.
                 folder_cleared: Dossier débranché.
                 drive_closes_now: "Enregistrer ferme l'onglet immédiatement, y compris pour vous : il faudra saisir le mot de passe pour l'ouvrir."

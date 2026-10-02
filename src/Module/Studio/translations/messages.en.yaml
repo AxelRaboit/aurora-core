@@ -1495,9 +1495,13 @@ backend:
 
             settings:
                 section_drive: Google Drive
-                folder_title: Shared folder
-                folder_intro: "The Drive folder this client shared with the service account's address."
+                folder_title: The client's Drive folder
+                folder_intro: "This client's own folder, shared by them with the service account's address. It shows in this space's Drive tab, under “Client folder”."
                 folder_hint: "Paste the folder's address, or empty the field to unlink it."
+                agency_title: Agency folder
+                agency_set: "Shared by every space, it also shows in the Drive tab, under “Agency folder”, and only the studio sees it. It is not set here, but in Configuration > Google Drive."
+                agency_unset: "No agency folder is chosen. Shared by every space and seen by the studio only, it is set in Configuration > Google Drive, not here."
+                agency_open: Open the Drive configuration
                 folder_saved: Folder linked.
                 folder_cleared: Folder unlinked.
                 drive_closes_now: "Saving closes the tab straight away, you included: you will have to type the password to open it."

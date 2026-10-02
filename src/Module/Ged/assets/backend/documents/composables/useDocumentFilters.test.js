@@ -1,5 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import { useDocumentFilters } from "@ged/backend/documents/composables/useDocumentFilters.js";
+import {
+    NONE,
+    useDocumentFilters,
+} from "@ged/backend/documents/composables/useDocumentFilters.js";
 
 describe("useDocumentFilters - initial state", () => {
     it("starts with all filters null", () => {
@@ -193,5 +196,80 @@ describe("useDocumentFilters - families", () => {
 
         expect(filterOriginalsOnly.value).toBe(true);
         expect(window.location.search).not.toContain("familles");
+    });
+});
+
+describe("useDocumentFilters - wider search", () => {
+    it("sends nothing new while everything is at rest", () => {
+        const { extraParams, moreFiltersCount, hasActiveFilter } =
+            useDocumentFilters(vi.fn());
+        const params = extraParams();
+
+        expect(params.searchIn).toBeUndefined();
+        expect(params.addedFrom).toBeUndefined();
+        expect(params.orientation).toBeUndefined();
+        expect(params.weight).toBeUndefined();
+        expect(moreFiltersCount.value).toBe(0);
+        expect(hasActiveFilter.value).toBe(false);
+    });
+
+    it("sends each one it is given, and counts them", () => {
+        const {
+            searchIn,
+            filterAddedFrom,
+            filterAddedTo,
+            filterOrientation,
+            filterWeight,
+            extraParams,
+            moreFiltersCount,
+            hasActiveFilter,
+        } = useDocumentFilters(vi.fn());
+        searchIn.value = "file";
+        filterAddedFrom.value = "2026-09-01";
+        filterAddedTo.value = "2026-09-30";
+        filterOrientation.value = "portrait";
+        filterWeight.value = "heavy";
+
+        expect(extraParams()).toMatchObject({
+            searchIn: "file",
+            addedFrom: "2026-09-01",
+            addedTo: "2026-09-30",
+            orientation: "portrait",
+            weight: "heavy",
+        });
+        expect(moreFiltersCount.value).toBe(5);
+        expect(hasActiveFilter.value).toBe(true);
+    });
+
+    it("passes « none » through for documents without a category or a tag", () => {
+        const { filterCategoryId, filterTagId, extraParams } =
+            useDocumentFilters(vi.fn());
+        filterCategoryId.value = NONE;
+        filterTagId.value = NONE;
+
+        expect(extraParams()).toMatchObject({
+            categoryId: "none",
+            tagId: "none",
+        });
+    });
+
+    it("puts every one back on reset", () => {
+        const reload = vi.fn();
+        const {
+            searchIn,
+            filterWeight,
+            filterAddedFrom,
+            resetFilters,
+            moreFiltersCount,
+        } = useDocumentFilters(reload);
+        searchIn.value = "text";
+        filterWeight.value = "light";
+        filterAddedFrom.value = "2026-09-01";
+
+        resetFilters();
+
+        expect(searchIn.value).toBe("all");
+        expect(moreFiltersCount.value).toBe(0);
+        expect(reload).toHaveBeenCalled();
     });
 });
