@@ -187,6 +187,7 @@ const props = defineProps({
     /** Vrai pour le référent de l'espace, l'administrateur et le développeur. */
     canConfigure: { type: Boolean, default: false },
     settingsPath: { type: String, default: "" },
+    driveConfigurationPath: { type: String, default: null },
     driveUnlockPath: { type: String, default: "" },
     driveLocked: { type: Boolean, default: false },
     /** La fiche du client, portée par la société et non par ce projet. */
@@ -799,6 +800,8 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
         <SpaceSettingsView
             v-else-if="view === 'settings' && canConfigure"
             :settings-path="settingsPath"
+            :agency-folder-set="Boolean(driveAgencyFolderId)"
+            :drive-configuration-path="driveConfigurationPath"
             v-on:locked-changed="driveLockedNow = $event"
             v-on:folder-changed="driveFolderNow = $event"
         />

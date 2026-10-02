@@ -13,7 +13,7 @@
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { FolderOpen, KeyRound, Lock, LockOpen, RotateCcw, Save } from "lucide-vue-next";
+import { Building2, ExternalLink, FolderOpen, KeyRound, Lock, LockOpen, RotateCcw, Save } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppLoader from "@/shared/components/feedback/AppLoader.vue";
@@ -23,6 +23,10 @@ import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 
 const props = defineProps({
     settingsPath: { type: String, required: true },
+    /** Le dossier de l'agence est-il choisi : la note le dit, sans le régler ici. */
+    agencyFolderSet: { type: Boolean, default: false },
+    /** La configuration du Drive, pour qui peut l'ouvrir ; nul sinon. */
+    driveConfigurationPath: { type: String, default: null },
 });
 
 const emit = defineEmits(["locked-changed", "folder-changed"]);
@@ -211,6 +215,27 @@ async function clearPassword() {
                 </div>
 
                 <p class="text-xs text-muted">{{ t("backend.studio.spaces.settings.folder_hint") }}</p>
+            </section>
+
+            <!-- L'autre dossier de l'onglet Drive, qui ne se règle pas ici :
+                 sans cette note, on cherche le dossier de l'agence dans les
+                 réglages d'un espace, ou l'on prend celui du client pour lui. -->
+            <section class="space-y-2 rounded-lg border border-dashed border-line p-3 sm:p-4">
+                <h3 class="flex items-center gap-2 text-sm font-medium text-primary">
+                    <Building2 class="h-4 w-4 shrink-0" :stroke-width="2" />
+                    {{ t("backend.studio.spaces.settings.agency_title") }}
+                </h3>
+                <p class="text-xs text-muted">
+                    {{ t(agencyFolderSet ? "backend.studio.spaces.settings.agency_set" : "backend.studio.spaces.settings.agency_unset") }}
+                </p>
+                <a
+                    v-if="driveConfigurationPath"
+                    class="inline-flex items-center gap-1.5 text-xs font-medium text-accent no-underline hover:underline"
+                    :href="driveConfigurationPath"
+                >
+                    <ExternalLink class="h-3.5 w-3.5" :stroke-width="2" />
+                    {{ t("backend.studio.spaces.settings.agency_open") }}
+                </a>
             </section>
 
             <section class="space-y-3 rounded-lg border border-line bg-surface-2 p-3 sm:p-4">

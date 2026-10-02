@@ -10,6 +10,7 @@ use Aurora\Core\Validation\Dto\PaginationRequest;
 use Aurora\Module\Configuration\Storage\Setting\StorageSettings;
 use Aurora\Module\Configuration\Theme\Service\ThemeContext;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
+use Aurora\Module\Ged\Document\Search\DocumentSearchFilters;
 use Aurora\Module\Ged\Document\Serializer\DocumentSerializerInterface;
 use Aurora\Module\Ged\Document\Service\DocumentUsageService;
 use Aurora\Module\Ged\DocumentCategory\Repository\DocumentCategoryRepository;
@@ -128,6 +129,7 @@ final readonly class DocumentsViewBuilder
         ?array $folders = null,
         string $sort = 'date',
         string $direction = 'desc',
+        DocumentSearchFilters $filters = new DocumentSearchFilters(),
     ): array {
         $result = $this->documentRepository->findPaginated(
             $pagination->page,
@@ -143,6 +145,7 @@ final readonly class DocumentsViewBuilder
             originalsOnly: $originalsOnly,
             sort: $sort,
             direction: $direction,
+            filters: $filters,
         );
 
         return [

@@ -24,6 +24,7 @@ use Aurora\Module\Ged\Document\Manager\DocumentManagerInterface;
 use Aurora\Module\Ged\Document\Message\RelocateDocumentMessage;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Document\Repository\DocumentVersionRepository;
+use Aurora\Module\Ged\Document\Search\DocumentSearchFilters;
 use Aurora\Module\Ged\Document\Serializer\DocumentSerializerInterface;
 use Aurora\Module\Ged\Document\Serializer\DocumentVersionSerializerInterface;
 use Aurora\Module\Ged\Document\Service\DocumentColorAlternateCreator;
@@ -99,6 +100,11 @@ final class DocumentsController extends AbstractController
         ));
     }
 
+    private function positiveId(string $value): ?int
+    {
+        return ctype_digit($value) && (int) $value > 0 ? (int) $value : null;
+    }
+
     /** @return array{string, string} */
     private function sortOf(Request $request): array
     {
@@ -113,8 +119,10 @@ final class DocumentsController extends AbstractController
     #[Route('/list', name: '_list', methods: [HttpMethodEnum::Get->value])]
     public function list(Request $request, PaginationRequest $pagination): JsonResponse
     {
-        $categoryId = $request->query->getInt('categoryId') ?: null;
-        $tagId = $request->query->getInt('tagId') ?: null;
+        // `none` is a value here too (« Sans catégorie », « Sans étiquette »),
+        // read by DocumentSearchFilters: `getInt` would refuse it with a 400.
+        $categoryId = $this->positiveId($request->query->getString('categoryId'));
+        $tagId = $this->positiveId($request->query->getString('tagId'));
         $folderId = $request->query->getInt('folderId') ?: null;
         $statusValue = $request->query->getString('status');
         $status = '' !== $statusValue ? DocumentStatusEnum::tryFrom($statusValue) : null;
@@ -141,7 +149,11 @@ final class DocumentsController extends AbstractController
         // browser only ever reordered twenty rows out of three hundred.
         [$sort, $direction] = $this->sortOf($request);
 
-        return $this->json($this->viewBuilder->buildListPayload($pagination, $categoryId, $tagId, $folderId, $status, $mimeGroup, $rootOnly, $storageDisk, $trashed, $originalsOnly, sort: $sort, direction: $direction));
+        // Where the box looks, and the filters beyond category and tag:
+        // added between two dates, shape, weight, none at all.
+        $filters = DocumentSearchFilters::fromQuery($request->query);
+
+        return $this->json($this->viewBuilder->buildListPayload($pagination, $categoryId, $tagId, $folderId, $status, $mimeGroup, $rootOnly, $storageDisk, $trashed, $originalsOnly, sort: $sort, direction: $direction, filters: $filters));
     }
 
     /**

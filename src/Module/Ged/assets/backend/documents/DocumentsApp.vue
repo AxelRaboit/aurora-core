@@ -12,6 +12,7 @@ import { useDocumentsForm, DOCUMENT_STATUS_BADGE } from "./composables/useDocume
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppMultiselect from "@/shared/components/form/select/AppMultiselect.vue";
+import AppDatePicker from "@/shared/components/form/picker/AppDatePicker.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
@@ -25,7 +26,7 @@ import AppNavListItem from "@/shared/components/nav/AppNavListItem.vue";
 import AppTextLinkButton from "@/shared/components/action/AppTextLinkButton.vue";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { useFileSize } from "@/shared/composables/format/useFileSize.js";
-import { useDocumentFilters } from "./composables/useDocumentFilters.js";
+import { NONE, SEARCH_FIELDS, useDocumentFilters } from "./composables/useDocumentFilters.js";
 import { useDocumentDetail } from "./composables/useDocumentDetail.js";
 import { useDocumentsDisplay, DOCUMENT_SORT_FIELDS } from "./composables/useDocumentsDisplay.js";
 import { useDocumentNavigation } from "./composables/useDocumentNavigation.js";
@@ -39,7 +40,7 @@ import { useDocumentCrop } from "./composables/useDocumentCrop.js";
 import { useMultiSelection } from "@/shared/composables/list/useMultiSelection.js";
 import AppTab from "@/shared/components/nav/AppTab.vue";
 import AppLoader from "@/shared/components/feedback/AppLoader.vue";
-import { Plus, Eye, Pencil, Trash2, Save, FileText, Paperclip, Upload, X, Folder, Download, QrCode, LayoutGrid, List, SortAsc, SortDesc, CheckSquare, Square, Copy, Crop, ExternalLink, Home, Layers, Star, ChevronRight, ChevronDown, Move, CloudUpload, HardDriveDownload, RotateCcw, Palette } from "lucide-vue-next";
+import { Plus, Eye, Pencil, Trash2, Save, FileText, Paperclip, Upload, X, Folder, Download, QrCode, LayoutGrid, List, SortAsc, SortDesc, CheckSquare, Square, Copy, Crop, ExternalLink, Home, Layers, Star, ChevronRight, ChevronDown, Move, CloudUpload, HardDriveDownload, RotateCcw, Palette, SlidersHorizontal } from "lucide-vue-next";
 import ImageCropperModal from "@/shared/components/overlay/ImageCropperModal.vue";
 import AppImagePreview from "@/shared/components/display/AppImagePreview.vue";
 import AppImage from "@/shared/components/display/AppImage.vue";
@@ -102,6 +103,10 @@ const props = defineProps({
 
 const categoryOptions = props.categories.map((c) => ({ value: c.id, label: c.name }));
 const tagOptions = props.tags.map((tag) => ({ value: tag.id, label: tag.name }));
+// The filters also find what was never filed: « Sans catégorie », « Sans
+// étiquette ». Kept out of the options above, which the edit forms share.
+const filterCategoryOptions = [{ value: NONE, label: t("backend.ged.documents.no_category") }, ...categoryOptions];
+const filterTagOptions = [{ value: NONE, label: t("backend.ged.documents.filter_no_tag") }, ...tagOptions];
 
 const { viewingDoc, viewingDocVersions, viewingDocUsage, viewDoc, closeDetail } = useDocumentDetail(props.versionsPath, props.usagePath);
 
@@ -114,11 +119,22 @@ function permalinkFor(doc) {
 
 const {
     filterCategoryId, filterTagId, filterStatus, filterMimeGroup, filterOriginalsOnly,
+    searchIn, filterAddedFrom, filterAddedTo, filterOrientation, filterWeight, moreFiltersCount,
     hasActiveFilter, extraParams: filterExtraParams, applyFilter, resetFilters,
     // The arrow defers the read: `reset` comes from useListPage, which needs
     // these refs to exist before it is called.
     // eslint-disable-next-line no-use-before-define
 } = useDocumentFilters(() => reset());
+
+// Opened by hand, and open from the start when one of its filters is set:
+// a filter hidden behind a closed panel is a listing nobody understands.
+const showMoreFilters = ref(false);
+const searchInOptions = SEARCH_FIELDS.map((field) => ({ value: field, label: t(`backend.ged.documents.search_in_${field}`) }));
+const orientationOptions = ["landscape", "portrait", "square"].map((value) => ({
+    value,
+    label: t(`backend.ged.documents.orientation_${value}`),
+}));
+const weightOptions = ["light", "medium", "heavy"].map((value) => ({ value, label: t(`backend.ged.documents.weight_${value}`) }));
 
 const mimeGroupOptions = [
     { value: "image", label: t("backend.ged.documents.type_image") },
@@ -161,6 +177,11 @@ const { items, loading, page, totalPages, search: searchInput, onSearch, goToPag
         onData: onListResponse,
     },
 );
+
+/** A search already typed is run again in the new fields; otherwise nothing to redo. */
+function onSearchInChange() {
+    if (searchInput.value) applyFilter();
+}
 
 const {
     statusOptions,
@@ -437,20 +458,18 @@ const pageActions = computed(() => {
 
             <main class="flex-1 min-w-0 space-y-4">
                 <!-- Filters -->
-                <div v-if="categories.length || tags.length" class="flex flex-col sm:flex-row sm:flex-wrap gap-2">
+                <div class="flex flex-col sm:flex-row sm:flex-wrap gap-2">
                     <AppMultiselect
-                        v-if="categories.length"
                         v-model="filterCategoryId"
-                        :options="categoryOptions"
+                        :options="filterCategoryOptions"
                         :allow-empty="true"
                         :placeholder="t('backend.ged.documents.filter_by_category')"
                         class="w-full sm:w-auto sm:min-w-44"
                         v-on:update:model-value="applyFilter"
                     />
                     <AppMultiselect
-                        v-if="tags.length"
                         v-model="filterTagId"
-                        :options="tagOptions"
+                        :options="filterTagOptions"
                         :allow-empty="true"
                         :placeholder="t('backend.ged.documents.filter_by_tag')"
                         class="w-full sm:w-auto sm:min-w-44"
@@ -482,6 +501,19 @@ const pageActions = computed(() => {
                         v-on:update:model-value="applyFilter"
                     />
                     <AppButton
+                        variant="secondary"
+                        size="sm"
+                        class="w-full sm:w-auto"
+                        :aria-expanded="showMoreFilters || 0 < moreFiltersCount"
+                        v-on:click="showMoreFilters = !showMoreFilters"
+                    >
+                        <SlidersHorizontal class="w-3.5 h-3.5" :stroke-width="2" />
+                        {{ t("backend.ged.documents.more_filters") }}
+                        <span v-if="moreFiltersCount" class="rounded-full bg-accent-500/15 px-1.5 text-xs font-semibold text-accent-400 tabular-nums">
+                            {{ moreFiltersCount }}
+                        </span>
+                    </AppButton>
+                    <AppButton
                         v-if="hasActiveFilter"
                         variant="ghost"
                         size="sm"
@@ -490,6 +522,51 @@ const pageActions = computed(() => {
                     >
                         <X class="w-3 h-3" :stroke-width="2" /> {{ t("shared.common.reset") }}
                     </AppButton>
+                </div>
+
+                <!-- The wider search: where the box looks, when a document was
+                     added, its shape and its weight. Behind a button because
+                     most visits never need it; open whenever one is set. -->
+                <div
+                    v-if="showMoreFilters || 0 < moreFiltersCount"
+                    class="aurora-card grid grid-cols-1 gap-3 p-3 sm:grid-cols-2 lg:grid-cols-5 sm:p-4"
+                >
+                    <AppMultiselect
+                        v-model="searchIn"
+                        :options="searchInOptions"
+                        :allow-empty="false"
+                        :searchable="false"
+                        :label="t('backend.ged.documents.search_in')"
+                        v-on:update:model-value="onSearchInChange"
+                    />
+                    <AppDatePicker
+                        v-model="filterAddedFrom"
+                        :label="t('backend.ged.documents.added_from')"
+                        v-on:update:model-value="applyFilter"
+                    />
+                    <AppDatePicker
+                        v-model="filterAddedTo"
+                        :label="t('backend.ged.documents.added_to')"
+                        v-on:update:model-value="applyFilter"
+                    />
+                    <AppMultiselect
+                        v-model="filterOrientation"
+                        :options="orientationOptions"
+                        :allow-empty="true"
+                        :searchable="false"
+                        :label="t('backend.ged.documents.orientation')"
+                        :placeholder="t('backend.ged.documents.any')"
+                        v-on:update:model-value="applyFilter"
+                    />
+                    <AppMultiselect
+                        v-model="filterWeight"
+                        :options="weightOptions"
+                        :allow-empty="true"
+                        :searchable="false"
+                        :label="t('backend.ged.documents.weight')"
+                        :placeholder="t('backend.ged.documents.any')"
+                        v-on:update:model-value="applyFilter"
+                    />
                 </div>
 
                 <!-- Selection bar -->

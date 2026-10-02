@@ -14,6 +14,7 @@ use Aurora\Module\Studio\SpaceFile\GoogleDrive\Setting\DriveSettings;
 use Aurora\Module\Studio\SpaceFile\Repository\SpaceFileRepository;
 use Aurora\Module\Studio\SpaceFile\Serializer\SpaceFileSerializerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 final readonly class SpaceFilesViewBuilder
 {
@@ -25,6 +26,7 @@ final readonly class SpaceFilesViewBuilder
         private DriveSettings $drive,
         private DriveLock $lock,
         private SpaceVisibility $visibility,
+        private AuthorizationCheckerInterface $authorization,
     ) {}
 
     /**
@@ -65,6 +67,13 @@ final readonly class SpaceFilesViewBuilder
             // deviné dans l'écran : la règle vit dans `SpaceVisibility`.
             'canConfigure' => $this->visibility->canConfigure($space),
             'settingsPath' => $this->urlGenerator->generate('workspace_space_settings_show', ['id' => $space->getId()]),
+            // Où se choisit le dossier de l'agence, pour que les réglages de
+            // l'espace disent qu'il ne se règle pas chez eux. Nul pour qui
+            // n'a pas la main sur la configuration : un lien vers un 403
+            // n'aide personne.
+            'driveConfigurationPath' => $this->authorization->isGranted('configuration.settings.manage')
+                ? $this->urlGenerator->generate('backend_studio_drive_settings_show')
+                : null,
         ];
     }
 
