@@ -1495,20 +1495,47 @@ backend:
 
             settings:
                 section_drive: Google Drive
+                howto_title: Brancher un dossier
+                howto_share: "Le client partage son dossier Google Drive, en lecture, avec l'adresse du compte de service :"
+                howto_share_unknown: "Le client partage son dossier Google Drive, en lecture, avec l'adresse du compte de service du Drive (Configuration > Google Drive)."
+                howto_paste: "Collez l'adresse du dossier avec « Choisir le dossier ». Pour le dossier de l'agence, c'est vous qui le partagez."
+                howto_find: "Il apparaît dans l'onglet Drive de l'espace, sous « Dossier du client » ; celui de l'agence a son propre onglet, que le client ne voit pas."
+                group_space: Cet espace
+                group_all: Commun à tous les espaces
+                badge_all_spaces: Tous les espaces
+                state_linked: Branché
+                state_none: Aucun dossier
+                state_locked: Fermé
+                state_open: Ouvert
+                open_in_drive: Ouvrir dans Google Drive
+                folder_choose: Choisir le dossier
+                folder_change: Changer de dossier
+                folder_modal_title: Dossier Drive du client
+                folder_modal_intro: "Collez l'adresse du dossier que le client a partagé. Il s'affichera dans l'onglet Drive de cet espace seulement."
+                folder_field: Adresse du dossier
+                share_with: "Le dossier doit être partagé, en lecture, avec cette adresse :"
+                share_unknown: "Le dossier doit être partagé, en lecture, avec l'adresse du compte de service du Drive."
+                copy_email: Copier l'adresse
+                email_copied: Adresse copiée.
+                folder_unlink: Débrancher
+                password_manage: Gérer le mot de passe
+                password_close_tab: Fermer par un mot de passe
                 folder_title: Dossier Drive du client
                 folder_intro: "Le dossier propre à ce client, qu'il a partagé avec l'adresse du compte de service. Il s'affiche dans l'onglet Drive de cet espace, sous « Dossier du client »."
-                folder_hint: "Collez l'adresse du dossier, ou videz le champ pour le débrancher."
                 agency_title: Dossier de l'agence
-                agency_set: "Commun à tous les espaces, il s'affiche aussi dans l'onglet Drive, sous « Dossier de l'agence », et seul le studio le voit. Il ne se règle pas ici, mais dans Configuration > Google Drive."
-                agency_unset: "Aucun dossier de l'agence n'est choisi. Commun à tous les espaces et visible du seul studio, il se règle dans Configuration > Google Drive, pas ici."
-                agency_open: Ouvrir la configuration du Drive
+                agency_set: "Le même dossier dans tous les espaces : modèles, charte, ressources de l'équipe. Il s'affiche dans l'onglet Drive sous « Dossier de l'agence », et seul le studio le voit."
+                agency_unset: "Aucun dossier de l'agence pour l'instant. Choisissez-en un : le même s'affichera dans l'onglet Drive de tous les espaces, visible du seul studio."
+                agency_choose: Choisir le dossier de l'agence
+                agency_ask_admin: "Seule une personne qui gère la configuration peut le choisir."
+                agency_modal_title: Dossier de l'agence
+                agency_modal_intro: "Il vaut pour tous les espaces, pas seulement celui-ci : changer de dossier le change partout."
+                agency_saved: Dossier de l'agence enregistré.
+                agency_cleared: Dossier de l'agence débranché.
                 folder_saved: Dossier branché.
                 folder_cleared: Dossier débranché.
                 drive_closes_now: "Enregistrer ferme l'onglet immédiatement, y compris pour vous : il faudra saisir le mot de passe pour l'ouvrir."
                 drive_title: Mot de passe de l'onglet Drive
                 drive_intro: "Ferme l'onglet Drive de cet espace. Il vaut pour tout le monde, vous compris : un mot de passe qu'on contourne ne protège personne."
-                drive_locked: "L'onglet Drive est fermé."
-                drive_open: "L'onglet Drive est ouvert."
                 current_password: Mot de passe actuel
                 new_password: Nouveau mot de passe
                 password: Mot de passe
@@ -1791,6 +1818,11 @@ backend:
         space_information:
             scope: "Cette fiche appartient au client, pas à ce projet. La modifier ici la modifie dans tous ses espaces, et c'est voulu : un SIRET est celui d'une société."
             what_the_client_sees: Ce que le client voit
+            group_card: La fiche
+            group_related: Autour de ce client
+            edit: Modifier la fiche
+            edit_title: Modifier la fiche du client
+            related_empty: "Aucun contrat, aucune présentation ni aucun autre espace pour ce client pour l'instant."
             related_contracts: "Contrats de ce client"
             related_decks: "Présentations de ce client"
             related_spaces: "Autres espaces de ce client"
@@ -2031,6 +2063,13 @@ backend:
         space_content:
             tab: Espace de travail
             view_label: Vue
+            nav_open: Changer de section
+            nav_title: Sections de l'espace
+            nav_groups:
+                work: Travail
+                documents: Documents
+                client: Client
+                other: Autres
             view_content: Contenus
             shape_board: Kanban
             shape_list: Liste
@@ -2105,6 +2144,7 @@ backend:
                 banner_title: "Rien n'attend l'avis du client | 1 publication attend l'avis du client | {count} publications attendent l'avis du client"
                 banner_body: "Envoyez-les-lui à relire : il reçoit un courriel avec un lien pour les valider ou demander des changements, sans compte à créer."
                 banner_action: Envoyer à relire
+                banner_hide: Masquer ce bandeau
                 confirm_title: Envoyer à relire ?
                 confirm_body: "{count} publication(s) attendent une réponse. Chaque destinataire pouvant valider recevra un courriel avec une adresse neuve, et son adresse précédente cessera de fonctionner."
                 confirm_send: Envoyer

@@ -133,7 +133,9 @@ function actionsFor(deliverable) {
             icon: Pencil,
             title: t("backend.studio.space_deliverables.open"),
             description: t("backend.studio.space_deliverables.open_hint"),
-            onSelect: () => (window.location.href = deliverable.editPath),
+            // Une navigation est un lien, comme le veut la feuille d'actions :
+            // changer l'adresse depuis `onSelect` ne partait pas au vrai clic.
+            href: deliverable.editPath,
         },
         {
             key: "preview",

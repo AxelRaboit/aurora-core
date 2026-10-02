@@ -5,6 +5,34 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.328] - 2026-10-02
+
+### Corrigé
+- **« Ouvrir » dans le menu d'un livrable ne faisait rien** : la fenêtre se fermait sans ouvrir l'éditeur. L'action est désormais un vrai lien, comme le prévoit la feuille d'actions (on peut aussi l'ouvrir dans un nouvel onglet).
+
+### Amélioré
+
+#### La navigation d'un espace, en rail
+Les dix onglets d'un espace tenaient sur une ligne qui débordait dès 1 024 px, et sur téléphone il ne restait que des icônes. Sur ordinateur, ils passent dans un rail à gauche, regroupés : **Travail** (Contenus, Calendrier, Discussion), **Documents** (Fichiers, Drive, Livrables, Notes), **Client** (Informations, Ressources), et Réglages en bas. Une entrée porte un compteur quand quelque chose attend un geste : les publications à faire relire sur Contenus, en orange s'il y a du retard. Sur téléphone et tablette, un bouton dit la section ouverte et ouvre la même liste. La discussion garde toute la hauteur de la fenêtre.
+
+Le bandeau « N publications attendent l'avis du client » a une croix pour le masquer quand il prend trop de place : il reste caché d'un onglet à l'autre et revient au rechargement de la page, et le compteur du rail continue de dire ce qui attend. `AppMessage` gagne pour cela les options `dismissible` et `dismissLabel` (il émet `dismiss`, l'appelant décide de le cacher).
+
+#### Les réglages Drive d'un espace, repensés
+Le lien « Ouvrir la configuration du Drive » affichait du JSON, et même corrigé il faisait quitter l'espace. L'écran est réorganisé :
+- **Deux blocs**, « Cet espace » (dossier du client, mot de passe de l'onglet) et « Commun à tous les espaces » (dossier de l'agence, badge « Tous les espaces »), côte à côte sur un grand écran et l'un sous l'autre sur téléphone.
+- **Les deux dossiers se règlent de la même façon** : un badge « Branché » ou « Aucun dossier », un lien « Ouvrir dans Google Drive », et un bouton qui ouvre une fenêtre pour coller l'adresse, enregistrer ou débrancher. Le dossier de l'agence se règle donc sur place, sans quitter l'espace (pour les personnes qui gèrent la configuration ; les autres lisent l'explication).
+- **L'adresse du compte de service s'affiche avec un bouton Copier**, dans la fenêtre et dans un encart « Brancher un dossier » en trois étapes : c'est elle qu'on donne au client pour qu'il partage son dossier.
+- **Onglet Informations : la fiche d'abord.** Ce que le client voit s'affiche en tête, avec un bouton « Modifier la fiche » qui ouvre le formulaire dans une fenêtre (plein écran sur téléphone) au lieu de le laisser ouvert en permanence. À droite sur grand écran : ses contrats, présentations et autres espaces.
+- **Le mot de passe montre son état d'abord** (badge « Ouvert » ou « Fermé ») ; le formulaire ne s'ouvre qu'à la demande, et « Redemander à tous » reste à portée sans rien saisir.
+
+Une route dédiée (`POST /backend/studio/drive/settings/agency-folder`) n'enregistre que ce dossier : l'enregistrement général du Drive lit une activation absente comme « éteint », et serait passé par là depuis un espace.
+
+### Dans aurora-client
+
+Rien à faire au-delà de `make aurora-update`.
+
+---
+
 ## [0.9.327] - 2026-10-02
 
 ### Ajouté

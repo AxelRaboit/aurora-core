@@ -1495,20 +1495,47 @@ backend:
 
             settings:
                 section_drive: Google Drive
+                howto_title: Linking a folder
+                howto_share: "The client shares their Google Drive folder, read only, with the service account's address:"
+                howto_share_unknown: "The client shares their Google Drive folder, read only, with the Drive service account's address (Configuration > Google Drive)."
+                howto_paste: "Paste the folder's address with “Choose the folder”. For the agency folder, you share it yourself."
+                howto_find: "It shows in the space's Drive tab, under “Client folder”; the agency folder has its own tab, which the client does not see."
+                group_space: This space
+                group_all: Shared by every space
+                badge_all_spaces: Every space
+                state_linked: Linked
+                state_none: No folder
+                state_locked: Closed
+                state_open: Open
+                open_in_drive: Open in Google Drive
+                folder_choose: Choose the folder
+                folder_change: Change folder
+                folder_modal_title: The client's Drive folder
+                folder_modal_intro: "Paste the address of the folder the client shared. It will show in this space's Drive tab only."
+                folder_field: Folder address
+                share_with: "The folder must be shared, read only, with this address:"
+                share_unknown: "The folder must be shared, read only, with the Drive service account's address."
+                copy_email: Copy the address
+                email_copied: Address copied.
+                folder_unlink: Unlink
+                password_manage: Manage the password
+                password_close_tab: Close with a password
                 folder_title: The client's Drive folder
                 folder_intro: "This client's own folder, shared by them with the service account's address. It shows in this space's Drive tab, under “Client folder”."
-                folder_hint: "Paste the folder's address, or empty the field to unlink it."
                 agency_title: Agency folder
-                agency_set: "Shared by every space, it also shows in the Drive tab, under “Agency folder”, and only the studio sees it. It is not set here, but in Configuration > Google Drive."
-                agency_unset: "No agency folder is chosen. Shared by every space and seen by the studio only, it is set in Configuration > Google Drive, not here."
-                agency_open: Open the Drive configuration
+                agency_set: "The same folder in every space: templates, guidelines, team resources. It shows in the Drive tab under “Agency folder”, and only the studio sees it."
+                agency_unset: "No agency folder yet. Choose one: the same folder will show in the Drive tab of every space, seen by the studio only."
+                agency_choose: Choose the agency folder
+                agency_ask_admin: "Only someone who manages the configuration can choose it."
+                agency_modal_title: Agency folder
+                agency_modal_intro: "It applies to every space, not only this one: changing it changes it everywhere."
+                agency_saved: Agency folder saved.
+                agency_cleared: Agency folder unlinked.
                 folder_saved: Folder linked.
                 folder_cleared: Folder unlinked.
                 drive_closes_now: "Saving closes the tab straight away, you included: you will have to type the password to open it."
                 drive_title: Drive tab password
                 drive_intro: "Closes this space's Drive tab. It applies to everyone, you included: a password that gets walked past protects nobody."
-                drive_locked: The Drive tab is closed.
-                drive_open: The Drive tab is open.
                 current_password: Current password
                 new_password: New password
                 password: Password
@@ -1780,6 +1807,11 @@ backend:
         space_information:
             scope: "This sheet belongs to the customer, not to this project. Editing it here edits it in every space of theirs, deliberately: a SIRET is a company's."
             what_the_client_sees: What the client sees
+            group_card: The record
+            group_related: Around this client
+            edit: Edit the record
+            edit_title: Edit the client's record
+            related_empty: "No contract, presentation or other space for this client yet."
             related_contracts: "This client's contracts"
             related_decks: "This client's decks"
             related_spaces: "This client's other spaces"
@@ -2020,6 +2052,13 @@ backend:
         space_content:
             tab: Workspace
             view_label: View
+            nav_open: Change section
+            nav_title: Space sections
+            nav_groups:
+                work: Work
+                documents: Documents
+                client: Client
+                other: Other
             view_content: Content
             shape_board: Kanban
             shape_list: List
@@ -2094,6 +2133,7 @@ backend:
                 banner_title: "Nothing is waiting for the client | 1 piece of content is waiting for the client's answer | {count} pieces of content are waiting for the client's answer"
                 banner_body: "Send them for review: the client gets an email with a link to approve them or ask for changes, with no account to create."
                 banner_action: Send for review
+                banner_hide: Hide this banner
                 confirm_title: Send for review?
                 confirm_body: '{count} piece(s) of content are waiting for an answer. Every recipient who can approve will get an email with a fresh address, and their previous one will stop working.'
                 confirm_send: Send
