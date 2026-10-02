@@ -5,6 +5,19 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.321] - 2026-10-02
+
+### Amélioré
+
+#### Importer un fichier directement dans une catégorie
+`aurora:ged:import` accepte `--category=<id>` : les documents importés depuis la console arrivent rangés. Une catégorie qui n'existe pas est refusée avant le moindre envoi, au lieu de donner en silence des documents sans catégorie. Les captures ajoutées au tour par `add-tour-cards` s'en servent quand `TOUR_CATEGORY_ID` est donné.
+
+### Dans aurora-client
+
+Rien à faire au-delà de `make aurora-update`.
+
+---
+
 ## [0.9.320] - 2026-10-02
 
 ### Ajouté

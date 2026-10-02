@@ -23,6 +23,11 @@
  *     ]
  *   }
  *
+ * La catégorie de la médiathèque où ranger les images se donne par
+ * `TOUR_CATEGORY_ID` (comme le serveur, elle n'est pas écrite dans ce dépôt
+ * public). Sans elle, les images arrivent sans catégorie et le script le dit :
+ * il fallait les ranger à la main ensuite, et on l'oubliait.
+ *
  * Ce que le script garantit :
  *
  * - **Il ne touche à rien avant d'avoir tout vérifié.** Les captures doivent
@@ -58,6 +63,13 @@ const REMOTE_TMP = "/tmp/aurora-tour";
 const LOCALES = ["fr", "en", "es"];
 
 const dryRun = process.argv.includes("--dry-run");
+
+const CATEGORY = process.env.TOUR_CATEGORY_ID ?? "";
+
+if ("" !== CATEGORY && !/^\d+$/.test(CATEGORY)) {
+    console.error(`TOUR_CATEGORY_ID doit être un identifiant de catégorie, reçu « ${CATEGORY} ».`);
+    process.exit(1);
+}
 const planPath = process.argv.slice(2).find((a) => !a.startsWith("--"));
 
 if (undefined === planPath) {
@@ -116,6 +128,10 @@ if (0 !== problemes.length) {
 
 console.log(`\n${plan.cards.length} image(s) pour /fr/aurora/${plan.slug} (publication ${postId})${dryRun ? " — essai à blanc" : ""}\n`);
 
+if ("" === CATEGORY) {
+    console.warn("⚠️  TOUR_CATEGORY_ID absent : les nouvelles images arriveront sans catégorie.\n");
+}
+
 if (dryRun) {
     for (const c of plan.cards) console.log(`  → ${c.name}\n      ${c.alt.fr}`);
     process.exit(0);
@@ -144,7 +160,7 @@ for (const carte of plan.cards) {
 
     const { stdout } = await run("ssh", [
         HOST,
-        `cd ${REMOTE_DIR} && sudo -u www-data php bin/console aurora:ged:import --env=prod ${REMOTE_TMP}/${carte.name}.png`,
+        `cd ${REMOTE_DIR} && sudo -u www-data php bin/console aurora:ged:import --env=prod${"" !== CATEGORY ? ` --category=${CATEGORY}` : ""} ${REMOTE_TMP}/${carte.name}.png`,
     ]);
 
     const id = /#(\d+)/.exec(stdout)?.[1];
