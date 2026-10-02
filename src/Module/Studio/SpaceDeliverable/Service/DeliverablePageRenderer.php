@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\SpaceDeliverable\Service;
 
 use Aurora\Core\Frontend\Service\Context;
+use Aurora\Module\Configuration\Setting\Service\SiteTimezone;
 use Aurora\Module\Configuration\Theme\Service\ThemeContext;
 use Aurora\Module\Editorial\Post\Grid\GridNormalizer;
 use Aurora\Module\Editorial\Post\Grid\GridViewBuilder;
@@ -62,6 +63,7 @@ final readonly class DeliverablePageRenderer
         private ThemeContext $themeContext,
         private GridViewBuilder $gridViewBuilder,
         private ReadingTimeCalculator $readingTimeCalculator,
+        private SiteTimezone $siteTimezone,
     ) {}
 
     /** @param string|null $backUrl où revient le lecteur, quand il vient d'une page à lui */
@@ -100,7 +102,7 @@ final readonly class DeliverablePageRenderer
             'reading' => [
                 ...DeliverableReadingHeader::normalize($deliverable->getReadingHeader()),
                 'updatedAt' => $deliverable->getUpdatedAt()->format(DateTimeInterface::ATOM),
-                'updatedOn' => new IntlDateFormatter($locale, IntlDateFormatter::LONG, IntlDateFormatter::NONE)->format($deliverable->getUpdatedAt()),
+                'updatedOn' => new IntlDateFormatter($locale, IntlDateFormatter::LONG, IntlDateFormatter::NONE, $this->siteTimezone->get())->format($deliverable->getUpdatedAt()),
                 // Une seule langue : le sélecteur ne se dessine pas.
                 'localeUrls' => [],
                 'backUrl' => $backUrl,

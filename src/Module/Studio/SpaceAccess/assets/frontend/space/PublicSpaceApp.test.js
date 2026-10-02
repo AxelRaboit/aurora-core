@@ -281,4 +281,48 @@ describe("PublicSpaceApp", () => {
 
         expect(wrapper.text()).toContain("Charte graphique");
     });
+
+    /** Les étapes du mode d'emploi, par leur clé. */
+    function etapes(wrapper) {
+        return wrapper
+            .findAll("[data-guide] li")
+            .map((li) =>
+                li.text().replace("studio.public.space.guide.step_", ""),
+            );
+    }
+
+    it("ne décrit que ce que le lien permet", async () => {
+        const lecture = monter({ canApprove: false, canComment: false });
+        await flushPromises();
+
+        // Un lien en lecture seule : pas d'étape qui promettrait un bouton
+        // absent de la page.
+        expect(etapes(lecture)).toEqual(["calendar"]);
+
+        const complet = monter({
+            canApprove: true,
+            canComment: true,
+            canUpload: true,
+            chatChannels: [CHANNEL],
+            chatPostPath: "/spaces/a/b/chat/__channel__/messages/new",
+            spaceFiles: [FILE],
+        });
+        await flushPromises();
+
+        expect(etapes(complet)).toEqual([
+            "calendar",
+            "answer",
+            "comment_upload",
+            "chat",
+            "tabs",
+        ]);
+    });
+
+    it("dit la discussion en lecture quand le lien ne peut pas y écrire", async () => {
+        const wrapper = monter({ chatChannels: [CHANNEL] });
+        await flushPromises();
+
+        expect(etapes(wrapper)).toContain("chat_read");
+        expect(etapes(wrapper)).not.toContain("chat");
+    });
 });

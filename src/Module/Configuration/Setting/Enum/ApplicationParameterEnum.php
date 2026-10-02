@@ -284,7 +284,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::PostsPerPage => '10',
             self::MaxUploadSizeMb => '100',
             self::Timezone => 'Europe/Paris',
-            self::DateFormat => 'd/m/Y',
+            self::DateFormat => 'short',
             self::CommentsEnabled => '1',
             self::CommentModerationEnabled => '1',
             self::MaintenanceMode => '0',
@@ -347,7 +347,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
         return match ($this) {
             self::PostsPerPage, self::MaxUploadSizeMb, self::PostRevisionsLimit, self::TrashAutoPurgeDays, self::FormSubmissionRetentionDays, self::FileVersionsLimit, self::StudioContractRetentionYears, self::StudioContractReminderDays, self::StudioContractReminderMax => 'int',
             self::HomepagePostId => 'post',
-            self::DefaultFront, self::DefaultLocale, self::EmailLocale, self::Timezone => 'select',
+            self::DefaultFront, self::DefaultLocale, self::EmailLocale, self::Timezone, self::DateFormat => 'select',
             self::CommentsEnabled, self::CommentModerationEnabled, self::MaintenanceMode, self::AdminRegistrationEnabled, self::AdminAccessRequestEnabled, self::FrontLoginEnabled, self::FrontRegistrationEnabled, self::SingleLocaleMode, self::MediaCreditVisible, self::StudioContractReminderEnabled, self::BackendBarSiteNameOnPhone => 'bool',
             self::LogoMediaId, self::FaviconMediaId, self::SeoDefaultOgImage => 'media',
             self::ColorPickerPresets => 'json',

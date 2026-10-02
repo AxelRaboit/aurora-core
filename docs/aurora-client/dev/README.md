@@ -15,7 +15,7 @@ Documentation à destination d'un développeur qui :
 Selon ce que vous faites, lisez dans cet ordre :
 
 ### Nouveau dev sur le projet
-1. [Getting started](getting-started.md) - prérequis, premier `make setup`, structure obligatoire, premier déploiement local.
+1. [Rejoindre un projet](../getting-started/joining_a_project.md) - prérequis, installation locale, commandes du quotidien, fixtures.
 2. [Workflow de développement](dev_workflow.md) - commandes du quotidien, debug, ajout d'une feature.
 3. [Assets Vue](assets_vue.md) - structure des assets côté client, aliases Vite, locales Vue.
 4. [Mise à jour aurora-core](update_aurora.md) - `make aurora-update`, breaking changes.
@@ -35,7 +35,7 @@ Selon ce que vous faites, lisez dans cet ordre :
 
 ### Je dois tester / déployer
 - [Tests côté client](testing_client.md) - comment tester un override, mocking, pitfalls.
-- [Déploiement](deployment.md) - séquence prod, env vars critiques, post-deploy.
+- [Déploiement](../deployment/README.md) - séquence prod, env vars critiques, post-deploy.
 
 ### Je configure l'outillage IA (Claude Code etc.)
 - [Mémoire IA](memory_for_ai.md) - structure `.claude/memory/aurora-client/`, hygiène, sync.
@@ -46,7 +46,7 @@ Selon ce que vous faites, lisez dans cet ordre :
 
 | Doc | Sujet | Quand la lire |
 |---|---|---|
-| [getting-started.md](getting-started.md) | Onboarding zéro | Premier jour sur le projet |
+| [../getting-started/joining_a_project.md](../getting-started/joining_a_project.md) | Installation locale, quotidien, fixtures | Premier jour sur le projet |
 | [dev_workflow.md](dev_workflow.md) | Commandes quotidiennes, debug | Tous les jours |
 | [../extending/extend_module.md](../extending/extend_module.md) | Recettes d'extension par couche (entité, Twig, finders, décorateurs, permissions) | À chaque override |
 | [extra_fields_pattern.md](extra_fields_pattern.md) | `extraFields` + slots Vue | Ajout de champs à un form admin |
@@ -55,7 +55,7 @@ Selon ce que vous faites, lisez dans cet ordre :
 | [assets_vue.md](assets_vue.md) | Structure assets, aliases, locales | Setup Vue côté client |
 | [database.md](database.md) | Migrations, séquences, fixtures | Modif schema |
 | [testing_client.md](testing_client.md) | Setup tests + pitfalls | Avant d'écrire un test |
-| [deployment.md](deployment.md) | Séquence prod, env vars | Avant de déployer |
+| [../deployment/README.md](../deployment/README.md) | Séquence prod, env vars | Avant de déployer |
 | [update_aurora.md](update_aurora.md) | `make aurora-update` | Mise à jour mensuelle |
 | [memory_for_ai.md](memory_for_ai.md) | `.claude/memory/aurora-client/` | Setup outillage IA |
 

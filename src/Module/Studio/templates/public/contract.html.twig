@@ -34,7 +34,7 @@
                 {{ 'studio.public.contract.refused'|trans({}, null, contract.locale) }}
             </p>
             <p class="text-secondary">
-                {{ 'studio.public.contract.refused_hint'|trans({'{date}': contract.refusedAt|date('d/m/Y')}, null, contract.locale) }}
+                {{ 'studio.public.contract.refused_hint'|trans({'{date}': contract.refusedAt|site_date(contract.locale)}, null, contract.locale) }}
             </p>
         </div>
     {% elseif isSigned %}
@@ -58,7 +58,7 @@
                 {{ 'studio.public.contract.to_sign_hint'|trans({}, null, contract.locale) }}
             </p>
             <p class="text-xs text-muted pt-1">
-                {{ 'studio.public.contract.valid_until'|trans({'{date}': link.expiresAt|date('d/m/Y')}, null, contract.locale) }}
+                {{ 'studio.public.contract.valid_until'|trans({'{date}': link.expiresAt|site_date(contract.locale)}, null, contract.locale) }}
             </p>
         </div>
     {% endif %}

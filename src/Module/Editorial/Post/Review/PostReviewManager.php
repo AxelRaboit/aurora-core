@@ -88,14 +88,23 @@ class PostReviewManager implements PostReviewManagerInterface
     {
         $now ??= new DateTimeImmutable();
 
-        $post->setStatus(PostStatusEnum::Published);
         $post->setReviewNote(null);
         $this->stamp($post, $reviewer, $now);
 
-        // `publishedAt` is what the front and the sitemap order by, so an approval
-        // that left it null would publish a post dated nowhere.
-        if (!$post->getPublishedAt() instanceof DateTimeImmutable) {
-            $post->setPublishedAt($now);
+        // Une date encore à venir : approuver la programme, pour qu'elle parte
+        // quand l'auteur l'avait voulu, et non le jour de la relecture.
+        $scheduledAt = $post->getScheduledAt();
+        if ($scheduledAt instanceof DateTimeImmutable && $scheduledAt > $now) {
+            $post->setStatus(PostStatusEnum::Scheduled);
+        } else {
+            $post->setStatus(PostStatusEnum::Published);
+            $post->setScheduledAt(null);
+
+            // `publishedAt` is what the front and the sitemap order by, so an approval
+            // that left it null would publish a post dated nowhere.
+            if (!$post->getPublishedAt() instanceof DateTimeImmutable) {
+                $post->setPublishedAt($scheduledAt ?? $now);
+            }
         }
 
         $this->tellAuthor($post, $reviewer, 'editorial.post.review_approved', 'backend.posts.review.notification_approved');

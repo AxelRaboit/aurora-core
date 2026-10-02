@@ -57,6 +57,13 @@ backend:
           removed: Tag supprimé
 notes:
   markdown:
+    guide:
+      title: "Comment s'organisent les notes"
+      step_1: "Chaque note appartient à un espace : le vôtre, toujours privé, ou un espace partagé."
+      step_2: "Un espace partagé s'ouvre à vous seul, à certaines personnes ou à tout le back-office, chacun en lecture, écriture ou gestion."
+      step_3: "Reliez les notes avec [[Titre]] : le graphe montre ces liens entre toutes les notes que vous pouvez lire."
+      step_4: "Les étiquettes filtrent la bibliothèque, et « Gérer les tags » les renomme ou les fusionne sur toutes vos notes."
+      step_5: "Une note se partage aussi par un lien en lecture seule ; même un administrateur ne lit pas vos notes privées."
     share:
       button: Partager par un lien
       title: Partager cette note par un lien

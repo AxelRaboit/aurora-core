@@ -190,7 +190,6 @@ start-d: ## Start dev server in background
 
 stop: ## Stop dev server
 	symfony server:stop
-	@docker compose stop database 2>/dev/null || true
 	@docker compose stop mercure 2>/dev/null || true
 
 # PostgreSQL refuses to drop a database anything is connected to, and the dev

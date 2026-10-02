@@ -1,4 +1,5 @@
 <script setup>
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
@@ -284,6 +285,13 @@ const pageActions = computed(() => {
                 />
             </template>
         </AppListToolbar>
+        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <AppGuide :title="t('backend.posts.guide.title')" storage-key="posts-list">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 5" :key="step">{{ t(`backend.posts.guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
 
         <!-- Only once something is ticked. A permanently visible bar of disabled
              buttons is furniture; one that appears is an answer to what the reader

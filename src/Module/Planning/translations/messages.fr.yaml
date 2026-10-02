@@ -37,6 +37,13 @@ backend:
     planning: Calendrier
     planning_description: "Voir les événements et les rappels des calendriers, en mois, semaine ou jour."
   plannings:
+    guide:
+      title: "Comment marche le calendrier"
+      step_1: "Le menu latéral liste vos calendriers : masquez-en un pour retirer ses événements de la grille, ou créez un événement, un rappel ou un calendrier."
+      step_2: "Les flèches changent de période, Jour, Semaine, Mois et Agenda changent l'affichage, et Aujourd'hui revient à la date du jour."
+      step_3: "Sur ordinateur, cliquez sur un jour ou un créneau libre pour y créer un événement, et faites glisser un événement pour le déplacer."
+      step_4: "Un rappel est une échéance à cocher une fois faite ; modifier un événement récurrent demande s'il s'agit de cette occurrence, des suivantes ou de toute la série."
+      step_5: "Partager un calendrier l'ouvre à d'autres utilisateurs, ou crée un lien secret lisible sans compte, en page web ou en abonnement."
     title: Calendrier
     upcoming: "À venir"
     nothing_upcoming: "Rien de prévu pour le moment."

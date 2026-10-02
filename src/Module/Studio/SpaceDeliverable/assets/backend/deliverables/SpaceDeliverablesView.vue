@@ -11,6 +11,7 @@
  * Même gabarit que les ressources voisines : l'intro et le bouton en tête, des
  * cartes en liste, les gestes écrits en toutes lettres sur téléphone.
  */
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
@@ -133,7 +134,9 @@ function actionsFor(deliverable) {
             icon: Pencil,
             title: t("backend.studio.space_deliverables.open"),
             description: t("backend.studio.space_deliverables.open_hint"),
-            onSelect: () => (window.location.href = deliverable.editPath),
+            // Une navigation est un lien, comme le veut la feuille d'actions :
+            // changer l'adresse depuis `onSelect` ne partait pas au vrai clic.
+            href: deliverable.editPath,
         },
         {
             key: "preview",
@@ -198,6 +201,13 @@ function actionsFor(deliverable) {
             </AppButton>
         </div>
 
+        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+     replié ou déplié, le choix vaut pour tous les encarts. -->
+        <AppGuide :title="t('backend.studio.space_deliverables.guide.title')" storage-key="space-deliverables">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 5" :key="step">{{ t(`backend.studio.space_deliverables.guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
         <AppNoData
             v-if="0 === rows.length"
             :message="t('backend.studio.space_deliverables.empty')"

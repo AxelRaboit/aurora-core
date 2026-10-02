@@ -25,6 +25,7 @@
 <div {{ vue_component('dev/backend/AdministrationApp', {
     tab: tab,
     stats: tab == 'overview' ? stats : {},
+    enabledModules: tab == 'overview' ? enabledModules|default({}) : {},
     users: tab == 'users' ? users : {},
     accessRequests: tab == 'access_requests' ? accessRequests : {},
     audit: tab == 'audit' ? audit : {},

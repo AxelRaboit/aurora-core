@@ -6,7 +6,7 @@
 
 {% block subheading %}
     {{ 'frontend.plannings.share.read_only'|trans }}
-    {% if expiresAt %} &middot; {{ 'frontend.plannings.share.until'|trans({'%date%': expiresAt|date('d/m/Y H:i')}) }}{% endif %}
+    {% if expiresAt %} &middot; {{ 'frontend.plannings.share.until'|trans({'%date%': expiresAt|site_datetime}) }}{% endif %}
 {% endblock %}
 
 {% block body %}

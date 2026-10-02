@@ -94,14 +94,15 @@ final readonly class DriveSettings
     }
 
     /**
-     * @param string|null $serviceAccount null laisse la clé enregistrée
-     *                                    tranquille ; une chaîne vide est un
-     *                                    « oublie-la » explicite
-     */
-    /**
      * @param string|null $agencyFolderId null leaves it as it is, an empty
      *                                    string clears it
      */
+    /** The agency folder and nothing else; an empty string clears it. */
+    public function saveAgencyFolder(string $agencyFolderId): void
+    {
+        $this->settingRepository->saveMany([[DriveSettingEnum::AgencyFolder->value, '' === $agencyFolderId ? null : $agencyFolderId]]);
+    }
+
     public function save(
         bool $enabled,
         #[SensitiveParameter]

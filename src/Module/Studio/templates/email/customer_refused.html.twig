@@ -7,7 +7,7 @@
 <p>{{ 'studio.email.customer_refused.body'|trans({'{reference}': contract.reference, '{customer}': customer.legalName}) }}</p>
 
 <ul>
-    <li>{{ 'studio.email.customer_refused.observed'|trans({'{at}': refusedAt|date('d/m/Y H:i'), '{ip}': contract.refusedFromIp ?? '-'}) }}</li>
+    <li>{{ 'studio.email.customer_refused.observed'|trans({'{at}': refusedAt|site_datetime, '{ip}': contract.refusedFromIp ?? '-'}) }}</li>
 </ul>
 
 {% if reason %}

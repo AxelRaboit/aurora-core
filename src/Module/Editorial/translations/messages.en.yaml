@@ -112,8 +112,14 @@ backend:
         place_required: "Enter the listing id and the API key to turn the integration on."
     useful_links:
       settings:
+        guide:
+          title: "How useful links work"
+          step_1: "Add a link with its label, its address and its colour; the address starts with https:// or mailto:."
+          step_2: "Drag the handle to change the order, then save: a link without a label or a valid address is removed on save."
+          step_3: "They show at the bottom of every post, beside the share buttons when those are on."
+          step_4: "In a post's Settings tab, you can hide them or replace them with links of its own."
         title: The site's useful links
-        intro: "Set once here, they show at the foot of every publication, beside « Share »: where else to find the author, the product, the code. A publication can hide them or have its own, in its Settings tab."
+        intro: "Set once here, they show at the foot of every publication, beside “Share”: where else to find the author, the product, the code. A publication can hide them or have its own, in its Settings tab."
     newsletter:
       settings:
         what_title: What this integration does
@@ -227,6 +233,19 @@ backend:
       comments_by_status: "Comments by status"
       published_per_month: "Posts published per month"
   post_galleries:
+    editor_guide:
+      title: "How the gallery is put together"
+      step_1: "Switch the gallery on to show it under the post's content, then choose its layout, columns and ratio."
+      step_2: "“Add a picture” takes one from the library or your computer, and “Import pictures” sends several at once, sixty at most."
+      step_3: "Drag a picture or use its arrows to change the order, which is the same in every language."
+      step_4: "“Picture text” sets its alternative text and caption in each language; left empty, the alternative text comes from the library."
+      step_5: "Nothing is kept until you click “Save”."
+    guide:
+      title: "How galleries get filled"
+      step_1: "Each post can carry an image gallery, shown under its content once switched on."
+      step_2: "The list shows how many photos each post has: “No photos” spots the ones still to fill."
+      step_3: "“Gallery” opens only the post's pictures: its text, status and search settings cannot change there."
+      step_4: "You see every post here, including other authors' ones, except those in the trash."
     search_placeholder: Search a publication
     empty: No publications
     untitled: Untitled
@@ -256,6 +275,13 @@ backend:
     comments: Comments
     comments_description: "Moderate readers' comments and turn away the unwanted ones."
   post_types:
+    guide:
+      title: "How content types work"
+      step_1: "A content type groups posts of the same kind, such as articles or services; pick it in the side menu to see its settings."
+      step_2: "Its posts have their address under its slug, and “Has a listing page” adds a page on the site that lists them all."
+      step_3: "Capabilities give its posts block content, the featured image or reading in sequence."
+      step_4: "Custom fields add boxes to fill in on every post of the type, shared by all languages or separate for each with “Per language”."
+      step_5: "A built-in type keeps its slug and cannot be deleted; any other type can only be deleted once it holds no posts, trash included."
     title: Content types
     empty: No content type yet.
     created: Content type created.
@@ -286,7 +312,7 @@ backend:
     fields:
       row_actions:
         edit_description: Label, type, required or not, options.
-        delete_description: Removes the field. Answers already received keep it.
+        delete_description: Removes the field from this content type.
       title: Custom fields
       empty: No custom field.
       created: Field added.
@@ -330,6 +356,20 @@ backend:
     description_placeholder: "What this type of content is for, in one sentence."
     icon_placeholder: "file-text"
   posts:
+    settings_guide:
+      title: "How publishing is set"
+      step_1: "The status decides whether the page can be read: “Draft” keeps it in the administration, “Published” puts it online, “Scheduled” publishes it on its own at the chosen date."
+      step_2: "“On the site” shows it in lists, menus, search and the sitemap; “Link only” shows it nowhere and is read through a reading link."
+      step_3: "With the right to publish, “Reading links” creates a secret address per recipient, which only opens once the post is published."
+      step_4: "“Take down on” moves a live post to “Archived” at the chosen date; left empty, it stays online."
+      step_5: "“Preview” saves, then opens a secret address valid for seven days, and “History” restores a previously saved version."
+    guide:
+      title: "How a page gets published"
+      step_1: "A post starts as a draft: it is only visible in the administration."
+      step_2: "“Published” puts it online; “Scheduled”, with a date, publishes it on its own at the planned minute."
+      step_3: "Without the right to publish, choosing “Published” or “Scheduled” sets it “Pending review”: once approved it goes out at the chosen date, otherwise it goes back to draft."
+      step_4: "“On the site” shows it in lists, menus and search; “Link only” shows it nowhere and is shared through a reading link."
+      step_5: "Each save keeps a version (twenty by default), and “Preview” gives a secret address valid seven days."
     usage_detail: Post
     usage_untitled: Untitled post
     banner:
@@ -1351,6 +1391,13 @@ backend:
       highlight_inherit: Same as the theme
       highlight_hint: "Hover outlines and titles, card category and arrow, for this page's content only. The navigation bar and the footer keep the theme's setting."
   taxonomies:
+    guide:
+      title: "How taxonomies work"
+      step_1: "A taxonomy sorts posts into categories or tags; pick it in the side menu to see its terms."
+      step_2: "“Applies to” chooses the content types concerned: their posts tick its terms in the Settings tab."
+      step_3: "With “Nested terms”, a term sits under a parent like a category; without it, terms stay on one level like tags."
+      step_4: "Each term has a name and a slug per language, and its page on the site lists the published posts that carry it or one of its children."
+      step_5: "Deleting a term moves its children up one level; deleting a taxonomy takes its terms with it, and a built-in taxonomy cannot be deleted."
     title: Taxonomies
     empty: No taxonomy yet.
     create: New taxonomy
@@ -1401,6 +1448,13 @@ backend:
       reorder_cycle: 'That move would put term {id} inside its own subtree.'
     label_placeholder: "Categories"
   comments:
+    guide:
+      title: "How comments are moderated"
+      step_1: "Visitors comment without an account on posts where comments are on."
+      step_2: "With moderation on, each comment arrives “Pending” and you are notified."
+      step_3: "Approving makes it visible on the site and notifies its author."
+      step_4: "“Spam” takes it off the site without notifying anyone; what is detected as spam lands there directly."
+      step_5: "Deleting is permanent, and its replies move up one level."
     title: Comments
     empty: No comment yet.
     search_placeholder: 'Search an author, an address, a text…'
@@ -1425,6 +1479,20 @@ backend:
       approved: Approved
       spam: Spam
   forms:
+    editor_guide:
+      title: "How this form is set up"
+      step_1: "In “Questions”, add a question by choosing its type, then click it to edit it; the preview shows what the visitor will see."
+      step_2: "“Split into steps” spreads the questions over several pages, and a question can appear only depending on the answer to a question placed before it."
+      step_3: "“Answers” lists what was sent, newest first, and “Export as CSV” takes all of it for a spreadsheet."
+      step_4: "“Settings” sets the title and address in each language, puts the form online or offline, and chooses who is told about each answer."
+      step_5: "Without an email address, each answer goes to the site administrator; offline, the form disappears from the pages it sits on."
+    guide:
+      title: "How forms work"
+      step_1: "Create a form from a template: blank, contact, two-step quote request, event registration."
+      step_2: "In “Questions”, add them in the order the visitor will see them, split into steps if needed; a question can depend on an earlier answer."
+      step_3: "Answers arrive in “Answers”, exportable as CSV; “Settings” can also notify you by email or send them to a webhook."
+      step_4: "To show it, add a “Form” zone to a post's grid; offline, it disappears from every page."
+      step_5: "Deleting a form is permanent and takes its answers with it: it does not go through the trash."
     title: "Forms"
     empty: "No forms."
     create: "New form"
@@ -1643,6 +1711,12 @@ backend:
       field_type_invalid: Unknown field type.
       condition_logic_invalid: Unknown condition logic.
   menus:
+    guide:
+      title: "How a menu is built"
+      step_1: "Each menu matches a theme location: main navigation, footer or account; they exist from the start."
+      step_2: "Add an item and choose its target: a post, a term, a content type's list, the home page, a free address or the login."
+      step_3: "Left empty, the label takes the target's title and follows its translations."
+      step_4: "Put an item under another to make a submenu, and choose who sees it; deleting an item moves its sub-items up one level."
     row_actions:
       edit_description: Change the label, the target and how the link opens.
       delete_description: Takes the entry out of the menu. Its children move up one level.
@@ -1660,7 +1734,7 @@ backend:
     item_created: Item added.
     item_updated: Item updated.
     item_deleted: Item deleted.
-    item_delete_confirm: 'Delete the "{label}" item? Its sub-items go with it.'
+    item_delete_confirm: 'Delete the "{label}" item? Its sub-items move up one level.'
     reordered: Menu reordered.
     label: Label
     label_hint: 'Left blank, the item takes its target title and follows its translations.'

@@ -17,6 +17,7 @@
  * writes two columns - so this file being wrong could only ever be a worse
  * screen, never a wider permission.
  */
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { Save } from "lucide-vue-next";
@@ -100,6 +101,13 @@ async function save() {
                 <Save class="h-4 w-4" :stroke-width="2" />
             </AppButton>
         </AppPageBar>
+        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <AppGuide :title="t('backend.post_galleries.editor_guide.title')" storage-key="post-gallery-editor">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 5" :key="step">{{ t(`backend.post_galleries.editor_guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
 
         <!-- Only when there is more than one language. A single-locale site would
              get a row of one tab, which is a control that cannot do anything. -->

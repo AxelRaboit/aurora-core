@@ -1,4 +1,5 @@
 <script setup>
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
@@ -127,6 +128,13 @@ const pageActions = computed(() => {
 </script>
 
 <template>
+    <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+         replié ou déplié, le choix vaut pour tous les encarts. -->
+    <AppGuide :title="t('backend.post_types.guide.title')" storage-key="post-types" class="mb-2 sm:mb-4">
+        <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+            <li v-for="step in 5" :key="step">{{ t(`backend.post_types.guide.step_${step}`) }}</li>
+        </ol>
+    </AppGuide>
     <AppNoData v-if="!items.length" :message="t('backend.post_types.empty')">
         <template v-if="can('editorial.post_types.create')" #action>
             <AppButton variant="primary" size="md" v-on:click="openCreate">

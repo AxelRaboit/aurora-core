@@ -1,6 +1,7 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { emptyBannerLayout, emptyBannerTexts } from "./usePostEditor.js";
+import { siteZone } from "@/shared/utils/format/zonedTime.js";
 import {
     AudioLines,
     ClipboardList,
@@ -250,7 +251,7 @@ export function defaultZoneOptions() {
         availableFrom: null,
         hours: Object.fromEntries(WEEKDAYS.map((day) => [day, []])),
         closedDates: [],
-        timezone: "Europe/Paris",
+        timezone: siteZone() ?? "Europe/Paris",
         countdownAt: null,
         contactName: "",
         contactPhone: "",

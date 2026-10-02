@@ -9,7 +9,7 @@
    submission nor the day it arrived. #}
 <p style="margin:0 0 12px;color:#6b7280;font-size:13px;">
     {% if submission.reference %}{{ submission.reference }} · {% endif %}
-    {{ submission.submittedAt|date('d/m/Y H:i') }} ·
+    {{ submission.submittedAt|site_datetime }} ·
     {{ 'editorial.mail.form.admin_language'|trans }} : {{ submission.locale }}
 </p>
 

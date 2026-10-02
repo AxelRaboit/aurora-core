@@ -1,5 +1,12 @@
 backend:
   profile:
+    guide:
+      title: "Your profile at a glance"
+      step_1: "The photo is saved as soon as you choose it, with no other button."
+      step_2: "The name, email address, password and mood each have their own Save button, which only sends its own card."
+      step_3: "Changing the language reloads the admin straight away in the chosen language."
+      step_4: "The Preferences card leads to your side menu settings: hidden sections and colours."
+      step_5: "Deleting the account, at the bottom of the page, is final, and the instance's last developer cannot delete theirs."
     errors:
       current_password_invalid: The current password is incorrect.
       email_invalid: Invalid email address.
@@ -59,6 +66,13 @@ backend:
       tabs:
         sidemenu: Sidemenu
     sidemenu:
+      guide:
+        title: "Setting up your side menu"
+        step_1: "These settings only apply to you: other users keep their own menu."
+        step_2: "A section's switch hides it entirely; the switches on its rows hide one module at a time."
+        step_3: "Giving a section a colour helps you spot it faster in the menu."
+        step_4: "Nothing changes until you press Save: colours apply at once, hidden items on the next page."
+        step_5: "A hidden page stays reachable by its address, and “Show everything” clears all your settings in one go."
       title: Sidemenu preferences
       subtitle: "Customise the nav : hide sections or modules you don't use, or recolour a section to spot it faster. Pages stay reachable by direct URL."
       section_hint: Turn off the toggle to hide the whole section, or adjust module by module.

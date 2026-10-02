@@ -7,6 +7,7 @@
  * that has to go in it. Shipping the shell first would have been a click that
  * leads to an empty screen.
  */
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useNarrowContainer } from "@/shared/composables/list/useNarrowContainer.js";
@@ -215,6 +216,13 @@ const pageActions = computed(() => {
                 />
             </template>
         </AppListToolbar>
+        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <AppGuide :title="t('backend.studio.spaces.guide.title')" storage-key="spaces-list">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 5" :key="step">{{ t(`backend.studio.spaces.guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
 
         <!-- Deux onglets plutot qu'une colonne : « ce sur quoi je travaille »
              et « ce que j'essaie de decrocher » ne se lisent pas dans la meme

@@ -1,5 +1,95 @@
 backend:
   settings:
+    studio_guide:
+      title: "Your identity in contracts"
+      step_1: "These fields fill in the provider identity block of each contract when it is sealed, and contracts already sealed keep their values."
+      step_2: "A contract whose template uses a field left empty cannot be sealed until you fill it in here."
+      step_3: "The retention period never goes below five years, even if you enter less."
+      step_4: "Reminders, off by default, send a new signing link after the chosen delay, up to the maximum number, and 0 in either field stops them."
+      step_5: "Nothing is saved until you press the Save button at the bottom of the tab."
+    media_guide:
+      title: "File limits"
+      step_1: "The maximum size applies to every uploaded file, media library and client spaces alike, and a space's guests are also capped at 25 MB."
+      step_2: "The server may refuse sooner: its own upload limits must be raised for a higher value to take effect."
+      step_3: "Kept versions include the current file; beyond that, the oldest are deleted with their file, and 0 keeps them all."
+      step_4: "Hiding the photo credit asks for confirmation, because the Pexels API terms ask for it to be shown."
+      step_5: "Nothing is saved until you press the Save button at the bottom of the tab."
+    email_guide:
+      title: "The language of emails"
+      step_1: "This setting picks the language of the emails the application sends without knowing the recipient's own, such as messages to the administration."
+      step_2: "“Follow default locale” uses the language chosen in the Localization tab."
+      step_3: "An email about a contract goes out in the contract's language, and a new comment notice in the language of the article author's account."
+      step_4: "Nothing is saved until you press the Save button at the bottom of the tab."
+    system_guide:
+      title: "Who can get in, and when"
+      step_1: "Maintenance mode closes the public site to all its visitors, while the back office and its sign-in page stay open."
+      step_2: "Admin sign-ups open an account creation form for the back office, to be closed again once the first account exists."
+      step_3: "Access requests let someone ask for an account, which you then approve from the developer area."
+      step_4: "Turning off front-end sign-in removes sign-in, sign-up and the account page from the public site, and makes front-end sign-ups ineffective."
+      step_5: "Nothing is saved until you press the Save button at the bottom of the tab."
+    seo_guide:
+      title: "What search engines and networks see"
+      step_1: "The title pattern places the page title and the site name where the field marks them, and a page with no title shows the name alone."
+      step_2: "The default description is used by pages that have none of their own; left empty, the General tab's description is used instead."
+      step_3: "The sharing image illustrates links shared on social networks when the page has none; without it, the logo takes its place."
+      step_4: "The X account entered here is named in the previews of links shared on that network."
+      step_5: "Nothing is saved until you press the Save button at the bottom of the tab."
+    branding_guide:
+      title: "The site's logo and icon"
+      step_1: "The logo appears in the back office side menu and on the sign-in pages, and is the sharing image when no other is set."
+      step_2: "With no favicon chosen, the browser tab shows the site name's initial on the theme's main colour."
+      step_3: "An image taken from the media library must have the “Published” status to be shown to visitors."
+      step_4: "On a phone, the site name next to the logo in the top bar can be hidden, keeping only the logo."
+      step_5: "Nothing is saved until you press the Save button at the bottom of the tab."
+    localization_guide:
+      title: "The site's languages, time and dates"
+      step_1: "The default language is the public site's fallback, and the emails' one when the Emails tab follows it."
+      step_2: "Single-language mode only shows and saves the default language, and redirects the addresses of other languages to it."
+      step_3: "Turning it off later brings back the content typed in the other languages, which stays in the database."
+      step_4: "The admin's language is not set here: each person chooses it in their profile."
+      step_5: "The timezone gives the site's time: 09:00 on a scheduled post means 09:00 here, and emails and PDFs are dated at that time, in the chosen date style."
+      step_6: "Nothing is saved until you press the Save button at the bottom of the tab."
+    reading_guide:
+      title: "What visitors read"
+      step_1: "The home page is chosen by searching for a page or typing its number; with none chosen, the home page lists the latest articles."
+      step_2: "A comment is only possible when comments are enabled here and on the publication; with moderation, each one waits for your approval."
+      step_3: "The purge delay applies to the trashes of articles, notes and the media library, and 0 keeps everything until you empty them."
+      step_4: "Form answers, IP address included, are erased after their retention delay, and 0 keeps them with no limit."
+      step_5: "Nothing is saved until you press the Save button at the bottom of the tab."
+    administration_guide:
+      title: "The developer area"
+      step_1: "This area is reserved for the developer role, and each entry in the side menu opens one of its tabs."
+      step_2: "Users and Access Requests manage accounts and their roles, and handle pending sign-ups."
+      step_3: "Modules turns a feature on or off for the whole site, after you confirm your password."
+      step_4: "Audit traces the recorded actions, and Permissions lists the privileges each module declares."
+      step_5: "Mount Points describes the connections to external resources and lets you test them."
+    notes_guide:
+      title: "Images in notes"
+      step_1: "These two settings apply to the images you add to a Markdown note."
+      step_2: "An image larger than the maximum size is shrunk in your browser, then sent as WebP."
+      step_3: "The quality, from 0 to 100, only affects shrunk images; 85 is a good balance between weight and sharpness."
+      step_4: "Images already in notes do not change, and animated GIFs go through untouched."
+      step_5: "Nothing is saved until you press the Save button at the bottom of the tab."
+    sequences_guide:
+      title: "How references are numbered"
+      step_1: "Each prefix numbers one kind of record, such as documents, publications or contracts."
+      step_2: "A reference reads prefix, hyphen, then number, and some series, such as contracts, start again at 1 every year."
+      step_3: "A prefix has 1 to 10 letters or digits, with no space or hyphen, and is turned to capitals when saved."
+      step_4: "Changing a prefix leaves the references already given untouched: only the next ones use it."
+      step_5: "Nothing is saved until you press the Save button at the bottom of the tab."
+    general_guide:
+      title: "The site's basic settings"
+      step_1: "The site name appears on the public site and signs the emails the application sends."
+      step_2: "The site description introduces the RSS feed, and serves search engines when neither the page nor the SEO tab provides one."
+      step_3: "The public address, without a trailing slash, builds the links in emails and in the sitemap; left empty, the application works it out from the server."
+      step_4: "The administrator email receives the messages meant for the administration; left empty, the address declared when the server was installed takes over."
+      step_5: "Nothing is saved until you press the Save button at the bottom of the tab."
+    integration:
+      status_active: Active
+      status_off: Off
+      status_todo: To set up
+      settings_title: Connection
+      guide_title: How to get it
     disable_anyway: Turn it off anyway
     usage_detail: Site settings
     tabs:
@@ -8,7 +98,7 @@ backend:
       reading: Reading
       reading_description: 'Posts per page, homepage, comments.'
       localization: Localization
-      localization_description: 'Language, timezone, date format.'
+      localization_description: 'Language, timezone, date style.'
       branding: Branding
       branding_description: 'Logo, favicon and visual identity.'
       appearance: Appearance
@@ -51,6 +141,13 @@ backend:
       storage_description: "Where the application writes its files: the server's disk, or Cloudflare R2 object storage."
       modules: Modules
     storage:
+      guide:
+        title: "In which order to proceed"
+        step_1: "With nothing connected, your files stay on the server's disk: this screen is only for moving to Cloudflare R2."
+        step_2: "Fill in the account address, the bucket and both keys, then run “Test the connection”, which saves before checking."
+        step_3: "Once the test passes, choose where new files are written and save: the files already in place do not move."
+        step_4: "To move existing documents, use the move action of the media library, one document at a time or all at once."
+        step_5: "“Disconnect storage” erases the keys, and is refused while a document still sits on the remote storage."
       intro: "By default the files you upload are written to the server's disk. You can hand them to Cloudflare R2 object storage instead, on your own account."
       when_useful: "Mostly worth it if you store a lot, or large files. Below a few gigabytes the server's disk does the job and needs no configuring."
       how_title: How to get the credentials
@@ -118,6 +215,13 @@ backend:
         access_key_length: "The access key id must be 32 characters long. This one is not, which usually means another value from the Cloudflare page, or an incomplete copy."
         secret_key_length: "The secret access key must be 64 characters long. This one is not, which usually means an incomplete copy."
     appearance:
+      guide:
+        title: "Building the palette"
+        step_1: "Adding a colour takes a six-digit hexadecimal code, and a colour already there is not added twice."
+        step_2: "A swatch's cross removes it from the palette; on a computer, it appears on hover."
+        step_3: "“Reset to default colors” brings back the sixteen original colours."
+        step_4: "Colours already chosen elsewhere do not change: the palette only offers shortcuts."
+        step_5: "Nothing is saved until you press Save, which stays greyed out while the palette is empty."
       color_presets:
         title: Color picker palette
         help: These colors appear as quick-pick swatches in every admin color selector.
@@ -128,6 +232,13 @@ backend:
         invalid_hex: 'Invalid hex code. Expected format: #rrggbb.'
     nav_aliases_empty: No navigation sections available.
     nav_aliases:
+      guide:
+        title: "Renaming and ordering the menu"
+        step_1: "These names and this order apply to every user, whereas each person's preferences only hide or colour their own menu."
+        step_2: "Type a name in a section's or a module's field to replace its label; the cross brings the original name back."
+        step_3: "The handle on the left moves a section, or a module within its section, and the arrow unfolds its modules."
+        step_4: "A custom name is shown as typed, whatever the admin's language."
+        step_5: "Nothing is saved until you press Save, “Reset all” included, and the menu updates on the next page."
       title: Side menu
       help: Rename and reorder sidemenu group headings and individual modules. Drag the handle to move a section or module. Click a section to expand its items.
       items_empty: No items in this section.
@@ -170,6 +281,14 @@ backend:
       site_key: Site key
       site_key_placeholder: '0x4AAAAAAA…'
       site_key_hint: "Printed in the page, by design: the widget needs it."
+      guide_turnstile_1: "Open the Cloudflare dashboard (a free account is enough), Turnstile section, then “Add widget”."
+      guide_turnstile_2: "Name it, add the site's domain (without https://), and keep the “Managed” mode."
+      guide_turnstile_3: "Copy the site key and the secret key shown, paste them here, then turn the check on."
+      guide_recaptcha_1: "Open the reCAPTCHA admin console with a Google account, and create a site."
+      guide_recaptcha_2: "Choose “Score based (v3)” and add the site's domain (without https://)."
+      guide_recaptcha_3: "Copy the site key and the secret key, paste them here, then turn the check on."
+      guide_link_turnstile: Open Cloudflare Turnstile
+      guide_link_recaptcha: Open the reCAPTCHA console
       secret_key: Secret key
       secret_key_placeholder: '0x4AAAAAAA…'
       secret_key_hint: "Encrypted at rest. Left empty, the stored key is kept."
@@ -212,10 +331,10 @@ backend:
       placeholder: 100
     timezone:
       label: Timezone
-      description: PHP timezone (e.g. Europe/Paris)
+      description: "The site's time: that of a scheduled post, of the dates in emails and PDFs, of the morning sends (reminders, late reviews), and the zone offered for a new calendar or space. Dates already stored do not move."
     date_format:
-      label: Date display format
-      description: Date display format (e.g. d/m/Y)
+      label: Date style
+      description: "How the dates of emails, PDFs and contract pages are written, in each one's language. The back office keeps its compact formats."
     comments_enabled:
       label: Comments enabled
       description: 'If enabled, visitors can leave comments on public articles.'
@@ -227,10 +346,10 @@ backend:
       description: 'If enabled, the public site is closed to visitors and displays a maintenance page.'
     admin_registration_enabled:
       label: Admin registrations open
-      description: Allow registrations via /register (admin interface). Disable after creating the first admin account.
+      description: Allow registrations via /backend/platform/register. Disable after creating the first admin account.
     admin_access_request_enabled:
       label: Admin access requests open
-      description: Allow access requests via /access-request (access request form for the administration)
+      description: Allow access requests via /backend/platform/access-request (access request form for the administration)
     front_login_enabled:
       label: Front-end login enabled
       description: "If disabled, the public site has no accounts at all: login, registration, the account area and password reset return 404, and the matching menu links disappear. Turn it off for a brochure-only application."
@@ -245,7 +364,7 @@ backend:
       description: Maximum number of versions kept per GED file. Beyond that, the oldest are deleted along with their file. 0 = unlimited.
     trash_auto_purge_days:
       label: Auto-purge trash (days)
-      description: Number of days before permanent deletion of trashed posts (0 = never)
+      description: "Number of days before permanent deletion of what is in the trash: posts, notes, documents, library folders and categories (0 = never)"
     form_submission_retention_days:
       label: Keep form submissions (days)
       description: "How long form answers are kept, IP address included, before permanent deletion (0 = forever)"
@@ -281,29 +400,32 @@ backend:
       placeholder: '@aurora_app'
     email_locale:
       label: Forced email locale
-      description: 'Language used for all outgoing emails. "Follow default locale" applies the site default locale.'
+      description: 'Language of the site emails that do not know the recipient''s language. Contract emails follow the contract language, account emails (password, verification, access request) the language of the page the request comes from. "Follow default locale" applies the site default locale.'
     email_locale_auto: Follow default locale
+    date_format_short: Short
+    date_format_medium: Medium
+    date_format_long: Long
     core_user_prefix:
       label: User reference prefix
-      description: Auto-generated reference prefix (e.g. XXX). Leave empty to disable.
+      description: Auto-generated reference prefix (e.g. XXX). 1 to 10 capital letters or digits, required.
     core_media_prefix:
       label: Media reference prefix
-      description: Auto-generated reference prefix (e.g. XXX). Leave empty to disable.
+      description: Auto-generated reference prefix (e.g. XXX). 1 to 10 capital letters or digits, required.
     core_access_request_prefix:
       label: Access request reference prefix
-      description: Auto-generated reference prefix (e.g. XXX). Leave empty to disable.
+      description: Auto-generated reference prefix (e.g. XXX). 1 to 10 capital letters or digits, required.
     core_audit_log_prefix:
       label: Audit log prefix
-      description: Auto-generated reference prefix (e.g. XXX). Leave empty to disable.
+      description: Auto-generated reference prefix (e.g. XXX). 1 to 10 capital letters or digits, required.
     core_reset_password_prefix:
       label: Password reset request prefix
-      description: Auto-generated reference prefix (e.g. XXX). Leave empty to disable.
+      description: Auto-generated reference prefix (e.g. XXX). 1 to 10 capital letters or digits, required.
     core_media_folder_prefix:
       label: Media folder reference prefix
-      description: Auto-generated reference prefix (e.g. XXX). Leave empty to disable.
+      description: Auto-generated reference prefix (e.g. XXX). 1 to 10 capital letters or digits, required.
     core_menu_item_prefix:
       label: Menu item reference prefix
-      description: Auto-generated reference prefix (e.g. XXX). Leave empty to disable.
+      description: Auto-generated reference prefix (e.g. XXX). 1 to 10 capital letters or digits, required.
     studio_contract_prefix:
       label: Contract reference prefix
       description: 'Prefix of contract references. CTR by default, which gives CTR-2026-0001.'
@@ -375,6 +497,12 @@ backend:
   title: Administration
   # Dashboard shell only - a module that draws a panel ships its own labels.
   stats:
+    guide:
+      title: "Reading the dashboard"
+      step_1: "Each tab sums up one module, Editorial, GED, Calendar, Studio or Platform, with its own figures."
+      step_2: "A tab only appears when its module is enabled and your role lets you see it."
+      step_3: "The open tab is written into the page address: a copied link reopens the same tab."
+      step_4: "The figures are computed when the page opens: reload it to update them."
     no_module_enabled: No dashboard module is enabled.
   forms:
     errors:

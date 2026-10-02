@@ -1,4 +1,13 @@
 import { onBeforeUnmount, ref } from "vue";
+import {
+    fromDisplay,
+    isKnownZone,
+    toDisplay,
+} from "@/shared/utils/format/zonedTime.js";
+
+// The conversions moved to a shared helper once the date picker needed them
+// too; re-exported so the calendar's imports keep working.
+export { fromDisplay, isKnownZone, toDisplay };
 
 /**
  * The zone the whole calendar screen is drawn in.
@@ -23,102 +32,9 @@ import { onBeforeUnmount, ref } from "vue";
 
 const STORAGE_KEY = "aurora.planning.displayZone";
 
-/** What `Intl` needs to hand back a wall clock we can read field by field. */
-const PARTS = {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
-};
-
-function pad(n) {
-    return String(n).padStart(2, "0");
-}
-
 /** The reader's own zone, which is what the screen uses until they change it. */
 export function viewerZone() {
     return Intl.DateTimeFormat().resolvedOptions().timeZone;
-}
-
-function partsIn(instant, zone) {
-    const parts = new Intl.DateTimeFormat("en-CA", { timeZone: zone, ...PARTS })
-        .formatToParts(instant)
-        .reduce((all, part) => ({ ...all, [part.type]: part.value }), {});
-
-    return {
-        year: Number(parts.year),
-        month: Number(parts.month),
-        day: Number(parts.day),
-        // 24-hour formatting says "24" for midnight in some locales.
-        hour: Number(parts.hour) % 24,
-        minute: Number(parts.minute),
-        second: Number(parts.second),
-    };
-}
-
-/**
- * An instant as the wall clock it reads in `zone`, with no offset.
- *
- * `Date` parses a datetime string with no offset in the browser's own zone, so the
- * result is a value whose *local* fields are the display zone's fields - which is
- * exactly what the grids need and nothing else should ever see.
- *
- * @param {string} iso
- * @param {string} zone
- * @returns {string} `YYYY-MM-DDTHH:mm:ss`
- */
-export function toDisplay(iso, zone) {
-    const at = new Date(iso);
-    if (Number.isNaN(at.getTime())) {
-        return iso;
-    }
-
-    const p = partsIn(at, zone);
-
-    return `${p.year}-${pad(p.month)}-${pad(p.day)}T${pad(p.hour)}:${pad(p.minute)}:${pad(p.second)}`;
-}
-
-/**
- * A wall clock in `zone` back to the instant it names.
- *
- * Two passes, for the reason `eventTime.js` needs two: the offset that applies to
- * the wall clock read as UTC is the wrong side of a clock change by an hour, and
- * applying that guess then asking again gives the offset that actually applies.
- *
- * @param {Date|string} local a Date whose local fields are the zone's wall clock
- * @param {string} zone
- * @returns {string} an ISO instant
- */
-export function fromDisplay(local, zone) {
-    const at = local instanceof Date ? local : new Date(local);
-    if (Number.isNaN(at.getTime())) {
-        return new Date().toISOString();
-    }
-
-    const asUtc = Date.UTC(
-        at.getFullYear(),
-        at.getMonth(),
-        at.getDate(),
-        at.getHours(),
-        at.getMinutes(),
-        at.getSeconds(),
-    );
-
-    const offsetAt = (instant) => {
-        const p = partsIn(new Date(instant), zone);
-
-        return (
-            Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second) -
-            instant
-        );
-    };
-
-    const guess = asUtc - offsetAt(asUtc);
-
-    return new Date(asUtc - offsetAt(guess)).toISOString();
 }
 
 /**
@@ -173,25 +89,4 @@ export function useDisplayZone() {
     onBeforeUnmount(() => {});
 
     return { zone, setZone };
-}
-
-/**
- * Whether a zone name is one this runtime can resolve.
- *
- * A stored name can outlive a browser update or come from another machine, and an
- * unresolvable one makes every `Intl` call throw - which would empty the calendar
- * rather than misdate it.
- */
-export function isKnownZone(name) {
-    if (!name) {
-        return false;
-    }
-
-    try {
-        new Intl.DateTimeFormat("en", { timeZone: name });
-
-        return true;
-    } catch {
-        return false;
-    }
 }

@@ -2,7 +2,7 @@
 
 # Aurora
 
-**CMS headless moderne avec éditeur bloc multi-langue**
+**Un site, son back-office et l'espace de travail d'une petite agence, dans un seul bundle Symfony**
 
 [![Symfony](https://img.shields.io/badge/Symfony-7.4-000000?style=flat-square&logo=symfony&logoColor=white)](https://symfony.com)
 [![Vue.js](https://img.shields.io/badge/Vue.js-3-4FC08D?style=flat-square&logo=vue.js&logoColor=white)](https://vuejs.org)
@@ -14,40 +14,32 @@
 
 ---
 
-## Présentation
+## Ce que fait Aurora
 
-Aurora est un CMS administrable conçu autour d'un éditeur bloc (Editor.js) et d'un modèle de contenu flexible. Chaque contenu possède plusieurs traductions indépendantes, un type personnalisable, des tags et un statut de publication.
+Aurora sert à faire tourner un site public et tout ce qu'il faut pour le
+nourrir : les contenus, les médias, et le travail avec les clients. C'est un
+bundle Symfony ; un site se construit dans un projet client
+([aurora-client](https://github.com/AxelRaboit/aurora-client)) qui l'installe
+par Composer et y ajoute ce qui lui est propre.
 
-L'administration est une SPA Vue intégrée à Symfony via `symfony/ux-vue`. Le stockage utilise PostgreSQL, l'internationalisation repose sur `vue-i18n`, et l'édition concurrente est gérée par un système de verrouillage optimiste avec résolution de conflits 3-way façon Git.
+Le back-office est en Vue 3, le site public en Twig, et tout se lit en trois
+langues : français, anglais, espagnol.
 
----
+### Les modules
 
-## Fonctionnalités
+| Module | Ce qu'il fait |
+|---|---|
+| **Éditorial** | Publications et pages composées en grille de zones (texte Editor.js, images, galeries, cartes, carrousels, formulaires, sondages, réservations…), types de contenu et taxonomies, menus, commentaires, formulaires et leurs réponses, lettre d'information, référencement, recherche, révisions et relecture avant publication, programmation |
+| **Médiathèque** | Documents rangés en dossiers, catégories et étiquettes, variantes d'une même image, aperçus des PDF et des vidéos, stockage sur le disque ou dans Cloudflare R2, import depuis Pexels |
+| **Studio** | Clients, contrats avec signature électronique et scellé vérifiable, présentations, calendrier éditorial, et l'espace de chaque client : contenus à faire relire, calendrier, discussion en direct, fichiers, Google Drive, livrables, notes, ressources et accès du client |
+| **Notes** | Notes Markdown en dossiers et en espaces partagés, liens entre notes et leur graphe, partage par lien |
+| **Planning** | Calendriers, évènements récurrents, rappels, invités, flux iCal et partage par lien |
+| **Plateforme** | Utilisateurs, rôles et privilèges, invitations, demandes d'accès |
+| **Configuration** | Réglages du site, thèmes du site public, intégrations (Google Drive, Instagram, avis Google, GitHub, anti-robots, lettre d'information, Pexels, Craft) |
+| **Général et Dev** | Tableau de bord, profil, corbeille commune, recherche globale ; administration, journal d'audit et activation des modules |
 
-- **Éditeur bloc Editor.js** - titres, listes, images, tableaux, code, citations, intégrations (YouTube, Vimeo…), plus trois blocs custom : Callout, MediaText et Two Columns
-- **Templates de démarrage** - 12 modèles prêts à l'emploi regroupés en catégories (Article, Marketing, Mise en page, Technique) applicables en un clic
-- **Multi-langue** - traductions indépendantes par locale (fr, en, es, de) avec champ `slug` verrouillé/déverrouillé par traduction
-- **Types de contenu dynamiques** - définir des types de post (Article, Page, etc.) depuis l'admin
-- **Tags, médias vedettes, SEO** - méta-titre et méta-description comptés en temps réel
-- **Optimistic locking** - deux admins peuvent éditer le même contenu ; le second est prévenu d'un conflit lors de sa sauvegarde et peut fusionner les modifications
-- **Résolution de conflits 3-way** - comparaison bloc par bloc entre base / local / remote avec acceptation manuelle par bloc ou en batch (inspiré de Git merge)
-- **Rôles** - utilisateurs et développeurs avec impersonification depuis l'admin
-- **Demandes d'accès** - visiteurs peuvent demander l'accès, l'admin approuve ou refuse par e-mail
-- **Invitations** - envoi d'invitations par e-mail avec message et identifiants optionnels
-- **Thème** - mode sombre et mode clair
-- **Prévisualisation** - rendu fidèle du contenu avant publication
-
----
-
-## Résolution de conflits 3-way
-
-Quand deux administrateurs modifient simultanément le même contenu, le second voit ses modifications bloquées à la sauvegarde. Aurora propose alors trois actions :
-
-1. **Voir la version actuelle** - aperçu de la version en base sans perdre son travail local
-2. **Fusionner** - ouvre un merge editor plein écran qui diffe les blocs Editor.js entre l'état de base (au chargement), local (en cours) et remote (en base), classifie chaque bloc (`unchanged`, `local-modified`, `remote-modified`, `local-added`, `remote-added`, `conflict`…) et permet de choisir version par version
-3. **Forcer ma sauvegarde** - écrase la version en base (Doctrine incrémente quand même le `@Version` pour bloquer les futures sauvegardes conflictuelles)
-
-Le verrouillage optimiste utilise la colonne `#[ORM\Version]` de Doctrine combinée à `EntityManager::lock()` pour détecter les conflits de manière atomique.
+Chaque module s'active ou se coupe depuis l'administration, et un projet client
+peut étendre ses entités, ses écrans et ses gabarits sans le forker.
 
 ---
 
@@ -55,175 +47,28 @@ Le verrouillage optimiste utilise la colonne `#[ORM\Version]` de Doctrine combin
 
 | Couche | Technologie |
 |--------|-------------|
-| Backend | Symfony 7.4, PHP 8.4+ |
+| Backend | Symfony 7.4, PHP 8.4, Doctrine ORM 3 |
 | Base de données | PostgreSQL |
-| Frontend | Vue 3, Vue i18n, Editor.js |
-| Style | Tailwind CSS 4 |
-| Emails | Symfony Mailer (SMTP) |
+| Back-office | Vue 3, vue-i18n, Editor.js |
+| Site public | Twig, Tailwind CSS 4 |
+| Tâches de fond | Symfony Messenger et Scheduler (transport Doctrine, sans broker) |
+| Temps réel | Mercure (discussions des espaces clients) |
 | Build | Vite 8 |
-| Tests | Vitest, PHPUnit, Playwright |
+| Tests | PHPUnit, Vitest, Playwright |
 
 ---
 
-## Installation
+## Documentation
 
-### Prérequis
+Tout ce qui s'installe, se lance ou se déploie vit dans [`docs/`](docs/README.md) :
 
-**Obligatoires**
-
-| Outil | Version | Notes |
-|-------|---------|-------|
-| PHP | 8.4+ | Extensions : `pdo_pgsql`, `intl`, `ctype`, `iconv` |
-| PostgreSQL | 14+ | Séquences natives utilisées par Doctrine |
-| Node.js | 20+ | |
-| Composer | 2+ | |
-| pnpm | 9+ | |
-| Docker + docker compose | v2+ | Mailpit (SMTP dev) - seul service conteneurisé |
-
-**Binaires système optionnels**
-
-| Binaire | Module | Usage | Installation |
-|---------|--------|-------|-------------|
-| `pdftoppm` (poppler-utils) | **GED** | Aperçus des PDF | `brew install poppler` / `sudo apt install poppler-utils` |
-| `gs` (Ghostscript) | **GED** | Aperçus des PDF, quand `pdftoppm` est absent | `brew install ghostscript` / `sudo apt install ghostscript` |
-
-> La GED dégrade proprement : `PdfThumbnailGenerator` essaie `pdftoppm`, puis
-> `gs`, puis renvoie l'icône de repli. Rien ne casse si aucun des deux n'est là.
-
-> 📋 **Liste exhaustive** des prérequis (système, extensions PHP, binaires CLI, services externes, vars d'env, spécificités prod) :
-> [`docs/aurora-core/ops/prerequisites.md`](docs/aurora-core/ops/prerequisites.md) - à consulter avant chaque install/déploiement.
-
-### Services externes
-
-Aucun, au-delà de PostgreSQL et d'un SMTP de développement. Les transports
-Messenger sont en `doctrine://default`, donc **aucun broker** (RabbitMQ, Redis)
-n'est requis pour faire tourner Aurora tel quel.
-
-Les modules qui demandaient un Ollama local ou un microservice docTR - Billing
-OCR, Assistant IA - ont été extraits puis archivés en août 2026. Voir
-[`docs/aurora-client/getting-started/installing_modules.md`](docs/aurora-client/getting-started/installing_modules.md).
-
-### Mise en place
-
-```bash
-git clone https://github.com/axelraboit/aurora.git
-cd aurora
-
-make install-dev
-```
-
-`make install-dev` installe les dépendances Composer (app + outils), pnpm, crée les répertoires runtime et exécute les migrations.
-
-Copier et configurer l'environnement :
-
-```bash
-cp .env .env.local
-```
-
-Variables minimales à renseigner dans `.env.local` :
-
-```dotenv
-DATABASE_URL="postgresql://user:password@127.0.0.1:5432/aurora"
-MAILER_DSN="smtp://localhost:25"
-APP_SECRET=your-secret-here
-```
-
-Charger des données de démonstration (optionnel - recrée la base entièrement) :
-
-```bash
-make fixtures
-```
-
-### Développement
-
-```bash
-make start              # serveur Symfony (démarré en arrière-plan)
-make watch              # Vite HMR - dans un second terminal
-```
-
-`make start` ne lance plus Vite : les deux serveurs sont indépendants, et un
-site sans assets à recompiler n'a pas besoin du watcher.
-
-### Production
-
-```bash
-make install-prod       # dépendances, migrations, build assets
-```
-
-Pour les déploiements suivants (nécessite un tag git sur le commit courant) :
-
-```bash
-make deploy-prod
-```
-
----
-
-## Tests
-
-Aurora est testé à trois niveaux :
-
-```bash
-make test-frontend             # Vitest - composables et composants Vue
-make test-backend-unit         # PHPUnit - tests unitaires
-make test-backend-integration  # PHPUnit - tests d'intégration (contrôleurs)
-make test-e2e                  # Playwright - end-to-end
-make test                      # tout lancer (frontend + backend)
-```
-
-### Playwright (E2E) - prérequis WSL/Linux
-
-Les navigateurs Playwright ont besoin de quelques bibliothèques système :
-
-```bash
-sudo apt install -y libnspr4 libnss3 libasound2t64
-pnpm exec playwright install chromium
-```
-
-Le serveur Symfony est démarré automatiquement par Playwright (`symfony server:start --port=8000`). Pour cibler une URL existante à la place, définir `E2E_BASE_URL` :
-
-```bash
-E2E_BASE_URL=http://localhost:8000 pnpm test:e2e
-```
-
-Le scénario complet de conflit à deux onglets est désactivé par défaut (configuration de fixtures requise) ; l'activer avec :
-
-```bash
-E2E_FULL=1 pnpm test:e2e
-```
-
----
-
-## Commandes utiles
-
-```bash
-# Développement
-make start              # serveur Symfony (démarré en arrière-plan)
-make watch              # Vite HMR (second terminal)
-make stop               # arrêter les services Docker
-
-# Tests
-make test-backend             # tous les tests backend (PHPUnit)
-make test-backend-unit        # tests unitaires backend uniquement
-make test-backend-integration # tests d'intégration backend uniquement
-make test-frontend            # tests frontend (Vitest)
-make test-e2e                 # tests end-to-end (Playwright)
-make test                     # frontend + backend
-
-# Qualité du code
-make fix               # auto-correction (Rector, PHP-CS-Fixer, ESLint) + PHPStan
-make stan              # PHPStan seul
-
-# Base de données
-make migrate           # exécuter les migrations
-make migration         # générer une nouvelle migration
-make fixtures          # drop DB + migrations + fixtures
-
-# Utilitaires
-make help              # lister toutes les commandes disponibles
-```
+- **Installer aurora-core et travailler dessus** : [`docs/aurora-core/dev/getting_started.md`](docs/aurora-core/dev/getting_started.md)
+- **Créer ou rejoindre un projet client** : [`docs/aurora-client/getting-started/joining_a_project.md`](docs/aurora-client/getting-started/joining_a_project.md)
+- **Versions et prérequis** : [`docs/aurora-core/ops/prerequisites.md`](docs/aurora-core/ops/prerequisites.md)
+- **Architecture et conventions** : [`docs/aurora-core/`](docs/aurora-core/README.md), [`docs/aurora-shared/`](docs/aurora-shared/README.md)
 
 ---
 
 ## Licence
 
-MIT
+Propriétaire, tous droits réservés : voir [`LICENSE`](LICENSE).

@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect } from "vitest";
 import { defineComponent, h } from "vue";
 import { mount } from "@vue/test-utils";
 import { createTestI18n } from "@/tests/helpers/createTestI18n.js";
@@ -67,5 +67,32 @@ describe("useDateFormat", () => {
         expect(formatMonthYear(null)).toBe("-");
         expect(formatMonthYear("")).toBe("-");
         expect(formatMonthYear(null, "N/A")).toBe("N/A");
+    });
+
+    describe("at the site's time", () => {
+        // The layout hands the zone over in `window.__auroraConfig`; the list
+        // must read 09:00 for a post scheduled for 09:00 in Paris, whatever
+        // zone the machine running the test is in.
+        afterEach(() => {
+            delete window.__auroraConfig;
+        });
+
+        it("shows an instant in the site's zone", () => {
+            window.__auroraConfig = { timezone: "Europe/Paris" };
+            const { formatDateTimeNumeric } = mountWithComposable("fr");
+
+            expect(
+                formatDateTimeNumeric("2026-10-02T07:00:00+00:00"),
+            ).toContain("09:00");
+        });
+
+        it("never moves a bare day", () => {
+            window.__auroraConfig = { timezone: "America/New_York" };
+            const { formatDateNumeric, formatMonthYear } =
+                mountWithComposable("fr");
+
+            expect(formatDateNumeric("2026-10-02")).toBe("02/10/2026");
+            expect(formatMonthYear("2026-05")).toBe("Mai 2026");
+        });
     });
 });

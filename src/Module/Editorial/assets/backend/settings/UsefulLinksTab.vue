@@ -1,4 +1,5 @@
 <script setup>
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
@@ -62,6 +63,13 @@ async function save() {
             <p class="text-sm text-secondary">{{ t("backend.editorial.useful_links.settings.intro") }}</p>
         </section>
 
+        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <AppGuide :title="t('backend.editorial.useful_links.settings.guide.title')" storage-key="useful-links-settings">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 4" :key="step">{{ t(`backend.editorial.useful_links.settings.guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
         <UsefulLinksField v-model="links" />
 
         <div class="flex justify-end">

@@ -1,4 +1,5 @@
 <script setup>
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useListPage } from "@/shared/composables/list/useListPage.js";
@@ -84,6 +85,13 @@ const pageActions = computed(() => {
 
 <template>
     <div class="space-y-2 sm:space-y-4">
+        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <AppGuide :title="t('backend.ged.categories.guide.title')" storage-key="ged-categories">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 5" :key="step">{{ t(`backend.ged.categories.guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
         <AppListToolbar>
             <AppSearchInput v-model="searchInput" :placeholder="t('backend.ged.categories.search_placeholder')" v-on:search="onSearch" />
             <template #actions>

@@ -1,4 +1,5 @@
 <script setup>
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
@@ -323,6 +324,13 @@ defineExpose({ save, apply, canSwitchToR2 });
             </div>
         </AppMessage>
 
+        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <AppGuide :title="t('backend.settings.storage.guide.title')" storage-key="settings-storage">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 5" :key="step">{{ t(`backend.settings.storage.guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
         <section class="space-y-2">
             <p class="text-sm text-secondary">{{ t("backend.settings.storage.intro") }}</p>
             <p class="text-sm text-muted">{{ t("backend.settings.storage.when_useful") }}</p>

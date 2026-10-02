@@ -4,24 +4,24 @@ declare(strict_types=1);
 
 namespace Aurora\Module\General\Dashboard\View;
 
-use Aurora\Module\General\Dashboard\Service\StatsService;
-
 /**
- * Builds the Twig payload for the dev overview tab. Wraps StatsService
- * so the controller stays focused on flow (XHR vs full page rendering).
+ * Builds the Twig payload for the dev overview tab. Reuses the dashboard's
+ * own view so the two never disagree on which modules count, and keeps the
+ * controller focused on flow (XHR vs full page rendering).
  */
 final readonly class OverviewViewBuilder
 {
-    public function __construct(private StatsService $statsService) {}
+    public function __construct(private DashboardViewBuilder $dashboard) {}
 
     /**
      * @return array<string, mixed>
      */
     public function overviewPayload(): array
     {
-        // Module ids whose figures the dev overview wants. Empty while no
-        // module ships a DashboardStatsProviderInterface.
-        return ['stats' => $this->statsService->getStats([])];
+        // The same figures as the back-office dashboard, for the modules that
+        // are on. It asked for none at all, from the days no module provided
+        // any, and the tab always said there was nothing to show.
+        return $this->dashboard->indexView();
     }
 
     /**
@@ -34,6 +34,7 @@ final readonly class OverviewViewBuilder
         return [
             'tab' => 'overview',
             'stats' => $payload['stats'],
+            'enabledModules' => $payload['enabledModules'],
         ];
     }
 }

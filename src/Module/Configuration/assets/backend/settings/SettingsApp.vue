@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import AppButton from "@/shared/components/action/AppButton.vue";
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppMultiselect from "@/shared/components/form/select/AppMultiselect.vue";
@@ -58,6 +59,29 @@ const genericGroups = computed(() =>
     customComponent.value ? [] : [props.activeTab],
 );
 
+/**
+ * The "how it works" box of a tab drawn by the generic renderer, keyed by tab
+ * id. A tab missing here simply has none; a registered component writes its
+ * own, next to the controls it explains.
+ */
+const TAB_GUIDES = {
+    general: { namespace: "backend.settings.general_guide", steps: 5 },
+    sequences: { namespace: "backend.settings.sequences_guide", steps: 5 },
+    reading: { namespace: "backend.settings.reading_guide", steps: 5 },
+    localization: { namespace: "backend.settings.localization_guide", steps: 6 },
+    branding: { namespace: "backend.settings.branding_guide", steps: 5 },
+    seo: { namespace: "backend.settings.seo_guide", steps: 5 },
+    system: { namespace: "backend.settings.system_guide", steps: 5 },
+    email: { namespace: "backend.settings.email_guide", steps: 4 },
+    media: { namespace: "backend.settings.media_guide", steps: 5 },
+    studio: { namespace: "backend.settings.studio_guide", steps: 5 },
+    notes: { namespace: "backend.settings.notes_guide", steps: 5 },
+};
+
+const tabGuide = computed(() =>
+    customComponent.value ? null : TAB_GUIDES[props.activeTab] ?? null,
+);
+
 const { fieldValues, mediaState, isLocked, lockReason, onBoolChange, pendingOff, confirmOff, cancelOff, onMediaChange, savingGroups, saveGroup } =
     useSettingsForm(props.groups, genericGroups.value, props.updatePath);
 
@@ -74,6 +98,14 @@ const { sequenceSearch, paginatedSequences, sequencePage, sequenceTotalPages, go
          the tabs now. The page is the tab. -->
     <div class="flex flex-col">
         <div class="flex-1 min-w-0">
+            <!-- Le mode d'emploi de l'onglet, au-dessus de ses champs ;
+                 seuls les onglets génériques listés dans TAB_GUIDES en ont un. -->
+            <AppGuide v-if="tabGuide" :title="t(`${tabGuide.namespace}.title`)" :storage-key="`settings-${activeTab}`" class="mb-5">
+                <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                    <li v-for="step in tabGuide.steps" :key="step">{{ t(`${tabGuide.namespace}.step_${step}`) }}</li>
+                </ol>
+            </AppGuide>
+
             <!-- This tab's body, when a registered component owns it -->
             <component
                 :is="customComponent"

@@ -5,12 +5,13 @@ locale par accident.
 
 | Situation | Commande | Effet sur la BDD |
 |---|---|---|
-| 1ʳᵉ installation du projet | `make install-dev` | Crée la DB, applique migrations, charge fixtures, lance le watcher Vite |
-| Pull d'une PR aurora-client (nouvelle entité, migration, etc.) | **`make pull-update`** | **Données préservées** : `composer install` (lock) + `pnpm install` + `migrate` + cache + syncs config |
-| Bump volontaire d'aurora-core | `make aurora-update` | Données préservées : `composer update axelraboit/aurora` + sub-installs + syncs |
+| 1ʳᵉ installation du projet (clone neuf) | `make install-dev` | **Supprime et recrée la DB**, `schema:create` + migrations marquées appliquées, `aurora:install`, fixtures, puis lance Vite. Procédure complète : [`../getting-started/joining_a_project.md`](../getting-started/joining_a_project.md) |
+| Pull d'une PR aurora-client (nouvelle entité, migration, etc.) | **`make pull-update`** | **Données préservées** : deps depuis les locks + migrations + cache + syncs |
+| Bump volontaire d'aurora-core | `make aurora-update` | Données préservées : monte aurora-core, sous-installs, migrations, syncs, traductions, build |
 
-⚠️ **Ne JAMAIS faire `make install-dev` sur un projet déjà setup** - il purge la
-DB via `doctrine:fixtures:load`. Tes données de dev sont écrasées par les fixtures.
+⚠️ **Ne JAMAIS faire `make install-dev` sur un projet déjà setup** : il
+supprime la base (`doctrine:database:drop`) avant de la recréer. Tes
+données de dev disparaissent.
 
 ---
 
@@ -25,18 +26,26 @@ Enchaîne :
 
 | Étape | Commande | Rôle |
 |---|---|---|
-| 1 | `composer install` | Sync `vendor/` selon `composer.lock` (PR a peut-être bumpé une dep ou aurora-core) |
-| 2 | `composer install --working-dir=vendor/axelraboit/aurora --no-scripts` | Au cas où aurora-core a été pull avec une nouvelle sub-dep |
-| 3 | `pnpm install` | Sync `node_modules/` racine selon `pnpm-lock.yaml` |
-| 4 | `pnpm --dir=vendor/axelraboit/aurora install` | Sync les `node_modules` d'aurora-core (eslint, vitest, etc.) |
-| 5 | `php bin/console cache:clear` | Cache Symfony purgé |
-| 6 | `make migrate-f` | Nouvelles migrations appliquées |
-| 7 | `make sync-jsconfig` | Aliases Vite mis à jour si aurora-core en a ajouté |
-| 8 | `make sync-security` | `security.yaml` resynced si firewall a changé |
-| 9 | `make sync-claude-md` | Symlinks CLAUDE.md + mémoires Claude rafraîchis |
-| 10 | `make sync-makefile` | Le Makefile lui-même resynced depuis le template aurora-core |
+| 1 | `composer install` | Sync `vendor/` selon `composer.lock` (la PR a peut-être bumpé une dep ou aurora-core) |
+| 2 | `composer install --working-dir=vendor/axelraboit/aurora --no-scripts` | Dépendances propres d'aurora-core (son `vendor/` imbriqué) |
+| 3 | `composer install` dans `vendor/axelraboit/aurora/tools/{php-cs-fixer,twig-cs-fixer,rector,phpstan}` | Les quatre linters, chacun dans son install |
+| 4 | `pnpm install` | Sync `node_modules/` racine selon `pnpm-lock.yaml` |
+| 5 | `pnpm --dir=vendor/axelraboit/aurora install` | Sync les `node_modules` d'aurora-core (Vite, ESLint, Vitest, etc.) |
+| 6 | `php bin/console cache:clear` | Cache Symfony purgé |
+| 7 | `make migrate-f` | Nouvelles migrations appliquées (client et aurora-core) |
+| 8 | `make sync-jsconfig` | Aliases Vite mis à jour si aurora-core en a ajouté |
+| 9 | `make sync-env` | Ajoute à `.env` les blocs `###> aurora/* ###` manquants, sans toucher aux valeurs existantes |
+| 10 | `make sync-readme` | Remplace le bloc canonique du `README.md` (entre les marqueurs), le reste est préservé |
+| 11 | `make sync-security` | `security.yaml` recopié depuis aurora-core |
+| 12 | `make sync-claude-md` | Liens `CLAUDE.md`, `.claude/memory/` et skills partagés rafraîchis |
+| 13 | `make sync-makefile` | Le Makefile lui-même recopié depuis le modèle d'aurora-core |
 
 Toutes les étapes sont idempotentes - safe à relancer.
+
+`make pull-update` refuse de tourner moins de 5 minutes après un `make
+aurora-update` : l'ordre correct est `pull-update` puis `aurora-update`
+(se caler sur l'équipe, puis monter par-dessus). `make pull-and-bump`
+enchaîne les deux dans cet ordre.
 
 ---
 
@@ -46,22 +55,37 @@ Toutes les étapes sont idempotentes - safe à relancer.
 make aurora-update
 ```
 
-À utiliser **uniquement** quand on veut explicitement la dernière version
-d'aurora-core (et non celle figée dans `composer.lock`). Pour le pull d'une
-PR d'un collègue, préférer `make pull-update` (qui respecte le lock).
+À utiliser **uniquement** quand on veut explicitement une version
+d'aurora-core plus récente que celle figée dans `composer.lock`. Pour le
+pull d'une PR d'un collègue, préférer `make pull-update` (qui respecte le
+lock).
+
+La cible lance `composer update axelraboit/aurora` : Composer prend le
+**dernier tag stable** qui satisfait la contrainte du `composer.json`
+(`^0.9`), pas la branche `develop`. Ensuite, comme `pull-update` : les
+sous-installs (aurora-core, les quatre linters, les deux `pnpm install`),
+`cache:clear`, `make migrate-f`, puis `aurora:privileges:sync`, les mêmes
+syncs, et enfin `make translation` + `make build` pour que les nouvelles
+clés de traduction et le bundle de prod suivent.
+
+Le `composer.json` déclare aurora-core comme dépôt VCS en SSH : résoudre
+une nouvelle version peut demander une clé SSH ou un token GitHub.
 
 ---
 
 ## Fréquence
 
 Lancer `make aurora-update` :
-- Après chaque push sur la branche `develop` d'aurora-core
+- Après chaque release d'aurora-core (nouveau tag)
 - Avant de démarrer un chantier qui touche des entités ou des conventions Aurora
 - En cas de comportement inattendu (pour s'assurer d'avoir la dernière version)
 
 Lancer `make pull-update` :
 - À chaque `git pull` qui ramène une PR d'un collègue
-- En CI après le checkout (idem effet : sync vendor + node_modules + DB)
+
+La CI n'utilise pas `make pull-update` : le workflow installe ses
+dépendances lui-même et monte une base de test neuve (cf.
+[`../deployment/github_actions_ci.md`](../deployment/github_actions_ci.md)).
 
 ---
 
@@ -73,8 +97,9 @@ make schema-validate  # le schéma Doctrine est cohérent
 ```
 
 Si des migrations ont été ajoutées dans aurora-core, elles sont jouées
-automatiquement à l'étape 5. Vérifier que la migration n'a pas de conflit
-avec les migrations client existantes.
+automatiquement par `make migrate-f` (étape 7 de `pull-update`, et aussi
+dans `aurora-update`). Vérifier que la migration n'a pas de conflit avec
+les migrations client existantes.
 
 ---
 
@@ -103,20 +128,29 @@ affiche :
 Dans ce cas, **relancer `make aurora-update`** pour que les nouvelles targets
 soient disponibles dès la suite de la séquence.
 
+Si le `Makefile` a des modifications locales non commitées, la sync
+refuse de l'écraser : déplace tes cibles dans `Makefile.local`, ou force
+avec `make sync-makefile FORCE=1`.
+
 ---
 
 ## Customisations préservées au sync
 
 | Fichier | Comportement |
 |---|---|
-| `CLAUDE.md` | **Écrasé** - ne pas éditer, créer `CLAUDE.local.md` à la place |
+| `CLAUDE.md` | **Lien vers le vendor** - ne pas éditer, créer `CLAUDE.local.md` à la place |
 | `Makefile` | **Écrasé** - targets custom dans `Makefile.local` (jamais touché) |
 | `config/packages/security.yaml` | **Écrasé** - géré par Aurora |
-| `.claude/memory/aurora-core/` | Symlink vers vendor - automatiquement à jour |
-| `.claude/memory/aurora-client/` | Symlink vers vendor - automatiquement à jour |
-| `docs/aurora-core/` | Symlink vers vendor - automatiquement à jour |
-| `docs/aurora-client/` | Symlink vers vendor - automatiquement à jour |
-| `src/`, `templates/`, `assets/client/` | **Jamais touchés** |
-| `.env.local` | **Jamais touché** |
+| `README.md` | **Bloc canonique remplacé** (entre `aurora-canonical:start` et `aurora-canonical:end`) ; titre, intro et "Spécifique à ce projet" préservés |
+| `.env` | **Complété** : blocs `###> aurora/* ###` manquants ajoutés, valeurs existantes jamais modifiées |
+| `.claude/memory/aurora-core/`, `aurora-client/`, `aurora-shared/` | Liens vers le vendor - automatiquement à jour |
+| `.claude/skills/<skill>` (skills `scope: shared`) | Liens vers le vendor - automatiquement à jour |
+| `.claude/settings.json` | Créé depuis le modèle s'il n'existe pas, jamais écrasé ensuite |
+| `docs/aurora-core/`, `docs/aurora-client/`, `docs/aurora-shared/` | **Supprimés** s'ils existent : la doc se lit dans `vendor/axelraboit/aurora/docs/`, pas de copie locale |
+| `src/`, `templates/`, `migrations/` | **Jamais touchés** |
+| `.env.local`, `.env.test.local` | **Jamais touchés** |
 | `Makefile.local` | **Jamais touché** |
 | `CLAUDE.local.md` | **Jamais touché** |
+
+Résumé côté projet :
+[Ce que les synchronisations n'écrasent jamais](../getting-started/joining_a_project.md#ce-que-les-synchronisations-nécrasent-jamais).

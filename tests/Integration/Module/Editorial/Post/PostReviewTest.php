@@ -10,11 +10,14 @@ use Aurora\Module\Editorial\Post\Entity\Post;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
 use Aurora\Module\Editorial\Post\Manager\PostManagerInterface;
+use Aurora\Module\Editorial\Post\Message\PublishScheduledPostsMessage;
+use Aurora\Module\Editorial\Post\MessageHandler\PublishScheduledPostsHandler;
 use Aurora\Module\Editorial\PostType\Entity\PostType;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Tests\Integration\IntegrationTestCase;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -206,6 +209,102 @@ final class PostReviewTest extends IntegrationTestCase
     }
 
     /**
+     * « Programmée » est une publication différée : sans le droit de publier,
+     * elle part en relecture comme « Publiée », et garde la date demandée.
+     * Avant, la tâche planifiée la publiait à l'heure dite sans relecture.
+     */
+    public function testAnAuthorSchedulingSendsItForReviewAndKeepsTheDate(): void
+    {
+        $post = $this->draft();
+        $when = new DateTimeImmutable('+3 days')->setTime(9, 0);
+
+        $this->client->loginUser($this->author, 'admin');
+        $this->post('backend_editorial_posts_update', $post, [
+            'postTypeId' => $post->getPostType()->getId(),
+            'status' => 'scheduled',
+            'scheduledAt' => $when->format(DATE_ATOM),
+            'translations' => ['fr' => ['title' => 'Article programmé']],
+        ]);
+
+        self::assertResponseIsSuccessful();
+
+        $stored = $this->reload($post);
+        self::assertSame(PostStatusEnum::PendingReview, $stored->getStatus());
+        self::assertEquals($when, $stored->getScheduledAt());
+        self::assertNotSame([], $this->notificationsFor($this->reviewer, 'editorial.post.review_requested'));
+    }
+
+    /** Qui a le droit de publier programme sans passer par la relecture. */
+    public function testAPublisherSchedulesDirectly(): void
+    {
+        $post = $this->draft();
+        $admin = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        self::assertInstanceOf(User::class, $admin);
+
+        $this->client->loginUser($admin, 'admin');
+        $this->post('backend_editorial_posts_update', $post, [
+            'postTypeId' => $post->getPostType()->getId(),
+            'status' => 'scheduled',
+            'scheduledAt' => new DateTimeImmutable('+3 days')->format(DATE_ATOM),
+            'translations' => ['fr' => ['title' => 'Article programmé']],
+        ]);
+
+        self::assertResponseIsSuccessful();
+        self::assertSame(PostStatusEnum::Scheduled, $this->reload($post)->getStatus());
+    }
+
+    /** Une date encore à venir : approuver programme, sans publier tout de suite. */
+    public function testApprovingAPostWithAFutureDateSchedulesIt(): void
+    {
+        $when = new DateTimeImmutable('+3 days')->setTime(9, 0);
+        $post = $this->pending($when);
+
+        $this->client->loginUser($this->reviewer, 'admin');
+        $this->post('backend_editorial_posts_review_approve', $post);
+
+        self::assertResponseIsSuccessful();
+        $stored = $this->reload($post);
+        self::assertSame(PostStatusEnum::Scheduled, $stored->getStatus());
+        self::assertEquals($when, $stored->getScheduledAt());
+        self::assertNull($stored->getPublishedAt());
+    }
+
+    /** Une date dépassée pendant la relecture : approuver publie, daté du jour voulu. */
+    public function testApprovingAPostWhoseDateHasPassedPublishesIt(): void
+    {
+        $when = new DateTimeImmutable('-1 day')->setTime(9, 0);
+        $post = $this->pending($when);
+
+        $this->client->loginUser($this->reviewer, 'admin');
+        $this->post('backend_editorial_posts_review_approve', $post);
+
+        self::assertResponseIsSuccessful();
+        $stored = $this->reload($post);
+        self::assertSame(PostStatusEnum::Published, $stored->getStatus());
+        self::assertNull($stored->getScheduledAt());
+        self::assertEquals($when, $stored->getPublishedAt());
+    }
+
+    /** La tâche planifiée ne publie jamais une publication en attente de relecture. */
+    public function testTheSchedulerNeverPublishesAPostAwaitingReview(): void
+    {
+        $post = $this->pending(new DateTimeImmutable('-1 hour'));
+
+        static::getContainer()->get(PublishScheduledPostsHandler::class)(new PublishScheduledPostsMessage());
+
+        self::assertSame(PostStatusEnum::PendingReview, $this->reload($post)->getStatus());
+    }
+
+    private function reload(PostInterface $post): Post
+    {
+        $this->entityManager->clear();
+        $stored = $this->entityManager->find(Post::class, $post->getId());
+        self::assertInstanceOf(Post::class, $stored);
+
+        return $stored;
+    }
+
+    /**
      * @param array<string, mixed> $payload
      */
     private function post(string $route, PostInterface $post, array $payload = []): void
@@ -268,10 +367,11 @@ final class PostReviewTest extends IntegrationTestCase
         return $post;
     }
 
-    private function pending(): PostInterface
+    private function pending(?DateTimeImmutable $scheduledAt = null): PostInterface
     {
         $post = $this->draft();
         $post->setStatus(PostStatusEnum::PendingReview);
+        $post->setScheduledAt($scheduledAt);
         $this->entityManager->flush();
 
         return $post;

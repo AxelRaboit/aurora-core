@@ -1,195 +1,21 @@
-# Setup - Installation locale
+# Setup : nouveau projet et variables d'environnement
 
-> 🚀 **Tu rejoins un projet existant ?** Voir le quickstart 10 min :
-> [`joining_a_project.md`](joining_a_project.md). Procédure
-> copier-coller qui marche du premier coup (contourne le piège
-> multi-namespace de Doctrine Migrations).
+> 🚀 **Tu rejoins un projet existant ?** Tout est dans
+> [`joining_a_project.md`](joining_a_project.md) : prérequis,
+> installation, quotidien, fixtures. C'est la procédure de référence.
 >
-> **Tu démarres un nouveau projet ?** Aurora-client est le template à
-> dupliquer. Voir la section
-> [Démarrer un nouveau projet](#démarrer-un-nouveau-projet) plus bas.
->
-> Ce doc-ci = **référence longue** (env vars exhaustives, options
-> Docker, troubleshooting détaillé). Pour le démarrage rapide, voir
-> les liens ci-dessus.
+> Ce doc-ci couvre deux choses : **démarrer un nouveau projet** à partir
+> d'aurora-client, et la **référence des variables d'environnement**.
 
-## Prérequis
-
-| Outil | Version minimale | Notes |
-|---|---|---|
-| PHP | 8.4 | |
-| Composer | 2.x | |
-| PostgreSQL | 18+ | en prod et dans le template `.env.local.example` |
-| Node.js | 20+ | |
-| pnpm | 10+ | |
-| php8.4-pcov | - | driver de coverage PHPUnit (optionnel, pour `--coverage`) |
-| Docker (optionnel) | - | pour la base de données en local |
-
-Installer PCOV :
-
-```bash
-sudo apt install php8.4-pcov
-```
-
----
-
-## 1. Cloner le dépôt
-
-```bash
-git clone git@github.com:<org>/aurora-client.git
-cd aurora-client
-```
-
----
-
-## 2. Installer les dépendances
-
-```bash
-composer install                                # vendor PHP
-pnpm install                                    # deps JS client (Vue, axios, …)
-(cd vendor/axelraboit/aurora && pnpm install)   # tooling Vite/Vitest (vendor)
-```
-
-> ✅ `make install-dev` fait tout ça en un raccourci - composer +
-> pnpm install + drop/recrée DB + schema:create + fixtures + Vite.
-> C'est le chemin recommandé en pratique. Les étapes manuelles
-> ci-dessous (§3 + §4) sont la version détaillée si tu veux
-> comprendre ou si tu fais juste un re-setup partiel.
-
----
-
-## 3. Configurer l'environnement
-
-Copie le fichier d'exemple et renseigne tes valeurs locales :
-
-```bash
-make setup-env
-# édite ensuite .env.local
-```
-
-Variables obligatoires dans `.env.local` :
-
-```dotenv
-APP_SECRET=<chaine-aléatoire-32-chars>
-DATABASE_URL=postgresql://app:password@127.0.0.1:5432/aurora_client_dev?serverVersion=18&charset=utf8
-```
-
-Variables optionnelles (déjà définies dans `.env`, à surcharger si besoin) :
-
-```dotenv
-MAILER_DSN=smtp://localhost:1025          # Mailpit en local
-MAILER_FROM=noreply@aurora-client.local
-ADMIN_EMAIL=admin@aurora-client.local
-APP_NAME=aurora-client
-```
-
----
-
-## 4. Base de données
-
-### Option A - Docker (recommandé)
-
-```bash
-make docker-up     # démarre PostgreSQL en conteneur
-```
-
-### Option B - PostgreSQL local
-
-Crée la base manuellement :
-
-```bash
-psql -h 127.0.0.1 -U <user> -d postgres -c "CREATE DATABASE <db_name>;"
-```
-
-### Init schéma + state migrations (les deux options)
-
-Le plus simple : `make install-dev` (déjà mentionné §2) le fait pour
-toi. Si tu veux le faire à la main, ou si tu setup juste la DB sans
-l'install complet :
-
-```bash
-php bin/console doctrine:schema:create                       # schéma depuis entités
-php bin/console doctrine:migrations:sync-metadata-storage --no-interaction
-php bin/console doctrine:migrations:version --add --all --no-interaction
-php bin/console doctrine:schema:validate                     # sanity check
-php bin/console aurora:application-parameter
-php bin/console aurora:privileges:sync
-php bin/console aurora:install
-php bin/console doctrine:fixtures:load --no-interaction      # données dev
-```
-
-> ⚠️ Ne PAS faire `make migrate` directement sur une DB fresh - il
-> plante à cause du quirk multi-namespace. Utiliser `make install-dev`
-> (qui contient le workaround) ou la séquence manuelle ci-dessus.
-> `make migrate` reste correct pour l'incrémental (pull d'un collègue).
-> Détails dans [`../dev/database.md`](../dev/database.md) section
-> "DB fresh : `make migrate` ne marche pas".
-
----
-
-## 5. Démarrer le serveur de développement
-
-```bash
-make start
-```
-
-Démarre en parallèle :
-- Le serveur Symfony (`symfony server:start`)
-- Vite (`pnpm --dir=vendor/axelraboit/aurora dev`)
-
-L'application est accessible sur `https://localhost:8000` (ou le port affiché).
-
-Pour démarrer sans TLS (HTTPS) :
-
-```bash
-make start-no-tls
-```
-
----
-
-## 6. Compte administrateur par défaut
-
-Les fixtures créent un compte dev :
-
-| Champ | Valeur |
-|---|---|
-| Email | `admin@aurora-client.local` (ou valeur de `ADMIN_EMAIL`) |
-| Mot de passe | défini dans `DataFixtures/` |
-| Rôle | `ROLE_DEV` - accès complet, bypass de tous les privilege checks |
-
----
-
-## 7. Vérifier que tout fonctionne
-
-```bash
-make ft   # fix (linters) + tests (PHP + JS)
-```
-
-Les tests tournent contre la base de test (`aurora_client_test`) créée
-automatiquement par `make db-test`. Tous les tests doivent passer en vert.
-
----
-
-## 8. Variables d'environnement complètes
-
-| Variable | Défaut | Rôle |
-|---|---|---|
-| `APP_ENV` | `dev` | Environnement Symfony |
-| `APP_SECRET` | *(à définir)* | Clé de chiffrement sessions/CSRF |
-| `DATABASE_URL` | `postgresql://…/aurora-client` | Connexion PostgreSQL |
-| `MESSENGER_TRANSPORT_DSN` | `doctrine://default?auto_setup=0` | Transport async |
-| `MAILER_DSN` | `smtp://localhost:1025` | Envoi d'emails |
-| `MAILER_FROM` | `noreply@aurora-client.local` | Expéditeur des emails |
-| `ADMIN_EMAIL` | `admin@aurora-client.local` | Email du compte admin par défaut |
-| `APP_NAME` | `aurora-client` | Nom de l'application (affiché dans l'UI) |
-| `APP_SHARE_DIR` | `var/share` | Dossier partagé entre workers |
-| `DEFAULT_URI` | `http://localhost` | URI de base pour les emails |
+Les versions des outils (PHP, Node, pnpm, PostgreSQL...) ne sont tenues
+qu'à un endroit : [`../../aurora-core/ops/prerequisites.md`](../../aurora-core/ops/prerequisites.md).
 
 ---
 
 ## Démarrer un nouveau projet
 
-Aurora-client est le **template à dupliquer** pour tout nouveau projet :
+Aurora-client est le **projet modèle à dupliquer** pour tout nouveau
+projet :
 
 ```bash
 git clone git@github.com:<org>/aurora-client.git mon-projet
@@ -199,27 +25,33 @@ rm -rf .git && git init
 
 Ensuite :
 
-1. Mettre à jour `composer.json` (name, description).
-2. Mettre à jour `.env` (`APP_NAME`, `DATABASE_URL`).
-3. Si ton point de départ contient des modules dont tu n'as pas besoin
-   (exemples scaffoldés, reliquat d'un ancien template), les retirer
+1. Mettre à jour `composer.json` (`name`, `description`).
+2. Mettre à jour `.env` (`APP_NAME`, et le nom de base dans
+   `DATABASE_URL`).
+3. Renommer le titre et l'intro du `README.md`, au-dessus du marqueur
+   `aurora-canonical:start` (cf.
+   [Ce que les synchronisations n'écrasent jamais](joining_a_project.md#ce-que-les-synchronisations-nécrasent-jamais)).
+4. Si ton point de départ contient des modules dont tu n'as pas besoin
+   (exemples scaffoldés, reliquat d'un ancien modèle), les retirer
    (cf. checklist ci-dessous).
-4. Setup DB fresh - **ne pas faire `make install-dev` directement** sur
-   un fresh clone (cf. note ci-dessous).
-5. `git commit -m "chore: init project from aurora-client template"`.
+5. Installer en local en suivant [`joining_a_project.md`](joining_a_project.md) :
+   `make setup-env`, `.env.test.local`, puis `make install-dev`. Sur ce
+   clone neuf, `make install-dev` se lance **une fois** ; ce qui est
+   interdit, c'est de le relancer ensuite (il supprime la base).
+6. `git commit -m "chore: init project from aurora-client template"`.
 
-> ⚠️ **Conserver `public/build`** durant le cleanup. C'est un symlink
-> versionné (`public/build → ../vendor/axelraboit/aurora/public/build`)
+> ⚠️ **Conserver `public/build`** durant le nettoyage. C'est un lien
+> symbolique versionné (`public/build → ../vendor/axelraboit/aurora/public/build`)
 > indispensable au chargement des assets. Si tu fais un `rm -rf
-> public/*` en cleanup, recrée-le après. Détails dans
+> public/*`, recrée-le après. Détails dans
 > [`../dev/assets_vue.md`](../dev/assets_vue.md) §Symlink.
 
-### Checklist - retirer un module client
+### Checklist : retirer un module client
 
-> Le template démarre **propre** (aucun module métier livré). Cette checklist
-> sert quand tu retires un module que tu as scaffolté, un exemple que tu as
-> reconstruit en suivant la doc (`Tracking`, extension `DocumentCategory`…), ou un
-> reliquat hérité d'un ancien template.
+> Le modèle démarre **propre** (aucun module métier livré). Cette
+> checklist sert quand tu retires un module que tu as scaffoldé, un
+> exemple que tu as reconstruit en suivant la doc (`Tracking`, extension
+> `DocumentCategory`...), ou un reliquat hérité d'un ancien modèle.
 
 Pour chaque module à retirer :
 
@@ -253,22 +85,81 @@ php bin/console cache:clear --env=dev
 php bin/console doctrine:schema:validate
 ```
 
-### Setup DB fresh (au lieu de `make install-dev`)
+---
 
-Sur une DB *vierge*, `make migrate` plante à cause de l'interleaving
-multi-namespace de Doctrine Migrations. Procédure recommandée :
+## Initialiser une base à la main
+
+`make install-dev` (premier clone) et `make fixtures` (reset) le font
+pour toi. La séquence, si tu veux la comprendre ou la rejouer sur une
+base vide sans réinstaller les dépendances, dans l'ordre du Makefile :
 
 ```bash
 php bin/console doctrine:database:create
-php bin/console doctrine:schema:create                       # schéma depuis entités
+php bin/console doctrine:schema:create                       # schéma depuis les entités
 php bin/console doctrine:migrations:sync-metadata-storage --no-interaction
 php bin/console doctrine:migrations:version --add --all --no-interaction
-php bin/console doctrine:schema:validate                     # sanity check
+php bin/console messenger:setup-transports                   # table messenger_messages
+php bin/console aurora:install                               # données de socle, AVANT les fixtures
+php bin/console doctrine:fixtures:load --no-interaction --append   # optionnel : données de dev
 php bin/console aurora:application-parameter
 php bin/console aurora:privileges:sync
-php bin/console aurora:install
-php bin/console doctrine:fixtures:load --no-interaction      # optionnel - dev data
 ```
 
-Détails techniques dans [`../dev/database.md`](../dev/database.md)
-section "DB fresh : `make migrate` ne marche pas".
+`aurora:install` passe avant les fixtures, qui construisent leur contenu
+par-dessus ; `--append` empêche les fixtures de purger ce socle.
+
+> ⚠️ Ne lance pas `make migrate` sur une base vide : les migrations du
+> client et celles d'aurora-core ne s'y entrelacent pas dans le bon
+> ordre. `make migrate` reste correct en incrémental (pull d'un
+> collègue). Détails dans [`../dev/database.md`](../dev/database.md),
+> section "DB fresh : `make migrate` ne marche pas".
+
+---
+
+## Compte de connexion des fixtures
+
+| Champ | Valeur |
+|---|---|
+| Email | `dev@aurora.app` |
+| Mot de passe | `password` |
+| Rôle | `ROLE_DEV` : accès complet, contourne tous les contrôles de privilèges |
+
+Ce compte n'existe qu'avec les fixtures de dev ; il n'est jamais créé en
+production.
+
+---
+
+## Variables d'environnement
+
+`make setup-env` crée `.env.local` depuis `.env.local.example` et y
+génère `APP_SECRET`, `AURORA_MOUNT_POINT_KEY` et `AURORA_ENCRYPTION_KEY`.
+Les défauts versionnés vivent dans `.env` ; `make sync-env` y ajoute les
+blocs `###> aurora/* ###` manquants sans jamais toucher aux valeurs
+existantes.
+
+L'environnement de test ne lit pas `.env.local` : `.env.test.local`
+doit porter `DATABASE_URL` et les deux clés Aurora (cf.
+[`joining_a_project.md`](joining_a_project.md) §3).
+
+| Variable | Défaut | Rôle |
+|---|---|---|
+| `APP_ENV` | `dev` | Environnement Symfony |
+| `APP_SECRET` | *(généré par `make setup-env`)* | Clé de chiffrement sessions/CSRF |
+| `DATABASE_URL` | `postgresql://…/aurora_client` | Connexion PostgreSQL |
+| `AURORA_MOUNT_POINT_KEY` | *(généré par `make setup-env`)* | Clé base64 de 32 octets, chiffrement des points de montage |
+| `AURORA_ENCRYPTION_KEY` | *(généré par `make setup-env`)* | Clé base64 de 32 octets, chiffrement générique (champs chiffrés en base). À garder stable |
+| `MESSENGER_TRANSPORT_DSN` | `doctrine://default?auto_setup=0` | Transport async |
+| `MAILER_DSN` | `smtp://localhost:1025` | Envoi d'emails (Mailpit en local) |
+| `MAILER_FROM` | `noreply@aurora-client.local` | Expéditeur des emails |
+| `ADMIN_EMAIL` | `admin@aurora-client.local` | Destinataire des notifications d'administration (formulaires, commentaires à modérer) quand le réglage n'est pas renseigné dans le back-office |
+| `APP_NAME` | `aurora-client` | Nom de l'application (affiché dans l'UI) |
+| `APP_SHARE_DIR` | `var/share` | Dossier partagé entre workers |
+| `DEFAULT_URI` | `http://localhost` | URI de base pour les emails |
+
+Générer une clé à la main si besoin :
+
+```bash
+php -r "echo base64_encode(random_bytes(32)) . PHP_EOL;"
+```
+
+Ne jamais committer `.env.local` ni `.env.test.local` (gitignorés).

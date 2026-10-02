@@ -41,7 +41,7 @@ export function withDepthLabel(list) {
  * it had done nothing. The deleted folders page had this comparator; the panel
  * inherited its job and has to inherit this too.
  */
-const byPosition = (a, b) =>
+export const byPosition = (a, b) =>
     (a.position ?? 0) - (b.position ?? 0) || a.name.localeCompare(b.name);
 
 /**

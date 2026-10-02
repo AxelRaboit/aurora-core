@@ -4,6 +4,12 @@ backend:
       users: "Utilisateurs"
       by_role: "Répartition par rôle"
   users:
+    guide:
+      title: "Comment fonctionnent les comptes"
+      step_1: "Un compte Backend accède à l'administration ; un compte Frontend n'est qu'un compte du site public."
+      step_2: "Un Administrateur a accès à tout ; un Utilisateur n'a que les privilèges que vous lui cochez, écran par écran."
+      step_3: "Inviter envoie un courriel pour que la personne choisisse son mot de passe."
+      step_4: "Désactiver bloque la connexion sans rien perdre, alors que supprimer est définitif ; vous ne pouvez pas changer votre propre rôle."
     intro: Gérez les utilisateurs de l'administration et leurs rôles.
     name: Nom
     user_label: Utilisateur

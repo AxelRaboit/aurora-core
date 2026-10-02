@@ -35,6 +35,7 @@
  * hand everything back as events. That is what lets a card edited in one of
  * them be right in the others.
  */
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
@@ -52,6 +53,7 @@ import SpaceCalendarView from "./views/SpaceCalendarView.vue";
 import SpaceFilesView from "./views/SpaceFilesView.vue";
 import SpaceDriveTabs from "../../../../SpaceFile/GoogleDrive/assets/backend/drive/SpaceDriveTabs.vue";
 import SpaceContentItemFields from "./components/SpaceContentItemFields.vue";
+import SpaceSectionNav from "./components/SpaceSectionNav.vue";
 // Same module, another sub-domain: a relative path rather than an alias,
 // the way the public page already reaches the shared thread.
 import SpaceChatPanel from "../../../../SpaceChat/assets/shared/SpaceChatPanel.vue";
@@ -187,7 +189,8 @@ const props = defineProps({
     /** Vrai pour le référent de l'espace, l'administrateur et le développeur. */
     canConfigure: { type: Boolean, default: false },
     settingsPath: { type: String, default: "" },
-    driveConfigurationPath: { type: String, default: null },
+    driveAgencyFolderPath: { type: String, default: null },
+    driveServiceAccountEmail: { type: String, default: null },
     driveUnlockPath: { type: String, default: "" },
     driveLocked: { type: Boolean, default: false },
     /** La fiche du client, portée par la société et non par ce projet. */
@@ -254,6 +257,13 @@ const views = computed(() =>
         return true;
     }),
 );
+
+/** Le bandeau « à relire », mis de côté jusqu'au prochain chargement. */
+const reviewBannerHidden = ref(false);
+
+/** Ce qui attend un geste, par section : les publications à faire relire. */
+const navBadges = computed(() => ({ content: can("studio.spaces.share") ? props.awaitingApproval : 0 }));
+const navUrgent = computed(() => (props.lateForReview > 0 ? ["content"] : []));
 
 /**
  * One key for every space, deliberately.
@@ -394,6 +404,8 @@ const driveLockedNow = ref(props.driveLocked);
 
 /** Le dossier tel que les réglages viennent de le poser. */
 const driveFolderNow = ref(props.driveFolderId ?? "");
+// Same for the agency folder, which the settings view can now set in place.
+const driveAgencyFolderNow = ref(props.driveAgencyFolderId ?? null);
 
 /**
  * Le fichier choisi entre dans la médiathèque, puis sur la fiche.
@@ -561,65 +573,30 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
 <template>
     <!-- Une colonne, parce que la discussion veut la hauteur qui reste et que
          `space-y` ne la transmet pas. Les autres écrans gardent leur taille :
-         un flex item ne descend pas sous son contenu. -->
-    <div class="flex flex-1 flex-col gap-2 sm:gap-4">
-        <div class="flex flex-wrap items-center justify-between gap-3">
-            <!-- Segmented rather than a select: the choices are worth showing
-                 at once, and the one in use is the answer to "why does this
-                 look different from yesterday".
+         un flex item ne descend pas sous son contenu.
 
-                 **Sur téléphone, seul l'onglet ouvert porte son nom.** Cinq
-                 libellés font 520 pixels de large : la barre poussait la page
-                 à défiler de côté, et c'est toute la page qui partait, pas
-                 seulement les onglets. Les icônes restent, le nom de celui
-                 qu'on regarde aussi - c'est le seul qui réponde à « où
-                 suis-je », les autres répondent « où puis-je aller » et une
-                 icône suffit pour ça. Le libellé est gardé pour les lecteurs
-                 d'écran, où il n'a jamais coûté de place. -->
-            <!-- Une bande qui défile plutôt qu'une bande qui pousse : même
-                 réduits à leurs icônes, cinq onglets ne tiennent plus sous 260
-                 pixels, et ce qui dépassait emportait la page entière avec lui.
-                 `max-w-full` borne le groupe à la largeur disponible ; les
-                 onglets, eux, gardent leur taille et défilent. -->
-            <div
-                class="flex max-w-full items-center gap-0.5 overflow-x-auto rounded-lg border border-line bg-surface-2/40 p-0.5"
-                role="group"
-                :aria-label="t('backend.studio.space_content.view_label')"
-            >
-                <button
-                    v-for="entry in views"
-                    :key="entry.key"
-                    type="button"
-                    class="flex shrink-0 items-center gap-1.5 rounded-md px-2 py-2 text-sm transition-colors sm:px-2.5 sm:py-1"
-                    :class="
-                        view === entry.key
-                            ? 'bg-surface font-medium text-primary shadow-sm'
-                            : 'text-muted hover:text-primary'
-                    "
-                    :aria-pressed="view === entry.key"
-                    :title="t(entry.labelKey)"
-                    v-on:click="view = entry.key"
-                >
-                    <component :is="entry.icon" class="h-3.5 w-3.5 shrink-0" :stroke-width="2" />
-                    <span :class="view === entry.key ? '' : 'sr-only sm:not-sr-only'">
-                        {{ t(entry.labelKey) }}
-                    </span>
-                </button>
-            </div>
+         Sur ordinateur, le rail des sections à gauche et l'écran à droite ;
+         la colonne de droite garde la hauteur pour la discussion. -->
+    <div class="flex flex-1 flex-col gap-2 sm:gap-4 lg:flex-row lg:items-start lg:gap-6">
+        <SpaceSectionNav v-model="view" :views="views" :badges="navBadges" :urgent="navUrgent" />
 
-            <div class="flex items-center gap-2">
-                <!-- Les mêmes états que le tableau de bord et le calendrier
+        <div class="flex min-h-0 min-w-0 flex-1 flex-col gap-2 self-stretch sm:gap-4">
+            <!-- Les outils de la vue ouverte : filtre, forme et étapes, pour le
+             tableau et le calendrier seulement. -->
+            <div v-if="'content' === view || 'calendar' === view" class="flex flex-wrap items-center gap-3 sm:justify-end">
+                <div class="flex items-center gap-2">
+                    <!-- Les mêmes états que le tableau de bord et le calendrier
                      éditorial, dans l'adresse : un lien « en retard » ouvre
                      l'espace déjà filtré. -->
-                <AppSelect
-                    v-if="'content' === view || 'calendar' === view"
-                    v-model="stateFilter"
-                    class="w-44"
-                    :options="stateOptions"
-                    :placeholder="t('backend.studio.calendar.all_states')"
-                />
+                    <AppSelect
+                        v-if="'content' === view || 'calendar' === view"
+                        v-model="stateFilter"
+                        class="w-44"
+                        :options="stateOptions"
+                        :placeholder="t('backend.studio.calendar.all_states')"
+                    />
 
-                <!-- The shape of one entry, so it sits with the actions rather
+                    <!-- The shape of one entry, so it sits with the actions rather
                      than inside the switcher: two segmented groups side by side
                      would read as one control with seven choices.
 
@@ -627,42 +604,42 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                      refusé de toute façon et l'interrupteur ne changeait rien
                      à l'écran. Un bouton qui ne fait rien se lit comme un
                      bouton cassé ; celui-ci revient avec la place. -->
-                <div
-                    v-if="view === 'content' && !shapeOverruled"
-                    class="flex rounded-lg border border-line p-0.5"
-                >
-                    <AppIconButton
-                        :title="t('backend.studio.space_content.shape_board')"
-                        :class="storedShape === 'board' ? 'bg-surface-3 text-primary' : 'text-muted hover:text-primary'"
-                        v-on:click="setShape('board')"
+                    <div
+                        v-if="view === 'content' && !shapeOverruled"
+                        class="flex rounded-lg border border-line p-0.5"
                     >
-                        <Columns3 class="h-4 w-4" :stroke-width="2" />
-                    </AppIconButton>
-                    <AppIconButton
-                        :title="t('backend.studio.space_content.shape_list')"
-                        :class="storedShape === 'list' ? 'bg-surface-3 text-primary' : 'text-muted hover:text-primary'"
-                        v-on:click="setShape('list')"
-                    >
-                        <List class="h-4 w-4" :stroke-width="2" />
-                    </AppIconButton>
-                </div>
+                        <AppIconButton
+                            :title="t('backend.studio.space_content.shape_board')"
+                            :class="storedShape === 'board' ? 'bg-surface-3 text-primary' : 'text-muted hover:text-primary'"
+                            v-on:click="setShape('board')"
+                        >
+                            <Columns3 class="h-4 w-4" :stroke-width="2" />
+                        </AppIconButton>
+                        <AppIconButton
+                            :title="t('backend.studio.space_content.shape_list')"
+                            :class="storedShape === 'list' ? 'bg-surface-3 text-primary' : 'text-muted hover:text-primary'"
+                            v-on:click="setShape('list')"
+                        >
+                            <List class="h-4 w-4" :stroke-width="2" />
+                        </AppIconButton>
+                    </div>
 
-                <!-- Une étape est une colonne du kanban : elle n'a rien à faire
+                    <!-- Une étape est une colonne du kanban : elle n'a rien à faire
                      au-dessus des fichiers, où elle voisinait avec leurs
                      propres actions sans rien avoir à voir avec elles. -->
-                <AppButton
-                    v-if="editable && 'content' === view"
-                    variant="ghost"
-                    size="sm"
-                    v-on:click="openColumnCreate"
-                >
-                    <Columns3 class="h-3.5 w-3.5" :stroke-width="2" />
-                    {{ t("backend.studio.space_content.add_column") }}
-                </AppButton>
+                    <AppButton
+                        v-if="editable && 'content' === view"
+                        variant="ghost"
+                        size="sm"
+                        v-on:click="openColumnCreate"
+                    >
+                        <Columns3 class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ t("backend.studio.space_content.add_column") }}
+                    </AppButton>
+                </div>
             </div>
-        </div>
 
-        <!-- **Un bandeau, et non un bouton dans la barre.** Rangé parmi les
+            <!-- **Un bandeau, et non un bouton dans la barre.** Rangé parmi les
              filtres, « Envoyer à relire » ne disait ni à qui ni pourquoi, et
              il se lisait comme un réglage de l'onglet ouvert. Ici il dit ce
              qui attend, ce que reçoit le client, et il reste le même sur tous
@@ -670,147 +647,166 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
 
              Absent quand rien n'attend, parce qu'une invitation à relire zéro
              publication est ce qui apprend à ignorer les suivantes. -->
-        <AppMessage v-if="awaitingApproval > 0 && can('studio.spaces.share')" variant="info">
-            <!-- Le bouton dans le texte plutôt que dans l'emplacement d'action :
+            <!-- Fermable, pour la visite seulement : sur un écran étroit il prend
+             la place du travail, et le compteur du rail continue de dire ce
+             qui attend. Il revient au rechargement, parce qu'un lot à relire
+             oublié pour de bon est la raison d'être du bandeau. -->
+            <AppMessage
+                v-if="awaitingApproval > 0 && can('studio.spaces.share') && !reviewBannerHidden"
+                variant="info"
+                dismissible
+                :dismiss-label="t('backend.studio.space_content.review.banner_hide')"
+                v-on:dismiss="reviewBannerHidden = true"
+            >
+                <!-- Le bouton dans le texte plutôt que dans l'emplacement d'action :
                  sur téléphone il passe dessous, en pleine largeur, au lieu de
                  réduire le texte à une colonne de trois mots. -->
-            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div class="min-w-0">
-                    <p class="m-0 flex flex-wrap items-center gap-2 font-medium">
-                        {{ t("backend.studio.space_content.review.banner_title", { count: awaitingApproval }) }}
-                        <!-- Le retard à côté du nombre, parce que « trois en
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="min-w-0">
+                        <p class="m-0 flex flex-wrap items-center gap-2 font-medium">
+                            {{ t("backend.studio.space_content.review.banner_title", { count: awaitingApproval }) }}
+                            <!-- Le retard à côté du nombre, parce que « trois en
                              attente » et « trois en attente dont deux en
                              retard » ne décrivent pas la même journée. -->
-                        <span
-                            v-if="lateForReview > 0"
-                            class="rounded-full bg-warning-soft px-1.5 py-0.5 text-2xs font-medium text-warning"
-                            :title="t('backend.studio.space_content.review.late_hint')"
-                        >
-                            {{ t("backend.studio.space_content.review.late", { count: lateForReview }) }}
-                        </span>
-                    </p>
-                    <p class="m-0 mt-0.5">{{ t("backend.studio.space_content.review.banner_body") }}</p>
+                            <span
+                                v-if="lateForReview > 0"
+                                class="rounded-full bg-warning-soft px-1.5 py-0.5 text-2xs font-medium text-warning"
+                                :title="t('backend.studio.space_content.review.late_hint')"
+                            >
+                                {{ t("backend.studio.space_content.review.late", { count: lateForReview }) }}
+                            </span>
+                        </p>
+                        <p class="m-0 mt-0.5">{{ t("backend.studio.space_content.review.banner_body") }}</p>
+                    </div>
+                    <AppButton class="w-full shrink-0 justify-center whitespace-nowrap sm:w-auto" variant="primary" size="sm" v-on:click="confirmingReview = true">
+                        <Send class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ t("backend.studio.space_content.review.banner_action") }}
+                    </AppButton>
                 </div>
-                <AppButton class="w-full shrink-0 justify-center whitespace-nowrap sm:w-auto" variant="primary" size="sm" v-on:click="confirmingReview = true">
-                    <Send class="h-3.5 w-3.5" :stroke-width="2" />
-                    {{ t("backend.studio.space_content.review.banner_action") }}
-                </AppButton>
-            </div>
-        </AppMessage>
+            </AppMessage>
 
-        <!-- The container and not the window decides the shape: bound here,
+            <!-- The container and not the window decides the shape: bound here,
              around both drawings, so a narrow panel gets the list. -->
-        <div v-if="view === 'content'" ref="shapeContainer">
-            <!-- Filtrées, les colonnes n'ont plus toutes leurs cartes : un
+            <div v-if="view === 'content'" ref="shapeContainer">
+                <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+                 replié ou déplié, le choix vaut pour tous les encarts. -->
+                <AppGuide :title="t('backend.studio.space_content.guide.title')" storage-key="space-content" class="mb-4">
+                    <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                        <li v-for="step in 5" :key="step">{{ t(`backend.studio.space_content.guide.step_${step}`) }}</li>
+                    </ol>
+                </AppGuide>
+                <!-- Filtrées, les colonnes n'ont plus toutes leurs cartes : un
                  glisser-déposer y réécrirait l'ordre d'une partie seulement.
                  Le tri se refait sans filtre. -->
-            <SpaceBoardView
-                v-if="shape === 'board'"
-                :grouped="grouped"
-                :editable="editable && !stateFilter"
-                :actions-for="actionsFor"
-                :files-of="filesOf"
-                :is-empty="isEmpty"
+                <SpaceBoardView
+                    v-if="shape === 'board'"
+                    :grouped="grouped"
+                    :editable="editable && !stateFilter"
+                    :actions-for="actionsFor"
+                    :files-of="filesOf"
+                    :is-empty="isEmpty"
+                    v-on:open-item="openItemEdit"
+                    v-on:reorder="reorderItems"
+                    v-on:add-item="openItemCreate({ columnId: $event })"
+                    v-on:edit-column="openColumnEdit"
+                    v-on:delete-column="confirmColumnDelete"
+                    v-on:reorder-columns="reorderColumns"
+                />
+
+                <SpaceListView
+                    v-else
+                    :grouped="grouped"
+                    :editable="editable && !stateFilter"
+                    :actions-for="actionsFor"
+                    :files-of="filesOf"
+                    :is-empty="isEmpty"
+                    v-on:add-item="openItemCreate({ columnId: $event })"
+                    v-on:open-item="openItemEdit"
+                />
+            </div>
+
+            <SpaceFilesView
+                v-else-if="view === 'files'"
+                :attachments="liveAttachments"
+                :items="liveItems"
+                :space-files="ownFiles"
+                :editable="editable"
+                :can-pick="can('ged.documents.view')"
+                :loading="ownFilesLoading"
                 v-on:open-item="openItemEdit"
-                v-on:reorder="reorderItems"
-                v-on:add-item="openItemCreate({ columnId: $event })"
-                v-on:edit-column="openColumnEdit"
-                v-on:delete-column="confirmColumnDelete"
-                v-on:reorder-columns="reorderColumns"
+                v-on:upload="uploadOwnFile"
+                v-on:pick="pickOwnFile"
+                v-on:remove="removeOwnFile"
             />
 
-            <SpaceListView
-                v-else
-                :grouped="grouped"
-                :editable="editable && !stateFilter"
-                :actions-for="actionsFor"
-                :files-of="filesOf"
-                :is-empty="isEmpty"
-                v-on:add-item="openItemCreate({ columnId: $event })"
-                v-on:open-item="openItemEdit"
-            />
-        </div>
-
-        <SpaceFilesView
-            v-else-if="view === 'files'"
-            :attachments="liveAttachments"
-            :items="liveItems"
-            :space-files="ownFiles"
-            :editable="editable"
-            :can-pick="can('ged.documents.view')"
-            :loading="ownFilesLoading"
-            v-on:open-item="openItemEdit"
-            v-on:upload="uploadOwnFile"
-            v-on:pick="pickOwnFile"
-            v-on:remove="removeOwnFile"
-        />
-
-        <!-- Sa propre vue, à côté de Fichiers. La barre sépare déjà par
+            <!-- Sa propre vue, à côté de Fichiers. La barre sépare déjà par
              origine - ce qui est sur les fiches, ce qui est à l'espace - et un
              dossier chez le client en est une troisième. En section sous les
              fichiers, il fallait faire défiler tout le reste pour l'atteindre. -->
-        <SpaceDriveTabs
-            v-else-if="view === 'drive' && driveEnabled"
-            :folder-id="driveFolderNow"
-            :list-path="driveListPath"
-            :file-path="driveFilePath"
-            :archive-path="driveArchivePath"
-            :import-path="driveImportPath"
-            :unlock-path="driveUnlockPath"
-            :can-configure="canConfigure"
-            :agency-folder-id="driveAgencyFolderId"
-            :agency-list-path="driveAgencyListPath"
-            :agency-file-path="driveAgencyFilePath"
-            :agency-archive-path="driveAgencyArchivePath"
-            :agency-import-path="driveAgencyImportPath"
-        />
+            <SpaceDriveTabs
+                v-else-if="view === 'drive' && driveEnabled"
+                :folder-id="driveFolderNow"
+                :list-path="driveListPath"
+                :file-path="driveFilePath"
+                :archive-path="driveArchivePath"
+                :import-path="driveImportPath"
+                :unlock-path="driveUnlockPath"
+                :can-configure="canConfigure"
+                :agency-folder-id="driveAgencyFolderNow"
+                :agency-list-path="driveAgencyListPath"
+                :agency-file-path="driveAgencyFilePath"
+                :agency-archive-path="driveAgencyArchivePath"
+                :agency-import-path="driveAgencyImportPath"
+            />
 
-        <SpaceInformationView
-            v-else-if="view === 'information'"
-            :information="informationNow"
-            :save-path="informationSavePath"
-            :related="related"
-            v-on:saved="informationNow = $event"
-        />
+            <SpaceInformationView
+                v-else-if="view === 'information'"
+                :information="informationNow"
+                :save-path="informationSavePath"
+                :related="related"
+                v-on:saved="informationNow = $event"
+            />
 
-        <SpaceDeliverablesView
-            v-else-if="view === 'deliverables'"
-            :deliverables="deliverables"
-            :can-edit="canEditDeliverables"
-            :create-path="deliverableCreatePath"
-            :visibility-path-template="deliverableVisibilityPathTemplate"
-            :duplicate-path-template="deliverableDuplicatePathTemplate"
-            :delete-path-template="deliverableDeletePathTemplate"
-        />
+            <SpaceDeliverablesView
+                v-else-if="view === 'deliverables'"
+                :deliverables="deliverables"
+                :can-edit="canEditDeliverables"
+                :create-path="deliverableCreatePath"
+                :visibility-path-template="deliverableVisibilityPathTemplate"
+                :duplicate-path-template="deliverableDuplicatePathTemplate"
+                :delete-path-template="deliverableDeletePathTemplate"
+            />
 
-        <SpaceResourcesView
-            v-else-if="view === 'resources'"
-            :resources="resources"
-            :resource-create-path="resourceCreatePath"
-            :resource-update-path="resourceUpdatePath"
-            :resource-visibility-path="resourceVisibilityPath"
-            :resource-delete-path="resourceDeletePath"
-            :resource-reorder-path="resourceReorderPath"
-        />
+            <SpaceResourcesView
+                v-else-if="view === 'resources'"
+                :resources="resources"
+                :resource-create-path="resourceCreatePath"
+                :resource-update-path="resourceUpdatePath"
+                :resource-visibility-path="resourceVisibilityPath"
+                :resource-delete-path="resourceDeletePath"
+                :resource-reorder-path="resourceReorderPath"
+            />
 
-        <!-- En dernier dans la barre, et seulement pour qui peut configurer.
+            <!-- En dernier dans la barre, et seulement pour qui peut configurer.
              La serrure remonte d'ici vers la vue Drive : c'est le même écran
              qui la pose et celui qui la subit, et ils doivent s'accorder sans
              rechargement. -->
-        <SpaceSettingsView
-            v-else-if="view === 'settings' && canConfigure"
-            :settings-path="settingsPath"
-            :agency-folder-set="Boolean(driveAgencyFolderId)"
-            :drive-configuration-path="driveConfigurationPath"
-            v-on:locked-changed="driveLockedNow = $event"
-            v-on:folder-changed="driveFolderNow = $event"
-        />
+            <SpaceSettingsView
+                v-else-if="view === 'settings' && canConfigure"
+                :settings-path="settingsPath"
+                :agency-folder-id="driveAgencyFolderNow"
+                :agency-folder-path="driveAgencyFolderPath"
+                :service-account-email="driveServiceAccountEmail"
+                v-on:agency-folder-changed="driveAgencyFolderNow = $event"
+                v-on:locked-changed="driveLockedNow = $event"
+                v-on:folder-changed="driveFolderNow = $event"
+            />
 
-        <!-- Mounted only while it is the view on screen, so a board nobody is
+            <!-- Mounted only while it is the view on screen, so a board nobody is
              chatting on holds no connection open. The cost is that a message
              arriving while somebody is looking at the calendar is not
              announced - that is a notification's job, not a panel's. -->
-        <!-- Toute la place qui reste, mesurée et non calculée : la colonne
+            <!-- Toute la place qui reste, mesurée et non calculée : la colonne
              part du corps de la page, donc l'en-tête peut prendre une ligne ou
              deux sans que rien ne dépasse. Une boîte de 32rem au milieu d'un
              écran vide donnait trois messages visibles sur une conversation qui
@@ -823,391 +819,399 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
 
              Le plancher reste : sur un écran très bas, mieux vaut une page qui
              défile qu'un fil de deux lignes. -->
-        <div
-            v-else-if="view === 'chat'"
-            data-fills-viewport
-            class="flex min-h-[20rem] flex-1 flex-col"
-        >
-            <SpaceChatPanel
-                fill
-                :messages="chatMessages"
-                :stream-url="chatStreamUrl"
-                :post-path="editable ? chatPostPath : null"
-                :reload-path="chatReloadPath"
-                :delete-path="editable ? chatDeletePath : null"
-                :channels="chatChannels"
-                :channel-id="chatChannelId"
-                :team="chatTeam"
-                :channel-create-path="editable ? chatChannelCreatePath : null"
-                :channel-rename-path="editable ? chatChannelRenamePath : null"
-                :channel-audience-path="editable ? chatChannelAudiencePath : null"
-                :channel-delete-path="editable ? chatChannelDeletePath : null"
-                :channel-invite-path="editable ? chatChannelInvitePath : null"
-                :channel-uninvite-path="editable ? chatChannelUninvitePath : null"
-                :chat-direct-path="editable ? chatDirectPath : null"
-                :older-path="chatOlderPath"
-                :hide-path="editable ? chatHidePath : null"
-                :people="chatPeople"
-            />
-        </div>
+            <div
+                v-else-if="view === 'chat'"
+                data-fills-viewport
+                class="flex min-h-[20rem] flex-1 flex-col"
+            >
+                <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+     replié ou déplié, le choix vaut pour tous les encarts. -->
+                <AppGuide :title="t('backend.studio.space_chat.guide.title')" storage-key="space-chat" class="mb-3 shrink-0">
+                    <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                        <li v-for="step in 4" :key="step">{{ t(`backend.studio.space_chat.guide.step_${step}`) }}</li>
+                    </ol>
+                </AppGuide>
+                <SpaceChatPanel
+                    fill
+                    :messages="chatMessages"
+                    :stream-url="chatStreamUrl"
+                    :post-path="editable ? chatPostPath : null"
+                    :reload-path="chatReloadPath"
+                    :delete-path="editable ? chatDeletePath : null"
+                    :channels="chatChannels"
+                    :channel-id="chatChannelId"
+                    :team="chatTeam"
+                    :channel-create-path="editable ? chatChannelCreatePath : null"
+                    :channel-rename-path="editable ? chatChannelRenamePath : null"
+                    :channel-audience-path="editable ? chatChannelAudiencePath : null"
+                    :channel-delete-path="editable ? chatChannelDeletePath : null"
+                    :channel-invite-path="editable ? chatChannelInvitePath : null"
+                    :channel-uninvite-path="editable ? chatChannelUninvitePath : null"
+                    :chat-direct-path="editable ? chatDirectPath : null"
+                    :older-path="chatOlderPath"
+                    :hide-path="editable ? chatHidePath : null"
+                    :people="chatPeople"
+                />
+            </div>
 
-        <!-- Le mur de notes, monté sur son propre conteneur : c'est lui qui
+            <!-- Le mur de notes, monté sur son propre conteneur : c'est lui qui
              décide de la forme, pas la fenêtre. -->
-        <div v-else-if="view === 'notes'" ref="notesContainer">
-            <SpaceNotesView
-                :notes="spaceNotes"
-                :tab="notesTab"
-                :tabs="notesTabs"
-                :view-mode="notesViewMode"
-                :stored-view-mode="notesStoredViewMode"
-                :editable="editable"
-                :craft-enabled="craftEnabled"
-                v-on:create="openNoteCreate"
-                v-on:open="openNoteEdit"
-                v-on:pin="toggleNotePin"
-                v-on:delete="confirmNoteDelete"
-                v-on:set-view="setNotesViewMode"
-                v-on:set-tab="notesTab = $event"
-                v-on:import-craft="craftOpen = true"
-                v-on:refresh-craft="pendingCraftRefresh = $event"
+            <div v-else-if="view === 'notes'" ref="notesContainer">
+                <SpaceNotesView
+                    :notes="spaceNotes"
+                    :tab="notesTab"
+                    :tabs="notesTabs"
+                    :view-mode="notesViewMode"
+                    :stored-view-mode="notesStoredViewMode"
+                    :editable="editable"
+                    :craft-enabled="craftEnabled"
+                    v-on:create="openNoteCreate"
+                    v-on:open="openNoteEdit"
+                    v-on:pin="toggleNotePin"
+                    v-on:delete="confirmNoteDelete"
+                    v-on:set-view="setNotesViewMode"
+                    v-on:set-tab="notesTab = $event"
+                    v-on:import-craft="craftOpen = true"
+                    v-on:refresh-craft="pendingCraftRefresh = $event"
+                />
+            </div>
+
+            <SpaceCalendarView
+                v-else
+                :events="events"
+                :unscheduled="unscheduled"
+                :columns-by-id="columnsById"
+                :cells-for="cellsFor"
+                v-on:open-event="openEvent"
+                v-on:move-event="moveEvent"
+                v-on:add-on="addOn"
+                v-on:open-item="openItemEdit"
             />
-        </div>
 
-        <SpaceCalendarView
-            v-else
-            :events="events"
-            :unscheduled="unscheduled"
-            :columns-by-id="columnsById"
-            :cells-for="cellsFor"
-            v-on:open-event="openEvent"
-            v-on:move-event="moveEvent"
-            v-on:add-on="addOn"
-            v-on:open-item="openItemEdit"
-        />
-
-        <!-- Une confirmation parce que l'envoi ne fait pas que poster un
+            <!-- Une confirmation parce que l'envoi ne fait pas que poster un
              courriel : il remplace l'adresse de chaque destinataire et révoque
              la précédente. Le texte le dit, sans quoi le studio découvrirait la
              conséquence par un client qui n'arrive plus à ouvrir son favori. -->
-        <AppModal
-            :show="confirmingReview"
-            max-width="sm"
-            :title="t('backend.studio.space_content.review.confirm_title')"
-            :icon="Send"
-            v-on:close="confirmingReview = false"
-        >
-            <p class="text-sm text-secondary">
-                {{ t("backend.studio.space_content.review.confirm_body", { count: awaitingApproval }) }}
-            </p>
+            <AppModal
+                :show="confirmingReview"
+                max-width="sm"
+                :title="t('backend.studio.space_content.review.confirm_title')"
+                :icon="Send"
+                v-on:close="confirmingReview = false"
+            >
+                <p class="text-sm text-secondary">
+                    {{ t("backend.studio.space_content.review.confirm_body", { count: awaitingApproval }) }}
+                </p>
 
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton variant="ghost" size="md" v-on:click="confirmingReview = false">
-                        <X class="h-3.5 w-3.5" :stroke-width="2" />
-                        {{ t("shared.common.cancel") }}
-                    </AppButton>
-                    <AppButton variant="primary" size="md" :loading="sendingReview" v-on:click="sendReview">
-                        <Send class="h-3.5 w-3.5" :stroke-width="2" />
-                        {{ t("backend.studio.space_content.review.confirm_send") }}
-                    </AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
+                <template #footer>
+                    <AppModalFooter>
+                        <AppButton variant="ghost" size="md" v-on:click="confirmingReview = false">
+                            <X class="h-3.5 w-3.5" :stroke-width="2" />
+                            {{ t("shared.common.cancel") }}
+                        </AppButton>
+                        <AppButton variant="primary" size="md" :loading="sendingReview" v-on:click="sendReview">
+                            <Send class="h-3.5 w-3.5" :stroke-width="2" />
+                            {{ t("backend.studio.space_content.review.confirm_send") }}
+                        </AppButton>
+                    </AppModalFooter>
+                </template>
+            </AppModal>
 
-        <AppModal
-            :show="showItemForm"
-            max-width="2xl"
-            :title="
-                editingItem
-                    ? t(editable ? 'backend.studio.space_content.edit_item' : 'backend.studio.space_content.view_item', {
-                        title: editingItem.title,
-                    })
-                    : t('backend.studio.space_content.create_item')
-            "
-            :icon="FileText"
-            :closeable="false"
-            v-on:close="showItemForm = false"
-        >
-            <form v-on:submit.prevent="submitItem">
-                <SpaceContentItemFields
-                    v-model="itemForm"
-                    :readonly="!editable"
-                    :errors="itemErrors"
-                    :column-options="columnOptions"
-                    :timezone="space.timezone"
-                    :approval="editingItem?.approval ?? 'pending'"
-                    :approval-by="editingItem?.approvalBy ?? ''"
-                    :approval-at="editingItem?.approvalAt ?? null"
-                    :comments="threadOf(editingItem)"
-                    :comment-loading="commentLoading"
-                    :can-discuss="!!editingItem"
-                    :attachments="filesOf(editingItem)"
-                    :attachment-loading="attachmentLoading"
-                    :can-pick-drive="driveEnabled && !!driveImportPath"
-                    :can-pick-documents="can('ged.documents.view')"
-                    v-on:post-comment="postComment(editingItem, $event)"
-                    v-on:delete-comment="deleteComment"
-                    v-on:upload-attachment="upload(editingItem, $event)"
-                    v-on:pick-attachment="pick(editingItem)"
-                    v-on:pick-drive-attachment="showDrivePicker = true"
-                    v-on:remove-attachment="remove"
-                />
-            </form>
+            <AppModal
+                :show="showItemForm"
+                max-width="2xl"
+                :title="
+                    editingItem
+                        ? t(editable ? 'backend.studio.space_content.edit_item' : 'backend.studio.space_content.view_item', {
+                            title: editingItem.title,
+                        })
+                        : t('backend.studio.space_content.create_item')
+                "
+                :icon="FileText"
+                :closeable="false"
+                v-on:close="showItemForm = false"
+            >
+                <form v-on:submit.prevent="submitItem">
+                    <SpaceContentItemFields
+                        v-model="itemForm"
+                        :readonly="!editable"
+                        :errors="itemErrors"
+                        :column-options="columnOptions"
+                        :timezone="space.timezone"
+                        :approval="editingItem?.approval ?? 'pending'"
+                        :approval-by="editingItem?.approvalBy ?? ''"
+                        :approval-at="editingItem?.approvalAt ?? null"
+                        :comments="threadOf(editingItem)"
+                        :comment-loading="commentLoading"
+                        :can-discuss="!!editingItem"
+                        :attachments="filesOf(editingItem)"
+                        :attachment-loading="attachmentLoading"
+                        :can-pick-drive="driveEnabled && !!driveImportPath"
+                        :can-pick-documents="can('ged.documents.view')"
+                        v-on:post-comment="postComment(editingItem, $event)"
+                        v-on:delete-comment="deleteComment"
+                        v-on:upload-attachment="upload(editingItem, $event)"
+                        v-on:pick-attachment="pick(editingItem)"
+                        v-on:pick-drive-attachment="showDrivePicker = true"
+                        v-on:remove-attachment="remove"
+                    />
+                </form>
 
-            <!-- Posé dans le formulaire de la fiche : c'est là qu'on décide
+                <!-- Posé dans le formulaire de la fiche : c'est là qu'on décide
                  d'accrocher un fichier, et la fenêtre se referme sur la fiche
                  plutôt que sur le tableau. -->
-            <SpaceDrivePicker
-                :show="showDrivePicker"
-                :list-path="driveListPath"
-                :importing="attachmentLoading"
-                v-on:close="showDrivePicker = false"
-                v-on:choose="attachFromDrive"
-            />
+                <SpaceDrivePicker
+                    :show="showDrivePicker"
+                    :list-path="driveListPath"
+                    :importing="attachmentLoading"
+                    v-on:close="showDrivePicker = false"
+                    v-on:choose="attachFromDrive"
+                />
 
-            <template #footer>
-                <AppModalFooter>
-                    <!-- One button and no Save for a reader who may not edit.
+                <template #footer>
+                    <AppModalFooter>
+                        <!-- One button and no Save for a reader who may not edit.
                          Offering one the server would refuse is how a screen
                          teaches somebody to distrust it. -->
-                    <AppButton variant="ghost" size="md" v-on:click="showItemForm = false">
-                        <X class="h-3.5 w-3.5" :stroke-width="2" />
-                        {{ t(editable ? "shared.common.cancel" : "shared.common.close") }}
-                    </AppButton>
-                    <AppButton
-                        v-if="editable"
-                        variant="primary"
-                        size="md"
-                        :loading="itemLoading"
-                        v-on:click="submitItem"
-                    >
-                        <Save class="h-3.5 w-3.5" :stroke-width="2" />
-                        {{ t("shared.common.save") }}
-                    </AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
+                        <AppButton variant="ghost" size="md" v-on:click="showItemForm = false">
+                            <X class="h-3.5 w-3.5" :stroke-width="2" />
+                            {{ t(editable ? "shared.common.cancel" : "shared.common.close") }}
+                        </AppButton>
+                        <AppButton
+                            v-if="editable"
+                            variant="primary"
+                            size="md"
+                            :loading="itemLoading"
+                            v-on:click="submitItem"
+                        >
+                            <Save class="h-3.5 w-3.5" :stroke-width="2" />
+                            {{ t("shared.common.save") }}
+                        </AppButton>
+                    </AppModalFooter>
+                </template>
+            </AppModal>
 
-        <AppModal
-            :show="showColumnForm"
-            max-width="sm"
-            :title="
-                editingColumn
-                    ? t('backend.studio.space_content.edit_column')
-                    : t('backend.studio.space_content.create_column')
-            "
-            :icon="editingColumn ? Pencil : Columns3"
-            :closeable="false"
-            v-on:close="showColumnForm = false"
-        >
-            <form class="space-y-4" v-on:submit.prevent="submitColumn">
-                <AppInput
-                    :model-value="columnForm.name"
-                    :label="t('backend.studio.space_content.column_name')"
-                    :placeholder="t('backend.studio.space_content.column_name_placeholder')"
-                    :error="columnErrors.name"
-                    required
-                    v-on:update:model-value="columnForm = { ...columnForm, name: $event }"
-                />
-                <AppColourSlotPicker
-                    :model-value="columnForm.colourSlot"
-                    clearable
-                    :label="t('backend.studio.space_content.column_colour')"
-                    :hint="t('backend.studio.space_content.column_colour_hint')"
-                    :error="columnErrors.colourSlot"
-                    v-on:update:model-value="columnForm = { ...columnForm, colourSlot: $event }"
-                />
-                <!-- Facultatif : l'étape garde son nom, le rôle dit seulement
+            <AppModal
+                :show="showColumnForm"
+                max-width="sm"
+                :title="
+                    editingColumn
+                        ? t('backend.studio.space_content.edit_column')
+                        : t('backend.studio.space_content.create_column')
+                "
+                :icon="editingColumn ? Pencil : Columns3"
+                :closeable="false"
+                v-on:close="showColumnForm = false"
+            >
+                <form class="space-y-4" v-on:submit.prevent="submitColumn">
+                    <AppInput
+                        :model-value="columnForm.name"
+                        :label="t('backend.studio.space_content.column_name')"
+                        :placeholder="t('backend.studio.space_content.column_name_placeholder')"
+                        :error="columnErrors.name"
+                        required
+                        v-on:update:model-value="columnForm = { ...columnForm, name: $event }"
+                    />
+                    <AppColourSlotPicker
+                        :model-value="columnForm.colourSlot"
+                        clearable
+                        :label="t('backend.studio.space_content.column_colour')"
+                        :hint="t('backend.studio.space_content.column_colour_hint')"
+                        :error="columnErrors.colourSlot"
+                        v-on:update:model-value="columnForm = { ...columnForm, colourSlot: $event }"
+                    />
+                    <!-- Facultatif : l'étape garde son nom, le rôle dit seulement
                      laquelle des étapes communes elle représente, pour que
                      les compteurs de tous les espaces se calculent. -->
-                <AppSelect
-                    :model-value="columnForm.role ?? ''"
-                    :options="columnRoleOptions"
-                    :label="t('backend.studio.space_content.column_role')"
-                    :hint="t('backend.studio.space_content.column_role_hint')"
-                    v-on:update:model-value="columnForm = { ...columnForm, role: $event }"
-                />
+                    <AppSelect
+                        :model-value="columnForm.role ?? ''"
+                        :options="columnRoleOptions"
+                        :label="t('backend.studio.space_content.column_role')"
+                        :hint="t('backend.studio.space_content.column_role_hint')"
+                        v-on:update:model-value="columnForm = { ...columnForm, role: $event }"
+                    />
 
-                <!-- Sur l'étape et non sur la fiche : un tableau dit déjà
+                    <!-- Sur l'étape et non sur la fiche : un tableau dit déjà
                      « ce qui est à ce stade », donc « ce stade ne regarde pas
                      le client » se pose dessus. Marquer carte par carte
                      obligerait à y repenser à chaque création, et la première
                      oubliée annulerait la protection. -->
-                <AppCheckbox
-                    :model-value="false !== columnForm.visibleToClient"
-                    :label="t('backend.studio.space_content.column_visible')"
-                    :hint="t('backend.studio.space_content.column_visible_hint')"
-                    v-on:update:model-value="columnForm = { ...columnForm, visibleToClient: $event }"
-                />
-            </form>
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton variant="ghost" size="md" v-on:click="showColumnForm = false">
-                        <X class="h-3.5 w-3.5" :stroke-width="2" />
-                        {{ t("shared.common.cancel") }}
-                    </AppButton>
-                    <AppButton
-                        variant="primary"
-                        size="md"
-                        :loading="columnLoading"
-                        v-on:click="submitColumn"
-                    >
-                        <Save class="h-3.5 w-3.5" :stroke-width="2" />
-                        {{ t("shared.common.save") }}
-                    </AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
+                    <AppCheckbox
+                        :model-value="false !== columnForm.visibleToClient"
+                        :label="t('backend.studio.space_content.column_visible')"
+                        :hint="t('backend.studio.space_content.column_visible_hint')"
+                        v-on:update:model-value="columnForm = { ...columnForm, visibleToClient: $event }"
+                    />
+                </form>
+                <template #footer>
+                    <AppModalFooter>
+                        <AppButton variant="ghost" size="md" v-on:click="showColumnForm = false">
+                            <X class="h-3.5 w-3.5" :stroke-width="2" />
+                            {{ t("shared.common.cancel") }}
+                        </AppButton>
+                        <AppButton
+                            variant="primary"
+                            size="md"
+                            :loading="columnLoading"
+                            v-on:click="submitColumn"
+                        >
+                            <Save class="h-3.5 w-3.5" :stroke-width="2" />
+                            {{ t("shared.common.save") }}
+                        </AppButton>
+                    </AppModalFooter>
+                </template>
+            </AppModal>
 
-        <AppModal
-            :show="!!pendingItemDelete"
-            max-width="sm"
-            :closeable="false"
-            :title="t('shared.common.delete')"
-            :icon="Trash2"
-            v-on:close="pendingItemDelete = null"
-        >
-            <p class="text-sm text-primary">
-                {{
-                    t("backend.studio.space_content.delete_item_confirm", {
-                        title: pendingItemDelete?.title ?? "",
-                    })
-                }}
-            </p>
-            <p class="text-sm text-secondary">
-                {{ t("backend.studio.space_content.delete_item_warning") }}
-            </p>
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton variant="ghost" size="md" v-on:click="pendingItemDelete = null">
-                        <X class="h-3.5 w-3.5" :stroke-width="2" />
-                        {{ t("shared.common.cancel") }}
-                    </AppButton>
-                    <AppButton
-                        variant="danger"
-                        size="md"
-                        :loading="itemDeleteLoading"
-                        v-on:click="deleteItem"
-                    >
-                        <Trash2 class="h-3.5 w-3.5" :stroke-width="2" />
-                        {{ t("shared.common.delete") }}
-                    </AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
+            <AppModal
+                :show="!!pendingItemDelete"
+                max-width="sm"
+                :closeable="false"
+                :title="t('shared.common.delete')"
+                :icon="Trash2"
+                v-on:close="pendingItemDelete = null"
+            >
+                <p class="text-sm text-primary">
+                    {{
+                        t("backend.studio.space_content.delete_item_confirm", {
+                            title: pendingItemDelete?.title ?? "",
+                        })
+                    }}
+                </p>
+                <p class="text-sm text-secondary">
+                    {{ t("backend.studio.space_content.delete_item_warning") }}
+                </p>
+                <template #footer>
+                    <AppModalFooter>
+                        <AppButton variant="ghost" size="md" v-on:click="pendingItemDelete = null">
+                            <X class="h-3.5 w-3.5" :stroke-width="2" />
+                            {{ t("shared.common.cancel") }}
+                        </AppButton>
+                        <AppButton
+                            variant="danger"
+                            size="md"
+                            :loading="itemDeleteLoading"
+                            v-on:click="deleteItem"
+                        >
+                            <Trash2 class="h-3.5 w-3.5" :stroke-width="2" />
+                            {{ t("shared.common.delete") }}
+                        </AppButton>
+                    </AppModalFooter>
+                </template>
+            </AppModal>
 
-        <AppModal
-            :show="!!pendingColumnDelete"
-            max-width="sm"
-            :closeable="false"
-            :title="t('shared.common.delete')"
-            :icon="Trash2"
-            v-on:close="pendingColumnDelete = null"
-        >
-            <p class="text-sm text-primary">
-                {{
-                    t("backend.studio.space_content.delete_column_confirm", {
-                        name: pendingColumnDelete?.name ?? "",
-                    })
-                }}
-            </p>
-            <p class="text-sm text-secondary">
-                {{ t("backend.studio.space_content.delete_column_warning") }}
-            </p>
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton variant="ghost" size="md" v-on:click="pendingColumnDelete = null">
-                        <X class="h-3.5 w-3.5" :stroke-width="2" />
-                        {{ t("shared.common.cancel") }}
-                    </AppButton>
-                    <AppButton
-                        variant="danger"
-                        size="md"
-                        :loading="columnDeleteLoading"
-                        v-on:click="deleteColumn"
-                    >
-                        <Trash2 class="h-3.5 w-3.5" :stroke-width="2" />
-                        {{ t("shared.common.delete") }}
-                    </AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
+            <AppModal
+                :show="!!pendingColumnDelete"
+                max-width="sm"
+                :closeable="false"
+                :title="t('shared.common.delete')"
+                :icon="Trash2"
+                v-on:close="pendingColumnDelete = null"
+            >
+                <p class="text-sm text-primary">
+                    {{
+                        t("backend.studio.space_content.delete_column_confirm", {
+                            name: pendingColumnDelete?.name ?? "",
+                        })
+                    }}
+                </p>
+                <p class="text-sm text-secondary">
+                    {{ t("backend.studio.space_content.delete_column_warning") }}
+                </p>
+                <template #footer>
+                    <AppModalFooter>
+                        <AppButton variant="ghost" size="md" v-on:click="pendingColumnDelete = null">
+                            <X class="h-3.5 w-3.5" :stroke-width="2" />
+                            {{ t("shared.common.cancel") }}
+                        </AppButton>
+                        <AppButton
+                            variant="danger"
+                            size="md"
+                            :loading="columnDeleteLoading"
+                            v-on:click="deleteColumn"
+                        >
+                            <Trash2 class="h-3.5 w-3.5" :stroke-width="2" />
+                            {{ t("shared.common.delete") }}
+                        </AppButton>
+                    </AppModalFooter>
+                </template>
+            </AppModal>
 
-        <SpaceNoteCraftModal
-            v-if="craftEnabled"
-            :show="craftOpen"
-            :documents-path="craftDocumentsPath"
-            :import-path="craftImportPath"
-            v-on:close="craftOpen = false"
-            v-on:imported="applyNotes"
-        />
+            <SpaceNoteCraftModal
+                v-if="craftEnabled"
+                :show="craftOpen"
+                :documents-path="craftDocumentsPath"
+                :import-path="craftImportPath"
+                v-on:close="craftOpen = false"
+                v-on:imported="applyNotes"
+            />
 
-        <SpaceNoteFormModal
-            :show="showNoteForm"
-            :model-value="noteForm"
-            :errors="noteErrors"
-            :loading="noteLoading"
-            :editing="!!editingNote"
-            :upload-url="noteImagePath"
-            v-on:update:model-value="noteForm = $event"
-            v-on:close="showNoteForm = false"
-            v-on:submit="submitNote"
-        />
+            <SpaceNoteFormModal
+                :show="showNoteForm"
+                :model-value="noteForm"
+                :errors="noteErrors"
+                :loading="noteLoading"
+                :editing="!!editingNote"
+                :upload-url="noteImagePath"
+                v-on:update:model-value="noteForm = $event"
+                v-on:close="showNoteForm = false"
+                v-on:submit="submitNote"
+            />
 
-        <AppModal
-            :show="!!pendingCraftRefresh"
-            max-width="sm"
-            :closeable="false"
-            :title="t('backend.studio.craft.import.refresh')"
-            :icon="RefreshCw"
-            v-on:close="pendingCraftRefresh = null"
-        >
-            <p class="text-sm text-primary">
-                {{ t("backend.studio.craft.import.refresh_confirm", { title: pendingCraftRefresh?.title ?? "" }) }}
-            </p>
-            <p class="text-sm text-secondary">
-                {{ t("backend.studio.craft.import.refresh_warning") }}
-            </p>
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton variant="ghost" size="md" v-on:click="pendingCraftRefresh = null">
-                        <X class="h-3.5 w-3.5" :stroke-width="2" />
-                        {{ t("shared.common.cancel") }}
-                    </AppButton>
-                    <AppButton variant="primary" size="md" :loading="craftRefreshing" v-on:click="refreshFromCraft">
-                        <RefreshCw class="h-3.5 w-3.5" :stroke-width="2" />
-                        {{ t("backend.studio.craft.import.refresh_submit") }}
-                    </AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
+            <AppModal
+                :show="!!pendingCraftRefresh"
+                max-width="sm"
+                :closeable="false"
+                :title="t('backend.studio.craft.import.refresh')"
+                :icon="RefreshCw"
+                v-on:close="pendingCraftRefresh = null"
+            >
+                <p class="text-sm text-primary">
+                    {{ t("backend.studio.craft.import.refresh_confirm", { title: pendingCraftRefresh?.title ?? "" }) }}
+                </p>
+                <p class="text-sm text-secondary">
+                    {{ t("backend.studio.craft.import.refresh_warning") }}
+                </p>
+                <template #footer>
+                    <AppModalFooter>
+                        <AppButton variant="ghost" size="md" v-on:click="pendingCraftRefresh = null">
+                            <X class="h-3.5 w-3.5" :stroke-width="2" />
+                            {{ t("shared.common.cancel") }}
+                        </AppButton>
+                        <AppButton variant="primary" size="md" :loading="craftRefreshing" v-on:click="refreshFromCraft">
+                            <RefreshCw class="h-3.5 w-3.5" :stroke-width="2" />
+                            {{ t("backend.studio.craft.import.refresh_submit") }}
+                        </AppButton>
+                    </AppModalFooter>
+                </template>
+            </AppModal>
 
-        <AppModal
-            :show="!!pendingNoteDelete"
-            max-width="sm"
-            :closeable="false"
-            :title="t('shared.common.delete')"
-            :icon="Trash2"
-            v-on:close="pendingNoteDelete = null"
-        >
-            <p class="text-sm text-primary">
-                {{ t("backend.studio.space_notes.delete_confirm", { title: pendingNoteDelete?.title ?? "" }) }}
-            </p>
-            <p class="text-sm text-secondary">
-                {{ t("backend.studio.space_notes.delete_warning") }}
-            </p>
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton variant="ghost" size="md" v-on:click="pendingNoteDelete = null">
-                        <X class="h-3.5 w-3.5" :stroke-width="2" />
-                        {{ t("shared.common.cancel") }}
-                    </AppButton>
-                    <AppButton variant="danger" size="md" :loading="noteLoading" v-on:click="deleteNote">
-                        <Trash2 class="h-3.5 w-3.5" :stroke-width="2" />
-                        {{ t("shared.common.delete") }}
-                    </AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
+            <AppModal
+                :show="!!pendingNoteDelete"
+                max-width="sm"
+                :closeable="false"
+                :title="t('shared.common.delete')"
+                :icon="Trash2"
+                v-on:close="pendingNoteDelete = null"
+            >
+                <p class="text-sm text-primary">
+                    {{ t("backend.studio.space_notes.delete_confirm", { title: pendingNoteDelete?.title ?? "" }) }}
+                </p>
+                <p class="text-sm text-secondary">
+                    {{ t("backend.studio.space_notes.delete_warning") }}
+                </p>
+                <template #footer>
+                    <AppModalFooter>
+                        <AppButton variant="ghost" size="md" v-on:click="pendingNoteDelete = null">
+                            <X class="h-3.5 w-3.5" :stroke-width="2" />
+                            {{ t("shared.common.cancel") }}
+                        </AppButton>
+                        <AppButton variant="danger" size="md" :loading="noteLoading" v-on:click="deleteNote">
+                            <Trash2 class="h-3.5 w-3.5" :stroke-width="2" />
+                            {{ t("shared.common.delete") }}
+                        </AppButton>
+                    </AppModalFooter>
+                </template>
+            </AppModal>
+        </div>
     </div>
 </template>

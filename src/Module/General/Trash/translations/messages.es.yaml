@@ -1,5 +1,11 @@
 backend:
     trash:
+        guide:
+            title: "Cómo funciona la papelera"
+            step_1: "Lo que se elimina en las publicaciones, la mediateca (documentos, carpetas, categorías) y las notas espera aquí, una pestaña por tipo."
+            step_2: "Restaurar devuelve el elemento a su sitio; si ese sitio ya no existe, una carpeta vuelve a la raíz."
+            step_3: "Cada elemento se va definitivamente tras el plazo fijado (treinta días por defecto), durante la purga nocturna."
+            step_4: "«Eliminar definitivamente» y «Vaciar» no se deshacen; los comentarios, menús, formularios y cuentas nunca pasan por aquí."
         title: Papelera
         intro: 'Todo lo eliminado espera aquí, sea cual sea el módulo, y se restaura desde aquí.'
         retention: 'Cada fila se elimina definitivamente {days} días después de su eliminación.'

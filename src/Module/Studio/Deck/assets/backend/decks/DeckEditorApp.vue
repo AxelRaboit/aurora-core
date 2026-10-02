@@ -13,6 +13,7 @@
  * on the wall, which is the whole reason this module has layouts rather than a
  * flowing grid.
  */
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { VueDraggable } from "vue-draggable-plus";
@@ -633,6 +634,15 @@ onBeforeUnmount(() => {
                 <Play class="h-4 w-4" :stroke-width="2" />
             </AppButton>
         </AppPageBar>
+
+        <!-- Le mode d'emploi de l'écran, replié au départ : ouvert, il
+             pousserait la colonne des slides et la slide sous la ligne de
+             flottaison, et c'est elles qu'on vient modifier. -->
+        <AppGuide :title="t('backend.studio.decks.editor_guide.title')" storage-key="deck-editor" :open="false">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 4" :key="step">{{ t(`backend.studio.decks.editor_guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
 
         <div class="flex flex-col gap-4" :class="isFree ? '' : 'xl:flex-row xl:items-start'">
             <!-- Les slides, dans l'ordre où elles seront montrées. -->

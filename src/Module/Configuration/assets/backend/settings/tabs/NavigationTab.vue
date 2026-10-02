@@ -1,4 +1,5 @@
 <script setup>
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { useI18n } from "vue-i18n";
 import { VueDraggable } from "vue-draggable-plus";
 import AppButton from "@/shared/components/action/AppButton.vue";
@@ -54,6 +55,13 @@ const {
 <template>
     <div class="space-y-5">
         <p class="text-sm text-secondary">{{ t('backend.settings.tabs.navigation_description') }}</p>
+        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <AppGuide :title="t('backend.settings.nav_aliases.guide.title')" storage-key="settings-navigation">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 5" :key="step">{{ t(`backend.settings.nav_aliases.guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
 
         <div class="aurora-card p-4 space-y-4">
             <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">

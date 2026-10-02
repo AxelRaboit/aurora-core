@@ -9,7 +9,7 @@ backend:
   parameters:
     ged_document_prefix:
       label: Préfixe des références documents GED
-      description: 'Préfixe de la référence document GED auto-générée (ex: DOC). Laissez vide pour désactiver.'
+      description: 'Préfixe de la référence document GED auto-générée (ex: DOC). De 1 à 10 lettres majuscules ou chiffres, obligatoire.'
   permissions:
     names:
       ged:
@@ -87,12 +87,25 @@ backend:
         inline_uploads: Médias éditoriaux
         inline_uploads_description: "Images importées depuis un formulaire d'édition : bannières, images à la une, champs personnalisés."
     documents:
+      show_guide:
+        title: "Ce que vous pouvez faire ici"
+        step_1: "Le bouton d'actions en haut permet de télécharger le fichier, de modifier le document ou de l'envoyer à la corbeille."
+        step_2: "Seul un document au statut « Publié » est servi aux visiteurs du site ; un brouillon ou une archive reste réservé au back-office."
+        step_3: "Sur une image, « Recadrer » enregistre une nouvelle version du fichier, régénère ses tailles et garde la précédente dans l'historique."
+        step_4: "Si le document a des variantes, sa famille s'affiche en bas avec l'endroit où chacune est utilisée, et un clic ouvre la page d'une variante."
+      guide:
+        title: "Comment se range la médiathèque"
+        step_1: "Un fichier déposé devient un document, rangé dans un dossier, avec une catégorie (sa nature) et autant d'étiquettes que vous voulez."
+        step_2: "Une variante (autre couleur, version sans texte) se rattache à son original et forme une famille ; « Variante de couleur » en crée une à partir d'une image."
+        step_3: "Le badge « Inutilisé » signale un document qu'aucune page, présentation ou espace n'affiche ; « À conserver » le garde quand même."
+        step_4: "Supprimer envoie le document à la corbeille, d'où il se restaure jusqu'à la purge automatique."
+        step_5: "La recherche lit aussi le nom du fichier, les textes et les étiquettes ; « Plus de filtres » précise par date, format ou poids."
       row_actions:
         view_description: Ouvre l'aperçu, ses versions et où il est utilisé.
         download_description: Télécharge le fichier tel qu'il a été déposé.
         qr_description: Affiche un QR code menant à ce document.
         edit_description: Titre, catégorie, étiquettes, dossier.
-        delete_description: Supprime le document et son fichier. Sans retour possible.
+        delete_description: Envoie le document à la corbeille, d'où il se restaure.
         relocate_to_remote: Envoyer vers le stockage distant
         relocate_to_local: Rapatrier sur le serveur
         relocate_description: "Déplace le fichier, ses tailles générées et son historique. Son adresse ne change pas."
@@ -313,9 +326,16 @@ backend:
         upload_type_refused: Ce type de fichier n'est pas accepté ici.
         upload_failed: "L'envoi n'est pas arrivé complet. Réessayez."
     categories:
+      guide:
+        title: "Catégorie, étiquette ou dossier"
+        step_1: "La catégorie dit la nature d'un document, facture, photo ou logo : chaque document en a une seule, ou aucune."
+        step_2: "Les étiquettes sont des mots-clés libres : un document en porte autant que vous voulez, en plus de sa catégorie."
+        step_3: "Le dossier dit où le document est rangé dans l'arborescence, quelle que soit sa nature."
+        step_4: "Les images déposées depuis un formulaire d'édition ou importées de Pexels sont classées d'office dans « Médias éditoriaux »."
+        step_5: "Supprimer une catégorie l'envoie à la corbeille, d'où vous pouvez la restaurer ; aucun document n'est supprimé."
       row_actions:
         edit_description: Renommer la catégorie et changer sa description.
-        delete_description: Supprime la catégorie. Les documents qu'elle portait n'en auront plus.
+        delete_description: "Envoie la catégorie à la corbeille. Ses documents la gardent jusqu'à la purge ou la suppression définitive."
       name: Nom
       slug: Identifiant
       description: Description
@@ -334,6 +354,13 @@ backend:
       errors:
         name_required: Le nom est obligatoire
     tags:
+      guide:
+        title: "À quoi servent les étiquettes"
+        step_1: "Une étiquette est un mot-clé libre : un document peut en porter autant que vous voulez, en plus de sa catégorie et de son dossier."
+        step_2: "Vous les posez sur un document au dépôt ou en le modifiant, depuis la médiathèque."
+        step_3: "Dans la liste des documents, le filtre par étiquette retrouve ceux qui la portent, ou ceux qui n'en ont aucune, et la recherche lit aussi leurs noms."
+        step_4: "La couleur est facultative : elle teinte la pastille de l'étiquette dans la médiathèque."
+        step_5: "Supprimer une étiquette la retire de tous les documents, sans supprimer aucun document."
       row_actions:
         edit_description: Renommer l'étiquette et changer sa couleur.
         delete_description: Supprime l'étiquette et la retire de tous les documents.

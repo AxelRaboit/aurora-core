@@ -5,6 +5,86 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.328] - 2026-10-02
+
+### Amélioré
+
+#### Les intégrations de la Configuration, sur un même gabarit
+Google Drive, Instagram, Pexels, Lettre d'information, Avis Google, GitHub, Anti-robots et Craft ouvraient sur « Ce que fait cette intégration » puis « Comment l'ouvrir », et le premier champ arrivait un écran plus bas, sans rien dire de l'état. Elles partagent maintenant un gabarit (`IntegrationLayout`) :
+- **En tête**, ce que fait l'intégration en une phrase, et un **badge d'état** : « Active », « Désactivée » (prête mais éteinte) ou « À configurer ».
+- **La carte « Connexion »** avec les champs, les conditions à accepter et le bouton Enregistrer.
+- **L'encart « Comment l'obtenir »** à côté, en étapes : ouvert tant que l'intégration n'est pas active, replié ensuite ; sur téléphone il passe devant tant qu'il sert.
+- Deux colonnes sur grand écran. La conformité de la lettre d'information rejoint la carte, au-dessus du bouton qui l'enregistre.
+- L'anti-robots gagne son mode d'emploi, propre au service choisi (Cloudflare Turnstile ou reCAPTCHA v3), avec le lien vers la console.
+
+#### L'heure et les dates du site, branchées
+Les réglages Localisation « Fuseau horaire » et « Format des dates » n'étaient lus par rien. Ils pilotent maintenant ce qu'ils annoncent ; en base, tout reste enregistré en UTC.
+- **Le fuseau horaire donne l'heure du site.**
+  - Une publication programmée pour 9 h sort à 9 h, quel que soit le réglage de l'ordinateur qui l'a programmée (voir « Corrigé »).
+  - Les dates du back-office s'affichent à l'heure du site.
+  - Les emails, le PDF d'un contrat, ses pages publiques, les partages de calendrier et les « mis à jour le » des pages publiques datent à l'heure du site, et non plus en UTC. Dans le PDF, les horodatages de signature portent les secondes et le fuseau, par exemple « 02/10/2026 11:14:03 (Europe/Paris) ». Les PDF déjà signés sont des fichiers figés et ne changent pas.
+  - Les envois du matin partent à heure fixe, sans bouger au changement d'heure : relances de contrat à 9 h 15, contrats échus à 9 h 10, vérification des scellés à 8 h 05, relectures en retard à 9 h 30. Lus en UTC, ils partaient une heure plus tôt l'hiver.
+  - Un nouveau calendrier, un nouvel espace client ou une nouvelle zone horaire de grille proposent le fuseau du site, au lieu de « Europe/Paris » écrit en dur.
+- **« Style des dates » remplace le motif `d/m/Y`** : courte, moyenne ou longue, chaque choix montré avec la date du jour. Les 18 dates des emails, du PDF de contrat et des pages publiques figées en `d/m/Y` s'écrivent désormais dans la langue du document : un email espagnol écrit 2/10/2026. Le back-office garde ses formats compacts. Une migration fait de l'ancien `d/m/Y` le style « courte ».
+- L'encart de l'onglet Localisation le dit.
+
+Pour les développeurs : les filtres Twig `site_date`, `site_datetime` (avec `proof: true` pour un horodatage de preuve) et `calendar_date` (un jour sans heure, jamais décalé), les services `SiteTimezone` et `SiteDateFormatter`, et l'option `time-zone` de `AppDatePicker`. `PostManager`, `PlanningInputFactory` et `CustomerSpaceInputFactory` reçoivent `SiteTimezone` en plus dans leur constructeur.
+
+#### Des encarts « Comment ça marche »
+Nouveau composant partagé `AppGuide` : un encart repliable, posé à côté de ce qu'il explique. Chaque écran principal a maintenant le sien, rédigé d'après ce que fait vraiment le code, en français, anglais et espagnol :
+- **Studio** : espaces clients, contrats et la page d'un contrat, texte adapté, trames et leur éditeur, présentations et leur éditeur, clients, calendrier éditorial.
+- **Dans un espace** : accès client, tableau des contenus et relecture, livrables et leur éditeur, ressources, fichiers, Drive, notes, discussion.
+- **Éditorial** : publications et l'onglet Paramétrage de l'éditeur, formulaires et la page d'un formulaire, types de contenu, taxonomies, galeries, menus, commentaires, liens utiles.
+- **Médiathèque** : documents, page d'un document, catégories, étiquettes.
+- **Le reste** : tableau de bord, profil et préférences du menu, calendrier, notes, utilisateurs, thèmes, corbeille, administration, et chaque onglet des Réglages (intégrations comprises).
+- **Côté client** : l'espace du client, dont l'encart ne montre que ce que son lien d'accès permet, et la page de signature d'un contrat.
+
+**Un seul choix pour tous les encarts** : en replier un les replie tous, sur l'écran ouvert comme ailleurs et d'un onglet à l'autre, et le choix est retenu dans le navigateur ; tant que rien n'est choisi, chaque encart suit son réglage (un mode d'emploi d'intégration reste ouvert tant qu'elle n'est pas branchée).
+
+#### La navigation d'un espace, en rail
+Les dix onglets d'un espace tenaient sur une ligne qui débordait dès 1 024 px, et sur téléphone il ne restait que des icônes. Sur ordinateur, ils passent dans un rail à gauche, regroupés : **Travail** (Contenus, Calendrier, Discussion), **Documents** (Fichiers, Drive, Livrables, Notes), **Client** (Informations, Ressources), et Réglages en bas. Une entrée porte un compteur quand quelque chose attend un geste : les publications à faire relire sur Contenus, en orange s'il y a du retard. Sur téléphone et tablette, un bouton dit la section ouverte et ouvre la même liste. La discussion garde toute la hauteur de la fenêtre.
+
+Le bandeau « N publications attendent l'avis du client » a une croix pour le masquer quand il prend trop de place : il reste caché d'un onglet à l'autre et revient au rechargement de la page, et le compteur du rail continue de dire ce qui attend. `AppMessage` gagne pour cela les options `dismissible` et `dismissLabel` (il émet `dismiss`, l'appelant décide de le cacher).
+
+#### Les réglages Drive d'un espace, repensés
+Le lien « Ouvrir la configuration du Drive » affichait du JSON, et même corrigé il faisait quitter l'espace. L'écran est réorganisé :
+- **Deux blocs**, « Cet espace » (dossier du client, mot de passe de l'onglet) et « Commun à tous les espaces » (dossier de l'agence, badge « Tous les espaces »), côte à côte sur un grand écran et l'un sous l'autre sur téléphone.
+- **Les deux dossiers se règlent de la même façon** : un badge « Branché » ou « Aucun dossier », un lien « Ouvrir dans Google Drive », et un bouton qui ouvre une fenêtre pour coller l'adresse, enregistrer ou débrancher. Le dossier de l'agence se règle donc sur place, sans quitter l'espace (pour les personnes qui gèrent la configuration ; les autres lisent l'explication).
+- **L'adresse du compte de service s'affiche avec un bouton Copier**, dans la fenêtre et dans un encart « Brancher un dossier » en trois étapes : c'est elle qu'on donne au client pour qu'il partage son dossier.
+- **Onglet Informations : la fiche d'abord.** Ce que le client voit s'affiche en tête, avec un bouton « Modifier la fiche » qui ouvre le formulaire dans une fenêtre (plein écran sur téléphone) au lieu de le laisser ouvert en permanence. À droite sur grand écran : ses contrats, présentations et autres espaces.
+- **Le mot de passe montre son état d'abord** (badge « Ouvert » ou « Fermé ») ; le formulaire ne s'ouvre qu'à la demande, et « Redemander à tous » reste à portée sans rien saisir.
+
+Une route dédiée (`POST /backend/studio/drive/settings/agency-folder`) n'enregistre que ce dossier : l'enregistrement général du Drive lit une activation absente comme « éteint », et serait passé par là depuis un espace.
+
+#### Des README qui disent ce que fait le produit, une documentation d'installation juste
+Le README d'aurora-core présente ce que fait Aurora (ses modules, sa stack) et renvoie à la documentation pour tout le reste ; celui des projets clients aussi. L'installation vit maintenant dans la documentation, revue contre le code :
+- **aurora-core** : nouvelle page `docs/aurora-core/dev/getting_started.md`. `make install-dev` ne crée pas la base (il faut `make db-create` avant) et finit en lançant Vite ; `make setup-env` prépare `.env.local` ; les clés de chiffrement se génèrent ; le worker Messenger se lance en dev ; Mailpit et Mercure viennent avec `make start`.
+- **Projets clients** : `joining_a_project.md` devient la procédure de référence (avec le quotidien, les fixtures et ce que les synchronisations n'écrasent pas), `setup.md` ne garde que la création d'un projet, l'ancienne page `dev/getting_started.md` renvoie vers les deux.
+- **Prérequis** à jour : Node 24, pnpm 10, PostgreSQL 18, Symfony CLI, les extensions `sodium`, `gd` et `zip`, `ffmpeg` en option, et un worker de production qui consomme aussi `scheduler_main`.
+- Le README annonçait une fusion de conflits qui n'existe plus, l'allemand, et une licence MIT : la licence est propriétaire.
+- 14 liens cassés réparés dans la documentation, et un test (`DocsLinksTest`) les garde.
+
+### Corrigé
+- **Une publication programmée sortait deux heures trop tard.** Le sélecteur envoyait l'heure tapée sans fuseau, et le serveur, réglé en UTC, la lisait comme une heure UTC : programmée pour 9 h à Paris, elle sortait à 11 h l'été (10 h l'hiver), et l'éditeur affichait 11 h une fois la page rechargée. Il en allait de même pour la date de dépublication. Les deux se lisent maintenant à l'heure du site.
+- **« Ouvrir » dans le menu d'un livrable ne faisait rien** : la fenêtre se fermait sans ouvrir l'éditeur. L'action est désormais un vrai lien, comme le prévoit la feuille d'actions (on peut aussi l'ouvrir dans un nouvel onglet).
+- **Renommer une catégorie de la médiathèque changeait son identifiant** (le slug) : une adresse ou un filtre qui le citait cessait de répondre. Le slug est fixé à la création et ne bouge plus.
+- **L'aperçu de l'Administration était vide** : ni modules ni chiffres, parce que la page ne recevait pas les données du tableau de bord. Il montre maintenant les modules actifs et leurs compteurs.
+- **La fenêtre « Modifier » de la page d'un document** ne proposait que le titre, la description et le statut, alors que son menu annonçait aussi la catégorie, les étiquettes et le dossier. Elle les propose, comme celle de la liste.
+- **Programmer une publication contournait la relecture.** Sans le droit de publier, choisir « Publiée » la mettait en attente de revue, mais choisir « Programmée » avec une date la laissait passer : la tâche planifiée la publiait à l'heure dite sans que personne ne l'ait relue. « Programmée » part désormais en relecture comme « Publiée », en gardant la date demandée (visible dans l'éditeur pendant la relecture) ; l'approbation la programme si la date est encore à venir, et la publie, datée du jour voulu, si elle est passée. La tâche planifiée ne publie jamais une publication en attente de revue.
+- Supprimer une entrée de menu annonçait que ses sous-entrées partaient avec elle : elles remontent d'un niveau, et le message le dit maintenant.
+- Le menu d'un document de la médiathèque annonçait une suppression « sans retour possible » : le document va à la corbeille, d'où il se restaure.
+- La page de signature disait que le code de confirmation part à l'adresse contractuelle de la société : il part à l'adresse qui a reçu le contrat.
+- Supprimer un champ d'un type de contenu annonçait que « les réponses déjà reçues le gardent », phrase reprise des formulaires.
+- Espagnol : les liens utiles renvoyaient à un onglet « Configuración » qui s'appelle « Ajustes » ; anglais : guillemets français remplacés.
+- **Le Makefile des projets clients démarrait un conteneur `database` qui n'existe pas** (aucun projet client n'a de fichier compose) et annonçait le compte `admin@aurora.app` après l'installation, au lieu de `dev@aurora.app`, sans jamais l'afficher. Les cibles `docker-up` et `docker-down` disparaissent ; `make migration` devient un alias de `make migration-diff`, qui range la migration dans `ClientMigrations` au lieu de risquer `vendor/`.
+- **La fin du README des projets clients** recopiait une ligne de texte après la balise de fin du bloc synchronisé ; la prochaine synchronisation la retire.
+
+### Dans aurora-client
+
+Rien à faire au-delà de `make aurora-update`.
+
+---
+
 ## [0.9.327] - 2026-10-02
 
 ### Ajouté

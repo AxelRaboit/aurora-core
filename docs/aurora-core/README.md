@@ -20,12 +20,12 @@
 
 | Fichier | Contenu |
 |---|---|
+| [getting_started.md](dev/getting_started.md) | **Installer aurora-core et travailler dessus** : outils, environnement, démo, lancer, tester |
 | [app_architecture.md](dev/app_architecture.md) | Vue d'ensemble de l'architecture (Symfony, Vue 3, modules) |
 | [entity_extensibility_convention.md](dev/entity_extensibility_convention.md) | Convention d'extensibilité des entités (5 couches, pattern Sylius) |
 | [extending_aurora.md](dev/extending_aurora.md) | Comment utiliser Aurora Core comme base d'une app client |
 | [extending_category_pilot.md](dev/extending_category_pilot.md) | Guide pas-à-pas d'extension complète (exemple DocumentCategory) |
 | [add_module.md](dev/add_module.md) | Ajouter un module à aurora-core (checklist) |
-| [documentation.md](dev/documentation.md) | Écrire le manuel du produit : pages Markdown, captures, ce qu'il ne dit pas |
 | [css_conventions.md](dev/css_conventions.md) | Organisation de `src/Core/assets/css/` (orchestration des imports) |
 | [frontend_theme_override.md](dev/frontend_theme_override.md) | `ThemeResolver` - système de fallback des templates frontend |
 | [per_user_module_access.md](dev/per_user_module_access.md) | Toggle modules par utilisateur (`UserModuleAccess`) |

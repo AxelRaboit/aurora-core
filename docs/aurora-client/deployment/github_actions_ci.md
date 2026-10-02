@@ -1,7 +1,10 @@
 # GitHub Actions CI - setup d'un projet aurora-client
 
-Le template aurora-client embarque un workflow GitHub Actions
-(`.github/workflows/ci.yml`) qui exécute, à chaque push sur les branches
+Le dépôt aurora-client (le projet modèle à dupliquer) embarque un
+workflow GitHub Actions (`.github/workflows/ci.yml`). Il ne vient pas du
+modèle synchronisé par aurora-core (`.claude/client_template/` n'a pas de
+`.github/`) : un projet qui ne part pas d'aurora-client n'en a pas, et
+`make aurora-update` ne le met jamais à jour. Il exécute, à chaque push sur les branches
 long-lived (`master`, `develop`) et sur chaque PR :
 
 - `composer validate` + `composer audit`

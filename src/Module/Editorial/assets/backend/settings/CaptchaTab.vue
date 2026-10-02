@@ -1,13 +1,13 @@
 <script setup>
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { Save } from "lucide-vue-next";
+import { ExternalLink, Save } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
-import AppLoader from "@/shared/components/feedback/AppLoader.vue";
+import IntegrationLayout from "@configuration/backend/settings/components/IntegrationLayout.vue";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 
@@ -44,6 +44,14 @@ const providerOptions = [
     { value: "turnstile", label: "backend.parameters.captcha.providers.turnstile" },
     { value: "recaptcha", label: "backend.parameters.captcha.providers.recaptcha" },
 ];
+
+/** Allumé, prêt mais éteint, ou encore à configurer. */
+const status = computed(() => {
+    const ready = "" !== siteKey.value.trim() && (hasSecret.value || "" !== secretKey.value.trim());
+    if (enabled.value && ready) return "active";
+
+    return ready ? "off" : "todo";
+});
 
 function apply(state) {
     if (!state) return;
@@ -96,13 +104,13 @@ async function save() {
 </script>
 
 <template>
-    <AppLoader v-if="loading" />
-    <div v-else class="space-y-4">
-        <div class="space-y-1">
-            <h3 class="text-sm font-semibold text-primary">{{ t("backend.parameters.captcha.title") }}</h3>
-            <p class="text-xs text-secondary">{{ t("backend.parameters.captcha.intro") }}</p>
-            <p class="text-xs text-amber-600 dark:text-amber-500">{{ t("backend.parameters.captcha.privacy") }}</p>
-        </div>
+    <IntegrationLayout
+        :summary="t('backend.parameters.captcha.intro')"
+        :status="status"
+        :loading="loading"
+        :settings-title="t('backend.parameters.captcha.title')"
+    >
+        <p class="m-0 text-xs text-amber-600 dark:text-amber-500">{{ t("backend.parameters.captcha.privacy") }}</p>
 
         <AppSelect
             v-model="provider"
@@ -123,17 +131,38 @@ async function save() {
             autocomplete="off"
             :label="t('backend.parameters.captcha.secret_key')"
             :placeholder="t('backend.parameters.captcha.secret_key_placeholder')"
-            :hint="t('backend.parameters.captcha.secret_key_hint')"
+            :hint="t(hasSecret ? 'backend.parameters.captcha.secret_set' : 'backend.parameters.captcha.secret_key_hint')"
         />
-
-        <p class="text-xs text-secondary">
-            {{ t(hasSecret ? "backend.parameters.captcha.secret_set" : "backend.parameters.captcha.secret_unset") }}
-        </p>
 
         <AppCheckbox v-model="enabled" :label="t('backend.parameters.captcha.enabled')" />
 
-        <AppButton variant="primary" size="md" :loading="saving" v-on:click="save">
-            <Save class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.save") }}
-        </AppButton>
-    </div>
+        <template #actions>
+            <AppButton
+                variant="primary"
+                size="md"
+                class="w-full sm:w-auto"
+                :loading="saving"
+                v-on:click="save"
+            >
+                <Save class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.save") }}
+            </AppButton>
+        </template>
+
+        <!-- Les étapes du service choisi, pas des deux : elles ne se
+             ressemblent que de loin. -->
+        <template #guide>
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 3" :key="step">{{ t(`backend.parameters.captcha.guide_${provider}_${step}`) }}</li>
+            </ol>
+            <a
+                :href="'recaptcha' === provider ? 'https://www.google.com/recaptcha/admin/create' : 'https://dash.cloudflare.com/?to=/:account/turnstile'"
+                target="_blank"
+                rel="noopener"
+                class="inline-flex items-center gap-1 text-sm text-accent hover:underline"
+            >
+                {{ t(`backend.parameters.captcha.guide_link_${provider}`) }}
+                <ExternalLink class="w-3.5 h-3.5" :stroke-width="2" />
+            </a>
+        </template>
+    </IntegrationLayout>
 </template>

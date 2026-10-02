@@ -10,6 +10,7 @@
  * Duplicating is a row action rather than a button inside the deck, because
  * "start from this one" is decided while looking at the list.
  */
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
@@ -202,6 +203,13 @@ const deckUrl = (deck) => buildPath(props.showPath, { id: deck.id });
                 />
             </template>
         </AppListToolbar>
+        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <AppGuide :title="t('backend.studio.decks.guide.title')" storage-key="decks-list">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 5" :key="step">{{ t(`backend.studio.decks.guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
 
         <AppNoData
             v-if="!filteredItems.length"

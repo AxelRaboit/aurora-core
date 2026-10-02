@@ -193,6 +193,9 @@ final class DocumentsController extends AbstractController
             'storageRelocationAvailable' => $this->storageSettings->isRelocationAvailable(),
             'alternatesPath' => $this->urlGenerator->generate('backend_ged_documents_alternates', ['id' => '__id__']),
             'showPath' => $this->urlGenerator->generate('backend_ged_documents_show', ['id' => '__id__']),
+            // Its edit window files it like the library's does: category,
+            // tags and folder, not only its title and status.
+            ...$this->viewBuilder->classificationOptions(),
         ]);
     }
 

@@ -9,6 +9,7 @@ vi.mock("@/shared/composables/useTheme.js", () => ({
 }));
 
 import AppDatePicker from "./AppDatePicker.vue";
+import { VueDatePicker } from "@vuepic/vue-datepicker";
 
 const i18n = createTestI18n({}, "en");
 
@@ -126,5 +127,64 @@ describe("AppDatePicker", () => {
         expect(wrapper.emitted("update:modelValue")?.at(-1)).toEqual([
             "2026-11-15",
         ]);
+    });
+
+    describe("with a timeZone", () => {
+        // Le serveur et l'ordinateur ne sont pas toujours dans le même fuseau :
+        // une publication programmée pour 9 h doit sortir à 9 h à l'heure du
+        // site. Les tests lisent les champs locaux, donc ils tiennent quel que
+        // soit le fuseau de la machine qui les lance.
+        const probe = { plugins: [i18n] };
+
+        it("shows an instant at the zone's wall clock", () => {
+            const wrapper = mount(AppDatePicker, {
+                props: {
+                    modelValue: "2026-10-02T07:00:00+00:00",
+                    enableTime: true,
+                    timeZone: "Europe/Paris",
+                },
+                global: probe,
+            });
+
+            const shown = wrapper
+                .findComponent(VueDatePicker)
+                .props("modelValue");
+            expect([shown.getHours(), shown.getMinutes()]).toEqual([9, 0]);
+        });
+
+        it("hands back the typed time with the zone's offset", async () => {
+            const wrapper = mount(AppDatePicker, {
+                props: {
+                    modelValue: "",
+                    enableTime: true,
+                    timeZone: "Europe/Paris",
+                },
+                global: probe,
+            });
+            const picker = wrapper.findComponent(VueDatePicker);
+
+            picker.vm.$emit("update:model-value", new Date(2026, 9, 2, 9, 0));
+            picker.vm.$emit("update:model-value", new Date(2026, 11, 1, 9, 0));
+
+            expect(wrapper.emitted("update:modelValue")).toEqual([
+                ["2026-10-02T09:00:00+02:00"],
+                ["2026-12-01T09:00:00+01:00"],
+            ]);
+        });
+
+        it("keeps the bare time without one", async () => {
+            const wrapper = mount(AppDatePicker, {
+                props: { modelValue: "", enableTime: true },
+                global: probe,
+            });
+
+            wrapper
+                .findComponent(VueDatePicker)
+                .vm.$emit("update:model-value", new Date(2026, 9, 2, 9, 0));
+
+            expect(wrapper.emitted("update:modelValue")).toEqual([
+                ["2026-10-02T09:00"],
+            ]);
+        });
     });
 });

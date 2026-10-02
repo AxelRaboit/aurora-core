@@ -11,6 +11,7 @@
  * L'état est partagé par `provide` entre les onglets et le panneau d'une
  * question : le même formulaire, mis à jour par chaque réponse du serveur.
  */
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, provide, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
@@ -182,6 +183,13 @@ const headerActions = computed(() => {
             </AppBadge>
             <AppPageActions v-if="headerActions.length" :actions="headerActions" icon-only-on-phone />
         </AppPageBar>
+        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <AppGuide :title="t('backend.forms.editor_guide.title')" storage-key="form-editor">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 5" :key="step">{{ t(`backend.forms.editor_guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
 
         <div class="min-w-0">
             <h1 class="m-0 truncate text-lg font-semibold text-primary">{{ title }}</h1>

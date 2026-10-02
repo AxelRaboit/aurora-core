@@ -1,4 +1,5 @@
 <script setup>
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useCommentRowActions } from "./composables/useCommentRowActions.js";
@@ -92,6 +93,13 @@ function badgeColor(value) {
             />
         </div>
 
+        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <AppGuide :title="t('backend.comments.guide.title')" storage-key="comments">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 5" :key="step">{{ t(`backend.comments.guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
         <AppNoData v-if="!comments.length && !loading" :message="t('backend.comments.empty')" />
 
         <div v-else class="space-y-2">
