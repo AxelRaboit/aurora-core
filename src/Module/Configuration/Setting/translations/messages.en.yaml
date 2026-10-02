@@ -42,12 +42,13 @@ backend:
       step_4: "On a phone, the site name next to the logo in the top bar can be hidden, keeping only the logo."
       step_5: "Nothing is saved until you press the Save button at the bottom of the tab."
     localization_guide:
-      title: "The site's languages"
+      title: "The site's languages, time and dates"
       step_1: "The default language is the public site's fallback, and the emails' one when the Emails tab follows it."
       step_2: "Single-language mode only shows and saves the default language, and redirects the addresses of other languages to it."
       step_3: "Turning it off later brings back the content typed in the other languages, which stays in the database."
       step_4: "The admin's language is not set here: each person chooses it in their profile."
-      step_5: "Nothing is saved until you press the Save button at the bottom of the tab."
+      step_5: "The timezone gives the site's time: 09:00 on a scheduled post means 09:00 here, and emails and PDFs are dated at that time, in the chosen date style."
+      step_6: "Nothing is saved until you press the Save button at the bottom of the tab."
     reading_guide:
       title: "What visitors read"
       step_1: "The home page is chosen by searching for a page or typing its number; with none chosen, the home page lists the latest articles."
@@ -97,7 +98,7 @@ backend:
       reading: Reading
       reading_description: 'Posts per page, homepage, comments.'
       localization: Localization
-      localization_description: 'Language, timezone, date format.'
+      localization_description: 'Language, timezone, date style.'
       branding: Branding
       branding_description: 'Logo, favicon and visual identity.'
       appearance: Appearance
@@ -330,10 +331,10 @@ backend:
       placeholder: 100
     timezone:
       label: Timezone
-      description: PHP timezone (e.g. Europe/Paris)
+      description: "The site's time: that of a scheduled post, of the dates in emails and PDFs, of the morning sends (reminders, late reviews), and the zone offered for a new calendar or space. Dates already stored do not move."
     date_format:
-      label: Date display format
-      description: Date display format (e.g. d/m/Y)
+      label: Date style
+      description: "How the dates of emails, PDFs and contract pages are written, in each one's language. The back office keeps its compact formats."
     comments_enabled:
       label: Comments enabled
       description: 'If enabled, visitors can leave comments on public articles.'
@@ -401,6 +402,9 @@ backend:
       label: Forced email locale
       description: 'Language of the site emails that do not know the recipient''s language. Contract emails follow the contract language, account emails (password, verification, access request) the language of the page the request comes from. "Follow default locale" applies the site default locale.'
     email_locale_auto: Follow default locale
+    date_format_short: Short
+    date_format_medium: Medium
+    date_format_long: Long
     core_user_prefix:
       label: User reference prefix
       description: Auto-generated reference prefix (e.g. XXX). 1 to 10 capital letters or digits, required.

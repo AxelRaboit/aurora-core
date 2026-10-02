@@ -42,12 +42,13 @@ backend:
             step_4: 'En el teléfono, el nombre del sitio junto al logotipo de la barra superior puede ocultarse para dejar solo el logotipo.'
             step_5: 'No se guarda nada hasta pulsar el botón Guardar, al final de la pestaña.'
         localization_guide:
-            title: 'Los idiomas del sitio'
+            title: 'Idiomas, hora y fechas del sitio'
             step_1: 'El idioma por defecto sirve de respaldo al sitio público, y a los correos cuando la pestaña Emails sigue ese idioma.'
             step_2: 'El modo de un solo idioma solo muestra y guarda el idioma por defecto, y redirige hacia él las direcciones de los demás idiomas.'
             step_3: 'Desactivarlo más tarde devuelve su lugar a los contenidos escritos en los demás idiomas, que siguen en la base.'
             step_4: 'El idioma del back-office no se ajusta aquí: cada uno lo elige en su perfil.'
-            step_5: 'No se guarda nada hasta pulsar el botón Guardar, al final de la pestaña.'
+            step_5: 'La zona horaria da la hora del sitio: las 9:00 en una publicación programada son las 9:00 aquí, y los emails y los PDF se fechan a esa hora, en el estilo de fechas elegido.'
+            step_6: 'No se guarda nada hasta pulsar el botón Guardar, al final de la pestaña.'
         reading_guide:
             title: 'Lo que leen los visitantes'
             step_1: 'La página de inicio se elige buscando una página o escribiendo su número; sin elección, el inicio lista los últimos artículos.'
@@ -97,7 +98,7 @@ backend:
             reading: Lectura
             reading_description: 'Artículos por página, página de inicio, comentarios.'
             localization: Localización
-            localization_description: 'Idioma, zona horaria, formato de fecha.'
+            localization_description: 'Idioma, zona horaria, estilo de las fechas.'
             branding: 'Identidad de marca'
             branding_description: 'Logotipo, favicon e identidad visual.'
             appearance: Apariencia
@@ -330,10 +331,10 @@ backend:
             placeholder: 100
         timezone:
             label: 'Zona horaria'
-            description: 'Zona horaria de PHP (ej.: Europe/Paris)'
+            description: 'La hora del sitio: la de una publicación programada, la de las fechas en los emails y los PDF, la de los envíos de la mañana (recordatorios, revisiones atrasadas), y la zona propuesta para un nuevo calendario o espacio. Las fechas ya guardadas no cambian.'
         date_format:
-            label: 'Formato de visualización de las fechas'
-            description: 'Formato de visualización de las fechas (ej.: d/m/Y)'
+            label: 'Estilo de las fechas'
+            description: 'Cómo se escriben las fechas de los emails, los PDF y las páginas de contrato, en el idioma de cada uno. El back-office mantiene sus formatos compactos.'
         comments_enabled:
             label: 'Comentarios activados'
             description: 'Si se activa, los visitantes pueden dejar comentarios en los artículos del sitio público.'
@@ -401,6 +402,9 @@ backend:
             label: 'Idioma forzado para los emails'
             description: 'Idioma de los emails del sitio que no conocen el idioma del destinatario. Los emails de un contrato siguen el idioma del contrato, los de la cuenta (contraseña, verificación, solicitud de acceso) el de la página desde la que se hace la solicitud. «Seguir el idioma por defecto» aplica el idioma por defecto del sitio.'
         email_locale_auto: 'Seguir el idioma por defecto'
+        date_format_short: 'Corta'
+        date_format_medium: 'Media'
+        date_format_long: 'Larga'
         core_user_prefix:
             label: 'Prefijo de las referencias de usuarios'
             description: 'Prefijo de la referencia generada automáticamente (ej.: XXX). De 1 a 10 letras mayúsculas o cifras, obligatorio.'

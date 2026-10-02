@@ -17,6 +17,19 @@ Google Drive, Instagram, Pexels, Lettre d'information, Avis Google, GitHub, Anti
 - Deux colonnes sur grand écran. La conformité de la lettre d'information rejoint la carte, au-dessus du bouton qui l'enregistre.
 - L'anti-robots gagne son mode d'emploi, propre au service choisi (Cloudflare Turnstile ou reCAPTCHA v3), avec le lien vers la console.
 
+#### L'heure et les dates du site, branchées
+Les réglages Localisation « Fuseau horaire » et « Format des dates » n'étaient lus par rien. Ils pilotent maintenant ce qu'ils annoncent ; en base, tout reste enregistré en UTC.
+- **Le fuseau horaire donne l'heure du site.**
+  - Une publication programmée pour 9 h sort à 9 h, quel que soit le réglage de l'ordinateur qui l'a programmée (voir « Corrigé »).
+  - Les dates du back-office s'affichent à l'heure du site.
+  - Les emails, le PDF d'un contrat, ses pages publiques, les partages de calendrier et les « mis à jour le » des pages publiques datent à l'heure du site, et non plus en UTC. Dans le PDF, les horodatages de signature portent les secondes et le fuseau, par exemple « 02/10/2026 11:14:03 (Europe/Paris) ». Les PDF déjà signés sont des fichiers figés et ne changent pas.
+  - Les envois du matin partent à heure fixe, sans bouger au changement d'heure : relances de contrat à 9 h 15, contrats échus à 9 h 10, vérification des scellés à 8 h 05, relectures en retard à 9 h 30. Lus en UTC, ils partaient une heure plus tôt l'hiver.
+  - Un nouveau calendrier, un nouvel espace client ou une nouvelle zone horaire de grille proposent le fuseau du site, au lieu de « Europe/Paris » écrit en dur.
+- **« Style des dates » remplace le motif `d/m/Y`** : courte, moyenne ou longue, chaque choix montré avec la date du jour. Les 18 dates des emails, du PDF de contrat et des pages publiques figées en `d/m/Y` s'écrivent désormais dans la langue du document : un email espagnol écrit 2/10/2026. Le back-office garde ses formats compacts. Une migration fait de l'ancien `d/m/Y` le style « courte ».
+- L'encart de l'onglet Localisation le dit.
+
+Pour les développeurs : les filtres Twig `site_date`, `site_datetime` (avec `proof: true` pour un horodatage de preuve) et `calendar_date` (un jour sans heure, jamais décalé), les services `SiteTimezone` et `SiteDateFormatter`, et l'option `time-zone` de `AppDatePicker`. `PostManager`, `PlanningInputFactory` et `CustomerSpaceInputFactory` reçoivent `SiteTimezone` en plus dans leur constructeur.
+
 #### Des encarts « Comment ça marche »
 Nouveau composant partagé `AppGuide` : un encart repliable, posé à côté de ce qu'il explique. Chaque écran principal a maintenant le sien, rédigé d'après ce que fait vraiment le code, en français, anglais et espagnol :
 - **Studio** : espaces clients, contrats et la page d'un contrat, texte adapté, trames et leur éditeur, présentations et leur éditeur, clients, calendrier éditorial.
@@ -29,6 +42,7 @@ Nouveau composant partagé `AppGuide` : un encart repliable, posé à côté de 
 **Un seul choix pour tous les encarts** : en replier un les replie tous, sur l'écran ouvert comme ailleurs et d'un onglet à l'autre, et le choix est retenu dans le navigateur ; tant que rien n'est choisi, chaque encart suit son réglage (un mode d'emploi d'intégration reste ouvert tant qu'elle n'est pas branchée).
 
 ### Corrigé
+- **Une publication programmée sortait deux heures trop tard.** Le sélecteur envoyait l'heure tapée sans fuseau, et le serveur, réglé en UTC, la lisait comme une heure UTC : programmée pour 9 h à Paris, elle sortait à 11 h l'été (10 h l'hiver), et l'éditeur affichait 11 h une fois la page rechargée. Il en allait de même pour la date de dépublication. Les deux se lisent maintenant à l'heure du site.
 - **« Ouvrir » dans le menu d'un livrable ne faisait rien** : la fenêtre se fermait sans ouvrir l'éditeur. L'action est désormais un vrai lien, comme le prévoit la feuille d'actions (on peut aussi l'ouvrir dans un nouvel onglet).
 - **Renommer une catégorie de la médiathèque changeait son identifiant** (le slug) : une adresse ou un filtre qui le citait cessait de répondre. Le slug est fixé à la création et ne bouge plus.
 - **L'aperçu de l'Administration était vide** : ni modules ni chiffres, parce que la page ne recevait pas les données du tableau de bord. Il montre maintenant les modules actifs et leurs compteurs.

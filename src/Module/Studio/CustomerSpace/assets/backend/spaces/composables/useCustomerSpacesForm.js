@@ -8,6 +8,7 @@ import { useClientFilteredList } from "@/shared/composables/list/useClientFilter
 import { usePersistedChoice } from "@/shared/composables/usePersistedChoice.js";
 import { required } from "@/shared/utils/validation/validators.js";
 import { COLOUR_SLOTS } from "@/shared/composables/chart/paletteSlots.js";
+import { siteZone } from "@/shared/utils/format/zonedTime.js";
 
 /**
  * One form shape for create and edit, because the fields are the same either
@@ -26,7 +27,7 @@ function emptyForm() {
         prospectEmail: "",
         status: "active",
         colourSlot: "",
-        timezone: "Europe/Paris",
+        timezone: siteZone() ?? "Europe/Paris",
         members: [],
     };
 }
@@ -40,7 +41,7 @@ function formFrom(space) {
         prospectEmail: "",
         status: space.status ?? "active",
         colourSlot: space.colourSlot ?? "",
-        timezone: space.timezone ?? "Europe/Paris",
+        timezone: space.timezone ?? siteZone() ?? "Europe/Paris",
         // Copied rather than referenced: the form is edited before it is sent,
         // and mutating the row in the list would move the table under the
         // reader while a modal is open over it.

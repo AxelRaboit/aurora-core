@@ -68,7 +68,7 @@ const TAB_GUIDES = {
     general: { namespace: "backend.settings.general_guide", steps: 5 },
     sequences: { namespace: "backend.settings.sequences_guide", steps: 5 },
     reading: { namespace: "backend.settings.reading_guide", steps: 5 },
-    localization: { namespace: "backend.settings.localization_guide", steps: 5 },
+    localization: { namespace: "backend.settings.localization_guide", steps: 6 },
     branding: { namespace: "backend.settings.branding_guide", steps: 5 },
     seo: { namespace: "backend.settings.seo_guide", steps: 5 },
     system: { namespace: "backend.settings.system_guide", steps: 5 },

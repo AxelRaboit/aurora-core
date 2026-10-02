@@ -9,6 +9,7 @@ use Aurora\Core\Scheduling\Event\EntityUnscheduledEvent;
 use Aurora\Core\Sequence\SequenceGenerator;
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
+use Aurora\Module\Configuration\Setting\Service\SiteTimezone;
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Editorial\Post\Banner\BannerNormalizer;
 use Aurora\Module\Editorial\Post\Dto\PostInputInterface;
@@ -38,7 +39,6 @@ use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Enum\UserRoleEnum;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 use InvalidArgumentException;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
@@ -81,6 +81,7 @@ class PostManager implements PostManagerInterface
         protected readonly EventDispatcherInterface $eventDispatcher,
         protected readonly UrlGeneratorInterface $urlGenerator,
         protected readonly PostSnapshot $snapshot,
+        protected readonly SiteTimezone $siteTimezone,
     ) {}
 
     public function create(PostInputInterface $input): PostInterface
@@ -662,16 +663,18 @@ class PostManager implements PostManagerInterface
         return $map;
     }
 
+    /**
+     * A date from the editor or a snapshot, in UTC for the column.
+     *
+     * The editor sends the time with the site's offset (`09:00:00+02:00`), a
+     * snapshot with UTC's. Both are converted rather than kept as they are:
+     * Doctrine writes an object's wall clock, so a `+02:00` value stored as is
+     * would land two hours late. A bare time, from an older client, is read at
+     * the site's time - before, it was read as UTC and a post scheduled for
+     * 09:00 in Paris came out at 11:00.
+     */
     private function hydrateDate(mixed $value): ?DateTimeImmutable
     {
-        if (!is_string($value) || '' === $value) {
-            return null;
-        }
-
-        try {
-            return new DateTimeImmutable($value);
-        } catch (Exception) {
-            return null;
-        }
+        return is_string($value) ? $this->siteTimezone->parseLocal($value) : null;
     }
 }

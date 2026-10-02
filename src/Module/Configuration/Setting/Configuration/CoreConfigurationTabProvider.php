@@ -8,6 +8,8 @@ use Aurora\Core\Frontend\Service\Registry;
 use Aurora\Core\Locale\Enum\LocaleEnum;
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
+use Aurora\Module\Configuration\Setting\Service\SiteDateFormatter;
+use DateTimeImmutable;
 use DateTimeZone;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -68,6 +70,7 @@ final readonly class CoreConfigurationTabProvider implements ConfigurationTabPro
         private SettingRepository $settingRepository,
         private Registry $frontendRegistry,
         private TranslatorInterface $translator,
+        private SiteDateFormatter $dateFormatter,
     ) {}
 
     public function getTabs(): array
@@ -149,6 +152,24 @@ final readonly class CoreConfigurationTabProvider implements ConfigurationTabPro
             }
 
             return $options;
+        }
+
+        // Each style shown with today's date written in it, in the language
+        // of the screen: "Courte · 02/10/2026" says more than "short".
+        if (ApplicationParameterEnum::DateFormat === $parameter) {
+            $today = new DateTimeImmutable();
+
+            return array_map(
+                fn (string $style): array => [
+                    'value' => $style,
+                    'label' => sprintf(
+                        '%s · %s',
+                        $this->translator->trans('backend.parameters.date_format_'.$style),
+                        $this->dateFormatter->date($today, $this->translator->getLocale(), $style),
+                    ),
+                ],
+                SiteDateFormatter::STYLES,
+            );
         }
 
         if (ApplicationParameterEnum::Timezone === $parameter) {

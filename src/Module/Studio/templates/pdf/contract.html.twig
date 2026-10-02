@@ -235,7 +235,7 @@
                         {{ signature.declaredFullName }}<br>
                         {{ 'studio.pdf.signed_at'|trans({
                             '{place}': signature.declaredPlace,
-                            '{date}': signature.declaredDate|date('d/m/Y'),
+                            '{date}': signature.declaredDate|calendar_date(contract.locale),
                         }, null, contract.locale) }}
                     </div>
                 </td>
@@ -262,7 +262,7 @@
             </tr>
             <tr>
                 <td class="label">{{ 'studio.pdf.seal.sealed_at'|trans({}, null, contract.locale) }}</td>
-                <td>{{ contract.frozenAt|date('d/m/Y H:i') }}</td>
+                <td>{{ contract.frozenAt|site_datetime(contract.locale, true) }}</td>
             </tr>
             <tr>
                 <td class="label">{{ 'studio.pdf.seal.hash'|trans({}, null, contract.locale) }}</td>
@@ -275,7 +275,7 @@
                     </td>
                     <td>
                         {{ 'studio.pdf.seal.observed'|trans({
-                            '{at}': signature.signedAt|date('d/m/Y H:i:s'),
+                            '{at}': signature.signedAt|site_datetime(contract.locale, true),
                             '{ip}': signature.ipAddress ?? '-',
                         }, null, contract.locale) }}
                         {# The address the code actually went to. The customer's current
@@ -283,7 +283,7 @@
                            it may have changed since. #}
                         {% if signature.challengeVerifiedAt %}
                             <br>{{ 'studio.pdf.seal.code_verified'|trans({
-                                '{at}': signature.challengeVerifiedAt|date('d/m/Y H:i:s'),
+                                '{at}': signature.challengeVerifiedAt|site_datetime(contract.locale, true),
                                 '{email}': signature.challengeSentTo ?? signature.contract.customer.contractualEmail,
                             }, null, contract.locale) }}
                         {% elseif signature.user %}

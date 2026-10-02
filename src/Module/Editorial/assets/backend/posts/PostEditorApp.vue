@@ -31,6 +31,11 @@ import PostRevisionsModal from "./components/PostRevisionsModal.vue";
 import PostReadingLinksModal from "./components/PostReadingLinksModal.vue";
 import { Save, AlertTriangle, Check, Eye, History, Link2, RefreshCw, X } from "lucide-vue-next";
 import { highlightModeOptions } from "@configuration/backend/themes/highlightModes.js";
+import { siteZone } from "@/shared/utils/format/zonedTime.js";
+
+// Scheduling for 09:00 means 09:00 at the site's time (Settings > Localisation),
+// not at the time of the laptop that typed it.
+const timeZone = siteZone() ?? "";
 
 const { t, d } = useI18n();
 // The page's own choice first, then the theme's modes - the same list the
@@ -741,6 +746,7 @@ function termLabel(term) {
                             v-if="form.status === 'scheduled' || (form.status === 'pending_review' && form.scheduledAt)"
                             v-model="form.scheduledAt"
                             enable-time
+                            :time-zone="timeZone"
                             :label="t('backend.posts.field_scheduled_at')"
                             :placeholder="t('backend.posts.scheduled_at_placeholder')"
                             :error="errors.scheduledAt"
@@ -754,6 +760,7 @@ function termLabel(term) {
                         <AppDatePicker
                             v-model="form.unpublishAt"
                             enable-time
+                            :time-zone="timeZone"
                             :label="t('backend.posts.field_unpublish_at')"
                             :placeholder="t('backend.posts.unpublish_at_placeholder')"
                             :hint="t('backend.posts.unpublish_at_hint')"

@@ -11,4 +11,4 @@
 
 <p>{{ 'studio.email.contract_reminder.replaces'|trans }}</p>
 
-<p>{{ 'studio.email.contract_reminder.expires'|trans({'{date}': expiresAt|date('d/m/Y')}) }}</p>
+<p>{{ 'studio.email.contract_reminder.expires'|trans({'{date}': expiresAt|site_date}) }}</p>

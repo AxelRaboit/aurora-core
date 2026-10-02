@@ -19,6 +19,7 @@ import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import { COLOUR_SLOTS, nextFreeColourSlot } from "../composables/calendarColours.js";
+import { siteZone } from "@/shared/utils/format/zonedTime.js";
 
 const props = defineProps({
     /** The calendar being edited, `{}` for a new one, null when closed. */
@@ -67,6 +68,12 @@ function defaultTimezone() {
 
     if (mine && props.timezones.includes(mine)) {
         return mine;
+    }
+
+    // Then the site's own zone (Settings > Localisation).
+    const site = siteZone();
+    if (site && props.timezones.includes(site)) {
+        return site;
     }
 
     return props.timezones.includes("Europe/Paris") ? "Europe/Paris" : (props.timezones[0] ?? "Europe/Paris");

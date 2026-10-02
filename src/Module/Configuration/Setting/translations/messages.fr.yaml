@@ -42,12 +42,13 @@ backend:
       step_4: "Sur téléphone, le nom du site peut être masqué à côté du logo de la barre du haut, pour ne garder que le logo."
       step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
     localization_guide:
-      title: "Les langues du site"
+      title: "Langues, heure et dates du site"
       step_1: "La langue par défaut sert de repli au site public, et aux e-mails quand l'onglet Emails suit cette langue."
       step_2: "Le mode mono-langue n'affiche et n'enregistre plus que la langue par défaut, et redirige vers elle les adresses des autres langues."
       step_3: "Le désactiver plus tard rend leur place aux contenus saisis dans les autres langues, restés en base."
       step_4: "La langue du back-office ne se règle pas ici : chacun la choisit dans son profil."
-      step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
+      step_5: "Le fuseau horaire donne l'heure du site : 9 h dans une publication programmée veut dire 9 h ici, et les emails et PDF datent à cette heure, dans le style de dates choisi."
+      step_6: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
     reading_guide:
       title: "Ce que lisent les visiteurs"
       step_1: "La page d'accueil se choisit en cherchant une page ou en saisissant son numéro ; sans choix, l'accueil liste les derniers articles."
@@ -97,7 +98,7 @@ backend:
       reading: Lecture
       reading_description: "Articles par page, page d'accueil, commentaires."
       localization: Localisation
-      localization_description: 'Langue, fuseau horaire, format de date.'
+      localization_description: 'Langue, fuseau horaire, style des dates.'
       branding: Branding
       branding_description: 'Logo, favicon et identité visuelle.'
       appearance: Apparence
@@ -330,10 +331,10 @@ backend:
       placeholder: 100
     timezone:
       label: Fuseau horaire
-      description: 'Fuseau horaire PHP (ex: Europe/Paris)'
+      description: "L'heure du site : celle d'une publication programmée, des dates dans les emails et les PDF, des envois du matin (relances, retards de relecture), et le fuseau proposé pour un nouveau calendrier ou un nouvel espace. Les dates déjà enregistrées ne bougent pas."
     date_format:
-      label: Format d'affichage des dates
-      description: "Format d'affichage des dates (ex: d/m/Y)"
+      label: Style des dates
+      description: "Comment s'écrivent les dates des emails, des PDF et des pages de contrat, dans la langue de chacun. Le back-office garde ses formats compacts."
     comments_enabled:
       label: Commentaires activés
       description: 'Si activé, les visiteurs peuvent laisser des commentaires sur les articles du site public.'
@@ -401,6 +402,9 @@ backend:
       label: Langue forcée pour les emails
       description: "Langue des emails du site qui ne connaissent pas celle du destinataire. Les emails d'un contrat suivent la langue du contrat, ceux du compte (mot de passe, vérification, demande d'accès) celle de la page d'où part la demande. « Suivre la langue par défaut » applique la langue par défaut du site."
     email_locale_auto: Suivre la langue par défaut
+    date_format_short: Courte
+    date_format_medium: Moyenne
+    date_format_long: Longue
     core_user_prefix:
       label: Préfixe des références utilisateurs
       description: 'Préfixe de la référence auto-générée (ex: XXX). De 1 à 10 lettres majuscules ou chiffres, obligatoire.'

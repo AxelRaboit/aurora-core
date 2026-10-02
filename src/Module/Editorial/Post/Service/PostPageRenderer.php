@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Editorial\Post\Service;
 
 use Aurora\Core\Frontend\Service\Context;
+use Aurora\Module\Configuration\Setting\Service\SiteTimezone;
 use Aurora\Module\Configuration\Theme\Service\ThemeContext;
 use Aurora\Module\Configuration\Theme\Service\ThemeResolver;
 use Aurora\Module\Editorial\Comment\Manager\CommentManagerInterface;
@@ -52,6 +53,7 @@ final readonly class PostPageRenderer
         private PostRepository $postRepository,
         private SiteUsefulLinks $siteUsefulLinks,
         private FaqStructuredData $faqStructuredData,
+        private SiteTimezone $siteTimezone,
     ) {}
 
     public function render(PostInterface $post, string $locale): Response
@@ -187,7 +189,7 @@ final readonly class PostPageRenderer
                 // Spelled out in the page's language here: Twig has no
                 // localised date filter in this project, and "1 octobre 2026"
                 // is what a client reads, not an ISO string.
-                'updatedOn' => new IntlDateFormatter($locale, IntlDateFormatter::LONG, IntlDateFormatter::NONE)->format($post->getUpdatedAt()),
+                'updatedOn' => new IntlDateFormatter($locale, IntlDateFormatter::LONG, IntlDateFormatter::NONE, $this->siteTimezone->get())->format($post->getUpdatedAt()),
                 'localeUrls' => $readingLocaleUrls,
                 'backUrl' => $backUrl,
             ] : null,

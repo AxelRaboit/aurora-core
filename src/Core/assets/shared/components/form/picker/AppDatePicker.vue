@@ -6,6 +6,7 @@ import { useTheme } from "@/shared/composables/useTheme.js";
 import { useI18n } from "vue-i18n";
 import { computed } from "vue";
 import { fr, enUS, es, de } from "date-fns/locale";
+import { fromDisplay, isKnownZone, offsetIn, toDisplay } from "@/shared/utils/format/zonedTime.js";
 
 const { theme } = useTheme();
 const { locale } = useI18n();
@@ -29,6 +30,17 @@ const props = defineProps({
      * for budget months, monthly reports, etc.
      */
     monthOnly: { type: Boolean, default: false },
+    /**
+     * Le fuseau dans lequel l'heure se lit et se tape, avec `enableTime`.
+     *
+     * Sans lui, le champ suit le navigateur et rend une heure nue
+     * (`2026-10-02T09:00`), que le serveur interprète à sa façon. Avec lui,
+     * une valeur reçue avec son décalage s'affiche à l'heure de ce fuseau, et
+     * le champ rend l'heure tapée avec le décalage qui s'y applique
+     * (`2026-10-02T09:00:00+02:00`) : 9 h veut dire 9 h à l'heure du site,
+     * quel que soit le réglage de l'ordinateur.
+     */
+    timeZone: { type: String, default: "" },
 });
 
 const emit = defineEmits(["update:modelValue"]);
@@ -82,6 +94,11 @@ const textInput = computed(() => ({
     openMenu: "open",
 }));
 
+const HAS_OFFSET = /(?:[zZ]|[+-]\d{2}:?\d{2})$/;
+
+/** Le fuseau demandé, s'il est connu de ce navigateur ; sinon celui du navigateur. */
+const zone = computed(() => (isKnownZone(props.timeZone) ? props.timeZone : ""));
+
 function onUpdate(val) {
     if (!val) { emit("update:modelValue", ""); return; }
     const pad = (n) => String(n).padStart(2, "0");
@@ -93,7 +110,10 @@ function onUpdate(val) {
         return;
     }
     const d = new Date(val);
-    if (props.enableTime) {
+    if (props.enableTime && zone.value) {
+        const wall = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        emit("update:modelValue", `${wall}:00${offsetIn(fromDisplay(d, zone.value), zone.value)}`);
+    } else if (props.enableTime) {
         emit("update:modelValue", `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`);
     } else {
         emit("update:modelValue", `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`);
@@ -109,7 +129,12 @@ const internalValue = computed(() => {
         if (!match) return null;
         return { year: Number.parseInt(match[1], 10), month: Number.parseInt(match[2], 10) - 1 };
     }
-    const d = new Date(props.modelValue);
+    // Une valeur qui porte son décalage est un instant : on la montre à
+    // l'heure du fuseau demandé. Une heure nue est déjà une heure de ce fuseau.
+    const value = zone.value && props.enableTime && HAS_OFFSET.test(props.modelValue)
+        ? toDisplay(props.modelValue, zone.value)
+        : props.modelValue;
+    const d = new Date(value);
     return isNaN(d.getTime()) ? null : d;
 });
 </script>
