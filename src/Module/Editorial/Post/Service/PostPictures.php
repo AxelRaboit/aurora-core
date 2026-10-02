@@ -77,6 +77,22 @@ final readonly class PostPictures
      * Reads better than an `in_array` at the call site, and spares the caller
      * the reminder that the comparison has to be strict.
      */
+    /**
+     * Les documents qu'une disposition de grille seule utilise : pour une
+     * page composée ailleurs qu'une publication, un livrable d'espace client.
+     *
+     * @param array<string, mixed> $layout
+     *
+     * @return list<int>
+     */
+    public function idsInGridLayout(array $layout): array
+    {
+        $ids = [];
+        $this->fromZones($layout['zones'] ?? null, $ids);
+
+        return array_keys($ids);
+    }
+
     public function uses(PostInterface $post, int $documentId): bool
     {
         return in_array($documentId, $this->idsUsedBy($post), true);

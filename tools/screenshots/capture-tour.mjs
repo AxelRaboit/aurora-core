@@ -160,14 +160,14 @@ const spaceView = (view) => async (page) => {
 
 /**
  * L'adresse de l'éditeur d'un livrable de l'espace ouvert, par son titre : la
- * liste est rangée par dernière modification, et la démo y met un brouillon
- * à côté de l'audit.
+ * liste est rangée par dernière modification, et la démo y met trois
+ * livrables à côté de l'audit. Le titre de chaque carte mène à son éditeur.
  */
 async function deliverableEditUrl(page, title = "Audit de présence en ligne") {
     const href = await page
         .locator("main li")
         .filter({ hasText: title })
-        .getByRole("link", { name: "Ouvrir dans l'éditeur" })
+        .getByRole("link", { name: title, exact: true })
         .first()
         .getAttribute("href");
 
@@ -1226,7 +1226,10 @@ const SHOTS = [
             await spaceView("Livrables")(page);
             await page.goto(await deliverableEditUrl(page), { waitUntil: "domcontentloaded" });
             await page.waitForTimeout(4_000);
-            await page.locator("main").getByRole("button", { name: "Liens de lecture", exact: true }).first().click();
+            // Rangés dans le menu « Actions » de l'éditeur, avec l'aperçu.
+            await page.locator("main").getByRole("button", { name: "Actions", exact: true }).first().click();
+            await page.waitForTimeout(500);
+            await page.getByText("Liens de lecture", { exact: true }).first().click();
             await page.getByRole("dialog").first().waitFor();
             await page.waitForTimeout(1_500);
         },
@@ -1245,7 +1248,7 @@ const SHOTS = [
         async prepare(page) {
             await spaceView("Livrables")(page);
             const edit = new URL(await deliverableEditUrl(page));
-            const links = edit.pathname.replace(/\/edit$/, "/reading-links");
+            const links = `${edit.pathname}/links`;
             const url = await page.evaluate(async (path) => {
                 const response = await fetch(path, { headers: { "X-Requested-With": "XMLHttpRequest" } });
 

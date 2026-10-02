@@ -4,10 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\SpaceAccess\View;
 
-use Aurora\Core\Locale\Service\LocaleContextInterface;
 use Aurora\Core\Routing\PathTemplateGenerator;
-use Aurora\Module\Editorial\EditorialContext;
-use Aurora\Module\Editorial\Post\Repository\PostRepository;
 use Aurora\Module\Studio\Customer\Serializer\CustomerInformationSerializerInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
@@ -21,6 +18,7 @@ use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentAttachmentSerialize
 use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentColumnSerializerInterface;
 use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentCommentSerializerInterface;
 use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentItemSerializerInterface;
+use Aurora\Module\Studio\SpaceDeliverable\Repository\SpaceDeliverableRepository;
 use Aurora\Module\Studio\SpaceResource\Repository\SpaceResourceRepository;
 use Aurora\Module\Studio\SpaceResource\Serializer\SpaceResourceSerializerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -55,33 +53,31 @@ final readonly class PublicSpaceViewBuilder
         private SpaceResourceSerializerInterface $resourceSerializer,
         private PathTemplateGenerator $pathTemplates,
         private UrlGeneratorInterface $urlGenerator,
-        private PostRepository $posts,
-        private EditorialContext $editorialContext,
-        private LocaleContextInterface $localeContext,
+        private SpaceDeliverableRepository $deliverables,
     ) {}
 
-    /** @return list<array{id: int, title: ?string, updatedAt: string, url: string}> */
+    /**
+     * Les livrables que le studio a ouverts au client.
+     *
+     * Les fermés ne sortent pas du serveur : c'est la requête qui les écarte,
+     * pas la page.
+     *
+     * @return list<array{id: int, title: string, description: ?string, updatedAt: string, url: string}>
+     */
     private function documents(SpaceAccessLinkInterface $link, string $token): array
     {
-        if (!$this->editorialContext->isPostsEnabled()) {
-            return [];
-        }
-
-        $default = $this->localeContext->getDefaultLocale();
         $documents = [];
 
-        foreach ($this->posts->findForCustomerSpace((int) $link->getSpace()->getId(), publishedOnly: true) as $post) {
-            $translation = $post->getTranslation($default) ?? ($post->getTranslations()->first() ?: null);
-
+        foreach ($this->deliverables->findForSpace($link->getSpace(), visibleOnly: true) as $deliverable) {
             $documents[] = [
-                'id' => (int) $post->getId(),
-                'title' => $translation?->getTitle(),
-                'description' => $translation?->getDescription(),
-                'updatedAt' => $post->getUpdatedAt()->format(DATE_ATOM),
-                'url' => $this->urlGenerator->generate('public_space_document', [
+                'id' => (int) $deliverable->getId(),
+                'title' => $deliverable->getTitle(),
+                'description' => $deliverable->getSummary(),
+                'updatedAt' => $deliverable->getUpdatedAt()->format(DATE_ATOM),
+                'url' => $this->urlGenerator->generate('public_space_deliverable', [
                     'selector' => $link->getSelector(),
                     'token' => $token,
-                    'postId' => $post->getId(),
+                    'deliverableId' => $deliverable->getId(),
                 ]),
             ];
         }

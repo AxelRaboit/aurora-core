@@ -5,6 +5,30 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.325] - 2026-10-02
+
+### Ajouté
+
+#### Les livrables d'un espace client ont leur propre module
+Un audit, une stratégie, un bilan ou une proposition ne sont plus des publications de l'éditorial rattachées à un espace : ils vivent dans un module à part, `Studio/SpaceDeliverable`, maintenu à côté et libre d'évoluer sans toucher aux publications du site.
+- **Onglet « Livrables » de l'espace** : la liste, la création, l'ouverture, l'aperçu, « Montrer au client » / « Cacher au client », la duplication (cachée, sans les liens) et la suppression.
+- **Même construction de page que les publications** : la grille de zones, ses blocs et son aperçu. Les zones qui n'ont de sens que sur le site (commentaires, recherche, publications et listes de publications, termes, présentation, formulaire, sondage, calendrier éditorial, activité, lettre d'information) ne sont pas proposées, et ne sont pas rendues si une grille en porte. La grille est toujours active.
+- **Pas de SEO, pas de statut** : ni brouillon, ni publié, ni programmé. Une case dit si le client le voit dans son espace.
+- **L'habit du livrable**, onglet « Apparence » : fond, en-tête et pied de page de la page, couleur d'accent, des titres et des chiffres clés, mode de survol, et le titre en tête de page ou non (pour un livrable qui ouvre sur un bloc d'entête). Vide veut dire « celle du thème ». Seules des couleurs hexadécimales sont gardées. Un aperçu montre l'accord des couleurs.
+- **Réglages** : titre, résumé (affiché sous le titre et dans la liste du client), langue du document, « Préparé pour », date de mise à jour et logo dans l'en-tête de la page.
+- **Liens de lecture propres aux livrables** (`/deliverables/{jeton}`) : intitulé, expiration, mot de passe, compteur d'ouvertures, révocation. Ils ouvrent le livrable même caché dans l'espace.
+- **Côté client**, l'onglet « Livrables » de l'espace liste ceux qui sont visibles ; la page du livrable reste hors index et hors cache.
+- Démonstration : quatre livrables mis en page (audit de présence en ligne et bilan de septembre pour l'Atelier Dupont, une stratégie cachée, une proposition d'accompagnement pour la Menuiserie Fabre), chacun dans ses couleurs. Un « Dossier de presse » montre les liens de lecture des publications, qui restent.
+
+### Retiré
+- Le rattachement d'une publication à un espace client (`core_posts.customer_space_id`), son onglet « Publications » dans l'espace et le verrou de visibilité dans l'éditeur des publications. La production n'en portait aucune.
+
+### Dans aurora-client
+
+`make aurora-update`, puis la migration `Version20261002120000` (deux tables, `core_studio_space_deliverables` et `core_studio_space_deliverable_links`, et la colonne retirée de `core_posts`). Le limiteur `space_deliverable_password` est déclaré par le bundle.
+
+---
+
 ## [0.9.324] - 2026-10-02
 
 ### Ajouté
