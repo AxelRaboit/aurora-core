@@ -173,8 +173,15 @@ function applyPosition(value) {
                 class="flex-1"
                 :placeholder="t('notes.markdown.cover.search_placeholder')"
             />
-            <AppButton variant="primary" size="md" :loading="searching" v-on:click="search">
-                <Search class="h-3.5 w-3.5" :stroke-width="2" />
+            <AppButton
+                variant="primary"
+                size="md"
+                :loading="searching"
+                :label="t('shared.common.search')"
+                icon-only
+                v-on:click="search"
+            >
+                <Search class="h-4 w-4" :stroke-width="2" />
             </AppButton>
         </form>
 

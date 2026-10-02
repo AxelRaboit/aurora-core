@@ -1,11 +1,34 @@
 ---
 name: process_mobile_header_bar
-description: La barre d'entête d'un écran d'édition sur téléphone - retour en chevron seul, libellés qui partent, et la règle qui ne s'applique pas aux boutons pleine largeur.
+description: La barre d'entête d'un écran (AppPageBar) - retour à gauche, commandes à droite, vrais boutons de 38 px, icône seule sous sm ; et la règle qui ne s'applique pas aux boutons pleine largeur.
 metadata:
   type: project
 ---
 
 ## Règle
+
+### Une seule barre : `AppPageBar` (02/10/2026)
+
+Tout écran qui a un retour ou des commandes de page pose `AppPageBar` en
+tête : **le retour à gauche, les commandes à droite**, sur téléphone comme sur
+ordinateur. Le titre n'entre pas dans la barre ; il vient dessous, sur sa
+ligne. Avant elle, quatre manières de pousser les commandes à droite
+(`justify-between`, espaceur, `ml-auto`, rien) et deux écrans (trame, texte
+adapté) qui collaient les commandes derrière le retour.
+
+Les commandes y sont **de vrais boutons, tous en `md` (38 px)**, icône
+`w-4 h-4` : `AppPageActions icon-only-on-phone` (secondary) puis le verbe
+principal (`AppButton :label icon-only-on-phone`, primary), le plus à droite.
+Une bascule permanente (favori, panneau) prend `icon-only`. Un `ghost` n'a
+rien à faire dans une barre d'entête.
+
+### Icône nue ou vrai bouton
+
+- **Commande d'une barre** (entête de page, barre d'outils, barre de
+  sélection) : vrai bouton, fond ou filet.
+- **Geste dans le contenu** (« … » d'une ligne de tableau, croix d'une
+  modale, outils de l'éditeur, cadre de l'application en haut) : icône nue,
+  `AppIconButton`, toujours avec un `title`.
 
 ### Le retour
 

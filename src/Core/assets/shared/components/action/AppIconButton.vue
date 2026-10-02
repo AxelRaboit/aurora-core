@@ -9,6 +9,19 @@ const props = defineProps({
     title: { type: String, default: null },
     ariaLabel: { type: String, default: null },
     href: { type: String, default: null },
+    /**
+     * Un interrupteur allumé (panneau ouvert, vue choisie) : l'icône prend la
+     * couleur d'accent sur un fond teinté. Remplace les `variant="primary"`
+     * que des appels passaient et que ce composant n'a jamais lus.
+     */
+    active: { type: Boolean, default: false },
+    /**
+     * L'icône, quand l'appel ne la passe pas dans le slot. Quinze boutons de
+     * l'éditeur de grille (monter, descendre, retirer un onglet, une image,
+     * une diapositive) passaient `:icon` à un composant qui ne le lisait pas :
+     * ils s'affichaient vides (vu le 02/10/2026).
+     */
+    icon: { type: [Object, Function], default: null },
 });
 
 const colors = {
@@ -16,6 +29,9 @@ const colors = {
     sky:     { text: "text-secondary hover:text-sky-400",     bg: "hover:bg-surface-2" },
     accent:  { text: "text-secondary hover:text-accent-400",  bg: "hover:bg-surface-2" },
     rose:    { text: "text-secondary hover:text-rose-400",    bg: "hover:bg-rose-500/10" },
+    // Le nom que cinq appels de l'éditeur de grille utilisaient : il retombait
+    // sur `default` et leurs corbeilles ne rougissaient jamais.
+    danger:  { text: "text-secondary hover:text-rose-400",    bg: "hover:bg-rose-500/10" },
     emerald: { text: "text-secondary hover:text-emerald-400", bg: "hover:bg-emerald-500/10" },
     amber:   { text: "text-secondary hover:text-amber-400",   bg: "hover:bg-surface-2" },
     // For use on bright, non-Aurora surfaces (post-it sticky notes, light
@@ -55,8 +71,11 @@ const resolvedColor = colors[props.color] ?? colors.default;
         :title="title"
         :aria-label="computedAriaLabel"
         class="rounded transition-colors inline-flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
-        :class="[sizes[size] ?? sizes.md, resolvedColor.text, resolvedColor.bg]"
+        :class="[sizes[size] ?? sizes.md, active ? 'text-accent-400 bg-accent-500/15' : resolvedColor.text, resolvedColor.bg]"
+        :aria-pressed="active || undefined"
     >
-        <slot />
+        <slot>
+            <component :is="icon" v-if="icon" class="w-4 h-4" :stroke-width="2" />
+        </slot>
     </component>
 </template>

@@ -39,6 +39,13 @@ et frontend public (`front-*`). Rendu : `<button>` par défaut, ou `<a>` si
 | `disabled` | `Boolean` | `false` | |
 | `loading` | `Boolean` | `false` | Affiche un spinner et désactive le bouton. |
 | `href` | `String` | `null` | Si fourni, rendu en `<a>` (pas de `submit` possible). |
+| `active` | `Boolean` | `false` | État allumé : `nav` (entrée de menu) et `secondary` (bascule de barre, panneau ouvert). |
+| `label` | `String` | `null` | Le nom du bouton, posé après l'icône du slot. Obligatoire avec les deux props suivantes. |
+| `iconOnlyOnPhone` | `Boolean` | `false` | Commande de barre : le nom passe en `sr-only` sous `sm` (et en infobulle), le bouton devient un carré de sa hauteur. |
+| `iconOnly` | `Boolean` | `false` | Icône seule à toutes les largeurs (bascule de barre : favori, panneau). Même carré, nom en infobulle et pour les lecteurs d'écran. |
+
+Tous les boutons d'une même taille ont la même hauteur (sm 30, md 38, lg 50) :
+les variantes pleines portent un filet transparent depuis le 02/10/2026.
 
 **Slot** : default (label/icone/contenu).
 
@@ -55,8 +62,10 @@ sombres, voir `AppOverlayIconButton`.
 
 | Prop | Type | Défaut | Description |
 |---|---|---|---|
-| `color` | `String` | `"default"` | `default` `sky` `accent` `rose` `emerald` `amber` `on-light` (à utiliser sur fonds clairs custom - post-it, cards colorées : injecte `text-black/50 hover:text-black/80 hover:bg-black/10`). |
-| `size` | `String` | `"md"` | `md` (p-1.5) ou `compact` (24×24). |
+| `color` | `String` | `"default"` | `default` `sky` `accent` `rose` (alias `danger`) `emerald` `amber` `on-light` (à utiliser sur fonds clairs custom - post-it, cards colorées : injecte `text-black/50 hover:text-black/80 hover:bg-black/10`). |
+| `size` | `String` | `"md"` | Une seule taille (`md`, p-1.5, 30 px minimum sous `sm`). `compact` a été retiré. |
+| `icon` | `Component` | `null` | L'icône, si elle n'est pas passée dans le slot (rendue en `w-4 h-4`). |
+| `active` | `Boolean` | `false` | Interrupteur allumé : icône d'accent sur fond teinté, `aria-pressed`. |
 | `title` | `String` | `null` | Tooltip natif (`title` attribut). |
 | `ariaLabel` | `String` | `null` | Étiquette a11y (fallback sur `title`). |
 | `href` | `String` | `null` | Rendu `<a>` si fourni. |

@@ -436,21 +436,18 @@ const displayHint = computed(() =>
                         <div class="flex items-center gap-1">
                             <AppIconButton
                                 :icon="ChevronUp"
-                                size="sm"
                                 :title="t('backend.posts.grid.item_move_up')"
                                 :disabled="panelIndex === 0"
                                 v-on:click="emit('move-item', panelIndex, -1)"
                             />
                             <AppIconButton
                                 :icon="ChevronDown"
-                                size="sm"
                                 :title="t('backend.posts.grid.item_move_down')"
                                 :disabled="panelIndex === items.length - 1"
                                 v-on:click="emit('move-item', panelIndex, 1)"
                             />
                             <AppIconButton
                                 :icon="Trash2"
-                                size="sm"
                                 color="danger"
                                 :title="t('backend.posts.grid.tabs_remove')"
                                 v-on:click="emit('remove-item', panelIndex)"
@@ -803,14 +800,12 @@ const displayHint = computed(() =>
                         <div class="flex gap-1">
                             <AppIconButton
                                 :icon="ChevronUp"
-                                size="sm"
                                 :disabled="filmIndex === 0"
                                 :title="t('backend.posts.grid.item_move_up')"
                                 v-on:click="emit('move-gallery', filmIndex, -1)"
                             />
                             <AppIconButton
                                 :icon="ChevronDown"
-                                size="sm"
                                 :disabled="filmIndex === galleryImages.length - 1"
                                 :title="t('backend.posts.grid.item_move_down')"
                                 v-on:click="emit('move-gallery', filmIndex, 1)"
@@ -818,7 +813,6 @@ const displayHint = computed(() =>
                         </div>
                         <AppIconButton
                             :icon="Trash2"
-                            size="sm"
                             color="danger"
                             :title="t('backend.posts.grid.gallery_remove')"
                             v-on:click="emit('remove-gallery', filmIndex)"
@@ -935,14 +929,12 @@ const displayHint = computed(() =>
                         <div class="flex gap-1">
                             <AppIconButton
                                 :icon="ChevronUp"
-                                size="sm"
                                 :disabled="photoIndex === 0"
                                 :title="t('backend.posts.grid.item_move_up')"
                                 v-on:click="emit('move-gallery', photoIndex, -1)"
                             />
                             <AppIconButton
                                 :icon="ChevronDown"
-                                size="sm"
                                 :disabled="photoIndex === galleryImages.length - 1"
                                 :title="t('backend.posts.grid.item_move_down')"
                                 v-on:click="emit('move-gallery', photoIndex, 1)"
@@ -950,7 +942,6 @@ const displayHint = computed(() =>
                         </div>
                         <AppIconButton
                             :icon="Trash2"
-                            size="sm"
                             color="danger"
                             :title="t('backend.posts.grid.gallery_remove')"
                             v-on:click="emit('remove-gallery', photoIndex)"
@@ -1218,14 +1209,12 @@ const displayHint = computed(() =>
                         <div class="flex gap-1">
                             <AppIconButton
                                 :icon="ChevronUp"
-                                size="sm"
                                 :disabled="pictureIndex === 0"
                                 :title="t('backend.posts.grid.item_move_up')"
                                 v-on:click="emit('move-gallery', pictureIndex, -1)"
                             />
                             <AppIconButton
                                 :icon="ChevronDown"
-                                size="sm"
                                 :disabled="pictureIndex === galleryImages.length - 1"
                                 :title="t('backend.posts.grid.item_move_down')"
                                 v-on:click="emit('move-gallery', pictureIndex, 1)"
@@ -1233,7 +1222,6 @@ const displayHint = computed(() =>
                         </div>
                         <AppIconButton
                             :icon="Trash2"
-                            size="sm"
                             color="danger"
                             :title="t('backend.posts.grid.gallery_remove')"
                             v-on:click="emit('remove-gallery', pictureIndex)"
@@ -1496,22 +1484,19 @@ const displayHint = computed(() =>
                         <div class="flex items-center gap-1">
                             <AppIconButton
                                 :icon="ChevronUp"
-                                size="sm"
                                 :title="t('backend.posts.grid.item_move_up')"
                                 :disabled="itemIndex === 0"
                                 v-on:click="emit('move-item', itemIndex, -1)"
                             />
                             <AppIconButton
                                 :icon="ChevronDown"
-                                size="sm"
                                 :title="t('backend.posts.grid.item_move_down')"
                                 :disabled="itemIndex === items.length - 1"
                                 v-on:click="emit('move-item', itemIndex, 1)"
                             />
                             <AppIconButton
                                 :icon="Trash2"
-                                size="sm"
-                                variant="danger"
+                                color="danger"
                                 :title="t('backend.posts.grid.item_remove')"
                                 v-on:click="emit('remove-item', itemIndex)"
                             />

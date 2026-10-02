@@ -20,7 +20,7 @@
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { Save } from "lucide-vue-next";
-import AppBackLink from "@/shared/components/nav/AppBackLink.vue";
+import AppPageBar from "@/shared/components/nav/AppPageBar.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppTab from "@/shared/components/nav/AppTab.vue";
 import PostGalleryPanel from "../posts/components/PostGalleryPanel.vue";
@@ -84,11 +84,7 @@ async function save() {
 
 <template>
     <div class="space-y-2 sm:space-y-4">
-        <div class="flex flex-wrap items-center gap-3">
-            <AppBackLink :href="listPath" :label="t('backend.post_galleries.back')" class="shrink-0" />
-
-            <span class="flex-1" />
-
+        <AppPageBar :back-href="listPath" :back-label="t('backend.post_galleries.back')">
             <!-- Says so once it has, and stops saying it the moment anything is
                  saved again. A permanent tick would still be there tomorrow. -->
             <span v-if="saved" class="text-xs text-emerald-500">
@@ -96,17 +92,14 @@ async function save() {
             </span>
 
             <AppButton
-                variant="primary"
-                size="sm"
                 :loading="saving"
-                class="shrink-0"
-                :title="t('shared.common.save')"
+                :label="t('shared.common.save')"
+                icon-only-on-phone
                 v-on:click="save"
             >
                 <Save class="h-4 w-4" :stroke-width="2" />
-                <span class="sr-only sm:not-sr-only">{{ t("shared.common.save") }}</span>
             </AppButton>
-        </div>
+        </AppPageBar>
 
         <!-- Only when there is more than one language. A single-locale site would
              get a row of one tab, which is a control that cannot do anything. -->

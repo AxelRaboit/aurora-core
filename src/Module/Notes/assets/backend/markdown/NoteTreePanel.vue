@@ -867,7 +867,6 @@ onUnmounted(() => {
         <template #action>
             <!-- Lire le carnet, d'un clic : l'espace de lecture, épuré. -->
             <AppIconButton
-                size="sm"
                 data-read-mode-toggle
                 :title="`${t('notes.markdown.read.mode')} (Alt+R)`"
                 :disabled="null === readTargetId"
@@ -877,21 +876,18 @@ onUnmounted(() => {
             </AppIconButton>
             <AppIconButton
                 v-if="anyOpen"
-                size="sm"
                 :title="t('notes.markdown.collapse_all')"
                 v-on:click="collapseAll"
             >
                 <ChevronsDownUp class="h-3.5 w-3.5" :stroke-width="2" />
             </AppIconButton>
             <AppIconButton
-                size="sm"
                 :title="t('notes.markdown.import.button')"
                 v-on:click="forward('import')"
             >
                 <Upload class="h-3.5 w-3.5" :stroke-width="2" />
             </AppIconButton>
             <AppIconButton
-                size="sm"
                 :title="t('notes.markdown.export.all')"
                 v-on:click="forward('export')"
             >
@@ -901,7 +897,6 @@ onUnmounted(() => {
                      Deux boutons côte à côte obligeaient à deviner lequel était
                      lequel à la seule forme de leur icône. -->
             <AppIconButton
-                size="sm"
                 :title="t('notes.markdown.add.title')"
                 v-on:click="forward('add', null)"
             >
@@ -1027,7 +1022,6 @@ onUnmounted(() => {
                     >{{ t('notes.markdown.spaces.read_only') }}</span>
                     <AppIconButton
                         v-if="group.space.canWrite"
-                        size="sm"
                         class="shrink-0 sm:opacity-0 sm:group-hover/space:opacity-100"
                         :title="t('notes.markdown.spaces.add_here', { name: spaceLabel(group.space, t) })"
                         :data-space-add="group.space.id"
@@ -1037,7 +1031,6 @@ onUnmounted(() => {
                     </AppIconButton>
                     <AppIconButton
                         v-if="group.space.canManage"
-                        size="sm"
                         class="shrink-0 sm:opacity-0 sm:group-hover/space:opacity-100"
                         :title="t('notes.markdown.spaces.settings')"
                         :data-space-settings="group.space.id"
@@ -1121,7 +1114,6 @@ onUnmounted(() => {
                     </button>
 
                     <AppIconButton
-                        size="sm"
                         class="shrink-0 sm:opacity-0 sm:group-hover:opacity-100"
                         :class="one.pinned ? 'sm:opacity-100' : ''"
                         :title="one.pinned ? t('notes.markdown.library.tag.unpin') : t('notes.markdown.library.tag.pin')"

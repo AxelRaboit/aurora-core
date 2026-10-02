@@ -630,8 +630,6 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                     class="flex rounded-lg border border-line p-0.5"
                 >
                     <AppIconButton
-                        size="sm"
-                        variant="ghost"
                         :title="t('backend.studio.space_content.shape_board')"
                         :class="storedShape === 'board' ? 'bg-surface-3 text-primary' : 'text-muted hover:text-primary'"
                         v-on:click="setShape('board')"
@@ -639,8 +637,6 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                         <Columns3 class="h-4 w-4" :stroke-width="2" />
                     </AppIconButton>
                     <AppIconButton
-                        size="sm"
-                        variant="ghost"
                         :title="t('backend.studio.space_content.shape_list')"
                         :class="storedShape === 'list' ? 'bg-surface-3 text-primary' : 'text-muted hover:text-primary'"
                         v-on:click="setShape('list')"

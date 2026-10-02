@@ -211,13 +211,11 @@ async function copy(link) {
                             {{ link.label || t("backend.posts.reading.untitled") }}
                         </span>
                         <span class="flex shrink-0 gap-1">
-                            <AppIconButton size="sm" variant="ghost" :title="t('backend.posts.reading.copy')" v-on:click="copy(link)">
+                            <AppIconButton :title="t('backend.posts.reading.copy')" v-on:click="copy(link)">
                                 <Copy class="h-3.5 w-3.5" :stroke-width="2" />
                             </AppIconButton>
                             <AppIconButton
                                 v-if="isLive(link)"
-                                size="sm"
-                                variant="ghost"
                                 :title="t('backend.posts.reading.revoke')"
                                 v-on:click="revoke(link)"
                             >

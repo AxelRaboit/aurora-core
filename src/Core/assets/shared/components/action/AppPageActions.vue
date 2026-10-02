@@ -54,6 +54,11 @@ defineProps({
     iconOnlyOnPhone: { type: Boolean, default: false },
 });
 
+// AppActionSheet a deux racines (le déclencheur et sa modale) : un `class`
+// posé sur ce composant n'atterrissait nulle part, ni `w-full sm:w-auto` ni
+// les autres (14 appels). Il va désormais sur le bouton, qui est ce qu'on voit.
+defineOptions({ inheritAttrs: false });
+
 const { t } = useI18n();
 </script>
 
@@ -61,14 +66,16 @@ const { t } = useI18n();
     <AppActionSheet :actions="actions" :label="label">
         <template #trigger="{ open }">
             <AppButton
+                v-bind="$attrs"
                 :variant="variant"
                 :size="size"
                 :loading="busy"
+                :label="t('shared.actions.plain_title')"
+                :icon-only-on-phone="iconOnlyOnPhone"
                 :title="t('shared.actions.plain_title')"
                 v-on:click="open"
             >
                 <MoreHorizontal v-if="!busy" class="w-4 h-4" :stroke-width="2" />
-                <span :class="iconOnlyOnPhone ? 'sr-only sm:not-sr-only' : ''">{{ t("shared.actions.plain_title") }}</span>
             </AppButton>
         </template>
     </AppActionSheet>

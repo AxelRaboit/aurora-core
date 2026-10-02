@@ -42,4 +42,55 @@ describe("AppButton", () => {
         });
         expect(wrapper.find("button").attributes("disabled")).toBeDefined();
     });
+
+    // 02/10/2026 : la commande d'une barre passe en icône seule sous `sm`,
+    // sans perdre son nom ni son fond.
+    it("keeps the label readable when icon-only on phone", () => {
+        const wrapper = mount(AppButton, {
+            props: {
+                variant: "secondary",
+                label: "Enregistrer",
+                iconOnlyOnPhone: true,
+            },
+            slots: { default: "<svg data-icon />" },
+        });
+        const label = wrapper.find("span");
+        expect(label.text()).toBe("Enregistrer");
+        expect(label.classes()).toEqual(
+            expect.arrayContaining(["sr-only", "sm:not-sr-only"]),
+        );
+        expect(wrapper.attributes("title")).toBe("Enregistrer");
+        expect(wrapper.classes()).toEqual(
+            expect.arrayContaining(["max-sm:size-9.5", "border"]),
+        );
+    });
+
+    it("stays square at every width with iconOnly", () => {
+        const wrapper = mount(AppButton, {
+            props: { variant: "secondary", label: "Favori", iconOnly: true },
+        });
+        expect(wrapper.find("span").classes()).toEqual(["sr-only"]);
+        expect(wrapper.classes()).toEqual(
+            expect.arrayContaining(["size-9.5", "p-0"]),
+        );
+        expect(wrapper.classes()).not.toContain("px-4");
+    });
+
+    // Tous les boutons d'une taille ont la même hauteur : un primary porte un
+    // filet transparent pour égaler le secondary posé à côté.
+    it("gives filled variants a transparent border", () => {
+        for (const variant of ["primary", "danger", "accent"]) {
+            const classes = mount(AppButton, { props: { variant } }).classes();
+            expect(classes).toEqual(
+                expect.arrayContaining(["border", "border-transparent"]),
+            );
+        }
+    });
+
+    it("does not let the size padding override the icon variant", () => {
+        const wrapper = mount(AppButton, {
+            props: { variant: "icon", size: "sm" },
+        });
+        expect(wrapper.classes()).not.toContain("px-3");
+    });
 });

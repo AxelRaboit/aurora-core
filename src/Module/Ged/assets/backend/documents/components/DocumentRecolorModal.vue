@@ -179,8 +179,6 @@ async function submit() {
                 <div v-for="(colour, index) in form.spare" :key="index" class="flex items-end gap-2">
                     <AppColorPicker v-model="form.spare[index]" class="flex-1" />
                     <AppIconButton
-                        variant="ghost"
-                        size="sm"
                         :title="t('shared.common.delete')"
                         v-on:click="form.spare.splice(index, 1)"
                     >

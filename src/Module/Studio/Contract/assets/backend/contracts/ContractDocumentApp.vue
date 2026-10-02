@@ -37,7 +37,7 @@ import { localIsoDate } from "@/shared/utils/format/localDate.js";
 import { contractStatusColor } from "@/shared/utils/format/statusStyles.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
-import AppBackLink from "@/shared/components/nav/AppBackLink.vue";
+import AppPageBar from "@/shared/components/nav/AppPageBar.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
@@ -448,7 +448,9 @@ const confirmBlocked = computed(
 
 <template>
     <div class="space-y-4">
-        <AppBackLink :href="indexPath" :label="t('shared.common.back')" />
+        <!-- The same bar as every screen, with nothing on its right: this page's
+             commands live in the « next step » card below. -->
+        <AppPageBar :back-href="indexPath" :back-label="t('shared.common.back')" />
 
         <header class="flex flex-wrap items-start justify-between gap-3">
             <div class="min-w-0 space-y-1">
@@ -478,7 +480,7 @@ const confirmBlocked = computed(
                     :loading="busy"
                     v-on:click="runNext"
                 >
-                    <component :is="nextAction.icon" class="w-3.5 h-3.5" :stroke-width="2" />
+                    <component :is="nextAction.icon" class="w-4 h-4" :stroke-width="2" />
                     {{ nextAction.title }}
                 </AppButton>
                 <AppPageActions
@@ -487,7 +489,6 @@ const confirmBlocked = computed(
                     :actions="otherActions"
                     :label="contract.reference ?? contract.customerName"
                     :busy="busy"
-                    variant="ghost"
                 />
             </div>
         </section>
