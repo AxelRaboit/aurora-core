@@ -22,8 +22,11 @@ bundle Symfony ; un site se construit dans un projet client
 ([aurora-client](https://github.com/AxelRaboit/aurora-client)) qui l'installe
 par Composer et y ajoute ce qui lui est propre.
 
-Le back-office est en Vue 3, le site public en Twig, et tout se lit en trois
-langues : français, anglais, espagnol.
+Les pages, du site comme du back-office, sont rendues par Symfony en Twig, et
+leurs parties interactives sont des composants Vue 3 montés dedans
+(`symfony/ux-vue`) : tout le back-office, et côté site les formulaires, les
+galeries, les grilles de zones, la connexion et le compte. Tout se lit en
+trois langues : français, anglais, espagnol.
 
 ### Les modules
 
@@ -49,8 +52,9 @@ peut étendre ses entités, ses écrans et ses gabarits sans le forker.
 |--------|-------------|
 | Backend | Symfony 7.4, PHP 8.4, Doctrine ORM 3 |
 | Base de données | PostgreSQL |
-| Back-office | Vue 3, vue-i18n, Editor.js |
-| Site public | Twig, Tailwind CSS 4 |
+| Interface | Pages Twig, composants Vue 3 montés par `symfony/ux-vue`, vue-i18n |
+| Édition | Editor.js, grille de zones maison |
+| Style | Tailwind CSS 4, thèmes du site réglables depuis le back-office |
 | Tâches de fond | Symfony Messenger et Scheduler (transport Doctrine, sans broker) |
 | Temps réel | Mercure (discussions des espaces clients) |
 | Build | Vite 8 |
