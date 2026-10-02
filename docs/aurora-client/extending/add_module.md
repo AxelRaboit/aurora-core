@@ -555,7 +555,7 @@ use Aurora\Core\Timestampable\TimestampableTrait;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ProjectRepository::class)]
-#[ORM\Table(name: 'projects')]               // pas de préfixe app_ pour les tables
+#[ORM\Table(name: 'app_projects')]           // préfixe app_ : core_ est réservé à Aurora
 #[ORM\HasLifecycleCallbacks]
 class Project implements ProjectInterface
 {
@@ -576,10 +576,9 @@ class Project implements ProjectInterface
 
 **Conventions de naming** (cf.
 [`convention_table_naming.md`](../../../.claude/memory/aurora-client/convention_table_naming.md)) :
-- **Tables** : nom simple (`projects`, `invoices`) - pas de préfixe
-  `client_` ni `app_` côté table. Aurora-core utilise `core_*` pour ses
-  tables, le client peut donc utiliser n'importe quoi qui ne commence pas
-  par `core_`.
+- **Tables** : préfixe `app_` (`app_projects`, `app_invoices`), comme les
+  entités Aurora étendues côté client (`app_document_categories`).
+  Aurora-core réserve `core_*` à ses tables ; jamais `client_`.
 - **Sequences** : préfixe `seq_app_<module>_<entity>_id` (obligatoire pour
   éviter collisions avec aurora-core qui utilise `seq_core_*`).
 - **`class` non-`final`** : permet l'extension future, même si pas

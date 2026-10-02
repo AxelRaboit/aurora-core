@@ -12,8 +12,8 @@ Les migrations Aurora-core sont jouées séparément (elles vivent dans
 # 1. Modifier une entité (ajouter/supprimer un champ, une relation…)
 
 # 2. Générer la migration
-make migration          # php bin/console doctrine:migrations:diff
-# → crée migrations/VersionYYYYMMDDHHMMSS.php
+make migration-diff     # doctrine:migrations:diff --namespace=ClientMigrations
+# → crée migrations/VersionYYYYMMDDHHMMSS.php (make migration en est un alias)
 
 # 3. Vérifier la migration générée avant de l'appliquer
 # (toujours relire - Doctrine peut générer des ALTER TABLE non désirés)
@@ -197,7 +197,7 @@ Aurora lèvera une `LogicException` au boot si un préfixe entre en collision
 avec un préfixe Core.
 
 Voir la liste des préfixes réservés Aurora dans
-[`../aurora-core/dev/extending_aurora.md`](../aurora-core/dev/extending_aurora.md).
+[`../aurora-core/dev/extending_aurora.md`](../../aurora-core/dev/extending_aurora.md).
 
 ---
 
@@ -234,7 +234,7 @@ make sync-params    # aurora:application-parameter - crée les entrées manquant
 
 | Commande | Description |
 |---|---|
-| `make migration` | Génère une migration depuis les changements d'entité |
+| `make migration-diff` (ou `make migration`) | Génère une migration depuis les changements d'entité, dans `ClientMigrations` |
 | `make migrate` | Applique les migrations en attente |
 | `make migrate-prev` | Rollback de la dernière migration |
 | `make migration-generate` | Crée une migration vide (script SQL manuel) |

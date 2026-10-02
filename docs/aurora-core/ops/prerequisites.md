@@ -17,10 +17,18 @@ démarrer - seulement ce que les modules que tu actives demandent.
 |-------|---------|----------|---------------------------|
 | **PHP CLI + FPM** | `>= 8.4` | `php --version` | `sudo apt install php8.4-cli php8.4-fpm` |
 | **Composer** | `>= 2.5` | `composer --version` | [getcomposer.org](https://getcomposer.org) |
-| **Node.js + npm** | `>= 18` | `node --version` | [nodejs.org](https://nodejs.org) ou `nvm` |
-| **PostgreSQL** | `>= 14` (testé sur 18) | `psql --version` | `sudo apt install postgresql` |
+| **Node.js** | `24` (la CI) ; au moins `20.19` ou `22.12`, ce que demande Vite 8 | `node --version` | [nodejs.org](https://nodejs.org) ou `nvm` |
+| **pnpm** | `10` (la CI) | `pnpm --version` | `corepack enable`, ou `make pnpm-setup VERSION=10.x.y` |
+| **PostgreSQL** | `18` (la CI) ; `14` et plus tolérés | `psql --version` | `sudo apt install postgresql` |
+| **Symfony CLI** | récente | `symfony version` | [symfony.com/download](https://symfony.com/download) (dev seulement : serveur local, Playwright) |
+| **Docker + compose v2** | récent | `docker compose version` | dev seulement, facultatif : Mailpit et Mercure (section 3) |
 | **Make** | n'importe | `make --version` | `sudo apt install build-essential` |
 | **Git** | `>= 2.30` | `git --version` | `sudo apt install git` |
+
+PostgreSQL tourne sur la machine : ni aurora-core ni un projet client ne le
+fournissent en conteneur. L'utilisateur de la base doit pouvoir créer des
+bases (`make db-create`, `make install-dev` d'un projet client, la base de
+test).
 
 ### Extensions PHP requises
 
@@ -28,16 +36,25 @@ Le `composer.json` impose `ext-ctype` et `ext-iconv`. En plus Symfony 7
 + Aurora utilisent en pratique :
 
 ```
-pdo_pgsql intl mbstring xml curl zip gd opcache
+pdo_pgsql intl mbstring sodium xml curl zip gd opcache
 ```
+
+- `sodium` chiffre les secrets des intégrations (`EncryptionService`) : sans
+  lui, enregistrer une clé d'API échoue.
+- `gd` recolore les variantes d'images, `zip` produit les archives (dossier
+  Drive, export de notes), `intl` écrit les dates et les montants dans chaque
+  langue.
+- `exif` est facultatif : il lit l'orientation et les données des photos.
+- L'écran Dev > Prérequis vérifie `pdo_pgsql`, `intl`, `mbstring`, `gd`,
+  `zip` et `curl`.
 
 Vérifie d'un coup :
 
 ```bash
-php -m | grep -iE "pdo_pgsql|intl|mbstring|xml|curl|zip|gd|opcache|ctype|iconv"
+php -m | grep -iE "pdo_pgsql|intl|mbstring|sodium|xml|curl|zip|gd|opcache|ctype|iconv"
 ```
 
-> Doit lister 10 lignes. Manquant ? `sudo apt install php8.4-pgsql php8.4-intl php8.4-mbstring php8.4-xml php8.4-curl php8.4-zip php8.4-gd`
+> Doit lister 11 lignes. Manquant ? `sudo apt install php8.4-pgsql php8.4-intl php8.4-mbstring php8.4-xml php8.4-curl php8.4-zip php8.4-gd` (`sodium` est compilé avec PHP sur Debian et Ubuntu)
 
 ---
 
@@ -50,6 +67,7 @@ rien en les omettant.
 |---------|--------|-----------------------|---------|
 | `pdftoppm` (poppler-utils) | GED - aperçus PDF | Recours auto à `gs` (qualité moindre) ; si ni l'un ni l'autre n'est présent, fallback sur l'icône | `sudo apt install poppler-utils` |
 | `gs` (Ghostscript) | GED - aperçus PDF (fallback) | Même chose que ci-dessus quand `pdftoppm` est aussi absent | `sudo apt install ghostscript` |
+| `ffmpeg` | GED - vignette d'une vidéo | La vidéo n'a pas d'image d'aperçu, elle reste lisible | `sudo apt install ffmpeg` / `brew install ffmpeg` |
 
 > **GED PDF thumbnails** : `PdfThumbnailGenerator` essaie d'abord `pdftoppm`,
 > puis `gs`, puis renvoie `null` (icône fallback côté Vue). Pour
@@ -63,7 +81,8 @@ rien en les omettant.
 | Service | Port par défaut | Modules concernés | Lancement |
 |---------|----------------|-------------------|-----------|
 | **PostgreSQL** | 5432 | Tous | `sudo systemctl start postgresql` |
-| **SMTP** (Mailpit / Mailhog en dev) | 1025 | Mailer | `docker run -p 1025:1025 -p 8025:8025 axllent/mailpit` |
+| **SMTP** (Mailpit en dev) | 1025, interface sur 8025 | Mailer | aurora-core : `make start` le lance (`compose.override.yaml`) ; sinon `docker run -p 1025:1025 -p 8025:8025 axllent/mailpit` |
+| **Mercure** (dev) | 3000 | Studio - discussion des espaces clients | aurora-core : `make start` (ou `make hub-start`). Sans lui, les messages arrivent toutes les 20 secondes au lieu d'en direct |
 
 Les transports Symfony Messenger sont en `doctrine://default` par défaut,
 **aucun broker externe** (RabbitMQ/Redis) requis pour faire tourner
@@ -92,10 +111,11 @@ placeholder** (`replace_with_base64_32_bytes_key`) - `EncryptedTextType`
 plantera silencieusement au déchiffrement, et tout champ chiffré déjà écrit
 devient illisible.
 
-`AURORA_MOUNT_POINT_KEY` est encore dans `.env` alors que le module MountPoint
-a été extrait puis archivé : c'est un reliquat. Le retirer touche les `.env.local`
-des projets consommateurs, donc il attend une décision plutôt qu'un nettoyage
-silencieux.
+`AURORA_MOUNT_POINT_KEY` chiffre les accès des points de montage (module Dev,
+`MountPointEncryptionService`) : une valeur qui n'est pas une clé de 32 octets
+en base64 fait échouer ce module dès son premier usage. Dans un projet client,
+`make setup-env` génère les deux clés ; dans aurora-core, seul `APP_SECRET`
+l'est, les deux clés se génèrent avec la commande ci-dessus.
 
 ---
 
@@ -109,8 +129,12 @@ Au-delà du dev :
 - **Droits du dossier `var/uploads/`** : l'utilisateur du web (`www-data`)
   doit avoir l'écriture sous `var/uploads/` et la lecture sur tout le
   contenu déjà uploadé.
-- **Cron / scheduler** : Symfony Messenger doit tourner en worker
-  (`bin/console messenger:consume async -vv`) sous systemd ou supervisor.
+- **Cron / scheduler** : Symfony Messenger doit tourner en worker sous
+  systemd ou supervisor, et consommer **les deux** transports :
+  `bin/console messenger:consume async scheduler_main`. Sans
+  `scheduler_main`, rien de planifié ne part (publications programmées,
+  relances de contrat, purges). Voir
+  [worker_systemd.md](../../aurora-client/deployment/worker_systemd.md).
 - **PostgreSQL** : sequences `seq_core_*_id` créées par les migrations.
   Si tu fais un dump → restore, restore avec `--no-owner --no-acl` puis
   rejoue les migrations (`doctrine:migrations:migrate`).
@@ -130,8 +154,8 @@ composer --version | head -1
 
 Sortie attendue :
 - PHP 8.4.x
-- v20+ ou v22+ pour Node
-- psql 14+
+- Node v24 (au moins v20.19 ou v22.12)
+- psql 18 (14 et plus tolérés)
 - Composer 2.x
 
 ---

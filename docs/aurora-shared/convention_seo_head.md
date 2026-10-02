@@ -150,7 +150,7 @@ Un thème custom (`templates/Frontend/themes/<slug>/`) peut override
 via `seo_current()` (Google Analytics, JSON-LD spécifique, balise
 facebook-domain-verification, etc. peuvent venir avant ou après).
 
-Voir [`frontend_theme_override.md`](frontend_theme_override.md) pour le mécanisme de
+Voir [`frontend_theme_override.md`](../aurora-core/dev/frontend_theme_override.md) pour le mécanisme de
 résolution de thème.
 
 ---

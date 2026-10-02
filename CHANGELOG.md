@@ -41,19 +41,6 @@ Nouveau composant partagé `AppGuide` : un encart repliable, posé à côté de 
 
 **Un seul choix pour tous les encarts** : en replier un les replie tous, sur l'écran ouvert comme ailleurs et d'un onglet à l'autre, et le choix est retenu dans le navigateur ; tant que rien n'est choisi, chaque encart suit son réglage (un mode d'emploi d'intégration reste ouvert tant qu'elle n'est pas branchée).
 
-### Corrigé
-- **Une publication programmée sortait deux heures trop tard.** Le sélecteur envoyait l'heure tapée sans fuseau, et le serveur, réglé en UTC, la lisait comme une heure UTC : programmée pour 9 h à Paris, elle sortait à 11 h l'été (10 h l'hiver), et l'éditeur affichait 11 h une fois la page rechargée. Il en allait de même pour la date de dépublication. Les deux se lisent maintenant à l'heure du site.
-- **« Ouvrir » dans le menu d'un livrable ne faisait rien** : la fenêtre se fermait sans ouvrir l'éditeur. L'action est désormais un vrai lien, comme le prévoit la feuille d'actions (on peut aussi l'ouvrir dans un nouvel onglet).
-- **Renommer une catégorie de la médiathèque changeait son identifiant** (le slug) : une adresse ou un filtre qui le citait cessait de répondre. Le slug est fixé à la création et ne bouge plus.
-- **L'aperçu de l'Administration était vide** : ni modules ni chiffres, parce que la page ne recevait pas les données du tableau de bord. Il montre maintenant les modules actifs et leurs compteurs.
-- **La fenêtre « Modifier » de la page d'un document** ne proposait que le titre, la description et le statut, alors que son menu annonçait aussi la catégorie, les étiquettes et le dossier. Elle les propose, comme celle de la liste.
-- **Programmer une publication contournait la relecture.** Sans le droit de publier, choisir « Publiée » la mettait en attente de revue, mais choisir « Programmée » avec une date la laissait passer : la tâche planifiée la publiait à l'heure dite sans que personne ne l'ait relue. « Programmée » part désormais en relecture comme « Publiée », en gardant la date demandée (visible dans l'éditeur pendant la relecture) ; l'approbation la programme si la date est encore à venir, et la publie, datée du jour voulu, si elle est passée. La tâche planifiée ne publie jamais une publication en attente de revue.
-- Supprimer une entrée de menu annonçait que ses sous-entrées partaient avec elle : elles remontent d'un niveau, et le message le dit maintenant.
-- Le menu d'un document de la médiathèque annonçait une suppression « sans retour possible » : le document va à la corbeille, d'où il se restaure.
-- La page de signature disait que le code de confirmation part à l'adresse contractuelle de la société : il part à l'adresse qui a reçu le contrat.
-- Supprimer un champ d'un type de contenu annonçait que « les réponses déjà reçues le gardent », phrase reprise des formulaires.
-- Espagnol : les liens utiles renvoyaient à un onglet « Configuración » qui s'appelle « Ajustes » ; anglais : guillemets français remplacés.
-
 #### La navigation d'un espace, en rail
 Les dix onglets d'un espace tenaient sur une ligne qui débordait dès 1 024 px, et sur téléphone il ne restait que des icônes. Sur ordinateur, ils passent dans un rail à gauche, regroupés : **Travail** (Contenus, Calendrier, Discussion), **Documents** (Fichiers, Drive, Livrables, Notes), **Client** (Informations, Ressources), et Réglages en bas. Une entrée porte un compteur quand quelque chose attend un geste : les publications à faire relire sur Contenus, en orange s'il y a du retard. Sur téléphone et tablette, un bouton dit la section ouverte et ouvre la même liste. La discussion garde toute la hauteur de la fenêtre.
 
@@ -68,6 +55,29 @@ Le lien « Ouvrir la configuration du Drive » affichait du JSON, et même corri
 - **Le mot de passe montre son état d'abord** (badge « Ouvert » ou « Fermé ») ; le formulaire ne s'ouvre qu'à la demande, et « Redemander à tous » reste à portée sans rien saisir.
 
 Une route dédiée (`POST /backend/studio/drive/settings/agency-folder`) n'enregistre que ce dossier : l'enregistrement général du Drive lit une activation absente comme « éteint », et serait passé par là depuis un espace.
+
+#### Des README qui disent ce que fait le produit, une documentation d'installation juste
+Le README d'aurora-core présente ce que fait Aurora (ses modules, sa stack) et renvoie à la documentation pour tout le reste ; celui des projets clients aussi. L'installation vit maintenant dans la documentation, revue contre le code :
+- **aurora-core** : nouvelle page `docs/aurora-core/dev/getting_started.md`. `make install-dev` ne crée pas la base (il faut `make db-create` avant) et finit en lançant Vite ; `make setup-env` prépare `.env.local` ; les clés de chiffrement se génèrent ; le worker Messenger se lance en dev ; Mailpit et Mercure viennent avec `make start`.
+- **Projets clients** : `joining_a_project.md` devient la procédure de référence (avec le quotidien, les fixtures et ce que les synchronisations n'écrasent pas), `setup.md` ne garde que la création d'un projet, l'ancienne page `dev/getting_started.md` renvoie vers les deux.
+- **Prérequis** à jour : Node 24, pnpm 10, PostgreSQL 18, Symfony CLI, les extensions `sodium`, `gd` et `zip`, `ffmpeg` en option, et un worker de production qui consomme aussi `scheduler_main`.
+- Le README annonçait une fusion de conflits qui n'existe plus, l'allemand, et une licence MIT : la licence est propriétaire.
+- 14 liens cassés réparés dans la documentation, et un test (`DocsLinksTest`) les garde.
+
+### Corrigé
+- **Une publication programmée sortait deux heures trop tard.** Le sélecteur envoyait l'heure tapée sans fuseau, et le serveur, réglé en UTC, la lisait comme une heure UTC : programmée pour 9 h à Paris, elle sortait à 11 h l'été (10 h l'hiver), et l'éditeur affichait 11 h une fois la page rechargée. Il en allait de même pour la date de dépublication. Les deux se lisent maintenant à l'heure du site.
+- **« Ouvrir » dans le menu d'un livrable ne faisait rien** : la fenêtre se fermait sans ouvrir l'éditeur. L'action est désormais un vrai lien, comme le prévoit la feuille d'actions (on peut aussi l'ouvrir dans un nouvel onglet).
+- **Renommer une catégorie de la médiathèque changeait son identifiant** (le slug) : une adresse ou un filtre qui le citait cessait de répondre. Le slug est fixé à la création et ne bouge plus.
+- **L'aperçu de l'Administration était vide** : ni modules ni chiffres, parce que la page ne recevait pas les données du tableau de bord. Il montre maintenant les modules actifs et leurs compteurs.
+- **La fenêtre « Modifier » de la page d'un document** ne proposait que le titre, la description et le statut, alors que son menu annonçait aussi la catégorie, les étiquettes et le dossier. Elle les propose, comme celle de la liste.
+- **Programmer une publication contournait la relecture.** Sans le droit de publier, choisir « Publiée » la mettait en attente de revue, mais choisir « Programmée » avec une date la laissait passer : la tâche planifiée la publiait à l'heure dite sans que personne ne l'ait relue. « Programmée » part désormais en relecture comme « Publiée », en gardant la date demandée (visible dans l'éditeur pendant la relecture) ; l'approbation la programme si la date est encore à venir, et la publie, datée du jour voulu, si elle est passée. La tâche planifiée ne publie jamais une publication en attente de revue.
+- Supprimer une entrée de menu annonçait que ses sous-entrées partaient avec elle : elles remontent d'un niveau, et le message le dit maintenant.
+- Le menu d'un document de la médiathèque annonçait une suppression « sans retour possible » : le document va à la corbeille, d'où il se restaure.
+- La page de signature disait que le code de confirmation part à l'adresse contractuelle de la société : il part à l'adresse qui a reçu le contrat.
+- Supprimer un champ d'un type de contenu annonçait que « les réponses déjà reçues le gardent », phrase reprise des formulaires.
+- Espagnol : les liens utiles renvoyaient à un onglet « Configuración » qui s'appelle « Ajustes » ; anglais : guillemets français remplacés.
+- **Le Makefile des projets clients démarrait un conteneur `database` qui n'existe pas** (aucun projet client n'a de fichier compose) et annonçait le compte `admin@aurora.app` après l'installation, au lieu de `dev@aurora.app`, sans jamais l'afficher. Les cibles `docker-up` et `docker-down` disparaissent ; `make migration` devient un alias de `make migration-diff`, qui range la migration dans `ClientMigrations` au lieu de risquer `vendor/`.
+- **La fin du README des projets clients** recopiait une ligne de texte après la balise de fin du bloc synchronisé ; la prochaine synchronisation la retire.
 
 ### Dans aurora-client
 

@@ -11,7 +11,7 @@ Aurora-core supporte deux niveaux de toggle pour les modules :
    `core_users.disabled_modules`.
 
 Les deux couches sont consultées via un **service central**
-[`ModuleAccessChecker`](../../../src/Core/Module/ModuleAccessChecker.php), qui
+[`ModuleAccessChecker`](../../../src/Core/Module/Service/ModuleAccessChecker.php), qui
 applique aussi le **cascade graph** existant (`getCascadeRequires()`).
 
 > **Important** : un user-level override ne peut **rien activer** qui ne soit

@@ -193,16 +193,10 @@ warmup: ## Warm up cache
 purge: ## Remove all cache and log files
 	rm -rf var/cache/* var/logs/*
 
-# === Docker ===
-docker-up: ## Start database container
-	docker compose up -d database
-
-docker-down: ## Stop database container
-	docker compose stop database
-
 # === Symfony ===
+# PostgreSQL runs on the machine: a client project ships no compose file, and
+# the `docker compose up -d database` that used to sit here started nothing.
 start: ## Start dev server + Vite dev server
-	@docker compose up -d database 2>/dev/null || true
 	symfony server:start -d
 	@[ -d "$(AURORA)/vendor" ] || $(COMPOSER) install --working-dir=$(AURORA) --no-scripts
 	@[ -d "$(AURORA)/node_modules" ] || $(PNPM) --dir=$(AURORA) install
@@ -216,7 +210,6 @@ start-d: ## Start dev server in background
 
 stop: ## Stop dev server
 	symfony server:stop
-	@docker compose stop database 2>/dev/null || true
 
 start-dev-worker: ## Start the messenger worker (async + scheduler)
 	@touch var/.messenger-dev-worker-running
@@ -268,7 +261,7 @@ demo: _require-dev-env ## Load demo fixtures (DemoFixtures group) + run all sync
 	$(CONSOLE) aurora:privileges:sync
 	@echo "✅ Demo data loaded"
 
-fixtures-load: _require-dev-env ## Load fixtures without dropping DB - purges tables before re-inserting (DEV ONLY)
+fixtures-load: _require-dev-env ## Add the fixtures on top of the current data (--append), DEV ONLY
 	# aurora:install seeds the structure the demo fixtures build on, and
 	# --append keeps doctrine:fixtures:load from purging it back out:
 	# the default purger empties every table, including the one holding
@@ -291,8 +284,9 @@ db-create: ## Create the database
 db-drop: _require-dev-env ## Drop the database (DEV ONLY)
 	$(CONSOLE) doctrine:database:drop --force --if-exists
 
-migration: ## Generate a new migration
-	$(CONSOLE) make:migration
+# The same as migration-diff: a bare make:migration does not name the
+# namespace, and the warning above migration-generate says where that writes.
+migration: migration-diff ## Generate a migration from entity changes (alias of migration-diff)
 
 migrate: ## Run pending migrations
 	$(CONSOLE) doctrine:migrations:migrate
@@ -494,8 +488,8 @@ install-dev: _require-dev-env ## Install for local development - full reset: dro
 	$(CONSOLE) doctrine:fixtures:load --no-interaction --append
 	$(CONSOLE) aurora:application-parameter
 	$(CONSOLE) aurora:privileges:sync
+	@echo "✅ Fixture account: dev@aurora.app / password - Vite starts now and keeps this terminal"
 	make dev
-	@echo "✅ Admin user: admin@aurora.app / password"
 
 install-prod: ## Install for production - first install on a fresh server (empty DB)
 	$(COMPOSER) install --no-dev --optimize-autoloader
