@@ -52,6 +52,12 @@ const props = defineProps({
     loading: { type: Boolean, default: false },
     /** `start` pour une liste de gestes, `center` pour une rangée de boutons. */
     align: { type: String, default: "start" },
+    /**
+     * Un vrai bouton sous `sm` : la surface et le filet d'un bouton
+     * secondaire, transparent au-dessus. Pour les gestes posés sur une carte,
+     * qu'on vise au doigt et qui sans fond se lisaient comme du texte.
+     */
+    boxed: { type: Boolean, default: false },
 });
 
 const colors = {
@@ -75,6 +81,7 @@ const resolved = colors[props.color] ?? colors.default;
             resolved.bg,
             resolved.text,
             'center' === align ? 'items-center justify-center text-center' : 'items-start text-left',
+            boxed ? 'border border-line bg-surface-3 sm:border-transparent sm:bg-transparent' : '',
         ]"
     >
         <span

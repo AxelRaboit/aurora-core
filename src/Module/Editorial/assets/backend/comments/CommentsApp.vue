@@ -113,7 +113,10 @@ function badgeColor(value) {
                             </span>
                         </p>
                         <p class="truncate text-xs text-muted sm:hidden">{{ comment.authorEmail }}</p>
-                        <p class="text-xs text-muted mt-0.5 truncate">
+                        <!-- Tronquée sur une ligne, « En réponse à … » tombait
+                             toujours hors du cadre sur téléphone : elle passe
+                             à la ligne sous `sm`. -->
+                        <p class="text-xs text-muted mt-0.5 sm:truncate">
                             {{ t("backend.comments.on_post") }} {{ comment.postTitle }}
                             · {{ formatDate(comment.createdAt) }}
                             <span v-if="comment.parentAuthorName">

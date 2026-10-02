@@ -194,9 +194,9 @@ const pageActions = computed(() =>
         <AppListToolbar>
             <AppSearchInput v-model="search" :placeholder="t(`${F}.list.search`)" />
             <template #inline>
-                <div class="flex flex-wrap gap-2">
-                    <AppSelect v-model="customerFilter" class="min-w-[12rem]" :options="customerOptions" />
-                    <AppSelect v-model="templateFilter" class="min-w-[12rem]" :options="templateOptions" />
+                <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                    <AppSelect v-model="customerFilter" class="sm:min-w-[12rem]" :options="customerOptions" />
+                    <AppSelect v-model="templateFilter" class="sm:min-w-[12rem]" :options="templateOptions" />
                 </div>
             </template>
             <template #actions>
@@ -330,7 +330,7 @@ const pageActions = computed(() =>
 
                 <article
                     v-else
-                    class="aurora-card p-4 prose-contract max-h-[65vh] overflow-y-auto"
+                    class="aurora-card p-4 prose-contract max-h-[65vh] overflow-y-auto [overflow-wrap:anywhere]"
                     v-html="previewHtml"
                 />
             </div>

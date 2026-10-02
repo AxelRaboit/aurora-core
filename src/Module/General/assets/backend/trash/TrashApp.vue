@@ -141,8 +141,9 @@ function formatDate(value) {
                          définitivement » font trois cents pixels à eux deux :
                          sur trois cent cinquante-neuf, il en restait **trois**
                          pour le nom, qui se pliait en colonne d'une lettre par
-                         ligne. Le nom prend sa ligne, les deux gestes la
-                         suivante, moitié-moitié. -->
+                         ligne. Le nom prend sa ligne, puis chaque geste la
+                         sienne, pleine largeur (02/10/2026 : moitié-moitié,
+                         « Supprimer définitivement » passait sur deux lignes). -->
                     <div
                         v-for="item in active.items"
                         :key="item.id"
@@ -155,10 +156,10 @@ function formatDate(value) {
                                 {{ t("backend.trash.deleted_on", { date: formatDate(item.deletedAt) }) }}
                             </p>
                         </div>
-                        <div v-if="mayAct(active)" class="flex items-center gap-2">
+                        <div v-if="mayAct(active)" class="flex flex-col gap-2 sm:flex-row sm:items-center">
                             <AppButton
                                 v-if="active.restorePath"
-                                class="flex-1 sm:flex-none"
+                                class="w-full sm:w-auto"
                                 size="sm"
                                 variant="ghost"
                                 :loading="busyId === item.id"
@@ -168,7 +169,7 @@ function formatDate(value) {
                             </AppButton>
                             <AppButton
                                 v-if="active.forceDeletePath"
-                                class="flex-1 sm:flex-none"
+                                class="w-full sm:w-auto"
                                 size="sm"
                                 variant="danger"
                                 v-on:click="askForceDelete(active, item)"

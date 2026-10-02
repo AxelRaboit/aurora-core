@@ -29,12 +29,13 @@
  * paire icône + mot se pose au milieu de sa ligne. L'icône voyage avec son mot,
  * jamais accrochée au bord pendant que le texte se déplace.
  *
- * **Deux gestes se partagent la ligne, trois et plus s'empilent.** La règle
- * suit ce que la largeur permet : à deux, chaque moitié fait cent soixante
- * pixels, assez pour « Supprimer » et juste ce qu'il faut pour que la rangée
- * remplisse la carte au lieu d'étirer deux mots sur trois cent quarante. À
- * trois, les colonnes tomberaient à cent dix et « Prévisualiser » n'y tient
- * plus : l'empilement rend à chaque geste une cible franche.
+ * **Sur téléphone, toujours l'un sous l'autre, en vrais boutons pleine
+ * largeur** (décision d'Axel du 02/10/2026). Deux gestes se partageaient la
+ * ligne, et posés sans fond ni filet ils se lisaient comme deux mots au milieu
+ * de la carte, pas comme deux cibles. Chacun prend désormais sa ligne, avec la
+ * surface et le filet d'un bouton secondaire ; un bouton n'est jamais
+ * transparent sur téléphone. À partir de `sm`, la carte retrouve la rangée
+ * légère d'avant, deux gestes côte à côte quand ils sont deux.
  *
  * **Au-delà de quatre ou cinq gestes**, la feuille reprend l'avantage : une
  * carte qui fait deux écrans de haut n'est plus une carte. Les listes qui en
@@ -64,10 +65,11 @@ function run(action) {
 </script>
 
 <template>
-    <div class="grid gap-0.5" :class="paired ? 'grid-cols-2' : 'grid-cols-1'">
+    <div class="grid grid-cols-1 gap-2 sm:gap-0.5" :class="paired ? 'sm:grid-cols-2' : ''">
         <AppActionButton
             v-for="action in actions"
             :key="action.key"
+            boxed
             align="center"
             :title="action.title"
             :color="action.color ?? 'default'"
