@@ -154,9 +154,34 @@ const postTab = (name) => async (page) => {
  */
 const spaceView = (view) => async (page) => {
     await openSpace(page);
-    await page.getByRole("button", { name: view, exact: true }).first().click();
+    await spaceSection(page, view).click();
     await page.waitForTimeout(2_000);
 };
+
+/**
+ * Une entrée du rail d'un espace, par son libellé.
+ *
+ * Depuis la 0.9.328 les sections d'un espace sont un rail de boutons, et une
+ * entrée porte un compteur quand quelque chose attend (« Contenus 3 ») : son
+ * nom accessible n'est plus le libellé seul, et un `exact: true` ne la trouve
+ * plus. Le libellé, suivi ou non d'un nombre, et rien d'autre.
+ */
+function spaceSection(page, label) {
+    // Dans `main` : le menu latéral a aussi ses « Réglages ».
+    return page.locator("main").getByRole("button", { name: new RegExp(`^${label}(\\s+\\d+)?$`) }).first();
+}
+
+/**
+ * Déplie les encarts « Comment ça marche » de la page.
+ *
+ * Les prises les gardent repliés (voir le script d'init du contexte) ; celles
+ * qui montrent un encart l'ouvrent ici. Un clic sur un seul suffit : le choix
+ * est commun, ils s'ouvrent tous.
+ */
+async function openGuides(page) {
+    await page.locator("[data-guide] summary").first().click();
+    await page.waitForTimeout(800);
+}
 
 /**
  * L'adresse de l'éditeur d'un livrable de l'espace ouvert, par son titre : la
@@ -202,7 +227,7 @@ async function openSpace(page) {
  */
 const contents = (shape) => async (page) => {
     await openSpace(page);
-    await page.getByRole("button", { name: "Contenus", exact: true }).first().click();
+    await spaceSection(page, "Contenus").click();
     await page.waitForTimeout(1_500);
     await page.locator("main").getByTitle(shape, { exact: true }).first().click();
     await page.waitForTimeout(1_500);
@@ -653,6 +678,26 @@ const SHOTS = [
         path: "/backend/configuration/settings",
         async prepare(page) {
             await page.waitForTimeout(2_500);
+        },
+    },
+    {
+        // Une intégration sur le gabarit commun (0.9.328) : ce qu'elle fait,
+        // son état, la carte de connexion, et le mode d'emploi à côté.
+        name: "tour-integrations",
+        path: "/backend/configuration/settings/pexels",
+        async prepare(page) {
+            await page.waitForTimeout(2_000);
+            await openGuides(page);
+        },
+    },
+    {
+        // Un encart « Comment ça marche » ouvert, sur un écran simple : chaque
+        // écran a le sien, à côté de ce qu'il explique.
+        name: "tour-encarts",
+        path: "/backend/ged/categories",
+        async prepare(page) {
+            await page.waitForTimeout(1_500);
+            await openGuides(page);
         },
     },
     {
@@ -1213,6 +1258,9 @@ const SHOTS = [
     /** Les livrables d'un espace côté studio : l'audit de la démo, publié. */
     { name: "espace-livrables", path: SPACES, prepare: spaceView("Livrables") },
 
+    /** Les réglages d'un espace : son Drive, son fuseau, ses accès (0.9.328). */
+    { name: "espace-reglages", path: SPACES, prepare: spaceView("Réglages") },
+
     /**
      * Les liens de lecture de l'audit, ouverts depuis son éditeur.
      *
@@ -1638,6 +1686,16 @@ const context = await browser.newContext({
     // existing captures are in.
     colorScheme: "dark",
 });
+// Les encarts « Comment ça marche » repliés, sur chaque page : ouverts, ils
+// posent un bloc de texte en tête de chaque écran et poussent ce que la carte
+// montre sous la ligne de flottaison. Le choix est commun à tous les encarts
+// et retenu dans le navigateur (`aurora.guides.open`), donc il se pose avant
+// chaque chargement ; une prise qui veut l'encart ouvert le déplie dans son
+// `prepare` (`openGuides`), et le chargement suivant le replie de nouveau.
+await context.addInitScript(() => {
+    window.localStorage.setItem("aurora.guides.open", "0");
+});
+
 const page = await context.newPage();
 
 await login(page);
