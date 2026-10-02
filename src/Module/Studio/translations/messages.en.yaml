@@ -1956,7 +1956,7 @@ backend:
                 title: "How deliverables work"
                 step_1: "“New deliverable” creates a document (audit, strategy, report) built like a page, in your colours or the client's."
                 step_2: "It stays hidden from the client until you click “Show to the client”."
-                step_3: "From the open deliverable, “Reading links” gives someone a secret address that opens this document only, without the space."
+                step_3: "“Reading links”, in a deliverable's ⋯ menu or in its editor, gives someone a secret address that opens this document only, without the space."
                 step_4: "A link can have a password and an expiry, and is revoked one by one; hiding the deliverable does not cut its links."
                 step_5: "“Duplicate” creates a copy hidden from the client, handy to start again from last month's report."
             intro: "The documents written for this client: audits, strategies, reports. Each one is built like a page, in its own colours, and the client reads it in their space as soon as you open it to them."

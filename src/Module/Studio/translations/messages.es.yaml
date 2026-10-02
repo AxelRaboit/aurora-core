@@ -1936,7 +1936,7 @@ backend:
                 title: "Cómo funcionan los entregables"
                 step_1: "«Nuevo entregable» crea un documento (auditoría, estrategia, balance) que se compone como una página, con sus colores o los del cliente."
                 step_2: "Permanece oculto al cliente mientras no haga clic en «Mostrar al cliente»."
-                step_3: "Desde el entregable abierto, «Enlaces de lectura» da a alguien una dirección secreta que abre solo este documento, sin el espacio."
+                step_3: "«Enlaces de lectura», en el menú ⋯ de un entregable o en su editor, da a alguien una dirección secreta que abre solo este documento, sin el espacio."
                 step_4: "Un enlace puede tener contraseña y caducidad, y se revoca uno por uno; ocultar el entregable no corta sus enlaces."
                 step_5: "«Duplicar» crea una copia oculta al cliente, práctica para partir del balance del mes pasado."
             intro: "Los documentos escritos para este cliente: auditorías, estrategias, balances. Cada uno se compone como una página, con sus colores, y el cliente lo lee en su espacio en cuanto usted se lo abre."

@@ -15,7 +15,7 @@ import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { Copy, Eye, EyeOff, ExternalLink, Pencil, Plus, Trash2, X } from "lucide-vue-next";
+import { Copy, Eye, EyeOff, ExternalLink, Link2, Pencil, Plus, Trash2, X } from "lucide-vue-next";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
@@ -27,6 +27,7 @@ import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
+import DeliverableLinksModal from "./components/DeliverableLinksModal.vue";
 
 const props = defineProps({
     deliverables: { type: Array, default: () => [] },
@@ -35,6 +36,8 @@ const props = defineProps({
     visibilityPathTemplate: { type: String, required: true },
     duplicatePathTemplate: { type: String, required: true },
     deletePathTemplate: { type: String, required: true },
+    /** Les liens de lecture d'un livrable ; vide, l'action n'est pas proposée. */
+    linksPathTemplate: { type: String, default: "" },
 });
 
 const { t } = useI18n();
@@ -126,6 +129,11 @@ async function doDelete() {
     }
 }
 
+// ── Liens de lecture ────────────────────────────────────────────────────────
+
+/** Le livrable dont la fenêtre des liens est ouverte. */
+const linksFor = ref(null);
+
 function actionsFor(deliverable) {
     const actions = [
         {
@@ -146,6 +154,18 @@ function actionsFor(deliverable) {
             onSelect: () => window.open(deliverable.previewPath, "_blank", "noopener"),
         },
     ];
+
+    // Les liens de lecture, comme dans l'éditeur : créer une adresse pour un
+    // destinataire ne demande plus d'ouvrir le document d'abord.
+    if (props.linksPathTemplate) {
+        actions.push({
+            key: "links",
+            icon: Link2,
+            title: t("backend.studio.space_deliverables.links.title"),
+            description: t("backend.studio.space_deliverables.links_hint"),
+            onSelect: () => (linksFor.value = deliverable),
+        });
+    }
 
     if (!props.canEdit) return actions;
 
@@ -243,6 +263,12 @@ function actionsFor(deliverable) {
                 </div>
             </li>
         </ul>
+
+        <DeliverableLinksModal
+            :show="null !== linksFor"
+            :links-path="linksFor ? buildPath(linksPathTemplate, { id: linksFor.id }) : ''"
+            v-on:close="linksFor = null"
+        />
 
         <AppModal
             :show="creating"

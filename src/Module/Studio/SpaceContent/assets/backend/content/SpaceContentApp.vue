@@ -209,6 +209,7 @@ const props = defineProps({
     deliverableVisibilityPathTemplate: { type: String, default: "" },
     deliverableDuplicatePathTemplate: { type: String, default: "" },
     deliverableDeletePathTemplate: { type: String, default: "" },
+    deliverableLinksPathTemplate: { type: String, default: "" },
 });
 
 /**
@@ -775,6 +776,7 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                 :visibility-path-template="deliverableVisibilityPathTemplate"
                 :duplicate-path-template="deliverableDuplicatePathTemplate"
                 :delete-path-template="deliverableDeletePathTemplate"
+                :links-path-template="deliverableLinksPathTemplate"
             />
 
             <SpaceResourcesView
