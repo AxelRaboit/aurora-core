@@ -11,6 +11,10 @@ use Aurora\Core\Storage\Enum\StorageDiskEnum;
 use Aurora\Core\Storage\Service\ImageRenditionGenerator;
 use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
+use Aurora\Module\Ged\Document\Search\DocumentOrientationEnum;
+use Aurora\Module\Ged\Document\Search\DocumentSearchFieldEnum;
+use Aurora\Module\Ged\Document\Search\DocumentSearchFilters;
+use Aurora\Module\Ged\Document\Search\DocumentWeightEnum;
 use Aurora\Module\Ged\Document\Service\DocumentRelocator;
 use Aurora\Module\Ged\Enum\DocumentStatusEnum;
 use DateTimeImmutable;
@@ -55,6 +59,7 @@ class DocumentRepository extends ResolveTargetEntityRepository implements ResetI
         bool $originalsOnly = false,
         string $sort = 'date',
         string $direction = 'desc',
+        DocumentSearchFilters $filters = new DocumentSearchFilters(),
     ): array {
         // The original rides along: an alternate names it on its row, and
         // reading it lazily would cost one query per alternate on the page.
@@ -75,21 +80,14 @@ class DocumentRepository extends ResolveTargetEntityRepository implements ResetI
 
         if (null !== $search && '' !== $search) {
             $pattern = '%'.mb_strtolower($search).'%';
-            $match = 'LOWER(d.title) LIKE :search OR LOWER(d.reference) LIKE :search';
-
-            // Folded, an alternate is not a row of its own: a search that only
-            // it answers would come back empty. Its original answers for it,
-            // and the row says which member matched.
-            if ($originalsOnly) {
-                $match .= sprintf(
-                    ' OR EXISTS (SELECT 1 FROM %s searched WHERE searched.original = d AND searched.deletedAt IS NULL AND (LOWER(searched.title) LIKE :search OR LOWER(searched.alternateLabel) LIKE :search))',
-                    $this->getEntityName(),
-                );
-            }
+            $match = $this->searchMatch($filters->searchIn, $originalsOnly);
 
             $qb->andWhere($match)->setParameter('search', $pattern);
             $countQb->andWhere($match)->setParameter('search', $pattern);
         }
+
+        $this->applySearchFilters($qb, $filters);
+        $this->applySearchFilters($countQb, $filters);
 
         if (null !== $categoryId) {
             $qb->andWhere('d.category = :cat')->setParameter('cat', $categoryId);
@@ -604,6 +602,95 @@ class DocumentRepository extends ResolveTargetEntityRepository implements ResetI
 
     /** The sort keys the listing accepts, as the screen names them. */
     public const array SORTS = ['date', 'name', 'size'];
+
+    /**
+     * The search box's condition, for the fields it was asked to read.
+     *
+     * Everything is a `LIKE` on lowered text, as the title search always was:
+     * a library of a few thousand rows does not need an index to answer, and
+     * a word typed in the box should find it wherever it sits in a name.
+     * Tags, category and folder go through subqueries so the count query,
+     * which joins nothing, asks exactly the same question.
+     */
+    private function searchMatch(DocumentSearchFieldEnum $field, bool $originalsOnly): string
+    {
+        $titles = ['LOWER(d.title) LIKE :search', 'LOWER(d.reference) LIKE :search', 'LOWER(d.alternateLabel) LIKE :search'];
+
+        // Folded, an alternate is not a row of its own: a search that only
+        // it answers would come back empty. Its original answers for it,
+        // and the row says which member matched.
+        if ($originalsOnly) {
+            $titles[] = sprintf(
+                'EXISTS (SELECT 1 FROM %s searched WHERE searched.original = d AND searched.deletedAt IS NULL AND (LOWER(searched.title) LIKE :search OR LOWER(searched.alternateLabel) LIKE :search))',
+                $this->getEntityName(),
+            );
+        }
+
+        $files = ['LOWER(d.originalName) LIKE :search', 'LOWER(d.fileName) LIKE :search'];
+        $texts = [
+            'LOWER(d.description) LIKE :search',
+            'LOWER(d.alt) LIKE :search',
+            'LOWER(d.caption) LIKE :search',
+            'LOWER(d.attributionName) LIKE :search',
+        ];
+        $metadata = $this->getClassMetadata();
+        $classification = [
+            sprintf('EXISTS (SELECT 1 FROM %s searchedTag WHERE searchedTag MEMBER OF d.tags AND LOWER(searchedTag.name) LIKE :search)', $metadata->getAssociationTargetClass('tags')),
+            sprintf('d.category IN (SELECT searchedCategory.id FROM %s searchedCategory WHERE LOWER(searchedCategory.name) LIKE :search)', $metadata->getAssociationTargetClass('category')),
+            sprintf('d.folder IN (SELECT searchedFolder.id FROM %s searchedFolder WHERE LOWER(searchedFolder.name) LIKE :search)', $metadata->getAssociationTargetClass('folder')),
+        ];
+
+        $conditions = match ($field) {
+            DocumentSearchFieldEnum::Title => $titles,
+            DocumentSearchFieldEnum::File => $files,
+            DocumentSearchFieldEnum::Text => $texts,
+            DocumentSearchFieldEnum::Classification => $classification,
+            DocumentSearchFieldEnum::All => [...$titles, ...$files, ...$texts, ...$classification],
+        };
+
+        return '('.implode(' OR ', $conditions).')';
+    }
+
+    /**
+     * The filters that came with the wider search. Each one leaves the query
+     * alone when unset, so a listing that passes none is unchanged.
+     */
+    private function applySearchFilters(QueryBuilder $qb, DocumentSearchFilters $filters): void
+    {
+        if ($filters->uncategorized) {
+            $qb->andWhere('d.category IS NULL');
+        }
+
+        if ($filters->untagged) {
+            $qb->andWhere('d.tags IS EMPTY');
+        }
+
+        if ($filters->addedFrom instanceof DateTimeImmutable) {
+            $qb->andWhere('d.createdAt >= :addedFrom')->setParameter('addedFrom', $filters->addedFrom);
+        }
+
+        if ($filters->addedTo instanceof DateTimeImmutable) {
+            $qb->andWhere('d.createdAt <= :addedTo')->setParameter('addedTo', $filters->addedTo);
+        }
+
+        // Square within two percent: a 1080 x 1079 crop is square to anyone
+        // looking at it, and would otherwise be filed as landscape.
+        match ($filters->orientation) {
+            DocumentOrientationEnum::Landscape => $qb->andWhere('d.width > d.height * 1.02'),
+            DocumentOrientationEnum::Portrait => $qb->andWhere('d.height > d.width * 1.02'),
+            DocumentOrientationEnum::Square => $qb->andWhere('d.width > 0 AND d.height > 0 AND d.width <= d.height * 1.02 AND d.height <= d.width * 1.02'),
+            null => null,
+        };
+
+        match ($filters->weight) {
+            DocumentWeightEnum::Light => $qb->andWhere('d.size < :weightLight')->setParameter('weightLight', DocumentWeightEnum::LIGHT_MAX),
+            DocumentWeightEnum::Medium => $qb->andWhere('d.size >= :weightLight AND d.size <= :weightHeavy')
+                ->setParameter('weightLight', DocumentWeightEnum::LIGHT_MAX)
+                ->setParameter('weightHeavy', DocumentWeightEnum::HEAVY_MIN),
+            DocumentWeightEnum::Heavy => $qb->andWhere('d.size > :weightHeavy')->setParameter('weightHeavy', DocumentWeightEnum::HEAVY_MIN),
+            null => null,
+        };
+    }
 
     /**
      * The listing's order, with each family kept in one piece.

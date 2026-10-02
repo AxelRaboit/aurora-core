@@ -128,7 +128,7 @@ backend:
       add: Add document
       create: New document
       edit: "Edit document {title}"
-      search_placeholder: Search a document…
+      search_placeholder: "Search: title, file, text, tag…"
       picker_title: Pick a document
       picker_empty: No document available
       picker_confirm: Select
@@ -151,6 +151,25 @@ backend:
       filter_by_tag: Filter by tag
       filter_by_folder: Filter by folder
       filter_by_type: Filter by type
+      filter_no_tag: No tag
+      more_filters: More filters
+      any: Any
+      search_in: Search in
+      search_in_all: Everywhere
+      search_in_title: Title and reference
+      search_in_file: File name
+      search_in_text: Description, alt text, caption, credit
+      search_in_classification: Tags, category, folder
+      added_from: Added from
+      added_to: Added until
+      orientation: Shape
+      orientation_landscape: Landscape
+      orientation_portrait: Portrait
+      orientation_square: Square
+      weight: Weight
+      weight_light: Light (under 500 KB)
+      weight_medium: Medium (500 KB to 5 MB)
+      weight_heavy: Heavy (over 5 MB)
       type_image: Images
       type_video: Videos
       type_audio: Audio

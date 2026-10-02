@@ -128,7 +128,7 @@ backend:
       add: Ajouter un document
       create: Nouveau document
       edit: "Modifier le document {title}"
-      search_placeholder: Rechercher un document…
+      search_placeholder: "Rechercher : titre, fichier, texte, étiquette…"
       picker_title: Choisir un document
       picker_empty: Aucun document disponible
       picker_confirm: Sélectionner
@@ -151,6 +151,25 @@ backend:
       filter_by_tag: Filtrer par étiquette
       filter_by_folder: Filtrer par dossier
       filter_by_type: Filtrer par type
+      filter_no_tag: Sans étiquette
+      more_filters: Plus de filtres
+      any: Tous
+      search_in: Chercher dans
+      search_in_all: Partout
+      search_in_title: Titre et référence
+      search_in_file: Nom du fichier
+      search_in_text: Description, texte alternatif, légende, crédit
+      search_in_classification: Étiquettes, catégorie, dossier
+      added_from: Ajouté depuis le
+      added_to: Ajouté jusqu'au
+      orientation: Format
+      orientation_landscape: Paysage
+      orientation_portrait: Portrait
+      orientation_square: Carré
+      weight: Poids
+      weight_light: Léger (moins de 500 Ko)
+      weight_medium: Moyen (500 Ko à 5 Mo)
+      weight_heavy: Lourd (plus de 5 Mo)
       type_image: Images
       type_video: Vidéos
       type_audio: Audio

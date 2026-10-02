@@ -7,6 +7,17 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ## [0.9.326] - 2026-10-02
 
+### Ajouté
+
+#### Chercher un document par autre chose que son titre
+La recherche de la médiathèque lit désormais, en plus du titre et de la référence, le nom du fichier envoyé, la description, le texte alternatif, la légende, le crédit, et les noms des étiquettes, de la catégorie et du dossier. Un bouton « Plus de filtres » ouvre de quoi la préciser :
+- **Chercher dans** : partout (par défaut), titre et référence, nom du fichier, textes (description, texte alternatif, légende, crédit), ou étiquettes, catégorie et dossier.
+- **Ajouté depuis le / jusqu'au** : la journée de fin est comprise.
+- **Format** : paysage, portrait ou carré, d'après les dimensions de l'image.
+- **Poids** : léger (moins de 500 Ko), moyen (500 Ko à 5 Mo) ou lourd (plus de 5 Mo).
+
+Les filtres de catégorie et d'étiquette proposent aussi « Sans catégorie » et « Sans étiquette », pour retrouver ce qui n'a jamais été rangé. Le bouton affiche combien de ces filtres sont actifs, et le panneau reste ouvert tant que l'un d'eux l'est. La fenêtre de choix d'un document, dans les éditeurs, profite de la même recherche élargie.
+
 ### Amélioré
 
 #### Les réglages Drive d'un espace disent quel dossier ils règlent
