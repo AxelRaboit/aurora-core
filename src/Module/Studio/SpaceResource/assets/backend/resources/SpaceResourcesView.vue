@@ -14,6 +14,7 @@
  * chose par inadvertance et publier quelque chose sont le même geste à
  * l'écran ; ce qui les distingue est de savoir ce qui vient de se passer.
  */
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { ArrowDown, ArrowUp, Eye, EyeOff, Pencil, Plus, Trash2 } from "lucide-vue-next";
@@ -117,6 +118,13 @@ function isLast(resource) {
             </AppButton>
         </div>
 
+        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+     replié une fois, il le reste (`storage-key`). -->
+        <AppGuide :title="t('backend.studio.space_resources.guide.title')" storage-key="space-resources">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 4" :key="step">{{ t(`backend.studio.space_resources.guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
         <AppNoData
             v-if="0 === resources.length"
             :message="t('backend.studio.space_resources.empty')"

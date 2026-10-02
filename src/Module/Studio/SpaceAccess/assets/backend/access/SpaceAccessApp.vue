@@ -13,6 +13,7 @@
  * closes an address and keeps the record; deleting is for the one sent to the
  * wrong mailbox thirty seconds ago, where the record is noise.
  */
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
@@ -179,6 +180,13 @@ function openedLabel(link) {
             </AppButton>
         </div>
 
+        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+     replié une fois, il le reste (`storage-key`). -->
+        <AppGuide :title="t('backend.studio.space_access.guide.title')" storage-key="space-access">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 5" :key="step">{{ t(`backend.studio.space_access.guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
         <!-- The address, once. It is deliberately loud and deliberately not in
              the list: nothing can show it again, and a row that pretended it
              could would be a copy button with nothing behind it. -->

@@ -18,6 +18,7 @@
  * que je cherche » - et un conteneur étroit impose les cartes quel que soit le
  * choix, sans l'effacer.
  */
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { Download, LayoutGrid, List, Lock, Pencil, Pin, PinOff, Plus, RefreshCw, StickyNote, Trash2, Users } from "lucide-vue-next";
@@ -76,6 +77,13 @@ function tint(note) {
 
 <template>
     <div class="space-y-2 sm:space-y-4">
+        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+     replié une fois, il le reste (`storage-key`). -->
+        <AppGuide :title="t('backend.studio.space_notes.guide.title')" storage-key="space-notes">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 4" :key="step">{{ t(`backend.studio.space_notes.guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="flex w-full min-w-0 max-w-full flex-col items-stretch gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
                 <!-- Pleine largeur sous `sm` : c'est le geste de l'écran, et

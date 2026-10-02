@@ -35,6 +35,7 @@
  * hand everything back as events. That is what lets a card edited in one of
  * them be right in the others.
  */
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
@@ -687,6 +688,13 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
             <!-- The container and not the window decides the shape: bound here,
              around both drawings, so a narrow panel gets the list. -->
             <div v-if="view === 'content'" ref="shapeContainer">
+                <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+                 replié une fois, il le reste (`storage-key`). -->
+                <AppGuide :title="t('backend.studio.space_content.guide.title')" storage-key="space-content" class="mb-4">
+                    <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                        <li v-for="step in 5" :key="step">{{ t(`backend.studio.space_content.guide.step_${step}`) }}</li>
+                    </ol>
+                </AppGuide>
                 <!-- Filtrées, les colonnes n'ont plus toutes leurs cartes : un
                  glisser-déposer y réécrirait l'ordre d'une partie seulement.
                  Le tri se refait sans filtre. -->
@@ -816,6 +824,13 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                 data-fills-viewport
                 class="flex min-h-[20rem] flex-1 flex-col"
             >
+                <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+     replié une fois, il le reste (`storage-key`). -->
+                <AppGuide :title="t('backend.studio.space_chat.guide.title')" storage-key="space-chat" class="mb-3 shrink-0">
+                    <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                        <li v-for="step in 4" :key="step">{{ t(`backend.studio.space_chat.guide.step_${step}`) }}</li>
+                    </ol>
+                </AppGuide>
                 <SpaceChatPanel
                     fill
                     :messages="chatMessages"

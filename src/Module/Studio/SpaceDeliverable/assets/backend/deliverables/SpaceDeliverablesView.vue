@@ -11,6 +11,7 @@
  * Même gabarit que les ressources voisines : l'intro et le bouton en tête, des
  * cartes en liste, les gestes écrits en toutes lettres sur téléphone.
  */
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
@@ -200,6 +201,13 @@ function actionsFor(deliverable) {
             </AppButton>
         </div>
 
+        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+     replié une fois, il le reste (`storage-key`). -->
+        <AppGuide :title="t('backend.studio.space_deliverables.guide.title')" storage-key="space-deliverables">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 5" :key="step">{{ t(`backend.studio.space_deliverables.guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
         <AppNoData
             v-if="0 === rows.length"
             :message="t('backend.studio.space_deliverables.empty')"

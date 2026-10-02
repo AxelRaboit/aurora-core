@@ -27,6 +27,7 @@ import { gridWindow, monthGrid, sameDay } from "@/shared/composables/calendar/mo
 import { useNarrowContainer } from "@/shared/composables/list/useNarrowContainer.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 
 const props = defineProps({
     scope: { type: String, default: "mine" },
@@ -220,6 +221,13 @@ function spaceName(item) {
                 <AppSelect v-model="state" :options="stateOptions" :placeholder="t('backend.studio.calendar.all_states')" />
             </template>
         </AppListToolbar>
+        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+             replié une fois, il le reste (`storage-key`). -->
+        <AppGuide :title="t('backend.studio.calendar.guide.title')" storage-key="studio-calendar">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 5" :key="step">{{ t(`backend.studio.calendar.guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
 
         <!-- La barre du module Calendrier, à l'identique : un mois se
              parcourt partout de la même façon. -->

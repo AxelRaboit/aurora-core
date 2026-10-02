@@ -176,6 +176,13 @@ backend:
                 changes_requested: "Nothing to rework | 1 to rework | {count} to rework"
                 with_client: "Nothing with the client | 1 with the client | {count} with the client"
         calendar:
+            guide:
+                title: "How to read the calendar"
+                step_1: "It gathers on one month the publications of all your active spaces, one colour per space."
+                step_2: "“My spaces” or “All spaces” chooses what is shown; archived spaces are left out."
+                step_3: "Filter by client or by state: missed, late review, to rework, with the client, upcoming (seven days), published."
+                step_4: "In the list, with a state chosen, every date is gathered and undated items come last."
+                step_5: "The calendar is read only: click an item to edit it in its space."
             scope_label: Spaces shown
             scopes:
                 mine: My spaces
@@ -208,6 +215,13 @@ backend:
                 customer: 'The customer'
                 provider: 'The provider'
         contracts:
+            guide:
+                title: "How a contract goes"
+                step_1: "Prepare it as a draft: the client, the template, the amount, the dates and the extra fields the template asks for."
+                step_2: "Seal it: the text is frozen, the contract gets its reference and can no longer be edited."
+                step_3: "Send it: the client gets a personal signing link by email, valid thirty days. A new send cancels the previous link."
+                step_4: "The client reads, fills in their identity, signs, then confirms with a code sent by email; they can also decline."
+                step_5: "Countersign: the contract is concluded and both parties get the signed PDF. Declined, expired or revoked, it goes back to “To send”."
             wording:
                 title: Adapted wording
                 heading: Contract wording for {customer}
@@ -569,6 +583,13 @@ backend:
                 provider_settings_missing: 'These provider details are not set in the settings, and the trame prints them: {fields}'
                 custom_field_too_long: A complement cannot exceed 500 characters.
         contract_templates:
+            guide:
+                title: "How templates work"
+                step_1: "A template is a contract body, signed on its own, or an appendix, which completes a body."
+                step_2: "“Edit the text” opens the next version as a draft: the version in force does not change until you publish."
+                step_3: "Insert variables from the panel; a custom variable (contract.custom followed by a name) creates a field to fill in on each contract."
+                step_4: "The preview replaces variables with examples and with your details taken from the settings."
+                step_5: "Publish: the version becomes final and new contracts start from this text. Existing contracts keep theirs."
             legal_status: '{form} with a share capital of {capital}'
             title: Contract templates
             kind:
@@ -732,6 +753,13 @@ backend:
                 examples_notice: 'These values are examples. The contract will use the real ones: the chosen client''s and yours.'
                 example: 'e.g. {value}'
         decks:
+            guide:
+                title: "How presentations work"
+                step_1: "Create a presentation from scratch, from a template, or by importing a document where each heading opens a slide."
+                step_2: "In the editor, add slides, reorder them and write your speaker notes; everything saves on its own."
+                step_3: "“Present” goes full screen; the presenter view opens alongside with the notes, the next slide and a timer."
+                step_4: "“Share” creates a secret address that opens without an account, with an expiry and an optional password."
+                step_5: "Speaker notes are never shown through a link, and a link can be revoked at any time."
             create: New presentation
             created: Presentation created
             updated: Presentation updated
@@ -1344,6 +1372,13 @@ backend:
                     name_required: The name is required.
                     color_invalid: The colour must be a hex value, for example #6366f1.
         customers:
+            guide:
+                title: "How records work"
+                step_1: "A record starts as a prospect: a company you talk to, without its legal identity yet."
+                step_2: "“Convert to client” asks for the contractual address, where signing links will be sent."
+                step_3: "Then fill in the SIRET, the legal form, the registered office and the representative: contracts use them."
+                step_4: "The record belongs to the client, not to a space: editing it from a space changes it in all their spaces."
+                step_5: "A record with contracts or open spaces cannot be deleted."
             title: Customers
             spaces: Their spaces
             spaces_description: Opens this company's spaces in the list.
@@ -1431,6 +1466,13 @@ backend:
                 siret_taken: 'This registration number is already recorded for {name}.'
                 has_spaces: 'This client still has {count} open space(s). Delete or archive their work before deleting the record.'
         spaces:
+            guide:
+                title: "How spaces work"
+                step_1: "A space gathers the work done for a client: create one per assignment, not one per company."
+                step_2: "“Add a space” asks for a name, an existing client or a new prospect, and the team working on it."
+                step_3: "The Clients and Prospects tabs separate what you work on from what you are trying to win."
+                step_4: "“To handle” counts missed publications, late reviews, content to rework and what waits for the client."
+                step_5: "Archiving a space takes it out of the list without losing anything; deleting it erases its content, but keeps the client and their contracts."
             usage_detail: 'Space {space}'
             title: Client spaces
             add: Add a space
@@ -1576,6 +1618,13 @@ backend:
                 timezone_invalid: That time zone is not recognised.
                 team_lead_only: Only the space lead can change its team and roles.
         space_access:
+            guide:
+                title: "How access links work"
+                step_1: "“Create a link” makes a personal address for one recipient, which opens the space without an account."
+                step_2: "Copy it right away and send it yourself: it will never be shown again, and the app does not send it."
+                step_3: "The link expires after 90 days by default; its boxes set what the client can do: validate, comment, write in the chat, upload files, see the Drive."
+                step_4: "“Preview” opens the page exactly as that recipient sees it, without saving anything on their behalf."
+                step_5: "“Revoke” cuts the link and keeps its record; “Delete” erases it completely."
             tab: Client access
             intro: A link opens this space read-only, with no account. It is personal, it expires, and it can be revoked.
             issue: Create a link
@@ -1629,6 +1678,12 @@ backend:
                 email_required: The recipient email is required.
                 email_invalid: This email is not valid.
         space_files:
+            guide:
+                title: "How files are organised"
+                step_1: "“On the cards” lists files attached to content, by you or by the client, newest first."
+                step_2: "“Of the space” gathers what serves the assignment without illustrating a publication: the guidelines, the logos, the brief."
+                step_3: "A space file is added here; a file for a publication is added from its card."
+                step_4: "The client sees both kinds of files; removing a file from the space keeps it in the media library."
             # A space's own files, on no card.
             usage_detail: A file of the space
             label: Attachment
@@ -1725,6 +1780,12 @@ backend:
                 enabled_hint: Each space can then name the folder its client shared.
                 enabled_blocked: Paste a service account key before enabling.
             space:
+                guide:
+                    title: "How the Drive works"
+                    step_1: "The client's folder is linked in the space Settings, once they have shared it read only with the service account."
+                    step_2: "Their files stay with them: nothing is copied, and the client sees them without a Google account."
+                    step_3: "The agency folder is the same in every space, and the client never sees it."
+                    step_4: "Attaching a Drive file to a card makes a copy in the media library, which no longer follows changes in the Drive."
                 title: Google Drive folder
                 intro: "The files stay with the client: nothing is copied, and they show in their space without them needing a Google account."
                 folder_label: Shared folder
@@ -1767,6 +1828,12 @@ backend:
                 folder_invalid: "That is not a Drive folder. Paste its address, or the identifier that follows /folders/."
                 import_failed: "That file could not be copied. Google documents have no file to download."
         space_notes:
+            guide:
+                title: "How notes work"
+                step_1: "Notes are the only part of the space the client never sees."
+                step_2: "A note “Shared with the team” is read by the whole team of the space."
+                step_3: "A “Personal” note is read by you only."
+                step_4: "Pin a note to keep it on top, and switch between wall and list as you prefer."
             # A space's notes: the one surface a client never sees.
             add: New note
             create: New note
@@ -1851,6 +1918,13 @@ backend:
                 link_url_invalid: "This address is not valid. It has to start with http:// or https://."
                 link_url_too_long: This address is too long.
         space_deliverables:
+            guide:
+                title: "How deliverables work"
+                step_1: "“New deliverable” creates a document (audit, strategy, report) built like a page, in your colours or the client's."
+                step_2: "It stays hidden from the client until you click “Show to the client”."
+                step_3: "From the open deliverable, “Reading links” gives someone a secret address that opens this document only, without the space."
+                step_4: "A link can have a password and an expiry, and is revoked one by one; hiding the deliverable does not cut its links."
+                step_5: "“Duplicate” creates a copy hidden from the client, handy to start again from last month's report."
             intro: "The documents written for this client: audits, strategies, reports. Each one is built like a page, in its own colours, and the client reads it in their space as soon as you open it to them."
             add: "New deliverable"
             empty: "No deliverables for this client."
@@ -1971,6 +2045,12 @@ backend:
                 locale_invalid: "This language is not active on the site."
                 grid_invalid: "The grid sent is unreadable."
         space_resources:
+            guide:
+                title: "How resources work"
+                step_1: "“Add” pins a link (a mock-up, an access), a text (instructions) or a contact (the person who approves)."
+                step_2: "A new item is kept for the studio and filed under “For you only”."
+                step_3: "“Show to the client” moves it to “What the client sees”, readable by anyone with an access link."
+                step_4: "Never put a password in a visible item; the arrows set the display order."
             intro: "What lives elsewhere and gets looked for every time: a mockup, an access, the person who signs off. Each item is shown or hidden from the client, one by one."
             add: Add
             add_confirm: Add
@@ -2032,6 +2112,12 @@ backend:
             changes_requested: '%who% asked for a rewrite of "%item%"'
             late_review: '{1}One review overdue|]1,Inf[%count% reviews overdue'
         space_chat:
+            guide:
+                title: "How the chat works"
+                step_1: "The chat is for what does not concern one card; what is about a publication goes in its card's thread."
+                step_2: "The “General” channel is always open to the client: they read it and can answer."
+                step_3: "A new channel stays internal; “Open to the client” makes it readable by anyone with an access link."
+                step_4: "Private messages are between two team members, and nobody else reads them."
             channels:
                 main_name: General
                 notice_internal: "This channel is internal: the client does not read it."
@@ -2050,6 +2136,13 @@ backend:
                 from_client: A client's message is not deleted. It is what they told you.
                 not_in_space: This link does not open this space.
         space_content:
+            guide:
+                title: "How the board works"
+                step_1: "Each column is a stage (Ideas, Writing, To validate, Scheduled, Published): drag a card to move it forward."
+                step_2: "A dated card, in a stage the client can see and not yet published, waits for their opinion."
+                step_3: "“Send for review” emails every recipient who can validate, with a fresh link to answer “Approved” or “To rework”."
+                step_4: "The client's answer does not move the card: you move it forward after reading it."
+                step_5: "Editing a card's text or files clears the client's answer: it needs reviewing again."
             tab: Workspace
             view_label: View
             nav_open: Change section

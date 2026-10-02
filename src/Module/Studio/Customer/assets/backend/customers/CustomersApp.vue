@@ -19,6 +19,7 @@ import AppCardActions from "@/shared/components/action/AppCardActions.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import { Building2, Pencil, Plus, Save, Trash2, X } from "lucide-vue-next";
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 
 const { t } = useI18n();
 const { container, isNarrow } = useNarrowContainer();
@@ -181,6 +182,13 @@ const pageActions = computed(() => {
                 />
             </template>
         </AppListToolbar>
+        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+             replié une fois, il le reste (`storage-key`). -->
+        <AppGuide :title="t('backend.studio.customers.guide.title')" storage-key="customers-list">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 5" :key="step">{{ t(`backend.studio.customers.guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
 
         <!-- Deux onglets plutot qu'une colonne : un statut a deux valeurs sur
              lequel on veut filtrer est un filtre, pas une colonne - et une

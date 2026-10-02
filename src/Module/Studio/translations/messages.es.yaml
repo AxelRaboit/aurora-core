@@ -176,6 +176,13 @@ backend:
                 changes_requested: 'Nada por rehacer | 1 por rehacer | {count} por rehacer'
                 with_client: 'Nada con el cliente | 1 con el cliente | {count} con el cliente'
         calendar:
+            guide:
+                title: 'Cómo leer el calendario'
+                step_1: 'Reúne en un mismo mes las publicaciones de todos sus espacios activos, un color por espacio.'
+                step_2: '«Mis espacios» o «Todos los espacios» elige lo que se muestra; los espacios archivados no aparecen.'
+                step_3: 'Filtre por cliente o por estado: publicación perdida, revisión con retraso, por retomar, con el cliente, próxima (siete días), publicada.'
+                step_4: 'En la lista, con un estado elegido, todas las fechas se reúnen y las fichas sin fecha van al final.'
+                step_5: 'El calendario es solo de lectura: haga clic en una ficha para modificarla en su espacio.'
             scope_label: 'Espacios mostrados'
             scopes:
                 mine: 'Mis espacios'
@@ -208,6 +215,13 @@ backend:
                 customer: 'El cliente'
                 provider: 'El prestador'
         contracts:
+            guide:
+                title: "Cómo avanza un contrato"
+                step_1: "Prepárelo como borrador: el cliente, la plantilla, el importe, las fechas y los campos que pida la plantilla."
+                step_2: "Séllelo: el texto queda fijado, el contrato recibe su referencia y ya no se modifica."
+                step_3: "Envíelo: el cliente recibe por correo un enlace de firma personal, válido treinta días. Un nuevo envío anula el enlace anterior."
+                step_4: "El cliente lee, indica su identidad, firma y confirma con un código recibido por correo; también puede rechazarlo."
+                step_5: "Contrafirme: el contrato queda concluido y cada parte recibe el PDF firmado. Rechazado, caducado o revocado, vuelve a «Por enviar»."
             wording:
                 title: Texto adaptado
                 heading: Texto del contrato para {customer}
@@ -569,6 +583,13 @@ backend:
                 provider_settings_missing: 'Estos datos del prestador no están indicados en los ajustes, y la plantilla los imprime: {fields}'
                 custom_field_too_long: 'Un complemento no puede superar los 500 caracteres.'
         contract_templates:
+            guide:
+                title: 'Cómo funcionan las plantillas'
+                step_1: 'Una plantilla es un cuerpo de contrato, que se firma solo, o un anexo, que completa un cuerpo.'
+                step_2: '«Modificar el texto» abre la versión siguiente como borrador: la versión vigente no cambia mientras no publique.'
+                step_3: 'Inserte las variables del panel; una variable personalizada (contract.custom seguido de un nombre) crea un campo que rellenar en cada contrato.'
+                step_4: 'La vista previa sustituye las variables por ejemplos y por sus datos tomados de los ajustes.'
+                step_5: 'Publique: la versión pasa a ser definitiva y los nuevos contratos parten de este texto. Los contratos existentes conservan el suyo.'
             legal_status: '{form} con un capital social de {capital}'
             title: 'Plantillas de contrato'
             kind:
@@ -732,6 +753,13 @@ backend:
                 examples_notice: 'Estos valores son ejemplos. El contrato usará los reales: los del cliente elegido y los suyos.'
                 example: 'ej. {value}'
         decks:
+            guide:
+                title: 'Cómo funcionan las presentaciones'
+                step_1: 'Cree una presentación desde cero, a partir de una plantilla, o importando un documento en el que cada título abre una diapositiva.'
+                step_2: 'En el editor, añada diapositivas, reordénelas y escriba sus notas de orador; todo se guarda solo.'
+                step_3: '«Presentar» pasa a pantalla completa; la vista de presentador se abre al lado con las notas, la diapositiva siguiente y un temporizador.'
+                step_4: '«Compartir» crea una dirección secreta que se abre sin cuenta, con caducidad y contraseña opcional.'
+                step_5: 'Las notas de orador nunca se muestran por un enlace, y un enlace se puede revocar en cualquier momento.'
             create: 'Crear una presentación'
             created: 'Presentación creada'
             updated: 'Presentación actualizada'
@@ -1344,6 +1372,13 @@ backend:
                     name_required: 'El nombre es obligatorio.'
                     color_invalid: 'El color debe estar en formato hexadecimal, por ejemplo'
         customers:
+            guide:
+                title: "Cómo funcionan las fichas"
+                step_1: "Una ficha empieza como prospecto: una empresa con la que habla, todavía sin su identidad legal."
+                step_2: "«Convertir en cliente» pide la dirección contractual, a la que se enviarán los enlaces de firma."
+                step_3: "Complete después el SIRET, la forma jurídica, la sede y el representante: los contratos los retoman."
+                step_4: "La ficha pertenece al cliente, no a un espacio: modificarla desde un espacio la modifica en todos sus espacios."
+                step_5: "Una ficha con contratos o espacios abiertos no se puede eliminar."
             title: Clientes
             spaces: 'Sus espacios'
             spaces_description: 'Abre la lista de espacios de esta empresa.'
@@ -1426,6 +1461,13 @@ backend:
                 siret_taken: 'Este SIRET ya está registrado para {name}.'
                 has_spaces: 'Este cliente aún tiene {count} espacio(s) abierto(s). Elimine o archive su trabajo antes de eliminar la ficha.'
         spaces:
+            guide:
+                title: 'Cómo funcionan los espacios'
+                step_1: 'Un espacio reúne el trabajo hecho para un cliente: cree uno por encargo, no uno por empresa.'
+                step_2: '«Añadir un espacio» pide un nombre, un cliente existente o un nuevo prospecto, y el equipo que trabaja en él.'
+                step_3: 'Las pestañas Clientes y Prospectos separan aquello en lo que trabaja de lo que intenta conseguir.'
+                step_4: '«Por tratar» cuenta las publicaciones perdidas, las revisiones con retraso, los contenidos por retomar y los que esperan al cliente.'
+                step_5: 'Archivar un espacio lo retira de la lista sin perder nada; eliminarlo borra su contenido, pero conserva el cliente y sus contratos.'
             usage_detail: 'Espacio {space}'
             title: 'Espacios de cliente'
             add: 'Añadir un espacio'
@@ -1564,6 +1606,13 @@ backend:
                 timezone_invalid: 'Esta zona horaria no se reconoce.'
                 team_lead_only: 'Solo el responsable del espacio puede cambiar su equipo y sus roles.'
         space_access:
+            guide:
+                title: 'Cómo funcionan los enlaces de acceso'
+                step_1: '«Crear un enlace» genera una dirección personal para un destinatario, que abre el espacio sin cuenta.'
+                step_2: 'Cópiela enseguida y envíela usted: no se volverá a mostrar, y la aplicación no la envía.'
+                step_3: 'El enlace caduca a los 90 días por defecto; sus casillas definen lo que puede hacer el cliente: validar, comentar, escribir en la conversación, enviar archivos, ver el Drive.'
+                step_4: '«Vista previa» abre la página exactamente como la ve ese destinatario, sin guardar nada en su nombre.'
+                step_5: '«Revocar» corta el enlace y conserva su rastro; «Eliminar» lo borra por completo.'
             tab: 'Acceso del cliente'
             intro: 'Un enlace abre este espacio en solo lectura, sin cuenta. Es personal, caduca y se puede revocar.'
             issue: 'Crear un enlace'
@@ -1611,6 +1660,12 @@ backend:
                 email_required: 'El email del destinatario es obligatorio.'
                 email_invalid: 'Este email no es válido.'
         space_files:
+            guide:
+                title: 'Cómo se ordenan los archivos'
+                step_1: '«En las fichas» lista los archivos añadidos a los contenidos, por usted o por el cliente, del más reciente al más antiguo.'
+                step_2: '«Del espacio» reúne lo que sirve al encargo sin ilustrar una publicación: la guía de estilo, los logotipos, el brief.'
+                step_3: 'Un archivo del espacio se añade aquí; un archivo para una publicación se añade desde su ficha.'
+                step_4: 'El cliente ve los dos tipos de archivos; quitar un archivo del espacio lo conserva en la mediateca.'
             usage_detail: 'Archivo del espacio'
             label: Vinculación
             tabs:
@@ -1706,6 +1761,12 @@ backend:
                 enabled_hint: 'Cada espacio podrá entonces designar la carpeta que su cliente ha compartido.'
                 enabled_blocked: 'Pegue una clave de cuenta de servicio para poder activarla.'
             space:
+                guide:
+                    title: 'Cómo funciona el Drive'
+                    step_1: 'La carpeta del cliente se conecta en los Ajustes del espacio, una vez que la ha compartido en modo lectura con la cuenta de servicio.'
+                    step_2: 'Sus archivos siguen siendo suyos: no se copia nada, y el cliente los ve sin cuenta de Google.'
+                    step_3: 'La carpeta de la agencia es la misma en todos los espacios, y el cliente nunca la ve.'
+                    step_4: 'Adjuntar un archivo del Drive a una ficha crea una copia en la mediateca, que ya no sigue los cambios del Drive.'
                 title: 'Carpeta de Google Drive'
                 intro: 'Los archivos permanecen con el cliente: no se copia nada, y se muestran en su espacio sin que necesite una cuenta de Google.'
                 folder_label: 'Carpeta compartida'
@@ -1748,6 +1809,12 @@ backend:
                 folder_invalid: 'No es una carpeta de Drive. Pegue su dirección, o el identificador que sigue a /folders/.'
                 import_failed: 'No se ha podido copiar este archivo. Los documentos de Google no tienen un archivo que descargar.'
         space_notes:
+            guide:
+                title: 'Cómo funcionan las notas'
+                step_1: 'Las notas son la única parte del espacio que el cliente nunca ve.'
+                step_2: 'Una nota «Compartida con el equipo» la lee todo el equipo del espacio.'
+                step_3: 'Una nota «Personal» solo la lee usted.'
+                step_4: 'Fije una nota para mantenerla arriba, y pase del muro a la lista según prefiera.'
             add: 'Nueva nota'
             create: 'Nueva nota'
             edit: 'Editar la nota'
@@ -1831,6 +1898,13 @@ backend:
                 link_url_invalid: 'Esta dirección no es válida. Debe empezar por http:// o https://.'
                 link_url_too_long: 'Esta dirección es demasiado larga.'
         space_deliverables:
+            guide:
+                title: "Cómo funcionan los entregables"
+                step_1: "«Nuevo entregable» crea un documento (auditoría, estrategia, balance) que se compone como una página, con sus colores o los del cliente."
+                step_2: "Permanece oculto al cliente mientras no haga clic en «Mostrar al cliente»."
+                step_3: "Desde el entregable abierto, «Enlaces de lectura» da a alguien una dirección secreta que abre solo este documento, sin el espacio."
+                step_4: "Un enlace puede tener contraseña y caducidad, y se revoca uno por uno; ocultar el entregable no corta sus enlaces."
+                step_5: "«Duplicar» crea una copia oculta al cliente, práctica para partir del balance del mes pasado."
             intro: "Los documentos escritos para este cliente: auditorías, estrategias, balances. Cada uno se compone como una página, con sus colores, y el cliente lo lee en su espacio en cuanto usted se lo abre."
             add: "Nuevo entregable"
             empty: "Ningún entregable para este cliente."
@@ -1951,6 +2025,12 @@ backend:
                 locale_invalid: "Este idioma no está activo en el sitio."
                 grid_invalid: "La cuadrícula enviada es ilegible."
         space_resources:
+            guide:
+                title: 'Cómo funcionan los recursos'
+                step_1: '«Añadir» fija un enlace (una maqueta, un acceso), un texto (instrucciones) o un contacto (la persona que valida).'
+                step_2: 'Un elemento nuevo queda reservado al estudio y se guarda en «Solo para usted».'
+                step_3: '«Mostrar al cliente» lo pasa a «Lo que ve el cliente», legible por cualquiera que tenga un enlace de acceso.'
+                step_4: 'No ponga nunca una contraseña en un elemento visible; las flechas definen el orden de visualización.'
             intro: 'Lo que está en otro sitio y se busca cada vez: una maqueta, un acceso, la persona que valida. Cada elemento se muestra u oculta al cliente, uno a uno.'
             add: Añadir
             add_confirm: Añadir
@@ -2010,6 +2090,12 @@ backend:
             changes_requested: '%who% pide cambios en «%item%»'
             late_review: '{1}Una revisión atrasada|]1,Inf[%count% revisiones atrasadas'
         space_chat:
+            guide:
+                title: "Cómo funciona la conversación"
+                step_1: "La conversación sirve para lo que no concierne a una ficha concreta; lo que trata de una publicación va en el hilo de su ficha."
+                step_2: "El canal «General» siempre está abierto al cliente: lo lee y puede responder."
+                step_3: "Un canal nuevo queda interno; «Abrir al cliente» lo hace legible por cualquiera que tenga un enlace de acceso."
+                step_4: "Los mensajes privados son entre dos miembros del equipo, y nadie más los lee."
             channels:
                 main_name: General
                 notice_internal: 'Este canal es interno: el cliente no lo lee.'
@@ -2028,6 +2114,13 @@ backend:
                 from_client: 'Un mensaje del cliente no se puede eliminar. Es lo que le ha dicho.'
                 not_in_space: 'Este enlace no abre este espacio.'
         space_content:
+            guide:
+                title: 'Cómo funciona el tablero'
+                step_1: 'Cada columna es una etapa (Ideas, En redacción, Por validar, Programado, Publicado): arrastre una ficha para hacerla avanzar.'
+                step_2: 'Una ficha con fecha, en una etapa visible para el cliente y aún no publicada, espera su opinión.'
+                step_3: '«Enviar a revisar» envía un correo a cada destinatario que puede validar, con un enlace nuevo para responder «Validado» o «Por revisar».'
+                step_4: 'La respuesta del cliente no mueve la ficha: es usted quien la hace avanzar después de leerla.'
+                step_5: 'Modificar el texto o los archivos de una ficha borra la respuesta del cliente: hay que volver a enviarla a revisar.'
             tab: 'Espacio de trabajo'
             view_label: Vista
             nav_open: 'Cambiar de sección'
