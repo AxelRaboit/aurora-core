@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Tests\Integration\Module\Ged;
 
 use Aurora\Module\Ged\Document\Entity\Document;
+use Aurora\Module\Ged\DocumentCategory\Entity\DocumentCategory;
 use Aurora\Module\Ged\Enum\DocumentStatusEnum;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use Doctrine\ORM\EntityManagerInterface;
@@ -178,6 +179,35 @@ final class ImportDocumentsCommandTest extends IntegrationTestCase
 
         self::assertSame(Command::INVALID, $this->runImport([$this->sourceDir], ['--label' => 'jaune'])->getStatusCode());
         self::assertSame(Command::INVALID, $this->runImport([$this->sourceDir], ['--original' => 'abc'])->getStatusCode());
+    }
+
+    /**
+     * Filed in a category on the way in: tour captures added from the shell
+     * used to arrive uncategorised and had to be filed again by hand.
+     */
+    public function testACategoryIsSetOnTheWayIn(): void
+    {
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $category = new DocumentCategory();
+        $category->setName('Captures')->setSlug('captures-'.uniqid());
+        $em->persist($category);
+        $em->flush();
+
+        $this->writeImage('rangee.png');
+        $this->runImport([$this->sourceDir], ['--category' => (string) $category->getId()])->assertCommandIsSuccessful();
+
+        self::assertSame($category->getId(), $this->lastDocument()?->getCategory()?->getId());
+    }
+
+    /** A category that does not exist is refused, rather than silently filing nowhere. */
+    public function testAnUnknownCategoryIsRefusedBeforeAnythingIsStored(): void
+    {
+        $this->writeImage('perdue.png');
+        $before = $this->documentCount();
+
+        self::assertSame(Command::INVALID, $this->runImport([$this->sourceDir], ['--category' => '999999'])->getStatusCode());
+        self::assertSame(Command::INVALID, $this->runImport([$this->sourceDir], ['--category' => 'tour'])->getStatusCode());
+        self::assertSame($before, $this->documentCount());
     }
 
     /**

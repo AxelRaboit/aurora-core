@@ -352,6 +352,32 @@ const SHOTS = [
     { name: "tour-menus", path: "/backend/editorial/menus" },
     { name: "tour-commentaires", path: "/backend/editorial/comments" },
     {
+        // La liste des formulaires, depuis la 0.9.320 : une entrée de menu,
+        // et derrière elle un tableau qui dit pour chacun s'il est en ligne,
+        // combien il pose de questions et s'il reçoit des réponses.
+        name: "tour-formulaires-liste",
+        path: "/backend/editorial/forms",
+        async prepare(page) {
+            await page.locator("main").getByRole("table").first().waitFor();
+            await page.waitForTimeout(1_200);
+        },
+    },
+    {
+        // La création : un titre et un point de départ. Le modèle « Demande
+        // de devis » choisi, pour montrer qu'un modèle peut porter des étapes.
+        name: "tour-formulaire-modeles",
+        path: "/backend/editorial/forms",
+        async prepare(page) {
+            await page.locator("main").getByRole("button", { name: "Actions", exact: true }).first().click();
+            await page.getByRole("button", { name: /Nouveau formulaire/ }).first().click();
+            const dialog = page.getByRole("dialog").filter({ hasText: "Point de départ" }).first();
+            await dialog.waitFor();
+            await dialog.getByRole("textbox").first().fill("Demande de devis");
+            await dialog.getByRole("radio", { name: /Demande de devis/ }).first().click();
+            await page.waitForTimeout(800);
+        },
+    },
+    {
         name: "tour-formulaire-champs",
         // Les questions d'un formulaire, une question ouverte dans le panneau
         // et l'aperçu dessous : c'est l'écran où l'on compose, et la carte en
@@ -893,6 +919,25 @@ const SHOTS = [
 
     { name: "tour-contrats", path: "/backend/studio/contracts" },
     { name: "tour-trames", path: "/backend/studio/contract-templates" },
+    {
+        // L'aperçu d'une trame, depuis la 0.9.318 : chaque valeur venue d'une
+        // variable est colorée selon sa source (exemple inventé, vraie
+        // information, champ à remplir), avec la légende sous l'encadré.
+        name: "tour-trame-apercu",
+        path: "/backend/studio/contract-templates",
+        async prepare(page) {
+            // Le titre d'une trame n'est pas un lien : c'est sa version qui
+            // ouvre l'éditeur.
+            await page.locator("main tr").filter({ hasText: "Contrat de prestation mensuelle" })
+                .getByRole("link", { name: /^Version/ }).first().click();
+            await page.waitForLoadState("domcontentloaded");
+            await page.waitForTimeout(3_000);
+            await page.locator("main").getByRole("button", { name: "Actions", exact: true }).first().click();
+            await page.getByText("Aperçu", { exact: true }).first().click();
+            await page.getByText("Le texte en couleur vient des variables.").first().waitFor();
+            await page.waitForTimeout(2_000);
+        },
+    },
     { name: "tour-clients", path: "/backend/studio/customers" },
 
     /**
@@ -1080,15 +1125,20 @@ const SHOTS = [
         },
     },
 
-    /** Envoyer à relire : ce qui part chez le client, et comment. */
+    /**
+     * Envoyer à relire : ce qui part chez le client, et comment.
+     *
+     * Le bandeau, pas la fenêtre de confirmation. Depuis la 0.9.320 c'est lui
+     * qui dit ce qui attend et ce que le client reçoit ; ouverte par-dessus, la
+     * fenêtre le recouvrait d'un voile et la carte montrait l'ancien geste.
+     */
     {
         name: "espace-envoyer-relire",
         path: SPACES,
         async prepare(page) {
             await contents("Kanban")(page);
-            await page.locator("main").getByRole("button", { name: /^Envoyer à relire/ }).first().click();
-            await page.getByRole("dialog").first().waitFor();
-            await page.waitForTimeout(1_000);
+            await page.locator("main").getByRole("button", { name: /^Envoyer à relire/ }).first().waitFor();
+            await page.waitForTimeout(800);
         },
     },
 
