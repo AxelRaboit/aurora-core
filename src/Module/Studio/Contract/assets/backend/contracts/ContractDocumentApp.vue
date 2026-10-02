@@ -885,6 +885,12 @@ const confirmBlocked = computed(
  * survive a PDF engine and a decade of storage - so the styling lives here
  * rather than in the markup that was hashed.
  */
+/* Une variable `{{contract.custom.…}}` ou une adresse sans espace se coupe
+   au lieu de sortir de la carte sur téléphone. */
+.prose-contract {
+    overflow-wrap: anywhere;
+}
+
 .prose-contract :deep(h1) {
     font-size: 1.125rem;
     font-weight: 600;

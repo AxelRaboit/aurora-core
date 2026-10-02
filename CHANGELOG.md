@@ -5,6 +5,23 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.322] - 2026-10-02
+
+### Amélioré
+
+#### Le back-office sur téléphone : contrats, gestes de carte, barres d'entête
+- **Les variables d'un contrat se coupent** : `{{contract.custom.plateformes_retenues}}` n'a pas d'espace où passer à la ligne et sortait de la carte. L'éditeur de trame, le texte adapté, les aperçus, la fiche d'un contrat et la page de signature portent `overflow-wrap: anywhere` ; un mot ordinaire ne bouge pas.
+- **Les gestes d'une carte s'empilent, en vrais boutons pleine largeur**, sur téléphone : `AppCardActions` ne met plus deux gestes côte à côte, et chacun prend la surface et le filet d'un bouton (nouvelle prop `boxed` d'`AppActionButton`, transparente à partir de `sm`). Même règle pour les cartes de trames, la corbeille et les liens d'accès d'un espace.
+- **Les commandes d'une barre d'entête passent en icône seule sous `sm`** : « Modifier le texte », « Reprendre le brouillon (version 2) », « Publier » et « Enregistrer » repoussaient la barre sur deux lignes dans l'éditeur de trame, le texte adapté et la galerie. Le libellé reste en infobulle et pour les lecteurs d'écran.
+- **La recherche de la liste des contrats réapparaît sur téléphone** : `AppListToolbar` pose désormais les filtres sous la recherche au lieu de la réduire à zéro.
+- Commentaires : « En réponse à … » passe à la ligne sur téléphone au lieu d'être tronqué.
+
+### Dans aurora-client
+
+Rien à faire au-delà de `make aurora-update`.
+
+---
+
 ## [0.9.321] - 2026-10-02
 
 ### Amélioré

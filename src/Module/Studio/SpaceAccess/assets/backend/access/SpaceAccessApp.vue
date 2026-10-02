@@ -275,8 +275,10 @@ function openedLabel(link) {
                  se ressemblaient pas assez pour se lire comme le couple qu'ils
                  sont, et sur téléphone le second n'offrait qu'une cible de
                  vingt-six pixels. Chacun porte maintenant son icône, son nom
-                 et son cadre, et ils se partagent la ligne. -->
-                <div v-if="canShare" class="flex w-full shrink-0 items-center gap-2 sm:w-auto">
+                 et son cadre. Sur téléphone, chacun prend sa ligne, pleine
+                 largeur (02/10/2026) ; à partir de `sm`, ils se partagent la
+                 ligne. -->
+                <div v-if="canShare" class="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
                     <!-- Voir avant d'envoyer, et après avoir changé un
                          réglage. Sans lui, la seule façon de savoir ce qu'un
                          lien montre est de l'ouvrir dans une fenêtre privée,
@@ -284,7 +286,7 @@ function openedLabel(link) {
                          d'œil cesse d'être utilisé. -->
                     <AppButton
                         v-if="previewPath && link.usable"
-                        class="flex-1 sm:flex-none"
+                        class="w-full sm:w-auto"
                         variant="ghost"
                         size="sm"
                         :href="buildPath(previewPath, { id: link.id })"
@@ -295,7 +297,7 @@ function openedLabel(link) {
                     </AppButton>
                     <AppButton
                         v-if="link.usable"
-                        class="flex-1 sm:flex-none"
+                        class="w-full sm:w-auto"
                         variant="secondary"
                         size="sm"
                         :loading="revoking === link.id"
@@ -305,7 +307,7 @@ function openedLabel(link) {
                         {{ t("backend.studio.space_access.revoke") }}
                     </AppButton>
                     <AppButton
-                        class="flex-1 sm:flex-none"
+                        class="w-full sm:w-auto"
                         variant="danger-outline"
                         size="sm"
                         v-on:click="confirmDelete(link)"

@@ -9,8 +9,12 @@
    Colours are declared in `currentColor` and inherited values so the page
    works in either theme without a second copy. #}
 <style>
+    /* `anywhere` : un jeton ou une adresse plus large que la ligne se coupe
+       au lieu de sortir du cadre sur téléphone ; un mot ordinaire ne bouge
+       pas. */
     .contract-document {
         line-height: 1.65;
+        overflow-wrap: anywhere;
     }
 
     .contract-document h1 {

@@ -246,10 +246,11 @@ const otherParts = computed(() => props.parts.filter((each) => each.key !== prop
                     variant="primary"
                     size="md"
                     :loading="saving"
+                    :title="t(`${W}.save`)"
                     v-on:click="save"
                 >
                     <Save class="w-3.5 h-3.5" :stroke-width="2" />
-                    {{ t(`${W}.save`) }}
+                    <span class="sr-only sm:not-sr-only">{{ t(`${W}.save`) }}</span>
                 </AppButton>
             </div>
         </div>
@@ -282,7 +283,8 @@ const otherParts = computed(() => props.parts.filter((each) => each.key !== prop
                     :error="errors.title"
                     :readonly="!canEdit"
                 />
-                <div class="aurora-card p-3" :class="{ 'opacity-80': !canEdit }">
+                <!-- Un jeton long se coupe au lieu de sortir de la carte. -->
+                <div class="aurora-card p-3 [overflow-wrap:anywhere]" :class="{ 'opacity-80': !canEdit }">
                     <AppBlockEditor
                         v-model="wording.blocks"
                         :block-tools="CONTRACT_BLOCKS"

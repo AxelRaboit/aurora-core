@@ -652,10 +652,14 @@ const pageActions = computed(() => {
                 <!-- The same actions as the row, laid out rather than folded:
                      a card has the room, and the list is defined once so the
                      two views cannot drift apart. -->
-                <div class="flex flex-wrap gap-2 pt-1 border-t border-line/40">
+                <!-- Sur téléphone, un bouton par ligne, pleine largeur : repliés
+                     en vrac, six gestes faisaient quatre rangées de largeurs
+                     différentes. -->
+                <div class="flex flex-col gap-2 pt-1 border-t border-line/40 sm:flex-row sm:flex-wrap">
                     <AppButton
                         v-for="action in rowActions(template)"
                         :key="action.key"
+                        class="w-full sm:w-auto"
                         variant="ghost"
                         size="sm"
                         :href="action.href"

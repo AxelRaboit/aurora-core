@@ -24,7 +24,11 @@ const slots = useSlots();
 
 <template>
     <div class="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2">
-        <div v-if="slots.inline" class="flex items-center gap-2 min-w-0">
+        <!-- **Les filtres passent sous la recherche sur téléphone.** Posés à
+             côté d'elle, deux sélecteurs de douze rem prenaient les trois cent
+             cinquante pixels de la ligne et la recherche tombait à zéro, son
+             icône coincée derrière eux (liste des contrats, 02/10/2026). -->
+        <div v-if="slots.inline" class="flex flex-col gap-2 min-w-0 sm:flex-row sm:items-center">
             <div class="flex-1 min-w-0">
                 <slot />
             </div>
