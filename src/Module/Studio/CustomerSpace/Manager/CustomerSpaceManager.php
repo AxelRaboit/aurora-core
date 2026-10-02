@@ -6,7 +6,6 @@ namespace Aurora\Module\Studio\CustomerSpace\Manager;
 
 use Aurora\Core\Validation\Exception\FieldException;
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
-use Aurora\Module\Editorial\Post\Repository\PostRepository;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\Customer\Dto\CustomerInputFactoryInterface;
@@ -47,7 +46,6 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
         protected readonly SpaceContentItemManagerInterface $contentItems,
         protected readonly SpaceVisibility $visibility,
         protected readonly Security $security,
-        protected readonly PostRepository $posts,
     ) {}
 
     public function create(CustomerSpaceInputInterface $input): CustomerSpaceInterface
@@ -92,7 +90,8 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
 
     /**
      * Deleting a space takes everything in it: its cards, their threads and
-     * attachments, its conversations, notes and access links go by cascade.
+     * attachments, its conversations, notes, deliverables and access links go
+     * by cascade.
      * The documents those attachments point at stay in the media library,
      * and the space's dates are taken off the calendar first, since no
      * cascade announces anything.
@@ -101,9 +100,6 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
     {
         $this->auditDeleted($space);
         $this->contentItems->unscheduleSpace($space);
-        // Its documents are deliverables the client may still hold a link to:
-        // they stay, shared by link, no longer attached to anything.
-        $this->posts->detachFromCustomerSpace((int) $space->getId());
 
         $this->entityManager->remove($space);
         $this->entityManager->flush();

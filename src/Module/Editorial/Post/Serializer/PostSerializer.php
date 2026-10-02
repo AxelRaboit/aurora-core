@@ -74,7 +74,6 @@ class PostSerializer implements PostSerializerInterface
             'titleVisible' => $post->isTitleVisible(),
             'visibility' => $post->getVisibility()->value,
             'readingPage' => $post->getReadingPage(),
-            'customerSpaceId' => $post->getCustomerSpaceId(),
             'position' => $post->getPosition(),
             'createdAt' => $post->getCreatedAt()->format(DateTimeInterface::ATOM),
             'updatedAt' => $post->getUpdatedAt()->format(DateTimeInterface::ATOM),

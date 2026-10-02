@@ -1814,21 +1814,126 @@ backend:
                 link_url_required: This link has no address.
                 link_url_invalid: "This address is not valid. It has to start with http:// or https://."
                 link_url_too_long: This address is too long.
-        space_publications:
-          intro: 'Audits, strategies, reports: documents written with the publications'' grid, delivered to the client by link and never published on the site. Once published, they also appear in their space.'
-          add: 'New document'
-          empty: 'No document for this client.'
-          empty_hint: 'Start an audit or a strategy: it opens in the publications'' editor.'
-          untitled: 'Untitled document'
-          updated_on: 'Edited on {date}'
-          open: 'Open in the editor'
-          create_title: 'New document'
-          title: 'Title'
-          title_placeholder: 'Online presence audit'
-          title_hint: 'A draft, shared by link only, prepared for this client. You finish it in the editor.'
-          create: 'Create and open'
-          errors:
-            title_required: 'Give the document a title.'
+        space_deliverables:
+            intro: "The documents written for this client: audits, strategies, reports. Each one is built like a page, in its own colours, and the client reads it in their space as soon as you open it to them."
+            add: "New deliverable"
+            empty: "No deliverables for this client."
+            empty_hint: "Start an audit, a strategy or a report: it is built with the page grid, and stays hidden from the client until you open it to them."
+            create_title: "New deliverable"
+            create: "Create and open"
+            title: "Title"
+            title_placeholder: "Online presence audit"
+            title_hint: "What the client reads in their space's list and at the top of the document."
+            updated_on: "Edited on {date}"
+            open: "Open"
+            open_hint: "Build the document, set its colours and what the client sees."
+            preview: "Preview"
+            preview_hint: "The page as the client will read it, in a new tab."
+            show: "Show to the client"
+            show_hint: "It appears in the client's space, where they can read it."
+            hide: "Hide from the client"
+            hide_hint: "It leaves the client's space; reading links keep working."
+            shown_toast: "The client now sees this deliverable."
+            hidden_toast: "This deliverable is hidden from the client."
+            visible_badge: "Visible to the client"
+            hidden_badge: "Hidden from the client"
+            duplicate: "Duplicate"
+            duplicate_hint: "A copy to rework, hidden from the client: last month's report to write this one."
+            duplicated: "Copy created."
+            copy_title: "%title% (copy)"
+            delete_hint: "Deletes the deliverable and its reading links."
+            delete_confirm: "Delete the deliverable \"{title}\"? Its reading links will stop working."
+            deleted: "Deliverable deleted."
+            back: "Deliverables of {space}"
+            for_customer: "Prepared for {name}"
+            saved: "Deliverable saved."
+            save_failed: "The deliverable could not be saved."
+            unsaved: "Unsaved changes"
+            links_hint: "One secret address per recipient, to pass the document on without opening the space."
+            tabs:
+                content: "Content"
+                appearance: "Appearance"
+                settings: "Settings"
+            appearance:
+                preview_title: "Colour preview"
+                preview_hint: "Indicative: \"Preview\" shows the exact page."
+                sample_header: "Page header"
+                sample_title: "Deliverable title"
+                sample_button: "Button"
+                sample_footer: "Footer"
+                page_title: "Page colours"
+                page_hint: "The background, the header and the footer. Empty: the theme's colour. The text on top adjusts itself to stay readable."
+                background: "Background"
+                background_hint: "Behind the whole document."
+                header: "Header"
+                header_hint: "The top band: logo, \"prepared for\", date."
+                footer: "Footer"
+                footer_hint: "The bottom band."
+                content_title: "Content colours"
+                content_hint: "Over the theme's, for this document only: in the client's colours if you like."
+                accent: "Accent"
+                accent_hint: "Buttons, links and markers."
+                heading: "Headings"
+                heading_hint: "The headings of text zones."
+                figure: "Key figures"
+                figure_hint: "The big numbers of figure zones."
+                highlight: "Hover"
+                highlight_inherit: "Like the theme"
+                highlight_color: "Hover colour"
+                title_section: "Title"
+                title_visible: "Show the title and summary at the top of the page"
+                title_visible_hint: "Untick it if the document opens on a header block that already carries its title. The title stays readable by screen readers."
+            settings:
+                document_title: "The document"
+                summary: "Summary"
+                summary_placeholder: "Where your online presence stands, and what we suggest for the next three months."
+                summary_hint: "Under the title, in the client's list and at the top of the page."
+                locale: "Language"
+                locale_hint: "The document's own: it sets the page's dates and labels."
+                client_title: "What the client sees"
+                visible: "Visible to the client"
+                visible_hint: "Ticked, the deliverable appears in the client's space. Unticked, it stays a work in progress on your side; a reading link still opens it."
+                header_title: "Page header"
+                header_hint: "The top band of the page, whether the client reads it from their space or through a link."
+                prepared_for: "Prepared for"
+                prepared_for_hint: "Shown at the top of the page. Empty: nothing is shown."
+                show_date: "Show the date it was last updated"
+                show_logo: "Show the studio's logo and name"
+            links:
+                title: "Reading links"
+                intro: "A secret address that opens this deliverable without the client's space, without an account. Make one link per recipient: you can cut one person's access without touching the others."
+                not_readable: "This deliverable cannot be opened by link right now."
+                withheld_title: "One picture in this deliverable is not published | {count} pictures in this deliverable are not published"
+                withheld_hint: "A link's holder will not see them. Publish them in the library for them to appear."
+                label: "Label"
+                label_placeholder: "Sent to Marie, 12 October"
+                expiry: "Expiry"
+                no_expiry: "No expiry"
+                days: "{count} days"
+                create: "Create the link"
+                created: "Link created"
+                password: "Password"
+                password_placeholder: "Leave empty for a link without a password"
+                password_hint: "Send it some other way than the message carrying the link."
+                none: "No link yet."
+                untitled: "Untitled link"
+                copy: "Copy the address"
+                copied: "Address copied"
+                copy_manually: "Copy the address shown; the browser refused the clipboard."
+                revoke: "Revoke"
+                revoked: "Revoked"
+                revoked_toast: "Link revoked"
+                expires_on: "Expires on {date}"
+                locked: "Password protected"
+                opened: "Opened {count} times"
+                opened_once: "Opened once"
+                last_used: "last opened on {date}"
+                never_opened: "Never opened"
+            errors:
+                title_required: "Give the deliverable a title."
+                title_too_long: "The title is longer than 255 characters."
+                locale_invalid: "This language is not active on the site."
+                grid_invalid: "The grid sent is unreadable."
         space_resources:
             intro: "What lives elsewhere and gets looked for every time: a mockup, an access, the person who signs off. Each item is shown or hidden from the client, one by one."
             add: Add
@@ -1922,7 +2027,7 @@ backend:
             view_notes: Notes
             view_information: Information
             view_resources: Resources
-            view_publications: 'Deliverables'
+            view_deliverables: 'Deliverables'
             view_settings: Settings
             files_empty: No file on this space yet
             files_empty_hint: Files put on the content, by you or by the client, appear here newest first.

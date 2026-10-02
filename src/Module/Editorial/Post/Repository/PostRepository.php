@@ -407,54 +407,6 @@ class PostRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * The publications written for one customer space, newest change first,
-     * trashed ones left out.
-     *
-     * @param bool $publishedOnly what the client's own portal lists: a draft
-     *                            is the team's until it is published
-     *
-     * @return list<PostInterface>
-     */
-    public function findForCustomerSpace(int $customerSpaceId, bool $publishedOnly = false): array
-    {
-        $query = $this->createQueryBuilder('p')
-            ->leftJoin('p.translations', 't')
-            ->addSelect('t')
-            ->where('p.customerSpaceId = :space')
-            ->andWhere('p.deletedAt IS NULL')
-            ->setParameter('space', $customerSpaceId)
-            ->orderBy('p.updatedAt', Order::Descending->value);
-
-        if ($publishedOnly) {
-            $query->andWhere('p.status = :status')->setParameter('status', PostStatusEnum::Published);
-        }
-
-        /** @var list<PostInterface> $posts */
-        $posts = $query->getQuery()->getResult();
-
-        return $posts;
-    }
-
-    /**
-     * Lets go of a space that is being deleted.
-     *
-     * Its publications stay - deliverables the client may still hold a link
-     * to - and remain shared by link only. One UPDATE rather than a walk over
-     * the entities: a space can hold a year of them.
-     */
-    public function detachFromCustomerSpace(int $customerSpaceId): void
-    {
-        $this->createQueryBuilder('p')
-            ->update()
-            ->set('p.customerSpaceId', ':none')
-            ->where('p.customerSpaceId = :space')
-            ->setParameter('none', null)
-            ->setParameter('space', $customerSpaceId)
-            ->getQuery()
-            ->execute();
-    }
-
-    /**
      * Every post a visitor can read, on the site or through a link, with its
      * translations.
      *

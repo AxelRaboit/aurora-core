@@ -1242,10 +1242,6 @@ backend:
     field_post_type: Content type
     field_status: Status
     field_visibility: 'Visibility'
-    visibility_locked: 'Always by link: this document belongs to the {name} customer space.'
-    customer_space:
-      belongs_to: 'Document of the {name} customer space.'
-      back: 'Back to the space'
     visibility_hint:
       site: 'Once published, it has its own address on the site and shows in listings, menus, search and the sitemap.'
       link: 'Once published, the site shows it nowhere: no address on the site, no listing, no menu, no search, no sitemap. For a document shared with one person, such as a client audit.'

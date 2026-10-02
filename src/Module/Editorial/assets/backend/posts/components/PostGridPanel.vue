@@ -59,6 +59,16 @@ const props = defineProps({
     previewPath: { type: String, required: true },
     /** Where a header zone's panel asks for its preview. */
     bannerPreviewPath: { type: String, default: "" },
+    /**
+     * False where a page is always a grid, a client deliverable for one: the
+     * on/off switch would only offer to empty it.
+     */
+    toggleable: { type: Boolean, default: true },
+    /**
+     * Zone types this host cannot render, left out of every type picker. A
+     * deliverable has no comments, no site search and no post listing.
+     */
+    hiddenTypes: { type: Array, default: () => [] },
 });
 
 const { t } = useI18n();
@@ -80,8 +90,8 @@ const {
     snapOptions,
     reveal,
     revealOptions,
-    typeOptions,
-    leafTypeOptions,
+    typeOptions: allTypeOptions,
+    leafTypeOptions: allLeafTypeOptions,
     widthOptions,
     offsetOptions,
     shareOptions,
@@ -110,6 +120,10 @@ const {
     resizeZoneFromLeft: resizeZoneStart,
     swapZones,
 } = grid;
+
+const visibleType = (option) => !props.hiddenTypes.includes(option.value);
+const typeOptions = computed(() => allTypeOptions.value.filter(visibleType));
+const leafTypeOptions = computed(() => allLeafTypeOptions.value.filter(visibleType));
 
 const showPreview = ref(false);
 
@@ -184,7 +198,7 @@ function resizeZone(index, columns) {
 
 <template>
     <div class="space-y-4">
-        <AppToggle v-model="enabled" :label="t('backend.posts.grid.enabled')" />
+        <AppToggle v-if="toggleable" v-model="enabled" :label="t('backend.posts.grid.enabled')" />
 
         <!-- Without this the card is a lone toggle, which reads as collapsed
              rather than as off. It also says the thing that matters: turning

@@ -1794,21 +1794,126 @@ backend:
                 link_url_required: 'Este enlace no tiene dirección.'
                 link_url_invalid: 'Esta dirección no es válida. Debe empezar por http:// o https://.'
                 link_url_too_long: 'Esta dirección es demasiado larga.'
-        space_publications:
-            intro: 'Auditorías, estrategias, informes: documentos escritos con la cuadrícula de las publicaciones, entregados al cliente por enlace y nunca publicados en el sitio. Una vez publicados, también aparecen en su espacio.'
-            add: 'Nuevo documento'
-            empty: 'Ningún documento para este cliente.'
-            empty_hint: 'Empiece una auditoría o una estrategia: se abre en el editor de publicaciones.'
-            untitled: 'Documento sin título'
-            updated_on: 'Modificado el {date}'
-            open: 'Abrir en el editor'
-            create_title: 'Nuevo documento'
-            title: 'Título'
-            title_placeholder: 'Auditoría de presencia en línea'
-            title_hint: 'Un borrador, compartido solo por enlace, preparado para este cliente. Lo completa en el editor.'
-            create: 'Crear y abrir'
+        space_deliverables:
+            intro: "Los documentos escritos para este cliente: auditorías, estrategias, balances. Cada uno se compone como una página, con sus colores, y el cliente lo lee en su espacio en cuanto usted se lo abre."
+            add: "Nuevo entregable"
+            empty: "Ningún entregable para este cliente."
+            empty_hint: "Empiece una auditoría, una estrategia o un balance: se compone con la cuadrícula de las páginas y queda oculto al cliente hasta que usted lo abra."
+            create_title: "Nuevo entregable"
+            create: "Crear y abrir"
+            title: "Título"
+            title_placeholder: "Auditoría de presencia en línea"
+            title_hint: "Lo que el cliente lee en la lista de su espacio y arriba del documento."
+            updated_on: "Modificado el {date}"
+            open: "Abrir"
+            open_hint: "Componer el documento, ajustar sus colores y lo que ve el cliente."
+            preview: "Vista previa"
+            preview_hint: "La página tal como la leerá el cliente, en una pestaña nueva."
+            show: "Mostrar al cliente"
+            show_hint: "Aparece en el espacio del cliente, que puede leerlo."
+            hide: "Ocultar al cliente"
+            hide_hint: "Desaparece del espacio del cliente; los enlaces de lectura siguen siendo válidos."
+            shown_toast: "El cliente ya ve este entregable."
+            hidden_toast: "Este entregable está oculto al cliente."
+            visible_badge: "Visible para el cliente"
+            hidden_badge: "Oculto al cliente"
+            duplicate: "Duplicar"
+            duplicate_hint: "Una copia para retomar, oculta al cliente: el balance del mes pasado para escribir este."
+            duplicated: "Copia creada."
+            copy_title: "%title% (copia)"
+            delete_hint: "Elimina el entregable y sus enlaces de lectura."
+            delete_confirm: "¿Eliminar el entregable «{title}»? Sus enlaces de lectura dejarán de funcionar."
+            deleted: "Entregable eliminado."
+            back: "Entregables de {space}"
+            for_customer: "Preparado para {name}"
+            saved: "Entregable guardado."
+            save_failed: "No se pudo guardar el entregable."
+            unsaved: "Cambios sin guardar"
+            links_hint: "Una dirección secreta por destinatario, para transmitir el documento sin abrir el espacio."
+            tabs:
+                content: "Contenido"
+                appearance: "Apariencia"
+                settings: "Ajustes"
+            appearance:
+                preview_title: "Vista de los colores"
+                preview_hint: "Indicativa: «Vista previa» muestra la página exacta."
+                sample_header: "Cabecera de la página"
+                sample_title: "Título del entregable"
+                sample_button: "Botón"
+                sample_footer: "Pie de página"
+                page_title: "Colores de la página"
+                page_hint: "El fondo, la cabecera y el pie. Vacío: el color del tema. El texto encima se ajusta solo para seguir siendo legible."
+                background: "Fondo"
+                background_hint: "Detrás de todo el documento."
+                header: "Cabecera"
+                header_hint: "La banda superior: logo, «preparado para», fecha."
+                footer: "Pie de página"
+                footer_hint: "La banda inferior."
+                content_title: "Colores del contenido"
+                content_hint: "Por encima de los del tema, solo para este documento: con los colores del cliente si lo desea."
+                accent: "Acento"
+                accent_hint: "Botones, enlaces y marcas."
+                heading: "Títulos"
+                heading_hint: "Los títulos de las zonas de texto."
+                figure: "Cifras clave"
+                figure_hint: "Los números grandes de las zonas de cifras."
+                highlight: "Al pasar el ratón"
+                highlight_inherit: "Como el tema"
+                highlight_color: "Color al pasar el ratón"
+                title_section: "Título"
+                title_visible: "Mostrar el título y el resumen arriba de la página"
+                title_visible_hint: "Desmárquelo si el documento se abre con un bloque de cabecera que ya lleva su título. El título sigue legible para los lectores de pantalla."
+            settings:
+                document_title: "El documento"
+                summary: "Resumen"
+                summary_placeholder: "Dónde está su presencia en línea y lo que proponemos para los próximos tres meses."
+                summary_hint: "Bajo el título, en la lista del cliente y arriba de la página."
+                locale: "Idioma"
+                locale_hint: "El del documento: ajusta las fechas y los textos de la página."
+                client_title: "Lo que ve el cliente"
+                visible: "Visible para el cliente"
+                visible_hint: "Marcado, el entregable aparece en el espacio del cliente. Desmarcado, sigue en curso de su lado; un enlace de lectura lo abre de todos modos."
+                header_title: "Cabecera de la página"
+                header_hint: "La banda superior de la página, lea el cliente desde su espacio o por un enlace."
+                prepared_for: "Preparado para"
+                prepared_for_hint: "Se muestra arriba de la página. Vacío: no se muestra nada."
+                show_date: "Mostrar la fecha de actualización"
+                show_logo: "Mostrar el logo y el nombre del estudio"
+            links:
+                title: "Enlaces de lectura"
+                intro: "Una dirección secreta que abre este entregable sin el espacio del cliente, sin cuenta. Cree un enlace por destinatario: podrá cortar el acceso de uno sin tocar a los demás."
+                not_readable: "Este entregable no puede abrirse por enlace por ahora."
+                withheld_title: "Una imagen de este entregable no está publicada | {count} imágenes de este entregable no están publicadas"
+                withheld_hint: "El destinatario de un enlace no las verá. Publíquelas en la mediateca para que aparezcan."
+                label: "Título"
+                label_placeholder: "Enviado a Marie, el 12 de octubre"
+                expiry: "Caducidad"
+                no_expiry: "Sin caducidad"
+                days: "{count} días"
+                create: "Crear el enlace"
+                created: "Enlace creado"
+                password: "Contraseña"
+                password_placeholder: "Déjelo vacío para un enlace sin contraseña"
+                password_hint: "Comuníquela por otro medio que el mensaje que lleva el enlace."
+                none: "Ningún enlace por ahora."
+                untitled: "Enlace sin título"
+                copy: "Copiar la dirección"
+                copied: "Dirección copiada"
+                copy_manually: "Copie la dirección que se muestra; el navegador rechazó el portapapeles."
+                revoke: "Revocar"
+                revoked: "Revocado"
+                revoked_toast: "Enlace revocado"
+                expires_on: "Caduca el {date}"
+                locked: "Protegido con contraseña"
+                opened: "Abierto {count} veces"
+                opened_once: "Abierto una vez"
+                last_used: "última apertura el {date}"
+                never_opened: "Nunca abierto"
             errors:
-                title_required: 'Dé un título al documento.'
+                title_required: "Dé un título al entregable."
+                title_too_long: "El título supera los 255 caracteres."
+                locale_invalid: "Este idioma no está activo en el sitio."
+                grid_invalid: "La cuadrícula enviada es ilegible."
         space_resources:
             intro: 'Lo que está en otro sitio y se busca cada vez: una maqueta, un acceso, la persona que valida. Cada elemento se muestra u oculta al cliente, uno a uno.'
             add: Añadir
@@ -1900,7 +2005,7 @@ backend:
             view_notes: Notas
             view_information: Información
             view_resources: Recursos
-            view_publications: 'Entregables'
+            view_deliverables: 'Entregables'
             view_settings: Ajustes
             files_empty: 'No hay archivos en este espacio'
             files_empty_hint: 'Los archivos subidos a los contenidos, por usted o por el cliente, aparecen aquí del más reciente al más antiguo.'
