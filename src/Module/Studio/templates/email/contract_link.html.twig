@@ -12,7 +12,7 @@
     <a href="{{ url }}">{{ 'studio.email.contract_link.action'|trans }}</a>
 </p>
 
-<p>{{ 'studio.email.contract_link.expiry'|trans({'{date}': expiresAt|date('d/m/Y')}) }}</p>
+<p>{{ 'studio.email.contract_link.expiry'|trans({'{date}': expiresAt|site_date}) }}</p>
 
 <p>{{ 'studio.email.contract_link.warning'|trans }}</p>
 

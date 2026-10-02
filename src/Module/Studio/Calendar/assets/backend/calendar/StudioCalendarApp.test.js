@@ -97,7 +97,11 @@ describe("the editorial calendar", () => {
         const wrapper = render("?view=list&state=changes_requested");
         await flushPromises();
 
-        const titles = wrapper.findAll("li").map((row) => row.text());
+        // Hors du mode d'emploi, dont les étapes sont aussi des `<li>`.
+        const titles = wrapper
+            .findAll("li")
+            .filter((row) => !row.element.closest("[data-guide]"))
+            .map((row) => row.text());
         expect(titles[0]).toContain("Datée");
         expect(titles.at(-1)).toContain("Sans date");
     });

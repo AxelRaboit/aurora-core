@@ -193,21 +193,51 @@ final class SpaceDriveAgencyFolderTest extends IntegrationTestCase
     }
 
     /**
-     * Les réglages d'un espace ne règlent que le dossier du client : ils
-     * disent où se règle celui de l'agence, et y mènent qui peut l'ouvrir.
+     * Le dossier de l'agence se règle depuis les réglages d'un espace, dans
+     * une fenêtre : l'écran reçoit l'adresse où l'enregistrer.
      */
-    public function testTheSpaceSettingsPointToTheAgencyFolderConfiguration(): void
+    public function testTheSpaceSettingsCanSetTheAgencyFolderInPlace(): void
     {
-        $space = $this->givenSpace(agencyFolder: 'dossier-agence-0001');
+        $space = $this->givenSpace(agencyFolder: null);
 
         $this->client->setServerParameter('HTTP_X-Requested-With', '');
         $this->client->request('GET', sprintf('/workspace/%d?view=settings', $space->getId()));
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
         self::assertMatchesRegularExpression(
-            '#driveConfigurationPath&quot;:&quot;(\\\\)?/backend(\\\\)?/studio(\\\\)?/drive(\\\\)?/settings#',
+            '#driveAgencyFolderPath&quot;:&quot;(\\\\)?/backend(\\\\)?/studio(\\\\)?/drive(\\\\)?/settings(\\\\)?/agency-folder&quot;#',
             (string) $this->client->getResponse()->getContent(),
         );
+    }
+
+    /**
+     * Ce geste ne touche que le dossier. L'enregistrement général lit
+     * `enabled` absent comme « éteint » : passer par lui depuis un espace
+     * éteindrait le Drive de toute l'installation.
+     */
+    public function testSettingTheAgencyFolderAloneLeavesTheDriveSwitchedOn(): void
+    {
+        $this->givenSpace(agencyFolder: null);
+        // Read again after each request: the kernel reboots between them,
+        // and a service kept from before answers from its own cache.
+        $settings = static fn (): DriveSettings => static::getContainer()->get(DriveSettings::class);
+
+        $this->client->jsonRequest('POST', '/backend/studio/drive/settings/agency-folder', [
+            'agencyFolderId' => 'https://drive.google.com/drive/folders/dossier-agence-0002?usp=sharing',
+        ]);
+
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+        self::assertSame('dossier-agence-0002', $settings()->agencyFolderId());
+        self::assertTrue($settings()->isEnabled(), 'the Drive is still on');
+
+        $this->client->jsonRequest('POST', '/backend/studio/drive/settings/agency-folder', ['agencyFolderId' => 'https://example.com/pas-un-dossier']);
+        self::assertSame(400, $this->client->getResponse()->getStatusCode());
+        self::assertSame('dossier-agence-0002', $settings()->agencyFolderId(), 'a refused address changes nothing');
+
+        $this->client->jsonRequest('POST', '/backend/studio/drive/settings/agency-folder', ['agencyFolderId' => '']);
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+        self::assertNull($settings()->agencyFolderId());
+        self::assertTrue($settings()->isEnabled());
     }
 
     private function wasAsked(string $folderId): bool

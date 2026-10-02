@@ -1,4 +1,5 @@
 <script setup>
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { localIsoDate } from "@/shared/utils/format/localDate.js";
 /**
  * The form a customer signs with.
@@ -269,6 +270,14 @@ async function sign() {
                 {{ t("studio.public.sign.intro") }}
             </p>
         </header>
+
+        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <AppGuide :title="t('studio.public.sign.guide.title')" storage-key="contract-sign">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 5" :key="step">{{ t(`studio.public.sign.guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
 
         <AppMessage v-if="errors.status" variant="danger">
             {{ errors.status }}

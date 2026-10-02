@@ -327,7 +327,7 @@ livrée, et le cycle de vie complet avec.
   (un fait daté, jamais un parcours de signature).
 
 Décisions et invariants :
-[`.claude/memory/aurora-core/architecture/project_studio_contract_seal.md`](../../../.claude/memory/aurora-core/architecture/project_studio_contract_seal.md).
+[`.claude/memory/aurora-core/architecture/project_accounting_contract_seal.md`](../../../.claude/memory/aurora-core/architecture/project_accounting_contract_seal.md), écrite quand le module s'appelait Accounting.
 
 **Reste à faire :** la moitié « abonnements ».
 - Période, montant récurrent, renouvellement

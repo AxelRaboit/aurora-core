@@ -148,7 +148,7 @@ php bin/console aurora:privileges:sync             # privilèges des modules (ap
 make sync-sequences                                 # aurora:sequences:resync
 ```
 
-Voir [`database.md`](database.md) pour le détail des syncs.
+Voir [`database.md`](../dev/database.md) pour le détail des syncs.
 
 ---
 
@@ -294,7 +294,7 @@ Aurora n'expose pas d'endpoint `/_health` dédié. Patterns acceptables :
 
 ## 10. Mise à jour d'aurora-core en prod
 
-Le flux est documenté dans [`update_aurora.md`](update_aurora.md). En prod,
+Le flux est documenté dans [`update_aurora.md`](../dev/update_aurora.md). En prod,
 la séquence à automatiser :
 
 ```bash

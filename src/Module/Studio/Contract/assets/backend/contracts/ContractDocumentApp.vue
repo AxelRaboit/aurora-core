@@ -13,6 +13,7 @@
  * the sealed HTML afterwards. Beside it: the facts, the link, the signatures
  * as proof, the seal and what happened, in that order.
  */
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
@@ -466,6 +467,14 @@ const confirmBlocked = computed(
                 </p>
             </div>
         </header>
+
+        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <AppGuide :title="t('backend.studio.contracts.document_guide.title')" storage-key="contract-document">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 5" :key="step">{{ t(`backend.studio.contracts.document_guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
 
         <!-- The step first: where it stands, and the one thing to do next. -->
         <section class="aurora-card p-4 space-y-3" data-contract-step>

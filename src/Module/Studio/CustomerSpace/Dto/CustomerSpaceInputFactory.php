@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\CustomerSpace\Dto;
 
 use Aurora\Core\Support\Str;
+use Aurora\Module\Configuration\Setting\Service\SiteTimezone;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceMemberRoleEnum;
 use Aurora\Module\Studio\CustomerSpace\Enum\CustomerSpaceStatusEnum;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
@@ -15,6 +16,10 @@ use function is_numeric;
 #[AsAlias(CustomerSpaceInputFactoryInterface::class)]
 class CustomerSpaceInputFactory implements CustomerSpaceInputFactoryInterface
 {
+    public function __construct(
+        protected readonly SiteTimezone $siteTimezone,
+    ) {}
+
     /** @param array<string, mixed> $data */
     public function fromArray(array $data): CustomerSpaceInputInterface
     {
@@ -30,7 +35,9 @@ class CustomerSpaceInputFactory implements CustomerSpaceInputFactoryInterface
             // to save a space over it would help nobody.
             status: CustomerSpaceStatusEnum::tryFrom(Str::trimFromArray($data, 'status')) ?? CustomerSpaceStatusEnum::Active,
             colourSlot: $this->idOrNull($data, 'colourSlot'),
-            timezone: Str::trimFromArray($data, 'timezone', 'Europe/Paris'),
+            // A space sent without a zone takes the site's (Settings >
+            // Localisation) rather than a zone written here.
+            timezone: '' !== Str::trimFromArray($data, 'timezone') ? Str::trimFromArray($data, 'timezone') : $this->siteTimezone->name(),
             members: $this->members($data),
         );
     }

@@ -16,6 +16,7 @@
  * au clavier et au doigt, parce qu'un glisser-déposer n'existe pas sur un
  * téléphone.
  */
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
@@ -1491,6 +1492,13 @@ defineExpose({
                 </div>
             </div>
         </header>
+        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <AppGuide :title="t('notes.markdown.guide.title')" storage-key="notes-library">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 5" :key="step">{{ t(`notes.markdown.guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
 
         <!-- Ce que la sélection permet, quand il y en a une. Une barre
              plutôt qu'un menu : ce qui est choisi doit rester compté sous

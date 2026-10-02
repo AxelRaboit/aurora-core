@@ -1,5 +1,12 @@
 backend:
     profile:
+        guide:
+            title: 'Su perfil de un vistazo'
+            step_1: 'La foto se guarda en cuanto la elige, sin otro botón.'
+            step_2: 'El nombre, la dirección de correo, la contraseña y la frase de estado de ánimo tienen cada uno su botón Guardar, que solo envía su tarjeta.'
+            step_3: 'Cambiar de idioma recarga al instante la administración en el idioma elegido.'
+            step_4: 'La tarjeta Preferencias lleva al ajuste de su menú lateral: secciones ocultas y colores.'
+            step_5: 'La eliminación de la cuenta, al final de la página, es definitiva, y el último desarrollador de la instancia no puede eliminar la suya.'
         errors:
             current_password_invalid: 'La contraseña actual es incorrecta.'
             email_invalid: 'Dirección de correo electrónico no válida.'
@@ -59,6 +66,13 @@ backend:
             tabs:
                 sidemenu: 'Menú lateral'
         sidemenu:
+            guide:
+                title: 'Ajustar su menú lateral'
+                step_1: 'Estos ajustes solo valen para usted: los demás usuarios conservan su propio menú.'
+                step_2: 'El interruptor de una sección la oculta por completo; los de sus filas ocultan un módulo cada vez.'
+                step_3: 'Un color asignado a una sección ayuda a encontrarla antes en el menú.'
+                step_4: 'Nada cambia antes de Guardar: los colores se aplican al momento, los elementos ocultos en la página siguiente.'
+                step_5: 'Una página oculta sigue accesible por su dirección, y «Volver a mostrar todo» borra todos sus ajustes de una vez.'
             title: 'Preferencias del menú lateral'
             subtitle: 'Personalizar la navegación: ocultar las secciones o módulos que no se usan, o cambiar el color de una sección para localizarla mejor. Las páginas siguen siendo accesibles por URL directa.'
             section_hint: 'Desactivar el botón para ocultar toda la sección, o ajustar módulo por módulo.'

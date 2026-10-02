@@ -15,13 +15,11 @@ aurora-client/
 │   │   │   └── DocumentCategory/     #     ex. {Entity,Dto,Manager,Serializer} (illustratif)
 │   │   ├── Crm/            #   ex. extensions d'entités Aurora\Module\Crm\*
 │   │   └── Tracking/       #   ex. module métier propre au client (illustratif)
+│   │       └── assets/     #     ses composants Vue, à côté de son PHP
+│   ├── Overrides/          # Composants Vue qui remplacent des composants Aurora
+│   ├── locales/            # Traductions Vue-only (en.js, fr.js)
 │   ├── Service/            # Services cross-modules stateless (rare)
 │   └── EventListener/      # Listeners globaux (rare)
-├── assets/client/          # Assets Vue côté client
-│   ├── Module/             # Composants pour les modules client
-│   │   └── Tracking/       # ex. composants d'un module client
-│   ├── Overrides/          # Composants qui remplacent des composants Aurora
-│   └── locales/            # Traductions Vue-only (en.js, fr.js)
 ├── templates/              # Templates Twig qui surchargent Aurora
 │   ├── Core/               # Overrides de templates Core Aurora
 │   └── Module/             # Templates des modules client
@@ -100,9 +98,10 @@ sidemenu admin, le système de permissions et le routing frontend.
 
 ## Chargement des assets
 
-`assets/client/` est mappé à l'alias `@client` dans Vite. Aurora scanne
-`@client/Module/**/*.vue` et enregistre les composants avec la même convention
-que ses propres modules :
+L'alias `@client` de Vite pointe sur **la racine** du projet client (variable
+`AURORA_CLIENT_DIR`). Aurora scanne `@client/src/Module/**/assets/**/*.vue` et
+`@client/src/Overrides/**/*.vue`, et enregistre les composants avec la même
+convention que ses propres modules :
 
 ```
 src/Module/Tracking/assets/admin/ProjectsApp.vue
@@ -150,7 +149,7 @@ Les traductions client suivent deux canaux :
 | Canal | Fichiers | Usage |
 |---|---|---|
 | Symfony (Twig/PHP) | `src/Module/*/translations/messages.{fr,en}.yaml` | Labels admin, emails, validations |
-| Vue (vue-i18n) | `assets/client/locales/{fr,en}.js` | Labels Vue-only (boutons, permissions UI) |
+| Vue (vue-i18n) | `src/locales/{fr,en}.js` | Labels Vue-only (boutons, permissions UI) |
 
 Enregistrement dans `config/services.yaml` :
 

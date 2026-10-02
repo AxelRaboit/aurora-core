@@ -3,14 +3,20 @@
 ## Démarrage
 
 ```bash
-make start          # serveur Symfony + Vite en parallèle (avec TLS)
-make start-no-tls   # sans HTTPS (si problème de certificat)
+make start          # serveur Symfony en arrière-plan (TLS) + Vite au premier plan
+make start-d        # serveur Symfony seul, en arrière-plan
+make dev            # Vite seul (serveur déjà lancé)
+make start-no-tls   # serveur sans HTTPS (si problème de certificat)
+make start-dev-worker   # worker Messenger, dans un terminal à part
 ```
+
+PostgreSQL tourne sur ta machine : aucune de ces cibles ne démarre de
+base de données. Installation initiale : [`../getting-started/joining_a_project.md`](../getting-started/joining_a_project.md).
 
 Pour arrêter :
 
 ```bash
-make stop           # arrête le serveur + Docker DB
+make stop           # arrête le serveur Symfony (Ctrl+C pour Vite et le worker)
 ```
 
 ---
@@ -32,12 +38,12 @@ Indispensable après :
 ### Tests + qualité
 
 ```bash
-make ft             # fix (linters) + test - à lancer avant chaque commit
+make ft             # make fix + make test + make migrate-check - à lancer avant chaque commit
 make test           # tests complets (PHP + JS)
 make test-backend   # PHPUnit uniquement
 make test-frontend  # Vitest uniquement
 make stan           # PHPStan analyse statique
-make fix            # tous les linters (PHP CS Fixer + ESLint)
+make fix            # composer validate + ESLint, Twig CS Fixer, Rector, PHP CS Fixer (en mode correction) + PHPStan
 ```
 
 > **Règle** : `make ft` doit être vert avant chaque commit, sans exception.
@@ -45,7 +51,7 @@ make fix            # tous les linters (PHP CS Fixer + ESLint)
 ### Base de données
 
 ```bash
-make migration      # génère une migration depuis les changements de schéma
+make migration-diff # génère une migration depuis les changements d'entité, dans ClientMigrations
 make migrate        # joue les migrations en attente
 make migrate-prev   # rollback de la dernière migration
 make schema-validate # valide que le schéma Doctrine correspond à la DB
@@ -79,7 +85,7 @@ make about                                              # résumé de l'app (PHP
 ## Workflow type : ajouter une feature
 
 1. **Modifier le code** (entité, manager, vue…)
-2. **Si schéma DB changé** : `make migration && make migrate`
+2. **Si schéma DB changé** : `make migration-diff`, relire le fichier, puis `make migrate`
 3. **Si traductions ajoutées** : `make translation`
 4. **Vérifier** : `make ft`
 5. **Commit** : message en anglais, préfixe standardisé (`feat:`, `fix:`, `refactor:`, `docs:`)
@@ -108,14 +114,15 @@ make schema-validate
 
 ```bash
 make fixtures           # reset complet DB + fixtures de dev
-make demo               # fixtures de démo (données réalistes)
-make fixtures-append    # ajouter des fixtures sans reset
+make demo               # fixtures de démo ajoutées par-dessus (--append)
+make fixtures-load      # fixtures ajoutées par-dessus les données (--append), dev uniquement
+make fixtures-append    # la même chose, sans le garde-fou dev
 
-make docker-up          # démarrer PostgreSQL (Docker)
-make docker-down        # arrêter PostgreSQL (Docker)
-
-make start-dev-worker   # worker Messenger (OCR, async jobs)
-                        # nécessaire si tu travailles sur le module Billing/OCR
+make start-dev-worker   # worker Messenger (async + planificateur)
+                        # nécessaire pour les publications programmées et les
+                        # tâches du planificateur, les mails des formulaires,
+                        # le déplacement des documents de la médiathèque,
+                        # le récapitulatif de l'espace client
 
 make aurora-update      # mettre à jour aurora-core (voir update_aurora.md)
 ```

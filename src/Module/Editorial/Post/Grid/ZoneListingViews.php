@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Editorial\Post\Grid;
 
+use Aurora\Module\Configuration\Setting\Service\SiteTimezone;
 use Aurora\Module\Editorial\GitHub\Service\GitHubActivityView;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Repository\PostRepository;
@@ -30,6 +31,7 @@ final readonly class ZoneListingViews
         private UrlGeneratorInterface $urlGenerator,
         private GitHubActivityView $gitHubActivityView,
         private ThumbnailPresenter $thumbnailPresenter,
+        private SiteTimezone $siteTimezone,
     ) {}
 
     /**
@@ -148,7 +150,9 @@ final readonly class ZoneListingViews
      */
     public function activityFeedView(array $zone, string $locale, ?int $currentPostId): array
     {
-        $dates = new IntlDateFormatter($locale, IntlDateFormatter::LONG, IntlDateFormatter::NONE);
+        // The day a post moved, at the site's time: read in UTC, a change made
+        // just after midnight in Paris was dated the day before.
+        $dates = new IntlDateFormatter($locale, IntlDateFormatter::LONG, IntlDateFormatter::NONE, $this->siteTimezone->get());
         $entries = [];
 
         $posts = $this->postRepository->findLatestPublished($locale, (int) $zone['limit'], $zone['postTypeId'], null, $currentPostId);

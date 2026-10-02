@@ -6,8 +6,8 @@
 <p>{{ 'studio.email.customer_signed.body'|trans({'{reference}': contract.reference, '{name}': signature.declaredFullName}) }}</p>
 
 <ul>
-    <li>{{ 'studio.email.customer_signed.declared'|trans({'{place}': signature.declaredPlace, '{date}': signature.declaredDate|date('d/m/Y')}) }}</li>
-    <li>{{ 'studio.email.customer_signed.observed'|trans({'{at}': signature.signedAt|date('d/m/Y H:i'), '{ip}': signature.ipAddress ?? '-'}) }}</li>
+    <li>{{ 'studio.email.customer_signed.declared'|trans({'{place}': signature.declaredPlace, '{date}': signature.declaredDate|calendar_date}) }}</li>
+    <li>{{ 'studio.email.customer_signed.observed'|trans({'{at}': signature.signedAt|site_datetime, '{ip}': signature.ipAddress ?? '-'}) }}</li>
     <li>{{ 'studio.email.customer_signed.hash'|trans({'{hash}': signature.signedContentHash|slice(0, 16)}) }}</li>
 </ul>
 

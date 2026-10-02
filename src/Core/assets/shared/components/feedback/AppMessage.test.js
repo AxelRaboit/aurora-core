@@ -66,4 +66,22 @@ describe("AppMessage", () => {
         expect(wrapper.find("button").exists()).toBe(true);
         expect(wrapper.text()).toContain("Retry");
     });
+
+    /**
+     * La croix n'existe que si on la demande, et ne cache rien elle-même :
+     * c'est l'appelant qui décide pour combien de temps.
+     */
+    it("offers a cross only when dismissible, and leaves the hiding to the caller", async () => {
+        expect(mount(AppMessage).find("button").exists()).toBe(false);
+
+        const wrapper = mount(AppMessage, {
+            props: { dismissible: true, dismissLabel: "Masquer" },
+        });
+        const cross = wrapper.find("button");
+        expect(cross.attributes("aria-label")).toBe("Masquer");
+
+        await cross.trigger("click");
+        expect(wrapper.emitted("dismiss")).toHaveLength(1);
+        expect(wrapper.exists()).toBe(true);
+    });
 });

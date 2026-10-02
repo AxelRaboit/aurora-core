@@ -30,6 +30,7 @@
  * from, closes on Escape, and still offers the real address for whoever wants
  * the tab or the download.
  */
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, ref, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { useSpaceFiles } from "../composables/useSpaceFiles.js";
@@ -127,6 +128,13 @@ function chooseFile(event) {
 
 <template>
     <div ref="container">
+        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+     replié ou déplié, le choix vaut pour tous les encarts. -->
+        <AppGuide :title="t('backend.studio.space_files.guide.title')" storage-key="space-files" class="mb-3">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 4" :key="step">{{ t(`backend.studio.space_files.guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
         <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
             <!-- Deux rattachements, deux onglets, et le compte sur l'étiquette :
                  c'est lui qui rend l'autre visible. -->

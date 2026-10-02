@@ -67,14 +67,24 @@ final readonly class SpaceFilesViewBuilder
             // deviné dans l'écran : la règle vit dans `SpaceVisibility`.
             'canConfigure' => $this->visibility->canConfigure($space),
             'settingsPath' => $this->urlGenerator->generate('workspace_space_settings_show', ['id' => $space->getId()]),
-            // Où se choisit le dossier de l'agence, pour que les réglages de
-            // l'espace disent qu'il ne se règle pas chez eux. Nul pour qui
-            // n'a pas la main sur la configuration : un lien vers un 403
-            // n'aide personne.
-            'driveConfigurationPath' => $this->authorization->isGranted('configuration.settings.manage')
-                ? $this->urlGenerator->generate('backend_studio_drive_settings_show')
+            // Le dossier de l'agence se règle là où il manque, dans une
+            // fenêtre des réglages de l'espace, sans quitter l'espace. Pour
+            // qui a la main sur la configuration seulement : les autres lisent
+            // la phrase, sans geste qui finirait sur un 403.
+            'driveAgencyFolderPath' => $this->canConfigureDrive()
+                ? $this->urlGenerator->generate('backend_studio_drive_settings_agency_folder')
                 : null,
+            // L'adresse avec laquelle partager un dossier, à copier dans la
+            // fenêtre : pour celui de l'agence, et d'abord pour celui du
+            // client, à qui il faut bien la donner. Elle n'a rien de secret,
+            // elle s'écrit dans chaque partage.
+            'driveServiceAccountEmail' => $this->drive->isEnabled() ? $this->drive->state()['email'] : null,
         ];
+    }
+
+    private function canConfigureDrive(): bool
+    {
+        return $this->authorization->isGranted('configuration.settings.manage');
     }
 
     /**

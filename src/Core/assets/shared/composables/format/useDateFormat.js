@@ -1,10 +1,32 @@
 import { useI18n } from "vue-i18n";
+import { siteZone } from "@/shared/utils/format/zonedTime.js";
 
+/**
+ * Dates in the reader's language, at the site's time.
+ *
+ * The zone is the site's (Settings > Localisation) when the page hands it over,
+ * so a post scheduled for 09:00 reads 09:00 in the list too, and not the time
+ * of the laptop reading it. Pages that do not (public ones) keep the browser's.
+ */
 export function useDateFormat() {
     const { locale } = useI18n();
+    const zone = siteZone() ?? undefined;
+
+    // Only an instant (a value with its offset) moves to the site's time.
+    // A bare day (`2026-10-02`) parses as midnight UTC, and read in a zone
+    // west of Greenwich would print the day before: it names a day, so it is
+    // read in UTC. A bare time (`2026-10-02T09:00`) is already a wall clock -
+    // a space's items come in their space's zone - so it prints as it reads.
+    const zoneFor = (value) => {
+        if (/^\d{4}-\d{2}(-\d{2})?$/.test(value)) return "UTC";
+        return /(?:[zZ]|[+-]\d{2}:?\d{2})$/.test(String(value))
+            ? zone
+            : undefined;
+    };
 
     function formatDate(isoString) {
         return new Intl.DateTimeFormat(locale.value, {
+            timeZone: zoneFor(isoString),
             day: "numeric",
             month: "long",
             year: "numeric",
@@ -15,6 +37,7 @@ export function useDateFormat() {
 
     function formatDateShort(isoString) {
         return new Intl.DateTimeFormat(locale.value, {
+            timeZone: zoneFor(isoString),
             day: "numeric",
             month: "short",
             year: "numeric",
@@ -23,6 +46,7 @@ export function useDateFormat() {
 
     function formatDateTime(isoString) {
         return new Intl.DateTimeFormat(locale.value, {
+            timeZone: zoneFor(isoString),
             day: "numeric",
             month: "short",
             hour: "2-digit",
@@ -38,6 +62,7 @@ export function useDateFormat() {
     function formatDateNumeric(isoString, placeholder = "-") {
         if (!isoString) return placeholder;
         return new Intl.DateTimeFormat(locale.value, {
+            timeZone: zoneFor(isoString),
             day: "2-digit",
             month: "2-digit",
             year: "numeric",
@@ -48,6 +73,7 @@ export function useDateFormat() {
     function formatDateTimeNumeric(isoString, placeholder = "-") {
         if (!isoString) return placeholder;
         return new Intl.DateTimeFormat(locale.value, {
+            timeZone: zoneFor(isoString),
             day: "2-digit",
             month: "2-digit",
             year: "numeric",
@@ -65,6 +91,7 @@ export function useDateFormat() {
         if (!input) return placeholder;
         const iso = /^\d{4}-\d{2}$/.test(input) ? `${input}-01` : input;
         const raw = new Intl.DateTimeFormat(locale.value, {
+            timeZone: zoneFor(iso),
             month: "long",
             year: "numeric",
         }).format(new Date(iso));

@@ -1,11 +1,25 @@
 <script setup>
 import { computed } from "vue";
-import { Info, AlertTriangle, AlertCircle, CheckCircle2, Trash2 } from "lucide-vue-next";
+import { Info, AlertTriangle, AlertCircle, CheckCircle2, Trash2, X } from "lucide-vue-next";
 
 const props = defineProps({
     variant: { type: String, default: "info" },
     icon: { type: [String, Boolean], default: true },
+    /**
+     * Une croix pour le mettre de côté. Le message ne décide pas pour combien
+     * de temps : il émet `dismiss`, et c'est l'appelant qui le cache - pour la
+     * visite, le plus souvent, afin qu'il revienne au rechargement.
+     */
+    dismissible: { type: Boolean, default: false },
+    /**
+     * Le nom de la croix, pour l'infobulle et les lecteurs d'écran. Passé par
+     * l'appelant plutôt que traduit ici : le message se monte partout, y
+     * compris dans des tests qui n'installent pas les traductions.
+     */
+    dismissLabel: { type: String, default: "" },
 });
+
+const emit = defineEmits(["dismiss"]);
 
 const VARIANTS = {
     // Expliquer n'est pas alerter.
@@ -48,5 +62,15 @@ const IconComponent = computed(() => (props.icon === false ? null : DEFAULT_ICON
         <div v-if="$slots.actions" class="flex items-center gap-2 shrink-0">
             <slot name="actions" />
         </div>
+        <button
+            v-if="dismissible"
+            type="button"
+            class="-mr-1.5 -mt-1 shrink-0 rounded-md p-1.5 opacity-70 transition-opacity hover:opacity-100 focus-visible:opacity-100"
+            :title="dismissLabel || undefined"
+            :aria-label="dismissLabel || undefined"
+            v-on:click="emit('dismiss')"
+        >
+            <X class="h-4 w-4" :stroke-width="2" />
+        </button>
     </div>
 </template>

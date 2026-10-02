@@ -176,7 +176,7 @@ Tous les templates sous `Frontend/themes/default/` sont overridables :
 | `photo/gallery/{index,unlock}.html.twig` | Vue galerie photo |
 | `ged/documents/index.html.twig` | Bibliothèque GED |
 
-**SEO** : voir [`convention_seo_head.md`](convention_seo_head.md) - chaque passerelle
+**SEO** : voir [`convention_seo_head.md`](../../aurora-shared/convention_seo_head.md) - chaque passerelle
 override `{% block seo_define %}{% do seo({...}) %}{% endblock %}` ; ne **pas** utiliser
 `{% block title %}` / `{% block og_image %}` etc. (code mort silencieux, cf. la doc).
 

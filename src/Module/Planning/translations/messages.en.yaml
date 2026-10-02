@@ -37,6 +37,13 @@ backend:
     planning: Calendar
     planning_description: "See what is on your calendars, by month, week or day."
   plannings:
+    guide:
+      title: "How the calendar works"
+      step_1: "The side menu lists your calendars: hide one to take its events off the grid, or create an event, a reminder or a calendar."
+      step_2: "The arrows change the period, Day, Week, Month and Agenda change the view, and Today brings you back to the current date."
+      step_3: "On a computer, click a day or a free slot to create an event there, and drag an event to move it."
+      step_4: "A reminder is a due item you tick once done; editing a recurring event asks whether it is this occurrence, the following ones or the whole series."
+      step_5: "Sharing a calendar opens it to other users, or creates a secret link readable without an account, as a web page or a subscription."
     title: Calendar
     upcoming: "Coming up"
     nothing_upcoming: "Nothing coming up."

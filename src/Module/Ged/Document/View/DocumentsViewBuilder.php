@@ -43,6 +43,22 @@ final readonly class DocumentsViewBuilder
         private ThemeContext $themeContext,
     ) {}
 
+    /**
+     * What a document can be filed under: categories, tags and the folder
+     * tree. The document's own page edits these too, with the same lists as
+     * the library.
+     *
+     * @return array{categories: list<array<string, mixed>>, tags: list<array<string, mixed>>, folders: list<array<string, mixed>>}
+     */
+    public function classificationOptions(): array
+    {
+        return [
+            'categories' => array_map($this->categorySerializer->serialize(...), $this->categoryRepository->findAllOrdered()),
+            'tags' => array_map($this->tagSerializer->serialize(...), $this->tagRepository->findAllOrdered()),
+            'folders' => $this->serializeFoldersWithCounts(),
+        ];
+    }
+
     public function indexView(PaginationRequest $pagination, bool $originalsOnly = true, string $sort = 'date', string $direction = 'desc'): array
     {
         $categories = array_map(

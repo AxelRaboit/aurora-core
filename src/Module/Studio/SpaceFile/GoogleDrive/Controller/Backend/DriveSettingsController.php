@@ -79,4 +79,25 @@ final class DriveSettingsController extends AbstractController
 
         return $this->jsonSuccess($this->settings->state());
     }
+
+    /**
+     * The agency folder alone, for the space settings that offer to set it
+     * where it is missed. The general save above reads `enabled` as false
+     * when it is absent and would switch Drive off: this one touches nothing
+     * else. Empty clears the folder.
+     */
+    #[Route('/agency-folder', name: '_agency_folder', methods: [HttpMethodEnum::Post->value])]
+    public function agencyFolder(Request $request): JsonResponse
+    {
+        $given = mb_trim((string) ($this->decodeJson($request)['agencyFolderId'] ?? ''));
+        $agencyFolderId = '' === $given ? '' : DriveFolderId::from($given);
+
+        if (null === $agencyFolderId) {
+            return $this->jsonFailure('backend.studio.drive.errors.agency_folder_invalid');
+        }
+
+        $this->settings->saveAgencyFolder($agencyFolderId);
+
+        return $this->jsonSuccess(['agencyFolderId' => $this->settings->agencyFolderId()]);
+    }
 }

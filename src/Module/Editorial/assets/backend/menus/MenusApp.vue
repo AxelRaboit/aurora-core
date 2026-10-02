@@ -1,4 +1,5 @@
 <script setup>
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
@@ -86,6 +87,13 @@ function isUnresolved(item) {
     <div v-else class="space-y-2 sm:space-y-4">
         <!-- No picker column: the side menu lists the menus, one entry per
              record and one address each. -->
+        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+     replié ou déplié, le choix vaut pour tous les encarts. -->
+        <AppGuide :title="t('backend.menus.guide.title')" storage-key="menus">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 4" :key="step">{{ t(`backend.menus.guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
         <section v-if="selected" class="space-y-4">
             <div class="aurora-card p-3 sm:p-5 space-y-3">
                 <div class="flex items-start justify-between gap-3">

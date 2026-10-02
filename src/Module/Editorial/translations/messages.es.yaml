@@ -112,8 +112,14 @@ backend:
                 place_required: 'Introduzca el identificador de la ficha y la clave de API para activar la integración.'
         useful_links:
             settings:
+                guide:
+                    title: 'Cómo funcionan los enlaces útiles'
+                    step_1: 'Añada un enlace con su texto, su dirección y su color; la dirección empieza por https:// o mailto:.'
+                    step_2: 'Arrastre el asa para cambiar el orden y luego guarde: un enlace sin texto o sin una dirección válida se retira al guardar.'
+                    step_3: 'Aparecen al pie de cada publicación, junto a los botones para compartir cuando están activos.'
+                    step_4: 'En la pestaña Ajustes de una publicación, puede ocultarlos o sustituirlos por enlaces propios.'
                 title: 'Los enlaces útiles del sitio'
-                intro: 'Se definen una vez aquí y aparecen al pie de cada publicación, junto a «Compartir»: dónde encontrar al autor, el producto, el código. Una publicación puede ocultarlos o tener los suyos, en su pestaña Configuración.'
+                intro: 'Se definen una vez aquí y aparecen al pie de cada publicación, junto a «Compartir»: dónde encontrar al autor, el producto, el código. Una publicación puede ocultarlos o tener los suyos, en su pestaña Ajustes.'
         newsletter:
             settings:
                 what_title: 'Qué hace esta integración'
@@ -227,6 +233,19 @@ backend:
             comments_by_status: 'Comentarios por estado'
             published_per_month: 'Publicaciones por mes'
     post_galleries:
+        editor_guide:
+            title: "Cómo se compone la galería"
+            step_1: "Active la galería para mostrarla bajo el contenido de la publicación y elija su disposición, sus columnas y su proporción."
+            step_2: "«Añadir una imagen» toma una de la mediateca o de su ordenador, e «Importar imágenes» envía varias a la vez, sesenta como máximo."
+            step_3: "Arrastre una imagen o use sus flechas para cambiar el orden, que es el mismo en todos los idiomas."
+            step_4: "«Texto de la imagen» define su texto alternativo y su leyenda en cada idioma; si se deja vacío, el texto alternativo viene de la mediateca."
+            step_5: "No se guarda nada hasta que pulse «Guardar»."
+        guide:
+            title: 'Cómo se llenan las galerías'
+            step_1: 'Cada publicación puede llevar una galería de imágenes, mostrada bajo su contenido una vez activada.'
+            step_2: 'La lista muestra cuántas fotos tiene cada publicación: «Ninguna foto» señala las que quedan por llenar.'
+            step_3: '«Galería» abre solo las imágenes de la publicación: su texto, su estado y su posicionamiento no cambian allí.'
+            step_4: 'Aquí ve todas las publicaciones, también las de otros autores, salvo las de la papelera.'
         search_placeholder: 'Buscar una publicación'
         empty: 'Ninguna publicación'
         untitled: 'Sin título'
@@ -256,6 +275,13 @@ backend:
         comments: Comentarios
         comments_description: 'Moderar los comentarios de los lectores y descartar los no deseados.'
     post_types:
+        guide:
+            title: 'Cómo funcionan los tipos de contenido'
+            step_1: 'Un tipo de contenido agrupa publicaciones de la misma naturaleza, como artículos o servicios; elíjalo en el menú lateral para ver sus ajustes.'
+            step_2: 'Sus publicaciones tienen su dirección bajo su slug, y «Tiene una página de lista» añade en el sitio una página que las lista todas.'
+            step_3: 'Las capacidades activan en sus publicaciones el contenido en bloques, la imagen destacada o la lectura en secuencia.'
+            step_4: 'Los campos personalizados añaden casillas que rellenar en cada publicación del tipo, comunes a todos los idiomas o propias de cada uno con «Por idioma».'
+            step_5: 'Un tipo nativo conserva su slug y no se puede eliminar; los demás solo se eliminan cuando ya no tienen ninguna publicación, papelera incluida.'
         title: 'Tipos de contenido'
         empty: 'Ningún tipo de contenido.'
         created: 'Tipo de contenido creado.'
@@ -286,7 +312,7 @@ backend:
         fields:
             row_actions:
                 edit_description: 'Etiqueta, tipo, obligatorio o no, opciones.'
-                delete_description: 'Elimina el campo. Las respuestas ya recibidas lo conservan.'
+                delete_description: 'Elimina el campo de este tipo de contenido.'
             title: 'Campos personalizados'
             empty: 'Ningún campo personalizado.'
             created: 'Campo añadido.'
@@ -330,6 +356,20 @@ backend:
         description_placeholder: 'Para qué sirve este tipo de contenido, en una frase.'
         icon_placeholder: file-text
     posts:
+        settings_guide:
+            title: "Cómo se configura la difusión"
+            step_1: "El estado decide si la página se puede leer: «Borrador» la deja en la administración, «Publicada» la pone en línea, «Programada» la publica sola en la fecha elegida."
+            step_2: "«En el sitio» la muestra en las listas, los menús, la búsqueda y el sitemap; «Solo con enlace» no la muestra en ningún sitio y se lee con un enlace de lectura."
+            step_3: "Con el permiso de publicar, «Enlaces de lectura» crea una dirección secreta por destinatario, que solo se abre cuando la publicación está publicada."
+            step_4: "«Despublicar el» pasa una publicación en línea a «Archivada» en la fecha elegida; si se deja vacío, sigue en línea."
+            step_5: "«Vista previa» guarda y luego abre una dirección secreta válida siete días, e «Historial» restaura una versión guardada anteriormente."
+        guide:
+            title: "Cómo se publica una página"
+            step_1: "Una publicación empieza como borrador: solo es visible en la administración."
+            step_2: "«Publicada» la pone en línea; «Programada», con una fecha, la publica sola en el minuto previsto."
+            step_3: "Sin el derecho a publicar, elegir «Publicada» o «Programada» la deja «Pendiente de revisión»: aprobada, sale en la fecha elegida; si no, vuelve a borrador."
+            step_4: "«En el sitio» la muestra en las listas, los menús y la búsqueda; «Solo enlace» no la muestra en ningún sitio y se comparte con un enlace de lectura."
+            step_5: "Cada guardado conserva una versión (veinte por defecto), y «Previsualizar» da una dirección secreta válida siete días."
         usage_detail: Publicación
         usage_untitled: 'Publicación sin título'
         banner:
@@ -1377,6 +1417,13 @@ backend:
             highlight_inherit: 'Como el tema'
             highlight_hint: 'Bordes y títulos al pasar el cursor, categoría y flecha de las fichas, solo para el contenido de esta página. La barra de navegación y el pie de página conservan el ajuste del tema.'
     taxonomies:
+        guide:
+            title: "Cómo funcionan las taxonomías"
+            step_1: "Una taxonomía clasifica las publicaciones en categorías o etiquetas; elíjala en el menú lateral para ver sus términos."
+            step_2: "«Se aplica a» elige los tipos de contenido afectados: sus publicaciones marcan sus términos en la pestaña Ajustes."
+            step_3: "Con «Términos anidados», un término se coloca bajo un padre como una categoría; sin ella, los términos quedan en un solo nivel como etiquetas."
+            step_4: "Cada término tiene un nombre y un slug por idioma, y su página en el sitio lista las publicaciones publicadas que lo llevan a él o a uno de sus hijos."
+            step_5: "Eliminar un término sube a sus hijos un nivel; eliminar una taxonomía se lleva sus términos, y una taxonomía nativa no se puede eliminar."
         title: Taxonomías
         empty: 'Ninguna taxonomía.'
         create: 'Nueva taxonomía'
@@ -1427,6 +1474,13 @@ backend:
             reorder_cycle: 'Este desplazamiento colocaría el término {id} dentro de su propia descendencia.'
         label_placeholder: Categorías
     comments:
+        guide:
+            title: "Cómo se moderan los comentarios"
+            step_1: "Los visitantes comentan sin cuenta las publicaciones con los comentarios activados."
+            step_2: "Con la moderación activa, cada comentario llega «Pendiente» y se le avisa."
+            step_3: "Aprobarlo lo hace visible en el sitio y avisa a su autor."
+            step_4: "«Indeseado» lo retira del sitio sin avisar a nadie; lo detectado como spam llega ahí directamente."
+            step_5: "Eliminar es definitivo, y sus respuestas suben un nivel."
         title: Comentarios
         empty: 'Ningún comentario.'
         search_placeholder: 'Buscar un autor, una dirección, un texto…'
@@ -1451,6 +1505,20 @@ backend:
             approved: Aprobado
             spam: 'No deseado'
     forms:
+        editor_guide:
+            title: "Cómo se configura este formulario"
+            step_1: "En «Preguntas», añada una pregunta eligiendo su tipo y luego haga clic en ella para modificarla; la vista previa muestra lo que verá el visitante."
+            step_2: "«Dividir en pasos» reparte las preguntas en varias páginas, y una pregunta puede mostrarse solo según la respuesta a una pregunta situada antes."
+            step_3: "«Respuestas» lista los envíos, los más recientes primero, y «Exportar en CSV» los recoge todos para una hoja de cálculo."
+            step_4: "«Ajustes» fija el título y la dirección en cada idioma, pone el formulario en línea o fuera de línea y elige a quién se avisa de cada respuesta."
+            step_5: "Sin dirección de correo, cada respuesta se envía al administrador del sitio; fuera de línea, el formulario desaparece de las páginas donde está colocado."
+        guide:
+            title: "Cómo funcionan los formularios"
+            step_1: "Cree un formulario a partir de una plantilla: vacío, contacto, solicitud de presupuesto en dos pasos, inscripción a un evento."
+            step_2: "En «Preguntas», añádalas en el orden en que las verá el visitante, divididas en pasos si hace falta; una pregunta puede depender de una respuesta anterior."
+            step_3: "Las respuestas llegan a «Respuestas», exportables en CSV; «Ajustes» también puede avisarle por correo o enviarlas a un webhook."
+            step_4: "Para mostrarlo, añada una zona «Formulario» en la cuadrícula de una publicación; fuera de línea, desaparece de todas las páginas."
+            step_5: "Eliminar un formulario es definitivo y se lleva sus respuestas: no pasa por la papelera."
         title: "Formularios"
         empty: "Ningún formulario."
         create: "Nuevo formulario"
@@ -1669,6 +1737,12 @@ backend:
             field_type_invalid: 'Tipo de campo desconocido.'
             condition_logic_invalid: 'Lógica de condición desconocida.'
     menus:
+        guide:
+            title: "Cómo se construye un menú"
+            step_1: "Cada menú corresponde a una ubicación del tema: navegación principal, pie de página o cuenta; existen desde el principio."
+            step_2: "Añada una entrada y elija su destino: una publicación, un término, la lista de un tipo de contenido, la portada, una dirección libre o el inicio de sesión."
+            step_3: "Si se deja vacío, el texto toma el título del destino y sigue sus traducciones."
+            step_4: "Coloque una entrada bajo otra para crear un submenú, y elija quién la ve; eliminar una entrada sube sus subentradas un nivel."
         row_actions:
             edit_description: 'Cambiar la etiqueta, el destino y la apertura del enlace.'
             delete_description: 'Quita la entrada del menú. Sus hijos suben un nivel.'
@@ -1686,7 +1760,7 @@ backend:
         item_created: 'Entrada añadida.'
         item_updated: 'Entrada actualizada.'
         item_deleted: 'Entrada eliminada.'
-        item_delete_confirm: '¿Eliminar la entrada «{label}»? Sus subentradas se eliminarán con ella.'
+        item_delete_confirm: '¿Eliminar la entrada «{label}»? Sus subentradas subirán un nivel.'
         reordered: 'Menú reorganizado.'
         label: Etiqueta
         label_hint: 'Si se deja vacía, la entrada toma el título del destino y sigue sus traducciones.'

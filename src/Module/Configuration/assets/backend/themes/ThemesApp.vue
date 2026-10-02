@@ -1,4 +1,5 @@
 <script setup>
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { Palette, Check, Pencil, Trash2, Plus, Save, X } from "lucide-vue-next";
@@ -169,6 +170,13 @@ const pageActions = computed(() => {
             <AppPageActions :actions="pageActions" />
         </div>
 
+        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+     replié ou déplié, le choix vaut pour tous les encarts. -->
+        <AppGuide :title="t('backend.themes.guide.title')" storage-key="themes">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 4" :key="step">{{ t(`backend.themes.guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
             <div
                 v-for="theme in themeList"

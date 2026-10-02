@@ -9,6 +9,7 @@ use Aurora\Core\Scheduling\Event\EntityUnscheduledEvent;
 use Aurora\Core\Sequence\SequenceGenerator;
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
+use Aurora\Module\Configuration\Setting\Service\SiteTimezone;
 use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Editorial\Post\Banner\BannerNormalizer;
 use Aurora\Module\Editorial\Post\Dto\PostInputInterface;
@@ -38,7 +39,6 @@ use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Enum\UserRoleEnum;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
-use Exception;
 use InvalidArgumentException;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\AsAlias;
@@ -46,6 +46,8 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
+
+use function in_array;
 
 #[AsAlias(PostManagerInterface::class)]
 class PostManager implements PostManagerInterface
@@ -79,6 +81,7 @@ class PostManager implements PostManagerInterface
         protected readonly EventDispatcherInterface $eventDispatcher,
         protected readonly UrlGeneratorInterface $urlGenerator,
         protected readonly PostSnapshot $snapshot,
+        protected readonly SiteTimezone $siteTimezone,
     ) {}
 
     public function create(PostInputInterface $input): PostInterface
@@ -260,7 +263,10 @@ class PostManager implements PostManagerInterface
 
     public function demoteIfNotPublishable(PostInputInterface $input, ?PostInterface $post = null): PostInputInterface
     {
-        if (PostStatusEnum::Published->value !== $input->getStatus()) {
+        // « Programmée » est une publication différée : sans ce garde, qui n'a
+        // pas le droit de publier choisissait une date, et la tâche planifiée
+        // publiait la page à l'heure dite sans que personne ne l'ait relue.
+        if (!in_array($input->getStatus(), [PostStatusEnum::Published->value, PostStatusEnum::Scheduled->value], true)) {
             return $input;
         }
 
@@ -311,8 +317,11 @@ class PostManager implements PostManagerInterface
         $status = PostStatusEnum::from($input->getStatus());
         $post->setStatus($status);
 
+        // Gardée aussi pendant la relecture : une publication programmée par
+        // quelqu'un qui n'a pas le droit de publier part en revue avec la date
+        // qu'il voulait, et l'approbation la reprogramme à cette date.
         $post->setScheduledAt(
-            PostStatusEnum::Scheduled === $status ? $this->hydrateDate($input->getScheduledAt()) : null,
+            in_array($status, [PostStatusEnum::Scheduled, PostStatusEnum::PendingReview], true) ? $this->hydrateDate($input->getScheduledAt()) : null,
         );
 
         // Kept whatever the status is. An end date belongs to the post rather than
@@ -654,16 +663,18 @@ class PostManager implements PostManagerInterface
         return $map;
     }
 
+    /**
+     * A date from the editor or a snapshot, in UTC for the column.
+     *
+     * The editor sends the time with the site's offset (`09:00:00+02:00`), a
+     * snapshot with UTC's. Both are converted rather than kept as they are:
+     * Doctrine writes an object's wall clock, so a `+02:00` value stored as is
+     * would land two hours late. A bare time, from an older client, is read at
+     * the site's time - before, it was read as UTC and a post scheduled for
+     * 09:00 in Paris came out at 11:00.
+     */
     private function hydrateDate(mixed $value): ?DateTimeImmutable
     {
-        if (!is_string($value) || '' === $value) {
-            return null;
-        }
-
-        try {
-            return new DateTimeImmutable($value);
-        } catch (Exception) {
-            return null;
-        }
+        return is_string($value) ? $this->siteTimezone->parseLocal($value) : null;
     }
 }

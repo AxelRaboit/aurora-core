@@ -6,11 +6,16 @@ conventions d'extensibilité, ops) sont dans [`aurora-core/`](../aurora-core/REA
 
 ## 🚀 Démarrage
 
+**Point d'entrée** : [getting-started/joining_a_project.md](getting-started/joining_a_project.md),
+la procédure d'installation de référence.
+
 | Fichier | Contenu |
 |---|---|
+| [getting-started/joining_a_project.md](getting-started/joining_a_project.md) | Rejoindre un projet : prérequis, installation locale, quotidien, fixtures, ce que les syncs n'écrasent pas |
+| [getting-started/setup.md](getting-started/setup.md) | Démarrer un nouveau projet + référence des variables d'environnement |
 | [getting-started/philosophy.md](getting-started/philosophy.md) | Philosophie du projet - les deux modes de travail, ce qu'on ne fait pas |
-| [getting-started/setup.md](getting-started/setup.md) | Installation locale - première mise en route |
 | [getting-started/architecture.md](getting-started/architecture.md) | Structure du projet, relation avec aurora-core |
+| [getting-started/installing_modules.md](getting-started/installing_modules.md) | Obsolète : modules à la carte (dépôts archivés), gardé comme référence |
 
 ## 🛠️ Développement quotidien
 
@@ -38,5 +43,6 @@ Tout ce qu'il faut faire pour mettre en prod un projet aurora-client, regroupé 
 | [deployment/server_provisioning.md](deployment/server_provisioning.md) | Provisionner un serveur : PostgreSQL, permissions, vhost Apache, HTTPS |
 | [deployment/worker_systemd.md](deployment/worker_systemd.md) | Service systemd `aurora-worker` (Symfony Messenger consumer) |
 | [deployment/apache_xsendfile.md](deployment/apache_xsendfile.md) | `mod_xsendfile` pour servir `var/uploads/` sans saturer PHP-FPM |
+| [deployment/github_actions_ci.md](deployment/github_actions_ci.md) | Workflow GitHub Actions du projet (lint, build, tests) |
 
 > Pour la checklist exhaustive des prérequis (PHP, Node, PostgreSQL, binaires CLI, vars d'env), voir [`aurora-core/ops/prerequisites.md`](../aurora-core/ops/prerequisites.md) - c'est l'inventaire des exigences du bundle lui-même.

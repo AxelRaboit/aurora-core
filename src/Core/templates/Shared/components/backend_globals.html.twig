@@ -12,4 +12,7 @@
     window.__isAdmin__ = {{ is_granted('ROLE_ADMIN') ? 'true' : 'false' }};
     window.__auroraConfig = window.__auroraConfig || {};
     window.__auroraConfig.colorPickerPresets = {{ app_color_presets()|json_encode|raw }};
+    {# The site's zone: the date picker reads and takes times in it, so 09:00
+       means 09:00 at the site whatever the laptop is set to. #}
+    window.__auroraConfig.timezone = {{ app_timezone()|json_encode|raw }};
 </script>

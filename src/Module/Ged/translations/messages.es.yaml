@@ -9,7 +9,7 @@ backend:
     parameters:
         ged_document_prefix:
             label: 'Prefijo de las referencias de documentos de la mediateca'
-            description: 'Prefijo de la referencia de documento generada automáticamente en la mediateca (ej.: DOC). Déjelo vacío para desactivarlo.'
+            description: 'Prefijo de la referencia de documento generada automáticamente en la mediateca (ej.: DOC). De 1 a 10 letras mayúsculas o cifras, obligatorio.'
     permissions:
         names:
             ged:
@@ -87,12 +87,25 @@ backend:
                 inline_uploads: 'Medios editoriales'
                 inline_uploads_description: 'Imágenes importadas desde un formulario de edición: banners, imágenes destacadas, campos personalizados.'
         documents:
+            show_guide:
+                title: 'Lo que puede hacer aquí'
+                step_1: 'El botón de acciones de arriba permite descargar el archivo, editar el documento o enviarlo a la papelera.'
+                step_2: 'Solo un documento con el estado «Publicado» se sirve a los visitantes del sitio; un borrador o un archivado queda reservado al back-office.'
+                step_3: 'En una imagen, «Recortar» guarda una nueva versión del archivo, regenera sus tamaños y conserva la anterior en el historial.'
+                step_4: 'Si el documento tiene variantes, su familia aparece abajo con el lugar donde se usa cada una, y un clic abre la página de una variante.'
+            guide:
+                title: "Cómo se ordena la mediateca"
+                step_1: "Un archivo subido se convierte en un documento, guardado en una carpeta, con una categoría (su naturaleza) y tantas etiquetas como quiera."
+                step_2: "Una variante (otro color, una versión sin texto) se une a su original y forma una familia; «Variante de color» crea una a partir de una imagen."
+                step_3: "La insignia «Sin usar» señala un documento que ninguna página, presentación o espacio muestra; «Conservar» lo mantiene igualmente."
+                step_4: "Eliminar envía el documento a la papelera, desde donde se restaura hasta la purga automática."
+                step_5: "La búsqueda también lee el nombre del archivo, los textos y las etiquetas; «Más filtros» precisa por fecha, formato o peso."
             row_actions:
                 view_description: 'Abre la vista previa, sus versiones y dónde se utiliza.'
                 download_description: 'Descarga el archivo tal como se subió.'
                 qr_description: 'Muestra un código QR que lleva a este documento.'
                 edit_description: 'Título, categoría, etiquetas, carpeta.'
-                delete_description: 'Elimina el documento y su archivo. No se puede deshacer.'
+                delete_description: 'Envía el documento a la papelera, desde donde se restaura.'
                 relocate_to_remote: 'Enviar al almacenamiento remoto'
                 relocate_to_local: 'Traer de vuelta al servidor'
                 relocate_description: 'Traslada el archivo, sus tamaños generados y su historial. Su dirección no cambia.'
@@ -313,9 +326,16 @@ backend:
                 upload_type_refused: 'Este tipo de archivo no se acepta aquí.'
                 upload_failed: 'La subida no llegó completa. Inténtelo de nuevo.'
         categories:
+            guide:
+                title: 'Categoría, etiqueta o carpeta'
+                step_1: 'La categoría indica la naturaleza de un documento, factura, foto o logotipo: cada documento tiene una sola, o ninguna.'
+                step_2: 'Las etiquetas son palabras clave libres: un documento lleva tantas como quiera, además de su categoría.'
+                step_3: 'La carpeta indica dónde está guardado el documento en el árbol, sea cual sea su naturaleza.'
+                step_4: 'Las imágenes subidas desde un formulario de edición o importadas de Pexels se clasifican automáticamente en «Medios editoriales».'
+                step_5: 'Eliminar una categoría la envía a la papelera, desde donde puede restaurarla; no se elimina ningún documento.'
             row_actions:
                 edit_description: 'Renombrar la categoría y cambiar su descripción.'
-                delete_description: 'Elimina la categoría. Los documentos que la tenían dejarán de tenerla.'
+                delete_description: 'Envía la categoría a la papelera. Sus documentos la conservan hasta la purga o la eliminación definitiva.'
             name: Nombre
             slug: Identificador
             description: Descripción
@@ -334,6 +354,13 @@ backend:
             errors:
                 name_required: 'El nombre es obligatorio'
         tags:
+            guide:
+                title: 'Para qué sirven las etiquetas'
+                step_1: 'Una etiqueta es una palabra clave libre: un documento puede llevar tantas como quiera, además de su categoría y su carpeta.'
+                step_2: 'Las añade a un documento al subirlo o al editarlo, desde la mediateca.'
+                step_3: 'En la lista de documentos, el filtro por etiqueta encuentra los que la llevan, o los que no tienen ninguna, y la búsqueda también lee sus nombres.'
+                step_4: 'El color es opcional: tiñe la pastilla de la etiqueta en la mediateca.'
+                step_5: 'Eliminar una etiqueta la quita de todos los documentos, sin eliminar ningún documento.'
             row_actions:
                 edit_description: 'Renombrar la etiqueta y cambiar su color.'
                 delete_description: 'Elimina la etiqueta y la quita de todos los documentos.'

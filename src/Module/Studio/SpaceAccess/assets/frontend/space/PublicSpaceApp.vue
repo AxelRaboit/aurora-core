@@ -21,6 +21,7 @@
  * what is coming and when. The step travels as a word on the card, which is the
  * part that answers "where is this".
  */
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { CalendarDays, IdCard, Link2, MessagesSquare, NotebookText, Paperclip } from "lucide-vue-next";
@@ -267,6 +268,32 @@ const views = computed(() => VIEWS.filter((entry) => {
 }));
 
 const view = ref("calendar");
+
+/**
+ * Le mode d'emploi, réduit à ce que ce lien permet.
+ *
+ * Chaque droit du lien (valider, commenter, envoyer un fichier, écrire dans
+ * la discussion) est réglé à sa création : une étape qui promettrait un
+ * bouton absent de la page enverrait le client chercher ce qui n'existe pas.
+ * Les mêmes conditions que celles qui dessinent les commandes, donc.
+ */
+const guideSteps = computed(() => {
+    const steps = ["calendar"];
+
+    if (props.canApprove) steps.push("answer");
+
+    if (props.canComment && props.canUpload) steps.push("comment_upload");
+    else if (props.canComment) steps.push("comment");
+    else if (props.canUpload) steps.push("upload");
+
+    if (hasChat.value) steps.push(props.chatPostPath ? "chat" : "chat_read");
+
+    if (hasFiles.value || hasDocuments.value || hasResources.value || hasInformation.value) {
+        steps.push("tabs");
+    }
+
+    return steps;
+});
 
 /**
  * Le calendrier se remesure en revenant dessus.
@@ -537,6 +564,15 @@ function isLate(event) {
         <p v-if="space.description" class="max-w-2xl text-sm text-secondary">
             {{ space.description }}
         </p>
+
+
+        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <AppGuide :title="t('studio.public.space.guide.title')" storage-key="public-space">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in guideSteps" :key="step">{{ t(`studio.public.space.guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
 
         <!-- Dessinée à partir du second onglet : un sélecteur à un choix
              n'aide personne à choisir. La bande défile plutôt que de pousser

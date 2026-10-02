@@ -35,6 +35,7 @@ import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppTab from "@/shared/components/nav/AppTab.vue";
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 
 const props = defineProps({
     contracts: { type: Array, default: () => [] },
@@ -203,6 +204,13 @@ const pageActions = computed(() =>
                 <AppPageActions v-if="pageActions.length" :actions="pageActions" class="w-full sm:w-auto" />
             </template>
         </AppListToolbar>
+        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <AppGuide :title="t('backend.studio.contracts.guide.title')" storage-key="contracts-list">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="n in 5" :key="n">{{ t(`backend.studio.contracts.guide.step_${n}`) }}</li>
+            </ol>
+        </AppGuide>
 
         <!-- The journey, as tabs. The count says whether a step is worth
              opening, and the hint what it holds. -->

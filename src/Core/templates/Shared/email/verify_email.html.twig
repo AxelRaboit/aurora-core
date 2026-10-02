@@ -11,7 +11,7 @@
 }) }}
 
 {% if expiresAt %}
-<p class="warning">{{ 'shared.mail.verify_email.expires'|trans({'{date}': expiresAt|date('d/m/Y H:i')}) }}</p>
+<p class="warning">{{ 'shared.mail.verify_email.expires'|trans({'{date}': expiresAt|site_datetime}) }}</p>
 {% endif %}
 
 <div class="subcopy">

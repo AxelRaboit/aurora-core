@@ -92,7 +92,7 @@ src/Module/Tracking/
 Le module utilise l'infrastructure Aurora (audit logger, séquences, PayloadValidator,
 composants Vue partagés, système de permissions) sans avoir à la réimplémenter.
 
-Pour le guide technique pas-à-pas : [add_module.md](add_module.md).
+Pour le guide technique pas-à-pas : [add_module.md](../extending/add_module.md).
 
 ---
 

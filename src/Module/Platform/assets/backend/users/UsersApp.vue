@@ -1,4 +1,5 @@
 <script setup>
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, onMounted, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useNarrowContainer } from "@/shared/composables/list/useNarrowContainer.js";
@@ -169,6 +170,13 @@ const pageActions = computed(() => {
             <AppPageActions :actions="pageActions" class="shrink-0" />
         </div>
 
+        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <AppGuide :title="t('backend.users.guide.title')" storage-key="users">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 4" :key="step">{{ t(`backend.users.guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
         <div class="relative space-y-4">
             <div v-if="isNarrow" class="space-y-2">
                 <AppNoData v-if="!loading && !users.length" :message="t('backend.users.empty')" />

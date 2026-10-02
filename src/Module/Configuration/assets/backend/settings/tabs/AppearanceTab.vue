@@ -1,4 +1,5 @@
 <script setup>
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { useI18n } from "vue-i18n";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppColorSwatch from "@/shared/components/form/picker/AppColorSwatch.vue";
@@ -19,6 +20,13 @@ const colorPresets = useColorPickerPresets({ groups: props.groups, updatePath: p
 
 <template>
     <div class="aurora-card p-4 space-y-5">
+        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+             replié ou déplié, le choix vaut pour tous les encarts. -->
+        <AppGuide :title="t('backend.settings.appearance.guide.title')" storage-key="settings-appearance">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 5" :key="step">{{ t(`backend.settings.appearance.guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
         <div>
             <h3 class="text-sm font-semibold text-primary">{{ t('backend.settings.appearance.color_presets.title') }}</h3>
             <p class="text-xs text-muted mt-1">{{ t('backend.settings.appearance.color_presets.help') }}</p>

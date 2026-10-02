@@ -45,6 +45,15 @@ function monter(props = {}) {
     });
 }
 
+/** Le formulaire vit dans une fenêtre, ouverte par « Modifier la fiche ». */
+async function ouvrir(wrapper) {
+    const bouton = wrapper
+        .findAll("button")
+        .find((b) => b.text().includes("space_information.edit"));
+    await bouton.trigger("click");
+    await flushPromises();
+}
+
 describe("SpaceInformationView", () => {
     beforeEach(() => {
         vi.stubGlobal(
@@ -57,9 +66,20 @@ describe("SpaceInformationView", () => {
         vi.unstubAllGlobals();
     });
 
+    it("montre la fiche, et garde le formulaire fermé tant qu'on ne le demande pas", async () => {
+        const wrapper = monter();
+        await flushPromises();
+
+        // On vient le plus souvent relire : une saisie ouverte d'office
+        // faisait de chaque visite un formulaire.
+        expect(wrapper.findAll("input")).toHaveLength(0);
+        expect(wrapper.text()).toContain("Atelier Temoin");
+    });
+
     it("remplit le formulaire avec la fiche enregistrée", async () => {
         const wrapper = monter();
         await flushPromises();
+        await ouvrir(wrapper);
 
         const valeurs = wrapper.findAll("input").map((i) => i.element.value);
         expect(valeurs).toContain("Atelier Temoin");
@@ -82,6 +102,7 @@ describe("SpaceInformationView", () => {
     it("le récapitulatif ne suit pas la frappe", async () => {
         const wrapper = monter();
         await flushPromises();
+        await ouvrir(wrapper);
 
         const nom = wrapper
             .findAll("input")
@@ -91,7 +112,9 @@ describe("SpaceInformationView", () => {
 
         // Tant que rien n'est enregistré, « ce que le client voit » décrit ce
         // que le serveur porte, et non ce qu'on est en train de taper.
-        expect(wrapper.find("h3").text()).toBe("Atelier Temoin");
+        const titres = wrapper.findAll("h3").map((h) => h.text());
+        expect(titres).toContain("Atelier Temoin");
+        expect(titres).not.toContain("Autre chose");
     });
 
     it("dit que la fiche vaut pour tous les espaces du client", async () => {
