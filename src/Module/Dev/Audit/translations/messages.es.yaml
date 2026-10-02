@@ -67,6 +67,7 @@ backend:
                     deleted: 'Documento eliminado definitivamente'
                     cropped: 'Documento recortado'
                     moved: 'Documento movido'
+                    categorized: 'Documento clasificado en una categoría'
                 folder:
                     trashed: 'Carpeta movida a la papelera'
                     restored: 'Carpeta restaurada'

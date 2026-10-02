@@ -22,6 +22,7 @@ use Aurora\Module\Ged\Document\Entity\DocumentVersionInterface;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Document\Repository\DocumentVersionRepository;
 use Aurora\Module\Ged\Document\Service\GedDocumentUploader;
+use Aurora\Module\Ged\DocumentCategory\Entity\DocumentCategoryInterface;
 use Aurora\Module\Ged\DocumentCategory\Repository\DocumentCategoryRepository;
 use Aurora\Module\Ged\DocumentFolder\Entity\DocumentFolderInterface;
 use Aurora\Module\Ged\DocumentFolder\Repository\DocumentFolderRepository;
@@ -205,6 +206,39 @@ class DocumentManager implements DocumentManagerInterface
         $this->entityManager->flush();
 
         $this->auditLogger->logMany('ged', 'document.moved', 'Document', $this->auditEntries($documents, ['folder' => $folder?->getName()]));
+    }
+
+    /**
+     * One flush for the whole selection, and an audit line per document that
+     * changed: one already in that category is left alone and not logged, so
+     * the log says what was filed rather than what was clicked.
+     *
+     * @param list<int> $ids
+     */
+    public function bulkCategorize(array $ids, ?DocumentCategoryInterface $category): int
+    {
+        if ([] === $ids) {
+            return 0;
+        }
+
+        $changed = [];
+        foreach ($this->documentRepository->findBy(['id' => $ids]) as $document) {
+            if ($document->getCategory()?->getId() === $category?->getId()) {
+                continue;
+            }
+
+            $document->setCategory($category);
+            $changed[] = $document;
+        }
+
+        if ([] === $changed) {
+            return 0;
+        }
+
+        $this->entityManager->flush();
+        $this->auditLogger->logMany('ged', 'document.categorized', 'Document', $this->auditEntries($changed, ['category' => $category?->getName()]));
+
+        return count($changed);
     }
 
     /**
