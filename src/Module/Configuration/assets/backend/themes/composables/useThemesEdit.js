@@ -131,6 +131,10 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
     const headerLogo = ref({ id: null, url: null });
     const headerCustomText = ref("");
     const headerMode = ref("default");
+    // Le logo seul sur téléphone : le nom du site part sous `sm`, le logo
+    // reste. Stocké seulement s'il est demandé, et seulement avec un logo
+    // (sans lui, la barre n'aurait plus rien à montrer).
+    const headerTextHiddenOnPhone = ref(false);
     const contentWidth = ref("narrow");
     const highlight = ref("accent");
     const highlightColor = ref(DEFAULT_PRIMARY_COLOR);
@@ -193,6 +197,8 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
             result["font_family"] = fontFamily.value;
         if (headerMode.value === "image" && headerLogo.value?.id) {
             result["header_logo_media_id"] = String(headerLogo.value.id);
+            if (headerTextHiddenOnPhone.value)
+                result["header_text_on_phone"] = "hidden";
         }
         if (headerMode.value === "text" && headerCustomText.value.trim()) {
             result["header_custom_text"] = headerCustomText.value.trim();
@@ -235,6 +241,8 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
             url: theme.headerLogoUrl ?? null,
         };
         headerCustomText.value = theme.config?.["header_custom_text"] ?? "";
+        headerTextHiddenOnPhone.value =
+            "hidden" === theme.config?.["header_text_on_phone"];
         headerMode.value = theme.config?.["header_logo_media_id"]
             ? "image"
             : theme.config?.["header_custom_text"]
@@ -308,6 +316,7 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
         footerText,
         headerLogo,
         headerCustomText,
+        headerTextHiddenOnPhone,
         headerMode,
         primaryColor,
         surfaceColors,

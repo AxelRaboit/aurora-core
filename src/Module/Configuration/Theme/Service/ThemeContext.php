@@ -90,6 +90,17 @@ final class ThemeContext
         return (is_string($text) && '' !== $text) ? $text : null;
     }
 
+    /**
+     * Le logo seul sur téléphone : le nom du site (ou le texte personnalisé)
+     * passe sous `sm`. Seulement quand un logo existe, sinon l'entête
+     * n'aurait plus rien à montrer.
+     */
+    public function headerTextHiddenOnPhone(): bool
+    {
+        return 'hidden' === ($this->activeTheme()?->getConfig()['header_text_on_phone'] ?? null)
+            && null !== $this->headerLogoUrl();
+    }
+
     public function footerText(string $siteName): string
     {
         $custom = $this->activeTheme()?->getConfig()['footer_text'] ?? '';
