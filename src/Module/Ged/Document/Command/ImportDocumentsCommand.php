@@ -8,6 +8,7 @@ use Aurora\Module\Ged\Document\Dto\DocumentInput;
 use Aurora\Module\Ged\Document\Manager\DocumentManagerInterface;
 use Aurora\Module\Ged\Document\Service\DocumentFamilyRule;
 use Aurora\Module\Ged\Document\Service\GedDocumentUploader;
+use Aurora\Module\Ged\DocumentCategory\Repository\DocumentCategoryRepository;
 use Aurora\Module\Ged\Enum\DocumentStatusEnum;
 use Doctrine\ORM\EntityManagerInterface;
 use SplFileInfo;
@@ -65,6 +66,7 @@ final class ImportDocumentsCommand extends Command
         private readonly DocumentManagerInterface $documentManager,
         private readonly DocumentFamilyRule $familyRule,
         private readonly EntityManagerInterface $entityManager,
+        private readonly DocumentCategoryRepository $categoryRepository,
     ) {
         parent::__construct();
     }
@@ -86,6 +88,7 @@ final class ImportDocumentsCommand extends Command
         );
 
         $this->addOption('folder', null, InputOption::VALUE_REQUIRED, 'Id of the folder to file them under.');
+        $this->addOption('category', null, InputOption::VALUE_REQUIRED, 'Id of the category to file them in.');
         $this->addOption('original', null, InputOption::VALUE_REQUIRED, 'Id of the document these files are alternates of.');
         $this->addOption('label', null, InputOption::VALUE_REQUIRED, 'What sets these alternates apart from their original, e.g. "jaune".');
         $this->addOption('kept', null, InputOption::VALUE_NONE, 'Mark them as kept on purpose, used or not.');
@@ -107,6 +110,18 @@ final class ImportDocumentsCommand extends Command
 
         $folderOption = $input->getOption('folder');
         $folderId = is_numeric($folderOption) ? (int) $folderOption : null;
+
+        // Checked before a single byte is stored, like everything below: the
+        // manager turns an id it cannot find into no category at all, so a
+        // mistyped one gave documents filed nowhere, and nothing said so.
+        $categoryOption = $input->getOption('category');
+        $categoryId = is_numeric($categoryOption) ? (int) $categoryOption : null;
+
+        if (null !== $categoryOption && (null === $categoryId || null === $this->categoryRepository->find($categoryId))) {
+            $io->error(sprintf('--category expects the id of an existing category, got "%s".', (string) $categoryOption));
+
+            return Command::INVALID;
+        }
 
         $originalOption = $input->getOption('original');
         $originalId = is_numeric($originalOption) ? (int) $originalOption : null;
@@ -184,6 +199,7 @@ final class ImportDocumentsCommand extends Command
             $document = $this->documentManager->create(new DocumentInput(
                 title: $this->titleFrom($path),
                 status: $status,
+                categoryId: $categoryId,
                 filePath: $metadata['filePath'],
                 fileName: $metadata['fileName'],
                 originalName: $metadata['originalName'],
