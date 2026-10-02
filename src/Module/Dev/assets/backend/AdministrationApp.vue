@@ -1,5 +1,7 @@
 <script setup>
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import DashboardOverview from "@general/backend/dashboard/DashboardOverview.vue";
 import UsersTab from "@dev/backend/users/UsersTab.vue";
 import AccessRequestsTab from "@dev/backend/access-requests/AccessRequestsTab.vue";
@@ -8,10 +10,13 @@ import PermissionsTab from "@dev/backend/permissions/PermissionsTab.vue";
 import ModulesTab from "@dev/backend/modules/ModulesTab.vue";
 import MountPointsTab from "@dev/backend/mount-points/MountPointsTab.vue";
 
+const { t } = useI18n();
 
 const props = defineProps({
     tab: { type: String, default: "overview" },
     stats: { type: Object, default: () => ({}) },
+    /** Les modules allumés de l'installation, pour les onglets de la vue d'ensemble. */
+    enabledModules: { type: Object, default: () => ({}) },
     users: { type: Object, default: () => ({}) },
     accessRequests: { type: Object, default: () => ({}) },
     audit: { type: Object, default: () => ({}) },
@@ -90,10 +95,18 @@ function initialDataFor(key) {
              surfaces answering "which tab am I on" is one too many - the same
              call the settings page made in 0.9.29. -->
         <div class="flex-1 min-w-0 space-y-5">
+            <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+                 replié ou déplié, le choix vaut pour tous les encarts. -->
+            <AppGuide :title="t('backend.settings.administration_guide.title')" storage-key="dev-administration">
+                <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                    <li v-for="step in 5" :key="step">{{ t(`backend.settings.administration_guide.step_${step}`) }}</li>
+                </ol>
+            </AppGuide>
             <KeepAlive>
                 <DashboardOverview
                     v-if="tab === 'overview'"
                     :stats="initialDataFor('overview') ?? {}"
+                    :enabled-modules="enabledModules"
                 />
                 <UsersTab
                     v-else-if="tab === 'users'"
