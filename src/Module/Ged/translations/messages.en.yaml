@@ -87,12 +87,19 @@ backend:
         inline_uploads: Editorial media
         inline_uploads_description: "Images uploaded from an editing form : banners, featured images, custom fields."
     documents:
+      guide:
+        title: "How the media library is organised"
+        step_1: "An uploaded file becomes a document, filed in a folder, with one category (its nature) and as many tags as you like."
+        step_2: "A variant (another colour, a text-free version) is attached to its original and forms a family; “Colour variant” creates one from an image."
+        step_3: "The “Unused” badge marks a document no page, presentation or space shows; “Keep” keeps it anyway."
+        step_4: "Deleting sends the document to the trash, where it can be restored until the automatic purge."
+        step_5: "Search also reads the file name, the texts and the tags; “More filters” narrows by date, shape or weight."
       row_actions:
         view_description: Opens the preview, its versions and where it is used.
         download_description: Downloads the file exactly as it was uploaded.
         qr_description: Shows a QR code pointing at this document.
         edit_description: Title, category, tags, folder.
-        delete_description: Removes the document and its file. There is no undo.
+        delete_description: Sends the document to the trash, where it can be restored.
         relocate_to_remote: Move to remote storage
         relocate_to_local: Bring back to the server
         relocate_description: "Moves the file, its resized copies and its history. Its address does not change."

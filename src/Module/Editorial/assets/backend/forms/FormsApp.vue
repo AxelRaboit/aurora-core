@@ -11,6 +11,7 @@
  * La création demande un titre et un point de départ, rien d'autre : le reste
  * se règle dans le formulaire, devant ses questions.
  */
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
@@ -175,6 +176,13 @@ const pageActions = computed(() =>
                 <AppPageActions v-if="pageActions.length" :actions="pageActions" class="w-full sm:w-auto" />
             </template>
         </AppListToolbar>
+        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+             replié une fois, il le reste (`storage-key`). -->
+        <AppGuide :title="t('backend.forms.guide.title')" storage-key="forms-list">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 5" :key="step">{{ t(`backend.forms.guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
 
         <AppNoData
             v-if="!items.length"

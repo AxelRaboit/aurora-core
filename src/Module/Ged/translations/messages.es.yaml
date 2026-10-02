@@ -87,12 +87,19 @@ backend:
                 inline_uploads: 'Medios editoriales'
                 inline_uploads_description: 'Imágenes importadas desde un formulario de edición: banners, imágenes destacadas, campos personalizados.'
         documents:
+            guide:
+                title: "Cómo se ordena la mediateca"
+                step_1: "Un archivo subido se convierte en un documento, guardado en una carpeta, con una categoría (su naturaleza) y tantas etiquetas como quiera."
+                step_2: "Una variante (otro color, una versión sin texto) se une a su original y forma una familia; «Variante de color» crea una a partir de una imagen."
+                step_3: "La insignia «Sin usar» señala un documento que ninguna página, presentación o espacio muestra; «Conservar» lo mantiene igualmente."
+                step_4: "Eliminar envía el documento a la papelera, desde donde se restaura hasta la purga automática."
+                step_5: "La búsqueda también lee el nombre del archivo, los textos y las etiquetas; «Más filtros» precisa por fecha, formato o peso."
             row_actions:
                 view_description: 'Abre la vista previa, sus versiones y dónde se utiliza.'
                 download_description: 'Descarga el archivo tal como se subió.'
                 qr_description: 'Muestra un código QR que lleva a este documento.'
                 edit_description: 'Título, categoría, etiquetas, carpeta.'
-                delete_description: 'Elimina el documento y su archivo. No se puede deshacer.'
+                delete_description: 'Envía el documento a la papelera, desde donde se restaura.'
                 relocate_to_remote: 'Enviar al almacenamiento remoto'
                 relocate_to_local: 'Traer de vuelta al servidor'
                 relocate_description: 'Traslada el archivo, sus tamaños generados y su historial. Su dirección no cambia.'

@@ -57,6 +57,13 @@ backend:
           removed: Tag removed
 notes:
   markdown:
+    guide:
+      title: "How notes are organised"
+      step_1: "Each note belongs to a space: yours, always private, or a shared space."
+      step_2: "A shared space opens to you alone, to some people or to the whole back office, each with read, write or manage rights."
+      step_3: "Link notes with [[Title]]: the graph shows these links between all the notes you can read."
+      step_4: "Tags filter the library, and “Manage tags” renames or merges them across all your notes."
+      step_5: "A note can also be shared through a read-only link; even an administrator cannot read your private notes."
     share:
       button: Share with a link
       title: Share this note with a link

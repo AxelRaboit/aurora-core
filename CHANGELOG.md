@@ -21,7 +21,16 @@ Google Drive, Instagram, Pexels, Lettre d'information, Avis Google, GitHub, Anti
 - L'anti-robots gagne son mode d'emploi, propre au service choisi (Cloudflare Turnstile ou reCAPTCHA v3), avec le lien vers la console.
 
 #### Des encarts « Comment ça marche »
-Nouveau composant partagé `AppGuide` : un encart repliable, posé à côté de ce qu'il explique, qui peut retenir dans le navigateur le choix de l'ouvrir ou de le replier (`storageKey`). Il sert aux intégrations et à l'encart « Brancher un dossier » des réglages d'un espace.
+Nouveau composant partagé `AppGuide` : un encart repliable, posé à côté de ce qu'il explique, qui retient dans le navigateur le choix de l'ouvrir ou de le replier (`storageKey`). Chaque écran principal a maintenant le sien, rédigé d'après ce que fait vraiment le code, en français, anglais et espagnol :
+- **Studio** : espaces clients, contrats, trames de contrat, présentations, clients, calendrier éditorial.
+- **Dans un espace** : accès client, tableau des contenus et relecture, livrables, ressources, fichiers, Drive, notes, discussion.
+- **Le reste** : publications, formulaires, menus, commentaires, médiathèque, notes, utilisateurs, thèmes, corbeille ; plus les intégrations de la Configuration.
+
+Replié une fois, un encart le reste d'une visite à l'autre.
+
+### Corrigé
+- Supprimer une entrée de menu annonçait que ses sous-entrées partaient avec elle : elles remontent d'un niveau, et le message le dit maintenant.
+- Le menu d'un document de la médiathèque annonçait une suppression « sans retour possible » : le document va à la corbeille, d'où il se restaure.
 
 #### La navigation d'un espace, en rail
 Les dix onglets d'un espace tenaient sur une ligne qui débordait dès 1 024 px, et sur téléphone il ne restait que des icônes. Sur ordinateur, ils passent dans un rail à gauche, regroupés : **Travail** (Contenus, Calendrier, Discussion), **Documents** (Fichiers, Drive, Livrables, Notes), **Client** (Informations, Ressources), et Réglages en bas. Une entrée porte un compteur quand quelque chose attend un geste : les publications à faire relire sur Contenus, en orange s'il y a du retard. Sur téléphone et tablette, un bouton dit la section ouverte et ouvre la même liste. La discussion garde toute la hauteur de la fenêtre.

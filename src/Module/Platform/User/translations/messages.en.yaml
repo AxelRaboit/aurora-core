@@ -4,6 +4,12 @@ backend:
       users: "Users"
       by_role: "Split by role"
   users:
+    guide:
+      title: "How accounts work"
+      step_1: "A Backend account reaches the administration; a Frontend account is only an account on the public site."
+      step_2: "An Administrator can do everything; a User only has the privileges you tick, screen by screen."
+      step_3: "Inviting sends an email so the person chooses their password."
+      step_4: "Deactivating blocks sign-in without losing anything, whereas deleting is permanent; you cannot change your own role."
     intro: Manage administration users and their roles.
     name: Name
     user_label: User

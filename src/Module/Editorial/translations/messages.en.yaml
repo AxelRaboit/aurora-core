@@ -330,6 +330,13 @@ backend:
     description_placeholder: "What this type of content is for, in one sentence."
     icon_placeholder: "file-text"
   posts:
+    guide:
+      title: "How a page gets published"
+      step_1: "A post starts as a draft: it is only visible in the administration."
+      step_2: "“Published” puts it online; “Scheduled”, with a date, publishes it on its own at the planned minute."
+      step_3: "Without the right to publish, choosing “Published” sets it “Pending review”: a reviewer approves it or sends it back to draft."
+      step_4: "“On the site” shows it in lists, menus and search; “Link only” shows it nowhere and is shared through a reading link."
+      step_5: "Each save keeps a version (the last twenty), and “Preview” gives a secret address valid seven days."
     usage_detail: Post
     usage_untitled: Untitled post
     banner:
@@ -1401,6 +1408,13 @@ backend:
       reorder_cycle: 'That move would put term {id} inside its own subtree.'
     label_placeholder: "Categories"
   comments:
+    guide:
+      title: "How comments are moderated"
+      step_1: "Visitors comment without an account on posts where comments are on."
+      step_2: "With moderation on, each comment arrives “Pending” and you are notified."
+      step_3: "Approving makes it visible on the site and notifies its author."
+      step_4: "“Spam” takes it off the site without notifying anyone; what is detected as spam lands there directly."
+      step_5: "Deleting is permanent, and its replies move up one level."
     title: Comments
     empty: No comment yet.
     search_placeholder: 'Search an author, an address, a text…'
@@ -1425,6 +1439,13 @@ backend:
       approved: Approved
       spam: Spam
   forms:
+    guide:
+      title: "How forms work"
+      step_1: "Create a form from a template: blank, contact, two-step quote request, event registration."
+      step_2: "In “Questions”, add them in the order the visitor will see them, split into steps if needed; a question can depend on an earlier answer."
+      step_3: "Answers arrive in “Answers”, exportable as CSV; “Settings” can also notify you by email or send them to a webhook."
+      step_4: "To show it, add a “Form” zone to a post's grid; offline, it disappears from every page."
+      step_5: "Deleting a form is permanent and takes its answers with it: it does not go through the trash."
     title: "Forms"
     empty: "No forms."
     create: "New form"
@@ -1643,6 +1664,12 @@ backend:
       field_type_invalid: Unknown field type.
       condition_logic_invalid: Unknown condition logic.
   menus:
+    guide:
+      title: "How a menu is built"
+      step_1: "Each menu matches a theme location: main navigation, footer or account; they exist from the start."
+      step_2: "Add an item and choose its target: a post, a term, a content type's list, the home page, a free address or the login."
+      step_3: "Left empty, the label takes the target's title and follows its translations."
+      step_4: "Put an item under another to make a submenu, and choose who sees it; deleting an item moves its sub-items up one level."
     row_actions:
       edit_description: Change the label, the target and how the link opens.
       delete_description: Takes the entry out of the menu. Its children move up one level.
@@ -1660,7 +1687,7 @@ backend:
     item_created: Item added.
     item_updated: Item updated.
     item_deleted: Item deleted.
-    item_delete_confirm: 'Delete the "{label}" item? Its sub-items go with it.'
+    item_delete_confirm: 'Delete the "{label}" item? Its sub-items move up one level.'
     reordered: Menu reordered.
     label: Label
     label_hint: 'Left blank, the item takes its target title and follows its translations.'

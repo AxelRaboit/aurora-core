@@ -56,6 +56,13 @@ backend:
                     removed: 'Etiqueta eliminada'
 notes:
     markdown:
+        guide:
+            title: "Cómo se organizan las notas"
+            step_1: "Cada nota pertenece a un espacio: el suyo, siempre privado, o un espacio compartido."
+            step_2: "Un espacio compartido se abre solo a usted, a algunas personas o a todo el back-office, cada una con lectura, escritura o gestión."
+            step_3: "Enlace las notas con [[Título]]: el grafo muestra esos enlaces entre todas las notas que puede leer."
+            step_4: "Las etiquetas filtran la biblioteca, y «Gestionar etiquetas» las renombra o fusiona en todas sus notas."
+            step_5: "Una nota también se comparte con un enlace de solo lectura; ni siquiera un administrador lee sus notas privadas."
         share:
             button: 'Compartir mediante un enlace'
             title: 'Compartir esta nota mediante un enlace'

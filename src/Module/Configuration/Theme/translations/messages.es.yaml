@@ -1,5 +1,11 @@
 backend:
     themes:
+        guide:
+            title: "Cómo funcionan los temas"
+            step_1: "Solo hay un tema activo a la vez: «Activar» lo aplica enseguida al sitio público, no a la administración."
+            step_2: "Un tema define el color principal (la paleta se deriva de él), las superficies, la fuente, el ancho del contenido, la cabecera y el pie de página."
+            step_3: "El texto de cada superficie pasa a claro u oscuro según lo que siga siendo legible."
+            step_4: "El tema activo y el tema por defecto no se eliminan; eliminar otro tema es definitivo."
         title: Temas
         new: 'Nuevo tema'
         activate: Activar

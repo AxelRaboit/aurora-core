@@ -1,4 +1,5 @@
 <script setup>
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import AppTab from "@/shared/components/nav/AppTab.vue";
@@ -63,6 +64,13 @@ function formatDate(value) {
             </p>
         </div>
 
+        <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+             replié une fois, il le reste (`storage-key`). -->
+        <AppGuide :title="t('backend.trash.guide.title')" storage-key="trash">
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+                <li v-for="step in 4" :key="step">{{ t(`backend.trash.guide.step_${step}`) }}</li>
+            </ol>
+        </AppGuide>
         <AppNoData
             v-if="total === 0"
             :message="t('backend.trash.all_empty')"

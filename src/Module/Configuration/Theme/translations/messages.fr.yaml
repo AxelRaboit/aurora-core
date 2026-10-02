@@ -1,5 +1,11 @@
 backend:
   themes:
+    guide:
+      title: "Comment fonctionnent les thèmes"
+      step_1: "Un seul thème est actif à la fois : « Activer » l'applique tout de suite au site public, pas à l'administration."
+      step_2: "Un thème règle la couleur principale (la palette en découle), les surfaces, la police, la largeur du contenu, l'en-tête et le pied de page."
+      step_3: "Le texte posé sur chaque surface passe en clair ou en sombre selon ce qui reste lisible."
+      step_4: "Le thème actif et le thème par défaut ne se suppriment pas ; supprimer un autre thème est définitif."
     title: Thèmes
     new: Nouveau thème
     activate: Activer

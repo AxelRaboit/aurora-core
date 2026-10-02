@@ -330,6 +330,13 @@ backend:
     description_placeholder: "À quoi sert ce type de contenu, en une phrase."
     icon_placeholder: "file-text"
   posts:
+    guide:
+      title: "Comment se publie une page"
+      step_1: "Une publication commence en brouillon : elle n'est visible que dans l'administration."
+      step_2: "« Publiée » la met en ligne ; « Programmée », avec une date, la publie toute seule à la minute prévue."
+      step_3: "Sans le droit de publier, choisir « Publiée » la met « En attente de revue » : un relecteur l'approuve ou la renvoie en brouillon."
+      step_4: "« Sur le site » la montre dans les listes, les menus et la recherche ; « Lien seulement » ne la montre nulle part et se partage par un lien de lecture."
+      step_5: "Chaque enregistrement garde une version (les vingt dernières), et « Prévisualiser » donne une adresse secrète valable sept jours."
     usage_detail: Publication
     usage_untitled: Publication sans titre
     banner:
@@ -1401,6 +1408,13 @@ backend:
       reorder_cycle: 'Ce déplacement placerait le terme {id} dans sa propre descendance.'
     label_placeholder: "Catégories"
   comments:
+    guide:
+      title: "Comment se modèrent les commentaires"
+      step_1: "Les visiteurs commentent sans compte les publications où les commentaires sont activés."
+      step_2: "Avec la modération active, chaque commentaire arrive « En attente » et vous êtes prévenu."
+      step_3: "Approuver le rend visible sur le site et prévient son auteur."
+      step_4: "« Indésirable » le retire du site sans prévenir personne ; ce qui est détecté comme spam y arrive directement."
+      step_5: "Supprimer est définitif, et ses réponses remontent d'un niveau."
     title: Commentaires
     empty: Aucun commentaire.
     search_placeholder: "Chercher un auteur, une adresse, un texte…"
@@ -1425,6 +1439,13 @@ backend:
       approved: Approuvé
       spam: Indésirable
   forms:
+    guide:
+      title: "Comment fonctionnent les formulaires"
+      step_1: "Créez un formulaire à partir d'un modèle : vide, contact, demande de devis en deux étapes, inscription à un événement."
+      step_2: "Dans « Questions », ajoutez-les dans l'ordre où le visiteur les verra, découpées en étapes si besoin ; une question peut dépendre d'une réponse précédente."
+      step_3: "Les réponses arrivent dans « Réponses », exportables en CSV ; « Réglages » peut aussi vous prévenir par courriel ou les envoyer à un webhook."
+      step_4: "Pour l'afficher, ajoutez une zone « Formulaire » dans la grille d'une publication ; hors ligne, il disparaît de toutes les pages."
+      step_5: "Supprimer un formulaire est définitif et emporte ses réponses : il ne passe pas par la corbeille."
     title: "Formulaires"
     empty: "Aucun formulaire."
     create: "Nouveau formulaire"
@@ -1643,6 +1664,12 @@ backend:
       field_type_invalid: Type de champ inconnu.
       condition_logic_invalid: Logique de condition inconnue.
   menus:
+    guide:
+      title: "Comment se construit un menu"
+      step_1: "Chaque menu correspond à un emplacement du thème : navigation principale, pied de page ou compte ; ils existent d'office."
+      step_2: "Ajoutez une entrée et choisissez sa cible : une publication, un terme, la liste d'un type de contenu, l'accueil, une adresse libre ou la connexion."
+      step_3: "Laissé vide, le libellé reprend le titre de la cible et suit ses traductions."
+      step_4: "Rangez une entrée sous une autre pour faire un sous-menu, et choisissez qui la voit ; supprimer une entrée fait remonter ses sous-entrées d'un niveau."
     row_actions:
       edit_description: Changer le libellé, la cible et l'ouverture du lien.
       delete_description: Retire l'entrée du menu. Ses enfants remontent d'un niveau.
@@ -1660,7 +1687,7 @@ backend:
     item_created: Entrée ajoutée.
     item_updated: Entrée mise à jour.
     item_deleted: Entrée supprimée.
-    item_delete_confirm: "Supprimer l'entrée « {label} » ? Ses sous-entrées partent avec elle."
+    item_delete_confirm: "Supprimer l'entrée « {label} » ? Ses sous-entrées remontent d'un niveau."
     reordered: Menu réorganisé.
     label: Libellé
     label_hint: "Laissé vide, l'entrée prend le titre de la cible et suit ses traductions."

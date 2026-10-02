@@ -330,6 +330,13 @@ backend:
         description_placeholder: 'Para qué sirve este tipo de contenido, en una frase.'
         icon_placeholder: file-text
     posts:
+        guide:
+            title: "Cómo se publica una página"
+            step_1: "Una publicación empieza como borrador: solo es visible en la administración."
+            step_2: "«Publicada» la pone en línea; «Programada», con una fecha, la publica sola en el minuto previsto."
+            step_3: "Sin el derecho a publicar, elegir «Publicada» la deja «Pendiente de revisión»: un revisor la aprueba o la devuelve a borrador."
+            step_4: "«En el sitio» la muestra en las listas, los menús y la búsqueda; «Solo enlace» no la muestra en ningún sitio y se comparte con un enlace de lectura."
+            step_5: "Cada guardado conserva una versión (las veinte últimas), y «Previsualizar» da una dirección secreta válida siete días."
         usage_detail: Publicación
         usage_untitled: 'Publicación sin título'
         banner:
@@ -1427,6 +1434,13 @@ backend:
             reorder_cycle: 'Este desplazamiento colocaría el término {id} dentro de su propia descendencia.'
         label_placeholder: Categorías
     comments:
+        guide:
+            title: "Cómo se moderan los comentarios"
+            step_1: "Los visitantes comentan sin cuenta las publicaciones con los comentarios activados."
+            step_2: "Con la moderación activa, cada comentario llega «Pendiente» y se le avisa."
+            step_3: "Aprobarlo lo hace visible en el sitio y avisa a su autor."
+            step_4: "«Indeseado» lo retira del sitio sin avisar a nadie; lo detectado como spam llega ahí directamente."
+            step_5: "Eliminar es definitivo, y sus respuestas suben un nivel."
         title: Comentarios
         empty: 'Ningún comentario.'
         search_placeholder: 'Buscar un autor, una dirección, un texto…'
@@ -1451,6 +1465,13 @@ backend:
             approved: Aprobado
             spam: 'No deseado'
     forms:
+        guide:
+            title: "Cómo funcionan los formularios"
+            step_1: "Cree un formulario a partir de una plantilla: vacío, contacto, solicitud de presupuesto en dos pasos, inscripción a un evento."
+            step_2: "En «Preguntas», añádalas en el orden en que las verá el visitante, divididas en pasos si hace falta; una pregunta puede depender de una respuesta anterior."
+            step_3: "Las respuestas llegan a «Respuestas», exportables en CSV; «Ajustes» también puede avisarle por correo o enviarlas a un webhook."
+            step_4: "Para mostrarlo, añada una zona «Formulario» en la cuadrícula de una publicación; fuera de línea, desaparece de todas las páginas."
+            step_5: "Eliminar un formulario es definitivo y se lleva sus respuestas: no pasa por la papelera."
         title: "Formularios"
         empty: "Ningún formulario."
         create: "Nuevo formulario"
@@ -1669,6 +1690,12 @@ backend:
             field_type_invalid: 'Tipo de campo desconocido.'
             condition_logic_invalid: 'Lógica de condición desconocida.'
     menus:
+        guide:
+            title: "Cómo se construye un menú"
+            step_1: "Cada menú corresponde a una ubicación del tema: navegación principal, pie de página o cuenta; existen desde el principio."
+            step_2: "Añada una entrada y elija su destino: una publicación, un término, la lista de un tipo de contenido, la portada, una dirección libre o el inicio de sesión."
+            step_3: "Si se deja vacío, el texto toma el título del destino y sigue sus traducciones."
+            step_4: "Coloque una entrada bajo otra para crear un submenú, y elija quién la ve; eliminar una entrada sube sus subentradas un nivel."
         row_actions:
             edit_description: 'Cambiar la etiqueta, el destino y la apertura del enlace.'
             delete_description: 'Quita la entrada del menú. Sus hijos suben un nivel.'
@@ -1686,7 +1713,7 @@ backend:
         item_created: 'Entrada añadida.'
         item_updated: 'Entrada actualizada.'
         item_deleted: 'Entrada eliminada.'
-        item_delete_confirm: '¿Eliminar la entrada «{label}»? Sus subentradas se eliminarán con ella.'
+        item_delete_confirm: '¿Eliminar la entrada «{label}»? Sus subentradas subirán un nivel.'
         reordered: 'Menú reorganizado.'
         label: Etiqueta
         label_hint: 'Si se deja vacía, la entrada toma el título del destino y sigue sus traducciones.'

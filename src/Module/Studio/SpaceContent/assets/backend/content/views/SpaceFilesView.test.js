@@ -45,7 +45,9 @@ function render(props = {}) {
 /** The file entries, whichever shape the view is drawing. */
 function entries(view) {
     // Hors du mode d'emploi, dont les étapes sont aussi des `<li>`.
-    const rows = view.findAll("li").filter((row) => !row.element.closest("aside"));
+    const rows = view
+        .findAll("li")
+        .filter((row) => !row.element.closest("[data-guide]"));
 
     return rows.length > 0 ? rows : view.findAll("article");
 }
@@ -125,7 +127,11 @@ describe("SpaceFilesView", () => {
         expect(view.findAll("article")).toHaveLength(2);
 
         await toggle[1].trigger("click");
-        expect(view.findAll("li").filter((row) => !row.element.closest("aside"))).toHaveLength(2);
+        expect(
+            view
+                .findAll("li")
+                .filter((row) => !row.element.closest("[data-guide]")),
+        ).toHaveLength(2);
     });
 
     /**

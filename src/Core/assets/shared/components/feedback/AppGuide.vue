@@ -63,7 +63,10 @@ function onToggle(event) {
 </script>
 
 <template>
-    <aside class="min-w-0 rounded-lg border border-dashed border-line p-3 sm:p-4">
+    <!-- Une région nommée plutôt qu'un <aside> ou une <section> : les écrans
+         gardent ces balises pour leurs volets et leurs groupes, et leurs
+         tests les comptent. `data-guide` le désigne sans ambiguïté. -->
+    <div data-guide role="region" class="min-w-0 rounded-lg border border-dashed border-line p-3 sm:p-4" :aria-label="title">
         <details :open="isOpen" class="group" v-on:toggle="onToggle">
             <summary class="flex cursor-pointer list-none items-center gap-2 text-sm font-medium text-primary [&::-webkit-details-marker]:hidden">
                 <BookOpen class="h-4 w-4 shrink-0 text-muted" :stroke-width="2" />
@@ -74,5 +77,5 @@ function onToggle(event) {
                 <slot />
             </div>
         </details>
-    </aside>
+    </div>
 </template>
