@@ -108,6 +108,12 @@ const inForceNumber = computed(() => props.versions.find((each) => each.id === p
  */
 const opening = ref(false);
 
+const editTextLabel = computed(() =>
+    props.template.draftId
+        ? t("backend.studio.contract_templates.continue_draft", { number: props.template.draftVersion })
+        : t("backend.studio.contract_templates.edit_text"),
+);
+
 async function editText() {
     if (props.template.draftId) {
         window.location.assign(versionPath(props.template.draftId));
@@ -353,26 +359,27 @@ const governingLabel = computed(
                         size="md"
                         :disabled="!canPublish"
                         :loading="publishing"
+                        :title="t('backend.studio.contract_templates.publish')"
                         v-on:click="showPublish = true"
                     >
                         <Check class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ t("backend.studio.contract_templates.publish") }}
+                        <span class="sr-only sm:not-sr-only">{{ t("backend.studio.contract_templates.publish") }}</span>
                     </AppButton>
                 </template>
-                <!-- From the version in force: the next draft, one click. -->
+                <!-- From the version in force: the next draft, one click.
+                     Icon only under `sm`, like the other commands of this bar:
+                     « Reprendre le brouillon (version 2) » written in full
+                     pushed the bar onto a second line (02/10/2026). -->
                 <AppButton
                     v-else-if="'in_force' === state && canEdit"
                     variant="primary"
                     size="md"
                     :loading="opening"
+                    :title="editTextLabel"
                     v-on:click="editText"
                 >
                     <FilePlus2 class="w-3.5 h-3.5" :stroke-width="2" />
-                    {{
-                        template.draftId
-                            ? t("backend.studio.contract_templates.continue_draft", { number: template.draftVersion })
-                            : t("backend.studio.contract_templates.edit_text")
-                    }}
+                    <span class="sr-only sm:not-sr-only">{{ editTextLabel }}</span>
                 </AppButton>
             </div>
         </div>
@@ -420,8 +427,12 @@ const governingLabel = computed(
                             :hint="t('backend.studio.contract_templates.document_title_hint')"
                             :readonly="isPublished"
                         />
+                        <!-- `overflow-wrap: anywhere` : un jeton comme
+                             {{contract.custom.plateformes_retenues}} n'a pas
+                             d'espace où passer à la ligne, et sortait de la
+                             carte sur téléphone (02/10/2026). -->
                         <div
-                            class="aurora-card p-3"
+                            class="aurora-card p-3 [overflow-wrap:anywhere]"
                             :class="{ 'opacity-70 pointer-events-none': isPublished }"
                         >
                             <AppBlockEditor
@@ -569,7 +580,7 @@ const governingLabel = computed(
 
                 <article
                     v-else
-                    class="aurora-card p-4 prose-contract max-h-[65vh] overflow-y-auto [&_mark.contract-variable]:rounded [&_mark.contract-variable]:px-0.5 [&_mark.contract-variable]:text-inherit [&_mark.contract-variable--example]:bg-amber-500/25 [&_mark.contract-variable--real]:bg-accent-500/25 [&_mark.contract-variable--slot]:bg-surface-2 [&_mark.contract-variable--slot]:outline-dashed [&_mark.contract-variable--slot]:outline-1 [&_mark.contract-variable--slot]:outline-line"
+                    class="aurora-card p-4 prose-contract max-h-[65vh] overflow-y-auto [overflow-wrap:anywhere] [&_mark.contract-variable]:rounded [&_mark.contract-variable]:px-0.5 [&_mark.contract-variable]:text-inherit [&_mark.contract-variable--example]:bg-amber-500/25 [&_mark.contract-variable--real]:bg-accent-500/25 [&_mark.contract-variable--slot]:bg-surface-2 [&_mark.contract-variable--slot]:outline-dashed [&_mark.contract-variable--slot]:outline-1 [&_mark.contract-variable--slot]:outline-line"
                     v-html="previewHtml"
                 />
             </div>

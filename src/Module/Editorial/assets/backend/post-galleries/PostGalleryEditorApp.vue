@@ -100,10 +100,11 @@ async function save() {
                 size="sm"
                 :loading="saving"
                 class="shrink-0"
+                :title="t('shared.common.save')"
                 v-on:click="save"
             >
                 <Save class="h-4 w-4" :stroke-width="2" />
-                {{ t("shared.common.save") }}
+                <span class="sr-only sm:not-sr-only">{{ t("shared.common.save") }}</span>
             </AppButton>
         </div>
 
