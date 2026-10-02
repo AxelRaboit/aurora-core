@@ -1,5 +1,11 @@
 backend:
     settings:
+        integration:
+            status_active: 'Activa'
+            status_off: 'Desactivada'
+            status_todo: 'Por configurar'
+            settings_title: 'Conexión'
+            guide_title: 'Cómo obtenerla'
         disable_anyway: 'Desactivar de todos modos'
         usage_detail: 'Ajustes del sitio'
         tabs:
@@ -170,6 +176,14 @@ backend:
             site_key: 'Clave pública'
             site_key_placeholder: 0x4AAAAAAA…
             site_key_hint: 'Se imprime en la página, es normal: el widget la necesita.'
+            guide_turnstile_1: 'Abra el panel de Cloudflare (basta una cuenta gratuita), sección Turnstile, y luego «Añadir widget».'
+            guide_turnstile_2: 'Póngale un nombre, añada el dominio del sitio (sin https://) y mantenga el modo «Gestionado».'
+            guide_turnstile_3: 'Copie la clave del sitio y la clave secreta, péguelas aquí y active la verificación.'
+            guide_recaptcha_1: 'Abra la consola de administración de reCAPTCHA con una cuenta de Google y cree un sitio.'
+            guide_recaptcha_2: 'Elija «Basado en puntuación (v3)» y añada el dominio del sitio (sin https://).'
+            guide_recaptcha_3: 'Copie la clave del sitio y la clave secreta, péguelas aquí y active la verificación.'
+            guide_link_turnstile: 'Abrir Cloudflare Turnstile'
+            guide_link_recaptcha: 'Abrir la consola de reCAPTCHA'
             secret_key: 'Clave secreta'
             secret_key_placeholder: 0x4AAAAAAA…
             secret_key_hint: 'Cifrada en la base de datos. Si se deja vacía, se conserva la clave guardada.'

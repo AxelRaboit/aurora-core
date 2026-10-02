@@ -6,7 +6,7 @@ import { ExternalLink, Save } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
-import AppLoader from "@/shared/components/feedback/AppLoader.vue";
+import IntegrationLayout from "@configuration/backend/settings/components/IntegrationLayout.vue";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
@@ -91,21 +91,49 @@ async function save() {
     }
 }
 
+/** Allumée, prête mais éteinte, ou encore à configurer. */
+const status = computed(() => {
+    if (enabled.value) return "active";
+
+    return termsAccepted.value && hasToken.value && "" !== businessAccountId.value.trim() ? "off" : "todo";
+});
+
 defineExpose({ save, apply, canEnable });
 </script>
 
 <template>
-    <div class="relative space-y-5">
-        <AppLoader :active="loading" />
-
-        <section class="space-y-2">
-            <h3 class="text-sm font-medium text-primary">{{ t("backend.editorial.instagram.settings.what_title") }}</h3>
-            <p class="text-sm text-secondary">{{ t("backend.editorial.instagram.settings.what_body") }}</p>
+    <IntegrationLayout :summary="t('backend.editorial.instagram.settings.what_body')" :status="status" :loading="loading">
+        <section class="flex flex-col gap-3 rounded-lg border border-line bg-surface-2 p-3 sm:p-4">
+            <AppCheckbox v-model="termsAccepted" :label="t('backend.editorial.instagram.settings.terms_label')" :hint="t('backend.editorial.instagram.settings.terms_hint')" />
+            <a href="https://www.facebook.com/legal/terms" target="_blank" rel="noopener" class="pl-6 text-xs text-accent hover:underline">{{ t("backend.editorial.instagram.settings.terms_link") }}</a>
+            <p v-if="acceptedAt" class="m-0 pl-6 text-xs text-muted">{{ t("backend.editorial.instagram.settings.accepted_on", { date: acceptedOn, user: acceptedBy ?? "?" }) }}</p>
         </section>
 
-        <section class="space-y-2">
-            <h3 class="text-sm font-medium text-primary">{{ t("backend.editorial.instagram.settings.how_title") }}</h3>
-            <ol class="list-decimal space-y-1 pl-5 text-sm text-secondary">
+        <AppInput v-model="businessAccountId" :label="t('backend.editorial.instagram.settings.business_id_label')" :hint="t('backend.editorial.instagram.settings.business_id_hint')" placeholder="17841400000000000" />
+        <AppInput
+            v-model="accessToken"
+            type="password"
+            :toggleable="true"
+            :label="t('backend.editorial.instagram.settings.token_label')"
+            :hint="hasToken ? t('backend.editorial.instagram.settings.token_stored') : t('backend.editorial.instagram.settings.token_hint')"
+            :placeholder="hasToken ? '••••••••••••••••' : ''"
+        />
+        <AppCheckbox v-model="enabled" :label="t('backend.editorial.instagram.settings.enabled_label')" :hint="canEnable ? t('backend.editorial.instagram.settings.enabled_hint') : t('backend.editorial.instagram.settings.enabled_blocked')" :disabled="!canEnable" />
+
+        <template #actions>
+            <AppButton
+                variant="primary"
+                size="md"
+                class="w-full sm:w-auto"
+                :loading="saving"
+                v-on:click="save"
+            >
+                <Save class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.save") }}
+            </AppButton>
+        </template>
+
+        <template #guide>
+            <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li>{{ t("backend.editorial.instagram.settings.how_step_business") }}</li>
                 <li>{{ t("backend.editorial.instagram.settings.how_step_app") }}</li>
                 <li>{{ t("backend.editorial.instagram.settings.how_step_token") }}</li>
@@ -115,31 +143,6 @@ defineExpose({ save, apply, canEnable });
                 {{ t("backend.editorial.instagram.settings.how_link") }}
                 <ExternalLink class="w-3.5 h-3.5" :stroke-width="2" />
             </a>
-        </section>
-
-        <section class="space-y-3 rounded-lg border border-line bg-surface-2 p-4">
-            <AppCheckbox v-model="termsAccepted" :label="t('backend.editorial.instagram.settings.terms_label')" :hint="t('backend.editorial.instagram.settings.terms_hint')" />
-            <a href="https://www.facebook.com/legal/terms" target="_blank" rel="noopener" class="pl-6 text-xs text-accent hover:underline">{{ t("backend.editorial.instagram.settings.terms_link") }}</a>
-            <p v-if="acceptedAt" class="pl-6 text-xs text-muted">{{ t("backend.editorial.instagram.settings.accepted_on", { date: acceptedOn, user: acceptedBy ?? "?" }) }}</p>
-        </section>
-
-        <section class="space-y-3">
-            <AppInput v-model="businessAccountId" :label="t('backend.editorial.instagram.settings.business_id_label')" :hint="t('backend.editorial.instagram.settings.business_id_hint')" placeholder="17841400000000000" />
-            <AppInput
-                v-model="accessToken"
-                type="password"
-                :toggleable="true"
-                :label="t('backend.editorial.instagram.settings.token_label')"
-                :hint="hasToken ? t('backend.editorial.instagram.settings.token_stored') : t('backend.editorial.instagram.settings.token_hint')"
-                :placeholder="hasToken ? '••••••••••••••••' : ''"
-            />
-            <AppCheckbox v-model="enabled" :label="t('backend.editorial.instagram.settings.enabled_label')" :hint="canEnable ? t('backend.editorial.instagram.settings.enabled_hint') : t('backend.editorial.instagram.settings.enabled_blocked')" :disabled="!canEnable" />
-        </section>
-
-        <div class="flex justify-end">
-            <AppButton variant="primary" size="md" :loading="saving" v-on:click="save">
-                <Save class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.save") }}
-            </AppButton>
-        </div>
-    </div>
+        </template>
+    </IntegrationLayout>
 </template>

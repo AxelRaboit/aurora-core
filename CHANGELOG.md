@@ -12,6 +12,17 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ### Amélioré
 
+#### Les intégrations de la Configuration, sur un même gabarit
+Google Drive, Instagram, Pexels, Lettre d'information, Avis Google, GitHub, Anti-robots et Craft ouvraient sur « Ce que fait cette intégration » puis « Comment l'ouvrir », et le premier champ arrivait un écran plus bas, sans rien dire de l'état. Elles partagent maintenant un gabarit (`IntegrationLayout`) :
+- **En tête**, ce que fait l'intégration en une phrase, et un **badge d'état** : « Active », « Désactivée » (prête mais éteinte) ou « À configurer ».
+- **La carte « Connexion »** avec les champs, les conditions à accepter et le bouton Enregistrer.
+- **L'encart « Comment l'obtenir »** à côté, en étapes : ouvert tant que l'intégration n'est pas active, replié ensuite ; sur téléphone il passe devant tant qu'il sert.
+- Deux colonnes sur grand écran. La conformité de la lettre d'information rejoint la carte, au-dessus du bouton qui l'enregistre.
+- L'anti-robots gagne son mode d'emploi, propre au service choisi (Cloudflare Turnstile ou reCAPTCHA v3), avec le lien vers la console.
+
+#### Des encarts « Comment ça marche »
+Nouveau composant partagé `AppGuide` : un encart repliable, posé à côté de ce qu'il explique, qui peut retenir dans le navigateur le choix de l'ouvrir ou de le replier (`storageKey`). Il sert aux intégrations et à l'encart « Brancher un dossier » des réglages d'un espace.
+
 #### La navigation d'un espace, en rail
 Les dix onglets d'un espace tenaient sur une ligne qui débordait dès 1 024 px, et sur téléphone il ne restait que des icônes. Sur ordinateur, ils passent dans un rail à gauche, regroupés : **Travail** (Contenus, Calendrier, Discussion), **Documents** (Fichiers, Drive, Livrables, Notes), **Client** (Informations, Ressources), et Réglages en bas. Une entrée porte un compteur quand quelque chose attend un geste : les publications à faire relire sur Contenus, en orange s'il y a du retard. Sur téléphone et tablette, un bouton dit la section ouverte et ouvre la même liste. La discussion garde toute la hauteur de la fenêtre.
 

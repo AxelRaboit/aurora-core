@@ -13,10 +13,11 @@
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { Building2, Copy, ExternalLink, FolderOpen, Info, KeyRound, Lock, LockOpen, Pencil, RotateCcw, Save, X } from "lucide-vue-next";
+import { Building2, Copy, ExternalLink, FolderOpen, KeyRound, Lock, LockOpen, Pencil, RotateCcw, Save, X } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import AppLoader from "@/shared/components/feedback/AppLoader.vue";
 import AppTab from "@/shared/components/nav/AppTab.vue";
 import DriveFolderModal from "./DriveFolderModal.vue";
@@ -503,11 +504,7 @@ async function clearPassword() {
                      côté Google, que rien ici ne fait à la place du client.
                      L'adresse à donner est sous la main, avec de quoi la
                      copier, sans ouvrir la fenêtre. -->
-                <aside class="flex flex-col gap-3 rounded-lg border border-dashed border-line p-3 sm:p-4">
-                    <h3 class="m-0 flex items-center gap-2 text-sm font-medium text-primary">
-                        <Info class="h-4 w-4 shrink-0" :stroke-width="2" />
-                        {{ t("backend.studio.spaces.settings.howto_title") }}
-                    </h3>
+                <AppGuide :title="t('backend.studio.spaces.settings.howto_title')" storage-key="space-drive-howto">
                     <ol class="m-0 flex list-none flex-col gap-3 p-0">
                         <li v-for="(step, index) in howtoSteps" :key="step" class="flex gap-3">
                             <span
@@ -531,7 +528,7 @@ async function clearPassword() {
                             </div>
                         </li>
                     </ol>
-                </aside>
+                </AppGuide>
             </section>
 
             <DriveFolderModal

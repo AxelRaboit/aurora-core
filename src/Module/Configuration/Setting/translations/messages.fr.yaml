@@ -1,5 +1,11 @@
 backend:
   settings:
+    integration:
+      status_active: Active
+      status_off: Désactivée
+      status_todo: À configurer
+      settings_title: Connexion
+      guide_title: Comment l'obtenir
     disable_anyway: Désactiver quand même
     usage_detail: Paramètres du site
     tabs:
@@ -170,6 +176,14 @@ backend:
       site_key: Clé publique
       site_key_placeholder: '0x4AAAAAAA…'
       site_key_hint: "Affichée dans la page, c'est normal : le widget en a besoin."
+      guide_turnstile_1: "Ouvrez le tableau de bord Cloudflare (un compte gratuit suffit), rubrique Turnstile, puis « Ajouter un widget »."
+      guide_turnstile_2: "Donnez-lui un nom, ajoutez le domaine du site (sans https://), et gardez le mode « Géré »."
+      guide_turnstile_3: "Copiez la clé du site et la clé secrète affichées, collez-les ci-contre, puis activez la vérification."
+      guide_recaptcha_1: "Ouvrez la console d'administration reCAPTCHA avec un compte Google, et créez un site."
+      guide_recaptcha_2: "Choisissez « Basé sur les scores (v3) » et ajoutez le domaine du site (sans https://)."
+      guide_recaptcha_3: "Copiez la clé du site et la clé secrète, collez-les ci-contre, puis activez la vérification."
+      guide_link_turnstile: Ouvrir Cloudflare Turnstile
+      guide_link_recaptcha: Ouvrir la console reCAPTCHA
       secret_key: Clé secrète
       secret_key_placeholder: '0x4AAAAAAA…'
       secret_key_hint: "Chiffrée en base. Laissée vide, la clé enregistrée est conservée."

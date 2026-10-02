@@ -6,7 +6,7 @@ import { Save } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
-import AppLoader from "@/shared/components/feedback/AppLoader.vue";
+import IntegrationLayout from "@configuration/backend/settings/components/IntegrationLayout.vue";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 
@@ -73,44 +73,48 @@ async function save() {
     }
 }
 
+/** Allumée, prête mais éteinte, ou encore à configurer. */
+const status = computed(() => {
+    if (enabled.value) return "active";
+
+    return canEnable.value ? "off" : "todo";
+});
+
 defineExpose({ save, apply, canEnable });
 </script>
 
 <template>
-    <div class="relative space-y-5">
-        <AppLoader :active="loading" />
+    <IntegrationLayout :summary="t('backend.editorial.github.settings.what_body')" :status="status" :loading="loading">
+        <AppTextarea
+            v-model="logins"
+            :rows="4"
+            :label="t('backend.editorial.github.settings.logins_label')"
+            :hint="t('backend.editorial.github.settings.logins_hint')"
+            placeholder="AxelRaboit"
+        />
 
-        <section class="space-y-2">
-            <h3 class="text-sm font-medium text-primary">{{ t("backend.editorial.github.settings.what_title") }}</h3>
-            <p class="text-sm text-secondary">{{ t("backend.editorial.github.settings.what_body") }}</p>
-        </section>
+        <AppCheckbox
+            v-model="enabled"
+            :label="t('backend.editorial.github.settings.enabled_label')"
+            :hint="canEnable ? t('backend.editorial.github.settings.enabled_hint') : t('backend.editorial.github.settings.enabled_blocked')"
+            :disabled="!canEnable"
+        />
 
-        <section class="space-y-2">
-            <h3 class="text-sm font-medium text-primary">{{ t("backend.editorial.github.settings.source_title") }}</h3>
-            <p class="text-sm text-secondary">{{ t("backend.editorial.github.settings.source_body") }}</p>
-        </section>
-
-        <section class="space-y-3">
-            <AppTextarea
-                v-model="logins"
-                :rows="4"
-                :label="t('backend.editorial.github.settings.logins_label')"
-                :hint="t('backend.editorial.github.settings.logins_hint')"
-                placeholder="AxelRaboit"
-            />
-
-            <AppCheckbox
-                v-model="enabled"
-                :label="t('backend.editorial.github.settings.enabled_label')"
-                :hint="canEnable ? t('backend.editorial.github.settings.enabled_hint') : t('backend.editorial.github.settings.enabled_blocked')"
-                :disabled="!canEnable"
-            />
-        </section>
-
-        <div class="flex justify-end">
-            <AppButton variant="primary" size="md" :loading="saving" v-on:click="save">
+        <template #actions>
+            <AppButton
+                variant="primary"
+                size="md"
+                class="w-full sm:w-auto"
+                :loading="saving"
+                v-on:click="save"
+            >
                 <Save class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.save") }}
             </AppButton>
-        </div>
-    </div>
+        </template>
+
+        <template #guide>
+            <p class="m-0 font-medium text-primary">{{ t("backend.editorial.github.settings.source_title") }}</p>
+            <p class="m-0">{{ t("backend.editorial.github.settings.source_body") }}</p>
+        </template>
+    </IntegrationLayout>
 </template>

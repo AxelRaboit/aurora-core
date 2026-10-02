@@ -1,5 +1,11 @@
 backend:
   settings:
+    integration:
+      status_active: Active
+      status_off: Off
+      status_todo: To set up
+      settings_title: Connection
+      guide_title: How to get it
     disable_anyway: Turn it off anyway
     usage_detail: Site settings
     tabs:
@@ -170,6 +176,14 @@ backend:
       site_key: Site key
       site_key_placeholder: '0x4AAAAAAA…'
       site_key_hint: "Printed in the page, by design: the widget needs it."
+      guide_turnstile_1: "Open the Cloudflare dashboard (a free account is enough), Turnstile section, then “Add widget”."
+      guide_turnstile_2: "Name it, add the site's domain (without https://), and keep the “Managed” mode."
+      guide_turnstile_3: "Copy the site key and the secret key shown, paste them here, then turn the check on."
+      guide_recaptcha_1: "Open the reCAPTCHA admin console with a Google account, and create a site."
+      guide_recaptcha_2: "Choose “Score based (v3)” and add the site's domain (without https://)."
+      guide_recaptcha_3: "Copy the site key and the secret key, paste them here, then turn the check on."
+      guide_link_turnstile: Open Cloudflare Turnstile
+      guide_link_recaptcha: Open the reCAPTCHA console
       secret_key: Secret key
       secret_key_placeholder: '0x4AAAAAAA…'
       secret_key_hint: "Encrypted at rest. Left empty, the stored key is kept."
