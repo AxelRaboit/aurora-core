@@ -40,7 +40,7 @@ import { useDocumentCrop } from "./composables/useDocumentCrop.js";
 import { useMultiSelection } from "@/shared/composables/list/useMultiSelection.js";
 import AppTab from "@/shared/components/nav/AppTab.vue";
 import AppLoader from "@/shared/components/feedback/AppLoader.vue";
-import { Plus, Eye, Pencil, Trash2, Save, FileText, Paperclip, Upload, X, Folder, Download, QrCode, LayoutGrid, List, SortAsc, SortDesc, CheckSquare, Square, Copy, Crop, ExternalLink, Home, Layers, Star, ChevronRight, ChevronDown, Move, CloudUpload, HardDriveDownload, RotateCcw, Palette, SlidersHorizontal } from "lucide-vue-next";
+import { Plus, Eye, Pencil, Trash2, Save, FileText, Paperclip, Upload, X, Folder, Download, QrCode, LayoutGrid, List, SortAsc, SortDesc, CheckSquare, Square, Copy, Crop, ExternalLink, Home, Layers, Star, ChevronRight, ChevronDown, Move, CloudUpload, HardDriveDownload, RotateCcw, Palette, SlidersHorizontal, Bookmark } from "lucide-vue-next";
 import ImageCropperModal from "@/shared/components/overlay/ImageCropperModal.vue";
 import AppImagePreview from "@/shared/components/display/AppImagePreview.vue";
 import AppImage from "@/shared/components/display/AppImage.vue";
@@ -87,6 +87,7 @@ const props = defineProps({
     /** The alternate labels already used in the library, offered as suggestions. */
     alternateLabels: { type: Array, default: () => [] },
     bulkMovePath: { type: String, default: "" },
+    bulkCategoryPath: { type: String, default: "" },
     storagePath: { type: String, default: "" },
     bulkStoragePath: { type: String, default: "" },
     relocateAllPath: { type: String, default: "" },
@@ -293,7 +294,10 @@ const documentActions = useDocumentRowActions({
     relocationAvailable: props.storageRelocationAvailable,
 });
 
-const { doBulkDelete, bulkMoveTargetId, openBulkMove, bulkMove, bulkMoveWithAlternates, bulkRelocate, bulkRelocating } = useDocumentBulkActions(
+const {
+    doBulkDelete, bulkMoveTargetId, openBulkMove, bulkMove, bulkMoveWithAlternates, bulkRelocate, bulkRelocating,
+    bulkCategoryTargetId, openBulkCategory, bulkCategoryWithAlternates, bulkCategorize,
+} = useDocumentBulkActions(
     props, items, selectedIds, isSelecting, clearSelection, currentFolderId, reset,
 );
 
@@ -314,6 +318,15 @@ const bulkActions = computed(() => {
             onSelect: () => {
                 bulkMoveTargetId.value = null;
                 openBulkMove.value = true;
+            },
+        },
+        {
+            key: "category",
+            icon: Bookmark,
+            title: t("backend.ged.documents.change_category"),
+            onSelect: () => {
+                bulkCategoryTargetId.value = null;
+                openBulkCategory.value = true;
             },
         },
     ];
@@ -1130,6 +1143,30 @@ const pageActions = computed(() => {
                         <component :is="relocateAllDisk === 'local' ? HardDriveDownload : CloudUpload" class="w-3.5 h-3.5" :stroke-width="2" />
                         {{ t("shared.common.confirm") }}
                     </AppButton>
+                </AppModalFooter>
+            </template>
+        </AppModal>
+
+        <!-- Bulk category modal: empty files the selection under none. -->
+        <AppModal :show="openBulkCategory" max-width="sm" v-on:close="openBulkCategory = false">
+            <h3 class="text-sm font-semibold text-primary mb-3">{{ t("backend.ged.documents.bulk_category", { count: selectedIds.size }) }}</h3>
+            <AppMultiselect
+                v-model="bulkCategoryTargetId"
+                :options="categoryOptions"
+                :label="t('backend.ged.documents.category')"
+                :placeholder="t('backend.ged.documents.no_category')"
+                :allow-empty="true"
+            />
+            <AppCheckbox
+                v-if="selectedHaveAlternates"
+                v-model="bulkCategoryWithAlternates"
+                class="pt-3"
+                :label="t('backend.ged.documents.family.categorize_with_alternates')"
+            />
+            <template #footer>
+                <AppModalFooter>
+                    <AppButton variant="ghost" size="md" v-on:click="openBulkCategory = false"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
+                    <AppButton variant="primary" size="md" v-on:click="bulkCategorize"><Save class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.save") }}</AppButton>
                 </AppModalFooter>
             </template>
         </AppModal>

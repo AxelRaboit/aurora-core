@@ -229,6 +229,7 @@ backend:
         add_variant: "Ajouter une variante"
         with_alternates: "Supprimer aussi ses variantes | Supprimer aussi sa variante | Supprimer aussi ses {count} variantes"
         move_with_alternates: "Déplacer aussi les variantes des originaux choisis"
+        categorize_with_alternates: "Ranger aussi les variantes des originaux choisis"
         label_suggestions: "Déjà utilisées :"
         usage_none: "Aucune version de la famille n'est utilisée"
         usage_types:
@@ -272,6 +273,9 @@ backend:
       moved: Document déplacé
       bulk_moved: Documents déplacés
       bulk_move: "Déplacer {count} documents"
+      change_category: Changer la catégorie
+      bulk_category: "Ranger {count} documents dans une catégorie"
+      bulk_categorized: "Catégorie changée : {count} documents"
       all_documents: Tous les documents
       root_folder: Racine
       subfolders: Sous-dossiers
@@ -300,6 +304,7 @@ backend:
         title_required: Le titre est obligatoire
         original_self: Un document ne peut pas être sa propre variante.
         original_not_found: Cet original n'existe plus.
+        category_unknown: Cette catégorie n'existe pas, ou est dans la corbeille.
         original_is_alternate: Cet original est lui-même une variante ; choisissez le document d'origine.
         original_has_alternates: Ce document a ses propres variantes et ne peut pas devenir une variante.
         upload_required: Aucun fichier reçu

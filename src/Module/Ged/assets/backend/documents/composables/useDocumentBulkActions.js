@@ -72,6 +72,37 @@ export function useDocumentBulkActions(
         toast.success(t("backend.ged.documents.bulk_moved"));
     }
 
+    const { request: bulkCategoryRequest } = useRequest();
+    // Null files the selection under no category at all.
+    const bulkCategoryTargetId = ref(null);
+    const openBulkCategory = ref(false);
+    // A family split across two categories is found in neither: the
+    // alternates follow their original unless told otherwise.
+    const bulkCategoryWithAlternates = ref(true);
+
+    async function bulkCategorize() {
+        if (!props.bulkCategoryPath || !selectedIds.value.size) return;
+        const res = await bulkCategoryRequest(props.bulkCategoryPath, {
+            ids: [...selectedIds.value],
+            categoryId: bulkCategoryTargetId.value,
+            withAlternates: bulkCategoryWithAlternates.value,
+        });
+        if (!res) return;
+        if (!res.success) {
+            toast.error(t("shared.common.error"));
+            return;
+        }
+        clearSelection();
+        bulkCategoryTargetId.value = null;
+        openBulkCategory.value = false;
+        await reload?.();
+        toast.success(
+            t("backend.ged.documents.bulk_categorized", {
+                count: res.categorized ?? 0,
+            }),
+        );
+    }
+
     const { request: bulkStorageRequest } = useRequest();
     const bulkRelocating = ref(false);
 
@@ -135,5 +166,9 @@ export function useDocumentBulkActions(
         bulkMove,
         bulkRelocate,
         bulkRelocating,
+        bulkCategoryTargetId,
+        openBulkCategory,
+        bulkCategoryWithAlternates,
+        bulkCategorize,
     };
 }

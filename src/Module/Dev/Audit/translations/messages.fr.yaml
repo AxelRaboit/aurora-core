@@ -67,6 +67,7 @@ backend:
           deleted: Document supprimé définitivement
           cropped: Document recadré
           moved: Document déplacé
+          categorized: Document rangé dans une catégorie
         folder:
           trashed: Dossier mis à la corbeille
           restored: Dossier restauré

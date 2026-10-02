@@ -34,6 +34,7 @@ use Aurora\Module\Ged\Document\Service\DocumentUsageService;
 use Aurora\Module\Ged\Document\Service\GedDocumentUploader;
 use Aurora\Module\Ged\Document\Service\InlineImageUploader;
 use Aurora\Module\Ged\Document\View\DocumentsViewBuilder;
+use Aurora\Module\Ged\DocumentCategory\Repository\DocumentCategoryRepository;
 use Aurora\Module\Ged\DocumentFolder\Repository\DocumentFolderRepository;
 use Aurora\Module\Ged\Enum\DocumentStatusEnum;
 use Aurora\Module\Ged\Enum\DocumentTransferStateEnum;
@@ -76,6 +77,7 @@ final class DocumentsController extends AbstractController
         private readonly DocumentUsageService $usageService,
         private readonly DocumentColorAlternateCreator $colorAlternateCreator,
         private readonly DocumentFolderRepository $folderRepository,
+        private readonly DocumentCategoryRepository $categoryRepository,
         private readonly InlineImageUploader $inlineImageUploader,
         private readonly DocumentRelocator $relocator,
         private readonly MessageBusInterface $messageBus,
@@ -412,6 +414,37 @@ final class DocumentsController extends AbstractController
         }
 
         return $this->jsonSuccess(['document' => $this->serializer->serialize($document)]);
+    }
+
+    /**
+     * Files a selection under one category, or under none (`categoryId`
+     * null). The alternates of the originals chosen follow when asked: a
+     * family split across two categories is found in neither.
+     *
+     * A category that does not exist, or sits in the trash, is refused
+     * rather than read as "none": that would empty the category of every
+     * document selected, on a typo.
+     */
+    #[Route('/bulk-category', name: '_bulk_category', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('ged.documents.edit')]
+    public function bulkCategory(Request $request): JsonResponse
+    {
+        $data = $this->decodeJson($request);
+        $ids = array_values(array_filter(array_map(intval(...), (array) ($data['ids'] ?? []))));
+        if (true === ($data['withAlternates'] ?? false)) {
+            $ids = array_values(array_unique([...$ids, ...$this->documentRepository->findAlternateIdsOf($ids)]));
+        }
+
+        $category = null;
+        if (null !== ($data['categoryId'] ?? null)) {
+            $category = $this->categoryRepository->find((int) $data['categoryId']);
+
+            if (null === $category || $category->isTrashed()) {
+                return $this->jsonInvalidInput(['categoryId' => 'backend.ged.documents.errors.category_unknown']);
+            }
+        }
+
+        return $this->jsonSuccess(['categorized' => $this->manager->bulkCategorize($ids, $category)]);
     }
 
     #[Route('/bulk-move', name: '_bulk_move', methods: [HttpMethodEnum::Post->value])]

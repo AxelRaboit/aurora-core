@@ -5,6 +5,19 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.327] - 2026-10-02
+
+### Ajouté
+
+#### Changer la catégorie de plusieurs documents d'un coup
+La barre de sélection de la médiathèque propose « Changer la catégorie » : on choisit une catégorie, ou aucune, et toute la sélection y est rangée en un seul enregistrement. Les variantes des originaux choisis suivent par défaut (une case permet de ne pas les emporter), pour qu'une famille ne soit jamais coupée entre deux catégories. Une catégorie inconnue ou dans la corbeille est refusée plutôt que lue comme « aucune ». Chaque document qui change est inscrit au journal d'audit.
+
+### Dans aurora-client
+
+Rien à faire au-delà de `make aurora-update`.
+
+---
+
 ## [0.9.326] - 2026-10-02
 
 ### Ajouté
