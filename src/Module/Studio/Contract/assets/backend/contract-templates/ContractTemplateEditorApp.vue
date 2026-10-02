@@ -10,9 +10,9 @@ import { safeContractHtml } from "../shared/contractHtml.js";
 import { useContractTemplateEditor } from "./composables/useContractTemplateEditor.js";
 import ContractVariablePanel from "./components/ContractVariablePanel.vue";
 import AppBlockEditor from "@/shared/components/editor/AppBlockEditor.vue";
-import AppBackLink from "@/shared/components/nav/AppBackLink.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppPageActions from "@/shared/components/action/AppPageActions.vue";
+import AppPageBar from "@/shared/components/nav/AppPageBar.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppMessage from "@/shared/components/feedback/AppMessage.vue";
@@ -277,6 +277,50 @@ const governingLabel = computed(
 
 <template>
     <div class="space-y-2 sm:space-y-4">
+        <!-- The page's bar first, like every editor: back on the left, the
+             commands on the right. The title comes under it, on its own line,
+             where a long name pushes nothing (02/10/2026). -->
+        <AppPageBar :back-href="indexPath" :back-label="t('shared.common.back')">
+            <AppPageActions
+                :actions="templateActions"
+                :label="template.name"
+                :busy="preview.loading && !preview.open"
+                icon-only-on-phone
+            />
+            <!-- The draft's two gestures, both in sight: save, then publish.
+                 Publishing sat in the « … » menu, and people looked for it. -->
+            <template v-if="!isPublished && canEdit">
+                <AppButton
+                    variant="secondary"
+                    :loading="saving"
+                    :label="t('shared.common.save')"
+                    icon-only-on-phone
+                    v-on:click="save"
+                >
+                    <Save class="w-4 h-4" :stroke-width="2" />
+                </AppButton>
+                <AppButton
+                    :disabled="!canPublish"
+                    :loading="publishing"
+                    :label="t('backend.studio.contract_templates.publish')"
+                    icon-only-on-phone
+                    v-on:click="showPublish = true"
+                >
+                    <Check class="w-4 h-4" :stroke-width="2" />
+                </AppButton>
+            </template>
+            <!-- From the version in force: the next draft, one click. -->
+            <AppButton
+                v-else-if="'in_force' === state && canEdit"
+                :loading="opening"
+                :label="editTextLabel"
+                icon-only-on-phone
+                v-on:click="editText"
+            >
+                <FilePlus2 class="w-4 h-4" :stroke-width="2" />
+            </AppButton>
+        </AppPageBar>
+
         <!-- A published version is readable but not writable, and the page says
              so before the reader tries. Hiding the fields instead would leave
              them wondering where the text went. -->
@@ -312,76 +356,23 @@ const governingLabel = computed(
             {{ errors.translations }}
         </AppMessage>
 
-        <div class="flex flex-wrap items-center justify-between gap-3">
-            <div class="flex flex-wrap items-baseline gap-2">
-                <h1 class="text-lg font-semibold text-primary">
-                    {{ template.name }}
-                </h1>
-                <span class="text-sm text-muted">
-                    {{
-                        t("backend.studio.contract_templates.version_label", {
-                            number: version.number,
-                        })
-                    }}
-                </span>
-                <AppBadge :color="{ draft: 'amber', in_force: 'emerald', replaced: 'slate' }[state]">
-                    {{ t(`backend.studio.contract_templates.state_${state}`) }}
-                </AppBadge>
-                <AppBadge v-if="template.isArchived" color="slate">
-                    {{ t("backend.studio.contract_templates.state_archived") }}
-                </AppBadge>
-            </div>
-
-            <div class="flex flex-wrap items-center gap-2">
-                <AppBackLink :href="indexPath" :label="t('shared.common.back')" />
-                <AppPageActions
-                    :actions="templateActions"
-                    :label="template.name"
-                    variant="ghost"
-                    :busy="preview.loading && !preview.open"
-                    icon-only-on-phone
-                />
-                <!-- The draft's two gestures, both in sight: save, then publish.
-                     Publishing sat in the « … » menu, and people looked for it. -->
-                <template v-if="!isPublished && canEdit">
-                    <AppButton
-                        variant="secondary"
-                        size="md"
-                        :loading="saving"
-                        :title="t('shared.common.save')"
-                        v-on:click="save"
-                    >
-                        <Save class="w-3.5 h-3.5" :stroke-width="2" />
-                        <span class="sr-only sm:not-sr-only">{{ t("shared.common.save") }}</span>
-                    </AppButton>
-                    <AppButton
-                        variant="primary"
-                        size="md"
-                        :disabled="!canPublish"
-                        :loading="publishing"
-                        :title="t('backend.studio.contract_templates.publish')"
-                        v-on:click="showPublish = true"
-                    >
-                        <Check class="w-3.5 h-3.5" :stroke-width="2" />
-                        <span class="sr-only sm:not-sr-only">{{ t("backend.studio.contract_templates.publish") }}</span>
-                    </AppButton>
-                </template>
-                <!-- From the version in force: the next draft, one click.
-                     Icon only under `sm`, like the other commands of this bar:
-                     « Reprendre le brouillon (version 2) » written in full
-                     pushed the bar onto a second line (02/10/2026). -->
-                <AppButton
-                    v-else-if="'in_force' === state && canEdit"
-                    variant="primary"
-                    size="md"
-                    :loading="opening"
-                    :title="editTextLabel"
-                    v-on:click="editText"
-                >
-                    <FilePlus2 class="w-3.5 h-3.5" :stroke-width="2" />
-                    <span class="sr-only sm:not-sr-only">{{ editTextLabel }}</span>
-                </AppButton>
-            </div>
+        <div class="flex flex-wrap items-baseline gap-2">
+            <h1 class="text-lg font-semibold text-primary">
+                {{ template.name }}
+            </h1>
+            <span class="text-sm text-muted">
+                {{
+                    t("backend.studio.contract_templates.version_label", {
+                        number: version.number,
+                    })
+                }}
+            </span>
+            <AppBadge :color="{ draft: 'amber', in_force: 'emerald', replaced: 'slate' }[state]">
+                {{ t(`backend.studio.contract_templates.state_${state}`) }}
+            </AppBadge>
+            <AppBadge v-if="template.isArchived" color="slate">
+                {{ t("backend.studio.contract_templates.state_archived") }}
+            </AppBadge>
         </div>
 
         <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">

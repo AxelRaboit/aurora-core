@@ -174,8 +174,6 @@ const rowClasses = (active) => itemClasses("ged", { isActive: active });
         <template #action>
             <AppIconButton
                 v-if="canManage"
-                size="sm"
-                variant="ghost"
                 :title="t('backend.ged.documents.new_folder')"
                 v-on:click="openCreateFolder(currentFolderId)"
             >

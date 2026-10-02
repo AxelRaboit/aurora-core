@@ -5,6 +5,7 @@ import { useCommentRowActions } from "./composables/useCommentRowActions.js";
 import { useComments } from "./composables/useComments.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppCardActions from "@/shared/components/action/AppCardActions.vue";
+import AppPagination from "@/shared/components/nav/AppPagination.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppTab from "@/shared/components/nav/AppTab.vue";
@@ -12,7 +13,7 @@ import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
-import { Check, ChevronLeft, ChevronRight, ShieldAlert, Trash2, X } from "lucide-vue-next";
+import { Check, ShieldAlert, Trash2, X } from "lucide-vue-next";
 
 const { t, d } = useI18n();
 const { can } = usePrivileges();
@@ -154,21 +155,9 @@ function badgeColor(value) {
             </article>
         </div>
 
-        <div v-if="totalPages > 1" class="flex items-center justify-center gap-2 pt-2">
-            <AppButton
-                variant="icon"
-                size="sm"
-                :disabled="page <= 1"
-                class="p-1.5 text-muted hover:text-primary"
-                v-on:click="goToPage(page - 1)"
-            >
-                <ChevronLeft class="w-4 h-4" :stroke-width="2" />
-            </AppButton>
-            <span class="text-xs text-secondary tabular-nums">{{ page }} / {{ totalPages }}</span>
-            <AppButton variant="ghost" size="sm" :disabled="page >= totalPages" v-on:click="goToPage(page + 1)">
-                <ChevronRight class="w-4 h-4" :stroke-width="2" />
-            </AppButton>
-        </div>
+        <!-- La pagination de toutes les listes : « précédent » était une icône
+             nue et « suivant » un bouton encadré, tous deux sans nom (02/10/2026). -->
+        <AppPagination :page="page" :total-pages="totalPages" class="pt-2" v-on:change="goToPage" />
 
         <AppModal
             :show="!!pendingDelete"

@@ -5,6 +5,14 @@ metadata:
   type: feedback
 ---
 
+> **Mise à jour du 02/10/2026** (audit des barres d'entête) : les sections
+> « Icônes » et « Label » ci-dessous sont remplacées. Icône `w-4 h-4`
+> partout dans un bouton ; dans une barre qui reste horizontale le libellé
+> passe en `sr-only` sous `sm` par `AppButton :label icon-only-on-phone` (jamais
+> `hidden`, qui retire le nom aux lecteurs d'écran) ; `ghost` porte surface et
+> filet sous `sm` ; `danger-subtle` n'existe qu'en Twig. Voir
+> `process/process_mobile_header_bar.md`.
+
 ## Règle
 
 **Tout bouton d'action sémantique** (créer, modifier, supprimer, enregistrer,

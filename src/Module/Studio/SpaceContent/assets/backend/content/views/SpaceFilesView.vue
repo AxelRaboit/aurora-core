@@ -189,8 +189,6 @@ function chooseFile(event) {
 
                 <div v-if="visible.length > 0" class="flex self-start rounded-lg border border-line p-0.5 sm:self-auto">
                     <AppIconButton
-                        size="sm"
-                        variant="ghost"
                         :title="t('backend.studio.space_content.files_as_cards')"
                         :class="storedViewMode === 'grid' ? 'bg-surface-3 text-primary' : 'text-muted hover:text-primary'"
                         v-on:click="setViewMode('grid')"
@@ -198,8 +196,6 @@ function chooseFile(event) {
                         <LayoutGrid class="h-4 w-4" :stroke-width="2" />
                     </AppIconButton>
                     <AppIconButton
-                        size="sm"
-                        variant="ghost"
                         :title="t('backend.studio.space_content.files_as_rows')"
                         :class="storedViewMode === 'list' ? 'bg-surface-3 text-primary' : 'text-muted hover:text-primary'"
                         v-on:click="setViewMode('list')"
@@ -340,8 +336,6 @@ function chooseFile(event) {
                      voit ce qu'on défait. -->
                 <AppIconButton
                     v-if="'space' === tab && editable"
-                    size="sm"
-                    variant="ghost"
                     :title="t('backend.studio.space_files.remove')"
                     v-on:click="emit('remove', file)"
                 >

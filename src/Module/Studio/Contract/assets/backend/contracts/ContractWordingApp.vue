@@ -23,7 +23,7 @@ import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { wordingDiff } from "./composables/wordingDiff.js";
 import ContractVariablePanel from "../contract-templates/components/ContractVariablePanel.vue";
 import AppBlockEditor from "@/shared/components/editor/AppBlockEditor.vue";
-import AppBackLink from "@/shared/components/nav/AppBackLink.vue";
+import AppPageBar from "@/shared/components/nav/AppPageBar.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
@@ -197,6 +197,26 @@ const otherParts = computed(() => props.parts.filter((each) => each.key !== prop
 
 <template>
     <div class="space-y-2 sm:space-y-4">
+        <!-- The page's bar first: back on the left, the commands on the right
+             (AppPageBar, 02/10/2026). -->
+        <AppPageBar :back-href="showPath" :back-label="t(`${W}.back`)">
+            <AppPageActions
+                v-if="pageActions.length"
+                :actions="pageActions"
+                :label="t(`${W}.title`)"
+                icon-only-on-phone
+            />
+            <AppButton
+                v-if="canEdit"
+                :loading="saving"
+                :label="t(`${W}.save`)"
+                icon-only-on-phone
+                v-on:click="save"
+            >
+                <Save class="w-4 h-4" :stroke-width="2" />
+            </AppButton>
+        </AppPageBar>
+
         <AppMessage v-if="isFrozen" variant="info">
             <span class="flex items-center gap-2">
                 <Lock class="w-4 h-4 shrink-0" :stroke-width="2" />
@@ -214,45 +234,21 @@ const otherParts = computed(() => props.parts.filter((each) => each.key !== prop
         <AppMessage v-if="errors.content" variant="danger">{{ errors.content }}</AppMessage>
         <AppMessage v-if="errors.part" variant="danger">{{ errors.part }}</AppMessage>
 
-        <div class="flex flex-wrap items-center justify-between gap-3">
-            <div class="min-w-0 space-y-1">
-                <div class="flex flex-wrap items-baseline gap-2">
-                    <h1 class="text-lg font-semibold text-primary">
-                        {{ t(`${W}.heading`, { customer: contract.customerName }) }}
-                    </h1>
-                    <span class="text-sm text-muted">{{ t(`${W}.parts.${part}`) }}</span>
-                    <AppBadge v-if="adaptation" color="violet">{{ t(`${W}.badge`) }}</AppBadge>
-                    <AppBadge v-if="isDirty" color="amber">{{ t(`${W}.unsaved`) }}</AppBadge>
-                </div>
-                <p v-if="template" class="text-sm text-secondary">
-                    {{ t(`${W}.intro`, { template: template.name, number: template.versionNumber }) }}
-                </p>
-                <p v-if="adaptation?.adaptedAt" class="text-xs text-muted">
-                    {{ t(`${W}.adapted_on`, { date: formatDateTimeNumeric(adaptation.adaptedAt) }) }}
-                </p>
+        <div class="min-w-0 space-y-1">
+            <div class="flex flex-wrap items-baseline gap-2">
+                <h1 class="text-lg font-semibold text-primary">
+                    {{ t(`${W}.heading`, { customer: contract.customerName }) }}
+                </h1>
+                <span class="text-sm text-muted">{{ t(`${W}.parts.${part}`) }}</span>
+                <AppBadge v-if="adaptation" color="violet">{{ t(`${W}.badge`) }}</AppBadge>
+                <AppBadge v-if="isDirty" color="amber">{{ t(`${W}.unsaved`) }}</AppBadge>
             </div>
-
-            <div class="flex flex-wrap items-center gap-2">
-                <AppBackLink :href="showPath" :label="t(`${W}.back`)" />
-                <AppPageActions
-                    v-if="pageActions.length"
-                    :actions="pageActions"
-                    :label="t(`${W}.title`)"
-                    variant="ghost"
-                    icon-only-on-phone
-                />
-                <AppButton
-                    v-if="canEdit"
-                    variant="primary"
-                    size="md"
-                    :loading="saving"
-                    :title="t(`${W}.save`)"
-                    v-on:click="save"
-                >
-                    <Save class="w-3.5 h-3.5" :stroke-width="2" />
-                    <span class="sr-only sm:not-sr-only">{{ t(`${W}.save`) }}</span>
-                </AppButton>
-            </div>
+            <p v-if="template" class="text-sm text-secondary">
+                {{ t(`${W}.intro`, { template: template.name, number: template.versionNumber }) }}
+            </p>
+            <p v-if="adaptation?.adaptedAt" class="text-xs text-muted">
+                {{ t(`${W}.adapted_on`, { date: formatDateTimeNumeric(adaptation.adaptedAt) }) }}
+            </p>
         </div>
 
         <!-- The other part of the contract, when it has one: the body and its

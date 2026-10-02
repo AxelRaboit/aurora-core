@@ -92,7 +92,8 @@ const FOLDERS = [
 async function openNoteMenu(wrapper) {
     const trigger = wrapper
         .findAll("button")
-        .find((b) => b.attributes("title")?.startsWith("shared.actions.open"));
+        // Le bouton « Actions » de la barre (AppPageActions depuis le 02/10/2026).
+        .find((b) => "shared.actions.plain_title" === b.attributes("title"));
 
     await trigger.trigger("click");
     await flushPromises();

@@ -1,5 +1,5 @@
 <script setup>
-import AppBackLink from "@/shared/components/nav/AppBackLink.vue";
+import AppPageBar from "@/shared/components/nav/AppPageBar.vue";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
@@ -118,23 +118,21 @@ function isPdf(mimeType) {
              they were squeezed to slivers. The download stays reachable, and
              more than once - the file block further down offers it beside the
              preview, where somebody looking at the document already is. -->
-        <div class="flex flex-wrap items-center justify-between gap-4">
-            <AppBackLink :href="backPath" :label="t('backend.ged.documents.back_to_list')" />
-            <div class="flex flex-wrap items-center gap-2">
-                <DocumentStorageChip
-                    v-if="storageRelocationAvailable"
-                    :disk="doc.storageDisk"
-                    :state="doc.storageTransferState"
-                    :error="doc.storageTransferError"
-                />
-                <AppPageActions
-                    v-if="documentActions.length"
-                    :actions="documentActions"
-                    :label="doc.title ?? ''"
-                    :busy="relocatingId === doc.id"
-                />
-            </div>
-        </div>
+        <AppPageBar :back-href="backPath" :back-label="t('backend.ged.documents.back_to_list')">
+            <DocumentStorageChip
+                v-if="storageRelocationAvailable"
+                :disk="doc.storageDisk"
+                :state="doc.storageTransferState"
+                :error="doc.storageTransferError"
+            />
+            <AppPageActions
+                v-if="documentActions.length"
+                :actions="documentActions"
+                :label="doc.title ?? ''"
+                :busy="relocatingId === doc.id"
+                icon-only-on-phone
+            />
+        </AppPageBar>
 
         <!-- Main card -->
         <div class="aurora-card divide-y divide-line/40">

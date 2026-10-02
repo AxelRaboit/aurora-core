@@ -19,13 +19,12 @@ import NoteGraph from '@notes/backend/markdown/components/NoteGraph.vue';
 import NoteCreateModal from '@notes/backend/markdown/components/NoteCreateModal.vue';
 import { folderPath } from '@notes/backend/markdown/composables/noteBreadcrumb.js';
 import AppButton from '@shared/components/action/AppButton.vue';
-import AppIconButton from '@shared/components/action/AppIconButton.vue';
 import AppSearchInput from '@shared/components/form/input/AppSearchInput.vue';
 import AppTagsInput from '@shared/components/form/select/AppTagsInput.vue';
 import AppModal from '@shared/components/overlay/AppModal.vue';
 import AppModalFooter from '@shared/components/overlay/AppModalFooter.vue';
 import AppTab from '@shared/components/nav/AppTab.vue';
-import AppRowActions from '@shared/components/action/AppRowActions.vue';
+import AppPageActions from '@shared/components/action/AppPageActions.vue';
 import { computed, nextTick, onErrorCaptured, onMounted, onUnmounted, watch } from 'vue';
 import { onPanelRequest, tellPanels } from '@/shared/nav/modulePanelBridge.js';
 import { ChevronRight, Trash2, BookOpen, FileDown, Image, PanelRightOpen, PanelRightClose, Star, StarOff, Tag, TriangleAlert, X, Network, Share2 } from 'lucide-vue-next';
@@ -1078,18 +1077,24 @@ onUnmounted(() => {
                             <!-- Lire, d'un clic et à la vue : c'était une ligne
                                  cachée dans le menu, et passer en lecture
                                  demandait de la chercher à chaque fois. -->
-                            <AppIconButton
+                            <!-- De vrais boutons, tous de 38 px (02/10/2026) :
+                                 trois icônes nues côtoyaient un sélecteur
+                                 encadré, chacun à sa hauteur. -->
+                            <AppButton
                                 v-if="readHref"
+                                variant="secondary"
                                 data-note-read
                                 :href="readHref"
-                                :title="t('notes.markdown.read.mode')"
+                                :label="t('notes.markdown.read.mode')"
+                                icon-only
                             >
                                 <BookOpen class="h-4 w-4" :stroke-width="2" />
-                            </AppIconButton>
+                            </AppButton>
 
-                            <AppRowActions
+                            <AppPageActions
                                 :actions="noteActions"
                                 :label="form.title || t('notes.markdown.untitled')"
+                                icon-only-on-phone
                             />
 
                             <!-- Le dépliant reste dehors, à droite du menu :
@@ -1097,18 +1102,21 @@ onUnmounted(() => {
                                  qu'on a sous les yeux pendant qu'on écrit,
                                  et son état - ouvert ou fermé - doit se
                                  lire sans ouvrir quoi que ce soit. -->
-                            <AppIconButton
-                                :title="sidePanelOpen ? t('notes.markdown.links.close') : t('notes.markdown.links.open')"
-                                size="md"
-                                :variant="sidePanelOpen ? 'primary' : 'ghost'"
+                            <AppButton
+                                variant="secondary"
+                                :active="sidePanelOpen"
+                                :aria-pressed="sidePanelOpen"
+                                :label="sidePanelOpen ? t('notes.markdown.links.close') : t('notes.markdown.links.open')"
+                                icon-only
                                 v-on:click="sidePanelOpen = !sidePanelOpen"
                             >
                                 <PanelRightClose v-if="sidePanelOpen" class="w-4 h-4" :stroke-width="2" />
                                 <PanelRightOpen v-else class="w-4 h-4" :stroke-width="2" />
-                            </AppIconButton>
+                            </AppButton>
 
-                            <!-- View mode toggle (edit / split / preview) - segmented AppTab control -->
-                            <div class="inline-flex rounded-md border border-line overflow-hidden">
+                            <!-- View mode toggle (edit / split / preview) - segmented AppTab control,
+                                 à la hauteur des boutons voisins. -->
+                            <div class="inline-flex h-9.5 items-stretch rounded-lg border border-line overflow-hidden">
                                 <AppTab
                                     v-for="opt in viewModeOptions"
                                     :key="opt.value"

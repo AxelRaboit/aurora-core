@@ -496,15 +496,18 @@ const pageActions = computed(() => {
                 <div v-if="selectedIds.size" class="flex flex-wrap items-center gap-2 bg-accent-500/10 border border-accent-400/30 rounded-xl px-2 py-2 sm:px-4 sm:py-2.5">
                     <span class="text-sm font-medium text-accent-400">{{ selectedIds.size }} {{ t("shared.common.selected") }}</span>
                     <div class="flex gap-2 ml-auto flex-wrap">
-                        <AppPageActions :actions="bulkActions" variant="ghost" size="sm" :busy="bulkRelocating" />
+                        <!-- La même barre que la sélection des publications :
+                             deux vrais boutons de la même taille, et non un
+                             fantôme à côté d'une croix nue (02/10/2026). -->
+                        <AppPageActions :actions="bulkActions" variant="secondary" size="sm" :busy="bulkRelocating" />
                         <AppButton
+                            variant="ghost"
                             size="sm"
-                            variant="icon"
-                            :title="t('shared.common.cancel')"
-                            class="p-1.5 text-muted hover:text-primary"
+                            :label="t('shared.common.cancel')"
+                            icon-only-on-phone
                             v-on:click="clearSelection"
                         >
-                            <X class="w-3.5 h-3.5" :stroke-width="2" />
+                            <X class="w-4 h-4" :stroke-width="2" />
                         </AppButton>
                     </div>
                 </div>
@@ -532,8 +535,6 @@ const pageActions = computed(() => {
                          avec la place. -->
                     <div v-if="!isNarrow" class="flex border border-line rounded-lg p-0.5">
                         <AppIconButton
-                            size="sm"
-                            variant="ghost"
                             :class="storedViewMode === 'grid' ? 'bg-surface-3 text-primary' : 'text-muted hover:text-primary'"
                             :title="t('shared.common.grid_view')"
                             :aria-label="t('shared.common.grid_view')"
@@ -543,8 +544,6 @@ const pageActions = computed(() => {
                             <LayoutGrid class="w-4 h-4" :stroke-width="2" />
                         </AppIconButton>
                         <AppIconButton
-                            size="sm"
-                            variant="ghost"
                             :class="storedViewMode === 'list' ? 'bg-surface-3 text-primary' : 'text-muted hover:text-primary'"
                             :title="t('shared.common.list_view')"
                             :aria-label="t('shared.common.list_view')"
@@ -556,8 +555,6 @@ const pageActions = computed(() => {
                     </div>
                     <AppIconButton
                         v-if="can('ged.documents.delete') || can('ged.documents.edit')"
-                        size="sm"
-                        variant="ghost"
                         class="border border-line"
                         :class="isSelecting ? 'bg-accent-500/15 text-accent-400' : 'text-muted hover:text-primary'"
                         :title="isSelecting ? t('backend.ged.documents.stop_selecting') : t('backend.ged.documents.select_mode')"

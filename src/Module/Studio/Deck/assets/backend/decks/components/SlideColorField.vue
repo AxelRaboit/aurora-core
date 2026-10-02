@@ -50,8 +50,6 @@ const value = computed({
         </span>
         <AppIconButton
             v-if="modelValue"
-            size="sm"
-            variant="ghost"
             :title="t('backend.studio.decks.colour_reset')"
             v-on:click="emit('update:modelValue', null)"
         >

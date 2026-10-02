@@ -34,6 +34,7 @@ import { registerUploadedFonts } from "./free/fonts.js";
 import { toast } from "vue-sonner";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppPageActions from "@/shared/components/action/AppPageActions.vue";
+import AppPageBar from "@/shared/components/nav/AppPageBar.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
@@ -72,6 +73,8 @@ const { can } = usePrivileges();
 
 const props = defineProps({
     deck: { type: Object, required: true },
+    /** The deck list, for the page bar's back link. */
+    backPath: { type: String, default: null },
     layouts: { type: Array, default: () => [] },
     /** Slots every layout accepts: the line above the title, and the backdrop. */
     commonSlots: { type: Array, default: () => [] },
@@ -613,18 +616,23 @@ onBeforeUnmount(() => {
     <div class="space-y-2 sm:space-y-4">
         <!-- Présenter, et le reste derrière un bouton : la page a déjà une
              colonne de slides à gauche, elle n'a pas besoin d'une rangée de
-             cinq boutons en haut. -->
-        <div class="flex flex-wrap items-center gap-2">
-            <AppButton variant="primary" :disabled="!slides.length" v-on:click="present">
-                <Play class="h-4 w-4" :stroke-width="2" />
-                {{ t("backend.studio.decks.present") }}
-            </AppButton>
+             cinq boutons en haut. La barre de tous les écrans : le retour à
+             gauche, les commandes à droite (02/10/2026). -->
+        <AppPageBar :back-href="backPath" :back-label="backPath ? t('shared.common.back') : null">
             <AppPageActions
                 :actions="deckActions"
                 :label="deck.title ?? ''"
-                variant="ghost"
+                icon-only-on-phone
             />
-        </div>
+            <AppButton
+                :disabled="!slides.length"
+                :label="t('backend.studio.decks.present')"
+                icon-only-on-phone
+                v-on:click="present"
+            >
+                <Play class="h-4 w-4" :stroke-width="2" />
+            </AppButton>
+        </AppPageBar>
 
         <div class="flex flex-col gap-4" :class="isFree ? '' : 'xl:flex-row xl:items-start'">
             <!-- Les slides, dans l'ordre où elles seront montrées. -->
@@ -719,8 +727,6 @@ onBeforeUnmount(() => {
                                  non, et c'est le seul chemin au clavier vers
                                  un changement d'ordre. -->
                             <AppIconButton
-                                size="sm"
-                                variant="ghost"
                                 :disabled="at === 0"
                                 :title="t('backend.studio.decks.move_up')"
                                 v-on:click="move(slide, -1)"
@@ -728,8 +734,6 @@ onBeforeUnmount(() => {
                                 <ArrowUp class="h-3 w-3" :stroke-width="2" />
                             </AppIconButton>
                             <AppIconButton
-                                size="sm"
-                                variant="ghost"
                                 :disabled="at === slides.length - 1"
                                 :title="t('backend.studio.decks.move_down')"
                                 v-on:click="move(slide, 1)"
@@ -737,16 +741,12 @@ onBeforeUnmount(() => {
                                 <ArrowDown class="h-3 w-3" :stroke-width="2" />
                             </AppIconButton>
                             <AppIconButton
-                                size="sm"
-                                variant="ghost"
                                 :title="t('backend.studio.decks.duplicate_slide')"
                                 v-on:click="duplicateSlide(slide)"
                             >
                                 <CopyPlus class="h-3 w-3" :stroke-width="2" />
                             </AppIconButton>
                             <AppIconButton
-                                size="sm"
-                                variant="ghost"
                                 :title="t('backend.studio.decks.delete_slide')"
                                 v-on:click="pendingDelete = slide"
                             >
@@ -822,8 +822,6 @@ onBeforeUnmount(() => {
                             />
                             <div class="flex flex-wrap items-center gap-2">
                                 <AppIconButton
-                                    size="sm"
-                                    variant="ghost"
                                     :disabled="!freeEditor.canUndo.value"
                                     :title="t('backend.studio.decks.free.undo')"
                                     v-on:click="freeEditor.undo()"
@@ -831,8 +829,6 @@ onBeforeUnmount(() => {
                                     <Undo2 class="h-4 w-4" :stroke-width="2" />
                                 </AppIconButton>
                                 <AppIconButton
-                                    size="sm"
-                                    variant="ghost"
                                     :disabled="!freeEditor.canRedo.value"
                                     :title="t('backend.studio.decks.free.redo')"
                                     v-on:click="freeEditor.redo()"
@@ -1300,8 +1296,6 @@ onBeforeUnmount(() => {
                             </span>
                             <span class="flex shrink-0 gap-1">
                                 <AppIconButton
-                                    size="sm"
-                                    variant="ghost"
                                     :title="t('backend.studio.decks.share_copy')"
                                     v-on:click="copy(link)"
                                 >
@@ -1309,8 +1303,6 @@ onBeforeUnmount(() => {
                                 </AppIconButton>
                                 <AppIconButton
                                     v-if="isLive(link)"
-                                    size="sm"
-                                    variant="ghost"
                                     :title="t('backend.studio.decks.share_revoke')"
                                     v-on:click="revoke(link)"
                                 >

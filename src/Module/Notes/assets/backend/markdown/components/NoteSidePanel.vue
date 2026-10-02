@@ -32,7 +32,6 @@ const { tab, items, loading } = useNoteSidePanel({
             <h3 class="text-sm font-semibold text-primary">{{ t('notes.markdown.links.title') }}</h3>
             <AppIconButton
                 :title="t('notes.markdown.links.close')"
-                size="sm"
                 v-on:click="emit('close')"
             >
                 <X class="w-4 h-4" :stroke-width="2" />

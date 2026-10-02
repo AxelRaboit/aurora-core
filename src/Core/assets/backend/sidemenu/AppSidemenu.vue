@@ -361,7 +361,17 @@ function openSearchFromMobile() {
             <span class="text-primary font-bold text-base tracking-tight">{{ siteName }}</span>
         </a>
         <div class="flex items-center gap-1">
-            <AppButton variant="icon" size="none" class="p-2 text-muted hover:text-primary" v-on:click="openPalette">
+            <!-- La barre de l'application : des icônes nues, comme la cloche
+                 et le compte à côté (la règle des barres de page ne vaut pas
+                 pour le cadre de l'app), mais chacune avec son nom. -->
+            <AppButton
+                variant="icon"
+                size="none"
+                class="p-2 text-muted hover:text-primary"
+                :title="t('backend.search.button')"
+                :aria-label="t('backend.search.button')"
+                v-on:click="openPalette"
+            >
                 <Search class="w-5 h-5" :stroke-width="2" />
             </AppButton>
             <!-- The bell belongs here too. On desktop it moved to the page
@@ -402,6 +412,7 @@ function openSearchFromMobile() {
                 size="none"
                 class="p-2"
                 :title="mobileOpen ? t('backend.nav.collapse_menu') : t('backend.nav.expand_menu')"
+                :aria-label="mobileOpen ? t('backend.nav.collapse_menu') : t('backend.nav.expand_menu')"
                 v-on:click="mobileOpen ? closeMobile() : openMobile()"
             >
                 <PanelLeftClose v-if="mobileOpen" class="w-5 h-5" :stroke-width="2" />
@@ -428,7 +439,14 @@ function openSearchFromMobile() {
                         <span v-if="appVersion" class="text-xs text-muted/50 leading-none">{{ appVersion }}</span>
                     </div>
                 </div>
-                <AppButton variant="icon" size="none" class="p-1.5 text-muted hover:text-primary" v-on:click="closeMobile">
+                <AppButton
+                    variant="icon"
+                    size="none"
+                    class="p-1.5 text-muted hover:text-primary"
+                    :title="t('shared.common.close')"
+                    :aria-label="t('shared.common.close')"
+                    v-on:click="closeMobile"
+                >
                     <X class="w-5 h-5" :stroke-width="2" />
                 </AppButton>
             </div>

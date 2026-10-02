@@ -99,7 +99,7 @@ const pageActions = computed(() => {
                 class="flex-1"
                 :placeholder="t('backend.mount_points.search_placeholder')"
             />
-            <AppPageActions :actions="pageActions" />
+            <AppPageActions :actions="pageActions" icon-only-on-phone />
         </div>
 
         <div class="aurora-card overflow-x-auto scrollbar-thin">

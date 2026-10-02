@@ -1514,7 +1514,6 @@ defineExpose({
                 </AppButton>
                 <AppIconButton
                     :title="t('notes.markdown.library.clear_selection')"
-                    size="sm"
                     v-on:click="stopSelecting"
                 >
                     <X class="w-4 h-4" :stroke-width="2" />

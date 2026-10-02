@@ -49,4 +49,21 @@ describe("AppIconButton", () => {
         const wrapper = mount(AppIconButton, { props: { size: "compact" } });
         expect(wrapper.classes()).toContain("min-h-7.5");
     });
+
+    // Quinze boutons de l'éditeur de grille passaient `:icon` et s'affichaient vides.
+    it("renders the icon prop when no slot is given", () => {
+        const Icon = { template: '<svg data-test="icon" />' };
+        const wrapper = mount(AppIconButton, {
+            props: { icon: Icon, title: "Monter" },
+        });
+        expect(wrapper.find('[data-test="icon"]').exists()).toBe(true);
+    });
+
+    it("shows its on state and says so", () => {
+        const wrapper = mount(AppIconButton, {
+            props: { active: true, title: "Panneau" },
+        });
+        expect(wrapper.classes()).toContain("text-accent-400");
+        expect(wrapper.attributes("aria-pressed")).toBe("true");
+    });
 });

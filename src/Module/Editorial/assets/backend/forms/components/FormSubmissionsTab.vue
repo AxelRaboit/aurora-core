@@ -1,8 +1,9 @@
 <script setup>
 import { onMounted } from "vue";
 import { useI18n } from "vue-i18n";
-import { ChevronLeft, ChevronRight, Download, Inbox } from "lucide-vue-next";
+import { Download, Inbox } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
+import AppPagination from "@/shared/components/nav/AppPagination.vue";
 import AppLoader from "@/shared/components/feedback/AppLoader.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import { useFormSubmissions } from "../composables/useFormSubmissions.js";
@@ -75,26 +76,7 @@ const formatDate = (value) => d(new Date(value), { dateStyle: "medium", timeStyl
             </article>
         </div>
 
-        <div v-if="totalPages > 1" class="flex items-center justify-center gap-2 pt-1">
-            <AppButton
-                variant="ghost"
-                size="sm"
-                :disabled="page <= 1"
-                :title="t('backend.forms.submissions.previous')"
-                v-on:click="goToPage(page - 1)"
-            >
-                <ChevronLeft class="h-4 w-4" :stroke-width="2" />
-            </AppButton>
-            <span class="text-xs tabular-nums text-secondary">{{ page }} / {{ totalPages }}</span>
-            <AppButton
-                variant="ghost"
-                size="sm"
-                :disabled="page >= totalPages"
-                :title="t('backend.forms.submissions.next')"
-                v-on:click="goToPage(page + 1)"
-            >
-                <ChevronRight class="h-4 w-4" :stroke-width="2" />
-            </AppButton>
-        </div>
+        <!-- La pagination commune à toutes les listes (02/10/2026). -->
+        <AppPagination :page="page" :total-pages="totalPages" class="pt-1" v-on:change="goToPage" />
     </div>
 </template>
