@@ -345,7 +345,7 @@ const SHOTS = [
             // porte, et il s'annonce, ce qui le rend trouvable ici.
             await page.getByRole("button", { name: "Rechercher…" }).click();
 
-            const field = page.getByPlaceholder(/Rechercher des contenus/);
+            const field = page.getByPlaceholder(/^Rechercher dans le back-office/);
             await field.waitFor({ state: "visible", timeout: 5_000 });
             await field.fill(SEARCH_QUERY);
             await page.waitForTimeout(1_500);
@@ -443,9 +443,15 @@ const SHOTS = [
             // démonstration tient sur deux pages, et celui-ci n'est pas
             // toujours sur la première. C'est celui-là qu'on veut, parce
             // qu'il porte trois versions et que la carte en parle.
-            await page.getByPlaceholder(/Rechercher un document/).fill("Visuel de campagne");
+            // Le champ cherche aussi dans le texte et les étiquettes depuis la
+            // 0.9.327, et son exemple l'annonce : « Rechercher : titre, … ».
+            // En cartes : une ligne de la liste ne s'ouvre pas au clic, une
+            // carte si, et le mode est retenu d'une visite à l'autre.
+            await page.locator("main").getByRole("button", { name: "Vue cartes" }).click();
+            await page.waitForTimeout(1_000);
+            await page.getByPlaceholder(/^Rechercher :/).fill("Visuel de campagne");
             await page.waitForTimeout(2_000);
-            await page.getByText("Visuel de campagne", { exact: false }).first().click();
+            await page.locator("main").getByText("Visuel de campagne", { exact: false }).first().click();
             await page.waitForTimeout(2_500);
         },
     },
@@ -810,7 +816,7 @@ const SHOTS = [
             // « Actions pour… » existe aussi dans le menu latéral, et
             // `.first()` y attrapait la première ligne au lieu de la note
             // ouverte. L'arbre vit hors du `<main>`, ce qui les départage.
-            await page.locator("main").getByTitle(/^Actions pour/).first().click();
+            await page.locator("main").getByTitle(/^Actions/).first().click();
             await page.waitForTimeout(800);
             await page.getByRole("button", { name: "Image d'entête" }).first().click();
             await page.waitForTimeout(2_000);
@@ -825,7 +831,7 @@ const SHOTS = [
         async prepare(page) {
             await page.getByRole("link", { name: /^Sommaire des clients/ }).first().click();
             await page.waitForTimeout(2_500);
-            await page.locator("main").getByTitle(/^Actions pour/).first().click();
+            await page.locator("main").getByTitle(/^Actions/).first().click();
             await page.waitForTimeout(700);
             await page.getByRole("button", { name: "Ouvrir le graphe" }).first().click();
             // La construction est animée : elle place les nœuds avant de se

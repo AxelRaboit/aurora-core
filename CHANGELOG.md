@@ -5,6 +5,13 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.329] - 2026-10-02
+
+### Amélioré
+- **Les liens de lecture d'un livrable, depuis la liste.** Le menu ⋯ de chaque livrable d'un espace propose maintenant « Liens de lecture », comme son éditeur : créer une adresse pour un destinataire, avec mot de passe et expiration, ou en révoquer une, ne demande plus d'ouvrir le document d'abord. L'encart de la liste le dit.
+
+---
+
 ## [0.9.328] - 2026-10-02
 
 ### Amélioré
