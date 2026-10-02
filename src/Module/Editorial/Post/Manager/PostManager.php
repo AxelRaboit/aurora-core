@@ -47,6 +47,8 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
+use function in_array;
+
 #[AsAlias(PostManagerInterface::class)]
 class PostManager implements PostManagerInterface
 {
@@ -260,7 +262,10 @@ class PostManager implements PostManagerInterface
 
     public function demoteIfNotPublishable(PostInputInterface $input, ?PostInterface $post = null): PostInputInterface
     {
-        if (PostStatusEnum::Published->value !== $input->getStatus()) {
+        // « Programmée » est une publication différée : sans ce garde, qui n'a
+        // pas le droit de publier choisissait une date, et la tâche planifiée
+        // publiait la page à l'heure dite sans que personne ne l'ait relue.
+        if (!in_array($input->getStatus(), [PostStatusEnum::Published->value, PostStatusEnum::Scheduled->value], true)) {
             return $input;
         }
 
@@ -311,8 +316,11 @@ class PostManager implements PostManagerInterface
         $status = PostStatusEnum::from($input->getStatus());
         $post->setStatus($status);
 
+        // Gardée aussi pendant la relecture : une publication programmée par
+        // quelqu'un qui n'a pas le droit de publier part en revue avec la date
+        // qu'il voulait, et l'approbation la reprogramme à cette date.
         $post->setScheduledAt(
-            PostStatusEnum::Scheduled === $status ? $this->hydrateDate($input->getScheduledAt()) : null,
+            in_array($status, [PostStatusEnum::Scheduled, PostStatusEnum::PendingReview], true) ? $this->hydrateDate($input->getScheduledAt()) : null,
         );
 
         // Kept whatever the status is. An end date belongs to the post rather than
