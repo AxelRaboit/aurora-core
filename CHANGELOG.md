@@ -5,6 +5,19 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.326] - 2026-10-02
+
+### Amélioré
+
+#### Les réglages Drive d'un espace disent quel dossier ils règlent
+Le bloc « Dossier partagé » des Réglages d'un espace s'appelle désormais « Dossier Drive du client » et précise qu'il s'agit du dossier propre à ce client, affiché sous « Dossier du client » dans l'onglet Drive. Juste dessous, un encart « Dossier de l'agence » explique que le dossier commun à tous les espaces ne se règle pas ici, dit s'il est choisi ou non, et mène à Configuration > Google Drive pour qui a le droit de l'ouvrir.
+
+### Dans aurora-client
+
+Rien à faire au-delà de `make aurora-update`.
+
+---
+
 ## [0.9.325] - 2026-10-02
 
 ### Ajouté

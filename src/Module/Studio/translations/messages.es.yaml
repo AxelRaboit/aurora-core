@@ -1485,9 +1485,13 @@ backend:
                 archived: Archivado
             settings:
                 section_drive: 'Google Drive'
-                folder_title: 'Carpeta compartida'
-                folder_intro: 'La carpeta de Drive que este cliente ha compartido con la dirección de la cuenta de servicio.'
+                folder_title: 'Carpeta de Drive del cliente'
+                folder_intro: 'La carpeta propia de este cliente, que ha compartido con la dirección de la cuenta de servicio. Se muestra en la pestaña Drive de este espacio, en «Carpeta del cliente».'
                 folder_hint: 'Pegue la dirección de la carpeta, o vacíe el campo para desconectarla.'
+                agency_title: 'Carpeta de la agencia'
+                agency_set: 'Común a todos los espacios, también se muestra en la pestaña Drive, en «Carpeta de la agencia», y solo la ve el estudio. No se configura aquí, sino en Configuración > Google Drive.'
+                agency_unset: 'No se ha elegido ninguna carpeta de la agencia. Común a todos los espacios y visible solo para el estudio, se configura en Configuración > Google Drive, no aquí.'
+                agency_open: 'Abrir la configuración de Drive'
                 folder_saved: 'Carpeta conectada.'
                 folder_cleared: 'Carpeta desconectada.'
                 drive_closes_now: 'Guardar cierra la pestaña de inmediato, también para usted: habrá que introducir la contraseña para abrirla.'

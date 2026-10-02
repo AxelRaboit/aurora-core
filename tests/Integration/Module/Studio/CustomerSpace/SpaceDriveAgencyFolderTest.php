@@ -192,6 +192,24 @@ final class SpaceDriveAgencyFolderTest extends IntegrationTestCase
         self::assertNull(static::getContainer()->get(DriveSettings::class)->agencyFolderId());
     }
 
+    /**
+     * Les réglages d'un espace ne règlent que le dossier du client : ils
+     * disent où se règle celui de l'agence, et y mènent qui peut l'ouvrir.
+     */
+    public function testTheSpaceSettingsPointToTheAgencyFolderConfiguration(): void
+    {
+        $space = $this->givenSpace(agencyFolder: 'dossier-agence-0001');
+
+        $this->client->setServerParameter('HTTP_X-Requested-With', '');
+        $this->client->request('GET', sprintf('/workspace/%d?view=settings', $space->getId()));
+
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+        self::assertMatchesRegularExpression(
+            '#driveConfigurationPath&quot;:&quot;(\\\\)?/backend(\\\\)?/studio(\\\\)?/drive(\\\\)?/settings#',
+            (string) $this->client->getResponse()->getContent(),
+        );
+    }
+
     private function wasAsked(string $folderId): bool
     {
         foreach ($this->requested as $url) {
