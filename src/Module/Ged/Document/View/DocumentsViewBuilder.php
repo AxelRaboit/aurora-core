@@ -101,6 +101,7 @@ final readonly class DocumentsViewBuilder
             // no action.
             'storageRelocationAvailable' => $this->storageSettings->isRelocationAvailable(),
             'bulkMovePath' => $this->urlGenerator->generate('backend_ged_documents_bulk_move'),
+            'bulkCategoryPath' => $this->urlGenerator->generate('backend_ged_documents_bulk_category'),
             // Sidebar folder CRUD reuses the existing /backend/ged/folders endpoints,
             // so create/edit/delete behave identically across both pages.
             'folderCreatePath' => $this->urlGenerator->generate('backend_ged_folders_create'),

@@ -229,6 +229,7 @@ backend:
                 add_variant: "Añadir una variante"
                 with_alternates: "Eliminar también sus variantes | Eliminar también su variante | Eliminar también sus {count} variantes"
                 move_with_alternates: "Mover también las variantes de los originales elegidos"
+                categorize_with_alternates: 'Clasificar también las variantes de los originales elegidos'
                 label_suggestions: "Ya en uso:"
                 usage_none: 'Ninguna versión de la familia está en uso'
                 usage_types:
@@ -272,6 +273,9 @@ backend:
             moved: 'Documento movido'
             bulk_moved: 'Documentos movidos'
             bulk_move: 'Mover {count} documentos'
+            change_category: 'Cambiar la categoría'
+            bulk_category: 'Clasificar {count} documentos en una categoría'
+            bulk_categorized: 'Categoría cambiada: {count} documentos'
             all_documents: 'Todos los documentos'
             root_folder: Raíz
             subfolders: Subcarpetas
@@ -300,6 +304,7 @@ backend:
                 title_required: 'El título es obligatorio'
                 original_self: 'Un documento no puede ser su propia variante.'
                 original_not_found: 'Este original ya no existe.'
+                category_unknown: 'Esta categoría no existe o está en la papelera.'
                 original_is_alternate: 'Este original es a su vez una variante; elija el documento de origen.'
                 original_has_alternates: 'Este documento tiene sus propias variantes y no puede convertirse en variante.'
                 upload_required: 'No se ha recibido ningún archivo'

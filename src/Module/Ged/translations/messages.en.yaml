@@ -229,6 +229,7 @@ backend:
         add_variant: "Add an alternate"
         with_alternates: "Also delete its alternates | Also delete its alternate | Also delete its {count} alternates"
         move_with_alternates: "Also move the chosen originals' alternates"
+        categorize_with_alternates: "Also file the alternates of the chosen originals"
         label_suggestions: "Already in use:"
         usage_none: "No version of the family is used"
         usage_types:
@@ -272,6 +273,9 @@ backend:
       moved: Document moved
       bulk_moved: Documents moved
       bulk_move: "Move {count} documents"
+      change_category: Change category
+      bulk_category: "File {count} documents in a category"
+      bulk_categorized: "Category changed: {count} documents"
       all_documents: All documents
       root_folder: Root
       subfolders: Subfolders
@@ -300,6 +304,7 @@ backend:
         title_required: Title is required
         original_self: A document cannot be its own variant.
         original_not_found: That original no longer exists.
+        category_unknown: "This category does not exist, or is in the trash."
         original_is_alternate: That original is itself a variant; choose the document it comes from.
         original_has_alternates: This document has variants of its own and cannot become one.
         upload_required: No file received

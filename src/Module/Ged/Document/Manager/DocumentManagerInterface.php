@@ -6,6 +6,7 @@ namespace Aurora\Module\Ged\Document\Manager;
 
 use Aurora\Module\Ged\Document\Dto\DocumentInputInterface;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
+use Aurora\Module\Ged\DocumentCategory\Entity\DocumentCategoryInterface;
 use Aurora\Module\Ged\DocumentFolder\Entity\DocumentFolderInterface;
 use DateTimeImmutable;
 
@@ -35,6 +36,14 @@ interface DocumentManagerInterface
 
     /** @param list<int> $ids */
     public function bulkMove(array $ids, ?DocumentFolderInterface $folder): void;
+
+    /**
+     * Files a selection under one category, or under none. Returns how many
+     * documents actually changed.
+     *
+     * @param list<int> $ids
+     */
+    public function bulkCategorize(array $ids, ?DocumentCategoryInterface $category): int;
 
     /** @param list<int> $ids */
     public function bulkDelete(array $ids): int;
