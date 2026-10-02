@@ -425,6 +425,18 @@
         "espace-cote-client-livrables": {
             "document": 756,
             "slug": "les-espaces-clients"
+        },
+        "tour-formulaires-liste": {
+            "document": 757,
+            "slug": "formulaires"
+        },
+        "tour-formulaire-modeles": {
+            "document": 758,
+            "slug": "formulaires"
+        },
+        "tour-trame-apercu": {
+            "document": 759,
+            "slug": "clients-et-contrats"
         }
     }
 }
