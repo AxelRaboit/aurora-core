@@ -104,20 +104,20 @@ const totalCustomisations = computed(() => prefs.hiddenCount.value + prefs.custo
                             <AppButton
                                 variant="ghost"
                                 size="sm"
-                                :title="t('backend.profile.sidemenu.hide_all')"
+                                :label="t('backend.profile.sidemenu.hide_all')"
+                                icon-only-on-phone
                                 v-on:click="prefs.hideAllInSection(section)"
                             >
-                                <EyeOff class="w-3.5 h-3.5" :stroke-width="2" />
-                                <span class="hidden sm:inline">{{ t('backend.profile.sidemenu.hide_all') }}</span>
+                                <EyeOff class="w-4 h-4" :stroke-width="2" />
                             </AppButton>
                             <AppButton
                                 variant="ghost"
                                 size="sm"
-                                :title="t('backend.profile.sidemenu.show_all')"
+                                :label="t('backend.profile.sidemenu.show_all')"
+                                icon-only-on-phone
                                 v-on:click="prefs.showAllInSection(section)"
                             >
-                                <Eye class="w-3.5 h-3.5" :stroke-width="2" />
-                                <span class="hidden sm:inline">{{ t('backend.profile.sidemenu.show_all') }}</span>
+                                <Eye class="w-4 h-4" :stroke-width="2" />
                             </AppButton>
                             <AppToggle
                                 class="hidden sm:inline-flex"

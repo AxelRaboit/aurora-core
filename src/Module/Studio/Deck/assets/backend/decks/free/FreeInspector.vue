@@ -271,41 +271,37 @@ function toggleStroke(on) {
 
         <template v-else>
             <div class="flex flex-wrap items-center gap-0.5">
-                <AppIconButton size="sm" variant="ghost" :title="t('backend.studio.decks.free.duplicate')" v-on:click="editor.duplicate()">
+                <AppIconButton :title="t('backend.studio.decks.free.duplicate')" v-on:click="editor.duplicate()">
                     <CopyPlus class="h-4 w-4" :stroke-width="2" />
                 </AppIconButton>
                 <AppIconButton
-                    size="sm"
-                    variant="ghost"
                     :title="t('backend.studio.decks.free.delete')"
                     :disabled="allLocked"
                     v-on:click="editor.remove()"
                 >
                     <Trash2 class="h-4 w-4" :stroke-width="2" />
                 </AppIconButton>
-                <AppIconButton size="sm" variant="ghost" :title="allLocked ? t('backend.studio.decks.free.unlock') : t('backend.studio.decks.free.lock')" v-on:click="editor.toggleLock()">
+                <AppIconButton :title="allLocked ? t('backend.studio.decks.free.unlock') : t('backend.studio.decks.free.lock')" v-on:click="editor.toggleLock()">
                     <LockOpen v-if="allLocked" class="h-4 w-4" :stroke-width="2" />
                     <Lock v-else class="h-4 w-4" :stroke-width="2" />
                 </AppIconButton>
                 <span class="mx-1 h-5 w-px bg-line" />
-                <AppIconButton size="sm" variant="ghost" :title="t('backend.studio.decks.free.bring_front')" v-on:click="editor.arrange('front')">
+                <AppIconButton :title="t('backend.studio.decks.free.bring_front')" v-on:click="editor.arrange('front')">
                     <BringToFront class="h-4 w-4" :stroke-width="2" />
                 </AppIconButton>
-                <AppIconButton size="sm" variant="ghost" :title="t('backend.studio.decks.free.forward')" v-on:click="editor.arrange('forward')">
+                <AppIconButton :title="t('backend.studio.decks.free.forward')" v-on:click="editor.arrange('forward')">
                     <ArrowUpToLine class="h-4 w-4" :stroke-width="2" />
                 </AppIconButton>
-                <AppIconButton size="sm" variant="ghost" :title="t('backend.studio.decks.free.backward')" v-on:click="editor.arrange('backward')">
+                <AppIconButton :title="t('backend.studio.decks.free.backward')" v-on:click="editor.arrange('backward')">
                     <ArrowDownToLine class="h-4 w-4" :stroke-width="2" />
                 </AppIconButton>
-                <AppIconButton size="sm" variant="ghost" :title="t('backend.studio.decks.free.send_back')" v-on:click="editor.arrange('back')">
+                <AppIconButton :title="t('backend.studio.decks.free.send_back')" v-on:click="editor.arrange('back')">
                     <SendToBack class="h-4 w-4" :stroke-width="2" />
                 </AppIconButton>
                 <template v-if="many || grouped">
                     <span class="mx-1 h-5 w-px bg-line" />
                     <AppIconButton
                         v-if="many"
-                        size="sm"
-                        variant="ghost"
                         :title="t('backend.studio.decks.free.group')"
                         v-on:click="editor.group()"
                     >
@@ -313,8 +309,6 @@ function toggleStroke(on) {
                     </AppIconButton>
                     <AppIconButton
                         v-if="grouped"
-                        size="sm"
-                        variant="ghost"
                         :title="t('backend.studio.decks.free.ungroup')"
                         v-on:click="editor.ungroup()"
                     >
@@ -323,10 +317,10 @@ function toggleStroke(on) {
                 </template>
                 <template v-if="flippable">
                     <span class="mx-1 h-5 w-px bg-line" />
-                    <AppIconButton size="sm" variant="ghost" :title="t('backend.studio.decks.free.flip_x')" v-on:click="set('flipX', single.flipX ? null : true)">
+                    <AppIconButton :title="t('backend.studio.decks.free.flip_x')" v-on:click="set('flipX', single.flipX ? null : true)">
                         <FlipHorizontal2 class="h-4 w-4" :stroke-width="2" />
                     </AppIconButton>
-                    <AppIconButton size="sm" variant="ghost" :title="t('backend.studio.decks.free.flip_y')" v-on:click="set('flipY', single.flipY ? null : true)">
+                    <AppIconButton :title="t('backend.studio.decks.free.flip_y')" v-on:click="set('flipY', single.flipY ? null : true)">
                         <FlipVertical2 class="h-4 w-4" :stroke-width="2" />
                     </AppIconButton>
                 </template>
@@ -338,8 +332,6 @@ function toggleStroke(on) {
                 <AppIconButton
                     v-for="align in ALIGNS"
                     :key="align.key"
-                    size="sm"
-                    variant="ghost"
                     :title="t(`backend.studio.decks.free.align.${align.key}`)"
                     v-on:click="editor.align(align.key)"
                 >
@@ -347,10 +339,10 @@ function toggleStroke(on) {
                 </AppIconButton>
                 <template v-if="selected.length > 2">
                     <span class="mx-1 h-5 w-px bg-line" />
-                    <AppIconButton size="sm" variant="ghost" :title="t('backend.studio.decks.free.distribute_x')" v-on:click="editor.distribute('x')">
+                    <AppIconButton :title="t('backend.studio.decks.free.distribute_x')" v-on:click="editor.distribute('x')">
                         <AlignHorizontalDistributeCenter class="h-4 w-4" :stroke-width="2" />
                     </AppIconButton>
-                    <AppIconButton size="sm" variant="ghost" :title="t('backend.studio.decks.free.distribute_y')" v-on:click="editor.distribute('y')">
+                    <AppIconButton :title="t('backend.studio.decks.free.distribute_y')" v-on:click="editor.distribute('y')">
                         <AlignVerticalDistributeCenter class="h-4 w-4" :stroke-width="2" />
                     </AppIconButton>
                 </template>

@@ -149,8 +149,6 @@ const folderIconClasses = computed(() =>
             class="flex gap-0.5 transition-opacity sm:opacity-0 sm:group-hover:opacity-100"
         >
             <AppIconButton
-                size="sm"
-                variant="ghost"
                 :class="
                     favourite
                         ? 'text-amber-400'
@@ -171,8 +169,6 @@ const folderIconClasses = computed(() =>
             </AppIconButton>
             <AppIconButton
                 v-if="canManage"
-                size="sm"
-                variant="ghost"
                 :title="t('backend.ged.documents.edit_folder')"
                 v-on:click.stop="emit('edit')"
             >
@@ -180,8 +176,6 @@ const folderIconClasses = computed(() =>
             </AppIconButton>
             <AppIconButton
                 v-if="canManage"
-                size="sm"
-                variant="ghost"
                 :title="t('shared.common.delete')"
                 v-on:click.stop="emit('delete')"
             >

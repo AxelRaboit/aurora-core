@@ -5,7 +5,7 @@ import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { usePostEditor } from "./composables/usePostEditor.js";
 import { useTabState } from "@/shared/composables/useTabState.js";
-import AppBackLink from "@/shared/components/nav/AppBackLink.vue";
+import AppPageBar from "@/shared/components/nav/AppPageBar.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
@@ -449,32 +449,27 @@ function termLabel(term) {
              puis l'état, puis les actions, puis les langues. Le retour est
              redevenu ce qu'il est - une navigation, pas une action - et ce qui
              agit sur la publication tient ensemble à droite. -->
-        <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-            <AppBackLink :href="listPath" :label="t('backend.posts.back_to_list')" />
-            <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-                <!-- Status stays visible whatever section is open. Knowing you
-                     are editing a live page should not require opening a tab. -->
-                <AppBadge :color="STATUS_COLORS[form.status] ?? 'gray'">
-                    {{ t(`backend.posts.status.${form.status}`) }}
-                </AppBadge>
-                <AppPageActions
-                    v-if="headerActions.length"
-                    :actions="headerActions"
-                    :busy="previewing || decidingReview"
-                    icon-only-on-phone
-                />
-                <AppButton
-                    variant="primary"
-                    size="md"
-                    :loading="saving"
-                    :title="t('shared.common.save')"
-                    v-on:click="save(false)"
-                >
-                    <Save class="w-4 h-4" :stroke-width="2" />
-                    <span class="sr-only sm:not-sr-only">{{ t("shared.common.save") }}</span>
-                </AppButton>
-            </div>
-        </div>
+        <AppPageBar :back-href="listPath" :back-label="t('backend.posts.back_to_list')">
+            <!-- Status stays visible whatever section is open. Knowing you
+                 are editing a live page should not require opening a tab. -->
+            <AppBadge :color="STATUS_COLORS[form.status] ?? 'gray'">
+                {{ t(`backend.posts.status.${form.status}`) }}
+            </AppBadge>
+            <AppPageActions
+                v-if="headerActions.length"
+                :actions="headerActions"
+                :busy="previewing || decidingReview"
+                icon-only-on-phone
+            />
+            <AppButton
+                :loading="saving"
+                :label="t('shared.common.save')"
+                icon-only-on-phone
+                v-on:click="save(false)"
+            >
+                <Save class="w-4 h-4" :stroke-width="2" />
+            </AppButton>
+        </AppPageBar>
 
         <!-- The reason it came back, above everything else on the page.
              An author reopening a rejected draft needs to read this before they

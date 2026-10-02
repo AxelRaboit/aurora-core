@@ -234,7 +234,6 @@ const indentStyle = computed(() => ({ marginLeft: `${props.depth * 0.875}rem` })
 
             <AppIconButton
                 v-if="isFolder && hasChildren"
-                size="sm"
                 class="-ml-1 -my-0.5 shrink-0"
                 tabindex="-1"
                 :title="isOpen ? $t('shared.common.collapse') : $t('shared.common.expand')"
@@ -284,7 +283,6 @@ const indentStyle = computed(() => ({ marginLeft: `${props.depth * 0.875}rem` })
             <div v-if="!readonly" class="-my-1.5 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-visible:opacity-100 flex items-center gap-0.5 transition-opacity shrink-0">
                 <AppIconButton
                     v-if="isFolder && editable"
-                    size="sm"
                     color="accent"
                     tabindex="-1"
                     :title="$t('notes.markdown.create_in_folder')"

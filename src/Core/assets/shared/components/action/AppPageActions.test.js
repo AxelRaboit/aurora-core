@@ -66,4 +66,16 @@ describe("AppPageActions", () => {
         expect(trigger(wrapper).classes()).toContain("sm:bg-transparent");
         expect(trigger(wrapper).classes()).toContain("text-xs");
     });
+
+    // Le composant a deux racines : un `class` posé dessus se perdait.
+    it("puts the classes it receives on its trigger", () => {
+        const wrapper = mount(AppPageActions, {
+            props: { actions: [PRINT] },
+            attrs: { class: "w-full sm:w-auto" },
+            global: { stubs: { AppModal: { template: "<div />" } } },
+        });
+        expect(trigger(wrapper).classes()).toEqual(
+            expect.arrayContaining(["w-full", "sm:w-auto"]),
+        );
+    });
 });

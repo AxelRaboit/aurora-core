@@ -285,11 +285,16 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
                     <span class="min-w-0 truncate px-1 text-secondary" aria-current="page">{{ titleOf({ title: noteTitle }) }}</span>
                 </nav>
 
-                <AppIconButton
+                <!-- Les commandes de la barre sont de vrais boutons, de la
+                     même taille (02/10/2026) : le favori était une étoile nue
+                     à côté d'un « Modifier » encadré, et ce dernier n'avait
+                     plus de nom sur téléphone. -->
+                <AppButton
                     v-if="favoritePath"
+                    variant="secondary"
                     data-read-favorite
-                    :title="favoriteLabel"
-                    :aria-label="favoriteLabel"
+                    :label="favoriteLabel"
+                    icon-only
                     :aria-pressed="isFavorite"
                     v-on:click="toggleFavorite"
                 >
@@ -298,17 +303,17 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
                         :class="isFavorite ? 'fill-current text-accent-400' : ''"
                         :stroke-width="2"
                     />
-                </AppIconButton>
+                </AppButton>
 
                 <AppButton
                     v-if="canEdit && backPath"
                     variant="secondary"
-                    size="sm"
                     data-read-edit
                     :href="backPath"
+                    :label="t('notes.markdown.read.edit')"
+                    icon-only-on-phone
                 >
-                    <Pencil class="h-3.5 w-3.5" :stroke-width="2" />
-                    <span class="hidden sm:inline">{{ t('notes.markdown.read.edit') }}</span>
+                    <Pencil class="h-4 w-4" :stroke-width="2" />
                 </AppButton>
             </header>
 

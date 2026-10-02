@@ -36,7 +36,12 @@ const emit = defineEmits(["back"]);
 </script>
 
 <template>
-    <!-- Une ancre quand il y a une adresse, un bouton sinon : le carnet de
+    <!-- `inline-flex` et non `flex` : posé hors d'une rangée (fiche d'un
+         contrat), un `flex` prenait toute la largeur et la ligne entière
+         devenait cliquable. Trente-huit pixels sur téléphone, la hauteur des
+         commandes de la barre où il se pose (02/10/2026).
+
+         Une ancre quand il y a une adresse, un bouton sinon : le carnet de
          notes revient à sa bibliothèque sans changer de page, et une ancre
          vide serait un lien qui ne mène nulle part pour qui navigue au
          clavier. Les deux portent le même dessin. -->
@@ -45,7 +50,7 @@ const emit = defineEmits(["back"]);
         :href="href || undefined"
         :type="href ? undefined : 'button'"
         :aria-label="label"
-        class="-ml-2 flex shrink-0 items-center gap-1.5 rounded-md px-2 py-2 text-sm text-muted transition-colors hover:bg-surface-2 hover:text-primary sm:py-1"
+        class="-ml-2 inline-flex min-h-9.5 shrink-0 items-center gap-1.5 rounded-md px-2 py-2 text-sm text-muted transition-colors hover:bg-surface-2 hover:text-primary sm:min-h-0 sm:py-1"
         v-on:click="href ? undefined : emit('back')"
     >
         <ChevronLeft class="h-3.5 w-3.5 shrink-0" :stroke-width="2" />

@@ -13,8 +13,14 @@ function mountPagination(props) {
             stubs: {
                 AppButton: {
                     template:
-                        '<button :disabled="disabled" @click="$emit(\'click\')"><slot /></button>',
-                    props: ["variant", "size", "disabled"],
+                        '<button :disabled="disabled" @click="$emit(\'click\')"><slot />{{ label }}</button>',
+                    props: [
+                        "variant",
+                        "size",
+                        "disabled",
+                        "label",
+                        "iconOnlyOnPhone",
+                    ],
                     emits: ["click"],
                 },
             },

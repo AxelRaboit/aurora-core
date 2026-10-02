@@ -5,6 +5,32 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.323] - 2026-10-02
+
+### Amélioré
+
+#### Une seule barre d'entête, partout : le retour à gauche, les commandes à droite
+Audit de 49 écrans à 375 et 1 280 px : chaque écran avait sa disposition (commandes collées derrière le retour dans l'éditeur de trame et le texte adapté, poussées à droite de quatre façons ailleurs, retour seul et cliquable sur toute la largeur dans la fiche d'un contrat), et une même barre alignait des boutons de 30, 32 et 34 px.
+- **`AppPageBar`** (nouveau) : le retour à gauche, les commandes à droite, sur téléphone comme sur ordinateur ; le titre vient dessous. Éditeurs de publication, de formulaire, de galerie, de trame, texte adapté, fiche d'un contrat, document de la GED et présentation l'utilisent.
+- **Les commandes d'une barre sont de vrais boutons de 38 px**, en icône seule sous `sm` : `AppButton` gagne `label`, `iconOnlyOnPhone` (un carré de sa hauteur, le nom en infobulle et pour les lecteurs d'écran) et `iconOnly` (bascule permanente : favori, panneau). « Actions » n'est plus un ghost dans les barres.
+- **Tous les boutons d'une taille ont la même hauteur** : primary, danger et accent portent un filet transparent (36 → 38 px en md), en Vue comme en Twig ; le ghost Twig rejoint celui de Vue.
+- Barre de lecture et entête de l'éditeur de note : de vrais boutons de même taille, au lieu d'icônes nues à côté d'un bouton encadré ; le sélecteur de vue à la même hauteur.
+- Barre de sélection des documents, pagination des commentaires et des réponses de formulaire : le même dessin que le reste (la pagination commune pour les deux dernières).
+
+### Corrigé
+- Quinze boutons de l'éditeur de grille (monter, descendre, retirer un onglet, une image, une diapositive) s'affichaient **vides** : `AppIconButton` ne lisait pas la prop `icon`. Il la lit, ainsi que `active` (la bascule du panneau des notes montre enfin son état) et `color="danger"`.
+- `AppPageActions` perdait la `class` qu'on lui passait (deux racines) : quatorze écrans, dont la pleine largeur sur téléphone.
+- `variant="icon"` en `size="sm"` donnait une cible de 26 × 38 : la taille ne lui impose plus son rembourrage.
+- Des boutons sans nom pour les lecteurs d'écran sur téléphone : pagination, « Modifier » de la lecture d'une note, recherche, menu et fermeture de la barre du haut, recherche d'une couverture, préférences du menu.
+- `AppBackLink` est en `inline-flex` : hors d'une rangée, toute la ligne devenait cliquable.
+- Props sans effet retirées de 16 fichiers (`size`, `variant` sur `AppIconButton`). Conventions du dépôt réécrites (`process_mobile_header_bar`, `convention_button_variants`, catalogue des composants).
+
+### Dans aurora-client
+
+Rien à faire au-delà de `make aurora-update`.
+
+---
+
 ## [0.9.322] - 2026-10-02
 
 ### Amélioré

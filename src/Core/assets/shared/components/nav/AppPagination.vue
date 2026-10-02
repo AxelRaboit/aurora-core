@@ -29,9 +29,18 @@ function go(newPage) {
         </span>
 
         <div class="flex items-center gap-1 order-1 sm:order-2">
-            <AppButton variant="ghost" size="sm" :disabled="page <= 1" v-on:click="go(page - 1)">
-                <ChevronLeft class="w-4 h-4 sm:hidden" />
-                <span class="hidden sm:inline">{{ t("shared.pagination.previous") }}</span>
+            <!-- Icône seule sous `sm`, avec son nom en infobulle et pour les
+                 lecteurs d'écran : l'ancien `hidden sm:inline` laissait sur
+                 téléphone deux boutons sans nom (02/10/2026). -->
+            <AppButton
+                variant="ghost"
+                size="sm"
+                :disabled="page <= 1"
+                :label="t('shared.pagination.previous')"
+                icon-only-on-phone
+                v-on:click="go(page - 1)"
+            >
+                <ChevronLeft class="w-4 h-4" />
             </AppButton>
 
             <template v-if="showNumbers">
@@ -39,7 +48,7 @@ function go(newPage) {
                     v-for="pageNum in totalPages"
                     :key="pageNum"
                     type="button"
-                    class="w-8 h-8 rounded-lg text-sm font-medium transition-colors"
+                    class="size-7.5 rounded-lg text-sm font-medium transition-colors"
                     :class="pageNum === page ? 'bg-accent-600 text-white shadow-sm' : 'bg-surface-2 text-secondary hover:bg-surface-3'"
                     v-on:click="go(pageNum)"
                 >
@@ -47,9 +56,16 @@ function go(newPage) {
                 </button>
             </template>
 
-            <AppButton variant="ghost" size="sm" :disabled="page >= totalPages" v-on:click="go(page + 1)">
-                <ChevronRight class="w-4 h-4 sm:hidden" />
-                <span class="hidden sm:inline">{{ t("shared.pagination.next") }}</span>
+            <AppButton
+                variant="ghost"
+                size="sm"
+                class="flex-row-reverse"
+                :disabled="page >= totalPages"
+                :label="t('shared.pagination.next')"
+                icon-only-on-phone
+                v-on:click="go(page + 1)"
+            >
+                <ChevronRight class="w-4 h-4" />
             </AppButton>
         </div>
     </div>

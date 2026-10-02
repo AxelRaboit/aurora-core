@@ -15,7 +15,7 @@ import { computed, provide, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 import { ExternalLink, Trash2, X } from "lucide-vue-next";
-import AppBackLink from "@/shared/components/nav/AppBackLink.vue";
+import AppPageBar from "@/shared/components/nav/AppPageBar.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
@@ -174,17 +174,14 @@ const headerActions = computed(() => {
 
 <template>
     <div class="space-y-2 sm:space-y-4">
-        <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-            <AppBackLink :href="listPath" :label="t('backend.forms.editor.back')" />
-            <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-                <!-- En ligne ou non, visible quel que soit l'onglet : on doit
-                     savoir qu'on modifie un formulaire que des gens remplissent. -->
-                <AppBadge :color="current.active ? 'emerald' : 'gray'">
-                    {{ t(current.active ? "backend.forms.list.status_active" : "backend.forms.list.status_inactive") }}
-                </AppBadge>
-                <AppPageActions v-if="headerActions.length" :actions="headerActions" icon-only-on-phone />
-            </div>
-        </div>
+        <AppPageBar :back-href="listPath" :back-label="t('backend.forms.editor.back')">
+            <!-- En ligne ou non, visible quel que soit l'onglet : on doit
+                 savoir qu'on modifie un formulaire que des gens remplissent. -->
+            <AppBadge :color="current.active ? 'emerald' : 'gray'">
+                {{ t(current.active ? "backend.forms.list.status_active" : "backend.forms.list.status_inactive") }}
+            </AppBadge>
+            <AppPageActions v-if="headerActions.length" :actions="headerActions" icon-only-on-phone />
+        </AppPageBar>
 
         <div class="min-w-0">
             <h1 class="m-0 truncate text-lg font-semibold text-primary">{{ title }}</h1>
