@@ -437,6 +437,18 @@
         "tour-trame-apercu": {
             "document": 759,
             "slug": "clients-et-contrats"
+        },
+        "tour-integrations": {
+            "document": 760,
+            "slug": "reglages-et-modules"
+        },
+        "tour-encarts": {
+            "document": 761,
+            "slug": "tableau-de-bord"
+        },
+        "espace-reglages": {
+            "document": 762,
+            "slug": "les-espaces-clients"
         }
     }
 }
