@@ -447,7 +447,7 @@ function termLabel(term) {
 </script>
 
 <template>
-    <div class="space-y-2 sm:space-y-4">
+    <div class="aurora-stack">
         <!-- Deux rangs et pas un empilement.
              Sur téléphone, les quatre commandes de cette barre se suivaient
              sans hiérarchie : un bouton de retour aussi lourd qu'Enregistrer,

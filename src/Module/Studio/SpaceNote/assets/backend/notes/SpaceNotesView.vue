@@ -76,7 +76,7 @@ function tint(note) {
 </script>
 
 <template>
-    <div class="space-y-2 sm:space-y-4">
+    <div class="aurora-stack">
         <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
      replié ou déplié, le choix vaut pour tous les encarts. -->
         <AppGuide :title="t('backend.studio.space_notes.guide.title')" storage-key="space-notes">

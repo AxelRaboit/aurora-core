@@ -157,7 +157,7 @@ const pageActions = computed(() => {
 </script>
 
 <template>
-    <div ref="container" class="space-y-3">
+    <div ref="container" class="aurora-stack">
         <div class="flex flex-col sm:flex-row sm:items-center gap-3">
             <AppSearchInput v-model="search" :placeholder="t('backend.users.search_placeholder')" class="flex-1" />
             <AppMultiselect

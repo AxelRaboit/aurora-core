@@ -130,7 +130,7 @@ const pageActions = computed(() => {
 <template>
     <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
          replié ou déplié, le choix vaut pour tous les encarts. -->
-    <AppGuide :title="t('backend.post_types.guide.title')" storage-key="post-types" class="mb-2 sm:mb-4">
+    <AppGuide :title="t('backend.post_types.guide.title')" storage-key="post-types" class="mb-[var(--aurora-page-margin)]">
         <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
             <li v-for="step in 5" :key="step">{{ t(`backend.post_types.guide.step_${step}`) }}</li>
         </ol>
@@ -143,7 +143,7 @@ const pageActions = computed(() => {
         </template>
     </AppNoData>
 
-    <div v-else class="space-y-2 sm:space-y-4">
+    <div v-else class="aurora-stack">
         <!-- No picker column: the side menu lists the post types, one entry
              per record and one address each. The create button stays, because
              a group header in the menu has nowhere to put one - and it is the

@@ -42,7 +42,7 @@ function editPath(post) {
 </script>
 
 <template>
-    <div class="relative space-y-2 sm:space-y-4">
+    <div class="relative aurora-stack">
         <AppLoader :active="loading" />
 
         <AppListToolbar>

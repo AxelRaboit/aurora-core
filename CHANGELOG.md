@@ -5,6 +5,20 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [1.3.1] - 2026-10-03
+
+### Corrigé
+
+#### Back-office : le même écart entre les blocs d'un écran que sa marge
+Sur téléphone, le bouton « Actions » seul en tête d'un écran avait huit pixels au-dessus et vingt en dessous. Les écrans espaçaient leurs blocs chacun à sa façon (`space-y-2 sm:space-y-4`, `space-y-3`, `space-y-4`, `space-y-5`), sans jamais suivre la marge de la page : mesuré sur trente écrans, vingt pixels sur le tableau de bord, les réglages, les thèmes, le profil et la corbeille, seize sur les contrats, douze sur les utilisateurs et les calendriers. Même les écrans réguliers posaient seize pixels entre leurs blocs pour vingt de marge sur grand écran.
+- Deux utilitaires, `aurora-stack` (écart entre les blocs) et `aurora-gap` (grilles et rangées), prennent la marge de la page à chaque largeur : 8, 16 puis 20 pixels. Posés à la racine des 37 écrans du back-office, des vues d'un espace client, des onglets des réglages et des panneaux du tableau de bord ; les encarts « Comment ça marche » prennent la même marge.
+- Les écrans d'un espace client utilisent désormais la marge commune, qu'ils réécrivaient en dur (vingt-quatre pixels sur les côtés pour seize en haut).
+- Un test (`PageBlocksFollowThePageMarginTest`) refuse un écart fixe à la racine d'un écran et sous un encart.
+
+L'intérieur des cartes et des formulaires garde ses propres écarts. Les notes, qui ont leur propre cadre plein écran, ne changent pas.
+
+---
+
 ## [1.3.0] - 2026-10-03
 
 ### Amélioré

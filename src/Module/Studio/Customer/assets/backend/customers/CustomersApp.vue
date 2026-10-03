@@ -168,7 +168,7 @@ const pageActions = computed(() => {
 </script>
 
 <template>
-    <div ref="container" class="space-y-2 sm:space-y-4">
+    <div ref="container" class="aurora-stack">
         <AppListToolbar>
             <AppSearchInput
                 v-model="search"

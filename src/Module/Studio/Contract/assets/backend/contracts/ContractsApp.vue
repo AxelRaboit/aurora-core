@@ -191,7 +191,7 @@ const pageActions = computed(() =>
 </script>
 
 <template>
-    <div class="space-y-4">
+    <div class="aurora-stack">
         <AppListToolbar>
             <AppSearchInput v-model="search" :placeholder="t(`${F}.list.search`)" />
             <template #inline>

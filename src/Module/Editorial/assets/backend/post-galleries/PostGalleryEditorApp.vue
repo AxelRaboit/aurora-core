@@ -84,7 +84,7 @@ async function save() {
 </script>
 
 <template>
-    <div class="space-y-2 sm:space-y-4">
+    <div class="aurora-stack">
         <AppPageBar :back-href="listPath" :back-label="t('backend.post_galleries.back')">
             <!-- Says so once it has, and stops saying it the moment anything is
                  saved again. A permanent tick would still be there tomorrow. -->

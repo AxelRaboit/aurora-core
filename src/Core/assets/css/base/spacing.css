@@ -87,6 +87,34 @@
 }
 
 /**
+ * L'écart entre les blocs d'une page : la marge de la page, à chaque largeur.
+ *
+ * Les écrans empilaient leurs blocs chacun à sa façon - `space-y-2
+ * sm:space-y-4` pour la plupart, `space-y-3`, `space-y-4` ou `space-y-5` pour
+ * les autres - et aucune de ces valeurs ne suivait la marge. Mesuré sur
+ * téléphone le 03/10/2026 : huit pixels entre le fil d'Ariane et le premier
+ * bloc, vingt entre ce bloc et le suivant, sur le tableau de bord, les
+ * thèmes, les réglages, le profil et la corbeille ; douze ou seize ailleurs.
+ * Et sur grand écran, même les écrans réguliers posaient seize pixels entre
+ * leurs blocs pour vingt de marge. Le bouton « Actions » seul en tête de page
+ * le rendait visible : plus d'air dessous que dessus.
+ *
+ * Posé à la racine de chaque écran, et seulement là : l'intérieur d'une carte
+ * ou d'un formulaire garde ses propres crans. Mêmes sélecteurs que
+ * `space-y-*` de Tailwind, donc même spécificité nulle.
+ */
+@utility aurora-stack {
+    :where(& > :not(:last-child)) {
+        margin-block-end: var(--aurora-page-margin);
+    }
+}
+
+/** Le même écart pour une grille ou un flex : colonnes d'un écran, rail et contenu. */
+@utility aurora-gap {
+    gap: var(--aurora-page-margin);
+}
+
+/**
  * La marge latérale seule, pour ce qui borde la page sans être dedans : la
  * bande collée en haut, qui porte sa propre hauteur et sa propre bordure.
  *
