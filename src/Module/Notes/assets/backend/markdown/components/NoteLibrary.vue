@@ -1519,7 +1519,7 @@ defineExpose({
              touchait les bords. -->
         <AppGuide :title="t('notes.markdown.guide.title')" storage-key="notes-library" class="mx-3 mt-3">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
-                <li v-for="step in 6" :key="step">{{ t(`notes.markdown.guide.step_${step}`) }}</li>
+                <li v-for="step in 7" :key="step">{{ t(`notes.markdown.guide.step_${step}`) }}</li>
             </ol>
         </AppGuide>
 

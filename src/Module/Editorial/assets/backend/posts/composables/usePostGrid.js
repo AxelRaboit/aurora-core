@@ -247,6 +247,7 @@ export function defaultZoneOptions() {
         buttonAction: "link",
         githubMode: "activity",
         githubRepos: [],
+        githubLogins: [],
         availability: "available",
         availableFrom: null,
         hours: Object.fromEntries(WEEKDAYS.map((day) => [day, []])),

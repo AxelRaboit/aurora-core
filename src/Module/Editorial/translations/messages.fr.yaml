@@ -1042,6 +1042,8 @@ backend:
         releases: Dernières versions
       github_repos: Dépôts
       github_repos_hint: "Un dépôt par ligne, sous la forme propriétaire/nom, six au plus."
+      github_logins: Comptes affichés
+      github_logins_hint: "Un compte par ligne, parmi ceux des réglages. Laissez vide pour les afficher tous."
       availability: Statut
       availabilities:
         available: Disponible

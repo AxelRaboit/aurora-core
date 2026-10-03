@@ -1042,6 +1042,8 @@ backend:
         releases: Latest releases
       github_repos: Repositories
       github_repos_hint: "One repository per line, as owner/name, six at most."
+      github_logins: Accounts shown
+      github_logins_hint: "One account per line, among those in the settings. Leave empty to show them all."
       availability: Status
       availabilities:
         available: Available

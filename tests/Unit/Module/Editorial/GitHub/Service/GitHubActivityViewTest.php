@@ -49,6 +49,32 @@ final class GitHubActivityViewTest extends TestCase
         self::assertSame([0 => true, 5 => false, 9 => true], array_map(static fn (array $month): bool => $month['phone'], $months));
     }
 
+    /** Two zones can each show one of the site's accounts, whatever the case. */
+    public function testAZoneShowsOnlyTheAccountsItNames(): void
+    {
+        $view = $this->view('2026-11-01', 4, 'AxelRaboit, axelr7x');
+
+        self::assertSame(['axelr7x'], $this->logins($view->build('fr', ['githubLogins' => ['AXELR7X']])));
+        self::assertSame(['AxelRaboit', 'axelr7x'], $this->logins($view->build('fr', ['githubLogins' => []])));
+        self::assertSame(['AxelRaboit', 'axelr7x'], $this->logins($view->build('fr')));
+    }
+
+    /** A name the settings do not hold is not drawn, and the zone falls silent. */
+    public function testANameTheSettingsDoNotHoldShowsNothing(): void
+    {
+        self::assertNull($this->view('2026-11-01', 4, 'AxelRaboit')->build('fr', ['githubLogins' => ['someone-else']]));
+    }
+
+    /**
+     * @param array<string, mixed>|null $built
+     *
+     * @return list<string>
+     */
+    private function logins(?array $built): array
+    {
+        return array_map(static fn (array $account): string => $account['login'], $built['accounts'] ?? []);
+    }
+
     /** @return array<int, string> */
     private function labels(string $start): array
     {
@@ -58,7 +84,7 @@ final class GitHubActivityViewTest extends TestCase
     }
 
     /** One Sunday per week, from `$start`: enough to place the labels. */
-    private function view(string $start, int $weeks): GitHubActivityView
+    private function view(string $start, int $weeks, string $logins = 'AxelRaboit'): GitHubActivityView
     {
         $cells = '';
         for ($col = 0; $col < $weeks; ++$col) {
@@ -66,14 +92,14 @@ final class GitHubActivityViewTest extends TestCase
             $cells .= sprintf('<td data-date="%s" id="contribution-day-component-0-%d" data-level="1"></td>', $date, $col);
         }
 
-        $store = [GitHubSettingEnum::Enabled->value => '1', GitHubSettingEnum::Logins->value => 'AxelRaboit'];
+        $store = [GitHubSettingEnum::Enabled->value => '1', GitHubSettingEnum::Logins->value => $logins];
         $repository = $this->createStub(SettingRepository::class);
         $repository->method('get')->willReturnCallback(static fn (string $key, ?string $default = null): ?string => $store[$key] ?? $default);
         $repository->method('getBoolean')->willReturnCallback(static fn (string $key): bool => '1' === ($store[$key] ?? '0'));
 
         return new GitHubActivityView(
             new GitHubSettings($repository),
-            new GitHubContributions(new MockHttpClient(new MockResponse($cells)), new ArrayAdapter(), new NullLogger()),
+            new GitHubContributions(new MockHttpClient(static fn (): MockResponse => new MockResponse($cells)), new ArrayAdapter(), new NullLogger()),
             new IdentityTranslator(),
             new GitHubRepositories(new MockHttpClient(), new ArrayAdapter(), new NullLogger()),
         );

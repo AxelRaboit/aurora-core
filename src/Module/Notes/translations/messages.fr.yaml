@@ -71,6 +71,7 @@ notes:
       step_4: "Les étiquettes filtrent la bibliothèque, et « Gérer les tags » les renomme ou les fusionne sur toutes vos notes."
       step_5: "Une note se partage aussi par un lien en lecture seule ; même un administrateur ne lit pas vos notes privées."
       step_6: "Le menu Actions d'une note la duplique, en fait un modèle, revient à une version passée ou l'imprime en PDF."
+      step_7: "Tapez « / » en début de ligne pour insérer un titre, une liste ou un tableau : « /tableau 3x4 » crée 3 colonnes et 4 lignes, et Tab passe d'une case à l'autre."
     share:
       button: Partager par un lien
       title: Partager cette note par un lien
@@ -416,6 +417,7 @@ notes:
       italic: Italique
       strikethrough: Barré
       table: Tableau
+      table_column: 'Colonne {n}'
       no_results: Aucune commande
     tags:
       add_placeholder: Ajouter un tag…

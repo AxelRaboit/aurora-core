@@ -1048,6 +1048,8 @@ backend:
                 releases: 'Últimas versiones'
             github_repos: Repositorios
             github_repos_hint: 'Un repositorio por línea, con la forma propietario/nombre, seis como máximo.'
+            github_logins: Cuentas mostradas
+            github_logins_hint: "Una cuenta por línea, entre las de los ajustes. Déjelo vacío para mostrarlas todas."
             availability: Estado
             availabilities:
                 available: Disponible

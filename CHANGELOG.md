@@ -5,6 +5,22 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [1.1.0] - 2026-10-03
+
+### Amélioré
+
+#### Notes : un tableau vierge en une commande, et Tab pour le remplir
+La commande `/` « Tableau » insérait toujours deux colonnes et une ligne, remplies de « Column 1 » et « Cell » en anglais, avec le curseur après le tableau : il fallait tout effacer avant d'écrire. Désormais :
+- `/tableau 3x4` insère 3 colonnes et 4 lignes (la palette affiche « Tableau 3 × 4 » pendant qu'on tape) ; `/tableau` seul, un tableau de 3 × 3. Jusqu'à 10 colonnes et 50 lignes.
+- Les en-têtes sont « Colonne 1, 2, 3… » dans la langue de l'interface, les cases sont vides, et le premier en-tête est sélectionné : on tape directement par-dessus.
+- Dans un tableau, Tab sélectionne la case suivante (en sautant la ligne `| --- |`) et Maj+Tab la précédente ; Tab sur la dernière case ajoute une ligne de la même largeur. Hors d'un tableau, Tab ne change pas.
+- L'encart « Comment s'organisent les notes » le signale dans une septième étape.
+
+#### Activité GitHub : une zone peut n'afficher qu'un compte
+La zone « Activité GitHub » montrait toujours tous les comptes des réglages, l'un sous l'autre : impossible de poser chacun à côté du texte qui le présente. Elle a maintenant un champ « Comptes affichés » (un par ligne, parmi ceux des réglages) ; vide, elle les montre tous, comme avant. Un nom que les réglages ne contiennent pas n'est pas dessiné.
+
+---
+
 ## [1.0.2] - 2026-10-03
 
 ### Interne

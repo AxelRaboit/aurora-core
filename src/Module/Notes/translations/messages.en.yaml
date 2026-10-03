@@ -71,6 +71,7 @@ notes:
       step_4: "Tags filter the library, and “Manage tags” renames or merges them across all your notes."
       step_5: "A note can also be shared through a read-only link; even an administrator cannot read your private notes."
       step_6: "A note's Actions menu duplicates it, makes it a template, goes back to a past version or prints it as PDF."
+      step_7: "Type “/” at the start of a line to insert a heading, a list or a table: “/table 3x4” creates 3 columns and 4 rows, and Tab moves from one cell to the next."
     share:
       button: Share with a link
       title: Share this note with a link
@@ -415,6 +416,7 @@ notes:
       italic: Italic
       strikethrough: Strikethrough
       table: Table
+      table_column: 'Column {n}'
       no_results: No commands
     tags:
       add_placeholder: Add a tag…
