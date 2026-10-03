@@ -17,7 +17,6 @@ use Doctrine\Common\Collections\Order;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
-use function array_intersect;
 use function sprintf;
 use function str_contains;
 
@@ -105,7 +104,7 @@ class NoteSpaceRepository extends ResolveTargetEntityRepository
      */
     public static function isAdmin(CoreUserInterface $user): bool
     {
-        return [] !== array_intersect([UserRoleEnum::Admin->value, UserRoleEnum::Dev->value], $user->getRoles());
+        return UserRoleEnum::administers($user->getRoles());
     }
 
     public function findPersonalFor(CoreUserInterface $user): ?NoteSpaceInterface

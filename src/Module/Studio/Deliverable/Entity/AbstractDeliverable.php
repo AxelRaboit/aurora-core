@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\Deliverable\Entity;
 
 use Aurora\Core\Timestampable\TimestampableTrait;
+use Aurora\Module\Platform\User\Entity\CoreUserInterface;
+use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\Deliverable\Enum\DeliverableScopeEnum;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableAppearance;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
@@ -36,6 +39,14 @@ use Doctrine\ORM\Mapping as ORM;
  * pied, l'accent, les titres et les chiffres clés, par-dessus celles du thème.
  * Un livrable porte souvent les couleurs du client plutôt que celles du
  * studio.
+ *
+ * **Avec ou sans espace.** Rattaché à un espace client, il vit dans son onglet
+ * et c'est l'équipe de l'espace qui le lit. Sans espace (depuis la 1.7.0), il
+ * vit dans le module Livrables de Studio : une proposition écrite avant qu'un
+ * client existe, une stratégie pour soi, un modèle que l'équipe reprend. Il a
+ * alors un auteur et une portée, perso ou partagée, cf.
+ * {@see DeliverableScopeEnum}. La case « visible par le client » n'a de sens
+ * que dans un espace.
  */
 #[ORM\MappedSuperclass]
 #[ORM\HasLifecycleCallbacks]
@@ -69,10 +80,23 @@ abstract class AbstractDeliverable implements DeliverableInterface
     #[ORM\Column(options: ['default' => false])]
     protected bool $visibleToClient = false;
 
+    /**
+     * Qui l'a créé. Nul quand le compte a été supprimé : un livrable partagé
+     * reste à l'équipe, un livrable perso revient aux administrateurs.
+     */
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    protected ?CoreUserInterface $owner = null;
+
+    /** Perso ou partagé, pour un livrable sans espace ; ignoré dans un espace. */
+    #[ORM\Column(length: 16, enumType: DeliverableScopeEnum::class, options: ['default' => 'shared'])]
+    protected DeliverableScopeEnum $scope = DeliverableScopeEnum::Shared;
+
     public function __construct(
+        /** L'espace client qui le reçoit ; nul pour un livrable de Studio. */
         #[ORM\ManyToOne(targetEntity: CustomerSpaceInterface::class)]
-        #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
-        protected CustomerSpaceInterface $space,
+        #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
+        protected ?CustomerSpaceInterface $space,
         #[ORM\Column(length: 255)]
         protected string $title,
         /** La langue dans laquelle il est écrit : celle des dates et des libellés de la page. */
@@ -80,9 +104,38 @@ abstract class AbstractDeliverable implements DeliverableInterface
         protected string $locale
     ) {}
 
-    public function getSpace(): CustomerSpaceInterface
+    public function getSpace(): ?CustomerSpaceInterface
     {
         return $this->space;
+    }
+
+    public function isStandalone(): bool
+    {
+        return !$this->space instanceof CustomerSpaceInterface;
+    }
+
+    public function getOwner(): ?CoreUserInterface
+    {
+        return $this->owner;
+    }
+
+    public function setOwner(?CoreUserInterface $owner): static
+    {
+        $this->owner = $owner;
+
+        return $this;
+    }
+
+    public function getScope(): DeliverableScopeEnum
+    {
+        return $this->scope;
+    }
+
+    public function setScope(DeliverableScopeEnum $scope): static
+    {
+        $this->scope = $scope;
+
+        return $this;
     }
 
     public function getTitle(): string

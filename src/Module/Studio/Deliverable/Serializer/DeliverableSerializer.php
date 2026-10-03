@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\Deliverable\Serializer;
 
+use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableLinkInterface;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableAppearance;
@@ -20,17 +21,30 @@ final readonly class DeliverableSerializer
     /** @return array<string, mixed> */
     public function row(DeliverableInterface $deliverable): array
     {
-        $params = ['id' => $deliverable->getSpace()->getId(), 'deliverableId' => $deliverable->getId()];
-
         return [
             'id' => $deliverable->getId(),
             'title' => $deliverable->getTitle(),
             'summary' => $deliverable->getSummary(),
             'visibleToClient' => $deliverable->isVisibleToClient(),
+            'scope' => $deliverable->isStandalone() ? $deliverable->getScope()->value : null,
+            'ownerName' => $deliverable->getOwner()?->getName(),
             'updatedAt' => $deliverable->getUpdatedAt()->format(DATE_ATOM),
-            'editPath' => $this->urlGenerator->generate('workspace_space_deliverables_edit', $params),
-            'previewPath' => $this->urlGenerator->generate('workspace_space_deliverables_preview', $params),
+            'editPath' => $this->path($deliverable, 'edit'),
+            'previewPath' => $this->path($deliverable, 'preview'),
         ];
+    }
+
+    /**
+     * L'adresse d'un geste sur un livrable, là où il vit : dans son espace,
+     * ou dans le module Livrables de Studio.
+     */
+    public function path(DeliverableInterface $deliverable, string $action): string
+    {
+        $space = $deliverable->getSpace();
+
+        return $space instanceof CustomerSpaceInterface
+            ? $this->urlGenerator->generate('workspace_space_deliverables_'.$action, ['id' => $space->getId(), 'deliverableId' => $deliverable->getId()])
+            : $this->urlGenerator->generate('backend_studio_deliverables_'.$action, ['id' => $deliverable->getId()]);
     }
 
     /** @return array<string, mixed> */
@@ -46,6 +60,7 @@ final readonly class DeliverableSerializer
             'appearance' => DeliverableAppearance::normalize($deliverable->getAppearance()),
             'readingHeader' => DeliverableReadingHeader::normalize($deliverable->getReadingHeader()),
             'visibleToClient' => $deliverable->isVisibleToClient(),
+            'scope' => $deliverable->isStandalone() ? $deliverable->getScope()->value : null,
             'updatedAt' => $deliverable->getUpdatedAt()->format(DATE_ATOM),
         ];
     }

@@ -6,10 +6,14 @@ namespace Aurora\Fixtures\Studio;
 
 use Aurora\Module\Editorial\Post\Grid\GridNormalizer;
 use Aurora\Module\Editorial\Post\Service\EditorBlocks;
+use Aurora\Module\Platform\User\Entity\CoreUserInterface;
+use Aurora\Module\Platform\User\Enum\UserTypeEnum;
+use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
 use Aurora\Module\Studio\Deliverable\Entity\Deliverable;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableLink;
+use Aurora\Module\Studio\Deliverable\Enum\DeliverableScopeEnum;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableAppearance;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableReadingHeader;
@@ -60,6 +64,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
         private readonly CustomerSpaceRepository $spaces,
         private readonly DeliverableRepository $deliverables,
         private readonly GridNormalizer $gridNormalizer,
+        private readonly UserRepository $users,
     ) {}
 
     public static function getGroups(): array
@@ -81,6 +86,37 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
         $this->deliverable($manager, $dupont, ...$this->monthlyReport());
         $this->deliverable($manager, $dupont, ...$this->strategy());
         $this->deliverable($manager, $fabre, ...$this->proposal());
+
+        // Deux livrables de Studio, hors de tout espace : une proposition que
+        // le compte de démo garde pour lui, et un modèle d'audit que l'équipe
+        // partage et reprend pour chaque prospect.
+        $author = $this->users->findOneBy(['email' => 'dev@aurora.app', 'type' => UserTypeEnum::Backend->value]);
+        [, , , $proposalLook, $proposalZones, $proposalContent] = $this->proposal();
+        $this->deliverable(
+            $manager,
+            null,
+            'Proposition type, identité visuelle',
+            'La trame de départ, avant de la recopier dans l\'espace du client signé.',
+            false,
+            $proposalLook,
+            $proposalZones,
+            $proposalContent,
+            $author instanceof CoreUserInterface ? $author : null,
+            DeliverableScopeEnum::Personal,
+        );
+        [, , , $auditLook, $auditZones, $auditContent] = $this->audit();
+        $this->deliverable(
+            $manager,
+            null,
+            'Modèle d\'audit de présence en ligne',
+            'Le gabarit de l\'équipe pour un premier audit : on le duplique pour chaque prospect.',
+            false,
+            $auditLook,
+            $auditZones,
+            $auditContent,
+            $author instanceof CoreUserInterface ? $author : null,
+            DeliverableScopeEnum::Shared,
+        );
 
         $manager->flush();
 
@@ -114,13 +150,15 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
      */
     private function deliverable(
         ObjectManager $manager,
-        CustomerSpaceInterface $space,
+        ?CustomerSpaceInterface $space,
         string $title,
         string $summary,
         bool $visible,
         array $appearance,
         array $zones,
         array $content,
+        ?CoreUserInterface $owner = null,
+        DeliverableScopeEnum $scope = DeliverableScopeEnum::Shared,
     ): ?Deliverable {
         if (null !== $this->deliverables->findOneBy(['space' => $space, 'title' => $title])) {
             return null;
@@ -135,7 +173,9 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
             ->setGridLayout($layout)
             ->setGridContent($this->gridNormalizer->normalizeContent(['zones' => $content], $layout))
             ->setAppearance(DeliverableAppearance::normalize($appearance))
-            ->setReadingHeader(DeliverableReadingHeader::normalize(['preparedFor' => $space->getCustomer()->getLegalName()]));
+            ->setReadingHeader(DeliverableReadingHeader::normalize(['preparedFor' => $space?->getCustomer()->getLegalName() ?? '']))
+            ->setOwner($owner)
+            ->setScope($scope);
 
         $manager->persist($deliverable);
 

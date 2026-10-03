@@ -30,6 +30,8 @@ backend:
         studio_backend_description: 'Lo que vende y lo que entrega a un cliente: los clientes, los contratos y las presentaciones.'
         studio_decks: Presentaciones
         studio_decks_description: 'Crear conjuntos de diapositivas, clasificarlos y duplicarlos.'
+        studio_deliverables: "Entregables"
+        studio_deliverables_description: "Escribir documentos fuera de un espacio de cliente, personales o compartidos con el equipo."
     nav:
         sections:
             studio: Studio
@@ -45,6 +47,8 @@ backend:
         studio_contracts_description: 'Los contratos preparados, sellados y firmados.'
         studio_decks: Presentaciones
         studio_decks_description: 'Los conjuntos de diapositivas que muestra, clasificados y reutilizables.'
+        studio_deliverables: "Entregables"
+        studio_deliverables_description: "Los documentos que escribe fuera de un espacio de cliente, para usted o para el equipo."
     audit:
         actions:
             studio:
@@ -167,6 +171,12 @@ backend:
                     share: 'Compartir una presentación'
                 deck_categories:
                     manage: 'Gestionar las secciones de presentaciones'
+                deliverables:
+                    view: "Consultar los entregables"
+                    create: "Crear un entregable"
+                    edit: "Modificar un entregable compartido"
+                    delete: "Eliminar un entregable"
+                    share: "Enviar un entregable por enlace de lectura"
     studio:
         workload:
             next_publication: 'próxima publicación el {date}'
@@ -1932,6 +1942,8 @@ backend:
                 step_3: '«Ajustes» lleva el título, el resumen, el idioma y la cabecera; marque «Visible para el cliente» para que lo lea en su espacio.'
                 step_4: 'Guarde sus cambios y luego «Vista previa», en el menú, abre la página tal como la leerá el cliente.'
                 step_5: '«Enlaces de lectura» crea una dirección secreta que abre solo este documento sin cuenta, con contraseña y caducidad opcionales.'
+                step_3_studio: "«Ajustes» lleva el título, el resumen, el idioma y la cabecera, y su visibilidad: personal o compartido con el equipo."
+                step_4_studio: "Guarde sus cambios y luego «Vista previa», en el menú, abre la página tal como la leerá su destinatario."
             guide:
                 title: "Cómo funcionan los entregables"
                 step_1: "«Nuevo entregable» crea un documento (auditoría, estrategia, balance) que se compone como una página, con sus colores o los del cliente."
@@ -1974,6 +1986,42 @@ backend:
             save_failed: "No se pudo guardar el entregable."
             unsaved: "Cambios sin guardar"
             links_hint: "Una dirección secreta por destinatario, para transmitir el documento sin abrir el espacio."
+            back_to_list: "Entregables"
+            search_placeholder: "Buscar un entregable"
+            no_match: "Ningún entregable coincide con la búsqueda."
+            studio_title_hint: "El título en la cabecera del documento y en la lista."
+            studio_guide:
+                title: "Cómo funcionan los entregables"
+                step_1: "Un entregable es un documento escrito para leerse: una auditoría, una estrategia, una propuesta. Se compone con la cuadrícula de las páginas, sin aparecer nunca en el sitio."
+                step_2: "«Mis entregables» solo lo ve usted. «Compartidos» lo lee todo el equipo con acceso a los entregables, y lo modifican quienes tienen el derecho."
+                step_3: "Un entregable se crea en la pestaña abierta; después, solo su autor lo pasa de personal a compartido, o al revés, desde su menú o sus ajustes."
+                step_4: "Un enlace de lectura lo envía a quien usted quiera, con caducidad y contraseña opcionales, sin cuenta ni espacio de cliente."
+                step_5: "Los entregables de un cliente se preparan en su espacio, pestaña Entregables: allí es donde los lee."
+            scope:
+                label: "Visibilidad"
+                personal: "Personal"
+                shared: "Compartido"
+                personal_hint: "Solo usted lo ve."
+                shared_hint: "Todo el equipo lo lee y puede modificarlo."
+                tab_personal: "Mis entregables"
+                tab_shared: "Compartidos"
+                intro_personal: "Lo que prepara para usted: nadie más lo ve mientras no lo comparta."
+                intro_shared: "Los entregables del equipo: todos los leen, y los modifican si tienen el derecho."
+                empty_personal: "Ningún entregable personal."
+                empty_personal_hint: "Empiece una propuesta, una estrategia o un borrador: sigue siendo suyo mientras no lo comparta."
+                empty_shared: "Ningún entregable compartido."
+                empty_shared_hint: "Un entregable personal se comparte desde su menú o desde sus ajustes."
+                by: "Por {name}"
+                no_owner: "Autor eliminado"
+                orphan: "Sin autor"
+                move_shared: "Compartir con el equipo"
+                move_shared_hint: "Pasa a «Compartidos»: todo el equipo lo lee y puede modificarlo."
+                move_personal: "Guardar para mí"
+                move_personal_hint: "Vuelve a «Mis entregables»: nadie más lo ve."
+                moved_shared: "Entregable compartido con el equipo."
+                moved_personal: "Entregable guardado para usted."
+                settings_hint: "Quién ve este entregable. Solo su autor cambia esta elección."
+                owner_only: "Solo el autor del entregable cambia esta elección."
             tabs:
                 content: "Contenido"
                 appearance: "Apariencia"
@@ -2008,6 +2056,7 @@ backend:
                 title_visible: "Mostrar el título y el resumen arriba de la página"
                 title_visible_hint: "Desmárquelo si el documento se abre con un bloque de cabecera que ya lleva su título. El título sigue legible para los lectores de pantalla."
             settings:
+                prepared_for_placeholder: "El destinatario"
                 document_title: "El documento"
                 summary: "Resumen"
                 summary_placeholder: "Dónde está su presencia en línea y lo que proponemos para los próximos tres meses."

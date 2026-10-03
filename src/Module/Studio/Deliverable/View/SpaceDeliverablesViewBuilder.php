@@ -6,37 +6,31 @@ namespace Aurora\Module\Studio\Deliverable\View;
 
 use Aurora\Core\Locale\Service\LocaleContextInterface;
 use Aurora\Core\Routing\PathTemplateGenerator;
-use Aurora\Module\Editorial\Post\Service\PostPictures;
-use Aurora\Module\Ged\Document\Repository\DocumentRepository;
-use Aurora\Module\Ged\Enum\DocumentStatusEnum;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Serializer\CustomerSpaceSerializerInterface;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
-use Aurora\Module\Studio\Deliverable\Repository\DeliverableLinkRepository;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
 use Aurora\Module\Studio\Deliverable\Serializer\DeliverableSerializer;
 use Aurora\Module\Studio\Deliverable\Service\DeliverablePageRenderer;
+use LogicException;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 use function array_map;
-use function sprintf;
 
 /**
- * Ce que les écrans des livrables reçoivent : l'onglet d'un espace, et
- * l'éditeur d'un livrable.
+ * Ce que reçoivent les écrans des livrables d'un espace : son onglet, et
+ * l'éditeur d'un de ses livrables. Les livrables de Studio ont les leurs, cf.
+ * {@see DeliverablesViewBuilder}.
  */
 final readonly class SpaceDeliverablesViewBuilder
 {
     public function __construct(
         private DeliverableRepository $deliverables,
-        private DeliverableLinkRepository $links,
         private DeliverableSerializer $serializer,
         private UrlGeneratorInterface $urlGenerator,
         private PathTemplateGenerator $pathTemplates,
         private LocaleContextInterface $localeContext,
-        private PostPictures $pictures,
-        private DocumentRepository $documents,
         private Security $security,
         private CustomerSpaceSerializerInterface $spaceSerializer,
     ) {}
@@ -70,14 +64,19 @@ final readonly class SpaceDeliverablesViewBuilder
     }
 
     /**
-     * L'éditeur d'un livrable.
+     * L'éditeur d'un livrable d'espace.
      *
      * @return array<string, mixed>
      */
     public function editorView(DeliverableInterface $deliverable): array
     {
         $space = $deliverable->getSpace();
+        if (!$space instanceof CustomerSpaceInterface) {
+            throw new LogicException('A deliverable without a space opens in Studio, not in a space.');
+        }
+
         $params = ['id' => $space->getId(), 'deliverableId' => $deliverable->getId()];
+        $canEdit = $this->security->isGranted('studio.spaces.edit');
 
         return [
             'deliverable' => $this->serializer->editor($deliverable),
@@ -86,7 +85,9 @@ final readonly class SpaceDeliverablesViewBuilder
             'space' => $this->spaceSerializer->serialize($space),
             'locales' => $this->localeContext->getActiveLocales(),
             'hiddenZoneTypes' => DeliverablePageRenderer::HIDDEN_ZONE_TYPES,
-            'canEdit' => $this->security->isGranted('studio.spaces.edit'),
+            'canEdit' => $canEdit,
+            'canShare' => $canEdit,
+            'canDelete' => $canEdit,
             'deliverablesPath' => $this->urlGenerator->generate('workspace_space_content', ['id' => $space->getId()]).'?view=deliverables',
             // Ce que la coquille de l'espace attend pour son en-tête et ses
             // deux onglets.
@@ -101,51 +102,5 @@ final readonly class SpaceDeliverablesViewBuilder
             'duplicatePath' => $this->urlGenerator->generate('workspace_space_deliverables_duplicate', $params),
             'deletePath' => $this->urlGenerator->generate('workspace_space_deliverables_delete', $params),
         ];
-    }
-
-    /**
-     * Les liens de lecture d'un livrable, et les images que leurs lecteurs ne
-     * verront pas.
-     *
-     * @return array<string, mixed>
-     */
-    public function linksPayload(DeliverableInterface $deliverable): array
-    {
-        return [
-            // Rien n'est un brouillon ici : un lien ouvre toujours la page.
-            'readable' => true,
-            'withheldPictures' => $this->withheldPictures($deliverable),
-            'links' => array_map($this->serializer->link(...), $this->links->findForDeliverable($deliverable)),
-        ];
-    }
-
-    /**
-     * Les documents de la médiathèque que la page utilise sans qu'ils soient
-     * publiés : un lecteur hors du back-office ne les verra pas, et mieux vaut
-     * le dire avant d'envoyer l'adresse.
-     *
-     * @return list<array{id: int, name: string}>
-     */
-    private function withheldPictures(DeliverableInterface $deliverable): array
-    {
-        $ids = $this->pictures->idsInGridLayout($deliverable->getGridLayout());
-
-        if ([] === $ids) {
-            return [];
-        }
-
-        $withheld = [];
-        foreach ($this->documents->findBy(['id' => $ids]) as $document) {
-            if (DocumentStatusEnum::Published === $document->getStatus()) {
-                continue;
-            }
-
-            $withheld[] = [
-                'id' => (int) $document->getId(),
-                'name' => $document->getOriginalName() ?? sprintf('#%d', $document->getId()),
-            ];
-        }
-
-        return $withheld;
     }
 }

@@ -6,11 +6,11 @@ namespace Aurora\Module\Studio\Deliverable\Controller\Public;
 
 use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\PrivateAddressResponseTrait;
-use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
-use Aurora\Module\Studio\SpaceAccess\Manager\SpaceAccessLinkManagerInterface;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
 use Aurora\Module\Studio\Deliverable\Service\DeliverablePageRenderer;
+use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
+use Aurora\Module\Studio\SpaceAccess\Manager\SpaceAccessLinkManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -48,7 +48,7 @@ final class PublicSpaceDeliverableController extends AbstractController
 
         if (!$link instanceof SpaceAccessLinkInterface
             || !$deliverable instanceof DeliverableInterface
-            || $deliverable->getSpace()->getId() !== $link->getSpace()->getId()
+            || $deliverable->getSpace()?->getId() !== $link->getSpace()->getId()
             || !$deliverable->isVisibleToClient()
         ) {
             throw $this->createNotFoundException();

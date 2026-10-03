@@ -9,6 +9,7 @@ use Aurora\Core\Http\PrivateAddressResponseTrait;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableLinkInterface;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableLinkRepository;
 use Aurora\Module\Studio\Deliverable\Service\DeliverablePageRenderer;
+use Aurora\Module\Studio\StudioContext;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -44,6 +45,7 @@ final class DeliverableReadingController extends AbstractController
         private readonly DeliverablePageRenderer $renderer,
         private readonly EntityManagerInterface $entityManager,
         private readonly RateLimiterFactoryInterface $deliverablePasswordLimiter,
+        private readonly StudioContext $studioContext,
     ) {}
 
     #[Route('/{token}', name: '', requirements: ['token' => '[a-f0-9]{64}'], methods: [HttpMethodEnum::Get->value])]
@@ -79,6 +81,7 @@ final class DeliverableReadingController extends AbstractController
 
         if (!$link instanceof DeliverableLinkInterface
             || !$link->isUsable(new DateTimeImmutable())
+            || !$this->isServed($link)
             || !$link->isLocked()
             || !password_verify($password, (string) $link->getPasswordHash())
         ) {
@@ -100,11 +103,25 @@ final class DeliverableReadingController extends AbstractController
     {
         $link = $this->links->findByToken($token);
 
-        if (!$link instanceof DeliverableLinkInterface || !$link->isUsable(new DateTimeImmutable())) {
+        if (!$link instanceof DeliverableLinkInterface || !$link->isUsable(new DateTimeImmutable()) || !$this->isServed($link)) {
             throw $this->createNotFoundException();
         }
 
         return $link;
+    }
+
+    /**
+     * La partie de Studio dont le livrable dépend est-elle allumée ?
+     *
+     * Un livrable d'espace s'éteint avec les espaces, un livrable de Studio
+     * avec le module Livrables : le même 404 qu'un lien inconnu, plutôt
+     * qu'une page servie par une partie que l'administrateur a coupée.
+     */
+    private function isServed(DeliverableLinkInterface $link): bool
+    {
+        return $link->getDeliverable()->isStandalone()
+            ? $this->studioContext->areDeliverablesEnabled()
+            : $this->studioContext->areSpacesEnabled();
     }
 
     private function isUnlocked(Request $request, string $token): bool

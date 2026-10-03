@@ -8,22 +8,16 @@ use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Http\PrivateAddressResponseTrait;
-use Aurora\Core\Locale\Service\LocaleContextInterface;
-use Aurora\Module\Configuration\Theme\Service\ThemeResolver;
-use Aurora\Module\Configuration\Theme\Service\ThemeStyleRenderer;
-use Aurora\Module\Editorial\Post\Banner\BannerViewBuilder;
-use Aurora\Module\Editorial\Post\Grid\GridViewBuilder;
 use Aurora\Module\Studio\CustomerSpace\Controller\SpaceOwnershipTrait;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\CustomerSpace\EventSubscriber\SpaceVisibilitySubscriber;
 use Aurora\Module\Studio\Deliverable\Entity\Deliverable;
-use Aurora\Module\Studio\Deliverable\Entity\DeliverableLink;
 use Aurora\Module\Studio\Deliverable\Manager\DeliverableManager;
-use Aurora\Module\Studio\Deliverable\Repository\DeliverableLinkRepository;
+use Aurora\Module\Studio\Deliverable\Service\DeliverableEditorPreviews;
+use Aurora\Module\Studio\Deliverable\Service\DeliverableLinkIssuer;
 use Aurora\Module\Studio\Deliverable\Service\DeliverablePageRenderer;
+use Aurora\Module\Studio\Deliverable\View\DeliverableLinksView;
 use Aurora\Module\Studio\Deliverable\View\SpaceDeliverablesViewBuilder;
-use DateTimeImmutable;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -33,18 +27,10 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
-use function in_array;
-use function is_array;
-use function is_int;
 use function is_string;
 use function mb_strlen;
 use function mb_substr;
 use function mb_trim;
-use function min;
-use function password_hash;
-use function sprintf;
-
-use const PASSWORD_DEFAULT;
 
 /**
  * Les livrables d'un espace, côté studio.
@@ -64,23 +50,13 @@ final class SpaceDeliverablesController extends AbstractController
     use PrivateAddressResponseTrait;
     use SpaceOwnershipTrait;
 
-    /** Un an : au-delà, une date d'expiration ne protège plus grand-chose. */
-    private const int MAX_EXPIRY_DAYS = 365;
-
-    /** Le sélecteur de l'aperçu du bloc d'entête, cf. PostBannerPanel.vue. */
-    private const string BANNER_PREVIEW_SELECTOR = '.aurora-banner-preview[data-theme]';
-
     public function __construct(
         private readonly DeliverableManager $manager,
         private readonly SpaceDeliverablesViewBuilder $viewBuilder,
         private readonly DeliverablePageRenderer $renderer,
-        private readonly DeliverableLinkRepository $links,
-        private readonly GridViewBuilder $gridViewBuilder,
-        private readonly BannerViewBuilder $bannerViewBuilder,
-        private readonly ThemeResolver $themeResolver,
-        private readonly ThemeStyleRenderer $themeStyles,
-        private readonly LocaleContextInterface $localeContext,
-        private readonly EntityManagerInterface $entityManager,
+        private readonly DeliverableEditorPreviews $previews,
+        private readonly DeliverableLinkIssuer $linkIssuer,
+        private readonly DeliverableLinksView $linksView,
         private readonly TranslatorInterface $translator,
     ) {}
 
@@ -114,7 +90,7 @@ final class SpaceDeliverablesController extends AbstractController
         #[MapEntity(id: 'deliverableId')]
         Deliverable $deliverable,
     ): Response {
-        $this->assertOwned($space, $deliverable->getSpace()->getId());
+        $this->assertOwned($space, $deliverable->getSpace()?->getId());
 
         return $this->render('@Studio/backend/space-deliverables/edit.html.twig', $this->viewBuilder->editorView($deliverable));
     }
@@ -127,7 +103,7 @@ final class SpaceDeliverablesController extends AbstractController
         Deliverable $deliverable,
         Request $request,
     ): JsonResponse {
-        $this->assertOwned($space, $deliverable->getSpace()->getId());
+        $this->assertOwned($space, $deliverable->getSpace()?->getId());
 
         $errors = $this->manager->update($deliverable, $this->decodeJson($request));
 
@@ -147,7 +123,7 @@ final class SpaceDeliverablesController extends AbstractController
         Deliverable $deliverable,
         Request $request,
     ): JsonResponse {
-        $this->assertOwned($space, $deliverable->getSpace()->getId());
+        $this->assertOwned($space, $deliverable->getSpace()?->getId());
 
         $this->manager->setVisibleToClient($deliverable, true === ($this->decodeJson($request)['visible'] ?? false));
 
@@ -161,7 +137,7 @@ final class SpaceDeliverablesController extends AbstractController
         #[MapEntity(id: 'deliverableId')]
         Deliverable $deliverable,
     ): JsonResponse {
-        $this->assertOwned($space, $deliverable->getSpace()->getId());
+        $this->assertOwned($space, $deliverable->getSpace()?->getId());
 
         $title = mb_substr(
             $this->translator->trans('backend.studio.deliverables.copy_title', ['%title%' => $deliverable->getTitle()]),
@@ -183,7 +159,7 @@ final class SpaceDeliverablesController extends AbstractController
         #[MapEntity(id: 'deliverableId')]
         Deliverable $deliverable,
     ): JsonResponse {
-        $this->assertOwned($space, $deliverable->getSpace()->getId());
+        $this->assertOwned($space, $deliverable->getSpace()?->getId());
 
         $this->manager->delete($deliverable);
 
@@ -201,7 +177,7 @@ final class SpaceDeliverablesController extends AbstractController
         #[MapEntity(id: 'deliverableId')]
         Deliverable $deliverable,
     ): Response {
-        $this->assertOwned($space, $deliverable->getSpace()->getId());
+        $this->assertOwned($space, $deliverable->getSpace()?->getId());
 
         return $this->privately($this->renderer->render(
             $deliverable,
@@ -216,37 +192,14 @@ final class SpaceDeliverablesController extends AbstractController
     #[Route('/grid-preview', name: '_grid_preview', methods: [HttpMethodEnum::Post->value])]
     public function gridPreview(CustomerSpace $space, Request $request): JsonResponse
     {
-        $payload = $this->decodeJson($request);
-        $layout = is_array($payload['layout'] ?? null) ? $payload['layout'] : [];
-        $content = is_array($payload['content'] ?? null) ? $payload['content'] : [];
-        $locale = $this->locale($payload['locale'] ?? null);
-
-        return $this->json([
-            'success' => true,
-            'html' => $this->renderView(
-                $this->themeResolver->resolve('editorial/post/_grid'),
-                ['grid' => $this->gridViewBuilder->buildForEditor($layout, $content, $locale), 'locale' => $locale],
-            ),
-        ]);
+        return $this->json(['success' => true, 'html' => $this->previews->grid($this->decodeJson($request))]);
     }
 
     /** L'aperçu d'un bloc d'entête posé dans la grille. */
     #[Route('/banner-preview', name: '_banner_preview', methods: [HttpMethodEnum::Post->value])]
     public function bannerPreview(CustomerSpace $space, Request $request): JsonResponse
     {
-        $payload = $this->decodeJson($request);
-        $layout = is_array($payload['layout'] ?? null) ? $payload['layout'] : [];
-        $texts = is_array($payload['texts'] ?? null) ? $payload['texts'] : [];
-        $slide = is_int($payload['slide'] ?? null) ? $payload['slide'] : 0;
-
-        return $this->json([
-            'success' => true,
-            'html' => '<style>'.$this->themeStyles->previewSurfaceCss(self::BANNER_PREVIEW_SELECTOR).'</style>'
-                .$this->renderView(
-                    $this->themeResolver->resolve('editorial/post/_banner'),
-                    ['banner' => $this->bannerViewBuilder->buildForEditor($layout, $texts, max(0, $slide))],
-                ),
-        ]);
+        return $this->json(['success' => true, 'html' => $this->previews->banner($this->decodeJson($request))]);
     }
 
     #[Route('/{deliverableId}/links', name: '_links', requirements: ['deliverableId' => '\d+'], methods: [HttpMethodEnum::Get->value])]
@@ -255,9 +208,9 @@ final class SpaceDeliverablesController extends AbstractController
         #[MapEntity(id: 'deliverableId')]
         Deliverable $deliverable,
     ): JsonResponse {
-        $this->assertOwned($space, $deliverable->getSpace()->getId());
+        $this->assertOwned($space, $deliverable->getSpace()?->getId());
 
-        return $this->jsonSuccess($this->viewBuilder->linksPayload($deliverable));
+        return $this->jsonSuccess($this->linksView->payload($deliverable));
     }
 
     /**
@@ -272,29 +225,11 @@ final class SpaceDeliverablesController extends AbstractController
         Deliverable $deliverable,
         Request $request,
     ): JsonResponse {
-        $this->assertOwned($space, $deliverable->getSpace()->getId());
+        $this->assertOwned($space, $deliverable->getSpace()?->getId());
 
-        $payload = $this->decodeJson($request);
+        $this->linkIssuer->issue($deliverable, $this->decodeJson($request));
 
-        $link = new DeliverableLink($deliverable);
-        $link->setLabel(is_string($payload['label'] ?? null) ? mb_substr(mb_trim($payload['label']), 0, 120) : '');
-
-        $days = is_int($payload['expiresInDays'] ?? null) ? $payload['expiresInDays'] : null;
-        if (null !== $days && $days > 0) {
-            $link->setExpiresAt(new DateTimeImmutable(sprintf('+%d days', min($days, self::MAX_EXPIRY_DAYS))));
-        }
-
-        // `password_hash`, comme pour une présentation : c'est une phrase
-        // choisie par quelqu'un, et les gens réutilisent leurs phrases.
-        $password = is_string($payload['password'] ?? null) ? mb_trim($payload['password']) : '';
-        if ('' !== $password) {
-            $link->setPasswordHash(password_hash($password, PASSWORD_DEFAULT));
-        }
-
-        $this->entityManager->persist($link);
-        $this->entityManager->flush();
-
-        return $this->jsonSuccess($this->viewBuilder->linksPayload($deliverable));
+        return $this->jsonSuccess($this->linksView->payload($deliverable));
     }
 
     /** Révoquer date la ligne ; elle n'est jamais supprimée. */
@@ -306,26 +241,12 @@ final class SpaceDeliverablesController extends AbstractController
         Deliverable $deliverable,
         int $linkId,
     ): JsonResponse {
-        $this->assertOwned($space, $deliverable->getSpace()->getId());
+        $this->assertOwned($space, $deliverable->getSpace()?->getId());
 
-        $link = $this->links->find($linkId);
-
-        // Vérifié contre le livrable de l'adresse : le lien d'un autre
-        // livrable ne se révoque pas par celui-ci.
-        if (null === $link || $link->getDeliverable()->getId() !== $deliverable->getId()) {
+        if (!$this->linkIssuer->revoke($deliverable, $linkId)) {
             return $this->jsonNotFound();
         }
 
-        $link->revoke(new DateTimeImmutable());
-        $this->entityManager->flush();
-
-        return $this->jsonSuccess($this->viewBuilder->linksPayload($deliverable));
-    }
-
-    private function locale(mixed $value): string
-    {
-        return is_string($value) && in_array($value, $this->localeContext->getActiveLocales(), true)
-            ? $value
-            : $this->localeContext->getDefaultLocale();
+        return $this->jsonSuccess($this->linksView->payload($deliverable));
     }
 }

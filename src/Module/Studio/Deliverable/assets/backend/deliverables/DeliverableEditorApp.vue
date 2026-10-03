@@ -7,6 +7,10 @@
  * statut : un livrable n'est jamais sur le site, et ce qui décide que le
  * client le lit est la case « visible par le client ».
  *
+ * Le même éditeur pour un livrable d'espace et un livrable de Studio : sans
+ * `space`, il n'y a pas de client à qui ouvrir le document, et l'en-tête dit
+ * son rayon, perso ou partagé, à la place.
+ *
  * La grille est celle des pages du site, avec ses zones et son aperçu : un
  * livrable se compose comme une page, il ne se publie pas comme une page.
  */
@@ -14,28 +18,35 @@ import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { Copy, ExternalLink, Link2, Save, Trash2, X } from "lucide-vue-next";
+import { Copy, ExternalLink, Link2, Lock, Save, Trash2, Users } from "lucide-vue-next";
 import AppBackLink from "@/shared/components/nav/AppBackLink.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
-import AppModal from "@/shared/components/overlay/AppModal.vue";
-import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import AppTab from "@/shared/components/nav/AppTab.vue";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { useTabState } from "@/shared/composables/useTabState.js";
 import PostGridPanel from "../../../../../Editorial/assets/backend/posts/components/PostGridPanel.vue";
 import DeliverableAppearanceTab from "./components/DeliverableAppearanceTab.vue";
+import DeliverableDeleteModal from "./components/DeliverableDeleteModal.vue";
 import DeliverableLinksModal from "./components/DeliverableLinksModal.vue";
 import DeliverableSettingsTab from "./components/DeliverableSettingsTab.vue";
 import { useDeliverableEditor } from "./composables/useDeliverableEditor.js";
 
 const props = defineProps({
     deliverable: { type: Object, required: true },
-    space: { type: Object, required: true },
+    /** L'espace du client ; nul pour un livrable de Studio. */
+    space: { type: Object, default: null },
+    /** L'auteur d'un livrable de Studio. */
+    ownerName: { type: String, default: null },
     locales: { type: Array, default: () => [] },
     hiddenZoneTypes: { type: Array, default: () => [] },
     canEdit: { type: Boolean, default: false },
+    /** Nuls, ils suivent `canEdit` : c'est la règle d'un espace. */
+    canShare: { type: Boolean, default: null },
+    canDelete: { type: Boolean, default: null },
+    canDuplicate: { type: Boolean, default: null },
+    canChangeScope: { type: Boolean, default: false },
     deliverablesPath: { type: String, required: true },
     updatePath: { type: String, required: true },
     previewPath: { type: String, required: true },
@@ -48,7 +59,30 @@ const props = defineProps({
 
 const { t } = useI18n();
 const { request } = useRequest();
+
+const mayShare = computed(() => props.canShare ?? props.canEdit);
+const mayDelete = computed(() => props.canDelete ?? props.canEdit);
+const mayDuplicate = computed(() => props.canDuplicate ?? props.canEdit);
+
+const backLabel = computed(() =>
+    props.space
+        ? t("backend.studio.deliverables.back", { space: props.space.name })
+        : t("backend.studio.deliverables.back_to_list"),
+);
 const { form, saving, errors, dirty, save, markClean } = useDeliverableEditor(props);
+
+/**
+ * Le retour rouvre le rayon où le livrable se trouve maintenant : l'auteur
+ * peut l'avoir fait passer de l'un à l'autre depuis les réglages.
+ */
+const backHref = computed(() => {
+    if (props.space || !form.value.scope) return props.deliverablesPath;
+
+    const url = new URL(props.deliverablesPath, window.location.origin);
+    url.searchParams.set("scope", form.value.scope);
+
+    return url.pathname + url.search;
+});
 
 // Les clés vont dans l'adresse : un lien vers l'apparence d'un livrable
 // s'envoie tel quel.
@@ -121,34 +155,38 @@ const headerActions = computed(() => {
             description: t("backend.studio.deliverables.preview_hint"),
             onSelect: openPreview,
         },
-        {
+    ];
+
+    if (mayShare.value) {
+        actions.push({
             key: "links",
             icon: Link2,
             title: t("backend.studio.deliverables.links.title"),
             description: t("backend.studio.deliverables.links_hint"),
             onSelect: () => (showLinks.value = true),
-        },
-    ];
+        });
+    }
 
-    if (props.canEdit) {
-        actions.push(
-            {
-                key: "duplicate",
-                icon: Copy,
-                title: t("backend.studio.deliverables.duplicate"),
-                description: t("backend.studio.deliverables.duplicate_hint"),
-                disabled: duplicating.value,
-                onSelect: duplicate,
-            },
-            {
-                key: "delete",
-                color: "rose",
-                icon: Trash2,
-                title: t("shared.common.delete"),
-                description: t("backend.studio.deliverables.delete_hint"),
-                onSelect: () => (pendingDelete.value = true),
-            },
-        );
+    if (mayDuplicate.value) {
+        actions.push({
+            key: "duplicate",
+            icon: Copy,
+            title: t("backend.studio.deliverables.duplicate"),
+            description: t("backend.studio.deliverables.duplicate_hint"),
+            disabled: duplicating.value,
+            onSelect: duplicate,
+        });
+    }
+
+    if (mayDelete.value) {
+        actions.push({
+            key: "delete",
+            color: "rose",
+            icon: Trash2,
+            title: t("shared.common.delete"),
+            description: t("backend.studio.deliverables.delete_hint"),
+            onSelect: () => (pendingDelete.value = true),
+        });
     }
 
     return actions;
@@ -158,11 +196,16 @@ const headerActions = computed(() => {
 <template>
     <div class="aurora-stack">
         <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-            <AppBackLink :href="deliverablesPath" :label="t('backend.studio.deliverables.back', { space: space.name })" />
+            <AppBackLink :href="backHref" :label="backLabel" />
             <div class="flex flex-wrap items-center gap-2 sm:gap-3">
                 <!-- Ce que voit le client, quel que soit l'onglet : on doit
-                     savoir qu'on modifie un document qu'il lit déjà. -->
-                <AppBadge :color="form.visibleToClient ? 'emerald' : 'gray'">
+                     savoir qu'on modifie un document qu'il lit déjà. Sans
+                     espace, le rayon : perso ou partagé avec l'équipe. -->
+                <AppBadge v-if="!space" :color="'shared' === form.scope ? 'sky' : 'gray'">
+                    <component :is="'shared' === form.scope ? Users : Lock" class="me-1 inline h-3 w-3 align-[-1px]" :stroke-width="2" />
+                    {{ t(`backend.studio.deliverables.scope.${form.scope}`) }}
+                </AppBadge>
+                <AppBadge v-else :color="form.visibleToClient ? 'emerald' : 'gray'">
                     {{ t(form.visibleToClient
                         ? "backend.studio.deliverables.visible_badge"
                         : "backend.studio.deliverables.hidden_badge") }}
@@ -185,8 +228,11 @@ const headerActions = computed(() => {
 
         <div class="min-w-0">
             <h1 class="m-0 truncate text-lg font-semibold text-primary">{{ form.title }}</h1>
-            <p class="m-0 mt-0.5 text-sm text-secondary">
+            <p v-if="space" class="m-0 mt-0.5 text-sm text-secondary">
                 {{ t("backend.studio.deliverables.for_customer", { name: space.customerName }) }}
+            </p>
+            <p v-else-if="ownerName" class="m-0 mt-0.5 text-sm text-secondary">
+                {{ t("backend.studio.deliverables.scope.by", { name: ownerName }) }}
             </p>
         </div>
 
@@ -195,7 +241,9 @@ const headerActions = computed(() => {
              replié ou déplié, le choix vaut pour tous les encarts. -->
         <AppGuide :title="t('backend.studio.deliverables.editor_guide.title')" storage-key="deliverable-editor">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
-                <li v-for="step in 5" :key="step">{{ t(`backend.studio.deliverables.editor_guide.step_${step}`) }}</li>
+                <!-- Sans espace, les étapes qui parlent du client disent son
+                     destinataire et sa visibilité à la place. -->
+                <li v-for="step in 5" :key="step">{{ t(`backend.studio.deliverables.editor_guide.step_${step}${!space && [3, 4].includes(step) ? "_studio" : ""}`) }}</li>
             </ol>
         </AppGuide>
 
@@ -242,32 +290,22 @@ const headerActions = computed(() => {
             v-model:locale="form.locale"
             v-model:reading-header="form.readingHeader"
             v-model:visible-to-client="form.visibleToClient"
+            v-model:scope="form.scope"
             :locales="locales"
             :errors="errors"
-            :customer-name="space.customerName"
+            :customer-name="space?.customerName ?? ''"
+            :with-client="!!space"
+            :can-change-scope="canChangeScope"
         />
 
         <DeliverableLinksModal :show="showLinks" :links-path="linksPath" v-on:close="showLinks = false" />
 
-        <AppModal
+        <DeliverableDeleteModal
             :show="pendingDelete"
-            max-width="sm"
-            :closeable="false"
-            :title="t('shared.common.delete')"
-            :icon="Trash2"
-            v-on:close="pendingDelete = false"
-        >
-            <p class="m-0 text-sm text-primary">{{ t("backend.studio.deliverables.delete_confirm", { title: form.title }) }}</p>
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton variant="ghost" size="md" v-on:click="pendingDelete = false">
-                        <X class="h-3.5 w-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}
-                    </AppButton>
-                    <AppButton variant="danger" size="md" :loading="deleting" v-on:click="doDelete">
-                        <Trash2 class="h-3.5 w-3.5" :stroke-width="2" /> {{ t("shared.common.delete") }}
-                    </AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
+            :title="form.title"
+            :deleting="deleting"
+            v-on:cancel="pendingDelete = false"
+            v-on:confirm="doDelete"
+        />
     </div>
 </template>

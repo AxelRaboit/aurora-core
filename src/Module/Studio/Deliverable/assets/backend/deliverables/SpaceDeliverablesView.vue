@@ -17,16 +17,15 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 import { Copy, Eye, EyeOff, ExternalLink, Link2, Pencil, Plus, Trash2, X } from "lucide-vue-next";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
-import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
-import AppCardActions from "@/shared/components/action/AppCardActions.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
-import AppRowActions from "@/shared/components/action/AppRowActions.vue";
+import DeliverableCards from "./components/DeliverableCards.vue";
+import DeliverableDeleteModal from "./components/DeliverableDeleteModal.vue";
 import DeliverableLinksModal from "./components/DeliverableLinksModal.vue";
 
 const props = defineProps({
@@ -42,7 +41,6 @@ const props = defineProps({
 
 const { t } = useI18n();
 const { request } = useRequest();
-const { formatDateShort } = useDateFormat();
 
 const rows = ref([...props.deliverables]);
 
@@ -234,35 +232,15 @@ function actionsFor(deliverable) {
             :hint="t('backend.studio.deliverables.empty_hint')"
         />
 
-        <ul v-else class="m-0 list-none space-y-2 p-0">
-            <li
-                v-for="deliverable in rows"
-                :key="deliverable.id"
-                class="aurora-card space-y-2.5 p-3 sm:flex sm:items-center sm:gap-4 sm:space-y-0"
-            >
-                <div class="min-w-0 flex-1">
-                    <a class="block break-words text-sm font-medium text-primary no-underline hover:text-accent" :href="deliverable.editPath">
-                        {{ deliverable.title }}
-                    </a>
-                    <p v-if="deliverable.summary" class="m-0 mt-0.5 text-xs text-secondary line-clamp-2">{{ deliverable.summary }}</p>
-                    <p class="m-0 mt-1 flex flex-wrap items-center gap-2 text-xs text-muted">
-                        <AppBadge :color="deliverable.visibleToClient ? 'emerald' : 'gray'">
-                            {{ t(deliverable.visibleToClient
-                                ? "backend.studio.deliverables.visible_badge"
-                                : "backend.studio.deliverables.hidden_badge") }}
-                        </AppBadge>
-                        <span>{{ t("backend.studio.deliverables.updated_on", { date: formatDateShort(deliverable.updatedAt) }) }}</span>
-                    </p>
-                </div>
-
-                <!-- Le menu sur ordinateur ; sur téléphone les gestes sont
-                     écrits en toutes lettres sous la carte. -->
-                <AppRowActions class="hidden shrink-0 sm:block" :actions="actionsFor(deliverable)" :label="deliverable.title" />
-                <div class="border-t border-line/40 pt-2 sm:hidden">
-                    <AppCardActions :actions="actionsFor(deliverable)" />
-                </div>
-            </li>
-        </ul>
+        <DeliverableCards v-else :deliverables="rows" :actions-for="actionsFor">
+            <template #meta="{ deliverable }">
+                <AppBadge :color="deliverable.visibleToClient ? 'emerald' : 'gray'">
+                    {{ t(deliverable.visibleToClient
+                        ? "backend.studio.deliverables.visible_badge"
+                        : "backend.studio.deliverables.hidden_badge") }}
+                </AppBadge>
+            </template>
+        </DeliverableCards>
 
         <DeliverableLinksModal
             :show="null !== linksFor"
@@ -300,27 +278,12 @@ function actionsFor(deliverable) {
             </template>
         </AppModal>
 
-        <AppModal
+        <DeliverableDeleteModal
             :show="!!pendingDelete"
-            max-width="sm"
-            :closeable="false"
-            :title="t('shared.common.delete')"
-            :icon="Trash2"
-            v-on:close="pendingDelete = null"
-        >
-            <p class="m-0 text-sm text-primary">
-                {{ t("backend.studio.deliverables.delete_confirm", { title: pendingDelete?.title ?? "" }) }}
-            </p>
-            <template #footer>
-                <AppModalFooter>
-                    <AppButton variant="ghost" size="md" v-on:click="pendingDelete = null">
-                        <X class="h-3.5 w-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}
-                    </AppButton>
-                    <AppButton variant="danger" size="md" :loading="deleting" v-on:click="doDelete">
-                        <Trash2 class="h-3.5 w-3.5" :stroke-width="2" /> {{ t("shared.common.delete") }}
-                    </AppButton>
-                </AppModalFooter>
-            </template>
-        </AppModal>
+            :title="pendingDelete?.title ?? ''"
+            :deleting="deleting"
+            v-on:cancel="pendingDelete = null"
+            v-on:confirm="doDelete"
+        />
     </div>
 </template>

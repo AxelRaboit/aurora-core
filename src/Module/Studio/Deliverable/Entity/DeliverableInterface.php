@@ -4,14 +4,27 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\Deliverable\Entity;
 
+use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\Deliverable\Enum\DeliverableScopeEnum;
 use DateTimeImmutable;
 
 interface DeliverableInterface
 {
     public function getId(): ?int;
 
-    public function getSpace(): CustomerSpaceInterface;
+    public function getSpace(): ?CustomerSpaceInterface;
+
+    /** Vrai pour un livrable de Studio, rattaché à aucun espace. */
+    public function isStandalone(): bool;
+
+    public function getOwner(): ?CoreUserInterface;
+
+    public function setOwner(?CoreUserInterface $owner): static;
+
+    public function getScope(): DeliverableScopeEnum;
+
+    public function setScope(DeliverableScopeEnum $scope): static;
 
     public function getTitle(): string;
 

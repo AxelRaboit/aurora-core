@@ -55,6 +55,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
     case StudioSpaces = 'modules_studio_spaces';
     case StudioContracts = 'modules_studio_contracts';
     case StudioDecks = 'modules_studio_decks';
+    case StudioDeliverables = 'modules_studio_deliverables';
 
     public function getKey(): string
     {
@@ -95,6 +96,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::StudioSpaces => 'backend.nav.studio_spaces',
             self::StudioContracts => 'backend.nav.studio_contract_templates',
             self::StudioDecks => 'backend.nav.studio_decks',
+            self::StudioDeliverables => 'backend.nav.studio_deliverables',
         };
     }
 
@@ -132,6 +134,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::StudioSpaces => 'backend.nav.studio_spaces_description',
             self::StudioContracts => 'backend.nav.studio_contract_templates_description',
             self::StudioDecks => 'backend.nav.studio_decks_description',
+            self::StudioDeliverables => 'backend.nav.studio_deliverables_description',
         };
     }
 
@@ -162,7 +165,7 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             self::EditorialFrontend, self::EditorialPosts, self::EditorialPostTypes, self::EditorialTaxonomies, self::EditorialMenus, self::EditorialSeo, self::EditorialComments, self::EditorialForms => self::EditorialBackend,
             self::GedDocuments, self::GedCategories, self::GedTags, self::GedFolders, self::GedFrontend => self::GedBackend,
             self::NotesMarkdown => self::NotesBackend,
-            self::StudioCustomers, self::StudioContracts, self::StudioDecks, self::StudioSpaces => self::StudioBackend,
+            self::StudioCustomers, self::StudioContracts, self::StudioDecks, self::StudioDeliverables, self::StudioSpaces => self::StudioBackend,
             default => null,
         };
     }
@@ -218,6 +221,9 @@ enum ModuleParameterEnum: string implements ApplicationParameterEnumInterface
             // purpose: a strategy deck written for oneself has no client, and
             // requiring the customer screen would make that case impossible.
             self::StudioDecks => self::StudioBackend->value,
+            // Un livrable de Studio n'a ni client ni espace : comme une
+            // présentation, il ne dépend que du module.
+            self::StudioDeliverables => self::StudioBackend->value,
             // A space is the space of a customer: it is created from the
             // customer list and its every screen names the company it belongs
             // to. Without that screen a space would have nobody to be for,

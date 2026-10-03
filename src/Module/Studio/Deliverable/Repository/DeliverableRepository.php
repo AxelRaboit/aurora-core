@@ -5,10 +5,14 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\Deliverable\Repository;
 
 use Aurora\Core\Repository\ResolveTargetEntityRepository;
+use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\Deliverable\Entity\Deliverable;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
+use Aurora\Module\Studio\Deliverable\Enum\DeliverableScopeEnum;
+use Aurora\Module\Studio\Deliverable\Security\DeliverableAccess;
 use Doctrine\Common\Collections\Order;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -55,5 +59,60 @@ class DeliverableRepository extends ResolveTargetEntityRepository
             ->setParameter('space', $space)
             ->getQuery()
             ->getOneOrNullResult();
+    }
+
+    /**
+     * Les livrables perso d'une personne, sans espace, le dernier touché en
+     * premier.
+     *
+     * Un administrateur y trouve aussi les livrables perso restés sans auteur :
+     * c'est lui qui les recueille, cf. {@see DeliverableAccess::adopts()}.
+     *
+     * @return list<DeliverableInterface>
+     */
+    public function findPersonalFor(CoreUserInterface $user): array
+    {
+        $builder = $this->standalone(DeliverableScopeEnum::Personal);
+
+        if (DeliverableAccess::isAdmin($user)) {
+            $builder->andWhere('d.owner = :owner OR d.owner IS NULL');
+        } else {
+            $builder->andWhere('d.owner = :owner');
+        }
+
+        return $builder->setParameter('owner', $user)->getQuery()->getResult();
+    }
+
+    /**
+     * Les livrables partagés de Studio, ceux de toute l'équipe.
+     *
+     * @return list<DeliverableInterface>
+     */
+    public function findShared(): array
+    {
+        return $this->standalone(DeliverableScopeEnum::Shared)->getQuery()->getResult();
+    }
+
+    /** Un livrable sans espace : ceux d'un espace ne s'ouvrent que par lui. */
+    public function findStandalone(int $id): ?DeliverableInterface
+    {
+        return $this->createQueryBuilder('d')
+            ->where('d.id = :id')
+            ->andWhere('d.space IS NULL')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    private function standalone(DeliverableScopeEnum $scope): QueryBuilder
+    {
+        return $this->createQueryBuilder('d')
+            ->leftJoin('d.owner', 'o')
+            ->addSelect('o')
+            ->where('d.space IS NULL')
+            ->andWhere('d.scope = :scope')
+            ->setParameter('scope', $scope)
+            ->orderBy('d.updatedAt', Order::Descending->value)
+            ->addOrderBy('d.id', Order::Descending->value);
     }
 }

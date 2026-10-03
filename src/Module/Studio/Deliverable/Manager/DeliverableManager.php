@@ -6,9 +6,11 @@ namespace Aurora\Module\Studio\Deliverable\Manager;
 
 use Aurora\Core\Locale\Service\LocaleContextInterface;
 use Aurora\Module\Editorial\Post\Grid\GridNormalizer;
+use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\Deliverable\Entity\Deliverable;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
+use Aurora\Module\Studio\Deliverable\Enum\DeliverableScopeEnum;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableAppearance;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableReadingHeader;
 use Doctrine\ORM\EntityManagerInterface;
@@ -41,18 +43,29 @@ final readonly class DeliverableManager
      *
      * La grille est allumée d'emblée : un livrable n'a pas d'autre corps, et
      * un interrupteur à basculer avant d'écrire la première ligne serait un
-     * geste pour rien. « Préparé pour » reprend la raison sociale du client.
+     * geste pour rien. Dans un espace, « Préparé pour » reprend la raison
+     * sociale du client ; sans espace, il n'y a encore personne à nommer.
+     *
+     * La portée ne compte que sans espace : dans un espace, c'est l'équipe de
+     * l'espace qui lit.
      */
-    public function create(CustomerSpaceInterface $space, string $title): DeliverableInterface
-    {
+    public function create(
+        ?CustomerSpaceInterface $space,
+        string $title,
+        ?CoreUserInterface $owner = null,
+        DeliverableScopeEnum $scope = DeliverableScopeEnum::Shared,
+    ): DeliverableInterface {
         $deliverable = new Deliverable($space, $title, $this->localeContext->getDefaultLocale());
+        $deliverable
+            ->setOwner($owner)
+            ->setScope($space instanceof CustomerSpaceInterface ? DeliverableScopeEnum::Shared : $scope);
         $layout = $this->gridNormalizer->normalizeLayout(['enabled' => true]);
 
         $deliverable
             ->setGridLayout($layout)
             ->setGridContent($this->gridNormalizer->normalizeContent([], $layout))
             ->setAppearance(DeliverableAppearance::normalize([]))
-            ->setReadingHeader(DeliverableReadingHeader::normalize(['preparedFor' => $space->getCustomer()->getLegalName()]));
+            ->setReadingHeader(DeliverableReadingHeader::normalize(['preparedFor' => $space?->getCustomer()->getLegalName() ?? '']));
 
         $this->entityManager->persist($deliverable);
         $this->entityManager->flush();
@@ -87,7 +100,9 @@ final readonly class DeliverableManager
             ->setGridContent($this->gridNormalizer->normalizeContent($data['gridContent'] ?? [], $layout))
             ->setAppearance(DeliverableAppearance::normalize($data['appearance'] ?? []))
             ->setReadingHeader(DeliverableReadingHeader::normalize($data['readingHeader'] ?? []))
-            ->setVisibleToClient(true === ($data['visibleToClient'] ?? false))
+            // Sans espace, il n'y a pas de client pour le voir : la case reste
+            // fermée, quoi que dise l'éditeur.
+            ->setVisibleToClient(!$deliverable->isStandalone() && true === ($data['visibleToClient'] ?? false))
             ->touch();
 
         $this->entityManager->flush();
@@ -110,10 +125,14 @@ final readonly class DeliverableManager
      * travail en cours. Ses liens de lecture ne suivent pas, ils ont été donnés
      * pour l'original.
      */
-    public function duplicate(DeliverableInterface $source, string $title): DeliverableInterface
+    public function duplicate(DeliverableInterface $source, string $title, ?CoreUserInterface $author = null): DeliverableInterface
     {
         $copy = new Deliverable($source->getSpace(), $title, $source->getLocale());
+        // La copie est à qui la fait, dans le même rayon que l'original : une
+        // copie d'un livrable partagé reste à l'équipe.
         $copy
+            ->setOwner($author ?? $source->getOwner())
+            ->setScope($source->getScope())
             ->setSummary($source->getSummary())
             ->setGridLayout($source->getGridLayout())
             ->setGridContent($source->getGridContent())
@@ -124,6 +143,23 @@ final readonly class DeliverableManager
         $this->entityManager->flush();
 
         return $copy;
+    }
+
+    /** Perso ou partagé, pour un livrable sans espace. */
+    public function setScope(DeliverableInterface $deliverable, DeliverableScopeEnum $scope, ?CoreUserInterface $by = null): void
+    {
+        if (!$deliverable->isStandalone()) {
+            return;
+        }
+
+        $deliverable->setScope($scope);
+        // Un orphelin qui change de rayon a été recueilli : il revient à qui
+        // en a décidé, plutôt que de rester sans auteur.
+        if (!$deliverable->getOwner() instanceof CoreUserInterface && $by instanceof CoreUserInterface) {
+            $deliverable->setOwner($by);
+        }
+
+        $this->entityManager->flush();
     }
 
     public function delete(DeliverableInterface $deliverable): void

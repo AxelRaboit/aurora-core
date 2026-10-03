@@ -30,6 +30,8 @@ backend:
         studio_backend_description: "What you sell and what you deliver to a client: customers, contracts and presentations."
         studio_decks: Presentations
         studio_decks_description: Build slide decks, file them and duplicate them.
+        studio_deliverables: "Deliverables"
+        studio_deliverables_description: "Write documents outside a client space, personal or shared with the team."
     nav:
         sections:
             studio: Studio
@@ -45,6 +47,8 @@ backend:
         studio_contracts_description: Contracts prepared, sealed and signed.
         studio_decks: Presentations
         studio_decks_description: The slide decks you show, filed and reusable.
+        studio_deliverables: "Deliverables"
+        studio_deliverables_description: "The documents you write outside a client space, for yourself or for the team."
     audit:
         actions:
             studio:
@@ -167,6 +171,12 @@ backend:
                     share: Share a presentation
                 deck_categories:
                     manage: Manage presentation categories
+                deliverables:
+                    view: "View deliverables"
+                    create: "Create a deliverable"
+                    edit: "Edit a shared deliverable"
+                    delete: "Delete a deliverable"
+                    share: "Send a deliverable by reading link"
     studio:
         workload:
             next_publication: "next publication on {date}"
@@ -1952,6 +1962,8 @@ backend:
                 step_3: "“Settings” holds the title, the summary, the language and the header; tick “Visible to the client” so they can read it in their space."
                 step_4: "Save your changes, then “Preview”, in the menu, opens the page as the client will read it."
                 step_5: "“Reading links” creates a secret address that opens this document alone without an account, with an optional password and expiry."
+                step_3_studio: "“Settings” holds the title, the summary, the language and the header, and its visibility: personal, or shared with the team."
+                step_4_studio: "Save your changes, then “Preview”, in the menu, opens the page as its recipient will read it."
             guide:
                 title: "How deliverables work"
                 step_1: "“New deliverable” creates a document (audit, strategy, report) built like a page, in your colours or the client's."
@@ -1994,6 +2006,42 @@ backend:
             save_failed: "The deliverable could not be saved."
             unsaved: "Unsaved changes"
             links_hint: "One secret address per recipient, to pass the document on without opening the space."
+            back_to_list: "Deliverables"
+            search_placeholder: "Search deliverables"
+            no_match: "No deliverable matches the search."
+            studio_title_hint: "The title at the top of the document, and in the list."
+            studio_guide:
+                title: "How deliverables work"
+                step_1: "A deliverable is a document written to be read: an audit, a strategy, a proposal. It is built with the page grid, and never appears on the site."
+                step_2: "“My deliverables” is seen by you alone. “Shared” is read by the whole team with access to deliverables, and edited by those allowed to."
+                step_3: "A deliverable is created in the open tab; after that, only its author moves it between personal and shared, from its menu or its settings."
+                step_4: "A reading link sends it to whoever you want, with an optional expiry and password, without an account or a client space."
+                step_5: "A client's deliverables are prepared in their space, Deliverables tab: that is where they read them."
+            scope:
+                label: "Visibility"
+                personal: "Personal"
+                shared: "Shared"
+                personal_hint: "Only you can see it."
+                shared_hint: "The whole team reads it and can edit it."
+                tab_personal: "My deliverables"
+                tab_shared: "Shared"
+                intro_personal: "What you prepare for yourself: nobody else sees it until you share it."
+                intro_shared: "The team's deliverables: everyone reads them, and edits them if allowed to."
+                empty_personal: "No personal deliverables."
+                empty_personal_hint: "Start a proposal, a strategy or a draft: it stays yours until you share it."
+                empty_shared: "No shared deliverables."
+                empty_shared_hint: "A personal deliverable is shared from its menu, or from its settings."
+                by: "By {name}"
+                no_owner: "Author deleted"
+                orphan: "No author"
+                move_shared: "Share with the team"
+                move_shared_hint: "It moves to “Shared”: the whole team reads it and can edit it."
+                move_personal: "Keep to myself"
+                move_personal_hint: "It moves back to “My deliverables”: nobody else sees it any more."
+                moved_shared: "Deliverable shared with the team."
+                moved_personal: "Deliverable kept to yourself."
+                settings_hint: "Who sees this deliverable. Only its author changes this."
+                owner_only: "Only the deliverable's author changes this."
             tabs:
                 content: "Content"
                 appearance: "Appearance"
@@ -2028,6 +2076,7 @@ backend:
                 title_visible: "Show the title and summary at the top of the page"
                 title_visible_hint: "Untick it if the document opens on a header block that already carries its title. The title stays readable by screen readers."
             settings:
+                prepared_for_placeholder: "The recipient"
                 document_title: "The document"
                 summary: "Summary"
                 summary_placeholder: "Where your online presence stands, and what we suggest for the next three months."

@@ -36,6 +36,12 @@ final readonly class StudioContext
         return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::StudioDecks);
     }
 
+    /** Les livrables de Studio, ceux qui ne sont rattachés à aucun espace. */
+    public function areDeliverablesEnabled(): bool
+    {
+        return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::StudioDeliverables);
+    }
+
     public function areSpacesEnabled(): bool
     {
         return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::StudioSpaces);
