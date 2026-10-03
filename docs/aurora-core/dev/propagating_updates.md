@@ -18,7 +18,7 @@ via le dépôt VCS GitHub (composer) :
 
 ```json
 // composer.json du projet consommateur
-"require": { "axelraboit/aurora": "^0.6" },
+"require": { "axelraboit/aurora": "^1.0" },
 "repositories": [
   { "type": "vcs", "url": "git@github.com:AxelRaboit/aurora-core.git" }
 ]
@@ -58,6 +58,37 @@ develop  ──PR──▶  master  ──push──▶  workflow Release  ─�
 > Avec un flux roulant, il n'y a pas de « entre sa version et la cible » : il
 > y a juste le dernier commit, et la liste des choses à faire à la main se
 > perd.
+
+---
+
+## Le numéro de version
+
+Depuis la **1.0.0** (03/10/2026), aurora-core suit le versionnage sémantique
+à la lettre : le numéro dit à un projet client ce qu'une mise à jour lui
+demande.
+
+| Ce que la version apporte | Chiffre qui monte | Exemple |
+|---|---|---|
+| Un changement qui demande un geste au client, au-delà de `make aurora-update` et `make deploy-prod` | **majeur** | 1.4.2 → 2.0.0 |
+| Une fonctionnalité, un réglage, un module, une amélioration visible | **mineur** | 1.4.2 → 1.5.0 |
+| Une correction, sans comportement nouveau | **correctif** | 1.4.2 → 1.4.3 |
+
+Une version qui réunit plusieurs natures prend la plus haute : une
+fonctionnalité et trois corrections font une version mineure.
+
+**Ce qui fait une version majeure** : renommer ou retirer une classe, un
+service, une route, une interface ou une clé de configuration qu'un client
+peut utiliser ou étendre ; changer la signature d'un point d'extension ;
+toute étape manuelle de la section « Dans aurora-client » du `CHANGELOG.md`.
+**Ce qui n'en fait pas une** : une migration, puisque `make deploy-prod` la
+joue ; un réglage nouveau, que `aurora:application-parameter` crée tout seul.
+
+Côté client, la contrainte `^1.0` accepte toutes les 1.x et refuse une 2.0 :
+une mise à jour sans risque passe toute seule, celle qui demande un geste
+attend qu'on change la contrainte, en lisant ce qu'il y a à faire.
+
+Avant la 1.0.0, la série 0.9.x a tout porté dans le dernier chiffre, comme le
+permet une version majeure 0 : 331 versions, fonctionnalités comprises.
 
 ---
 

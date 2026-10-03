@@ -48,7 +48,7 @@ Dans le `composer.json` du client :
     "minimum-stability": "dev",
     "prefer-stable": true,
     "require": {
-        "axelraboit/aurora": "^0.6",
+        "axelraboit/aurora": "^1.0",
         "axelraboit/aurora-tools": "dev-master"
     },
     "repositories": [
