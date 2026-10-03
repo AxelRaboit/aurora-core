@@ -5,6 +5,15 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [1.0.2] - 2026-10-03
+
+### Interne
+
+#### La page « Les galeries photo » du tour montre le module Galeries
+La page montrait deux fois l'onglet Galerie de l'éditeur, en bandeau et dans le corps. La seconde prise photographie maintenant le module Galeries (`/backend/editorial/post-galleries/{id}/edit`), l'accès qui n'ouvre que la galerie d'une publication : c'est ce qui permet de confier les photos à quelqu'un sans lui ouvrir le reste. Dans `tools/screenshots/`, le scénario `tour-galerie-onglet` devient `tour-galeries-module`, rattaché au même document dans `tour-cards.json`. Aucun changement de code de l'application.
+
+---
+
 ## [1.0.1] - 2026-10-03
 
 ### Interne
