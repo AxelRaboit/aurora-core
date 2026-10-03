@@ -58,6 +58,9 @@ class PostInput implements PostInputInterface
         public readonly ?string $accentColor = null,
         public readonly ?string $highlight = null,
         public readonly ?string $highlightColor = null,
+        /** @var array<string, string> */
+        public readonly array $colorOverrides = [],
+        public readonly bool $chromeFollowsPage = false,
         // Where this publication sits in a deliberate reading order. Null is
         // the answer for almost everything, and means the date decides.
         #[Assert\Positive(message: 'backend.posts.errors.position_invalid')]
@@ -97,6 +100,8 @@ class PostInput implements PostInputInterface
             accentColor: $this->accentColor,
             highlight: $this->highlight,
             highlightColor: $this->highlightColor,
+            colorOverrides: $this->colorOverrides,
+            chromeFollowsPage: $this->chromeFollowsPage,
             position: $this->position,
         );
     }
@@ -255,6 +260,16 @@ class PostInput implements PostInputInterface
     public function getHighlightColor(): ?string
     {
         return $this->highlightColor;
+    }
+
+    public function getColorOverrides(): array
+    {
+        return $this->colorOverrides;
+    }
+
+    public function isChromeFollowsPage(): bool
+    {
+        return $this->chromeFollowsPage;
     }
 
     /**

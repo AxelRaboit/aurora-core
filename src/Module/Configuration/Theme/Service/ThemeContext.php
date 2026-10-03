@@ -101,6 +101,16 @@ final class ThemeContext
             && null !== $this->headerLogoUrl();
     }
 
+    /**
+     * La barre de lecture en haut des pages publiques. Affichée par défaut :
+     * seul un thème qui l'a coupée porte la clé, comme les autres réglages
+     * qui ne s'écrivent que lorsqu'ils s'écartent du défaut.
+     */
+    public function readingProgress(): bool
+    {
+        return 'hidden' !== ($this->activeTheme()?->getConfig()['reading_progress'] ?? null);
+    }
+
     public function footerText(string $siteName): string
     {
         $custom = $this->activeTheme()?->getConfig()['footer_text'] ?? '';

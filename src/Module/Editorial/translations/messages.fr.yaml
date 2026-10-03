@@ -1391,7 +1391,17 @@ backend:
       accent_color: Couleur d'accent
       highlight: Survols et repères des cartes
       highlight_inherit: Comme le thème
-      highlight_hint: "Liserés et titres au survol, catégorie et flèche des cartes, pour le contenu de cette page seulement. La barre de navigation et le pied de page gardent le réglage du thème."
+      highlight_hint: 'Liserés et titres au survol, catégorie et flèche des cartes, pour cette page seulement. La barre de navigation et le pied de page gardent le réglage du thème, sauf si l''interrupteur ci-dessous les fait suivre la page.'
+      ink_title: 'Texte, traits et cartes'
+      colors:
+        text_color: 'Texte'
+        line_color: 'Traits'
+        card_color: 'Fond des cartes'
+        card_line_color: 'Contour des cartes'
+        heading_color: 'Titres'
+        figure_color: 'Chiffres mis en avant'
+      chrome_follows_page: 'Topbar et pied de page aux couleurs de la page'
+      chrome_follows_page_hint: 'Ils prennent l''accent et les survols de cette publication. Éteint, ils gardent ceux du thème.'
   taxonomies:
     guide:
       title: "Comment fonctionnent les taxonomies"

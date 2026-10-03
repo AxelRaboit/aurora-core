@@ -95,6 +95,8 @@ backend:
     header_media_hint: "Affiché à gauche du nom du site dans la barre du haut. Image carrée conseillée."
     header_text_hidden_on_phone: 'Logo seul sur téléphone'
     header_text_hidden_on_phone_hint: 'Le nom du site disparaît de la barre du haut sous 640 px de large ; il reste lu par les lecteurs d''écran.'
+    reading_progress: 'Barre de lecture'
+    reading_progress_hint: 'Une fine barre en haut de chaque page du site se remplit à mesure qu''on la fait défiler.'
     header_text_placeholder: Mon site
     config_hint: 'Variables disponibles : --th-bg, --th-surface, --th-surface-2, --th-primary, --th-secondary, --th-muted, --th-accent, --th-accent-hover'
     config_placeholder: "{\n  \"--th-accent\": \"#6366f1\"\n}"

@@ -358,6 +358,8 @@ class PostManager implements PostManagerInterface
         $post->setAccentColor($input->getAccentColor());
         $post->setHighlight($input->getHighlight());
         $post->setHighlightColor($input->getHighlightColor());
+        $post->setColorOverrides($input->getColorOverrides());
+        $post->setChromeFollowsPage($input->isChromeFollowsPage());
 
         // Normalised here rather than in the DTO: this is the write boundary,
         // and it is the only place guaranteed to run whatever built the input.

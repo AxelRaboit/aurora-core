@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Editorial\Post\Dto;
 
+use Aurora\Module\Editorial\Post\Appearance\PostColorOverrides;
+
 interface PostInputInterface
 {
     public function getPostTypeId(): int;
@@ -98,6 +100,17 @@ interface PostInputInterface
 
     /** Likewise for hovers and card markers: `accent`, `neutral` or `custom`. */
     public function getHighlight(): ?string;
+
+    /**
+     * The other theme colours this publication repaints, already filtered by
+     * {@see PostColorOverrides}.
+     *
+     * @return array<string, string>
+     */
+    public function getColorOverrides(): array;
+
+    /** Whether the topbar and the footer follow this publication's accent and hovers. */
+    public function isChromeFollowsPage(): bool;
 
     public function getHighlightColor(): ?string;
 

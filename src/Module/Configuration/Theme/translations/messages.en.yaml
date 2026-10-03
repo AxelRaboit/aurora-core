@@ -95,6 +95,8 @@ backend:
     header_media_hint: "Shown left of the site name in the top bar. A square image works best."
     header_text_hidden_on_phone: 'Logo only on phones'
     header_text_hidden_on_phone_hint: 'The site name leaves the top bar below 640 px wide; screen readers still read it.'
+    reading_progress: 'Reading bar'
+    reading_progress_hint: 'A thin bar at the top of every page of the site fills up as the visitor scrolls.'
     header_text_placeholder: My site
     config_hint: 'Available variables: --th-bg, --th-surface, --th-surface-2, --th-primary, --th-secondary, --th-muted, --th-accent, --th-accent-hover'
     config_placeholder: "{\n  \"--th-accent\": \"#6366f1\"\n}"

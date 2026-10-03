@@ -158,6 +158,8 @@ class PostSerializer implements PostSerializerInterface
             'accentColor' => $post->getAccentColor(),
             'highlight' => $post->getHighlight(),
             'highlightColor' => $post->getHighlightColor(),
+            'colorOverrides' => (object) $post->getColorOverrides(),
+            'chromeFollowsPage' => $post->isChromeFollowsPage(),
             // What the last review decided, so the editor can show the author what
             // to change rather than leaving them to guess why it came back.
             'reviewNote' => $post->getReviewNote(),

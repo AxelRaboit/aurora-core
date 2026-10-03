@@ -1417,7 +1417,17 @@ backend:
             accent_color: 'Color de acento'
             highlight: 'Efectos al pasar el cursor y marcas de las fichas'
             highlight_inherit: 'Como el tema'
-            highlight_hint: 'Bordes y títulos al pasar el cursor, categoría y flecha de las fichas, solo para el contenido de esta página. La barra de navegación y el pie de página conservan el ajuste del tema.'
+            highlight_hint: 'Bordes y títulos al pasar el cursor, categoría y flecha de las fichas, solo para esta página. La barra de navegación y el pie de página conservan el ajuste del tema, salvo si el interruptor de abajo los hace seguir la página.'
+            ink_title: 'Texto, trazos y fichas'
+            colors:
+                text_color: 'Texto'
+                line_color: 'Trazos'
+                card_color: 'Fondo de las fichas'
+                card_line_color: 'Contorno de las fichas'
+                heading_color: 'Títulos'
+                figure_color: 'Cifras destacadas'
+            chrome_follows_page: 'Barra superior y pie de página con los colores de la página'
+            chrome_follows_page_hint: 'Toman el acento y los resaltados de esta publicación. Desactivado, conservan los del tema.'
     taxonomies:
         guide:
             title: "Cómo funcionan las taxonomías"
