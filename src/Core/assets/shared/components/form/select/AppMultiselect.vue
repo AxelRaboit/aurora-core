@@ -145,4 +145,21 @@ function onSelect(value) {
 .multiselect--error .multiselect__tags {
     border-color: rgb(239 68 68);
 }
+
+/* Sur le site public (formulaires), les couleurs du thème du site plutôt que
+   l'indigo du back-office : le survol suit `highlight`, comme tous les survols
+   du site, et l'angle celui des autres champs du formulaire. La liste est
+   téléportée dans le `body`, d'où la classe posée sur celui-ci. */
+.aurora-front .multiselect__tags {
+    border-radius: 0.5rem;
+}
+.aurora-front .multiselect__option--highlight,
+.aurora-front .multiselect__option--selected.multiselect__option--highlight {
+    background: var(--th-highlight, var(--th-accent-500));
+    color: #fff;
+}
+.aurora-front .multiselect--active .multiselect__tags {
+    border-color: var(--th-highlight, var(--th-accent-500));
+    box-shadow: 0 0 0 1px var(--th-highlight, var(--th-accent-500));
+}
 </style>

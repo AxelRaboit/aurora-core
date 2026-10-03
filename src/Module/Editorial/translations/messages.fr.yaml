@@ -1958,6 +1958,7 @@ frontend:
       previous: Précédent
       step: 'Étape {number}'
       sent: Merci, votre message a bien été envoyé.
+      select_placeholder: Choisissez une option
       preview_notice: "Aperçu : le formulaire fonctionne, mais rien n'est envoyé."
       errors:
         required: Ce champ est obligatoire.
