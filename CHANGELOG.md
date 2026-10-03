@@ -5,6 +5,18 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [1.6.0] - 2026-10-03
+
+### Amélioré
+
+#### Liserés d'entête : vert, jaune, rouge par défaut
+Les trois bandes proposées quand on active les liserés d'un entête suivaient l'ancien ordre des couleurs (vert, rouge, jaune). Elles suivent désormais l'ordre des métiers du site : vert, jaune, rouge. Les liserés déjà réglés gardent leurs couleurs.
+
+#### Tour : le logo d'Aurora dans l'illustration des versions
+Le script qui dessine l'illustration de la page « Livraison et mises à jour » (`tools/screenshots/compose-releases.mjs`) pose le logo propre à Aurora, « Lever du jour », à la place des bandes du site.
+
+---
+
 ## [1.5.0] - 2026-10-03
 
 ### Amélioré

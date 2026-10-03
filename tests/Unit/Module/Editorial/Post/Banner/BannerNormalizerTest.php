@@ -537,7 +537,7 @@ final class BannerNormalizerTest extends TestCase
         $stripes = $this->normalizer->normalizeLayout([])['stripes'];
 
         self::assertFalse($stripes['enabled']);
-        self::assertSame(['#34d399', '#bd4a55', '#cd8f31'], $stripes['colors']);
+        self::assertSame(['#34d399', '#cd8f31', '#bd4a55'], $stripes['colors']);
         self::assertSame('end', $stripes['side']);
     }
 

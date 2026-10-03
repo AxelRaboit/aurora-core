@@ -30,7 +30,7 @@ export const COLOR_OVERRIDE_KEYS = [
 export function emptyBannerStripes() {
     return {
         enabled: false,
-        colors: ["#34d399", "#bd4a55", "#cd8f31"],
+        colors: ["#34d399", "#cd8f31", "#bd4a55"],
         side: "end",
         thickness: 48,
         gap: 16,
