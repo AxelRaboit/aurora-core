@@ -89,7 +89,7 @@ const showLogo = computed({
                 v-model="summary"
                 :label="t('backend.studio.deliverables.settings.summary')"
                 :placeholder="t('backend.studio.deliverables.settings.summary_placeholder')"
-                :hint="t('backend.studio.deliverables.settings.summary_hint')"
+                :hint="t(withClient ? 'backend.studio.deliverables.settings.summary_hint' : 'backend.studio.deliverables.settings.summary_hint_studio')"
                 :rows="2"
             />
             <AppSelect
@@ -147,7 +147,7 @@ const showLogo = computed({
                 <h3 class="m-0 flex items-center gap-2 text-sm font-semibold text-primary">
                     <PanelTop class="h-4 w-4 text-muted" :stroke-width="2" /> {{ t("backend.studio.deliverables.settings.header_title") }}
                 </h3>
-                <p class="m-0 mt-0.5 text-xs text-muted">{{ t("backend.studio.deliverables.settings.header_hint") }}</p>
+                <p class="m-0 mt-0.5 text-xs text-muted">{{ t(withClient ? "backend.studio.deliverables.settings.header_hint" : "backend.studio.deliverables.settings.header_hint_studio") }}</p>
             </div>
             <AppInput
                 v-model="preparedFor"

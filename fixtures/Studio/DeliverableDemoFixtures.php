@@ -118,6 +118,37 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
             DeliverableScopeEnum::Shared,
         );
 
+        // Un partagé écrit par une collègue, et un second brouillon perso :
+        // chaque rayon a de quoi se lire, et la liste des partagés dit qui a
+        // écrit quoi.
+        $colleague = $this->users->findOneBy(['email' => 'marie.dupont@aurora.app', 'type' => UserTypeEnum::Backend->value]);
+        [, , , $strategyLook, $strategyZones, $strategyContent] = $this->strategy();
+        $this->deliverable(
+            $manager,
+            null,
+            'Ligne éditoriale, exemple pour un artisan',
+            'Les piliers, le ton et le rythme écrits pour un menuisier : l\'exemple que l\'équipe montre en rendez-vous.',
+            false,
+            $strategyLook,
+            $strategyZones,
+            $strategyContent,
+            $colleague instanceof CoreUserInterface ? $colleague : null,
+            DeliverableScopeEnum::Shared,
+        );
+        [, , , $reportLook, $reportZones, $reportContent] = $this->monthlyReport();
+        $this->deliverable(
+            $manager,
+            null,
+            'Bilan mensuel, nouvelle mise en page',
+            'Un essai de bilan plus court, avant de le proposer à l\'équipe.',
+            false,
+            $reportLook,
+            $reportZones,
+            $reportContent,
+            $author instanceof CoreUserInterface ? $author : null,
+            DeliverableScopeEnum::Personal,
+        );
+
         $manager->flush();
 
         if ($audit instanceof Deliverable) {
