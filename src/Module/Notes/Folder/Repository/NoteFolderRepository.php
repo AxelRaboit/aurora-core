@@ -234,6 +234,24 @@ class NoteFolderRepository extends ResolveTargetEntityRepository
         return null === $value ? null : new DateTimeImmutable((string) $value);
     }
 
+    /** Pushes every folder ranked after `$position` under a parent (or at a space's root) down by one. */
+    public function shiftAfter(NoteSpaceInterface $space, ?int $parentId, int $position): void
+    {
+        $qb = $this->createQueryBuilder('f')
+            ->update()
+            ->set('f.position', 'f.position + 1')
+            ->where('f.position > :position')
+            ->setParameter('position', $position);
+
+        if (null === $parentId) {
+            $qb->andWhere('f.space = :space')->andWhere('f.parent IS NULL')->setParameter('space', $space);
+        } else {
+            $qb->andWhere('IDENTITY(f.parent) = :parentId')->setParameter('parentId', $parentId);
+        }
+
+        $qb->getQuery()->execute();
+    }
+
     public function findMaxPositionForUserAndParent(NoteSpaceInterface $space, ?int $parentId): ?int
     {
         $qb = $this->createQueryBuilder('f')

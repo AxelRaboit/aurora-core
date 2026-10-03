@@ -6,6 +6,7 @@ settings:
 
 overrides:
   ws: '>=8.21.0'
+  braces: file:./tools/patched/braces
 
 importers:
 
@@ -1245,8 +1246,8 @@ packages:
     resolution: {integrity: sha512-YovQ3rzhaLMIrDjNDMkNS01tea93qhEhG5xy8f6+R0l+dw3Ki+5sCoIoI942iuLZTHWogWktgwVDhU09iNEimQ==}
     engines: {node: 20 || >=22}
 
-  braces@3.0.3:
-    resolution: {integrity: sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==}
+  braces@file:tools/patched/braces:
+    resolution: {directory: tools/patched/braces, type: directory}
     engines: {node: '>=8'}
 
   cacheable@2.5.0:
@@ -3255,7 +3256,7 @@ snapshots:
     dependencies:
       balanced-match: 4.0.4
 
-  braces@3.0.3:
+  braces@file:tools/patched/braces:
     dependencies:
       fill-range: 7.1.1
 
@@ -3861,7 +3862,7 @@ snapshots:
 
   micromatch@4.0.8:
     dependencies:
-      braces: 3.0.3
+      braces: file:tools/patched/braces
       picomatch: 2.3.2
 
   mime-db@1.52.0: {}

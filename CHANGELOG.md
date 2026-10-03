@@ -5,6 +5,53 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.331] - 2026-10-03
+
+### Amélioré
+
+#### Notes : ranger dossiers et notes dans l'ordre qu'on veut
+Dans l'arborescence des notes, on ne pouvait pas mettre une note avant un dossier : les dossiers passaient toujours d'abord, et une note lâchée au-dessus d'un dossier revenait en tête des notes. Dossiers et notes d'un même dossier partagent maintenant un seul ordre :
+- Au glisser-déposer, une note se lâche avant ou après un dossier et y reste, un dossier avant ou après une note aussi.
+- Le précédent / suivant du mode lecture et l'ordre des pages publiques d'un espace suivent ce même ordre.
+- Dans la bibliothèque, en tri manuel, monter ou descendre une carte d'un cran garde la place des éléments de l'autre nature.
+- Une note ou un dossier créé, importé ou déplacé dans un autre dossier arrive après tout ce qu'il contient (avant, un déplacement gardait son ancien rang, une place au hasard).
+- Une migration renumérote l'existant sans rien changer à l'affichage : vérifiée sur une copie de la production (27 dossiers, 91 notes), l'ordre complet est identique avant et après.
+
+#### Notes : dupliquer, et partir d'un modèle
+- **Dupliquer** (menu Actions d'une note) : la copie, nommée « Copie de … », se range juste sous l'original, avec son texte, ses étiquettes, son image d'entête et son apparence ; ni ses liens de partage ni son épingle ne la suivent.
+- **Modèles** : « Utiliser comme modèle » fait d'une note un point de départ (brief client, compte rendu, procédure). Elle reste une note ordinaire, marquée d'une icône dans l'arborescence. « Ajouter » propose alors « Partir de » : la note neuve reprend le texte, l'apparence et les étiquettes du modèle, se range en dernier là où on la crée, et `{{date}}` y devient la date du jour. Un modèle d'un autre espace apporte ses images avec lui.
+
+#### Notes : le plan de la note
+Le panneau latéral d'une note, renommé « Sur cette note », gagne un onglet **Plan** à côté des liens entrants et des mentions : les titres de la note, en retrait selon leur niveau, et un clic qui y mène, dans l'aperçu comme en écriture (le curseur se place sur la ligne). En pied, le nombre de mots et le temps de lecture. Le plan se lit dans le texte, au fil de la frappe, sans rien demander au serveur ; ce qui est dans un bloc de code ne compte ni comme titre ni comme mot.
+
+#### Notes : l'historique des versions
+« Historique des versions » (menu Actions d'une note) liste les états passés de la note, avec leur date et leur auteur, et montre ce qui a changé depuis chacun : les lignes retirées en rouge, les ajoutées en vert, ou la version entière d'un clic. « Restaurer cette version » la remet en place après confirmation, en gardant d'abord le texte courant comme une version : revenir en arrière ne fait rien perdre et se défait de la même façon.
+- Une version est gardée quand on modifie une note, mais pas à chaque frappe : au plus une toutes les 10 minutes, et 50 par note au plus. Les deux valeurs se règlent dans les Réglages, onglet Notes (0 pour tout garder).
+- Le titre et le texte des versions sont chiffrés, comme ceux des notes.
+- Une image retirée du texte reste en stockage tant qu'une version passée la montre ; elle part avec la note quand celle-ci est supprimée pour de bon.
+- Dupliquer une note ou partir d'un modèle copie maintenant ses images sous de nouveaux noms : la copie et l'original ne partagent plus de fichier, que le nettoyage de l'un pouvait retirer à l'autre.
+
+#### Notes : imprimer, ou exporter en PDF
+« Imprimer ou exporter en PDF » (menu Actions d'une note) ouvre la note en mode lecture et lance l'impression du navigateur, où « Enregistrer en PDF » se trouve aussi. Le lecteur gagne un bouton Imprimer, et Ctrl+P donne le même résultat, sur le lecteur comme sur une note partagée.
+- Sur papier, la note seule : ni arborescence, ni barre, ni pagination, ni liste d'un partage.
+- Toujours en thème clair, même pour qui travaille en sombre ; son thème revient après l'impression.
+- Une apparence claire (sépia, papier, menthe) s'imprime habillée, encadrés et blocs de code avec leur fond ; l'ardoise et la nuit s'impriment sur papier blanc plutôt qu'en page d'encre.
+- Les images sont chargées avant l'ouverture du dialogue, et un titre, un tableau, un bloc de code ou une image ne se coupent pas entre deux pages.
+- L'impression du navigateur plutôt qu'un PDF calculé par le serveur : dompdf, qui sert les contrats, ne connaît ni flex ni grid, et perdrait les encadrés.
+
+### Corrigé
+- **Un gras en début d'encadré restait seul sur sa ligne**, dans une note. Le bloc « Encadré » des publications porte la même classe `callout` et met son gras sur une ligne à lui, en guise de titre ; dans une note, où le titre est l'en-tête, la phrase reprenait sous le gras par sa virgule. La règle ne s'applique plus aux notes.
+- Le bouton du panneau latéral d'une note disait encore « Afficher les liens entrants » alors que le panneau porte aussi le plan : il dit maintenant « Afficher le plan et les liens ».
+- **`braces` est corrigé, plus seulement ignoré.** L'avis GHSA-vfj7-8cjw-p6xm (braces <= 3.0.3, aucune version corrigée publiée) visait des fonctions récursives sans limite de profondeur : cinq mille accolades imbriquées, sous la limite de longueur, faisaient planter Node sur « Maximum call stack size exceeded ». Une copie de braces 3.0.3 corrigée vit dans `tools/patched/braces` : elle refuse une imbrication de plus de 500 niveaux, comme braces refuse déjà une entrée trop longue, et un `override` de `pnpm-workspace.yaml` l'impose à tout l'arbre. L'avis n'est plus ignoré : `pnpm audit` ne trouve plus rien, avec pnpm 10 (la CI) comme 11. Un `file:` plutôt qu'un `pnpm patch`, que les deux versions de pnpm n'écrivent pas de la même façon dans le lockfile. Un test Vitest vérifie que la copie servie est bien la corrigée.
+
+### Démonstration
+Le carnet de notes de la démonstration est réécrit pour le tour : des fiches avec encadrés de plusieurs couleurs, tableaux alignés, listes à cocher par section, blocs de code, images à leur taille et titres sur trois niveaux ; deux modèles dans un dossier « Modèles » ; trois versions passées pour la fiche du Cabinet Verrier ; des dates de modification étalées sur six semaines au lieu de l'heure du chargement ; une note qui passe devant un dossier. Le bandeau du sommaire, une affiche au logo de Pexels, est remplacé.
+
+### Dans aurora-client
+Rien à faire au-delà de `make aurora-update` : l'audit de `vendor/axelraboit/aurora` profite de la même copie.
+
+---
+
 ## [0.9.330] - 2026-10-03
 
 ### Corrigé

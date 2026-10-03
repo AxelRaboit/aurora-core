@@ -335,6 +335,72 @@ describe("the library", () => {
         expect(wrapper.emitted("changed")).toBeTruthy();
     });
 
+    /**
+     * Dossiers et notes partagent un seul ordre, celui que l'arborescence
+     * montre mêlé. Déplacer une note d'un cran ne doit pas écraser le rang
+     * du dossier qui se trouve entre elles.
+     */
+    it("keeps a folder's rank when a note moves past its neighbour", async () => {
+        window.localStorage.setItem("aurora.notes.library.sort", "manual");
+
+        const notesApi = {
+            ...apis().notesApi,
+            reorder: vi.fn().mockResolvedValue({ ok: true, payload: {} }),
+        };
+        const foldersApi = {
+            ...apis().foldersApi,
+            reorder: vi.fn().mockResolvedValue({ ok: true, payload: {} }),
+        };
+
+        const wrapper = render({
+            notesApi,
+            foldersApi,
+            folders: [
+                {
+                    id: 5,
+                    parentId: null,
+                    name: "Dossier",
+                    position: 1,
+                    color: null,
+                },
+            ],
+            notes: [
+                { ...NOTES[0], position: 0 },
+                {
+                    id: 14,
+                    folderId: null,
+                    title: "Seconde",
+                    tags: [],
+                    position: 2,
+                    updatedAt: "2026-09-19T10:00:00+00:00",
+                    createdAt: "2026-06-01T10:00:00+00:00",
+                },
+            ],
+        });
+
+        const first = wrapper
+            .findAll("article")
+            .find((one) => one.text().includes("À la racine"));
+
+        await rowMenu(first).trigger("click");
+        await flushPromises();
+
+        [...document.body.querySelectorAll("button")]
+            .find((b) => b.textContent.includes("sort.move_up"))
+            .click();
+        await flushPromises();
+
+        // Avant : note 11, dossier 5, note 14. La note 11 passe après sa
+        // voisine 14, et le dossier garde sa place devant elles.
+        expect(foldersApi.reorder).toHaveBeenCalledWith([
+            { id: 5, parentId: null, position: 0 },
+        ]);
+        expect(notesApi.reorder).toHaveBeenCalledWith([
+            { id: 14, folderId: null, position: 1 },
+            { id: 11, folderId: null, position: 2 },
+        ]);
+    });
+
     it("keeps the order actions out of a sort that would undo them", async () => {
         const wrapper = render({ folders: [] });
 

@@ -72,6 +72,14 @@ abstract class AbstractMarkdownNote implements MarkdownNoteInterface
     protected int $position = 0;
 
     /**
+     * Une note qui sert de point de départ : « Nouvelle note depuis un
+     * modèle » en fait une copie. Elle reste une note comme les autres, qu'on
+     * lit, range et modifie.
+     */
+    #[ORM\Column(name: 'is_template', type: Types::BOOLEAN, options: ['default' => false])]
+    protected bool $template = false;
+
+    /**
      * Avance à chaque écriture du contenu, et seulement là.
      *
      * Pas le verrou de Doctrine : lui avance à chaque écriture de la ligne,
@@ -266,6 +274,18 @@ abstract class AbstractMarkdownNote implements MarkdownNoteInterface
     public function setPosition(int $position): static
     {
         $this->position = $position;
+
+        return $this;
+    }
+
+    public function isTemplate(): bool
+    {
+        return $this->template;
+    }
+
+    public function setTemplate(bool $template): static
+    {
+        $this->template = $template;
 
         return $this;
     }

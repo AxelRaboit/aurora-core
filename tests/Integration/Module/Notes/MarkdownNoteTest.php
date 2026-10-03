@@ -4,18 +4,21 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Integration\Module\Notes;
 
+use Aurora\Module\Configuration\Setting\Service\SiteDateFormatter;
 use Aurora\Module\Notes\Folder\Entity\NoteFolder;
 use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNote;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteArchive;
+use Aurora\Module\Notes\Markdown\View\MarkdownNotesViewBuilder;
 use Aurora\Module\Notes\Space\Entity\NoteSpace;
 use Aurora\Module\Notes\Space\Enum\NoteSpaceAccessEnum;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Tests\Integration\IntegrationTestCase;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -435,6 +438,258 @@ final class MarkdownNoteTest extends IntegrationTestCase
         self::assertSame($parent->getId(), $freshB?->getParent()?->getId());
         self::assertSame(0, $freshB?->getPosition());
         self::assertSame(1, $freshA?->getPosition());
+    }
+
+    /**
+     * Dossiers et notes d'un dossier partagent un seul ordre.
+     *
+     * Une note créée prenait le rang qui suivait les notes seulement : à côté
+     * de deux sous-dossiers de rangs 0 et 1, elle repartait de 0 et se glissait
+     * entre eux. Elle arrive maintenant après tout ce que le dossier contient.
+     */
+    public function testANewNoteComesAfterTheFoldersOfItsFolder(): void
+    {
+        $parent = $this->folder($this->owner, 'Parent');
+        $this->folder($this->owner, 'A', $parent)->setPosition(0);
+        $this->folder($this->owner, 'B', $parent)->setPosition(1);
+        $this->entityManager->flush();
+
+        $this->client->loginUser($this->owner, 'admin');
+        $body = $this->post('backend_notes_markdown_create', ['title' => 'Tâches', 'folderId' => $parent->getId()]);
+        self::assertResponseIsSuccessful();
+
+        $note = $this->entityManager->find(MarkdownNote::class, $body['note']['id']);
+        self::assertInstanceOf(MarkdownNote::class, $note);
+        $this->created[] = [MarkdownNote::class, (int) $note->getId()];
+
+        self::assertSame(2, $note->getPosition());
+    }
+
+    /** Une note qui change de dossier arrive après tout ce qu'il contient. */
+    public function testAMovedNoteLandsAfterEverythingInItsNewFolder(): void
+    {
+        $target = $this->folder($this->owner, 'Cible');
+        $this->folder($this->owner, 'Sous-dossier', $target)->setPosition(0);
+        $this->note($this->owner, 'Déjà là', $target)->setPosition(1);
+        $moving = $this->note($this->owner, 'Arrive');
+        $moving->setPosition(0);
+        $this->entityManager->flush();
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->post('backend_notes_markdown_move', ['folderId' => $target->getId()], ['id' => $moving->getId()]);
+        self::assertResponseIsSuccessful();
+
+        $this->entityManager->clear();
+        $fresh = $this->entityManager->find(MarkdownNote::class, $moving->getId());
+
+        self::assertSame($target->getId(), $fresh?->getFolder()?->getId());
+        self::assertSame(2, $fresh?->getPosition());
+    }
+
+    /**
+     * L'ordre de lecture suit celui de l'arborescence, dossiers et notes
+     * mêlés : une note rangée avant un dossier se lit avant les notes de ce
+     * dossier. C'est l'ordre du précédent / suivant et de la page publique.
+     */
+    public function testTheReadingOrderMixesFoldersAndNotes(): void
+    {
+        $space = new NoteSpace();
+        $space->setOwner($this->owner)->setName('Ordre')->setAccess(NoteSpaceAccessEnum::Backoffice);
+        $this->entityManager->persist($space);
+        $this->entityManager->flush();
+        $this->created[] = [NoteSpace::class, (int) $space->getId()];
+
+        $folder = new NoteFolder();
+        $folder->setUser($this->owner)->setSpace($space)->setName('Dossier')->setPosition(1);
+        $this->entityManager->persist($folder);
+        $this->entityManager->flush();
+        $this->created[] = [NoteFolder::class, (int) $folder->getId()];
+
+        $before = $this->note($this->owner, 'Avant le dossier');
+        $before->setSpace($space)->setPosition(0);
+        $inside = $this->note($this->owner, 'Dans le dossier', $folder);
+        $inside->setPosition(0);
+        $this->entityManager->flush();
+
+        $view = static::getContainer()->get(MarkdownNotesViewBuilder::class);
+
+        self::assertSame($before->getId(), $view->firstInSpace($space));
+
+        $before->setPosition(2);
+        $this->entityManager->flush();
+
+        self::assertSame($inside->getId(), $view->firstInSpace($space));
+    }
+
+    /**
+     * Dupliquer range la copie juste sous l'original, comme Craft et Notion :
+     * les voisins d'après descendent d'un rang, dossiers compris.
+     */
+    public function testDuplicatingPutsTheCopyRightUnderTheOriginal(): void
+    {
+        $folder = $this->folder($this->owner, 'Briefs');
+        $original = $this->note($this->owner, 'Brief', $folder, '# Objectif');
+        $original->setPosition(0)->setTags(['client']);
+        $sub = $this->folder($this->owner, 'Archives', $folder);
+        $sub->setPosition(1);
+        $after = $this->note($this->owner, 'Après', $folder);
+        $after->setPosition(2);
+        $this->entityManager->flush();
+
+        $this->client->loginUser($this->owner, 'admin');
+        $body = $this->post('backend_notes_markdown_duplicate', [], ['id' => $original->getId()]);
+        self::assertResponseIsSuccessful();
+        $this->created[] = [MarkdownNote::class, (int) $body['note']['id']];
+
+        $this->entityManager->clear();
+        $copy = $this->entityManager->find(MarkdownNote::class, $body['note']['id']);
+
+        self::assertSame('Copie de Brief', $copy?->getTitle());
+        self::assertSame('# Objectif', $copy?->getContent());
+        self::assertSame(['client'], $copy?->getTags());
+        self::assertSame($folder->getId(), $copy?->getFolder()?->getId());
+        self::assertSame(1, $copy?->getPosition());
+        self::assertSame(2, $this->entityManager->find(NoteFolder::class, $sub->getId())?->getPosition());
+        self::assertSame(3, $this->entityManager->find(MarkdownNote::class, $after->getId())?->getPosition());
+    }
+
+    /** Une note qu'on ne peut pas écrire ne se duplique pas. */
+    public function testDuplicatingAnotherPersonsNoteIsRefused(): void
+    {
+        $note = $this->note($this->owner, 'Personnel');
+
+        $this->client->loginUser($this->other, 'admin');
+        $this->post('backend_notes_markdown_duplicate', [], ['id' => $note->getId()]);
+
+        self::assertResponseStatusCodeSame(404);
+    }
+
+    /**
+     * Un modèle devient une note neuve, rangée en dernier là où on la crée,
+     * avec la date du jour à la place de son repère. Le modèle reste intact.
+     */
+    public function testATemplateBecomesANewNoteWithTodaysDate(): void
+    {
+        $template = $this->note($this->owner, 'Compte rendu', null, "# Réunion du {{date}}\n\n- Présents :");
+        $target = $this->folder($this->owner, 'Réunions');
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->post('backend_notes_markdown_template', ['template' => true], ['id' => $template->getId()]);
+        self::assertResponseIsSuccessful();
+
+        $body = $this->post('backend_notes_markdown_from_template', ['folderId' => $target->getId(), 'title' => 'Point Lumen'], ['id' => $template->getId()]);
+        self::assertResponseIsSuccessful();
+        $this->created[] = [MarkdownNote::class, (int) $body['note']['id']];
+
+        $this->entityManager->clear();
+        $note = $this->entityManager->find(MarkdownNote::class, $body['note']['id']);
+        $today = static::getContainer()->get(SiteDateFormatter::class)->date(new DateTimeImmutable(), 'fr');
+
+        self::assertSame('Point Lumen', $note?->getTitle());
+        self::assertSame("# Réunion du {$today}\n\n- Présents :", $note?->getContent());
+        self::assertSame($target->getId(), $note?->getFolder()?->getId());
+        self::assertFalse($note?->isTemplate());
+        self::assertTrue($this->entityManager->find(MarkdownNote::class, $template->getId())?->isTemplate());
+        self::assertStringContainsString('{{date}}', (string) $this->entityManager->find(MarkdownNote::class, $template->getId())?->getContent());
+    }
+
+    /** Seule une note marquée comme modèle sert de modèle. */
+    public function testAnOrdinaryNoteIsNotATemplate(): void
+    {
+        $note = $this->note($this->owner, 'Ordinaire');
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->post('backend_notes_markdown_from_template', [], ['id' => $note->getId()]);
+
+        self::assertResponseStatusCodeSame(404);
+    }
+
+    /**
+     * L'historique : une modification garde l'état qu'elle remplace, mais pas
+     * à chaque frappe. Deux enregistrements à quelques secondes ne font
+     * qu'une version (l'intervalle des réglages).
+     */
+    public function testEditingANoteKeepsThePreviousVersionOncePerInterval(): void
+    {
+        $note = $this->note($this->owner, 'Brief', null, 'Version 1');
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->post('backend_notes_markdown_update', ['title' => 'Brief', 'content' => 'Version 2'], ['id' => $note->getId()]);
+        self::assertResponseIsSuccessful();
+        $this->post('backend_notes_markdown_update', ['title' => 'Brief', 'content' => 'Version 3'], ['id' => $note->getId()]);
+        self::assertResponseIsSuccessful();
+
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_revisions', ['id' => $note->getId()]));
+        $revisions = json_decode((string) $this->client->getResponse()->getContent(), true)['revisions'];
+
+        self::assertCount(1, $revisions);
+
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_revision', ['id' => $note->getId(), 'revisionId' => $revisions[0]['id']]));
+        self::assertSame('Version 1', json_decode((string) $this->client->getResponse()->getContent(), true)['revision']['content']);
+    }
+
+    /** Restaurer remet une version et garde d'abord l'état courant : rien ne se perd. */
+    public function testRestoringAVersionKeepsTheCurrentStateFirst(): void
+    {
+        $note = $this->note($this->owner, 'Brief', null, 'Ancien texte');
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->post('backend_notes_markdown_update', ['title' => 'Brief', 'content' => 'Nouveau texte'], ['id' => $note->getId()]);
+
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_revisions', ['id' => $note->getId()]));
+        $old = json_decode((string) $this->client->getResponse()->getContent(), true)['revisions'][0]['id'];
+
+        $body = $this->post('backend_notes_markdown_revision_restore', [], ['id' => $note->getId(), 'revisionId' => $old]);
+        self::assertResponseIsSuccessful();
+        self::assertSame('Ancien texte', $body['note']['content']);
+
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_revisions', ['id' => $note->getId()]));
+        $revisions = json_decode((string) $this->client->getResponse()->getContent(), true)['revisions'];
+        self::assertCount(2, $revisions);
+
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_revision', ['id' => $note->getId(), 'revisionId' => $revisions[0]['id']]));
+        self::assertSame('Nouveau texte', json_decode((string) $this->client->getResponse()->getContent(), true)['revision']['content']);
+    }
+
+    /**
+     * Une image retirée du texte reste tant qu'une version passée la montre :
+     * sinon restaurer cette version rendrait une image cassée.
+     */
+    public function testAnImageOnlyAnOldVersionShowsIsKept(): void
+    {
+        $this->client->loginUser($this->owner, 'admin');
+
+        $source = (string) tempnam(sys_get_temp_dir(), 'aurora-test-image-');
+        file_put_contents($source, (string) base64_decode(
+            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+            true,
+        ));
+        $this->client->request(
+            'POST',
+            $this->urlGenerator->generate('backend_notes_markdown_images_upload'),
+            files: ['image' => new UploadedFile($source, 'pixel.png', 'image/png', null, true)],
+        );
+        $url = json_decode((string) $this->client->getResponse()->getContent(), true)['url'];
+
+        $note = $this->post('backend_notes_markdown_create', ['title' => 'Illustrée', 'content' => sprintf('![Un pixel](%s)', $url)]);
+        $this->created[] = [MarkdownNote::class, (int) $note['note']['id']];
+
+        $this->post('backend_notes_markdown_update', ['title' => 'Illustrée', 'content' => 'Sans image'], ['id' => $note['note']['id']]);
+        self::assertResponseIsSuccessful();
+
+        $this->client->request('GET', $url);
+        self::assertResponseIsSuccessful();
+    }
+
+    /** L'historique d'une note se lit avec la note, pas sans. */
+    public function testAnotherPersonCannotReadTheHistory(): void
+    {
+        $note = $this->note($this->owner, 'Personnel', null, 'Secret');
+
+        $this->client->loginUser($this->other, 'admin');
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_revisions', ['id' => $note->getId()]));
+
+        self::assertResponseStatusCodeSame(404);
     }
 
     /**

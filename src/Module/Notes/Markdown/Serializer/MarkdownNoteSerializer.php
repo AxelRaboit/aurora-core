@@ -51,6 +51,7 @@ class MarkdownNoteSerializer implements MarkdownNoteSerializerInterface
             'title' => $note->getTitle(),
             'tags' => $note->getTags(),
             'position' => $note->getPosition(),
+            'template' => $note->isTemplate(),
             'createdAt' => $note->getCreatedAt()->format(DateTimeInterface::ATOM),
             'updatedAt' => $note->getUpdatedAt()->format(DateTimeInterface::ATOM),
             'excerpt' => $this->excerpts[(int) $note->getId()] ?? null,

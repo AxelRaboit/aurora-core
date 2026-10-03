@@ -64,6 +64,10 @@ interface MarkdownNoteInterface extends TimestampableInterface
 
     public function setPosition(int $position): static;
 
+    public function isTemplate(): bool;
+
+    public function setTemplate(bool $template): static;
+
     public function getDeletedAt(): ?DateTimeImmutable;
 
     public function setDeletedAt(?DateTimeImmutable $deletedAt): static;

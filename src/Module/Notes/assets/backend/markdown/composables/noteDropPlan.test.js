@@ -16,6 +16,10 @@ const NOTES = [
     { id: 13, title: "Campus", folderId: 2, position: 0 },
 ];
 
+// Les frères d'un dossier, dossiers et notes mêlés, dans l'ordre affiché.
+const F = (id) => ({ kind: "folder", id });
+const N = (id) => ({ kind: "note", id });
+
 const plan = (dragged, target, zone) =>
     planDrop({ dragged, target, zone, folders: FOLDERS, notes: NOTES });
 
@@ -68,7 +72,7 @@ describe("planDrop", () => {
             fromFolderId: 3,
             spaceId: null,
             fromSpaceId: null,
-            order: [13, 12],
+            order: [N(13), N(12)],
         });
     });
 
@@ -77,7 +81,7 @@ describe("planDrop", () => {
             plan({ kind: "note", id: 11 }, { kind: "note", id: 10 }, "before"),
         ).toMatchObject({
             folderId: 1,
-            order: [11, 10],
+            order: [F(4), N(11), N(10)],
         });
     });
 
@@ -87,7 +91,7 @@ describe("planDrop", () => {
         ).toMatchObject({
             folderId: 1,
             fromFolderId: 3,
-            order: [10, 12, 11],
+            order: [F(4), N(10), N(12), N(11)],
         });
     });
 
@@ -101,20 +105,29 @@ describe("planDrop", () => {
         ).toMatchObject({
             folderId: null,
             fromFolderId: 1,
-            order: [1, 2, 3, 4],
+            order: [F(1), F(2), F(3), F(4)],
         });
     });
 
     /**
-     * Folders always come before notes on screen, so a note dropped "before"
-     * a folder lands first among the notes: the screen cannot show more.
+     * Folders and notes share one order: a note dropped before a folder
+     * stays before it, which the tree used to refuse.
      */
-    it("puts a note first among the notes when dropped before a folder", () => {
+    it("keeps a note before the folder it was dropped before", () => {
         expect(
             plan({ kind: "note", id: 13 }, { kind: "folder", id: 4 }, "before"),
         ).toMatchObject({
             folderId: 1,
-            order: [13, 10, 11],
+            order: [N(13), F(4), N(10), N(11)],
+        });
+    });
+
+    it("puts a folder after a note when dropped there", () => {
+        expect(
+            plan({ kind: "folder", id: 4 }, { kind: "note", id: 11 }, "after"),
+        ).toMatchObject({
+            folderId: 1,
+            order: [N(10), N(11), F(4)],
         });
     });
 
@@ -183,7 +196,7 @@ describe("planDrop across spaces", () => {
             folderId: null,
             spaceId: 7,
             fromSpaceId: 1,
-            order: [11, 10],
+            order: [F(2), N(11), N(10)],
         });
     });
 
@@ -195,7 +208,7 @@ describe("planDrop across spaces", () => {
                 { kind: "folder", id: 2 },
                 "inside",
             ),
-        ).toMatchObject({ folderId: 2, spaceId: 7, order: [12, 10] });
+        ).toMatchObject({ folderId: 2, spaceId: 7, order: [N(12), N(10)] });
     });
 
     /** La racine d'un espace ne compte pas les notes d'un autre. */
@@ -206,7 +219,7 @@ describe("planDrop across spaces", () => {
                 { kind: "folder", id: null, spaceId: 1 },
                 "inside",
             ),
-        ).toMatchObject({ spaceId: 1, order: [10, 11] });
+        ).toMatchObject({ spaceId: 1, order: [F(1), N(10), N(11)] });
     });
 
     /** Revenir à la racine de son propre espace, déjà en place : rien à faire. */

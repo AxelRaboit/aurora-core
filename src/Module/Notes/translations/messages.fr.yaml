@@ -9,6 +9,12 @@ backend:
     notes_markdown_image_quality_pct:
       label: Notes Markdown - Qualité d'encodage WebP (%)
       description: "Notes Markdown : qualité WebP appliquée au redimensionnement, entre 0 et 100. Recommandé : 85 (bon compromis taille/qualité)."
+    notes_markdown_revisions_limit:
+      label: Notes Markdown - Versions gardées par note
+      description: "Notes Markdown : combien de versions passées chaque note garde dans son historique, les plus anciennes partant d'abord. 0 les garde toutes. Recommandé : 50."
+    notes_markdown_revision_interval_minutes:
+      label: Notes Markdown - Écart entre deux versions (minutes)
+      description: "Notes Markdown : l'éditeur enregistre toutes les quelques secondes ; une nouvelle version n'est gardée que si la précédente a au moins ce nombre de minutes. Restaurer une version garde toujours l'état courant. Recommandé : 10."
   permissions:
     names:
       notes:
@@ -64,6 +70,7 @@ notes:
       step_3: "Reliez les notes avec [[Titre]] : le graphe montre ces liens entre toutes les notes que vous pouvez lire."
       step_4: "Les étiquettes filtrent la bibliothèque, et « Gérer les tags » les renomme ou les fusionne sur toutes vos notes."
       step_5: "Une note se partage aussi par un lien en lecture seule ; même un administrateur ne lit pas vos notes privées."
+      step_6: "Le menu Actions d'une note la duplique, en fait un modèle, revient à une version passée ou l'imprime en PDF."
     share:
       button: Partager par un lien
       title: Partager cette note par un lien
@@ -333,6 +340,45 @@ notes:
       reload: 'Recharger sa version'
       overwrite: 'Écraser avec la mienne'
     breadcrumb: 'Emplacement de la note'
+    outline:
+      tab: 'Plan'
+      panel_title: 'Sur cette note'
+      empty: 'Aucun titre dans cette note'
+      empty_hint: 'Les titres de la note, écrits avec # ou ##, apparaissent ici : un clic y mène.'
+      words: 'Aucun mot | 1 mot | {count} mots'
+      minutes: '{minutes} min de lecture'
+    print:
+      open: 'Imprimer ou exporter en PDF'
+      action: 'Imprimer'
+    revisions:
+      open: 'Historique des versions'
+      title: 'Historique de la note'
+      empty: 'Aucune version passée pour l''instant'
+      empty_hint: 'Une version est gardée quand vous modifiez la note, au plus une toutes les quelques minutes (réglages, onglet Notes).'
+      no_author: 'Auteur inconnu'
+      since: 'Depuis cette version : {added} ligne(s) ajoutée(s), {removed} retirée(s)'
+      show_whole: 'Voir la version entière'
+      show_changes: 'Voir les changements'
+      title_was: 'Le titre était alors : {title}'
+      restore: 'Restaurer cette version'
+      restore_now: 'Restaurer maintenant'
+      restore_confirm: 'Le texte actuel sera gardé comme une version : vous pourrez y revenir.'
+      restored: 'Version restaurée'
+    duplicate:
+      action: 'Dupliquer'
+      title: 'Copie de {title}'
+      done: 'Note dupliquée'
+      failed: 'La note n''a pas pu être dupliquée.'
+    template:
+      mark: 'Utiliser comme modèle'
+      unmark: 'Ne plus utiliser comme modèle'
+      marked: 'Cette note sert maintenant de modèle.'
+      unmarked: 'Cette note n''est plus un modèle.'
+      badge: 'Modèle'
+      start_from: 'Partir de'
+      blank: 'Une note vide'
+      hint: '{marker} y devient la date du jour.'
+      failed: 'La note n''a pas pu être créée depuis ce modèle.'
     add:
       space: 'Espace'
       create_space: 'Créer l''espace'
@@ -415,7 +461,7 @@ notes:
         description: Créez quelques notes reliées par [[wiki-links]] pour voir le graphe.
     links:
       title: Liens
-      open: Afficher les liens entrants
+      open: Afficher le plan et les liens
       close: Fermer le panneau
       # « Backlinks » restait en anglais dans un écran qui dit « Afficher les
       # liens entrants » deux boutons plus loin, et dans un produit dont la

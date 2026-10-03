@@ -66,6 +66,7 @@ import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppSelectionCheck from "@/shared/components/feedback/AppSelectionCheck.vue";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { useNoteLibrary } from "@notes/backend/markdown/composables/useNoteLibrary.js";
+import { compareSiblings } from "@notes/backend/markdown/composables/noteSiblingOrder.js";
 import { useFoldable } from "@notes/backend/markdown/composables/useFoldable.js";
 import { useNotePreview } from "@notes/backend/markdown/composables/useNotePreview.js";
 import { useMarkdownRenderer } from "@notes/backend/markdown/composables/useMarkdownRenderer.js";
@@ -1030,26 +1031,46 @@ async function nudge(kind, item, delta) {
 
     if (from < 0 || to < 0 || to >= list.length) return;
 
-    list.splice(to, 0, ...list.splice(from, 1));
+    // Le voisin qu'on dépasse, celui qui est à côté à l'écran.
+    const neighbour = list[to];
 
-    // Les positions se comptent dans l'ordre croissant, pas dans celui de
-    // l'écran : en ordre décroissant, « monter » veut dire une position plus
-    // grande, et numéroter ce qu'on voit inverserait la liste à chaque clic.
-    const ordered = "desc" === direction.value ? [...list].reverse() : list;
+    // Dossiers et notes du dossier partagent un seul ordre, celui que
+    // l'arborescence montre mêlé : la carte change de place avec son voisin
+    // dans cet ordre commun, sans toucher au rang des éléments de l'autre
+    // nature. Renuméroter une seule nature de 0 à n-1, comme avant,
+    // écraserait l'ordre de l'autre.
+    const parentOf = (value) => (null == value || "" === value ? null : Number(value));
+    const inFolder = (one, key) => parentOf(one[key]) === parentOf(currentFolderId.value);
+    const combined = [
+        ...props.folders.filter((one) => inFolder(one, "parentId")).map((one) => ({ kind: "folder", id: Number(one.id), position: one.position })),
+        ...props.notes.filter((one) => inFolder(one, "folderId")).map((one) => ({ kind: "note", id: Number(one.id), position: one.position })),
+    ].sort(compareSiblings);
 
-    // Toute la liste repart avec des positions contiguës : renuméroter deux
-    // lignes suffirait tant que personne n'a jamais partagé une position,
-    // et une importation en donne toujours.
-    const entries = ordered.map((one, position) =>
-        "folder" === kind
-            ? { id: Number(one.id), parentId: currentFolderId.value, position }
-            : { id: Number(one.id), folderId: currentFolderId.value, position },
-    );
+    const at = (target) => combined.findIndex((one) => one.kind === kind && one.id === Number(target.id));
+    const moving = combined.splice(at(item), 1)[0];
+    const anchor = at(neighbour);
 
-    const { ok, reported } =
-        "folder" === kind
-            ? await props.foldersApi.reorder(entries)
-            : await props.notesApi.reorder(entries);
+    if (!moving || anchor < 0) return;
+
+    // Vers les positions croissantes, l'élément passe après son voisin ;
+    // vers les décroissantes, avant. En ordre décroissant, « monter » à
+    // l'écran va vers les positions croissantes.
+    const towardsHigher = ("desc" === direction.value) === (delta < 0);
+    combined.splice(towardsHigher ? anchor + 1 : anchor, 0, moving);
+
+    const folderEntries = [];
+    const noteEntries = [];
+    combined.forEach((one, position) => {
+        if ("folder" === one.kind) folderEntries.push({ id: one.id, parentId: currentFolderId.value, position });
+        else noteEntries.push({ id: one.id, folderId: currentFolderId.value, position });
+    });
+
+    const results = await Promise.all([
+        folderEntries.length ? props.foldersApi.reorder(folderEntries) : { ok: true },
+        noteEntries.length ? props.notesApi.reorder(noteEntries) : { ok: true },
+    ]);
+    const failed = results.find((result) => !result.ok);
+    const { ok, reported } = failed ?? { ok: true, reported: false };
 
     if (!ok) {
         if (!reported) toast.error(t("notes.markdown.errors.reorder_failed"));
@@ -1498,7 +1519,7 @@ defineExpose({
              touchait les bords. -->
         <AppGuide :title="t('notes.markdown.guide.title')" storage-key="notes-library" class="mx-3 mt-3">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
-                <li v-for="step in 5" :key="step">{{ t(`notes.markdown.guide.step_${step}`) }}</li>
+                <li v-for="step in 6" :key="step">{{ t(`notes.markdown.guide.step_${step}`) }}</li>
             </ol>
         </AppGuide>
 
