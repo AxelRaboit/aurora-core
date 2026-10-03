@@ -9,6 +9,18 @@
     {{ include('Frontend/themes/default/partials/head.html.twig') }}
 </head>
 <body class="aurora-front min-h-screen bg-bg text-primary flex flex-col">
+    {# La barre de lecture, sur toutes les pages du site et plus seulement sur
+       les publications : la liste d'un type de contenu ou d'une rubrique se
+       lit et se fait défiler pareil, et l'absence de la barre y passait pour
+       un oubli. Fixe, posée hors du flux qu'elle mesure ; sur une page trop
+       courte pour défiler elle reste vide. Le thème actif peut la couper
+       (réglage « Barre de lecture »). #}
+    {% block reading_progress %}
+        {% if themeContext.readingProgress() %}
+            <div {{ vue_component('editorial/frontend/ReadingProgress', {}) }}></div>
+        {% endif %}
+    {% endblock %}
+
     {% set alternatesByLocale = {} %}
     {% for alt in alternates %}
         {% set alternatesByLocale = alternatesByLocale|merge({(alt.locale): alt.url}) %}
@@ -30,7 +42,9 @@
        back for. `supports-[backdrop-filter]` is what keeps the fallback
        honest - without the test, a browser that cannot blur would render the
        header at 80% opacity over the moving content underneath. #}
-    <header class="sticky top-0 z-40 border-b border-line">
+    {# `chromeClass` : posé par une publication qui veut sa topbar et son pied
+       à ses couleurs (accent et survols), vide partout ailleurs. #}
+    <header class="sticky top-0 z-40 border-b border-line{{ chromeClass|default('') ? ' ' ~ chromeClass }}">
         {# Le flou est posé sur une couche à lui plutôt que sur l'en-tête.
            `backdrop-filter` fait de son élément le bloc conteneur de ses
            descendants `fixed` : le panneau du tiroir, en `inset-y-0`, s'arrêtait
@@ -102,7 +116,7 @@
     </main>
 
     {% block frontend_footer %}
-    <footer class="aurora-surface aurora-surface-footer border-t border-line mt-12">
+    <footer class="aurora-surface aurora-surface-footer border-t border-line mt-12{{ chromeClass|default('') ? ' ' ~ chromeClass }}">
         <div class="max-w-7xl mx-auto px-4 py-6 space-y-4">
             {% if footerMenu is not empty %}
                 <nav class="flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm">

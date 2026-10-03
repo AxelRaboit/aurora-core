@@ -136,6 +136,9 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
     // (sans lui, la barre n'aurait plus rien à montrer).
     const headerTextHiddenOnPhone = ref(false);
     const contentWidth = ref("narrow");
+    // La barre de lecture du site public : affichée par défaut, donc stockée
+    // seulement quand on la coupe.
+    const readingProgress = ref(true);
     const highlight = ref("accent");
     const highlightColor = ref(DEFAULT_PRIMARY_COLOR);
     const menuActive = ref("accent");
@@ -184,6 +187,7 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
         // spelling out every default.
         if (contentWidth.value !== "narrow")
             result["content_width"] = contentWidth.value;
+        if (!readingProgress.value) result["reading_progress"] = "hidden";
         if (highlight.value !== "accent") result["highlight"] = highlight.value;
         if (highlight.value === "custom")
             result["highlight_color"] = highlightColor.value;
@@ -233,6 +237,7 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
         }
         footerText.value = theme.config?.["footer_text"] ?? "";
         contentWidth.value = theme.config?.["content_width"] ?? "narrow";
+        readingProgress.value = theme.config?.["reading_progress"] !== "hidden";
         highlight.value = theme.config?.["highlight"] ?? "accent";
         fontFamily.value = theme.config?.["font_family"] ?? DEFAULT_FONT_FAMILY;
         const logoId = theme.config?.["header_logo_media_id"];
@@ -303,6 +308,7 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
 
     return {
         contentWidth,
+        readingProgress,
         highlight,
         highlightColor,
         menuActive,

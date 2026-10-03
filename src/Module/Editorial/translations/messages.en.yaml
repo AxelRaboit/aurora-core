@@ -1391,7 +1391,17 @@ backend:
       accent_color: Accent colour
       highlight: Hovers and card markers
       highlight_inherit: Same as the theme
-      highlight_hint: "Hover outlines and titles, card category and arrow, for this page's content only. The navigation bar and the footer keep the theme's setting."
+      highlight_hint: 'Hover outlines and titles, card category and arrow, for this page only. The navigation bar and the footer keep the theme''s setting, unless the switch below makes them follow the page.'
+      ink_title: 'Text, lines and cards'
+      colors:
+        text_color: 'Text'
+        line_color: 'Lines'
+        card_color: 'Card background'
+        card_line_color: 'Card outline'
+        heading_color: 'Headings'
+        figure_color: 'Key figures'
+      chrome_follows_page: 'Topbar and footer in the page''s colours'
+      chrome_follows_page_hint: 'They take this publication''s accent and hovers. Off, they keep the theme''s.'
   taxonomies:
     guide:
       title: "How taxonomies work"

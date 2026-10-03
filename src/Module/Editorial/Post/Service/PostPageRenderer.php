@@ -136,6 +136,7 @@ final readonly class PostPageRenderer
                 'accentColor' => $post->getAccentColor(),
                 'highlight' => $post->getHighlight(),
                 'highlightColor' => $post->getHighlightColor(),
+                'chromeFollowsPage' => $post->isChromeFollowsPage(),
             ],
             'translationData' => $translationData,
             // null when the banner is off or empty, which is what the template
@@ -179,6 +180,9 @@ final readonly class PostPageRenderer
                 'background_color' => $post->getBackgroundColor(),
                 'header_color' => $post->getHeaderColor(),
                 'footer_color' => $post->getFooterColor(),
+                // Texte, traits, cartes, titres, chiffres : mêmes clés que le
+                // thème, absentes quand la publication garde les siennes.
+                ...$post->getColorOverrides(),
             ],
             // Null on the site. On a reading link, the layout the page extends
             // instead of the site's, and what its header says.

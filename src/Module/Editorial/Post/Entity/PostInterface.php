@@ -149,6 +149,23 @@ interface PostInterface
 
     public function setAccentColor(?string $accentColor): static;
 
+    /**
+     * The other theme colours this publication repaints (text, lines, cards,
+     * headings, figures), keyed as in the theme's config. A missing key keeps
+     * the theme's.
+     *
+     * @return array<string, string>
+     */
+    public function getColorOverrides(): array;
+
+    /** @param array<string, mixed> $colorOverrides */
+    public function setColorOverrides(array $colorOverrides): static;
+
+    /** Whether the topbar and the footer take this publication's accent and hovers. */
+    public function isChromeFollowsPage(): bool;
+
+    public function setChromeFollowsPage(bool $chromeFollowsPage): static;
+
     /** `accent`, `neutral` or `custom` for this publication, or null to keep the theme's. */
     public function getHighlight(): ?string;
 
