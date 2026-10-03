@@ -5,6 +5,18 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.330] - 2026-10-03
+
+### Corrigé
+- **L'encart « Comment s'organisent les notes » touchait les bords de la bibliothèque.** Posé entre l'entête et le contenu sans marge, il collait à la carte ; il prend maintenant les mêmes marges qu'eux. Celui des notes était le seul dans ce cas, et un test Playwright (`tests/e2e/how-to-guides-spacing.spec.js`) mesure désormais, sur 31 écrans de la démonstration, qu'aucun encart ne touche le bord de son bloc.
+
+- **Audit des dépendances JavaScript** : `dompurify` passe en 3.4.16 (avis GHSA-p98j-92pf-mc4p, faible). L'avis élevé GHSA-vfj7-8cjw-p6xm sur `braces`, paru le 03/10 et sans version corrigée, est ignoré nommément dans `pnpm-workspace.yaml` : `braces` n'arrive que par l'outillage de build (`vite-plugin-symfony`) et n'y lit que les motifs de notre configuration. Sans cela, l'audit de la CI faisait échouer toutes les PR, et celle des projets clients audite le même arbre dans `vendor/`.
+
+### Amélioré
+- `AppGuide` gagne l'option `rounded` (vraie par défaut). `:rounded="false"` retire les coins arrondis, pour un encart encastré dans un autre bloc ; aucun écran ne s'en sert encore.
+
+---
+
 ## [0.9.329] - 2026-10-02
 
 ### Amélioré

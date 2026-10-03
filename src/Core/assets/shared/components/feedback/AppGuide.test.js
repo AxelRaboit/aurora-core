@@ -51,4 +51,17 @@ describe("AppGuide", () => {
         });
         expect(later.find("details").element.open).toBe(false);
     });
+
+    it("is rounded unless told otherwise", () => {
+        const rounded = mount(AppGuide, { props: { title: "Arrondi" } });
+        const flush = mount(AppGuide, {
+            props: { title: "Encastré", rounded: false },
+        });
+
+        expect(rounded.find("[data-guide]").classes()).toContain("rounded-lg");
+        expect(flush.find("[data-guide]").classes()).toContain("rounded-none");
+        expect(flush.find("[data-guide]").classes()).not.toContain(
+            "rounded-lg",
+        );
+    });
 });

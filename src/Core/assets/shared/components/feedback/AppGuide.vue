@@ -25,6 +25,13 @@ const props = defineProps({
     open: { type: Boolean, default: true },
     /** Accepté et ignoré : le choix d'ouvrir ou de replier est commun à tous les encarts. */
     storageKey: { type: String, default: "" },
+    /**
+     * Les coins arrondis, par défaut. `false` les retire, pour un encart
+     * encastré dans un autre bloc (contre un bord, sous un entête) plutôt que
+     * posé à côté : un arrondi contre un bord droit se voit comme un défaut.
+     * Posé seul, l'encart reste arrondi et prend ses marges de l'appelant.
+     */
+    rounded: { type: Boolean, default: true },
 });
 
 const { choice, remember } = useGuidePreference();
@@ -46,7 +53,13 @@ function onToggle(event) {
     <!-- Une région nommée plutôt qu'un <aside> ou une <section> : les écrans
          gardent ces balises pour leurs volets et leurs groupes, et leurs
          tests les comptent. `data-guide` le désigne sans ambiguïté. -->
-    <div data-guide role="region" class="min-w-0 rounded-lg border border-dashed border-line p-3 sm:p-4" :aria-label="title">
+    <div
+        data-guide
+        role="region"
+        class="min-w-0 border border-dashed border-line p-3 sm:p-4"
+        :class="rounded ? 'rounded-lg' : 'rounded-none'"
+        :aria-label="title"
+    >
         <details :open="isOpen" class="group" v-on:toggle="onToggle">
             <summary class="flex cursor-pointer list-none items-center gap-2 text-sm font-medium text-primary [&::-webkit-details-marker]:hidden">
                 <BookOpen class="h-4 w-4 shrink-0 text-muted" :stroke-width="2" />
