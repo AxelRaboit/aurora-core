@@ -393,6 +393,24 @@ final class ThemeContextSurfacesTest extends TestCase
         ]))->frontendSurfacesCss());
     }
 
+    public function testAResetReadsTheActiveThemeAgain(): void
+    {
+        $repository = $this->createMock(ThemeRepository::class);
+        $repository->expects(self::exactly(2))->method('findActive')->willReturn(null);
+
+        $context = new ThemeContext(
+            $repository,
+            $this->createMock(DocumentRepository::class),
+            new PrimaryColorPalette(),
+            new SurfaceContrast(),
+            new DocumentUrlGenerator($this->createMock(UrlGeneratorInterface::class)),
+        );
+        $context->activeTheme();
+        $context->activeTheme();
+        $context->reset();
+        $context->activeTheme();
+    }
+
     private function stylesOf(ThemeContext $context): ThemeStyleRenderer
     {
         return new ThemeStyleRenderer($context, new PrimaryColorPalette(), new SurfaceContrast());
