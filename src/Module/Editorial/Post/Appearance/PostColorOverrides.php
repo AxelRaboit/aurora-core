@@ -48,9 +48,11 @@ final class PostColorOverrides
             if (!in_array($key, self::KEYS, true)) {
                 continue;
             }
+
             if (!is_string($value)) {
                 continue;
             }
+
             $color = mb_trim($value);
             if (1 === preg_match('/^#[0-9a-fA-F]{6}$/', $color)) {
                 $colors[$key] = $color;
