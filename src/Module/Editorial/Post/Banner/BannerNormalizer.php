@@ -124,8 +124,8 @@ final readonly class BannerNormalizer
     /** How many bands a banner can draw. */
     private const int MAX_STRIPES = 6;
 
-    /** Three bands when nothing is chosen: a green, a red and a yellow. */
-    private const array DEFAULT_STRIPE_COLORS = ['#34d399', '#bd4a55', '#cd8f31'];
+    /** Three bands when nothing is chosen, in the order of Axel's trades: dev green, photo yellow, CM red. */
+    private const array DEFAULT_STRIPE_COLORS = ['#34d399', '#cd8f31', '#bd4a55'];
 
     /**
      * How many slides a banner can add after its own: a carousel is a header
