@@ -61,6 +61,27 @@ const AppDatePicker = defineAsyncComponent(
     () => import("@/shared/components/form/picker/AppDatePicker.vue"),
 );
 
+/**
+ * Le sélecteur de la maison, comme partout ailleurs.
+ *
+ * Le menu natif était gardé ici exprès, pour la roue du téléphone. Il ne
+ * suivait ni le thème ni la police du site, seul contrôle de la page à
+ * trancher sur le reste, et sur téléphone celui-ci n'ouvre pas de clavier tant
+ * que la liste reste courte. Chargé à la demande comme le sélecteur de date :
+ * un formulaire sans liste n'a pas à télécharger vue-multiselect.
+ *
+ * Plus de `required` natif : le serveur refuse un choix vide et l'erreur
+ * s'affiche sous le champ, comme pour tous les autres.
+ */
+const AppSelect = defineAsyncComponent(
+    () => import("@/shared/components/form/select/AppSelect.vue"),
+);
+
+/** Les choix d'un champ, au format { value, label } qu'attend AppSelect. */
+function choices(field) {
+    return (field.options ?? []).map((option) => ({ value: option, label: option }));
+}
+
 function inputType(type) {
     return { number: "number", tel: "tel", email: "email" }[type] ?? "text";
 }
@@ -105,15 +126,13 @@ function inputType(type) {
                 :class="inputClass"
             />
 
-            <select
+            <AppSelect
                 v-else-if="field.type === 'select'"
                 v-model="answers[String(field.id)]"
+                :options="choices(field)"
+                :placeholder="field.placeholder || t('frontend.editorial.forms.select_placeholder')"
                 :required="field.required"
-                :class="inputClass"
-            >
-                <option value="">{{ field.placeholder ?? "" }}</option>
-                <option v-for="option in field.options" :key="option" :value="option">{{ option }}</option>
-            </select>
+            />
 
             <span v-else-if="field.type === 'radio'" class="block space-y-1">
                 <label v-for="option in field.options" :key="option" class="flex items-center gap-2 text-sm text-primary">

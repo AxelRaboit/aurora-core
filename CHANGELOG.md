@@ -5,6 +5,15 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [1.2.0] - 2026-10-03
+
+### Amélioré
+
+#### Formulaires publics : la liste déroulante prend le sélecteur de la maison
+Un champ « Liste déroulante » s'affichait sur le site avec le menu natif du navigateur, gardé exprès pour la roue du téléphone : il ne suivait ni le thème ni la police, et sa liste s'ouvrait aux couleurs du système au milieu de la page. Il utilise désormais le même sélecteur que le back-office, aux couleurs du site (le survol suit `highlight`, comme les autres survols publics), chargé seulement sur un formulaire qui contient une liste. Tant qu'elle compte dix choix ou moins, aucune recherche ni clavier ne s'ouvre sur téléphone. Un champ obligatoire laissé vide n'est plus bloqué par le navigateur : le serveur le refuse et l'erreur s'affiche sous le champ, comme pour les autres. Le test qui interdit le `<select>` natif n'a plus d'exception.
+
+---
+
 ## [1.1.1] - 2026-10-03
 
 ### Corrigé

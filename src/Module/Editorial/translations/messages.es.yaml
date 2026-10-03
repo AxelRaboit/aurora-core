@@ -1984,6 +1984,7 @@ frontend:
             previous: Anterior
             step: 'Paso {number}'
             sent: 'Gracias, su mensaje se ha enviado correctamente.'
+            select_placeholder: Elija una opción
             preview_notice: 'Vista previa: el formulario funciona, pero no se envía nada.'
             errors:
                 required: 'Este campo es obligatorio.'
