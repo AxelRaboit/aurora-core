@@ -1493,8 +1493,10 @@ defineExpose({
             </div>
         </header>
         <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
-             replié ou déplié, le choix vaut pour tous les encarts. -->
-        <AppGuide :title="t('notes.markdown.guide.title')" storage-key="notes-library">
+             replié ou déplié, le choix vaut pour tous les encarts. Les marges
+             de l'entête et du contenu (`p-3`) : posé à même la carte, il en
+             touchait les bords. -->
+        <AppGuide :title="t('notes.markdown.guide.title')" storage-key="notes-library" class="mx-3 mt-3">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 5" :key="step">{{ t(`notes.markdown.guide.step_${step}`) }}</li>
             </ol>

@@ -5,6 +5,16 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.330] - 2026-10-03
+
+### Corrigé
+- **L'encart « Comment s'organisent les notes » touchait les bords de la bibliothèque.** Posé entre l'entête et le contenu sans marge, il collait à la carte ; il prend maintenant les mêmes marges qu'eux. Celui des notes était le seul dans ce cas, et un test Playwright (`tests/e2e/how-to-guides-spacing.spec.js`) mesure désormais, sur 31 écrans de la démonstration, qu'aucun encart ne touche le bord de son bloc.
+
+### Amélioré
+- `AppGuide` gagne l'option `rounded` (vraie par défaut). `:rounded="false"` retire les coins arrondis, pour un encart encastré dans un autre bloc ; aucun écran ne s'en sert encore.
+
+---
+
 ## [0.9.329] - 2026-10-02
 
 ### Amélioré
