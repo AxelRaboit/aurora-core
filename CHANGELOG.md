@@ -5,6 +5,15 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [1.1.1] - 2026-10-03
+
+### Corrigé
+
+#### Notes : la palette « / » montrait ses huit premières commandes et cachait les sept autres
+La palette tient quinze commandes dans la hauteur de huit lignes. Au clavier, la flèche bas sélectionnait des lignes hors de vue sans faire défiler la liste, et sur un Mac, qui masque les barres de défilement, rien n'indiquait qu'il y avait une suite : la liste semblait s'arrêter à « Séparateur ». Le menu flottant (palette `/` et liens `[[…]]`) garde désormais la ligne active visible, et un fondu au bas de la liste signale les commandes restantes ; il disparaît une fois en bas. L'en-tête du menu reste en place pendant le défilement.
+
+---
+
 ## [1.1.0] - 2026-10-03
 
 ### Amélioré

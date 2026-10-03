@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
+import { nextTick } from "vue";
 import { mount } from "@vue/test-utils";
 import AppFloatingMenu from "./AppFloatingMenu.vue";
 
@@ -173,5 +174,44 @@ describe("AppFloatingMenu", () => {
         expect(uncapped.find("[data-floating-menu]").classes()).toContain(
             "max-h-64",
         );
+    });
+
+    // Fifteen slash commands for eight visible rows: ArrowDown used to walk
+    // into rows nobody could see.
+    it("scrolls the keyboard-highlighted row into view", async () => {
+        // jsdom has no layout, hence no scrollIntoView: stand one in.
+        const scrolled = [];
+        const original = Element.prototype.scrollIntoView;
+        Element.prototype.scrollIntoView = vi.fn(function () {
+            scrolled.push(this.textContent);
+        });
+        const wrapper = renderMenu({ activeIndex: 0 });
+
+        await wrapper.setProps({ activeIndex: 2 });
+        await nextTick();
+
+        expect(scrolled).toContain("Charlie");
+        Element.prototype.scrollIntoView = original;
+    });
+
+    it("fades the bottom edge while more rows are below, and not at the end", async () => {
+        const wrapper = renderMenu();
+        const list = wrapper.find("[data-floating-menu] > div").element;
+        Object.defineProperty(list, "clientHeight", {
+            value: 100,
+            configurable: true,
+        });
+        Object.defineProperty(list, "scrollHeight", {
+            value: 300,
+            configurable: true,
+        });
+
+        list.scrollTop = 0;
+        await wrapper.find("[data-floating-menu] > div").trigger("scroll");
+        expect(wrapper.find("[data-floating-menu-more]").exists()).toBe(true);
+
+        list.scrollTop = 200;
+        await wrapper.find("[data-floating-menu] > div").trigger("scroll");
+        expect(wrapper.find("[data-floating-menu-more]").exists()).toBe(false);
     });
 });

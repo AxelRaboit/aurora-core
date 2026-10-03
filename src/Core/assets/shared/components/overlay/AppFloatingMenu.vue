@@ -22,9 +22,16 @@
  *
  * Visibility is left to the parent (v-if on the wrapper). The menu only
  * renders when the parent decides to show it.
+ *
+ * The list scrolls, and two things say so. The keyboard-highlighted row is
+ * kept in view: the slash palette has fifteen commands for eight visible
+ * rows, and ArrowDown used to walk into rows nobody could see. And a fade
+ * at the bottom shows there is more, since a Mac hides scrollbars until one
+ * scrolls and the list then looked like it ended at the eighth command.
  */
+import { nextTick, onMounted, ref, watch } from "vue";
 
-defineProps({
+const props = defineProps({
     /**
      * Items rendered as buttons. Each item should have a stable `id`
      * for the v-for key; the rest of the shape is consumer-defined and
@@ -55,13 +62,42 @@ defineProps({
 });
 
 const emit = defineEmits(["select", "highlight"]);
+
+const listRef = ref(null);
+const moreBelow = ref(false);
+
+function measure() {
+    const list = listRef.value;
+    if (!list) return;
+    moreBelow.value = list.scrollHeight - list.scrollTop - list.clientHeight > 4;
+}
+
+watch(
+    () => props.activeIndex,
+    async (index) => {
+        await nextTick();
+        const row = listRef.value?.querySelectorAll("[data-floating-menu-item]")[index];
+        row?.scrollIntoView?.({ block: "nearest" });
+        measure();
+    },
+);
+
+watch(
+    () => props.items,
+    async () => {
+        await nextTick();
+        measure();
+    },
+);
+
+onMounted(measure);
 </script>
 
 <template>
     <Teleport to="body">
         <div
             data-floating-menu
-            class="fixed z-50 overflow-auto rounded-md border border-line bg-surface shadow-lg flex flex-col"
+            class="fixed z-50 overflow-hidden rounded-md border border-line bg-surface shadow-lg flex flex-col"
             :class="[minWidthClass, maxHeight === null ? 'max-h-64' : '']"
             :style="{
                 top: `${position.top}px`,
@@ -78,12 +114,15 @@ const emit = defineEmits(["select", "highlight"]);
                 <slot name="header" />
             </div>
 
-            <div class="overflow-auto py-1">
+            <!-- The list is what scrolls, not the menu: `min-h-0` lets it
+             shrink under the height cap, so a header stays in place. -->
+            <div ref="listRef" class="relative min-h-0 flex-1 overflow-auto py-1" v-on:scroll="measure">
                 <template v-if="items.length > 0">
                     <button
                         v-for="(item, index) in items"
                         :key="item.id"
                         type="button"
+                        data-floating-menu-item
                         class="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm transition-colors"
                         :class="
                             index === activeIndex
@@ -103,6 +142,12 @@ const emit = defineEmits(["select", "highlight"]);
                 <div v-else class="px-3 py-2 text-xs text-muted italic text-center">
                     <slot name="empty">No results</slot>
                 </div>
+                <div
+                    v-if="moreBelow"
+                    data-floating-menu-more
+                    aria-hidden="true"
+                    class="pointer-events-none sticky bottom-0 -mt-6 h-6 bg-gradient-to-t from-surface to-transparent"
+                />
             </div>
         </div>
     </Teleport>
