@@ -74,6 +74,11 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
             new NavPermission('studio.decks.delete'),
             new NavPermission('studio.decks.share'),
             new NavPermission('studio.deck_categories.manage'),
+            new NavPermission('studio.deliverables.view'),
+            new NavPermission('studio.deliverables.create'),
+            new NavPermission('studio.deliverables.edit'),
+            new NavPermission('studio.deliverables.delete'),
+            new NavPermission('studio.deliverables.share'),
             new NavPermission('studio.spaces.view'),
             new NavPermission('studio.spaces.create'),
             new NavPermission('studio.spaces.edit'),
@@ -112,6 +117,12 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
             $items[] = $this->decksNavItem();
         }
 
+        // Après les présentations : l'autre document qu'on écrit pour
+        // quelqu'un, celui qu'on lui envoie à lire plutôt qu'on lui montre.
+        if ($this->studioContext->areDeliverablesEnabled()) {
+            $items[] = $this->deliverablesNavItem();
+        }
+
         if ([] === $items) {
             return [];
         }
@@ -128,6 +139,7 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
             $this->contractsNavItem(),
             $this->contractTemplatesNavItem(),
             $this->decksNavItem(),
+            $this->deliverablesNavItem(),
         ], priority: 45)];
     }
 
@@ -138,6 +150,7 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
             ModuleParameterEnum::StudioCustomers->toToggle(),
             ModuleParameterEnum::StudioContracts->toToggle(),
             ModuleParameterEnum::StudioDecks->toToggle(),
+            ModuleParameterEnum::StudioDeliverables->toToggle(),
             ModuleParameterEnum::StudioSpaces->toToggle(),
         ];
     }
@@ -176,6 +189,17 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
             // Sans ce préfixe, ouvrir une présentation éteignait le menu.
             activeRoutePrefix: 'backend_studio_deck',
             descriptionKey: 'backend.nav.studio_decks_description',
+        );
+    }
+
+    private function deliverablesNavItem(): NavItem
+    {
+        return new NavItem(
+            'backend_studio_deliverables',
+            'backend.nav.studio_deliverables',
+            'file-check',
+            requiredPrivilege: 'studio.deliverables.view',
+            descriptionKey: 'backend.nav.studio_deliverables_description',
         );
     }
 

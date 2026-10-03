@@ -25,7 +25,7 @@ final readonly class StudioRouteGateSubscriber extends AbstractModuleRouteGateSu
 
     protected function routeNamespaces(): array
     {
-        return ['backend_studio_', 'workspace_', 'public_space', 'public_contract', 'public_deck'];
+        return ['backend_studio_', 'workspace_', 'public_space', 'public_contract', 'public_deck', 'public_deliverable'];
     }
 
     protected function gates(): array
@@ -37,12 +37,16 @@ final readonly class StudioRouteGateSubscriber extends AbstractModuleRouteGateSu
             'backend_studio_customers' => $this->studioContext->areCustomersEnabled(),
             'backend_studio_contract' => $this->studioContext->areContractsEnabled(),
             'backend_studio_deck' => $this->studioContext->areDecksEnabled(),
+            'backend_studio_deliverables' => $this->studioContext->areDeliverablesEnabled(),
             'backend_studio_spaces' => $this->studioContext->areSpacesEnabled(),
             'backend_studio_calendar' => $this->studioContext->areSpacesEnabled(),
             'workspace_' => $backend && $this->studioContext->areSpacesEnabled(),
             'public_space' => $backend && $this->studioContext->areSpacesEnabled(),
             'public_contract' => $backend && $this->studioContext->areContractsEnabled(),
             'public_deck' => $backend && $this->studioContext->areDecksEnabled(),
+            // Un lien de lecture sert un livrable d'espace ou de Studio : le
+            // contrôleur juge lequel, cf. DeliverableReadingController.
+            'public_deliverable' => $backend,
         ];
     }
 }

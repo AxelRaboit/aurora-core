@@ -30,6 +30,8 @@ backend:
         studio_backend_description: "Ce que vous vendez et ce que vous livrez à un client : les clients, les contrats, et les présentations."
         studio_decks: Présentations
         studio_decks_description: Construire des jeux de slides, les classer et les dupliquer.
+        studio_deliverables: "Livrables"
+        studio_deliverables_description: "Écrire des documents hors espace client, perso ou partagés avec l'équipe."
     nav:
         sections:
             studio: Studio
@@ -45,6 +47,8 @@ backend:
         studio_contracts_description: Les contrats préparés, scellés et signés.
         studio_decks: Présentations
         studio_decks_description: Les jeux de slides que vous montrez, classés et réutilisables.
+        studio_deliverables: "Livrables"
+        studio_deliverables_description: "Les documents que vous écrivez sans espace client, pour vous ou pour l'équipe."
     audit:
         actions:
             studio:
@@ -167,6 +171,12 @@ backend:
                     share: Partager une présentation
                 deck_categories:
                     manage: Gérer les rubriques de présentation
+                deliverables:
+                    view: "Consulter les livrables"
+                    create: "Créer un livrable"
+                    edit: "Modifier un livrable partagé"
+                    delete: "Supprimer un livrable"
+                    share: "Envoyer un livrable par lien de lecture"
     studio:
         workload:
             next_publication: "prochaine parution le {date}"
@@ -1955,7 +1965,7 @@ backend:
                 link_url_required: Ce lien n'a pas d'adresse.
                 link_url_invalid: "Cette adresse n'est pas valide. Elle doit commencer par http:// ou https://."
                 link_url_too_long: Cette adresse est trop longue.
-        space_deliverables:
+        deliverables:
             editor_guide:
                 title: "Comment composer un livrable"
                 step_1: "« Contenu » se compose avec la grille des pages du site : ajoutez des zones et remplissez-les."
@@ -1963,6 +1973,8 @@ backend:
                 step_3: "« Réglages » porte le titre, le résumé, la langue et l'en-tête ; cochez « Visible par le client » pour qu'il le lise dans son espace."
                 step_4: "Enregistrez vos modifications, puis « Aperçu », dans le menu, ouvre la page telle que le client la lira."
                 step_5: "« Liens de lecture » crée une adresse secrète qui ouvre ce seul document sans compte, avec un mot de passe et une expiration facultatifs."
+                step_3_studio: "« Réglages » porte le titre, le résumé, la langue et l'en-tête, et sa visibilité : perso, ou partagé avec l'équipe."
+                step_4_studio: "Enregistrez vos modifications, puis « Aperçu », dans le menu, ouvre la page telle que la lira son destinataire."
             guide:
                 title: "Comment fonctionnent les livrables"
                 step_1: "« Nouveau livrable » crée un document (audit, stratégie, bilan) qui se compose comme une page, à vos couleurs ou à celles du client."
@@ -2005,6 +2017,42 @@ backend:
             save_failed: "Le livrable n'a pas pu être enregistré."
             unsaved: "Modifications non enregistrées"
             links_hint: "Une adresse secrète par destinataire, pour transmettre le document sans ouvrir l'espace."
+            back_to_list: "Livrables"
+            search_placeholder: "Rechercher un livrable"
+            no_match: "Aucun livrable ne correspond à la recherche."
+            studio_title_hint: "Le titre en tête du document, et dans la liste."
+            studio_guide:
+                title: "Comment fonctionnent les livrables"
+                step_1: "Un livrable est un document écrit pour être lu : un audit, une stratégie, une proposition. Il se compose avec la grille des pages, sans jamais être sur le site."
+                step_2: "« Mes livrables » ne se voit que par vous. « Partagés » se lit par toute l'équipe qui a accès aux livrables, et se modifie par ceux qui en ont le droit."
+                step_3: "Un livrable se crée dans l'onglet ouvert ; ensuite, seul son auteur le fait passer de perso à partagé, ou l'inverse, depuis son menu ou ses réglages."
+                step_4: "Un lien de lecture l'envoie à qui vous voulez, avec une expiration et un mot de passe au choix, sans compte ni espace client."
+                step_5: "Les livrables d'un client se préparent dans son espace, onglet Livrables : c'est là qu'il les lit."
+            scope:
+                label: "Visibilité"
+                personal: "Perso"
+                shared: "Partagé"
+                personal_hint: "Vous seul le voyez."
+                shared_hint: "Toute l'équipe le lit, et le modifie avec le droit."
+                tab_personal: "Mes livrables"
+                tab_shared: "Partagés"
+                intro_personal: "Ce que vous préparez pour vous : personne d'autre ne le voit, tant que vous ne le partagez pas."
+                intro_shared: "Les livrables de l'équipe : chacun les lit, et les modifie s'il en a le droit."
+                empty_personal: "Aucun livrable perso."
+                empty_personal_hint: "Commencez une proposition, une stratégie ou un brouillon : il reste à vous tant que vous ne le partagez pas."
+                empty_shared: "Aucun livrable partagé."
+                empty_shared_hint: "Un livrable perso se partage depuis son menu, ou depuis ses réglages."
+                by: "Par {name}"
+                no_owner: "Auteur supprimé"
+                orphan: "Sans auteur"
+                move_shared: "Partager avec l'équipe"
+                move_shared_hint: "Il passe dans « Partagés » : toute l'équipe le lit, et le modifie avec le droit."
+                move_personal: "Garder pour moi"
+                move_personal_hint: "Il revient dans « Mes livrables » : plus personne d'autre ne le voit."
+                moved_shared: "Livrable partagé avec l'équipe."
+                moved_personal: "Livrable gardé pour vous."
+                settings_hint: "Qui voit ce livrable. Seul son auteur change ce choix."
+                owner_only: "Seul l'auteur du livrable change ce choix."
             tabs:
                 content: "Contenu"
                 appearance: "Apparence"
@@ -2039,10 +2087,12 @@ backend:
                 title_visible: "Afficher le titre et le résumé en tête de page"
                 title_visible_hint: "Décochez-le si le document s'ouvre sur un bloc d'entête qui porte déjà son titre. Le titre reste lisible par les lecteurs d'écran."
             settings:
+                prepared_for_placeholder: "Le destinataire"
                 document_title: "Le document"
                 summary: "Résumé"
                 summary_placeholder: "Où en est votre présence en ligne, et ce que nous proposons pour les trois prochains mois."
                 summary_hint: "Sous le titre, dans la liste du client et en tête de la page."
+                summary_hint_studio: "Sous le titre, dans la liste des livrables et en tête de la page."
                 locale: "Langue"
                 locale_hint: "Celle du document : elle règle les dates et les libellés de la page."
                 client_title: "Ce que voit le client"
@@ -2050,6 +2100,7 @@ backend:
                 visible_hint: "Coché, le livrable apparaît dans l'espace du client. Décoché, il reste en cours chez vous ; un lien de lecture l'ouvre quand même."
                 header_title: "En-tête de la page"
                 header_hint: "La bande du haut de la page, que le client lise depuis son espace ou par un lien."
+                header_hint_studio: "La bande du haut de la page, celle que voit qui ouvre le lien de lecture."
                 prepared_for: "Préparé pour"
                 prepared_for_hint: "Affiché en tête de la page. Vide : rien n'est affiché."
                 show_date: "Afficher la date de mise à jour"

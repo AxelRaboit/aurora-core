@@ -28,7 +28,7 @@
                 {{ 'frontend.reading.locked_intro'|trans }}
             </p>
 
-            <form method="post" action="{{ path('public_space_deliverable_read_unlock', {token: token}) }}" class="flex flex-col gap-3">
+            <form method="post" action="{{ path('public_deliverable_read_unlock', {token: token}) }}" class="flex flex-col gap-3">
                 <label class="flex flex-col gap-1.5">
                     <span class="text-xs uppercase tracking-wide text-muted">
                         {{ 'frontend.reading.locked_password'|trans }}

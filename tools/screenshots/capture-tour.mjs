@@ -1104,6 +1104,42 @@ const SHOTS = [
     },
 
     /**
+     * Les livrables de Studio (1.7.0), ceux qui ne sont rattachés à aucun
+     * espace : les deux rayons, la création qui demande lequel, et les
+     * réglages d'un livrable partagé où son auteur le change. Le rayon ouvert
+     * se lit dans l'adresse, `?scope=`.
+     */
+    { name: "tour-livrables", path: "/backend/studio/deliverables?scope=personal" },
+    { name: "tour-livrables-partages", path: "/backend/studio/deliverables?scope=shared" },
+    {
+        name: "tour-livrables-nouveau",
+        path: "/backend/studio/deliverables?scope=shared",
+        async prepare(page) {
+            // L'action seule de la page est rangée dans son menu « Actions ».
+            await page.locator("main").getByRole("button", { name: "Actions", exact: true }).first().click();
+            await page.waitForTimeout(500);
+            await page.getByText("Nouveau livrable", { exact: true }).first().click();
+            const dialog = page.getByRole("dialog").first();
+            await dialog.waitFor();
+            await dialog.locator("input").first().fill("Proposition de refonte, trame de l'équipe");
+            await page.waitForTimeout(800);
+        },
+    },
+    {
+        name: "tour-livrables-reglages",
+        path: "/backend/studio/deliverables?scope=shared",
+        async prepare(page) {
+            await page.locator("main").getByRole("link", { name: "Modèle d'audit de présence en ligne" }).first().click();
+            await page.waitForLoadState("domcontentloaded");
+            await page.waitForTimeout(3_000);
+            // Les onglets de l'éditeur sont des boutons, et « Réglages » est
+            // aussi une entrée du menu latéral : visé dans le contenu.
+            await page.locator("main").getByRole("button", { name: "Réglages", exact: true }).first().click();
+            await page.waitForTimeout(1_500);
+        },
+    },
+
+    /**
      * Une variante de couleur, par la famille du « Visuel de campagne » que
      * `make demo` décline en rouge et en bleu. Derrière la fenêtre, le bandeau
      * de famille déplié montre l'original et sa variante. « Voir la famille »
