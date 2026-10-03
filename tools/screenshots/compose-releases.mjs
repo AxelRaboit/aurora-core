@@ -40,7 +40,7 @@ const WIDTH = 1600;
 const HEIGHT = 1000;
 const TESTS = "12 000+";
 
-/** Les couleurs de la charte : dev, photo, CM, comme le logo du site. */
+/** Les couleurs de la charte, dans l'ordre des métiers : dev, photo, CM. */
 const GREEN = "#34d399";
 const YELLOW = "#cd8f31";
 const RED = "#bd4a55";
@@ -120,9 +120,20 @@ const base = `
             linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
         background-size: 40px 40px;
     }
-    .logo { display: flex; gap: 7px; transform: skewX(-20deg); }
-    .logo span { width: 13px; height: 46px; border-radius: 3px; }
+    .logo { display: block; width: 92px; height: 92px; margin: -18px 0 -14px -8px; }
 `;
+
+/**
+ * Le logo d'Aurora, « Lever du jour » (choisi par Axel le 03/10/2026) : deux
+ * arcs et un soleil au-dessus de l'horizon, vert, jaune, rouge de l'extérieur
+ * vers le centre. Le logo à bandes est celui du site d'Axel, pas d'Aurora.
+ */
+const LOGO = `<svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><g transform="translate(0 -7.5)">
+    <path d="M8.5,50 A23.5 23.5 0 0 1 55.5,50" fill="none" stroke="${GREEN}" stroke-width="7"/>
+    <path d="M17.5,50 A14.5 14.5 0 0 1 46.5,50" fill="none" stroke="${YELLOW}" stroke-width="7"/>
+    <path d="M23,50 A9 9 0 0 1 41,50 Z" fill="${RED}"/>
+    <rect x="4" y="53" width="56" height="3" rx="1.5" fill="#ece2d0" fill-opacity=".35"/>
+</g></svg>`;
 
 /** La version part du cœur, passe ses contrôles et arrive sur chaque site. */
 function pipeline(list) {
@@ -217,7 +228,7 @@ function pipeline(list) {
     <path d="M930 740 C 1010 740, 1010 775, 1090 775"/>
 </svg>
 <div class="core">
-    <div class="logo"><span style="background:${GREEN}"></span><span style="background:${YELLOW}"></span><span style="background:${RED}"></span></div>
+    ${LOGO}
     <h1>Aurora</h1>
     <div class="current">v${current.version}</div>
     ${stack}
