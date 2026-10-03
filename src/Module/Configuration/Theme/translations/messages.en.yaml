@@ -3,7 +3,7 @@ backend:
     guide:
       title: "How themes work"
       step_1: "Only one theme is active at a time: “Activate” applies it at once to the public site, not to the administration."
-      step_2: "A theme sets the main colour (the palette follows), the surfaces, the font, the content width, the header and the footer."
+      step_2: "A theme sets the main colour (the palette follows), the surfaces, the content callouts, the font, the content width, the header and the footer."
       step_3: "The text on each surface turns light or dark depending on what stays readable."
       step_4: "The active theme and the default theme cannot be deleted; deleting another theme is permanent."
     title: Themes
@@ -47,6 +47,25 @@ backend:
     ink_success_unset: 'Not set, green by default'
     ink_figure: 'Key figures (statistics, prices)'
     ink_figure_unset: 'Not set, main colour'
+    callouts:
+      title: "Content callouts"
+      hint: "One colour per callout type used in pages. Left empty, a callout keeps its original colour; \"Accent\" already follows the main colour."
+      set: "Theme colour"
+      unset: "Original colour"
+      types:
+        info: "Information"
+        success: "Success"
+        warning: "Warning"
+        danger: "Danger"
+        tip: "Tip"
+        note: "Note"
+        question: "Question"
+        important: "Important"
+        update: "Update"
+        rose: "Rose"
+        lime: "Lime"
+        amber: "Amber"
+        fuchsia: "Fuchsia"
     icon: 'Card pictograms'
     icon_original: 'The file''s own colour'
     icon_accent: 'Main colour'

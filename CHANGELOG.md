@@ -5,6 +5,32 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [1.4.0] - 2026-10-03
+
+### Amélioré
+
+#### Back-office et espace client : les gris du clair et du sombre se règlent
+Les fonds, traits et textes du back-office étaient écrits en dur dans `theme.css`, une seule gamme de gris pour le mode clair et une pour le sombre. Réglages > Apparence a une nouvelle carte, « Gris du clair et du sombre », avec une colonne par mode :
+- **Une famille de gris** : Gris (celle d'aujourd'hui), Ardoise (bleutée), Zinc (froide), Neutre (sans teinte) ou Pierre (chaude). Elle règle d'un coup les dix jetons neutres (`--th-bg`, `--th-surface*`, bordures, quatre textes).
+- **Chaque nuance se reprend à la main**, et une flèche la rend à la famille.
+- **Les quatre couleurs d'état** (succès, attention, erreur, information) se reprennent de la même façon ; leur fond pâle et leurs badges en sont tirés.
+- **Un aperçu** peint chaque mode dans ses couleurs, quel que soit le mode affiché, et l'enregistrement repeint la page sans la recharger.
+
+La palette vaut partout où le clair/sombre existe (back-office, espace client, decks, notes partagées) ; le site public garde son thème. Laissée au défaut, elle n'émet aucune règle : un test compare la famille Gris aux valeurs de `theme.css`.
+
+#### Thème : la couleur de chaque type d'encadré
+Les treize encadrés du contenu (information, succès, attention, astuce…) avaient des couleurs fixes, qui ne suivaient pas la charte d'un site. Configuration > Thèmes a une section « Encadrés du contenu » : une couleur par type, vide par défaut, et « Accent » suit toujours la couleur principale.
+
+#### E-mails : leurs couleurs se règlent
+Le bouton, les liens, la pastille du logo et le nom du site étaient en vert Aurora dans tous les e-mails, quelle que soit la couleur du site. Réglages > Emails a quatre couleurs : accent, fond, titres et texte. Leurs défauts sont celles d'aujourd'hui, donc un e-mail ne change pas tant qu'on n'y touche pas.
+- Les réglages de type couleur ont désormais leur champ dans l'écran des réglages, avec un retour à la couleur d'origine.
+- Toute couleur enregistrée doit être un hexadécimal à six chiffres.
+
+### Dans aurora-client
+Cinq réglages sont créés (`backend_palette`, `email_accent_color`, `email_background_color`, `email_heading_color`, `email_text_color`) : `make deploy-prod` lance la synchronisation qui les ajoute.
+
+---
+
 ## [1.3.1] - 2026-10-03
 
 ### Corrigé

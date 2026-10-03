@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { defineComponent, ref } from "vue";
 import { flushPromises, mount } from "@vue/test-utils";
 import { createTestI18n } from "@/tests/helpers/createTestI18n.js";
-import { useThemesEdit } from "./useThemesEdit.js";
+import { CALLOUT_DEFAULTS, useThemesEdit } from "./useThemesEdit.js";
 
 const THEME = {
     id: 1,
@@ -76,5 +76,40 @@ describe("the theme's header logo", () => {
         await flushPromises();
 
         expect(sentConfig()).not.toHaveProperty("header_logo_media_id");
+    });
+});
+
+describe("the theme's callout colors", () => {
+    it("mirror the original colors of content-blocks.css", async () => {
+        const { readFileSync } = await import("node:fs");
+        const css = readFileSync(
+            `${process.cwd()}/src/Core/assets/css/base/content-blocks.css`,
+            "utf8",
+        );
+        for (const [type, hex] of Object.entries(CALLOUT_DEFAULTS)) {
+            const match = css.match(
+                new RegExp(
+                    `\\.callout--${type}\\s*\\{\\s*--callout-color:\\s*rgb\\((\\d+) (\\d+) (\\d+)\\)`,
+                ),
+            );
+            const fromCss = `#${match
+                .slice(1, 4)
+                .map((channel) => Number(channel).toString(16).padStart(2, "0"))
+                .join("")}`;
+            expect(fromCss, type).toBe(hex);
+        }
+    });
+
+    it("saves only the colors that were changed", async () => {
+        answer();
+        const api = setup();
+        api.openEdit(THEME);
+        api.calloutColors.success = "#34d399";
+
+        await api.submitEdit();
+        await flushPromises();
+
+        expect(sentConfig().callout_success_color).toBe("#34d399");
+        expect(sentConfig()).not.toHaveProperty("callout_info_color");
     });
 });

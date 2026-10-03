@@ -32,6 +32,27 @@ const DEFAULT_PRIMARY_COLOR = "#10b981";
 // connaitre avant d'avoir recu quoi que ce soit.
 const DEFAULT_FONT_FAMILY = "poppins";
 
+// Les couleurs d'origine des encadrés, celles de content-blocks.css ; tenu en
+// phase par useThemesEdit.test.js. Le thème ne stocke que celles qu'il change,
+// sous `callout_<type>_color`, et ThemeStyleRenderer::calloutCss() les pose.
+export const CALLOUT_DEFAULTS = {
+    info: "#3b82f6",
+    success: "#22c55e",
+    warning: "#eab308",
+    danger: "#ef4444",
+    tip: "#a855f7",
+    note: "#64748b",
+    question: "#0ea5e9",
+    important: "#f97316",
+    update: "#14b8a6",
+    rose: "#ec4899",
+    lime: "#84cc16",
+    amber: "#f59e0b",
+    fuchsia: "#d946ef",
+};
+
+const calloutKey = (type) => `callout_${type}_color`;
+
 /**
  * @typedef {Object} ExtraField
  * @property {*} default - Initial/reset value.
@@ -173,6 +194,11 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
     const surfaceColors = reactive(
         Object.fromEntries(SURFACE_KEYS.map((k) => [k, ""])),
     );
+    const calloutColors = reactive(
+        Object.fromEntries(
+            Object.keys(CALLOUT_DEFAULTS).map((type) => [type, ""]),
+        ),
+    );
 
     const configFromColors = computed(() => {
         const result = {};
@@ -215,6 +241,10 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
         }
         for (const key of SURFACE_KEYS) {
             if (surfaceColors[key]) result[key] = surfaceColors[key];
+        }
+        for (const type of Object.keys(CALLOUT_DEFAULTS)) {
+            if (calloutColors[type])
+                result[calloutKey(type)] = calloutColors[type];
         }
         return result;
     });
@@ -262,6 +292,9 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
             theme.config?.["menu_active_color"] ?? primaryColor.value;
         for (const key of SURFACE_KEYS) {
             surfaceColors[key] = theme.config?.[key] ?? "";
+        }
+        for (const type of Object.keys(CALLOUT_DEFAULTS)) {
+            calloutColors[type] = theme.config?.[calloutKey(type)] ?? "";
         }
         const storedIcon = theme.config?.["icon_color"] ?? "";
         iconMode.value =
@@ -327,6 +360,7 @@ export function useThemesEdit(themeList, updatePath, options = {}) {
         primaryColor,
         surfaceColors,
         SURFACE_KEYS,
+        calloutColors,
         iconMode,
         iconColor,
         openEdit,

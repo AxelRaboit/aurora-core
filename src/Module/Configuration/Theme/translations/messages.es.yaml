@@ -3,7 +3,7 @@ backend:
         guide:
             title: "Cómo funcionan los temas"
             step_1: "Solo hay un tema activo a la vez: «Activar» lo aplica enseguida al sitio público, no a la administración."
-            step_2: "Un tema define el color principal (la paleta se deriva de él), las superficies, la fuente, el ancho del contenido, la cabecera y el pie de página."
+            step_2: "Un tema define el color principal (la paleta se deriva de él), las superficies, los recuadros del contenido, la fuente, el ancho del contenido, la cabecera y el pie de página."
             step_3: "El texto de cada superficie pasa a claro u oscuro según lo que siga siendo legible."
             step_4: "El tema activo y el tema por defecto no se eliminan; eliminar otro tema es definitivo."
         title: Temas
@@ -47,6 +47,25 @@ backend:
         ink_success_unset: 'Sin definir, verde por defecto'
         ink_figure: 'Cifras clave (estadísticas, precios)'
         ink_figure_unset: 'Sin definir, color principal'
+        callouts:
+            title: "Recuadros del contenido"
+            hint: "Un color por tipo de recuadro usado en las páginas. Vacío, el recuadro conserva su color original; «Acento» ya sigue el color principal."
+            set: "Color del tema"
+            unset: "Color original"
+            types:
+                info: "Información"
+                success: "Éxito"
+                warning: "Atención"
+                danger: "Peligro"
+                tip: "Consejo"
+                note: "Nota"
+                question: "Pregunta"
+                important: "Importante"
+                update: "Actualización"
+                rose: "Rosa"
+                lime: "Lima"
+                amber: "Ámbar"
+                fuchsia: "Fucsia"
         icon: 'Pictogramas de las tarjetas'
         icon_original: 'Color original del archivo'
         icon_accent: 'Color principal'

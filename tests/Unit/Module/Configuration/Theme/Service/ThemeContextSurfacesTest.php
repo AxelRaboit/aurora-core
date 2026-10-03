@@ -378,6 +378,21 @@ final class ThemeContextSurfacesTest extends TestCase
         self::assertStringContainsString('.dark .aurora-post-accent{--th-accent: var(--th-accent-400);', $css);
     }
 
+    public function testACalloutColourRepaintsItsTypeOnly(): void
+    {
+        $css = $this->stylesOf($this->contextWithConfig(['callout_success_color' => '#34d399']))->frontendSurfacesCss();
+
+        self::assertSame('html[data-theme] .callout-block--success,html[data-theme] .callout--success{--callout-color:#34d399}', $css);
+    }
+
+    public function testACalloutColourThatIsNotHexNeverReachesTheStyleTag(): void
+    {
+        self::assertSame('', $this->stylesOf($this->contextWithConfig([
+            'callout_info_color' => 'red}</style><script>alert(1)</script>',
+            'callout_accent_color' => '#000000',
+        ]))->frontendSurfacesCss());
+    }
+
     private function stylesOf(ThemeContext $context): ThemeStyleRenderer
     {
         return new ThemeStyleRenderer($context, new PrimaryColorPalette(), new SurfaceContrast());

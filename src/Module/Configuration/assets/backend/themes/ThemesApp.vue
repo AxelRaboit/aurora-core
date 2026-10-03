@@ -20,7 +20,7 @@ import { bestContrastRatio, meetsAaa, needsLightText } from "@/shared/utils/form
 import { useThemesList } from "@configuration/backend/themes/composables/useThemesList.js";
 import { useThemesActivate } from "@configuration/backend/themes/composables/useThemesActivate.js";
 import { useThemesCreate } from "@configuration/backend/themes/composables/useThemesCreate.js";
-import { useThemesEdit } from "@configuration/backend/themes/composables/useThemesEdit.js";
+import { CALLOUT_DEFAULTS, useThemesEdit } from "@configuration/backend/themes/composables/useThemesEdit.js";
 import { useThemesDelete } from "@configuration/backend/themes/composables/useThemesDelete.js";
 import { highlightModeOptions } from "@configuration/backend/themes/highlightModes.js";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
@@ -59,7 +59,7 @@ const props = defineProps({
 const { themeList, accentColor } = useThemesList(props.themes);
 const { activateTheme } = useThemesActivate(themeList, props.activatePath);
 const { createModal, createForm, openCreate, submitCreate } = useThemesCreate(themeList, props.createPath, { extraFields: props.extraFields });
-const { CSS_SECTIONS, DEFAULTS, editModal, editForm, colorFields, contentWidth, readingProgress, highlight, highlightColor, menuActive, menuActiveColor, iconMode, iconColor, fontFamily, footerText, headerLogo, headerCustomText, headerTextHiddenOnPhone, headerMode, primaryColor, surfaceColors, openEdit, resetPrimaryColor, submitEdit } = useThemesEdit(themeList, props.updatePath, { extraFields: props.extraFields });
+const { CSS_SECTIONS, DEFAULTS, editModal, editForm, colorFields, contentWidth, readingProgress, highlight, highlightColor, menuActive, menuActiveColor, iconMode, iconColor, fontFamily, footerText, headerLogo, headerCustomText, headerTextHiddenOnPhone, headerMode, primaryColor, surfaceColors, calloutColors, openEdit, resetPrimaryColor, submitEdit } = useThemesEdit(themeList, props.updatePath, { extraFields: props.extraFields });
 
 const fontOptions = computed(() => props.fonts.map((font) => ({ value: font.value, label: font.label })));
 const selectedFont = computed(() => props.fonts.find((font) => font.value === fontFamily.value) ?? null);
@@ -415,6 +415,34 @@ const pageActions = computed(() => {
                                 size="xs"
                                 :title="t('backend.themes.reset_color')"
                                 v-on:click="surfaceColors[ink.key] = ''"
+                            >
+                                ↺
+                            </AppTextLinkButton>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-1.5 pt-6 border-t border-line">
+                    <span class="block text-xs text-secondary uppercase tracking-wide font-semibold">{{ t('backend.themes.callouts.title') }}</span>
+                    <p class="text-xs text-muted">{{ t('backend.themes.callouts.hint') }}</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                        <div v-for="(original, type) in CALLOUT_DEFAULTS" :key="type" class="flex items-center gap-3 bg-surface-2 rounded-lg px-3 py-2">
+                            <AppColorSwatch
+                                :model-value="calloutColors[type] || original"
+                                size="sm"
+                                v-on:update:model-value="calloutColors[type] = $event === original ? '' : $event"
+                            />
+                            <div class="flex flex-col min-w-0 flex-1">
+                                <span class="text-xs font-medium text-primary">{{ t(`backend.themes.callouts.types.${type}`) }}</span>
+                                <span class="text-xs text-muted truncate">{{ calloutColors[type] ? t('backend.themes.callouts.set') : t('backend.themes.callouts.unset') }}</span>
+                            </div>
+                            <span class="text-xs font-mono text-muted">{{ calloutColors[type] || original }}</span>
+                            <AppTextLinkButton
+                                v-if="calloutColors[type]"
+                                color="muted"
+                                size="xs"
+                                :title="t('backend.themes.reset_color')"
+                                v-on:click="calloutColors[type] = ''"
                             >
                                 ↺
                             </AppTextLinkButton>
