@@ -335,6 +335,13 @@ notes:
             reload: 'Recargar su versión'
             overwrite: 'Sobrescribir con la mía'
         breadcrumb: 'Ubicación de la nota'
+        outline:
+            tab: 'Esquema'
+            panel_title: 'Sobre esta nota'
+            empty: 'Ningún título en esta nota'
+            empty_hint: 'Los títulos de la nota, escritos con # o ##, aparecen aquí: un clic lleva a ellos.'
+            words: 'Ninguna palabra | 1 palabra | {count} palabras'
+            minutes: '{minutes} min de lectura'
         duplicate:
             action: 'Duplicar'
             title: 'Copia de {title}'

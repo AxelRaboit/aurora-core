@@ -11,6 +11,7 @@ import AppBackLink from '@/shared/components/nav/AppBackLink.vue';
 import NoteLibrary from '@notes/backend/markdown/components/NoteLibrary.vue';
 import NotePreview from '@notes/backend/markdown/components/NotePreview.vue';
 import NoteSidePanel from '@notes/backend/markdown/components/NoteSidePanel.vue';
+import { outlineOf } from '@notes/backend/markdown/composables/noteOutline.js';
 import NoteTagManagerModal from '@notes/backend/markdown/components/NoteTagManagerModal.vue';
 import NoteShareModal from '@notes/backend/markdown/components/NoteShareModal.vue';
 import NoteCoverModal from '@notes/backend/markdown/components/NoteCoverModal.vue';
@@ -429,6 +430,52 @@ const noteActions = computed(() => {
     return actions;
 });
 
+
+const previewPaneRef = ref(null);
+
+/**
+ * Aller au titre cliqué dans le plan.
+ *
+ * Dans l'aperçu, le titre rendu qui porte le même texte (le n-ième s'il y en
+ * a plusieurs) ; en écriture, le curseur au début de sa ligne. Le premier
+ * titre peut manquer à l'aperçu, qui ne redit pas le titre de la note : on
+ * remonte alors en haut.
+ */
+function jumpToHeading(heading) {
+    const normalise = (text) => String(text ?? '').replace(/\s+/g, ' ').trim().toLowerCase();
+    const before = outlineOfContent().filter((one) => one.line < heading.line && normalise(one.text) === normalise(heading.text)).length;
+
+    const preview = previewPaneRef.value;
+    if (preview && 'edit' !== viewMode.value) {
+        const matches = [...preview.querySelectorAll('h1, h2, h3, h4, h5, h6')].filter((el) => normalise(el.textContent) === normalise(heading.text));
+        const target = matches[before] ?? null;
+
+        // Le volet seul défile : `scrollIntoView` emmenait aussi la page, et
+        // le chemin de la note passait sous l'entête.
+        const top = target
+            ? preview.scrollTop + target.getBoundingClientRect().top - preview.getBoundingClientRect().top - 12
+            : 0;
+        preview.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    }
+
+    const textarea = editorPaneRef.value?.querySelector('textarea');
+    if (textarea && 'preview' !== viewMode.value) {
+        const lines = String(form.value.content ?? '').split('\n');
+        const offset = lines.slice(0, heading.line).reduce((total, line) => total + line.length + 1, 0);
+
+        textarea.focus({ preventScroll: true });
+        textarea.setSelectionRange(offset, offset);
+        const pane = editorPaneRef.value;
+        pane.scrollTop = Math.max(0, textarea.offsetTop + (heading.line / Math.max(1, lines.length)) * textarea.scrollHeight - 48);
+    }
+
+    // Sur téléphone, le panneau couvre la note : on le referme pour la voir.
+    if (isMobile.value) sidePanelOpen.value = false;
+}
+
+function outlineOfContent() {
+    return outlineOf(form.value.content ?? '');
+}
 
 /** Une copie de la note ouverte, juste sous elle, qu'on ouvre aussitôt. */
 async function duplicateNote() {
@@ -1286,6 +1333,7 @@ onUnmounted(() => {
 
                         <div
                             v-if="viewMode !== 'edit'"
+                            ref="previewPaneRef"
                             class="flex-1 min-w-0 p-2 overflow-auto sm:p-4"
                         >
                             <!-- Le titre vit dans le champ au-dessus : l'aperçu
@@ -1365,8 +1413,10 @@ onUnmounted(() => {
                 :note-id="selectedId"
                 :fetch-backlinks="api.backlinks"
                 :fetch-unlinked-mentions="api.unlinkedMentions"
+                :content="form.content"
                 v-on:close="sidePanelOpen = false"
                 v-on:navigate="selectNote"
+                v-on:jump="jumpToHeading"
             />
 
             <AppModal

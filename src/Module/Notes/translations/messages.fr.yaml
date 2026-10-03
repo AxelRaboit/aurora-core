@@ -333,6 +333,13 @@ notes:
       reload: 'Recharger sa version'
       overwrite: 'Écraser avec la mienne'
     breadcrumb: 'Emplacement de la note'
+    outline:
+      tab: 'Plan'
+      panel_title: 'Sur cette note'
+      empty: 'Aucun titre dans cette note'
+      empty_hint: 'Les titres de la note, écrits avec # ou ##, apparaissent ici : un clic y mène.'
+      words: 'Aucun mot | 1 mot | {count} mots'
+      minutes: '{minutes} min de lecture'
     duplicate:
       action: 'Dupliquer'
       title: 'Copie de {title}'
