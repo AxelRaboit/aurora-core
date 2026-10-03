@@ -27,7 +27,7 @@ import AppTab from '@shared/components/nav/AppTab.vue';
 import AppPageActions from '@shared/components/action/AppPageActions.vue';
 import { computed, nextTick, onErrorCaptured, onMounted, onUnmounted, watch } from 'vue';
 import { onPanelRequest, tellPanels } from '@/shared/nav/modulePanelBridge.js';
-import { ChevronRight, Trash2, BookOpen, FileDown, Image, PanelRightOpen, PanelRightClose, Star, StarOff, Tag, TriangleAlert, X, Network, Share2 } from 'lucide-vue-next';
+import { ChevronRight, Trash2, BookOpen, Copy, FileDown, Image, LayoutTemplate, PanelRightOpen, PanelRightClose, Star, StarOff, Tag, TriangleAlert, X, Network, Share2 } from 'lucide-vue-next';
 import AppNoData from '@shared/components/feedback/AppNoData.vue';
 import "@notes/share/appearance.css";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
@@ -64,6 +64,9 @@ const props = defineProps({
     /** L'espace personnel de qui lit : ce qui vit ailleurs est partagé. */
     personalSpaceId: { type: Number, default: null },
     reorderPath: { type: String, required: true },
+    duplicatePath: { type: String, default: '' },
+    templatePath: { type: String, default: '' },
+    fromTemplatePath: { type: String, default: '' },
     backlinksPath: { type: String, required: true },
     unlinkedMentionsPath: { type: String, required: true },
     graphPath: { type: String, required: true },
@@ -390,6 +393,22 @@ const noteActions = computed(() => {
             },
         },
         {
+            key: "duplicate",
+            title: t('notes.markdown.duplicate.action'),
+            icon: Copy,
+            onSelect: () => void duplicateNote(),
+        },
+        {
+            // Un modèle reste une note : on le lit et on le modifie comme
+            // les autres, et « Ajouter » propose de partir de lui.
+            key: "template",
+            title: selectedNote.value?.template
+                ? t('notes.markdown.template.unmark')
+                : t('notes.markdown.template.mark'),
+            icon: LayoutTemplate,
+            onSelect: () => void toggleTemplate(),
+        },
+        {
             key: "export",
             title: t('notes.markdown.export.one'),
             icon: FileDown,
@@ -410,6 +429,47 @@ const noteActions = computed(() => {
     return actions;
 });
 
+
+/** Une copie de la note ouverte, juste sous elle, qu'on ouvre aussitôt. */
+async function duplicateNote() {
+    if (!selectedId.value) return;
+
+    await flushPendingSave();
+
+    const { ok, reported, payload } = await api.duplicate(selectedId.value);
+
+    if (!ok) {
+        if (!reported) toast.error(t('notes.markdown.duplicate.failed'));
+
+        return;
+    }
+
+    await refreshList();
+    await openNote(payload.note.id);
+    toast.success(t('notes.markdown.duplicate.done'));
+}
+
+/** Faire de la note ouverte un modèle, ou la rendre à l'ordinaire. */
+async function toggleTemplate() {
+    if (!selectedId.value) return;
+
+    const next = !selectedNote.value?.template;
+    const { ok, reported } = await api.markTemplate(selectedId.value, next);
+
+    if (!ok) {
+        if (!reported) toast.error(t('notes.markdown.errors.save_failed'));
+
+        return;
+    }
+
+    const row = notes.value.find((one) => one.id === selectedId.value);
+    if (row) row.template = next;
+
+    toast.success(t(next ? 'notes.markdown.template.marked' : 'notes.markdown.template.unmarked'));
+}
+
+/** Les modèles qu'on peut lire, pour « Ajouter ». */
+const templates = computed(() => notes.value.filter((one) => one.template));
 
 /** Ajouter aux favoris, ou retirer : une note ou un dossier. */
 async function toggleFavorite(kind, id) {
@@ -653,7 +713,7 @@ function openAdd(target) {
  * veut écrire dedans. Un dossier reste où il est créé, et le panneau le
  * montre - on range souvent plusieurs dossiers d'affilée.
  */
-async function submitAdd({ kind, name, color, spaceId, access, defaultRole }) {
+async function submitAdd({ kind, name, color, spaceId, access, defaultRole, templateId = null }) {
     const folderId = addModal.value?.folderId ?? null;
     // Un dossier impose son espace ; sans dossier, la racine choisie.
     const rootSpaceId = null === folderId ? spaceId ?? null : null;
@@ -663,7 +723,11 @@ async function submitAdd({ kind, name, color, spaceId, access, defaultRole }) {
     const request = {
         space: () => spacesApi.create({ name, color, access, defaultRole }),
         folder: () => foldersApi.create(name, folderId, color, rootSpaceId),
-        note: () => api.create({ folderId, spaceId: rootSpaceId, title: name, content: '' }),
+        // Depuis un modèle, le serveur copie son texte ; le nom tapé reste
+        // le titre, celui du modèle à défaut.
+        note: () => (null !== templateId
+            ? api.fromTemplate(templateId, { folderId, spaceId: rootSpaceId, title: name })
+            : api.create({ folderId, spaceId: rootSpaceId, title: name, content: '' })),
     }[kind];
     const { ok, reported, payload } = await request();
 
@@ -674,7 +738,7 @@ async function submitAdd({ kind, name, color, spaceId, access, defaultRole }) {
             const failed = {
                 space: 'notes.markdown.spaces.errors.save_failed',
                 folder: 'notes.markdown.folders.errors.create_failed',
-                note: 'notes.markdown.errors.create_failed',
+                note: null !== templateId ? 'notes.markdown.template.failed' : 'notes.markdown.errors.create_failed',
             }[kind];
 
             toast.error(t(failed));
@@ -1363,6 +1427,7 @@ onUnmounted(() => {
                 :folders="folders"
                 :spaces="spaces"
                 :can-create-space="canCreateSpace"
+                :templates="templates"
                 :saving="addSaving"
                 v-on:close="addModal = null"
                 v-on:submit="submitAdd"

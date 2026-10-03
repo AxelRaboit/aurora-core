@@ -333,6 +333,21 @@ notes:
       reload: 'Recharger sa version'
       overwrite: 'Écraser avec la mienne'
     breadcrumb: 'Emplacement de la note'
+    duplicate:
+      action: 'Dupliquer'
+      title: 'Copie de {title}'
+      done: 'Note dupliquée'
+      failed: 'La note n''a pas pu être dupliquée.'
+    template:
+      mark: 'Utiliser comme modèle'
+      unmark: 'Ne plus utiliser comme modèle'
+      marked: 'Cette note sert maintenant de modèle.'
+      unmarked: 'Cette note n''est plus un modèle.'
+      badge: 'Modèle'
+      start_from: 'Partir de'
+      blank: 'Une note vide'
+      hint: '{marker} y devient la date du jour.'
+      failed: 'La note n''a pas pu être créée depuis ce modèle.'
     add:
       space: 'Espace'
       create_space: 'Créer l''espace'

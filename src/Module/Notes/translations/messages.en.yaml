@@ -333,6 +333,21 @@ notes:
       reload: 'Reload their version'
       overwrite: 'Overwrite with mine'
     breadcrumb: 'Where this note lives'
+    duplicate:
+      action: 'Duplicate'
+      title: 'Copy of {title}'
+      done: 'Note duplicated'
+      failed: 'The note could not be duplicated.'
+    template:
+      mark: 'Use as a template'
+      unmark: 'Stop using as a template'
+      marked: 'This note is now a template.'
+      unmarked: 'This note is no longer a template.'
+      badge: 'Template'
+      start_from: 'Start from'
+      blank: 'A blank note'
+      hint: '{marker} becomes today''s date.'
+      failed: 'The note could not be created from this template.'
     add:
       space: 'Space'
       create_space: 'Create space'

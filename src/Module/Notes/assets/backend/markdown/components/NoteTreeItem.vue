@@ -19,7 +19,7 @@
  */
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { ChevronRight, ChevronDown, FileText, Folder, FolderOpen, Pencil, Plus, Star, StarOff, Trash2 } from 'lucide-vue-next';
+import { ChevronRight, ChevronDown, FileText, Folder, FolderOpen, LayoutTemplate, Pencil, Plus, Star, StarOff, Trash2 } from 'lucide-vue-next';
 import AppIconButton from '@shared/components/action/AppIconButton.vue';
 import AppRowActions from '@shared/components/action/AppRowActions.vue';
 
@@ -253,7 +253,8 @@ const indentStyle = computed(() => ({ marginLeft: `${props.depth * 0.875}rem` })
                 v-on:click="onRowClick"
             >
                 <component
-                    :is="isFolder ? (isOpen && hasChildren ? FolderOpen : Folder) : FileText"
+                    :is="isFolder ? (isOpen && hasChildren ? FolderOpen : Folder) : (node.template ? LayoutTemplate : FileText)"
+                    :aria-label="!isFolder && node.template ? t('notes.markdown.template.badge') : undefined"
                     class="w-4 h-4 shrink-0"
                     :class="isSelected || isDropInside ? 'text-accent-400' : 'text-muted'"
                     :style="tint"

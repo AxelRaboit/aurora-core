@@ -335,6 +335,21 @@ notes:
             reload: 'Recargar su versión'
             overwrite: 'Sobrescribir con la mía'
         breadcrumb: 'Ubicación de la nota'
+        duplicate:
+            action: 'Duplicar'
+            title: 'Copia de {title}'
+            done: 'Nota duplicada'
+            failed: 'No se ha podido duplicar la nota.'
+        template:
+            mark: 'Usar como plantilla'
+            unmark: 'Dejar de usar como plantilla'
+            marked: 'Esta nota es ahora una plantilla.'
+            unmarked: 'Esta nota ya no es una plantilla.'
+            badge: 'Plantilla'
+            start_from: 'Partir de'
+            blank: 'Una nota vacía'
+            hint: '{marker} se convierte en la fecha de hoy.'
+            failed: 'No se ha podido crear la nota a partir de esta plantilla.'
         add:
             space: 'Espacio'
             create_space: 'Crear el espacio'

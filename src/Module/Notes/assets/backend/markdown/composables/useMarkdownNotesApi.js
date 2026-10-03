@@ -65,6 +65,21 @@ export function useMarkdownNotesApi(props) {
          */
         reorder: (entries) =>
             call(HttpMethod.Post, props.reorderPath, { entries }),
+        /** Une copie juste sous la note, dans le même dossier. */
+        duplicate: (id) =>
+            call(HttpMethod.Post, resolvePath(props.duplicatePath, id), {}),
+        /** Faire de la note un modèle, ou la rendre à l'ordinaire. */
+        markTemplate: (id, template) =>
+            call(HttpMethod.Post, resolvePath(props.templatePath, id), {
+                template,
+            }),
+        /** Une note neuve depuis un modèle : `{folderId, spaceId, title}`. */
+        fromTemplate: (id, payload) =>
+            call(
+                HttpMethod.Post,
+                resolvePath(props.fromTemplatePath, id),
+                payload,
+            ),
         backlinks: (id) =>
             call(HttpMethod.Get, resolvePath(props.backlinksPath, id)),
         unlinkedMentions: (id) =>

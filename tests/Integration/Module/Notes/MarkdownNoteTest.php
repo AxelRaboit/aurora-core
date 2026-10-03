@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Integration\Module\Notes;
 
+use Aurora\Module\Configuration\Setting\Service\SiteDateFormatter;
 use Aurora\Module\Notes\Folder\Entity\NoteFolder;
 use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNote;
@@ -17,6 +18,7 @@ use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Tests\Integration\IntegrationTestCase;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -517,6 +519,89 @@ final class MarkdownNoteTest extends IntegrationTestCase
         $this->entityManager->flush();
 
         self::assertSame($inside->getId(), $view->firstInSpace($space));
+    }
+
+    /**
+     * Dupliquer range la copie juste sous l'original, comme Craft et Notion :
+     * les voisins d'après descendent d'un rang, dossiers compris.
+     */
+    public function testDuplicatingPutsTheCopyRightUnderTheOriginal(): void
+    {
+        $folder = $this->folder($this->owner, 'Briefs');
+        $original = $this->note($this->owner, 'Brief', $folder, '# Objectif');
+        $original->setPosition(0)->setTags(['client']);
+        $sub = $this->folder($this->owner, 'Archives', $folder);
+        $sub->setPosition(1);
+        $after = $this->note($this->owner, 'Après', $folder);
+        $after->setPosition(2);
+        $this->entityManager->flush();
+
+        $this->client->loginUser($this->owner, 'admin');
+        $body = $this->post('backend_notes_markdown_duplicate', [], ['id' => $original->getId()]);
+        self::assertResponseIsSuccessful();
+        $this->created[] = [MarkdownNote::class, (int) $body['note']['id']];
+
+        $this->entityManager->clear();
+        $copy = $this->entityManager->find(MarkdownNote::class, $body['note']['id']);
+
+        self::assertSame('Copie de Brief', $copy?->getTitle());
+        self::assertSame('# Objectif', $copy?->getContent());
+        self::assertSame(['client'], $copy?->getTags());
+        self::assertSame($folder->getId(), $copy?->getFolder()?->getId());
+        self::assertSame(1, $copy?->getPosition());
+        self::assertSame(2, $this->entityManager->find(NoteFolder::class, $sub->getId())?->getPosition());
+        self::assertSame(3, $this->entityManager->find(MarkdownNote::class, $after->getId())?->getPosition());
+    }
+
+    /** Une note qu'on ne peut pas écrire ne se duplique pas. */
+    public function testDuplicatingAnotherPersonsNoteIsRefused(): void
+    {
+        $note = $this->note($this->owner, 'Personnel');
+
+        $this->client->loginUser($this->other, 'admin');
+        $this->post('backend_notes_markdown_duplicate', [], ['id' => $note->getId()]);
+
+        self::assertResponseStatusCodeSame(404);
+    }
+
+    /**
+     * Un modèle devient une note neuve, rangée en dernier là où on la crée,
+     * avec la date du jour à la place de son repère. Le modèle reste intact.
+     */
+    public function testATemplateBecomesANewNoteWithTodaysDate(): void
+    {
+        $template = $this->note($this->owner, 'Compte rendu', null, "# Réunion du {{date}}\n\n- Présents :");
+        $target = $this->folder($this->owner, 'Réunions');
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->post('backend_notes_markdown_template', ['template' => true], ['id' => $template->getId()]);
+        self::assertResponseIsSuccessful();
+
+        $body = $this->post('backend_notes_markdown_from_template', ['folderId' => $target->getId(), 'title' => 'Point Lumen'], ['id' => $template->getId()]);
+        self::assertResponseIsSuccessful();
+        $this->created[] = [MarkdownNote::class, (int) $body['note']['id']];
+
+        $this->entityManager->clear();
+        $note = $this->entityManager->find(MarkdownNote::class, $body['note']['id']);
+        $today = static::getContainer()->get(SiteDateFormatter::class)->date(new DateTimeImmutable(), 'fr');
+
+        self::assertSame('Point Lumen', $note?->getTitle());
+        self::assertSame("# Réunion du {$today}\n\n- Présents :", $note?->getContent());
+        self::assertSame($target->getId(), $note?->getFolder()?->getId());
+        self::assertFalse($note?->isTemplate());
+        self::assertTrue($this->entityManager->find(MarkdownNote::class, $template->getId())?->isTemplate());
+        self::assertStringContainsString('{{date}}', (string) $this->entityManager->find(MarkdownNote::class, $template->getId())?->getContent());
+    }
+
+    /** Seule une note marquée comme modèle sert de modèle. */
+    public function testAnOrdinaryNoteIsNotATemplate(): void
+    {
+        $note = $this->note($this->owner, 'Ordinaire');
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->post('backend_notes_markdown_from_template', [], ['id' => $note->getId()]);
+
+        self::assertResponseStatusCodeSame(404);
     }
 
     /**

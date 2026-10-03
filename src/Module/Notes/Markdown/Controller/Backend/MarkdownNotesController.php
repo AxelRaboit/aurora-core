@@ -11,6 +11,7 @@ use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Storage\Access\UploadPolicyProvider;
 use Aurora\Core\Storage\Access\UploadRefusalEnum;
 use Aurora\Core\Validation\Service\PayloadValidator;
+use Aurora\Module\Configuration\Setting\Service\SiteDateFormatter;
 use Aurora\Module\Ged\Pexels\Service\PexelsClient;
 use Aurora\Module\Notes\Favorite\Manager\NoteFavoriteManagerInterface;
 use Aurora\Module\Notes\Folder\Entity\NoteFolderInterface;
@@ -27,6 +28,7 @@ use Aurora\Module\Notes\Markdown\View\MarkdownNotesViewBuilder;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Notes\Space\Service\NoteSpaceAccess;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
+use DateTimeImmutable;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -35,6 +37,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 use function array_filter;
 use function array_values;
@@ -66,6 +69,8 @@ final class MarkdownNotesController extends AbstractController
         private readonly UploadPolicyProvider $uploadPolicies,
         private readonly NoteSpaceAccess $spaceAccess,
         private readonly NoteFavoriteManagerInterface $favorites,
+        private readonly TranslatorInterface $translator,
+        private readonly SiteDateFormatter $dates,
     ) {}
 
     /**
@@ -521,6 +526,91 @@ final class MarkdownNotesController extends AbstractController
         $this->manager->delete($note);
 
         return $this->jsonSuccess();
+    }
+
+    /**
+     * Une copie de la note, juste sous elle : même dossier, même texte, même
+     * apparence, nommée « Copie de … ». Il faut pouvoir lire la note et
+     * écrire là où elle est rangée.
+     */
+    #[Route('/{id}/duplicate', name: '_duplicate', methods: [HttpMethodEnum::Post->value])]
+    public function duplicate(int $id): JsonResponse
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        $note = $this->spaceAccess->writableNote($user, $id);
+        if (!$note instanceof MarkdownNoteInterface || $note->isTrashed()) {
+            return $this->jsonNotFound();
+        }
+
+        $title = $this->translator->trans('notes.markdown.duplicate.title', ['{title}' => (string) ($note->getTitle() ?? '')]);
+        $copy = $this->manager->duplicate($user, $note, $title);
+
+        return $this->jsonSuccess(['note' => $this->serializer->serializeDetail($copy)]);
+    }
+
+    /** Faire d'une note un modèle, ou la rendre à l'ordinaire. */
+    #[Route('/{id}/template', name: '_template', methods: [HttpMethodEnum::Post->value])]
+    public function template(int $id, Request $request): JsonResponse
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        $note = $this->spaceAccess->writableNote($user, $id);
+        if (!$note instanceof MarkdownNoteInterface) {
+            return $this->jsonNotFound();
+        }
+
+        $this->manager->markTemplate($note, true === ($this->decodeJson($request)['template'] ?? false));
+
+        return $this->jsonSuccess(['note' => $this->serializer->serializeDetail($note)]);
+    }
+
+    /**
+     * Une note neuve depuis un modèle qu'on peut lire, rangée là où l'on peut
+     * écrire : le dossier demandé, la racine de l'espace demandé, ou son
+     * espace personnel. `{{date}}` y devient la date du jour.
+     */
+    #[Route('/from-template/{id}', name: '_from_template', methods: [HttpMethodEnum::Post->value])]
+    public function fromTemplate(int $id, Request $request): JsonResponse
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        $template = $this->spaceAccess->readableNote($user, $id);
+        if (!$template instanceof MarkdownNoteInterface || !$template->isTemplate() || $template->isTrashed()) {
+            return $this->jsonNotFound();
+        }
+
+        $data = $this->decodeJson($request);
+        $folder = null;
+        $space = null;
+        if (isset($data['folderId']) && is_numeric($data['folderId'])) {
+            $folder = $this->spaceAccess->writableFolder($user, (int) $data['folderId']);
+            if (!$folder instanceof NoteFolderInterface || $folder->isTrashed()) {
+                return $this->jsonNotFound();
+            }
+            $space = $folder->getSpace();
+        } elseif (isset($data['spaceId']) && is_numeric($data['spaceId'])) {
+            $space = $this->spaceAccess->writableSpace($user, (int) $data['spaceId']);
+            if (!$space instanceof NoteSpaceInterface) {
+                return $this->jsonNotFound();
+            }
+        }
+        $space ??= $this->spaceAccess->personalSpace($user);
+
+        $title = mb_trim((string) ($data['title'] ?? ''));
+        $note = $this->manager->createFromTemplate(
+            $user,
+            $template,
+            $folder,
+            $space,
+            '' !== $title ? $title : (string) ($template->getTitle() ?? ''),
+            ['{{date}}' => $this->dates->date(new DateTimeImmutable())],
+        );
+
+        return $this->jsonSuccess(['note' => $this->serializer->serializeDetail($note)]);
     }
 
     #[Route('/{id}/move', name: '_move', methods: [HttpMethodEnum::Post->value])]

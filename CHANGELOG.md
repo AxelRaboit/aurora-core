@@ -17,6 +17,10 @@ Dans l'arborescence des notes, on ne pouvait pas mettre une note avant un dossie
 - Une note ou un dossier créé, importé ou déplacé dans un autre dossier arrive après tout ce qu'il contient (avant, un déplacement gardait son ancien rang, une place au hasard).
 - Une migration renumérote l'existant sans rien changer à l'affichage : vérifiée sur une copie de la production (27 dossiers, 91 notes), l'ordre complet est identique avant et après.
 
+#### Notes : dupliquer, et partir d'un modèle
+- **Dupliquer** (menu Actions d'une note) : la copie, nommée « Copie de … », se range juste sous l'original, avec son texte, ses étiquettes, son image d'entête et son apparence ; ni ses liens de partage ni son épingle ne la suivent.
+- **Modèles** : « Utiliser comme modèle » fait d'une note un point de départ (brief client, compte rendu, procédure). Elle reste une note ordinaire, marquée d'une icône dans l'arborescence. « Ajouter » propose alors « Partir de » : la note neuve reprend le texte, l'apparence et les étiquettes du modèle, se range en dernier là où on la crée, et `{{date}}` y devient la date du jour. Un modèle d'un autre espace apporte ses images avec lui.
+
 ### Corrigé
 - **`braces` est corrigé, plus seulement ignoré.** L'avis GHSA-vfj7-8cjw-p6xm (braces <= 3.0.3, aucune version corrigée publiée) visait des fonctions récursives sans limite de profondeur : cinq mille accolades imbriquées, sous la limite de longueur, faisaient planter Node sur « Maximum call stack size exceeded ». Une copie de braces 3.0.3 corrigée vit dans `tools/patched/braces` : elle refuse une imbrication de plus de 500 niveaux, comme braces refuse déjà une entrée trop longue, et un `override` de `pnpm-workspace.yaml` l'impose à tout l'arbre. L'avis n'est plus ignoré : `pnpm audit` ne trouve plus rien, avec pnpm 10 (la CI) comme 11. Un `file:` plutôt qu'un `pnpm patch`, que les deux versions de pnpm n'écrivent pas de la même façon dans le lockfile. Un test Vitest vérifie que la copie servie est bien la corrigée.
 

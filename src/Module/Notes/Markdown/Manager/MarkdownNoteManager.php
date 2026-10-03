@@ -226,6 +226,80 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
         return count($notes);
     }
 
+    public function duplicate(CoreUserInterface $user, MarkdownNoteInterface $note, string $title): MarkdownNoteInterface
+    {
+        $space = $note->getSpace();
+        $folderId = $note->getFolder()?->getId();
+
+        // Right under its original, as Craft and Notion place a copy: the
+        // neighbours after it step down one rank, folders included, since
+        // both share one order.
+        $this->noteRepository->shiftAfter($space, $folderId, $note->getPosition());
+        $this->folderRepository->shiftAfter($space, $folderId, $note->getPosition());
+
+        $copy = $this->copyOf($user, $note, $note->getFolder(), $space, $title, $note->getContent());
+        $copy->setPosition($note->getPosition() + 1);
+        $copy->setTemplate($note->isTemplate());
+
+        $this->entityManager->persist($copy);
+        $this->entityManager->flush();
+
+        $this->auditCreated($copy);
+
+        return $copy;
+    }
+
+    public function createFromTemplate(CoreUserInterface $user, MarkdownNoteInterface $template, ?NoteFolderInterface $folder, NoteSpaceInterface $space, string $title, array $replacements = []): MarkdownNoteInterface
+    {
+        $content = strtr((string) $template->getContent(), $replacements);
+        $note = $this->copyOf($user, $template, $folder, $space, strtr($title, $replacements), $content);
+        $note->setPosition($this->nextPosition($space, $folder?->getId()));
+
+        $this->entityManager->persist($note);
+        $this->entityManager->flush();
+
+        // The template's images are named after files in its own space: a
+        // copy written in another space needs them there too, or its readers
+        // see broken pictures.
+        if ($space->getId() !== $template->getSpace()->getId()) {
+            $this->imageService->copyReferenced($content, $this->imageService->bucketOf($template), $space);
+        }
+
+        $this->auditCreated($note);
+
+        return $note;
+    }
+
+    public function markTemplate(MarkdownNoteInterface $note, bool $template): void
+    {
+        $note->setTemplate($template);
+        $this->entityManager->flush();
+
+        $this->auditUpdated($note);
+    }
+
+    /**
+     * A new note carrying another's words and look, but none of its links:
+     * no share link, no favourite, no history.
+     */
+    protected function copyOf(CoreUserInterface $user, MarkdownNoteInterface $source, ?NoteFolderInterface $folder, NoteSpaceInterface $space, string $title, ?string $content): MarkdownNoteInterface
+    {
+        $note = $this->createNote();
+        $note->setUser($user);
+        $note->setSpace($space);
+        $note->setFolder($folder);
+        $note->setTitle($title);
+        $note->setContent($content);
+        $note->setTags($source->getTags());
+        $note->setCoverUrl($source->getCoverUrl());
+        $note->setCoverCreditName($source->getCoverCreditName());
+        $note->setCoverCreditUrl($source->getCoverCreditUrl());
+        $note->setCoverPosition($source->getCoverPosition());
+        $note->setAppearance($source->getAppearance());
+
+        return $note;
+    }
+
     public function move(MarkdownNoteInterface $note, ?NoteFolderInterface $folder, ?NoteSpaceInterface $space = null): void
     {
         $target = $folder?->getSpace() ?? $space ?? $note->getSpace();
