@@ -51,7 +51,7 @@ const byRole = computed(() =>
 </script>
 
 <template>
-    <div class="space-y-5">
+    <div class="aurora-stack">
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <AppStatTile
                 :icon="Users"

@@ -183,7 +183,7 @@ async function save() {
 <template>
     <!-- La fiche à gauche, ce qui relie le client au reste à droite sur un
          grand écran ; l'une sous l'autre ailleurs. -->
-    <div class="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+    <div class="grid grid-cols-1 items-start aurora-gap lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <section class="flex flex-col gap-3">
             <h2 class="m-0 text-xs font-semibold uppercase tracking-wider text-muted">
                 {{ t("backend.studio.space_information.group_card") }}

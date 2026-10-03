@@ -321,7 +321,7 @@ onUnmounted(() => {
     <div class="relative">
         <AppLoader :active="loading" />
 
-        <div class="min-w-0 space-y-3">
+        <div class="min-w-0 aurora-stack">
             <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
                  replié ou déplié, le choix vaut pour tous les encarts. -->
             <AppGuide :title="t('backend.plannings.guide.title')" storage-key="planning">

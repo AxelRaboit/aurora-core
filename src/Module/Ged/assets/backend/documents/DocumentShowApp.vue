@@ -126,7 +126,7 @@ function isPdf(mimeType) {
 </script>
 
 <template>
-    <div class="space-y-5 max-w-3xl">
+    <div class="aurora-stack max-w-3xl">
         <!-- Four buttons and a chip on a row that could not wrap: on a phone
              they were squeezed to slivers. The download stays reachable, and
              more than once - the file block further down offers it beside the

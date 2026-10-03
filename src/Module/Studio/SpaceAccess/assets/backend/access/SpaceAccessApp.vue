@@ -160,7 +160,7 @@ function openedLabel(link) {
 </script>
 
 <template>
-    <div class="mx-auto max-w-3xl space-y-5">
+    <div class="mx-auto max-w-3xl aurora-stack">
         <div class="flex flex-wrap items-start justify-between gap-3">
             <p class="max-w-xl text-sm text-secondary">
                 {{ t("backend.studio.space_access.intro") }}

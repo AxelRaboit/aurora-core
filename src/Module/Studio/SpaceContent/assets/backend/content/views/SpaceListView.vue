@@ -48,7 +48,7 @@ function when(item) {
 </script>
 
 <template>
-    <div class="space-y-5">
+    <div class="aurora-stack">
         <AppNoData
             v-if="isEmpty"
             :message="t('backend.studio.space_content.empty_board')"

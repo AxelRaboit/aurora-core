@@ -205,7 +205,7 @@ function actionsFor(deliverable) {
 </script>
 
 <template>
-    <div class="space-y-5">
+    <div class="aurora-stack">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p class="m-0 text-xs text-muted sm:max-w-lg">{{ t("backend.studio.space_deliverables.intro") }}</p>
 

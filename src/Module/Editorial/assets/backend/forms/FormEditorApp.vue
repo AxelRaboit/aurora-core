@@ -174,7 +174,7 @@ const headerActions = computed(() => {
 </script>
 
 <template>
-    <div class="space-y-2 sm:space-y-4">
+    <div class="aurora-stack">
         <AppPageBar :back-href="listPath" :back-label="t('backend.forms.editor.back')">
             <!-- En ligne ou non, visible quel que soit l'onglet : on doit
                  savoir qu'on modifie un formulaire que des gens remplissent. -->

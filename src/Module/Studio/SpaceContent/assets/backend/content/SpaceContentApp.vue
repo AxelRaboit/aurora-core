@@ -578,7 +578,7 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
 
          Sur ordinateur, le rail des sections à gauche et l'écran à droite ;
          la colonne de droite garde la hauteur pour la discussion. -->
-    <div class="flex flex-1 flex-col gap-2 sm:gap-4 lg:flex-row lg:items-start lg:gap-6">
+    <div class="flex flex-1 flex-col aurora-gap lg:flex-row lg:items-start">
         <SpaceSectionNav v-model="view" :views="views" :badges="navBadges" :urgent="navUrgent" />
 
         <div class="flex min-h-0 min-w-0 flex-1 flex-col gap-2 self-stretch sm:gap-4">
@@ -691,7 +691,7 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
             <div v-if="view === 'content'" ref="shapeContainer">
                 <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
                  replié ou déplié, le choix vaut pour tous les encarts. -->
-                <AppGuide :title="t('backend.studio.space_content.guide.title')" storage-key="space-content" class="mb-4">
+                <AppGuide :title="t('backend.studio.space_content.guide.title')" storage-key="space-content" class="mb-[var(--aurora-page-margin)]">
                     <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                         <li v-for="step in 5" :key="step">{{ t(`backend.studio.space_content.guide.step_${step}`) }}</li>
                     </ol>
@@ -828,7 +828,7 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
             >
                 <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
      replié ou déplié, le choix vaut pour tous les encarts. -->
-                <AppGuide :title="t('backend.studio.space_chat.guide.title')" storage-key="space-chat" class="mb-3 shrink-0">
+                <AppGuide :title="t('backend.studio.space_chat.guide.title')" storage-key="space-chat" class="mb-[var(--aurora-page-margin)] shrink-0">
                     <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                         <li v-for="step in 4" :key="step">{{ t(`backend.studio.space_chat.guide.step_${step}`) }}</li>
                     </ol>

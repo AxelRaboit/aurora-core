@@ -93,7 +93,7 @@
            the way back and offers none is a page people reach for the browser
            button on, which loses whatever they had open. #}
         <header class="sticky top-0 z-20 border-b border-line bg-surface/95 backdrop-blur">
-            <div class="flex flex-wrap items-center gap-x-2 gap-y-2 px-3 py-2 sm:gap-x-4 sm:px-6 sm:py-2.5">
+            <div class="aurora-page-x flex flex-wrap items-center gap-x-2 gap-y-2 py-2 sm:gap-x-4 sm:py-2.5">
                 {# **Une flèche seule sur téléphone.** Le libellé fait cent
                    soixante-treize pixels sur trois cent soixante-quinze, soit
                    près de la moitié de la barre pour un mot que le chevron dit
@@ -214,7 +214,11 @@
            La règle vaut pour le reste de l'application : la gouttière se réduit
            sur téléphone, elle ne disparaît pas, et rien ne change au dessin des
            blocs. #}
-        <main class="flex flex-1 flex-col px-2 py-2 sm:px-6 sm:py-4">
+        {# La marge commune du back-office (`aurora-page`, spacing.css) plutôt
+           que la sienne : écrite ici en dur, elle valait vingt-quatre pixels
+           sur les côtés pour seize en haut, et aucun écart entre les blocs
+           ne la suivait. #}
+        <main class="aurora-page flex flex-1 flex-col">
             {% block body %}{% endblock %}
         </main>
     </body>

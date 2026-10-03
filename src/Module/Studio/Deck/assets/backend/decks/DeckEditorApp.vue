@@ -614,7 +614,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div class="space-y-2 sm:space-y-4">
+    <div class="aurora-stack">
         <!-- Présenter, et le reste derrière un bouton : la page a déjà une
              colonne de slides à gauche, elle n'a pas besoin d'une rangée de
              cinq boutons en haut. La barre de tous les écrans : le retour à

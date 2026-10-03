@@ -53,7 +53,7 @@ const {
 </script>
 
 <template>
-    <div class="space-y-5">
+    <div class="aurora-stack">
         <p class="text-sm text-secondary">{{ t('backend.settings.tabs.navigation_description') }}</p>
         <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
              replié ou déplié, le choix vaut pour tous les encarts. -->

@@ -66,7 +66,7 @@ function scopeHref(scope) {
 </script>
 
 <template>
-    <div class="space-y-5">
+    <div class="aurora-stack">
         <!-- Les mêmes onglets de portée que la liste des espaces et le
              calendrier éditorial. -->
         <div

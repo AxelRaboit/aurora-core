@@ -156,7 +156,7 @@ const headerActions = computed(() => {
 </script>
 
 <template>
-    <div class="space-y-2 sm:space-y-4">
+    <div class="aurora-stack">
         <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
             <AppBackLink :href="deliverablesPath" :label="t('backend.studio.space_deliverables.back', { space: space.name })" />
             <div class="flex flex-wrap items-center gap-2 sm:gap-3">
