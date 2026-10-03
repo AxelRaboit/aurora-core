@@ -512,6 +512,17 @@ const displayHint = computed(() =>
                 :label="t('backend.posts.grid.github_mode')"
                 :options="choices.githubMode ?? []"
             />
+            <!-- Some of the site's accounts only, so that two zones can each
+                 sit beside the text that presents them. Empty shows them all. -->
+            <AppTextarea
+                v-if="bound.githubMode.value === 'activity'"
+                :model-value="(bound.githubLogins.value ?? []).join('\n')"
+                :label="t('backend.posts.grid.github_logins')"
+                :hint="t('backend.posts.grid.github_logins_hint')"
+                placeholder="AxelRaboit"
+                :rows="2"
+                v-on:update:model-value="(value) => (bound.githubLogins.value = parseLines(value))"
+            />
             <AppTextarea
                 v-if="bound.githubMode.value !== 'activity'"
                 :model-value="(bound.githubRepos.value ?? []).join('\n')"

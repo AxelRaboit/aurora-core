@@ -70,6 +70,7 @@ notes:
             step_4: "Las etiquetas filtran la biblioteca, y «Gestionar etiquetas» las renombra o fusiona en todas sus notas."
             step_5: "Una nota también se comparte con un enlace de solo lectura; ni siquiera un administrador lee sus notas privadas."
             step_6: "El menú Acciones de una nota la duplica, la convierte en plantilla, vuelve a una versión anterior o la imprime en PDF."
+            step_7: "Escriba « / » al principio de una línea para insertar un título, una lista o una tabla: « /tabla 3x4 » crea 3 columnas y 4 filas, y Tab pasa de una celda a otra."
         share:
             button: 'Compartir mediante un enlace'
             title: 'Compartir esta nota mediante un enlace'
@@ -417,6 +418,7 @@ notes:
             italic: Cursiva
             strikethrough: Tachado
             table: Tabla
+            table_column: 'Columna {n}'
             no_results: 'Ningún comando'
         tags:
             add_placeholder: 'Añadir una etiqueta…'

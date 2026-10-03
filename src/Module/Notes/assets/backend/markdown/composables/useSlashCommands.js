@@ -16,6 +16,10 @@ import { positionFloatingMenu } from "@notes/backend/markdown/composables/positi
  *
  * Ported from Onyx (`resources/js/composables/notes/useSlashCommands.js`)
  * with translatable labels and a slimmed-down command set.
+ *
+ * The table command takes a size: `/tableau 3x4` inserts three columns and
+ * four rows, `/tableau` alone the default 3 × 3. Moving between its cells
+ * with Tab is `tableNavigation.js`.
  */
 
 const COMMANDS = [
@@ -127,10 +131,62 @@ const COMMANDS = [
         id: "table",
         labelKey: "notes.markdown.slash.table",
         icon: "⊞",
-        insert: "| Column 1 | Column 2 |\n| --- | --- |\n| Cell | Cell |\n",
         type: "block",
+        // Built at apply time from the size typed after the command
+        // (`/tableau 3x4`), see `buildTable`.
+        sizable: true,
     },
 ];
+
+/** The blank table inserted when no size follows the command. */
+export const DEFAULT_TABLE_SIZE = { cols: 3, rows: 3 };
+const MAX_TABLE_COLS = 10;
+const MAX_TABLE_ROWS = 50;
+
+/**
+ * `/tableau 3x4` → `{ word: "tableau", size: { cols: 3, rows: 4 } }`.
+ *
+ * The size is optional and may be half typed (`3`, `3x`): the palette stays
+ * open while it is being written, and only a complete `CxR` changes what is
+ * inserted. Returns null when the query is not a word optionally followed by
+ * one space and such a size, which is what closes the palette.
+ */
+export function parseSlashQuery(query) {
+    const match = query.match(/^(\S*)(?: (\d{0,2})(?:[x×](\d{0,2}))?)?$/i);
+    if (!match) return null;
+    const [, word, cols, rows] = match;
+    const hasSizePart = query.includes(" ");
+    const size =
+        cols && rows
+            ? {
+                  cols: Math.min(Math.max(Number(cols), 1), MAX_TABLE_COLS),
+                  rows: Math.min(Math.max(Number(rows), 1), MAX_TABLE_ROWS),
+              }
+            : null;
+    return { word, hasSizePart, size };
+}
+
+/**
+ * A blank Markdown table: numbered headers in the interface language, empty
+ * cells, and the range of the first header so the caller can select it -
+ * typing replaces "Column 1" straight away.
+ */
+export function buildTable({ cols, rows }, columnLabel) {
+    const header = Array.from({ length: cols }, (_, i) => columnLabel(i + 1));
+    const lines = [
+        `| ${header.join(" | ")} |`,
+        `| ${Array(cols).fill("---").join(" | ")} |`,
+        ...Array.from(
+            { length: rows },
+            () => `| ${Array(cols).fill("").join(" | ")} |`,
+        ),
+    ];
+    return {
+        text: `${lines.join("\n")}\n`,
+        selectStart: 2,
+        selectEnd: 2 + header[0].length,
+    };
+}
 
 export function useSlashCommands({ t }) {
     const showSlash = ref(false);
@@ -146,14 +202,33 @@ export function useSlashCommands({ t }) {
         label: t(command.labelKey),
     }));
 
+    const parsedQuery = computed(() => parseSlashQuery(slashQuery.value));
+
     const filteredCommands = computed(() => {
-        const query = slashQuery.value.toLowerCase();
-        if (query === "") return commands;
-        return commands.filter(
-            (command) =>
-                command.label.toLowerCase().includes(query) ||
-                command.id.includes(query),
-        );
+        const parsed = parsedQuery.value;
+        const word = (parsed?.word ?? slashQuery.value).toLowerCase();
+        const matching =
+            word === ""
+                ? commands
+                : commands.filter(
+                      (command) =>
+                          command.label.toLowerCase().includes(word) ||
+                          command.id.includes(word),
+                  );
+        if (!parsed?.hasSizePart) return matching;
+
+        // A size was typed: only the commands that take one still apply, and
+        // the label says what will be inserted.
+        return matching
+            .filter((command) => command.sizable)
+            .map((command) =>
+                parsed.size
+                    ? {
+                          ...command,
+                          label: `${command.label} ${parsed.size.cols} × ${parsed.size.rows}`,
+                      }
+                    : command,
+            );
     });
 
     /**
@@ -187,7 +262,21 @@ export function useSlashCommands({ t }) {
         }
 
         const query = before.slice(slashIdx + 1);
-        if (/\s/.test(query)) {
+        // A space ends the command, except the one that introduces a table
+        // size (`/tableau 3x4`): the palette stays open while it is typed.
+        const parsed = /\s/.test(query) ? parseSlashQuery(query) : null;
+        const sizing =
+            parsed !== null &&
+            parsed.word !== "" &&
+            commands.some(
+                (command) =>
+                    command.sizable &&
+                    (command.label
+                        .toLowerCase()
+                        .includes(parsed.word.toLowerCase()) ||
+                        command.id.includes(parsed.word.toLowerCase())),
+            );
+        if (/\s/.test(query) && !sizing) {
             closeSlash();
             return;
         }
@@ -243,6 +332,20 @@ export function useSlashCommands({ t }) {
         const caret = textarea.selectionStart;
         const before = content.slice(0, start);
         const after = content.slice(caret);
+
+        if (command.sizable) {
+            const size = parsedQuery.value?.size ?? DEFAULT_TABLE_SIZE;
+            const table = buildTable(size, (n) =>
+                t("notes.markdown.slash.table_column", { n }),
+            );
+            closeSlash();
+            return {
+                newContent: before + table.text + after,
+                newCaret: start + table.selectStart,
+                newCaretEnd: start + table.selectEnd,
+            };
+        }
+
         const newContent = before + command.insert + after;
         const newCaret =
             command.cursorOffset !== undefined

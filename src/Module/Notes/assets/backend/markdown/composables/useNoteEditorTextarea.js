@@ -2,6 +2,7 @@ import { ref, nextTick } from "vue";
 import { useSlashCommands } from "@notes/backend/markdown/composables/useSlashCommands.js";
 import { useWikiLinkAutocomplete } from "@notes/backend/markdown/composables/useWikiLinkAutocomplete.js";
 import { handleMarkdownShortcut } from "@notes/backend/markdown/composables/useMarkdownShortcuts.js";
+import { navigateTableCell } from "@notes/backend/markdown/composables/tableNavigation.js";
 
 /**
  * Wiring for the markdown notes textarea + its two floating menus:
@@ -67,7 +68,7 @@ export function useNoteEditorTextarea({
     async function selectCommand(command) {
         const textarea = textareaRef.value;
         if (!textarea) return;
-        const { newContent, newCaret } = slash.applyCommand(
+        const { newContent, newCaret, newCaretEnd } = slash.applyCommand(
             textarea,
             command,
             textarea.value,
@@ -75,7 +76,8 @@ export function useNoteEditorTextarea({
         emitUpdate(newContent);
         await nextTick();
         textarea.focus();
-        textarea.setSelectionRange(newCaret, newCaret);
+        // A table selects its first header, so typing replaces it.
+        textarea.setSelectionRange(newCaret, newCaretEnd ?? newCaret);
     }
 
     async function selectSuggestion(note) {
@@ -144,6 +146,27 @@ export function useNoteEditorTextarea({
         if (wiki.showSuggestions.value) {
             const picked = wiki.onKeydown(event);
             if (picked) selectSuggestion(picked);
+            return;
+        }
+
+        // Tab inside a Markdown table moves between cells; anywhere else it
+        // keeps its usual meaning.
+        if (
+            textarea &&
+            event.key === "Tab" &&
+            !event.ctrlKey &&
+            !event.metaKey &&
+            !event.altKey
+        ) {
+            const move = navigateTableCell(
+                textarea.value,
+                textarea.selectionStart,
+                event.shiftKey,
+            );
+            if (move) {
+                event.preventDefault();
+                applyShortcut(move);
+            }
         }
     }
 

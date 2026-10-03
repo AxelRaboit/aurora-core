@@ -4,17 +4,20 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Editorial\Post\Grid;
 
+use Aurora\Module\Editorial\GitHub\Setting\GitHubSettings;
 use DateTimeImmutable;
 use DateTimeZone;
 use Throwable;
 
 use function array_fill_keys;
+use function array_filter;
 use function array_key_exists;
 use function array_slice;
 use function array_values;
 use function count;
 use function explode;
 use function filter_var;
+use function implode;
 use function in_array;
 use function is_array;
 use function is_numeric;
@@ -120,6 +123,7 @@ final class GridZoneOptions
             'buttonAction' => self::BUTTON_ACTIONS[0],
             'githubMode' => self::GITHUB_MODES[0],
             'githubRepos' => [],
+            'githubLogins' => [],
             'availability' => self::AVAILABILITIES[0],
             'availableFrom' => null,
             'hours' => array_fill_keys(self::WEEKDAYS, []),
@@ -178,6 +182,9 @@ final class GridZoneOptions
             'buttonAction' => self::oneOf($data['buttonAction'] ?? null, self::BUTTON_ACTIONS),
             'githubMode' => self::oneOf($data['githubMode'] ?? null, self::GITHUB_MODES),
             'githubRepos' => self::repos($data['githubRepos'] ?? null),
+            // Which of the site's accounts the activity grid shows. Empty means
+            // all of them, which is what every zone written before did.
+            'githubLogins' => self::logins($data['githubLogins'] ?? null),
             'availability' => self::oneOf($data['availability'] ?? null, self::AVAILABILITIES),
             'availableFrom' => self::day($data['availableFrom'] ?? null),
             'hours' => self::hours($data['hours'] ?? null),
@@ -410,6 +417,23 @@ final class GridZoneOptions
      *
      * @return list<string>
      */
+    /**
+     * The accounts a zone asks for, cleaned the way the settings clean theirs.
+     *
+     * Nothing here checks that an account is one of the site's: the view only
+     * draws the intersection, so a name the settings later drop simply stops
+     * showing instead of breaking the page.
+     *
+     * @return list<string>
+     */
+    private static function logins(mixed $value): array
+    {
+        $lines = is_array($value) ? array_filter($value, is_string(...)) : [];
+        [$valid] = GitHubSettings::parse(implode("\n", $lines));
+
+        return array_slice($valid, 0, GitHubSettings::MAX_LOGINS);
+    }
+
     private static function repos(mixed $value): array
     {
         $repos = [];
