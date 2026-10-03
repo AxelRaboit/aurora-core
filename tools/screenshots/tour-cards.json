@@ -461,6 +461,14 @@
         "tour-notes-modele": {
             "document": 765,
             "slug": "notes-markdown"
+        },
+        "tour-reglages-apparence": {
+            "document": 769,
+            "slug": "theme-et-identite"
+        },
+        "tour-reglages-emails": {
+            "document": 770,
+            "slug": "theme-et-identite"
         }
     }
 }
