@@ -8,8 +8,15 @@ use Aurora\Core\Twig\AppearanceExtension;
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use Aurora\Module\Configuration\Setting\Service\EmailColors;
+use Aurora\Module\Configuration\Theme\Repository\ThemeRepository;
+use Aurora\Module\Configuration\Theme\Service\PrimaryColorPalette;
+use Aurora\Module\Configuration\Theme\Service\SurfaceContrast;
+use Aurora\Module\Configuration\Theme\Service\ThemeContext;
+use Aurora\Module\Ged\Document\Repository\DocumentRepository;
+use Aurora\Module\Ged\Document\Service\DocumentUrlGenerator;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 #[AllowMockObjectsWithoutExpectations]
 final class AppearanceExtensionTest extends TestCase
@@ -19,7 +26,7 @@ final class AppearanceExtensionTest extends TestCase
         $repository = $this->createMock(SettingRepository::class);
         $repository->method('get')->willReturn(json_encode(['#abcdef', '#123456']));
 
-        $extension = new AppearanceExtension($repository, new EmailColors($repository));
+        $extension = $this->extension($repository);
 
         self::assertSame(['#abcdef', '#123456'], $extension->getColorPickerPresets());
     }
@@ -29,7 +36,7 @@ final class AppearanceExtensionTest extends TestCase
         $repository = $this->createMock(SettingRepository::class);
         $repository->method('get')->willReturn('');
 
-        $extension = new AppearanceExtension($repository, new EmailColors($repository));
+        $extension = $this->extension($repository);
 
         self::assertSame(
             ApplicationParameterEnum::DEFAULT_COLOR_PICKER_PRESETS,
@@ -42,7 +49,7 @@ final class AppearanceExtensionTest extends TestCase
         $repository = $this->createMock(SettingRepository::class);
         $repository->method('get')->willReturn('{not-json');
 
-        $extension = new AppearanceExtension($repository, new EmailColors($repository));
+        $extension = $this->extension($repository);
 
         self::assertSame(
             ApplicationParameterEnum::DEFAULT_COLOR_PICKER_PRESETS,
@@ -55,7 +62,7 @@ final class AppearanceExtensionTest extends TestCase
         $repository = $this->createMock(SettingRepository::class);
         $repository->method('get')->willReturn(json_encode(['#ff0000', 'red', '#abc', '#00FF00']));
 
-        $extension = new AppearanceExtension($repository, new EmailColors($repository));
+        $extension = $this->extension($repository);
 
         self::assertSame(['#ff0000', '#00FF00'], $extension->getColorPickerPresets());
     }
@@ -67,7 +74,7 @@ final class AppearanceExtensionTest extends TestCase
             ->method('get')
             ->willReturn(json_encode(['#aabbcc']));
 
-        $extension = new AppearanceExtension($repository, new EmailColors($repository));
+        $extension = $this->extension($repository);
         $extension->getColorPickerPresets();
         $extension->getColorPickerPresets();
     }
@@ -79,9 +86,22 @@ final class AppearanceExtensionTest extends TestCase
             ->method('get')
             ->willReturn(json_encode(['#aabbcc']));
 
-        $extension = new AppearanceExtension($repository, new EmailColors($repository));
+        $extension = $this->extension($repository);
         $extension->getColorPickerPresets();
         $extension->reset();
         $extension->getColorPickerPresets();
+    }
+
+    private function extension(SettingRepository $repository): AppearanceExtension
+    {
+        $themes = $this->createStub(ThemeRepository::class);
+
+        return new AppearanceExtension($repository, new EmailColors($repository, new ThemeContext(
+            $themes,
+            $this->createStub(DocumentRepository::class),
+            new PrimaryColorPalette(),
+            new SurfaceContrast(),
+            new DocumentUrlGenerator($this->createStub(UrlGeneratorInterface::class)),
+        )));
     }
 }
