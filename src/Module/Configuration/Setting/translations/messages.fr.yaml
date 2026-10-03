@@ -19,7 +19,7 @@ backend:
       step_1: "Ce réglage fixe la langue des e-mails que l'application envoie sans connaître celle du destinataire, comme les messages adressés à l'administration."
       step_2: "« Suivre la langue par défaut » reprend la langue choisie dans l'onglet Localisation."
       step_3: "Un e-mail lié à un contrat part dans la langue du contrat, et l'avis d'un nouveau commentaire dans la langue du compte de l'auteur de l'article."
-      step_4: "Les quatre couleurs habillent tous les e-mails : l'accent pour le bouton, les liens et la pastille du logo, puis le fond, les titres et le texte. « Couleur d'origine » remet celle de départ."
+      step_4: "Par défaut, l'accent des e-mails (bouton, liens, pastille du logo) suit la couleur principale du thème ; coupez « Suivre la couleur du thème » pour en choisir une autre. Le fond, les titres et le texte se règlent à côté, et « Couleur d'origine » remet celle de départ."
       step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
     system_guide:
       title: "Qui peut entrer, et quand"
@@ -539,9 +539,12 @@ backend:
     color_picker_presets:
       label: Palette du sélecteur de couleurs
       description: 'Liste JSON de couleurs hexadécimales proposées en raccourci dans tous les sélecteurs de couleurs de l''admin.'
+    email_accent_follows_theme:
+      label: "Suivre la couleur du thème"
+      description: "Les e-mails prennent la couleur principale du thème actif, et la suivent quand elle change. Coupé, c'est la couleur d'accent ci-dessous qui sert."
     email_accent_color:
       label: "Couleur d'accent des e-mails"
-      description: "Bouton, liens, pastille du logo et nom du site en tête de chaque e-mail."
+      description: "Bouton, liens, pastille du logo et nom du site en tête de chaque e-mail. Sert quand « Suivre la couleur du thème » est coupé."
     email_background_color:
       label: "Fond des e-mails"
       description: "Le fond autour de la carte blanche du message."

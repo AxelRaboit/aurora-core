@@ -7,7 +7,15 @@ namespace Aurora\Tests\Unit\Module\Configuration\Setting;
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
 use Aurora\Module\Configuration\Setting\Service\EmailColors;
+use Aurora\Module\Configuration\Theme\Entity\ThemeInterface;
+use Aurora\Module\Configuration\Theme\Repository\ThemeRepository;
+use Aurora\Module\Configuration\Theme\Service\PrimaryColorPalette;
+use Aurora\Module\Configuration\Theme\Service\SurfaceContrast;
+use Aurora\Module\Configuration\Theme\Service\ThemeContext;
+use Aurora\Module\Ged\Document\Repository\DocumentRepository;
+use Aurora\Module\Ged\Document\Service\DocumentUrlGenerator;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 use function file_get_contents;
 use function preg_quote;
@@ -36,9 +44,26 @@ final class EmailColorsTest extends TestCase
         self::assertSame('#10b981', $colors->colors()['accentLight']);
     }
 
+    public function testTheAccentFollowsTheThemesMainColour(): void
+    {
+        $colors = $this->colorsWith([], ['primary_color' => '#8B6CFF']);
+
+        self::assertSame('#8b6cff', $colors->colors()['accent']);
+        self::assertStringContainsString('.button-primary{background-color:#8b6cff}', $colors->css());
+    }
+
+    public function testAThemeWithoutMainColourKeepsTheOriginalGreen(): void
+    {
+        self::assertSame('#059669', $this->colorsWith([], ['primary_color' => 'violet'])->colors()['accent']);
+        self::assertSame('#059669', $this->colorsWith([], null)->colors()['accent']);
+    }
+
     public function testAChangedAccentRepaintsTheButtonAndTheLinks(): void
     {
-        $colors = $this->colorsWith([ApplicationParameterEnum::EmailAccentColor->value => '#8B6CFF']);
+        $colors = $this->colorsWith([
+            ApplicationParameterEnum::EmailAccentFollowsTheme->value => '0',
+            ApplicationParameterEnum::EmailAccentColor->value => '#8B6CFF',
+        ], ['primary_color' => '#ff0000']);
 
         self::assertSame('a,.header a,.fallback a{color:#8b6cff}.button-primary{background-color:#8b6cff}.panel{border-left-color:#8b6cff}', $colors->css());
         self::assertSame('#a891ff', $colors->colors()['accentLight']);
@@ -52,14 +77,32 @@ final class EmailColorsTest extends TestCase
         self::assertSame('#f5f3ff', $colors->colors()['background']);
     }
 
-    /** @param array<string, string> $stored */
-    private function colorsWith(array $stored): EmailColors
+    /**
+     * @param array<string, string>     $stored
+     * @param array<string, mixed>|null $themeConfig null = aucun thème actif
+     */
+    private function colorsWith(array $stored, ?array $themeConfig = []): EmailColors
     {
         $repository = $this->createStub(SettingRepository::class);
         $repository->method('get')->willReturnCallback(
             static fn (string $key, ?string $default = null): ?string => $stored[$key] ?? $default,
         );
 
-        return new EmailColors($repository);
+        $theme = null;
+        if (null !== $themeConfig) {
+            $theme = $this->createStub(ThemeInterface::class);
+            $theme->method('getConfig')->willReturn($themeConfig);
+        }
+
+        $themes = $this->createStub(ThemeRepository::class);
+        $themes->method('findActive')->willReturn($theme);
+
+        return new EmailColors($repository, new ThemeContext(
+            $themes,
+            $this->createStub(DocumentRepository::class),
+            new PrimaryColorPalette(),
+            new SurfaceContrast(),
+            new DocumentUrlGenerator($this->createStub(UrlGeneratorInterface::class)),
+        ));
     }
 }

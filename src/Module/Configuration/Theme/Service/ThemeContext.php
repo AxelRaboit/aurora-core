@@ -10,8 +10,9 @@ use Aurora\Module\Configuration\Theme\Repository\ThemeRepository;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Ged\Document\Service\DocumentUrlGenerator;
 use Deprecated;
+use Symfony\Contracts\Service\ResetInterface;
 
-final class ThemeContext
+final class ThemeContext implements ResetInterface
 {
     /**
      * Default primary colour seed when the active theme has none configured.
@@ -44,6 +45,16 @@ final class ThemeContext
         private readonly SurfaceContrast $surfaceContrast,
         private readonly DocumentUrlGenerator $documentUrlGenerator,
     ) {}
+
+    /**
+     * Oublie le thème lu : un worker qui enverrait des e-mails pendant des
+     * heures garderait sinon celui d'avant un changement de thème.
+     */
+    public function reset(): void
+    {
+        $this->resolved = false;
+        $this->cachedTheme = null;
+    }
 
     public function activeTheme(): ?ThemeInterface
     {

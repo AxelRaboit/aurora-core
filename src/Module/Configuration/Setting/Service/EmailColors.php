@@ -6,9 +6,11 @@ namespace Aurora\Module\Configuration\Setting\Service;
 
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
+use Aurora\Module\Configuration\Theme\Service\ThemeContext;
 
 use function hexdec;
 use function implode;
+use function is_string;
 use function mb_str_split;
 use function mb_strtolower;
 use function mb_substr;
@@ -22,7 +24,8 @@ use function vsprintf;
  *
  * Les défauts sont les couleurs que `email.css` code en dur : tant qu'un
  * réglage n'en change aucune, `css()` est vide et un e-mail sort à l'octet près
- * comme avant. Seul un hexadécimal à six chiffres passe, la valeur finit dans
+ * comme avant. L'accent suit par défaut la couleur principale du thème actif ;
+ * un thème qui n'en pose pas laisse le vert d'origine. Seul un hexadécimal à six chiffres passe, la valeur finit dans
  * le HTML du message.
  */
 final readonly class EmailColors
@@ -34,6 +37,7 @@ final readonly class EmailColors
 
     public function __construct(
         private SettingRepository $settingRepository,
+        private ThemeContext $themeContext,
     ) {}
 
     /**
@@ -41,7 +45,7 @@ final readonly class EmailColors
      */
     public function colors(): array
     {
-        $accent = $this->read(ApplicationParameterEnum::EmailAccentColor);
+        $accent = $this->accent();
 
         return [
             'accent' => $accent,
@@ -80,6 +84,20 @@ final readonly class EmailColors
         }
 
         return implode('', $rules);
+    }
+
+    private function accent(): string
+    {
+        $follows = ApplicationParameterEnum::EmailAccentFollowsTheme;
+        if ('1' !== $this->settingRepository->get($follows->value, $follows->getDefaultValue())) {
+            return $this->read(ApplicationParameterEnum::EmailAccentColor);
+        }
+
+        $themeColor = $this->themeContext->activeTheme()?->getConfig()['primary_color'] ?? null;
+
+        return is_string($themeColor) && 1 === preg_match(self::HEX_PATTERN, $themeColor)
+            ? mb_strtolower($themeColor)
+            : ApplicationParameterEnum::EmailAccentColor->getDefaultValue();
     }
 
     private function read(ApplicationParameterEnum $parameter): string

@@ -19,7 +19,7 @@ backend:
       step_1: "This setting picks the language of the emails the application sends without knowing the recipient's own, such as messages to the administration."
       step_2: "“Follow default locale” uses the language chosen in the Localization tab."
       step_3: "An email about a contract goes out in the contract's language, and a new comment notice in the language of the article author's account."
-      step_4: "The four colors dress every email: the accent for the button, the links and the logo badge, then the background, the headings and the text. “Original color” brings back the starting one."
+      step_4: "By default the email accent (button, links, logo badge) follows the theme's main color; turn “Follow the theme color” off to pick another one. The background, headings and text are set alongside, and “Original color” brings back the starting one."
       step_5: "Nothing is saved until you press the Save button at the bottom of the tab."
     system_guide:
       title: "Who can get in, and when"
@@ -539,9 +539,12 @@ backend:
     color_picker_presets:
       label: Color picker palette
       description: JSON list of hex colors offered as quick-pick swatches in every admin color selector.
+    email_accent_follows_theme:
+      label: "Follow the theme color"
+      description: "Emails take the main color of the active theme, and follow it when it changes. Off, the accent color below is used."
     email_accent_color:
       label: "Email accent color"
-      description: "Button, links, logo badge and site name at the top of every email."
+      description: "Button, links, logo badge and site name at the top of every email. Used when “Follow the theme color” is off."
     email_background_color:
       label: "Email background"
       description: "The background around the white card of the message."

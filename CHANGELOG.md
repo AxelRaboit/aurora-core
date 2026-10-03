@@ -5,6 +5,23 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [1.5.0] - 2026-10-03
+
+### Amélioré
+
+#### E-mails : l'accent suit la couleur du thème
+La couleur d'accent des e-mails (bouton, liens, pastille du logo, nom du site) était un réglage à part : changer la couleur principale du thème laissait les e-mails à l'ancienne. Réglages > Emails a un interrupteur « Suivre la couleur du thème », allumé par défaut : l'accent prend la couleur principale du thème actif et la suit quand elle change. Un thème qui n'en pose pas garde le vert d'origine, donc un site non configuré ne change pas. Coupé, c'est la couleur d'accent réglée à la main qui sert.
+
+### Corrigé
+
+#### Le worker relit le thème entre deux messages
+`ThemeContext` gardait le thème actif lu au premier message pour toute la vie du worker : un e-mail envoyé après un changement de thème aurait porté l'ancien. Il se vide désormais entre deux messages, comme les réglages.
+
+### Dans aurora-client
+Un réglage est créé (`email_accent_follows_theme`) : `make deploy-prod` lance la synchronisation qui l'ajoute.
+
+---
+
 ## [1.4.0] - 2026-10-03
 
 ### Amélioré

@@ -115,6 +115,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
     case NavItemOrder = 'nav_item_order';
     case ColorPickerPresets = 'color_picker_presets';
     case BackendPalette = 'backend_palette';
+    case EmailAccentFollowsTheme = 'email_accent_follows_theme';
     case EmailAccentColor = 'email_accent_color';
     case EmailBackgroundColor = 'email_background_color';
     case EmailHeadingColor = 'email_heading_color';
@@ -202,6 +203,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::NavItemOrder => 'backend.parameters.nav_item_order.label',
             self::ColorPickerPresets => 'backend.parameters.color_picker_presets.label',
             self::BackendPalette => 'backend.parameters.backend_palette.label',
+            self::EmailAccentFollowsTheme => 'backend.parameters.email_accent_follows_theme.label',
             self::EmailAccentColor => 'backend.parameters.email_accent_color.label',
             self::EmailBackgroundColor => 'backend.parameters.email_background_color.label',
             self::EmailHeadingColor => 'backend.parameters.email_heading_color.label',
@@ -274,6 +276,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::NavItemOrder => 'backend.parameters.nav_item_order.description',
             self::ColorPickerPresets => 'backend.parameters.color_picker_presets.description',
             self::BackendPalette => 'backend.parameters.backend_palette.description',
+            self::EmailAccentFollowsTheme => 'backend.parameters.email_accent_follows_theme.description',
             self::EmailAccentColor => 'backend.parameters.email_accent_color.description',
             self::EmailBackgroundColor => 'backend.parameters.email_background_color.description',
             self::EmailHeadingColor => 'backend.parameters.email_heading_color.description',
@@ -356,6 +359,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::ColorPickerPresets => json_encode(self::DEFAULT_COLOR_PICKER_PRESETS, JSON_THROW_ON_ERROR),
             self::BackendPalette => '{}',
             // Les couleurs que email.css code en dur : un e-mail sort comme avant.
+            self::EmailAccentFollowsTheme => '1',
             self::EmailAccentColor => '#059669',
             self::EmailBackgroundColor => '#f5f3ff',
             self::EmailHeadingColor => '#1e1b4b',
@@ -369,7 +373,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::PostsPerPage, self::MaxUploadSizeMb, self::PostRevisionsLimit, self::TrashAutoPurgeDays, self::FormSubmissionRetentionDays, self::FileVersionsLimit, self::StudioContractRetentionYears, self::StudioContractReminderDays, self::StudioContractReminderMax => 'int',
             self::HomepagePostId => 'post',
             self::DefaultFront, self::DefaultLocale, self::EmailLocale, self::Timezone, self::DateFormat => 'select',
-            self::CommentsEnabled, self::CommentModerationEnabled, self::MaintenanceMode, self::AdminRegistrationEnabled, self::AdminAccessRequestEnabled, self::FrontLoginEnabled, self::FrontRegistrationEnabled, self::SingleLocaleMode, self::MediaCreditVisible, self::StudioContractReminderEnabled, self::BackendBarSiteNameOnPhone => 'bool',
+            self::CommentsEnabled, self::CommentModerationEnabled, self::MaintenanceMode, self::AdminRegistrationEnabled, self::AdminAccessRequestEnabled, self::FrontLoginEnabled, self::FrontRegistrationEnabled, self::SingleLocaleMode, self::MediaCreditVisible, self::StudioContractReminderEnabled, self::BackendBarSiteNameOnPhone, self::EmailAccentFollowsTheme => 'bool',
             self::LogoMediaId, self::FaviconMediaId, self::SeoDefaultOgImage => 'media',
             self::ColorPickerPresets, self::BackendPalette => 'json',
             self::EmailAccentColor, self::EmailBackgroundColor, self::EmailHeadingColor, self::EmailTextColor => 'color',
@@ -397,7 +401,7 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::SeoTitleTemplate, self::SeoDefaultDescription, self::SeoDefaultOgImage, self::SeoTwitterHandle => 'seo',
             self::CoreUserPrefix, self::CoreMediaPrefix, self::CoreAccessRequestPrefix, self::CoreAuditLogPrefix, self::CoreResetPasswordPrefix, self::CoreMediaFolderPrefix, self::CoreMenuItemPrefix, self::StudioContractPrefix => 'sequences',
             self::StudioProviderName, self::StudioProviderRepresentative, self::StudioProviderAddress, self::StudioProviderSiret, self::StudioProviderApeCode, self::StudioProviderVatMention, self::StudioProviderEmail, self::StudioProviderPhone, self::StudioProviderBankHolder, self::StudioProviderBankIban, self::StudioProviderBankBic, self::StudioProviderBankName, self::StudioContractRetentionYears, self::StudioContractReminderEnabled, self::StudioContractReminderDays, self::StudioContractReminderMax => 'studio',
-            self::EmailLocale, self::EmailAccentColor, self::EmailBackgroundColor, self::EmailHeadingColor, self::EmailTextColor => 'email',
+            self::EmailLocale, self::EmailAccentFollowsTheme, self::EmailAccentColor, self::EmailBackgroundColor, self::EmailHeadingColor, self::EmailTextColor => 'email',
             self::NavSectionAliases, self::NavItemAliases, self::NavSectionOrder, self::NavItemOrder => 'navigation',
             self::ColorPickerPresets, self::BackendPalette => 'appearance',
         };
