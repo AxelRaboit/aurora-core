@@ -5,6 +5,15 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [1.0.1] - 2026-10-03
+
+### Interne
+
+#### Les images de « Livraison et mises à jour » se dessinent au lieu de se photographier
+Les deux images de cette page du tour étaient des captures de GitHub (la liste des releases et les notes de la dernière), les seules prises qui ne venaient pas de l'application : une page en anglais, avec le menu et les boutons de GitHub, qui ne disait rien de ce que le client reçoit. `tools/screenshots/compose-releases.mjs` les dessine maintenant à partir de `CHANGELOG.md` : la chaîne qu'une version suit jusqu'aux sites clients (tests, migrations, mise en ligne, site qui répond), et une frise des huit dernières versions avec leurs ajouts, améliorations et corrections. Aucun mot dans les images, seulement des numéros, des chiffres et des pictogrammes : la page existe en trois langues, et ce sont les textes alternatifs qui portent le sens. Les deux scénarios GitHub quittent `capture-tour.mjs`, sinon une série de captures remettrait les anciennes images. Après une release : `node tools/screenshots/compose-releases.mjs`, puis `push-tour.mjs tour-releases tour-release-notes`. Aucun changement de code de l'application.
+
+---
+
 ## [1.0.0] - 2026-10-03
 
 ### Amélioré
