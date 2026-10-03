@@ -56,7 +56,7 @@ function formatDate(value) {
 </script>
 
 <template>
-    <div class="space-y-5">
+    <div class="aurora-stack">
         <div class="space-y-1">
             <p class="text-sm text-secondary">{{ t("backend.trash.intro") }}</p>
             <p class="text-xs text-muted">

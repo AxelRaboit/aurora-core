@@ -277,7 +277,7 @@ const governingLabel = computed(
 </script>
 
 <template>
-    <div class="space-y-2 sm:space-y-4">
+    <div class="aurora-stack">
         <!-- The page's bar first, like every editor: back on the left, the
              commands on the right. The title comes under it, on its own line,
              where a long name pushes nothing (02/10/2026). -->

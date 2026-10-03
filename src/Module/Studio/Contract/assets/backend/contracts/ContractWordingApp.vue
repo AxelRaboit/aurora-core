@@ -197,7 +197,7 @@ const otherParts = computed(() => props.parts.filter((each) => each.key !== prop
 </script>
 
 <template>
-    <div class="space-y-2 sm:space-y-4">
+    <div class="aurora-stack">
         <!-- The page's bar first: back on the left, the commands on the right
              (AppPageBar, 02/10/2026). -->
         <AppPageBar :back-href="showPath" :back-label="t(`${W}.back`)">

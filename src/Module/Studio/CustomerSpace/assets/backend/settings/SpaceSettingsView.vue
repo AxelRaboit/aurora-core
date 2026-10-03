@@ -266,7 +266,7 @@ async function clearPassword() {
 </script>
 
 <template>
-    <section class="relative space-y-4">
+    <section class="relative aurora-stack">
         <AppLoader :active="loading" />
 
         <!-- Dessinée à partir du second sujet : un sélecteur à un choix

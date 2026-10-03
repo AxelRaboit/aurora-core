@@ -448,7 +448,7 @@ const confirmBlocked = computed(
 </script>
 
 <template>
-    <div class="space-y-4">
+    <div class="aurora-stack">
         <!-- The same bar as every screen, with nothing on its right: this page's
              commands live in the « next step » card below. -->
         <AppPageBar :back-href="indexPath" :back-label="t('shared.common.back')" />

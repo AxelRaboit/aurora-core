@@ -431,7 +431,7 @@ const pageActions = computed(() => {
 </script>
 
 <template>
-    <div ref="container" class="space-y-2 sm:space-y-4">
+    <div ref="container" class="aurora-stack">
         <!-- Header: breadcrumb + search + add -->
         <div class="aurora-card flex flex-col sm:flex-row sm:items-center gap-3 px-2 py-2 sm:px-4 sm:py-3">
             <nav class="flex items-center gap-1 text-sm text-muted min-w-0 flex-1 flex-wrap">

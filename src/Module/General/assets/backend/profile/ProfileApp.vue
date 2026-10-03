@@ -54,7 +54,7 @@ const { photoUrl, photoLoading, onPhotoSelected, removePhoto } = useProfilePhoto
 </script>
 
 <template>
-    <div class="max-w-5xl mx-auto space-y-5">
+    <div class="max-w-5xl mx-auto aurora-stack">
         <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
              replié ou déplié, le choix vaut pour tous les encarts. -->
         <AppGuide :title="t('backend.profile.guide.title')" storage-key="profile">
@@ -62,9 +62,9 @@ const { photoUrl, photoLoading, onPhotoSelected, removePhoto } = useProfilePhoto
                 <li v-for="step in 5" :key="step">{{ t(`backend.profile.guide.step_${step}`) }}</li>
             </ol>
         </AppGuide>
-        <div class="grid lg:grid-cols-2 gap-5 items-start">
+        <div class="grid lg:grid-cols-2 aurora-gap items-start">
             <!-- Left column: identity & security -->
-            <div class="space-y-5">
+            <div class="aurora-stack">
                 <div class="aurora-card p-4">
                     <header class="mb-4">
                         <h2 class="text-lg font-semibold text-primary">{{ t('backend.profile.photo.title') }}</h2>
@@ -171,7 +171,7 @@ const { photoUrl, photoLoading, onPhotoSelected, removePhoto } = useProfilePhoto
             </div>
 
             <!-- Right column: personalization -->
-            <div class="space-y-5">
+            <div class="aurora-stack">
                 <div class="aurora-card p-4">
                     <header class="mb-4">
                         <h2 class="text-lg font-semibold text-primary">{{ t('backend.profile.locale.title') }}</h2>

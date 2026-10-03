@@ -189,7 +189,7 @@ function spaceName(item) {
 </script>
 
 <template>
-    <div ref="container" class="relative space-y-3">
+    <div ref="container" class="relative aurora-stack">
         <AppLoader :active="loading" />
 
         <!-- Les onglets de portée, comme ceux de la liste des espaces : la

@@ -54,7 +54,7 @@ function badgeColor(value) {
 </script>
 
 <template>
-    <div class="space-y-2 sm:space-y-4">
+    <div class="aurora-stack">
         <!-- Stacked on a phone, side by side from `sm`, like every other filter
              row: a control narrower than the screen is a smaller target for no
              reason. -->

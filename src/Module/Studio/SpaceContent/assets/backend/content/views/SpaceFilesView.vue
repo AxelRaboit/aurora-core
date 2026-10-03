@@ -130,7 +130,7 @@ function chooseFile(event) {
     <div ref="container">
         <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
      replié ou déplié, le choix vaut pour tous les encarts. -->
-        <AppGuide :title="t('backend.studio.space_files.guide.title')" storage-key="space-files" class="mb-3">
+        <AppGuide :title="t('backend.studio.space_files.guide.title')" storage-key="space-files" class="mb-[var(--aurora-page-margin)]">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <li v-for="step in 4" :key="step">{{ t(`backend.studio.space_files.guide.step_${step}`) }}</li>
             </ol>

@@ -133,7 +133,7 @@ const pageActions = computed(() => {
 <template>
     <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
          replié ou déplié, le choix vaut pour tous les encarts. -->
-    <AppGuide :title="t('backend.taxonomies.guide.title')" storage-key="taxonomies" class="mb-2 sm:mb-4">
+    <AppGuide :title="t('backend.taxonomies.guide.title')" storage-key="taxonomies" class="mb-[var(--aurora-page-margin)]">
         <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
             <li v-for="step in 5" :key="step">{{ t(`backend.taxonomies.guide.step_${step}`) }}</li>
         </ol>
@@ -146,7 +146,7 @@ const pageActions = computed(() => {
         </template>
     </AppNoData>
 
-    <div v-else class="space-y-2 sm:space-y-4">
+    <div v-else class="aurora-stack">
         <!-- No picker column: the side menu lists the taxonomies, one entry per
              record and one address each. The create button stays - a group
              header in the menu has nowhere to put one. -->

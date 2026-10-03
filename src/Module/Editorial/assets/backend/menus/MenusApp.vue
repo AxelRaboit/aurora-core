@@ -84,7 +84,7 @@ function isUnresolved(item) {
         :hint="t('backend.menus.empty_hint')"
     />
 
-    <div v-else class="space-y-2 sm:space-y-4">
+    <div v-else class="aurora-stack">
         <!-- No picker column: the side menu lists the menus, one entry per
              record and one address each. -->
         <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
