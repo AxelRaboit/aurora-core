@@ -15,11 +15,12 @@ backend:
       step_4: "Hiding the photo credit asks for confirmation, because the Pexels API terms ask for it to be shown."
       step_5: "Nothing is saved until you press the Save button at the bottom of the tab."
     email_guide:
-      title: "The language of emails"
+      title: "The language and colors of emails"
       step_1: "This setting picks the language of the emails the application sends without knowing the recipient's own, such as messages to the administration."
       step_2: "“Follow default locale” uses the language chosen in the Localization tab."
       step_3: "An email about a contract goes out in the contract's language, and a new comment notice in the language of the article author's account."
-      step_4: "Nothing is saved until you press the Save button at the bottom of the tab."
+      step_4: "The four colors dress every email: the accent for the button, the links and the logo badge, then the background, the headings and the text. “Original color” brings back the starting one."
+      step_5: "Nothing is saved until you press the Save button at the bottom of the tab."
     system_guide:
       title: "Who can get in, and when"
       step_1: "Maintenance mode closes the public site to all its visitors, while the back office and its sign-in page stay open."
@@ -108,7 +109,7 @@ backend:
       system: System
       system_description: 'Maintenance, registrations, access and uploads.'
       email: Emails
-      email_description: Language for outgoing emails.
+      email_description: Language and colors of outgoing emails.
       media: Media & uploads
       media_description: File upload limits (max size, allowed extensions).
       sequences: Sequences
@@ -214,6 +215,7 @@ backend:
         endpoint_not_https: "The account address must start with https://."
         access_key_length: "The access key id must be 32 characters long. This one is not, which usually means another value from the Cloudflare page, or an incomplete copy."
         secret_key_length: "The secret access key must be 64 characters long. This one is not, which usually means an incomplete copy."
+    color_reset: "Original color"
     appearance:
       guide:
         title: "Building the palette"
@@ -230,6 +232,57 @@ backend:
         remove: Remove this color
         reset: Reset to default colors
         invalid_hex: 'Invalid hex code. Expected format: #rrggbb.'
+      palette:
+        title: "Light and dark grays"
+        help: "Backgrounds, lines, text and status colors of the back office and the client space, for each mode. The public site keeps its theme."
+        family: "Gray family"
+        modes:
+          light: "Light mode"
+          dark: "Dark mode"
+        families:
+          gray: "Gray (original)"
+          slate: "Slate, bluish"
+          zinc: "Zinc, cool gray"
+          neutral: "Neutral, no tint"
+          stone: "Stone, warm gray"
+        tokens:
+          bg: "Page background"
+          surface: "Cards and panels"
+          surface_2: "Fields and secondary areas"
+          surface_3: "Chips and emphasized areas"
+          line: "Lines and borders"
+          line_strong: "Strong borders"
+          primary: "Primary text"
+          secondary: "Secondary text"
+          muted: "Muted text"
+          subtle: "Faint text"
+          success: "Success"
+          warning: "Warning"
+          danger: "Error"
+          info: "Information"
+        groups:
+          tones: "Backgrounds, lines and text"
+          states: "Status colors"
+        unchanged:
+          tones: "Follows the family"
+          states: "Original color"
+        overridden: "Adjusted by hand"
+        reset_color:
+          tones: "Back to the family color"
+          states: "Back to the original color"
+        reset_mode: "Back to the original gray"
+        preview:
+          title: "A card preview"
+          body: "The running text of a screen."
+          meta: "Edited 2 hours ago"
+          field: "A field"
+          chip: "Draft"
+        guide:
+          title: "Setting the grays"
+          step_1: "Pick one family per mode: it sets backgrounds, lines and text in one go."
+          step_2: "A swatch in the list adjusts a single shade; the arrow hands it back to the family. Status colors bring their pale background and their badges along."
+          step_3: "The preview shows each mode in its own colors, whichever one the screen is in."
+          step_4: "Nothing changes before Save; then the screen repaints without reloading, and the public site stays as it is."
     nav_aliases_empty: No navigation sections available.
     nav_aliases:
       guide:
@@ -486,6 +539,21 @@ backend:
     color_picker_presets:
       label: Color picker palette
       description: JSON list of hex colors offered as quick-pick swatches in every admin color selector.
+    email_accent_color:
+      label: "Email accent color"
+      description: "Button, links, logo badge and site name at the top of every email."
+    email_background_color:
+      label: "Email background"
+      description: "The background around the white card of the message."
+    email_heading_color:
+      label: "Email headings"
+      description: "The title at the top of the message."
+    email_text_color:
+      label: "Email text"
+      description: "The running text of the message."
+    backend_palette:
+      label: "Light and dark grays"
+      description: "Gray family and adjustments for each mode, as JSON (managed through the interface)."
     intro: View and edit the application technical parameters.
     key: Parameter
     value: Value

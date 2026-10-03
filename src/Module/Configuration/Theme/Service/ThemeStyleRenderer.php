@@ -37,6 +37,17 @@ final readonly class ThemeStyleRenderer
     ];
 
     /**
+     * Les types d'encadré dont le thème peut reprendre la couleur, chacun sous
+     * la clé `callout_<type>_color`. `accent` n'y est pas : il suit déjà la
+     * couleur principale. Les couleurs d'origine vivent dans
+     * `content-blocks.css`.
+     */
+    public const array CALLOUT_TYPES = [
+        'info', 'success', 'warning', 'danger', 'tip', 'note', 'question',
+        'important', 'update', 'rose', 'lime', 'amber', 'fuchsia',
+    ];
+
+    /**
      * La règle qui compose l'application dans la police du thème, posée dans le
      * `<head>` par `primary_color_style.html.twig`.
      *
@@ -208,7 +219,26 @@ final readonly class ThemeStyleRenderer
             $rules[] = $this->surfaceRule($selector, $color, $overrides);
         }
 
-        return implode('', $rules).$this->frontendInkCss($overrides);
+        return implode('', $rules).$this->frontendInkCss($overrides).$this->calloutCss();
+    }
+
+    /**
+     * Les couleurs d'encadré reprises par le thème, une règle par type posé.
+     * `html[data-theme]` passe devant les règles d'origine de
+     * `content-blocks.css`, qui n'ont qu'une classe.
+     */
+    public function calloutCss(): string
+    {
+        $config = $this->themeContext->activeTheme()?->getConfig() ?? [];
+        $rules = '';
+        foreach (self::CALLOUT_TYPES as $type) {
+            $color = $this->surfaceColor($config['callout_'.$type.'_color'] ?? null);
+            if (null !== $color) {
+                $rules .= sprintf('html[data-theme] .callout-block--%1$s,html[data-theme] .callout--%1$s{--callout-color:%2$s}', $type, $color);
+            }
+        }
+
+        return $rules;
     }
 
     /**

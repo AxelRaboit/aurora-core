@@ -81,6 +81,7 @@ final readonly class SettingsViewBuilder
                     'type' => $field->type,
                     'group' => $tab->id,
                     'value' => $value,
+                    'defaultValue' => $field->defaultValue,
                     'mediaUrl' => 'media' === $field->type ? $this->resolveMediaUrl($value) : null,
                     'options' => $field->options,
                     // Translated here rather than in the browser: the key is

@@ -718,6 +718,23 @@ const SHOTS = [
         },
     },
     {
+        // Les gris du clair et du sombre (1.4.0) : les deux colonnes, leur
+        // famille, l'aperçu et les nuances.
+        name: "tour-reglages-apparence",
+        path: "/backend/configuration/settings/appearance",
+        async prepare(page) {
+            await page.waitForTimeout(2_500);
+        },
+    },
+    {
+        // Les couleurs des e-mails (1.4.0), sous la langue, dans leur onglet.
+        name: "tour-reglages-emails",
+        path: "/backend/configuration/settings/email",
+        async prepare(page) {
+            await page.waitForTimeout(2_000);
+        },
+    },
+    {
         // Les privilèges d'un compte, écran par écran : c'est la promesse
         // centrale de la carte, et elle ne montrait que la liste des comptes.
         name: "tour-privileges",

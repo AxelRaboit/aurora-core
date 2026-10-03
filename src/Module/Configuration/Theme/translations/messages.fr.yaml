@@ -3,7 +3,7 @@ backend:
     guide:
       title: "Comment fonctionnent les thèmes"
       step_1: "Un seul thème est actif à la fois : « Activer » l'applique tout de suite au site public, pas à l'administration."
-      step_2: "Un thème règle la couleur principale (la palette en découle), les surfaces, la police, la largeur du contenu, l'en-tête et le pied de page."
+      step_2: "Un thème règle la couleur principale (la palette en découle), les surfaces, les encadrés du contenu, la police, la largeur du contenu, l'en-tête et le pied de page."
       step_3: "Le texte posé sur chaque surface passe en clair ou en sombre selon ce qui reste lisible."
       step_4: "Le thème actif et le thème par défaut ne se suppriment pas ; supprimer un autre thème est définitif."
     title: Thèmes
@@ -47,6 +47,25 @@ backend:
     ink_success_unset: 'Non définie, vert par défaut'
     ink_figure: 'Chiffres clés (statistiques, prix)'
     ink_figure_unset: 'Non définie, couleur principale'
+    callouts:
+      title: "Encadrés du contenu"
+      hint: "Une couleur par type d'encadré posé dans les pages. Laissée vide, l'encadré garde sa couleur d'origine ; « Accent » suit déjà la couleur principale."
+      set: "Couleur du thème"
+      unset: "Couleur d'origine"
+      types:
+        info: "Information"
+        success: "Succès"
+        warning: "Attention"
+        danger: "Danger"
+        tip: "Astuce"
+        note: "Note"
+        question: "Question"
+        important: "Important"
+        update: "Mise à jour"
+        rose: "Rose"
+        lime: "Citron vert"
+        amber: "Ambre"
+        fuchsia: "Fuchsia"
     icon: 'Pictogrammes des cartes'
     icon_original: 'Couleur d''origine du fichier'
     icon_accent: 'Couleur principale'
