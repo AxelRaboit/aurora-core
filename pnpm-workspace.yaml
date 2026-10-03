@@ -7,3 +7,14 @@ allowBuilds:
 # test : l'override est moins couteux qu'attendre que happy-dom bouge.
 overrides:
   ws: '>=8.21.0'
+
+# braces (via vite-plugin-symfony > fast-glob > micromatch) : GHSA-vfj7-8cjw-p6xm,
+# epuisement de pile sur des motifs tres imbriques. Aucune version corrigee
+# n'existe (3.0.3 est la derniere), et c'est de l'outillage de build : il ne
+# lit que les motifs de notre propre configuration Vite, jamais une donnee
+# venue d'un visiteur. Ignore nommement, pour que tout autre avis bloque
+# toujours ; a retirer des qu'une version corrigee sort.
+auditConfig:
+  ignoreGhsas:
+    - GHSA-vfj7-8cjw-p6xm
+
