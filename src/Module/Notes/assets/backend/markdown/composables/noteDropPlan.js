@@ -1,3 +1,5 @@
+import { compareSiblings } from "./noteSiblingOrder.js";
+
 /**
  * Où tombe ce qu'on lâche dans l'arborescence, et ce que ça change.
  *
@@ -73,36 +75,49 @@ function spaceOf(item) {
 }
 
 /**
- * Les frères d'une même nature dans un dossier, dans l'ordre affiché.
+ * Les frères d'un dossier, dossiers et notes mêlés, dans l'ordre affiché.
  *
- * À la racine, seulement ceux du même espace : chaque espace a la sienne, et
- * compter ensemble les racines de deux espaces mélangerait deux ordres.
+ * Un seul ordre pour les deux natures : la position, à égalité le dossier
+ * d'abord, puis le plus ancien (la règle de `compareSiblings`). À la racine,
+ * seulement ceux du même espace : chaque espace a la sienne, et compter
+ * ensemble les racines de deux espaces mélangerait deux ordres.
+ *
+ * @returns {Array<{kind: string, id: number}>}
  */
-function siblings(items, kind, parentId, spaceId = null) {
-    return items
-        .filter(
-            (one) =>
-                parentOf(one, kind) === parentId &&
-                (null !== parentId ||
-                    null === spaceId ||
-                    spaceOf(one) === spaceId),
-        )
-        .sort(
-            (a, b) =>
-                (a.position ?? 0) - (b.position ?? 0) ||
-                Number(a.id) - Number(b.id),
-        );
+function siblings(folders, notes, parentId, spaceId = null) {
+    const inGroup = (one, kind) =>
+        parentOf(one, kind) === parentId &&
+        (null !== parentId || null === spaceId || spaceOf(one) === spaceId);
+
+    return [
+        ...folders
+            .filter((one) => inGroup(one, "folder"))
+            .map((one) => ({
+                kind: "folder",
+                id: Number(one.id),
+                position: one.position,
+            })),
+        ...notes
+            .filter((one) => inGroup(one, "note"))
+            .map((one) => ({
+                kind: "note",
+                id: Number(one.id),
+                position: one.position,
+            })),
+    ]
+        .sort(compareSiblings)
+        .map(({ kind, id }) => ({ kind, id }));
 }
+
+const sameEntry = (a, b) => a.kind === b.kind && a.id === b.id;
 
 /**
  * Ce qu'un dépôt demande d'écrire, ou `null` quand il ne peut pas aboutir.
  *
  * Le résultat dit **où** ranger (`folderId`, `null` pour la racine) et
- * **dans quel ordre** laisser les frères de même nature (`order`, des
- * identifiants). Les dossiers passent toujours avant les notes à l'écran,
- * donc glisser une note « avant » un dossier la range en tête des notes de ce
- * niveau, et un dossier « après » une note en queue des dossiers : l'écran ne
- * sait pas montrer autre chose, et le promettre serait mentir.
+ * **dans quel ordre** laisser les frères (`order`, des `{kind, id}`), dossiers
+ * et notes mêlés : depuis qu'ils partagent un ordre, une note se lâche avant
+ * un dossier et y reste.
  *
  * @param {object} args
  * @param {{kind: string, id: number}} args.dragged      ce qu'on tient
@@ -118,8 +133,9 @@ export function planDrop({ dragged, target, zone, folders, notes }) {
 
     const kind = dragged.kind;
     const id = Number(dragged.id);
-    const items = "folder" === kind ? folders : notes;
-    const moving = items.find((one) => Number(one.id) === id);
+    const moving = ("folder" === kind ? folders : notes).find(
+        (one) => Number(one.id) === id,
+    );
 
     if (!moving) return null;
 
@@ -129,7 +145,7 @@ export function planDrop({ dragged, target, zone, folders, notes }) {
 
     let folderId;
     let spaceId;
-    let anchorId = null;
+    let anchor = null;
     let after = true;
 
     if (intoFolder) {
@@ -152,19 +168,8 @@ export function planDrop({ dragged, target, zone, folders, notes }) {
 
         folderId = parentOf(row, target.kind);
         spaceId = spaceOf(row);
-
-        // Même nature : l'ordre suit exactement la ligne visée. Nature
-        // différente : on tombe au bord du groupe, le seul endroit qui existe
-        // à l'écran.
-        if (target.kind === kind) {
-            anchorId = Number(target.id);
-            after = "after" === zone;
-        } else {
-            // Une note près d'un dossier : en tête des notes, juste sous les
-            // dossiers. Un dossier près d'une note : en queue des dossiers,
-            // juste au-dessus des notes.
-            after = "note" === target.kind;
-        }
+        anchor = { kind: target.kind, id: Number(target.id) };
+        after = "after" === zone;
     }
 
     // Un dossier ne se range ni en lui-même ni dans ce qu'il contient.
@@ -176,33 +181,29 @@ export function planDrop({ dragged, target, zone, folders, notes }) {
         return null;
     }
 
-    const order = siblings(items, kind, folderId, spaceId)
-        .map((one) => Number(one.id))
-        .filter((one) => one !== id);
+    const self = { kind, id };
+    if (null !== anchor && sameEntry(anchor, self)) return null;
 
-    if (null !== anchorId) {
-        if (anchorId === id) return null;
+    const before = siblings(folders, notes, folderId, spaceId);
+    const order = before.filter((one) => !sameEntry(one, self));
 
-        const at = order.indexOf(anchorId);
-        order.splice(after ? at + 1 : at, 0, id);
-    } else if (after) {
-        order.push(id);
+    if (null !== anchor) {
+        const at = order.findIndex((one) => sameEntry(one, anchor));
+        order.splice(after ? at + 1 : at, 0, self);
     } else {
-        order.unshift(id);
+        order.push(self);
     }
 
     const fromFolderId = parentOf(moving, kind);
     const fromSpaceId = spaceOf(moving);
-    const before = siblings(items, kind, folderId, spaceId).map((one) =>
-        Number(one.id),
-    );
+    const key = (list) => list.map((one) => `${one.kind}:${one.id}`).join(",");
 
     // Rien ne bouge : même dossier, même espace, même rang. Pas d'appel, pas
     // de message.
     if (
         fromFolderId === folderId &&
         fromSpaceId === spaceId &&
-        before.join(",") === order.join(",")
+        key(before) === key(order)
     )
         return null;
 

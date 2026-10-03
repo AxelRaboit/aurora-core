@@ -65,6 +65,41 @@ export function useMarkdownNotesApi(props) {
          */
         reorder: (entries) =>
             call(HttpMethod.Post, props.reorderPath, { entries }),
+        /** Une copie juste sous la note, dans le même dossier. */
+        duplicate: (id) =>
+            call(HttpMethod.Post, resolvePath(props.duplicatePath, id), {}),
+        /** Faire de la note un modèle, ou la rendre à l'ordinaire. */
+        markTemplate: (id, template) =>
+            call(HttpMethod.Post, resolvePath(props.templatePath, id), {
+                template,
+            }),
+        /** Les versions passées d'une note, les plus récentes d'abord. */
+        revisions: (id) =>
+            call(HttpMethod.Get, resolvePath(props.revisionsPath, id)),
+        revision: (id, revisionId) =>
+            call(
+                HttpMethod.Get,
+                resolvePath(props.revisionPath, id).replace(
+                    "__revisionId__",
+                    String(revisionId),
+                ),
+            ),
+        restoreRevision: (id, revisionId) =>
+            call(
+                HttpMethod.Post,
+                resolvePath(props.revisionRestorePath, id).replace(
+                    "__revisionId__",
+                    String(revisionId),
+                ),
+                {},
+            ),
+        /** Une note neuve depuis un modèle : `{folderId, spaceId, title}`. */
+        fromTemplate: (id, payload) =>
+            call(
+                HttpMethod.Post,
+                resolvePath(props.fromTemplatePath, id),
+                payload,
+            ),
         backlinks: (id) =>
             call(HttpMethod.Get, resolvePath(props.backlinksPath, id)),
         unlinkedMentions: (id) =>

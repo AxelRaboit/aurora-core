@@ -44,6 +44,8 @@ const props = defineProps({
     canCreateSpace: { type: Boolean, default: false },
     /** Ce que la modale propose en premier. */
     initialKind: { type: String, default: "note" },
+    /** Les modèles qu'on peut lire, `{id, title}` : une note peut partir de l'un d'eux. */
+    templates: { type: Array, default: () => [] },
     saving: { type: Boolean, default: false },
 });
 
@@ -57,6 +59,11 @@ const color = ref(null);
 const access = ref("backoffice");
 const defaultRole = ref("reader");
 const chosenSpaceId = ref(null);
+/** Le repère qu'un modèle remplace par la date du jour (côté serveur). */
+const DATE_MARKER = "{{date}}";
+
+/** Le modèle choisi, `null` pour une note vide. */
+const templateId = ref(null);
 const nameInput = ref(null);
 
 const isFolder = computed(() => "folder" === kind.value);
@@ -112,6 +119,7 @@ watch(
         access.value = "backoffice";
         defaultRole.value = "reader";
         chosenSpaceId.value = defaultSpaceId();
+        templateId.value = null;
 
         await nextTick();
         nameInput.value?.focus();
@@ -139,7 +147,19 @@ function submit() {
         spaceId: targetSpaceId.value,
         access: access.value,
         defaultRole: defaultRole.value,
+        templateId: "note" === kind.value ? templateId.value : null,
     });
+}
+
+/** « Une note vide », puis chaque modèle par son titre. */
+const templateOptions = computed(() => [
+    { value: "", label: t("notes.markdown.template.blank") },
+    ...props.templates.map((one) => ({ value: String(one.id), label: one.title || t("notes.markdown.untitled") })),
+]);
+
+function pickTemplate(value) {
+    templateId.value = "" === value || null == value ? null : Number(value);
+    nextTick(() => nameInput.value?.focus());
 }
 
 const choices = computed(() => [
@@ -237,6 +257,23 @@ const placeholder = computed(() => {
         </template>
 
         <template v-else>
+            <!-- Partir d'un modèle : un brief, un compte rendu, une procédure
+                 prêts à remplir. Le nom tapé devient le titre, celui du
+                 modèle à défaut. -->
+            <template v-if="'note' === kind && templates.length">
+                <AppSelect
+                    data-add-template
+                    class="mt-4"
+                    :label="t('notes.markdown.template.start_from')"
+                    :model-value="null === templateId ? '' : String(templateId)"
+                    :options="templateOptions"
+                    v-on:update:model-value="pickTemplate"
+                />
+                <p v-if="null !== templateId" class="mt-1 text-xs text-muted">
+                    {{ t('notes.markdown.template.hint', { marker: DATE_MARKER }) }}
+                </p>
+            </template>
+
             <AppSelect
                 v-if="canPickSpace"
                 data-add-space

@@ -9,6 +9,12 @@ backend:
     notes_markdown_image_quality_pct:
       label: Notes Markdown - WebP encoding quality (%)
       description: "Notes Markdown: WebP quality applied during the resize, 0 to 100. Recommended: 85 (good size/quality trade-off)."
+    notes_markdown_revisions_limit:
+      label: Markdown notes - Versions kept per note
+      description: "Markdown notes: how many past versions each note keeps in its history, the oldest going first. 0 keeps them all. Recommended: 50."
+    notes_markdown_revision_interval_minutes:
+      label: Markdown notes - Time between two versions (minutes)
+      description: "Markdown notes: the editor saves every few seconds; a new version is kept only when the previous one is at least this many minutes old. Restoring a version always keeps the current state. Recommended: 10."
   permissions:
     names:
       notes:
@@ -64,6 +70,7 @@ notes:
       step_3: "Link notes with [[Title]]: the graph shows these links between all the notes you can read."
       step_4: "Tags filter the library, and “Manage tags” renames or merges them across all your notes."
       step_5: "A note can also be shared through a read-only link; even an administrator cannot read your private notes."
+      step_6: "A note's Actions menu duplicates it, makes it a template, goes back to a past version or prints it as PDF."
     share:
       button: Share with a link
       title: Share this note with a link
@@ -333,6 +340,45 @@ notes:
       reload: 'Reload their version'
       overwrite: 'Overwrite with mine'
     breadcrumb: 'Where this note lives'
+    outline:
+      tab: 'Outline'
+      panel_title: 'About this note'
+      empty: 'No heading in this note'
+      empty_hint: 'The note''s headings, written with # or ##, show here: a click takes you there.'
+      words: 'No words | 1 word | {count} words'
+      minutes: '{minutes} min read'
+    print:
+      open: 'Print or export as PDF'
+      action: 'Print'
+    revisions:
+      open: 'Version history'
+      title: 'Note history'
+      empty: 'No past version yet'
+      empty_hint: 'A version is kept when you edit the note, at most one every few minutes (settings, Notes tab).'
+      no_author: 'Unknown author'
+      since: 'Since this version: {added} line(s) added, {removed} removed'
+      show_whole: 'Show the whole version'
+      show_changes: 'Show the changes'
+      title_was: 'The title was then: {title}'
+      restore: 'Restore this version'
+      restore_now: 'Restore now'
+      restore_confirm: 'The current text will be kept as a version: you can come back to it.'
+      restored: 'Version restored'
+    duplicate:
+      action: 'Duplicate'
+      title: 'Copy of {title}'
+      done: 'Note duplicated'
+      failed: 'The note could not be duplicated.'
+    template:
+      mark: 'Use as a template'
+      unmark: 'Stop using as a template'
+      marked: 'This note is now a template.'
+      unmarked: 'This note is no longer a template.'
+      badge: 'Template'
+      start_from: 'Start from'
+      blank: 'A blank note'
+      hint: '{marker} becomes today''s date.'
+      failed: 'The note could not be created from this template.'
     add:
       space: 'Space'
       create_space: 'Create space'
@@ -414,7 +460,7 @@ notes:
         description: Create a few notes linked with [[wiki-links]] to see the graph.
     links:
       title: Links
-      open: Show incoming links
+      open: Show outline and links
       close: Close panel
       backlinks: Backlinks
       mentions: Mentions

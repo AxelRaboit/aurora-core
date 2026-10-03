@@ -1,12 +1,14 @@
 <script setup>
 import "@notes/backend/markdown/components/preview.css";
 import "@notes/share/appearance.css";
+import "@notes/share/print.css";
 
-import { computed } from "vue";
+import { computed, onMounted, onUnmounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { useMarkdownRenderer } from "@notes/backend/markdown/composables/useMarkdownRenderer.js";
 import { shareHtml } from "@notes/share/useSharedNoteHtml.js";
 import { withoutLeadingTitle } from "@notes/backend/markdown/composables/noteBody.js";
+import { lightWhilePrinting } from "@notes/share/useNotePrint.js";
 
 const props = defineProps({
     imagePrefix: { type: String, required: true },
@@ -35,6 +37,14 @@ const props = defineProps({
 
 const { t } = useI18n();
 const { render } = useMarkdownRenderer();
+
+// Le papier est clair : le thème sombre se retire le temps d'imprimer, sur le
+// lecteur comme sur un partage, au bouton comme à Ctrl+P.
+let stopPrintTheme = () => {};
+onMounted(() => {
+    stopPrintTheme = lightWhilePrinting();
+});
+onUnmounted(() => stopPrintTheme());
 
 const html = computed(() =>
     // La page écrit déjà le titre au-dessus du corps.
@@ -77,7 +87,7 @@ const lookClass = computed(() =>
     <div class="flex flex-col gap-2 sm:gap-4 md:flex-row md:items-start">
         <nav
             v-if="hasTree"
-            class="aurora-card w-full shrink-0 p-2 md:w-64"
+            class="aurora-card w-full shrink-0 p-2 md:w-64 print:hidden"
             :aria-label="t('notes.markdown.share.tree_label')"
         >
             <ul class="flex flex-col">
@@ -97,7 +107,7 @@ const lookClass = computed(() =>
         </nav>
 
         <article
-            class="aurora-card min-w-0 flex-1 overflow-hidden"
+            class="note-print-article aurora-card min-w-0 flex-1 overflow-hidden"
             :class="lookClass"
         >
             <!-- Le bandeau, quand la note en porte un. L'image vit chez celui
@@ -143,7 +153,7 @@ const lookClass = computed(() =>
                 <a
                     v-if="backPath"
                     :href="backPath"
-                    class="mt-6 inline-block text-xs text-muted no-underline transition-colors hover:text-primary"
+                    class="mt-6 inline-block text-xs text-muted no-underline transition-colors hover:text-primary print:hidden"
                 >{{ t("notes.markdown.read.back") }}</a>
             </div>
         </article>

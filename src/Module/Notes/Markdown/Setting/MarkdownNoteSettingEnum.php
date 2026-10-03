@@ -27,6 +27,16 @@ enum MarkdownNoteSettingEnum: string implements ApplicationParameterEnumInterfac
      */
     case ImageQualityPct = 'notes_markdown_image_quality_pct';
 
+    /** How many past versions a note keeps; 0 keeps them all. */
+    case RevisionsLimit = 'notes_markdown_revisions_limit';
+
+    /**
+     * The least time between two versions of a note, in minutes. The editor
+     * saves every few seconds while one types: without it, the history would
+     * be a version per sentence.
+     */
+    case RevisionIntervalMinutes = 'notes_markdown_revision_interval_minutes';
+
     public function getKey(): string
     {
         return $this->value;
@@ -37,6 +47,8 @@ enum MarkdownNoteSettingEnum: string implements ApplicationParameterEnumInterfac
         return match ($this) {
             self::ImageMaxEdge => 'backend.parameters.notes_markdown_image_max_edge.label',
             self::ImageQualityPct => 'backend.parameters.notes_markdown_image_quality_pct.label',
+            self::RevisionsLimit => 'backend.parameters.notes_markdown_revisions_limit.label',
+            self::RevisionIntervalMinutes => 'backend.parameters.notes_markdown_revision_interval_minutes.label',
         };
     }
 
@@ -45,6 +57,8 @@ enum MarkdownNoteSettingEnum: string implements ApplicationParameterEnumInterfac
         return match ($this) {
             self::ImageMaxEdge => 'backend.parameters.notes_markdown_image_max_edge.description',
             self::ImageQualityPct => 'backend.parameters.notes_markdown_image_quality_pct.description',
+            self::RevisionsLimit => 'backend.parameters.notes_markdown_revisions_limit.description',
+            self::RevisionIntervalMinutes => 'backend.parameters.notes_markdown_revision_interval_minutes.description',
         };
     }
 
@@ -53,6 +67,8 @@ enum MarkdownNoteSettingEnum: string implements ApplicationParameterEnumInterfac
         return match ($this) {
             self::ImageMaxEdge => '2048',
             self::ImageQualityPct => '85',
+            self::RevisionsLimit => '50',
+            self::RevisionIntervalMinutes => '10',
         };
     }
 

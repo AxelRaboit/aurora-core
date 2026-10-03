@@ -64,7 +64,7 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
         // elle, pas à la note, et une seconde requête les recollerait ligne
         // par ligne.
         $rows = $this->visibleTo($this->createQueryBuilder('n'), 'n', $user)
-            ->select('n.id', 'n.title', 'n.tags', 'n.position', 'n.createdAt', 'n.updatedAt', 'fav.createdAt AS favoritedAt', 'n.coverUrl', 'n.coverPosition', 'n.appearance', 'n.version', 'IDENTITY(n.folder) AS folderId', 'IDENTITY(n.space) AS spaceId')
+            ->select('n.id', 'n.title', 'n.tags', 'n.position', 'n.template', 'n.createdAt', 'n.updatedAt', 'fav.createdAt AS favoritedAt', 'n.coverUrl', 'n.coverPosition', 'n.appearance', 'n.version', 'IDENTITY(n.folder) AS folderId', 'IDENTITY(n.space) AS spaceId')
             ->leftJoin(NoteFavorite::class, 'fav', Join::WITH, 'fav.note = n AND fav.user = :favoriteViewer')
             ->setParameter('favoriteViewer', $user)
             ->andWhere('n.deletedAt IS NULL')
@@ -431,7 +431,8 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
     {
         $qb = $this->createQueryBuilder('n')
             ->where('n.deletedAt IS NULL')
-            ->orderBy('n.position', Order::Ascending->value);
+            ->orderBy('n.position', Order::Ascending->value)
+            ->addOrderBy('n.id', Order::Ascending->value);
 
         // Un dossier dit à lui seul où il est ; la racine, elle, n'est à
         // personne : celle d'un carnet, ou celle de l'équipe.
@@ -485,6 +486,28 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
             ->setParameter('cutoff', $cutoff)
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * Pushes every note ranked after `$position` in a folder (or a space's
+     * root) down by one, to make room for a copy placed right after its
+     * original.
+     */
+    public function shiftAfter(NoteSpaceInterface $space, ?int $folderId, int $position): void
+    {
+        $qb = $this->createQueryBuilder('n')
+            ->update()
+            ->set('n.position', 'n.position + 1')
+            ->where('n.position > :position')
+            ->setParameter('position', $position);
+
+        if (null === $folderId) {
+            $qb->andWhere('n.space = :space')->andWhere('n.folder IS NULL')->setParameter('space', $space);
+        } else {
+            $qb->andWhere('IDENTITY(n.folder) = :folderId')->setParameter('folderId', $folderId);
+        }
+
+        $qb->getQuery()->execute();
     }
 
     public function findMaxPositionForUserAndFolder(NoteSpaceInterface $space, ?int $folderId): ?int

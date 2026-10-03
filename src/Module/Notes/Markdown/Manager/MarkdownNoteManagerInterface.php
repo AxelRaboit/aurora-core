@@ -43,6 +43,18 @@ interface MarkdownNoteManagerInterface
      * Range la note dans un dossier, ou à la racine d'un espace. Le dossier
      * impose son espace ; sans dossier, `$space` dit quelle racine.
      */
+    /** A copy right under the original, in the same folder, with the given title. */
+    public function duplicate(CoreUserInterface $user, MarkdownNoteInterface $note, string $title): MarkdownNoteInterface;
+
+    /**
+     * A new note from a template, filed last in a folder (or a space's root).
+     *
+     * @param array<string, string> $replacements placeholders to fill in the title and the text, such as `{{date}}`
+     */
+    public function createFromTemplate(CoreUserInterface $user, MarkdownNoteInterface $template, ?NoteFolderInterface $folder, NoteSpaceInterface $space, string $title, array $replacements = []): MarkdownNoteInterface;
+
+    public function markTemplate(MarkdownNoteInterface $note, bool $template): void;
+
     public function move(MarkdownNoteInterface $note, ?NoteFolderInterface $folder, ?NoteSpaceInterface $space = null): void;
 
     /** Fait passer une note dans un autre espace, images comprises. */

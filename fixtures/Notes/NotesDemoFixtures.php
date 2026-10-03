@@ -9,6 +9,7 @@ use Aurora\Fixtures\Core\CoreDemoFixtures;
 use Aurora\Module\Notes\Favorite\Entity\NoteFavorite;
 use Aurora\Module\Notes\Folder\Entity\NoteFolder;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNote;
+use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteRevision;
 use Aurora\Module\Notes\Markdown\Enum\NoteAppearanceEnum;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteImageService;
 use Aurora\Module\Notes\Share\Manager\MarkdownNoteShareLinkManagerInterface;
@@ -23,11 +24,13 @@ use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use DateTimeImmutable;
+use DateTimeZone;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ObjectManager;
+use ReflectionProperty;
 use RuntimeException;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -121,7 +124,18 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
         }
 
         $folders = [];
-        $folderPosition = 0;
+
+        // Dossiers et notes d'un même dossier partagent un seul ordre depuis
+        // la 0.9.331 : un compteur par dossier, que les deux font avancer.
+        // Une note marquée `first` passe devant tout, dossiers compris :
+        // c'est ce que l'arborescence sait montrer, et la démonstration doit
+        // le montrer aussi.
+        $positions = [];
+        $next = static function (?string $group) use (&$positions): int {
+            $key = $group ?? '';
+
+            return $positions[$key] = ($positions[$key] ?? 0) + 1;
+        };
 
         /** @var list<array{string, NoteFolder|MarkdownNote, DateTimeImmutable}> $pinned */
         $pinned = [];
@@ -137,7 +151,7 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                 ->setName($definition['name'])
                 ->setColor($definition['color'] ?? null)
                 ->setParent(isset($definition['parent']) ? $folders[$definition['parent']] : null)
-                ->setPosition($folderPosition++);
+                ->setPosition($next($definition['parent'] ?? null));
 
             $manager->persist($folder);
             $folders[$key] = $folder;
@@ -148,7 +162,6 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
         }
 
         $notes = [];
-        $position = 0;
 
         foreach ($this->notes() as $key => $definition) {
             $note = $existing[$definition['title']] ?? new MarkdownNote();
@@ -159,7 +172,8 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                 ->setTitle($definition['title'])
                 ->setContent($this->withImages($definition, $note, $owner))
                 ->setTags($definition['tags'])
-                ->setPosition($position++)
+                ->setPosition(($definition['first'] ?? false) ? 0 : $next($definition['folder'] ?? null))
+                ->setTemplate($definition['template'] ?? false)
                 ->setAppearance(NoteAppearanceEnum::fromNullable($definition['appearance'] ?? null))
                 ->setCoverUrl(isset($definition['cover']) ? $this->pexels($definition['cover']) : null)
                 ->setCoverCreditName($definition['coverCredit'] ?? null)
@@ -186,7 +200,13 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
             $notes[$key] = $note;
         }
 
+        if (isset($notes['verrier'])) {
+            $this->history($manager, $owner, $notes['verrier']);
+        }
+
         $manager->flush();
+
+        $this->age($manager, $notes, $this->notes());
 
         $this->pin($manager, $owner, $pinned);
 
@@ -235,7 +255,7 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
         $manager->flush();
 
         $folder = $manager->getRepository(NoteFolder::class)->findOneBy(['space' => $space, 'parent' => null]) ?? new NoteFolder();
-        $folder->setUser($owner)->setSpace($space)->setName('Procédures')->setColor('#14b8a6')->setPosition(0)->setParent(null);
+        $folder->setUser($owner)->setSpace($space)->setName('Procédures')->setColor('#14b8a6')->setPosition(1)->setParent(null);
         $manager->persist($folder);
 
         $existing = [];
@@ -243,89 +263,278 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
             $existing[(string) $note->getTitle()] = $note;
         }
 
-        $position = 0;
-        foreach ($this->teamNotes() as $definition) {
+        // Le sommaire passe devant le dossier, à la racine de l'espace ; les
+        // procédures se suivent dans leur dossier.
+        $position = 1;
+        $team = [];
+        $definitions = [];
+        foreach ($this->teamNotes() as $index => $definition) {
             $note = $existing[$definition['title']] ?? new MarkdownNote();
             $note->setUser($owner)
                 ->setSpace($space)
                 ->setTitle($definition['title'])
                 ->setContent($definition['content'])
                 ->setTags($definition['tags'])
-                ->setPosition($position++)
+                ->setPosition(($definition['first'] ?? false) ? 0 : $position++)
                 ->setFolder($definition['inFolder'] ? $folder : null)
                 ->setDeletedAt(null);
             $manager->persist($note);
+            $team[$index] = $note;
+            $definitions[$index] = $definition;
         }
 
         $manager->flush();
+
+        $this->age($manager, $team, $definitions);
     }
 
-    /** @return list<array{title: string, tags: list<string>, inFolder: bool, content: string}> */
+    /**
+     * Le guide d'une petite agence, lu par toute l'équipe et publié sur le web.
+     *
+     * Chaque note montre une forme différente de ce que le rendu sait faire :
+     * un sommaire avec ses encadrés, une procédure numérotée, un tableau de
+     * rituels, une liste à cocher, et une procédure technique avec ses blocs
+     * de code. Le sommaire passe devant le dossier (`first`) : l'ordre libre
+     * se voit dès l'arborescence.
+     *
+     * @return list<array{title: string, age: string, tags: list<string>, inFolder: bool, first?: bool, content: string}>
+     */
     private function teamNotes(): array
     {
         return [
             [
                 'title' => "Bienvenue dans l'agence",
+                'age' => '-10 days',
                 'tags' => ['onboarding'],
                 'inFolder' => false,
+                'first' => true,
                 'content' => <<<'MD'
                     # Bienvenue dans l'agence
 
                     Ce guide rassemble ce qu'on se répète : comment on accueille un client, comment on produit, comment on livre. Il est ouvert à toute l'équipe en lecture ; Marie le tient à jour.
 
-                    - Premiers jours : [[Accueillir un nouveau client]]
-                    - Chaque semaine : [[Les rituels de la semaine]]
+                    > [!tip] Par où commencer
+                    > Lisez les trois procédures dans l'ordre : elles suivent la vie d'un projet, du premier appel à la mise en ligne.
 
-                    > Une question sans réponse ici ? Elle mérite une note.
+                    ## Les procédures
+
+                    1. [[Accueillir un nouveau client]] : la première semaine, jour par jour.
+                    2. [[Les rituels de la semaine]] : ce qui revient chaque lundi, mercredi et vendredi.
+                    3. [[Livrer une série de contenus]] : la liste à cocher avant d'envoyer.
+                    4. [[Mettre un site en ligne]] : la procédure technique, commandes comprises.
+
+                    ## Qui fait quoi
+
+                    | Domaine | Référente | Joignable |
+                    | --- | --- | --- |
+                    | Développement web | Axel | soir et week-end |
+                    | Photographie | Marie | du mardi au samedi |
+                    | Réseaux sociaux | Jean | en semaine |
+
+                    > [!question] Une question sans réponse ici ?
+                    > Elle mérite une note. Écrivez-la dans ce guide, même en trois lignes : la suivante qui se la posera vous remerciera.
                     MD,
             ],
             [
                 'title' => 'Accueillir un nouveau client',
+                'age' => '-6 days 3 hours',
                 'tags' => ['onboarding', 'client'],
                 'inFolder' => true,
                 'content' => <<<'MD'
                     # Accueillir un nouveau client
 
+                    La première semaine décide du reste du projet : un client qui sait à qui parler et quand il sera relu ne relance pas.
+
+                    ## Jour 1
+
                     1. Ouvrir son espace client et lui envoyer le lien d'accès.
-                    2. Caler l'appel de lancement dans les cinq jours.
-                    3. Poser le brief et le calendrier du premier mois.
-                    4. Rappeler qui valide, et sous quel délai.
+                    2. Y poser le contrat signé et la facture d'acompte.
+
+                    ## Jours 2 à 5
+
+                    1. Caler l'appel de lancement, une heure, en visio.
+                    2. Poser le brief et le calendrier du premier mois, à partir du modèle « Brief de projet ».
+                    3. Rappeler qui valide, et sous quel délai.
+
+                    > [!warning] Le délai de validation
+                    > Sans réponse sous cinq jours ouvrés, une proposition est réputée validée. Le dire dès l'appel de lancement, pas au premier retard.
 
                     Le rythme de production est décrit dans [[Les rituels de la semaine]].
                     MD,
             ],
             [
                 'title' => 'Les rituels de la semaine',
+                'age' => '-2 days',
                 'tags' => ['organisation'],
                 'inFolder' => true,
                 'content' => <<<'MD'
                     # Les rituels de la semaine
 
-                    | Jour | Rituel | Durée |
-                    | --- | --- | --- |
-                    | Lundi | Point de production | 20 min |
-                    | Mercredi | Relecture croisée | 45 min |
-                    | Vendredi | Envoi des validations | 15 min |
+                    Trois rendez-vous courts plutôt qu'une longue réunion. Chacun a son heure, sa durée et ce qu'on en sort.
+
+                    | Jour | Rituel | Durée | Ce qu'on en sort |
+                    | --- | --- | ---: | --- |
+                    | Lundi 9 h | Point de production | 20 min | les priorités de la semaine |
+                    | Mercredi 14 h | Relecture croisée | 45 min | les textes et visuels validés en interne |
+                    | Vendredi 16 h | Envoi des validations | 15 min | un message par client, pas plus |
+
+                    ## Avant le point du lundi
+
+                    - [ ] Relire les retours clients de la semaine passée
+                    - [ ] Mettre à jour les fiches dans les espaces clients
+                    - [ ] Noter ce qui bloque, et qui peut le débloquer
+
+                    > [!note] Absente un jour de rituel ?
+                    > On ne déplace pas : on lit le compte rendu, rangé le jour même dans le dossier du client.
 
                     Le sommaire du guide : [[Bienvenue dans l'agence]].
                     MD,
             ],
             [
                 'title' => 'Livrer une série de contenus',
+                'age' => '-1 day 4 hours',
                 'tags' => ['production', 'client'],
                 'inFolder' => true,
                 'content' => <<<'MD'
                     # Livrer une série de contenus
 
-                    - [x] Textes relus par une deuxième personne
-                    - [x] Visuels exportés aux formats de chaque réseau
+                    Une série part quand chaque ligne est cochée. Pas avant, même quand le client attend.
+
+                    ## Les textes
+
+                    - [x] Relus par une deuxième personne
+                    - [x] Orthographe et liens vérifiés
+                    - [ ] Accroches testées sur mobile
+
+                    ## Les visuels
+
+                    - [x] Exportés aux formats de chaque réseau
+                    - [ ] Textes alternatifs écrits
+                    - [ ] Crédits photo vérifiés
+
+                    ## L'envoi
+
                     - [ ] Fiches posées dans l'espace du client, à la bonne date
                     - [ ] Validation demandée, avec le délai rappelé
 
-                    Si le client demande une reprise, on la note sur la fiche, pas dans un message : voir [[Accueillir un nouveau client]].
+                    > [!danger] Une reprise demandée par message
+                    > Elle se note sur la fiche, jamais dans un message : sinon elle se perd, et c'est la version d'avant qui part. Voir [[Accueillir un nouveau client]].
+                    MD,
+            ],
+            [
+                'title' => 'Mettre un site en ligne',
+                'age' => '-3 hours',
+                'tags' => ['web', 'procédure'],
+                'inFolder' => true,
+                'content' => <<<'MD'
+                    # Mettre un site en ligne
+
+                    La procédure de chaque livraison d'un site, de la branche validée au site qui répond. Elle se suit dans l'ordre, sans en sauter une étape.
+
+                    > [!abstract] En résumé
+                    > On ne déploie qu'un tag, jamais une branche. Le tag dit exactement ce qui tourne, et revenir en arrière ne demande qu'une commande.
+
+                    ## 1. Préparer la version
+
+                    ```bash
+                    git switch main && git pull
+                    make test
+                    git tag v2.4.1 && git push --tags
+                    ```
+
+                    ## 2. Déployer sur le serveur
+
+                    ```bash
+                    ssh client-verrier
+                    cd /var/www/site && git fetch --tags
+                    git checkout v2.4.1 && make deploy
+                    ```
+
+                    ## 3. Vérifier
+
+                    - [ ] La page d'accueil répond en moins de deux secondes
+                    - [ ] Le formulaire de contact envoie bien son message
+                    - [ ] La version affichée en pied de page est la bonne
+
+                    > [!failure] Si quelque chose casse
+                    > On revient au tag précédent d'abord, on comprend ensuite : `git checkout v2.4.0 && make deploy`. Le client voit un site qui marche pendant qu'on cherche.
+
+                    Le cadre de la maintenance est dans la fiche du client, rangée dans le carnet de chacun. Retour au [[Bienvenue dans l'agence|sommaire du guide]].
                     MD,
             ],
         ];
+    }
+
+    /**
+     * Les versions passées de la fiche du cabinet, pour que l'historique
+     * s'ouvre sur quelque chose : trois états, du plus ancien au plus récent,
+     * chacun avec ce qui a changé depuis.
+     *
+     * Reposées à chaque exécution : le décor, pas des versions qu'on voudrait
+     * garder d'une démonstration à l'autre. Chaque version se construit en
+     * retirant au texte courant ce qui lui a été ajouté depuis, pour que les
+     * trois restent d'accord avec lui quand on le retouche.
+     */
+    private function history(EntityManagerInterface $manager, User $owner, MarkdownNote $note): void
+    {
+        if (null !== $note->getId()) {
+            $manager->createQuery(sprintf('DELETE FROM %s r WHERE r.note = :note', MarkdownNoteRevision::class))
+                ->setParameter('note', $note)
+                ->execute();
+        }
+
+        $current = (string) $note->getContent();
+
+        // La veille : tout, sauf l'encadré sur les accès.
+        $yesterday = (string) preg_replace('/\n> \[!info\] Accès\n> [^\n]*\n/', "\n", $current);
+        // Il y a cinq jours : pas encore de section technique.
+        $fiveDays = (string) preg_replace('/## Technique\n.*?(?=\nLe cadre contractuel)/s', '', $yesterday);
+        // Il y a douze jours : les fiches chantier en cours, et pas encore
+        // l'avertissement de Paul.
+        $twelveDays = str_replace(
+            '- [x] Reprise des fiches chantier, 24 au total',
+            '- [ ] Reprise des fiches chantier, 18 sur 24',
+            (string) preg_replace('/> \[!warning\] Avant toute mise en ligne\n(> [^\n]*\n)+\n/', '', $fiveDays),
+        );
+
+        $createdAt = new ReflectionProperty(MarkdownNoteRevision::class, 'createdAt');
+        // Des heures de Paris : la colonne est en UTC, et l'écran les rend
+        // dans le fuseau du site. Sans fuseau, « 21:40 » s'affichait 23:40.
+        $paris = new DateTimeZone('Europe/Paris');
+
+        foreach ([[$twelveDays, '-12 days 10:30'], [$fiveDays, '-5 days 18:05'], [$yesterday, '-1 day 21:40']] as [$content, $when]) {
+            $note->setContent($content);
+            $revision = new MarkdownNoteRevision($note, $owner);
+            $createdAt->setValue($revision, new DateTimeImmutable($when, $paris)->setTimezone(new DateTimeZone('UTC')));
+            $manager->persist($revision);
+        }
+
+        $note->setContent($current);
+    }
+
+    /**
+     * L'âge de chaque note : la date de modification que la liste et
+     * « Récemment modifiées » affichent.
+     *
+     * Toutes portaient l'heure du chargement, la même à la minute près, et la
+     * vue en liste montrait une colonne de dates identiques. Posées après
+     * coup, en base : l'horodatage de l'entité se réécrit à chaque
+     * enregistrement.
+     *
+     * @param array<array-key, MarkdownNote>        $notes
+     * @param array<array-key, array{age?: string}> $definitions
+     */
+    private function age(EntityManagerInterface $manager, array $notes, array $definitions): void
+    {
+        foreach ($notes as $key => $note) {
+            $at = new DateTimeImmutable($definitions[$key]['age'] ?? '-20 days');
+
+            $manager->createQuery(sprintf('UPDATE %s n SET n.updatedAt = :at, n.createdAt = :created WHERE n.id = :id', MarkdownNote::class))
+                ->setParameter('at', $at)
+                ->setParameter('created', $at->modify('-9 days'))
+                ->setParameter('id', $note->getId())
+                ->execute();
+        }
     }
 
     /**
@@ -398,6 +607,9 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
             'photo' => ['name' => 'Photographie', 'color' => '#f59e0b'],
             'editorial' => ['name' => 'Éditorial', 'color' => '#8b5cf6'],
             'archives' => ['name' => 'Archives'],
+            // Les modèles d'une fiche : « Partir de » les propose dans
+            // « Ajouter ».
+            'modeles' => ['name' => 'Modèles', 'color' => '#ec4899'],
         ];
     }
 
@@ -508,7 +720,25 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
     }
 
     /**
-     * @return array<string, array{title: string, content: string, tags: list<string>, folder?: string, cover?: int, coverCredit?: string, coverPosition?: int, appearance?: string, favorite?: bool, trashed?: bool, images?: list<int>}>
+     * Le carnet d'un petit studio : développement web, photographie, réseaux
+     * sociaux.
+     *
+     * Réécrit le 03/10/2026 pour le tour : les notes tenaient en quatre lignes
+     * et montraient surtout que le module était vide. Chacune montre
+     * maintenant une forme que le rendu sait faire, et le carnet entier les
+     * réunit toutes : encadrés de plusieurs couleurs, tableaux alignés, listes
+     * à cocher par section, blocs de code colorés, images à leur taille,
+     * titres sur trois niveaux pour le plan, liens `[[…]]` pour le graphe.
+     *
+     * - « Cabinet Verrier » est la vitrine de l'éditeur : le plan y a de quoi
+     *   se déplier, et c'est elle qui porte l'historique (`history()`).
+     * - « Sommaire des clients » passe devant le dossier « Studio Lumen »
+     *   (`first`) : l'ordre libre se voit dans l'arborescence.
+     * - Les deux notes du dossier « Modèles » sont des modèles : « Ajouter »
+     *   les propose sous « Partir de ».
+     * - `age` donne à chaque note sa date de modification.
+     *
+     * @return array<string, array{title: string, content: string, tags: list<string>, folder?: string, first?: bool, template?: bool, age?: string, cover?: int, coverCredit?: string, coverPosition?: int, appearance?: string, favorite?: bool, trashed?: bool, images?: list<int>}>
      */
     private function notes(): array
     {
@@ -521,122 +751,230 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                 'title' => 'Sommaire des clients',
                 'tags' => ['index', 'client'],
                 'folder' => 'clients',
+                'first' => true,
                 'favorite' => true,
-                'cover' => 33714905,
-                'coverCredit' => 'Matheus Bertelli',
+                'age' => '-2 hours',
+                // Un atelier clair et ses tables de travail. La photo d'avant
+                // montrait une affiche au logo de Pexels en plein milieu, et
+                // c'est elle qui ouvrait la page de partage et la lecture.
+                'cover' => 4348298,
+                'coverCredit' => 'Antoni Shkraba',
+                'coverPosition' => 60,
                 'appearance' => 'paper',
-                // Le sommaire sert deux images de la carte publique : la page
-                // de partage et la vue de lecture. Il tenait en quatre lignes,
-                // ce qui laissait les deux à moitié vides. Un vrai sommaire de
-                // dossier porte l'état de chaque client, ce qui est en attente
-                // et où l'on en est, donc c'est ce qu'il porte.
                 'content' => <<<'MD'
                     # Sommaire des clients
 
-                    Chaque client a sa note, et chaque note renvoie ici. Le contractuel part de [[Contrat type]].
+                    Le point d'entrée du carnet : chaque client a sa fiche, et chaque fiche renvoie ici. Le cadre contractuel part du [[Contrat type]].
 
-                    ## En cours
+                    > [!abstract] Cette semaine
+                    > **Trois clients actifs**, deux projets en cours, une relance à faire. Prochaine échéance : la séance catalogue du [[Studio Lumen]], le 14 novembre.
 
-                    - [[Studio Lumen]] : deux séances par an, la prochaine en novembre.
-                    - [[Cabinet Verrier]] : site livré en mars, maintenance au forfait.
+                    ## Clients actifs
 
-                    ## Le rythme
-
-                    | Client | Depuis | Ce qui revient |
-                    | --- | --- | --- |
-                    | Studio Lumen | 2024 | deux séances, un catalogue |
-                    | Cabinet Verrier | 2025 | maintenance mensuelle |
+                    | Client | Métier | Depuis | Ce qui revient |
+                    | --- | --- | ---: | --- |
+                    | [[Studio Lumen]] | photographie | 2024 | deux séances, un catalogue |
+                    | [[Cabinet Verrier]] | site vitrine | 2025 | maintenance mensuelle |
+                    | Boulangerie Fournier | réseaux sociaux | 2026 | douze publications par mois |
 
                     ## À relancer
 
                     - [x] Facture de septembre, Studio Lumen
-                    - [ ] Photos de la galerie, Cabinet Verrier ; tarifs dans [[Tarifs 2024]]
+                    - [ ] Photos de la galerie, Cabinet Verrier
+                    - [ ] Devis de la Boulangerie Fournier, à partir des [[Tarifs 2024]] revus
+
+                    > [!tip] Une nouvelle fiche
+                    > « Ajouter », puis « Partir de » le [[Brief de projet]] : la fiche arrive avec ses sections, et la date du jour déjà écrite.
                     MD,
             ],
             'lumen' => [
                 'title' => 'Studio Lumen',
                 'tags' => ['client', 'photo'],
                 'folder' => 'lumen',
+                'age' => '-3 days',
                 'content' => <<<'MD'
                     # Studio Lumen
 
-                    Deux séances par an, catalogue et portraits d'équipe.
-                    Interlocutrice : Camille, qui décide vite.
+                    Un studio de design à Lyon, six personnes. Deux séances par an : le catalogue au printemps, les portraits d'équipe à l'automne. Interlocutrice : Camille, qui décide vite.
 
-                    Conditions reprises de [[Contrat type]], avec une clause
-                    de cession élargie pour les réseaux.
+                    > [!quote] Ce que Camille a dit au premier rendez-vous
+                    > « On veut des images qui ressemblent à l'atelier un mardi matin, pas à une publicité. »
 
-                    Voir aussi [[Séance en extérieur]] : c'est le format
-                    qu'ils redemandent.
+                    ## Les séances
+
+                    | Séance | Date | Lieu | État |
+                    | --- | --- | --- | --- |
+                    | Catalogue printemps | 18 avril | atelier | livrée |
+                    | Portraits d'équipe | 14 novembre | extérieur | à venir |
+
+                    ## Les conditions
+
+                    Reprises du [[Contrat type]], avec une clause de cession élargie aux réseaux sociaux. Le chiffrage de l'année est dans le [[Devis Lumen 2026]], et le lieu de la prochaine séance dans le [[Repérage Lumen]].
+
+                    Voir aussi [[Séance en extérieur]] : c'est le format qu'ils redemandent.
                     MD,
             ],
             'verrier' => [
                 'title' => 'Cabinet Verrier',
                 'tags' => ['client', 'web'],
                 'folder' => 'clients',
+                'age' => '-25 minutes',
                 'cover' => 923307,
                 'coverCredit' => 'Julien Bachelet',
-                // La note la plus fournie de la démonstration, et c'est
-                // délibéré : c'est elle que la carte publique du module
-                // photographie, en vue partagée. Trois lignes remplissaient
-                // un quart du volet et laissaient le reste blanc, ce qui
-                // montre surtout que la note est vide. Une vraie fiche client
-                // tient une trentaine de lignes, avec ses sections, sa liste
-                // à cocher et son tableau : c'est ce que le module sert à
-                // faire, donc c'est ce qu'il faut montrer.
+                // La vitrine de l'éditeur, et c'est délibéré : c'est elle que
+                // la première image de la carte photographie, en écriture avec
+                // son rendu à côté, et c'est elle que le plan et l'historique
+                // montrent. Des titres sur trois niveaux, un encadré, un
+                // tableau aligné, un bloc de code et une image à sa taille :
+                // tout ce que le rendu sait faire, dans une vraie fiche.
                 'content' => <<<'MD'
                     # Cabinet Verrier
 
-                    Trois architectes associés, un site vitrine qui montre les chantiers livrés. Mise en ligne en mars, maintenance au forfait depuis. Interlocuteur : Paul, qui relit tout.
+                    Trois architectes associés à Nantes, et un site vitrine qui montre leurs chantiers livrés. En ligne depuis mars, maintenance au forfait. Interlocuteur : Paul, qui relit tout.
 
-                    ![La page d'accueil, version validée en février]({{image:0}})
+                    ![Le dernier chantier livré, en tête de la page d'accueil|520]({{image:0}})
+
+                    > [!warning] Avant toute mise en ligne
+                    > Paul veut être prévenu, même pour une correction de texte : le cabinet répond à des appels d'offres, et le site lui sert de référence.
 
                     ## Où ça en est
 
+                    ### Livré
+
                     - [x] Refonte de la page d'accueil
                     - [x] Reprise des fiches chantier, 24 au total
+
+                    ### En cours
+
                     - [ ] Galerie avant / après, en attente des photos
                     - [ ] Formulaire de contact en trois langues
 
                     ## Le forfait
 
                     | Poste | Rythme | Montant |
-                    | --- | --- | --- |
+                    | --- | --- | ---: |
                     | Maintenance | mensuel | 180 € |
-                    | Sauvegardes | mensuel | inclus |
-                    | Petites évolutions | 2 h / mois | inclus |
+                    | Sauvegardes | quotidien | inclus |
+                    | Petites évolutions | 2 h par mois | inclus |
 
                     Au-delà des deux heures, c'est du temps facturé au tarif courant, annoncé avant d'être engagé.
 
-                    ## À ne pas oublier
+                    ## Technique
 
-                    Paul veut être prévenu **avant** toute mise en ligne, même pour une correction de texte : le cabinet répond à des appels d'offres et le site sert de référence.
+                    Hébergé chez eux, déployé depuis un tag :
 
-                    Le cadre contractuel est celui de [[Contrat type]], et la fiche remonte au [[Sommaire des clients]].
+                    ```bash
+                    git fetch --tags
+                    git checkout v2.4.1 && make deploy
+                    ```
+
+                    > [!info] Accès
+                    > Les identifiants sont dans le coffre partagé, jamais dans une note.
+
+                    Le cadre contractuel est celui du [[Contrat type]], et la fiche remonte au [[Sommaire des clients]].
                     MD,
-                'images' => [3760067],
+                'images' => [9458996],
             ],
             'contrat' => [
                 'title' => 'Contrat type',
-                'tags' => ['modèle', 'client'],
+                'tags' => ['contrat', 'client'],
                 'appearance' => 'sepia',
+                'age' => '-16 days',
                 'content' => <<<'MD'
                     # Contrat type
 
-                    Le socle commun, à adapter par client.
+                    Le socle commun de chaque mission, à adapter par client. Ce qui change d'un contrat à l'autre est en italique.
 
-                    - Acompte de 30 % à la commande
-                    - Deux allers-retours inclus
-                    - Cession des droits à la livraison, usage précisé au cas
-                      par cas
+                    ## 1. Commande
+
+                    - Acompte de **30 %** à la signature, le solde à la livraison.
+                    - Devis valable *un mois*, au-delà les tarifs sont revus.
+
+                    ## 2. Allers-retours
+
+                    Deux allers-retours inclus sur chaque livrable. Le troisième se facture au temps passé, annoncé avant d'être engagé.
+
+                    ## 3. Droits
+
+                    Cession des droits à la livraison et au paiement du solde, pour *l'usage précisé au cas par cas* : site, réseaux, impression.
+
+                    > [!note] Ce qui ne se négocie pas
+                    > Le délai de validation de cinq jours ouvrés, et la mention de l'auteur des photos quand elles sont publiées.
 
                     Retour au [[Sommaire des clients]].
+                    MD,
+            ],
+            'brief' => [
+                'title' => 'Brief de projet',
+                'tags' => ['modèle'],
+                'folder' => 'modeles',
+                'template' => true,
+                'age' => '-8 days',
+                'cover' => 5668471,
+                'coverCredit' => 'Sora Shimazaki',
+                // Un modèle : « Partir de » le propose, et la date du jour
+                // remplace le repère à la création.
+                'content' => <<<'MD'
+                    # Brief de projet
+
+                    Rédigé le {{date}}.
+
+                    ## Le client
+
+                    - **Qui** :
+                    - **Interlocuteur** :
+                    - **Ce qu'il fait, en une phrase** :
+
+                    ## Le besoin
+
+                    > [!question] La question à poser en premier
+                    > Qu'est-ce qui doit changer pour vous dans six mois, si ce projet réussit ?
+
+                    ## Les livrables
+
+                    | Livrable | Format | Échéance |
+                    | --- | --- | --- |
+                    |  |  |  |
+
+                    ## Avant de commencer
+
+                    - [ ] Devis signé
+                    - [ ] Acompte reçu
+                    - [ ] Espace client ouvert
+                    - [ ] Rendez-vous de lancement calé
+                    MD,
+            ],
+            'compte-rendu' => [
+                'title' => 'Compte rendu de rendez-vous',
+                'tags' => ['modèle'],
+                'folder' => 'modeles',
+                'template' => true,
+                'age' => '-8 days 2 hours',
+                'content' => <<<'MD'
+                    # Compte rendu du {{date}}
+
+                    **Présents** :
+
+                    ## Ce qu'on a décidé
+
+                    > [!success] Décisions
+                    > Une décision par ligne, avec sa raison.
+
+                    ## Qui fait quoi
+
+                    - [ ] Qui : quoi, pour quand
+                    - [ ] Qui : quoi, pour quand
+
+                    ## Prochain rendez-vous
+
+                    La date, le lieu, et ce qu'on y apporte.
                     MD,
             ],
             'seance' => [
                 'title' => 'Séance en extérieur',
                 'tags' => ['photo', 'méthode'],
                 'folder' => 'photo',
+                'age' => '-6 days',
                 // Une photo en hauteur, coupée haut : c'est le cas qui
                 // justifie le réglage de cadrage, un portrait montrant un
                 // menton quand on le centre.
@@ -646,16 +984,25 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                 'content' => <<<'MD'
                     # Séance en extérieur
 
-                    Repérage la veille, lumière de fin de journée, une heure
-                    de battement pour la météo.
+                    La méthode qu'on suit pour chaque séance hors de l'atelier : un repérage la veille, la lumière de fin de journée, et une heure de battement pour la météo.
 
-                    Le Studio Lumen redemande ce format à chaque fois, noté ici
-                    sans lien exprès pour voir ce que donne une mention non
-                    liée.
+                    Le Studio Lumen redemande ce format à chaque fois, noté ici sans lien exprès pour voir ce que donne une mention non liée.
 
-                    ![Le repérage de la veille, même heure]({{image:0}})
+                    ## Le déroulé
 
-                    Matériel : voir [[Matériel]].
+                    | Heure | Étape | Durée |
+                    | --- | --- | ---: |
+                    | 16 h 30 | Arrivée, réglages, essais de lumière | 30 min |
+                    | 17 h | Portraits individuels | 1 h |
+                    | 18 h | Photo de groupe | 20 min |
+                    | 18 h 30 | Battement pour la météo | 1 h |
+
+                    > [!tip] La lumière
+                    > L'heure qui précède le coucher du soleil donne une lumière chaude et douce, sans ombre dure sous les yeux. On la prévoit d'après l'éphéméride, pas d'après l'heure habituelle.
+
+                    ![Le repérage de la veille, même heure|420]({{image:0}})
+
+                    Le sac est décrit dans [[Matériel]].
                     MD,
                 'images' => [1181244],
             ],
@@ -663,16 +1010,33 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                 'title' => 'Matériel',
                 'tags' => ['photo'],
                 'folder' => 'photo',
+                'age' => '-11 days',
                 'cover' => 18880006,
                 'coverCredit' => 'Amar Preciado',
                 'content' => <<<'MD'
                     # Matériel
 
-                    - Boîtier principal + second boîtier en secours
-                    - 35 mm et 85 mm, rien d'autre en extérieur
-                    - Réflecteur pliant, plus utile qu'un flash
+                    Ce qui part dans le sac pour une [[Séance en extérieur]], et rien de plus : un sac léger se porte jusqu'au bon endroit.
 
-                    Sert surtout pour [[Séance en extérieur]].
+                    ## Les boîtiers
+
+                    - [x] Boîtier principal
+                    - [x] Second boîtier, en secours
+                    - [x] Quatre batteries chargées la veille
+
+                    ## Les optiques
+
+                    - [x] 35 mm, pour les groupes et le décor
+                    - [x] 85 mm, pour les portraits
+                    - [ ] Rien d'autre en extérieur
+
+                    ## La lumière
+
+                    - [x] Réflecteur pliant, plus utile qu'un flash
+                    - [ ] Diffuseur, si le ciel est trop clair
+
+                    > [!warning] Les batteries
+                    > Le froid les vide deux fois plus vite. En hiver, elles voyagent dans une poche intérieure, pas dans le sac.
                     MD,
             ],
             'idees' => [
@@ -680,45 +1044,65 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                 'tags' => ['éditorial'],
                 'folder' => 'editorial',
                 'favorite' => true,
+                'age' => '-4 days',
                 'content' => <<<'MD'
                     # Idées d'articles
 
+                    Les sujets en vrac, avant qu'ils passent au [[Calendrier éditorial]].
+
+                    ## Photographie
+
                     - Ce qu'on regarde dans un devis de photographe
-                    - Pourquoi un site lent coûte des clients
                     - Le repérage, cette étape qu'on saute toujours
 
-                    Rien de commencé, tout est à écrire.
+                    ## Web
+
+                    - Pourquoi un site lent coûte des clients
+                    - Ce que le pied de page d'un site dit de son sérieux
+
+                    > [!question] À trancher
+                    > Un article par mois, ou deux plus courts ? On décide au point du lundi.
                     MD,
             ],
             'devis' => [
                 'title' => 'Devis Lumen 2026',
                 'tags' => ['client', 'devis'],
                 'folder' => 'lumen',
+                'age' => '-9 days',
                 'content' => <<<'MD'
                     # Devis Lumen 2026
 
-                    Deux séances, catalogue au printemps et portraits à
-                    l'automne. Le cadre est celui de [[Contrat type]].
+                    Deux séances, le catalogue au printemps et les portraits à l'automne. Le cadre est celui du [[Contrat type]].
 
                     | Poste | Quantité | Prix |
-                    | --- | --- | --- |
+                    | --- | ---: | ---: |
                     | Séance catalogue | 1 | 1 400 € |
-                    | Portraits équipe | 12 | 900 € |
+                    | Portraits d'équipe | 12 | 900 € |
                     | Retouche | forfait | 300 € |
+                    | **Total** |  | **2 600 €** |
 
-                    Envoyé le 12 mars, relancé une fois.
+                    > [!success] Accepté le 18 mars
+                    > Acompte reçu le 21. Le solde se facture après chaque séance, au prorata.
                     MD,
             ],
             'reperage' => [
                 'title' => 'Repérage Lumen',
                 'tags' => ['photo', 'méthode', 'client'],
                 'folder' => 'lumen',
+                'age' => '-7 days',
                 'content' => <<<'MD'
                     # Repérage Lumen
 
-                    Leur atelier donne au nord : lumière égale toute la
-                    journée, aucune ombre dure. Le mur de briques du fond
-                    fait un décor à lui seul.
+                    Leur atelier donne au nord : lumière égale toute la journée, aucune ombre dure. Le mur de briques du fond fait un décor à lui seul.
+
+                    ## Les trois endroits retenus
+
+                    1. **Le mur de briques**, pour les portraits individuels.
+                    2. **La grande table**, pour la photo de groupe au travail.
+                    3. **La cour**, si le temps le permet, pour finir dehors.
+
+                    > [!info] Accès
+                    > L'atelier ouvre à 8 h 30. Camille prévient l'équipe la veille pour que les bureaux soient rangés.
 
                     Méthode complète dans [[Séance en extérieur]].
                     MD,
@@ -731,6 +1115,7 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                 'tags' => ['méthode'],
                 'folder' => 'photo',
                 'appearance' => 'mint',
+                'age' => '-1 day',
                 'content' => <<<'MD'
                     # Checklist de livraison
 
@@ -740,10 +1125,10 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                     - [ ] Galerie en ligne
                     - [ ] Facture du solde
 
-                    > Rien ne part avant que la ligne « facture » soit
-                    > cochée.
+                    > [!danger] Rien ne part avant la facture
+                    > La ligne « facture du solde » se coche avant l'envoi de la galerie, pas après.
 
-                    Le cadre contractuel est dans [[Contrat type]].
+                    Le cadre contractuel est dans le [[Contrat type]].
                     MD,
             ],
             'calendrier' => [
@@ -751,20 +1136,29 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                 'tags' => ['éditorial', 'planning'],
                 'folder' => 'editorial',
                 'appearance' => 'slate',
+                'age' => '-5 hours',
                 'cover' => 15635240,
                 'coverCredit' => 'Walls.io',
                 'content' => <<<'MD'
                     # Calendrier éditorial
 
-                    ## Avril
-                    - Un article sur le repérage, tiré de [[Séance en extérieur]]
-                    - Deux publications atelier
+                    Ce qui sort, où et quand. Les sujets viennent des [[Idées d'articles]].
 
-                    ## Mai
-                    - Le devis expliqué, à partir de [[Contrat type]]
-                    - Un avant/après de retouche
+                    ## Novembre
 
-                    Les sujets en vrac restent dans [[Idées d'articles]].
+                    | Semaine | Instagram | LinkedIn | Blog |
+                    | --- | --- | --- | --- |
+                    | 3 au 7 | coulisses d'une séance | le devis expliqué | |
+                    | 10 au 14 | avant / après retouche | | le repérage |
+                    | 17 au 21 | portrait d'équipe | un chantier livré | |
+
+                    ## Décembre
+
+                    - [ ] Le bilan de l'année, en carrousel
+                    - [ ] Les vœux, avec une photo de l'atelier
+
+                    > [!note] Le repérage
+                    > L'article sort la semaine du 10, tiré de la [[Séance en extérieur]].
                     MD,
             ],
             'archives' => [
@@ -772,13 +1166,18 @@ class NotesDemoFixtures extends Fixture implements DependentFixtureInterface, Fi
                 'tags' => ['archive'],
                 'folder' => 'archives',
                 'appearance' => 'midnight',
+                'age' => '-40 days',
                 'content' => <<<'MD'
                     # Tarifs 2024
 
-                    Gardés pour mémoire, plus appliqués depuis janvier.
+                    > [!failure] Plus appliqués
+                    > Gardés pour mémoire : les tarifs ont été revus en janvier.
 
-                    - Séance courte : 450 €
-                    - Journée : 1 200 €
+                    | Prestation | Prix |
+                    | --- | ---: |
+                    | Séance courte | 450 € |
+                    | Journée | 1 200 € |
+                    | Site vitrine | 1 500 € |
                     MD,
             ],
             'brouillon' => [

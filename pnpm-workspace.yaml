@@ -7,14 +7,11 @@ allowBuilds:
 # test : l'override est moins couteux qu'attendre que happy-dom bouge.
 overrides:
   ws: '>=8.21.0'
-
-# braces (via vite-plugin-symfony > fast-glob > micromatch) : GHSA-vfj7-8cjw-p6xm,
-# epuisement de pile sur des motifs tres imbriques. Aucune version corrigee
-# n'existe (3.0.3 est la derniere), et c'est de l'outillage de build : il ne
-# lit que les motifs de notre propre configuration Vite, jamais une donnee
-# venue d'un visiteur. Ignore nommement, pour que tout autre avis bloque
-# toujours ; a retirer des qu'une version corrigee sort.
-auditConfig:
-  ignoreGhsas:
-    - GHSA-vfj7-8cjw-p6xm
-
+  # GHSA-vfj7-8cjw-p6xm : braces <= 3.0.3 epuise la pile sur des accolades
+  # imbriquees par milliers (sous sa limite de longueur), et aucune version
+  # corrigee n'existe. Copie de 3.0.3 avec une limite de profondeur
+  # d'imbrication dans lib/parse.js, comme celle qu'il a deja sur la longueur.
+  # Un `file:` plutot qu'un `pnpm patch` : pnpm 10 (la CI) et pnpm 11 (en
+  # local) n'ecrivent pas le patch de la meme facon dans le lockfile. A
+  # retirer des que braces publie une version corrigee.
+  braces: 'file:./tools/patched/braces'

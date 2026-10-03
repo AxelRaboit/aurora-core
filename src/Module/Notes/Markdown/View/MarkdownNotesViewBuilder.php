@@ -339,21 +339,29 @@ final readonly class MarkdownNotesViewBuilder
      */
     private function readingOrder(array $folders, array $rows): array
     {
-        $foldersByParent = [];
+        // Folders and notes share one order among siblings, as in the tree:
+        // a note can come before a folder. Ties go to the folder, then to
+        // the older id, which is what the tree does too.
+        $childrenOf = [];
         foreach ($folders as $folder) {
-            $foldersByParent[(int) ($folder->getParent()?->getId() ?? 0)][] = (int) $folder->getId();
+            $childrenOf[(int) ($folder->getParent()?->getId() ?? 0)][] = [(int) $folder->getPosition(), 0, (int) $folder->getId()];
         }
 
-        $notesByFolder = [];
         $titles = [];
         foreach ($rows as $row) {
-            $notesByFolder[(int) ($row['folderId'] ?? 0)][] = (int) $row['id'];
+            $childrenOf[(int) ($row['folderId'] ?? 0)][] = [(int) ($row['position'] ?? 0), 1, (int) $row['id']];
             $titles[(int) $row['id']] = (string) ($row['title'] ?? '');
         }
 
+        foreach ($childrenOf as &$children) {
+            usort($children, static fn (array $a, array $b): int => $a <=> $b);
+        }
+
+        unset($children);
+
         $order = [];
         $seen = [];
-        $walk = static function (int $folderId) use (&$walk, &$order, &$seen, $foldersByParent, $notesByFolder): void {
+        $walk = static function (int $folderId) use (&$walk, &$order, &$seen, $childrenOf): void {
             // Un carnet abîmé dont un dossier se contiendrait lui-même ne
             // doit pas faire tourner la page.
             if (isset($seen[$folderId])) {
@@ -362,12 +370,12 @@ final readonly class MarkdownNotesViewBuilder
 
             $seen[$folderId] = true;
 
-            foreach ($foldersByParent[$folderId] ?? [] as $child) {
-                $walk($child);
-            }
-
-            foreach ($notesByFolder[$folderId] ?? [] as $id) {
-                $order[] = $id;
+            foreach ($childrenOf[$folderId] ?? [] as [, $kind, $id]) {
+                if (0 === $kind) {
+                    $walk($id);
+                } else {
+                    $order[] = $id;
+                }
             }
         };
         $walk(0);
@@ -380,8 +388,8 @@ final readonly class MarkdownNotesViewBuilder
      *
      * C'est ce qui fait du mode lecture une lecture du carnet et pas d'une
      * note : on avance d'une note à la suivante comme on tourne une page, dans
-     * l'ordre où le panneau les range - les sous-dossiers d'abord, puis les
-     * notes, chaque niveau selon sa position.
+     * l'ordre où le panneau les range : dossiers et notes mêlés, chaque niveau
+     * selon sa position.
      *
      * @param list<NoteFolderInterface>  $folders
      * @param list<array<string, mixed>> $rows
@@ -440,6 +448,12 @@ final readonly class MarkdownNotesViewBuilder
             'movePath' => $this->urlGenerator->generate('backend_notes_markdown_move', ['id' => '__id__']),
             'favoritePath' => $this->urlGenerator->generate('backend_notes_markdown_favorite', ['id' => '__id__']),
             'reorderPath' => $this->urlGenerator->generate('backend_notes_markdown_reorder'),
+            'duplicatePath' => $this->urlGenerator->generate('backend_notes_markdown_duplicate', ['id' => '__id__']),
+            'templatePath' => $this->urlGenerator->generate('backend_notes_markdown_template', ['id' => '__id__']),
+            'fromTemplatePath' => $this->urlGenerator->generate('backend_notes_markdown_from_template', ['id' => '__id__']),
+            'revisionsPath' => $this->urlGenerator->generate('backend_notes_markdown_revisions', ['id' => '__id__']),
+            'revisionPath' => $this->urlGenerator->generate('backend_notes_markdown_revision', ['id' => '__id__', 'revisionId' => '__revisionId__']),
+            'revisionRestorePath' => $this->urlGenerator->generate('backend_notes_markdown_revision_restore', ['id' => '__id__', 'revisionId' => '__revisionId__']),
             'backlinksPath' => $this->urlGenerator->generate('backend_notes_markdown_backlinks', ['id' => '__id__']),
             'unlinkedMentionsPath' => $this->urlGenerator->generate('backend_notes_markdown_unlinked_mentions', ['id' => '__id__']),
             'graphPath' => $this->urlGenerator->generate('backend_notes_markdown_graph'),

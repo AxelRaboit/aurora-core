@@ -20,12 +20,13 @@
  */
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { ArrowLeft, ArrowRight, ChevronRight, ListTree, PanelLeftClose, PanelLeftOpen, Pencil, Star, X } from "lucide-vue-next";
+import { ArrowLeft, ArrowRight, ChevronRight, ListTree, PanelLeftClose, PanelLeftOpen, Pencil, Printer, Star, X } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppBackLink from "@/shared/components/nav/AppBackLink.vue";
 import NoteShareApp from "@notes/share/NoteShareApp.vue";
 import NoteReaderNav from "./components/NoteReaderNav.vue";
+import { printWhenReady } from "@notes/share/useNotePrint.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
 
@@ -63,6 +64,11 @@ const props = defineProps({
      * de compte.
      */
     publicTitle: { type: String, default: "" },
+    /**
+     * Ouvert depuis « Imprimer ou exporter en PDF » de l'éditeur : le
+     * dialogue s'ouvre sans second clic, une fois les images chargées.
+     */
+    autoPrint: { type: Boolean, default: false },
 });
 
 const { t } = useI18n();
@@ -163,7 +169,15 @@ function onKeydown(event) {
     window.location.assign(readUrl(to.id));
 }
 
-onMounted(() => window.addEventListener("keydown", onKeydown));
+onMounted(() => {
+    window.addEventListener("keydown", onKeydown);
+
+    if (props.autoPrint) void printWhenReady(document);
+});
+
+function print() {
+    void printWhenReady(document);
+}
 onUnmounted(() => window.removeEventListener("keydown", onKeydown));
 </script>
 
@@ -174,7 +188,7 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
         <aside
             v-if="sidebarOpen"
             data-reader-sidebar
-            class="sticky top-0 hidden h-screen w-72 shrink-0 flex-col gap-3 border-r border-line bg-surface p-3 md:flex"
+            class="sticky top-0 hidden h-screen w-72 shrink-0 flex-col gap-3 border-r border-line bg-surface p-3 md:flex print:hidden"
         >
             <!-- Un retour, pas le nom du site : on sort de la lecture pour
                  revenir là d'où l'on vient - l'édition de la note, ou la
@@ -243,7 +257,7 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
         <main class="min-w-0 flex-1">
             <!-- Une seule barre, discrète : ranger l'arbre, où l'on est, et
                  de quoi repartir écrire. -->
-            <header class="sticky top-0 z-10 flex items-center gap-2 border-b border-line bg-body/90 px-3 py-2 backdrop-blur sm:px-6">
+            <header class="sticky top-0 z-10 flex items-center gap-2 border-b border-line bg-body/90 px-3 py-2 backdrop-blur sm:px-6 print:hidden">
                 <AppIconButton
                     data-reader-nav-toggle
                     :title="t('notes.markdown.read.contents')"
@@ -306,6 +320,16 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
                 </AppButton>
 
                 <AppButton
+                    variant="secondary"
+                    data-read-print
+                    :label="t('notes.markdown.print.action')"
+                    icon-only
+                    v-on:click="print"
+                >
+                    <Printer class="h-4 w-4" :stroke-width="2" />
+                </AppButton>
+
+                <AppButton
                     v-if="canEdit && backPath"
                     variant="secondary"
                     data-read-edit
@@ -317,7 +341,7 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
                 </AppButton>
             </header>
 
-            <div class="mx-auto flex w-full max-w-3xl flex-col gap-4 px-3 py-4 sm:px-6 sm:py-8">
+            <div class="mx-auto flex w-full max-w-3xl flex-col gap-4 px-3 py-4 sm:px-6 sm:py-8 print:max-w-none print:p-0">
                 <NoteShareApp
                     :image-prefix="imagePrefix"
                     :share-image-path="noteImagePath"
@@ -334,7 +358,7 @@ onUnmounted(() => window.removeEventListener("keydown", onKeydown));
                 <nav
                     v-if="previous || next"
                     data-read-pager
-                    class="grid grid-cols-1 gap-2 sm:grid-cols-2"
+                    class="grid grid-cols-1 gap-2 sm:grid-cols-2 print:hidden"
                     :aria-label="t('notes.markdown.read.pager')"
                 >
                     <a

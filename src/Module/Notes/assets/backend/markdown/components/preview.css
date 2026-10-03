@@ -99,6 +99,15 @@
     color: var(--color-text-primary);
 }
 
+/* Le bloc « Encadré » des publications porte la même classe `callout`, et
+   met son `strong` sur une ligne à lui, en titre (`content-blocks.css`).
+   Dans une note, le titre est l'en-tête : un gras en début de phrase restait
+   seul sur sa ligne, et la phrase reprenait sous lui par sa virgule. */
+.note-preview .callout-body strong {
+    display: inline;
+    margin-bottom: 0;
+}
+
 .note-preview .callout-body > *:first-child {
     margin-top: 0;
 }

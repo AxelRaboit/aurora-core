@@ -26,7 +26,8 @@ export function useNoteSidePanel({
     );
 
     async function refresh() {
-        if (noteIdRef.value === null) return;
+        // Le plan se lit dans le texte de la note : rien à demander.
+        if (noteIdRef.value === null || tab.value === "outline") return;
         loading.value = true;
         try {
             if (tab.value === "backlinks") {

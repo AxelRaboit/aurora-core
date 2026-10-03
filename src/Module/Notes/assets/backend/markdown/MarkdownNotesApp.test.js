@@ -586,7 +586,10 @@ describe("ce que le panneau demande depuis l'éditeur", () => {
                         id: 1,
                         folderId: 7,
                         fromFolderId: null,
-                        order: [2, 1],
+                        order: [
+                            { kind: "note", id: 2 },
+                            { kind: "note", id: 1 },
+                        ],
                     },
                 ],
             }),
@@ -621,7 +624,7 @@ describe("ce que le panneau demande depuis l'éditeur", () => {
                     id: 7,
                     folderId: null,
                     fromFolderId: null,
-                    order: [7],
+                    order: [{ kind: "folder", id: 7 }],
                 },
             ],
         });
@@ -632,6 +635,48 @@ describe("ce que le panneau demande depuis l'éditeur", () => {
         expect(made[0]).toEqual({
             url: "/notes/folders/reorder",
             body: { entries: [{ id: 7, parentId: null, position: 0 }] },
+        });
+    });
+
+    /**
+     * Dossiers et notes partagent un ordre : chacun part par la route de sa
+     * nature, avec son rang dans la liste mêlée.
+     */
+    it("sends a mixed order through both reorder routes", async () => {
+        render();
+        await flushPromises();
+        global.fetch.mockClear();
+
+        askPage("notes:move", {
+            args: [
+                {
+                    kind: "note",
+                    id: 2,
+                    folderId: 7,
+                    fromFolderId: 7,
+                    order: [
+                        { kind: "note", id: 2 },
+                        { kind: "folder", id: 9 },
+                        { kind: "note", id: 3 },
+                    ],
+                },
+            ],
+        });
+        await flushPromises();
+
+        const made = calls();
+        expect(made).toContainEqual({
+            url: "/notes/folders/reorder",
+            body: { entries: [{ id: 9, parentId: 7, position: 1 }] },
+        });
+        expect(made).toContainEqual({
+            url: "/notes/reorderPath",
+            body: {
+                entries: [
+                    { id: 2, folderId: 7, position: 0 },
+                    { id: 3, folderId: 7, position: 2 },
+                ],
+            },
         });
     });
 

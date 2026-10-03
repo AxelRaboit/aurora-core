@@ -55,8 +55,7 @@ class NoteFolderManager implements NoteFolderManagerInterface
         $this->applyInput($folder, $input);
 
         if (null === $input->getPosition()) {
-            $maxPosition = $this->folderRepository->findMaxPositionForUserAndParent($folder->getSpace(), $folder->getParent()?->getId());
-            $folder->setPosition(null === $maxPosition ? 0 : $maxPosition + 1);
+            $folder->setPosition($this->nextPosition($folder->getSpace(), $folder->getParent()?->getId()));
         }
 
         $this->entityManager->persist($folder);
@@ -198,13 +197,32 @@ class NoteFolderManager implements NoteFolderManagerInterface
             return false;
         }
 
-        $this->changeSpace($folder, $newParent?->getSpace() ?? $space ?? $folder->getSpace());
+        $target = $newParent?->getSpace() ?? $space ?? $folder->getSpace();
+
+        // Past everything already in the new parent, notes included: folders
+        // and notes share one order among siblings.
+        if ($folder->getParent()?->getId() !== $newParent?->getId() || $folder->getSpace()->getId() !== $target->getId()) {
+            $folder->setPosition($this->nextPosition($target, $newParent?->getId()));
+        }
+
+        $this->changeSpace($folder, $target);
         $folder->setParent($newParent);
         $this->entityManager->flush();
 
         $this->auditUpdated($folder);
 
         return true;
+    }
+
+    /** The rank after the last folder or note of a parent (or of a space's root). */
+    protected function nextPosition(NoteSpaceInterface $space, ?int $parentId): int
+    {
+        $max = max(
+            $this->folderRepository->findMaxPositionForUserAndParent($space, $parentId) ?? -1,
+            $this->noteRepository->findMaxPositionForUserAndFolder($space, $parentId) ?? -1,
+        );
+
+        return $max + 1;
     }
 
     /**
