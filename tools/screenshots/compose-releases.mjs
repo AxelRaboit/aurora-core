@@ -12,16 +12,22 @@
  * chiffres et des pictogrammes : la page existe en trois langues et une image
  * ne se traduit pas. Les textes alternatifs de la page portent le sens.
  *
- * Tout vient du dépôt : la version et les comptes par version sont lus dans
- * `CHANGELOG.md`, le nombre de tests est celui que la page annonce. Rien à
- * reprendre à la main après une release, il suffit de relancer.
+ * **Des versions fictives, choisies pour montrer la règle.** La première
+ * mouture lisait les huit dernières entrées du CHANGELOG : c'était la série
+ * 0.9.x, où une fonctionnalité faisait monter le dernier chiffre comme un
+ * correctif, et la page affichait le défaut qu'elle prétend éviter. La suite
+ * ci-dessous suit le versionnage sémantique : un correctif seul monte le
+ * troisième chiffre, un ajout ou une amélioration le deuxième, un changement
+ * qui demande un geste au client le premier. Le chiffre qui monte prend la
+ * couleur de ce qui l'a fait monter, et l'image n'a plus à être reprise après
+ * chaque release.
  *
  * Usage :
  *   node tools/screenshots/compose-releases.mjs
  *   node tools/screenshots/push-tour.mjs tour-releases tour-release-notes
  */
 import { chromium } from "@playwright/test";
-import { mkdtemp, readFile, writeFile, rm } from "node:fs/promises";
+import { mkdtemp, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, resolve, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -41,32 +47,46 @@ const RED = "#bd4a55";
 const BLUE = "#60a5fa";
 
 /**
- * Les dernières versions du CHANGELOG, avec ce que chacune apporte.
- *
- * Une entrée est un intertitre `####` ; une section sans intertitre compte ses
- * puces de premier niveau. « Modifié », « Changé » et « Amélioré » se
- * rangent ensemble : pour un client, c'est la même chose.
+ * La suite montrée, de la plus ancienne à la plus récente. `bump` dit quel
+ * chiffre a monté, et il découle de ce que la version contient : `breaking`
+ * fait une majeure, `added` ou `improved` une mineure, `fixed` seul un
+ * correctif. Vérifié au lancement, pour que l'illustration ne puisse pas
+ * contredire la règle qu'elle illustre.
  */
-async function versions(count) {
-    const text = await readFile(resolve(root, "CHANGELOG.md"), "utf8");
-    const blocks = text.split(/^## /m).slice(1);
+const SERIES = [
+    { version: "1.4.0", added: 2, improved: 1, fixed: 0, breaking: 0 },
+    { version: "1.4.1", added: 0, improved: 0, fixed: 2, breaking: 0 },
+    { version: "1.5.0", added: 1, improved: 3, fixed: 1, breaking: 0 },
+    { version: "1.5.1", added: 0, improved: 0, fixed: 1, breaking: 0 },
+    { version: "1.5.2", added: 0, improved: 0, fixed: 3, breaking: 0 },
+    { version: "2.0.0", added: 2, improved: 1, fixed: 0, breaking: 1 },
+    { version: "2.0.1", added: 0, improved: 0, fixed: 1, breaking: 0 },
+    { version: "2.1.0", added: 0, improved: 2, fixed: 1, breaking: 0 },
+];
 
-    return blocks.slice(0, count).map((block) => {
-        const version = block.match(/^\[([^\]]+)\]/)[1];
-        const tally = { added: 0, improved: 0, fixed: 0 };
+/** Le chiffre qu'une version a dû faire monter, d'après ce qu'elle contient. */
+const expectedBump = (v) => (v.breaking ? 0 : v.added || v.improved ? 1 : 2);
 
-        for (const section of block.split(/^### /m).slice(1)) {
-            const [title, ...lines] = section.split("\n");
-            const entries = lines.filter((l) => l.startsWith("#### ")).length
-                || lines.filter((l) => /^- /.test(l)).length;
+/** Le chiffre qu'elle fait monter, d'après son numéro et celui d'avant. */
+function actualBump(previous, current) {
+    const a = previous.split(".").map(Number);
+    const b = current.split(".").map(Number);
+    const index = b.findIndex((n, i) => n !== a[i]);
+    const reset = b.slice(index + 1).every((n) => 0 === n);
+    if (b[index] !== a[index] + 1 || !reset) {
+        throw new Error(`${previous} -> ${current} n'est pas une montée sémantique`);
+    }
 
-            if (/^Ajouté/.test(title)) tally.added += entries;
-            else if (/^(Amélioré|Modifié|Changé)/.test(title)) tally.improved += entries;
-            else if (/^Corrigé/.test(title)) tally.fixed += entries;
-        }
+    return index;
+}
 
-        return { version: `v${version}`, ...tally };
-    });
+const BUMP_COLORS = [RED, BLUE, YELLOW];
+
+/** Le numéro, chiffre monté en couleur. */
+function label(v, bump) {
+    const parts = v.version.split(".").map((n, i) => (i === bump ? `<b style="color:${BUMP_COLORS[i]}">${n}</b>` : n));
+
+    return `v${parts.join(".")}`;
 }
 
 const icon = {
@@ -78,6 +98,7 @@ const icon = {
     up: '<path d="M12 19V5M5 12l7-7 7 7"/>',
     wrench: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
     check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+    zap: '<path d="M13 2L4.5 13.5H12L11 22l8.5-11.5H12z"/>',
 };
 
 const svg = (name, size, color, width = 2) =>
@@ -127,11 +148,11 @@ function pipeline(list) {
                 <div class="hero" style="background:linear-gradient(120deg, ${color}55, ${color}11)"><s></s><s class="short"></s></div>
                 <div class="cols"><span></span><span></span><span></span></div>
             </div>
-            <div class="badge">${current.version} ${svg("check", 16, "#052e22", 3)}</div>
+            <div class="badge">v${current.version} ${svg("check", 16, "#052e22", 3)}</div>
         </div>`).join("");
 
     const stack = previous.slice(0, 4).map((v, i) =>
-        `<div class="old" style="opacity:${0.55 - i * 0.12}">${v.version}</div>`).join("");
+        `<div class="old" style="opacity:${0.55 - i * 0.12}">v${v.version}</div>`).join("");
 
     return `
 <style>
@@ -198,7 +219,7 @@ function pipeline(list) {
 <div class="core">
     <div class="logo"><span style="background:${GREEN}"></span><span style="background:${YELLOW}"></span><span style="background:${RED}"></span></div>
     <h1>Aurora</h1>
-    <div class="current">${current.version}</div>
+    <div class="current">v${current.version}</div>
     ${stack}
 </div>
 ${gates}
@@ -207,9 +228,8 @@ ${sites}
 }
 
 /** Ce que chaque version a apporté, version après version. */
-function timeline(list) {
-    const ordered = [...list].reverse();
-    const max = Math.max(...ordered.map((v) => v.added + v.improved + v.fixed), 1);
+function timeline(ordered) {
+    const max = Math.max(...ordered.map((v) => v.breaking + v.added + v.improved + v.fixed), 1);
     const step = (WIDTH - 260) / (ordered.length - 1);
 
     const pill = (name, color, n) => n
@@ -218,15 +238,16 @@ function timeline(list) {
 
     const columns = ordered.map((v, i) => {
         const last = i === ordered.length - 1;
-        const total = v.added + v.improved + v.fixed;
+        const total = v.breaking + v.added + v.improved + v.fixed;
+        const bump = 0 === i ? expectedBump(v) : actualBump(ordered[i - 1].version, v.version);
         const height = 60 + (total / max) * 380;
 
         return `
         <div class="col" style="left:${130 + i * step}px">
-            <div class="pills">${pill("plus", GREEN, v.added)}${pill("up", BLUE, v.improved)}${pill("wrench", YELLOW, v.fixed)}</div>
+            <div class="pills">${pill("zap", RED, v.breaking)}${pill("plus", GREEN, v.added)}${pill("up", BLUE, v.improved)}${pill("wrench", YELLOW, v.fixed)}</div>
             <div class="stem" style="height:${height}px; ${last ? `background:linear-gradient(${GREEN}, ${GREEN}22)` : ""}"></div>
             <div class="dot${last ? " now" : ""}"></div>
-            <div class="ver${last ? " now" : ""}">${v.version}</div>
+            <div class="ver${last ? " now" : ""}">${label(v, bump)}</div>
         </div>`;
     }).join("");
 
@@ -246,7 +267,8 @@ function timeline(list) {
     .dot.now { width: 34px; height: 34px; margin-bottom: -17px; background: ${GREEN}; border-color: #ecfdf5;
         box-shadow: 0 0 40px rgba(52, 211, 153, .7); }
     .ver { position: absolute; top: 800px; font-size: 24px; font-weight: 600; color: #9ca3af; white-space: nowrap; }
-    .ver.now { font-size: 34px; font-weight: 700; color: ${GREEN}; top: 795px; }
+    .ver.now { font-size: 34px; font-weight: 700; color: #f3f4f6; top: 795px; }
+    .ver b { font-weight: 800; }
 </style>
 <div class="grid-bg"></div>
 <div class="rail"></div>
@@ -254,13 +276,20 @@ ${columns}
 `;
 }
 
-const list = await versions(8);
+for (const [i, v] of SERIES.entries()) {
+    if (i > 0 && actualBump(SERIES[i - 1].version, v.version) !== expectedBump(v)) {
+        throw new Error(`v${v.version} ne monte pas le chiffre que son contenu demande`);
+    }
+}
+
+// Le cœur et les sites montrent la plus récente, l'historique les précédentes.
+const list = [...SERIES].reverse();
 
 const work = await mkdtemp(join(tmpdir(), "aurora-releases-"));
 const browser = await chromium.launch();
 const tab = await browser.newPage({ viewport: { width: WIDTH, height: HEIGHT } });
 
-for (const [name, body] of [["tour-releases", pipeline(list)], ["tour-release-notes", timeline(list)]]) {
+for (const [name, body] of [["tour-releases", pipeline(list)], ["tour-release-notes", timeline(SERIES)]]) {
     const html = join(work, `${name}.html`);
     await writeFile(
         html,
@@ -276,4 +305,4 @@ for (const [name, body] of [["tour-releases", pipeline(list)], ["tour-release-no
 await browser.close();
 await rm(work, { recursive: true, force: true });
 
-console.log(list.map((v) => `  ${v.version} +${v.added} ↑${v.improved} ✓${v.fixed}`).join("\n"));
+console.log(SERIES.map((v) => `  v${v.version} ⚡${v.breaking} +${v.added} ↑${v.improved} ✓${v.fixed}`).join("\n"));

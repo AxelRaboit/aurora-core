@@ -1,4 +1,7 @@
-{% apply inline_css(source('@styles/email.css')) %}
+{# Les couleurs réglées dans Réglages > Emails : des règles ajoutées après
+   email.css, et les valeurs que le HTML porte lui-même. #}
+{% set emailColors = app_email_colors() %}
+{% apply inline_css(source('@styles/email.css'), app_email_css()) %}
 {% set logoInitial = (siteName|default('A')|trim|first|upper) %}
 <!DOCTYPE html>
 <html lang="fr">
@@ -21,19 +24,19 @@
                     <tr>
                         <td align="center" style="padding-bottom: 8px;">
                             <!--[if mso]>
-                            <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" style="height:48px;width:48px;" arcsize="22%" fillcolor="#059669" stroke="f">
+                            <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" style="height:48px;width:48px;" arcsize="22%" fillcolor="{{ emailColors.accent }}" stroke="f">
                                 <v:textbox style="mso-fit-shape-to-text:false;" inset="0,0,0,0">
                                     <center style="color:#ffffff;font-family:'Segoe UI',sans-serif;font-size:26px;font-weight:700;">{{ logoInitial }}</center>
                                 </v:textbox>
                             </v:roundrect>
                             <![endif]-->
                             <!--[if !mso]><!-->
-                            <div style="width:48px;height:48px;background:linear-gradient(135deg,#10b981,#059669);background-color:#059669;border-radius:11px;margin:0 auto;display:table-cell;text-align:center;vertical-align:middle;color:#ffffff;font-family:'Inter','Segoe UI',sans-serif;font-size:28px;font-weight:700;">{{ logoInitial }}</div>
+                            <div style="width:48px;height:48px;background:linear-gradient(135deg,{{ emailColors.accentLight }},{{ emailColors.accent }});background-color:{{ emailColors.accent }};border-radius:11px;margin:0 auto;display:table-cell;text-align:center;vertical-align:middle;color:#ffffff;font-family:'Inter','Segoe UI',sans-serif;font-size:28px;font-weight:700;">{{ logoInitial }}</div>
                             <!--<![endif]-->
                         </td>
                     </tr>
                     <tr>
-                        <td align="center" style="font-family:'Inter','Segoe UI',sans-serif;font-size:19px;font-weight:700;color:#059669;">
+                        <td align="center" style="font-family:'Inter','Segoe UI',sans-serif;font-size:19px;font-weight:700;color:{{ emailColors.accent }};">
                             {{ siteName }}
                         </td>
                     </tr>

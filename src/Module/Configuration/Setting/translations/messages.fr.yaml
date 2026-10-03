@@ -15,11 +15,12 @@ backend:
       step_4: "Masquer le crédit des photos demande une confirmation, car les conditions de l'API Pexels demandent de le montrer."
       step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
     email_guide:
-      title: "La langue des e-mails"
+      title: "La langue et les couleurs des e-mails"
       step_1: "Ce réglage fixe la langue des e-mails que l'application envoie sans connaître celle du destinataire, comme les messages adressés à l'administration."
       step_2: "« Suivre la langue par défaut » reprend la langue choisie dans l'onglet Localisation."
       step_3: "Un e-mail lié à un contrat part dans la langue du contrat, et l'avis d'un nouveau commentaire dans la langue du compte de l'auteur de l'article."
-      step_4: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
+      step_4: "Les quatre couleurs habillent tous les e-mails : l'accent pour le bouton, les liens et la pastille du logo, puis le fond, les titres et le texte. « Couleur d'origine » remet celle de départ."
+      step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
     system_guide:
       title: "Qui peut entrer, et quand"
       step_1: "Le mode maintenance ferme le site public à tous ses visiteurs, alors que le back-office et sa page de connexion restent ouverts."
@@ -108,7 +109,7 @@ backend:
       system: Système
       system_description: 'Maintenance, inscriptions, accès et uploads.'
       email: Emails
-      email_description: Langue des emails sortants.
+      email_description: Langue et couleurs des emails sortants.
       media: Médias & uploads
       media_description: Limites d'upload des fichiers (taille maximale, extensions autorisées).
       sequences: Séquences
@@ -214,6 +215,7 @@ backend:
         endpoint_not_https: "L'adresse du compte doit commencer par https://."
         access_key_length: "L'identifiant de clé doit faire 32 caractères. Celui-ci n'en fait pas autant : c'est probablement une autre valeur de la page Cloudflare, ou une copie incomplète."
         secret_key_length: "La clé secrète doit faire 64 caractères. Celle-ci n'en fait pas autant : c'est probablement une copie incomplète."
+    color_reset: "Couleur d'origine"
     appearance:
       guide:
         title: "Composer la palette"
@@ -230,6 +232,57 @@ backend:
         remove: Retirer cette couleur
         reset: Réinitialiser aux couleurs par défaut
         invalid_hex: 'Code hexadécimal invalide. Format attendu : #rrggbb.'
+      palette:
+        title: "Gris du clair et du sombre"
+        help: "Les fonds, traits, textes et couleurs d'état du back-office et de l'espace client, pour chaque mode. Le site public garde son thème."
+        family: "Famille de gris"
+        modes:
+          light: "Mode clair"
+          dark: "Mode sombre"
+        families:
+          gray: "Gris (d'origine)"
+          slate: "Ardoise, bleutée"
+          zinc: "Zinc, gris froid"
+          neutral: "Neutre, sans teinte"
+          stone: "Pierre, gris chaud"
+        tokens:
+          bg: "Fond de page"
+          surface: "Cartes et panneaux"
+          surface_2: "Champs et zones secondaires"
+          surface_3: "Pastilles et zones appuyées"
+          line: "Traits et bordures"
+          line_strong: "Bordures appuyées"
+          primary: "Texte principal"
+          secondary: "Texte secondaire"
+          muted: "Texte atténué"
+          subtle: "Texte effacé"
+          success: "Succès"
+          warning: "Attention"
+          danger: "Erreur"
+          info: "Information"
+        groups:
+          tones: "Fonds, traits et textes"
+          states: "Couleurs d'état"
+        unchanged:
+          tones: "Suit la famille"
+          states: "Couleur d'origine"
+        overridden: "Retouchée à la main"
+        reset_color:
+          tones: "Revenir à la couleur de la famille"
+          states: "Revenir à la couleur d'origine"
+        reset_mode: "Revenir au gris d'origine"
+        preview:
+          title: "Aperçu d'une carte"
+          body: "Le texte courant d'un écran."
+          meta: "Modifié il y a 2 heures"
+          field: "Un champ"
+          chip: "Brouillon"
+        guide:
+          title: "Régler les gris"
+          step_1: "Choisissez une famille par mode : elle donne d'un coup les fonds, les traits et les textes."
+          step_2: "Une pastille de la liste reprend une seule nuance ; la flèche la rend à la famille. Les couleurs d'état entraînent avec elles leur fond pâle et leurs badges."
+          step_3: "L'aperçu montre chaque mode avec ses propres couleurs, quel que soit celui affiché à l'écran."
+          step_4: "Rien ne change avant Enregistrer ; ensuite l'écran se repeint sans recharger, et le site public ne bouge pas."
     nav_aliases_empty: Aucune section de navigation disponible.
     nav_aliases:
       guide:
@@ -486,6 +539,21 @@ backend:
     color_picker_presets:
       label: Palette du sélecteur de couleurs
       description: 'Liste JSON de couleurs hexadécimales proposées en raccourci dans tous les sélecteurs de couleurs de l''admin.'
+    email_accent_color:
+      label: "Couleur d'accent des e-mails"
+      description: "Bouton, liens, pastille du logo et nom du site en tête de chaque e-mail."
+    email_background_color:
+      label: "Fond des e-mails"
+      description: "Le fond autour de la carte blanche du message."
+    email_heading_color:
+      label: "Titres des e-mails"
+      description: "Le titre en tête du message."
+    email_text_color:
+      label: "Texte des e-mails"
+      description: "Le texte courant du message."
+    backend_palette:
+      label: "Gris du clair et du sombre"
+      description: "Famille de gris et retouches de chaque mode, en JSON (géré via l'interface)."
     intro: Consultez et modifiez les paramètres techniques de l'application.
     key: Paramètre
     value: Valeur

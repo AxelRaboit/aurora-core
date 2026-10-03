@@ -114,6 +114,11 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
     case NavSectionOrder = 'nav_section_order';
     case NavItemOrder = 'nav_item_order';
     case ColorPickerPresets = 'color_picker_presets';
+    case BackendPalette = 'backend_palette';
+    case EmailAccentColor = 'email_accent_color';
+    case EmailBackgroundColor = 'email_background_color';
+    case EmailHeadingColor = 'email_heading_color';
+    case EmailTextColor = 'email_text_color';
 
     /**
      * Default palette for AppColorPicker. JSON-encoded list of hex strings.
@@ -196,6 +201,11 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::NavSectionOrder => 'backend.parameters.nav_section_order.label',
             self::NavItemOrder => 'backend.parameters.nav_item_order.label',
             self::ColorPickerPresets => 'backend.parameters.color_picker_presets.label',
+            self::BackendPalette => 'backend.parameters.backend_palette.label',
+            self::EmailAccentColor => 'backend.parameters.email_accent_color.label',
+            self::EmailBackgroundColor => 'backend.parameters.email_background_color.label',
+            self::EmailHeadingColor => 'backend.parameters.email_heading_color.label',
+            self::EmailTextColor => 'backend.parameters.email_text_color.label',
         };
     }
 
@@ -263,6 +273,11 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::NavSectionOrder => 'backend.parameters.nav_section_order.description',
             self::NavItemOrder => 'backend.parameters.nav_item_order.description',
             self::ColorPickerPresets => 'backend.parameters.color_picker_presets.description',
+            self::BackendPalette => 'backend.parameters.backend_palette.description',
+            self::EmailAccentColor => 'backend.parameters.email_accent_color.description',
+            self::EmailBackgroundColor => 'backend.parameters.email_background_color.description',
+            self::EmailHeadingColor => 'backend.parameters.email_heading_color.description',
+            self::EmailTextColor => 'backend.parameters.email_text_color.description',
         };
     }
 
@@ -339,6 +354,12 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::NavSectionOrder => '[]',
             self::NavItemOrder => '{}',
             self::ColorPickerPresets => json_encode(self::DEFAULT_COLOR_PICKER_PRESETS, JSON_THROW_ON_ERROR),
+            self::BackendPalette => '{}',
+            // Les couleurs que email.css code en dur : un e-mail sort comme avant.
+            self::EmailAccentColor => '#059669',
+            self::EmailBackgroundColor => '#f5f3ff',
+            self::EmailHeadingColor => '#1e1b4b',
+            self::EmailTextColor => '#52525b',
         };
     }
 
@@ -350,7 +371,8 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::DefaultFront, self::DefaultLocale, self::EmailLocale, self::Timezone, self::DateFormat => 'select',
             self::CommentsEnabled, self::CommentModerationEnabled, self::MaintenanceMode, self::AdminRegistrationEnabled, self::AdminAccessRequestEnabled, self::FrontLoginEnabled, self::FrontRegistrationEnabled, self::SingleLocaleMode, self::MediaCreditVisible, self::StudioContractReminderEnabled, self::BackendBarSiteNameOnPhone => 'bool',
             self::LogoMediaId, self::FaviconMediaId, self::SeoDefaultOgImage => 'media',
-            self::ColorPickerPresets => 'json',
+            self::ColorPickerPresets, self::BackendPalette => 'json',
+            self::EmailAccentColor, self::EmailBackgroundColor, self::EmailHeadingColor, self::EmailTextColor => 'color',
             default => 'string',
         };
     }
@@ -375,9 +397,9 @@ enum ApplicationParameterEnum: string implements ApplicationParameterEnumInterfa
             self::SeoTitleTemplate, self::SeoDefaultDescription, self::SeoDefaultOgImage, self::SeoTwitterHandle => 'seo',
             self::CoreUserPrefix, self::CoreMediaPrefix, self::CoreAccessRequestPrefix, self::CoreAuditLogPrefix, self::CoreResetPasswordPrefix, self::CoreMediaFolderPrefix, self::CoreMenuItemPrefix, self::StudioContractPrefix => 'sequences',
             self::StudioProviderName, self::StudioProviderRepresentative, self::StudioProviderAddress, self::StudioProviderSiret, self::StudioProviderApeCode, self::StudioProviderVatMention, self::StudioProviderEmail, self::StudioProviderPhone, self::StudioProviderBankHolder, self::StudioProviderBankIban, self::StudioProviderBankBic, self::StudioProviderBankName, self::StudioContractRetentionYears, self::StudioContractReminderEnabled, self::StudioContractReminderDays, self::StudioContractReminderMax => 'studio',
-            self::EmailLocale => 'email',
+            self::EmailLocale, self::EmailAccentColor, self::EmailBackgroundColor, self::EmailHeadingColor, self::EmailTextColor => 'email',
             self::NavSectionAliases, self::NavItemAliases, self::NavSectionOrder, self::NavItemOrder => 'navigation',
-            self::ColorPickerPresets => 'appearance',
+            self::ColorPickerPresets, self::BackendPalette => 'appearance',
         };
     }
 

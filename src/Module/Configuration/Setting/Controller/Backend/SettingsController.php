@@ -13,6 +13,7 @@ use Aurora\Module\Configuration\Setting\Configuration\SettingsTabAccess;
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
 use Aurora\Module\Configuration\Setting\Enum\SettingErrorCodeEnum;
 use Aurora\Module\Configuration\Setting\Exception\CascadeViolationException;
+use Aurora\Module\Configuration\Setting\Service\BackendPalette;
 use Aurora\Module\Configuration\Setting\Service\SettingsService;
 use Aurora\Module\Configuration\Setting\View\SettingsViewBuilder;
 use Aurora\Module\Platform\User\Enum\UserRoleEnum;
@@ -123,6 +124,24 @@ final class SettingsController extends AbstractController
             $value = $normalised;
         }
 
+        // Une couleur finit dans le HTML d'un e-mail ou d'une page : un
+        // hexadécimal à six chiffres, rien d'autre.
+        if ('color' === $field->type) {
+            $value = mb_strtolower(mb_trim((string) $value));
+            if (1 !== preg_match('/^#[0-9a-f]{6}$/', $value)) {
+                return $this->jsonFailure('invalid_color');
+            }
+        }
+
+        if (ApplicationParameterEnum::BackendPalette->value === $key) {
+            $normalised = BackendPalette::normalizeForStorage($value);
+            if (null === $normalised) {
+                return $this->jsonFailure('invalid_backend_palette');
+            }
+
+            $value = $normalised;
+        }
+
         // A numbering prefix goes into every reference it numbers, and from
         // there into file names, mail subjects and exports. Anything was
         // accepted: « cm 2026/ » made references with a space and a slash.
@@ -148,6 +167,8 @@ final class SettingsController extends AbstractController
             'key' => $key,
             'value' => $value,
             'mediaUrl' => 'media' === $field->type ? $this->viewBuilder->resolveMediaUrl($value) : null,
+            // Les règles à jour, que l'écran pose aussitôt dans la page.
+            'css' => ApplicationParameterEnum::BackendPalette->value === $key ? BackendPalette::css(BackendPalette::fromStored($value)) : null,
         ]);
     }
 

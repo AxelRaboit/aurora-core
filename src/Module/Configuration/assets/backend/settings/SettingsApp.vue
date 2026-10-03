@@ -7,6 +7,7 @@ import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppMultiselect from "@/shared/components/form/select/AppMultiselect.vue";
 import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
+import AppColorField from "@/shared/components/form/picker/AppColorField.vue";
 import AppImagePickerField from "@/shared/components/form/file/AppImagePickerField.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppPagination from "@/shared/components/nav/AppPagination.vue";
@@ -72,7 +73,7 @@ const TAB_GUIDES = {
     branding: { namespace: "backend.settings.branding_guide", steps: 5 },
     seo: { namespace: "backend.settings.seo_guide", steps: 5 },
     system: { namespace: "backend.settings.system_guide", steps: 5 },
-    email: { namespace: "backend.settings.email_guide", steps: 4 },
+    email: { namespace: "backend.settings.email_guide", steps: 5 },
     media: { namespace: "backend.settings.media_guide", steps: 5 },
     studio: { namespace: "backend.settings.studio_guide", steps: 5 },
     notes: { namespace: "backend.settings.notes_guide", steps: 5 },
@@ -237,6 +238,25 @@ const { sequenceSearch, paginatedSequences, sequencePage, sequenceTotalPages, go
                                 v-on:update:model-value="fieldValues[parameter.key] = $event"
                             />
                             <p v-if="parameter.description" class="text-xs text-muted mt-1">{{ parameter.description }}</p>
+                        </template>
+
+                        <template v-else-if="parameter.type === ParameterType.Color">
+                            <div class="flex items-end justify-between gap-3">
+                                <AppColorField
+                                    :label="parameter.label"
+                                    :hint="parameter.description ?? ''"
+                                    :model-value="fieldValues[parameter.key]"
+                                    v-on:update:model-value="fieldValues[parameter.key] = $event"
+                                />
+                                <AppTextLinkButton
+                                    v-if="parameter.defaultValue && fieldValues[parameter.key] !== parameter.defaultValue"
+                                    color="muted"
+                                    size="xs"
+                                    v-on:click="fieldValues[parameter.key] = parameter.defaultValue"
+                                >
+                                    {{ t('backend.settings.color_reset') }}
+                                </AppTextLinkButton>
+                            </div>
                         </template>
 
                         <template v-else-if="parameter.type === ParameterType.Textarea">

@@ -15,11 +15,12 @@ backend:
             step_4: 'Ocultar el crédito de las fotos pide una confirmación, porque las condiciones de la API de Pexels piden mostrarlo.'
             step_5: 'No se guarda nada hasta pulsar el botón Guardar, al final de la pestaña.'
         email_guide:
-            title: 'El idioma de los correos'
+            title: 'El idioma y los colores de los correos'
             step_1: 'Este ajuste fija el idioma de los correos que la aplicación envía sin conocer el del destinatario, como los mensajes dirigidos a la administración.'
             step_2: '«Seguir el idioma por defecto» usa el idioma elegido en la pestaña Localización.'
             step_3: 'Un correo relacionado con un contrato sale en el idioma del contrato, y el aviso de un nuevo comentario en el idioma de la cuenta del autor del artículo.'
-            step_4: 'No se guarda nada hasta pulsar el botón Guardar, al final de la pestaña.'
+            step_4: "Los cuatro colores visten todos los correos: el acento para el botón, los enlaces y el distintivo del logo, y luego el fondo, los títulos y el texto. «Color original» devuelve el de partida."
+            step_5: 'No se guarda nada hasta pulsar el botón Guardar, al final de la pestaña.'
         system_guide:
             title: 'Quién puede entrar, y cuándo'
             step_1: 'El modo mantenimiento cierra el sitio público a todos sus visitantes, mientras que el back-office y su página de inicio de sesión siguen abiertos.'
@@ -108,7 +109,7 @@ backend:
             system: Sistema
             system_description: 'Mantenimiento, registros, acceso y subidas de archivos.'
             email: Emails
-            email_description: 'Idioma de los emails salientes.'
+            email_description: 'Idioma y colores de los emails salientes.'
             media: 'Medios y subidas'
             media_description: 'Límites de subida de archivos (tamaño máximo, extensiones permitidas).'
             sequences: Secuencias
@@ -214,6 +215,7 @@ backend:
                 endpoint_not_https: 'La dirección de la cuenta debe empezar por https://.'
                 access_key_length: 'El identificador de clave debe tener 32 caracteres. Este no los tiene: suele ser otro valor de la página de Cloudflare, o una copia incompleta.'
                 secret_key_length: 'La clave secreta debe tener 64 caracteres. Esta no los tiene: suele ser una copia incompleta.'
+        color_reset: "Color original"
         appearance:
             guide:
                 title: 'Componer la paleta'
@@ -230,6 +232,57 @@ backend:
                 remove: 'Quitar este color'
                 reset: 'Restablecer los colores por defecto'
                 invalid_hex: 'Código hexadecimal no válido. Formato esperado: #rrggbb.'
+            palette:
+                title: "Grises del modo claro y oscuro"
+                help: "Fondos, líneas, textos y colores de estado de la administración y del espacio de cliente, para cada modo. El sitio público conserva su tema."
+                family: "Familia de grises"
+                modes:
+                    light: "Modo claro"
+                    dark: "Modo oscuro"
+                families:
+                    gray: "Gris (original)"
+                    slate: "Pizarra, azulado"
+                    zinc: "Zinc, gris frío"
+                    neutral: "Neutro, sin tinte"
+                    stone: "Piedra, gris cálido"
+                tokens:
+                    bg: "Fondo de página"
+                    surface: "Tarjetas y paneles"
+                    surface_2: "Campos y zonas secundarias"
+                    surface_3: "Etiquetas y zonas destacadas"
+                    line: "Líneas y bordes"
+                    line_strong: "Bordes marcados"
+                    primary: "Texto principal"
+                    secondary: "Texto secundario"
+                    muted: "Texto atenuado"
+                    subtle: "Texto tenue"
+                    success: "Éxito"
+                    warning: "Atención"
+                    danger: "Error"
+                    info: "Información"
+                groups:
+                    tones: "Fondos, líneas y textos"
+                    states: "Colores de estado"
+                unchanged:
+                    tones: "Sigue la familia"
+                    states: "Color original"
+                overridden: "Ajustado a mano"
+                reset_color:
+                    tones: "Volver al color de la familia"
+                    states: "Volver al color original"
+                reset_mode: "Volver al gris original"
+                preview:
+                    title: "Vista previa de una tarjeta"
+                    body: "El texto corriente de una pantalla."
+                    meta: "Modificado hace 2 horas"
+                    field: "Un campo"
+                    chip: "Borrador"
+                guide:
+                    title: "Ajustar los grises"
+                    step_1: "Elija una familia por modo: define de una vez los fondos, las líneas y los textos."
+                    step_2: "Una muestra de la lista ajusta un solo tono; la flecha lo devuelve a la familia. Los colores de estado arrastran su fondo pálido y sus etiquetas."
+                    step_3: "La vista previa muestra cada modo con sus propios colores, sea cual sea el de la pantalla."
+                    step_4: "Nada cambia antes de Guardar; después la pantalla se repinta sin recargar, y el sitio público no cambia."
         nav_aliases_empty: 'No hay ninguna sección de navegación disponible.'
         nav_aliases:
             guide:
@@ -486,6 +539,21 @@ backend:
         color_picker_presets:
             label: 'Paleta del selector de colores'
             description: 'Lista JSON de colores hexadecimales propuestos como atajo en todos los selectores de colores de la administración.'
+        email_accent_color:
+            label: "Color de acento de los correos"
+            description: "Botón, enlaces, distintivo del logo y nombre del sitio en la cabecera de cada correo."
+        email_background_color:
+            label: "Fondo de los correos"
+            description: "El fondo alrededor de la tarjeta blanca del mensaje."
+        email_heading_color:
+            label: "Títulos de los correos"
+            description: "El título en la cabecera del mensaje."
+        email_text_color:
+            label: "Texto de los correos"
+            description: "El texto corriente del mensaje."
+        backend_palette:
+            label: "Grises del modo claro y oscuro"
+            description: "Familia de grises y ajustes de cada modo, en JSON (gestionado desde la interfaz)."
         intro: 'Consulte y edite los ajustes técnicos de la aplicación.'
         key: Ajuste
         value: Valor
