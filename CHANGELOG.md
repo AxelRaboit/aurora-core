@@ -5,6 +5,27 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [1.7.0] - 2026-10-04
+
+### Ajouté
+
+#### Studio : des livrables hors espace client, perso ou partagés
+Un livrable n'existait que dans l'onglet Livrables d'un espace client. Studio a désormais son propre module « Livrables », pour écrire un document sans client attaché : une proposition avant la signature, une stratégie pour soi, un modèle que l'équipe reprend. C'est le même document qu'un livrable d'espace (la grille des pages, l'apparence, les liens de lecture avec mot de passe et expiration), en deux rayons :
+- « Mes livrables », que son auteur seul voit ;
+- « Partagés », que toute l'équipe ayant accès au module lit, et que modifient ceux qui en ont le droit.
+
+Seul l'auteur fait passer un livrable d'un rayon à l'autre, depuis la liste ou les réglages de l'éditeur. L'auteur garde la main sur ce qu'il a écrit : il modifie un livrable qu'il a partagé et supprime ses livrables perso, même sans les droits de modification ou de suppression. Un livrable perso dont l'auteur a été supprimé revient aux administrateurs. Cinq droits nouveaux : `studio.deliverables.view`, `.create`, `.edit` (les livrables partagés), `.delete` et `.share` (les liens de lecture). Le module a son interrupteur dans les réglages des modules, allumé par défaut.
+
+### Modifié
+
+#### Le module des livrables quitte le préfixe « espace »
+Les classes du modèle perdent leur préfixe : `Studio/SpaceDeliverable` devient `Studio/Deliverable`, avec `Deliverable`, `DeliverableLink`, leur gestionnaire, leurs dépôts et leur sérialiseur ; les tables deviennent `core_studio_deliverables` et `core_studio_deliverable_links`, renommées sans rien recréer. L'adresse des liens de lecture, `/deliverables/{jeton}`, ne change pas : les liens déjà envoyés restent valables. Les pièces propres à l'espace (son onglet, son contrôleur, le portail client) gardent leur nom.
+
+### Dans aurora-client
+Rien à faire à la main : `make deploy-prod` joue la migration (tables renommées, colonnes `owner_id` et `scope`) et la synchronisation qui crée l'interrupteur `modules_studio_deliverables`. Aucune classe du client ne référençait l'ancien module.
+
+---
+
 ## [1.6.0] - 2026-10-03
 
 ### Amélioré

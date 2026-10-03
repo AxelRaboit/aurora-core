@@ -7,6 +7,7 @@ namespace Aurora\Module\Studio\SpaceAccess\View;
 use Aurora\Core\Routing\PathTemplateGenerator;
 use Aurora\Module\Studio\Customer\Serializer\CustomerInformationSerializerInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumnInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
@@ -18,7 +19,6 @@ use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentAttachmentSerialize
 use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentColumnSerializerInterface;
 use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentCommentSerializerInterface;
 use Aurora\Module\Studio\SpaceContent\Serializer\SpaceContentItemSerializerInterface;
-use Aurora\Module\Studio\SpaceDeliverable\Repository\SpaceDeliverableRepository;
 use Aurora\Module\Studio\SpaceResource\Repository\SpaceResourceRepository;
 use Aurora\Module\Studio\SpaceResource\Serializer\SpaceResourceSerializerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -53,7 +53,7 @@ final readonly class PublicSpaceViewBuilder
         private SpaceResourceSerializerInterface $resourceSerializer,
         private PathTemplateGenerator $pathTemplates,
         private UrlGeneratorInterface $urlGenerator,
-        private SpaceDeliverableRepository $deliverables,
+        private DeliverableRepository $deliverables,
     ) {}
 
     /**

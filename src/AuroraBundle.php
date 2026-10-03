@@ -137,6 +137,10 @@ use Aurora\Module\Studio\Deck\Entity\Slide;
 use Aurora\Module\Studio\Deck\Entity\SlideInterface;
 use Aurora\Module\Studio\Deck\Share\Entity\DeckShareLink;
 use Aurora\Module\Studio\Deck\Share\Entity\DeckShareLinkInterface;
+use Aurora\Module\Studio\Deliverable\Entity\Deliverable;
+use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
+use Aurora\Module\Studio\Deliverable\Entity\DeliverableLink;
+use Aurora\Module\Studio\Deliverable\Entity\DeliverableLinkInterface;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLink;
 use Aurora\Module\Studio\SpaceAccess\Entity\SpaceAccessLinkInterface;
 use Aurora\Module\Studio\SpaceChat\Entity\SpaceChatChannel;
@@ -153,10 +157,6 @@ use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentComment;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentCommentInterface;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItem;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
-use Aurora\Module\Studio\SpaceDeliverable\Entity\SpaceDeliverable;
-use Aurora\Module\Studio\SpaceDeliverable\Entity\SpaceDeliverableInterface;
-use Aurora\Module\Studio\SpaceDeliverable\Entity\SpaceDeliverableLink;
-use Aurora\Module\Studio\SpaceDeliverable\Entity\SpaceDeliverableLinkInterface;
 use Aurora\Module\Studio\SpaceFile\Entity\SpaceFile;
 use Aurora\Module\Studio\SpaceFile\Entity\SpaceFileInterface;
 use Aurora\Module\Studio\SpaceNote\Entity\SpaceNote;
@@ -309,8 +309,8 @@ class AuroraBundle extends AbstractBundle
                     SpaceNoteInterface::class => SpaceNote::class,
                     SpaceFileInterface::class => SpaceFile::class,
                     SpaceResourceInterface::class => SpaceResource::class,
-                    SpaceDeliverableInterface::class => SpaceDeliverable::class,
-                    SpaceDeliverableLinkInterface::class => SpaceDeliverableLink::class,
+                    DeliverableInterface::class => Deliverable::class,
+                    DeliverableLinkInterface::class => DeliverableLink::class,
                     DeckInterface::class => Deck::class,
                     DeckCategoryInterface::class => DeckCategory::class,
                     SlideInterface::class => Slide::class,
@@ -571,7 +571,7 @@ class AuroraBundle extends AbstractBundle
                 // Le mot de passe d'un lien de lecture d'une publication.
                 'post_reading_password' => ['policy' => 'sliding_window', 'limit' => 20, 'interval' => '1 hour'],
                 // Le mot de passe d'un lien de lecture d'un livrable.
-                'space_deliverable_password' => ['policy' => 'sliding_window', 'limit' => 20, 'interval' => '1 hour'],
+                'deliverable_password' => ['policy' => 'sliding_window', 'limit' => 20, 'interval' => '1 hour'],
                 // Les gestes d'un client sur l'espace qu'un lien lui ouvre :
                 // valider, commenter, écrire. Plus haut que la signature parce
                 // qu'on parcourt un mois et qu'on valide six publications

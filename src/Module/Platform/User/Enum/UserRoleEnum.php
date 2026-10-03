@@ -92,6 +92,18 @@ enum UserRoleEnum: string
     }
 
     /**
+     * Admin or Dev: the roles that take in what a deleted account leaves without
+     * an owner (an orphaned note space, a personal deliverable). One rule, so
+     * the modules that adopt orphans cannot disagree on who does.
+     *
+     * @param string[] $roles
+     */
+    public static function administers(array $roles): bool
+    {
+        return self::highestPriorityForRoles($roles) >= self::Admin->priority();
+    }
+
+    /**
      * Roles that admins can assign to other users (Dev excluded - only Dev can self-assign Dev).
      *
      * @return list<self>

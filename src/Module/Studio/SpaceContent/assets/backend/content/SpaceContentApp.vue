@@ -74,7 +74,7 @@ import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import SpaceSettingsView from "../../../../CustomerSpace/assets/backend/settings/SpaceSettingsView.vue";
 import SpaceInformationView from "../../../../Customer/assets/backend/information/SpaceInformationView.vue";
 import SpaceResourcesView from "../../../../SpaceResource/assets/backend/resources/SpaceResourcesView.vue";
-import SpaceDeliverablesView from "../../../../SpaceDeliverable/assets/backend/deliverables/SpaceDeliverablesView.vue";
+import SpaceDeliverablesView from "../../../../Deliverable/assets/backend/deliverables/SpaceDeliverablesView.vue";
 import SpaceDrivePicker from "../../../../SpaceFile/GoogleDrive/assets/backend/drive/SpaceDrivePicker.vue";
 import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
