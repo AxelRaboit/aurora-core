@@ -36,7 +36,7 @@ use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentAttachmentRepositor
 use Aurora\Module\Studio\SpaceContent\Service\SpaceAttachmentUploader;
 use Aurora\Module\Studio\SpaceContent\Service\SpaceOrphanedDocumentOffer;
 use Aurora\Module\Studio\SpaceContent\View\SpaceBoardViewBuilder;
-use Aurora\Module\Studio\SpaceDeliverable\View\SpaceDeliverablesViewBuilder;
+use Aurora\Module\Studio\Deliverable\View\SpaceDeliverablesViewBuilder;
 use Aurora\Module\Studio\SpaceFile\View\SpaceFilesViewBuilder;
 use Aurora\Module\Studio\SpaceNote\View\SpaceNotesViewBuilder;
 use Aurora\Module\Studio\SpaceResource\View\SpaceResourcesViewBuilder;

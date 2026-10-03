@@ -1944,7 +1944,7 @@ backend:
                 link_url_required: This link has no address.
                 link_url_invalid: "This address is not valid. It has to start with http:// or https://."
                 link_url_too_long: This address is too long.
-        space_deliverables:
+        deliverables:
             editor_guide:
                 title: "How to put a deliverable together"
                 step_1: "“Content” is built with the site's page grid: add zones and fill them in."

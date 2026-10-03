@@ -1955,7 +1955,7 @@ backend:
                 link_url_required: Ce lien n'a pas d'adresse.
                 link_url_invalid: "Cette adresse n'est pas valide. Elle doit commencer par http:// ou https://."
                 link_url_too_long: Cette adresse est trop longue.
-        space_deliverables:
+        deliverables:
             editor_guide:
                 title: "Comment composer un livrable"
                 step_1: "« Contenu » se compose avec la grille des pages du site : ajoutez des zones et remplissez-les."

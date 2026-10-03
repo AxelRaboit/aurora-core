@@ -1924,7 +1924,7 @@ backend:
                 link_url_required: 'Este enlace no tiene dirección.'
                 link_url_invalid: 'Esta dirección no es válida. Debe empezar por http:// o https://.'
                 link_url_too_long: 'Esta dirección es demasiado larga.'
-        space_deliverables:
+        deliverables:
             editor_guide:
                 title: 'Cómo componer un entregable'
                 step_1: '«Contenido» se compone con la cuadrícula de las páginas del sitio: añada zonas y rellénelas.'
