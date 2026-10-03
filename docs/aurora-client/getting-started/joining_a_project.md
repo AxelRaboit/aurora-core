@@ -240,7 +240,7 @@ git pull && make pull-update
 | Situation | Commande | Effet |
 |---|---|---|
 | Récupérer la PR d'un collègue | `make pull-update` | Deps depuis le lock (dont les quatre linters), migrations, cache, `sync-env`, `sync-readme` et les autres syncs. La base est conservée |
-| Monter volontairement aurora-core | `make aurora-update` | Monte aurora-core au dernier tag stable de la contrainte (`^0.9`), puis sous-installs, syncs, traductions et build |
+| Monter volontairement aurora-core | `make aurora-update` | Monte aurora-core au dernier tag stable de la contrainte (`^1.0`), puis sous-installs, syncs, traductions et build |
 | Lancer le dev | `make start` | Serveur Symfony en arrière-plan + Vite au premier plan |
 | Serveur seul | `make start-d` | Serveur Symfony en arrière-plan |
 | Vite seul (serveur déjà lancé) | `make dev` | Serveur Vite uniquement |

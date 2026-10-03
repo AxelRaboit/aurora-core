@@ -5,6 +5,23 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [1.0.0] - 2026-10-03
+
+### Amélioré
+
+#### Aurora passe en 1.0.0, et le numéro dit ce qu'une mise à jour demande
+La série 0.9.x portait tout dans le dernier chiffre, fonctionnalités comprises, comme le permet une version majeure 0 : la 0.9.331 en était la 331e. Depuis la 1.0.0, le versionnage sémantique s'applique à la lettre :
+- **majeur** : un changement qui demande un geste au client au-delà de `make aurora-update` et `make deploy-prod` (classe, service, route ou clé de configuration renommés ou retirés, point d'extension modifié, étape manuelle) ;
+- **mineur** : une fonctionnalité, un réglage, un module, une amélioration visible ;
+- **correctif** : une correction, sans comportement nouveau.
+
+Une migration ou un réglage nouveau ne font pas une version majeure : le déploiement s'en charge. La règle est écrite dans `docs/aurora-core/dev/propagating_updates.md`, et le type du commit de bump côté client (`feat(deps)`, `fix(deps)`, `chore(deps)!`) dans `docs/aurora-client/dev/update_aurora.md`. Aucun changement de code dans cette version.
+
+### Dans aurora-client
+La contrainte passe de `"axelraboit/aurora": "^0.9"` à `"^1.0"` dans `composer.json` : `^0.9` refuse la 1.0.0. Ensuite `make aurora-update`. Le modèle de projet client (`.claude/client_template/composer.json`) porte déjà `^1.0`.
+
+---
+
 ## [0.9.331] - 2026-10-03
 
 ### Amélioré

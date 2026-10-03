@@ -28,7 +28,7 @@ git log --oneline origin/develop -1        # the sha consumers will pull
 git status --short                          # must be clean
 ```
 
-Consumers pull **published releases** (`^0.6`), not a branch. **An unreleased
+Consumers pull **published releases** (`^1.0`), not a branch. **An unreleased
 commit bumps nothing**: pushing `develop` is necessary and no longer sufficient,
 since `master` is what gets tagged. **An unpushed commit bumps nothing either**,
 if `git log origin/develop..HEAD` is not empty, the work is not propagatable

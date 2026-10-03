@@ -6,7 +6,7 @@ metadata:
 ---
 
 Depuis le 29/08/2026, les clients consomment des **versions publiées**
-(`"axelraboit/aurora": "^0.6"`), plus la branche `develop`. Un commit poussé
+(`"axelraboit/aurora": "^1.0"`), plus la branche `develop`. Un commit poussé
 sur `develop` n'a donc **aucun effet client** tant qu'il n'est pas passé sur
 `master` et publié :
 

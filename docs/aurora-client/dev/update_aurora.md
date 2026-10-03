@@ -62,7 +62,7 @@ lock).
 
 La cible lance `composer update axelraboit/aurora` : Composer prend le
 **dernier tag stable** qui satisfait la contrainte du `composer.json`
-(`^0.9`), pas la branche `develop`. Ensuite, comme `pull-update` : les
+(`^1.0`), pas la branche `develop`. Ensuite, comme `pull-update` : les
 sous-installs (aurora-core, les quatre linters, les deux `pnpm install`),
 `cache:clear`, `make migrate-f`, puis `aurora:privileges:sync`, les mêmes
 syncs, et enfin `make translation` + `make build` pour que les nouvelles
@@ -105,8 +105,27 @@ les migrations client existantes.
 
 ## Breaking changes
 
-Les breaking changes sont listés dans le `CHANGELOG.md` d'aurora-core
-sous une ligne préfixée `BREAKING:`.
+Depuis la 1.0.0, un changement qui casse fait monter la **version majeure**
+d'aurora-core (voir la règle dans
+[`propagating_updates.md`](../../aurora-core/dev/propagating_updates.md#le-numéro-de-version)).
+La contrainte `^1.0` ne le prend donc pas toute seule : `make aurora-update`
+reste sur la dernière 1.x. Pour passer en 2.0, lire la section « Dans
+aurora-client » de la version, faire ce qu'elle demande, puis changer la
+contrainte en `^2.0`.
+
+### Le commit du bump, et la version du client
+
+Le client calcule son propre numéro à partir de ses commits (Conventional
+Commits, `.github/workflows/release.yml`). Le type du commit qui monte
+aurora-core suit donc ce que la version apporte :
+
+| Version d'aurora-core | Commit du bump | Version du client |
+|---|---|---|
+| majeure | `chore(deps)!: aurora-core v2.0.0` | majeure |
+| mineure | `feat(deps): aurora-core v1.5.0` | mineure |
+| correctif | `fix(deps): aurora-core v1.4.3` | correctif |
+
+Un bump qui traverse plusieurs versions prend la plus haute d'entre elles.
 
 Avant une mise à jour importante :
 
