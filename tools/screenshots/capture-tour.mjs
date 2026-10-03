@@ -1657,21 +1657,6 @@ const SHOTS = [
         },
     },
     {
-        // Les notes d'une version, en français et du point de vue de ce qui
-        // change à l'écran : c'est ce que la carte promet, et la liste des
-        // versions ne le montre pas.
-        //
-        // Sans session, comme la liste : c'est GitHub, pas l'application.
-        name: "tour-release-notes",
-        url: "https://github.com/AxelRaboit/aurora-core/releases/latest",
-        anonymous: true,
-        async prepare(page) {
-            await page.waitForTimeout(2_500);
-            await page.getByRole("button", { name: /Accept|Reject|Refuser/ }).first().click().catch(() => {});
-            await page.waitForTimeout(1_500);
-        },
-    },
-    {
         // Les permissions, côté développeur : la carte parle de ce que
         // l'outil fait par défaut, et l'audit seul n'en montrait qu'une part.
         name: "tour-permissions",
@@ -1681,24 +1666,9 @@ const SHOTS = [
         },
     },
 
-    /**
-     * Les versions publiées, chez GitHub.
-     *
-     * **La seule capture qui ne vient pas de l'application.** La carte parle
-     * de la façon dont les versions sortent, et c'est la page des releases
-     * qui le montre. Publique, donc prise sans session.
-     */
-    {
-        name: "tour-releases",
-        url: "https://github.com/AxelRaboit/aurora-core/releases",
-        anonymous: true,
-        async prepare(page) {
-            // Le bandeau de cookies et l'invite de connexion couvrent le haut
-            // de la page pour un visiteur non identifié.
-            await page.getByRole("button", { name: /Accept|Reject|Refuser/ }).first().click().catch(() => {});
-            await page.waitForTimeout(1_500);
-        },
-    },
+    // « tour-releases » et « tour-release-notes » ne se photographient plus :
+    // c'étaient des pages de GitHub. Elles se dessinent à partir du CHANGELOG
+    // avec `compose-releases.mjs`.
 ];
 
 async function login(page) {
