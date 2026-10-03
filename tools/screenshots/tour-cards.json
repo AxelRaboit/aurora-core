@@ -449,6 +449,18 @@
         "espace-reglages": {
             "document": 762,
             "slug": "les-espaces-clients"
+        },
+        "tour-notes-plan": {
+            "document": 763,
+            "slug": "notes-markdown"
+        },
+        "tour-notes-historique": {
+            "document": 764,
+            "slug": "notes-markdown"
+        },
+        "tour-notes-modele": {
+            "document": 765,
+            "slug": "notes-markdown"
         }
     }
 }
