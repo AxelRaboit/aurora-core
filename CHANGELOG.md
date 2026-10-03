@@ -5,6 +5,16 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [0.9.331] - 2026-10-03
+
+### Corrigé
+- **`braces` est corrigé, plus seulement ignoré.** L'avis GHSA-vfj7-8cjw-p6xm (braces <= 3.0.3, aucune version corrigée publiée) visait des fonctions récursives sans limite de profondeur : cinq mille accolades imbriquées, sous la limite de longueur, faisaient planter Node sur « Maximum call stack size exceeded ». Une copie de braces 3.0.3 corrigée vit dans `tools/patched/braces` : elle refuse une imbrication de plus de 500 niveaux, comme braces refuse déjà une entrée trop longue, et un `override` de `pnpm-workspace.yaml` l'impose à tout l'arbre. L'avis n'est plus ignoré : `pnpm audit` ne trouve plus rien, avec pnpm 10 (la CI) comme 11. Un `file:` plutôt qu'un `pnpm patch`, que les deux versions de pnpm n'écrivent pas de la même façon dans le lockfile. Un test Vitest vérifie que la copie servie est bien la corrigée.
+
+### Dans aurora-client
+Rien à faire au-delà de `make aurora-update` : l'audit de `vendor/axelraboit/aurora` profite de la même copie.
+
+---
+
 ## [0.9.330] - 2026-10-03
 
 ### Corrigé
