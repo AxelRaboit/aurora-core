@@ -98,6 +98,15 @@ final class GridZoneOptionsTest extends TestCase
         );
     }
 
+    public function testTheAccountsOfAGitHubZoneAreCleanedLikeTheSettings(): void
+    {
+        self::assertSame(
+            ['AxelRaboit', 'axelr7x'],
+            GridZoneOptions::normalize(['githubLogins' => ['@AxelRaboit', 'axelraboit', 'axelr7x', '-bad-', 42]])['githubLogins'],
+        );
+        self::assertSame([], GridZoneOptions::normalize([])['githubLogins']);
+    }
+
     public function testAHandleLosesItsAtAndCountersTheirSign(): void
     {
         $options = GridZoneOptions::normalize(['socialHandle' => '@axelraboit', 'socialLikes' => -4, 'socialComments' => '12']);

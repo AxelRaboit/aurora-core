@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { useSlashCommands } from "./useSlashCommands.js";
+import {
+    useSlashCommands,
+    parseSlashQuery,
+    buildTable,
+} from "./useSlashCommands.js";
 
 // Stub t() so labels mirror the production translations enough to exercise
 // the substring-on-label filter. Anything not listed here falls back to the
@@ -221,5 +225,90 @@ describe("useSlashCommands", () => {
         );
         expect(newContent).toBe("****");
         expect(newCaret).toBe(2);
+    });
+});
+
+describe("the table command", () => {
+    function open(text) {
+        const slash = useSlashCommands({
+            t: (key, params) =>
+                key === "notes.markdown.slash.table_column"
+                    ? `Column ${params.n}`
+                    : makeT()(key),
+        });
+        try {
+            slash.onInput(makeEvent(text, text.length));
+        } catch {
+            /* positioning needs a real DOM */
+        }
+        return slash;
+    }
+
+    function apply(slash, text) {
+        const command = slash.filteredCommands.value.find(
+            (c) => c.id === "table",
+        );
+        return slash.applyCommand(
+            { value: text, selectionStart: text.length },
+            command,
+            text,
+        );
+    }
+
+    it("parses a size typed after the command", () => {
+        expect(parseSlashQuery("tableau 3x4")).toEqual({
+            word: "tableau",
+            hasSizePart: true,
+            size: { cols: 3, rows: 4 },
+        });
+        expect(parseSlashQuery("tableau 3x")).toEqual({
+            word: "tableau",
+            hasSizePart: true,
+            size: null,
+        });
+        expect(parseSlashQuery("tableau")).toEqual({
+            word: "tableau",
+            hasSizePart: false,
+            size: null,
+        });
+        expect(parseSlashQuery("tableau hello")).toBeNull();
+    });
+
+    it("clamps an oversized table", () => {
+        expect(parseSlashQuery("t 99x99").size).toEqual({ cols: 10, rows: 50 });
+    });
+
+    it("stays open while a size is typed, and only offers the table", () => {
+        const slash = open("/tab 3x4");
+        expect(slash.showSlash.value).toBe(true);
+        expect(slash.filteredCommands.value.map((c) => c.id)).toEqual([
+            "table",
+        ]);
+        expect(slash.filteredCommands.value[0].label).toBe("Table 3 × 4");
+    });
+
+    it("still closes on a space after a command that takes no size", () => {
+        expect(open("/bold 3").showSlash.value).toBe(false);
+    });
+
+    it("inserts the typed size, with blank cells", () => {
+        const slash = open("/tab 2x3");
+        const { newContent } = apply(slash, "/tab 2x3");
+        expect(newContent).toBe(
+            "| Column 1 | Column 2 |\n| --- | --- |\n|  |  |\n|  |  |\n|  |  |\n",
+        );
+    });
+
+    it("inserts 3 x 3 by default and selects the first header", () => {
+        const slash = open("/table");
+        const { newContent, newCaret, newCaretEnd } = apply(slash, "/table");
+        expect(newContent.split("\n").filter(Boolean)).toHaveLength(5);
+        expect(newContent.slice(newCaret, newCaretEnd)).toBe("Column 1");
+    });
+
+    it("builds the table text on its own", () => {
+        const table = buildTable({ cols: 1, rows: 1 }, (n) => `C${n}`);
+        expect(table.text).toBe("| C1 |\n| --- |\n|  |\n");
+        expect([table.selectStart, table.selectEnd]).toEqual([2, 4]);
     });
 });

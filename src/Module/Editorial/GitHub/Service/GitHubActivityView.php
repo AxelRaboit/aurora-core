@@ -11,10 +11,15 @@ use NumberFormatter;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 use function array_fill;
+use function array_filter;
+use function array_map;
 use function array_shift;
 use function array_slice;
+use function array_values;
 use function count;
+use function in_array;
 use function max;
+use function mb_strtolower;
 use function rawurlencode;
 use function sprintf;
 use function usort;
@@ -65,9 +70,20 @@ final readonly class GitHubActivityView
             return $this->releaseList($repos, $locale);
         }
 
+        // A zone may name some of the site's accounts, so that two zones can
+        // each show one beside its own text. The settings keep the order and
+        // the final say: a name they do not hold is not drawn.
+        $wanted = array_map(mb_strtolower(...), $options['githubLogins'] ?? []);
+        $logins = [] === $wanted
+            ? $this->settings->logins()
+            : array_values(array_filter(
+                $this->settings->logins(),
+                static fn (string $login): bool => in_array(mb_strtolower($login), $wanted, true),
+            ));
+
         $accounts = [];
 
-        foreach ($this->settings->logins() as $login) {
+        foreach ($logins as $login) {
             $grid = $this->contributions->forLogin($login);
 
             if (null !== $grid) {
