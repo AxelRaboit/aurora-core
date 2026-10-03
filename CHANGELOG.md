@@ -31,6 +31,14 @@ Le panneau latéral d'une note, renommé « Sur cette note », gagne un onglet *
 - Une image retirée du texte reste en stockage tant qu'une version passée la montre ; elle part avec la note quand celle-ci est supprimée pour de bon.
 - Dupliquer une note ou partir d'un modèle copie maintenant ses images sous de nouveaux noms : la copie et l'original ne partagent plus de fichier, que le nettoyage de l'un pouvait retirer à l'autre.
 
+#### Notes : imprimer, ou exporter en PDF
+« Imprimer ou exporter en PDF » (menu Actions d'une note) ouvre la note en mode lecture et lance l'impression du navigateur, où « Enregistrer en PDF » se trouve aussi. Le lecteur gagne un bouton Imprimer, et Ctrl+P donne le même résultat, sur le lecteur comme sur une note partagée.
+- Sur papier, la note seule : ni arborescence, ni barre, ni pagination, ni liste d'un partage.
+- Toujours en thème clair, même pour qui travaille en sombre ; son thème revient après l'impression.
+- Une apparence claire (sépia, papier, menthe) s'imprime habillée, encadrés et blocs de code avec leur fond ; l'ardoise et la nuit s'impriment sur papier blanc plutôt qu'en page d'encre.
+- Les images sont chargées avant l'ouverture du dialogue, et un titre, un tableau, un bloc de code ou une image ne se coupent pas entre deux pages.
+- L'impression du navigateur plutôt qu'un PDF calculé par le serveur : dompdf, qui sert les contrats, ne connaît ni flex ni grid, et perdrait les encadrés.
+
 ### Corrigé
 - **`braces` est corrigé, plus seulement ignoré.** L'avis GHSA-vfj7-8cjw-p6xm (braces <= 3.0.3, aucune version corrigée publiée) visait des fonctions récursives sans limite de profondeur : cinq mille accolades imbriquées, sous la limite de longueur, faisaient planter Node sur « Maximum call stack size exceeded ». Une copie de braces 3.0.3 corrigée vit dans `tools/patched/braces` : elle refuse une imbrication de plus de 500 niveaux, comme braces refuse déjà une entrée trop longue, et un `override` de `pnpm-workspace.yaml` l'impose à tout l'arbre. L'avis n'est plus ignoré : `pnpm audit` ne trouve plus rien, avec pnpm 10 (la CI) comme 11. Un `file:` plutôt qu'un `pnpm patch`, que les deux versions de pnpm n'écrivent pas de la même façon dans le lockfile. Un test Vitest vérifie que la copie servie est bien la corrigée.
 

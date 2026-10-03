@@ -346,6 +346,9 @@ notes:
       empty_hint: 'Les titres de la note, écrits avec # ou ##, apparaissent ici : un clic y mène.'
       words: 'Aucun mot | 1 mot | {count} mots'
       minutes: '{minutes} min de lecture'
+    print:
+      open: 'Imprimer ou exporter en PDF'
+      action: 'Imprimer'
     revisions:
       open: 'Historique des versions'
       title: 'Historique de la note'

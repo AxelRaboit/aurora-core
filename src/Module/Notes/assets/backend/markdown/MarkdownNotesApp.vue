@@ -29,7 +29,7 @@ import AppTab from '@shared/components/nav/AppTab.vue';
 import AppPageActions from '@shared/components/action/AppPageActions.vue';
 import { computed, nextTick, onErrorCaptured, onMounted, onUnmounted, watch } from 'vue';
 import { onPanelRequest, tellPanels } from '@/shared/nav/modulePanelBridge.js';
-import { ChevronRight, Trash2, BookOpen, Copy, FileDown, History, Image, LayoutTemplate, PanelRightOpen, PanelRightClose, Star, StarOff, Tag, TriangleAlert, X, Network, Share2 } from 'lucide-vue-next';
+import { ChevronRight, Trash2, BookOpen, Copy, FileDown, History, Image, LayoutTemplate, PanelRightOpen, Printer, PanelRightClose, Star, StarOff, Tag, TriangleAlert, X, Network, Share2 } from 'lucide-vue-next';
 import AppNoData from '@shared/components/feedback/AppNoData.vue';
 import "@notes/share/appearance.css";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
@@ -355,6 +355,22 @@ const noteActions = computed(() => {
             title: t('notes.markdown.read.open'),
             icon: BookOpen,
             href: readHref.value,
+        },
+        {
+            // Le lecteur imprime : la note sans l'éditeur autour, et le
+            // dialogue s'ouvre de lui-même. « Enregistrer en PDF » y est.
+            key: "print",
+            title: t('notes.markdown.print.open'),
+            icon: Printer,
+            onSelect: async () => {
+                if (!readHref.value) return;
+
+                await flushPendingSave();
+                // Le retour d'historique du menu, encore en route, annulerait
+                // la navigation : on part une fois qu'il a abouti.
+                await overlaysSettled();
+                window.location.assign(`${readHref.value}?print=1`);
+            },
         },
         {
             // Le compteur d'étiquettes était une pastille sur l'icône ;

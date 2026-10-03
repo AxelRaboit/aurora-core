@@ -346,6 +346,9 @@ notes:
       empty_hint: 'The note''s headings, written with # or ##, show here: a click takes you there.'
       words: 'No words | 1 word | {count} words'
       minutes: '{minutes} min read'
+    print:
+      open: 'Print or export as PDF'
+      action: 'Print'
     revisions:
       open: 'Version history'
       title: 'Note history'
