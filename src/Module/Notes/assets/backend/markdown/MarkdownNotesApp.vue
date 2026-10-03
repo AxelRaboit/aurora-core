@@ -710,10 +710,10 @@ async function submitAdd({ kind, name, color, spaceId, access, defaultRole }) {
 /**
  * Écrire un dépôt : changer de dossier s'il le faut, puis l'ordre.
  *
- * Deux appels et pas un : le déplacement passe par la route qui refuse une
- * boucle ou une profondeur de trop, et c'est elle qui doit trancher. Le
+ * Le déplacement d'abord : il passe par la route qui refuse une boucle ou
+ * une profondeur de trop, et c'est elle qui doit trancher. Le
  * réordonnancement vient ensuite, entre frères d'un même dossier, là où il
- * ne peut rien casser.
+ * ne peut rien casser ; dossiers et notes y partagent un seul ordre.
  */
 async function applyDropPlan(plan) {
     if (!plan?.id) return;
@@ -757,13 +757,22 @@ async function applyDropPlan(plan) {
         }
     }
 
-    const entries = plan.order.map((id, position) => (isFolder
-        ? { id, parentId: plan.folderId, position }
-        : { id, folderId: plan.folderId, position }));
+    // Un seul ordre pour les dossiers et les notes du dossier : chacun reçoit
+    // son rang dans la liste mêlée, par la route de sa nature.
+    const folderEntries = [];
+    const noteEntries = [];
+    plan.order.forEach((entry, position) => {
+        if ('folder' === entry.kind) {
+            folderEntries.push({ id: entry.id, parentId: plan.folderId, position });
+        } else {
+            noteEntries.push({ id: entry.id, folderId: plan.folderId, position });
+        }
+    });
 
-    if (entries.length) {
-        await (isFolder ? foldersApi.reorder(entries) : api.reorder(entries));
-    }
+    await Promise.all([
+        folderEntries.length ? foldersApi.reorder(folderEntries) : null,
+        noteEntries.length ? api.reorder(noteEntries) : null,
+    ]);
 
     await Promise.all([refreshList(), refreshFolders()]);
 

@@ -10,6 +10,7 @@ use Aurora\Module\Notes\Markdown\Entity\MarkdownNote;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteArchive;
+use Aurora\Module\Notes\Markdown\View\MarkdownNotesViewBuilder;
 use Aurora\Module\Notes\Space\Entity\NoteSpace;
 use Aurora\Module\Notes\Space\Enum\NoteSpaceAccessEnum;
 use Aurora\Module\Platform\User\Entity\User;
@@ -435,6 +436,87 @@ final class MarkdownNoteTest extends IntegrationTestCase
         self::assertSame($parent->getId(), $freshB?->getParent()?->getId());
         self::assertSame(0, $freshB?->getPosition());
         self::assertSame(1, $freshA?->getPosition());
+    }
+
+    /**
+     * Dossiers et notes d'un dossier partagent un seul ordre.
+     *
+     * Une note créée prenait le rang qui suivait les notes seulement : à côté
+     * de deux sous-dossiers de rangs 0 et 1, elle repartait de 0 et se glissait
+     * entre eux. Elle arrive maintenant après tout ce que le dossier contient.
+     */
+    public function testANewNoteComesAfterTheFoldersOfItsFolder(): void
+    {
+        $parent = $this->folder($this->owner, 'Parent');
+        $this->folder($this->owner, 'A', $parent)->setPosition(0);
+        $this->folder($this->owner, 'B', $parent)->setPosition(1);
+        $this->entityManager->flush();
+
+        $this->client->loginUser($this->owner, 'admin');
+        $body = $this->post('backend_notes_markdown_create', ['title' => 'Tâches', 'folderId' => $parent->getId()]);
+        self::assertResponseIsSuccessful();
+
+        $note = $this->entityManager->find(MarkdownNote::class, $body['note']['id']);
+        self::assertInstanceOf(MarkdownNote::class, $note);
+        $this->created[] = [MarkdownNote::class, (int) $note->getId()];
+
+        self::assertSame(2, $note->getPosition());
+    }
+
+    /** Une note qui change de dossier arrive après tout ce qu'il contient. */
+    public function testAMovedNoteLandsAfterEverythingInItsNewFolder(): void
+    {
+        $target = $this->folder($this->owner, 'Cible');
+        $this->folder($this->owner, 'Sous-dossier', $target)->setPosition(0);
+        $this->note($this->owner, 'Déjà là', $target)->setPosition(1);
+        $moving = $this->note($this->owner, 'Arrive');
+        $moving->setPosition(0);
+        $this->entityManager->flush();
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->post('backend_notes_markdown_move', ['folderId' => $target->getId()], ['id' => $moving->getId()]);
+        self::assertResponseIsSuccessful();
+
+        $this->entityManager->clear();
+        $fresh = $this->entityManager->find(MarkdownNote::class, $moving->getId());
+
+        self::assertSame($target->getId(), $fresh?->getFolder()?->getId());
+        self::assertSame(2, $fresh?->getPosition());
+    }
+
+    /**
+     * L'ordre de lecture suit celui de l'arborescence, dossiers et notes
+     * mêlés : une note rangée avant un dossier se lit avant les notes de ce
+     * dossier. C'est l'ordre du précédent / suivant et de la page publique.
+     */
+    public function testTheReadingOrderMixesFoldersAndNotes(): void
+    {
+        $space = new NoteSpace();
+        $space->setOwner($this->owner)->setName('Ordre')->setAccess(NoteSpaceAccessEnum::Backoffice);
+        $this->entityManager->persist($space);
+        $this->entityManager->flush();
+        $this->created[] = [NoteSpace::class, (int) $space->getId()];
+
+        $folder = new NoteFolder();
+        $folder->setUser($this->owner)->setSpace($space)->setName('Dossier')->setPosition(1);
+        $this->entityManager->persist($folder);
+        $this->entityManager->flush();
+        $this->created[] = [NoteFolder::class, (int) $folder->getId()];
+
+        $before = $this->note($this->owner, 'Avant le dossier');
+        $before->setSpace($space)->setPosition(0);
+        $inside = $this->note($this->owner, 'Dans le dossier', $folder);
+        $inside->setPosition(0);
+        $this->entityManager->flush();
+
+        $view = static::getContainer()->get(MarkdownNotesViewBuilder::class);
+
+        self::assertSame($before->getId(), $view->firstInSpace($space));
+
+        $before->setPosition(2);
+        $this->entityManager->flush();
+
+        self::assertSame($inside->getId(), $view->firstInSpace($space));
     }
 
     /**

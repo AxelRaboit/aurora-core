@@ -722,7 +722,12 @@ describe("le glisser-déposer du panneau", () => {
                     fromFolderId: 3,
                     spaceId: null,
                     fromSpaceId: null,
-                    order: [11, 12],
+                    // Dossiers et notes du dossier, mêlés dans leur ordre.
+                    order: [
+                        { kind: "folder", id: 2 },
+                        { kind: "note", id: 11 },
+                        { kind: "note", id: 12 },
+                    ],
                 },
             ],
         });

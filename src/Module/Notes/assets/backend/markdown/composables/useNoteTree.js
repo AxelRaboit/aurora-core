@@ -1,5 +1,6 @@
 import { ref, watchEffect } from "vue";
 import { buildTree as buildHierarchicalTree } from "@/shared/composables/tree/useHierarchicalTree.js";
+import { compareSiblings } from "./noteSiblingOrder.js";
 
 /**
  * L'arborescence du menu : des dossiers, et ce qu'ils contiennent.
@@ -22,6 +23,10 @@ import { buildTree as buildHierarchicalTree } from "@/shared/composables/tree/us
  * notes trouvées par leur texte, que le navigateur n'a pas : les corps sont
  * chiffrés et restent au serveur.
  */
+function siblingOrder(nodes) {
+    return [...nodes].sort(compareSiblings);
+}
+
 export function useNoteTree(
     foldersRef,
     queryRef = null,
@@ -57,10 +62,12 @@ export function useNoteTree(
             decorate(node, notesByFolder),
         );
 
-        // Les notes de la racine ferment la liste : elles sont à côté des
-        // dossiers, pas dedans, et les mettre en tête repousserait le
-        // rangement sous ce qui n'est pas rangé.
-        const full = [...folders, ...(notesByFolder.get(0) ?? [])];
+        // Dossiers et notes d'un même niveau partagent un seul ordre : une
+        // note peut passer avant un dossier, comme dans Craft ou Notion.
+        const full = siblingOrder([
+            ...folders,
+            ...(notesByFolder.get(0) ?? []),
+        ]);
 
         tree.value = "" === query ? full : filterTree(full, query, contentIds);
     });
@@ -75,10 +82,10 @@ export function useNoteTree(
             kind: "folder",
             key: `folder:${node.id}`,
             matched: true,
-            children: [
+            children: siblingOrder([
                 ...children,
                 ...(notesByFolder.get(Number(node.id)) ?? []),
-            ],
+            ]),
         };
     }
 

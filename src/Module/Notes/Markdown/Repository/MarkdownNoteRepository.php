@@ -431,7 +431,8 @@ class MarkdownNoteRepository extends ResolveTargetEntityRepository
     {
         $qb = $this->createQueryBuilder('n')
             ->where('n.deletedAt IS NULL')
-            ->orderBy('n.position', Order::Ascending->value);
+            ->orderBy('n.position', Order::Ascending->value)
+            ->addOrderBy('n.id', Order::Ascending->value);
 
         // Un dossier dit à lui seul où il est ; la racine, elle, n'est à
         // personne : celle d'un carnet, ou celle de l'équipe.

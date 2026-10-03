@@ -61,10 +61,12 @@ describe("useNoteTree", () => {
      * Le dépliage sert à voir ce qui est rangé : les notes sont dans
      * l'arbre, à la suite des sous-dossiers de leur dossier.
      */
-    it("files the notes under their folder, after the sub-folders", () => {
+    it("files the notes under their folder, in their rank among the sub-folders", () => {
+        // Les rangs que la migration a donnés : les dossiers d'abord, puis
+        // les notes, à la suite.
         const notes = [
-            { id: 11, folderId: 1, title: "Devis" },
-            { id: 12, folderId: null, title: "À la racine" },
+            { id: 11, folderId: 1, title: "Devis", position: 2 },
+            { id: 12, folderId: null, title: "À la racine", position: 2 },
         ];
 
         const { tree } = useNoteTree(ref(FOLDERS), null, ref(notes));
@@ -79,6 +81,22 @@ describe("useNoteTree", () => {
 
         // Ce qui n'est rangé nulle part ferme la liste, à côté des dossiers.
         expect(tree.value.at(-1)).toMatchObject({ kind: "note", id: 12 });
+    });
+
+    /**
+     * Dossiers et notes partagent un seul ordre : une note rangée avant un
+     * dossier passe avant lui, ce que l'arbre refusait.
+     */
+    it("puts a note before a folder when its rank says so", () => {
+        const notes = [{ id: 11, folderId: 1, title: "Tâches", position: 0 }];
+
+        const { tree } = useNoteTree(ref(FOLDERS), null, ref(notes));
+
+        // Rang 0 pour la note comme pour « Studio Lumen » : à égalité, le
+        // dossier d'abord, puis la note avant « Cabinet Verrier » (rang 1).
+        expect(
+            tree.value[0].children.map((child) => `${child.kind}:${child.id}`),
+        ).toEqual(["folder:2", "note:11", "folder:3"]);
     });
 
     it("keeps a note's folder on screen when the note is the match", () => {

@@ -47,8 +47,7 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
         $this->applyInput($note, $input);
 
         if (null === $input->getPosition()) {
-            $maxPosition = $this->noteRepository->findMaxPositionForUserAndFolder($note->getSpace(), $note->getFolder()?->getId());
-            $note->setPosition(null === $maxPosition ? 0 : $maxPosition + 1);
+            $note->setPosition($this->nextPosition($note->getSpace(), $note->getFolder()?->getId()));
         }
 
         $this->entityManager->persist($note);
@@ -86,8 +85,7 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
             if (!array_key_exists($key, $folders)) {
                 $folders[$key] = null === $folderId ? null : $this->folderRepository->findOneByUserAndId($user, $folderId);
                 $spaces[$key] = $folders[$key]?->getSpace() ?? $this->targetSpace($user, null, $input->getSpaceId());
-                $max = $this->noteRepository->findMaxPositionForUserAndFolder($spaces[$key], $folders[$key]?->getId());
-                $nextPosition[$key] = null === $max ? 0 : $max + 1;
+                $nextPosition[$key] = $this->nextPosition($spaces[$key], $folders[$key]?->getId());
             }
 
             $note = $this->createNote();
@@ -230,11 +228,39 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
 
     public function move(MarkdownNoteInterface $note, ?NoteFolderInterface $folder, ?NoteSpaceInterface $space = null): void
     {
-        $this->changeSpace($note, $folder?->getSpace() ?? $space ?? $note->getSpace());
+        $target = $folder?->getSpace() ?? $space ?? $note->getSpace();
+        $changesPlace = $note->getFolder()?->getId() !== $folder?->getId() || $note->getSpace()->getId() !== $target->getId();
+
+        // A note that changes folder lands after everything already there.
+        // It kept its old rank before, which put it at an arbitrary spot
+        // among neighbours it had never been ordered against.
+        if ($changesPlace) {
+            $note->setPosition($this->nextPosition($target, $folder?->getId()));
+        }
+
+        $this->changeSpace($note, $target);
         $note->setFolder($folder);
         $this->entityManager->flush();
 
         $this->auditUpdated($note);
+    }
+
+    /**
+     * The rank after the last folder or note of a folder (or of a space's
+     * root).
+     *
+     * Folders and notes share one order among siblings, so the tree can put a
+     * note before a folder: the next rank is past both, not past the notes
+     * alone, or a new note would slip between two folders.
+     */
+    protected function nextPosition(NoteSpaceInterface $space, ?int $folderId): int
+    {
+        $max = max(
+            $this->noteRepository->findMaxPositionForUserAndFolder($space, $folderId) ?? -1,
+            $this->folderRepository->findMaxPositionForUserAndParent($space, $folderId) ?? -1,
+        );
+
+        return $max + 1;
     }
 
     /**
