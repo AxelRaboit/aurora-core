@@ -583,7 +583,17 @@ const SHOTS = [
         await page.waitForTimeout(1_200);
     }),
     postTabShot("tour-seo-onglet", "Moteurs de recherche"),
-    postTabShot("tour-galerie-onglet", "Galerie"),
+    {
+        // Le module Galeries, et non plus l'onglet de l'éditeur : la page du
+        // tour montrait deux fois ce même onglet, bandeau et corps. Ce
+        // second accès ne touche qu'à la galerie, ce qui permet de confier
+        // les photos à quelqu'un sans lui ouvrir le reste de la publication.
+        name: "tour-galeries-module",
+        path: `/backend/editorial/post-galleries/${DEMO_POST_ID}/edit`,
+        async prepare(page) {
+            await page.waitForTimeout(3_500);
+        },
+    },
     {
         // La même publication dans une autre langue : même disposition,
         // mots différents. La carte dit « un onglet par langue » et montrait
