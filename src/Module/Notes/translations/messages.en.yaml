@@ -70,6 +70,7 @@ notes:
       step_3: "Link notes with [[Title]]: the graph shows these links between all the notes you can read."
       step_4: "Tags filter the library, and “Manage tags” renames or merges them across all your notes."
       step_5: "A note can also be shared through a read-only link; even an administrator cannot read your private notes."
+      step_6: "A note's Actions menu duplicates it, makes it a template, goes back to a past version or prints it as PDF."
     share:
       button: Share with a link
       title: Share this note with a link

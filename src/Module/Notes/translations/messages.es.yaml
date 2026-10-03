@@ -69,6 +69,7 @@ notes:
             step_3: "Enlace las notas con [[Título]]: el grafo muestra esos enlaces entre todas las notas que puede leer."
             step_4: "Las etiquetas filtran la biblioteca, y «Gestionar etiquetas» las renombra o fusiona en todas sus notas."
             step_5: "Una nota también se comparte con un enlace de solo lectura; ni siquiera un administrador lee sus notas privadas."
+            step_6: "El menú Acciones de una nota la duplica, la convierte en plantilla, vuelve a una versión anterior o la imprime en PDF."
         share:
             button: 'Compartir mediante un enlace'
             title: 'Compartir esta nota mediante un enlace'
