@@ -64,6 +64,7 @@ const topLevel = computed(() => Math.min(...outline.value.map((heading) => headi
                 size="xs"
                 align="center"
                 class="flex-1"
+                data-side-tab="backlinks"
                 :active="tab === 'backlinks'"
                 v-on:click="tab = 'backlinks'"
             >
@@ -74,6 +75,7 @@ const topLevel = computed(() => Math.min(...outline.value.map((heading) => headi
                 size="xs"
                 align="center"
                 class="flex-1"
+                data-side-tab="mentions"
                 :active="tab === 'mentions'"
                 v-on:click="tab = 'mentions'"
             >

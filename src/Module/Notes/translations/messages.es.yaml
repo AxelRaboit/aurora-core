@@ -462,7 +462,7 @@ notes:
                 description: 'Cree algunas notas enlazadas con [[wiki-links]] para ver el grafo.'
         links:
             title: Enlaces
-            open: 'Mostrar los enlaces entrantes'
+            open: 'Mostrar el esquema y los enlaces'
             close: 'Cerrar el panel'
             backlinks: 'Enlaces entrantes'
             mentions: Menciones

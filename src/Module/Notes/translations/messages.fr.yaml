@@ -461,7 +461,7 @@ notes:
         description: Créez quelques notes reliées par [[wiki-links]] pour voir le graphe.
     links:
       title: Liens
-      open: Afficher les liens entrants
+      open: Afficher le plan et les liens
       close: Fermer le panneau
       # « Backlinks » restait en anglais dans un écran qui dit « Afficher les
       # liens entrants » deux boutons plus loin, et dans un produit dont la

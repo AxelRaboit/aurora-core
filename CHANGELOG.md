@@ -40,7 +40,12 @@ Le panneau latéral d'une note, renommé « Sur cette note », gagne un onglet *
 - L'impression du navigateur plutôt qu'un PDF calculé par le serveur : dompdf, qui sert les contrats, ne connaît ni flex ni grid, et perdrait les encadrés.
 
 ### Corrigé
+- **Un gras en début d'encadré restait seul sur sa ligne**, dans une note. Le bloc « Encadré » des publications porte la même classe `callout` et met son gras sur une ligne à lui, en guise de titre ; dans une note, où le titre est l'en-tête, la phrase reprenait sous le gras par sa virgule. La règle ne s'applique plus aux notes.
+- Le bouton du panneau latéral d'une note disait encore « Afficher les liens entrants » alors que le panneau porte aussi le plan : il dit maintenant « Afficher le plan et les liens ».
 - **`braces` est corrigé, plus seulement ignoré.** L'avis GHSA-vfj7-8cjw-p6xm (braces <= 3.0.3, aucune version corrigée publiée) visait des fonctions récursives sans limite de profondeur : cinq mille accolades imbriquées, sous la limite de longueur, faisaient planter Node sur « Maximum call stack size exceeded ». Une copie de braces 3.0.3 corrigée vit dans `tools/patched/braces` : elle refuse une imbrication de plus de 500 niveaux, comme braces refuse déjà une entrée trop longue, et un `override` de `pnpm-workspace.yaml` l'impose à tout l'arbre. L'avis n'est plus ignoré : `pnpm audit` ne trouve plus rien, avec pnpm 10 (la CI) comme 11. Un `file:` plutôt qu'un `pnpm patch`, que les deux versions de pnpm n'écrivent pas de la même façon dans le lockfile. Un test Vitest vérifie que la copie servie est bien la corrigée.
+
+### Démonstration
+Le carnet de notes de la démonstration est réécrit pour le tour : des fiches avec encadrés de plusieurs couleurs, tableaux alignés, listes à cocher par section, blocs de code, images à leur taille et titres sur trois niveaux ; deux modèles dans un dossier « Modèles » ; trois versions passées pour la fiche du Cabinet Verrier ; des dates de modification étalées sur six semaines au lieu de l'heure du chargement ; une note qui passe devant un dossier. Le bandeau du sommaire, une affiche au logo de Pexels, est remplacé.
 
 ### Dans aurora-client
 Rien à faire au-delà de `make aurora-update` : l'audit de `vendor/axelraboit/aurora` profite de la même copie.

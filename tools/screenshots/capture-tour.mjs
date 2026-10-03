@@ -66,6 +66,49 @@ const VIEWPORT = { width: 1600, height: 1000 };
  * deuxième scénario cherchait un libellé que le premier venait de faire
  * disparaître.
  */
+/**
+ * Ouvre une note par son titre, retrouvée dans la liste du serveur.
+ *
+ * Par le titre et non par un identifiant : les fixtures renumérotent à chaque
+ * rechargement. Et par la liste plutôt que par un clic : la bande « Récemment
+ * modifiées » ne montre pas toutes les notes, et l'arbre replie leurs dossiers.
+ */
+async function openNoteByTitle(page, title) {
+    const id = await page.evaluate(async (wanted) => {
+        const r = await fetch("/backend/notes/markdown/list", { headers: { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" } });
+        const j = await r.json();
+
+        return j.notes.find((n) => wanted === n.title)?.id ?? null;
+    }, title);
+
+    if (null === id) throw new Error(`la note « ${title} » manque à la démonstration`);
+
+    await page.goto(`${BASE_URL}/backend/notes/markdown/${id}`, { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(2_500);
+
+    return id;
+}
+
+/**
+ * La note en écriture avec son rendu à côté, et le panneau « Sur cette note »
+ * ouvert. Le volet d'écriture est rétréci d'abord : sa largeur est retenue
+ * d'une visite à l'autre, et la valeur par défaut laissait au rendu deux cent
+ * trente pixels une fois le panneau sorti, si bien que le tableau de la note y
+ * était coupé en plein milieu d'un en-tête.
+ */
+async function openNoteWithPanel(page, title) {
+    await openNoteByTitle(page, title);
+    await page.getByTitle("Édition + aperçu").first().click();
+    await page.waitForTimeout(800);
+    await page.evaluate(() => {
+        localStorage.setItem("aurora.notes.markdown.editorWidth", "420");
+    });
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(2_500);
+    await page.getByTitle("Afficher le plan et les liens").first().click();
+    await page.waitForTimeout(1_200);
+}
+
 async function flatten(page) {
     const bouton = page.getByTitle("Tout afficher à plat").first();
 
@@ -734,37 +777,55 @@ const SHOTS = [
         name: "tour-notes",
         path: "/backend/notes/markdown",
         async prepare(page) {
-            // Par son adresse, retrouvée dans la liste : la bande « Récemment
-            // modifiées » ne la montre plus depuis que la démonstration porte
-            // aussi les notes d'un espace partagé, plus récentes qu'elle.
-            const id = await page.evaluate(async () => {
-                const r = await fetch("/backend/notes/markdown/list", { headers: { Accept: "application/json", "X-Requested-With": "XMLHttpRequest" } });
-                const j = await r.json();
-
-                return j.notes.find((n) => "Cabinet Verrier" === n.title)?.id ?? null;
-            });
-
-            if (null === id) throw new Error("la note « Cabinet Verrier » manque à la démonstration");
-
-            await page.goto(`${BASE_URL}/backend/notes/markdown/${id}`, { waitUntil: "domcontentloaded" });
-            await page.waitForTimeout(2_500);
-            await page.getByTitle("Édition + aperçu").first().click();
+            await openNoteWithPanel(page, "Cabinet Verrier");
+            await page.locator('[data-side-tab="backlinks"]').first().click();
             await page.waitForTimeout(1_000);
-
-            // Le volet d'écriture est rétréci avant d'ouvrir les liens.
-            // Sa largeur est retenue d'une visite à l'autre, et la valeur
-            // par défaut laissait au rendu deux cent trente pixels une fois
-            // le panneau sorti : le tableau de la note y était coupé en
-            // plein milieu d'un en-tête, ce qui se lit comme un défaut
-            // d'affichage et non comme une colonne qui continue.
-            await page.evaluate(() => {
-                localStorage.setItem("aurora.notes.markdown.editorWidth", "380");
-            });
-            await page.reload({ waitUntil: "domcontentloaded" });
-            await page.waitForTimeout(2_500);
-
-            await page.getByTitle("Afficher les liens entrants").first().click();
-            await page.waitForTimeout(1_500);
+        },
+    },
+    {
+        // Le plan de la note (0.9.331) : ses titres en retrait selon leur
+        // niveau, un clic qui y mène, et en pied le nombre de mots et le
+        // temps de lecture. La fiche du cabinet a des titres sur trois
+        // niveaux, donc un plan qui se déplie.
+        name: "tour-notes-plan",
+        path: "/backend/notes/markdown",
+        async prepare(page) {
+            await openNoteWithPanel(page, "Cabinet Verrier");
+            await page.locator('[data-side-tab="outline"]').first().click();
+            await page.locator("[data-note-outline]").first().waitFor();
+            await page.waitForTimeout(800);
+        },
+    },
+    {
+        // L'historique des versions (0.9.331), sur la plus ancienne des trois
+        // que la démonstration pose : c'est elle dont l'écart avec le texte
+        // courant montre le plus, des lignes retirées comme ajoutées.
+        name: "tour-notes-historique",
+        path: "/backend/notes/markdown",
+        async prepare(page) {
+            await openNoteByTitle(page, "Cabinet Verrier");
+            await page.locator("main").getByRole("button", { name: "Actions", exact: true }).first().click();
+            await page.waitForTimeout(500);
+            await page.getByText("Historique des versions", { exact: true }).first().click();
+            await page.locator("[data-revision-diff]").first().waitFor();
+            await page.locator("[data-note-revisions] li button").last().click();
+            await page.waitForTimeout(1_200);
+        },
+    },
+    {
+        // Partir d'un modèle (0.9.331) : « Ajouter » propose les notes
+        // marquées comme modèles, et la consigne sur la date du jour.
+        name: "tour-notes-modele",
+        path: "/backend/notes/markdown",
+        async prepare(page) {
+            await page.getByTitle("Ajouter", { exact: true }).first().click();
+            await page.waitForTimeout(800);
+            await page.locator('[data-add-kind="note"]').click();
+            await page.locator("[data-add-name] input, input[data-add-name]").first().fill("Brief Boulangerie Fournier");
+            await page.locator("[data-add-template] .multiselect").first().click();
+            await page.waitForTimeout(400);
+            await page.locator(".multiselect__option:visible").filter({ hasText: "Brief de projet" }).first().click();
+            await page.waitForTimeout(600);
         },
     },
     {

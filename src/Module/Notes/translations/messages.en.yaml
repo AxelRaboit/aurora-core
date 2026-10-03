@@ -460,7 +460,7 @@ notes:
         description: Create a few notes linked with [[wiki-links]] to see the graph.
     links:
       title: Links
-      open: Show incoming links
+      open: Show outline and links
       close: Close panel
       backlinks: Backlinks
       mentions: Mentions
