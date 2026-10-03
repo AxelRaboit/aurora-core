@@ -5,6 +5,24 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [1.3.0] - 2026-10-03
+
+### Amélioré
+
+#### Site public : la barre de lecture sur toutes les pages, et un réglage pour la couper
+La fine barre qui se remplit en haut de l'écran pendant le défilement n'existait que sur les publications. La page de liste d'un type de contenu (`/fr/services`) et celle d'une rubrique défilaient sans elle, à côté de pages qui l'avaient : on aurait dit un oubli. Elle est désormais posée par la mise en page commune du site, donc présente partout ; sur une page trop courte pour défiler, elle reste vide. Elle se coupe dans Configuration > Thèmes, partie « Général », avec l'interrupteur « Barre de lecture », activé par défaut.
+
+#### Publications : toutes les couleurs du thème, la topbar et l'entête à celles de la page
+L'onglet Apparence d'une publication ne repeignait que le fond, la topbar, le pied de page, l'accent et les survols. Trois limites sont levées :
+- **Texte, traits et cartes** : une publication peut aussi choisir la couleur du texte, des traits, du fond et du contour des cartes, des titres et des chiffres mis en avant, comme l'écran de thème. Une case vide garde la couleur du thème.
+- **Topbar et pied de page aux couleurs de la page** : un interrupteur leur fait prendre l'accent et les survols de la publication (repère de l'onglet actif compris, quand le thème le met en accent). Éteint par défaut : les pages existantes ne changent pas.
+- **Entête pleine largeur** : il gardait l'accent du thème au-dessus d'une page qui en avait choisi un autre ; il prend désormais celui de la page. Une couleur d'accent posée sur l'entête ou sur une diapositive passe toujours devant.
+
+### Dans aurora-client
+Une migration ajoute deux colonnes à `core_posts` (`color_overrides`, `chrome_follows_page`) : `make deploy-prod` la passe.
+
+---
+
 ## [1.2.0] - 2026-10-03
 
 ### Amélioré

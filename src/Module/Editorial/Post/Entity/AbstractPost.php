@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Editorial\Post\Entity;
 
 use Aurora\Core\Timestampable\TimestampableTrait;
+use Aurora\Module\Editorial\Post\Appearance\PostColorOverrides;
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
 use Aurora\Module\Editorial\Post\Enum\PostVisibilityEnum;
 use Aurora\Module\Editorial\Post\Enum\ThumbnailFitEnum;
@@ -229,6 +230,25 @@ abstract class AbstractPost implements PostInterface
 
     #[ORM\Column(length: 7, nullable: true)]
     protected ?string $highlightColor = null;
+
+    /**
+     * Les autres couleurs du thème que cette publication repeint : texte,
+     * traits, cartes, titres, chiffres. Clés du thème, valeurs `#rrggbb` ; une
+     * clé absente garde la couleur du thème. Forme et garde-fous dans
+     * {@see PostColorOverrides}, par où passe toute écriture.
+     *
+     * @var array<string, string>
+     */
+    #[ORM\Column(type: Types::JSON, options: ['default' => '{}'])]
+    protected array $colorOverrides = [];
+
+    /**
+     * Si la topbar et le pied de page prennent l'accent et les survols de
+     * cette publication. Faux par défaut : ils gardent ceux du thème, comme
+     * avant, et une page qui ne repeint que son contenu reste comme elle était.
+     */
+    #[ORM\Column(options: ['default' => false])]
+    protected bool $chromeFollowsPage = false;
 
     /**
      * Why the last review decision went the way it did.
@@ -817,6 +837,32 @@ abstract class AbstractPost implements PostInterface
     public function setHighlightColor(?string $highlightColor): static
     {
         $this->highlightColor = $highlightColor;
+
+        return $this;
+    }
+
+    /** @return array<string, string> */
+    public function getColorOverrides(): array
+    {
+        return PostColorOverrides::normalize($this->colorOverrides);
+    }
+
+    /** @param array<string, mixed> $colorOverrides */
+    public function setColorOverrides(array $colorOverrides): static
+    {
+        $this->colorOverrides = PostColorOverrides::normalize($colorOverrides);
+
+        return $this;
+    }
+
+    public function isChromeFollowsPage(): bool
+    {
+        return $this->chromeFollowsPage;
+    }
+
+    public function setChromeFollowsPage(bool $chromeFollowsPage): static
+    {
+        $this->chromeFollowsPage = $chromeFollowsPage;
 
         return $this;
     }

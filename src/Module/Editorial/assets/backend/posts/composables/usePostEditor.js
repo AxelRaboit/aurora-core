@@ -13,6 +13,20 @@ import { slugifyIfEmpty } from "@/shared/utils/format/slugify.js";
 // The design only. It sits on the post, so every language shows the same
 // banner and translating one means writing its words, not rebuilding it.
 /** The bands as BannerNormalizer starts them: three, leaning right. */
+/**
+ * Les couleurs du thème qu'une publication peut repeindre en plus du fond, de
+ * la topbar et du pied. Mêmes clés que le thème et que
+ * `PostColorOverrides::KEYS` côté serveur, qui écarte toute autre.
+ */
+export const COLOR_OVERRIDE_KEYS = [
+    "text_color",
+    "line_color",
+    "card_color",
+    "card_line_color",
+    "heading_color",
+    "figure_color",
+];
+
 export function emptyBannerStripes() {
     return {
         enabled: false,
@@ -291,6 +305,16 @@ export function usePostEditor(props) {
         accentColor: props.post?.accentColor ?? null,
         highlight: props.post?.highlight ?? "",
         highlightColor: props.post?.highlightColor ?? null,
+        // Les autres couleurs du thème, une clé par couleur ; vide garde celle
+        // du thème. Toutes présentes dans le formulaire, nulles par défaut,
+        // pour que chaque champ ait sa case dès l'ouverture.
+        colorOverrides: {
+            ...Object.fromEntries(
+                COLOR_OVERRIDE_KEYS.map((key) => [key, null]),
+            ),
+            ...(props.post?.colorOverrides ?? {}),
+        },
+        chromeFollowsPage: props.post?.chromeFollowsPage ?? false,
         termIds: [...(props.post?.termIds ?? [])],
         relatedPostIds: [...(props.post?.relatedPostIds ?? [])],
         translations: Object.fromEntries(

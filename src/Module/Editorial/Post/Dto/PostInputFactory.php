@@ -7,6 +7,7 @@ namespace Aurora\Module\Editorial\Post\Dto;
 use Aurora\Core\Support\Arr;
 use Aurora\Core\Support\Str;
 use Aurora\Module\Configuration\Theme\Service\ThemeContext;
+use Aurora\Module\Editorial\Post\Appearance\PostColorOverrides;
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
 use Aurora\Module\Editorial\Post\Enum\PostVisibilityEnum;
 use Aurora\Module\Editorial\Post\Enum\ThumbnailFitEnum;
@@ -54,6 +55,8 @@ class PostInputFactory implements PostInputFactoryInterface
             accentColor: $this->colorOrNull($data['accentColor'] ?? null),
             highlight: $this->highlightOrNull($data['highlight'] ?? null, $data['highlightColor'] ?? null),
             highlightColor: $this->colorOrNull($data['highlightColor'] ?? null),
+            colorOverrides: PostColorOverrides::normalize($data['colorOverrides'] ?? null),
+            chromeFollowsPage: (bool) ($data['chromeFollowsPage'] ?? false),
             // Un champ vidé arrive en chaîne vide, et vide veut dire "aucune
             // position" - pas la position zéro, que l'entité refuse de toute
             // façon.

@@ -95,6 +95,8 @@ backend:
         header_media_hint: 'Se muestra a la izquierda del nombre del sitio en la barra superior. Se recomienda una imagen cuadrada.'
         header_text_hidden_on_phone: 'Solo el logotipo en el móvil'
         header_text_hidden_on_phone_hint: 'El nombre del sitio desaparece de la barra superior por debajo de 640 px de ancho; los lectores de pantalla lo siguen leyendo.'
+        reading_progress: 'Barra de lectura'
+        reading_progress_hint: 'Una fina barra en la parte superior de cada página del sitio se llena a medida que se desplaza.'
         header_text_placeholder: 'Mi sitio'
         config_hint: 'Variables disponibles: --th-bg, --th-surface, --th-surface-2, --th-primary, --th-secondary, --th-muted, --th-accent, --th-accent-hover'
         config_placeholder: |-

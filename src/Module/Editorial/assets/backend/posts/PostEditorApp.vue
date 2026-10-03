@@ -4,7 +4,7 @@ import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
-import { usePostEditor } from "./composables/usePostEditor.js";
+import { COLOR_OVERRIDE_KEYS, usePostEditor } from "./composables/usePostEditor.js";
 import { useTabState } from "@/shared/composables/useTabState.js";
 import AppPageBar from "@/shared/components/nav/AppPageBar.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
@@ -558,6 +558,19 @@ function termLabel(term) {
                                 :label="surface.label"
                             />
                         </div>
+
+                        <!-- Le reste de ce que règle le thème : texte, traits,
+                             cartes, titres, chiffres. Mêmes clés que lui, et le
+                             même sens du vide : celle du thème. -->
+                        <h4 class="text-xs font-semibold text-secondary uppercase tracking-wide pt-2">{{ t("backend.posts.appearance.ink_title") }}</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <BannerColorField
+                                v-for="key in COLOR_OVERRIDE_KEYS"
+                                :key="key"
+                                v-model="form.colorOverrides[key]"
+                                :label="t(`backend.posts.appearance.colors.${key}`)"
+                            />
+                        </div>
                     </div>
 
                     <div class="aurora-card p-3 sm:p-5 space-y-4">
@@ -575,6 +588,11 @@ function termLabel(term) {
                             :label="t('backend.themes.highlight_color')"
                         />
                         <p class="text-xs text-muted">{{ t("backend.posts.appearance.highlight_hint") }}</p>
+                        <AppToggle
+                            v-model="form.chromeFollowsPage"
+                            :label="t('backend.posts.appearance.chrome_follows_page')"
+                            :hint="t('backend.posts.appearance.chrome_follows_page_hint')"
+                        />
                     </div>
                 </div>
 

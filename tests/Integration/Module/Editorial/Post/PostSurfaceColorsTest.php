@@ -257,8 +257,76 @@ final class PostSurfaceColorsTest extends IntegrationTestCase
         self::assertStringNotContainsString('aurora-post-highlight', (string) $this->client->getResponse()->getContent());
     }
 
+    // ── The rest of the theme's colours, and the chrome ────────────────────
+
     /**
-     * @param array<string, string> $colours
+     * Texte, traits, titres : les couleurs du thème qu'une publication peut
+     * repeindre en plus de ses trois surfaces, jusqu'au CSS de sa page. Une clé
+     * inconnue ou une valeur qui n'est pas un `#rrggbb` est écartée.
+     */
+    public function testTheOtherThemeColoursReachTheServedPage(): void
+    {
+        $post = $this->published('Page encrée', [
+            'backgroundColor' => '#0f172a',
+            'colorOverrides' => [
+                'text_color' => '#f5f5f4',
+                'line_color' => '#7c3aed',
+                'heading_color' => '#fbbf24',
+                'figure_color' => 'red;}</style>',
+                'banner_color' => '#000000',
+            ],
+        ]);
+
+        self::assertSame(
+            ['text_color' => '#f5f5f4', 'line_color' => '#7c3aed', 'heading_color' => '#fbbf24'],
+            $post->getColorOverrides(),
+        );
+
+        $this->client->request('GET', '/fr/surface-type/page-encree');
+
+        self::assertResponseIsSuccessful();
+        $html = (string) $this->client->getResponse()->getContent();
+
+        self::assertStringContainsString('--th-primary: #f5f5f4;', $html);
+        self::assertStringContainsString('--color-border: #7c3aed;', $html);
+        self::assertStringContainsString('--th-heading: #fbbf24;', $html);
+        self::assertStringNotContainsString('</style>;', $html);
+    }
+
+    /** Par défaut, la topbar et le pied gardent l'accent du thème. */
+    public function testTheChromeKeepsTheThemeByDefault(): void
+    {
+        $this->published('Page sobre', ['accentColor' => '#b45309']);
+
+        $this->client->request('GET', '/fr/surface-type/page-sobre');
+
+        self::assertResponseIsSuccessful();
+        $html = (string) $this->client->getResponse()->getContent();
+
+        self::assertDoesNotMatchRegularExpression('/<header class="sticky[^"]*aurora-post-accent/', $html);
+        self::assertDoesNotMatchRegularExpression('/<footer class="[^"]*aurora-post-accent/', $html);
+    }
+
+    /** Demandé, la topbar et le pied prennent l'accent et les survols de la page. */
+    public function testTheChromeFollowsThePageWhenAsked(): void
+    {
+        $this->published('Page entière', [
+            'accentColor' => '#b45309',
+            'highlight' => 'neutral',
+            'chromeFollowsPage' => true,
+        ]);
+
+        $this->client->request('GET', '/fr/surface-type/page-entiere');
+
+        self::assertResponseIsSuccessful();
+        $html = (string) $this->client->getResponse()->getContent();
+
+        self::assertMatchesRegularExpression('/<header class="sticky[^"]*aurora-post-accent aurora-post-highlight"/', $html);
+        self::assertMatchesRegularExpression('/<footer class="[^"]*aurora-post-accent aurora-post-highlight"/', $html);
+    }
+
+    /**
+     * @param array<string, mixed> $colours
      */
     private function published(string $title, array $colours = []): PostInterface
     {

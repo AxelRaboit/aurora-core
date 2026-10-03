@@ -185,7 +185,9 @@ final readonly class ThemeStyleRenderer
      * config n'est contrôlée nulle part en entrée : le filtre hexadécimal de
      * `surfaceColor()` est donc la seule garde avant le `<style>` public.
      *
-     * @param array<string, string|null> $overrides couleurs par clé de surface, cf. self::SURFACES
+     * @param array<string, string|null> $overrides couleurs par clé de surface (cf. self::SURFACES), et
+     *                                              celles du texte, des traits, des cartes, des titres et
+     *                                              des chiffres (cf. PostColorOverrides::KEYS)
      */
     public function frontendSurfacesCss(array $overrides = []): string
     {
@@ -203,10 +205,10 @@ final readonly class ThemeStyleRenderer
                 continue;
             }
 
-            $rules[] = $this->surfaceRule($selector, $color);
+            $rules[] = $this->surfaceRule($selector, $color, $overrides);
         }
 
-        return implode('', $rules).$this->frontendInkCss();
+        return implode('', $rules).$this->frontendInkCss($overrides);
     }
 
     /**
@@ -217,8 +219,13 @@ final readonly class ThemeStyleRenderer
      * background to take effect.
      *
      * Empty when the theme sets none of them: the defaults live in theme.css.
+     *
+     * A publication's own heading and figure colours pass before the theme's,
+     * key by key, like its surfaces.
+     *
+     * @param array<string, string|null> $overrides
      */
-    public function frontendInkCss(): string
+    public function frontendInkCss(array $overrides = []): string
     {
         $config = $this->themeContext->activeTheme()?->getConfig() ?? [];
         $declarations = [];
@@ -228,11 +235,11 @@ final readonly class ThemeStyleRenderer
             $declarations[] = '--th-success-soft: color-mix(in oklab, '.$success.' 15%, transparent);';
         }
 
-        if (null !== $heading = $this->surfaceColor($config['heading_color'] ?? null)) {
+        if (null !== $heading = $this->configured('heading_color', $overrides, $config)) {
             $declarations[] = '--th-heading: '.$heading.';';
         }
 
-        if (null !== $figure = $this->surfaceColor($config['figure_color'] ?? null)) {
+        if (null !== $figure = $this->configured('figure_color', $overrides, $config)) {
             $declarations[] = '--th-figure: '.$figure.';';
         }
 
@@ -265,21 +272,23 @@ final readonly class ThemeStyleRenderer
         return null !== $color ? $this->surfaceRule($selector, $color) : '';
     }
 
-    private function surfaceRule(string $selector, string $color): string
+    /** @param array<string, string|null> $overrides a publication's own colours, cf. frontendSurfacesCss() */
+    private function surfaceRule(string $selector, string $color, array $overrides = []): string
     {
         $config = $this->themeContext->activeTheme()?->getConfig() ?? [];
         $tokens = [
             ...$this->surfaceContrast->tokensFor($color),
             // The theme's own text and line colours, over the ones the
             // background implied: an off-white instead of pure white, a
-            // violet rule under the top bar instead of the derived one.
+            // violet rule under the top bar instead of the derived one. A
+            // publication's own pass before the theme's.
             ...$this->surfaceContrast->inkTokensFor(
                 $color,
-                $this->surfaceColor($config['text_color'] ?? null),
-                $this->surfaceColor($config['line_color'] ?? null),
-                $this->surfaceColor($config['card_line_color'] ?? null),
+                $this->configured('text_color', $overrides, $config),
+                $this->configured('line_color', $overrides, $config),
+                $this->configured('card_line_color', $overrides, $config),
             ),
-            ...$this->surfaceContrast->cardTokensFor($color, $this->surfaceColor($config['card_color'] ?? null)),
+            ...$this->surfaceContrast->cardTokensFor($color, $this->configured('card_color', $overrides, $config)),
         ];
 
         $declarations = ['--th-surface-bg: '.$color.';', '--th-bg: '.$color.';'];
@@ -288,6 +297,18 @@ final readonly class ThemeStyleRenderer
         }
 
         return $selector.'{'.implode('', $declarations).'}';
+    }
+
+    /**
+     * La couleur d'une clé : celle de la publication si elle en pose une,
+     * sinon celle du thème, sinon rien. Les deux passent par le même filtre.
+     *
+     * @param array<string, string|null> $overrides
+     * @param array<string, mixed>       $config
+     */
+    private function configured(string $key, array $overrides, array $config): ?string
+    {
+        return $this->surfaceColor($overrides[$key] ?? null) ?? $this->surfaceColor($config[$key] ?? null);
     }
 
     /**
