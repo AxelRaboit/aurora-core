@@ -10,6 +10,7 @@ use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
 use Aurora\Module\Notes\Markdown\Dto\MarkdownNoteInputInterface;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNote;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
+use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteRevision;
 use Aurora\Module\Notes\Markdown\Enum\NoteAppearanceEnum;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteImageService;
@@ -132,7 +133,7 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
             $this->renameWikiLinks($note, $oldTitle, $newTitle);
         }
 
-        $this->cleanupOrphanedImages($this->imageService->bucketOf($note), $oldContent, $note->getContent());
+        $this->cleanupOrphanedImages($this->imageService->bucketOf($note), $oldContent, $note->getContent(), $note);
 
         $this->entityManager->flush();
 
@@ -217,7 +218,7 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
         ));
 
         foreach ($notes as $note) {
-            $this->cleanupOrphanedImages($this->imageService->bucketOf($note), $note->getContent(), null);
+            $this->cleanupOrphanedImages($this->imageService->bucketOf($note), $this->contentWithHistory($note), null);
             $this->entityManager->remove($note);
         }
 
@@ -237,7 +238,8 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
         $this->noteRepository->shiftAfter($space, $folderId, $note->getPosition());
         $this->folderRepository->shiftAfter($space, $folderId, $note->getPosition());
 
-        $copy = $this->copyOf($user, $note, $note->getFolder(), $space, $title, $note->getContent());
+        $bucket = $this->imageService->bucketOf($note);
+        $copy = $this->copyOf($user, $note, $note->getFolder(), $space, $title, $this->imageService->copyAsNew($note->getContent(), $bucket, $bucket));
         $copy->setPosition($note->getPosition() + 1);
         $copy->setTemplate($note->isTemplate());
 
@@ -251,19 +253,15 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
 
     public function createFromTemplate(CoreUserInterface $user, MarkdownNoteInterface $template, ?NoteFolderInterface $folder, NoteSpaceInterface $space, string $title, array $replacements = []): MarkdownNoteInterface
     {
-        $content = strtr((string) $template->getContent(), $replacements);
+        // Its own copies of the template's pictures, in the space it is
+        // written in: shared files would vanish from the template the day
+        // the new note drops them.
+        $content = $this->imageService->copyAsNew(strtr((string) $template->getContent(), $replacements), $this->imageService->bucketOf($template), $space);
         $note = $this->copyOf($user, $template, $folder, $space, strtr($title, $replacements), $content);
         $note->setPosition($this->nextPosition($space, $folder?->getId()));
 
         $this->entityManager->persist($note);
         $this->entityManager->flush();
-
-        // The template's images are named after files in its own space: a
-        // copy written in another space needs them there too, or its readers
-        // see broken pictures.
-        if ($space->getId() !== $template->getSpace()->getId()) {
-            $this->imageService->copyReferenced($content, $this->imageService->bucketOf($template), $space);
-        }
 
         $this->auditCreated($note);
 
@@ -799,7 +797,7 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
      * client that picks a different image URL scheme can override this
      * method to scan its own pattern instead.
      */
-    protected function cleanupOrphanedImages(CoreUserInterface|NoteSpaceInterface $user, ?string $oldContent, ?string $newContent): void
+    protected function cleanupOrphanedImages(CoreUserInterface|NoteSpaceInterface $user, ?string $oldContent, ?string $newContent, ?MarkdownNoteInterface $note = null): void
     {
         $oldFilenames = $this->imageService->extractFilenames($oldContent);
         if ([] === $oldFilenames) {
@@ -807,11 +805,54 @@ class MarkdownNoteManager implements MarkdownNoteManagerInterface
         }
 
         $newFilenames = $this->imageService->extractFilenames($newContent);
-        $orphans = array_diff($oldFilenames, $newFilenames);
+        $orphans = array_diff($oldFilenames, $newFilenames, $note instanceof MarkdownNoteInterface ? $this->filenamesInRevisions($note, $oldFilenames) : []);
 
         foreach ($orphans as $filename) {
             $this->imageService->delete($filename, $user);
         }
+    }
+
+    /**
+     * The note's text and every past version's, for the pictures that go when
+     * the note goes for good: a picture only an old version showed would
+     * otherwise stay in storage with nothing left to cite it.
+     */
+    protected function contentWithHistory(MarkdownNoteInterface $note): string
+    {
+        $texts = [(string) $note->getContent()];
+        foreach ($this->entityManager->getRepository(MarkdownNoteRevision::class)->findBy(['note' => $note]) as $revision) {
+            $texts[] = (string) $revision->getContent();
+        }
+
+        return implode("\n", $texts);
+    }
+
+    /**
+     * Among these pictures, the ones a past version of a note still shows.
+     *
+     * A picture dropped from the text stays in storage while a version cites
+     * it: restoring that version must bring the picture back with it.
+     *
+     * @param list<string> $filenames
+     *
+     * @return list<string>
+     */
+    protected function filenamesInRevisions(MarkdownNoteInterface $note, array $filenames): array
+    {
+        if ([] === $filenames) {
+            return [];
+        }
+
+        $kept = [];
+        foreach ($this->entityManager->getRepository(MarkdownNoteRevision::class)->findBy(['note' => $note]) as $revision) {
+            foreach ($this->imageService->extractFilenames($revision->getContent()) as $filename) {
+                if (in_array($filename, $filenames, true)) {
+                    $kept[$filename] = $filename;
+                }
+            }
+        }
+
+        return array_values($kept);
     }
 
     /**

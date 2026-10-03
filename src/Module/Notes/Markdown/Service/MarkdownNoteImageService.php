@@ -220,6 +220,43 @@ final readonly class MarkdownNoteImageService
     }
 
     /**
+     * Le texte d'une note copiée, avec ses images copiées sous des noms neufs.
+     *
+     * Une copie (dupliquer, partir d'un modèle) ne partage pas ses fichiers
+     * avec l'original : retirer une image de l'une la supprime du stockage
+     * (le nettoyage des images orphelines), et l'autre afficherait une image
+     * cassée. Une image introuvable garde sa référence telle quelle.
+     */
+    public function copyAsNew(?string $content, CoreUserInterface|NoteSpaceInterface $from, CoreUserInterface|NoteSpaceInterface $to): ?string
+    {
+        if (null === $content || '' === $content) {
+            return $content;
+        }
+
+        /** @var array<string, string> $renamed */
+        $renamed = [];
+
+        return (string) preg_replace_callback(self::FILENAME_PATTERN, function (array $match) use (&$renamed, $from, $to): string {
+            $filename = $match[1];
+
+            if (!isset($renamed[$filename])) {
+                $bytes = $this->contents($filename, $from);
+                $copy = StoredFileName::withExtension(mb_strtolower(pathinfo($filename, PATHINFO_EXTENSION)));
+                $target = $this->keyOrNull($copy, $to);
+
+                if (null === $bytes || null === $target) {
+                    return $match[0];
+                }
+
+                $this->storageManager->active()->write($target, $bytes);
+                $renamed[$filename] = $copy;
+            }
+
+            return str_replace($filename, $renamed[$filename], $match[0]);
+        }, $content);
+    }
+
+    /**
      * Extract every image filename referenced by a markdown blob. Used
      * by the orphan-cleanup hook to compute set differences between
      * an old and a new content version.

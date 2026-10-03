@@ -9,6 +9,12 @@ backend:
     notes_markdown_image_quality_pct:
       label: Notes Markdown - Qualité d'encodage WebP (%)
       description: "Notes Markdown : qualité WebP appliquée au redimensionnement, entre 0 et 100. Recommandé : 85 (bon compromis taille/qualité)."
+    notes_markdown_revisions_limit:
+      label: Notes Markdown - Versions gardées par note
+      description: "Notes Markdown : combien de versions passées chaque note garde dans son historique, les plus anciennes partant d'abord. 0 les garde toutes. Recommandé : 50."
+    notes_markdown_revision_interval_minutes:
+      label: Notes Markdown - Écart entre deux versions (minutes)
+      description: "Notes Markdown : l'éditeur enregistre toutes les quelques secondes ; une nouvelle version n'est gardée que si la précédente a au moins ce nombre de minutes. Restaurer une version garde toujours l'état courant. Recommandé : 10."
   permissions:
     names:
       notes:
@@ -340,6 +346,20 @@ notes:
       empty_hint: 'Les titres de la note, écrits avec # ou ##, apparaissent ici : un clic y mène.'
       words: 'Aucun mot | 1 mot | {count} mots'
       minutes: '{minutes} min de lecture'
+    revisions:
+      open: 'Historique des versions'
+      title: 'Historique de la note'
+      empty: 'Aucune version passée pour l''instant'
+      empty_hint: 'Une version est gardée quand vous modifiez la note, au plus une toutes les quelques minutes (réglages, onglet Notes).'
+      no_author: 'Auteur inconnu'
+      since: 'Depuis cette version : {added} ligne(s) ajoutée(s), {removed} retirée(s)'
+      show_whole: 'Voir la version entière'
+      show_changes: 'Voir les changements'
+      title_was: 'Le titre était alors : {title}'
+      restore: 'Restaurer cette version'
+      restore_now: 'Restaurer maintenant'
+      restore_confirm: 'Le texte actuel sera gardé comme une version : vous pourrez y revenir.'
+      restored: 'Version restaurée'
     duplicate:
       action: 'Dupliquer'
       title: 'Copie de {title}'

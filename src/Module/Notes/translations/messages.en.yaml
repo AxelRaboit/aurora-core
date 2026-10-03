@@ -9,6 +9,12 @@ backend:
     notes_markdown_image_quality_pct:
       label: Notes Markdown - WebP encoding quality (%)
       description: "Notes Markdown: WebP quality applied during the resize, 0 to 100. Recommended: 85 (good size/quality trade-off)."
+    notes_markdown_revisions_limit:
+      label: Markdown notes - Versions kept per note
+      description: "Markdown notes: how many past versions each note keeps in its history, the oldest going first. 0 keeps them all. Recommended: 50."
+    notes_markdown_revision_interval_minutes:
+      label: Markdown notes - Time between two versions (minutes)
+      description: "Markdown notes: the editor saves every few seconds; a new version is kept only when the previous one is at least this many minutes old. Restoring a version always keeps the current state. Recommended: 10."
   permissions:
     names:
       notes:
@@ -340,6 +346,20 @@ notes:
       empty_hint: 'The note''s headings, written with # or ##, show here: a click takes you there.'
       words: 'No words | 1 word | {count} words'
       minutes: '{minutes} min read'
+    revisions:
+      open: 'Version history'
+      title: 'Note history'
+      empty: 'No past version yet'
+      empty_hint: 'A version is kept when you edit the note, at most one every few minutes (settings, Notes tab).'
+      no_author: 'Unknown author'
+      since: 'Since this version: {added} line(s) added, {removed} removed'
+      show_whole: 'Show the whole version'
+      show_changes: 'Show the changes'
+      title_was: 'The title was then: {title}'
+      restore: 'Restore this version'
+      restore_now: 'Restore now'
+      restore_confirm: 'The current text will be kept as a version: you can come back to it.'
+      restored: 'Version restored'
     duplicate:
       action: 'Duplicate'
       title: 'Copy of {title}'

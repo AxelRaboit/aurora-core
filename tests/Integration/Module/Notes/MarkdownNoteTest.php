@@ -605,6 +605,94 @@ final class MarkdownNoteTest extends IntegrationTestCase
     }
 
     /**
+     * L'historique : une modification garde l'état qu'elle remplace, mais pas
+     * à chaque frappe. Deux enregistrements à quelques secondes ne font
+     * qu'une version (l'intervalle des réglages).
+     */
+    public function testEditingANoteKeepsThePreviousVersionOncePerInterval(): void
+    {
+        $note = $this->note($this->owner, 'Brief', null, 'Version 1');
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->post('backend_notes_markdown_update', ['title' => 'Brief', 'content' => 'Version 2'], ['id' => $note->getId()]);
+        self::assertResponseIsSuccessful();
+        $this->post('backend_notes_markdown_update', ['title' => 'Brief', 'content' => 'Version 3'], ['id' => $note->getId()]);
+        self::assertResponseIsSuccessful();
+
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_revisions', ['id' => $note->getId()]));
+        $revisions = json_decode((string) $this->client->getResponse()->getContent(), true)['revisions'];
+
+        self::assertCount(1, $revisions);
+
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_revision', ['id' => $note->getId(), 'revisionId' => $revisions[0]['id']]));
+        self::assertSame('Version 1', json_decode((string) $this->client->getResponse()->getContent(), true)['revision']['content']);
+    }
+
+    /** Restaurer remet une version et garde d'abord l'état courant : rien ne se perd. */
+    public function testRestoringAVersionKeepsTheCurrentStateFirst(): void
+    {
+        $note = $this->note($this->owner, 'Brief', null, 'Ancien texte');
+
+        $this->client->loginUser($this->owner, 'admin');
+        $this->post('backend_notes_markdown_update', ['title' => 'Brief', 'content' => 'Nouveau texte'], ['id' => $note->getId()]);
+
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_revisions', ['id' => $note->getId()]));
+        $old = json_decode((string) $this->client->getResponse()->getContent(), true)['revisions'][0]['id'];
+
+        $body = $this->post('backend_notes_markdown_revision_restore', [], ['id' => $note->getId(), 'revisionId' => $old]);
+        self::assertResponseIsSuccessful();
+        self::assertSame('Ancien texte', $body['note']['content']);
+
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_revisions', ['id' => $note->getId()]));
+        $revisions = json_decode((string) $this->client->getResponse()->getContent(), true)['revisions'];
+        self::assertCount(2, $revisions);
+
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_revision', ['id' => $note->getId(), 'revisionId' => $revisions[0]['id']]));
+        self::assertSame('Nouveau texte', json_decode((string) $this->client->getResponse()->getContent(), true)['revision']['content']);
+    }
+
+    /**
+     * Une image retirée du texte reste tant qu'une version passée la montre :
+     * sinon restaurer cette version rendrait une image cassée.
+     */
+    public function testAnImageOnlyAnOldVersionShowsIsKept(): void
+    {
+        $this->client->loginUser($this->owner, 'admin');
+
+        $source = (string) tempnam(sys_get_temp_dir(), 'aurora-test-image-');
+        file_put_contents($source, (string) base64_decode(
+            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+            true,
+        ));
+        $this->client->request(
+            'POST',
+            $this->urlGenerator->generate('backend_notes_markdown_images_upload'),
+            files: ['image' => new UploadedFile($source, 'pixel.png', 'image/png', null, true)],
+        );
+        $url = json_decode((string) $this->client->getResponse()->getContent(), true)['url'];
+
+        $note = $this->post('backend_notes_markdown_create', ['title' => 'Illustrée', 'content' => sprintf('![Un pixel](%s)', $url)]);
+        $this->created[] = [MarkdownNote::class, (int) $note['note']['id']];
+
+        $this->post('backend_notes_markdown_update', ['title' => 'Illustrée', 'content' => 'Sans image'], ['id' => $note['note']['id']]);
+        self::assertResponseIsSuccessful();
+
+        $this->client->request('GET', $url);
+        self::assertResponseIsSuccessful();
+    }
+
+    /** L'historique d'une note se lit avec la note, pas sans. */
+    public function testAnotherPersonCannotReadTheHistory(): void
+    {
+        $note = $this->note($this->owner, 'Personnel', null, 'Secret');
+
+        $this->client->loginUser($this->other, 'admin');
+        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_revisions', ['id' => $note->getId()]));
+
+        self::assertResponseStatusCodeSame(404);
+    }
+
+    /**
      * Un dossier ne se range pas sous son propre enfant, même quand l'enfant
      * n'est pas dans la requête : la boucle se lit aussi dans les parents
      * déjà enregistrés.

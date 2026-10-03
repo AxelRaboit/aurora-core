@@ -9,6 +9,12 @@ backend:
         notes_markdown_image_quality_pct:
             label: 'Notas Markdown - Calidad de codificación WebP (%)'
             description: 'Notas Markdown: calidad WebP aplicada al redimensionar, entre 0 y 100. Recomendado: 85 (buen equilibrio tamaño/calidad).'
+        notes_markdown_revisions_limit:
+            label: 'Notas Markdown - Versiones guardadas por nota'
+            description: 'Notas Markdown: cuántas versiones anteriores guarda cada nota en su historial; las más antiguas se van primero. 0 las guarda todas. Recomendado: 50.'
+        notes_markdown_revision_interval_minutes:
+            label: 'Notas Markdown - Intervalo entre dos versiones (minutos)'
+            description: 'Notas Markdown: el editor guarda cada pocos segundos; solo se guarda una nueva versión si la anterior tiene al menos estos minutos. Restaurar una versión siempre guarda el estado actual. Recomendado: 10.'
     permissions:
         names:
             notes:
@@ -342,6 +348,20 @@ notes:
             empty_hint: 'Los títulos de la nota, escritos con # o ##, aparecen aquí: un clic lleva a ellos.'
             words: 'Ninguna palabra | 1 palabra | {count} palabras'
             minutes: '{minutes} min de lectura'
+        revisions:
+            open: 'Historial de versiones'
+            title: 'Historial de la nota'
+            empty: 'Ninguna versión anterior por ahora'
+            empty_hint: 'Se guarda una versión cuando modifica la nota, como mucho una cada pocos minutos (ajustes, pestaña Notas).'
+            no_author: 'Autor desconocido'
+            since: 'Desde esta versión: {added} línea(s) añadida(s), {removed} quitada(s)'
+            show_whole: 'Ver la versión entera'
+            show_changes: 'Ver los cambios'
+            title_was: 'El título era entonces: {title}'
+            restore: 'Restaurar esta versión'
+            restore_now: 'Restaurar ahora'
+            restore_confirm: 'El texto actual se guardará como una versión: podrá volver a él.'
+            restored: 'Versión restaurada'
         duplicate:
             action: 'Duplicar'
             title: 'Copia de {title}'

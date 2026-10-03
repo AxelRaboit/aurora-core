@@ -19,16 +19,20 @@ use Aurora\Module\Notes\Folder\Repository\NoteFolderRepository;
 use Aurora\Module\Notes\Markdown\Dto\MarkdownNoteInputFactoryInterface;
 use Aurora\Module\Notes\Markdown\Dto\MarkdownNoteReorderInputFactoryInterface;
 use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteInterface;
+use Aurora\Module\Notes\Markdown\Entity\MarkdownNoteRevision;
 use Aurora\Module\Notes\Markdown\Manager\MarkdownNoteManagerInterface;
 use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRepository;
+use Aurora\Module\Notes\Markdown\Repository\MarkdownNoteRevisionRepository;
 use Aurora\Module\Notes\Markdown\Serializer\MarkdownNoteSerializerInterface;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteArchive;
+use Aurora\Module\Notes\Markdown\Service\MarkdownNoteHistory;
 use Aurora\Module\Notes\Markdown\Service\MarkdownNoteImporter;
 use Aurora\Module\Notes\Markdown\View\MarkdownNotesViewBuilder;
 use Aurora\Module\Notes\Space\Entity\NoteSpaceInterface;
 use Aurora\Module\Notes\Space\Service\NoteSpaceAccess;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use DateTimeImmutable;
+use DateTimeInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -71,6 +75,8 @@ final class MarkdownNotesController extends AbstractController
         private readonly NoteFavoriteManagerInterface $favorites,
         private readonly TranslatorInterface $translator,
         private readonly SiteDateFormatter $dates,
+        private readonly MarkdownNoteHistory $history,
+        private readonly MarkdownNoteRevisionRepository $revisions,
     ) {}
 
     /**
@@ -499,6 +505,10 @@ final class MarkdownNotesController extends AbstractController
             return $this->jsonInvalidInput($errors);
         }
 
+        // L'état qu'on va remplacer devient une version, si la dernière est
+        // assez ancienne (réglages > Notes) : de quoi revenir en arrière.
+        $this->history->beforeChange($note, $input->getTitle(), $input->getContent(), $user);
+
         $this->manager->update($note, $input);
 
         // L'extrait voyage avec la note enregistrée : la carte de la
@@ -528,6 +538,73 @@ final class MarkdownNotesController extends AbstractController
         return $this->jsonSuccess();
     }
 
+    /** Les versions passées d'une note qu'on peut lire, les plus récentes d'abord. */
+    #[Route('/{id}/revisions', name: '_revisions', methods: [HttpMethodEnum::Get->value])]
+    public function revisions(int $id): JsonResponse
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        $note = $this->spaceAccess->readableNote($user, $id);
+        if (!$note instanceof MarkdownNoteInterface) {
+            return $this->jsonNotFound();
+        }
+
+        return $this->jsonSuccess(['revisions' => array_map(
+            static fn (MarkdownNoteRevision $revision): array => [
+                'id' => $revision->getId(),
+                'createdAt' => $revision->getCreatedAt()->format(DateTimeInterface::ATOM),
+                'authorName' => $revision->getAuthor()?->getName(),
+                'title' => $revision->getTitle(),
+            ],
+            $this->revisions->findForNote($note),
+        )]);
+    }
+
+    /** Une version passée, son titre et son texte. */
+    #[Route('/{id}/revisions/{revisionId}', name: '_revision', requirements: ['revisionId' => '\d+|__revisionId__'], methods: [HttpMethodEnum::Get->value])]
+    public function revision(int $id, int $revisionId): JsonResponse
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        $note = $this->spaceAccess->readableNote($user, $id);
+        $revision = $note instanceof MarkdownNoteInterface ? $this->revisions->findOneForNote($note, $revisionId) : null;
+        if (!$revision instanceof MarkdownNoteRevision) {
+            return $this->jsonNotFound();
+        }
+
+        return $this->jsonSuccess(['revision' => [
+            'id' => $revision->getId(),
+            'createdAt' => $revision->getCreatedAt()->format(DateTimeInterface::ATOM),
+            'authorName' => $revision->getAuthor()?->getName(),
+            'title' => $revision->getTitle(),
+            'content' => $revision->getContent(),
+        ]]);
+    }
+
+    /**
+     * Revenir à une version : l'état courant devient d'abord une version à
+     * son tour, pour que restaurer ne fasse rien perdre. Il faut pouvoir
+     * écrire la note.
+     */
+    #[Route('/{id}/revisions/{revisionId}/restore', name: '_revision_restore', requirements: ['revisionId' => '\d+|__revisionId__'], methods: [HttpMethodEnum::Post->value])]
+    public function restoreRevision(int $id, int $revisionId): JsonResponse
+    {
+        /** @var CoreUserInterface $user */
+        $user = $this->getUser();
+
+        $note = $this->spaceAccess->writableNote($user, $id);
+        $revision = $note instanceof MarkdownNoteInterface ? $this->revisions->findOneForNote($note, $revisionId) : null;
+        if (!$note instanceof MarkdownNoteInterface || !$revision instanceof MarkdownNoteRevision) {
+            return $this->jsonNotFound();
+        }
+
+        $this->history->restore($note, $revision, $user);
+
+        return $this->jsonSuccess(['note' => $this->serializer->serializeDetail($note)]);
+    }
+
     /**
      * Une copie de la note, juste sous elle : même dossier, même texte, même
      * apparence, nommée « Copie de … ». Il faut pouvoir lire la note et
@@ -544,7 +621,7 @@ final class MarkdownNotesController extends AbstractController
             return $this->jsonNotFound();
         }
 
-        $title = $this->translator->trans('notes.markdown.duplicate.title', ['{title}' => (string) ($note->getTitle() ?? '')]);
+        $title = $this->translator->trans('notes.markdown.duplicate.title', ['{title}' => $note->getTitle() ?? '']);
         $copy = $this->manager->duplicate($user, $note, $title);
 
         return $this->jsonSuccess(['note' => $this->serializer->serializeDetail($copy)]);
@@ -591,6 +668,7 @@ final class MarkdownNotesController extends AbstractController
             if (!$folder instanceof NoteFolderInterface || $folder->isTrashed()) {
                 return $this->jsonNotFound();
             }
+
             $space = $folder->getSpace();
         } elseif (isset($data['spaceId']) && is_numeric($data['spaceId'])) {
             $space = $this->spaceAccess->writableSpace($user, (int) $data['spaceId']);
@@ -598,6 +676,7 @@ final class MarkdownNotesController extends AbstractController
                 return $this->jsonNotFound();
             }
         }
+
         $space ??= $this->spaceAccess->personalSpace($user);
 
         $title = mb_trim((string) ($data['title'] ?? ''));
@@ -606,7 +685,7 @@ final class MarkdownNotesController extends AbstractController
             $template,
             $folder,
             $space,
-            '' !== $title ? $title : (string) ($template->getTitle() ?? ''),
+            '' !== $title ? $title : $template->getTitle() ?? '',
             ['{{date}}' => $this->dates->date(new DateTimeImmutable())],
         );
 

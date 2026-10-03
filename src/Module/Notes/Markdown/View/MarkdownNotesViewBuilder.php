@@ -356,6 +356,7 @@ final readonly class MarkdownNotesViewBuilder
         foreach ($childrenOf as &$children) {
             usort($children, static fn (array $a, array $b): int => $a <=> $b);
         }
+
         unset($children);
 
         $order = [];
@@ -450,6 +451,9 @@ final readonly class MarkdownNotesViewBuilder
             'duplicatePath' => $this->urlGenerator->generate('backend_notes_markdown_duplicate', ['id' => '__id__']),
             'templatePath' => $this->urlGenerator->generate('backend_notes_markdown_template', ['id' => '__id__']),
             'fromTemplatePath' => $this->urlGenerator->generate('backend_notes_markdown_from_template', ['id' => '__id__']),
+            'revisionsPath' => $this->urlGenerator->generate('backend_notes_markdown_revisions', ['id' => '__id__']),
+            'revisionPath' => $this->urlGenerator->generate('backend_notes_markdown_revision', ['id' => '__id__', 'revisionId' => '__revisionId__']),
+            'revisionRestorePath' => $this->urlGenerator->generate('backend_notes_markdown_revision_restore', ['id' => '__id__', 'revisionId' => '__revisionId__']),
             'backlinksPath' => $this->urlGenerator->generate('backend_notes_markdown_backlinks', ['id' => '__id__']),
             'unlinkedMentionsPath' => $this->urlGenerator->generate('backend_notes_markdown_unlinked_mentions', ['id' => '__id__']),
             'graphPath' => $this->urlGenerator->generate('backend_notes_markdown_graph'),

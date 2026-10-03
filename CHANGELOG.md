@@ -24,6 +24,13 @@ Dans l'arborescence des notes, on ne pouvait pas mettre une note avant un dossie
 #### Notes : le plan de la note
 Le panneau latéral d'une note, renommé « Sur cette note », gagne un onglet **Plan** à côté des liens entrants et des mentions : les titres de la note, en retrait selon leur niveau, et un clic qui y mène, dans l'aperçu comme en écriture (le curseur se place sur la ligne). En pied, le nombre de mots et le temps de lecture. Le plan se lit dans le texte, au fil de la frappe, sans rien demander au serveur ; ce qui est dans un bloc de code ne compte ni comme titre ni comme mot.
 
+#### Notes : l'historique des versions
+« Historique des versions » (menu Actions d'une note) liste les états passés de la note, avec leur date et leur auteur, et montre ce qui a changé depuis chacun : les lignes retirées en rouge, les ajoutées en vert, ou la version entière d'un clic. « Restaurer cette version » la remet en place après confirmation, en gardant d'abord le texte courant comme une version : revenir en arrière ne fait rien perdre et se défait de la même façon.
+- Une version est gardée quand on modifie une note, mais pas à chaque frappe : au plus une toutes les 10 minutes, et 50 par note au plus. Les deux valeurs se règlent dans les Réglages, onglet Notes (0 pour tout garder).
+- Le titre et le texte des versions sont chiffrés, comme ceux des notes.
+- Une image retirée du texte reste en stockage tant qu'une version passée la montre ; elle part avec la note quand celle-ci est supprimée pour de bon.
+- Dupliquer une note ou partir d'un modèle copie maintenant ses images sous de nouveaux noms : la copie et l'original ne partagent plus de fichier, que le nettoyage de l'un pouvait retirer à l'autre.
+
 ### Corrigé
 - **`braces` est corrigé, plus seulement ignoré.** L'avis GHSA-vfj7-8cjw-p6xm (braces <= 3.0.3, aucune version corrigée publiée) visait des fonctions récursives sans limite de profondeur : cinq mille accolades imbriquées, sous la limite de longueur, faisaient planter Node sur « Maximum call stack size exceeded ». Une copie de braces 3.0.3 corrigée vit dans `tools/patched/braces` : elle refuse une imbrication de plus de 500 niveaux, comme braces refuse déjà une entrée trop longue, et un `override` de `pnpm-workspace.yaml` l'impose à tout l'arbre. L'avis n'est plus ignoré : `pnpm audit` ne trouve plus rien, avec pnpm 10 (la CI) comme 11. Un `file:` plutôt qu'un `pnpm patch`, que les deux versions de pnpm n'écrivent pas de la même façon dans le lockfile. Un test Vitest vérifie que la copie servie est bien la corrigée.
 

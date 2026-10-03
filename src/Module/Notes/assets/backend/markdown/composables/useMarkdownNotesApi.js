@@ -73,6 +73,26 @@ export function useMarkdownNotesApi(props) {
             call(HttpMethod.Post, resolvePath(props.templatePath, id), {
                 template,
             }),
+        /** Les versions passées d'une note, les plus récentes d'abord. */
+        revisions: (id) =>
+            call(HttpMethod.Get, resolvePath(props.revisionsPath, id)),
+        revision: (id, revisionId) =>
+            call(
+                HttpMethod.Get,
+                resolvePath(props.revisionPath, id).replace(
+                    "__revisionId__",
+                    String(revisionId),
+                ),
+            ),
+        restoreRevision: (id, revisionId) =>
+            call(
+                HttpMethod.Post,
+                resolvePath(props.revisionRestorePath, id).replace(
+                    "__revisionId__",
+                    String(revisionId),
+                ),
+                {},
+            ),
         /** Une note neuve depuis un modèle : `{folderId, spaceId, title}`. */
         fromTemplate: (id, payload) =>
             call(

@@ -11,6 +11,7 @@ import AppBackLink from '@/shared/components/nav/AppBackLink.vue';
 import NoteLibrary from '@notes/backend/markdown/components/NoteLibrary.vue';
 import NotePreview from '@notes/backend/markdown/components/NotePreview.vue';
 import NoteSidePanel from '@notes/backend/markdown/components/NoteSidePanel.vue';
+import NoteRevisionsModal from '@notes/backend/markdown/components/NoteRevisionsModal.vue';
 import { outlineOf } from '@notes/backend/markdown/composables/noteOutline.js';
 import NoteTagManagerModal from '@notes/backend/markdown/components/NoteTagManagerModal.vue';
 import NoteShareModal from '@notes/backend/markdown/components/NoteShareModal.vue';
@@ -28,7 +29,7 @@ import AppTab from '@shared/components/nav/AppTab.vue';
 import AppPageActions from '@shared/components/action/AppPageActions.vue';
 import { computed, nextTick, onErrorCaptured, onMounted, onUnmounted, watch } from 'vue';
 import { onPanelRequest, tellPanels } from '@/shared/nav/modulePanelBridge.js';
-import { ChevronRight, Trash2, BookOpen, Copy, FileDown, Image, LayoutTemplate, PanelRightOpen, PanelRightClose, Star, StarOff, Tag, TriangleAlert, X, Network, Share2 } from 'lucide-vue-next';
+import { ChevronRight, Trash2, BookOpen, Copy, FileDown, History, Image, LayoutTemplate, PanelRightOpen, PanelRightClose, Star, StarOff, Tag, TriangleAlert, X, Network, Share2 } from 'lucide-vue-next';
 import AppNoData from '@shared/components/feedback/AppNoData.vue';
 import "@notes/share/appearance.css";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
@@ -68,6 +69,9 @@ const props = defineProps({
     duplicatePath: { type: String, default: '' },
     templatePath: { type: String, default: '' },
     fromTemplatePath: { type: String, default: '' },
+    revisionsPath: { type: String, default: '' },
+    revisionPath: { type: String, default: '' },
+    revisionRestorePath: { type: String, default: '' },
     backlinksPath: { type: String, required: true },
     unlinkedMentionsPath: { type: String, required: true },
     graphPath: { type: String, required: true },
@@ -341,6 +345,9 @@ const isFavorite = computed(() => Boolean(selectedNote.value?.favoritedAt));
  * d'affichage, les étiquettes et les liens se touchent en écrivant. Les
  * douze sur une ligne ne laissaient plus de place au titre.
  */
+/** L'historique des versions de la note ouverte. */
+const historyOpen = ref(false);
+
 const noteActions = computed(() => {
     const actions = [
         {
@@ -391,6 +398,21 @@ const noteActions = computed(() => {
             icon: Network,
             onSelect: () => {
                 graphOpen.value = true;
+            },
+        },
+        {
+            key: "history",
+            title: t('notes.markdown.revisions.open'),
+            icon: History,
+            onSelect: async () => {
+                // Ce qui attend d'être enregistré part d'abord : comparer avec
+                // un texte que le serveur n'a pas encore serait trompeur.
+                await flushPendingSave();
+                // Le menu s'est refermé pendant l'attente, et son retour
+                // d'historique n'a pas encore abouti : la fenêtre ouverte
+                // avant pousserait son entrée sous ce retour.
+                await overlaysSettled();
+                historyOpen.value = true;
             },
         },
         {
@@ -475,6 +497,25 @@ function jumpToHeading(heading) {
 
 function outlineOfContent() {
     return outlineOf(form.value.content ?? '');
+}
+
+/** Peut-on écrire la note ouverte : son espace le dit (`canWrite`). */
+const canEditSelected = computed(() => {
+    const spaceId = selectedNote.value?.spaceId ?? null;
+
+    return Boolean(spaces.value.find((space) => Number(space.id) === Number(spaceId))?.canWrite ?? true);
+});
+
+/** Une version vient d'être restaurée : la note se recharge depuis le serveur. */
+async function onRevisionRestored(note) {
+    historyOpen.value = false;
+    // La fenêtre retire son entrée d'historique en différé : rouvrir la note
+    // avant, c'est pousser l'adresse sous ce retour, qui remonterait alors
+    // d'un cran de trop et quitterait la page.
+    await overlaysSettled();
+    await refreshList();
+    await openNote(note.id);
+    toast.success(t('notes.markdown.revisions.restored'));
 }
 
 /** Une copie de la note ouverte, juste sous elle, qu'on ouvre aussitôt. */
@@ -1406,6 +1447,16 @@ onUnmounted(() => {
                 :api="tagsApi"
                 v-on:close="tagManagerOpen = false"
                 v-on:changed="onTagsChanged"
+            />
+
+            <NoteRevisionsModal
+                :show="historyOpen && null !== selectedId"
+                :note-id="selectedId"
+                :current="{ title: form.title, content: form.content }"
+                :api="api"
+                :can-restore="canEditSelected"
+                v-on:close="historyOpen = false"
+                v-on:restored="onRevisionRestored"
             />
 
             <NoteSidePanel
