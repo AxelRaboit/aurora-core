@@ -12,6 +12,8 @@ use Aurora\Core\Locale\Entity\LocaleInterface;
 use Aurora\Core\Locale\Enum\LocaleEnum;
 use Aurora\Core\Notification\Entity\Notification;
 use Aurora\Core\Notification\Entity\NotificationInterface;
+use Aurora\Module\Beacon\Entity\DeployedInstance;
+use Aurora\Module\Beacon\Entity\DeployedInstanceInterface;
 use Aurora\Module\Configuration\Setting\Entity\Setting;
 use Aurora\Module\Configuration\Setting\Entity\SettingInterface;
 use Aurora\Module\Configuration\Theme\Entity\Theme;
@@ -248,6 +250,7 @@ class AuroraBundle extends AbstractBundle
                 'resolve_target_entities' => [
                     CoreUserInterface::class => User::class,
                     AuditLogInterface::class => AuditLog::class,
+                    DeployedInstanceInterface::class => DeployedInstance::class,
                     AccessRequestInterface::class => AccessRequest::class,
                     ResetPasswordRequestInterface::class => ResetPasswordRequest::class,
                     LocaleInterface::class => Locale::class,

@@ -16,6 +16,13 @@ parameters:
     app.upload_dir: '%kernel.project_dir%/var/uploads'
     # L'origine du serveur Vite en développement, admise par la CSP.
     app.vite_dev_server: 'http://localhost:5173'
+    # Le beacon : chaque instance déployée ping ce récepteur une fois par jour,
+    # pour repérer une mise en production non autorisée du code (voir LICENSE).
+    # BEACON_SECRET vit côté client (pas dans ce dépôt public) et ne sert qu'à
+    # marquer les instances « vérifiées ✓ », jamais à rejeter un ping.
+    app.beacon_url: '%env(BEACON_URL)%'
+    app.beacon_secret: '%env(BEACON_SECRET)%'
+    app.beacon_enabled: '%env(bool:BEACON_ENABLED)%'
 
 services:
     # default configuration for services in *this* file

@@ -116,6 +116,8 @@ backend:
         header_text_hidden_on_phone_hint: 'El nombre del sitio desaparece de la barra superior por debajo de 640 px de ancho; los lectores de pantalla lo siguen leyendo.'
         reading_progress: 'Barra de lectura'
         reading_progress_hint: 'Una fina barra en la parte superior de cada página del sitio se llena a medida que se desplaza.'
+        watermark_visible: 'Crédito en el pie'
+        watermark_visible_hint: 'Un pequeño enlace de crédito en el pie de página. Sirve de marca pública para detectar un uso no autorizado del código.'
         header_text_placeholder: 'Mi sitio'
         config_hint: 'Variables disponibles: --th-bg, --th-surface, --th-surface-2, --th-primary, --th-secondary, --th-muted, --th-accent, --th-accent-hover'
         config_placeholder: |-
