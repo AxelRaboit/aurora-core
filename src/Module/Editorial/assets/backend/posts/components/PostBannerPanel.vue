@@ -64,6 +64,7 @@ const {
     heightOptions,
     alignOptions,
     titleIconPositionOptions,
+    titleIconSizeOptions,
     fillOptions,
     widthModeOptions,
     verticalAlignOptions,
@@ -340,17 +341,24 @@ const { html: previewHtml, loading: previewLoading } = useServerPreview(
                             :options="fontOptions"
                         />
                         <!-- A logo beside the title, as tall as its letters. -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <AppImagePickerField
-                                v-model="itemFields(index).titleIcon.value"
-                                :label="t('backend.posts.banner.title_icon')"
-                                :hint="t('backend.posts.banner.title_icon_hint')"
-                            />
+                        <AppImagePickerField
+                            v-model="itemFields(index).titleIcon.value"
+                            :label="t('backend.posts.banner.title_icon')"
+                            :hint="t('backend.posts.banner.title_icon_hint')"
+                        />
+                        <div
+                            v-if="itemFields(index).titleIcon.value.id"
+                            class="grid grid-cols-1 sm:grid-cols-2 gap-4"
+                        >
                             <AppSelect
-                                v-if="itemFields(index).titleIcon.value.id"
                                 v-model="itemFields(index).titleIconPosition.value"
                                 :label="t('backend.posts.banner.title_icon_position')"
                                 :options="titleIconPositionOptions"
+                            />
+                            <AppSelect
+                                v-model="itemFields(index).titleIconSize.value"
+                                :label="t('backend.posts.banner.title_icon_size')"
+                                :options="titleIconSizeOptions"
                             />
                         </div>
                     </template>

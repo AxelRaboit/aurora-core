@@ -109,6 +109,7 @@ function newItem(type) {
         titleIconId: null,
         titleIcon: null,
         titleIconPosition: "before",
+        titleIconSize: "md",
         buttonColor: null,
         buttonTextColor: null,
         // The site's accent, read from the theme at render.
@@ -283,6 +284,11 @@ export function usePostBanner(layout, texts) {
     const titleIconPositionOptions = options(
         ["before", "after"],
         "title_icon_positions",
+    );
+    // Mirrors BannerNormalizer::TITLE_ICON_SIZES.
+    const titleIconSizeOptions = options(
+        ["md", "lg", "xl"],
+        "title_icon_sizes",
     );
     const fillOptions = options(["none", "solid", "gradient"], "fills");
     const widthModeOptions = options(
@@ -753,6 +759,12 @@ export function usePostBanner(layout, texts) {
                         item().titleIconPosition = value;
                     },
                 ),
+                titleIconSize: writable(
+                    () => item()?.titleIconSize ?? "md",
+                    (value) => {
+                        item().titleIconSize = value;
+                    },
+                ),
             });
         }
 
@@ -772,6 +784,7 @@ export function usePostBanner(layout, texts) {
         heightOptions,
         alignOptions,
         titleIconPositionOptions,
+        titleIconSizeOptions,
         fillOptions,
         widthModeOptions,
         verticalAlignOptions,

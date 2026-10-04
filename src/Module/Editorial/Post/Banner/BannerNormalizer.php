@@ -42,7 +42,7 @@ use Aurora\Module\Configuration\Theme\Enum\ThemeFontEnum;
  * than being invented twice.
  *
  * @phpstan-type BannerSpan array{base: int, md: ?int, lg: ?int}
- * @phpstan-type BannerLayoutItem array{id: string, type: string, span: BannerSpan, titleColor: ?string, descriptionColor: ?string, align: string, titleSize: string, descriptionSize: string, titleFont: ?string, descriptionFont: ?string, mediaId: ?int, titleIconId: ?int, titleIconPosition: string, buttonColor: ?string, buttonTextColor: ?string, buttonSiteColor: bool}
+ * @phpstan-type BannerLayoutItem array{id: string, type: string, span: BannerSpan, titleColor: ?string, descriptionColor: ?string, align: string, titleSize: string, descriptionSize: string, titleFont: ?string, descriptionFont: ?string, mediaId: ?int, titleIconId: ?int, titleIconPosition: string, titleIconSize: string, buttonColor: ?string, buttonTextColor: ?string, buttonSiteColor: bool}
  * @phpstan-type BannerItemText array{title: string, description: string, alt: string, label: string, url: ?string}
  */
 final readonly class BannerNormalizer
@@ -123,6 +123,9 @@ final readonly class BannerNormalizer
 
     /** Which side of the title its icon sits on. */
     public const array TITLE_ICON_POSITIONS = ['before', 'after'];
+
+    /** How tall the title's icon stands: the height of the letters, or above it. */
+    public const array TITLE_ICON_SIZES = ['md', 'lg', 'xl'];
 
     /** How many bands a banner can draw. */
     private const int MAX_STRIPES = 6;
@@ -555,6 +558,7 @@ final readonly class BannerNormalizer
                 // switching an item between text and image keeps both.
                 'titleIconId' => $this->values->id($entry['titleIconId'] ?? null),
                 'titleIconPosition' => $this->values->oneOf($entry['titleIconPosition'] ?? null, self::TITLE_ICON_POSITIONS, 'before'),
+                'titleIconSize' => $this->values->oneOf($entry['titleIconSize'] ?? null, self::TITLE_ICON_SIZES, 'md'),
                 'buttonColor' => $this->values->color($entry['buttonColor'] ?? null),
                 'buttonTextColor' => $this->values->color($entry['buttonTextColor'] ?? null),
                 // The button in the site's own accent, read from the theme at

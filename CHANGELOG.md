@@ -10,7 +10,7 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 ### Ajouté
 
 #### Une icône à côté du titre d'une entête
-Chaque texte d'une entête peut porter une image à côté de son titre, à la hauteur de ses lettres : un logo devant le nom d'un produit, par exemple. Le réglage « Icône du titre » de l'onglet En-tête choisit l'image dans la médiathèque, et « Place de l'icône » la pose avant ou après le titre. L'icône suit la taille du titre sur chaque écran et reste collée au mot voisin quand le titre passe à la ligne ; décorative, elle est ignorée des lecteurs d'écran. Une nouvelle diapositive de carrousel ne la reprend pas, puisque son titre change.
+Chaque texte d'une entête peut porter une image à côté de son titre : un logo devant le nom d'un produit, par exemple. Le réglage « Icône du titre » de l'onglet En-tête choisit l'image dans la médiathèque, « Place de l'icône » la pose avant ou après le titre, et « Taille de l'icône » la règle à la hauteur des lettres ou plus grande, toujours centrée sur elles. L'icône suit la taille du titre sur chaque écran et reste collée au mot voisin quand le titre passe à la ligne ; décorative, elle est ignorée des lecteurs d'écran. Une nouvelle diapositive de carrousel ne la reprend pas, puisque son titre change.
 
 ### Modifié
 

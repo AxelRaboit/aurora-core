@@ -195,8 +195,11 @@
                                    screen, and stays on the line of the word beside
                                    it when the title wraps. Decorative: the title
                                    says what it names, hence the empty alt. #}
+                                {# Taller than the letters, it stays centred on them:
+                                   the drop below the baseline grows with it. #}
+                                {% set titleIconSizes = {md: 'h-[1em] align-[-0.14em]', lg: 'h-[1.35em] align-[-0.32em]', xl: 'h-[1.7em] align-[-0.5em]'} %}
                                 {% set titleIcon = item.titleIcon|default(null) %}
-                                {% set titleIconTag %}<img src="{{ titleIcon.url|default('') }}" alt="" aria-hidden="true" class="inline-block h-[1em] w-auto align-[-0.14em] {{ item.titleIconPosition|default('before') == 'after' ? 'ms-[0.3em]' : 'me-[0.3em]' }}">{% endset %}
+                                {% set titleIconTag %}<img src="{{ titleIcon.url|default('') }}" alt="" aria-hidden="true" class="inline-block w-auto {{ titleIconSizes[item.titleIconSize|default('md')]|default(titleIconSizes.md) }} {{ item.titleIconPosition|default('before') == 'after' ? 'ms-[0.3em]' : 'me-[0.3em]' }}">{% endset %}
                                 <{{ titleTag }}
                                     class="{{ titleSizes[item.titleSize] }} font-bold leading-tight{{ overPhoto }}"
                                     {% if item.titleColor or item.titleFontStack|default(null) %}style="{% if item.titleColor %}color: {{ item.titleColor }};{% endif %}{% if item.titleFontStack|default(null) %} font-family: {{ item.titleFontStack }};{% endif %}"{% endif %}
