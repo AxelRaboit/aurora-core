@@ -104,17 +104,27 @@ describe("AppRowActions", () => {
     });
 
     // A single action is not a menu (Axel, 04/10/2026): it is shown as itself.
-    it("shows a single action as its own button, without a sheet", async () => {
+    it("shows a single action as its own button from sm, without a sheet", async () => {
         const onSelect = vi.fn();
         const wrapper = mountActions([{ ...EDIT, onSelect }]);
 
-        const button = wrapper.find("button");
-        expect(button.text()).toContain("Modifier");
+        const direct = wrapper.find(".sm\\:block button");
+        expect(direct.text()).toContain("Modifier");
 
-        await button.trigger("click");
+        await direct.trigger("click");
 
         expect(onSelect).toHaveBeenCalledOnce();
         expect(wrapper.find('[data-test="sheet"]').exists()).toBe(false);
+    });
+
+    // On a phone a single action stays behind « … » (Axel, 04/10/2026).
+    it("keeps the menu button for a single action on a phone", async () => {
+        const wrapper = mountActions([EDIT]);
+        const menu = wrapper.find(".sm\\:hidden button");
+
+        expect(menu.exists()).toBe(true);
+        await menu.trigger("click");
+        expect(wrapper.find('[data-test="sheet"]').exists()).toBe(true);
     });
 
     it("shows a single navigation as a link", () => {
@@ -122,14 +132,16 @@ describe("AppRowActions", () => {
             { key: "open", title: "Ouvrir", href: "/documents/1" },
         ]);
 
-        expect(wrapper.find("a").attributes("href")).toBe("/documents/1");
+        expect(wrapper.find(".sm\\:block a").attributes("href")).toBe(
+            "/documents/1",
+        );
     });
 
     it("does not run a single action that is disabled", async () => {
         const onSelect = vi.fn();
         const wrapper = mountActions([{ ...EDIT, onSelect, disabled: true }]);
 
-        await wrapper.find("button").trigger("click");
+        await wrapper.find(".sm\\:block button").trigger("click");
 
         expect(onSelect).not.toHaveBeenCalled();
     });

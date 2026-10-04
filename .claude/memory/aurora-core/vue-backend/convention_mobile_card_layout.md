@@ -32,8 +32,9 @@ Toute page de liste CRUD avec tableau doit avoir deux vues :
 - Une liste montre ses gestes derrière `AppRowActions`, sur téléphone comme dans
   un tableau, dans l'en-tête de la carte à droite (statut éventuel juste avant).
   Plus de pied de boutons pleine largeur : `AppCardActions` a été supprimé.
-- **Une seule action** : `AppRowActions` l'affiche directement en petit bouton
-  (icône + mot), sans feuille. Aucune action : rien n'est dessiné.
+- **Une seule action** : à partir de `sm`, `AppRowActions` l'affiche directement
+  en petit bouton (icône + mot), sans feuille ; **sur téléphone, toujours « … »**,
+  même pour une seule (Axel, 04/10/2026). Aucune action : rien n'est dessiné.
 - Une action qui ouvre un nouvel onglet (aperçu) passe par
   `onSelect: () => window.open(url, "_blank", "noopener")`, la feuille ne
   connaissant pas `target`.

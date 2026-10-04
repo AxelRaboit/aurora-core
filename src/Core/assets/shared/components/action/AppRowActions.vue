@@ -16,9 +16,11 @@
  *
  * **Everywhere, on every screen, cards included** (Axel's call, 04/10/2026):
  * a list's actions always sit behind this button, on a phone card as in a
- * table, except when there is only one. A single action is not a menu: it is
- * shown as itself, a small button with its icon and its word, one tap away.
- * No action at all, and nothing is drawn.
+ * table, except when there is only one. A single action is not a menu: from
+ * `sm` it is shown as itself, a small button with its icon and its word. On a
+ * phone it stays behind the « … » button all the same (Axel, 04/10/2026): the
+ * card keeps one trigger in one place, whatever it offers. No action at all,
+ * and nothing is drawn.
  */
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
@@ -56,27 +58,30 @@ defineExpose({ open: () => sheet.value?.show() });
     <div v-if="actions.length" class="flex items-center justify-end">
         <AppActionSheet ref="sheet" :actions="actions" :label="label">
             <template #trigger="{ open }">
-                <!-- One action: the button itself, its icon and its word. -->
-                <AppButton
-                    v-if="single"
-                    :variant="'rose' === single.color ? 'danger-outline' : 'ghost'"
-                    size="sm"
-                    :href="single.href ?? null"
-                    :disabled="single.disabled"
-                    :loading="single.loading"
-                    :title="single.description || single.title"
-                    v-on:click="single.href ? undefined : runSingle()"
-                >
-                    <component :is="single.icon" v-if="single.icon && !single.loading" class="h-3.5 w-3.5" :stroke-width="2" />
-                    {{ single.title }}
-                </AppButton>
-                <AppIconButton
-                    v-else
-                    :title="t('shared.actions.open', { name: label })"
-                    v-on:click="open"
-                >
-                    <MoreHorizontal class="w-4 h-4" :stroke-width="2" />
-                </AppIconButton>
+                <!-- One action, from `sm`: the button itself, its icon and its word. -->
+                <span v-if="single" class="hidden sm:block">
+                    <AppButton
+                        :variant="'rose' === single.color ? 'danger-outline' : 'ghost'"
+                        size="sm"
+                        :href="single.href ?? null"
+                        :disabled="single.disabled"
+                        :loading="single.loading"
+                        :title="single.description || single.title"
+                        v-on:click="single.href ? undefined : runSingle()"
+                    >
+                        <component :is="single.icon" v-if="single.icon && !single.loading" class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ single.title }}
+                    </AppButton>
+                </span>
+                <!-- Several actions, or a phone whatever their number: « … ». -->
+                <span :class="single ? 'sm:hidden' : ''">
+                    <AppIconButton
+                        :title="t('shared.actions.open', { name: label })"
+                        v-on:click="open"
+                    >
+                        <MoreHorizontal class="w-4 h-4" :stroke-width="2" />
+                    </AppIconButton>
+                </span>
             </template>
         </AppActionSheet>
     </div>
