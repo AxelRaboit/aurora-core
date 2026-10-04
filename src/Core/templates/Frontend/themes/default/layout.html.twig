@@ -124,6 +124,14 @@
                 </nav>
             {% endif %}
             <p class="text-center text-sm text-muted">{{ themeContext.footerText(context.siteName) }}</p>
+            {# Crédit visible, masqué par défaut (réglage « Crédit Aurora » du
+               thème). Le texte reprend mot pour mot le marqueur du <head>, pour
+               qu'une seule recherche repère l'un comme l'autre. Voir LICENSE. #}
+            {% if themeContext.watermarkVisible() %}
+                <p class="text-center text-xs text-muted">
+                    <a href="https://github.com/AxelRaboit/aurora-core" rel="nofollow noopener" target="_blank" class="hover:opacity-80 transition-opacity">Aurora by axelraboit</a>
+                </p>
+            {% endif %}
         </div>
     </footer>
     {% endblock %}

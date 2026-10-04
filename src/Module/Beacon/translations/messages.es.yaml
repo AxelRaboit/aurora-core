@@ -1,0 +1,28 @@
+backend:
+  nav:
+    beacon: Despliegues
+    beacon_description: "Las instancias del sitio que se anuncian, y la detección de copias no autorizadas."
+    sections:
+      beacon: Protección
+  beacon:
+    intro: "Cada instancia desplegada se anuncia aquí una vez al día. Lo que se ejecuta en un dominio que no es el suyo es un uso que conviene revisar (véase la licencia)."
+    instances_title: Instancias detectadas
+    empty: Ninguna instancia se ha anunciado todavía.
+    col_status: Estado
+    col_domain: Dominio
+    col_host: Servidor
+    col_version: Versión
+    col_signed: Firmado
+    col_pings: Anuncios
+    col_last_seen: Visto el
+    known: Mía
+    lead: Revisar
+    signed_yes: "sí"
+    signed_no: "no"
+    forget: Olvidar esta instancia
+    forget_confirm: ¿Olvidar esta instancia? Reaparecerá si vuelve a anunciarse.
+    allowlist_title: Dominios conocidos
+    allowlist_hint: "Un dominio por línea. Las instancias en estos dominios son suyas; las demás se marcan para revisar."
+    allowlist_placeholder: "app.axelraboit.fr"
+    save: Guardar
+    saved: Dominios conocidos guardados.

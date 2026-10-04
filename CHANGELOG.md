@@ -5,6 +5,20 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [1.8.0] - 2026-10-04
+
+### Ajouté
+
+#### Repérer une réutilisation non autorisée du code
+Le dépôt est public pour servir de vitrine, mais la licence en interdit la réutilisation. Cette version ajoute de quoi s'en apercevoir, sans rien détruire chez personne.
+
+Un crédit discret peut s'afficher en pied des pages du site (réglage « Crédit en pied de page » du thème, désactivé par défaut) : un repère stable qu'un moteur indexe, pour retrouver une copie en ligne. L'outil `tools/watermark/find-copies.mjs` cherche ce repère sur GitHub et prépare les recherches web.
+
+En complément, chaque instance déployée se signale une fois par jour à un récepteur (l'émetteur saute les environnements de développement). Un nouvel écran « Déploiements » (section Protection, réservée au rôle développeur) liste les instances connues, distingue les vôtres des copies à vérifier et laisse régler la liste des domaines de confiance. La commande `aurora:beacon:list` donne la même vue en console.
+
+### Dans aurora-client
+Une migration ajoute la table `beacon_instances` ; elle se joue automatiquement au `make deploy-prod`. Un bloc d'environnement `BEACON_*` apparaît après `make aurora-update` : renseigner `BEACON_SECRET` marque vos propres instances comme vérifiées, mais ce n'est pas obligatoire.
+
 ## [1.7.2] - 2026-10-04
 
 ### Modifié
