@@ -1160,16 +1160,17 @@ const SHOTS = [
     },
 
     /**
-     * Les présentations, par l'audit et nommément : ses onze diapositives
-     * passent par tous les gabarits, là où la trame n'en a que quatre.
+     * Les présentations, par la réunion de lancement et nommément : ses
+     * douze diapositives passent par tous les gabarits, là où la trame n'en a
+     * que quatre.
      */
     { name: "tour-presentations", path: "/backend/studio/decks" },
-    { name: "tour-presentations-editeur", path: "/backend/studio/decks", prepare: openDeck("Audit du site") },
+    { name: "tour-presentations-editeur", path: "/backend/studio/decks", prepare: openDeck("Réunion de lancement") },
     {
         name: "tour-presentations-diaporama",
         path: "/backend/studio/decks",
         async prepare(page) {
-            await openDeck("Audit du site")(page);
+            await openDeck("Réunion de lancement")(page);
             await page.locator("main").getByRole("button", { name: "Présenter" }).click();
             await page.waitForTimeout(1_500);
             // La quatrième diapositive, une photo pleine page : la première
@@ -1179,7 +1180,7 @@ const SHOTS = [
         },
     },
     /**
-     * La diapo libre de l'audit, prise en main : la photo choisie montre ses
+     * La diapo libre de la réunion de lancement, prise en main : la photo choisie montre ses
      * poignées et sa poignée de rotation, et le panneau à côté ce qu'on règle
      * sur une image. Atteinte par son libellé dans la liste, « 11. Diapo
      * libre », et non par le bouton du même nom qui en ajoute une.
@@ -1188,7 +1189,7 @@ const SHOTS = [
         name: "tour-presentations-libre",
         path: "/backend/studio/decks",
         async prepare(page) {
-            await openDeck("Audit du site")(page);
+            await openDeck("Réunion de lancement")(page);
             await page.locator("main").getByRole("button", { name: /^\d+\. Diapo libre/ }).first().click();
             await page.waitForTimeout(1_500);
             await page.locator("main .fc-stage .fe-image").first().click();
@@ -1202,7 +1203,7 @@ const SHOTS = [
         name: "tour-presentations-libre-diaporama",
         path: "/backend/studio/decks",
         async prepare(page) {
-            await openDeck("Audit du site")(page);
+            await openDeck("Réunion de lancement")(page);
             await page.locator("main").getByRole("button", { name: /^\d+\. Diapo libre/ }).first().click();
             await page.waitForTimeout(1_000);
             await page.locator("main").getByRole("button", { name: "Présenter" }).click();

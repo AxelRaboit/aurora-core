@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\Deliverable\Serializer;
 
+use Aurora\Module\Ged\Document\Service\DocumentUrlGenerator;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\Deliverable\Entity\DeliverableCategoryInterface;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableLinkInterface;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableAppearance;
@@ -16,6 +18,7 @@ final readonly class DeliverableSerializer
 {
     public function __construct(
         private UrlGeneratorInterface $urlGenerator,
+        private DocumentUrlGenerator $documentUrls,
     ) {}
 
     /** @return array<string, mixed> */
@@ -27,7 +30,11 @@ final readonly class DeliverableSerializer
             'summary' => $deliverable->getSummary(),
             'visibleToClient' => $deliverable->isVisibleToClient(),
             'scope' => $deliverable->isStandalone() ? $deliverable->getScope()->value : null,
+            'category' => $deliverable->isStandalone() ? $this->category($deliverable->getCategory()) : null,
             'ownerName' => $deliverable->getOwner()?->getName(),
+            // La vignette en taille réduite, cadrée sur le point d'intérêt du document.
+            'thumbnailUrl' => $this->documentUrls->thumbUrl($deliverable->getThumbnail()),
+            'thumbnailPosition' => $this->documentUrls->focalPositionCss($deliverable->getThumbnail()),
             'updatedAt' => $deliverable->getUpdatedAt()->format(DATE_ATOM),
             'editPath' => $this->path($deliverable, 'edit'),
             'previewPath' => $this->path($deliverable, 'preview'),
@@ -61,7 +68,27 @@ final readonly class DeliverableSerializer
             'readingHeader' => DeliverableReadingHeader::normalize($deliverable->getReadingHeader()),
             'visibleToClient' => $deliverable->isVisibleToClient(),
             'scope' => $deliverable->isStandalone() ? $deliverable->getScope()->value : null,
+            'categoryId' => $deliverable->isStandalone() ? $deliverable->getCategory()?->getId() : null,
+            'thumbnail' => [
+                'id' => $deliverable->getThumbnail()?->getId(),
+                'url' => $this->documentUrls->thumbUrl($deliverable->getThumbnail()),
+            ],
             'updatedAt' => $deliverable->getUpdatedAt()->format(DATE_ATOM),
+        ];
+    }
+
+    /** @return array{id: int|null, name: string, color: string|null, position: int}|null */
+    public function category(?DeliverableCategoryInterface $category): ?array
+    {
+        if (!$category instanceof DeliverableCategoryInterface) {
+            return null;
+        }
+
+        return [
+            'id' => $category->getId(),
+            'name' => $category->getName(),
+            'color' => $category->getColor(),
+            'position' => $category->getPosition(),
         ];
     }
 

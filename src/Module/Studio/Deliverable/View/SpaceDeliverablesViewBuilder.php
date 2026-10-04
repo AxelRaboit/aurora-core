@@ -10,6 +10,7 @@ use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Serializer\CustomerSpaceSerializerInterface;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
+use Aurora\Module\Studio\Deliverable\Security\DeliverableAccess;
 use Aurora\Module\Studio\Deliverable\Serializer\DeliverableSerializer;
 use Aurora\Module\Studio\Deliverable\Service\DeliverablePageRenderer;
 use LogicException;
@@ -33,6 +34,7 @@ final readonly class SpaceDeliverablesViewBuilder
         private LocaleContextInterface $localeContext,
         private Security $security,
         private CustomerSpaceSerializerInterface $spaceSerializer,
+        private DeliverableAccess $access,
     ) {}
 
     /**
@@ -54,6 +56,11 @@ final readonly class SpaceDeliverablesViewBuilder
             // The reading links, from the list as from the editor: creating
             // one for a recipient should not mean opening the document first.
             'deliverableLinksPathTemplate' => $this->pathTemplates->generate('workspace_space_deliverables_links', ['id' => $id, 'deliverableId' => '__id__']),
+            // Vide quand la personne ne crée pas de livrable de Studio : le
+            // geste « Copier dans Studio » ne s'affiche pas.
+            'deliverableCopyToStudioPathTemplate' => $this->access->canCopyToStudio()
+                ? $this->pathTemplates->generate('workspace_space_deliverables_copy_to_studio', ['id' => $id, 'deliverableId' => '__id__'])
+                : '',
         ];
     }
 
@@ -101,6 +108,9 @@ final readonly class SpaceDeliverablesViewBuilder
             'linksPath' => $this->urlGenerator->generate('workspace_space_deliverables_links', $params),
             'duplicatePath' => $this->urlGenerator->generate('workspace_space_deliverables_duplicate', $params),
             'deletePath' => $this->urlGenerator->generate('workspace_space_deliverables_delete', $params),
+            'copyToStudioPath' => $this->access->canCopyToStudio()
+                ? $this->urlGenerator->generate('workspace_space_deliverables_copy_to_studio', $params)
+                : '',
         ];
     }
 }

@@ -1,171 +1,171 @@
 backend:
-  access_requests:
-    approved: Anfrage von {name} genehmigt.
-    purged: Bearbeitete Anfragen gelöscht.
-    rejected: Anfrage von {name} abgelehnt.
-  invitations:
-    sent: Einladung an {email} gesendet.
-  tabs:
-    access_requests: Zugriffsanfragen
-    invitations: Einladungen
-    overview: Übersicht
-    parameters: Parameter
-    users: Benutzer
-  users:
-    cannot_delete_self: Du kannst dein eigenes Konto nicht löschen.
-    cannot_modify_higher_role: Du kannst keinen Benutzer mit einer höheren Rolle als deiner bearbeiten.
-    cannot_modify_self: Du kannst deine eigene Rolle nicht ändern.
-    created: Benutzer erfolgreich erstellt.
-    deleted: Benutzer gelöscht.
-    dev_granted: Dev-Rolle zugewiesen.
-    dev_revoked: Dev-Rolle entzogen.
-    errors:
-      email_invalid: Ungültige E-Mail-Adresse.
-      email_required: E-Mail-Adresse ist erforderlich.
-      email_taken: Diese E-Mail-Adresse wird bereits verwendet.
-      email_too_long: Die E-Mail-Adresse darf 180 Zeichen nicht überschreiten.
-      name_required: Name ist erforderlich.
-      name_too_long: Der Name darf 100 Zeichen nicht überschreiten.
-      role_invalid: Ungültige Rolle.
-      role_required: Rolle ist erforderlich.
-    updated: Benutzer aktualisiert.
-  auth:
-    access_request:
-      already_account: Bereits ein Konto?
-      description: Füllen Sie dieses Formular aus, um Zugang zur Administration anzufragen.
-      email: E-Mail
-      login_link: Anmelden
-      message: Nachricht
-      message_placeholder: Beschreiben Sie Ihr Anliegen...
-      name: Name
-      name_placeholder: Max Mustermann
-      submit: Anfrage senden
-      success_toast: Ihre Zugriffsanfrage wurde gesendet.
-      title: Zugang anfragen
-    forgot_password:
-      back_login: Zurück zur Anmeldung
-      instructions: Geben Sie Ihre E-Mail-Adresse ein und wir senden Ihnen einen Link zum Zurücksetzen Ihres Passworts.
-      sent: Wenn diese Adresse mit einem Konto verknüpft ist, erhalten Sie in Kürze eine E-Mail.
-      submit: Link senden
-      title: Passwort vergessen
-    hero:
-      description: Eine moderne Oberfläche zum Erstellen, Verwalten und Veröffentlichen von Webinhalten.
-      feature_1: Flexible Inhaltsverwaltung
-      feature_2: Anpassbare Inhaltstypen
-      feature_3: Integrierte Medienverwaltung
-      feature_4: Moderne und schnelle Oberfläche
-      heading: Verwalten Sie Ihre Inhalte
-      heading_accent: mit {siteName}.
-    invitation:
-      accept_title: Einladung annehmen
-      confirm_password: Passwort bestätigen
-      errors:
-        password_confirm_required: Bestätigung ist erforderlich.
-        password_mismatch: Die Passwörter stimmen nicht überein.
-        password_required: Passwort ist erforderlich.
-        password_too_short: Das Passwort muss mindestens 8 Zeichen enthalten.
-      expired: Dieser Einladungslink ist ungültig oder abgelaufen.
-      password: Passwort
-      set_password: Legen Sie Ihr Passwort fest, um Ihr Konto zu aktivieren.
-      submit: Konto aktivieren
-      success: Ihr Konto ist aktiv, willkommen!
-      welcome: Willkommen {name}
-    login:
-      email: E-Mail
-      email_placeholder: ihre@email.de
-      forgot: Passwort vergessen?
-      no_account: Noch kein Konto?
-      password: Passwort
-      remember: Angemeldet bleiben
-      request_access: Zugang anfragen
-      submit: Anmelden
-      title: Anmelden
-    register:
-      already_account: Bereits ein Konto?
-      closed_desc: Neue Registrierungen sind derzeit deaktiviert.
-      closed_title: Registrierung geschlossen
-      email: E-Mail
-      error_email_invalid: Ungültige E-Mail-Adresse.
-      error_email_required: E-Mail-Adresse ist erforderlich.
-      error_email_taken: Diese E-Mail-Adresse wird bereits verwendet.
-      error_name_required: Name ist erforderlich.
-      error_password_length: Das Passwort muss mindestens 8 Zeichen lang sein.
-      error_password_mismatch: Die Passwörter stimmen nicht überein.
-      heading: Konto erstellen
-      login_link: Anmelden
-      name: Name
-      name_placeholder: Max Mustermann
-      password: Passwort
-      password_confirm: Passwort bestätigen
-      submit: Konto erstellen
-      title: Konto erstellen
-    reset_password:
-      instructions: Wählen Sie ein neues Passwort für Ihr Konto.
-      invalid_link: Dieser Link ist ungültig oder abgelaufen.
-      submit: Passwort zurücksetzen
-      success: Ihr Passwort wurde erfolgreich zurückgesetzt.
-      title: Passwort zurücksetzen
-  profile:
-    errors:
-      current_password_invalid: Das aktuelle Passwort ist falsch.
-      email_invalid: Ungültige E-Mail-Adresse.
-      email_taken: Diese E-Mail-Adresse wird bereits verwendet.
-      invalid_csrf: Ungültiges Sicherheitstoken.
-      invalid_locale: Nicht unterstützte Sprache.
-      name_required: Der Name ist erforderlich.
-      password_mismatch: Die Passwörter stimmen nicht überein.
-      password_too_short: Das Passwort muss mindestens 8 Zeichen lang sein.
-  media:
-    errors:
-      alt_required: Alternativtext ist erforderlich.
-      focal_out_of_range: Der Fokuspunkt muss zwischen 0 und 1 liegen.
-      folder_name_required: Ordnername ist erforderlich.
-  post_types:
-    errors:
-      slug_required: Slug ist erforderlich.
-      slug_format: Der Slug darf nur Kleinbuchstaben, Zahlen und Unterstriche enthalten.
-      label_required: Bezeichnung ist erforderlich.
-      field_name_required: Feldname ist erforderlich.
-      field_name_format: Der Feldname darf nur Kleinbuchstaben, Zahlen und Unterstriche enthalten.
-      field_label_required: Feldbezeichnung ist erforderlich.
-      field_type_invalid: Ungültiger Feldtyp.
-  taxonomies:
-    errors:
-      slug_required: Slug ist erforderlich.
-      slug_format: Der Slug darf nur Kleinbuchstaben, Zahlen, Bindestriche und Unterstriche enthalten.
-      translations_required: Mindestens eine Übersetzung ist erforderlich.
-  posts:
-    errors:
-      post_type_required: Inhaltstyp ist erforderlich.
-      status_required: Status ist erforderlich.
-      status_invalid: Ungültiger Status.
-      visibility_invalid: Ungültige Sichtbarkeit.
-  forms:
-    errors:
-      translations_required: Mindestens eine Sprache muss ausgefüllt werden.
-      type_required: Der Feldtyp ist erforderlich.
-      field_label_required: Mindestens eine Bezeichnung ist erforderlich.
+    access_requests:
+        approved: Anfrage von {name} genehmigt.
+        purged: Bearbeitete Anfragen gelöscht.
+        rejected: Anfrage von {name} abgelehnt.
+    invitations:
+        sent: Einladung an {email} gesendet.
+    tabs:
+        access_requests: Zugriffsanfragen
+        invitations: Einladungen
+        overview: Übersicht
+        parameters: Parameter
+        users: Benutzer
+    users:
+        cannot_delete_self: Du kannst dein eigenes Konto nicht löschen.
+        cannot_modify_higher_role: Du kannst keinen Benutzer mit einer höheren Rolle als deiner bearbeiten.
+        cannot_modify_self: Du kannst deine eigene Rolle nicht ändern.
+        created: Benutzer erfolgreich erstellt.
+        deleted: Benutzer gelöscht.
+        dev_granted: Dev-Rolle zugewiesen.
+        dev_revoked: Dev-Rolle entzogen.
+        errors:
+            email_invalid: Ungültige E-Mail-Adresse.
+            email_required: E-Mail-Adresse ist erforderlich.
+            email_taken: Diese E-Mail-Adresse wird bereits verwendet.
+            email_too_long: Die E-Mail-Adresse darf 180 Zeichen nicht überschreiten.
+            name_required: Name ist erforderlich.
+            name_too_long: Der Name darf 100 Zeichen nicht überschreiten.
+            role_invalid: Ungültige Rolle.
+            role_required: Rolle ist erforderlich.
+        updated: Benutzer aktualisiert.
+    auth:
+        access_request:
+            already_account: Bereits ein Konto?
+            description: Füllen Sie dieses Formular aus, um Zugang zur Administration anzufragen.
+            email: E-Mail
+            login_link: Anmelden
+            message: Nachricht
+            message_placeholder: Beschreiben Sie Ihr Anliegen...
+            name: Name
+            name_placeholder: Max Mustermann
+            submit: Anfrage senden
+            success_toast: Ihre Zugriffsanfrage wurde gesendet.
+            title: Zugang anfragen
+        forgot_password:
+            back_login: Zurück zur Anmeldung
+            instructions: Geben Sie Ihre E-Mail-Adresse ein und wir senden Ihnen einen Link zum Zurücksetzen Ihres Passworts.
+            sent: Wenn diese Adresse mit einem Konto verknüpft ist, erhalten Sie in Kürze eine E-Mail.
+            submit: Link senden
+            title: Passwort vergessen
+        hero:
+            description: Eine moderne Oberfläche zum Erstellen, Verwalten und Veröffentlichen von Webinhalten.
+            feature_1: Flexible Inhaltsverwaltung
+            feature_2: Anpassbare Inhaltstypen
+            feature_3: Integrierte Medienverwaltung
+            feature_4: Moderne und schnelle Oberfläche
+            heading: Verwalten Sie Ihre Inhalte
+            heading_accent: mit {siteName}.
+        invitation:
+            accept_title: Einladung annehmen
+            confirm_password: Passwort bestätigen
+            errors:
+                password_confirm_required: Bestätigung ist erforderlich.
+                password_mismatch: Die Passwörter stimmen nicht überein.
+                password_required: Passwort ist erforderlich.
+                password_too_short: Das Passwort muss mindestens 8 Zeichen enthalten.
+            expired: Dieser Einladungslink ist ungültig oder abgelaufen.
+            password: Passwort
+            set_password: Legen Sie Ihr Passwort fest, um Ihr Konto zu aktivieren.
+            submit: Konto aktivieren
+            success: Ihr Konto ist aktiv, willkommen!
+            welcome: Willkommen {name}
+        login:
+            email: E-Mail
+            email_placeholder: ihre@email.de
+            forgot: Passwort vergessen?
+            no_account: Noch kein Konto?
+            password: Passwort
+            remember: Angemeldet bleiben
+            request_access: Zugang anfragen
+            submit: Anmelden
+            title: Anmelden
+        register:
+            already_account: Bereits ein Konto?
+            closed_desc: Neue Registrierungen sind derzeit deaktiviert.
+            closed_title: Registrierung geschlossen
+            email: E-Mail
+            error_email_invalid: Ungültige E-Mail-Adresse.
+            error_email_required: E-Mail-Adresse ist erforderlich.
+            error_email_taken: Diese E-Mail-Adresse wird bereits verwendet.
+            error_name_required: Name ist erforderlich.
+            error_password_length: Das Passwort muss mindestens 8 Zeichen lang sein.
+            error_password_mismatch: Die Passwörter stimmen nicht überein.
+            heading: Konto erstellen
+            login_link: Anmelden
+            name: Name
+            name_placeholder: Max Mustermann
+            password: Passwort
+            password_confirm: Passwort bestätigen
+            submit: Konto erstellen
+            title: Konto erstellen
+        reset_password:
+            instructions: Wählen Sie ein neues Passwort für Ihr Konto.
+            invalid_link: Dieser Link ist ungültig oder abgelaufen.
+            submit: Passwort zurücksetzen
+            success: Ihr Passwort wurde erfolgreich zurückgesetzt.
+            title: Passwort zurücksetzen
+    profile:
+        errors:
+            current_password_invalid: Das aktuelle Passwort ist falsch.
+            email_invalid: Ungültige E-Mail-Adresse.
+            email_taken: Diese E-Mail-Adresse wird bereits verwendet.
+            invalid_csrf: Ungültiges Sicherheitstoken.
+            invalid_locale: Nicht unterstützte Sprache.
+            name_required: Der Name ist erforderlich.
+            password_mismatch: Die Passwörter stimmen nicht überein.
+            password_too_short: Das Passwort muss mindestens 8 Zeichen lang sein.
+    media:
+        errors:
+            alt_required: Alternativtext ist erforderlich.
+            focal_out_of_range: Der Fokuspunkt muss zwischen 0 und 1 liegen.
+            folder_name_required: Ordnername ist erforderlich.
+    post_types:
+        errors:
+            slug_required: Slug ist erforderlich.
+            slug_format: Der Slug darf nur Kleinbuchstaben, Zahlen und Unterstriche enthalten.
+            label_required: Bezeichnung ist erforderlich.
+            field_name_required: Feldname ist erforderlich.
+            field_name_format: Der Feldname darf nur Kleinbuchstaben, Zahlen und Unterstriche enthalten.
+            field_label_required: Feldbezeichnung ist erforderlich.
+            field_type_invalid: Ungültiger Feldtyp.
+    taxonomies:
+        errors:
+            slug_required: Slug ist erforderlich.
+            slug_format: Der Slug darf nur Kleinbuchstaben, Zahlen, Bindestriche und Unterstriche enthalten.
+            translations_required: Mindestens eine Übersetzung ist erforderlich.
+    posts:
+        errors:
+            post_type_required: Inhaltstyp ist erforderlich.
+            status_required: Status ist erforderlich.
+            status_invalid: Ungültiger Status.
+            visibility_invalid: Ungültige Sichtbarkeit.
+    forms:
+        errors:
+            translations_required: Mindestens eine Sprache muss ausgefüllt werden.
+            type_required: Der Feldtyp ist erforderlich.
+            field_label_required: Mindestens eine Bezeichnung ist erforderlich.
 frontend:
-  errors:
-    name_required: Name ist erforderlich.
-    email_required: E-Mail-Adresse ist erforderlich.
-    email_invalid: Ungültige E-Mail-Adresse.
-    email_taken: Diese E-Mail-Adresse wird bereits verwendet.
-    password_required: Passwort ist erforderlich.
-    password_too_short: Das Passwort muss mindestens 8 Zeichen lang sein.
-    email_not_verified: Bitte bestätige deine E-Mail-Adresse vor der Anmeldung.
-    account_disabled: Dein Konto wurde deaktiviert.
+    errors:
+        name_required: Name ist erforderlich.
+        email_required: E-Mail-Adresse ist erforderlich.
+        email_invalid: Ungültige E-Mail-Adresse.
+        email_taken: Diese E-Mail-Adresse wird bereits verwendet.
+        password_required: Passwort ist erforderlich.
+        password_too_short: Das Passwort muss mindestens 8 Zeichen lang sein.
+        email_not_verified: Bitte bestätige deine E-Mail-Adresse vor der Anmeldung.
+        account_disabled: Dein Konto wurde deaktiviert.
 
 crm:
-  contacts:
-    errors:
-      first_name_required: Vorname ist erforderlich.
-      last_name_required: Nachname ist erforderlich.
-      email_invalid: Ungültige E-Mail-Adresse.
-  companies:
-    errors:
-      name_required: Unternehmensname ist erforderlich.
-      website_invalid: Ungültige URL.
-  deals:
-    errors:
-      name_required: Geschäftsname ist erforderlich.
+    contacts:
+        errors:
+            first_name_required: Vorname ist erforderlich.
+            last_name_required: Nachname ist erforderlich.
+            email_invalid: Ungültige E-Mail-Adresse.
+    companies:
+        errors:
+            name_required: Unternehmensname ist erforderlich.
+            website_invalid: Ungültige URL.
+    deals:
+        errors:
+            name_required: Geschäftsname ist erforderlich.

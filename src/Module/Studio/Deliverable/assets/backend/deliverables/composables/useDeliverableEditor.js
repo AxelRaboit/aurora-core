@@ -14,8 +14,12 @@ function snapshot(form) {
         appearance: form.appearance,
         readingHeader: form.readingHeader,
         visibleToClient: form.visibleToClient,
-        // Le rayon d'un livrable de Studio ; absent pour un livrable d'espace.
-        ...(form.scope ? { scope: form.scope } : {}),
+        thumbnailId: form.thumbnail?.id ?? null,
+        // Le rayon et la catégorie d'un livrable de Studio ; absents pour un
+        // livrable d'espace.
+        ...(form.scope
+            ? { scope: form.scope, categoryId: form.categoryId ?? null }
+            : {}),
     });
 }
 

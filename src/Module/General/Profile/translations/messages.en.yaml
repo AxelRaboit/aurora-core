@@ -1,98 +1,98 @@
 backend:
-  profile:
-    guide:
-      title: "Your profile at a glance"
-      step_1: "The photo is saved as soon as you choose it, with no other button."
-      step_2: "The name, email address, password and mood each have their own Save button, which only sends its own card."
-      step_3: "Changing the language reloads the admin straight away in the chosen language."
-      step_4: "The Preferences card leads to your side menu settings: hidden sections and colours."
-      step_5: "Deleting the account, at the bottom of the page, is final, and the instance's last developer cannot delete theirs."
-    errors:
-      current_password_invalid: The current password is incorrect.
-      email_invalid: Invalid email address.
-      email_taken: This email address is already in use.
-      invalid_csrf: Invalid security token.
-      invalid_locale: Unsupported language.
-      last_dev_protected: You are the last developer of this instance. Promote another user to the Dev role before deleting your account.
-      name_required: Name is required.
-      password_mismatch: Passwords do not match.
-      password_too_short: The password must be at least 8 characters long.
-    photo:
-      title: Profile photo
-      subtitle: Shown in the sidemenu and user list.
-    mood:
-      title: Mood
-      subtitle: A short line that captures how you're feeling right now.
-      placeholder: What's on your mind…
-      hint: 160 characters max.
-      saved: Mood updated.
-      errors:
-        too_long: Mood must not exceed 160 characters.
-    locale:
-      title: Language
-      subtitle: Choose the display language of the administration.
-      field: Language
-    info:
-      title: Profile information
-      subtitle: Update your name and email address.
-      name: Full name
-      list_view: List view
-      kanban_view: Kanban view
-      name_placeholder: John Doe
-      email: Email address
-      email_placeholder: "you@example.com"
-      saved: Profile updated successfully.
-    password:
-      title: Change password
-      subtitle: 'Use a long, random password to secure your account.'
-      current: Current password
-      new: New password
-      confirm: Confirm password
-      saved: Password updated successfully.
-      error_current: The current password is incorrect.
-    account:
-      title: Account information
-      subtitle: Overview of your account on this instance.
-      reference: Reference
-      role: Role
-      type: Type
-      status: Status
-      manager: Manager
-      created_at: Created
-      unset: Not set
-    preferences:
-      title: Preferences
-      subtitle: Customize your experience.
-      tabs:
-        sidemenu: Sidemenu
-    sidemenu:
-      guide:
-        title: "Setting up your side menu"
-        step_1: "These settings only apply to you: other users keep their own menu."
-        step_2: "A section's switch hides it entirely; the switches on its rows hide one module at a time."
-        step_3: "Giving a section a colour helps you spot it faster in the menu."
-        step_4: "Nothing changes until you press Save: colours apply at once, hidden items on the next page."
-        step_5: "A hidden page stays reachable by its address, and “Show everything” clears all your settings in one go."
-      title: Sidemenu preferences
-      subtitle: "Customise the nav : hide sections or modules you don't use, or recolour a section to spot it faster. Pages stay reachable by direct URL."
-      section_hint: Turn off the toggle to hide the whole section, or adjust module by module.
-      hide_all: Hide all
-      show_all: Show all
-      save: Save
-      reset: Show everything
-      saved: Preferences saved.
-      reset_done: Preferences reset.
-      empty: No sections available.
-      empty_search: No matches for this search.
-      search_placeholder: Search a section or module…
-      color_label: Colour
-      color_reset: Reset to default colour
-    danger:
-      title: Danger zone
-      description: Deleting your account is irreversible. All your data will be permanently erased.
-      submit: Delete my account
-      confirm: Are you sure you want to delete your account? This action cannot be undone.
-      dev_protected: You are the last developer of this instance. Promote another user to the Dev role to be able to delete this account.
-  impersonation:
-    banner: 'You are impersonating {name}'
-    leave: Leave
+    profile:
+        guide:
+            title: "Your profile at a glance"
+            step_1: "The photo is saved as soon as you choose it, with no other button."
+            step_2: "The name, email address, password and mood each have their own Save button, which only sends its own card."
+            step_3: "Changing the language reloads the admin straight away in the chosen language."
+            step_4: "The Preferences card leads to your side menu settings: hidden sections and colours."
+            step_5: "Deleting the account, at the bottom of the page, is final, and the instance's last developer cannot delete theirs."
+        errors:
+            current_password_invalid: The current password is incorrect.
+            email_invalid: Invalid email address.
+            email_taken: This email address is already in use.
+            invalid_csrf: Invalid security token.
+            invalid_locale: Unsupported language.
+            last_dev_protected: You are the last developer of this instance. Promote another user to the Dev role before deleting your account.
+            name_required: Name is required.
+            password_mismatch: Passwords do not match.
+            password_too_short: The password must be at least 8 characters long.
+        photo:
+            title: Profile photo
+            subtitle: Shown in the sidemenu and user list.
+        mood:
+            title: Mood
+            subtitle: A short line that captures how you're feeling right now.
+            placeholder: What's on your mind…
+            hint: 160 characters max.
+            saved: Mood updated.
+            errors:
+                too_long: Mood must not exceed 160 characters.
+        locale:
+            title: Language
+            subtitle: Choose the display language of the administration.
+            field: Language
+        info:
+            title: Profile information
+            subtitle: Update your name and email address.
+            name: Full name
+            list_view: List view
+            kanban_view: Kanban view
+            name_placeholder: John Doe
+            email: Email address
+            email_placeholder: "you@example.com"
+            saved: Profile updated successfully.
+        password:
+            title: Change password
+            subtitle: 'Use a long, random password to secure your account.'
+            current: Current password
+            new: New password
+            confirm: Confirm password
+            saved: Password updated successfully.
+            error_current: The current password is incorrect.
+        account:
+            title: Account information
+            subtitle: Overview of your account on this instance.
+            reference: Reference
+            role: Role
+            type: Type
+            status: Status
+            manager: Manager
+            created_at: Created
+            unset: Not set
+        preferences:
+            title: Preferences
+            subtitle: Customize your experience.
+            tabs:
+                sidemenu: Sidemenu
+        sidemenu:
+            guide:
+                title: "Setting up your side menu"
+                step_1: "These settings only apply to you: other users keep their own menu."
+                step_2: "A section's switch hides it entirely; the switches on its rows hide one module at a time."
+                step_3: "Giving a section a colour helps you spot it faster in the menu."
+                step_4: "Nothing changes until you press Save: colours apply at once, hidden items on the next page."
+                step_5: "A hidden page stays reachable by its address, and “Show everything” clears all your settings in one go."
+            title: Sidemenu preferences
+            subtitle: "Customise the nav : hide sections or modules you don't use, or recolour a section to spot it faster. Pages stay reachable by direct URL."
+            section_hint: Turn off the toggle to hide the whole section, or adjust module by module.
+            hide_all: Hide all
+            show_all: Show all
+            save: Save
+            reset: Show everything
+            saved: Preferences saved.
+            reset_done: Preferences reset.
+            empty: No sections available.
+            empty_search: No matches for this search.
+            search_placeholder: Search a section or module…
+            color_label: Colour
+            color_reset: Reset to default colour
+        danger:
+            title: Danger zone
+            description: Deleting your account is irreversible. All your data will be permanently erased.
+            submit: Delete my account
+            confirm: Are you sure you want to delete your account? This action cannot be undone.
+            dev_protected: You are the last developer of this instance. Promote another user to the Dev role to be able to delete this account.
+    impersonation:
+        banner: 'You are impersonating {name}'
+        leave: Leave

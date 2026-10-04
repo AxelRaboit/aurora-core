@@ -808,7 +808,7 @@ backend:
             delete_hint: La présentation et toutes ses slides.
             copy_of: '%title% (copie)'
             title_column: Titre
-            title_placeholder: Audit du site, octobre
+            title_placeholder: Réunion de lancement, octobre
             description_placeholder: Une ligne, lue dans la liste.
             description: Description
             category: Rubrique
@@ -1405,6 +1405,10 @@ backend:
                 mosaic: Mosaïque d'images
                 free: Diapo libre
             categories:
+                manage: "Gérer les catégories"
+                manage_hint: "Créer, renommer, colorer et ranger les catégories des présentations."
+                manage_title: "Catégories des présentations"
+                manage_intro: "Elles rangent les présentations, pour toute l'équipe. Supprimer une catégorie ne supprime aucune présentation : elles restent, sans catégorie."
                 errors:
                     name_required: Le nom est obligatoire.
                     color_invalid: La couleur doit être au format hexadécimal, par exemple #6366f1.
@@ -1991,7 +1995,7 @@ backend:
             title: "Titre"
             title_placeholder: "Audit de présence en ligne"
             title_hint: "Ce que le client lit dans la liste de son espace et en tête du document."
-            updated_on: "Modifié le {date}"
+            updated_on: "Modifié le {date} à {time}"
             open: "Ouvrir"
             open_hint: "Composer le document, régler ses couleurs et ce que voit le client."
             preview: "Aperçu"
@@ -2008,6 +2012,36 @@ backend:
             duplicate_hint: "Une copie à reprendre, cachée au client : le bilan du mois dernier pour écrire celui-ci."
             duplicated: "Copie créée."
             copy_title: "%title% (copie)"
+            copy_to_space:
+                action: "Copier dans un espace client"
+                action_hint: "Une copie dans l'espace d'un client, cachée à lui : le modèle qu'on remplit pour lui."
+                title: "Copier dans un espace client"
+                intro: "La copie arrive dans l'espace choisi, cachée au client, avec son nom en « Préparé pour ». L'original reste ici, intact."
+                space: "Espace client"
+                space_placeholder: "Choisir un espace"
+                space_required: "Choisissez l'espace où déposer la copie."
+                title_hint: "Le nom de la copie dans l'espace ; vous pourrez le changer ensuite."
+                submit: "Copier et ouvrir"
+            categories:
+                label: "Catégorie"
+                none: "Sans catégorie"
+                all: "Toutes les catégories"
+                settings_hint: "Pour retrouver ce livrable dans la liste, filtrée ou affichée par catégorie."
+                settings_empty_hint: "Aucune catégorie pour l'instant : elles se créent depuis la liste, menu Actions, « Gérer les catégories »."
+                manage: "Gérer les catégories"
+                manage_hint: "Créer, renommer, colorer et ranger les catégories des livrables."
+                manage_title: "Catégories des livrables"
+                manage_intro: "Elles rangent les livrables de Studio, pour toute l'équipe. Supprimer une catégorie ne supprime aucun livrable : ils restent, sans catégorie."
+                layout_grouped: "Par catégorie"
+                layout_flat: "En liste"
+                errors:
+                    name_required: "Donnez un nom à la catégorie."
+                    name_too_long: "Le nom ne peut pas dépasser 100 caractères."
+                    color_invalid: "La couleur n'est pas valide."
+            copy_to_studio:
+                action: "Copier dans Studio"
+                action_hint: "Une copie dans « Mes livrables » de Studio, pour en faire un modèle. Celui-ci reste dans l'espace."
+                done: "Copie créée dans Studio."
             delete_hint: "Supprime le livrable et ses liens de lecture."
             delete_confirm: "Supprimer le livrable « {title} » ? Ses liens de lecture cesseront de fonctionner."
             deleted: "Livrable supprimé."
@@ -2028,6 +2062,7 @@ backend:
                 step_3: "Un livrable se crée dans l'onglet ouvert ; ensuite, seul son auteur le fait passer de perso à partagé, ou l'inverse, depuis son menu ou ses réglages."
                 step_4: "Un lien de lecture l'envoie à qui vous voulez, avec une expiration et un mot de passe au choix, sans compte ni espace client."
                 step_5: "Les livrables d'un client se préparent dans son espace, onglet Livrables : c'est là qu'il les lit."
+                step_6: "Rangez-les par catégorie (audit, stratégie, proposition…) : filtrez la liste ou affichez-la par catégorie. Un modèle se copie dans l'espace d'un client, et un livrable d'espace revient ici par « Copier dans Studio »."
             scope:
                 label: "Visibilité"
                 personal: "Perso"
@@ -2093,6 +2128,8 @@ backend:
                 summary_placeholder: "Où en est votre présence en ligne, et ce que nous proposons pour les trois prochains mois."
                 summary_hint: "Sous le titre, dans la liste du client et en tête de la page."
                 summary_hint_studio: "Sous le titre, dans la liste des livrables et en tête de la page."
+                thumbnail: "Image"
+                thumbnail_hint: "La vignette du livrable dans les listes, pour le repérer d'un coup d'œil. Choisie dans la médiathèque ou téléversée."
                 locale: "Langue"
                 locale_hint: "Celle du document : elle règle les dates et les libellés de la page."
                 client_title: "Ce que voit le client"

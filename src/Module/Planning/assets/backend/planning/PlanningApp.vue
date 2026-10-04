@@ -86,7 +86,7 @@ const {
     toggleCalendar,
     upsertCalendar,
     removeCalendar,
-} = usePlanningCalendar(props);
+} = usePlanningCalendar(props, { canEdit: () => can("planning.events.edit") });
 
 /**
  * What range is on screen, in words.
@@ -160,6 +160,10 @@ const canManageCalendars = computed(() => can("planning.calendars.manage"));
 
 /** An event needs a calendar to live in, so an empty sidebar closes this too. */
 const canCreateEvents = computed(() => can("planning.events.create") && calendars.value.length > 0);
+// Les droits d'écriture des événements et des rappels, comme le serveur les
+// exige : modifier, déplacer et cocher demandent `edit`, supprimer `delete`.
+const canEditEvents = computed(() => can("planning.events.edit"));
+const canDeleteEvents = computed(() => can("planning.events.delete"));
 
 const {
     openCalendar,
@@ -220,6 +224,12 @@ const {
     load,
     canCreate: canCreateEvents,
 });
+
+/** Cocher un rappel le modifie : sans le droit, la case ne fait rien. */
+function toggleReminderGuarded(reminder) {
+    if (!canEditEvents.value) return;
+    toggleReminderItem(reminder);
+}
 
 /**
  * Starts an event on the day the phone's list is showing.
@@ -394,7 +404,7 @@ onUnmounted(() => {
                 :selected="narrow ? selectedDay : null"
                 v-on:open-event="viewEvent"
                 v-on:open-reminder="editReminder"
-                v-on:toggle-reminder="toggleReminderItem"
+                v-on:toggle-reminder="toggleReminderGuarded"
                 v-on:add-on="create"
                 v-on:select-day="selectedDay = $event"
                 v-on:move-event="moveEvent"
@@ -410,7 +420,7 @@ onUnmounted(() => {
                 :can-create="canCreateEvents"
                 v-on:open-event="viewEvent"
                 v-on:open-reminder="editReminder"
-                v-on:toggle-reminder="toggleReminderItem"
+                v-on:toggle-reminder="toggleReminderGuarded"
                 v-on:add="createOnDay"
             />
             <CalendarAgenda
@@ -420,7 +430,7 @@ onUnmounted(() => {
                 :reminders="visibleReminders"
                 v-on:open-event="viewEvent"
                 v-on:open-reminder="editReminder"
-                v-on:toggle-reminder="toggleReminderItem"
+                v-on:toggle-reminder="toggleReminderGuarded"
             />
             <CalendarTimeGrid
                 v-else
@@ -430,7 +440,7 @@ onUnmounted(() => {
                 :reminders="visibleReminders"
                 v-on:open-event="viewEvent"
                 v-on:open-reminder="editReminder"
-                v-on:toggle-reminder="toggleReminderItem"
+                v-on:toggle-reminder="toggleReminderGuarded"
                 v-on:add-on="create"
                 v-on:move-event="moveEvent"
             />
@@ -463,6 +473,8 @@ onUnmounted(() => {
             :calendars="calendars"
             :errors="reminderErrors"
             :saving="savingReminder"
+            :can-save="openReminder?.id ? canEditEvents : can('planning.events.create')"
+            :can-delete="canDeleteEvents"
             v-on:close="closeReminder"
             v-on:save="saveReminder"
             v-on:delete="removeReminderItem"
@@ -490,6 +502,7 @@ onUnmounted(() => {
             :current-user-id="currentUserId"
             :errors="errors"
             :saving="saving"
+            :can-delete="canDeleteEvents"
             v-on:close="close"
             v-on:edit="editing = true"
             v-on:respond="respond"

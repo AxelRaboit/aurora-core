@@ -28,7 +28,10 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+use function array_filter;
+use function array_flip;
 use function array_values;
+use function count;
 use function is_array;
 use function is_int;
 use function is_string;
@@ -208,7 +211,29 @@ class DecksController extends AbstractController
         $this->entityManager->remove($category);
         $this->entityManager->flush();
 
-        return $this->jsonSuccess();
+        return $this->jsonSuccess($this->viewBuilder->categoriesPayload());
+    }
+
+    /**
+     * The order somebody arranged the categories in, from the list of ids the
+     * management window sends. An unknown id is ignored; a category missing
+     * from the list goes after the others, in its former order.
+     */
+    #[Route('/categories/reorder', name: '_category_reorder', methods: [HttpMethodEnum::Post->value], priority: 10)]
+    #[IsGranted('studio.deck_categories.manage')]
+    public function reorderCategories(Request $request): JsonResponse
+    {
+        $ids = $this->decodeJson($request)['ids'] ?? null;
+        $rank = array_flip(is_array($ids) ? array_values(array_filter($ids, is_int(...))) : []);
+        $next = count($rank);
+
+        foreach ($this->categoryRepository->findOrdered() as $category) {
+            $category->setPosition($rank[$category->getId()] ?? $next++);
+        }
+
+        $this->entityManager->flush();
+
+        return $this->jsonSuccess($this->viewBuilder->categoriesPayload());
     }
 
     private function writeCategory(Request $request, ?int $id): JsonResponse
@@ -241,7 +266,7 @@ class DecksController extends AbstractController
 
         $this->entityManager->flush();
 
-        return $this->jsonSuccess($this->viewBuilder->categoriesPayload());
+        return $this->jsonSuccess(['categoryId' => $category->getId(), ...$this->viewBuilder->categoriesPayload()]);
     }
 
     /** @param array<string, mixed> $payload */

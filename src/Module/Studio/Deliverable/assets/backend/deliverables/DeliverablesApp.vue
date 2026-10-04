@@ -10,25 +10,36 @@
  * Les contrôles sont ceux de la liste des trames de contrat, l'écran voisin :
  * la barre de recherche et le bouton en tête, l'encart du mode d'emploi, les
  * rayons en pastilles avec leur compte.
+ *
+ * Les livrables de Studio se rangent par catégorie (audit, stratégie...) :
+ * un filtre à côté des rayons, comme celui des métiers sur les trames, et un
+ * affichage par catégorie, en sections, ou en simple liste. Le filtre et
+ * l'affichage vont dans l'adresse, comme le rayon : un lien rouvre la même vue.
  */
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { Copy, ExternalLink, Link2, Lock, Pencil, Plus, Trash2, Users, X } from "lucide-vue-next";
+import { Copy, ExternalLink, FolderInput, Layers, Link2, List, Lock, Pencil, Plus, Tags, Trash2, Users, X } from "lucide-vue-next";
+import { useQueryState } from "@/shared/composables/useQueryState.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
+import AppCategoriesModal from "@/shared/components/category/AppCategoriesModal.vue";
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
+import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppListToolbar from "@/shared/components/list/AppListToolbar.vue";
+import AppMultiselect from "@/shared/components/form/select/AppMultiselect.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
+import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppTab from "@/shared/components/nav/AppTab.vue";
 import DeliverableCards from "./components/DeliverableCards.vue";
+import DeliverableCopyToSpaceModal from "./components/DeliverableCopyToSpaceModal.vue";
 import DeliverableDeleteModal from "./components/DeliverableDeleteModal.vue";
 import DeliverableLinksModal from "./components/DeliverableLinksModal.vue";
 
@@ -42,6 +53,16 @@ const props = defineProps({
     duplicatePathTemplate: { type: String, required: true },
     deletePathTemplate: { type: String, required: true },
     linksPathTemplate: { type: String, required: true },
+    copyToSpacePathTemplate: { type: String, default: "" },
+    /** Les espaces où déposer une copie ; vide, le geste ne s'affiche pas. */
+    copyTargets: { type: Array, default: () => [] },
+    /** Les catégories, dans l'ordre choisi : `{ id, name, color, position }`. */
+    categories: { type: Array, default: () => [] },
+    canManageCategories: { type: Boolean, default: false },
+    categoryCreatePath: { type: String, default: "" },
+    categoryUpdatePathTemplate: { type: String, default: "" },
+    categoryDeletePathTemplate: { type: String, default: "" },
+    categoryReorderPath: { type: String, default: "" },
 });
 
 const { t } = useI18n();
@@ -61,17 +82,104 @@ function setScope(value) {
     window.history.replaceState(null, "", url);
 }
 
-/** La réponse du serveur porte les deux rayons : un geste peut faire passer un livrable de l'un à l'autre. */
+const categories = ref([...props.categories]);
+
+/**
+ * La réponse du serveur porte les deux rayons : un geste peut faire passer un
+ * livrable de l'un à l'autre. Celle d'une catégorie porte aussi la liste des
+ * catégories, renommée ou rangée.
+ */
 function refresh(data) {
     lists.value = { personal: data.personal ?? [], shared: data.shared ?? [] };
+    if (Array.isArray(data.categories)) categories.value = data.categories;
 }
 
-const visible = computed(() => {
+// ── Catégories : filtre et affichage ────────────────────────────────────────
+
+const NO_CATEGORY = "none";
+
+const { value: categoryQuery, set: setCategory } = useQueryState("category", { defaultValue: "" });
+
+/**
+ * Le filtre en vigueur : celui de l'adresse, s'il désigne encore une catégorie.
+ * Une catégorie supprimée (depuis la fenêtre, ou un vieux lien) ne doit pas
+ * laisser une liste vide sans raison : le filtre retombe sur « Toutes ».
+ */
+const categoryFilter = computed(() => {
+    const value = categoryQuery.value;
+    const known = NO_CATEGORY === value || categories.value.some((category) => String(category.id) === value);
+
+    return known ? value : "";
+});
+const { value: layout, set: setLayout } = useQueryState("layout", { defaultValue: "grouped", valid: ["grouped", "flat"] });
+
+/** Désélectionner rend null, et le filtre parle en chaînes. */
+function setCategoryFilter(value) {
+    setCategory(null === value || undefined === value ? "" : String(value));
+}
+
+/** La recherche porte sur le titre et le résumé, dans le rayon ouvert. */
+const searched = computed(() => {
     const needle = search.value.trim().toLocaleLowerCase();
     const rows = lists.value[scope.value];
 
-    return needle ? rows.filter((row) => row.title.toLocaleLowerCase().includes(needle)) : rows;
+    return needle
+        ? rows.filter((row) => `${row.title} ${row.summary ?? ""}`.toLocaleLowerCase().includes(needle))
+        : rows;
 });
+
+function categoryKey(row) {
+    return row.category?.id ? String(row.category.id) : NO_CATEGORY;
+}
+
+const visible = computed(() =>
+    "" === categoryFilter.value ? searched.value : searched.value.filter((row) => categoryKey(row) === categoryFilter.value),
+);
+
+/** Les comptes du filtre, sur le rayon ouvert et la recherche en cours. */
+const categoryCounts = computed(() => {
+    const counts = {};
+    for (const row of searched.value) counts[categoryKey(row)] = (counts[categoryKey(row)] ?? 0) + 1;
+
+    return counts;
+});
+
+const categoryFilterOptions = computed(() => [
+    { value: "", label: t("backend.studio.deliverables.categories.all") },
+    ...categories.value.map((category) => ({
+        value: String(category.id),
+        label: `${category.name} (${categoryCounts.value[String(category.id)] ?? 0})`,
+    })),
+    { value: NO_CATEGORY, label: `${t("backend.studio.deliverables.categories.none")} (${categoryCounts.value[NO_CATEGORY] ?? 0})` },
+]);
+
+/** Par catégorie, seulement quand il y en a : sinon, une seule section ne dirait rien. */
+const grouped = computed(() => "grouped" === layout.value && categories.value.length > 0);
+
+/** Les sections, dans l'ordre des catégories, « Sans catégorie » à la fin ; les vides se taisent. */
+const groups = computed(() => {
+    const sections = categories.value.map((category) => ({
+        key: String(category.id),
+        name: category.name,
+        color: category.color,
+        rows: visible.value.filter((row) => categoryKey(row) === String(category.id)),
+    }));
+    sections.push({
+        key: NO_CATEGORY,
+        name: t("backend.studio.deliverables.categories.none"),
+        color: null,
+        rows: visible.value.filter((row) => NO_CATEGORY === categoryKey(row)),
+    });
+
+    return sections.filter((section) => section.rows.length);
+});
+
+/** Ce que la page affiche : les sections, ou une seule, sans titre, en liste simple. */
+const sections = computed(() => (grouped.value ? groups.value : [{ key: "all", name: null, color: null, rows: visible.value }]));
+
+const categoryOptions = computed(() => categories.value.map((category) => ({ value: category.id, label: category.name })));
+
+const managingCategories = ref(false);
 
 // ── Création ────────────────────────────────────────────────────────────────
 
@@ -79,12 +187,15 @@ const creating = ref(false);
 const saving = ref(false);
 const title = ref("");
 const newScope = ref("personal");
+const newCategory = ref("");
 const errors = ref({});
 
 function openCreate() {
     title.value = "";
     // Dans le rayon qu'on regarde : on crée là où l'on cherchait.
     newScope.value = scope.value;
+    // La catégorie qu'on filtre, si c'en est une : on crée là où l'on regardait.
+    newCategory.value = "" !== categoryFilter.value && NO_CATEGORY !== categoryFilter.value ? categoryFilter.value : "";
     errors.value = {};
     creating.value = true;
 }
@@ -94,7 +205,11 @@ async function create() {
 
     saving.value = true;
     try {
-        const data = await request(props.createPath, { title: title.value, scope: newScope.value });
+        const data = await request(props.createPath, {
+            title: title.value,
+            scope: newScope.value,
+            categoryId: newCategory.value ? Number(newCategory.value) : null,
+        });
         if (!data?.success) {
             errors.value = data?.errors ?? {};
 
@@ -108,11 +223,23 @@ async function create() {
     }
 }
 
-const pageActions = computed(() =>
-    props.canCreate
-        ? [{ key: "create", color: "accent", icon: Plus, title: t("backend.studio.deliverables.add"), onSelect: openCreate }]
-        : [],
-);
+const pageActions = computed(() => {
+    const actions = [];
+    if (props.canCreate) {
+        actions.push({ key: "create", color: "accent", icon: Plus, title: t("backend.studio.deliverables.add"), onSelect: openCreate });
+    }
+    if (props.canManageCategories) {
+        actions.push({
+            key: "categories",
+            icon: Tags,
+            title: t("backend.studio.deliverables.categories.manage"),
+            description: t("backend.studio.deliverables.categories.manage_hint"),
+            onSelect: () => (managingCategories.value = true),
+        });
+    }
+
+    return actions;
+});
 
 // ── Gestes d'une carte ──────────────────────────────────────────────────────
 
@@ -162,6 +289,9 @@ async function doDelete() {
 
 /** Le livrable dont la fenêtre des liens est ouverte. */
 const linksFor = ref(null);
+
+/** Le livrable qu'on recopie dans un espace client. */
+const copyFor = ref(null);
 
 function actionsFor(deliverable) {
     const actions = [
@@ -215,6 +345,16 @@ function actionsFor(deliverable) {
         });
     }
 
+    if (props.copyTargets.length && props.copyToSpacePathTemplate) {
+        actions.push({
+            key: "copy-to-space",
+            icon: FolderInput,
+            title: t("backend.studio.deliverables.copy_to_space.action"),
+            description: t("backend.studio.deliverables.copy_to_space.action_hint"),
+            onSelect: () => (copyFor.value = deliverable),
+        });
+    }
+
     if (deliverable.canDelete) {
         actions.push({
             key: "delete",
@@ -234,6 +374,27 @@ function actionsFor(deliverable) {
     <div class="aurora-stack">
         <AppListToolbar>
             <AppSearchInput v-model="search" :placeholder="t('backend.studio.deliverables.search_placeholder')" />
+            <!-- Par catégorie ou en liste : le même interrupteur que la vue
+                 des autres listes, à côté de la recherche. Sans catégorie, il
+                 n'y a rien à choisir. -->
+            <template v-if="categories.length" #inline>
+                <div class="flex shrink-0 border border-line rounded-lg p-0.5">
+                    <AppIconButton
+                        :title="t('backend.studio.deliverables.categories.layout_grouped')"
+                        :active="'grouped' === layout"
+                        v-on:click="setLayout('grouped')"
+                    >
+                        <Layers class="w-4 h-4" :stroke-width="2" />
+                    </AppIconButton>
+                    <AppIconButton
+                        :title="t('backend.studio.deliverables.categories.layout_flat')"
+                        :active="'flat' === layout"
+                        v-on:click="setLayout('flat')"
+                    >
+                        <List class="w-4 h-4" :stroke-width="2" />
+                    </AppIconButton>
+                </div>
+            </template>
             <template #actions>
                 <AppPageActions v-if="pageActions.length" :actions="pageActions" class="w-full sm:w-auto" />
             </template>
@@ -243,32 +404,53 @@ function actionsFor(deliverable) {
              replié ou déplié, le choix vaut pour tous les encarts. -->
         <AppGuide :title="t('backend.studio.deliverables.studio_guide.title')" storage-key="studio-deliverables">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
-                <li v-for="step in 5" :key="step">{{ t(`backend.studio.deliverables.studio_guide.step_${step}`) }}</li>
+                <li v-for="step in 6" :key="step">{{ t(`backend.studio.deliverables.studio_guide.step_${step}`) }}</li>
             </ol>
         </AppGuide>
 
-        <!-- Les deux rayons, en pastilles avec leur compte, comme les filtres
-             des autres listes de Studio. -->
-        <div class="flex w-full flex-col p-1 bg-surface-2 border border-line rounded-lg gap-1 sm:inline-flex sm:w-auto sm:flex-row sm:self-start">
-            <AppTab
-                v-for="value in SCOPES"
-                :key="value"
-                size="sm"
-                class="justify-between sm:flex-none sm:justify-start"
-                :active="scope === value"
-                active-class="bg-surface text-primary shadow-sm"
-                inactive-class="text-secondary hover:text-primary"
-                v-on:click="setScope(value)"
-            >
-                <span class="inline-flex items-center gap-1.5">
-                    <component :is="'shared' === value ? Users : Lock" class="h-3.5 w-3.5" :stroke-width="2" />
-                    {{ t(`backend.studio.deliverables.scope.tab_${value}`) }}
-                </span>
-                <span class="ml-1 text-xs text-muted">{{ lists[value].length }}</span>
-            </AppTab>
-        </div>
+        <!-- Les rayons et la phrase qui dit ce qu'est celui qu'on regarde :
+             un seul bloc, l'espace de la page vient après, avant les cartes. -->
+        <div class="flex flex-col gap-2">
+            <!-- Les rayons, puis le filtre des catégories : empilés sur un
+                 téléphone, côte à côte dès `sm`, comme sur les trames. -->
+            <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+                <!-- Les deux rayons, en pastilles avec leur compte, comme les filtres
+                 des autres listes de Studio. -->
+                <div class="flex w-full flex-col p-1 bg-surface-2 border border-line rounded-lg gap-1 sm:inline-flex sm:w-auto sm:flex-row sm:self-start">
+                    <AppTab
+                        v-for="value in SCOPES"
+                        :key="value"
+                        size="sm"
+                        class="justify-between sm:flex-none sm:justify-start"
+                        :active="scope === value"
+                        active-class="bg-surface text-primary shadow-sm"
+                        inactive-class="text-secondary hover:text-primary"
+                        v-on:click="setScope(value)"
+                    >
+                        <span class="inline-flex items-center gap-1.5">
+                            <component :is="'shared' === value ? Users : Lock" class="h-3.5 w-3.5" :stroke-width="2" />
+                            {{ t(`backend.studio.deliverables.scope.tab_${value}`) }}
+                        </span>
+                        <span class="ml-1 text-xs text-muted">{{ lists[value].length }}</span>
+                    </AppTab>
+                </div>
 
-        <p class="m-0 text-xs text-muted sm:max-w-xl">{{ t(`backend.studio.deliverables.scope.intro_${scope}`) }}</p>
+                <!-- « Toutes » en tête et « Sans catégorie » en dernier, avec leur
+                 compte : un filtre qui mène à une liste vide se voit avant le
+                 clic. -->
+                <AppMultiselect
+                    v-if="categories.length"
+                    :model-value="categoryFilter"
+                    :options="categoryFilterOptions"
+                    :allow-empty="true"
+                    :placeholder="t('backend.studio.deliverables.categories.all')"
+                    class="w-full sm:w-auto sm:min-w-48"
+                    v-on:update:model-value="setCategoryFilter"
+                />
+            </div>
+
+            <p class="m-0 text-xs text-muted sm:max-w-xl">{{ t(`backend.studio.deliverables.scope.intro_${scope}`) }}</p>
+        </div>
 
         <AppNoData
             v-if="!visible.length"
@@ -278,23 +460,67 @@ function actionsFor(deliverable) {
             :hint="lists[scope].length ? '' : t(`backend.studio.deliverables.scope.empty_${scope}_hint`)"
         />
 
-        <DeliverableCards v-else :deliverables="visible" :actions-for="actionsFor">
-            <template #meta="{ deliverable }">
-                <AppBadge v-if="'shared' === deliverable.scope" color="sky">
-                    {{ deliverable.ownerName
-                        ? t("backend.studio.deliverables.scope.by", { name: deliverable.ownerName })
-                        : t("backend.studio.deliverables.scope.no_owner") }}
-                </AppBadge>
-                <AppBadge v-else-if="!deliverable.ownerName" color="amber">
-                    {{ t("backend.studio.deliverables.scope.orphan") }}
-                </AppBadge>
-            </template>
-        </DeliverableCards>
+        <!-- Une section par catégorie, ou une seule sans titre en liste
+             simple : les mêmes cartes, les mêmes gestes. -->
+        <div v-else class="flex flex-col gap-6">
+            <section v-for="section in sections" :key="section.key" class="flex flex-col gap-2">
+                <h3 v-if="section.name" class="m-0 flex items-center gap-2 text-sm font-semibold text-primary">
+                    <span
+                        class="h-2.5 w-2.5 shrink-0 rounded-full"
+                        :class="section.color ? '' : 'border border-line'"
+                        :style="section.color ? { backgroundColor: section.color } : {}"
+                    />
+                    {{ section.name }}
+                    <span class="text-xs font-normal text-muted">{{ section.rows.length }}</span>
+                </h3>
+                <DeliverableCards :deliverables="section.rows" :actions-for="actionsFor">
+                    <template #meta="{ deliverable }">
+                        <span v-if="!grouped && deliverable.category" class="inline-flex items-center gap-1.5 text-xs text-secondary">
+                            <span
+                                class="h-2 w-2 shrink-0 rounded-full"
+                                :style="deliverable.category.color ? { backgroundColor: deliverable.category.color } : {}"
+                            />
+                            {{ deliverable.category.name }}
+                        </span>
+                        <AppBadge v-if="'shared' === deliverable.scope" color="sky">
+                            {{ deliverable.ownerName
+                                ? t("backend.studio.deliverables.scope.by", { name: deliverable.ownerName })
+                                : t("backend.studio.deliverables.scope.no_owner") }}
+                        </AppBadge>
+                        <AppBadge v-else-if="!deliverable.ownerName" color="amber">
+                            {{ t("backend.studio.deliverables.scope.orphan") }}
+                        </AppBadge>
+                    </template>
+                </DeliverableCards>
+            </section>
+        </div>
+
+        <AppCategoriesModal
+            v-if="canManageCategories"
+            :show="managingCategories"
+            :title="t('backend.studio.deliverables.categories.manage_title')"
+            :intro="t('backend.studio.deliverables.categories.manage_intro')"
+            :categories="categories"
+            :create-path="categoryCreatePath"
+            :update-path-template="categoryUpdatePathTemplate"
+            :delete-path-template="categoryDeletePathTemplate"
+            :reorder-path="categoryReorderPath"
+            v-on:close="managingCategories = false"
+            v-on:changed="refresh"
+        />
 
         <DeliverableLinksModal
             :show="null !== linksFor"
             :links-path="linksFor ? buildPath(linksPathTemplate, { id: linksFor.id }) : ''"
             v-on:close="linksFor = null"
+        />
+
+        <DeliverableCopyToSpaceModal
+            :show="null !== copyFor"
+            :source-title="copyFor?.title ?? ''"
+            :copy-path="copyFor ? buildPath(copyToSpacePathTemplate, { id: copyFor.id }) : ''"
+            :targets="copyTargets"
+            v-on:close="copyFor = null"
         />
 
         <AppModal
@@ -312,6 +538,13 @@ function actionsFor(deliverable) {
                     :placeholder="t('backend.studio.deliverables.title_placeholder')"
                     :hint="t('backend.studio.deliverables.studio_title_hint')"
                     :error="errors.title ?? ''"
+                />
+                <AppSelect
+                    v-if="categories.length"
+                    v-model="newCategory"
+                    :label="t('backend.studio.deliverables.categories.label')"
+                    :placeholder="t('backend.studio.deliverables.categories.none')"
+                    :options="categoryOptions"
                 />
                 <fieldset class="m-0 space-y-2 border-0 p-0">
                     <legend class="mb-1.5 text-sm font-medium text-primary">{{ t("backend.studio.deliverables.scope.label") }}</legend>

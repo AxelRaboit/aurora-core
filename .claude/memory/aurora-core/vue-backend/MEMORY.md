@@ -8,3 +8,4 @@
 - [convention_color_picker.md](convention_color_picker.md) - 3 composants couleur : `AppColorSwatch` (nu), `AppColorField` (form), `AppColorPicker` (preset grid)
 - [pitfall_nested_drag_drop_clone.md](pitfall_nested_drag_drop_clone.md) - node récursif VueDraggable : computed bidirectionnel sur `props.node.children`, jamais `ref([...])`. Bug latent dans `TermNode.vue`
 - [pattern_folder_sidebar.md](pattern_folder_sidebar.md) - sidebar arborescence Media-style sur une page liste : 5 composables (Navigation/SidebarTree/SidebarFolders/DragDrop/BulkMove) + backend `move`/`bulkMove`/`countGroupedByFolders`/`rootOnly`/`withCounts` ; garde la page `/folders` admin intacte
+- [pitfall_m0_cancels_stack_spacing.md](pitfall_m0_cancels_stack_spacing.md) - `m-0` sur un enfant d'`aurora-stack` / `space-y-*` annule l'espace sous lui (Tailwind 4) ; regrouper plutôt.

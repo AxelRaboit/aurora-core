@@ -808,7 +808,7 @@ backend:
             delete_hint: 'La presentación y todas sus diapositivas.'
             copy_of: '%title% (copia)'
             title_column: Título
-            title_placeholder: 'Auditoría del sitio, octubre'
+            title_placeholder: 'Reunión de lanzamiento, octubre'
             description_placeholder: 'Una línea, visible en la lista.'
             description: Descripción
             category: Sección
@@ -1405,6 +1405,10 @@ backend:
                 mosaic: 'Mosaico de imágenes'
                 free: Diapositiva libre
             categories:
+                manage: "Gestionar las categorías"
+                manage_hint: "Crear, renombrar, colorear y ordenar las categorías de las presentaciones."
+                manage_title: "Categorías de las presentaciones"
+                manage_intro: "Ordenan las presentaciones, para todo el equipo. Eliminar una categoría no elimina ninguna presentación: se quedan, sin categoría."
                 errors:
                     name_required: 'El nombre es obligatorio.'
                     color_invalid: 'El color debe estar en formato hexadecimal, por ejemplo'
@@ -1960,7 +1964,7 @@ backend:
             title: "Título"
             title_placeholder: "Auditoría de presencia en línea"
             title_hint: "Lo que el cliente lee en la lista de su espacio y arriba del documento."
-            updated_on: "Modificado el {date}"
+            updated_on: "Modificado el {date} a las {time}"
             open: "Abrir"
             open_hint: "Componer el documento, ajustar sus colores y lo que ve el cliente."
             preview: "Vista previa"
@@ -1977,6 +1981,36 @@ backend:
             duplicate_hint: "Una copia para retomar, oculta al cliente: el balance del mes pasado para escribir este."
             duplicated: "Copia creada."
             copy_title: "%title% (copia)"
+            copy_to_space:
+                action: "Copiar en un espacio cliente"
+                action_hint: "Una copia en el espacio de un cliente, oculta para él: la plantilla que se rellena para él."
+                title: "Copiar en un espacio cliente"
+                intro: "La copia llega al espacio elegido, oculta al cliente, con su nombre en «Preparado para». El original se queda aquí, intacto."
+                space: "Espacio cliente"
+                space_placeholder: "Elegir un espacio"
+                space_required: "Elija el espacio donde dejar la copia."
+                title_hint: "El nombre de la copia en el espacio; podrá cambiarlo después."
+                submit: "Copiar y abrir"
+            categories:
+                label: "Categoría"
+                none: "Sin categoría"
+                all: "Todas las categorías"
+                settings_hint: "Para encontrar este entregable en la lista, filtrada o mostrada por categoría."
+                settings_empty_hint: "Aún no hay categorías: se crean desde la lista, menú Acciones, «Gestionar las categorías»."
+                manage: "Gestionar las categorías"
+                manage_hint: "Crear, renombrar, colorear y ordenar las categorías de los entregables."
+                manage_title: "Categorías de los entregables"
+                manage_intro: "Ordenan los entregables de Studio, para todo el equipo. Eliminar una categoría no elimina ningún entregable: se quedan, sin categoría."
+                layout_grouped: "Por categoría"
+                layout_flat: "En lista"
+                errors:
+                    name_required: "Dé un nombre a la categoría."
+                    name_too_long: "El nombre no puede superar los 100 caracteres."
+                    color_invalid: "El color no es válido."
+            copy_to_studio:
+                action: "Copiar en Studio"
+                action_hint: "Una copia en sus entregables de Studio, para convertirla en plantilla. Este se queda en el espacio."
+                done: "Copia creada en Studio."
             delete_hint: "Elimina el entregable y sus enlaces de lectura."
             delete_confirm: "¿Eliminar el entregable «{title}»? Sus enlaces de lectura dejarán de funcionar."
             deleted: "Entregable eliminado."
@@ -1997,6 +2031,7 @@ backend:
                 step_3: "Un entregable se crea en la pestaña abierta; después, solo su autor lo pasa de personal a compartido, o al revés, desde su menú o sus ajustes."
                 step_4: "Un enlace de lectura lo envía a quien usted quiera, con caducidad y contraseña opcionales, sin cuenta ni espacio de cliente."
                 step_5: "Los entregables de un cliente se preparan en su espacio, pestaña Entregables: allí es donde los lee."
+                step_6: "Ordénelos por categoría (auditoría, estrategia, propuesta…): filtre la lista o muéstrela por categoría. Una plantilla se copia en el espacio de un cliente, y un entregable de espacio vuelve aquí con «Copiar en Studio»."
             scope:
                 label: "Visibilidad"
                 personal: "Personal"
@@ -2062,6 +2097,8 @@ backend:
                 summary_placeholder: "Dónde está su presencia en línea y lo que proponemos para los próximos tres meses."
                 summary_hint: "Bajo el título, en la lista del cliente y arriba de la página."
                 summary_hint_studio: "Bajo el título, en la lista de entregables y arriba de la página."
+                thumbnail: "Imagen"
+                thumbnail_hint: "La miniatura del entregable en las listas, para reconocerlo de un vistazo. Elegida en la mediateca o subida."
                 locale: "Idioma"
                 locale_hint: "El del documento: ajusta las fechas y los textos de la página."
                 client_title: "Lo que ve el cliente"

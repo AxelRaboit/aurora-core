@@ -608,6 +608,9 @@ const pageActions = computed(() => {
                     >
                         {{ t("backend.studio.contract_templates.state_archived") }}
                     </span>
+                    <!-- Les mêmes gestes que la ligne du tableau, derrière le
+                         même bouton « … » (décision d'Axel du 04/10/2026). -->
+                    <AppRowActions class="shrink-0" :actions="rowActions(template)" :label="template.name" />
                 </div>
 
                 <!-- The two facts that matter, and the two absences that mean
@@ -656,28 +659,6 @@ const pageActions = computed(() => {
                         </dd>
                     </div>
                 </dl>
-
-                <!-- The same actions as the row, laid out rather than folded:
-                     a card has the room, and the list is defined once so the
-                     two views cannot drift apart. -->
-                <!-- Sur téléphone, un bouton par ligne, pleine largeur : repliés
-                     en vrac, six gestes faisaient quatre rangées de largeurs
-                     différentes. -->
-                <div class="flex flex-col gap-2 pt-1 border-t border-line/40 sm:flex-row sm:flex-wrap">
-                    <AppButton
-                        v-for="action in rowActions(template)"
-                        :key="action.key"
-                        class="w-full sm:w-auto"
-                        variant="ghost"
-                        size="sm"
-                        :href="action.href"
-                        :loading="action.key === 'openDraft' && busy"
-                        v-on:click="action.onSelect?.()"
-                    >
-                        <component :is="action.icon" class="w-3.5 h-3.5" :stroke-width="2" />
-                        {{ action.title }}
-                    </AppButton>
-                </div>
             </article>
         </div>
 

@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\SpaceAccess\View;
 
 use Aurora\Core\Routing\PathTemplateGenerator;
+use Aurora\Module\Ged\Document\Entity\DocumentInterface;
+use Aurora\Module\Ged\Document\Service\DocumentUrlGenerator;
+use Aurora\Module\Ged\Enum\DocumentStatusEnum;
 use Aurora\Module\Studio\Customer\Serializer\CustomerInformationSerializerInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
@@ -54,6 +57,7 @@ final readonly class PublicSpaceViewBuilder
         private PathTemplateGenerator $pathTemplates,
         private UrlGeneratorInterface $urlGenerator,
         private DeliverableRepository $deliverables,
+        private DocumentUrlGenerator $documentUrls,
     ) {}
 
     /**
@@ -62,13 +66,19 @@ final readonly class PublicSpaceViewBuilder
      * Les fermés ne sortent pas du serveur : c'est la requête qui les écarte,
      * pas la page.
      *
-     * @return list<array{id: int, title: string, description: ?string, updatedAt: string, url: string}>
+     * L'image de chaque livrable vient avec lui, si elle est publiée dans la
+     * médiathèque : le client n'est pas connecté, et une image privée ne
+     * s'afficherait pas chez lui. Elle n'est alors simplement pas envoyée.
+     *
+     * @return list<array{id: int, title: string, description: ?string, updatedAt: string, url: string, thumbnailUrl: ?string, thumbnailPosition: ?string}>
      */
     private function documents(SpaceAccessLinkInterface $link, string $token): array
     {
         $documents = [];
 
         foreach ($this->deliverables->findForSpace($link->getSpace(), visibleOnly: true) as $deliverable) {
+            $thumbnail = $deliverable->getThumbnail();
+            $public = $thumbnail instanceof DocumentInterface && DocumentStatusEnum::Published === $thumbnail->getStatus();
             $documents[] = [
                 'id' => (int) $deliverable->getId(),
                 'title' => $deliverable->getTitle(),
@@ -79,6 +89,8 @@ final readonly class PublicSpaceViewBuilder
                     'token' => $token,
                     'deliverableId' => $deliverable->getId(),
                 ]),
+                'thumbnailUrl' => $public ? $this->documentUrls->thumbUrl($thumbnail) : null,
+                'thumbnailPosition' => $public ? $this->documentUrls->focalPositionCss($thumbnail) : null,
             ];
         }
 

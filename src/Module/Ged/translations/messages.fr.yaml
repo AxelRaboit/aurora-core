@@ -1,417 +1,417 @@
 backend:
-  stats:
+    stats:
+        ged:
+            documents: "Documents"
+            categories: "Catégories"
+            tags: "Étiquettes"
+            folders: "Dossiers"
+            by_type: "Répartition par type de fichier"
+    parameters:
+        ged_document_prefix:
+            label: Préfixe des références documents GED
+            description: 'Préfixe de la référence document GED auto-générée (ex: DOC). De 1 à 10 lettres majuscules ou chiffres, obligatoire.'
+    permissions:
+        names:
+            ged:
+                documents:
+                    view: Voir les documents
+                    create: Créer des documents
+                    edit: Modifier les documents
+                    delete: Supprimer les documents
+                    relocate: Déplacer les documents entre stockages
+                categories:
+                    view: Voir les catégories
+                    create: Créer des catégories
+                    edit: Modifier les catégories
+                    delete: Supprimer les catégories
+                tags:
+                    manage: Gérer les étiquettes
+                folders:
+                    manage: Gérer les dossiers
+    modules:
+        ged: GED
+        ged_backend: GED
+        ged_backend_description: "Active la section GED dans l'administration."
+        ged_tags: Étiquettes GED
+        ged_tags_description: "Active la gestion des étiquettes de documents."
+        ged_folders: Dossiers GED
+        ged_folders_description: "Active la gestion des dossiers de documents."
+        ged_frontend: Bibliothèque publique GED
+        ged_frontend_description: Expose les documents publiés sur le site public.
+    nav:
+        sections:
+            ged: GED
+        documents: Documents
+        documents_description: "Déposer, classer et retrouver les documents de la bibliothèque."
+        ged_categories: Catégories
+        ged_categories_description: "Classer les documents par nature, une catégorie par document."
+        ged_tags: Étiquettes
+        ged_tags_description: "Étiqueter librement un document, autant d'étiquettes que nécessaire."
+        ged_folders: Dossiers
+        ged_folders_description: "Ranger les documents dans une arborescence de dossiers imbriqués."
     ged:
-      documents: "Documents"
-      categories: "Catégories"
-      tags: "Étiquettes"
-      folders: "Dossiers"
-      by_type: "Répartition par type de fichier"
-  parameters:
-    ged_document_prefix:
-      label: Préfixe des références documents GED
-      description: 'Préfixe de la référence document GED auto-générée (ex: DOC). De 1 à 10 lettres majuscules ou chiffres, obligatoire.'
-  permissions:
-    names:
-      ged:
+        pexels:
+            tab: Pexels
+            search_placeholder: "Rechercher une photo : bureau, nature, portrait…"
+            empty: Aucune photo pour cette recherche.
+            not_configured: "La banque de photos Pexels n'est pas activée. Rendez-vous dans Configuration › Pexels pour l'activer."
+            settings:
+                what_title: À quoi ça sert
+                what_body: "Pexels est une banque de photos gratuites. Une fois activée, un onglet « Pexels » apparaît dans le sélecteur d'images : vous cherchez une photo, vous la choisissez, elle est téléchargée dans votre médiathèque et vous appartient. Votre site ne dépend ensuite plus de Pexels pour l'afficher."
+                how_title: Obtenir votre clé
+                how_step_account: "Créez un compte gratuit sur pexels.com, ou connectez-vous au vôtre."
+                how_step_request: "Allez sur pexels.com/api/, cliquez sur « Get Started » et décrivez en une phrase à quoi vous allez vous en servir (par exemple : illustrer les pages de mon site). La clé est délivrée immédiatement."
+                how_step_paste: "Copiez la clé affichée et collez-la dans le champ ci-dessous, puis enregistrez."
+                how_link: Ouvrir la page des clés Pexels
+                terms_label: J'ai lu et j'accepte les conditions d'utilisation de Pexels
+                terms_hint: "Le compte Pexels est le vôtre, et c'est son titulaire qui répond de l'usage fait des photos. En particulier, sur un site qui vend un produit ou un service, évitez les photos montrant un visage reconnaissable ou une marque : elles peuvent laisser croire à une recommandation. Ne redistribuez pas non plus les fichiers eux-mêmes, par exemple dans un dossier remis à un tiers."
+                terms_link: Lire les conditions d'utilisation
+                license_link: Lire la licence Pexels
+                accepted_on: "Conditions acceptées le {date} par {user}."
+                key_label: Clé d'API Pexels
+                key_hint: Elle est enregistrée chiffrée et n'est jamais réaffichée.
+                key_stored: Une clé est enregistrée. Laissez le champ vide pour la conserver, ou saisissez-en une nouvelle pour la remplacer.
+                enabled_label: Activer la banque de photos Pexels
+                enabled_hint: L'onglet Pexels apparaîtra dans le sélecteur d'images.
+                enabled_blocked: Acceptez les conditions et renseignez une clé pour pouvoir activer.
+            errors:
+                invalid_photo: Cette photo ne peut pas être importée.
+                download_failed: La photo n'a pas pu être téléchargée. Réessayez dans un instant.
+                terms_required: Les conditions d'utilisation doivent être acceptées pour activer l'intégration.
+                key_required: Une clé d'API est nécessaire pour activer l'intégration.
+                unknown_disk: Cet emplacement de stockage n'existe pas.
+                relocation_busy: Un déplacement est déjà en cours pour ce document.
+                relocation_failed: Le déplacement a échoué. Le document est resté où il était.
+        bootstrap:
+            categories:
+                inline_uploads: Médias éditoriaux
+                inline_uploads_description: "Images importées depuis un formulaire d'édition : bannières, images à la une, champs personnalisés."
         documents:
-          view: Voir les documents
-          create: Créer des documents
-          edit: Modifier les documents
-          delete: Supprimer les documents
-          relocate: Déplacer les documents entre stockages
+            trashed:
+                title: "Ce document est dans la corbeille"
+                body: "Mis à la corbeille le {date}. Son fichier n'est plus servi aux visiteurs, et la purge automatique l'effacera s'il n'est pas restauré."
+                badge: "Dans la corbeille"
+            show_guide:
+                title: "Ce que vous pouvez faire ici"
+                step_1: "Le bouton d'actions en haut permet de télécharger le fichier, de modifier le document ou de l'envoyer à la corbeille."
+                step_2: "Seul un document au statut « Publié » est servi aux visiteurs du site ; un brouillon ou une archive reste réservé au back-office."
+                step_3: "Sur une image, « Recadrer » enregistre une nouvelle version du fichier, régénère ses tailles et garde la précédente dans l'historique."
+                step_4: "Si le document a des variantes, sa famille s'affiche en bas avec l'endroit où chacune est utilisée, et un clic ouvre la page d'une variante."
+            guide:
+                title: "Comment se range la médiathèque"
+                step_1: "Un fichier déposé devient un document, rangé dans un dossier, avec une catégorie (sa nature) et autant d'étiquettes que vous voulez."
+                step_2: "Une variante (autre couleur, version sans texte) se rattache à son original et forme une famille ; « Variante de couleur » en crée une à partir d'une image."
+                step_3: "Le badge « Inutilisé » signale un document qu'aucune page, présentation ou espace n'affiche ; « À conserver » le garde quand même."
+                step_4: "Supprimer envoie le document à la corbeille, d'où il se restaure jusqu'à la purge automatique."
+                step_5: "La recherche lit aussi le nom du fichier, les textes et les étiquettes ; « Plus de filtres » précise par date, format ou poids."
+            row_actions:
+                view_description: Ouvre l'aperçu, ses versions et où il est utilisé.
+                download_description: Télécharge le fichier tel qu'il a été déposé.
+                qr_description: Affiche un QR code menant à ce document.
+                edit_description: Titre, catégorie, étiquettes, dossier.
+                delete_description: Envoie le document à la corbeille, d'où il se restaure.
+                restore_description: "Le sort de la corbeille avec son fichier, ses tailles et sa place dans sa famille."
+                relocate_to_remote: Envoyer vers le stockage distant
+                relocate_to_local: Rapatrier sur le serveur
+                relocate_description: "Déplace le fichier, ses tailles générées et son historique. Son adresse ne change pas."
+                relocate_pending: Un déplacement est déjà en cours pour ce document.
+            storage:
+                column: Stockage
+                local: Serveur
+                remote: Distant
+                moving: Déplacement
+                failed: Déplacement échoué
+                hint: "Fichier stocké : {place}."
+            relocation:
+                done: Document déplacé.
+                queued: Déplacement lancé. Il se poursuit en arrière-plan.
+                already_there: Ce document est déjà à cet emplacement.
+                bulk_done: "{done} document(s) déplacé(s), {skipped} laissé(s) tel(s) quel(s)."
+                bulk_partial: "{done} document(s) déplacé(s), {failed} en échec."
+                all_to_remote: Tout basculer sur le stockage distant
+                all_to_local: Tout basculer sur le serveur
+                all_confirm_remote: Envoyer vers le stockage distant tous les documents qui n'y sont pas encore ?
+                all_confirm_local: Rapatrier sur le serveur tous les documents qui n'y sont pas encore ?
+                all_explain: "Les documents déjà à destination sont ignorés. La corbeille n'est pas déplacée."
+                all_background: "Le déplacement se fait en arrière-plan : les lignes passent en « Déplacement » au fur et à mesure."
+                all_queued: "{queued} document(s) mis en file, {skipped} déjà à destination."
+                all_nothing: Tous les documents sont déjà à cet emplacement.
+            reference: Référence
+            title: Titre
+            description: Description
+            status: Statut
+            category: Catégorie
+            file: Fichier
+            size: Taille
+            add: Ajouter un document
+            create: Nouveau document
+            edit: "Modifier le document {title}"
+            search_placeholder: "Rechercher : titre, fichier, texte, étiquette…"
+            picker_title: Choisir un document
+            picker_empty: Aucun document disponible
+            picker_confirm: Sélectionner
+            picker_tab_library: Médiathèque
+            created: Document créé avec succès
+            updated: Document mis à jour
+            deleted: Document mis à la corbeille
+            empty: Aucun document pour le moment
+            delete_confirm: "Êtes-vous sûr de vouloir supprimer le document « {title} » ?"
+            delete_warning: Le document part à la corbeille. Vous pourrez le restaurer tant qu'elle n'a pas été vidée.
+            back_to_list: Retour aux documents
+            no_category: Sans catégorie
+            tags: Étiquettes
+            no_tags: Aucune étiquette
+            folder: Dossier
+            no_folder: Aucun dossier
+            versions: Historique des versions
+            filter_by_status: Filtrer par statut
+            filter_by_category: Filtrer par catégorie
+            filter_by_tag: Filtrer par étiquette
+            filter_by_folder: Filtrer par dossier
+            filter_by_type: Filtrer par type
+            filter_no_tag: Sans étiquette
+            more_filters: Plus de filtres
+            any: Tous
+            search_in: Chercher dans
+            search_in_all: Partout
+            search_in_title: Titre et référence
+            search_in_file: Nom du fichier
+            search_in_text: Description, texte alternatif, légende, crédit
+            search_in_classification: Étiquettes, catégorie, dossier
+            added_from: Ajouté depuis le
+            added_to: Ajouté jusqu'au
+            orientation: Format
+            orientation_landscape: Paysage
+            orientation_portrait: Portrait
+            orientation_square: Carré
+            weight: Poids
+            weight_light: Léger (moins de 500 Ko)
+            weight_medium: Moyen (500 Ko à 5 Mo)
+            weight_heavy: Lourd (plus de 5 Mo)
+            type_image: Images
+            type_video: Vidéos
+            type_audio: Audio
+            type_pdf: PDF
+            type_other: Autres
+            alt: Texte alternatif
+            alt_placeholder: Décris l'image pour les lecteurs d'écran et le SEO…
+            caption: Légende
+            caption_placeholder: Légende affichée sous l'image…
+            permalink: Lien permanent
+            dimensions: Dimensions
+            crop: Recadrer
+            type: Type
+            preview: Aperçu
+            preview_of: "Aperçu : {name}"
+            choose_file: Choisir un fichier
+            choose_file_library: Médiathèque
+            choose_file_local: Depuis l'ordinateur
+            title_placeholder: Titre du document…
+            description_placeholder: Description optionnelle…
+            status_draft: Brouillon
+            status_published: Publié
+            status_archived: Archivé
+            usage_title: Utilisation
+            usage_none: Ce document n'est utilisé nulle part
+            select_mode: Sélectionner
+            stop_selecting: Terminer la sélection
+            usage_unused_badge: Inutilisé
+            usage_unused_hint: Aucune page, aucun deck et aucun espace ne l'affiche
+            kept_badge: À conserver
+            kept_hint: Inutilisé volontairement, à ne pas supprimer
+            alternates_badge: "Aucune variante | 1 variante | {count} variantes"
+            alternate_badge: Variante
+            alternate_badge_labelled: "Variante · {label}"
+            alternate_of: "Variante de « {title} »"
+            family:
+                section: Variantes et conservation
+                kept: À conserver
+                kept_hint: "Même inutilisé, ce document reste : une variante gardée en réserve, une image qui attend sa page."
+                original: Variante de
+                original_none: Ce document n'est la variante d'aucun autre.
+                original_choose: Choisir l'original
+                original_change: Changer
+                original_remove: Retirer
+                original_locked: "Ce document a ses propres variantes : il reste un original."
+                label: Ce qui la distingue
+                label_placeholder: "jaune, rouge, sans texte…"
+                alternates: Ses variantes
+                alternates_empty: Aucune variante pour l'instant.
+                open_original: Ouvrir l'original
+                chip_original: "Original"
+                chip_original_short: "orig."
+                chip_used: "utilisée"
+                open: "Voir la famille"
+                strip_title: "Famille : aucune variante | Famille : 1 variante | Famille : {count} variantes"
+                strip_empty: "Famille"
+                add_variant: "Ajouter une variante"
+                with_alternates: "Supprimer aussi ses variantes | Supprimer aussi sa variante | Supprimer aussi ses {count} variantes"
+                move_with_alternates: "Déplacer aussi les variantes des originaux choisis"
+                categorize_with_alternates: "Ranger aussi les variantes des originaux choisis"
+                label_suggestions: "Déjà utilisées :"
+                usage_none: "Aucune version de la famille n'est utilisée"
+                usage_types:
+                    other: "{count} usage | {count} usage | {count} usages"
+                    editorial_post: "{count} publication | {count} publication | {count} publications"
+                    studio_deck: "{count} présentation | {count} présentation | {count} présentations"
+                    studio_space_note: "{count} note d'espace | {count} note d'espace | {count} notes d'espace"
+                    studio_space_file: "{count} fichier d'espace | {count} fichier d'espace | {count} fichiers d'espace"
+                    studio_space_attachment: "{count} pièce jointe | {count} pièce jointe | {count} pièces jointes"
+                    configuration_setting: "{count} réglage du site | {count} réglage du site | {count} réglages du site"
+            recolor:
+                open: "Variante de couleur"
+                title: "Créer une variante de couleur"
+                intro: "Une copie de « {title} » dans une autre couleur, rangée dans sa famille. Chaque pixel de la teinte du visuel prend la nouvelle et garde sa luminosité."
+                color: "Nouvelle couleur"
+                theme_color: "Couleur du thème"
+                source: "Couleur à remplacer"
+                source_auto: "Détectée"
+                source_pick: "Choisie"
+                source_hint: "Détectée : la teinte dominante du visuel, par exemple le vert d'un fond vert."
+                spare: "Couleurs à épargner"
+                spare_hint: "Elles restent telles quelles, même dans la teinte remplacée : le vert d'un logo, d'un repère."
+                spare_add: "Ajouter une couleur"
+                protect_detail: "Protéger les photos et captures"
+                protect_detail_hint: "Les zones détaillées posées sur le visuel (une photo, une capture d'écran) gardent leurs couleurs."
+                working: "Création de la copie… quelques secondes pour une grande image."
+                submit: "Créer la variante"
+                created: "Variante « {label} » créée."
+                errors:
+                    color_required: "Choisissez la nouvelle couleur."
+                    color_invalid: "Une couleur au format #rrggbb."
+                    label_required: "Donnez une étiquette à la variante."
+                    not_an_image: "Seule une image fixe (PNG, JPEG, WebP) peut être déclinée."
+                    nothing_to_replace: "Aucune couleur à remplacer n'a été trouvée : choisissez-la."
+            originals_only: Regrouper les variantes
+            originals_only_hint: "N'afficher que les originaux ; leurs variantes s'ouvrent depuis chacun."
+            usage:
+                billing_invoice: Facture
+                billing_ocr: Import OCR
+                project_task: Tâche projet
+            moved: Document déplacé
+            bulk_moved: Documents déplacés
+            bulk_move: "Déplacer {count} documents"
+            change_category: Changer la catégorie
+            bulk_category: "Ranger {count} documents dans une catégorie"
+            bulk_categorized: "Catégorie changée : {count} documents"
+            all_documents: Tous les documents
+            root_folder: Racine
+            subfolders: Sous-dossiers
+            files: Fichiers
+            folders_section: Dossiers
+            favourites: Favoris
+            favourite: Ajouter aux favoris
+            unfavourite: Retirer des favoris
+            new_folder: Nouveau dossier
+            edit_folder: Modifier le dossier
+            delete_folder_confirm: "Supprimer le dossier « {name} » ?"
+            delete_folder_cascade: Mettre le dossier et son contenu à la corbeille
+            delete_folder_cascade_hint: Les documents et sous-dossiers partent avec lui. Les restaurer remet tout en place.
+            delete_folder_only: Ne supprimer que le dossier
+            delete_folder_only_hint: Son contenu remonte à la racine. Restaurer le dossier le rendra vide.
+            delete_folder_with_alternates: "Emporter aussi la variante rangée ailleurs | Emporter aussi la variante rangée ailleurs | Emporter aussi les {count} variantes rangées ailleurs"
+            folder_name: Nom du dossier
+            folder_name_placeholder: Nom du dossier…
+            parent_folder: Dossier parent
+            expand: Déplier
+            collapse: Replier
+            folder_tree: Dossiers
+            folder_tree_empty: Aucun dossier pour l'instant.
+            move: Déplacer
+            errors:
+                title_required: Le titre est obligatoire
+                original_self: Un document ne peut pas être sa propre variante.
+                original_not_found: Cet original n'existe plus.
+                category_unknown: Cette catégorie n'existe pas, ou est dans la corbeille.
+                original_is_alternate: Cet original est lui-même une variante ; choisissez le document d'origine.
+                original_has_alternates: Ce document a ses propres variantes et ne peut pas devenir une variante.
+                upload_required: Aucun fichier reçu
+                image_required: Ce champ n'accepte que des images.
+                upload_too_large: "Ce fichier dépasse 100 Mo. Réduisez-le ou déposez-le autrement."
+                upload_type_refused: Ce type de fichier n'est pas accepté ici.
+                upload_failed: "L'envoi n'est pas arrivé complet. Réessayez."
         categories:
-          view: Voir les catégories
-          create: Créer des catégories
-          edit: Modifier les catégories
-          delete: Supprimer les catégories
+            guide:
+                title: "Catégorie, étiquette ou dossier"
+                step_1: "La catégorie dit la nature d'un document, facture, photo ou logo : chaque document en a une seule, ou aucune."
+                step_2: "Les étiquettes sont des mots-clés libres : un document en porte autant que vous voulez, en plus de sa catégorie."
+                step_3: "Le dossier dit où le document est rangé dans l'arborescence, quelle que soit sa nature."
+                step_4: "Les images déposées depuis un formulaire d'édition ou importées de Pexels sont classées d'office dans « Médias éditoriaux »."
+                step_5: "Supprimer une catégorie l'envoie à la corbeille, d'où vous pouvez la restaurer ; aucun document n'est supprimé."
+            row_actions:
+                edit_description: Renommer la catégorie et changer sa description.
+                delete_description: "Envoie la catégorie à la corbeille. Ses documents la gardent jusqu'à la purge ou la suppression définitive."
+            name: Nom
+            slug: Identifiant
+            description: Description
+            add: Ajouter une catégorie
+            create: Nouvelle catégorie
+            edit: "Modifier la catégorie {name}"
+            search_placeholder: Rechercher une catégorie…
+            created: Catégorie créée avec succès
+            updated: Catégorie mise à jour
+            deleted: Catégorie supprimée
+            empty: Aucune catégorie pour le moment
+            delete_confirm: "Êtes-vous sûr de vouloir supprimer la catégorie « {name} » ?"
+            delete_warning: Les documents liés ne seront pas supprimés.
+            name_placeholder: Nom de la catégorie…
+            description_placeholder: Description optionnelle…
+            errors:
+                name_required: Le nom est obligatoire
         tags:
-          manage: Gérer les étiquettes
+            guide:
+                title: "À quoi servent les étiquettes"
+                step_1: "Une étiquette est un mot-clé libre : un document peut en porter autant que vous voulez, en plus de sa catégorie et de son dossier."
+                step_2: "Vous les posez sur un document au dépôt ou en le modifiant, depuis la médiathèque."
+                step_3: "Dans la liste des documents, le filtre par étiquette retrouve ceux qui la portent, ou ceux qui n'en ont aucune, et la recherche lit aussi leurs noms."
+                step_4: "La couleur est facultative : elle teinte la pastille de l'étiquette dans la médiathèque."
+                step_5: "Supprimer une étiquette la retire de tous les documents, sans supprimer aucun document."
+            row_actions:
+                edit_description: Renommer l'étiquette et changer sa couleur.
+                delete_description: Supprime l'étiquette et la retire de tous les documents.
+            name: Nom
+            color: Couleur
+            search_placeholder: Rechercher une étiquette…
+            add: Ajouter une étiquette
+            create: Nouvelle étiquette
+            edit: "Modifier l'étiquette {name}"
+            created: Étiquette créée avec succès
+            updated: Étiquette mise à jour
+            deleted: Étiquette supprimée
+            empty: Aucune étiquette pour le moment
+            delete_confirm: "Êtes-vous sûr de vouloir supprimer l'étiquette « {name} » ?"
+            delete_warning: Les documents liés ne seront pas supprimés.
+            name_placeholder: Nom de l'étiquette…
+            errors:
+                name_required: Le nom est obligatoire
         folders:
-          manage: Gérer les dossiers
-  modules:
-    ged: GED
-    ged_backend: GED
-    ged_backend_description: "Active la section GED dans l'administration."
-    ged_tags: Étiquettes GED
-    ged_tags_description: "Active la gestion des étiquettes de documents."
-    ged_folders: Dossiers GED
-    ged_folders_description: "Active la gestion des dossiers de documents."
-    ged_frontend: Bibliothèque publique GED
-    ged_frontend_description: Expose les documents publiés sur le site public.
-  nav:
-    sections:
-      ged: GED
-    documents: Documents
-    documents_description: "Déposer, classer et retrouver les documents de la bibliothèque."
-    ged_categories: Catégories
-    ged_categories_description: "Classer les documents par nature, une catégorie par document."
-    ged_tags: Étiquettes
-    ged_tags_description: "Étiqueter librement un document, autant d'étiquettes que nécessaire."
-    ged_folders: Dossiers
-    ged_folders_description: "Ranger les documents dans une arborescence de dossiers imbriqués."
-  ged:
-    pexels:
-      tab: Pexels
-      search_placeholder: "Rechercher une photo : bureau, nature, portrait…"
-      empty: Aucune photo pour cette recherche.
-      not_configured: "La banque de photos Pexels n'est pas activée. Rendez-vous dans Configuration › Pexels pour l'activer."
-      settings:
-        what_title: À quoi ça sert
-        what_body: "Pexels est une banque de photos gratuites. Une fois activée, un onglet « Pexels » apparaît dans le sélecteur d'images : vous cherchez une photo, vous la choisissez, elle est téléchargée dans votre médiathèque et vous appartient. Votre site ne dépend ensuite plus de Pexels pour l'afficher."
-        how_title: Obtenir votre clé
-        how_step_account: "Créez un compte gratuit sur pexels.com, ou connectez-vous au vôtre."
-        how_step_request: "Allez sur pexels.com/api/, cliquez sur « Get Started » et décrivez en une phrase à quoi vous allez vous en servir (par exemple : illustrer les pages de mon site). La clé est délivrée immédiatement."
-        how_step_paste: "Copiez la clé affichée et collez-la dans le champ ci-dessous, puis enregistrez."
-        how_link: Ouvrir la page des clés Pexels
-        terms_label: J'ai lu et j'accepte les conditions d'utilisation de Pexels
-        terms_hint: "Le compte Pexels est le vôtre, et c'est son titulaire qui répond de l'usage fait des photos. En particulier, sur un site qui vend un produit ou un service, évitez les photos montrant un visage reconnaissable ou une marque : elles peuvent laisser croire à une recommandation. Ne redistribuez pas non plus les fichiers eux-mêmes, par exemple dans un dossier remis à un tiers."
-        terms_link: Lire les conditions d'utilisation
-        license_link: Lire la licence Pexels
-        accepted_on: "Conditions acceptées le {date} par {user}."
-        key_label: Clé d'API Pexels
-        key_hint: Elle est enregistrée chiffrée et n'est jamais réaffichée.
-        key_stored: Une clé est enregistrée. Laissez le champ vide pour la conserver, ou saisissez-en une nouvelle pour la remplacer.
-        enabled_label: Activer la banque de photos Pexels
-        enabled_hint: L'onglet Pexels apparaîtra dans le sélecteur d'images.
-        enabled_blocked: Acceptez les conditions et renseignez une clé pour pouvoir activer.
-      errors:
-        invalid_photo: Cette photo ne peut pas être importée.
-        download_failed: La photo n'a pas pu être téléchargée. Réessayez dans un instant.
-        terms_required: Les conditions d'utilisation doivent être acceptées pour activer l'intégration.
-        key_required: Une clé d'API est nécessaire pour activer l'intégration.
-        unknown_disk: Cet emplacement de stockage n'existe pas.
-        relocation_busy: Un déplacement est déjà en cours pour ce document.
-        relocation_failed: Le déplacement a échoué. Le document est resté où il était.
-    bootstrap:
-      categories:
-        inline_uploads: Médias éditoriaux
-        inline_uploads_description: "Images importées depuis un formulaire d'édition : bannières, images à la une, champs personnalisés."
-    documents:
-      trashed:
-        title: "Ce document est dans la corbeille"
-        body: "Mis à la corbeille le {date}. Son fichier n'est plus servi aux visiteurs, et la purge automatique l'effacera s'il n'est pas restauré."
-        badge: "Dans la corbeille"
-      show_guide:
-        title: "Ce que vous pouvez faire ici"
-        step_1: "Le bouton d'actions en haut permet de télécharger le fichier, de modifier le document ou de l'envoyer à la corbeille."
-        step_2: "Seul un document au statut « Publié » est servi aux visiteurs du site ; un brouillon ou une archive reste réservé au back-office."
-        step_3: "Sur une image, « Recadrer » enregistre une nouvelle version du fichier, régénère ses tailles et garde la précédente dans l'historique."
-        step_4: "Si le document a des variantes, sa famille s'affiche en bas avec l'endroit où chacune est utilisée, et un clic ouvre la page d'une variante."
-      guide:
-        title: "Comment se range la médiathèque"
-        step_1: "Un fichier déposé devient un document, rangé dans un dossier, avec une catégorie (sa nature) et autant d'étiquettes que vous voulez."
-        step_2: "Une variante (autre couleur, version sans texte) se rattache à son original et forme une famille ; « Variante de couleur » en crée une à partir d'une image."
-        step_3: "Le badge « Inutilisé » signale un document qu'aucune page, présentation ou espace n'affiche ; « À conserver » le garde quand même."
-        step_4: "Supprimer envoie le document à la corbeille, d'où il se restaure jusqu'à la purge automatique."
-        step_5: "La recherche lit aussi le nom du fichier, les textes et les étiquettes ; « Plus de filtres » précise par date, format ou poids."
-      row_actions:
-        view_description: Ouvre l'aperçu, ses versions et où il est utilisé.
-        download_description: Télécharge le fichier tel qu'il a été déposé.
-        qr_description: Affiche un QR code menant à ce document.
-        edit_description: Titre, catégorie, étiquettes, dossier.
-        delete_description: Envoie le document à la corbeille, d'où il se restaure.
-        restore_description: "Le sort de la corbeille avec son fichier, ses tailles et sa place dans sa famille."
-        relocate_to_remote: Envoyer vers le stockage distant
-        relocate_to_local: Rapatrier sur le serveur
-        relocate_description: "Déplace le fichier, ses tailles générées et son historique. Son adresse ne change pas."
-        relocate_pending: Un déplacement est déjà en cours pour ce document.
-      storage:
-        column: Stockage
-        local: Serveur
-        remote: Distant
-        moving: Déplacement
-        failed: Déplacement échoué
-        hint: "Fichier stocké : {place}."
-      relocation:
-        done: Document déplacé.
-        queued: Déplacement lancé. Il se poursuit en arrière-plan.
-        already_there: Ce document est déjà à cet emplacement.
-        bulk_done: "{done} document(s) déplacé(s), {skipped} laissé(s) tel(s) quel(s)."
-        bulk_partial: "{done} document(s) déplacé(s), {failed} en échec."
-        all_to_remote: Tout basculer sur le stockage distant
-        all_to_local: Tout basculer sur le serveur
-        all_confirm_remote: Envoyer vers le stockage distant tous les documents qui n'y sont pas encore ?
-        all_confirm_local: Rapatrier sur le serveur tous les documents qui n'y sont pas encore ?
-        all_explain: "Les documents déjà à destination sont ignorés. La corbeille n'est pas déplacée."
-        all_background: "Le déplacement se fait en arrière-plan : les lignes passent en « Déplacement » au fur et à mesure."
-        all_queued: "{queued} document(s) mis en file, {skipped} déjà à destination."
-        all_nothing: Tous les documents sont déjà à cet emplacement.
-      reference: Référence
-      title: Titre
-      description: Description
-      status: Statut
-      category: Catégorie
-      file: Fichier
-      size: Taille
-      add: Ajouter un document
-      create: Nouveau document
-      edit: "Modifier le document {title}"
-      search_placeholder: "Rechercher : titre, fichier, texte, étiquette…"
-      picker_title: Choisir un document
-      picker_empty: Aucun document disponible
-      picker_confirm: Sélectionner
-      picker_tab_library: Médiathèque
-      created: Document créé avec succès
-      updated: Document mis à jour
-      deleted: Document mis à la corbeille
-      empty: Aucun document pour le moment
-      delete_confirm: "Êtes-vous sûr de vouloir supprimer le document « {title} » ?"
-      delete_warning: Le document part à la corbeille. Vous pourrez le restaurer tant qu'elle n'a pas été vidée.
-      back_to_list: Retour aux documents
-      no_category: Sans catégorie
-      tags: Étiquettes
-      no_tags: Aucune étiquette
-      folder: Dossier
-      no_folder: Aucun dossier
-      versions: Historique des versions
-      filter_by_status: Filtrer par statut
-      filter_by_category: Filtrer par catégorie
-      filter_by_tag: Filtrer par étiquette
-      filter_by_folder: Filtrer par dossier
-      filter_by_type: Filtrer par type
-      filter_no_tag: Sans étiquette
-      more_filters: Plus de filtres
-      any: Tous
-      search_in: Chercher dans
-      search_in_all: Partout
-      search_in_title: Titre et référence
-      search_in_file: Nom du fichier
-      search_in_text: Description, texte alternatif, légende, crédit
-      search_in_classification: Étiquettes, catégorie, dossier
-      added_from: Ajouté depuis le
-      added_to: Ajouté jusqu'au
-      orientation: Format
-      orientation_landscape: Paysage
-      orientation_portrait: Portrait
-      orientation_square: Carré
-      weight: Poids
-      weight_light: Léger (moins de 500 Ko)
-      weight_medium: Moyen (500 Ko à 5 Mo)
-      weight_heavy: Lourd (plus de 5 Mo)
-      type_image: Images
-      type_video: Vidéos
-      type_audio: Audio
-      type_pdf: PDF
-      type_other: Autres
-      alt: Texte alternatif
-      alt_placeholder: Décris l'image pour les lecteurs d'écran et le SEO…
-      caption: Légende
-      caption_placeholder: Légende affichée sous l'image…
-      permalink: Lien permanent
-      dimensions: Dimensions
-      crop: Recadrer
-      type: Type
-      preview: Aperçu
-      preview_of: "Aperçu : {name}"
-      choose_file: Choisir un fichier
-      choose_file_library: Médiathèque
-      choose_file_local: Depuis l'ordinateur
-      title_placeholder: Titre du document…
-      description_placeholder: Description optionnelle…
-      status_draft: Brouillon
-      status_published: Publié
-      status_archived: Archivé
-      usage_title: Utilisation
-      usage_none: Ce document n'est utilisé nulle part
-      select_mode: Sélectionner
-      stop_selecting: Terminer la sélection
-      usage_unused_badge: Inutilisé
-      usage_unused_hint: Aucune page, aucun deck et aucun espace ne l'affiche
-      kept_badge: À conserver
-      kept_hint: Inutilisé volontairement, à ne pas supprimer
-      alternates_badge: "Aucune variante | 1 variante | {count} variantes"
-      alternate_badge: Variante
-      alternate_badge_labelled: "Variante · {label}"
-      alternate_of: "Variante de « {title} »"
-      family:
-        section: Variantes et conservation
-        kept: À conserver
-        kept_hint: "Même inutilisé, ce document reste : une variante gardée en réserve, une image qui attend sa page."
-        original: Variante de
-        original_none: Ce document n'est la variante d'aucun autre.
-        original_choose: Choisir l'original
-        original_change: Changer
-        original_remove: Retirer
-        original_locked: "Ce document a ses propres variantes : il reste un original."
-        label: Ce qui la distingue
-        label_placeholder: "jaune, rouge, sans texte…"
-        alternates: Ses variantes
-        alternates_empty: Aucune variante pour l'instant.
-        open_original: Ouvrir l'original
-        chip_original: "Original"
-        chip_original_short: "orig."
-        chip_used: "utilisée"
-        open: "Voir la famille"
-        strip_title: "Famille : aucune variante | Famille : 1 variante | Famille : {count} variantes"
-        strip_empty: "Famille"
-        add_variant: "Ajouter une variante"
-        with_alternates: "Supprimer aussi ses variantes | Supprimer aussi sa variante | Supprimer aussi ses {count} variantes"
-        move_with_alternates: "Déplacer aussi les variantes des originaux choisis"
-        categorize_with_alternates: "Ranger aussi les variantes des originaux choisis"
-        label_suggestions: "Déjà utilisées :"
-        usage_none: "Aucune version de la famille n'est utilisée"
-        usage_types:
-          other: "{count} usage | {count} usage | {count} usages"
-          editorial_post: "{count} publication | {count} publication | {count} publications"
-          studio_deck: "{count} présentation | {count} présentation | {count} présentations"
-          studio_space_note: "{count} note d'espace | {count} note d'espace | {count} notes d'espace"
-          studio_space_file: "{count} fichier d'espace | {count} fichier d'espace | {count} fichiers d'espace"
-          studio_space_attachment: "{count} pièce jointe | {count} pièce jointe | {count} pièces jointes"
-          configuration_setting: "{count} réglage du site | {count} réglage du site | {count} réglages du site"
-      recolor:
-        open: "Variante de couleur"
-        title: "Créer une variante de couleur"
-        intro: "Une copie de « {title} » dans une autre couleur, rangée dans sa famille. Chaque pixel de la teinte du visuel prend la nouvelle et garde sa luminosité."
-        color: "Nouvelle couleur"
-        theme_color: "Couleur du thème"
-        source: "Couleur à remplacer"
-        source_auto: "Détectée"
-        source_pick: "Choisie"
-        source_hint: "Détectée : la teinte dominante du visuel, par exemple le vert d'un fond vert."
-        spare: "Couleurs à épargner"
-        spare_hint: "Elles restent telles quelles, même dans la teinte remplacée : le vert d'un logo, d'un repère."
-        spare_add: "Ajouter une couleur"
-        protect_detail: "Protéger les photos et captures"
-        protect_detail_hint: "Les zones détaillées posées sur le visuel (une photo, une capture d'écran) gardent leurs couleurs."
-        working: "Création de la copie… quelques secondes pour une grande image."
-        submit: "Créer la variante"
-        created: "Variante « {label} » créée."
-        errors:
-          color_required: "Choisissez la nouvelle couleur."
-          color_invalid: "Une couleur au format #rrggbb."
-          label_required: "Donnez une étiquette à la variante."
-          not_an_image: "Seule une image fixe (PNG, JPEG, WebP) peut être déclinée."
-          nothing_to_replace: "Aucune couleur à remplacer n'a été trouvée : choisissez-la."
-      originals_only: Regrouper les variantes
-      originals_only_hint: "N'afficher que les originaux ; leurs variantes s'ouvrent depuis chacun."
-      usage:
-        billing_invoice: Facture
-        billing_ocr: Import OCR
-        project_task: Tâche projet
-      moved: Document déplacé
-      bulk_moved: Documents déplacés
-      bulk_move: "Déplacer {count} documents"
-      change_category: Changer la catégorie
-      bulk_category: "Ranger {count} documents dans une catégorie"
-      bulk_categorized: "Catégorie changée : {count} documents"
-      all_documents: Tous les documents
-      root_folder: Racine
-      subfolders: Sous-dossiers
-      files: Fichiers
-      folders_section: Dossiers
-      favourites: Favoris
-      favourite: Ajouter aux favoris
-      unfavourite: Retirer des favoris
-      new_folder: Nouveau dossier
-      edit_folder: Modifier le dossier
-      delete_folder_confirm: "Supprimer le dossier « {name} » ?"
-      delete_folder_cascade: Mettre le dossier et son contenu à la corbeille
-      delete_folder_cascade_hint: Les documents et sous-dossiers partent avec lui. Les restaurer remet tout en place.
-      delete_folder_only: Ne supprimer que le dossier
-      delete_folder_only_hint: Son contenu remonte à la racine. Restaurer le dossier le rendra vide.
-      delete_folder_with_alternates: "Emporter aussi la variante rangée ailleurs | Emporter aussi la variante rangée ailleurs | Emporter aussi les {count} variantes rangées ailleurs"
-      folder_name: Nom du dossier
-      folder_name_placeholder: Nom du dossier…
-      parent_folder: Dossier parent
-      expand: Déplier
-      collapse: Replier
-      folder_tree: Dossiers
-      folder_tree_empty: Aucun dossier pour l'instant.
-      move: Déplacer
-      errors:
-        title_required: Le titre est obligatoire
-        original_self: Un document ne peut pas être sa propre variante.
-        original_not_found: Cet original n'existe plus.
-        category_unknown: Cette catégorie n'existe pas, ou est dans la corbeille.
-        original_is_alternate: Cet original est lui-même une variante ; choisissez le document d'origine.
-        original_has_alternates: Ce document a ses propres variantes et ne peut pas devenir une variante.
-        upload_required: Aucun fichier reçu
-        image_required: Ce champ n'accepte que des images.
-        upload_too_large: "Ce fichier dépasse 100 Mo. Réduisez-le ou déposez-le autrement."
-        upload_type_refused: Ce type de fichier n'est pas accepté ici.
-        upload_failed: "L'envoi n'est pas arrivé complet. Réessayez."
-    categories:
-      guide:
-        title: "Catégorie, étiquette ou dossier"
-        step_1: "La catégorie dit la nature d'un document, facture, photo ou logo : chaque document en a une seule, ou aucune."
-        step_2: "Les étiquettes sont des mots-clés libres : un document en porte autant que vous voulez, en plus de sa catégorie."
-        step_3: "Le dossier dit où le document est rangé dans l'arborescence, quelle que soit sa nature."
-        step_4: "Les images déposées depuis un formulaire d'édition ou importées de Pexels sont classées d'office dans « Médias éditoriaux »."
-        step_5: "Supprimer une catégorie l'envoie à la corbeille, d'où vous pouvez la restaurer ; aucun document n'est supprimé."
-      row_actions:
-        edit_description: Renommer la catégorie et changer sa description.
-        delete_description: "Envoie la catégorie à la corbeille. Ses documents la gardent jusqu'à la purge ou la suppression définitive."
-      name: Nom
-      slug: Identifiant
-      description: Description
-      add: Ajouter une catégorie
-      create: Nouvelle catégorie
-      edit: "Modifier la catégorie {name}"
-      search_placeholder: Rechercher une catégorie…
-      created: Catégorie créée avec succès
-      updated: Catégorie mise à jour
-      deleted: Catégorie supprimée
-      empty: Aucune catégorie pour le moment
-      delete_confirm: "Êtes-vous sûr de vouloir supprimer la catégorie « {name} » ?"
-      delete_warning: Les documents liés ne seront pas supprimés.
-      name_placeholder: Nom de la catégorie…
-      description_placeholder: Description optionnelle…
-      errors:
-        name_required: Le nom est obligatoire
-    tags:
-      guide:
-        title: "À quoi servent les étiquettes"
-        step_1: "Une étiquette est un mot-clé libre : un document peut en porter autant que vous voulez, en plus de sa catégorie et de son dossier."
-        step_2: "Vous les posez sur un document au dépôt ou en le modifiant, depuis la médiathèque."
-        step_3: "Dans la liste des documents, le filtre par étiquette retrouve ceux qui la portent, ou ceux qui n'en ont aucune, et la recherche lit aussi leurs noms."
-        step_4: "La couleur est facultative : elle teinte la pastille de l'étiquette dans la médiathèque."
-        step_5: "Supprimer une étiquette la retire de tous les documents, sans supprimer aucun document."
-      row_actions:
-        edit_description: Renommer l'étiquette et changer sa couleur.
-        delete_description: Supprime l'étiquette et la retire de tous les documents.
-      name: Nom
-      color: Couleur
-      search_placeholder: Rechercher une étiquette…
-      add: Ajouter une étiquette
-      create: Nouvelle étiquette
-      edit: "Modifier l'étiquette {name}"
-      created: Étiquette créée avec succès
-      updated: Étiquette mise à jour
-      deleted: Étiquette supprimée
-      empty: Aucune étiquette pour le moment
-      delete_confirm: "Êtes-vous sûr de vouloir supprimer l'étiquette « {name} » ?"
-      delete_warning: Les documents liés ne seront pas supprimés.
-      name_placeholder: Nom de l'étiquette…
-      errors:
-        name_required: Le nom est obligatoire
-    folders:
-      row_actions:
-        edit_description: Renommer le dossier et le déplacer.
-        delete_description: Supprime le dossier. Les documents qu'il contenait remontent d'un niveau.
-      name: Nom
-      parent: Dossier parent
-      position: Position
-      add: Ajouter un dossier
-      create: Nouveau dossier
-      edit: "Modifier le dossier {name}"
-      created: Dossier créé avec succès
-      updated: Dossier mis à jour
-      deleted: Dossier supprimé
-      empty: Aucun dossier pour le moment
-      delete_confirm: "Êtes-vous sûr de vouloir supprimer le dossier « {name} » ?"
-      delete_warning: Les documents liés ne seront pas supprimés.
-      name_placeholder: Nom du dossier…
-      search_placeholder: Rechercher un dossier…
-      no_parent: Aucun (racine)
-      errors:
-        cycle: "Impossible de ranger un dossier dans un de ses propres sous-dossiers."
-        name_required: Le nom est obligatoire
+            row_actions:
+                edit_description: Renommer le dossier et le déplacer.
+                delete_description: Supprime le dossier. Les documents qu'il contenait remontent d'un niveau.
+            name: Nom
+            parent: Dossier parent
+            position: Position
+            add: Ajouter un dossier
+            create: Nouveau dossier
+            edit: "Modifier le dossier {name}"
+            created: Dossier créé avec succès
+            updated: Dossier mis à jour
+            deleted: Dossier supprimé
+            empty: Aucun dossier pour le moment
+            delete_confirm: "Êtes-vous sûr de vouloir supprimer le dossier « {name} » ?"
+            delete_warning: Les documents liés ne seront pas supprimés.
+            name_placeholder: Nom du dossier…
+            search_placeholder: Rechercher un dossier…
+            no_parent: Aucun (racine)
+            errors:
+                cycle: "Impossible de ranger un dossier dans un de ses propres sous-dossiers."
+                name_required: Le nom est obligatoire
 ged:
-  frontend:
-    documents:
-      title: Bibliothèque de documents
-      empty: Aucun document disponible pour le moment.
-      no_category: Sans catégorie
-      search_placeholder: Rechercher un document…
-      no_results: Aucun document ne correspond à votre recherche.
-      result_count: '{count} document|{count} documents'
+    frontend:
+        documents:
+            title: Bibliothèque de documents
+            empty: Aucun document disponible pour le moment.
+            no_category: Sans catégorie
+            search_placeholder: Rechercher un document…
+            no_results: Aucun document ne correspond à votre recherche.
+            result_count: '{count} document|{count} documents'

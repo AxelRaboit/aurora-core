@@ -19,19 +19,6 @@
  *
  * Renders an `<a>` when given `href`, a `<button>` otherwise - some actions are
  * navigations (impersonating a user) and should be openable in a new tab.
- *
- * **`align` choisit entre deux conventions, pas entre deux goûts.** À gauche,
- * c'est un menu : les libellés partent tous du même bord, le regard descend une
- * colonne et l'icône reste collée à son mot. C'est ce que font Gmail, Slack et
- * les menus Material, et c'est ce qu'il faut à une feuille d'actions où l'on
- * cherche un geste parmi d'autres. Au centre, c'est un bouton : la paire icône
- * + mot se pose au milieu de sa ligne, ce que font les feuilles d'iOS et toutes
- * les cartes où chaque geste est une destination plutôt qu'une entrée de liste.
- *
- * Ce qu'il ne faut pas faire, c'est centrer le texte en laissant l'icône
- * accrochée au bord : l'écart entre les deux change à chaque libellé, et
- * l'icône cesse d'appartenir au mot qu'elle illustre. Les deux voyagent
- * ensemble ou pas du tout.
  */
 import { Loader2 } from "lucide-vue-next";
 
@@ -50,14 +37,6 @@ const props = defineProps({
      * spinner beside it, so the row does not shift while it waits.
      */
     loading: { type: Boolean, default: false },
-    /** `start` pour une liste de gestes, `center` pour une rangée de boutons. */
-    align: { type: String, default: "start" },
-    /**
-     * Un vrai bouton sous `sm` : la surface et le filet d'un bouton
-     * secondaire, transparent au-dessus. Pour les gestes posés sur une carte,
-     * qu'on vise au doigt et qui sans fond se lisaient comme du texte.
-     */
-    boxed: { type: Boolean, default: false },
 });
 
 const colors = {
@@ -80,20 +59,19 @@ const resolved = colors[props.color] ?? colors.default;
         :class="[
             resolved.bg,
             resolved.text,
-            'center' === align ? 'items-center justify-center text-center' : 'items-start text-left',
-            boxed ? 'border border-line bg-surface-3 sm:border-transparent sm:bg-transparent' : '',
+            'items-start text-left',
         ]"
     >
         <span
             v-if="loading || $slots.icon"
             class="shrink-0"
-            :class="['center' === align ? '' : 'pt-0.5', resolved.icon]"
+            :class="['pt-0.5', resolved.icon]"
         >
             <Loader2 v-if="loading" class="w-4 h-4 animate-spin" :stroke-width="2" />
             <slot v-else name="icon" />
         </span>
 
-        <span class="min-w-0" :class="'center' === align ? '' : 'flex-1'">
+        <span class="min-w-0 flex-1">
             <span class="block text-sm" :class="description ? 'font-semibold' : ''">
                 {{ title }}
             </span>

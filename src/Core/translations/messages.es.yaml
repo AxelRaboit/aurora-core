@@ -1,4 +1,15 @@
 shared:
+    categories:
+        name: "Nombre de la categoría"
+        new_placeholder: "Nueva categoría, por ejemplo Auditoría"
+        add: "Añadir"
+        created: "Categoría creada."
+        saved: "Categoría guardada."
+        deleted: "Categoría eliminada."
+        move_up: "Subir"
+        move_down: "Bajar"
+        empty: "Aún no hay categorías."
+        delete_confirm: "¿Eliminar «{name}»? Lo que estaba en ella se queda, sin categoría."
     thread:
         title: Intercambios
         empty: 'Ningún mensaje por ahora.'

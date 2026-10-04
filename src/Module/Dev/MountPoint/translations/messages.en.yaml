@@ -1,51 +1,51 @@
 backend:
-  mount_points:
-    intro: 'Manage connections to external resources (databases, APIs, SFTP).'
-    search_placeholder: Search a mount point…
-    add: Add mount point
-    edit: Edit
-    empty: No mount points configured.
-    name: Name
-    type: Type
-    host: Host
-    port: Port
-    username: Username
-    password: Password
-    password_placeholder: Leave empty to keep the current password
-    database: Database
-    ssh_public_key: SSH public key
-    ssh_public_key_placeholder: ssh-ed25519 AAAA…
-    ssh_tunnel: SSH tunnel
-    ssh_tunnel_hint: Connect to the database through an SSH tunnel.
-    ssh_host: SSH host
-    ssh_host_placeholder: e.g. 72.60.130.238
-    ssh_port: SSH port
-    ssh_user: SSH user
-    ssh_user_placeholder: e.g. ubuntu
-    ssh_private_key: SSH private key
-    ssh_private_key_placeholder: "-----BEGIN OPENSSH PRIVATE KEY-----\n…"
-    ssh_private_key_hint: Leave empty to keep the current key.
-    name_placeholder: e.g. Production DB
-    host_placeholder: e.g. 192.168.1.10 or db.example.com
-    port_placeholder: e.g. 5432
-    username_placeholder: e.g. aurora_user
-    database_placeholder: e.g. aurora_prod
-    config: Advanced config (JSON)
-    test: Test connection
-    testing: Testing…
-    test_success: Connection successful.
-    test_failure: Connection failed.
-    test_title: 'Connection test : {name}'
-    retry: Retry
-    last_tested: Last tested
-    never: Never tested
-    delete_confirm: Delete this mount point?
-    types:
-      database: Database
-      api: API
-      sftp: SFTP
-    errors:
-      name_required: Name is required.
-      name_too_long: Name must not exceed 100 characters.
-      host_required: Host is required.
-      host_too_long: Host must not exceed 255 characters.
+    mount_points:
+        intro: 'Manage connections to external resources (databases, APIs, SFTP).'
+        search_placeholder: Search a mount point…
+        add: Add mount point
+        edit: Edit
+        empty: No mount points configured.
+        name: Name
+        type: Type
+        host: Host
+        port: Port
+        username: Username
+        password: Password
+        password_placeholder: Leave empty to keep the current password
+        database: Database
+        ssh_public_key: SSH public key
+        ssh_public_key_placeholder: ssh-ed25519 AAAA…
+        ssh_tunnel: SSH tunnel
+        ssh_tunnel_hint: Connect to the database through an SSH tunnel.
+        ssh_host: SSH host
+        ssh_host_placeholder: e.g. 72.60.130.238
+        ssh_port: SSH port
+        ssh_user: SSH user
+        ssh_user_placeholder: e.g. ubuntu
+        ssh_private_key: SSH private key
+        ssh_private_key_placeholder: "-----BEGIN OPENSSH PRIVATE KEY-----\n…"
+        ssh_private_key_hint: Leave empty to keep the current key.
+        name_placeholder: e.g. Production DB
+        host_placeholder: e.g. 192.168.1.10 or db.example.com
+        port_placeholder: e.g. 5432
+        username_placeholder: e.g. aurora_user
+        database_placeholder: e.g. aurora_prod
+        config: Advanced config (JSON)
+        test: Test connection
+        testing: Testing…
+        test_success: Connection successful.
+        test_failure: Connection failed.
+        test_title: 'Connection test : {name}'
+        retry: Retry
+        last_tested: Last tested
+        never: Never tested
+        delete_confirm: Delete this mount point?
+        types:
+            database: Database
+            api: API
+            sftp: SFTP
+        errors:
+            name_required: Name is required.
+            name_too_long: Name must not exceed 100 characters.
+            host_required: Host is required.
+            host_too_long: Host must not exceed 255 characters.

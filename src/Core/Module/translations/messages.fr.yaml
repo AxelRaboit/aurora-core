@@ -1,44 +1,44 @@
 backend:
-  permissions:
-    intro: Gérez les droits d'accès des utilisateurs par module. Chaque permission peut être accordée individuellement.
-    search_placeholder: Filtrer les modules…
-    empty: Aucun module trouvé.
-    name: Permission
-    key: Clé technique
-    names:
-      general:
-        dashboard:
-          view: Accéder au tableau de bord
-        search:
-          view: Utiliser la recherche globale
-        trash:
-          view: Voir la corbeille globale
-      platform:
-        users:
-          manage: Gérer les utilisateurs
-          module_access:
-            manage: Gérer l'accès des utilisateurs aux modules
-      configuration:
-        settings:
-          manage: Gérer les paramètres
-        themes:
-          manage: Gérer les thèmes
-    role: Rôle requis
-  nav:
-    sections:
-      general: Général
-  modules:
-    media: Médias
-    users: Utilisateurs
-    hr: RH
-    planning: Planning
-    project: Projet
-    core: Cœur
-    general: Général
-    general_backend: Général
-    general_backend_description: Tableau de bord et page d'accueil après connexion.
-    platform: Plateforme
-    platform_backend: Plateforme
-    platform_backend_description: Section technique du back-office.
-    configuration: Configuration
-    configuration_description: Paramétrage global de l'application et personnalisation visuelle.
+    permissions:
+        intro: Gérez les droits d'accès des utilisateurs par module. Chaque permission peut être accordée individuellement.
+        search_placeholder: Filtrer les modules…
+        empty: Aucun module trouvé.
+        name: Permission
+        key: Clé technique
+        names:
+            general:
+                dashboard:
+                    view: Accéder au tableau de bord
+                search:
+                    view: Utiliser la recherche globale
+                trash:
+                    view: Voir la corbeille globale
+            platform:
+                users:
+                    manage: Gérer les utilisateurs
+                    module_access:
+                        manage: Gérer l'accès des utilisateurs aux modules
+            configuration:
+                settings:
+                    manage: Gérer les paramètres
+                themes:
+                    manage: Gérer les thèmes
+        role: Rôle requis
+    nav:
+        sections:
+            general: Général
+    modules:
+        media: Médias
+        users: Utilisateurs
+        hr: RH
+        planning: Planning
+        project: Projet
+        core: Cœur
+        general: Général
+        general_backend: Général
+        general_backend_description: Tableau de bord et page d'accueil après connexion.
+        platform: Plateforme
+        platform_backend: Plateforme
+        platform_backend_description: Section technique du back-office.
+        configuration: Configuration
+        configuration_description: Paramétrage global de l'application et personnalisation visuelle.

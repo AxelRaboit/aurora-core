@@ -10,8 +10,9 @@
  * Duplicating is a row action rather than a button inside the deck, because
  * "start from this one" is decided while looking at the list.
  */
+import AppCategoriesModal from "@/shared/components/category/AppCategoriesModal.vue";
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
@@ -25,7 +26,6 @@ import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import AppListToolbar from "@/shared/components/list/AppListToolbar.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
-import AppCardActions from "@/shared/components/action/AppCardActions.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
@@ -38,6 +38,7 @@ import {
     Plus,
     Presentation,
     Save,
+    Tags,
     Trash2,
     X,
 } from "lucide-vue-next";
@@ -60,12 +61,15 @@ const props = defineProps({
     categoryCreatePath: { type: String, required: true },
     categoryUpdatePath: { type: String, required: true },
     categoryDeletePath: { type: String, required: true },
+    categoryReorderPath: { type: String, default: "" },
 });
 
 const {
     search,
     categoryFilter,
     filteredItems,
+    categories,
+    applyCategories,
     categoryOptions,
     customerOptions,
     templateOptions,
@@ -152,26 +156,40 @@ function actionsFor(deck) {
  * Creating comes first and carries the accent: it is what somebody arriving on
  * an empty list is looking for.
  */
+/** La fenêtre de gestion des catégories. */
+const managingCategories = ref(false);
+
 const pageActions = computed(() => {
-    if (!can("studio.decks.create")) {
-        return [];
+    const actions = [];
+    if (can("studio.decks.create")) {
+        actions.push(
+            {
+                key: "create",
+                color: "accent",
+                icon: Plus,
+                title: t("backend.studio.decks.create"),
+                onSelect: openCreate,
+            },
+            {
+                key: "import",
+                icon: FileInput,
+                title: t("backend.studio.decks.import"),
+                onSelect: openImport,
+            },
+        );
+    }
+    // Ranger la bibliothèque : son propre droit, comme sur le serveur.
+    if (can("studio.deck_categories.manage") && props.categoryReorderPath) {
+        actions.push({
+            key: "categories",
+            icon: Tags,
+            title: t("backend.studio.decks.categories.manage"),
+            description: t("backend.studio.decks.categories.manage_hint"),
+            onSelect: () => (managingCategories.value = true),
+        });
     }
 
-    return [
-        {
-            key: "create",
-            color: "accent",
-            icon: Plus,
-            title: t("backend.studio.decks.create"),
-            onSelect: openCreate,
-        },
-        {
-            key: "import",
-            icon: FileInput,
-            title: t("backend.studio.decks.import"),
-            onSelect: openImport,
-        },
-    ];
+    return actions;
 });
 
 const filterOptions = () => categoryOptions.value;
@@ -282,20 +300,24 @@ const deckUrl = (deck) => buildPath(props.showPath, { id: deck.id });
         </div>
 
         <!-- La même ligne, lue de haut en bas. Le titre reste le lien vers la
-             présentation, et les actions sont dépliées : une carte a la place,
-             et un menu dans un menu sur un téléphone est un geste de trop. -->
+             présentation, et les gestes sont derrière le bouton « … », à sa
+             hauteur, comme sur toutes les listes (décision d'Axel du
+             04/10/2026). -->
         <div v-else class="space-y-2">
             <article
                 v-for="deck in filteredItems"
                 :key="deck.id"
                 class="aurora-card p-3 space-y-2.5"
             >
-                <div>
-                    <a
-                        class="block font-medium text-primary no-underline hover:text-accent"
-                        :href="deckUrl(deck)"
-                    >{{ deck.title }}</a>
-                    <span v-if="deck.description" class="block text-xs text-muted">{{ deck.description }}</span>
+                <div class="flex items-start gap-3">
+                    <div class="min-w-0 flex-1">
+                        <a
+                            class="block font-medium text-primary no-underline hover:text-accent"
+                            :href="deckUrl(deck)"
+                        >{{ deck.title }}</a>
+                        <span v-if="deck.description" class="block text-xs text-muted">{{ deck.description }}</span>
+                    </div>
+                    <AppRowActions class="shrink-0" :actions="actionsFor(deck)" :label="deck.title" />
                 </div>
 
                 <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
@@ -314,14 +336,6 @@ const deckUrl = (deck) => buildPath(props.showPath, { id: deck.id });
                     <span v-if="deck.customer" class="text-secondary">{{ deck.customer.legalName }}</span>
                     <span class="tabular-nums">{{ t("backend.studio.decks.slides") }} : {{ deck.slideCount }}</span>
                 </p>
-
-                <!-- Le dessin commun des gestes d'une carte : deux se
-                     partagent la ligne, trois et plus s'empilent, chacun avec
-                     sa cible pleine largeur. Repliés à leur taille naturelle,
-                     ils laissaient une colonne ragoteuse au milieu. -->
-                <div class="border-t border-line/40 pt-2">
-                    <AppCardActions :actions="actionsFor(deck)" />
-                </div>
             </article>
         </div>
 
@@ -539,5 +553,19 @@ const deckUrl = (deck) => buildPath(props.showPath, { id: deck.id });
                 </AppModalFooter>
             </template>
         </AppModal>
+
+        <AppCategoriesModal
+            v-if="can('studio.deck_categories.manage') && categoryReorderPath"
+            :show="managingCategories"
+            :categories="categories"
+            :title="t('backend.studio.decks.categories.manage_title')"
+            :intro="t('backend.studio.decks.categories.manage_intro')"
+            :create-path="categoryCreatePath"
+            :update-path-template="categoryUpdatePath"
+            :delete-path-template="categoryDeletePath"
+            :reorder-path="categoryReorderPath"
+            v-on:close="managingCategories = false"
+            v-on:changed="applyCategories($event.categories ?? [])"
+        />
     </div>
 </template>

@@ -362,6 +362,7 @@ final readonly class DecksViewBuilder
             'categoryCreatePath' => $this->urlGenerator->generate('backend_studio_decks_category_create'),
             'categoryUpdatePath' => $this->pathTemplates->generate('backend_studio_decks_category_update', ['id' => '__id__']),
             'categoryDeletePath' => $this->pathTemplates->generate('backend_studio_decks_category_delete', ['id' => '__id__']),
+            'categoryReorderPath' => $this->urlGenerator->generate('backend_studio_decks_category_reorder'),
         ];
     }
 }

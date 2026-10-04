@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { Eye, FileText, Lock, PanelTop, Users } from "lucide-vue-next";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
+import AppImagePickerField from "@/shared/components/form/file/AppImagePickerField.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
@@ -25,6 +26,9 @@ const locale = defineModel("locale", { type: String, required: true });
 const readingHeader = defineModel("readingHeader", { type: Object, required: true });
 const visibleToClient = defineModel("visibleToClient", { type: Boolean, default: false });
 const scope = defineModel("scope", { type: String, default: null });
+const categoryId = defineModel("categoryId", { type: [Number, null], default: null });
+/** L'image de la carte : `{ id, url }`, prise dans la médiathèque. */
+const thumbnail = defineModel("thumbnail", { type: Object, default: () => ({ id: null, url: null }) });
 
 const props = defineProps({
     locales: { type: Array, default: () => [] },
@@ -33,6 +37,8 @@ const props = defineProps({
     /** Faux pour un livrable de Studio : il n'y a pas de client à qui l'ouvrir. */
     withClient: { type: Boolean, default: true },
     canChangeScope: { type: Boolean, default: false },
+    /** Les catégories des livrables de Studio : `{ id, name, color }`. */
+    categories: { type: Array, default: () => [] },
 });
 
 const SCOPES = ["personal", "shared"];
@@ -53,6 +59,14 @@ const localeOptions = computed(() =>
         return { value: code, label };
     }),
 );
+
+const categoryOptions = computed(() => props.categories.map((category) => ({ value: category.id, label: category.name })));
+
+/** Le sélecteur parle en chaînes, le livrable en identifiants. */
+const categoryValue = computed({
+    get: () => (null === categoryId.value || undefined === categoryId.value ? "" : String(categoryId.value)),
+    set: (value) => (categoryId.value = value ? Number(value) : null),
+});
 
 function setHeader(key, value) {
     readingHeader.value = { ...readingHeader.value, [key]: value };
@@ -99,6 +113,23 @@ const showLogo = computed({
                 :hint="t('backend.studio.deliverables.settings.locale_hint')"
                 :options="localeOptions"
                 :error="errors.locale ?? ''"
+            />
+            <!-- La vignette de la carte, dans les deux listes : on repère un
+                 livrable à son image avant de lire son titre. -->
+            <AppImagePickerField
+                v-model="thumbnail"
+                :label="t('backend.studio.deliverables.settings.thumbnail')"
+                :hint="t('backend.studio.deliverables.settings.thumbnail_hint')"
+                :size="96"
+            />
+            <!-- Studio seulement : un livrable d'espace se range par son espace. -->
+            <AppSelect
+                v-if="!withClient && scope"
+                v-model="categoryValue"
+                :label="t('backend.studio.deliverables.categories.label')"
+                :placeholder="t('backend.studio.deliverables.categories.none')"
+                :hint="t(categories.length ? 'backend.studio.deliverables.categories.settings_hint' : 'backend.studio.deliverables.categories.settings_empty_hint')"
+                :options="categoryOptions"
             />
         </section>
 

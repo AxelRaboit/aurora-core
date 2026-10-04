@@ -37,6 +37,8 @@ class DeliverableRepository extends ResolveTargetEntityRepository
     public function findForSpace(CustomerSpaceInterface $space, bool $visibleOnly = false): array
     {
         $builder = $this->createQueryBuilder('d')
+            ->leftJoin('d.thumbnail', 't')
+            ->addSelect('t')
             ->where('d.space = :space')
             ->setParameter('space', $space)
             ->orderBy('d.updatedAt', Order::Descending->value)
@@ -109,6 +111,11 @@ class DeliverableRepository extends ResolveTargetEntityRepository
         return $this->createQueryBuilder('d')
             ->leftJoin('d.owner', 'o')
             ->addSelect('o')
+            // La catégorie et l'image de chaque carte, dans la même requête.
+            ->leftJoin('d.category', 'c')
+            ->addSelect('c')
+            ->leftJoin('d.thumbnail', 't')
+            ->addSelect('t')
             ->where('d.space IS NULL')
             ->andWhere('d.scope = :scope')
             ->setParameter('scope', $scope)
