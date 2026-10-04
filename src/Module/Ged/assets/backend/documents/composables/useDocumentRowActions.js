@@ -6,6 +6,7 @@ import {
     HardDriveDownload,
     Pencil,
     QrCode,
+    RotateCcw,
     Trash2,
 } from "lucide-vue-next";
 
@@ -31,6 +32,12 @@ import {
  * belongs where the other per-document verbs are. It is absent entirely until
  * a second backend exists, which keeps the menu honest for the installations
  * that will never have one.
+ *
+ * A trashed document still opens on its own page, from a link or the trash
+ * screen. There, the only thing that makes sense is to bring it back: its file
+ * is no longer served, so the download would answer 404, and editing or moving
+ * something on its way out is work the purge throws away. `restore` is optional
+ * like the others; the library never lists trashed documents, so it passes none.
  */
 export function useDocumentRowActions({
     can,
@@ -40,10 +47,28 @@ export function useDocumentRowActions({
     confirmDelete,
     relocate = null,
     relocationAvailable = false,
+    restore = null,
 }) {
     const { t } = useI18n();
 
     return function actionsFor(doc) {
+        if (doc.trashed) {
+            if (!restore || !can("ged.documents.delete")) return [];
+
+            return [
+                {
+                    key: "restore",
+                    color: "emerald",
+                    icon: RotateCcw,
+                    title: t("backend.trash.restore"),
+                    description: t(
+                        "backend.ged.documents.row_actions.restore_description",
+                    ),
+                    onSelect: () => restore(doc),
+                },
+            ];
+        }
+
         const actions = [];
 
         if (viewDoc) {

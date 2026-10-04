@@ -5,6 +5,16 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [1.8.1] - 2026-10-04
+
+### Corrigé
+
+#### La page d'un document dit quand il est dans la corbeille
+Un document mis à la corbeille s'ouvrait toujours sur sa page (depuis un lien, un favori ou l'écran Corbeille) comme s'il était en ligne : badge « Publié », aucune mention de la corbeille, et un menu Actions qui proposait de le supprimer une seconde fois. La page affiche maintenant un bandeau « Ce document est dans la corbeille » avec la date, un badge « Dans la corbeille » à la place du statut, et un bouton « Restaurer ». Le menu Actions ne propose plus que la restauration : le fichier n'étant plus servi, le téléchargement aurait répondu par une erreur.
+
+### Dans aurora-client
+Rien à faire.
+
 ## [1.8.0] - 2026-10-04
 
 ### Ajouté
