@@ -38,6 +38,14 @@ appeler la route** - bug de sécurité.
 
 ### Audit serveur
 
+**Gardé par test depuis le 04/10/2026** : `tests/Integration/Security/StaffRoutesCarryAPrivilegeTest`
+échoue si une route `/backend` ou `/workspace` n'a pas de `#[IsGranted]` (classe
+ou méthode), hors pages de connexion listées. `ModuleTogglesCloseTheirRoutesTest`
+éteint chaque interrupteur de `ModuleParameterEnum` et vérifie qu'une route
+derrière lui ne répond plus ; un interrupteur ajouté sans ligne dans ce test
+le fait échouer. Un module neuf a donc besoin d'un garde de routes
+(`AbstractModuleRouteGateSubscriber`), pas seulement d'une entrée de menu.
+
 ```bash
 # Toutes les routes sans #[IsGranted] dans Module/Core
 grep -rn "#\[Route" src/Core/ src/Module/ --include="*.php" -A2 \
