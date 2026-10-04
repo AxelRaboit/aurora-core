@@ -405,6 +405,28 @@ final class BannerNormalizerTest extends TestCase
         self::assertNull($item['descriptionFont']);
     }
 
+    public function testATitleIconKeepsItsIdAndAKnownSide(): void
+    {
+        $items = $this->normalizer->normalizeLayout(['items' => [
+            ['id' => 'a1', 'type' => 'text', 'titleIconId' => 42, 'titleIconPosition' => 'after'],
+            ['id' => 'a2', 'type' => 'text', 'titleIconId' => 'logo', 'titleIconPosition' => 'above'],
+        ]])['items'];
+
+        self::assertSame(42, $items[0]['titleIconId']);
+        self::assertSame('after', $items[0]['titleIconPosition']);
+        // Not an id, so no icon; an unknown side falls back to before the title.
+        self::assertNull($items[1]['titleIconId']);
+        self::assertSame('before', $items[1]['titleIconPosition']);
+    }
+
+    public function testATitleSavedBeforeIconsExistedHasNone(): void
+    {
+        $item = $this->normalizer->normalizeLayout(['items' => [['id' => 'a1', 'type' => 'text']]])['items'][0];
+
+        self::assertNull($item['titleIconId']);
+        self::assertSame('before', $item['titleIconPosition']);
+    }
+
     public function testATitleKeepsItsColourSpansAndNothingElse(): void
     {
         $texts = $this->normalizer->normalizeTexts(

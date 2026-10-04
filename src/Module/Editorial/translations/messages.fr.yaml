@@ -531,6 +531,12 @@ backend:
         start: À gauche
         center: Centré
         end: À droite
+      title_icon: "Icône du titre"
+      title_icon_hint: "Une image posée à côté du titre, à la hauteur de ses lettres : un logo, par exemple. Un fichier SVG ou un PNG détouré rend le mieux."
+      title_icon_position: "Place de l'icône"
+      title_icon_positions:
+        before: "Avant le titre"
+        after: "Après le titre"
     title: Publications
     create: Nouvelle publication
     edit: Modifier la publication

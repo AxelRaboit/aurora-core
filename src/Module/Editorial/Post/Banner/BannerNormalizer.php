@@ -42,7 +42,7 @@ use Aurora\Module\Configuration\Theme\Enum\ThemeFontEnum;
  * than being invented twice.
  *
  * @phpstan-type BannerSpan array{base: int, md: ?int, lg: ?int}
- * @phpstan-type BannerLayoutItem array{id: string, type: string, span: BannerSpan, titleColor: ?string, descriptionColor: ?string, align: string, titleSize: string, descriptionSize: string, titleFont: ?string, descriptionFont: ?string, mediaId: ?int, buttonColor: ?string, buttonTextColor: ?string, buttonSiteColor: bool}
+ * @phpstan-type BannerLayoutItem array{id: string, type: string, span: BannerSpan, titleColor: ?string, descriptionColor: ?string, align: string, titleSize: string, descriptionSize: string, titleFont: ?string, descriptionFont: ?string, mediaId: ?int, titleIconId: ?int, titleIconPosition: string, buttonColor: ?string, buttonTextColor: ?string, buttonSiteColor: bool}
  * @phpstan-type BannerItemText array{title: string, description: string, alt: string, label: string, url: ?string}
  */
 final readonly class BannerNormalizer
@@ -120,6 +120,9 @@ final readonly class BannerNormalizer
     private const array WIDTHS = [self::WIDTH_CONTAINED, self::WIDTH_FULL_ALIGNED];
 
     private const array ALIGNMENTS = ['start', 'center', 'end'];
+
+    /** Which side of the title its icon sits on. */
+    public const array TITLE_ICON_POSITIONS = ['before', 'after'];
 
     /** How many bands a banner can draw. */
     private const int MAX_STRIPES = 6;
@@ -546,6 +549,12 @@ final readonly class BannerNormalizer
                 'titleFont' => $this->font($entry['titleFont'] ?? null),
                 'descriptionFont' => $this->font($entry['descriptionFont'] ?? null),
                 'mediaId' => $this->values->id($entry['mediaId'] ?? null),
+                // A picture set beside the title at the height of its letters,
+                // a brand's mark before its name. Its own id rather than
+                // `mediaId`, which an image item already uses for its picture:
+                // switching an item between text and image keeps both.
+                'titleIconId' => $this->values->id($entry['titleIconId'] ?? null),
+                'titleIconPosition' => $this->values->oneOf($entry['titleIconPosition'] ?? null, self::TITLE_ICON_POSITIONS, 'before'),
                 'buttonColor' => $this->values->color($entry['buttonColor'] ?? null),
                 'buttonTextColor' => $this->values->color($entry['buttonTextColor'] ?? null),
                 // The button in the site's own accent, read from the theme at

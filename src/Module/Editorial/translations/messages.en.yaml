@@ -531,6 +531,12 @@ backend:
         start: Left
         center: Centred
         end: Right
+      title_icon: "Title icon"
+      title_icon_hint: "A picture set beside the title, as tall as its letters: a logo, for instance. An SVG or a transparent PNG works best."
+      title_icon_position: "Icon position"
+      title_icon_positions:
+        before: "Before the title"
+        after: "After the title"
     title: Posts
     create: New post
     edit: Edit post
