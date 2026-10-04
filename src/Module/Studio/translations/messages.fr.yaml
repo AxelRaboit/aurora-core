@@ -48,7 +48,7 @@ backend:
         studio_decks: Présentations
         studio_decks_description: Les jeux de slides que vous montrez, classés et réutilisables.
         studio_deliverables: "Livrables"
-        studio_deliverables_description: "Les documents que vous écrivez sans espace client, pour vous ou pour l'équipe."
+        studio_deliverables_description: "Les documents que vous écrivez, pour vous ou pour l'équipe."
     audit:
         actions:
             studio:

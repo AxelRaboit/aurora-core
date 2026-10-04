@@ -469,6 +469,22 @@
         "tour-reglages-emails": {
             "document": 770,
             "slug": "theme-et-identite"
+        },
+        "tour-livrables": {
+            "document": 774,
+            "slug": "livrables"
+        },
+        "tour-livrables-partages": {
+            "document": 775,
+            "slug": "livrables"
+        },
+        "tour-livrables-nouveau": {
+            "document": 776,
+            "slug": "livrables"
+        },
+        "tour-livrables-reglages": {
+            "document": 777,
+            "slug": "livrables"
         }
     }
 }

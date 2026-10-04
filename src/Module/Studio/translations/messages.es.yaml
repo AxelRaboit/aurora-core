@@ -48,7 +48,7 @@ backend:
         studio_decks: Presentaciones
         studio_decks_description: 'Los conjuntos de diapositivas que muestra, clasificados y reutilizables.'
         studio_deliverables: "Entregables"
-        studio_deliverables_description: "Los documentos que escribe fuera de un espacio de cliente, para usted o para el equipo."
+        studio_deliverables_description: "Los documentos que escribe, para usted o para el equipo."
     audit:
         actions:
             studio:

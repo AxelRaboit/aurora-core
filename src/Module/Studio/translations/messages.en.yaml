@@ -48,7 +48,7 @@ backend:
         studio_decks: Presentations
         studio_decks_description: The slide decks you show, filed and reusable.
         studio_deliverables: "Deliverables"
-        studio_deliverables_description: "The documents you write outside a client space, for yourself or for the team."
+        studio_deliverables_description: "The documents you write, for yourself or for the team."
     audit:
         actions:
             studio:
