@@ -1989,6 +1989,8 @@ backend:
             open_hint: "Build the document, set its colours and what the client sees."
             preview: "Preview"
             preview_hint: "The page as the client will read it, in a new tab."
+            export_pdf: "Export as PDF"
+            export_pdf_hint: "Opens the deliverable as slides, one per page, and the print window: choose « Save as PDF »."
             show: "Show to the client"
             show_hint: "It appears in the client's space, where they can read it."
             hide: "Hide from the client"
@@ -2116,6 +2118,11 @@ backend:
                 heading_styles:
                     theme: "As the theme"
                     display: "Bold capitals"
+                display: "Display"
+                display_hint: "« Web page » is read by scrolling. « Presentation » is turned section by section, like a slide show: one slide per large heading laid across the whole row."
+                displays:
+                    page: "Web page"
+                    slides: "Presentation"
                 presets:
                     title: "Looks"
                     hint: "A complete look in one click. The colours below can still be adjusted afterwards."

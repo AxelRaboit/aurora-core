@@ -1065,6 +1065,12 @@ backend:
             tile_full_bleed: "Pleine largeur"
             tile_image_missing: "Image à choisir"
             placeholders_left: "{count} passage entre [crochets] reste à remplacer. | {count} passages entre [crochets] restent à remplacer."
+            split_on: "Aperçu à côté"
+            split_off: "Fermer l'aperçu à côté"
+            devices:
+                desktop: "Ordinateur"
+                tablet: "Tablette"
+                phone: "Téléphone"
             drop_image_where: "Déposez une image sur une zone Image ou Galerie."
             drop_image_forbidden: "Vous n'avez pas le droit d'ajouter des documents à la médiathèque."
             drop_image_done: "Image ajoutée à la médiathèque et posée dans la zone."
@@ -1953,6 +1959,12 @@ backend:
         css_class_placeholder: "menu-item--mis-en-avant"
         label_placeholder: "Accueil"
 frontend:
+    slides:
+        slide: "diapositive"
+        controls: "Diapositives"
+        previous: "Diapositive précédente"
+        next: "Diapositive suivante"
+        fullscreen: "Plein écran"
     reading:
         prepared_for: 'Préparé pour %name%'
         back: 'Retour à l''espace'

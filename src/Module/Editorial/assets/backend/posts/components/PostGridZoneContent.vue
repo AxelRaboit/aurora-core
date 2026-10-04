@@ -318,6 +318,7 @@ const displayHint = computed(() =>
                 </p>
                 <AppBlockEditor
                     v-model="bound.blocks.value"
+                    emoji
                     :placeholder="t('backend.posts.content_placeholder')"
                 />
             </div>

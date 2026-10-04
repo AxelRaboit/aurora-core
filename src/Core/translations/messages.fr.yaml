@@ -398,6 +398,14 @@ backend:
                 amber: "Ambre"
                 sky: "Ciel"
                 emerald: "Émeraude"
+        emoji:
+            label: "Emoji"
+            open: "Insérer un emoji à la place du curseur"
+            groups:
+                marks: "Repères"
+                hands: "Mains"
+                work: "Travail"
+                feelings: "Émotions"
         socials:
             handle_placeholder: "@identifiant ou nom de la page"
             url_placeholder: "Adresse (facultative)"

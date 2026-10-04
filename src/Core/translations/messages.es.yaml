@@ -394,6 +394,14 @@ backend:
                 amber: "Ámbar"
                 sky: "Cielo"
                 emerald: "Esmeralda"
+        emoji:
+            label: "Emoji"
+            open: "Insertar un emoji en el cursor"
+            groups:
+                marks: "Marcas"
+                hands: "Manos"
+                work: "Trabajo"
+                feelings: "Emociones"
         socials:
             handle_placeholder: "@usuario o nombre de la página"
             url_placeholder: "Dirección (opcional)"

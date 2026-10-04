@@ -45,7 +45,13 @@ final class DeliverableAppearance
     public const array HEADING_STYLES = ['theme', 'display'];
 
     /**
-     * @return array{backgroundColor: ?string, headerColor: ?string, footerColor: ?string, accentColor: ?string, headingColor: ?string, figureColor: ?string, highlight: ?string, highlightColor: ?string, titleVisible: bool, headingStyle: string}
+     * Comment le document se lit : une page qu'on fait défiler, ou une
+     * présentation qu'on fait passer section par section.
+     */
+    public const array DISPLAYS = ['page', 'slides'];
+
+    /**
+     * @return array{backgroundColor: ?string, headerColor: ?string, footerColor: ?string, accentColor: ?string, headingColor: ?string, figureColor: ?string, highlight: ?string, highlightColor: ?string, titleVisible: bool, headingStyle: string, display: string}
      */
     public static function normalize(mixed $raw): array
     {
@@ -74,6 +80,7 @@ final class DeliverableAppearance
             // livrable qui ouvre sur un bloc d'entête l'éteint lui-même.
             'titleVisible' => false !== ($data['titleVisible'] ?? true),
             'headingStyle' => in_array($data['headingStyle'] ?? null, self::HEADING_STYLES, true) ? $data['headingStyle'] : self::HEADING_STYLES[0],
+            'display' => in_array($data['display'] ?? null, self::DISPLAYS, true) ? $data['display'] : self::DISPLAYS[0],
         ];
     }
 

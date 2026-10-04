@@ -75,6 +75,9 @@
         {% set cellClass = (zone.anchor|default('') ? 'scroll-mt-24 ' : '') ~ valign ~ ' ' ~ hideOn %}
         <div
             {% if cellClass|trim %}class="{{ cellClass|trim }}"{% endif %}
+            {# Which zone this is, for the editor's preview beside it: a click
+               there picks the zone. Only there - the page has no use for it. #}
+            {% if editorPreview|default(false) %}data-grid-zone="{{ zone.id }}"{% endif %}
             {% if zone.anchor|default('') %}id="{{ zone.anchor }}"{% endif %}
             {% if reveal != 'none' %}data-reveal="{{ reveal }}"{% endif %}
             {% if zone.highlight|default(null) %}data-zone-highlight="{{ zone.highlight }}"{% endif %}
@@ -116,6 +119,7 @@
                         {% set childReveal = child.reveal|default('none') %}
                         <div
                             {% if child.anchor|default('') %}id="{{ child.anchor }}"{% endif %}
+                            {% if editorPreview|default(false) %}data-grid-zone="{{ child.id }}"{% endif %}
                             {% if childReveal != 'none' %}data-reveal="{{ childReveal }}"{% endif %}
                             {% if child.highlight|default(null) %}data-zone-highlight="{{ child.highlight }}"{% endif %}
                             {% if child.accentColor|default(null) or child.siteAccent|default(false) %}data-zone-accent="{{ child.id }}"{% endif %}

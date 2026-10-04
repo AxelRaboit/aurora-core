@@ -33,6 +33,11 @@ const loading = ref(false);
 
 const COLUMNS = 48;
 
+/** What the open tab is for. */
+const intro = computed(() =>
+    t(tab.value === "builtin" ? "backend.posts.grid.sections.intro" : "backend.posts.grid.sections.intro_mine"),
+);
+
 /** A saved section's rows, worked out from its zones the way the grid flows them. */
 function rowsOf(zones) {
     const rows = [];
@@ -111,7 +116,7 @@ async function remove(section) {
             </div>
 
             <p class="text-sm text-secondary">
-                {{ t("builtin" === tab ? "backend.posts.grid.sections.intro" : "backend.posts.grid.sections.intro_mine") }}
+                {{ intro }}
             </p>
 
             <div v-if="'builtin' === tab" class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">

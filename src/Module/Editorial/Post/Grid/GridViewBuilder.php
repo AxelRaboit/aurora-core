@@ -76,6 +76,23 @@ final readonly class GridViewBuilder
     }
 
     /**
+     * The page as it will render, for the editor's preview: the reader's
+     * view of every zone, whether the grid is switched on yet or not. Not
+     * `buildForEditor`, whose zones carry the editor's shapes - a list there
+     * is a list of entries to edit, and the template drawing it as the page
+     * does found nothing to draw (or, in debug, threw).
+     *
+     * @param array<string, mixed> $layout
+     * @param array<string, mixed> $content
+     *
+     * @return array<string, mixed>
+     */
+    public function buildForPreview(array $layout, array $content, string $locale, ?int $currentPostId = null): array
+    {
+        return $this->resolve([...$layout, 'enabled' => true], $content, $locale, $currentPostId);
+    }
+
+    /**
      * The editor needs the same resolved zones, but unconditionally: a grid
      * that is switched off still has to render its form.
      *
@@ -393,11 +410,7 @@ final readonly class GridViewBuilder
         // property as `auto` - which is the plain flow this started as, and
         // what a theme that never emits this still gets.
         foreach (GridNormalizer::place($layout['zones']) as $index => $place) {
-            $zones[$index]['startStyle'] = sprintf(
-                '--row-lg: %d; --start-lg: %d;',
-                $place['row'],
-                $place['column'],
-            );
+            $zones[$index]['startStyle'] = self::startStyle($place['row'], $place['column']);
         }
 
         $zones = $this->summarise($zones);
@@ -949,5 +962,15 @@ final readonly class GridViewBuilder
         }
 
         return implode('', $declarations);
+    }
+
+    /**
+     * Where a zone lands on a large screen, as the stylesheet reads it. Shared
+     * with GridSlides, which places each slide's zones again from its own
+     * first row.
+     */
+    public static function startStyle(int $row, int $column): string
+    {
+        return sprintf('--row-lg: %d; --start-lg: %d;', $row, $column);
     }
 }

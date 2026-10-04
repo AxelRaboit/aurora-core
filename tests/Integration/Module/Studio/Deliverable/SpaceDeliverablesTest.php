@@ -188,6 +188,50 @@ final class SpaceDeliverablesTest extends IntegrationTestCase
         self::assertStringContainsString('<mark class="aurora-placeholder">[Nom de la marque]</mark>', (string) $this->client->getResponse()->getContent());
     }
 
+    /** Shown as a presentation, the document is one slide per section; printed, every slide is kept and nothing is lit. */
+    public function testAPresentationIsCutAtEachSectionAndPrintsWithoutMarks(): void
+    {
+        $space = $this->givenSpace();
+        $deliverable = $this->givenDeliverable($space, 'Présentation '.$this->suffix);
+        $text = static fn (string $html): array => ['blocks' => [['type' => 'header', 'data' => ['text' => $html, 'level' => 2]]]];
+
+        $this->update($space, $deliverable, [
+            'appearance' => ['display' => 'slides'],
+            'gridLayout' => ['enabled' => true, 'zones' => [
+                ['id' => 'a', 'type' => 'text', 'span' => ['base' => 48, 'md' => 48, 'lg' => 48]],
+                ['id' => 'b', 'type' => 'text', 'span' => ['base' => 48, 'md' => 48, 'lg' => 48]],
+            ]],
+            'gridContent' => ['zones' => ['a' => $text('Objectifs [marque]'), 'b' => $text('Benchmark')]],
+        ]);
+
+        $this->client->request('GET', sprintf('/workspace/%d/deliverables/%d/preview', $space->getId(), $deliverable));
+        $page = (string) $this->client->getResponse()->getContent();
+        self::assertSame(2, mb_substr_count($page, 'data-slide '));
+        self::assertStringContainsString('aurora-placeholder', $page);
+
+        $this->client->request('GET', sprintf('/workspace/%d/deliverables/%d/preview?print=1', $space->getId(), $deliverable));
+        $printed = (string) $this->client->getResponse()->getContent();
+        self::assertStringContainsString('data-slides-print', $printed);
+        self::assertStringNotContainsString('aurora-placeholder', $printed);
+    }
+
+    /** The editor's preview draws a list as the page does, and names each zone for a click to pick it. */
+    public function testTheEditorPreviewDrawsAListAndNamesItsZones(): void
+    {
+        $space = $this->givenSpace();
+
+        $this->client->request('POST', sprintf('/workspace/%d/deliverables/grid-preview', $space->getId()), [], [], ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'], (string) json_encode([
+            'layout' => ['enabled' => false, 'zones' => [['id' => 'l1', 'type' => 'items', 'display' => 'stats', 'items' => [['id' => 'e1']]]]],
+            'content' => ['zones' => ['l1' => ['items' => ['e1' => ['title' => '8 818', 'description' => 'abonnés']]]]],
+            'locale' => 'fr',
+        ]));
+
+        self::assertResponseIsSuccessful();
+        $html = (string) json_decode((string) $this->client->getResponse()->getContent(), true)['html'];
+        self::assertStringContainsString('8 818', $html);
+        self::assertStringContainsString('data-grid-zone="l1"', $html);
+    }
+
     public function testAnEmptyTitleIsRefusedOnSave(): void
     {
         $space = $this->givenSpace();

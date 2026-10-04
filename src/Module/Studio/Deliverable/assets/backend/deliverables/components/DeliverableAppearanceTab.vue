@@ -140,6 +140,21 @@ const headingStyle = computed({
     },
 });
 
+/** Page web ou présentation. */
+const displayOptions = computed(() =>
+    ["page", "slides"].map((value) => ({
+        value,
+        label: t(`backend.studio.deliverables.appearance.displays.${value}`),
+    })),
+);
+
+const display = computed({
+    get: () => appearance.value.display ?? "page",
+    set: (value) => {
+        appearance.value = { ...appearance.value, display: value };
+    },
+});
+
 const titleVisible = computed({
     get: () => false !== appearance.value.titleVisible,
     set: (value) => {
@@ -300,6 +315,12 @@ const swatch = computed(() => ({
                 v-model="titleVisible"
                 :label="t('backend.studio.deliverables.appearance.title_visible')"
                 :hint="t('backend.studio.deliverables.appearance.title_visible_hint')"
+            />
+            <AppChoiceRow
+                v-model="display"
+                :label="t('backend.studio.deliverables.appearance.display')"
+                :hint="t('backend.studio.deliverables.appearance.display_hint')"
+                :options="displayOptions"
             />
             <AppChoiceRow
                 v-model="headingStyle"

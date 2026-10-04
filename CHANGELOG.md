@@ -33,6 +33,14 @@ Un modèle d'audit compte une cinquantaine de zones, et le canevas les dessinait
 - **Déposer une image** depuis l'ordinateur sur une tuile Image ou Galerie : elle rejoint la médiathèque et prend sa place. Une tuile d'image vide dit « Image à choisir ».
 - **Ambiances** d'un livrable en un clic, dans l'onglet Apparence : couleurs du site, rapport blanc, sombre, ou aux couleurs du client, lues dans son logo (l'accent et les chiffres, puis les titres, sur fond blanc).
 
+#### Un livrable en présentation, et son export en PDF
+- **Mode présentation** : dans l'onglet Apparence, « Affichage » passe un livrable de « Page web » à « Présentation ». Le client le fait alors passer section par section, comme un diaporama : une diapositive par zone de texte qui ouvre sa ligne avec un grand titre, la même règle que le plan de l'éditeur. Flèches, clavier, glissé au doigt, plein écran, et l'adresse suit la diapositive (`#diapo-3`). Sans JavaScript, les diapositives se lisent à la suite.
+- **Exporter en PDF**, dans les actions de l'éditeur : le livrable s'ouvre en diapositives, une par page A4 paysage, et la fenêtre d'impression propose « Enregistrer en PDF ». Les [crochets] n'y sont pas surlignés.
+
+#### Composer avec l'aperçu sous les yeux
+- **Aperçu à côté** : sur grand écran, la grille et sa page rendue se partagent l'écran, l'aperçu se met à jour pendant la saisie, en ordinateur, tablette ou téléphone (une vraie largeur d'appareil, ses points de rupture compris). Un clic sur une zone de l'aperçu la sélectionne ; la zone sélectionnée y est soulignée. Dans un livrable, l'aperçu prend son fond et ses grands titres.
+- **Emojis** : une pastille au-dessus du texte d'une zone insère 👀 🔥 ✅ ❌ 👉 et une quarantaine d'autres à l'endroit du curseur.
+
 #### Masquer une zone selon l'écran
 Une zone peut ne pas s'afficher sur téléphone, ou sur ordinateur et tablette : un téléphone décoratif en double, une image trop large pour un petit écran.
 
@@ -46,6 +54,11 @@ Une image ou une galerie peut ne plus afficher le nom de son auteur sous la phot
 
 #### Le lien de retour d'une page de lecture, en flèche seule sur téléphone
 Sur téléphone, « Retour à l'espace » en tête d'un livrable ou d'une publication hors site n'affiche plus que sa flèche, dans un bouton de la taille d'un doigt. Le libellé revient à partir de la tablette et reste lu par les lecteurs d'écran.
+
+### Corrigé
+
+#### L'aperçu de l'éditeur montre les listes
+L'aperçu de la grille, dans l'éditeur d'une publication ou d'un livrable, rendait la grille sous sa forme d'éditeur : une zone de liste n'y apparaissait pas (et l'aperçu échouait en développement). Il rend maintenant la page telle qu'elle sera lue.
 
 ### Dans aurora-client
 Rien à faire à la main : `make deploy-prod` joue la migration (table `core_editorial_grid_sections`, les sections enregistrées).

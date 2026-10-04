@@ -1969,6 +1969,8 @@ backend:
             open_hint: "Componer el documento, ajustar sus colores y lo que ve el cliente."
             preview: "Vista previa"
             preview_hint: "La página tal como la leerá el cliente, en una pestaña nueva."
+            export_pdf: "Exportar en PDF"
+            export_pdf_hint: "Abre el entregable en diapositivas, una por página, y la ventana de impresión: elija « Guardar como PDF »."
             show: "Mostrar al cliente"
             show_hint: "Aparece en el espacio del cliente, que puede leerlo."
             hide: "Ocultar al cliente"
@@ -2096,6 +2098,11 @@ backend:
                 heading_styles:
                     theme: "Como el tema"
                     display: "Mayúsculas en negrita"
+                display: "Visualización"
+                display_hint: "« Página web » se lee desplazándose. « Presentación » se pasa sección por sección, como una diapositiva: una por cada título grande a todo el ancho."
+                displays:
+                    page: "Página web"
+                    slides: "Presentación"
                 presets:
                     title: "Ambientes"
                     hint: "Un aspecto completo en un clic. Los colores de abajo siguen siendo ajustables después."

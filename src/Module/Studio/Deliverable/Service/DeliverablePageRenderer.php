@@ -8,6 +8,7 @@ use Aurora\Core\Frontend\Service\Context;
 use Aurora\Module\Configuration\Setting\Service\SiteTimezone;
 use Aurora\Module\Configuration\Theme\Service\ThemeContext;
 use Aurora\Module\Editorial\Post\Grid\GridNormalizer;
+use Aurora\Module\Editorial\Post\Grid\GridSlides;
 use Aurora\Module\Editorial\Post\Grid\GridViewBuilder;
 use Aurora\Module\Editorial\Post\Service\ReadingTimeCalculator;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
@@ -16,6 +17,7 @@ use IntlDateFormatter;
 use Symfony\Component\HttpFoundation\Response;
 use Twig\Environment;
 
+use function array_map;
 use function in_array;
 use function is_array;
 
@@ -64,14 +66,17 @@ final readonly class DeliverablePageRenderer
         private GridViewBuilder $gridViewBuilder,
         private ReadingTimeCalculator $readingTimeCalculator,
         private SiteTimezone $siteTimezone,
+        private GridSlides $gridSlides,
     ) {}
 
     /**
      * @param string|null $backUrl          où revient le lecteur, quand il vient d'une page à lui
      * @param bool        $markPlaceholders les [passages à remplacer] surlignés : l'aperçu de
      *                                      l'auteur, jamais la page du client
+     * @param bool        $print            la version à imprimer en PDF : en diapositives, une
+     *                                      par page, quel que soit l'affichage choisi
      */
-    public function render(DeliverableInterface $deliverable, ?string $backUrl = null, bool $markPlaceholders = false): Response
+    public function render(DeliverableInterface $deliverable, ?string $backUrl = null, bool $markPlaceholders = false, bool $print = false): Response
     {
         $locale = $deliverable->getLocale();
         $grid = $this->gridViewBuilder->build($deliverable->getGridLayout(), $deliverable->getGridContent(), $locale, null);
@@ -85,6 +90,17 @@ final readonly class DeliverablePageRenderer
 
         $appearance = DeliverableAppearance::normalize($deliverable->getAppearance());
 
+        // Shown as a presentation: the same grid, cut at each section. Every
+        // slide is a grid of its own for the template; the picture overlay is
+        // left out of them, mounted once per grid it would open N times.
+        $slides = null;
+        if (null !== $grid && ('slides' === $appearance['display'] || $print)) {
+            $slides = array_map(
+                static fn (array $zones): array => [...$grid, 'zones' => $zones, 'lightbox' => []],
+                $this->gridSlides->split($grid['zones'], $deliverable->getGridContent()),
+            );
+        }
+
         $body = $this->twig->render('@Studio/public/deliverable.html.twig', [
             'locale' => $locale,
             'context' => $this->context,
@@ -95,6 +111,8 @@ final readonly class DeliverablePageRenderer
             ],
             'appearance' => $appearance,
             'grid' => $grid,
+            'slides' => $slides,
+            'print' => $print,
             'markPlaceholders' => $markPlaceholders,
             'readingTimeMinutes' => null !== $grid ? $this->readingTimeCalculator->minutesFor($deliverable->getGridContent()) : 0,
             // Les trois surfaces que le thème sait repeindre, surface par

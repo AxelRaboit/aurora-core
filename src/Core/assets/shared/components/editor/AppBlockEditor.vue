@@ -28,6 +28,7 @@ import TwoColumnBlock from "@shared/components/editor/tools/TwoColumnBlock.js";
 import CalloutBlock, { DEFAULT_TYPES as CALLOUT_TYPES } from "@shared/components/editor/tools/CalloutBlock.js";
 import { CALLOUT_ICONS } from "@shared/components/editor/tools/calloutIcons.js";
 import LabelBlock, { LABEL_TONES } from "@shared/components/editor/tools/LabelBlock.js";
+import AppEmojiPicker from "@shared/components/editor/AppEmojiPicker.vue";
 import SocialsBlock from "@shared/components/editor/tools/SocialsBlock.js";
 import DragDrop from "editorjs-drag-drop";
 import Undo from "editorjs-undo";
@@ -81,6 +82,12 @@ const props = defineProps({
      * still typed into it.
      */
     readOnly: { type: Boolean, default: false },
+    /**
+     * A small emoji picker above the blocks, for a page written with 👀 and
+     * ✅. Off unless asked: a contract renders through a PDF engine that
+     * draws no emoji.
+     */
+    emoji: { type: Boolean, default: false },
 });
 
 /** The block tools of the built-in set, as opposed to the inline ones. */
@@ -97,6 +104,28 @@ function offered(tools) {
 const emit = defineEmits(["update:modelValue"]);
 
 const holderEl = ref(null);
+
+// Where the caret last was inside these blocks, so an emoji picked from the
+// button above lands there rather than nowhere.
+let lastRange = null;
+function rememberCaret() {
+    const selection = document.getSelection();
+    if (selection?.rangeCount && holderEl.value?.contains(selection.anchorNode)) {
+        lastRange = selection.getRangeAt(0).cloneRange();
+    }
+}
+
+function insertEmoji(emoji) {
+    if (!lastRange) return;
+
+    const selection = document.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(lastRange);
+    // The editable's own command, so Editor.js hears an input and the undo
+    // stack keeps it.
+    document.execCommand("insertText", false, emoji);
+    rememberCaret();
+}
 const registerEditor = inject("registerEditor", null);
 let unregister = null;
 
@@ -450,5 +479,11 @@ onBeforeUnmount(async () => {
 </script>
 
 <template>
-    <div ref="holderEl" class="editor-block-holder" />
+    <div v-if="emoji && !readOnly">
+        <div class="mb-1 flex justify-end">
+            <AppEmojiPicker v-on:pick="insertEmoji" />
+        </div>
+        <div ref="holderEl" class="editor-block-holder" v-on:keyup="rememberCaret" v-on:mouseup="rememberCaret" />
+    </div>
+    <div v-else ref="holderEl" class="editor-block-holder" />
 </template>

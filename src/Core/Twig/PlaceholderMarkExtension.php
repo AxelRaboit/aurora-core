@@ -8,10 +8,10 @@ use Twig\Attribute\AsTwigFilter;
 
 use function array_map;
 use function implode;
+use function mb_strtolower;
 use function preg_match;
 use function preg_replace;
 use function preg_split;
-use function strtolower;
 
 /**
  * The passages of a template still waiting for their words, lit up.
@@ -37,7 +37,7 @@ final readonly class PlaceholderMarkExtension
 
         return implode('', array_map(function (string $part) use (&$raw): string {
             if (1 === preg_match('/^<(\/?)(script|style|textarea)\b/i', $part, $tag)) {
-                $raw = '' === $tag[1] ? strtolower($tag[2]) : null;
+                $raw = '' === $tag[1] ? mb_strtolower($tag[2]) : null;
 
                 return $part;
             }

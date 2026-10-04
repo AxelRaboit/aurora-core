@@ -1071,6 +1071,12 @@ backend:
             tile_full_bleed: "Ancho completo"
             tile_image_missing: "Imagen por elegir"
             placeholders_left: "Queda {count} pasaje entre [corchetes] por reemplazar. | Quedan {count} pasajes entre [corchetes] por reemplazar."
+            split_on: "Vista previa al lado"
+            split_off: "Cerrar la vista previa lateral"
+            devices:
+                desktop: "Ordenador"
+                tablet: "Tableta"
+                phone: "Teléfono"
             drop_image_where: "Suelte una imagen sobre una zona Imagen o Galería."
             drop_image_forbidden: "No tiene permiso para añadir documentos a la mediateca."
             drop_image_done: "Imagen añadida a la mediateca y colocada en la zona."
@@ -1979,6 +1985,12 @@ backend:
         css_class_placeholder: menu-item--mis-en-avant
         label_placeholder: Inicio
 frontend:
+    slides:
+        slide: "diapositiva"
+        controls: "Diapositivas"
+        previous: "Diapositiva anterior"
+        next: "Diapositiva siguiente"
+        fullscreen: "Pantalla completa"
     reading:
         prepared_for: 'Preparado para %name%'
         back: 'Volver al espacio'

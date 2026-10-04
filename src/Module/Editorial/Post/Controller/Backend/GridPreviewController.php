@@ -56,10 +56,12 @@ final class GridPreviewController extends AbstractController
         // and a linked publication's card has to be the German one.
         $locale = $this->locale($payload['locale'] ?? null);
 
-        // buildForEditor rather than build: the panel asks for a preview while
+        // buildForPreview rather than build: the panel asks for a preview while
         // the grid is still switched off or half-composed, and answering
-        // "nothing" there would look like a bug rather than a state.
-        $grid = $this->gridViewBuilder->buildForEditor($layout, $content, $locale);
+        // "nothing" there would look like a bug rather than a state. Not
+        // buildForEditor either: its zones carry the editor's shapes, and a
+        // list zone drew nothing there.
+        $grid = $this->gridViewBuilder->buildForPreview($layout, $content, $locale);
 
         return $this->json([
             'success' => true,
@@ -67,7 +69,7 @@ final class GridPreviewController extends AbstractController
                 $this->themeResolver->resolve('editorial/post/_grid'),
                 // `locale` too: the partial builds a card's link from it, and
                 // the route needs one whatever the payload said.
-                ['grid' => $grid, 'locale' => $locale],
+                ['grid' => $grid, 'locale' => $locale, 'editorPreview' => true],
             ),
         ]);
     }

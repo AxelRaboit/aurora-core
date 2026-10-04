@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\Deliverable\Service;
 
-use Aurora\Core\Twig\PlaceholderMarkExtension;
 use Aurora\Core\Locale\Service\LocaleContextInterface;
+use Aurora\Core\Twig\PlaceholderMarkExtension;
 use Aurora\Module\Configuration\Theme\Service\ThemeResolver;
 use Aurora\Module\Configuration\Theme\Service\ThemeStyleRenderer;
 use Aurora\Module\Editorial\Post\Banner\BannerViewBuilder;
@@ -52,7 +52,7 @@ final readonly class DeliverableEditorPreviews
         // c'est l'auteur qui regarde.
         return $this->placeholders->mark($this->twig->render(
             $this->themeResolver->resolve('editorial/post/_grid'),
-            ['grid' => $this->gridViewBuilder->buildForEditor($layout, $content, $locale), 'locale' => $locale],
+            ['grid' => $this->gridViewBuilder->buildForPreview($layout, $content, $locale), 'locale' => $locale, 'editorPreview' => true],
         ));
     }
 

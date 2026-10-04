@@ -1065,6 +1065,12 @@ backend:
             tile_full_bleed: "Full width"
             tile_image_missing: "Picture to choose"
             placeholders_left: "{count} passage in [brackets] is left to replace. | {count} passages in [brackets] are left to replace."
+            split_on: "Preview alongside"
+            split_off: "Close the side preview"
+            devices:
+                desktop: "Desktop"
+                tablet: "Tablet"
+                phone: "Phone"
             drop_image_where: "Drop a picture on an Image or Gallery zone."
             drop_image_forbidden: "You may not add documents to the media library."
             drop_image_done: "Picture added to the library and placed in the zone."
@@ -1953,6 +1959,12 @@ backend:
         css_class_placeholder: "menu-item--featured"
         label_placeholder: "Home"
 frontend:
+    slides:
+        slide: "slide"
+        controls: "Slides"
+        previous: "Previous slide"
+        next: "Next slide"
+        fullscreen: "Full screen"
     reading:
         prepared_for: 'Prepared for %name%'
         back: 'Back to the space'

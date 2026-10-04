@@ -18,7 +18,7 @@ import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { Copy, ExternalLink, FolderInput, FolderOutput, Link2, Lock, Save, Trash2, Users } from "lucide-vue-next";
+import { Copy, ExternalLink, FileDown, FolderInput, FolderOutput, Link2, Lock, Save, Trash2, Users } from "lucide-vue-next";
 import AppBackLink from "@/shared/components/nav/AppBackLink.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
@@ -126,6 +126,16 @@ async function openPreview() {
     window.open(props.previewPath, "_blank", "noopener");
 }
 
+/**
+ * The document as slides, one landscape page each, ready for the browser's
+ * « Save as PDF »: the only renderer that draws the grid as the page does.
+ */
+async function exportPdf() {
+    if (dirty.value && !(await save())) return;
+
+    window.open(`${props.previewPath}?print=1`, "_blank", "noopener");
+}
+
 async function duplicate() {
     if (duplicating.value) return;
     if (dirty.value && !(await save())) return;
@@ -192,6 +202,13 @@ const headerActions = computed(() => {
             title: t("backend.studio.deliverables.preview"),
             description: t("backend.studio.deliverables.preview_hint"),
             onSelect: openPreview,
+        },
+        {
+            key: "pdf",
+            icon: FileDown,
+            title: t("backend.studio.deliverables.export_pdf"),
+            description: t("backend.studio.deliverables.export_pdf_hint"),
+            onSelect: exportPdf,
         },
     ];
 
@@ -335,6 +352,8 @@ const headerActions = computed(() => {
                 :banner-preview-path="bannerPreviewPath"
                 :toggleable="false"
                 :hidden-types="hiddenZoneTypes"
+                :preview-class="'display' === form.appearance?.headingStyle ? 'aurora-headings-display' : ''"
+                :preview-background="form.appearance?.backgroundColor ?? ''"
             />
         </div>
 
