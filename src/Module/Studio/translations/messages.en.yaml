@@ -808,7 +808,7 @@ backend:
             delete_hint: The presentation and every one of its slides.
             copy_of: '%title% (copy)'
             title_column: Title
-            title_placeholder: Site audit, October
+            title_placeholder: Kick-off meeting, October
             description_placeholder: One line, read in the list.
             description: Description
             category: Category

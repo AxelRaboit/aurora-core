@@ -808,7 +808,7 @@ backend:
             delete_hint: La présentation et toutes ses slides.
             copy_of: '%title% (copie)'
             title_column: Titre
-            title_placeholder: Audit du site, octobre
+            title_placeholder: Réunion de lancement, octobre
             description_placeholder: Une ligne, lue dans la liste.
             description: Description
             category: Rubrique

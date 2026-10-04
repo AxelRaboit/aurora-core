@@ -1272,13 +1272,17 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
      * Two decks: one written to be looked at, one written to be duplicated.
      *
      * The first is a real talk, in the sense that it has a beginning, a claim
-     * and an end - twelve slides that could be given to a client without
+     * and an end - a dozen slides that could be given to a client without
      * anybody apologising for the demo. That is what the module's screenshots
      * need: a deck built to fill a page shows the editor, not the thing the
      * editor is for.
      *
      * The second stays four slides on purpose. A trame is a skeleton somebody
      * duplicates and fills, and dressing it up would hide what it is.
+     *
+     * Neither is an audit nor a strategy: those are written documents, and
+     * they live in the deliverables (since 04/10/2026, Axel's call). A deck is
+     * what is shown in a meeting - a kick-off, a monthly review.
      *
      * Between them they use every layout, images included: the full-page
      * picture reads nothing from the deck itself, it points at a document in
@@ -1294,51 +1298,52 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
             return;
         }
 
-        $audit = new DeckCategory();
-        $audit->setName('Audit')->setColor('#f59e0b')->setPosition(0);
+        $kickOff = new DeckCategory();
+        $kickOff->setName('Lancement')->setColor('#f59e0b')->setPosition(0);
 
-        $strategy = new DeckCategory();
-        $strategy->setName('Stratégie')->setColor('#6366f1')->setPosition(1);
+        $review = new DeckCategory();
+        $review->setName('Suivi')->setColor('#6366f1')->setPosition(1);
 
-        $this->entityManager->persist($audit);
-        $this->entityManager->persist($strategy);
+        $this->entityManager->persist($kickOff);
+        $this->entityManager->persist($review);
 
-        $this->seedAuditDeck($customer, $audit);
-        $this->seedStrategyTemplate($strategy);
+        $this->seedKickOffDeck($customer, $kickOff);
+        $this->seedMonthlyReviewTemplate($review);
     }
 
     /**
-     * The deck that gets shown: an audit, from the complaint to the quote.
+     * The deck that gets shown: a kick-off meeting, from what the client asked
+     * for to the first date in the calendar.
      *
-     * Ordered the way the conversation actually goes. The client says the site
-     * is slow, so the numbers come before the causes, the causes before the
-     * plan, and the plan before what it costs. The quote at the end is the
-     * sentence that lets somebody decide, which is what a deck is for.
+     * Ordered the way the meeting actually goes. What we heard comes first,
+     * so the client recognises their own words; then how we will work, then
+     * when. The quote at the end is the sentence everybody leaves the room
+     * with, which is what a deck is for.
      */
-    private function seedAuditDeck(CustomerInterface $customer, DeckCategory $category): void
+    private function seedKickOffDeck(CustomerInterface $customer, DeckCategory $category): void
     {
-        $deck = $this->decks->create('Audit du site, septembre');
-        $deck->setDescription('Ce que le site fait mal, ce que ça coûte, et dans quel ordre le reprendre.');
+        $deck = $this->decks->create('Réunion de lancement, refonte du site');
+        $deck->setDescription('Ce que vous attendez du nouveau site, comment on travaille ensemble, et les six semaines qui viennent.');
         $deck->setCategory($category);
         $deck->setCustomer($customer);
 
         $this->slide($deck, SlideLayoutEnum::Title, [
-            'title' => 'Audit du site',
-            'subtitle' => 'Atelier Dupont, septembre 2026',
-        ], "Remercier pour l'accès aux statistiques. Annoncer vingt minutes, questions comprises.");
+            'title' => 'Réunion de lancement',
+            'subtitle' => 'Atelier Dupont, octobre 2026',
+        ], 'Remercier pour le temps pris. Annoncer quarante minutes, questions comprises.');
 
         $this->slide($deck, SlideLayoutEnum::Section, [
-            'title' => 'Ce que disent les chiffres',
+            'title' => 'Ce que vous nous avez dit',
         ], null);
 
         $this->slide($deck, SlideLayoutEnum::Bullets, [
-            'title' => 'Trois mesures, prises sur mobile',
+            'title' => 'Trois attentes, dans vos mots',
             'bullets' => [
-                '3,4 secondes avant que la première image apparaisse',
-                "54 % des visiteurs repartent avant d'avoir vu quoi que ce soit",
-                '4,2 Mo chargés pour une page qui en montre 300 Ko',
+                'Être trouvé par les gens de la région qui cherchent un menuisier',
+                "Montrer l'atelier et les chantiers, pas seulement le catalogue",
+                'Recevoir des demandes de devis plutôt que des appels à toute heure',
             ],
-        ], 'Insister sur la deuxième ligne : le reste en découle.');
+        ], 'Faire valider chaque ligne : si une seule est fausse, tout le reste se décale.');
 
         // La photo de la médiathèque de démonstration, légendée pour ce
         // qu'elle est réellement : une image de bannière. Une légende qui
@@ -1346,45 +1351,45 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         // cette slide montre.
         $this->slide($deck, SlideLayoutEnum::Image, [
             'mediaId' => $this->mediaId(1),
-            'caption' => "La bannière d'accueil : 1,4 Mo servis pour 180 Ko réellement affichés",
+            'caption' => "Le ton visé pour l'accueil : une grande image, peu de mots",
         ], "Laisser l'image dix secondes avant de commenter.");
 
         $this->slide($deck, SlideLayoutEnum::Quote, [
-            'quote' => 'On ne répare pas un site lent, on arrête de le ralentir.',
-            'attribution' => 'La seule règle de cet audit',
-        ], 'Marquer un temps ici.');
+            'quote' => "Un site qui ressemble à l'atelier, et qui ramène des demandes de devis.",
+            'attribution' => 'Votre objectif, en une phrase',
+        ], 'Marquer un temps ici : tout ce qui suit sert cette phrase.');
 
         $this->slide($deck, SlideLayoutEnum::Section, [
-            'title' => "D'où ça vient",
+            'title' => 'Comment on travaille',
         ], null);
 
         $this->slide($deck, SlideLayoutEnum::Bullets, [
-            'title' => 'Trois causes, dans cet ordre',
+            'title' => 'Qui fait quoi',
             'bullets' => [
-                "Les images partent à leur taille d'origine, quelle que soit la place où elles s'affichent",
-                'Six polices sont chargées, deux sont utilisées',
-                'Chaque page rappelle la base quarante fois pour afficher le menu',
+                'Vous : les photos des chantiers, les textes sur le métier, une personne pour valider',
+                'Nous : les maquettes, la rédaction finale, la mise en ligne et les mesures',
+                'Ensemble : un point de trente minutes chaque semaine, à heure fixe',
             ],
-        ], "Ne pas s'excuser : ce sont des réglages, pas des fautes.");
+        ], 'Insister sur « une personne pour valider » : c\'est ce qui tient les délais.');
 
         $this->slide($deck, SlideLayoutEnum::Split, [
-            'title' => 'Avant, après',
-            'left' => '3,4 secondes de chargement, un visiteur sur deux qui repart avant la première image, et un référencement qui plafonne parce que Google mesure la même chose que lui.',
-            'right' => "Moins d'une seconde, les images servies à la taille réellement affichée, et le menu calculé une fois pour toutes au lieu de quarante requêtes par page.",
+            'title' => "Ce qu'on vous demande, ce que vous recevez",
+            'left' => 'Une vingtaine de photos de chantiers, trois textes sur votre métier, et une réponse sous deux jours à chaque validation.',
+            'right' => 'Un site rapide sur téléphone, une page par type de chantier, un formulaire de devis qui arrive dans votre boîte, et un point de mesure un mois après.',
         ], 'Les deux colonnes se lisent en parallèle : laisser le temps.');
 
         $this->slide($deck, SlideLayoutEnum::Section, [
-            'title' => 'Ce que je propose',
+            'title' => 'Le calendrier',
         ], null);
 
         $this->slide($deck, SlideLayoutEnum::Bullets, [
-            'title' => 'Trois semaines, trois chantiers',
+            'title' => 'Six semaines, trois étapes',
             'bullets' => [
-                'Semaine 1 : les images, qui à elles seules rendent deux secondes',
-                'Semaine 2 : les polices et le menu, moins spectaculaire, plus durable',
-                'Semaine 3 : les mesures refaites, et la page qui les affiche',
+                'Semaines 1 et 2 : les maquettes, présentées puis ajustées une fois',
+                'Semaines 3 et 4 : les contenus, rédigés à partir de vos photos et de vos notes',
+                'Semaines 5 et 6 : la mise en ligne, puis les premières mesures',
             ],
-        ], "Dire que la semaine 3 n'est pas négociable : sans mesure, rien ne prouve que ça a marché.");
+        ], 'Dire tout de suite la date de mise en ligne visée, et ce qui la ferait glisser.');
 
         // Une slide libre, composée à la main : la démonstration de ce que le
         // canevas sait faire que les gabarits ne font pas. Un dégradé tiré des
@@ -1397,29 +1402,29 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
                 ['color' => 'accent', 'at' => 100],
             ]],
             'elements' => [
-                ['id' => 'title', 'type' => 'text', 'html' => "Le plan, en un coup d'œil", 'font' => 'heading', 'size' => 64, 'weight' => 700, 'lineHeight' => 1.05, 'x' => 6, 'y' => 9, 'w' => 62, 'h' => 14, 'enter' => 'rise'],
-                ['id' => 'subtitle', 'type' => 'text', 'html' => 'Trois semaines, et <span style="color: #f2b33d">une mesure</span> à chaque étape', 'size' => 28, 'x' => 6, 'y' => 24, 'w' => 60, 'h' => 8, 'enter' => 'fade', 'delay' => 200],
+                ['id' => 'title', 'type' => 'text', 'html' => "Le projet, en un coup d'œil", 'font' => 'heading', 'size' => 64, 'weight' => 700, 'lineHeight' => 1.05, 'x' => 6, 'y' => 9, 'w' => 62, 'h' => 14, 'enter' => 'rise'],
+                ['id' => 'subtitle', 'type' => 'text', 'html' => 'Six semaines, et <span style="color: #f2b33d">une validation</span> à chaque étape', 'size' => 28, 'x' => 6, 'y' => 24, 'w' => 60, 'h' => 8, 'enter' => 'fade', 'delay' => 200],
                 ['id' => 'photo', 'type' => 'image', 'mediaId' => $this->mediaId(1), 'mask' => 'circle', 'x' => 76, 'y' => 6, 'w' => 18, 'h' => 32, 'shadow' => ['x' => 0, 'y' => 12, 'blur' => 40, 'color' => '#00000066']],
                 ['id' => 'arrow', 'type' => 'shape', 'shape' => 'line', 'head' => 'end', 'x' => 66, 'y' => 30, 'w' => 9, 'h' => 4, 'rotate' => -24, 'stroke' => ['color' => 'accent', 'width' => 6, 'style' => 'solid']],
                 ['id' => 'card-1', 'type' => 'shape', 'shape' => 'rect', 'x' => 6, 'y' => 42, 'w' => 27, 'h' => 44, 'radius' => 22, 'fill' => ['type' => 'solid', 'color' => '#ffffff12'], 'stroke' => ['color' => 'accent', 'width' => 2, 'style' => 'solid'], 'reveal' => 1, 'enter' => 'rise', 'group' => 'step-1'],
-                ['id' => 'icon-1', 'type' => 'icon', 'icon' => 'image', 'color' => 'accent', 'x' => 8.5, 'y' => 47, 'w' => 5, 'h' => 8.889, 'reveal' => 1, 'enter' => 'rise', 'group' => 'step-1'],
-                ['id' => 'head-1', 'type' => 'text', 'html' => 'Les images', 'font' => 'heading', 'size' => 30, 'weight' => 700, 'x' => 8.5, 'y' => 59, 'w' => 22, 'h' => 8, 'reveal' => 1, 'enter' => 'rise', 'group' => 'step-1'],
-                ['id' => 'body-1', 'type' => 'text', 'html' => 'Servies à la taille affichée, deux secondes de gagnées.', 'size' => 20, 'lineHeight' => 1.35, 'x' => 8.5, 'y' => 68, 'w' => 22, 'h' => 15, 'reveal' => 1, 'enter' => 'rise', 'group' => 'step-1'],
+                ['id' => 'icon-1', 'type' => 'icon', 'icon' => 'palette', 'color' => 'accent', 'x' => 8.5, 'y' => 47, 'w' => 5, 'h' => 8.889, 'reveal' => 1, 'enter' => 'rise', 'group' => 'step-1'],
+                ['id' => 'head-1', 'type' => 'text', 'html' => 'Les maquettes', 'font' => 'heading', 'size' => 30, 'weight' => 700, 'x' => 8.5, 'y' => 59, 'w' => 22, 'h' => 8, 'reveal' => 1, 'enter' => 'rise', 'group' => 'step-1'],
+                ['id' => 'body-1', 'type' => 'text', 'html' => "L'accueil et une page de chantier, ajustées ensemble.", 'size' => 20, 'lineHeight' => 1.35, 'x' => 8.5, 'y' => 68, 'w' => 22, 'h' => 15, 'reveal' => 1, 'enter' => 'rise', 'group' => 'step-1'],
                 ['id' => 'card-2', 'type' => 'shape', 'shape' => 'rect', 'x' => 36.5, 'y' => 42, 'w' => 27, 'h' => 44, 'radius' => 22, 'fill' => ['type' => 'solid', 'color' => '#ffffff12'], 'stroke' => ['color' => 'accent', 'width' => 2, 'style' => 'solid'], 'reveal' => 2, 'enter' => 'rise', 'group' => 'step-2'],
-                ['id' => 'icon-2', 'type' => 'icon', 'icon' => 'settings', 'color' => 'accent', 'x' => 39.0, 'y' => 47, 'w' => 5, 'h' => 8.889, 'reveal' => 2, 'enter' => 'rise', 'group' => 'step-2'],
-                ['id' => 'head-2', 'type' => 'text', 'html' => 'Polices et menu', 'font' => 'heading', 'size' => 30, 'weight' => 700, 'x' => 39.0, 'y' => 59, 'w' => 22, 'h' => 8, 'reveal' => 2, 'enter' => 'rise', 'group' => 'step-2'],
-                ['id' => 'body-2', 'type' => 'text', 'html' => 'Deux polices au lieu de six, un menu calculé une fois.', 'size' => 20, 'lineHeight' => 1.35, 'x' => 39.0, 'y' => 68, 'w' => 22, 'h' => 15, 'reveal' => 2, 'enter' => 'rise', 'group' => 'step-2'],
+                ['id' => 'icon-2', 'type' => 'icon', 'icon' => 'pen-line', 'color' => 'accent', 'x' => 39.0, 'y' => 47, 'w' => 5, 'h' => 8.889, 'reveal' => 2, 'enter' => 'rise', 'group' => 'step-2'],
+                ['id' => 'head-2', 'type' => 'text', 'html' => 'Les contenus', 'font' => 'heading', 'size' => 30, 'weight' => 700, 'x' => 39.0, 'y' => 59, 'w' => 22, 'h' => 8, 'reveal' => 2, 'enter' => 'rise', 'group' => 'step-2'],
+                ['id' => 'body-2', 'type' => 'text', 'html' => 'Vos photos et vos mots, mis en forme par nous.', 'size' => 20, 'lineHeight' => 1.35, 'x' => 39.0, 'y' => 68, 'w' => 22, 'h' => 15, 'reveal' => 2, 'enter' => 'rise', 'group' => 'step-2'],
                 ['id' => 'card-3', 'type' => 'shape', 'shape' => 'rect', 'x' => 67, 'y' => 42, 'w' => 27, 'h' => 44, 'radius' => 22, 'fill' => ['type' => 'solid', 'color' => '#ffffff12'], 'stroke' => ['color' => 'accent', 'width' => 2, 'style' => 'solid'], 'reveal' => 3, 'enter' => 'rise', 'group' => 'step-3'],
-                ['id' => 'icon-3', 'type' => 'icon', 'icon' => 'chart-line', 'color' => 'accent', 'x' => 69.5, 'y' => 47, 'w' => 5, 'h' => 8.889, 'reveal' => 3, 'enter' => 'rise', 'group' => 'step-3'],
-                ['id' => 'head-3', 'type' => 'text', 'html' => 'Les mesures', 'font' => 'heading', 'size' => 30, 'weight' => 700, 'x' => 69.5, 'y' => 59, 'w' => 22, 'h' => 8, 'reveal' => 3, 'enter' => 'rise', 'group' => 'step-3'],
-                ['id' => 'body-3', 'type' => 'text', 'html' => 'Refaites, et affichées sur une page que le client garde.', 'size' => 20, 'lineHeight' => 1.35, 'x' => 69.5, 'y' => 68, 'w' => 22, 'h' => 15, 'reveal' => 3, 'enter' => 'rise', 'group' => 'step-3'],
+                ['id' => 'icon-3', 'type' => 'icon', 'icon' => 'rocket', 'color' => 'accent', 'x' => 69.5, 'y' => 47, 'w' => 5, 'h' => 8.889, 'reveal' => 3, 'enter' => 'rise', 'group' => 'step-3'],
+                ['id' => 'head-3', 'type' => 'text', 'html' => 'La mise en ligne', 'font' => 'heading', 'size' => 30, 'weight' => 700, 'x' => 69.5, 'y' => 59, 'w' => 22, 'h' => 8, 'reveal' => 3, 'enter' => 'rise', 'group' => 'step-3'],
+                ['id' => 'body-3', 'type' => 'text', 'html' => 'Puis un point de mesure un mois après.', 'size' => 20, 'lineHeight' => 1.35, 'x' => 69.5, 'y' => 68, 'w' => 22, 'h' => 15, 'reveal' => 3, 'enter' => 'rise', 'group' => 'step-3'],
             ],
         ], 'Une carte par pression : laisser lire chacune avant la suivante.');
 
         $this->slide($deck, SlideLayoutEnum::Quote, [
-            'quote' => "Trois semaines pour passer de 3,4 secondes à moins d'une. Le reste du site n'y touche pas.",
+            'quote' => 'Six semaines, une validation à chaque étape, et un site qui ramène des devis.',
             'attribution' => "Ce qu'il faut retenir",
-        ], 'Fin. Laisser venir les questions sans enchaîner.');
+        ], 'Fin. Fixer ensemble la date du premier point avant de se quitter.');
 
         // Un lien de partage, parce que l'écran qui les liste n'en montrait
         // aucun : un deck envoyé, ouvert une fois et qui expire dans deux
@@ -1443,33 +1448,33 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
      * customer is the decision worth seeing on screen: a deck written for
      * oneself is the ordinary internal case, not a degraded one.
      */
-    private function seedStrategyTemplate(DeckCategory $category): void
+    private function seedMonthlyReviewTemplate(DeckCategory $category): void
     {
-        $deck = $this->decks->create('Trame de stratégie annuelle');
-        $deck->setDescription("La forme que prend une revue de fin d'année. À dupliquer par client, puis à remplir.");
+        $deck = $this->decks->create('Trame de point mensuel');
+        $deck->setDescription('La forme que prend le point du mois avec un client. À dupliquer, puis à remplir.');
         $deck->setCategory($category);
 
         $this->slide($deck, SlideLayoutEnum::Title, [
-            'title' => 'Revue annuelle',
-            'subtitle' => '{client}, {année}',
+            'title' => 'Point du mois',
+            'subtitle' => '{client}, {mois}',
         ], 'Remplacer les deux mentions avant de présenter.');
 
         $this->slide($deck, SlideLayoutEnum::Section, [
-            'title' => 'Où en est-on',
+            'title' => 'Le mois écoulé',
         ], null);
 
         $this->slide($deck, SlideLayoutEnum::Split, [
-            'title' => "L'année écoulée",
-            'left' => 'Ce qui était prévu.',
+            'title' => 'Prévu, fait',
+            'left' => 'Ce qui était prévu ce mois-ci.',
             'right' => "Ce qui a été fait, et ce qui ne l'a pas été.",
         ], "La colonne de droite d'abord : c'est celle qu'on attend.");
 
         $this->slide($deck, SlideLayoutEnum::Bullets, [
-            'title' => "L'année qui vient",
+            'title' => 'Le mois qui vient',
             'bullets' => [
                 'Trois priorités, pas plus',
-                'Ce que chacune demande, en semaines',
-                'Ce qui est abandonné, et pourquoi',
+                'Ce que chacune demande de votre côté',
+                'La date du prochain point',
             ],
         ], null);
     }

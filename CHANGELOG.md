@@ -29,6 +29,9 @@ Sur téléphone, les cartes des listes posaient leurs gestes en boutons pleine l
 #### L'heure de la dernière modification sur les cartes de livrables
 Les cartes de livrables, dans Studio comme dans un espace, disent « Modifié le 4 oct. 2026 à 16:33 » au lieu de la date seule.
 
+#### Les présentations de démonstration ne doublonnent plus les livrables
+L'audit et la stratégie sont des documents écrits : ils vivent dans les livrables. La démonstration ne les montre donc plus en présentations. À leur place, « Réunion de lancement, refonte du site » (douze diapositives, tous les gabarits, la diapo libre et un lien de partage) et la trame « Point mensuel », rangées en Lancement et Suivi. L'exemple du champ titre d'une présentation suit. Une démo déjà chargée garde ses anciennes présentations : `make demo` ne les remplace pas, `make demo-reset` si.
+
 ### Corrigé
 
 #### Éteindre Notes ou une partie de la médiathèque ferme aussi leurs pages

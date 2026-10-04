@@ -808,7 +808,7 @@ backend:
             delete_hint: 'La presentación y todas sus diapositivas.'
             copy_of: '%title% (copia)'
             title_column: Título
-            title_placeholder: 'Auditoría del sitio, octubre'
+            title_placeholder: 'Reunión de lanzamiento, octubre'
             description_placeholder: 'Una línea, visible en la lista.'
             description: Descripción
             category: Sección
