@@ -10,7 +10,6 @@ import { useNarrowContainer } from "@/shared/composables/list/useNarrowContainer
 import { usePostRowActions } from "./composables/usePostRowActions.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppPageActions from "@/shared/components/action/AppPageActions.vue";
-import AppCardActions from "@/shared/components/action/AppCardActions.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
@@ -477,9 +476,9 @@ const pageActions = computed(() => {
         </div>
 
         <!-- The same row, read down instead of across. Every fact the table
-             column carries is here, in the same order, and the actions are
-             laid out rather than folded behind a button: a card has the room,
-             and a menu inside a menu on a phone is one tap too many. -->
+             column carries is here, in the same order, and the actions sit
+             behind the "…" button next to the title, as on every list (Axel's
+             call, 04/10/2026). -->
         <div v-else class="space-y-2">
             <article
                 v-for="post in items"
@@ -507,6 +506,7 @@ const pageActions = computed(() => {
                             {{ t("backend.posts.visibility.link") }}
                         </AppBadge>
                     </span>
+                    <AppRowActions class="shrink-0" :actions="actionsFor(post)" :label="post.title || t('backend.posts.untitled')" />
                 </div>
 
                 <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
@@ -526,16 +526,6 @@ const pageActions = computed(() => {
                     </span>
                     <span>{{ formatDateTime(post.updatedAt) }}</span>
                 </p>
-
-                <!-- Une action par ligne, sur toute la largeur : quatre
-                     boutons repliés deux par deux laissaient une colonne
-                     ragoteuse au milieu de la carte et des cibles de cent
-                     pixels sur les trois cent soixante disponibles. Le dessin
-                     est celui de la feuille d'actions, parce que c'est la même
-                     chose montrée sans être ouverte. -->
-                <div class="border-t border-line/40 pt-2">
-                    <AppCardActions :actions="actionsFor(post)" />
-                </div>
             </article>
 
             <AppNoData v-if="!items.length && !loading" :message="t('backend.posts.empty')" />

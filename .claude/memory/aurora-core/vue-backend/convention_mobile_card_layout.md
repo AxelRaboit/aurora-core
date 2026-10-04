@@ -1,6 +1,6 @@
 ---
 name: convention_mobile_card_layout
-description: Pattern de carte mobile pour les listes CRUD - sm:hidden cards + hidden sm:block table, avec footer d'actions
+description: Pattern de carte mobile pour les listes CRUD - cartes sur téléphone, tableau au-dessus ; les gestes toujours derrière AppRowActions (« … ») dans l'en-tête de la carte, jamais en pied de boutons
 metadata:
   type: feedback
 ---
@@ -8,7 +8,7 @@ metadata:
 ## Règle
 
 Toute page de liste CRUD avec tableau doit avoir deux vues :
-- **Mobile (`sm:hidden`)** : liste de cartes avec un footer d'actions
+- **Mobile (`sm:hidden`)** : liste de cartes, les gestes derrière le bouton « … » (`AppRowActions`) à hauteur du titre
 - **Desktop (`hidden sm:block`)** : tableau classique inchangé
 
 ## Structure de la carte mobile
@@ -18,18 +18,25 @@ Toute page de liste CRUD avec tableau doit avoir deux vues :
     <AppNoData v-if="!items?.length" :message="t('...')" />
     <div v-for="item in items" :key="item.id"
          class="bg-surface border border-line/60 rounded-xl overflow-hidden shadow-sm">
-        <!-- Corps : contenu principal -->
         <div class="flex items-start gap-3 p-4">
             <!-- avatar / thumbnail / icône (shrink-0) -->
             <!-- infos principales (min-w-0 flex-1) -->
-        </div>
-        <!-- Footer : actions uniquement -->
-        <div class="flex justify-end px-3 py-2 border-t border-line/40 bg-surface-2/40">
-            <AppIconButton ...>...</AppIconButton>
+            <AppRowActions class="shrink-0" :actions="actionsFor(item)" :label="item.name" />
         </div>
     </div>
 </div>
 ```
+
+## Les gestes d'une carte : toujours « … » (décision d'Axel du 04/10/2026)
+
+- Une liste montre ses gestes derrière `AppRowActions`, sur téléphone comme dans
+  un tableau, dans l'en-tête de la carte à droite (statut éventuel juste avant).
+  Plus de pied de boutons pleine largeur : `AppCardActions` a été supprimé.
+- **Une seule action** : `AppRowActions` l'affiche directement en petit bouton
+  (icône + mot), sans feuille. Aucune action : rien n'est dessiné.
+- Une action qui ouvre un nouvel onglet (aperçu) passe par
+  `onSelect: () => window.open(url, "_blank", "noopener")`, la feuille ne
+  connaissant pas `target`.
 
 ## Règles complémentaires
 

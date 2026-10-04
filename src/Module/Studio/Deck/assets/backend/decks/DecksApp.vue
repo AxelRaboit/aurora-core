@@ -25,7 +25,6 @@ import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import AppListToolbar from "@/shared/components/list/AppListToolbar.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
-import AppCardActions from "@/shared/components/action/AppCardActions.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
@@ -282,20 +281,24 @@ const deckUrl = (deck) => buildPath(props.showPath, { id: deck.id });
         </div>
 
         <!-- La même ligne, lue de haut en bas. Le titre reste le lien vers la
-             présentation, et les actions sont dépliées : une carte a la place,
-             et un menu dans un menu sur un téléphone est un geste de trop. -->
+             présentation, et les gestes sont derrière le bouton « … », à sa
+             hauteur, comme sur toutes les listes (décision d'Axel du
+             04/10/2026). -->
         <div v-else class="space-y-2">
             <article
                 v-for="deck in filteredItems"
                 :key="deck.id"
                 class="aurora-card p-3 space-y-2.5"
             >
-                <div>
-                    <a
-                        class="block font-medium text-primary no-underline hover:text-accent"
-                        :href="deckUrl(deck)"
-                    >{{ deck.title }}</a>
-                    <span v-if="deck.description" class="block text-xs text-muted">{{ deck.description }}</span>
+                <div class="flex items-start gap-3">
+                    <div class="min-w-0 flex-1">
+                        <a
+                            class="block font-medium text-primary no-underline hover:text-accent"
+                            :href="deckUrl(deck)"
+                        >{{ deck.title }}</a>
+                        <span v-if="deck.description" class="block text-xs text-muted">{{ deck.description }}</span>
+                    </div>
+                    <AppRowActions class="shrink-0" :actions="actionsFor(deck)" :label="deck.title" />
                 </div>
 
                 <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
@@ -314,14 +317,6 @@ const deckUrl = (deck) => buildPath(props.showPath, { id: deck.id });
                     <span v-if="deck.customer" class="text-secondary">{{ deck.customer.legalName }}</span>
                     <span class="tabular-nums">{{ t("backend.studio.decks.slides") }} : {{ deck.slideCount }}</span>
                 </p>
-
-                <!-- Le dessin commun des gestes d'une carte : deux se
-                     partagent la ligne, trois et plus s'empilent, chacun avec
-                     sa cible pleine largeur. Repliés à leur taille naturelle,
-                     ils laissaient une colonne ragoteuse au milieu. -->
-                <div class="border-t border-line/40 pt-2">
-                    <AppCardActions :actions="actionsFor(deck)" />
-                </div>
             </article>
         </div>
 

@@ -24,7 +24,6 @@ import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppListToolbar from "@/shared/components/list/AppListToolbar.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
-import AppCardActions from "@/shared/components/action/AppCardActions.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
@@ -281,7 +280,7 @@ const pageActions = computed(() => {
                         class="mt-1 w-2.5 h-2.5 shrink-0 rounded-full"
                         :style="{ backgroundColor: `var(--chart-cat-${space.colourSlot})` }"
                     />
-                    <div class="min-w-0 space-y-1">
+                    <div class="min-w-0 flex-1 space-y-1">
                         <p class="font-medium text-primary text-sm">
                             <a :href="boardHref(space)" class="hover:underline">
                                 {{ space.name }}
@@ -303,11 +302,10 @@ const pageActions = computed(() => {
                             v-on:open="teamOf = space"
                         />
                     </div>
-                </div>
-                <!-- Les gestes en toutes lettres plutôt que derrière trois
-                     points : la carte a la largeur de les nommer. -->
-                <div class="px-2 pb-2 pt-1 border-t border-line/40 bg-surface-2/40">
-                    <AppCardActions :actions="actionsFor(space)" />
+                    <!-- Les gestes derrière le bouton « … », à hauteur du titre,
+                     comme sur toutes les listes (décision d'Axel du 04/10/2026) :
+                     la carte garde sa place pour son contenu. -->
+                    <AppRowActions class="shrink-0" :actions="actionsFor(space)" :label="space.name" />
                 </div>
             </div>
         </div>

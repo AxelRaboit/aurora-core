@@ -25,6 +25,7 @@ import { useClipboard } from "@/shared/composables/useClipboard.js";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
 import { required } from "@/shared/utils/validation/validators.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
+import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
@@ -140,6 +141,44 @@ const {
     "backend.studio.space_access.deleted",
 );
 
+/**
+ * Ce qu'on peut faire d'un lien, derrière le bouton « … » (décision d'Axel
+ * du 04/10/2026) : voir l'espace tel que le destinataire le verra, révoquer
+ * le lien, le supprimer.
+ */
+function linkActions(link) {
+    const actions = [];
+    // Voir avant d'envoyer, et après avoir changé un réglage. Sans lui, la
+    // seule façon de savoir ce qu'un lien montre est de l'ouvrir dans une
+    // fenêtre privée.
+    if (props.previewPath && link.usable) {
+        actions.push({
+            key: "preview",
+            icon: Eye,
+            title: t("backend.studio.space_access.preview"),
+            onSelect: () => window.open(buildPath(props.previewPath, { id: link.id }), "_blank", "noopener"),
+        });
+    }
+    if (link.usable) {
+        actions.push({
+            key: "revoke",
+            icon: Ban,
+            title: t("backend.studio.space_access.revoke"),
+            loading: revoking.value === link.id,
+            onSelect: () => revoke(link),
+        });
+    }
+    actions.push({
+        key: "delete",
+        color: "rose",
+        icon: Trash2,
+        title: t("shared.common.delete"),
+        onSelect: () => confirmDelete(link),
+    });
+
+    return actions;
+}
+
 /** Active, revoked or expired, which is what the row's badge says. */
 function stateOf(link) {
     if (link.revoked) return "revoked";
@@ -224,16 +263,15 @@ function openedLabel(link) {
         />
 
         <ul v-else class="aurora-card divide-y divide-line/40">
-            <!-- **Empilé sur téléphone.** Le nom, l'adresse, l'état et les
-                 deux gestes tenaient sur une ligne qui repliait chaque mot :
-                 « Camille, g… », « Jamais ouvert · Expire » sur cinq lignes, et
-                 « Révoquer » coincé entre les deux. En colonne, chaque chose a
-                 sa ligne et la largeur qui va avec ; côte à côte dès qu'il y a
-                 la place. -->
+            <!-- Le nom, l'adresse et les dates prennent la ligne ; l'état et le
+                 bouton « … » se tiennent à droite. Les gestes en toutes lettres
+                 repliaient chaque mot sur téléphone (« Camille, g… », «
+                 Révoquer » coincé entre deux lignes) : derrière le bouton, ils
+                 ne prennent plus de place. -->
             <li
                 v-for="link in links"
                 :key="link.id"
-                class="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4"
+                class="flex items-start gap-3 px-4 py-3 sm:items-center sm:gap-x-4"
             >
                 <div class="min-w-0 flex-1">
                     <p class="truncate text-sm font-medium text-primary">
@@ -268,61 +306,19 @@ function openedLabel(link) {
                     </p>
                 </div>
 
-                <span
-                    class="w-fit shrink-0 rounded-full px-2 py-0.5 text-xs"
-                    :class="{
-                        'bg-emerald-500/10 text-emerald-500': stateOf(link) === 'active',
-                        'bg-surface-2 text-muted': stateOf(link) !== 'active',
-                    }"
-                >
-                    {{ t(`backend.studio.space_access.states.${stateOf(link)}`) }}
-                </span>
-
-                <!-- **Deux gestes, une même forme.** L'un était un mot sans
-                 contour, l'autre une corbeille sans mot : côte à côte ils ne
-                 se ressemblaient pas assez pour se lire comme le couple qu'ils
-                 sont, et sur téléphone le second n'offrait qu'une cible de
-                 vingt-six pixels. Chacun porte maintenant son icône, son nom
-                 et son cadre. Sur téléphone, chacun prend sa ligne, pleine
-                 largeur (02/10/2026) ; à partir de `sm`, ils se partagent la
-                 ligne. -->
-                <div v-if="canShare" class="flex w-full shrink-0 flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
-                    <!-- Voir avant d'envoyer, et après avoir changé un
-                         réglage. Sans lui, la seule façon de savoir ce qu'un
-                         lien montre est de l'ouvrir dans une fenêtre privée,
-                         et un réglage qu'on ne peut pas vérifier d'un coup
-                         d'œil cesse d'être utilisé. -->
-                    <AppButton
-                        v-if="previewPath && link.usable"
-                        class="w-full sm:w-auto"
-                        variant="ghost"
-                        size="sm"
-                        :href="buildPath(previewPath, { id: link.id })"
-                        target="_blank"
+                <!-- L'état, puis les gestes derrière le bouton « … », comme sur
+                     toutes les listes (décision d'Axel du 04/10/2026). -->
+                <div class="flex shrink-0 items-center gap-1">
+                    <span
+                        class="w-fit shrink-0 rounded-full px-2 py-0.5 text-xs"
+                        :class="{
+                            'bg-emerald-500/10 text-emerald-500': stateOf(link) === 'active',
+                            'bg-surface-2 text-muted': stateOf(link) !== 'active',
+                        }"
                     >
-                        <Eye class="h-3.5 w-3.5" :stroke-width="2" />
-                        {{ t("backend.studio.space_access.preview") }}
-                    </AppButton>
-                    <AppButton
-                        v-if="link.usable"
-                        class="w-full sm:w-auto"
-                        variant="secondary"
-                        size="sm"
-                        :loading="revoking === link.id"
-                        v-on:click="revoke(link)"
-                    >
-                        <Ban class="h-3.5 w-3.5" :stroke-width="2" />
-                        {{ t("backend.studio.space_access.revoke") }}
-                    </AppButton>
-                    <AppButton
-                        class="w-full sm:w-auto"
-                        variant="danger-outline"
-                        size="sm"
-                        v-on:click="confirmDelete(link)"
-                    >
-                        <Trash2 class="h-3.5 w-3.5" :stroke-width="2" />
-                        {{ t("shared.common.delete") }}
-                    </AppButton>
+                        {{ t(`backend.studio.space_access.states.${stateOf(link)}`) }}
+                    </span>
+                    <AppRowActions v-if="canShare" :actions="linkActions(link)" :label="link.label || link.recipientEmail" />
                 </div>
             </li>
         </ul>

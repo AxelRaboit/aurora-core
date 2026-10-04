@@ -13,7 +13,6 @@
  */
 import { useI18n } from "vue-i18n";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
-import AppCardActions from "@/shared/components/action/AppCardActions.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import { FileText } from "lucide-vue-next";
 
@@ -32,7 +31,7 @@ const { formatDateShort, formatTime } = useDateFormat();
         <li
             v-for="deliverable in deliverables"
             :key="deliverable.id"
-            class="aurora-card space-y-2.5 p-3 sm:flex sm:items-center sm:gap-4 sm:space-y-0"
+            class="aurora-card flex items-start gap-3 p-3 sm:items-center sm:gap-4"
         >
             <div class="flex min-w-0 flex-1 items-start gap-3 sm:items-center">
                 <a
@@ -63,12 +62,9 @@ const { formatDateShort, formatTime } = useDateFormat();
                 </div>
             </div>
 
-            <!-- Le menu sur ordinateur ; sur téléphone les gestes sont
-                 écrits en toutes lettres sous la carte. -->
-            <AppRowActions class="hidden shrink-0 sm:block" :actions="actionsFor(deliverable)" :label="deliverable.title" />
-            <div class="border-t border-line/40 pt-2 sm:hidden">
-                <AppCardActions :actions="actionsFor(deliverable)" />
-            </div>
+            <!-- Le menu « … » sur tous les écrans, comme sur toutes les listes
+                 (décision d'Axel du 04/10/2026). -->
+            <AppRowActions class="shrink-0" :actions="actionsFor(deliverable)" :label="deliverable.title" />
         </li>
     </ul>
 </template>

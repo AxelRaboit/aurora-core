@@ -22,7 +22,6 @@ import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
-import AppCardActions from "@/shared/components/action/AppCardActions.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppListToolbar from "@/shared/components/list/AppListToolbar.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
@@ -254,7 +253,8 @@ const pageActions = computed(() =>
         </div>
 
         <!-- La même ligne, lue de haut en bas, comme sur la liste des
-             Présentations : le titre reste le lien, les gestes sont dépliés. -->
+             Présentations : le titre reste le lien, les gestes sont derrière
+             le bouton « … » à sa hauteur (décision d'Axel du 04/10/2026). -->
         <div v-else class="space-y-2">
             <article v-for="form in filteredItems" :key="form.id" class="aurora-card space-y-2.5 p-3">
                 <div class="flex items-start justify-between gap-2">
@@ -262,9 +262,12 @@ const pageActions = computed(() =>
                         <a class="block font-medium text-primary no-underline hover:text-accent" :href="form.editPath">{{ form.title }}</a>
                         <span v-if="form.description" class="block text-xs text-muted">{{ form.description }}</span>
                     </div>
-                    <AppBadge class="shrink-0" :color="form.active ? 'emerald' : 'gray'">
-                        {{ t(form.active ? "backend.forms.list.status_active" : "backend.forms.list.status_inactive") }}
-                    </AppBadge>
+                    <div class="flex shrink-0 items-start gap-1">
+                        <AppBadge :color="form.active ? 'emerald' : 'gray'">
+                            {{ t(form.active ? "backend.forms.list.status_active" : "backend.forms.list.status_inactive") }}
+                        </AppBadge>
+                        <AppRowActions :actions="actionsFor(form)" :label="form.title" />
+                    </div>
                 </div>
 
                 <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
@@ -272,10 +275,6 @@ const pageActions = computed(() =>
                     <span class="tabular-nums">{{ t("backend.forms.list.submissions", { count: form.submissionCount }) }}</span>
                     <span>{{ t("backend.forms.list.last_label") }} {{ formatDate(form.lastSubmittedAt) ?? t("backend.forms.list.never") }}</span>
                 </p>
-
-                <div class="border-t border-line/40 pt-2">
-                    <AppCardActions :actions="actionsFor(form)" />
-                </div>
             </article>
         </div>
 
