@@ -32,11 +32,11 @@ final class GridCompareZoneTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        static::bootKernel();
+        self::bootKernel();
 
-        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
-        $this->gridViewBuilder = static::getContainer()->get(GridViewBuilder::class);
-        $twig = static::getContainer()->get(Environment::class);
+        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        $this->gridViewBuilder = self::getContainer()->get(GridViewBuilder::class);
+        $twig = self::getContainer()->get(Environment::class);
         self::assertInstanceOf(Environment::class, $twig);
         $this->twig = $twig;
     }
@@ -59,7 +59,7 @@ final class GridCompareZoneTest extends IntegrationTestCase
     {
         $html = $this->render(
             [$this->picture('avant.png'), $this->picture('apres.png')],
-            ['alt' => '2019', 'label' => 'Aujourd\'hui'],
+            ['alt' => '2019', 'label' => "Aujourd'hui"],
         );
 
         self::assertStringContainsString('2019', $html);

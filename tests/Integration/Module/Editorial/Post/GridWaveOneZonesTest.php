@@ -152,8 +152,8 @@ final class GridWaveOneZonesTest extends IntegrationTestCase
      */
     public function testABlankLineDoesNotShiftTheTravelPhotos(): void
     {
-        static::bootKernel();
-        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        self::bootKernel();
+        $entityManager = self::getContainer()->get(EntityManagerInterface::class);
         $ids = [];
         foreach (['monument', 'londres'] as $name) {
             $document = new Document();
@@ -165,7 +165,7 @@ final class GridWaveOneZonesTest extends IntegrationTestCase
             $ids[$name] = (int) $document->getId();
         }
 
-        $grid = static::getContainer()->get(GridViewBuilder::class)->build(
+        $grid = self::getContainer()->get(GridViewBuilder::class)->build(
             ['enabled' => true, 'zones' => [['id' => 'z1', 'type' => 'travelMap', 'mediaIds' => [$ids['monument'], $ids['londres']]]]],
             ['zones' => ['z1' => ['code' => "Monument Valley | 36.9989 | -110.098\n\nLondres | 51.5072 | -0.1276"]]],
             'fr',
@@ -308,9 +308,9 @@ final class GridWaveOneZonesTest extends IntegrationTestCase
      */
     private function renderGrid(array $zone, array $held, array $page = []): string
     {
-        static::bootKernel();
-        $builder = static::getContainer()->get(GridViewBuilder::class);
-        $twig = static::getContainer()->get(Environment::class);
+        self::bootKernel();
+        $builder = self::getContainer()->get(GridViewBuilder::class);
+        $twig = self::getContainer()->get(Environment::class);
         self::assertInstanceOf(Environment::class, $twig);
 
         $grid = $builder->build(['enabled' => true, ...$page, 'zones' => [['id' => 'z1', ...$zone]]], ['zones' => ['z1' => $held]], 'fr');
@@ -333,9 +333,9 @@ final class GridWaveOneZonesTest extends IntegrationTestCase
     /** @param array<string, mixed> $zone @param array<string, mixed> $held */
     private function render(array $zone, array $held = []): string
     {
-        static::bootKernel();
-        $builder = static::getContainer()->get(GridViewBuilder::class);
-        $twig = static::getContainer()->get(Environment::class);
+        self::bootKernel();
+        $builder = self::getContainer()->get(GridViewBuilder::class);
+        $twig = self::getContainer()->get(Environment::class);
         self::assertInstanceOf(Environment::class, $twig);
 
         $grid = $builder->build(

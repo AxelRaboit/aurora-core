@@ -49,8 +49,8 @@ final class TermPageDescendantsTest extends IntegrationTestCase
     {
         parent::setUp();
 
-        $this->client = static::createClient();
-        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $this->client = self::createClient();
+        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
         $this->suffix = bin2hex(random_bytes(4));
 
         $this->type = new PostType();
@@ -126,6 +126,7 @@ final class TermPageDescendantsTest extends IntegrationTestCase
 
         $post = $this->page('La liste des publications', 'liste-des-publications', $rubric);
         $post->addTerm($section);
+
         $this->entityManager->flush();
 
         $html = $this->read('back-office');
@@ -169,7 +170,7 @@ final class TermPageDescendantsTest extends IntegrationTestCase
         $term = new TaxonomyTerm();
         $term->setTaxonomy($this->taxonomy)->setPosition(1);
 
-        if (null !== $parent) {
+        if ($parent instanceof TaxonomyTerm) {
             $term->setParent($parent);
         }
 

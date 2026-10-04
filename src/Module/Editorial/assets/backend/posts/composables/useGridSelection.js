@@ -128,7 +128,22 @@ export function useGridSelection(grid) {
         }
     }
 
+    /**
+     * Zones put in at a place - a duplicate, a paste, a section - and the
+     * first of them selected, so the author sees what arrived.
+     */
+    function insertZones(at, payload) {
+        select(grid.insertZones(at, payload));
+    }
+
+    /** A copy of a zone, right after it. */
+    function duplicateZone(index) {
+        insertZones(index + 1, grid.snapshotZones(index));
+    }
+
     return {
+        insertZones,
+        duplicateZone,
         selectedIndex,
         addZone,
         addZoneOnNewRow,

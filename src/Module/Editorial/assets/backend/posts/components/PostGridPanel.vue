@@ -25,7 +25,8 @@ import AppRange from "@/shared/components/form/toggle/AppRange.vue";
 import AppChoiceRow from "@/shared/components/form/select/AppChoiceRow.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
-import { ChevronDown, ChevronUp, Eye, Plus, Trash2 } from "lucide-vue-next";
+import { BookmarkPlus, ChevronDown, ChevronUp, ClipboardPaste, Copy, CopyPlus, Eye, LayoutTemplate, Plus, Trash2 } from "lucide-vue-next";
+import { toast } from "vue-sonner";
 import AppLoader from "@/shared/components/feedback/AppLoader.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import { useServerPreview } from "@/shared/composables/http/backend/useServerPreview.js";
@@ -35,6 +36,11 @@ import { useGridSelection } from "../composables/useGridSelection.js";
 import { countPlaceholders } from "@/shared/utils/format/placeholders.js";
 import { plainText } from "../composables/gridZoneSummary.js";
 import PostGridCanvas from "./PostGridCanvas.vue";
+import PostGridSaveSectionModal from "./PostGridSaveSectionModal.vue";
+import PostGridSectionLibrary from "./PostGridSectionLibrary.vue";
+import { useGridClipboard } from "../composables/gridClipboard.js";
+import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
+import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import PostGridZoneContent from "./PostGridZoneContent.vue";
 import AppDatePicker from "@/shared/components/form/picker/AppDatePicker.vue";
 import BannerColorField from "./BannerColorField.vue";
@@ -123,6 +129,7 @@ const {
     widthLabel,
     resizeZoneFromLeft: resizeZoneStart,
     swapZones,
+    snapshotZones,
 } = grid;
 
 const visibleType = (option) => !props.hiddenTypes.includes(option.value);
@@ -204,7 +211,89 @@ const {
     moveZoneTo: moveAndSelect,
     moveIntoStack,
     moveOutOfStack,
+    insertZones,
+    duplicateZone,
 } = useGridSelection(grid);
+
+// Copying, pasting and keeping sections. The clipboard lives in the browser,
+// so a zone copied in a publication can be pasted in a deliverable.
+const { clipboard, copy: copyToClipboard } = useGridClipboard();
+const showLibrary = ref(false);
+const saving = ref(null);
+
+/** Puts zones in after the selected one, or at the end when none is. */
+function insertHere(payload) {
+    insertZones(null === selectedIndex.value ? zones.value.length : selectedIndex.value + 1, payload);
+    showLibrary.value = false;
+}
+
+/** The zones of one section of the outline: from its heading to the next. */
+function sectionSnapshot(position) {
+    const start = outline.value[position].index;
+    const end = outline.value[position + 1]?.index ?? zones.value.length;
+
+    return snapshotZones(start, end - start);
+}
+
+function keep(payload, message) {
+    if (copyToClipboard(payload)) toast.success(message);
+}
+
+function copyZone(index) {
+    keep(snapshotZones(index), t("backend.posts.grid.sections.copied", { count: 1 }));
+}
+
+function copySection(position) {
+    const payload = sectionSnapshot(position);
+    keep(payload, t("backend.posts.grid.sections.copied", { count: payload.zones.length }));
+}
+
+function saveZone(index) {
+    saving.value = { payload: snapshotZones(index), name: "" };
+}
+
+// A picture dropped on a box from the desktop: filed in the library like an
+// upload from the picker, then placed - the picture of an image zone, one
+// more in a gallery. Elsewhere it says where it can go.
+const { request } = useRequest();
+const { can } = usePrivileges();
+
+async function dropFile(index, file) {
+    const zone = zones.value[index];
+    if (!["media", "gallery"].includes(zone?.type)) {
+        toast.error(t("backend.posts.grid.drop_image_where"));
+
+        return;
+    }
+
+    if (!can("ged.documents.create")) {
+        toast.error(t("backend.posts.grid.drop_image_forbidden"));
+
+        return;
+    }
+
+    const body = new FormData();
+    body.append("file", file);
+    const created = await request("/backend/ged/documents/upload-image", null, { rawBody: body });
+    if (!created?.success) {
+        toast.error(t("shared.media.upload_failed"));
+
+        return;
+    }
+
+    const picked = { id: created.document.id, url: created.document.fileUrl, fileUrl: created.document.fileUrl };
+    selectedIndex.value = index;
+    if ("media" === zone.type) {
+        zoneFields(index).media.value = picked;
+    } else {
+        addGalleryImages(index, [picked]);
+    }
+    toast.success(t("backend.posts.grid.drop_image_done"));
+}
+
+function saveSection(position) {
+    saving.value = { payload: sectionSnapshot(position), name: outline.value[position].title };
+}
 
 const canvasHolder = ref(null);
 
@@ -269,7 +358,7 @@ function resizeZone(index, columns) {
                     {{ t("backend.posts.grid.outline", { count: outline.length }) }}
                 </summary>
                 <ol class="m-0 mt-2 grid list-none gap-x-4 gap-y-0.5 p-0 sm:grid-cols-2">
-                    <li v-for="(section, position) in outline" :key="section.index">
+                    <li v-for="(section, position) in outline" :key="section.index" class="flex items-center gap-1">
                         <button
                             type="button"
                             class="flex w-full items-baseline gap-2 rounded px-1.5 py-1 text-left text-sm hover:bg-surface-2"
@@ -284,6 +373,14 @@ function resizeZone(index, columns) {
                                 :title="t('backend.posts.grid.placeholders_left', { count: section.placeholders })"
                             >[{{ section.placeholders }}]</span>
                         </button>
+                        <span class="flex shrink-0 items-center">
+                            <AppIconButton color="default" size="sm" :title="t('backend.posts.grid.sections.copy_section')" v-on:click="copySection(position)">
+                                <Copy class="w-3.5 h-3.5" :stroke-width="2" />
+                            </AppIconButton>
+                            <AppIconButton color="default" size="sm" :title="t('backend.posts.grid.sections.save_section')" v-on:click="saveSection(position)">
+                                <BookmarkPlus class="w-3.5 h-3.5" :stroke-width="2" />
+                            </AppIconButton>
+                        </span>
                     </li>
                 </ol>
             </details>
@@ -291,7 +388,7 @@ function resizeZone(index, columns) {
             <!-- Said once above the canvas; each tile carries its own count. -->
             <p
                 v-if="placeholders"
-                class="m-0 rounded-md bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-400"
+                class="rounded-md bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-400"
             >
                 {{ t("backend.posts.grid.placeholders_left", { count: placeholders }) }}
             </p>
@@ -313,6 +410,7 @@ function resizeZone(index, columns) {
                     v-on:move="moveAndSelect"
                     v-on:move-into="moveIntoStack"
                     v-on:move-out="moveOutOfStack"
+                    v-on:drop-file="dropFile"
                 />
             </div>
 
@@ -321,8 +419,35 @@ function resizeZone(index, columns) {
                  nothing useful to show at that size. Full width in a modal is
                  the first place the preview is actually to scale - and it gives
                  the editor back the room the preview was taking. -->
-            <div v-if="zones.length">
-                <AppButton variant="secondary" size="sm" type="button" v-on:click="showPreview = true">
+            <div class="flex flex-wrap gap-2">
+                <AppButton
+                    variant="secondary"
+                    size="sm"
+                    type="button"
+                    :disabled="!canAddZone"
+                    v-on:click="showLibrary = true"
+                >
+                    <LayoutTemplate class="w-4 h-4" :stroke-width="2" />
+                    {{ t("backend.posts.grid.sections.title") }}
+                </AppButton>
+                <AppButton
+                    v-if="clipboard"
+                    variant="secondary"
+                    size="sm"
+                    type="button"
+                    :disabled="!canAddZone"
+                    v-on:click="insertHere(clipboard)"
+                >
+                    <ClipboardPaste class="w-4 h-4" :stroke-width="2" />
+                    {{ t("backend.posts.grid.sections.paste", { count: clipboard.zones.length }) }}
+                </AppButton>
+                <AppButton
+                    v-if="zones.length"
+                    variant="secondary"
+                    size="sm"
+                    type="button"
+                    v-on:click="showPreview = true"
+                >
                     <Eye class="w-4 h-4" :stroke-width="2" />
                     {{ t("backend.posts.grid.preview") }}
                 </AppButton>
@@ -368,6 +493,15 @@ function resizeZone(index, columns) {
                         v-on:click="moveSelectedAware(index, 1)"
                     >
                         <ChevronDown class="w-4 h-4" :stroke-width="2" />
+                    </AppIconButton>
+                    <AppIconButton color="default" :title="t('backend.posts.grid.sections.duplicate')" :disabled="!canAddZone" v-on:click="duplicateZone(index)">
+                        <CopyPlus class="w-4 h-4" :stroke-width="2" />
+                    </AppIconButton>
+                    <AppIconButton color="default" :title="t('backend.posts.grid.sections.copy_zone')" v-on:click="copyZone(index)">
+                        <Copy class="w-4 h-4" :stroke-width="2" />
+                    </AppIconButton>
+                    <AppIconButton color="default" :title="t('backend.posts.grid.sections.save_zone')" v-on:click="saveZone(index)">
+                        <BookmarkPlus class="w-4 h-4" :stroke-width="2" />
                     </AppIconButton>
                     <AppIconButton
                         color="rose"
@@ -923,5 +1057,12 @@ function resizeZone(index, columns) {
                 </div>
             </AppModal>
         </template>
+        <PostGridSectionLibrary :show="showLibrary" v-on:close="showLibrary = false" v-on:insert="insertHere" />
+        <PostGridSaveSectionModal
+            :show="null !== saving"
+            :payload="saving?.payload ?? null"
+            :suggested-name="saving?.name ?? ''"
+            v-on:close="saving = null"
+        />
     </div>
 </template>

@@ -26,6 +26,13 @@ Un modèle d'audit compte une cinquantaine de zones, et le canevas les dessinait
 - **Un plan du document** au-dessus du canevas liste les sections, c'est-à-dire chaque grand titre posé en pleine largeur. Un clic sélectionne la section et fait défiler le canevas jusqu'à elle.
 - **Les [crochets] se repèrent** : chaque tuile et chaque section du plan affichent combien de passages entre crochets restent à remplacer, la grille donne le total, l'en-tête d'un livrable porte un badge, et l'aperçu du back-office les surligne (jamais la page que lit le client). Rendre visible au client un livrable qui en contient encore affiche un avertissement.
 
+#### Construire plus vite
+- **Sections toutes faites** : « Insérer une section » propose une dizaine d'arrangements prêts, remplis de [crochets] à remplacer (titre de section, carte et téléphone, deux cartes, quatre cartes en carré, trois colonnes à étiquette, trois comptes comparés, à garder / à éviter, meilleurs posts et chiffre, texte et camembert, réseaux de la marque). La section arrive après la zone sélectionnée.
+- **Mes sections** : une zone, ou une section entière depuis le plan, s'enregistre sous un nom pour être réinsérée dans n'importe quelle publication ou livrable. Chacun ne voit que les siennes.
+- **Dupliquer, copier, coller** : une zone se duplique sur place ; une zone ou une section se copie et se colle dans une autre grille, même ouverte dans un autre onglet.
+- **Déposer une image** depuis l'ordinateur sur une tuile Image ou Galerie : elle rejoint la médiathèque et prend sa place. Une tuile d'image vide dit « Image à choisir ».
+- **Ambiances** d'un livrable en un clic, dans l'onglet Apparence : couleurs du site, rapport blanc, sombre, ou aux couleurs du client, lues dans son logo (l'accent et les chiffres, puis les titres, sur fond blanc).
+
 #### Masquer une zone selon l'écran
 Une zone peut ne pas s'afficher sur téléphone, ou sur ordinateur et tablette : un téléphone décoratif en double, une image trop large pour un petit écran.
 
@@ -39,6 +46,9 @@ Une image ou une galerie peut ne plus afficher le nom de son auteur sous la phot
 
 #### Le lien de retour d'une page de lecture, en flèche seule sur téléphone
 Sur téléphone, « Retour à l'espace » en tête d'un livrable ou d'une publication hors site n'affiche plus que sa flèche, dans un bouton de la taille d'un doigt. Le libellé revient à partir de la tablette et reste lu par les lecteurs d'écran.
+
+### Dans aurora-client
+Rien à faire à la main : `make deploy-prod` joue la migration (table `core_editorial_grid_sections`, les sections enregistrées).
 
 ## [1.10.0] - 2026-10-04
 

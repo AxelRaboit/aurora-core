@@ -44,8 +44,8 @@ final class PostReadingZonesTest extends IntegrationTestCase
     {
         parent::setUp();
 
-        $this->client = static::createClient();
-        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $this->client = self::createClient();
+        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
     }
 
     protected function tearDown(): void
@@ -124,7 +124,7 @@ final class PostReadingZonesTest extends IntegrationTestCase
             ->setVisibility($visibility)
             ->setPublishedAt(new DateTimeImmutable('-1 day'))
             ->setCommentsEnabled(true)
-            ->setGridLayout(static::getContainer()->get(GridNormalizer::class)->normalizeLayout(['enabled' => true, 'zones' => $zones]));
+            ->setGridLayout(self::getContainer()->get(GridNormalizer::class)->normalizeLayout(['enabled' => true, 'zones' => $zones]));
         $post->translate('fr')->setTitle('Audit '.bin2hex(random_bytes(3)))->setSlug('z-'.bin2hex(random_bytes(4)));
         $this->persist($post);
 

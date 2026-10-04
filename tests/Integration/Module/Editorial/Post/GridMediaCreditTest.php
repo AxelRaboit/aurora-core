@@ -26,9 +26,9 @@ final class GridMediaCreditTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        static::bootKernel();
+        self::bootKernel();
 
-        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
     }
 
     protected function tearDown(): void
@@ -62,12 +62,14 @@ final class GridMediaCreditTest extends IntegrationTestCase
         $document->setMimeType('image/jpeg');
         $document->setFilePath('ged/2026/10/phone.jpg');
         $document->setAttributionName('Sanket Mishra');
+
         $this->entityManager->persist($document);
         $this->entityManager->flush();
+
         $this->documentId = (int) $document->getId();
 
-        $builder = static::getContainer()->get(GridViewBuilder::class);
-        $twig = static::getContainer()->get(Environment::class);
+        $builder = self::getContainer()->get(GridViewBuilder::class);
+        $twig = self::getContainer()->get(Environment::class);
         self::assertInstanceOf(Environment::class, $twig);
 
         $grid = $builder->build(

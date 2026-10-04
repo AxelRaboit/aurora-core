@@ -175,7 +175,7 @@ const showLogo = computed({
             />
             <p
                 v-if="placeholders"
-                class="m-0 rounded-md bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-400"
+                class="rounded-md bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-400"
             >
                 {{ t(visibleToClient ? "backend.studio.deliverables.settings.placeholders_visible" : "backend.studio.deliverables.settings.placeholders_hidden", { count: placeholders }) }}
             </p>

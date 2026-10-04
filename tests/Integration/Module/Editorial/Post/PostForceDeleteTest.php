@@ -49,11 +49,11 @@ final class PostForceDeleteTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->client = static::createClient();
-        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
-        $this->urlGenerator = static::getContainer()->get(UrlGeneratorInterface::class);
+        $this->client = self::createClient();
+        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        $this->urlGenerator = self::getContainer()->get(UrlGeneratorInterface::class);
 
-        $admin = static::getContainer()->get(UserRepository::class)
+        $admin = self::getContainer()->get(UserRepository::class)
             ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
         self::assertInstanceOf(User::class, $admin);
         $this->admin = $admin;
@@ -61,6 +61,7 @@ final class PostForceDeleteTest extends IntegrationTestCase
         $this->postType = new PostType();
         $this->postType->setSlug('force-'.bin2hex(random_bytes(4)));
         $this->postType->setLabel('Force delete type');
+
         $this->entityManager->persist($this->postType);
         $this->entityManager->flush();
         $this->created[] = [PostType::class, (int) $this->postType->getId()];
@@ -81,6 +82,7 @@ final class PostForceDeleteTest extends IntegrationTestCase
                 $this->entityManager->remove($entity);
             }
         }
+
         $this->entityManager->flush();
         $this->created = [];
 
@@ -236,7 +238,7 @@ final class PostForceDeleteTest extends IntegrationTestCase
         $firstId = (int) $first->getId();
         $secondId = (int) $second->getId();
 
-        self::assertSame(2, static::getContainer()->get(PostManagerInterface::class)->emptyTrash());
+        self::assertSame(2, self::getContainer()->get(PostManagerInterface::class)->emptyTrash());
 
         self::assertNull($this->entityManager->find(Post::class, $firstId));
         self::assertNull($this->entityManager->find(Post::class, $secondId));
@@ -267,8 +269,8 @@ final class PostForceDeleteTest extends IntegrationTestCase
 
     private function draft(): PostInterface
     {
-        $post = static::getContainer()->get(PostManagerInterface::class)->create(
-            static::getContainer()->get(PostInputFactoryInterface::class)->fromArray([
+        $post = self::getContainer()->get(PostManagerInterface::class)->create(
+            self::getContainer()->get(PostInputFactoryInterface::class)->fromArray([
                 'postTypeId' => $this->postType->getId(),
                 'status' => 'draft',
                 'translations' => ['fr' => ['title' => 'À garder '.bin2hex(random_bytes(3))]],
@@ -283,7 +285,7 @@ final class PostForceDeleteTest extends IntegrationTestCase
     private function trashed(): PostInterface
     {
         $post = $this->draft();
-        static::getContainer()->get(PostManagerInterface::class)->delete($post);
+        self::getContainer()->get(PostManagerInterface::class)->delete($post);
         $this->entityManager->flush();
 
         return $post;

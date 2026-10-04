@@ -2116,6 +2116,15 @@ backend:
                 heading_styles:
                     theme: "As the theme"
                     display: "Bold capitals"
+                presets:
+                    title: "Looks"
+                    hint: "A complete look in one click. The colours below can still be adjusted afterwards."
+                    theme: "Site colours"
+                    report: "White report"
+                    night: "Dark"
+                    logo: "In the client's colours"
+                    logo_failed: "No colour could be read from this picture."
+                    logo_applied: "Logo colours applied: the accent and the figures, then the headings."
             settings:
                 prepared_for_placeholder: "The recipient"
                 document_title: "The document"

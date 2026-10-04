@@ -40,14 +40,15 @@ final class PostUnpublishScheduleTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        static::bootKernel();
+        self::bootKernel();
 
-        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
-        $this->handler = static::getContainer()->get(UnpublishScheduledPostsHandler::class);
+        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        $this->handler = self::getContainer()->get(UnpublishScheduledPostsHandler::class);
 
         $this->postType = new PostType();
         $this->postType->setSlug('unpub-'.bin2hex(random_bytes(4)));
         $this->postType->setLabel('Unpublish type');
+
         $this->entityManager->persist($this->postType);
         $this->entityManager->flush();
         $this->created[] = [PostType::class, (int) $this->postType->getId()];
@@ -61,6 +62,7 @@ final class PostUnpublishScheduleTest extends IntegrationTestCase
                 $this->entityManager->remove($entity);
             }
         }
+
         $this->entityManager->flush();
         $this->created = [];
 
@@ -116,6 +118,7 @@ final class PostUnpublishScheduleTest extends IntegrationTestCase
     {
         $post = $this->published(new DateTimeImmutable('-1 hour'));
         $post->setStatus(PostStatusEnum::Draft);
+
         $this->entityManager->flush();
 
         ($this->handler)(new UnpublishScheduledPostsMessage());
@@ -125,7 +128,7 @@ final class PostUnpublishScheduleTest extends IntegrationTestCase
         self::assertInstanceOf(Post::class, $stored);
 
         self::assertSame(PostStatusEnum::Draft, $stored->getStatus());
-        self::assertNotNull($stored->getUnpublishAt(), 'the date is the author\'s, and untouched');
+        self::assertNotNull($stored->getUnpublishAt(), "the date is the author's, and untouched");
     }
 
     /** A post with no end date is never touched, which is almost all of them. */
@@ -152,9 +155,9 @@ final class PostUnpublishScheduleTest extends IntegrationTestCase
     {
         $post = $this->published(new DateTimeImmutable('+2 days'));
 
-        static::getContainer()->get(PostManagerInterface::class)->update(
+        self::getContainer()->get(PostManagerInterface::class)->update(
             $post,
-            static::getContainer()->get(PostInputFactoryInterface::class)->fromArray([
+            self::getContainer()->get(PostInputFactoryInterface::class)->fromArray([
                 'postTypeId' => $this->postType->getId(),
                 'status' => 'published',
                 'unpublishAt' => $post->getUnpublishAt()?->format('Y-m-d\TH:i'),
@@ -168,14 +171,15 @@ final class PostUnpublishScheduleTest extends IntegrationTestCase
 
     private function published(?DateTimeImmutable $unpublishAt): PostInterface
     {
-        $post = static::getContainer()->get(PostManagerInterface::class)->create(
-            static::getContainer()->get(PostInputFactoryInterface::class)->fromArray([
+        $post = self::getContainer()->get(PostManagerInterface::class)->create(
+            self::getContainer()->get(PostInputFactoryInterface::class)->fromArray([
                 'postTypeId' => $this->postType->getId(),
                 'status' => 'published',
                 'translations' => ['fr' => ['title' => 'Offre limitée']],
             ]),
         );
         $post->setUnpublishAt($unpublishAt);
+
         $this->entityManager->flush();
         $this->created[] = [Post::class, (int) $post->getId()];
 

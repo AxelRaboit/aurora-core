@@ -65,6 +65,15 @@ describe("zoneSummary", () => {
         });
     });
 
+    it("says when an image zone still has no picture", () => {
+        expect(
+            zoneSummary({ type: "media", mediaId: null }, {}, t).detail,
+        ).toBe("backend.posts.grid.tile_image_missing");
+        expect(zoneSummary({ type: "media", mediaId: 7 }, {}, t).detail).toBe(
+            "",
+        );
+    });
+
     it("has nothing to say about an empty zone", () => {
         expect(zoneSummary({ type: "text" }, undefined, t)).toEqual({
             title: "",

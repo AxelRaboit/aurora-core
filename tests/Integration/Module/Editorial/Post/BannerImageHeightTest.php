@@ -29,11 +29,11 @@ final class BannerImageHeightTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        static::bootKernel();
+        self::bootKernel();
 
-        $this->bannerViewBuilder = static::getContainer()->get(BannerViewBuilder::class);
-        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
-        $this->twig = static::getContainer()->get(Environment::class);
+        $this->bannerViewBuilder = self::getContainer()->get(BannerViewBuilder::class);
+        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        $this->twig = self::getContainer()->get(Environment::class);
     }
 
     public function testTheHeaderTakesItsPicturesProportions(): void
@@ -167,7 +167,7 @@ final class BannerImageHeightTest extends IntegrationTestCase
      */
     public function testAButtonCanTakeTheSitesColour(): void
     {
-        $primary = static::getContainer()->get(ThemeContext::class)->primaryColor();
+        $primary = self::getContainer()->get(ThemeContext::class)->primaryColor();
 
         $banner = $this->bannerViewBuilder->build([
             'enabled' => true,

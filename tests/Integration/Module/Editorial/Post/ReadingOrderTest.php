@@ -45,8 +45,8 @@ final class ReadingOrderTest extends IntegrationTestCase
     {
         parent::setUp();
 
-        static::createClient();
-        $container = static::getContainer();
+        self::createClient();
+        $container = self::getContainer();
         $this->entityManager = $container->get(EntityManagerInterface::class);
         $this->posts = $container->get(PostRepository::class);
 

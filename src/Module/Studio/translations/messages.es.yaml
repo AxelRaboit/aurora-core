@@ -2096,6 +2096,15 @@ backend:
                 heading_styles:
                     theme: "Como el tema"
                     display: "Mayúsculas en negrita"
+                presets:
+                    title: "Ambientes"
+                    hint: "Un aspecto completo en un clic. Los colores de abajo siguen siendo ajustables después."
+                    theme: "Colores del sitio"
+                    report: "Informe blanco"
+                    night: "Oscuro"
+                    logo: "Con los colores del cliente"
+                    logo_failed: "No se pudo leer ningún color en esta imagen."
+                    logo_applied: "Colores del logotipo aplicados: el acento y las cifras, luego los títulos."
             settings:
                 prepared_for_placeholder: "El destinatario"
                 document_title: "El documento"

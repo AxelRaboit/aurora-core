@@ -38,8 +38,8 @@ final class ZoneSiteViewsQueriesTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        static::bootKernel();
-        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        self::bootKernel();
+        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
     }
 
     protected function tearDown(): void
@@ -69,10 +69,10 @@ final class ZoneSiteViewsQueriesTest extends IntegrationTestCase
         }
 
         $this->entityManager->clear();
-        $holder = static::getContainer()->get('doctrine.debug_data_holder');
+        $holder = self::getContainer()->get('doctrine.debug_data_holder');
         $holder->reset();
 
-        $view = static::getContainer()->get(ZoneSiteViews::class)->termsView(['taxonomyId' => $taxonomy->getId()], 'fr');
+        $view = self::getContainer()->get(ZoneSiteViews::class)->termsView(['taxonomyId' => $taxonomy->getId()], 'fr');
 
         self::assertGreaterThanOrEqual(3, count($view['entries']));
         self::assertSame(1, $this->queriesOn($holder, 'core_taxonomy_term_translations'), 'the terms and their names load together');
@@ -97,16 +97,17 @@ final class ZoneSiteViewsQueriesTest extends IntegrationTestCase
         foreach ($fields as $field) {
             $this->entityManager->persist($field);
         }
+
         $this->entityManager->flush();
         foreach ($fields as $field) {
             $this->created[] = $field;
         }
 
         $this->entityManager->clear();
-        $holder = static::getContainer()->get('doctrine.debug_data_holder');
+        $holder = self::getContainer()->get('doctrine.debug_data_holder');
         $holder->reset();
 
-        $view = static::getContainer()->get(ZoneSiteViews::class)->formView((int) $form->getId(), 'fr');
+        $view = self::getContainer()->get(ZoneSiteViews::class)->formView((int) $form->getId(), 'fr');
 
         self::assertNotNull($view);
         self::assertSame('Nous écrire', $view['title']);

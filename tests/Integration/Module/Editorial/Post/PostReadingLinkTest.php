@@ -50,8 +50,8 @@ final class PostReadingLinkTest extends IntegrationTestCase
     {
         parent::setUp();
 
-        $this->client = static::createClient();
-        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $this->client = self::createClient();
+        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
         $this->suffix = bin2hex(random_bytes(4));
     }
 
@@ -77,6 +77,7 @@ final class PostReadingLinkTest extends IntegrationTestCase
     {
         $post = $this->post('Audit de présence '.$this->suffix);
         $post->setReadingPage(['preparedFor' => 'Maison Durand']);
+
         $this->entityManager->flush();
 
         $this->client->request('GET', '/read/'.$this->link($post)->getToken());
@@ -118,6 +119,7 @@ final class PostReadingLinkTest extends IntegrationTestCase
     {
         $link = $this->link($this->post('Audit '.$this->suffix));
         $link->revoke(new DateTimeImmutable());
+
         $this->entityManager->flush();
 
         $this->client->request('GET', '/read/'.$link->getToken());
@@ -129,6 +131,7 @@ final class PostReadingLinkTest extends IntegrationTestCase
     {
         $link = $this->link($this->post('Audit '.$this->suffix));
         $link->setExpiresAt(new DateTimeImmutable('-1 minute'));
+
         $this->entityManager->flush();
 
         $this->client->request('GET', '/read/'.$link->getToken());
@@ -148,8 +151,10 @@ final class PostReadingLinkTest extends IntegrationTestCase
     {
         $draft = $this->post('Brouillon '.$this->suffix);
         $draft->setStatus(PostStatusEnum::Draft);
+
         $trashed = $this->post('Corbeille '.$this->suffix);
         $trashed->setDeletedAt(new DateTimeImmutable());
+
         $this->entityManager->flush();
 
         foreach ([$draft, $trashed] as $post) {
@@ -203,6 +208,7 @@ final class PostReadingLinkTest extends IntegrationTestCase
     {
         $post = $this->post('Audit secret '.$this->suffix);
         $post->setReadingPage(['preparedFor' => 'Client discret']);
+
         $this->entityManager->flush();
         $link = $this->link($post, 'phrase-'.$this->suffix);
 
@@ -258,9 +264,10 @@ final class PostReadingLinkTest extends IntegrationTestCase
     {
         $post = $this->post('Audit en relecture '.$this->suffix);
         $post->setStatus(PostStatusEnum::Draft);
+
         $this->entityManager->flush();
 
-        $token = static::getContainer()->get(PostPreviewTokenManagerInterface::class)->resolveOrCreate($post, $this->admin());
+        $token = self::getContainer()->get(PostPreviewTokenManagerInterface::class)->resolveOrCreate($post, $this->admin());
         $this->created[] = $token;
 
         $this->client->request('GET', '/preview/'.$token->getToken());
@@ -292,7 +299,7 @@ final class PostReadingLinkTest extends IntegrationTestCase
         self::assertNotNull($data['links'][0]['expiresAt']);
         self::assertTrue($data['readable']);
 
-        $created = static::getContainer()->get(PostReadingLinkRepository::class)->find($data['links'][0]['id']);
+        $created = self::getContainer()->get(PostReadingLinkRepository::class)->find($data['links'][0]['id']);
         self::assertNotNull($created);
         $this->created[] = $created;
         // Hashed, never kept as typed.
@@ -320,7 +327,7 @@ final class PostReadingLinkTest extends IntegrationTestCase
 
     private function post(string $title, PostVisibilityEnum $visibility = PostVisibilityEnum::Link): Post
     {
-        $type = static::getContainer()->get(PostTypeRepository::class)->findOneBySlug('page');
+        $type = self::getContainer()->get(PostTypeRepository::class)->findOneBySlug('page');
         self::assertInstanceOf(PostType::class, $type, 'the built-in page type is missing; run aurora:install');
 
         $post = new Post();
@@ -354,7 +361,7 @@ final class PostReadingLinkTest extends IntegrationTestCase
      */
     private function reload(string $token): PostReadingLink
     {
-        $link = static::getContainer()->get(PostReadingLinkRepository::class)->findByToken($token);
+        $link = self::getContainer()->get(PostReadingLinkRepository::class)->findByToken($token);
 
         self::assertInstanceOf(PostReadingLink::class, $link);
 
@@ -363,7 +370,7 @@ final class PostReadingLinkTest extends IntegrationTestCase
 
     private function admin(): User
     {
-        $admin = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
         self::assertInstanceOf(User::class, $admin);
 
         return $admin;

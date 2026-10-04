@@ -123,8 +123,16 @@ export function zoneSummary(zone, held, t) {
                     ? t(`backend.posts.grid.chart_types.${options.chartType}`)
                     : "",
             };
-        case "media":
-            return { title: plainText(held?.caption || held?.alt), detail: "" };
+        case "media": {
+            // An empty frame in a model is a picture still to choose: said on
+            // the box, so a template's blanks show before it is sent.
+            const empty = !zone.mediaId && !zone.media && !zone.mediaUrl;
+
+            return {
+                title: plainText(held?.caption || held?.alt),
+                detail: empty ? t("backend.posts.grid.tile_image_missing") : "",
+            };
+        }
         case "button":
             return { title: plainText(held?.label), detail: "" };
         case "contactCard":

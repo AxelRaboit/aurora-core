@@ -1026,6 +1026,83 @@ export function usePostGrid(layout, content) {
         addZoneAt(type, layout.value.zones.length);
     }
 
+    /** A plain copy, free of the reactive proxies: what a clipboard can keep. */
+    function plain(value) {
+        return JSON.parse(JSON.stringify(value ?? null));
+    }
+
+    /**
+     * Zones copied out with what they hold in this language: the layout of
+     * `count` zones from `from`, and the content of each, children of a
+     * stack included. Ids are kept - they are what ties a zone to its words -
+     * and replaced on the way back in by `insertZones`.
+     *
+     * @return {{zones: object[], content: object}}
+     */
+    function snapshotZones(from, count = 1) {
+        const list = layout.value.zones.slice(from, from + count);
+        const owners = list.flatMap((zone) => [zone, ...(zone.children ?? [])]);
+
+        return plain({
+            zones: list,
+            content: Object.fromEntries(
+                owners.map((zone) => [
+                    zone.id,
+                    content.value.zones[zone.id] ?? newZoneContent(),
+                ]),
+            ),
+        });
+    }
+
+    /** One copied zone made new: a fresh id, every key a zone carries, its words. */
+    function prepareZone(source, sourceContent) {
+        const base = newZone(source?.type ?? "text");
+        const copy = plain(source) ?? {};
+        const zone = {
+            ...base,
+            ...copy,
+            id: base.id,
+            span: { ...base.span, ...(copy.span ?? {}) },
+            options: { ...base.options, ...(copy.options ?? {}) },
+            background: { ...base.background, ...(copy.background ?? {}) },
+        };
+        zone.children = (copy.children ?? []).map((child) =>
+            prepareZone(child, sourceContent),
+        );
+        content.value.zones[zone.id] = {
+            ...newZoneContent(),
+            ...plain(sourceContent?.[source?.id] ?? {}),
+        };
+
+        return zone;
+    }
+
+    /**
+     * Zones put back into the order at `at`: a duplicate, a paste, a section
+     * from the library. Each gets a new id, so the copy and the original are
+     * two zones rather than one shown twice. Only as many as the cap leaves
+     * room for.
+     *
+     * @return {number|null} where the first one landed, for the selection.
+     */
+    function insertZones(at, payload) {
+        const room = MAX_ZONES - layout.value.zones.length;
+        const list = (payload?.zones ?? []).slice(0, Math.max(0, room));
+        if (0 === list.length) return null;
+
+        const where = Math.min(
+            Math.max(0, at ?? layout.value.zones.length),
+            layout.value.zones.length,
+        );
+        layout.value.zones.splice(
+            where,
+            0,
+            ...list.map((zone) => prepareZone(zone, payload.content ?? {})),
+        );
+
+        return where;
+    }
+
     /**
      * The zones a stack holds, or an empty list for anything else - so a caller
      * can ask any zone without first checking what it is.
@@ -1988,6 +2065,8 @@ export function usePostGrid(layout, content) {
         childShare,
         addZone,
         addZoneAt,
+        snapshotZones,
+        insertZones,
         removeZone,
         moveZone,
         moveZoneTo,

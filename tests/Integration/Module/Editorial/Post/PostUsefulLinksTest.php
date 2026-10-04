@@ -42,8 +42,8 @@ final class PostUsefulLinksTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->client = static::createClient();
-        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $this->client = self::createClient();
+        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
     }
 
     protected function tearDown(): void
@@ -54,9 +54,10 @@ final class PostUsefulLinksTest extends IntegrationTestCase
                 $this->entityManager->remove($entity);
             }
         }
+
         $this->entityManager->flush();
         $this->created = [];
-        static::getContainer()->get(SettingRepository::class)->set(SiteUsefulLinks::KEY, null);
+        self::getContainer()->get(SettingRepository::class)->set(SiteUsefulLinks::KEY, null);
 
         parent::tearDown();
     }
@@ -126,7 +127,7 @@ final class PostUsefulLinksTest extends IntegrationTestCase
     /** The Configuration tab keeps what it may and says what it kept. */
     public function testTheConfigurationTabKeepsOnlyUsableLinks(): void
     {
-        $admin = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
         self::assertInstanceOf(User::class, $admin);
         $this->client->loginUser($admin, 'admin');
 
@@ -142,7 +143,7 @@ final class PostUsefulLinksTest extends IntegrationTestCase
         self::assertResponseIsSuccessful();
         $answer = json_decode((string) $this->client->getResponse()->getContent(), true);
         self::assertSame([['label' => 'GitHub', 'url' => 'https://github.com/AxelRaboit', 'color' => null]], $answer['links'] ?? null);
-        self::assertSame($answer['links'], static::getContainer()->get(SiteUsefulLinks::class)->links());
+        self::assertSame($answer['links'], self::getContainer()->get(SiteUsefulLinks::class)->links());
     }
 
     /** Unticking the box hides the links without forgetting them. */
@@ -179,6 +180,7 @@ final class PostUsefulLinksTest extends IntegrationTestCase
         $term = new TaxonomyTerm();
         $term->setTaxonomy($taxonomy);
         $term->setPosition(0);
+
         $this->entityManager->persist($term);
         foreach (['fr', 'en'] as $locale) {
             $translation = $term->translate($locale);
@@ -186,6 +188,7 @@ final class PostUsefulLinksTest extends IntegrationTestCase
             $translation->setSlug('community-management-'.$locale);
             $this->entityManager->persist($translation);
         }
+
         $this->entityManager->flush();
         $this->created[] = [Taxonomy::class, (int) $taxonomy->getId()];
 
@@ -211,7 +214,7 @@ final class PostUsefulLinksTest extends IntegrationTestCase
     /** @param list<array<string, mixed>> $links */
     private function saveSiteLinks(array $links): void
     {
-        static::getContainer()->get(SiteUsefulLinks::class)->save($links);
+        self::getContainer()->get(SiteUsefulLinks::class)->save($links);
     }
 
     /** @param array<string, mixed> $fields */
@@ -228,8 +231,8 @@ final class PostUsefulLinksTest extends IntegrationTestCase
             $this->created[] = [PostType::class, (int) $postType->getId()];
         }
 
-        $post = static::getContainer()->get(PostManagerInterface::class)->create(
-            static::getContainer()->get(PostInputFactoryInterface::class)->fromArray([
+        $post = self::getContainer()->get(PostManagerInterface::class)->create(
+            self::getContainer()->get(PostInputFactoryInterface::class)->fromArray([
                 'postTypeId' => $postType->getId(),
                 'status' => 'published',
                 'translations' => ['fr' => ['title' => $title]],

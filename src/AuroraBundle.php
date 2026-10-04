@@ -142,6 +142,8 @@ use Aurora\Module\Studio\Deck\Share\Entity\DeckShareLinkInterface;
 use Aurora\Module\Studio\Deliverable\Entity\Deliverable;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableCategory;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableCategoryInterface;
+use Aurora\Module\Editorial\Post\Entity\GridSection;
+use Aurora\Module\Editorial\Post\Entity\GridSectionInterface;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableLink;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableLinkInterface;
@@ -317,6 +319,7 @@ class AuroraBundle extends AbstractBundle
                     DeliverableInterface::class => Deliverable::class,
                     DeliverableLinkInterface::class => DeliverableLink::class,
                     DeliverableCategoryInterface::class => DeliverableCategory::class,
+                    GridSectionInterface::class => GridSection::class,
                     DeckInterface::class => Deck::class,
                     DeckCategoryInterface::class => DeckCategory::class,
                     SlideInterface::class => Slide::class,

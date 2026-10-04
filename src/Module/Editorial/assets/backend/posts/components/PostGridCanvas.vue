@@ -59,7 +59,7 @@ const props = defineProps({
     content: { type: Object, default: () => ({}) },
 });
 
-const emit = defineEmits(["update:selectedIndex", "resize", "resizeStart", "add", "addAt", "fillGap", "swap", "move", "moveInto", "moveOut"]);
+const emit = defineEmits(["update:selectedIndex", "resize", "resizeStart", "add", "addAt", "fillGap", "swap", "move", "moveInto", "moveOut", "dropFile"]);
 
 const { t } = useI18n();
 
@@ -97,6 +97,39 @@ const {
     onGridOver,
     onGridDrop,
 } = usePostGridDrop({ zones, gridEl, emit });
+
+/**
+ * A picture dropped from the desktop onto a box: it is told apart from a box
+ * being moved by what it carries - files - and handed up to be filed and
+ * placed. The two gestures share the box, so each handler asks first.
+ */
+const fileTarget = ref(null);
+
+const carriesFiles = (event) => Array.from(event.dataTransfer?.types ?? []).includes("Files");
+
+function onTileDragOver(index, event) {
+    if (!carriesFiles(event)) {
+        onDragOver(index, event);
+
+        return;
+    }
+
+    event.preventDefault();
+    fileTarget.value = index;
+}
+
+function onTileDrop(index, event) {
+    if (!carriesFiles(event)) {
+        onDrop(index, event);
+
+        return;
+    }
+
+    event.preventDefault();
+    fileTarget.value = null;
+    const file = Array.from(event.dataTransfer.files ?? []).find((entry) => entry.type.startsWith("image/"));
+    if (file) emit("dropFile", index, file);
+}
 
 const labelOf = (zone) => zoneLabel(zone, props.postOptions, t);
 const imageOf = zoneImage;
@@ -200,7 +233,7 @@ const fillTypes = computed(() =>
                             draggable="true"
                             class="relative flex h-24 w-full cursor-grab flex-col items-center justify-center gap-1 overflow-hidden rounded-md border px-1 text-center transition-colors active:cursor-grabbing"
                             :class="[
-                                dropTarget === index
+                                dropTarget === index || fileTarget === index
                                     ? 'border-accent border-dashed bg-accent/20'
                                     : selectedIndex === index
                                         ? 'border-accent bg-accent/10'
@@ -211,9 +244,9 @@ const fillTypes = computed(() =>
                             :aria-pressed="selectedIndex === index"
                             v-on:click="emit('update:selectedIndex', index)"
                             v-on:dragstart="onDragStart(index, $event)"
-                            v-on:dragover="onDragOver(index, $event)"
-                            v-on:dragleave="dropTarget = null"
-                            v-on:drop="onDrop(index, $event)"
+                            v-on:dragover="onTileDragOver(index, $event)"
+                            v-on:dragleave="dropTarget = null; fileTarget = null"
+                            v-on:drop="onTileDrop(index, $event)"
                             v-on:dragend="onDragEnd"
                         >
                             <!-- The box above is `relative` for this one element.

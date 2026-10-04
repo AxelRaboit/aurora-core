@@ -47,11 +47,11 @@ final class PostBulkActionTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->client = static::createClient();
-        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
-        $this->urlGenerator = static::getContainer()->get(UrlGeneratorInterface::class);
+        $this->client = self::createClient();
+        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        $this->urlGenerator = self::getContainer()->get(UrlGeneratorInterface::class);
 
-        $admin = static::getContainer()->get(UserRepository::class)
+        $admin = self::getContainer()->get(UserRepository::class)
             ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
         self::assertInstanceOf(User::class, $admin);
         $this->admin = $admin;
@@ -59,6 +59,7 @@ final class PostBulkActionTest extends IntegrationTestCase
         $this->postType = new PostType();
         $this->postType->setSlug('bulk-'.bin2hex(random_bytes(4)));
         $this->postType->setLabel('Bulk type');
+
         $this->entityManager->persist($this->postType);
         $this->entityManager->flush();
         $this->created[] = [PostType::class, (int) $this->postType->getId()];
@@ -72,6 +73,7 @@ final class PostBulkActionTest extends IntegrationTestCase
                 $this->entityManager->remove($entity);
             }
         }
+
         $this->entityManager->flush();
         $this->created = [];
 
@@ -112,6 +114,7 @@ final class PostBulkActionTest extends IntegrationTestCase
         $mine = $this->draft();
         $theirs = $this->draft();
         $theirs->setAuthor($this->otherAuthor());
+
         $this->entityManager->flush();
 
         // An author who may manage their own posts and publish nothing.
@@ -220,8 +223,8 @@ final class PostBulkActionTest extends IntegrationTestCase
 
     private function draft(): PostInterface
     {
-        $post = static::getContainer()->get(PostManagerInterface::class)->create(
-            static::getContainer()->get(PostInputFactoryInterface::class)->fromArray([
+        $post = self::getContainer()->get(PostManagerInterface::class)->create(
+            self::getContainer()->get(PostInputFactoryInterface::class)->fromArray([
                 'postTypeId' => $this->postType->getId(),
                 'status' => 'draft',
                 'translations' => ['fr' => ['title' => 'Lot '.bin2hex(random_bytes(3))]],

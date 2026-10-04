@@ -2127,6 +2127,15 @@ backend:
                 heading_styles:
                     theme: "Comme le thème"
                     display: "Capitales grasses"
+                presets:
+                    title: "Ambiances"
+                    hint: "Une allure complète en un clic. Les couleurs ci-dessous restent réglables ensuite."
+                    theme: "Couleurs du site"
+                    report: "Rapport blanc"
+                    night: "Sombre"
+                    logo: "Aux couleurs du client"
+                    logo_failed: "Aucune couleur n'a pu être lue dans cette image."
+                    logo_applied: "Couleurs du logo appliquées : l'accent et les chiffres, puis les titres."
             settings:
                 prepared_for_placeholder: "Le destinataire"
                 document_title: "Le document"

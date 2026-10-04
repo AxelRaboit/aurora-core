@@ -37,10 +37,10 @@ final class EditorFormChoicesTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->client = static::createClient();
-        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $this->client = self::createClient();
+        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
 
-        $admin = static::getContainer()->get(UserRepository::class)
+        $admin = self::getContainer()->get(UserRepository::class)
             ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
         self::assertInstanceOf(User::class, $admin);
         $this->client->loginUser($admin, 'admin');

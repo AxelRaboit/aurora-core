@@ -36,11 +36,11 @@ final class GridSurfaceRenderTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        static::bootKernel();
+        self::bootKernel();
 
-        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
-        $this->gridViewBuilder = static::getContainer()->get(GridViewBuilder::class);
-        $twig = static::getContainer()->get(Environment::class);
+        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        $this->gridViewBuilder = self::getContainer()->get(GridViewBuilder::class);
+        $twig = self::getContainer()->get(Environment::class);
         self::assertInstanceOf(Environment::class, $twig);
         $this->twig = $twig;
     }
@@ -513,8 +513,8 @@ final class GridSurfaceRenderTest extends IntegrationTestCase
      */
     public function testAZoneCanTakeTheSitesAccentOverThePages(): void
     {
-        $themeContext = static::getContainer()->get(ThemeContext::class);
-        $styles = static::getContainer()->get(ThemeStyleRenderer::class);
+        $themeContext = self::getContainer()->get(ThemeContext::class);
+        $styles = self::getContainer()->get(ThemeStyleRenderer::class);
         $expected = $styles->postAccentCss('[data-zone-accent="z1"]', $themeContext->primaryColor());
 
         $html = $this->renderGrid(['siteAccent' => true, 'accentColor' => '#bd4a55']);

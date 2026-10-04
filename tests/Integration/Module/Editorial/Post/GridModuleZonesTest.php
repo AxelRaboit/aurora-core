@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Integration\Module\Editorial\Post;
 
-use Aurora\Module\Editorial\Post\Entity\Post;
 use Aurora\Module\Editorial\Post\Grid\GridViewBuilder;
 use Aurora\Module\Editorial\PostType\Entity\PostType;
 use Aurora\Module\Studio\Deck\Entity\Deck;
@@ -35,11 +34,11 @@ final class GridModuleZonesTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        static::bootKernel();
+        self::bootKernel();
 
-        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
-        $this->gridViewBuilder = static::getContainer()->get(GridViewBuilder::class);
-        $twig = static::getContainer()->get(Environment::class);
+        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        $this->gridViewBuilder = self::getContainer()->get(GridViewBuilder::class);
+        $twig = self::getContainer()->get(Environment::class);
         self::assertInstanceOf(Environment::class, $twig);
         $this->twig = $twig;
     }

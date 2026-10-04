@@ -39,8 +39,8 @@ final class SetPostRevealCommandTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        static::createClient();
-        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        self::createClient();
+        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
 
         $this->type = new PostType();
         $this->type->setSlug('reveal-'.uniqid())->setLabel('Reveal');
@@ -128,7 +128,7 @@ final class SetPostRevealCommandTest extends IntegrationTestCase
      */
     private function publish(array $zones): Post
     {
-        $normalizer = static::getContainer()->get(GridNormalizer::class);
+        $normalizer = self::getContainer()->get(GridNormalizer::class);
 
         $post = new Post();
         $post->setPostType($this->type)
@@ -153,7 +153,7 @@ final class SetPostRevealCommandTest extends IntegrationTestCase
      */
     private function launch(array $options): CommandTester
     {
-        $application = new Application(static::$kernel);
+        $application = new Application(self::$kernel);
         $tester = new CommandTester($application->find('aurora:editorial:reveal'));
         $tester->execute(['--type' => [$this->type->getSlug()], ...$options]);
 
