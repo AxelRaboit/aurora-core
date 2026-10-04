@@ -74,6 +74,14 @@ final class GridSurfaceRenderTest extends IntegrationTestCase
         self::assertStringNotContainsString('border-card-line', $html);
     }
 
+    /** The room around the words follows the zone's choice, the usual one by default. */
+    public function testACardTakesThePaddingItAskedFor(): void
+    {
+        self::assertStringContainsString('p-6 sm:p-8', $this->render($this->zone(['surface' => 'raised'])));
+        self::assertStringContainsString('p-8 sm:p-12', $this->render($this->zone(['surface' => 'raised', 'options' => ['padding' => 'roomy']])));
+        self::assertStringContainsString(' p-4', $this->render($this->zone(['surface' => 'card', 'options' => ['padding' => 'compact']])));
+    }
+
     public function testATintedZoneReadsAsOneSection(): void
     {
         self::assertStringContainsString('bg-surface-2', $this->render($this->zone(['surface' => 'soft'])));

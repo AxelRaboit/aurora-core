@@ -258,6 +258,7 @@ final class DeliverablesController extends AbstractController
         return $this->privately($this->renderer->render(
             $deliverable,
             $this->generateUrl('backend_studio_deliverables_edit', ['id' => $deliverable->getId()]),
+            markPlaceholders: true,
         ));
     }
 

@@ -66,8 +66,12 @@ final readonly class DeliverablePageRenderer
         private SiteTimezone $siteTimezone,
     ) {}
 
-    /** @param string|null $backUrl où revient le lecteur, quand il vient d'une page à lui */
-    public function render(DeliverableInterface $deliverable, ?string $backUrl = null): Response
+    /**
+     * @param string|null $backUrl          où revient le lecteur, quand il vient d'une page à lui
+     * @param bool        $markPlaceholders les [passages à remplacer] surlignés : l'aperçu de
+     *                                      l'auteur, jamais la page du client
+     */
+    public function render(DeliverableInterface $deliverable, ?string $backUrl = null, bool $markPlaceholders = false): Response
     {
         $locale = $deliverable->getLocale();
         $grid = $this->gridViewBuilder->build($deliverable->getGridLayout(), $deliverable->getGridContent(), $locale, null);
@@ -91,6 +95,7 @@ final readonly class DeliverablePageRenderer
             ],
             'appearance' => $appearance,
             'grid' => $grid,
+            'markPlaceholders' => $markPlaceholders,
             'readingTimeMinutes' => null !== $grid ? $this->readingTimeCalculator->minutesFor($deliverable->getGridContent()) : 0,
             // Les trois surfaces que le thème sait repeindre, surface par
             // surface : nul laisse passer la sienne.

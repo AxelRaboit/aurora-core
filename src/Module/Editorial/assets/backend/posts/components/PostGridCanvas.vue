@@ -36,6 +36,8 @@ import { COLUMNS, ZONE_ICONS, zoneImage, zoneLabel } from "../composables/usePos
 import { usePostGridPlacement } from "../composables/usePostGridPlacement.js";
 import { usePostGridResize } from "../composables/usePostGridResize.js";
 import { usePostGridDrop } from "../composables/usePostGridDrop.js";
+import { zoneBadges, zoneSummary } from "../composables/gridZoneSummary.js";
+import { countPlaceholders } from "@/shared/utils/format/placeholders.js";
 
 const props = defineProps({
     /** The arrangement, in order. Read-only here - every change is emitted. */
@@ -50,6 +52,11 @@ const props = defineProps({
     typeOptions: { type: Array, default: () => [] },
     /** False at the zone cap, which disables the add buttons rather than hiding them. */
     canAdd: { type: Boolean, default: true },
+    /**
+     * What fills each zone, keyed by id, for the language open - read for
+     * the words a box shows, never written.
+     */
+    content: { type: Object, default: () => ({}) },
 });
 
 const emit = defineEmits(["update:selectedIndex", "resize", "resizeStart", "add", "addAt", "fillGap", "swap", "move", "moveInto", "moveOut"]);
@@ -93,6 +100,27 @@ const {
 
 const labelOf = (zone) => zoneLabel(zone, props.postOptions, t);
 const imageOf = zoneImage;
+
+/**
+ * The words each box shows and its pills, worked out once per change rather
+ * than per render of every box.
+ */
+const tiles = computed(() =>
+    Object.fromEntries(
+        props.zones.map((zone) => [
+            zone.id,
+            {
+                ...zoneSummary(zone, props.content?.zones?.[zone.id], t),
+                badges: zoneBadges(zone, t),
+                // A stack's blanks are its children's.
+                placeholders: [zone, ...(zone.children ?? [])].reduce(
+                    (total, owner) => total + countPlaceholders(props.content?.zones?.[owner.id]),
+                    0,
+                ),
+            },
+        ]),
+    ),
+);
 
 /**
  * Which strip or hole is being filled, if any, so it can offer the types.
@@ -170,7 +198,7 @@ const fillTypes = computed(() =>
                         <button
                             type="button"
                             draggable="true"
-                            class="relative flex h-20 w-full cursor-grab flex-col items-center justify-center gap-1 overflow-hidden rounded-md border px-1 text-center transition-colors active:cursor-grabbing"
+                            class="relative flex h-24 w-full cursor-grab flex-col items-center justify-center gap-1 overflow-hidden rounded-md border px-1 text-center transition-colors active:cursor-grabbing"
                             :class="[
                                 dropTarget === index
                                     ? 'border-accent border-dashed bg-accent/20'
@@ -197,6 +225,13 @@ const fillTypes = computed(() =>
                              `overflow-hidden` on the box does not catch that: a
                              block does not clip an absolute descendant whose
                              containing block is one of its own ancestors. -->
+                            <!-- The blanks left to fill in this zone, in the
+                                 corner: the one thing the tile has to shout. -->
+                            <span
+                                v-if="tiles[zone.id]?.placeholders"
+                                class="absolute right-4 top-1 z-10 rounded-full bg-amber-500 px-1.5 text-[10px] font-semibold leading-4 text-white tabular-nums"
+                                :title="t('backend.posts.grid.placeholders_left', { count: tiles[zone.id].placeholders })"
+                            >[{{ tiles[zone.id].placeholders }}]</span>
                             <img
                                 v-if="imageOf(zone)"
                                 :src="imageOf(zone)"
@@ -255,24 +290,41 @@ const fillTypes = computed(() =>
                                 </span>
                             </div>
 
+                            <!-- The words the zone holds lead, its type steps
+                                 back to a small line: a document is found by
+                                 its titles. A box with nothing written yet
+                                 shows its type as before. -->
                             <div
                                 v-else
-                                class="relative flex flex-col items-center gap-1"
-                                :class="imageOf(zone) ? 'rounded-md bg-surface/90 px-2 py-1' : ''"
+                                class="relative flex min-w-0 max-w-full flex-col items-center gap-0.5 px-2"
+                                :class="imageOf(zone) ? 'rounded-md bg-surface/90 py-1' : ''"
                             >
-                                <component
-                                    :is="ZONE_ICONS[zone.type]"
-                                    class="w-4 h-4 shrink-0 text-secondary"
-                                    :stroke-width="2"
-                                />
+                                <span class="flex items-center gap-1 text-[10px] text-muted">
+                                    <component
+                                        :is="ZONE_ICONS[zone.type]"
+                                        class="w-3.5 h-3.5 shrink-0 text-secondary"
+                                        :stroke-width="2"
+                                    />
+                                    <template v-if="widthOf(index) >= 8 && tiles[zone.id]?.title">{{ labelOf(zone) }} · </template>
+                                    <span class="tabular-nums">{{ widthOf(index) }}/{{ COLUMNS }}<template v-if="'stack' === zone.type"> · 0</template></span>
+                                </span>
                                 <!-- Hidden under about a sixth, where it would be
                                      one clipped letter pretending to be a word. -->
                                 <span
                                     v-if="widthOf(index) >= 8"
-                                    class="line-clamp-2 text-xs text-primary"
-                                >{{ labelOf(zone) }}</span>
-                                <span class="text-[10px] text-muted tabular-nums">
-                                    {{ widthOf(index) }}/{{ COLUMNS }}<template v-if="'stack' === zone.type"> · 0</template>
+                                    class="line-clamp-2 max-w-full break-words text-xs text-primary"
+                                    :class="tiles[zone.id]?.title ? 'font-medium' : ''"
+                                >{{ tiles[zone.id]?.title || labelOf(zone) }}</span>
+                                <span
+                                    v-if="widthOf(index) >= 12 && (tiles[zone.id]?.detail || tiles[zone.id]?.badges.length)"
+                                    class="flex max-w-full flex-wrap justify-center gap-1"
+                                >
+                                    <span v-if="tiles[zone.id]?.detail" class="text-[10px] text-muted">{{ tiles[zone.id].detail }}</span>
+                                    <span
+                                        v-for="badge in tiles[zone.id]?.badges ?? []"
+                                        :key="badge"
+                                        class="rounded-full border border-line px-1.5 text-[9px] leading-4 text-secondary"
+                                    >{{ badge }}</span>
                                 </span>
                             </div>
                         </button>

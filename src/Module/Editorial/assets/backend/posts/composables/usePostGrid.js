@@ -214,6 +214,15 @@ export const TILTS = ["none", "left", "right"];
 
 /** Mirrors GridZoneOptions::VALIGNS - where a zone sits in a taller row. */
 export const VALIGNS = ["stretch", "center", "end"];
+
+/** Mirrors GridZoneOptions::HIDE_ON - a screen a zone stays off. */
+export const HIDE_ON = ["none", "phone", "desktop"];
+
+/** Mirrors GridZoneOptions::PADDINGS - the room a surface leaves around its words. */
+export const PADDINGS = ["normal", "compact", "roomy"];
+
+/** Mirrors GridNormalizer::ROW_GAPS - the air between two rows of the page. */
+export const ROW_GAPS = ["tight", "normal", "loose"];
 export const CODE_STYLES = ["plain", "terminal", "diff"];
 export const LIST_LAYOUTS = ["cards", "index"];
 export const TOC_LAYOUTS = ["list", "pills", "index"];
@@ -248,6 +257,8 @@ export function defaultZoneOptions() {
         tilt: "none",
         showCredit: true,
         valign: "stretch",
+        hideOn: "none",
+        padding: "normal",
         parallax: false,
         codeStyle: "plain",
         listLayout: "cards",
@@ -789,6 +800,17 @@ export function usePostGrid(layout, content) {
 
     const revealOptions = computed(() => labelled(REVEALS, "reveals"));
 
+    // The air between rows, for the whole page. A grid saved before it could
+    // be chosen reads as the gap it always had.
+    const rowGap = writable(
+        () => layout.value.rowGap ?? "normal",
+        (value) => {
+            layout.value.rowGap = value;
+        },
+    );
+
+    const rowGapOptions = computed(() => labelled(ROW_GAPS, "row_gaps"));
+
     const snapOptions = computed(() =>
         SNAPS.map((step) => ({
             value: step,
@@ -832,6 +854,8 @@ export function usePostGrid(layout, content) {
         frame: labelled(FRAMES, "frames"),
         tilt: labelled(TILTS, "tilts"),
         valign: labelled(VALIGNS, "valigns"),
+        hideOn: labelled(HIDE_ON, "hide_ons"),
+        padding: labelled(PADDINGS, "paddings"),
         codeStyle: labelled(CODE_STYLES, "code_styles"),
         listLayout: labelled(LIST_LAYOUTS, "list_layouts"),
         tocLayout: labelled(TOC_LAYOUTS, "toc_layouts"),
@@ -1944,6 +1968,8 @@ export function usePostGrid(layout, content) {
         snapOptions,
         reveal,
         revealOptions,
+        rowGap,
+        rowGapOptions,
         typeOptions,
         leafTypeOptions,
         widthOptions,

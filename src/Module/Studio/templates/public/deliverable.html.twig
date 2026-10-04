@@ -52,7 +52,11 @@
     {% endif %}
 
     {% if grid %}
-        {{ include('Frontend/themes/default/editorial/post/_grid.html.twig', {grid: grid, locale: locale}) }}
+        {% if markPlaceholders|default(false) %}
+            {% apply mark_placeholders %}{{ include('Frontend/themes/default/editorial/post/_grid.html.twig', {grid: grid, locale: locale}) }}{% endapply %}
+        {% else %}
+            {{ include('Frontend/themes/default/editorial/post/_grid.html.twig', {grid: grid, locale: locale}) }}
+        {% endif %}
     {% endif %}
 </article>
 {% endblock %}

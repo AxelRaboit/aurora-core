@@ -61,6 +61,12 @@ final class GridZoneOptions
     /** Where a zone sits in a row taller than itself. */
     public const array VALIGNS = ['stretch', 'center', 'end'];
 
+    /** A screen a zone stays off: a decorative phone shown twice, a wide picture. */
+    public const array HIDE_ON = ['none', 'phone', 'desktop'];
+
+    /** How much room a surface leaves around its words. */
+    public const array PADDINGS = ['normal', 'compact', 'roomy'];
+
     public const array CODE_STYLES = ['plain', 'terminal', 'diff'];
 
     public const array LIST_LAYOUTS = ['cards', 'index'];
@@ -124,6 +130,8 @@ final class GridZoneOptions
             'tilt' => self::TILTS[0],
             'showCredit' => true,
             'valign' => self::VALIGNS[0],
+            'hideOn' => self::HIDE_ON[0],
+            'padding' => self::PADDINGS[0],
             'parallax' => false,
             'codeStyle' => self::CODE_STYLES[0],
             'listLayout' => self::LIST_LAYOUTS[0],
@@ -184,6 +192,8 @@ final class GridZoneOptions
             // author of a report take it off.
             'showCredit' => false !== ($data['showCredit'] ?? true),
             'valign' => self::oneOf($data['valign'] ?? null, self::VALIGNS),
+            'hideOn' => self::oneOf($data['hideOn'] ?? null, self::HIDE_ON),
+            'padding' => self::oneOf($data['padding'] ?? null, self::PADDINGS),
             // A band that scrolls slower than the page. Only a full-bleed
             // picture has somewhere to move; the template reads both.
             'parallax' => true === ($data['parallax'] ?? false),

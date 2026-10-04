@@ -1040,6 +1040,31 @@ backend:
                 stretch: "En haut"
                 center: "Au centre"
                 end: "En bas"
+            hide_on: "Masquer sur"
+            hide_on_hint: "Un écran où la zone n'apparaît pas : un téléphone décoratif en double, une image trop large pour un petit écran."
+            hide_ons:
+                none: "Aucun"
+                phone: "Téléphone"
+                desktop: "Ordinateur et tablette"
+            hide_on_badges:
+                phone: "Masqué sur téléphone"
+                desktop: "Masqué sur ordinateur"
+            row_gap: "Air entre les lignes"
+            row_gap_hint: "L'espace entre deux lignes de zones, pour toute la page."
+            row_gaps:
+                tight: "Serré"
+                normal: "Normal"
+                loose: "Large"
+            padding: "Marge intérieure"
+            padding_hint: "L'espace entre le bord du fond et ce qu'il contient."
+            paddings:
+                normal: "Normal"
+                compact: "Compacte"
+                roomy: "Généreuse"
+            tile_entries: "{count} entrée | {count} entrées"
+            tile_full_bleed: "Pleine largeur"
+            placeholders_left: "{count} passage entre [crochets] reste à remplacer. | {count} passages entre [crochets] restent à remplacer."
+            outline: "Plan du document · {count} sections"
             parallax: Bandeau qui défile plus lentement
             parallax_hint: "L'image devient un bandeau qui défile plus lentement que la page, avec la légende posée dessus. À combiner avec « Pleine largeur » pour un vrai bandeau."
             code_style: Présentation

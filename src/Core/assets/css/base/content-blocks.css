@@ -560,3 +560,16 @@ pre .hljs-attribute {
     line-height: 1.05;
     font-size: clamp(1.75rem, 1.2rem + 2.4vw, 3rem);
 }
+
+/*
+ * A blank of a model still waiting for its words, lit in the back-office
+ * preview only (`mark_placeholders`), so it cannot be sent unnoticed.
+ */
+.aurora-placeholder {
+    background: color-mix(in srgb, rgb(245 158 11) 32%, transparent);
+    color: inherit;
+    border-radius: 0.25rem;
+    padding: 0 0.15em;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+}

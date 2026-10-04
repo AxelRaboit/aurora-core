@@ -207,6 +207,7 @@ final class SpaceDeliverablesController extends AbstractController
         return $this->privately($this->renderer->render(
             $deliverable,
             $this->generateUrl('workspace_space_deliverables_edit', ['id' => $space->getId(), 'deliverableId' => $deliverable->getId()]),
+            markPlaceholders: true,
         ));
     }
 

@@ -1040,6 +1040,31 @@ backend:
                 stretch: "Top"
                 center: "Centre"
                 end: "Bottom"
+            hide_on: "Hide on"
+            hide_on_hint: "A screen the zone does not appear on: a decorative phone shown twice, a picture too wide for a small screen."
+            hide_ons:
+                none: "None"
+                phone: "Phone"
+                desktop: "Desktop and tablet"
+            hide_on_badges:
+                phone: "Hidden on phone"
+                desktop: "Hidden on desktop"
+            row_gap: "Space between rows"
+            row_gap_hint: "The space between two rows of zones, for the whole page."
+            row_gaps:
+                tight: "Tight"
+                normal: "Normal"
+                loose: "Loose"
+            padding: "Inner padding"
+            padding_hint: "The space between the edge of the background and what it holds."
+            paddings:
+                normal: "Normal"
+                compact: "Compact"
+                roomy: "Roomy"
+            tile_entries: "{count} entry | {count} entries"
+            tile_full_bleed: "Full width"
+            placeholders_left: "{count} passage in [brackets] is left to replace. | {count} passages in [brackets] are left to replace."
+            outline: "Outline · {count} sections"
             parallax: Band that scrolls slower
             parallax_hint: "The picture becomes a band that scrolls slower than the page, with the caption set over it. Combine with « Full width » for a real band."
             code_style: Presentation

@@ -282,15 +282,38 @@ final class GridWaveOneZonesTest extends IntegrationTestCase
         self::assertStringNotContainsString('self-center', $this->renderGrid(['type' => 'text'], $text));
     }
 
-    /** @param array<string, mixed> $zone @param array<string, mixed> $held */
-    private function renderGrid(array $zone, array $held): string
+    /** A zone can stay off the phone, or off the larger screens. */
+    public function testAZoneCanStayOffAScreen(): void
+    {
+        $text = ['blocks' => [['type' => 'paragraph', 'data' => ['text' => 'Décor']]]];
+
+        self::assertStringContainsString('max-md:hidden', $this->renderGrid(['type' => 'text', 'options' => ['hideOn' => 'phone']], $text));
+        self::assertStringContainsString('md:hidden', $this->renderGrid(['type' => 'text', 'options' => ['hideOn' => 'desktop']], $text));
+        self::assertStringNotContainsString('hidden', $this->renderGrid(['type' => 'text'], $text));
+    }
+
+    /** The air between rows is the page's choice, the usual gap by default. */
+    public function testThePageChoosesTheAirBetweenItsRows(): void
+    {
+        $text = ['blocks' => [['type' => 'paragraph', 'data' => ['text' => 'Ligne']]]];
+
+        self::assertStringContainsString('gap-y-8', $this->renderGrid(['type' => 'text'], $text));
+        self::assertStringContainsString('gap-y-16', $this->renderGrid(['type' => 'text'], $text, ['rowGap' => 'loose']));
+    }
+
+    /**
+     * @param array<string, mixed> $zone
+     * @param array<string, mixed> $held
+     * @param array<string, mixed> $page
+     */
+    private function renderGrid(array $zone, array $held, array $page = []): string
     {
         static::bootKernel();
         $builder = static::getContainer()->get(GridViewBuilder::class);
         $twig = static::getContainer()->get(Environment::class);
         self::assertInstanceOf(Environment::class, $twig);
 
-        $grid = $builder->build(['enabled' => true, 'zones' => [['id' => 'z1', ...$zone]]], ['zones' => ['z1' => $held]], 'fr');
+        $grid = $builder->build(['enabled' => true, ...$page, 'zones' => [['id' => 'z1', ...$zone]]], ['zones' => ['z1' => $held]], 'fr');
         self::assertNotNull($grid);
 
         return $twig->render('Frontend/themes/default/editorial/post/_grid.html.twig', ['grid' => $grid, 'locale' => 'fr']);

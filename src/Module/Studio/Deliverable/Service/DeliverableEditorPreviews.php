@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\Deliverable\Service;
 
+use Aurora\Core\Twig\PlaceholderMarkExtension;
 use Aurora\Core\Locale\Service\LocaleContextInterface;
 use Aurora\Module\Configuration\Theme\Service\ThemeResolver;
 use Aurora\Module\Configuration\Theme\Service\ThemeStyleRenderer;
@@ -37,6 +38,7 @@ final readonly class DeliverableEditorPreviews
         private GridViewBuilder $gridViewBuilder,
         private BannerViewBuilder $bannerViewBuilder,
         private LocaleContextInterface $localeContext,
+        private PlaceholderMarkExtension $placeholders,
     ) {}
 
     /** @param array<string, mixed> $payload ce que l'éditeur envoie : `{layout, content, locale}` */
@@ -46,10 +48,12 @@ final readonly class DeliverableEditorPreviews
         $content = is_array($payload['content'] ?? null) ? $payload['content'] : [];
         $locale = $this->locale($payload['locale'] ?? null);
 
-        return $this->twig->render(
+        // Les [passages à remplacer] surlignés, comme dans l'aperçu de la page :
+        // c'est l'auteur qui regarde.
+        return $this->placeholders->mark($this->twig->render(
             $this->themeResolver->resolve('editorial/post/_grid'),
             ['grid' => $this->gridViewBuilder->buildForEditor($layout, $content, $locale), 'locale' => $locale],
-        );
+        ));
     }
 
     /** @param array<string, mixed> $payload ce que l'éditeur envoie : `{layout, texts, slide}` */

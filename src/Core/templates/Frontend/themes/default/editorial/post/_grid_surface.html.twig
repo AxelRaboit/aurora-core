@@ -58,13 +58,16 @@
 
 {% macro wrap(zone, body) %}
     {% import _self as this %}
+    {# The room a surface leaves around its words: the zone's choice, the
+       usual padding when it made none. #}
+    {% set padding = {compact: 'p-4', normal: 'p-6 sm:p-8', roomy: 'p-8 sm:p-12'}[zone.options.padding|default('normal')]|default('p-6 sm:p-8') %}
     {% set surfaces = {
         none: '',
-        card: 'rounded-xl border border-card-line bg-surface p-6 sm:p-8',
-        raised: 'rounded-2xl bg-surface p-6 sm:p-8 shadow-[0_18px_50px_-20px_rgb(0_0_0/0.28)]',
-        soft: 'rounded-xl bg-surface-2 p-6 sm:p-8',
-        accent: 'rounded-xl border border-accent-500/30 bg-accent-500/10 p-6 sm:p-8',
-        custom: 'relative isolate overflow-hidden rounded-xl p-6 sm:p-8',
+        card: 'rounded-xl border border-card-line bg-surface ' ~ padding,
+        raised: 'rounded-2xl bg-surface shadow-[0_18px_50px_-20px_rgb(0_0_0/0.28)] ' ~ padding,
+        soft: 'rounded-xl bg-surface-2 ' ~ padding,
+        accent: 'rounded-xl border border-accent-500/30 bg-accent-500/10 ' ~ padding,
+        custom: 'relative isolate overflow-hidden rounded-xl ' ~ padding,
     } %}
     {# Across the viewport the corners go: a band with rounded ends reads as a
        very wide card that has overflowed, which is not what it is. #}

@@ -1046,6 +1046,31 @@ backend:
                 stretch: "Arriba"
                 center: "Centro"
                 end: "Abajo"
+            hide_on: "Ocultar en"
+            hide_on_hint: "Una pantalla en la que la zona no aparece: un teléfono decorativo repetido, una imagen demasiado ancha para una pantalla pequeña."
+            hide_ons:
+                none: "Ninguna"
+                phone: "Teléfono"
+                desktop: "Ordenador y tableta"
+            hide_on_badges:
+                phone: "Oculto en el móvil"
+                desktop: "Oculto en ordenador"
+            row_gap: "Espacio entre filas"
+            row_gap_hint: "El espacio entre dos filas de zonas, para toda la página."
+            row_gaps:
+                tight: "Ajustado"
+                normal: "Normal"
+                loose: "Amplio"
+            padding: "Margen interior"
+            padding_hint: "El espacio entre el borde del fondo y lo que contiene."
+            paddings:
+                normal: "Normal"
+                compact: "Compacto"
+                roomy: "Generoso"
+            tile_entries: "{count} entrada | {count} entradas"
+            tile_full_bleed: "Ancho completo"
+            placeholders_left: "Queda {count} pasaje entre [corchetes] por reemplazar. | Quedan {count} pasajes entre [corchetes] por reemplazar."
+            outline: "Esquema del documento · {count} secciones"
             parallax: 'Banda que se desplaza más despacio'
             parallax_hint: 'La imagen se convierte en una banda que se desplaza más despacio que la página, con la leyenda encima. Combínelo con «Ancho completo» para obtener una verdadera banda.'
             code_style: Presentación

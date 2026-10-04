@@ -14,7 +14,7 @@
  * Presentation only: every field arrives as a writable computed, so nothing
  * here writes to a prop.
  */
-import { computed, ref } from "vue";
+import { computed, nextTick, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
@@ -32,6 +32,8 @@ import { useServerPreview } from "@/shared/composables/http/backend/useServerPre
 import { usePostGrid, ZONE_ICONS } from "../composables/usePostGrid.js";
 import { openDocumentPicker } from "@/shared/utils/documentPicker.js";
 import { useGridSelection } from "../composables/useGridSelection.js";
+import { countPlaceholders } from "@/shared/utils/format/placeholders.js";
+import { plainText } from "../composables/gridZoneSummary.js";
 import PostGridCanvas from "./PostGridCanvas.vue";
 import PostGridZoneContent from "./PostGridZoneContent.vue";
 import AppDatePicker from "@/shared/components/form/picker/AppDatePicker.vue";
@@ -90,6 +92,8 @@ const {
     snapOptions,
     reveal,
     revealOptions,
+    rowGap,
+    rowGapOptions,
     typeOptions: allTypeOptions,
     leafTypeOptions: allLeafTypeOptions,
     widthOptions,
@@ -126,6 +130,42 @@ const typeOptions = computed(() => allTypeOptions.value.filter(visibleType));
 const leafTypeOptions = computed(() => allLeafTypeOptions.value.filter(visibleType));
 
 const showPreview = ref(false);
+
+/**
+ * The document's sections: every full-width text zone that opens on a main heading, in
+ * order, with the blanks left from it to the next section. What the author
+ * navigates by - « Objectifs de l'audit », « Benchmark » - rather than by the
+ * fortieth box.
+ */
+const outline = computed(() => {
+    const sections = [];
+
+    zones.value.forEach((zone, index) => {
+        const held = props.content?.zones?.[zone.id];
+        // A section opens on a main heading laid across the whole row; a big
+        // figure set as a heading inside a card beside others is not one.
+        const fullRow = (zone.span?.lg ?? zone.span?.md ?? COLUMNS) >= COLUMNS;
+        const heading = "text" === zone.type && fullRow
+            ? (held?.blocks ?? []).find((block) => "header" === block?.type && 2 === Number(block.data?.level ?? 2))
+            : null;
+        const title = heading ? plainText(heading.data?.text) : "";
+
+        if (title) sections.push({ index, title, placeholders: 0 });
+
+        const current = sections.at(-1);
+        if (current) {
+            current.placeholders += [zone, ...(zone.children ?? [])].reduce(
+                (total, owner) => total + countPlaceholders(props.content?.zones?.[owner.id]),
+                0,
+            );
+        }
+    });
+
+    return sections;
+});
+
+/** The [blanks] still in this language's content, for the line above the canvas. */
+const placeholders = computed(() => countPlaceholders(props.content?.zones));
 
 // The locale travels too: a card links with `path('editorial_post', {locale})`
 // and shows the linked publication in that language, so previewing the German
@@ -165,6 +205,15 @@ const {
     moveIntoStack,
     moveOutOfStack,
 } = useGridSelection(grid);
+
+const canvasHolder = ref(null);
+
+/** Picks the section's first zone and brings its box into view. */
+async function goToSection(index) {
+    selectedIndex.value = index;
+    await nextTick();
+    canvasHolder.value?.querySelector(`[data-zone="${index}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+}
 
 /**
  * What the anchor is worth once it is on the page: the address to paste into a
@@ -213,23 +262,59 @@ function resizeZone(index, columns) {
                  pick a zone here and its fields appear underneath. Everything
                  that used to sit above it - the server preview - has moved
                  below, so reaching the controls costs no scrolling. -->
-            <PostGridCanvas
-                v-model:selected-index="selectedIndex"
-                :zones="zones"
-                :snap="snap"
-                :post-options="postOptions"
-                :type-options="typeOptions"
-                :can-add="canAddZone"
-                v-on:resize="resizeZone"
-                v-on:resize-start="resizeZoneStart"
-                v-on:add="addAndSelect"
-                v-on:add-at="addZoneOnNewRow"
-                v-on:fill-gap="fillGap"
-                v-on:swap="swapZones"
-                v-on:move="moveAndSelect"
-                v-on:move-into="moveIntoStack"
-                v-on:move-out="moveOutOfStack"
-            />
+            <!-- The sections, by their headings: a long document is walked
+                 through its titles. Folded once read; open by default. -->
+            <details v-if="outline.length > 1" open class="rounded-lg border border-line bg-surface-2/30 px-3 py-2">
+                <summary class="cursor-pointer text-xs font-medium uppercase tracking-wide text-secondary">
+                    {{ t("backend.posts.grid.outline", { count: outline.length }) }}
+                </summary>
+                <ol class="m-0 mt-2 grid list-none gap-x-4 gap-y-0.5 p-0 sm:grid-cols-2">
+                    <li v-for="(section, position) in outline" :key="section.index">
+                        <button
+                            type="button"
+                            class="flex w-full items-baseline gap-2 rounded px-1.5 py-1 text-left text-sm hover:bg-surface-2"
+                            :class="selectedIndex !== null && selectedIndex >= section.index && (outline[position + 1]?.index ?? Infinity) > selectedIndex ? 'text-accent font-medium' : 'text-primary'"
+                            v-on:click="goToSection(section.index)"
+                        >
+                            <span class="w-5 shrink-0 text-right text-xs text-muted tabular-nums">{{ position + 1 }}</span>
+                            <span class="min-w-0 flex-1 truncate">{{ section.title }}</span>
+                            <span
+                                v-if="section.placeholders"
+                                class="shrink-0 rounded-full bg-amber-500/15 px-1.5 text-[10px] font-semibold text-amber-700 dark:text-amber-400 tabular-nums"
+                                :title="t('backend.posts.grid.placeholders_left', { count: section.placeholders })"
+                            >[{{ section.placeholders }}]</span>
+                        </button>
+                    </li>
+                </ol>
+            </details>
+
+            <!-- Said once above the canvas; each tile carries its own count. -->
+            <p
+                v-if="placeholders"
+                class="m-0 rounded-md bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-400"
+            >
+                {{ t("backend.posts.grid.placeholders_left", { count: placeholders }) }}
+            </p>
+            <div ref="canvasHolder">
+                <PostGridCanvas
+                    v-model:selected-index="selectedIndex"
+                    :zones="zones"
+                    :snap="snap"
+                    :post-options="postOptions"
+                    :type-options="typeOptions"
+                    :can-add="canAddZone"
+                    :content="content"
+                    v-on:resize="resizeZone"
+                    v-on:resize-start="resizeZoneStart"
+                    v-on:add="addAndSelect"
+                    v-on:add-at="addZoneOnNewRow"
+                    v-on:fill-gap="fillGap"
+                    v-on:swap="swapZones"
+                    v-on:move="moveAndSelect"
+                    v-on:move-into="moveIntoStack"
+                    v-on:move-out="moveOutOfStack"
+                />
+            </div>
 
             <!-- Behind a button rather than inline: the panel is a column a few
                  hundred pixels wide, and a page laid out on 48 columns has
@@ -558,6 +643,19 @@ function resizeZone(index, columns) {
                         :hint="t('backend.posts.grid.valign_hint')"
                         :options="zoneChoices.valign"
                     />
+                    <AppChoiceRow
+                        v-model="zoneFields(index).hideOn.value"
+                        :label="t('backend.posts.grid.hide_on')"
+                        :hint="t('backend.posts.grid.hide_on_hint')"
+                        :options="zoneChoices.hideOn"
+                    />
+                    <AppChoiceRow
+                        v-if="'none' !== zone.surface"
+                        v-model="zoneFields(index).padding.value"
+                        :label="t('backend.posts.grid.padding')"
+                        :hint="t('backend.posts.grid.padding_hint')"
+                        :options="zoneChoices.padding"
+                    />
                     <AppToggle
                         v-model="zoneFields(index).sticky.value"
                         :label="t('backend.posts.grid.sticky')"
@@ -777,6 +875,12 @@ function resizeZone(index, columns) {
                 :label="t('backend.posts.grid.page_reveal')"
                 :hint="t('backend.posts.grid.page_reveal_hint')"
                 :options="revealOptions"
+            />
+            <AppChoiceRow
+                v-model="rowGap"
+                :label="t('backend.posts.grid.row_gap')"
+                :hint="t('backend.posts.grid.row_gap_hint')"
+                :options="rowGapOptions"
             />
 
             <!-- The snap only governs the precise sliders now that fractions

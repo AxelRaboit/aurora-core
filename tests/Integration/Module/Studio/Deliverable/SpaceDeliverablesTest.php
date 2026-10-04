@@ -173,6 +173,21 @@ final class SpaceDeliverablesTest extends IntegrationTestCase
         self::assertSame('theme', $this->find($deliverable)->getAppearance()['headingStyle']);
     }
 
+    /** The author's preview lights the blanks left to fill; nothing else changes. */
+    public function testThePreviewLightsTheBlanksLeftToFill(): void
+    {
+        $space = $this->givenSpace();
+        $deliverable = $this->givenDeliverable($space, 'Modèle '.$this->suffix);
+
+        $this->update($space, $deliverable, [
+            'gridLayout' => ['enabled' => true, 'zones' => [['id' => 'z1', 'type' => 'text', 'span' => ['base' => 48, 'md' => 48, 'lg' => 48]]]],
+            'gridContent' => ['zones' => ['z1' => ['blocks' => [['type' => 'paragraph', 'data' => ['text' => 'Pour [Nom de la marque].']]]]]],
+        ]);
+
+        $this->client->request('GET', sprintf('/workspace/%d/deliverables/%d/preview', $space->getId(), $deliverable));
+        self::assertStringContainsString('<mark class="aurora-placeholder">[Nom de la marque]</mark>', (string) $this->client->getResponse()->getContent());
+    }
+
     public function testAnEmptyTitleIsRefusedOnSave(): void
     {
         $space = $this->givenSpace();

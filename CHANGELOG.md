@@ -20,6 +20,18 @@ Un audit de réseaux sociaux se lit comme une suite de diapositives : de grands 
 - **Alignement vertical** d'une zone dans sa ligne (en haut, au centre, en bas) : une carte se centre à côté du téléphone plus haut qu'elle. Sur téléphone, chaque zone garde sa ligne.
 - **Grands titres en capitales grasses**, réglables par livrable dans l'onglet Apparence.
 
+#### Se repérer dans une longue grille
+Un modèle d'audit compte une cinquantaine de zones, et le canevas les dessinait toutes en « Texte 48/48 ». Désormais :
+- **Les tuiles parlent** : chaque tuile montre son premier titre, ou à défaut sa première ligne, le titre d'un graphique ou la première entrée d'une liste avec leur nombre, et des pastilles pour ce qui change son allure (en relief, téléphone, inclinaison, au centre, masquée sur téléphone).
+- **Un plan du document** au-dessus du canevas liste les sections, c'est-à-dire chaque grand titre posé en pleine largeur. Un clic sélectionne la section et fait défiler le canevas jusqu'à elle.
+- **Les [crochets] se repèrent** : chaque tuile et chaque section du plan affichent combien de passages entre crochets restent à remplacer, la grille donne le total, l'en-tête d'un livrable porte un badge, et l'aperçu du back-office les surligne (jamais la page que lit le client). Rendre visible au client un livrable qui en contient encore affiche un avertissement.
+
+#### Masquer une zone selon l'écran
+Une zone peut ne pas s'afficher sur téléphone, ou sur ordinateur et tablette : un téléphone décoratif en double, une image trop large pour un petit écran.
+
+#### Régler les espacements
+L'air entre deux lignes de zones se règle pour toute la page (serré, normal, large), et la marge intérieure d'une zone posée sur un fond (compacte, normale, généreuse).
+
 #### Masquer le crédit photo d'une image
 Une image ou une galerie peut ne plus afficher le nom de son auteur sous la photo. Le crédit reste affiché par défaut ; une photo Pexels, dont la licence ne demande rien, peut s'en passer.
 

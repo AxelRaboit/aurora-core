@@ -52,7 +52,9 @@
 {% if zoneAccentCss|trim is not empty %}
     <style>{{ zoneAccentCss|trim|raw }}</style>
 {% endif %}
-<div class="aurora-grid aurora-grid-flush gap-y-8">
+{# The air between rows, chosen once for the page. Written out whole so the
+   stylesheet build sees every class. #}
+<div class="aurora-grid aurora-grid-flush {{ {tight: 'gap-y-4', normal: 'gap-y-8', loose: 'gap-y-16'}[grid.rowGap|default('normal')]|default('gap-y-8') }}">
     {% for zone in grid.zones %}
         {# `data-reveal` sur l'enveloppe et non à l'intérieur : elle contient
            la zone *et* le fond sur lequel elle est posée, donc la carte arrive
@@ -67,8 +69,12 @@
            a card beside a tall phone reads better centred against it. From
            the tablet up only: on a phone every zone has its own row. #}
         {% set valign = {center: 'md:self-center', end: 'md:self-end'}[zone.options.valign|default('stretch')]|default('') %}
+        {# A screen the zone stays off. Phone and tablet-up rather than three
+           sizes: the grid only changes shape once, at `md`. #}
+        {% set hideOn = {phone: 'max-md:hidden', desktop: 'md:hidden'}[zone.options.hideOn|default('none')]|default('') %}
+        {% set cellClass = (zone.anchor|default('') ? 'scroll-mt-24 ' : '') ~ valign ~ ' ' ~ hideOn %}
         <div
-            {% if zone.anchor|default('') or valign %}class="{{ zone.anchor|default('') ? 'scroll-mt-24' : '' }} {{ valign }}"{% endif %}
+            {% if cellClass|trim %}class="{{ cellClass|trim }}"{% endif %}
             {% if zone.anchor|default('') %}id="{{ zone.anchor }}"{% endif %}
             {% if reveal != 'none' %}data-reveal="{{ reveal }}"{% endif %}
             {% if zone.highlight|default(null) %}data-zone-highlight="{{ zone.highlight }}"{% endif %}
@@ -113,7 +119,7 @@
                             {% if childReveal != 'none' %}data-reveal="{{ childReveal }}"{% endif %}
                             {% if child.highlight|default(null) %}data-zone-highlight="{{ child.highlight }}"{% endif %}
                             {% if child.accentColor|default(null) or child.siteAccent|default(false) %}data-zone-accent="{{ child.id }}"{% endif %}
-                            class="min-w-0{{ child.ratio == 'fill' ? ' lg:min-h-0' : '' }}{{ child.anchor|default('') ? ' scroll-mt-24' : '' }}"
+                            class="min-w-0{{ child.ratio == 'fill' ? ' lg:min-h-0' : '' }}{{ child.anchor|default('') ? ' scroll-mt-24' : '' }}{{ {phone: ' max-md:hidden', desktop: ' md:hidden'}[child.options.hideOn|default('none')]|default('') }}"
                             style="{{ child.shareStyle|raw }}{{ child.highlightStyle|default('')|raw }}"
                         >
                             {{ include('Frontend/themes/default/editorial/post/_grid_zone.html.twig', {zone: child, locale: locale}) }}

@@ -26,6 +26,7 @@ import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import AppTab from "@/shared/components/nav/AppTab.vue";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { useTabState } from "@/shared/composables/useTabState.js";
+import { countPlaceholders } from "@/shared/utils/format/placeholders.js";
 import PostGridPanel from "../../../../../Editorial/assets/backend/posts/components/PostGridPanel.vue";
 import DeliverableAppearanceTab from "./components/DeliverableAppearanceTab.vue";
 import DeliverableCopyToSpaceModal from "./components/DeliverableCopyToSpaceModal.vue";
@@ -78,6 +79,9 @@ const backLabel = computed(() =>
         : t("backend.studio.deliverables.back_to_list"),
 );
 const { form, saving, errors, dirty, save, markClean } = useDeliverableEditor(props);
+
+/** The [blanks] still in the document, for the badge in the header and the client toggle. */
+const placeholders = computed(() => countPlaceholders(form.value.gridContent?.zones));
 
 /**
  * Le retour rouvre le rayon où le livrable se trouve maintenant : l'auteur
@@ -265,6 +269,9 @@ const headerActions = computed(() => {
                         ? "backend.studio.deliverables.visible_badge"
                         : "backend.studio.deliverables.hidden_badge") }}
                 </AppBadge>
+                <AppBadge v-if="placeholders" color="amber" :title="t('backend.posts.grid.placeholders_left', { count: placeholders })">
+                    [{{ placeholders }}] {{ t("backend.studio.deliverables.placeholders_badge") }}
+                </AppBadge>
                 <AppPageActions :actions="headerActions" icon-only-on-phone />
                 <AppButton
                     v-if="canEdit"
@@ -354,6 +361,7 @@ const headerActions = computed(() => {
             :with-client="!!space"
             :can-change-scope="canChangeScope"
             :categories="categories"
+            :placeholders="placeholders"
         />
 
         <DeliverableLinksModal :show="showLinks" :links-path="linksPath" v-on:close="showLinks = false" />

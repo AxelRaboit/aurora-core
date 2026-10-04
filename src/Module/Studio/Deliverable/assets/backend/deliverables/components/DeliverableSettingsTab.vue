@@ -39,6 +39,8 @@ const props = defineProps({
     canChangeScope: { type: Boolean, default: false },
     /** Les catégories des livrables de Studio : `{ id, name, color }`. */
     categories: { type: Array, default: () => [] },
+    /** The [blanks] still in the document: a client should not read one. */
+    placeholders: { type: Number, default: 0 },
 });
 
 const SCOPES = ["personal", "shared"];
@@ -171,6 +173,12 @@ const showLogo = computed({
                 :label="t('backend.studio.deliverables.settings.visible')"
                 :hint="t('backend.studio.deliverables.settings.visible_hint')"
             />
+            <p
+                v-if="placeholders"
+                class="m-0 rounded-md bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-400"
+            >
+                {{ t(visibleToClient ? "backend.studio.deliverables.settings.placeholders_visible" : "backend.studio.deliverables.settings.placeholders_hidden", { count: placeholders }) }}
+            </p>
         </section>
 
         <section class="aurora-card space-y-4 p-3 sm:p-5">
