@@ -5,6 +5,13 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [1.7.1] - 2026-10-04
+
+### Modifié
+
+#### Une description de menu plus courte pour les livrables de Studio
+L'entrée « Livrables » du menu disait « sans espace client » : le menu n'a pas à expliquer ce que le module n'est pas. Elle dit maintenant « Les documents que vous écrivez, pour vous ou pour l'équipe », dans les trois langues.
+
 ## [1.7.0] - 2026-10-04
 
 ### Ajouté
