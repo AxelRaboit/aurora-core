@@ -57,6 +57,9 @@ Sur téléphone, « Retour à l'espace » en tête d'un livrable ou d'une public
 
 ### Corrigé
 
+#### Les pages d'erreur aux couleurs du thème
+Les pages 404, 500 et 503 portaient l'accent vert par défaut de la feuille de style, quel que soit le thème du site. Elles prennent maintenant le fond, le texte, l'accent et la police du thème actif. Si le thème ne peut pas être lu, par exemple quand la base est justement ce qui a échoué, la page s'affiche quand même avec ses couleurs neutres.
+
 #### L'aperçu de l'éditeur montre les listes
 L'aperçu de la grille, dans l'éditeur d'une publication ou d'un livrable, rendait la grille sous sa forme d'éditeur : une zone de liste n'y apparaissait pas (et l'aperçu échouait en développement). Il rend maintenant la page telle qu'elle sera lue.
 

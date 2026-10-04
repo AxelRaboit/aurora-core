@@ -6,6 +6,8 @@ namespace Aurora\Tests\Integration\Service;
 
 use Aurora\Tests\Integration\IntegrationTestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Twig\Environment;
 
 /**
@@ -36,12 +38,30 @@ final class ErrorTemplateResolutionTest extends IntegrationTestCase
     #[DataProvider('templateProvider')]
     public function testTheErrorPageResolves(string $template): void
     {
-        $twig = static::getContainer()->get(Environment::class);
+        $twig = self::getContainer()->get(Environment::class);
         self::assertInstanceOf(Environment::class, $twig);
 
         self::assertTrue(
             $twig->getLoader()->exists($template),
             sprintf('"%s" does not resolve, so production falls back to Symfony\'s bare error page.', $template),
         );
+    }
+
+    /**
+     * Rendered, each page carries the theme's styles and the `data-theme`
+     * they are scoped to - not the stylesheet's default green.
+     */
+    #[DataProvider('templateProvider')]
+    public function testTheErrorPageWearsTheTheme(string $template): void
+    {
+        $twig = self::getContainer()->get(Environment::class);
+        self::assertInstanceOf(Environment::class, $twig);
+
+        // The pages read the request's locale; a test has no request of its own.
+        self::getContainer()->get(RequestStack::class)->push(Request::create('/'));
+        $html = $twig->render($template, ['status_code' => 404, 'status_text' => 'Not Found']);
+
+        self::assertStringContainsString('data-theme', $html);
+        self::assertStringContainsString('--th-accent-500', $html);
     }
 }
