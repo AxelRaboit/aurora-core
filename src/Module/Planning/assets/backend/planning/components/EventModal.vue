@@ -51,6 +51,8 @@ const props = defineProps({
     currentUserId: { type: [Number, null], default: null },
     errors: { type: Object, default: () => ({}) },
     saving: { type: Boolean, default: false },
+    /** `planning.events.delete`: without it, no delete button. */
+    canDelete: { type: Boolean, default: true },
 });
 
 const emit = defineEmits(["close", "edit", "save", "delete", "respond"]);
@@ -612,7 +614,7 @@ const when = computed(() => {
         <template #footer>
             <AppModalFooter>
                 <template v-if="event && !editing">
-                    <AppButton v-if="!event.readOnly" variant="ghost" size="md" v-on:click="emit('delete', event)">
+                    <AppButton v-if="!(event.lockedBySource ?? event.readOnly) && canDelete" variant="ghost" size="md" v-on:click="emit('delete', event)">
                         <Trash2 class="w-4 h-4" :stroke-width="2" /> {{ t("shared.common.delete") }}
                     </AppButton>
                     <AppButton v-if="!event.readOnly" variant="primary" size="md" v-on:click="emit('edit', event)">
