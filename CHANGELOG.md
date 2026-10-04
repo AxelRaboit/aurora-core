@@ -5,6 +5,13 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [1.8.2] - 2026-10-04
+
+### Modifié
+
+#### Le crédit de pied de page renvoie vers axelraboit.fr
+Le lien du crédit « Aurora by axelraboit » en pied des pages publiques pointait vers le dépôt GitHub du moteur ; il renvoie désormais vers axelraboit.fr.
+
 ## [1.8.1] - 2026-10-04
 
 ### Corrigé
