@@ -1,404 +1,415 @@
 shared:
-  thread:
-    title: Échanges
-    empty: Aucun message pour le moment.
-    placeholder: Écrire un message…
-    send: Envoyer
-    from_client: client
-    verdict:
-      approved: '{who} a validé'
-      changes_requested: '{who} a demandé une reprise'
-  space_information:
-    siret: SIRET
-    siren: SIREN
-    phone: Téléphone portable
-    landline: Téléphone fixe
-    email: Email
-    postal_address: Adresse postale
-    links: Liens
-    notes: Informations diverses
-    empty: Cette fiche est encore vide.
-    empty_hint: "Il n'y a rien d'autre à y lire que le nom de la société."
-  space_resources:
-    kinds:
-      link: Lien
-      text: Texte
-      contact: Contact
-  space_chat:
-    title: Discussion
-    empty: "Aucun message. C'est ici que se dit ce qui ne tient pas sur une fiche : le brief du mois, une campagne qui bouge, une question rapide."
-    placeholder: Écrire un message…
-    shortcut_hint: "Entrée pour envoyer, Maj+Entrée pour aller à la ligne"
-    send: Envoyer
-    from_client: client
-    deleted: Message supprimé
-    live: en direct
-    reconnecting: reconnexion…
-    channels:
-      label: Canaux
-      new: Nouveau canal
-      new_hint: "Un canal porte un nom et une audience. Les deux se changent ensuite depuis ses réglages."
-      new_open_to_client: Ouvrir ce canal au client
-      new_open_to_client_hint: "Toute personne qui détient un lien d'accès à cet espace lira ce canal."
-      new_internal_hint: "Le canal reste entre vous. Le client ne le voit pas, et n'en connaît ni le nom ni l'existence."
-      name_placeholder: Nom du canal
-      name_example: "ex. : Le mois prochain"
-      create: Ouvrir
-      cancel: Annuler
-      rename: Renommer
-      delete: Supprimer le canal
-      delete_confirm: "Supprimer ce canal ? Ses messages partent avec lui."
-      internal: interne
-      client_reads: lu par le client
-      open_to_client: Ouvrir au client
-      close_to_client: Fermer au client
-      invite: Ajouter quelqu'un
-      notice_internal: "Canal interne : le client ne le lit pas."
-      notice_direct: "Conversation privée : personne d'autre ne la lit."
-      participants: "Participants"
-      everybody: "Tout le monde, le client compris."
-      audience: "Qui le lit"
-      audience_open: "Le client lit ce canal."
-      audience_internal: "Ce canal reste entre vous."
-      hide: "Retirer la conversation"
-      hide_hint: "Elle disparaît de votre liste. Rien n'est effacé, l'autre la voit toujours, et la rouvrir vous rend tout l'historique."
-      nobody_left: "Il n'y a personne d'autre à ajouter."
-      pick_direct: "Parler à quelqu'un"
-      pick_invite: "Ajouter au canal"
-      older: "Charger les messages précédents"
-      room_settings: "Réglages du salon"
-      directs: Messages privés
-      new_direct: Nouvelle conversation
-      invited: Ajouté au canal
-      uninvite: Retirer du canal
-      uninvited: Retiré du canal
-      members: 'Personne | 1 personne | {count} personnes'
-  attachments:
-    title: Fichiers
-    empty: Aucun fichier pour le moment.
-    add: Ajouter un fichier
-    pick: Choisir dans la GED
-    pick_drive: Depuis le Drive
-    drop: Déposez un fichier ici
-    remove: Retirer de la fiche
-    remove_confirm: Retirer ce fichier de la fiche ? Il reste dans la GED.
-    open: Ouvrir le fichier
-    count: 'Aucun fichier | 1 fichier | {count} fichiers'
-  palette:
-    no_colour: Aucune couleur
-    colour_slot: 'Couleur {slot}'
-  placeholders:
-    name: Un nom court
-    title: Un titre court
-    slug: titre-de-la-page
-    description: Une phrase pour situer.
-    email: prenom.nom@exemple.fr
-    password: 8 caractères minimum
-    url: https://exemple.fr/page
-    search: Rechercher…
-    one_per_line: Une valeur par ligne
-    value: Saisir une valeur
-  drop_zone:
-    cta: Glissez un fichier ici, ou cliquez pour parcourir
-    drop: Déposez pour téléverser
-    uploading: Téléversement…
-  media:
-    choose: Choisir une image
-    change: Changer
-    remove: Retirer
-    focal_pick: Cliquez sur l'image pour choisir le point de recadrage
-    focal_inherited: Point hérité du document
-    focal_reset: Revenir au point du document
-    upload: Parcourir
-    uploading: Import en cours
-    upload_failed: L'import a échoué.
-  locale_switcher: Choix de la langue
-  main_menu: Menu principal
-  menu_parent_page: Voir cette page
-  errors:
-    page_not_found:
-      title: Page introuvable
-      message: La page que vous cherchez n'existe pas ou a été déplacée.
-      back: Retour à l'accueil
-    server_error:
-      title: Une erreur est survenue
-      message: Le serveur a rencontré un problème inattendu. Notre équipe a été notifiée. Veuillez réessayer dans quelques instants.
-      back: Retour à l'accueil
-    maintenance:
-      title: Site en maintenance
-      message: Le site est momentanément fermé pour maintenance. Merci de revenir dans quelques instants.
-  actions:
-    plain_title: Actions
-    title: "Actions : {name}"
-    open: "Actions pour {name}"
-  chart:
-    share: "{count} sur {total} ({percent} %)"
-  common:
-    help: Aide
-    list_view: Vue liste
-    grid_view: Vue cartes
-    search: Rechercher
-    selected: sélectionnés
-    pagination: 'Page {page} sur {totalPages}'
-    built_with: '© {year} {siteName}'
-    save: Enregistrer
-    cancel: Annuler
-    delete: Supprimer
-    edit: Modifier
-    create: Créer
-    add: Ajouter
-    loading: Chargement…
-    confirm: Confirmer
-    refresh: Actualiser
-    error: Une erreur est survenue.
-    saved: Enregistré.
-    deleted: Supprimé.
-    previous: Précédent
-    autosave:
-      pending: Modifications non enregistrées
-      saving: Enregistrement…
-      saved: Enregistré
-      error: Échec de l'enregistrement
-      last_saved: 'Enregistré {time}'
-    actions: Actions
-    status: Statut
-    or: ou
-    name: Nom
-    description: Description
-    view: Voir
-    close: Fermer
-    back: Retour
-    expand: Déplier
-    collapse: Replier
-    select_placeholder: Sélectionner…
-    no_options: Aucun élément disponible
-    add_tag_hint: Ajouter une étiquette…
-    no_result: Aucun résultat
-    select_selected: Sélectionné
-    download: Télécharger
-    qr_code: QR Code
-    download_qr: Télécharger le QR Code
-    copied: Copié.
-    copy: Copier
-    dates: Dates
-    created: Créé le
-    updated: Modifié le
-    reset: Réinitialiser
-    select_to_remove: Appuyez sur Entrée pour retirer
-    remove: Retirer
-    all: Tous
-    load_more: Charger plus
-    next: Suivant
-  reveal:
-    more: '1 de plus | {count} de plus'
-  pagination:
-    previous: Précédent
-    next: Suivant
-    results: '{from} à {to} sur {total} résultats'
-  comment:
-    title: Commentaires
-    form_title: Laisser un commentaire
-    name: Nom
-    email: Email
-    content: Commentaire
-    submit: Envoyer
-    success: Votre commentaire a été soumis et est en attente de modération.
-    empty: Aucun commentaire pour le moment.
-    reply: Répondre
-    react: Réagir
-  form:
-    signature_pad:
-      clear: 'Effacer'
-      hint: 'Signez avec le doigt, la souris ou un stylet.'
-    submit: Envoyer
-    submitting: Envoi en cours…
-    next: Suivant
-    prev: Retour
-    success: 'Merci, votre message a bien été envoyé !'
-    error: Une erreur est survenue. Veuillez réessayer.
-    field_required: Ce champ est obligatoire.
-    select_placeholder: Choisir…
-  locales:
-    fr: Français
-    en: English
-    es: Español
-    de: Deutsch
-  image_cropper:
-    title: Recadrer l'image
-    apply: Appliquer le recadrage
-    cropped: Image recadrée
+    categories:
+        name: "Nom de la catégorie"
+        new_placeholder: "Nouvelle catégorie, par exemple Audit"
+        add: "Ajouter"
+        created: "Catégorie créée."
+        saved: "Catégorie enregistrée."
+        deleted: "Catégorie supprimée."
+        move_up: "Monter"
+        move_down: "Descendre"
+        empty: "Aucune catégorie pour l'instant."
+        delete_confirm: "Supprimer « {name} » ? Ce qui y était rangé reste, sans catégorie."
+    thread:
+        title: Échanges
+        empty: Aucun message pour le moment.
+        placeholder: Écrire un message…
+        send: Envoyer
+        from_client: client
+        verdict:
+            approved: '{who} a validé'
+            changes_requested: '{who} a demandé une reprise'
+    space_information:
+        siret: SIRET
+        siren: SIREN
+        phone: Téléphone portable
+        landline: Téléphone fixe
+        email: Email
+        postal_address: Adresse postale
+        links: Liens
+        notes: Informations diverses
+        empty: Cette fiche est encore vide.
+        empty_hint: "Il n'y a rien d'autre à y lire que le nom de la société."
+    space_resources:
+        kinds:
+            link: Lien
+            text: Texte
+            contact: Contact
+    space_chat:
+        title: Discussion
+        empty: "Aucun message. C'est ici que se dit ce qui ne tient pas sur une fiche : le brief du mois, une campagne qui bouge, une question rapide."
+        placeholder: Écrire un message…
+        shortcut_hint: "Entrée pour envoyer, Maj+Entrée pour aller à la ligne"
+        send: Envoyer
+        from_client: client
+        deleted: Message supprimé
+        live: en direct
+        reconnecting: reconnexion…
+        channels:
+            label: Canaux
+            new: Nouveau canal
+            new_hint: "Un canal porte un nom et une audience. Les deux se changent ensuite depuis ses réglages."
+            new_open_to_client: Ouvrir ce canal au client
+            new_open_to_client_hint: "Toute personne qui détient un lien d'accès à cet espace lira ce canal."
+            new_internal_hint: "Le canal reste entre vous. Le client ne le voit pas, et n'en connaît ni le nom ni l'existence."
+            name_placeholder: Nom du canal
+            name_example: "ex. : Le mois prochain"
+            create: Ouvrir
+            cancel: Annuler
+            rename: Renommer
+            delete: Supprimer le canal
+            delete_confirm: "Supprimer ce canal ? Ses messages partent avec lui."
+            internal: interne
+            client_reads: lu par le client
+            open_to_client: Ouvrir au client
+            close_to_client: Fermer au client
+            invite: Ajouter quelqu'un
+            notice_internal: "Canal interne : le client ne le lit pas."
+            notice_direct: "Conversation privée : personne d'autre ne la lit."
+            participants: "Participants"
+            everybody: "Tout le monde, le client compris."
+            audience: "Qui le lit"
+            audience_open: "Le client lit ce canal."
+            audience_internal: "Ce canal reste entre vous."
+            hide: "Retirer la conversation"
+            hide_hint: "Elle disparaît de votre liste. Rien n'est effacé, l'autre la voit toujours, et la rouvrir vous rend tout l'historique."
+            nobody_left: "Il n'y a personne d'autre à ajouter."
+            pick_direct: "Parler à quelqu'un"
+            pick_invite: "Ajouter au canal"
+            older: "Charger les messages précédents"
+            room_settings: "Réglages du salon"
+            directs: Messages privés
+            new_direct: Nouvelle conversation
+            invited: Ajouté au canal
+            uninvite: Retirer du canal
+            uninvited: Retiré du canal
+            members: 'Personne | 1 personne | {count} personnes'
+    attachments:
+        title: Fichiers
+        empty: Aucun fichier pour le moment.
+        add: Ajouter un fichier
+        pick: Choisir dans la GED
+        pick_drive: Depuis le Drive
+        drop: Déposez un fichier ici
+        remove: Retirer de la fiche
+        remove_confirm: Retirer ce fichier de la fiche ? Il reste dans la GED.
+        open: Ouvrir le fichier
+        count: 'Aucun fichier | 1 fichier | {count} fichiers'
+    palette:
+        no_colour: Aucune couleur
+        colour_slot: 'Couleur {slot}'
+    placeholders:
+        name: Un nom court
+        title: Un titre court
+        slug: titre-de-la-page
+        description: Une phrase pour situer.
+        email: prenom.nom@exemple.fr
+        password: 8 caractères minimum
+        url: https://exemple.fr/page
+        search: Rechercher…
+        one_per_line: Une valeur par ligne
+        value: Saisir une valeur
+    drop_zone:
+        cta: Glissez un fichier ici, ou cliquez pour parcourir
+        drop: Déposez pour téléverser
+        uploading: Téléversement…
+    media:
+        choose: Choisir une image
+        change: Changer
+        remove: Retirer
+        focal_pick: Cliquez sur l'image pour choisir le point de recadrage
+        focal_inherited: Point hérité du document
+        focal_reset: Revenir au point du document
+        upload: Parcourir
+        uploading: Import en cours
+        upload_failed: L'import a échoué.
+    locale_switcher: Choix de la langue
+    main_menu: Menu principal
+    menu_parent_page: Voir cette page
+    errors:
+        page_not_found:
+            title: Page introuvable
+            message: La page que vous cherchez n'existe pas ou a été déplacée.
+            back: Retour à l'accueil
+        server_error:
+            title: Une erreur est survenue
+            message: Le serveur a rencontré un problème inattendu. Notre équipe a été notifiée. Veuillez réessayer dans quelques instants.
+            back: Retour à l'accueil
+        maintenance:
+            title: Site en maintenance
+            message: Le site est momentanément fermé pour maintenance. Merci de revenir dans quelques instants.
+    actions:
+        plain_title: Actions
+        title: "Actions : {name}"
+        open: "Actions pour {name}"
+    chart:
+        share: "{count} sur {total} ({percent} %)"
+    common:
+        help: Aide
+        list_view: Vue liste
+        grid_view: Vue cartes
+        search: Rechercher
+        selected: sélectionnés
+        pagination: 'Page {page} sur {totalPages}'
+        built_with: '© {year} {siteName}'
+        save: Enregistrer
+        cancel: Annuler
+        delete: Supprimer
+        edit: Modifier
+        create: Créer
+        add: Ajouter
+        loading: Chargement…
+        confirm: Confirmer
+        refresh: Actualiser
+        error: Une erreur est survenue.
+        saved: Enregistré.
+        deleted: Supprimé.
+        previous: Précédent
+        autosave:
+            pending: Modifications non enregistrées
+            saving: Enregistrement…
+            saved: Enregistré
+            error: Échec de l'enregistrement
+            last_saved: 'Enregistré {time}'
+        actions: Actions
+        status: Statut
+        or: ou
+        name: Nom
+        description: Description
+        view: Voir
+        close: Fermer
+        back: Retour
+        expand: Déplier
+        collapse: Replier
+        select_placeholder: Sélectionner…
+        no_options: Aucun élément disponible
+        add_tag_hint: Ajouter une étiquette…
+        no_result: Aucun résultat
+        select_selected: Sélectionné
+        download: Télécharger
+        qr_code: QR Code
+        download_qr: Télécharger le QR Code
+        copied: Copié.
+        copy: Copier
+        dates: Dates
+        created: Créé le
+        updated: Modifié le
+        reset: Réinitialiser
+        select_to_remove: Appuyez sur Entrée pour retirer
+        remove: Retirer
+        all: Tous
+        load_more: Charger plus
+        next: Suivant
+    reveal:
+        more: '1 de plus | {count} de plus'
+    pagination:
+        previous: Précédent
+        next: Suivant
+        results: '{from} à {to} sur {total} résultats'
+    comment:
+        title: Commentaires
+        form_title: Laisser un commentaire
+        name: Nom
+        email: Email
+        content: Commentaire
+        submit: Envoyer
+        success: Votre commentaire a été soumis et est en attente de modération.
+        empty: Aucun commentaire pour le moment.
+        reply: Répondre
+        react: Réagir
+    form:
+        signature_pad:
+            clear: 'Effacer'
+            hint: 'Signez avec le doigt, la souris ou un stylet.'
+        submit: Envoyer
+        submitting: Envoi en cours…
+        next: Suivant
+        prev: Retour
+        success: 'Merci, votre message a bien été envoyé !'
+        error: Une erreur est survenue. Veuillez réessayer.
+        field_required: Ce champ est obligatoire.
+        select_placeholder: Choisir…
+    locales:
+        fr: Français
+        en: English
+        es: Español
+        de: Deutsch
+    image_cropper:
+        title: Recadrer l'image
+        apply: Appliquer le recadrage
+        cropped: Image recadrée
 
 # Editor.js - clés partagées par tous les modules consommateurs de
 # AppBlockEditor. Les libellés des outils spécifiques à un module,
 # injectés via `extraTools`, restent dans son propre messages.fr.yaml.
 backend:
-  help:
-    storage:
-      delivery_mode:
-        title: Comment les fichiers sont servis
-        intro: "Ce choix ne change pas où vos fichiers sont stockés, seulement le chemin qu'ils empruntent pour arriver au visiteur."
-        address_title: L'adresse ne change jamais
-        address_body: "Quel que soit le mode, l'adresse d'un document reste la même. Un lien collé dans un article, un courriel ou un autre site continue de fonctionner si vous changez d'avis plus tard."
-        proxy_title: Par l'application
-        proxy_body: "Les octets passent par votre serveur avant d'atteindre le visiteur. C'est le plus simple, et vos règles d'accès continuent de s'appliquer : un document en brouillon reste invisible. En contrepartie, votre serveur fait le travail à chaque téléchargement."
-        presigned_title: Par lien signé temporaire
-        presigned_body: "L'application fabrique un lien valable quelques minutes et renvoie le visiteur dessus. Les octets vont directement du stockage à son navigateur, sans passer par votre serveur, et les fichiers restent privés. Le lien expire, donc il ne peut pas être partagé durablement."
-        public_url_title: Par le domaine public
-        public_url_body: "Les fichiers sont servis par le domaine que vous avez branché sur le compartiment, et mis en cache au plus près du visiteur. C'est le plus rapide. En revanche, quiconque connaît l'adresse d'un fichier peut le lire, y compris un document que vous pensiez réservé."
-        choosing_title: Lequel prendre
-        choosing_body: "Restez sur « par l'application » tant que rien ne vous gêne. Passez au lien signé si votre serveur peine sur de gros fichiers. Ne prenez le domaine public que pour des fichiers dont la lecture par n'importe qui ne pose aucun problème."
-      connection:
-        title: La connexion au stockage distant
-        what_is_tested_title: Ce que le test vérifie
-        what_is_tested_body: "Il écrit un vrai fichier témoin dans le compartiment, le relit, vérifie qu'il apparaît dans la liste, puis le supprime. Quatre champs remplis ne prouvent rien : seule une écriture réelle montre que le jeton a le droit d'écrire."
-        what_is_stored_title: Ce qui est enregistré
-        what_is_stored_body: "L'adresse du compte, le compartiment et les deux clés, ces dernières chiffrées. Elles ne vous sont jamais réaffichées : les champs indiquent seulement qu'une valeur existe."
-        disconnecting_title: Se débrancher
-        disconnecting_body: "Le bouton « Débrancher le stockage » efface les deux clés, oublie l'adresse et le compartiment, annule la vérification et ramène les nouveaux fichiers sur le disque du serveur. Les documents déjà déposés sur le stockage distant y restent : rapatriez-les avant, sinon ils deviendront inaccessibles."
-  nav:
-    sections:
-      general: Général
-      platform: Plateforme
-      media: Médiathèque
-      configuration: Configuration
-      dev: Administration
-      account: Compte
-    go_back: Page précédente
-    go_forward: Page suivante
-    hard_reload: Recharger en vidant les caches
-    expand_menu: Afficher le menu
-    collapse_menu: Masquer le menu
-    administration: Accès développeur
-    administration_description: "Outils techniques : audit, requêtes d'accès, permissions, modules et points de montage."
-    dashboard: Tableau de bord
-    dashboard_description: "Vue d'ensemble de l'activité récente et des indicateurs clés du site."
-    media: Médias
-    media_description: "Bibliothèque centralisée des images, vidéos et fichiers réutilisables."
-    profile: Mon profil
-    settings: Réglages
-    settings_description: "Réglages globaux de l'application et préférences par défaut."
-    themes: Thèmes
-    themes_description: "Habiller le site : couleurs, logo et favicon."
-    trash: Corbeille
-    trash_description: "Ce qui a été supprimé dans chaque module, et le temps qu'il lui reste."
-    users: Utilisateurs
-    users_description: "Gérer les comptes, leurs rôles et le détail de leurs privilèges."
-    resize_hint: Glisser pour redimensionner, double-clic pour réinitialiser
-    filter_nav: Filtrer le menu…
-    breadcrumb: Fil d'Ariane
-    show_descriptions: Afficher les descriptions
-    filter_nav_empty: Aucun élément trouvé
-    view_site: Voir le site
-    counts:
-      terms: '{0}Aucun terme|{1}Un terme|]1,Inf[%count% termes'
-      fields: '{0}Aucun champ|{1}Un champ|]1,Inf[%count% champs'
-      posts: '{0}Aucune publication|{1}Une publication|]1,Inf[%count% publications'
-    back_to_modules: Tous les modules
-    back_to_module: "Revenir à {module}"
-    logout: Déconnexion
-    light_mode: Mode clair
-    dark_mode: Mode sombre
-  editor:
-    placeholder: Commencez à rédiger…
-    tool_names:
-      text: Texte
-      heading: Titre
-      list: Liste
-      ordered_list: Liste ordonnée
-      unordered_list: Liste non ordonnée
-      checklist: Liste de cases
-      quote: Citation
-      code: Code
-      delimiter: Séparateur
-      raw: HTML brut
-      table: Tableau
-      image: Image
-      embed: Intégration
-      marker: Marqueur
-      inline_code: Code inline
-      underline: Souligné
-      strikethrough: Barré
-      text_color: Couleur du texte
-      text_background: Couleur de fond
-      font_size: Taille du texte
-      clear_formatting: Effacer le formatage
-      callout: "Encadré"
-      media_text: Image + Texte
-      two_column: 2 Colonnes
-    ui:
-      block_tunes:
-        toggler:
-          Click to tune: Configurer
-          or drag to move: ou glisser pour déplacer
-      inline_toolbar:
-        converter:
-          Convert to: Convertir en
-      toolbar:
-        toolbox:
-          Add: Ajouter
-      popover:
-        Filter: Filtrer
-        Nothing found: Aucun résultat
-        nothing_found_extended: Aucun résultat. Essayez un autre terme.
-    block_tunes:
-      delete:
-        Delete: Supprimer
-        Click to delete: Cliquez pour supprimer
-      move_up:
-        Move up: Déplacer vers le haut
-      move_down:
-        Move down: Déplacer vers le bas
-    image:
-      caption_placeholder: Légende…
-    raw:
-      placeholder: "HTML brut. Les scripts, les gestionnaires d'événements et les cadres vers un hôte non autorisé sont retirés à l'affichage."
-    quote:
-      placeholder: Citation…
-      caption_placeholder: Auteur…
-    media_text:
-      flip_left: ⇄ Image à gauche
-      flip_right: ⇄ Image à droite
-      caption_placeholder: Légende…
-      text_placeholder: Votre texte…
-      url_placeholder: URL de l'image…
-      change_url: Changer l'URL
-      confirm: Valider
-      browse: Parcourir
-      actions: Actions
-      or: ou
-    media_picker:
-      title: Choisir un média
-      search: Rechercher par nom ou alt…
-      all_folders: Tous les dossiers
-      empty: Aucun média trouvé
-      loading: Chargement…
-      select: Sélectionner
-    callout:
-      title_placeholder: Titre…
-      message_placeholder: Message…
-      no_icon: "Sans icône"
-      types:
-        info: "Info"
-        success: "Succès"
-        warning: "Attention"
-        danger: "Danger"
-        tip: "Astuce"
-        note: "Note"
-        question: "Question"
-        important: "Important"
-        update: "Mise à jour"
-        rose: "Rose"
-        accent: "Couleur du thème"
-        lime: "Vert clair"
-        amber: "Ambre"
-        fuchsia: "Fuchsia"
-      icons:
-        info: "Information"
-        check-circle: "Validé"
-        alert-triangle: "Alerte"
-        clock: "Horloge"
-        calendar: "Calendrier"
-        star: "Étoile"
-        lightbulb: "Idée"
-        message-circle: "Message"
-        pause-circle: "Pause"
+    help:
+        storage:
+            delivery_mode:
+                title: Comment les fichiers sont servis
+                intro: "Ce choix ne change pas où vos fichiers sont stockés, seulement le chemin qu'ils empruntent pour arriver au visiteur."
+                address_title: L'adresse ne change jamais
+                address_body: "Quel que soit le mode, l'adresse d'un document reste la même. Un lien collé dans un article, un courriel ou un autre site continue de fonctionner si vous changez d'avis plus tard."
+                proxy_title: Par l'application
+                proxy_body: "Les octets passent par votre serveur avant d'atteindre le visiteur. C'est le plus simple, et vos règles d'accès continuent de s'appliquer : un document en brouillon reste invisible. En contrepartie, votre serveur fait le travail à chaque téléchargement."
+                presigned_title: Par lien signé temporaire
+                presigned_body: "L'application fabrique un lien valable quelques minutes et renvoie le visiteur dessus. Les octets vont directement du stockage à son navigateur, sans passer par votre serveur, et les fichiers restent privés. Le lien expire, donc il ne peut pas être partagé durablement."
+                public_url_title: Par le domaine public
+                public_url_body: "Les fichiers sont servis par le domaine que vous avez branché sur le compartiment, et mis en cache au plus près du visiteur. C'est le plus rapide. En revanche, quiconque connaît l'adresse d'un fichier peut le lire, y compris un document que vous pensiez réservé."
+                choosing_title: Lequel prendre
+                choosing_body: "Restez sur « par l'application » tant que rien ne vous gêne. Passez au lien signé si votre serveur peine sur de gros fichiers. Ne prenez le domaine public que pour des fichiers dont la lecture par n'importe qui ne pose aucun problème."
+            connection:
+                title: La connexion au stockage distant
+                what_is_tested_title: Ce que le test vérifie
+                what_is_tested_body: "Il écrit un vrai fichier témoin dans le compartiment, le relit, vérifie qu'il apparaît dans la liste, puis le supprime. Quatre champs remplis ne prouvent rien : seule une écriture réelle montre que le jeton a le droit d'écrire."
+                what_is_stored_title: Ce qui est enregistré
+                what_is_stored_body: "L'adresse du compte, le compartiment et les deux clés, ces dernières chiffrées. Elles ne vous sont jamais réaffichées : les champs indiquent seulement qu'une valeur existe."
+                disconnecting_title: Se débrancher
+                disconnecting_body: "Le bouton « Débrancher le stockage » efface les deux clés, oublie l'adresse et le compartiment, annule la vérification et ramène les nouveaux fichiers sur le disque du serveur. Les documents déjà déposés sur le stockage distant y restent : rapatriez-les avant, sinon ils deviendront inaccessibles."
+    nav:
+        sections:
+            general: Général
+            platform: Plateforme
+            media: Médiathèque
+            configuration: Configuration
+            dev: Administration
+            account: Compte
+        go_back: Page précédente
+        go_forward: Page suivante
+        hard_reload: Recharger en vidant les caches
+        expand_menu: Afficher le menu
+        collapse_menu: Masquer le menu
+        administration: Accès développeur
+        administration_description: "Outils techniques : audit, requêtes d'accès, permissions, modules et points de montage."
+        dashboard: Tableau de bord
+        dashboard_description: "Vue d'ensemble de l'activité récente et des indicateurs clés du site."
+        media: Médias
+        media_description: "Bibliothèque centralisée des images, vidéos et fichiers réutilisables."
+        profile: Mon profil
+        settings: Réglages
+        settings_description: "Réglages globaux de l'application et préférences par défaut."
+        themes: Thèmes
+        themes_description: "Habiller le site : couleurs, logo et favicon."
+        trash: Corbeille
+        trash_description: "Ce qui a été supprimé dans chaque module, et le temps qu'il lui reste."
+        users: Utilisateurs
+        users_description: "Gérer les comptes, leurs rôles et le détail de leurs privilèges."
+        resize_hint: Glisser pour redimensionner, double-clic pour réinitialiser
+        filter_nav: Filtrer le menu…
+        breadcrumb: Fil d'Ariane
+        show_descriptions: Afficher les descriptions
+        filter_nav_empty: Aucun élément trouvé
+        view_site: Voir le site
+        counts:
+            terms: '{0}Aucun terme|{1}Un terme|]1,Inf[%count% termes'
+            fields: '{0}Aucun champ|{1}Un champ|]1,Inf[%count% champs'
+            posts: '{0}Aucune publication|{1}Une publication|]1,Inf[%count% publications'
+        back_to_modules: Tous les modules
+        back_to_module: "Revenir à {module}"
+        logout: Déconnexion
+        light_mode: Mode clair
+        dark_mode: Mode sombre
+    editor:
+        placeholder: Commencez à rédiger…
+        tool_names:
+            text: Texte
+            heading: Titre
+            list: Liste
+            ordered_list: Liste ordonnée
+            unordered_list: Liste non ordonnée
+            checklist: Liste de cases
+            quote: Citation
+            code: Code
+            delimiter: Séparateur
+            raw: HTML brut
+            table: Tableau
+            image: Image
+            embed: Intégration
+            marker: Marqueur
+            inline_code: Code inline
+            underline: Souligné
+            strikethrough: Barré
+            text_color: Couleur du texte
+            text_background: Couleur de fond
+            font_size: Taille du texte
+            clear_formatting: Effacer le formatage
+            callout: "Encadré"
+            media_text: Image + Texte
+            two_column: 2 Colonnes
+        ui:
+            block_tunes:
+                toggler:
+                    Click to tune: Configurer
+                    or drag to move: ou glisser pour déplacer
+            inline_toolbar:
+                converter:
+                    Convert to: Convertir en
+            toolbar:
+                toolbox:
+                    Add: Ajouter
+            popover:
+                Filter: Filtrer
+                Nothing found: Aucun résultat
+                nothing_found_extended: Aucun résultat. Essayez un autre terme.
+        block_tunes:
+            delete:
+                Delete: Supprimer
+                Click to delete: Cliquez pour supprimer
+            move_up:
+                Move up: Déplacer vers le haut
+            move_down:
+                Move down: Déplacer vers le bas
+        image:
+            caption_placeholder: Légende…
+        raw:
+            placeholder: "HTML brut. Les scripts, les gestionnaires d'événements et les cadres vers un hôte non autorisé sont retirés à l'affichage."
+        quote:
+            placeholder: Citation…
+            caption_placeholder: Auteur…
+        media_text:
+            flip_left: ⇄ Image à gauche
+            flip_right: ⇄ Image à droite
+            caption_placeholder: Légende…
+            text_placeholder: Votre texte…
+            url_placeholder: URL de l'image…
+            change_url: Changer l'URL
+            confirm: Valider
+            browse: Parcourir
+            actions: Actions
+            or: ou
+        media_picker:
+            title: Choisir un média
+            search: Rechercher par nom ou alt…
+            all_folders: Tous les dossiers
+            empty: Aucun média trouvé
+            loading: Chargement…
+            select: Sélectionner
+        callout:
+            title_placeholder: Titre…
+            message_placeholder: Message…
+            no_icon: "Sans icône"
+            types:
+                info: "Info"
+                success: "Succès"
+                warning: "Attention"
+                danger: "Danger"
+                tip: "Astuce"
+                note: "Note"
+                question: "Question"
+                important: "Important"
+                update: "Mise à jour"
+                rose: "Rose"
+                accent: "Couleur du thème"
+                lime: "Vert clair"
+                amber: "Ambre"
+                fuchsia: "Fuchsia"
+            icons:
+                info: "Information"
+                check-circle: "Validé"
+                alert-triangle: "Alerte"
+                clock: "Horloge"
+                calendar: "Calendrier"
+                star: "Étoile"
+                lightbulb: "Idée"
+                message-circle: "Message"
+                pause-circle: "Pause"

@@ -10,8 +10,9 @@
  * Duplicating is a row action rather than a button inside the deck, because
  * "start from this one" is decided while looking at the list.
  */
+import AppCategoriesModal from "@/shared/components/category/AppCategoriesModal.vue";
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
@@ -37,6 +38,7 @@ import {
     Plus,
     Presentation,
     Save,
+    Tags,
     Trash2,
     X,
 } from "lucide-vue-next";
@@ -59,12 +61,15 @@ const props = defineProps({
     categoryCreatePath: { type: String, required: true },
     categoryUpdatePath: { type: String, required: true },
     categoryDeletePath: { type: String, required: true },
+    categoryReorderPath: { type: String, default: "" },
 });
 
 const {
     search,
     categoryFilter,
     filteredItems,
+    categories,
+    applyCategories,
     categoryOptions,
     customerOptions,
     templateOptions,
@@ -151,26 +156,40 @@ function actionsFor(deck) {
  * Creating comes first and carries the accent: it is what somebody arriving on
  * an empty list is looking for.
  */
+/** La fenêtre de gestion des catégories. */
+const managingCategories = ref(false);
+
 const pageActions = computed(() => {
-    if (!can("studio.decks.create")) {
-        return [];
+    const actions = [];
+    if (can("studio.decks.create")) {
+        actions.push(
+            {
+                key: "create",
+                color: "accent",
+                icon: Plus,
+                title: t("backend.studio.decks.create"),
+                onSelect: openCreate,
+            },
+            {
+                key: "import",
+                icon: FileInput,
+                title: t("backend.studio.decks.import"),
+                onSelect: openImport,
+            },
+        );
+    }
+    // Ranger la bibliothèque : son propre droit, comme sur le serveur.
+    if (can("studio.deck_categories.manage") && props.categoryReorderPath) {
+        actions.push({
+            key: "categories",
+            icon: Tags,
+            title: t("backend.studio.decks.categories.manage"),
+            description: t("backend.studio.decks.categories.manage_hint"),
+            onSelect: () => (managingCategories.value = true),
+        });
     }
 
-    return [
-        {
-            key: "create",
-            color: "accent",
-            icon: Plus,
-            title: t("backend.studio.decks.create"),
-            onSelect: openCreate,
-        },
-        {
-            key: "import",
-            icon: FileInput,
-            title: t("backend.studio.decks.import"),
-            onSelect: openImport,
-        },
-    ];
+    return actions;
 });
 
 const filterOptions = () => categoryOptions.value;
@@ -534,5 +553,19 @@ const deckUrl = (deck) => buildPath(props.showPath, { id: deck.id });
                 </AppModalFooter>
             </template>
         </AppModal>
+
+        <AppCategoriesModal
+            v-if="can('studio.deck_categories.manage') && categoryReorderPath"
+            :show="managingCategories"
+            :categories="categories"
+            :title="t('backend.studio.decks.categories.manage_title')"
+            :intro="t('backend.studio.decks.categories.manage_intro')"
+            :create-path="categoryCreatePath"
+            :update-path-template="categoryUpdatePath"
+            :delete-path-template="categoryDeletePath"
+            :reorder-path="categoryReorderPath"
+            v-on:close="managingCategories = false"
+            v-on:changed="applyCategories($event.categories ?? [])"
+        />
     </div>
 </template>

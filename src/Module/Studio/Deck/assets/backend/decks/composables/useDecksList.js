@@ -266,11 +266,29 @@ export function useDecksList(props) {
         }
     }
 
+    /**
+     * The categories after a write in the management window: the list itself,
+     * and every deck carrying a renamed or deleted one, so the rows say what
+     * the server now says without reloading the page.
+     */
+    function applyCategories(list) {
+        categories.value = list;
+        const byId = new Map(list.map((category) => [category.id, category]));
+        items.value = items.value.map((deck) =>
+            deck.category
+                ? { ...deck, category: byId.get(deck.category.id) ?? null }
+                : deck,
+        );
+        if (categoryFilter.value && !byId.has(Number(categoryFilter.value)))
+            categoryFilter.value = "";
+    }
+
     return {
         search,
         categoryFilter,
         filteredItems,
         categories,
+        applyCategories,
         categoryOptions,
         customerOptions,
         templateOptions,

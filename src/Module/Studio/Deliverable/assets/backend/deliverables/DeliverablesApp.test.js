@@ -61,7 +61,7 @@ function mountApp(extra = {}) {
             stubs: {
                 DeliverableLinksModal: true,
                 DeliverableCopyToSpaceModal: true,
-                DeliverableCategoriesModal: true,
+                AppCategoriesModal: true,
             },
         },
     });

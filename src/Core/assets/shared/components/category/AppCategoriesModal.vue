@@ -1,7 +1,9 @@
 <script setup>
 /**
- * Les catégories des livrables de Studio : les créer, les renommer, leur
- * donner une couleur, les ranger et les supprimer.
+ * Des catégories qu'on gère soi-même : les créer, les renommer, leur donner
+ * une couleur, les ranger et les supprimer. Partagée par les livrables et les
+ * présentations de Studio ; chaque écran donne ses adresses, son titre et sa
+ * phrase d'introduction.
  *
  * Chaque ligne s'enregistre seule, au bouton qui apparaît quand elle a
  * changé : renommer « Audit » ne doit pas attendre qu'on ait fini de ranger
@@ -29,9 +31,12 @@ const props = defineProps({
     updatePathTemplate: { type: String, required: true },
     deletePathTemplate: { type: String, required: true },
     reorderPath: { type: String, required: true },
+    /** Le titre de la fenêtre et la phrase qui dit à quoi servent ces catégories. */
+    title: { type: String, required: true },
+    intro: { type: String, default: "" },
 });
 
-/** La réponse du serveur : les catégories et les deux rayons, que la liste reprend. */
+/** La réponse du serveur, telle quelle : au moins `categories`, et ce que l'écran voudra reprendre. */
 const emit = defineEmits(["close", "changed"]);
 
 const { t } = useI18n();
@@ -102,20 +107,20 @@ async function create() {
     const data = await send(props.createPath, { name: draft.value.name, color: draft.value.color }, "new");
     if (data) {
         draft.value = { name: "", color: DEFAULT_COLOR };
-        toast.success(t("backend.studio.deliverables.categories.created"));
+        toast.success(t("shared.categories.created"));
     }
 }
 
 async function save(row) {
     const data = await send(buildPath(props.updatePathTemplate, { id: row.id }), { name: row.name, color: row.color }, row.id);
-    if (data) toast.success(t("backend.studio.deliverables.categories.saved"));
+    if (data) toast.success(t("shared.categories.saved"));
 }
 
 async function remove(row) {
     const data = await send(buildPath(props.deletePathTemplate, { id: row.id }), {}, row.id);
     if (data) {
         confirmDelete.value = null;
-        toast.success(t("backend.studio.deliverables.categories.deleted"));
+        toast.success(t("shared.categories.deleted"));
     }
 }
 
@@ -138,14 +143,14 @@ function errorOf(key, field) {
     <AppModal
         :show="show"
         max-width="lg"
-        :title="t('backend.studio.deliverables.categories.manage_title')"
+        :title="title"
         :icon="Tags"
         v-on:close="emit('close')"
     >
         <div class="space-y-4">
-            <p class="text-sm text-secondary">{{ t("backend.studio.deliverables.categories.manage_intro") }}</p>
+            <p v-if="intro" class="text-sm text-secondary">{{ intro }}</p>
 
-            <AppNoData v-if="!rows.length" :message="t('backend.studio.deliverables.categories.empty')" />
+            <AppNoData v-if="!rows.length" :message="t('shared.categories.empty')" />
 
             <ul v-else class="m-0 list-none space-y-2 p-0">
                 <li
@@ -158,8 +163,8 @@ function errorOf(key, field) {
                         <AppInput
                             v-model="row.name"
                             class="min-w-0 flex-1"
-                            :placeholder="t('backend.studio.deliverables.categories.new_placeholder')"
-                            :aria-label="t('backend.studio.deliverables.categories.name')"
+                            :placeholder="t('shared.categories.new_placeholder')"
+                            :aria-label="t('shared.categories.name')"
                             :error="errorOf(row.id, 'name')"
                             v-on:keydown.enter.prevent="isDirty(row) && save(row)"
                         />
@@ -175,14 +180,14 @@ function errorOf(key, field) {
                                 <Check class="h-4 w-4" :stroke-width="2" />
                             </AppIconButton>
                             <AppIconButton
-                                :title="t('backend.studio.deliverables.categories.move_up')"
+                                :title="t('shared.categories.move_up')"
                                 :disabled="busy || 0 === index"
                                 v-on:click="move(index, -1)"
                             >
                                 <ArrowUp class="h-4 w-4" :stroke-width="2" />
                             </AppIconButton>
                             <AppIconButton
-                                :title="t('backend.studio.deliverables.categories.move_down')"
+                                :title="t('shared.categories.move_down')"
                                 :disabled="busy || index === rows.length - 1"
                                 v-on:click="move(index, 1)"
                             >
@@ -203,7 +208,7 @@ function errorOf(key, field) {
                         v-if="confirmDelete === row.id"
                         class="mt-2 flex flex-col gap-2 rounded-md bg-surface-2 p-2 text-xs text-secondary sm:flex-row sm:items-center sm:justify-between"
                     >
-                        <span>{{ t("backend.studio.deliverables.categories.delete_confirm", { name: row.saved.name }) }}</span>
+                        <span>{{ t("shared.categories.delete_confirm", { name: row.saved.name }) }}</span>
                         <span class="flex shrink-0 gap-2">
                             <AppButton variant="ghost" size="sm" v-on:click="confirmDelete = null">
                                 <X class="h-3.5 w-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}
@@ -222,8 +227,8 @@ function errorOf(key, field) {
                 <AppInput
                     v-model="draft.name"
                     class="min-w-0 flex-1"
-                    :placeholder="t('backend.studio.deliverables.categories.new_placeholder')"
-                    :aria-label="t('backend.studio.deliverables.categories.name')"
+                    :placeholder="t('shared.categories.new_placeholder')"
+                    :aria-label="t('shared.categories.name')"
                     :error="errorOf('new', 'name')"
                 />
                 <AppButton
@@ -233,7 +238,7 @@ function errorOf(key, field) {
                     :loading="busy"
                     :disabled="!draft.name.trim()"
                 >
-                    <Plus class="h-3.5 w-3.5" :stroke-width="2" /> {{ t("backend.studio.deliverables.categories.add") }}
+                    <Plus class="h-3.5 w-3.5" :stroke-width="2" /> {{ t("shared.categories.add") }}
                 </AppButton>
             </form>
         </div>

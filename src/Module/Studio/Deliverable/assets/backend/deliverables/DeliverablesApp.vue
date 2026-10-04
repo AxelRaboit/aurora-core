@@ -25,6 +25,7 @@ import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
+import AppCategoriesModal from "@/shared/components/category/AppCategoriesModal.vue";
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
@@ -38,7 +39,6 @@ import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppTab from "@/shared/components/nav/AppTab.vue";
 import DeliverableCards from "./components/DeliverableCards.vue";
-import DeliverableCategoriesModal from "./components/DeliverableCategoriesModal.vue";
 import DeliverableCopyToSpaceModal from "./components/DeliverableCopyToSpaceModal.vue";
 import DeliverableDeleteModal from "./components/DeliverableDeleteModal.vue";
 import DeliverableLinksModal from "./components/DeliverableLinksModal.vue";
@@ -495,9 +495,11 @@ function actionsFor(deliverable) {
             </section>
         </div>
 
-        <DeliverableCategoriesModal
+        <AppCategoriesModal
             v-if="canManageCategories"
             :show="managingCategories"
+            :title="t('backend.studio.deliverables.categories.manage_title')"
+            :intro="t('backend.studio.deliverables.categories.manage_intro')"
             :categories="categories"
             :create-path="categoryCreatePath"
             :update-path-template="categoryUpdatePathTemplate"

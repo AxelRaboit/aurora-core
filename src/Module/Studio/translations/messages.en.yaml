@@ -1405,6 +1405,10 @@ backend:
                 mosaic: Picture mosaic
                 free: Free slide
             categories:
+                manage: "Manage categories"
+                manage_hint: "Create, rename, colour and order the presentation categories."
+                manage_title: "Presentation categories"
+                manage_intro: "They file the presentations, for the whole team. Deleting a category deletes no presentation: they stay, without a category."
                 errors:
                     name_required: The name is required.
                     color_invalid: The colour must be a hex value, for example #6366f1.
@@ -2017,16 +2021,6 @@ backend:
                 manage_hint: "Create, rename, colour and order the deliverable categories."
                 manage_title: "Deliverable categories"
                 manage_intro: "They file Studio deliverables, for the whole team. Deleting a category deletes no deliverable: they stay, without a category."
-                empty: "No categories yet."
-                name: "Category name"
-                new_placeholder: "New category, for example Audit"
-                add: "Add"
-                created: "Category created."
-                saved: "Category saved."
-                deleted: "Category deleted."
-                move_up: "Move up"
-                move_down: "Move down"
-                delete_confirm: "Delete “{name}”? Its deliverables stay, without a category."
                 layout_grouped: "By category"
                 layout_flat: "As a list"
                 errors:

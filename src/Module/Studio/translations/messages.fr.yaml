@@ -1405,6 +1405,10 @@ backend:
                 mosaic: Mosaïque d'images
                 free: Diapo libre
             categories:
+                manage: "Gérer les catégories"
+                manage_hint: "Créer, renommer, colorer et ranger les catégories des présentations."
+                manage_title: "Catégories des présentations"
+                manage_intro: "Elles rangent les présentations, pour toute l'équipe. Supprimer une catégorie ne supprime aucune présentation : elles restent, sans catégorie."
                 errors:
                     name_required: Le nom est obligatoire.
                     color_invalid: La couleur doit être au format hexadécimal, par exemple #6366f1.
@@ -2028,16 +2032,6 @@ backend:
                 manage_hint: "Créer, renommer, colorer et ranger les catégories des livrables."
                 manage_title: "Catégories des livrables"
                 manage_intro: "Elles rangent les livrables de Studio, pour toute l'équipe. Supprimer une catégorie ne supprime aucun livrable : ils restent, sans catégorie."
-                empty: "Aucune catégorie pour l'instant."
-                name: "Nom de la catégorie"
-                new_placeholder: "Nouvelle catégorie, par exemple Audit"
-                add: "Ajouter"
-                created: "Catégorie créée."
-                saved: "Catégorie enregistrée."
-                deleted: "Catégorie supprimée."
-                move_up: "Monter"
-                move_down: "Descendre"
-                delete_confirm: "Supprimer « {name} » ? Ses livrables restent, sans catégorie."
                 layout_grouped: "Par catégorie"
                 layout_flat: "En liste"
                 errors:

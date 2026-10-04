@@ -15,6 +15,9 @@ Un livrable de Studio se copie dans l'espace d'un client : « Copier dans un esp
 #### Des catégories pour les livrables de Studio
 Les livrables de Studio se rangent par catégorie : audit, stratégie, proposition, ou ce que l'équipe veut. « Gérer les catégories », dans le menu Actions de la liste, les crée, les renomme, leur donne une couleur, les range dans l'ordre voulu et les supprime ; supprimer une catégorie laisse ses livrables, sans catégorie. Un livrable reçoit sa catégorie à la création ou dans l'onglet Réglages de l'éditeur. La liste s'affiche par catégorie, en sections dans l'ordre choisi et « Sans catégorie » à la fin, ou en simple liste avec la catégorie sur chaque carte ; un filtre à côté des rayons montre une catégorie, ou ce qui n'est pas encore rangé, avec le compte de chacune. Le filtre et l'affichage restent dans l'adresse de la page, et la recherche porte aussi sur le résumé. Gérer les catégories demande le droit de modifier les livrables ; ranger son propre livrable, non. Un livrable copié dans Studio garde sa catégorie, une copie dans un espace client la laisse : l'espace range seul. La démonstration range ses modèles en Propositions, Audits, Stratégies et Bilans.
 
+#### Gérer les catégories des présentations
+Les présentations avaient des catégories et un droit pour les gérer (« Gérer les catégories de présentations »), mais aucun écran pour le faire. « Gérer les catégories », dans le menu Actions de la liste des présentations, les crée, les renomme, leur donne une couleur, les range et les supprime ; une présentation dont la catégorie est supprimée reste, sans catégorie. La fenêtre est la même que celle des livrables, désormais partagée.
+
 #### Une image pour chaque livrable
 Un livrable, de Studio comme d'un espace client, peut porter une image : le champ « Image » de l'onglet Réglages la choisit dans la médiathèque ou la téléverse. Elle s'affiche en vignette carrée à gauche de sa carte, cadrée sur le point d'intérêt du document, pour repérer un livrable avant d'en lire le titre ; sans image, une tuile neutre garde la place et les titres restent alignés. Le client la voit aussi dans l'onglet Livrables de son portail, à condition que l'image soit publiée dans la médiathèque : une image privée ne s'afficherait pas chez lui, elle ne lui est donc pas envoyée. Seule une image est retenue, et supprimer le document la retire du livrable. Les copies gardent l'image de l'original.
 
@@ -27,6 +30,12 @@ Sur téléphone, les cartes des listes posaient leurs gestes en boutons pleine l
 Les cartes de livrables, dans Studio comme dans un espace, disent « Modifié le 4 oct. 2026 à 16:33 » au lieu de la date seule.
 
 ### Corrigé
+
+#### Éteindre Notes ou une partie de la médiathèque ferme aussi leurs pages
+Éteindre le module Notes, ou le masquer pour une personne, retirait son entrée du menu mais laissait ses écrans, ses notes partagées et ses espaces publiés répondre à qui avait les droits. De même, éteindre les documents, les catégories, les étiquettes ou les dossiers de la médiathèque ne cachait que le menu. Ces pages répondent maintenant « introuvable » comme celles des autres modules éteints. Le fichier d'un document reste servi aux autres modules (pièces jointes des espaces, images des présentations), et son lien permanent reste valable.
+
+#### Le planning ne propose plus ce qu'il refusera
+Sans le droit de modifier les événements, un événement s'ouvre en lecture seule (plus de bouton Modifier, plus de glisser) et un rappel ne s'enregistre ni ne se coche ; sans le droit de supprimer, le bouton Supprimer disparaît. Le serveur refusait déjà ces gestes.
 
 #### La phrase sous les rayons des livrables n'est plus collée aux cartes
 Dans Studio > Livrables, la phrase qui décrit le rayon ouvert touchait la première carte. Elle reste maintenant contre ses onglets, et l'espace habituel de la page la sépare des cartes.

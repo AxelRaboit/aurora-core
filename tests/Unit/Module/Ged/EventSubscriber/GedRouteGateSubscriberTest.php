@@ -8,6 +8,7 @@ use Aurora\Core\Module\Service\ModuleAccessChecker;
 use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
 use Aurora\Module\Ged\EventSubscriber\GedRouteGateSubscriber;
 use Aurora\Module\Ged\GedContext;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
@@ -37,7 +38,7 @@ final class GedRouteGateSubscriberTest extends TestCase
      * @param list<string> $closed
      * @param list<string> $open
      */
-    #[\PHPUnit\Framework\Attributes\DataProvider('toggleProvider')]
+    #[DataProvider('toggleProvider')]
     public function testAToggleClosesItsOwnRoutesOnly(ModuleParameterEnum $off, array $closed, array $open): void
     {
         foreach ($closed as $route) {
