@@ -271,6 +271,32 @@ final class BannerViewBuilderTest extends IntegrationTestCase
     }
 
     /**
+     * The icon beside a title resolves like any other picture, in the editor
+     * and on the page, and only on the item that asked for it.
+     */
+    public function testATitleIconResolvesBesideItsTitle(): void
+    {
+        $logo = $this->document('image/png', 'ged/2026/10/logo.png');
+        $layout = [
+            'enabled' => true,
+            'items' => [
+                ['id' => 'a1', 'type' => 'text', 'titleIconId' => $logo, 'titleIconPosition' => 'after'],
+                ['id' => 'a2', 'type' => 'text'],
+            ],
+        ];
+        $texts = ['items' => ['a1' => ['title' => 'Aurora'], 'a2' => ['title' => 'Sans icône']]];
+
+        $editor = $this->bannerViewBuilder->buildForEditor($layout, $texts);
+        $page = $this->bannerViewBuilder->build($layout, $texts);
+
+        self::assertStringContainsString('logo.png', (string) $editor['items'][0]['titleIcon']['url']);
+        self::assertNotNull($page);
+        self::assertStringContainsString('logo.png', (string) $page['items'][0]['titleIcon']['url']);
+        self::assertSame('after', $page['items'][0]['titleIconPosition']);
+        self::assertNull($page['items'][1]['titleIcon']);
+    }
+
+    /**
      * The library keeps documents with no file on purpose, so the upload flow
      * has something to be tested against. One of those used to produce
      * `<img src="">`, which is worse than an absent picture: an empty src
