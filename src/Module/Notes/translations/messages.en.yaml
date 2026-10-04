@@ -1,483 +1,483 @@
 backend:
-  search:
-    sections:
-      notes: Notes
-  parameters:
-    notes_markdown_image_max_edge:
-      label: Notes Markdown - Max image size (px)
-      description: "Notes Markdown: longest edge in pixels. Images larger than this are downscaled in the browser before upload. Recommended: 2048."
-    notes_markdown_image_quality_pct:
-      label: Notes Markdown - WebP encoding quality (%)
-      description: "Notes Markdown: WebP quality applied during the resize, 0 to 100. Recommended: 85 (good size/quality trade-off)."
-    notes_markdown_revisions_limit:
-      label: Markdown notes - Versions kept per note
-      description: "Markdown notes: how many past versions each note keeps in its history, the oldest going first. 0 keeps them all. Recommended: 50."
-    notes_markdown_revision_interval_minutes:
-      label: Markdown notes - Time between two versions (minutes)
-      description: "Markdown notes: the editor saves every few seconds; a new version is kept only when the previous one is at least this many minutes old. Restoring a version always keeps the current state. Recommended: 10."
-  permissions:
-    names:
-      notes:
-        markdown:
-          use: Use Markdown notes
-        spaces:
-          create: 'Create shared note spaces'
-          publish: 'Publish note spaces on the web'
-  modules:
-    notes_backend: Notes
-    # The module string an audit row carries, which is not the toggle key.
-    notes_markdown: Markdown notes
-    notes_backend_description: Enables markdown note-taking, with links between notes and a graph.
-  nav:
-    sections:
-      notes: Notes
-    notes_markdown: Markdown notes
-    notes_markdown_description: Obsidian-style Markdown note-taking (wiki-links, graph)
-  audit:
-    actions:
-      notes_markdown:
-        space:
-          published: 'Space published'
-          unpublished: 'Space unpublished'
-          created: Space created
-          updated: Space updated
-          deleted: Space removed
-        note:
-          trashed: Note moved to trash
-          restored: Note restored
-          created: Note created
-          updated: Note updated
-          deleted: Note permanently deleted
-        folder:
-          created: Folder created
-          updated: Folder updated
-          trashed: Folder moved to the trash
-          restored: Folder restored
-          deleted: Folder permanently deleted
-        share_link:
-          created: Share link created
-          revoked: Share link revoked
-        tag:
-          renamed: Tag renamed
-          merged: Tags merged
-          removed: Tag removed
+    search:
+        sections:
+            notes: Notes
+    parameters:
+        notes_markdown_image_max_edge:
+            label: Notes Markdown - Max image size (px)
+            description: "Notes Markdown: longest edge in pixels. Images larger than this are downscaled in the browser before upload. Recommended: 2048."
+        notes_markdown_image_quality_pct:
+            label: Notes Markdown - WebP encoding quality (%)
+            description: "Notes Markdown: WebP quality applied during the resize, 0 to 100. Recommended: 85 (good size/quality trade-off)."
+        notes_markdown_revisions_limit:
+            label: Markdown notes - Versions kept per note
+            description: "Markdown notes: how many past versions each note keeps in its history, the oldest going first. 0 keeps them all. Recommended: 50."
+        notes_markdown_revision_interval_minutes:
+            label: Markdown notes - Time between two versions (minutes)
+            description: "Markdown notes: the editor saves every few seconds; a new version is kept only when the previous one is at least this many minutes old. Restoring a version always keeps the current state. Recommended: 10."
+    permissions:
+        names:
+            notes:
+                markdown:
+                    use: Use Markdown notes
+                spaces:
+                    create: 'Create shared note spaces'
+                    publish: 'Publish note spaces on the web'
+    modules:
+        notes_backend: Notes
+        # The module string an audit row carries, which is not the toggle key.
+        notes_markdown: Markdown notes
+        notes_backend_description: Enables markdown note-taking, with links between notes and a graph.
+    nav:
+        sections:
+            notes: Notes
+        notes_markdown: Markdown notes
+        notes_markdown_description: Obsidian-style Markdown note-taking (wiki-links, graph)
+    audit:
+        actions:
+            notes_markdown:
+                space:
+                    published: 'Space published'
+                    unpublished: 'Space unpublished'
+                    created: Space created
+                    updated: Space updated
+                    deleted: Space removed
+                note:
+                    trashed: Note moved to trash
+                    restored: Note restored
+                    created: Note created
+                    updated: Note updated
+                    deleted: Note permanently deleted
+                folder:
+                    created: Folder created
+                    updated: Folder updated
+                    trashed: Folder moved to the trash
+                    restored: Folder restored
+                    deleted: Folder permanently deleted
+                share_link:
+                    created: Share link created
+                    revoked: Share link revoked
+                tag:
+                    renamed: Tag renamed
+                    merged: Tags merged
+                    removed: Tag removed
 notes:
-  markdown:
-    guide:
-      title: "How notes are organised"
-      step_1: "Each note belongs to a space: yours, always private, or a shared space."
-      step_2: "A shared space opens to you alone, to some people or to the whole back office, each with read, write or manage rights."
-      step_3: "Link notes with [[Title]]: the graph shows these links between all the notes you can read."
-      step_4: "Tags filter the library, and “Manage tags” renames or merges them across all your notes."
-      step_5: "A note can also be shared through a read-only link; even an administrator cannot read your private notes."
-      step_6: "A note's Actions menu duplicates it, makes it a template, goes back to a past version or prints it as PDF."
-      step_7: "Type “/” at the start of a line to insert a heading, a list or a table: “/table 3x4” creates 3 columns and 4 rows, and Tab moves from one cell to the next."
-    share:
-      button: Share with a link
-      title: Share this note with a link
-      page_heading: Shared note
-      read_only: Read only
-      tree_label: Notes in this share
-      include_linked: Include the linked notes
-      include_linked_hint: Notes named by a [[…]] link, and the ones they name in turn.
-      also_shared: '{count} other note will be shared:|{count} other notes will be shared:'
-      nothing_else: Nothing else goes with this note.
-      recipient_label: Send to
-      recipient_placeholder: name@example.com
-      recipient_help: Leave empty to just get a link to copy.
-      label_field: Share name
-      label_placeholder: For Marie, review
-      expires_label: Expires on
-      expires_placeholder: dd/mm/yyyy
-      expires_hint: Leave empty for a link that lasts until it is revoked.
-      create: Create the link
-      created: Link created
-      sent: Invitation sent to {email}
-      copy: Copy
-      copied: Link copied
-      revoke: Revoke
-      revoked: Link revoked
-      revoked_on: Revoked on {date}
-      never_opened: Never opened
-      last_opened: Opened on {date}
-      existing: Active shares
-      none_yet: This note is not shared with anybody.
-      unavailable_title: Note unavailable
-      unavailable_body: This link is no longer valid, or never existed. Ask whoever sent it to you for a new one.
-      errors:
-        unknown_note: Note not found.
-        bad_date: Invalid date.
-      mail:
-        subject: '%title% has been shared with you'
-        title: A note has been shared with you
-        intro: '%name% shared the note "%title%" with you.'
-        open: Open the note
-        expires: 'This link expires on %date%.'
-        read_only: You can read this note, not edit it.
-    spaces:
-      import_here: 'Import into this space'
-      export: 'Export this space'
-      publication:
-        title: 'Web publication'
-        hint: 'The space can then be read without an account, at its address. Nothing can be written there.'
-        slug: 'Address'
-        slug_placeholder: 'Taken from the name when empty'
-        indexable: 'Let search engines index it'
-        indexable_hint: 'When off, the page asks search engines not to list it.'
-        copy: 'Copy the address'
-        copied: 'Address copied'
-        publish: 'Publish'
-        update: 'Update'
-        unpublish: 'Unpublish'
-        published: 'Space published'
-        unpublished: 'Space unpublished'
-        badge: 'Published on the web'
-      my_space: 'My space'
-      errors:
-        private_owner_only: 'Only the owner can keep the space to themselves.'
-        bad_slug: 'Invalid address: letters, digits and hyphens only.'
-        slug_taken: 'This address is already taken.'
-        name_required: 'Give the space a name.'
-        bad_access: 'Unknown access.'
-        bad_role: 'Unknown role.'
-        bad_member: 'This person cannot be added.'
-        save_failed: 'Could not save the space.'
-        load_failed: 'Could not load the space.'
-      name: 'Name'
-      name_placeholder: 'Space name'
-      label: 'Space'
-      loading: 'Loading…'
-      personal_hint: 'Your personal space stays private: nobody else sees it. Only its colour can be set.'
-      owner: 'Owner: {name}'
-      settings: 'Space settings'
-      members: 'Members'
-      members_hint: 'Only the people you add get in, each with their role.'
-      members_hint_backoffice: 'The whole back office gets in with the default role; adding someone can give them more.'
-      no_members: 'Nobody has been added yet.'
-      pick_person: 'Pick someone'
-      add_member: 'Add'
-      remove_member: 'Remove {name}'
-      delete: 'Remove space'
-      delete_confirm: 'Confirm removal'
-      confirm_delete: 'The space {name} and everything in it will disappear for everyone. Its owner can bring it back.'
-      save: 'Save'
-      created: 'Space created'
-      updated: 'Space saved'
-      deleted: 'Space removed'
-      read_only: 'Read'
-      add_here: 'Add in {name}'
-      empty: 'Nothing here yet.'
-      access:
-        label: 'Who gets in'
-        private: 'Only me'
-        members: 'Some people'
-        backoffice: 'The whole back office'
-        private_hint: 'Nobody else sees it.'
-        members_hint: 'Only the people you add.'
-        backoffice_hint: 'Anyone who uses the notes.'
-      role:
-        label: 'Default role'
-        reader: 'Read'
-        editor: 'Write'
-        manager: 'Manage'
-    folders:
-      title: Folders
-      trash_label: Note folders
-      root: All documents
-      create: New folder
-      created: Folder created
-      rename: Rename
-      renamed: Folder renamed
-      name_placeholder: Folder name…
-      color: Colour
-      untitled: Untitled folder
-      delete: Delete the folder
-      confirm_delete: 'Send "{name}" to the trash, with what it holds?'
-      deleted: Folder moved to the trash
-      move_to: Move to…
-      move_root: All documents
-      moved: Item moved
-      open: Open the folder
-      contents: '{folders} folders · {notes} notes'
-      tree_empty: No folder yet.
-      errors:
-        move_refused: 'Move refused: a folder cannot be filed inside itself, nor deeper than {max} levels.'
-        bad_payload: Invalid payload.
-        bad_color: 'Invalid colour: it must look like #rrggbb.'
-        create_failed: Could not create the folder.
-        rename_failed: Could not rename the folder.
-        delete_failed: Could not delete the folder.
-        move_failed: Could not move the item.
-        load_failed: Could not load the folder.
-    library:
-      title: All documents
-      new_note: New note
-      recent: Recently changed
-      favorites: Favourites
-      pin: Add to favourites
-      unpin: Remove from favourites
-      pin_failed: Could not update your favourites.
-      shared:
-        section: Visible to me
-        badge: In a shared space
-        by: 'By {name}'
-        read_only: Read-only
-      visibility:
-        all: 'Filter: everything'
-        shared: 'Filter: shared spaces'
-        private: 'Filter: my space'
-        clear: Clear the filter
-      selected: '{count} selected'
-      select: Select
-      stop_selecting: Stop selecting
-      clear_selection: Clear the selection
-      some_refused: '{count} items could not be handled.'
-      confirm_delete_selection: 'Send the {count} selected items to the trash?'
-      new_folder: New folder
-      search_placeholder: Search the notes…
-      preview:
-        empty: This note is empty.
-      tag:
-        section: Tags
-        filter: 'See the notes tagged {tag}'
-        clear: Clear the filter
-        pin: Pin this tag
-        unpin: Unpin this tag
-        show_all: '+ {count} more'
-        none: No note carries this tag
-        none_description: 'Nothing is tagged "{tag}" any more.'
-      view:
-        label: View
-        mosaic: Mosaic
-        cards: Cards
-        list: List
-      scope:
-        flat: Show everything flat
-        grouped: Show folders
-        open_folder: 'Open the {folder} folder'
-      sort:
-        label: Sort
-        name: Name
-        created: Created
-        updated: Updated
-        manual: Manual order
-        move_up: Move up
-        move_down: Move down
-        asc: Ascending
-        desc: Descending
-      columns:
-        name: Name
-        tags: Tags
-        updated: Updated
-        location: Location
-      empty:
-        title: This folder is empty
-        description: Create a note or a folder, or drag one in here.
-      empty_root:
-        title: No document yet
-        description: Create your first note, or a folder to file things in.
-      count: '{count} items'
-    image:
-      upload_failed: The image could not be uploaded.
-    title: Markdown notes
-    save: Save
-    read:
-      edit: 'Edit'
-      previous: 'Previous'
-      next: 'Next'
-      pager: 'Previous and next note'
-      mode: 'Reading mode'
-      mode_edit: 'Back to editing'
-      contents: 'Contents'
-      open: Read the note on its own
-      subheading: Reading view
-      back: Back to the editor
-    cover:
-      add: Add a cover image
-      change: Change the cover image
-      remove: Remove the image
-      credit: 'Photo: {name} (Pexels)'
-      search_placeholder: Search a photo…
-      search_empty: No photo for that search
-      not_configured: Pexels is not configured.
-      not_configured_hint: An administrator can set the key in the media library settings.
-      position: Framing
-      autosaved: The framing saves itself, like the note's text.
-      title: Cover image
-    appearance:
-      title: Appearance
-      plain: Plain
-      sepia: Sepia
-      slate: Slate
-      paper: Paper
-      midnight: Midnight
-      mint: Mint
-    delete: Delete
-    rename: Rename the note
-    cancel: Cancel
-    saved: Note saved
-    delete_warning: The note goes to the trash. You can restore it from there.
-    untitled: Untitled
-    title_placeholder: Note title…
-    search_placeholder: Search the notes…
-    search_no_results: No results
-    search_no_results_description: 'No note matches "{query}".'
-    resize_handle: Drag to resize
-    content_placeholder: "# Write markdown here\n\nLink to other notes with [[Title]]"
-    create_root: New note
-    export:
-      all: Export the notebook
-      one: Export this note
-    import:
-      button: Import notes
-      done: "No note imported | 1 note imported | {count} notes imported"
-      errors:
-        required: Choose at least one file.
-    create_in_folder: 'Add to this folder'
-    collapse_all: 'Collapse all'
-    conflict:
-      title: 'This note changed elsewhere'
-      body: 'Someone edited this note while you were writing. Your latest changes were not saved, so as not to erase theirs. Reload to start from their version, or overwrite it with yours.'
-      reload: 'Reload their version'
-      overwrite: 'Overwrite with mine'
-    breadcrumb: 'Where this note lives'
-    outline:
-      tab: 'Outline'
-      panel_title: 'About this note'
-      empty: 'No heading in this note'
-      empty_hint: 'The note''s headings, written with # or ##, show here: a click takes you there.'
-      words: 'No words | 1 word | {count} words'
-      minutes: '{minutes} min read'
-    print:
-      open: 'Print or export as PDF'
-      action: 'Print'
-    revisions:
-      open: 'Version history'
-      title: 'Note history'
-      empty: 'No past version yet'
-      empty_hint: 'A version is kept when you edit the note, at most one every few minutes (settings, Notes tab).'
-      no_author: 'Unknown author'
-      since: 'Since this version: {added} line(s) added, {removed} removed'
-      show_whole: 'Show the whole version'
-      show_changes: 'Show the changes'
-      title_was: 'The title was then: {title}'
-      restore: 'Restore this version'
-      restore_now: 'Restore now'
-      restore_confirm: 'The current text will be kept as a version: you can come back to it.'
-      restored: 'Version restored'
-    duplicate:
-      action: 'Duplicate'
-      title: 'Copy of {title}'
-      done: 'Note duplicated'
-      failed: 'The note could not be duplicated.'
-    template:
-      mark: 'Use as a template'
-      unmark: 'Stop using as a template'
-      marked: 'This note is now a template.'
-      unmarked: 'This note is no longer a template.'
-      badge: 'Template'
-      start_from: 'Start from'
-      blank: 'A blank note'
-      hint: '{marker} becomes today''s date.'
-      failed: 'The note could not be created from this template.'
-    add:
-      space: 'Space'
-      create_space: 'Create space'
-      title: 'Add'
-      kind: 'Add a note or a folder'
-      note: 'Note'
-      folder: 'Folder'
-      where: 'In:'
-      create_note: 'Create the note'
-      create_folder: 'Create the folder'
-      here: 'Add here'
-    confirm_delete: 'Permanently delete "{title}"?'
-    confirm_discard_changes: You have unsaved changes. Discard them?
-    wiki_link_not_found: 'No note matches "{title}".'
-    wiki_search_placeholder: Type to filter notes…
-    wiki_no_results: 'No note matches "{query}".'
-    view:
-      edit: Edit only
-      split: Edit + preview
-      preview: Preview only
-    slash:
-      h1: Heading 1
-      h2: Heading 2
-      h3: Heading 3
-      bullet: Bullet list
-      numbered: Numbered list
-      checkbox: Checkbox
-      quote: Quote
-      divider: Divider
-      code: Code block
-      callout: Callout
-      link: Wiki link
-      bold: Bold
-      italic: Italic
-      strikethrough: Strikethrough
-      table: Table
-      table_column: 'Column {n}'
-      no_results: No commands
-    tags:
-      add_placeholder: Add a tag…
-      summary: '{count} tag(s)'
-      filter_label: Filter by tag
-      clear: Clear all
-      no_results: No notes for these tags
-      no_results_description: No note carries the selected tags.
-      errors:
-        empty: Tag is required.
-        sources_empty: Select at least one tag to merge.
-      manage:
-        title: Manage tags
-        close: Close
-        search_placeholder: Filter tags…
-        search_empty: No matching tag
-        search_empty_description: 'No tag matches "{query}".'
-        empty_title: No tags yet
-        empty_description: No note carries a tag for now.
-        rename: Rename
-        rename_confirm: Rename
-        new_name_placeholder: New tag name…
-        rename_success: 'No note updated. | 1 note updated. | {count} notes updated.'
+    markdown:
+        guide:
+            title: "How notes are organised"
+            step_1: "Each note belongs to a space: yours, always private, or a shared space."
+            step_2: "A shared space opens to you alone, to some people or to the whole back office, each with read, write or manage rights."
+            step_3: "Link notes with [[Title]]: the graph shows these links between all the notes you can read."
+            step_4: "Tags filter the library, and “Manage tags” renames or merges them across all your notes."
+            step_5: "A note can also be shared through a read-only link; even an administrator cannot read your private notes."
+            step_6: "A note's Actions menu duplicates it, makes it a template, goes back to a past version or prints it as PDF."
+            step_7: "Type “/” at the start of a line to insert a heading, a list or a table: “/table 3x4” creates 3 columns and 4 rows, and Tab moves from one cell to the next."
+        share:
+            button: Share with a link
+            title: Share this note with a link
+            page_heading: Shared note
+            read_only: Read only
+            tree_label: Notes in this share
+            include_linked: Include the linked notes
+            include_linked_hint: Notes named by a [[…]] link, and the ones they name in turn.
+            also_shared: '{count} other note will be shared:|{count} other notes will be shared:'
+            nothing_else: Nothing else goes with this note.
+            recipient_label: Send to
+            recipient_placeholder: name@example.com
+            recipient_help: Leave empty to just get a link to copy.
+            label_field: Share name
+            label_placeholder: For Marie, review
+            expires_label: Expires on
+            expires_placeholder: dd/mm/yyyy
+            expires_hint: Leave empty for a link that lasts until it is revoked.
+            create: Create the link
+            created: Link created
+            sent: Invitation sent to {email}
+            copy: Copy
+            copied: Link copied
+            revoke: Revoke
+            revoked: Link revoked
+            revoked_on: Revoked on {date}
+            never_opened: Never opened
+            last_opened: Opened on {date}
+            existing: Active shares
+            none_yet: This note is not shared with anybody.
+            unavailable_title: Note unavailable
+            unavailable_body: This link is no longer valid, or never existed. Ask whoever sent it to you for a new one.
+            errors:
+                unknown_note: Note not found.
+                bad_date: Invalid date.
+            mail:
+                subject: '%title% has been shared with you'
+                title: A note has been shared with you
+                intro: '%name% shared the note "%title%" with you.'
+                open: Open the note
+                expires: 'This link expires on %date%.'
+                read_only: You can read this note, not edit it.
+        spaces:
+            import_here: 'Import into this space'
+            export: 'Export this space'
+            publication:
+                title: 'Web publication'
+                hint: 'The space can then be read without an account, at its address. Nothing can be written there.'
+                slug: 'Address'
+                slug_placeholder: 'Taken from the name when empty'
+                indexable: 'Let search engines index it'
+                indexable_hint: 'When off, the page asks search engines not to list it.'
+                copy: 'Copy the address'
+                copied: 'Address copied'
+                publish: 'Publish'
+                update: 'Update'
+                unpublish: 'Unpublish'
+                published: 'Space published'
+                unpublished: 'Space unpublished'
+                badge: 'Published on the web'
+            my_space: 'My space'
+            errors:
+                private_owner_only: 'Only the owner can keep the space to themselves.'
+                bad_slug: 'Invalid address: letters, digits and hyphens only.'
+                slug_taken: 'This address is already taken.'
+                name_required: 'Give the space a name.'
+                bad_access: 'Unknown access.'
+                bad_role: 'Unknown role.'
+                bad_member: 'This person cannot be added.'
+                save_failed: 'Could not save the space.'
+                load_failed: 'Could not load the space.'
+            name: 'Name'
+            name_placeholder: 'Space name'
+            label: 'Space'
+            loading: 'Loading…'
+            personal_hint: 'Your personal space stays private: nobody else sees it. Only its colour can be set.'
+            owner: 'Owner: {name}'
+            settings: 'Space settings'
+            members: 'Members'
+            members_hint: 'Only the people you add get in, each with their role.'
+            members_hint_backoffice: 'The whole back office gets in with the default role; adding someone can give them more.'
+            no_members: 'Nobody has been added yet.'
+            pick_person: 'Pick someone'
+            add_member: 'Add'
+            remove_member: 'Remove {name}'
+            delete: 'Remove space'
+            delete_confirm: 'Confirm removal'
+            confirm_delete: 'The space {name} and everything in it will disappear for everyone. Its owner can bring it back.'
+            save: 'Save'
+            created: 'Space created'
+            updated: 'Space saved'
+            deleted: 'Space removed'
+            read_only: 'Read'
+            add_here: 'Add in {name}'
+            empty: 'Nothing here yet.'
+            access:
+                label: 'Who gets in'
+                private: 'Only me'
+                members: 'Some people'
+                backoffice: 'The whole back office'
+                private_hint: 'Nobody else sees it.'
+                members_hint: 'Only the people you add.'
+                backoffice_hint: 'Anyone who uses the notes.'
+            role:
+                label: 'Default role'
+                reader: 'Read'
+                editor: 'Write'
+                manager: 'Manage'
+        folders:
+            title: Folders
+            trash_label: Note folders
+            root: All documents
+            create: New folder
+            created: Folder created
+            rename: Rename
+            renamed: Folder renamed
+            name_placeholder: Folder name…
+            color: Colour
+            untitled: Untitled folder
+            delete: Delete the folder
+            confirm_delete: 'Send "{name}" to the trash, with what it holds?'
+            deleted: Folder moved to the trash
+            move_to: Move to…
+            move_root: All documents
+            moved: Item moved
+            open: Open the folder
+            contents: '{folders} folders · {notes} notes'
+            tree_empty: No folder yet.
+            errors:
+                move_refused: 'Move refused: a folder cannot be filed inside itself, nor deeper than {max} levels.'
+                bad_payload: Invalid payload.
+                bad_color: 'Invalid colour: it must look like #rrggbb.'
+                create_failed: Could not create the folder.
+                rename_failed: Could not rename the folder.
+                delete_failed: Could not delete the folder.
+                move_failed: Could not move the item.
+                load_failed: Could not load the folder.
+        library:
+            title: All documents
+            new_note: New note
+            recent: Recently changed
+            favorites: Favourites
+            pin: Add to favourites
+            unpin: Remove from favourites
+            pin_failed: Could not update your favourites.
+            shared:
+                section: Visible to me
+                badge: In a shared space
+                by: 'By {name}'
+                read_only: Read-only
+            visibility:
+                all: 'Filter: everything'
+                shared: 'Filter: shared spaces'
+                private: 'Filter: my space'
+                clear: Clear the filter
+            selected: '{count} selected'
+            select: Select
+            stop_selecting: Stop selecting
+            clear_selection: Clear the selection
+            some_refused: '{count} items could not be handled.'
+            confirm_delete_selection: 'Send the {count} selected items to the trash?'
+            new_folder: New folder
+            search_placeholder: Search the notes…
+            preview:
+                empty: This note is empty.
+            tag:
+                section: Tags
+                filter: 'See the notes tagged {tag}'
+                clear: Clear the filter
+                pin: Pin this tag
+                unpin: Unpin this tag
+                show_all: '+ {count} more'
+                none: No note carries this tag
+                none_description: 'Nothing is tagged "{tag}" any more.'
+            view:
+                label: View
+                mosaic: Mosaic
+                cards: Cards
+                list: List
+            scope:
+                flat: Show everything flat
+                grouped: Show folders
+                open_folder: 'Open the {folder} folder'
+            sort:
+                label: Sort
+                name: Name
+                created: Created
+                updated: Updated
+                manual: Manual order
+                move_up: Move up
+                move_down: Move down
+                asc: Ascending
+                desc: Descending
+            columns:
+                name: Name
+                tags: Tags
+                updated: Updated
+                location: Location
+            empty:
+                title: This folder is empty
+                description: Create a note or a folder, or drag one in here.
+            empty_root:
+                title: No document yet
+                description: Create your first note, or a folder to file things in.
+            count: '{count} items'
+        image:
+            upload_failed: The image could not be uploaded.
+        title: Markdown notes
+        save: Save
+        read:
+            edit: 'Edit'
+            previous: 'Previous'
+            next: 'Next'
+            pager: 'Previous and next note'
+            mode: 'Reading mode'
+            mode_edit: 'Back to editing'
+            contents: 'Contents'
+            open: Read the note on its own
+            subheading: Reading view
+            back: Back to the editor
+        cover:
+            add: Add a cover image
+            change: Change the cover image
+            remove: Remove the image
+            credit: 'Photo: {name} (Pexels)'
+            search_placeholder: Search a photo…
+            search_empty: No photo for that search
+            not_configured: Pexels is not configured.
+            not_configured_hint: An administrator can set the key in the media library settings.
+            position: Framing
+            autosaved: The framing saves itself, like the note's text.
+            title: Cover image
+        appearance:
+            title: Appearance
+            plain: Plain
+            sepia: Sepia
+            slate: Slate
+            paper: Paper
+            midnight: Midnight
+            mint: Mint
         delete: Delete
-        delete_yes: Confirm
-        delete_confirm: 'Remove "{tag}" from 1 note? | Remove "{tag}" from {count} notes?'
-        delete_success: 'Tag removed from 0 notes. | Tag removed from 1 note. | Tag removed from {count} notes.'
-        merge_prompt: 'Merge 1 tag into one: | Merge {count} tags into one:'
-        merge_target_placeholder: Target tag (existing or new)…
-        merge_confirm: Merge
-        merge_success: 'No note merged. | 1 note merged. | {count} notes merged.'
-        note_count: '1 note | {count} notes'
+        rename: Rename the note
+        cancel: Cancel
+        saved: Note saved
+        delete_warning: The note goes to the trash. You can restore it from there.
+        untitled: Untitled
+        title_placeholder: Note title…
+        search_placeholder: Search the notes…
+        search_no_results: No results
+        search_no_results_description: 'No note matches "{query}".'
+        resize_handle: Drag to resize
+        content_placeholder: "# Write markdown here\n\nLink to other notes with [[Title]]"
+        create_root: New note
+        export:
+            all: Export the notebook
+            one: Export this note
+        import:
+            button: Import notes
+            done: "No note imported | 1 note imported | {count} notes imported"
+            errors:
+                required: Choose at least one file.
+        create_in_folder: 'Add to this folder'
+        collapse_all: 'Collapse all'
+        conflict:
+            title: 'This note changed elsewhere'
+            body: 'Someone edited this note while you were writing. Your latest changes were not saved, so as not to erase theirs. Reload to start from their version, or overwrite it with yours.'
+            reload: 'Reload their version'
+            overwrite: 'Overwrite with mine'
+        breadcrumb: 'Where this note lives'
+        outline:
+            tab: 'Outline'
+            panel_title: 'About this note'
+            empty: 'No heading in this note'
+            empty_hint: 'The note''s headings, written with # or ##, show here: a click takes you there.'
+            words: 'No words | 1 word | {count} words'
+            minutes: '{minutes} min read'
+        print:
+            open: 'Print or export as PDF'
+            action: 'Print'
+        revisions:
+            open: 'Version history'
+            title: 'Note history'
+            empty: 'No past version yet'
+            empty_hint: 'A version is kept when you edit the note, at most one every few minutes (settings, Notes tab).'
+            no_author: 'Unknown author'
+            since: 'Since this version: {added} line(s) added, {removed} removed'
+            show_whole: 'Show the whole version'
+            show_changes: 'Show the changes'
+            title_was: 'The title was then: {title}'
+            restore: 'Restore this version'
+            restore_now: 'Restore now'
+            restore_confirm: 'The current text will be kept as a version: you can come back to it.'
+            restored: 'Version restored'
+        duplicate:
+            action: 'Duplicate'
+            title: 'Copy of {title}'
+            done: 'Note duplicated'
+            failed: 'The note could not be duplicated.'
+        template:
+            mark: 'Use as a template'
+            unmark: 'Stop using as a template'
+            marked: 'This note is now a template.'
+            unmarked: 'This note is no longer a template.'
+            badge: 'Template'
+            start_from: 'Start from'
+            blank: 'A blank note'
+            hint: '{marker} becomes today''s date.'
+            failed: 'The note could not be created from this template.'
+        add:
+            space: 'Space'
+            create_space: 'Create space'
+            title: 'Add'
+            kind: 'Add a note or a folder'
+            note: 'Note'
+            folder: 'Folder'
+            where: 'In:'
+            create_note: 'Create the note'
+            create_folder: 'Create the folder'
+            here: 'Add here'
+        confirm_delete: 'Permanently delete "{title}"?'
+        confirm_discard_changes: You have unsaved changes. Discard them?
+        wiki_link_not_found: 'No note matches "{title}".'
+        wiki_search_placeholder: Type to filter notes…
+        wiki_no_results: 'No note matches "{query}".'
+        view:
+            edit: Edit only
+            split: Edit + preview
+            preview: Preview only
+        slash:
+            h1: Heading 1
+            h2: Heading 2
+            h3: Heading 3
+            bullet: Bullet list
+            numbered: Numbered list
+            checkbox: Checkbox
+            quote: Quote
+            divider: Divider
+            code: Code block
+            callout: Callout
+            link: Wiki link
+            bold: Bold
+            italic: Italic
+            strikethrough: Strikethrough
+            table: Table
+            table_column: 'Column {n}'
+            no_results: No commands
+        tags:
+            add_placeholder: Add a tag…
+            summary: '{count} tag(s)'
+            filter_label: Filter by tag
+            clear: Clear all
+            no_results: No notes for these tags
+            no_results_description: No note carries the selected tags.
+            errors:
+                empty: Tag is required.
+                sources_empty: Select at least one tag to merge.
+            manage:
+                title: Manage tags
+                close: Close
+                search_placeholder: Filter tags…
+                search_empty: No matching tag
+                search_empty_description: 'No tag matches "{query}".'
+                empty_title: No tags yet
+                empty_description: No note carries a tag for now.
+                rename: Rename
+                rename_confirm: Rename
+                new_name_placeholder: New tag name…
+                rename_success: 'No note updated. | 1 note updated. | {count} notes updated.'
+                delete: Delete
+                delete_yes: Confirm
+                delete_confirm: 'Remove "{tag}" from 1 note? | Remove "{tag}" from {count} notes?'
+                delete_success: 'Tag removed from 0 notes. | Tag removed from 1 note. | Tag removed from {count} notes.'
+                merge_prompt: 'Merge 1 tag into one: | Merge {count} tags into one:'
+                merge_target_placeholder: Target tag (existing or new)…
+                merge_confirm: Merge
+                merge_success: 'No note merged. | 1 note merged. | {count} notes merged.'
+                note_count: '1 note | {count} notes'
+                errors:
+                    rename_failed: Could not rename the tag.
+                    delete_failed: Could not delete the tag.
+                    merge_failed: Could not merge the tags.
+        graph:
+            title: Links graph
+            open: Open graph
+            loading: Building graph…
+            empty:
+                title: No nodes to display
+                description: Create a few notes linked with [[wiki-links]] to see the graph.
+        links:
+            title: Links
+            open: Show outline and links
+            close: Close panel
+            backlinks: Backlinks
+            mentions: Mentions
+            loading: Loading…
+            empty_backlinks: No backlinks
+            empty_backlinks_description: No note links to this one with [[…]].
+            empty_mentions: No mentions
+            empty_mentions_description: No note mentions this title without a wiki-link.
+        empty:
+            title: No notes yet
+            description: Click + to create your first note.
         errors:
-          rename_failed: Could not rename the tag.
-          delete_failed: Could not delete the tag.
-          merge_failed: Could not merge the tags.
-    graph:
-      title: Links graph
-      open: Open graph
-      loading: Building graph…
-      empty:
-        title: No nodes to display
-        description: Create a few notes linked with [[wiki-links]] to see the graph.
-    links:
-      title: Links
-      open: Show outline and links
-      close: Close panel
-      backlinks: Backlinks
-      mentions: Mentions
-      loading: Loading…
-      empty_backlinks: No backlinks
-      empty_backlinks_description: No note links to this one with [[…]].
-      empty_mentions: No mentions
-      empty_mentions_description: No note mentions this title without a wiki-link.
-    empty:
-      title: No notes yet
-      description: Click + to create your first note.
-    errors:
-      load_failed: Could not load the note.
-      crashed: This page could not be displayed
-      create_failed: Could not create the note.
-      save_failed: Could not save the note.
-      delete_failed: Could not delete the note.
-      reorder_failed: Could not reorder the notes.
+            load_failed: Could not load the note.
+            crashed: This page could not be displayed
+            create_failed: Could not create the note.
+            save_failed: Could not save the note.
+            delete_failed: Could not delete the note.
+            reorder_failed: Could not reorder the notes.

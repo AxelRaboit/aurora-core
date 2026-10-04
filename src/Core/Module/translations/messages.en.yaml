@@ -1,44 +1,44 @@
 backend:
-  permissions:
-    intro: Manage user access rights per module. Each permission can be granted individually.
-    search_placeholder: Filter modules…
-    empty: No modules found.
-    name: Permission
-    key: Technical key
-    names:
-      general:
-        dashboard:
-          view: Access the dashboard
-        search:
-          view: Use global search
-        trash:
-          view: See the global trash
-      platform:
-        users:
-          manage: Manage users
-          module_access:
-            manage: Manage user module access
-      configuration:
-        settings:
-          manage: Manage settings
-        themes:
-          manage: Manage themes
-    role: Required role
-  nav:
-    sections:
-      general: General
-  modules:
-    media: Media
-    users: Users
-    hr: HR
-    planning: Planning
-    project: Project
-    core: Core
-    general: General
-    general_backend: General
-    general_backend_description: Dashboard and post-login landing page.
-    platform: Platform
-    platform_backend: Platform
-    platform_backend_description: Technical backend section.
-    configuration: Configuration
-    configuration_description: Global application parameters and visual customization.
+    permissions:
+        intro: Manage user access rights per module. Each permission can be granted individually.
+        search_placeholder: Filter modules…
+        empty: No modules found.
+        name: Permission
+        key: Technical key
+        names:
+            general:
+                dashboard:
+                    view: Access the dashboard
+                search:
+                    view: Use global search
+                trash:
+                    view: See the global trash
+            platform:
+                users:
+                    manage: Manage users
+                    module_access:
+                        manage: Manage user module access
+            configuration:
+                settings:
+                    manage: Manage settings
+                themes:
+                    manage: Manage themes
+        role: Required role
+    nav:
+        sections:
+            general: General
+    modules:
+        media: Media
+        users: Users
+        hr: HR
+        planning: Planning
+        project: Project
+        core: Core
+        general: General
+        general_backend: General
+        general_backend_description: Dashboard and post-login landing page.
+        platform: Platform
+        platform_backend: Platform
+        platform_backend_description: Technical backend section.
+        configuration: Configuration
+        configuration_description: Global application parameters and visual customization.

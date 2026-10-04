@@ -1,187 +1,187 @@
 backend:
-  stats:
-    platform:
-      users: "Utilisateurs"
-      by_role: "Répartition par rôle"
-  users:
-    guide:
-      title: "Comment fonctionnent les comptes"
-      step_1: "Un compte Backend accède à l'administration ; un compte Frontend n'est qu'un compte du site public."
-      step_2: "Un Administrateur a accès à tout ; un Utilisateur n'a que les privilèges que vous lui cochez, écran par écran."
-      step_3: "Inviter envoie un courriel pour que la personne choisisse son mot de passe."
-      step_4: "Désactiver bloque la connexion sans rien perdre, alors que supprimer est définitif ; vous ne pouvez pas changer votre propre rôle."
-    intro: Gérez les utilisateurs de l'administration et leurs rôles.
-    name: Nom
-    user_label: Utilisateur
-    email: Email
-    created: Créé le
-    actions: Actions
-    search_placeholder: Rechercher un utilisateur…
-    all_roles: Tous les rôles
-    empty: Aucun utilisateur trouvé
-    you: Vous
-    invite: Inviter un utilisateur
-    send_invite: Envoyer l'invitation
-    invite_message: Message
-    invite_message_placeholder: Ajouter un message...
-    invite_disabled: Créer le compte désactivé
-    invite_disabled_hint: "Pour quelqu'un qui arrive plus tard : le compte existe mais personne n'est prévenu et la connexion lui est refusée. L'invitation partira quand vous réactiverez le compte depuis la liste."
-    create_disabled_account: Créer le compte
-    invite_frontend_role_hint: "Un compte du site public n'a qu'un rôle : utilisateur. Il n'y a rien à choisir."
-    edit_title: 'Modifier {name}'
-    delete_confirm: 'Supprimer {name} ?'
-    detail:
-      type: Type
-      locale: Langue
-      created_at: Créé le
-      invited_at: Invité le
-    role_label: Rôle
-    role:
-      user: Utilisateur
-      admin: Administrateur
-      dev: Développeur
-    type_label: Type
-    type:
-      backend: Backend
-      frontend: Frontend
-    status_label: Statut
-    status:
-      active: Actif
-      invited: Invité
-      disabled: Désactivé
-      pending_verification: En attente de vérification
-    cannot_delete_self: Vous ne pouvez pas supprimer votre propre compte.
-    cannot_modify_higher_role: Vous ne pouvez pas modifier un utilisateur avec un rôle supérieur au vôtre.
-    cannot_modify_self: Vous ne pouvez pas modifier votre propre rôle.
-    dev_granted: Rôle Dev attribué.
-    dev_revoked: Rôle Dev retiré.
-    errors:
-      email_invalid: Adresse e-mail invalide.
-      email_required: L'adresse e-mail est requise.
-      email_taken: Cette adresse e-mail est déjà utilisée.
-      email_too_long: L'adresse e-mail ne doit pas dépasser 180 caractères.
-      name_required: Le nom est requis.
-      name_too_long: Le nom ne doit pas dépasser 100 caractères.
-      role_invalid: Rôle invalide.
-      type_invalid: Type de compte invalide.
-      role_required: Le rôle est requis.
-      password_too_short: Le mot de passe doit contenir au moins 8 caractères.
-      manager_self: Un utilisateur ne peut pas être son propre responsable.
-      manager_not_found: Le responsable sélectionné n'existe pas.
-      manager_cycle: Cette assignation créerait une boucle hiérarchique.
-      cannot_manage_target: Vous ne pouvez pas modifier les accès d'un utilisateur de rang supérieur.
-    new_password: Nouveau mot de passe
-    new_password_placeholder: Laisser vide pour ne pas modifier
-    toast:
-      created: Utilisateur créé avec succès.
-      updated: Utilisateur mis à jour.
-      deleted: Utilisateur supprimé.
-    add: Ajouter un utilisateur
-    invitation_sent: Invitation envoyée.
-    account_created_disabled: Compte créé, désactivé. L'invitation partira à sa réactivation.
-    invitation_resent: Invitation renvoyée.
-    resend_invitation: Renvoyer l'invitation
-    enable: Réactiver
-    enable_and_invite: Activer et inviter
-    disable: Désactiver
-    edit: Modifier
-    name_placeholder: Jean Dupont
-    email_placeholder: "jean@exemple.com"
-    password: Mot de passe
-    password_optional: Mot de passe (laisser vide pour conserver)
-    locale: Langue
-    role_dev: Dev
-    role_user: Utilisateur
-    grant_dev: Attribuer le rôle Dev
-    revoke_dev: Retirer le rôle Dev
-    grant_dev_confirm: 'Attribuer le rôle Dev à {name} ?'
-    revoke_dev_confirm: 'Retirer le rôle Dev de {name} ?'
-    impersonate: 'Se connecter en tant que {name}'
-    impersonate_front: 'Voir le front en tant que {name}'
-    disable_confirm: "Désactiver le compte de {name} ? L'utilisateur ne pourra plus se connecter."
-    enable_confirm: 'Réactiver le compte de {name} ?'
-    enable_and_invite_confirm: "Activer le compte de {name} ? Une invitation lui sera envoyée pour qu'il choisisse son mot de passe."
-    view: Voir le profil
-    row_actions:
-      title: "Actions : {name}"
-      open: "Actions pour {name}"
-      view_description: Consulter la fiche complète sans rien modifier.
-      revoke_dev_description: Retire le rôle Dev, l'accès aux outils techniques disparaît.
-      grant_dev_description: Donne le rôle Dev, et l'accès aux outils techniques.
-      dev_delete_description: Supprime le compte définitivement. Sans retour possible.
-      resend_description: Envoie une nouvelle invitation à la même adresse.
-      impersonate_description: Ouvre le backend avec ses droits, pour reproduire ce qu'il voit.
-      impersonate_front_description: Ouvre le site public avec son compte.
-      edit_description: Nom, adresse, langue et rôle.
-      privileges_description: Choisir ce à quoi ce compte a accès, écran par écran.
-      modules_description: Activer ou masquer des modules pour ce compte seulement.
-      disable_description: Le compte est conservé mais ne peut plus se connecter.
-      enable_description: Rend l'accès au compte, tel qu'il était.
-      enable_and_invite_description: "Ce compte n'a jamais été contacté : l'ouvrir envoie son invitation."
-      delete_description: Supprime le compte définitivement. Sans retour possible.
-    manager:
-      label: Responsable
-      none: Aucun responsable
-      subordinates: 'Subordonnés ({count})'
-    privileges:
-      title: Privilèges
-      save: Enregistrer les privilèges
-      saved: Privilèges mis à jour
-      no_dev_target: Impossible d'assigner des privilèges à un Dev.
-    modules:
-      title: Accès aux modules
-      hint: Décochez les modules à masquer pour cet utilisateur. Désactiver un module parent masque automatiquement ses sous-modules.
-      saved: Accès aux modules mis à jour.
-    photo:
-      upload: Changer la photo
-      remove: Supprimer la photo
-      hint: 'JPEG, PNG ou WebP. 5 Mo max.'
-      uploaded: Photo mise à jour.
-      removed: Photo supprimée.
-      errors:
-        invalid_type: 'Format non supporté. Utilisez JPEG, PNG ou WebP.'
-        too_large: L'image est trop volumineuse (5 Mo max).
-        missing: Aucune image sélectionnée.
-  roles:
-    ROLE_USER: Utilisateur
-    ROLE_ADMIN: Administrateur
-    ROLE_DEV: Développeur
-  invitations:
-    sent: 'Invitation envoyée à {email}.'
-    description: Envoyez une invitation par e-mail pour permettre à quelqu'un de rejoindre l'espace d'administration.
-    email: Adresse e-mail du destinataire
-    email_placeholder: "exemple@domaine.com"
-    message: Message personnalisé
-    message_placeholder: Ajoutez un message pour accompagner l'invitation…
-    credentials_hint: Vous pouvez inclure des identifiants de connexion dans l'e-mail.
-    credential_email: Email de connexion
-    credential_password: Mot de passe
-    send: Envoyer l'invitation
-    sending: Envoi en cours…
-  access_requests:
-    intro: Gérez les demandes d'accès à l'administration en attente de validation.
-    approved: 'Demande de {name} approuvée.'
-    purged: Demandes traitées supprimées.
-    rejected: 'Demande de {name} rejetée.'
-    status_pending: En attente
-    status_approved: Approuvée
-    status_rejected: Rejetée
-    requester: Demandeur
-    message: Message
-    status: Statut
-    date: Date
-    expires: Expire
-    empty: Aucune demande d'accès.
-    approve: Approuver
-    row_actions:
-      approve_description: Crée le compte et prévient le demandeur par e-mail.
-      reject_description: Refuse la demande et prévient le demandeur.
-    reject: Rejeter
-    purge: Purger
-    approve_confirm: 'Approuver la demande de {name} ? Un e-mail lui sera envoyé.'
-    reject_confirm: 'Rejeter la demande de {name} ?'
-    purge_confirm: Supprimer toutes les demandes approuvées et rejetées ? Cette action est irréversible.
-    approved_toast: Demande d'accès approuvée.
-    rejected_toast: Demande d'accès rejetée.
-    purged_toast: Demandes traitées supprimées.
-    search_placeholder: 'Rechercher par e-mail, nom ou message…'
+    stats:
+        platform:
+            users: "Utilisateurs"
+            by_role: "Répartition par rôle"
+    users:
+        guide:
+            title: "Comment fonctionnent les comptes"
+            step_1: "Un compte Backend accède à l'administration ; un compte Frontend n'est qu'un compte du site public."
+            step_2: "Un Administrateur a accès à tout ; un Utilisateur n'a que les privilèges que vous lui cochez, écran par écran."
+            step_3: "Inviter envoie un courriel pour que la personne choisisse son mot de passe."
+            step_4: "Désactiver bloque la connexion sans rien perdre, alors que supprimer est définitif ; vous ne pouvez pas changer votre propre rôle."
+        intro: Gérez les utilisateurs de l'administration et leurs rôles.
+        name: Nom
+        user_label: Utilisateur
+        email: Email
+        created: Créé le
+        actions: Actions
+        search_placeholder: Rechercher un utilisateur…
+        all_roles: Tous les rôles
+        empty: Aucun utilisateur trouvé
+        you: Vous
+        invite: Inviter un utilisateur
+        send_invite: Envoyer l'invitation
+        invite_message: Message
+        invite_message_placeholder: Ajouter un message...
+        invite_disabled: Créer le compte désactivé
+        invite_disabled_hint: "Pour quelqu'un qui arrive plus tard : le compte existe mais personne n'est prévenu et la connexion lui est refusée. L'invitation partira quand vous réactiverez le compte depuis la liste."
+        create_disabled_account: Créer le compte
+        invite_frontend_role_hint: "Un compte du site public n'a qu'un rôle : utilisateur. Il n'y a rien à choisir."
+        edit_title: 'Modifier {name}'
+        delete_confirm: 'Supprimer {name} ?'
+        detail:
+            type: Type
+            locale: Langue
+            created_at: Créé le
+            invited_at: Invité le
+        role_label: Rôle
+        role:
+            user: Utilisateur
+            admin: Administrateur
+            dev: Développeur
+        type_label: Type
+        type:
+            backend: Backend
+            frontend: Frontend
+        status_label: Statut
+        status:
+            active: Actif
+            invited: Invité
+            disabled: Désactivé
+            pending_verification: En attente de vérification
+        cannot_delete_self: Vous ne pouvez pas supprimer votre propre compte.
+        cannot_modify_higher_role: Vous ne pouvez pas modifier un utilisateur avec un rôle supérieur au vôtre.
+        cannot_modify_self: Vous ne pouvez pas modifier votre propre rôle.
+        dev_granted: Rôle Dev attribué.
+        dev_revoked: Rôle Dev retiré.
+        errors:
+            email_invalid: Adresse e-mail invalide.
+            email_required: L'adresse e-mail est requise.
+            email_taken: Cette adresse e-mail est déjà utilisée.
+            email_too_long: L'adresse e-mail ne doit pas dépasser 180 caractères.
+            name_required: Le nom est requis.
+            name_too_long: Le nom ne doit pas dépasser 100 caractères.
+            role_invalid: Rôle invalide.
+            type_invalid: Type de compte invalide.
+            role_required: Le rôle est requis.
+            password_too_short: Le mot de passe doit contenir au moins 8 caractères.
+            manager_self: Un utilisateur ne peut pas être son propre responsable.
+            manager_not_found: Le responsable sélectionné n'existe pas.
+            manager_cycle: Cette assignation créerait une boucle hiérarchique.
+            cannot_manage_target: Vous ne pouvez pas modifier les accès d'un utilisateur de rang supérieur.
+        new_password: Nouveau mot de passe
+        new_password_placeholder: Laisser vide pour ne pas modifier
+        toast:
+            created: Utilisateur créé avec succès.
+            updated: Utilisateur mis à jour.
+            deleted: Utilisateur supprimé.
+        add: Ajouter un utilisateur
+        invitation_sent: Invitation envoyée.
+        account_created_disabled: Compte créé, désactivé. L'invitation partira à sa réactivation.
+        invitation_resent: Invitation renvoyée.
+        resend_invitation: Renvoyer l'invitation
+        enable: Réactiver
+        enable_and_invite: Activer et inviter
+        disable: Désactiver
+        edit: Modifier
+        name_placeholder: Jean Dupont
+        email_placeholder: "jean@exemple.com"
+        password: Mot de passe
+        password_optional: Mot de passe (laisser vide pour conserver)
+        locale: Langue
+        role_dev: Dev
+        role_user: Utilisateur
+        grant_dev: Attribuer le rôle Dev
+        revoke_dev: Retirer le rôle Dev
+        grant_dev_confirm: 'Attribuer le rôle Dev à {name} ?'
+        revoke_dev_confirm: 'Retirer le rôle Dev de {name} ?'
+        impersonate: 'Se connecter en tant que {name}'
+        impersonate_front: 'Voir le front en tant que {name}'
+        disable_confirm: "Désactiver le compte de {name} ? L'utilisateur ne pourra plus se connecter."
+        enable_confirm: 'Réactiver le compte de {name} ?'
+        enable_and_invite_confirm: "Activer le compte de {name} ? Une invitation lui sera envoyée pour qu'il choisisse son mot de passe."
+        view: Voir le profil
+        row_actions:
+            title: "Actions : {name}"
+            open: "Actions pour {name}"
+            view_description: Consulter la fiche complète sans rien modifier.
+            revoke_dev_description: Retire le rôle Dev, l'accès aux outils techniques disparaît.
+            grant_dev_description: Donne le rôle Dev, et l'accès aux outils techniques.
+            dev_delete_description: Supprime le compte définitivement. Sans retour possible.
+            resend_description: Envoie une nouvelle invitation à la même adresse.
+            impersonate_description: Ouvre le backend avec ses droits, pour reproduire ce qu'il voit.
+            impersonate_front_description: Ouvre le site public avec son compte.
+            edit_description: Nom, adresse, langue et rôle.
+            privileges_description: Choisir ce à quoi ce compte a accès, écran par écran.
+            modules_description: Activer ou masquer des modules pour ce compte seulement.
+            disable_description: Le compte est conservé mais ne peut plus se connecter.
+            enable_description: Rend l'accès au compte, tel qu'il était.
+            enable_and_invite_description: "Ce compte n'a jamais été contacté : l'ouvrir envoie son invitation."
+            delete_description: Supprime le compte définitivement. Sans retour possible.
+        manager:
+            label: Responsable
+            none: Aucun responsable
+            subordinates: 'Subordonnés ({count})'
+        privileges:
+            title: Privilèges
+            save: Enregistrer les privilèges
+            saved: Privilèges mis à jour
+            no_dev_target: Impossible d'assigner des privilèges à un Dev.
+        modules:
+            title: Accès aux modules
+            hint: Décochez les modules à masquer pour cet utilisateur. Désactiver un module parent masque automatiquement ses sous-modules.
+            saved: Accès aux modules mis à jour.
+        photo:
+            upload: Changer la photo
+            remove: Supprimer la photo
+            hint: 'JPEG, PNG ou WebP. 5 Mo max.'
+            uploaded: Photo mise à jour.
+            removed: Photo supprimée.
+            errors:
+                invalid_type: 'Format non supporté. Utilisez JPEG, PNG ou WebP.'
+                too_large: L'image est trop volumineuse (5 Mo max).
+                missing: Aucune image sélectionnée.
+    roles:
+        ROLE_USER: Utilisateur
+        ROLE_ADMIN: Administrateur
+        ROLE_DEV: Développeur
+    invitations:
+        sent: 'Invitation envoyée à {email}.'
+        description: Envoyez une invitation par e-mail pour permettre à quelqu'un de rejoindre l'espace d'administration.
+        email: Adresse e-mail du destinataire
+        email_placeholder: "exemple@domaine.com"
+        message: Message personnalisé
+        message_placeholder: Ajoutez un message pour accompagner l'invitation…
+        credentials_hint: Vous pouvez inclure des identifiants de connexion dans l'e-mail.
+        credential_email: Email de connexion
+        credential_password: Mot de passe
+        send: Envoyer l'invitation
+        sending: Envoi en cours…
+    access_requests:
+        intro: Gérez les demandes d'accès à l'administration en attente de validation.
+        approved: 'Demande de {name} approuvée.'
+        purged: Demandes traitées supprimées.
+        rejected: 'Demande de {name} rejetée.'
+        status_pending: En attente
+        status_approved: Approuvée
+        status_rejected: Rejetée
+        requester: Demandeur
+        message: Message
+        status: Statut
+        date: Date
+        expires: Expire
+        empty: Aucune demande d'accès.
+        approve: Approuver
+        row_actions:
+            approve_description: Crée le compte et prévient le demandeur par e-mail.
+            reject_description: Refuse la demande et prévient le demandeur.
+        reject: Rejeter
+        purge: Purger
+        approve_confirm: 'Approuver la demande de {name} ? Un e-mail lui sera envoyé.'
+        reject_confirm: 'Rejeter la demande de {name} ?'
+        purge_confirm: Supprimer toutes les demandes approuvées et rejetées ? Cette action est irréversible.
+        approved_toast: Demande d'accès approuvée.
+        rejected_toast: Demande d'accès rejetée.
+        purged_toast: Demandes traitées supprimées.
+        search_placeholder: 'Rechercher par e-mail, nom ou message…'

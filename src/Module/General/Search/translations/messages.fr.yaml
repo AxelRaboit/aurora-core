@@ -1,20 +1,20 @@
 backend:
-  search:
-    button: Rechercher…
-    placeholder: 'Rechercher dans le back-office…'
-    hint: 'Tapez pour rechercher dans les contenus, les médias, les calendriers, les notes, les espaces clients et les contrats.'
-    empty: Aucun résultat.
-    keys:
-      navigate: Naviguer
-      select: Sélectionner
-      close: Fermer
-    sections:
-      recent: Récents
-      nav: Navigation
-      projects: Projets
-      tasks: Tâches
-      posts: Contenus
-      terms: Termes
-      media: Médias
-      events: Événements
-      reminders: Rappels
+    search:
+        button: Rechercher…
+        placeholder: 'Rechercher dans le back-office…'
+        hint: 'Tapez pour rechercher dans les contenus, les médias, les calendriers, les notes, les espaces clients et les contrats.'
+        empty: Aucun résultat.
+        keys:
+            navigate: Naviguer
+            select: Sélectionner
+            close: Fermer
+        sections:
+            recent: Récents
+            nav: Navigation
+            projects: Projets
+            tasks: Tâches
+            posts: Contenus
+            terms: Termes
+            media: Médias
+            events: Événements
+            reminders: Rappels

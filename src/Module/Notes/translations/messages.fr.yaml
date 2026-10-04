@@ -1,488 +1,488 @@
 backend:
-  search:
-    sections:
-      notes: Notes
-  parameters:
-    notes_markdown_image_max_edge:
-      label: Notes Markdown - Taille max des images (px)
-      description: "Notes Markdown : côté le plus long, en pixels. Les images dépassant cette limite sont redimensionnées côté navigateur avant l'envoi. Recommandé : 2048."
-    notes_markdown_image_quality_pct:
-      label: Notes Markdown - Qualité d'encodage WebP (%)
-      description: "Notes Markdown : qualité WebP appliquée au redimensionnement, entre 0 et 100. Recommandé : 85 (bon compromis taille/qualité)."
-    notes_markdown_revisions_limit:
-      label: Notes Markdown - Versions gardées par note
-      description: "Notes Markdown : combien de versions passées chaque note garde dans son historique, les plus anciennes partant d'abord. 0 les garde toutes. Recommandé : 50."
-    notes_markdown_revision_interval_minutes:
-      label: Notes Markdown - Écart entre deux versions (minutes)
-      description: "Notes Markdown : l'éditeur enregistre toutes les quelques secondes ; une nouvelle version n'est gardée que si la précédente a au moins ce nombre de minutes. Restaurer une version garde toujours l'état courant. Recommandé : 10."
-  permissions:
-    names:
-      notes:
-        markdown:
-          use: Utiliser les notes Markdown
-        spaces:
-          create: 'Créer des espaces de notes partagés'
-          publish: 'Publier des espaces de notes sur le web'
-  modules:
-    notes_backend: Notes
-    # The module string an audit row carries, which is not the toggle key.
-    notes_markdown: Notes Markdown
-    notes_backend_description: Active la prise de notes en Markdown, avec liens entre notes et graphe.
-  nav:
-    sections:
-      notes: Notes
-    notes_markdown: Notes Markdown
-    notes_markdown_description: Prise de notes Markdown façon Obsidian (wiki-links, graphe)
-  audit:
-    actions:
-      notes_markdown:
-        space:
-          published: 'Espace publié'
-          unpublished: 'Espace dépublié'
-          created: Espace créé
-          updated: Espace modifié
-          deleted: Espace retiré
-        note:
-          trashed: Note mise à la corbeille
-          restored: Note restaurée
-          created: Note créée
-          updated: Note mise à jour
-          deleted: Note supprimée définitivement
-        folder:
-          created: Dossier créé
-          updated: Dossier mis à jour
-          trashed: Dossier mis à la corbeille
-          restored: Dossier restauré
-          deleted: Dossier supprimé définitivement
-        share_link:
-          created: Lien de partage créé
-          revoked: Lien de partage révoqué
-        tag:
-          renamed: Tag renommé
-          merged: Tags fusionnés
-          removed: Tag supprimé
+    search:
+        sections:
+            notes: Notes
+    parameters:
+        notes_markdown_image_max_edge:
+            label: Notes Markdown - Taille max des images (px)
+            description: "Notes Markdown : côté le plus long, en pixels. Les images dépassant cette limite sont redimensionnées côté navigateur avant l'envoi. Recommandé : 2048."
+        notes_markdown_image_quality_pct:
+            label: Notes Markdown - Qualité d'encodage WebP (%)
+            description: "Notes Markdown : qualité WebP appliquée au redimensionnement, entre 0 et 100. Recommandé : 85 (bon compromis taille/qualité)."
+        notes_markdown_revisions_limit:
+            label: Notes Markdown - Versions gardées par note
+            description: "Notes Markdown : combien de versions passées chaque note garde dans son historique, les plus anciennes partant d'abord. 0 les garde toutes. Recommandé : 50."
+        notes_markdown_revision_interval_minutes:
+            label: Notes Markdown - Écart entre deux versions (minutes)
+            description: "Notes Markdown : l'éditeur enregistre toutes les quelques secondes ; une nouvelle version n'est gardée que si la précédente a au moins ce nombre de minutes. Restaurer une version garde toujours l'état courant. Recommandé : 10."
+    permissions:
+        names:
+            notes:
+                markdown:
+                    use: Utiliser les notes Markdown
+                spaces:
+                    create: 'Créer des espaces de notes partagés'
+                    publish: 'Publier des espaces de notes sur le web'
+    modules:
+        notes_backend: Notes
+        # The module string an audit row carries, which is not the toggle key.
+        notes_markdown: Notes Markdown
+        notes_backend_description: Active la prise de notes en Markdown, avec liens entre notes et graphe.
+    nav:
+        sections:
+            notes: Notes
+        notes_markdown: Notes Markdown
+        notes_markdown_description: Prise de notes Markdown façon Obsidian (wiki-links, graphe)
+    audit:
+        actions:
+            notes_markdown:
+                space:
+                    published: 'Espace publié'
+                    unpublished: 'Espace dépublié'
+                    created: Espace créé
+                    updated: Espace modifié
+                    deleted: Espace retiré
+                note:
+                    trashed: Note mise à la corbeille
+                    restored: Note restaurée
+                    created: Note créée
+                    updated: Note mise à jour
+                    deleted: Note supprimée définitivement
+                folder:
+                    created: Dossier créé
+                    updated: Dossier mis à jour
+                    trashed: Dossier mis à la corbeille
+                    restored: Dossier restauré
+                    deleted: Dossier supprimé définitivement
+                share_link:
+                    created: Lien de partage créé
+                    revoked: Lien de partage révoqué
+                tag:
+                    renamed: Tag renommé
+                    merged: Tags fusionnés
+                    removed: Tag supprimé
 notes:
-  markdown:
-    guide:
-      title: "Comment s'organisent les notes"
-      step_1: "Chaque note appartient à un espace : le vôtre, toujours privé, ou un espace partagé."
-      step_2: "Un espace partagé s'ouvre à vous seul, à certaines personnes ou à tout le back-office, chacun en lecture, écriture ou gestion."
-      step_3: "Reliez les notes avec [[Titre]] : le graphe montre ces liens entre toutes les notes que vous pouvez lire."
-      step_4: "Les étiquettes filtrent la bibliothèque, et « Gérer les tags » les renomme ou les fusionne sur toutes vos notes."
-      step_5: "Une note se partage aussi par un lien en lecture seule ; même un administrateur ne lit pas vos notes privées."
-      step_6: "Le menu Actions d'une note la duplique, en fait un modèle, revient à une version passée ou l'imprime en PDF."
-      step_7: "Tapez « / » en début de ligne pour insérer un titre, une liste ou un tableau : « /tableau 3x4 » crée 3 colonnes et 4 lignes, et Tab passe d'une case à l'autre."
-    share:
-      button: Partager par un lien
-      title: Partager cette note par un lien
-      page_heading: Note partagée
-      read_only: Lecture seule
-      tree_label: Notes de ce partage
-      include_linked: Inclure les notes liées
-      include_linked_hint: Les notes citées par un lien [[…]], et celles qu'elles citent à leur tour.
-      also_shared: '{count} autre note sera partagée :|{count} autres notes seront partagées :'
-      nothing_else: Rien d'autre à partager avec cette note.
-      recipient_label: Envoyer à
-      recipient_placeholder: prenom@exemple.fr
-      recipient_help: Laissez vide pour obtenir simplement un lien à copier.
-      label_field: Nom du partage
-      label_placeholder: Pour Marie, relecture
-      expires_label: Expire le
-      expires_placeholder: jj/mm/aaaa
-      expires_hint: Laissez vide pour un lien valable jusqu'à révocation.
-      create: Créer le lien
-      created: Lien créé
-      sent: Invitation envoyée à {email}
-      copy: Copier
-      copied: Lien copié
-      revoke: Révoquer
-      revoked: Lien révoqué
-      revoked_on: Révoqué le {date}
-      never_opened: Jamais ouvert
-      last_opened: Ouvert le {date}
-      existing: Partages en cours
-      none_yet: Cette note n'est partagée avec personne.
-      unavailable_title: Note indisponible
-      unavailable_body: Ce lien n'est plus valide, ou n'a jamais existé. Demandez-en un nouveau à la personne qui vous l'a envoyé.
-      errors:
-        unknown_note: Note introuvable.
-        bad_date: Date invalide.
-      mail:
-        subject: '%title% a été partagée avec vous'
-        title: Une note a été partagée avec vous
-        intro: '%name% vous a partagé la note « %title% ».'
-        open: Ouvrir la note
-        expires: 'Ce lien expire le %date%.'
-        read_only: Vous pouvez lire cette note, pas la modifier.
-    spaces:
-      import_here: 'Importer dans cet espace'
-      export: 'Exporter cet espace'
-      publication:
-        title: 'Publication sur le web'
-        hint: 'L''espace se lit alors sans compte, à son adresse. Rien ne s''y écrit.'
-        slug: 'Adresse'
-        slug_placeholder: 'Déduite du nom si vide'
-        indexable: 'Laisser les moteurs de recherche l''indexer'
-        indexable_hint: 'Désactivé, la page demande aux moteurs de ne pas la référencer.'
-        copy: 'Copier l''adresse'
-        copied: 'Adresse copiée'
-        publish: 'Publier'
-        update: 'Mettre à jour'
-        unpublish: 'Dépublier'
-        published: 'Espace publié'
-        unpublished: 'Espace dépublié'
-        badge: 'Publié sur le web'
-      my_space: 'Mon espace'
-      errors:
-        private_owner_only: 'Seul le propriétaire peut réserver l''espace à lui seul.'
-        bad_slug: 'Adresse invalide : lettres, chiffres et tirets seulement.'
-        slug_taken: 'Cette adresse est déjà prise.'
-        name_required: 'Donnez un nom à l''espace.'
-        bad_access: 'Accès inconnu.'
-        bad_role: 'Rôle inconnu.'
-        bad_member: 'Cette personne ne peut pas être inscrite.'
-        save_failed: 'Impossible d''enregistrer l''espace.'
-        load_failed: 'Impossible de charger l''espace.'
-      name: 'Nom'
-      name_placeholder: 'Nom de l''espace'
-      label: 'Espace'
-      loading: 'Chargement…'
-      personal_hint: 'Votre espace personnel reste privé : personne d''autre ne le voit. Seule sa couleur se règle.'
-      owner: 'Propriétaire : {name}'
-      settings: 'Réglages de l''espace'
-      members: 'Membres'
-      members_hint: 'Seules les personnes inscrites entrent, chacune avec son rôle.'
-      members_hint_backoffice: 'Tout le back-office entre avec le rôle par défaut ; une inscription peut donner plus.'
-      no_members: 'Personne n''est inscrit pour l''instant.'
-      pick_person: 'Choisir une personne'
-      add_member: 'Inscrire'
-      remove_member: 'Retirer {name}'
-      delete: 'Retirer l''espace'
-      delete_confirm: 'Confirmer le retrait'
-      confirm_delete: 'L''espace {name} et tout ce qu''il contient disparaîtront pour tout le monde. Son propriétaire pourra le faire revenir.'
-      save: 'Enregistrer'
-      created: 'Espace créé'
-      updated: 'Espace enregistré'
-      deleted: 'Espace retiré'
-      read_only: 'Lecture'
-      add_here: 'Ajouter dans {name}'
-      empty: 'Rien ici pour l''instant.'
-      access:
-        label: 'Qui y a accès'
-        private: 'Moi seul'
-        members: 'Certaines personnes'
-        backoffice: 'Tout le back-office'
-        private_hint: 'Personne d''autre ne le voit.'
-        members_hint: 'Seules les personnes que vous inscrivez.'
-        backoffice_hint: 'Toute personne qui utilise les notes.'
-      role:
-        label: 'Rôle par défaut'
-        reader: 'Lecture'
-        editor: 'Écriture'
-        manager: 'Gestion'
-    folders:
-      title: Dossiers
-      trash_label: Dossiers de notes
-      root: Tous les documents
-      create: Nouveau dossier
-      created: Dossier créé
-      rename: Renommer
-      renamed: Dossier renommé
-      name_placeholder: Nom du dossier…
-      color: Couleur
-      untitled: Dossier sans titre
-      delete: Supprimer le dossier
-      confirm_delete: "Mettre « {name} » à la corbeille, avec ce qu'il contient ?"
-      deleted: Dossier mis à la corbeille
-      move_to: Déplacer vers…
-      move_root: Tous les documents
-      moved: Élément déplacé
-      open: Ouvrir le dossier
-      contents: '{folders} dossiers · {notes} notes'
-      tree_empty: Aucun dossier pour l'instant.
-      errors:
-        move_refused: 'Déplacement refusé : un dossier ne peut pas être rangé dans lui-même, ni au-delà de {max} niveaux.'
-        bad_payload: Données invalides.
-        bad_color: 'Couleur invalide : il faut une valeur de la forme #rrggbb.'
-        create_failed: Impossible de créer le dossier.
-        rename_failed: Impossible de renommer le dossier.
-        delete_failed: Impossible de supprimer le dossier.
-        move_failed: Impossible de déplacer l'élément.
-        load_failed: Impossible de charger le dossier.
-    library:
-      title: Tous les documents
-      new_note: Nouvelle note
-      recent: Récemment modifiées
-      favorites: Favoris
-      pin: Ajouter aux favoris
-      unpin: Retirer des favoris
-      pin_failed: Impossible de modifier les favoris.
-      shared:
-        section: Visible pour moi
-        badge: Dans un espace partagé
-        by: 'Par {name}'
-        read_only: Lecture seule
-      visibility:
-        all: 'Filtrer : tout'
-        shared: 'Filtre : espaces partagés'
-        private: 'Filtre : mon espace'
-        clear: Retirer le filtre
-      selected: '{count} sélectionné(s)'
-      select: Sélectionner
-      stop_selecting: Terminer la sélection
-      clear_selection: Tout désélectionner
-      some_refused: "{count} élément(s) n'ont pas pu être traités."
-      confirm_delete_selection: 'Mettre à la corbeille les {count} éléments sélectionnés ?'
-      new_folder: Nouveau dossier
-      search_placeholder: Rechercher une note…
-      preview:
-        empty: Cette note est vide.
-      tag:
-        section: Étiquettes
-        filter: 'Voir les notes étiquetées {tag}'
-        clear: Retirer le filtre
-        pin: Épingler cette étiquette
-        unpin: Détacher cette étiquette
-        show_all: '+ {count} autres'
-        none: Aucune note avec cette étiquette
-        none_description: "Plus aucune note ne porte « {tag} »."
-      view:
-        label: Affichage
-        mosaic: Mosaïque
-        cards: Cartes
-        list: Liste
-      scope:
-        flat: Tout afficher à plat
-        grouped: Afficher par dossiers
-        open_folder: 'Ouvrir le dossier {folder}'
-      sort:
-        label: Trier
-        name: Nom
-        created: Création
-        updated: Modification
-        manual: Ordre manuel
-        move_up: Monter
-        move_down: Descendre
-        asc: Ordre croissant
-        desc: Ordre décroissant
-      columns:
-        name: Nom
-        tags: Étiquettes
-        updated: Modifiée le
-        location: Emplacement
-      empty:
-        title: Ce dossier est vide
-        description: Créez une note ou un dossier, ou glissez-en un ici.
-      empty_root:
-        title: Aucun document
-        description: Créez votre première note, ou un dossier pour ranger.
-      count: '{count} éléments'
-    image:
-      upload_failed: Impossible d'envoyer l'image.
-    title: Notes Markdown
-    save: Enregistrer
-    read:
-      edit: 'Modifier'
-      previous: 'Précédente'
-      next: 'Suivante'
-      pager: 'Note précédente et suivante'
-      mode: 'Mode lecture'
-      mode_edit: 'Revenir à l''édition'
-      contents: 'Sommaire'
-      open: Lire la note seule
-      subheading: Vue de lecture
-      back: Retour à l'éditeur
-    cover:
-      add: Ajouter une image d'entête
-      change: Changer l'image d'entête
-      remove: Retirer l'image
-      credit: 'Photo : {name} (Pexels)'
-      search_placeholder: Chercher une photo…
-      search_empty: Aucune photo pour cette recherche
-      not_configured: Pexels n'est pas configuré.
-      not_configured_hint: Un administrateur peut renseigner la clé dans les réglages de la médiathèque.
-      position: Cadrage
-      autosaved: Le cadrage s'enregistre tout seul, comme le texte de la note.
-      title: Image d'entête
-    appearance:
-      title: Apparence
-      plain: Ordinaire
-      sepia: Sépia
-      slate: Ardoise
-      paper: Papier
-      midnight: Nuit
-      mint: Menthe
-    delete: Supprimer
-    rename: Renommer la note
-    cancel: Annuler
-    saved: Note enregistrée
-    delete_warning: La note part à la corbeille. Vous pourrez la restaurer depuis la corbeille.
-    untitled: Sans titre
-    title_placeholder: Titre de la note…
-    search_placeholder: Rechercher une note…
-    search_no_results: Aucun résultat
-    search_no_results_description: 'Aucune note ne correspond à « {query} ».'
-    resize_handle: Glisser pour redimensionner
-    content_placeholder: "# Écrivez du markdown ici\n\nReliez vos notes avec [[Titre]]"
-    create_root: Nouvelle note
-    export:
-      all: Exporter le carnet
-      one: Exporter cette note
-    import:
-      button: Importer des notes
-      done: "Aucune note importée | 1 note importée | {count} notes importées"
-      errors:
-        required: Choisissez au moins un fichier.
-    create_in_folder: 'Ajouter dans ce dossier'
-    collapse_all: 'Tout replier'
-    conflict:
-      title: 'Cette note a changé ailleurs'
-      body: 'Quelqu''un a modifié cette note pendant que vous écriviez. Vos derniers changements n''ont pas été enregistrés, pour ne pas effacer les siens. Rechargez pour repartir de sa version, ou écrasez-la avec la vôtre.'
-      reload: 'Recharger sa version'
-      overwrite: 'Écraser avec la mienne'
-    breadcrumb: 'Emplacement de la note'
-    outline:
-      tab: 'Plan'
-      panel_title: 'Sur cette note'
-      empty: 'Aucun titre dans cette note'
-      empty_hint: 'Les titres de la note, écrits avec # ou ##, apparaissent ici : un clic y mène.'
-      words: 'Aucun mot | 1 mot | {count} mots'
-      minutes: '{minutes} min de lecture'
-    print:
-      open: 'Imprimer ou exporter en PDF'
-      action: 'Imprimer'
-    revisions:
-      open: 'Historique des versions'
-      title: 'Historique de la note'
-      empty: 'Aucune version passée pour l''instant'
-      empty_hint: 'Une version est gardée quand vous modifiez la note, au plus une toutes les quelques minutes (réglages, onglet Notes).'
-      no_author: 'Auteur inconnu'
-      since: 'Depuis cette version : {added} ligne(s) ajoutée(s), {removed} retirée(s)'
-      show_whole: 'Voir la version entière'
-      show_changes: 'Voir les changements'
-      title_was: 'Le titre était alors : {title}'
-      restore: 'Restaurer cette version'
-      restore_now: 'Restaurer maintenant'
-      restore_confirm: 'Le texte actuel sera gardé comme une version : vous pourrez y revenir.'
-      restored: 'Version restaurée'
-    duplicate:
-      action: 'Dupliquer'
-      title: 'Copie de {title}'
-      done: 'Note dupliquée'
-      failed: 'La note n''a pas pu être dupliquée.'
-    template:
-      mark: 'Utiliser comme modèle'
-      unmark: 'Ne plus utiliser comme modèle'
-      marked: 'Cette note sert maintenant de modèle.'
-      unmarked: 'Cette note n''est plus un modèle.'
-      badge: 'Modèle'
-      start_from: 'Partir de'
-      blank: 'Une note vide'
-      hint: '{marker} y devient la date du jour.'
-      failed: 'La note n''a pas pu être créée depuis ce modèle.'
-    add:
-      space: 'Espace'
-      create_space: 'Créer l''espace'
-      title: 'Ajouter'
-      kind: 'Ajouter une note ou un dossier'
-      note: 'Note'
-      folder: 'Dossier'
-      where: 'Dans :'
-      create_note: 'Créer la note'
-      create_folder: 'Créer le dossier'
-      here: 'Ajouter ici'
-    confirm_delete: 'Supprimer définitivement « {title} » ?'
-
-    confirm_discard_changes: Vous avez des modifications non enregistrées. Les abandonner ?
-    wiki_link_not_found: 'Aucune note ne correspond à « {title} ».'
-    wiki_search_placeholder: Tapez pour filtrer les notes…
-    wiki_no_results: 'Aucune note ne correspond à « {query} ».'
-    view:
-      edit: Édition seule
-      split: Édition + aperçu
-      preview: Aperçu seul
-    slash:
-      h1: Titre 1
-      h2: Titre 2
-      h3: Titre 3
-      bullet: Liste à puces
-      numbered: Liste numérotée
-      checkbox: Case à cocher
-      quote: Citation
-      divider: Séparateur
-      code: Bloc de code
-      callout: Encadré
-      link: Lien wiki
-      bold: Gras
-      italic: Italique
-      strikethrough: Barré
-      table: Tableau
-      table_column: 'Colonne {n}'
-      no_results: Aucune commande
-    tags:
-      add_placeholder: Ajouter un tag…
-      summary: '{count} tag(s)'
-      filter_label: Filtrer par tag
-      clear: Tout effacer
-      no_results: Aucune note pour ces tags
-      no_results_description: Aucune note ne porte les tags sélectionnés.
-      errors:
-        empty: Le tag est requis.
-        sources_empty: Sélectionnez au moins un tag à fusionner.
-      manage:
-        title: Gérer les tags
-        close: Fermer
-        search_placeholder: Filtrer les tags…
-        search_empty: Aucun tag trouvé
-        search_empty_description: 'Aucun tag ne correspond à « {query} ».'
-        empty_title: Aucun tag
-        empty_description: Aucune note ne porte de tag pour le moment.
-        rename: Renommer
-        rename_confirm: Renommer
-        new_name_placeholder: Nouveau nom du tag…
-        rename_success: 'Aucune note mise à jour. | 1 note mise à jour. | {count} notes mises à jour.'
+    markdown:
+        guide:
+            title: "Comment s'organisent les notes"
+            step_1: "Chaque note appartient à un espace : le vôtre, toujours privé, ou un espace partagé."
+            step_2: "Un espace partagé s'ouvre à vous seul, à certaines personnes ou à tout le back-office, chacun en lecture, écriture ou gestion."
+            step_3: "Reliez les notes avec [[Titre]] : le graphe montre ces liens entre toutes les notes que vous pouvez lire."
+            step_4: "Les étiquettes filtrent la bibliothèque, et « Gérer les tags » les renomme ou les fusionne sur toutes vos notes."
+            step_5: "Une note se partage aussi par un lien en lecture seule ; même un administrateur ne lit pas vos notes privées."
+            step_6: "Le menu Actions d'une note la duplique, en fait un modèle, revient à une version passée ou l'imprime en PDF."
+            step_7: "Tapez « / » en début de ligne pour insérer un titre, une liste ou un tableau : « /tableau 3x4 » crée 3 colonnes et 4 lignes, et Tab passe d'une case à l'autre."
+        share:
+            button: Partager par un lien
+            title: Partager cette note par un lien
+            page_heading: Note partagée
+            read_only: Lecture seule
+            tree_label: Notes de ce partage
+            include_linked: Inclure les notes liées
+            include_linked_hint: Les notes citées par un lien [[…]], et celles qu'elles citent à leur tour.
+            also_shared: '{count} autre note sera partagée :|{count} autres notes seront partagées :'
+            nothing_else: Rien d'autre à partager avec cette note.
+            recipient_label: Envoyer à
+            recipient_placeholder: prenom@exemple.fr
+            recipient_help: Laissez vide pour obtenir simplement un lien à copier.
+            label_field: Nom du partage
+            label_placeholder: Pour Marie, relecture
+            expires_label: Expire le
+            expires_placeholder: jj/mm/aaaa
+            expires_hint: Laissez vide pour un lien valable jusqu'à révocation.
+            create: Créer le lien
+            created: Lien créé
+            sent: Invitation envoyée à {email}
+            copy: Copier
+            copied: Lien copié
+            revoke: Révoquer
+            revoked: Lien révoqué
+            revoked_on: Révoqué le {date}
+            never_opened: Jamais ouvert
+            last_opened: Ouvert le {date}
+            existing: Partages en cours
+            none_yet: Cette note n'est partagée avec personne.
+            unavailable_title: Note indisponible
+            unavailable_body: Ce lien n'est plus valide, ou n'a jamais existé. Demandez-en un nouveau à la personne qui vous l'a envoyé.
+            errors:
+                unknown_note: Note introuvable.
+                bad_date: Date invalide.
+            mail:
+                subject: '%title% a été partagée avec vous'
+                title: Une note a été partagée avec vous
+                intro: '%name% vous a partagé la note « %title% ».'
+                open: Ouvrir la note
+                expires: 'Ce lien expire le %date%.'
+                read_only: Vous pouvez lire cette note, pas la modifier.
+        spaces:
+            import_here: 'Importer dans cet espace'
+            export: 'Exporter cet espace'
+            publication:
+                title: 'Publication sur le web'
+                hint: 'L''espace se lit alors sans compte, à son adresse. Rien ne s''y écrit.'
+                slug: 'Adresse'
+                slug_placeholder: 'Déduite du nom si vide'
+                indexable: 'Laisser les moteurs de recherche l''indexer'
+                indexable_hint: 'Désactivé, la page demande aux moteurs de ne pas la référencer.'
+                copy: 'Copier l''adresse'
+                copied: 'Adresse copiée'
+                publish: 'Publier'
+                update: 'Mettre à jour'
+                unpublish: 'Dépublier'
+                published: 'Espace publié'
+                unpublished: 'Espace dépublié'
+                badge: 'Publié sur le web'
+            my_space: 'Mon espace'
+            errors:
+                private_owner_only: 'Seul le propriétaire peut réserver l''espace à lui seul.'
+                bad_slug: 'Adresse invalide : lettres, chiffres et tirets seulement.'
+                slug_taken: 'Cette adresse est déjà prise.'
+                name_required: 'Donnez un nom à l''espace.'
+                bad_access: 'Accès inconnu.'
+                bad_role: 'Rôle inconnu.'
+                bad_member: 'Cette personne ne peut pas être inscrite.'
+                save_failed: 'Impossible d''enregistrer l''espace.'
+                load_failed: 'Impossible de charger l''espace.'
+            name: 'Nom'
+            name_placeholder: 'Nom de l''espace'
+            label: 'Espace'
+            loading: 'Chargement…'
+            personal_hint: 'Votre espace personnel reste privé : personne d''autre ne le voit. Seule sa couleur se règle.'
+            owner: 'Propriétaire : {name}'
+            settings: 'Réglages de l''espace'
+            members: 'Membres'
+            members_hint: 'Seules les personnes inscrites entrent, chacune avec son rôle.'
+            members_hint_backoffice: 'Tout le back-office entre avec le rôle par défaut ; une inscription peut donner plus.'
+            no_members: 'Personne n''est inscrit pour l''instant.'
+            pick_person: 'Choisir une personne'
+            add_member: 'Inscrire'
+            remove_member: 'Retirer {name}'
+            delete: 'Retirer l''espace'
+            delete_confirm: 'Confirmer le retrait'
+            confirm_delete: 'L''espace {name} et tout ce qu''il contient disparaîtront pour tout le monde. Son propriétaire pourra le faire revenir.'
+            save: 'Enregistrer'
+            created: 'Espace créé'
+            updated: 'Espace enregistré'
+            deleted: 'Espace retiré'
+            read_only: 'Lecture'
+            add_here: 'Ajouter dans {name}'
+            empty: 'Rien ici pour l''instant.'
+            access:
+                label: 'Qui y a accès'
+                private: 'Moi seul'
+                members: 'Certaines personnes'
+                backoffice: 'Tout le back-office'
+                private_hint: 'Personne d''autre ne le voit.'
+                members_hint: 'Seules les personnes que vous inscrivez.'
+                backoffice_hint: 'Toute personne qui utilise les notes.'
+            role:
+                label: 'Rôle par défaut'
+                reader: 'Lecture'
+                editor: 'Écriture'
+                manager: 'Gestion'
+        folders:
+            title: Dossiers
+            trash_label: Dossiers de notes
+            root: Tous les documents
+            create: Nouveau dossier
+            created: Dossier créé
+            rename: Renommer
+            renamed: Dossier renommé
+            name_placeholder: Nom du dossier…
+            color: Couleur
+            untitled: Dossier sans titre
+            delete: Supprimer le dossier
+            confirm_delete: "Mettre « {name} » à la corbeille, avec ce qu'il contient ?"
+            deleted: Dossier mis à la corbeille
+            move_to: Déplacer vers…
+            move_root: Tous les documents
+            moved: Élément déplacé
+            open: Ouvrir le dossier
+            contents: '{folders} dossiers · {notes} notes'
+            tree_empty: Aucun dossier pour l'instant.
+            errors:
+                move_refused: 'Déplacement refusé : un dossier ne peut pas être rangé dans lui-même, ni au-delà de {max} niveaux.'
+                bad_payload: Données invalides.
+                bad_color: 'Couleur invalide : il faut une valeur de la forme #rrggbb.'
+                create_failed: Impossible de créer le dossier.
+                rename_failed: Impossible de renommer le dossier.
+                delete_failed: Impossible de supprimer le dossier.
+                move_failed: Impossible de déplacer l'élément.
+                load_failed: Impossible de charger le dossier.
+        library:
+            title: Tous les documents
+            new_note: Nouvelle note
+            recent: Récemment modifiées
+            favorites: Favoris
+            pin: Ajouter aux favoris
+            unpin: Retirer des favoris
+            pin_failed: Impossible de modifier les favoris.
+            shared:
+                section: Visible pour moi
+                badge: Dans un espace partagé
+                by: 'Par {name}'
+                read_only: Lecture seule
+            visibility:
+                all: 'Filtrer : tout'
+                shared: 'Filtre : espaces partagés'
+                private: 'Filtre : mon espace'
+                clear: Retirer le filtre
+            selected: '{count} sélectionné(s)'
+            select: Sélectionner
+            stop_selecting: Terminer la sélection
+            clear_selection: Tout désélectionner
+            some_refused: "{count} élément(s) n'ont pas pu être traités."
+            confirm_delete_selection: 'Mettre à la corbeille les {count} éléments sélectionnés ?'
+            new_folder: Nouveau dossier
+            search_placeholder: Rechercher une note…
+            preview:
+                empty: Cette note est vide.
+            tag:
+                section: Étiquettes
+                filter: 'Voir les notes étiquetées {tag}'
+                clear: Retirer le filtre
+                pin: Épingler cette étiquette
+                unpin: Détacher cette étiquette
+                show_all: '+ {count} autres'
+                none: Aucune note avec cette étiquette
+                none_description: "Plus aucune note ne porte « {tag} »."
+            view:
+                label: Affichage
+                mosaic: Mosaïque
+                cards: Cartes
+                list: Liste
+            scope:
+                flat: Tout afficher à plat
+                grouped: Afficher par dossiers
+                open_folder: 'Ouvrir le dossier {folder}'
+            sort:
+                label: Trier
+                name: Nom
+                created: Création
+                updated: Modification
+                manual: Ordre manuel
+                move_up: Monter
+                move_down: Descendre
+                asc: Ordre croissant
+                desc: Ordre décroissant
+            columns:
+                name: Nom
+                tags: Étiquettes
+                updated: Modifiée le
+                location: Emplacement
+            empty:
+                title: Ce dossier est vide
+                description: Créez une note ou un dossier, ou glissez-en un ici.
+            empty_root:
+                title: Aucun document
+                description: Créez votre première note, ou un dossier pour ranger.
+            count: '{count} éléments'
+        image:
+            upload_failed: Impossible d'envoyer l'image.
+        title: Notes Markdown
+        save: Enregistrer
+        read:
+            edit: 'Modifier'
+            previous: 'Précédente'
+            next: 'Suivante'
+            pager: 'Note précédente et suivante'
+            mode: 'Mode lecture'
+            mode_edit: 'Revenir à l''édition'
+            contents: 'Sommaire'
+            open: Lire la note seule
+            subheading: Vue de lecture
+            back: Retour à l'éditeur
+        cover:
+            add: Ajouter une image d'entête
+            change: Changer l'image d'entête
+            remove: Retirer l'image
+            credit: 'Photo : {name} (Pexels)'
+            search_placeholder: Chercher une photo…
+            search_empty: Aucune photo pour cette recherche
+            not_configured: Pexels n'est pas configuré.
+            not_configured_hint: Un administrateur peut renseigner la clé dans les réglages de la médiathèque.
+            position: Cadrage
+            autosaved: Le cadrage s'enregistre tout seul, comme le texte de la note.
+            title: Image d'entête
+        appearance:
+            title: Apparence
+            plain: Ordinaire
+            sepia: Sépia
+            slate: Ardoise
+            paper: Papier
+            midnight: Nuit
+            mint: Menthe
         delete: Supprimer
-        delete_yes: Confirmer
-        delete_confirm: 'Retirer « {tag} » de 1 note ? | Retirer « {tag} » de {count} notes ?'
-        delete_success: 'Tag retiré de 0 note. | Tag retiré de 1 note. | Tag retiré de {count} notes.'
-        merge_prompt: 'Fusionner 1 tag en un seul : | Fusionner {count} tags en un seul :'
-        merge_target_placeholder: Tag cible (existant ou nouveau)…
-        merge_confirm: Fusionner
-        merge_success: 'Aucune note fusionnée. | 1 note fusionnée. | {count} notes fusionnées.'
-        note_count: '1 note | {count} notes'
+        rename: Renommer la note
+        cancel: Annuler
+        saved: Note enregistrée
+        delete_warning: La note part à la corbeille. Vous pourrez la restaurer depuis la corbeille.
+        untitled: Sans titre
+        title_placeholder: Titre de la note…
+        search_placeholder: Rechercher une note…
+        search_no_results: Aucun résultat
+        search_no_results_description: 'Aucune note ne correspond à « {query} ».'
+        resize_handle: Glisser pour redimensionner
+        content_placeholder: "# Écrivez du markdown ici\n\nReliez vos notes avec [[Titre]]"
+        create_root: Nouvelle note
+        export:
+            all: Exporter le carnet
+            one: Exporter cette note
+        import:
+            button: Importer des notes
+            done: "Aucune note importée | 1 note importée | {count} notes importées"
+            errors:
+                required: Choisissez au moins un fichier.
+        create_in_folder: 'Ajouter dans ce dossier'
+        collapse_all: 'Tout replier'
+        conflict:
+            title: 'Cette note a changé ailleurs'
+            body: 'Quelqu''un a modifié cette note pendant que vous écriviez. Vos derniers changements n''ont pas été enregistrés, pour ne pas effacer les siens. Rechargez pour repartir de sa version, ou écrasez-la avec la vôtre.'
+            reload: 'Recharger sa version'
+            overwrite: 'Écraser avec la mienne'
+        breadcrumb: 'Emplacement de la note'
+        outline:
+            tab: 'Plan'
+            panel_title: 'Sur cette note'
+            empty: 'Aucun titre dans cette note'
+            empty_hint: 'Les titres de la note, écrits avec # ou ##, apparaissent ici : un clic y mène.'
+            words: 'Aucun mot | 1 mot | {count} mots'
+            minutes: '{minutes} min de lecture'
+        print:
+            open: 'Imprimer ou exporter en PDF'
+            action: 'Imprimer'
+        revisions:
+            open: 'Historique des versions'
+            title: 'Historique de la note'
+            empty: 'Aucune version passée pour l''instant'
+            empty_hint: 'Une version est gardée quand vous modifiez la note, au plus une toutes les quelques minutes (réglages, onglet Notes).'
+            no_author: 'Auteur inconnu'
+            since: 'Depuis cette version : {added} ligne(s) ajoutée(s), {removed} retirée(s)'
+            show_whole: 'Voir la version entière'
+            show_changes: 'Voir les changements'
+            title_was: 'Le titre était alors : {title}'
+            restore: 'Restaurer cette version'
+            restore_now: 'Restaurer maintenant'
+            restore_confirm: 'Le texte actuel sera gardé comme une version : vous pourrez y revenir.'
+            restored: 'Version restaurée'
+        duplicate:
+            action: 'Dupliquer'
+            title: 'Copie de {title}'
+            done: 'Note dupliquée'
+            failed: 'La note n''a pas pu être dupliquée.'
+        template:
+            mark: 'Utiliser comme modèle'
+            unmark: 'Ne plus utiliser comme modèle'
+            marked: 'Cette note sert maintenant de modèle.'
+            unmarked: 'Cette note n''est plus un modèle.'
+            badge: 'Modèle'
+            start_from: 'Partir de'
+            blank: 'Une note vide'
+            hint: '{marker} y devient la date du jour.'
+            failed: 'La note n''a pas pu être créée depuis ce modèle.'
+        add:
+            space: 'Espace'
+            create_space: 'Créer l''espace'
+            title: 'Ajouter'
+            kind: 'Ajouter une note ou un dossier'
+            note: 'Note'
+            folder: 'Dossier'
+            where: 'Dans :'
+            create_note: 'Créer la note'
+            create_folder: 'Créer le dossier'
+            here: 'Ajouter ici'
+        confirm_delete: 'Supprimer définitivement « {title} » ?'
+
+        confirm_discard_changes: Vous avez des modifications non enregistrées. Les abandonner ?
+        wiki_link_not_found: 'Aucune note ne correspond à « {title} ».'
+        wiki_search_placeholder: Tapez pour filtrer les notes…
+        wiki_no_results: 'Aucune note ne correspond à « {query} ».'
+        view:
+            edit: Édition seule
+            split: Édition + aperçu
+            preview: Aperçu seul
+        slash:
+            h1: Titre 1
+            h2: Titre 2
+            h3: Titre 3
+            bullet: Liste à puces
+            numbered: Liste numérotée
+            checkbox: Case à cocher
+            quote: Citation
+            divider: Séparateur
+            code: Bloc de code
+            callout: Encadré
+            link: Lien wiki
+            bold: Gras
+            italic: Italique
+            strikethrough: Barré
+            table: Tableau
+            table_column: 'Colonne {n}'
+            no_results: Aucune commande
+        tags:
+            add_placeholder: Ajouter un tag…
+            summary: '{count} tag(s)'
+            filter_label: Filtrer par tag
+            clear: Tout effacer
+            no_results: Aucune note pour ces tags
+            no_results_description: Aucune note ne porte les tags sélectionnés.
+            errors:
+                empty: Le tag est requis.
+                sources_empty: Sélectionnez au moins un tag à fusionner.
+            manage:
+                title: Gérer les tags
+                close: Fermer
+                search_placeholder: Filtrer les tags…
+                search_empty: Aucun tag trouvé
+                search_empty_description: 'Aucun tag ne correspond à « {query} ».'
+                empty_title: Aucun tag
+                empty_description: Aucune note ne porte de tag pour le moment.
+                rename: Renommer
+                rename_confirm: Renommer
+                new_name_placeholder: Nouveau nom du tag…
+                rename_success: 'Aucune note mise à jour. | 1 note mise à jour. | {count} notes mises à jour.'
+                delete: Supprimer
+                delete_yes: Confirmer
+                delete_confirm: 'Retirer « {tag} » de 1 note ? | Retirer « {tag} » de {count} notes ?'
+                delete_success: 'Tag retiré de 0 note. | Tag retiré de 1 note. | Tag retiré de {count} notes.'
+                merge_prompt: 'Fusionner 1 tag en un seul : | Fusionner {count} tags en un seul :'
+                merge_target_placeholder: Tag cible (existant ou nouveau)…
+                merge_confirm: Fusionner
+                merge_success: 'Aucune note fusionnée. | 1 note fusionnée. | {count} notes fusionnées.'
+                note_count: '1 note | {count} notes'
+                errors:
+                    rename_failed: Impossible de renommer le tag.
+                    delete_failed: Impossible de supprimer le tag.
+                    merge_failed: Impossible de fusionner les tags.
+        graph:
+            title: Graphe des liens
+            open: Ouvrir le graphe
+            loading: Construction du graphe…
+            empty:
+                title: Aucun nœud à afficher
+                description: Créez quelques notes reliées par [[wiki-links]] pour voir le graphe.
+        links:
+            title: Liens
+            open: Afficher le plan et les liens
+            close: Fermer le panneau
+            # « Backlinks » restait en anglais dans un écran qui dit « Afficher les
+            # liens entrants » deux boutons plus loin, et dans un produit dont la
+            # documentation appelle ça « les notes qui pointent ici ». Le jargon
+            # n'apprend rien à qui prend des notes.
+            backlinks: Liens entrants
+            mentions: Mentions
+            loading: Chargement…
+            empty_backlinks: Aucun lien entrant
+            empty_backlinks_description: Aucune note ne référence celle-ci avec [[…]].
+            empty_mentions: Aucune mention
+            empty_mentions_description: Aucune note ne mentionne ce titre sans wiki-link.
+        empty:
+            title: Aucune note
+            description: Cliquez sur + pour créer votre première note.
         errors:
-          rename_failed: Impossible de renommer le tag.
-          delete_failed: Impossible de supprimer le tag.
-          merge_failed: Impossible de fusionner les tags.
-    graph:
-      title: Graphe des liens
-      open: Ouvrir le graphe
-      loading: Construction du graphe…
-      empty:
-        title: Aucun nœud à afficher
-        description: Créez quelques notes reliées par [[wiki-links]] pour voir le graphe.
-    links:
-      title: Liens
-      open: Afficher le plan et les liens
-      close: Fermer le panneau
-      # « Backlinks » restait en anglais dans un écran qui dit « Afficher les
-      # liens entrants » deux boutons plus loin, et dans un produit dont la
-      # documentation appelle ça « les notes qui pointent ici ». Le jargon
-      # n'apprend rien à qui prend des notes.
-      backlinks: Liens entrants
-      mentions: Mentions
-      loading: Chargement…
-      empty_backlinks: Aucun lien entrant
-      empty_backlinks_description: Aucune note ne référence celle-ci avec [[…]].
-      empty_mentions: Aucune mention
-      empty_mentions_description: Aucune note ne mentionne ce titre sans wiki-link.
-    empty:
-      title: Aucune note
-      description: Cliquez sur + pour créer votre première note.
-    errors:
-      load_failed: Impossible de charger la note.
-      crashed: Cette page n'a pas pu s'afficher
-      create_failed: Impossible de créer la note.
-      save_failed: Impossible d'enregistrer la note.
-      delete_failed: Impossible de supprimer la note.
-      reorder_failed: Impossible de réordonner les notes.
+            load_failed: Impossible de charger la note.
+            crashed: Cette page n'a pas pu s'afficher
+            create_failed: Impossible de créer la note.
+            save_failed: Impossible d'enregistrer la note.
+            delete_failed: Impossible de supprimer la note.
+            reorder_failed: Impossible de réordonner les notes.

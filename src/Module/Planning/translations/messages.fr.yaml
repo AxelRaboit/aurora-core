@@ -1,258 +1,258 @@
 backend:
-  audit:
-    actions:
-      planning:
-        calendar:
-          created: Calendrier créé
-          updated: Calendrier modifié
-          deleted: Calendrier supprimé
-        share_link:
-          created: Lien de partage créé
-          revoked: Lien de partage révoqué
-        event:
-          created: Événement créé
-          updated: Événement modifié
-          deleted: Événement supprimé
-        reminder:
-          created: Rappel créé
-          updated: Rappel modifié
-          deleted: Rappel supprimé
-  permissions:
-    names:
-      planning:
-        calendars:
-          view: Voir le calendrier
-          manage: Gérer les calendriers
+    audit:
+        actions:
+            planning:
+                calendar:
+                    created: Calendrier créé
+                    updated: Calendrier modifié
+                    deleted: Calendrier supprimé
+                share_link:
+                    created: Lien de partage créé
+                    revoked: Lien de partage révoqué
+                event:
+                    created: Événement créé
+                    updated: Événement modifié
+                    deleted: Événement supprimé
+                reminder:
+                    created: Rappel créé
+                    updated: Rappel modifié
+                    deleted: Rappel supprimé
+    permissions:
+        names:
+            planning:
+                calendars:
+                    view: Voir le calendrier
+                    manage: Gérer les calendriers
+                events:
+                    create: Créer des événements et des rappels
+                    edit: Modifier des événements et des rappels
+                    delete: Supprimer des événements et des rappels
+    modules:
+        planning: Calendrier
+        planning_backend: Calendrier
+        planning_backend_description: "Active le calendrier dans l'administration."
+    nav:
+        sections:
+            planning: Calendrier
+        planning: Calendrier
+        planning_description: "Voir les événements et les rappels des calendriers, en mois, semaine ou jour."
+    plannings:
+        guide:
+            title: "Comment marche le calendrier"
+            step_1: "Le menu latéral liste vos calendriers : masquez-en un pour retirer ses événements de la grille, ou créez un événement, un rappel ou un calendrier."
+            step_2: "Les flèches changent de période, Jour, Semaine, Mois et Agenda changent l'affichage, et Aujourd'hui revient à la date du jour."
+            step_3: "Sur ordinateur, cliquez sur un jour ou un créneau libre pour y créer un événement, et faites glisser un événement pour le déplacer."
+            step_4: "Un rappel est une échéance à cocher une fois faite ; modifier un événement récurrent demande s'il s'agit de cette occurrence, des suivantes ou de toute la série."
+            step_5: "Partager un calendrier l'ouvre à d'autres utilisateurs, ou crée un lien secret lisible sans compte, en page web ou en abonnement."
+        title: Calendrier
+        upcoming: "À venir"
+        nothing_upcoming: "Rien de prévu pour le moment."
+        open_calendar: "Ouvrir le calendrier"
+        shortcuts: "Raccourcis : D jour, W semaine, M mois, T aujourd'hui, N/P naviguer, C événement, R rappel"
+        display_zone: "Fuseau d'affichage"
+        today: "Aujourd'hui"
+        views:
+            day: Jour
+            week: Semaine
+            month: Mois
+            agenda: Agenda
+        more: "+{count} autre(s)"
+        calendars: Mes calendriers
+        new_calendar: Nouveau calendrier
+        edit_calendar: Modifier le calendrier
+        name_placeholder: "Travail, Perso, Photo…"
+        colour_slot: "Couleur {slot}"
+        visibility_hint: "Un calendrier partagé est visible par tous ceux qui ont accès au calendrier."
+        timezone_hint: "Le fuseau qui découpe les journées entières de ce calendrier."
+        events_in_range: "Événements dans la période affichée"
+        nothing_in_range: "Rien dans cette période."
+        nothing_on_day: "Rien ce jour-là."
+        empty: "Aucun calendrier pour l'instant."
+        name: Nom
+        description: Description
+        colour: Couleur
+        timezone: Fuseau horaire
+        visibility:
+            label: Visibilité
+            private: Privé
+            shared: Partagé
+        shares:
+            label: "Partagé avec"
+            placeholder: "Ajouter quelqu'un…"
+            can_write: "Peut modifier"
+            save: "Enregistrer le partage"
+            errors:
+                owner_only: "Seul le propriétaire du calendrier peut changer son partage."
+        links:
+            title: "Partager {name}"
+            label: "Partage par lien"
+            hint: "Une adresse secrète pour consulter ce calendrier sans compte. Toute personne qui l'a peut le lire, jusqu'à l'échéance ou la révocation."
+            empty: "Aucun lien"
+            mode: "Type"
+            mode_web: "Page web"
+            mode_ics: "Abonnement (.ics)"
+            create: "Créer le lien"
+            revoke: "Révoquer"
+            new_label: "Pour qui ?"
+            new_label_placeholder: "Marie, studio photo"
+            new_label_hint: "Sert à retrouver quel lien révoquer plus tard."
+            expires: "Expire le"
+            expires_placeholder: "Jamais"
+            expires_hint: "Vide : n'expire pas. À réserver aux abonnements."
+            no_expiry: "N'expire pas"
+            expires_on: "Expire le {date}"
+            expired_on: "Expiré le {date}"
+            revoked_on: "Révoqué le {date}"
+            last_used: "Ouvert le {date}"
+            never_used: "Jamais ouvert"
+            also_covers: "Couvre aussi 1 autre calendrier | Couvre aussi {count} autres calendriers"
+            errors:
+                calendars_required: "Choisissez au moins un calendrier."
+                label_required: "Donnez un nom à ce lien."
+                label_too_long: "Ce nom est trop long."
+                not_owned: "Vous ne pouvez partager que vos propres calendriers."
+        scope:
+            title_edit: "Modifier l'événement récurrent"
+            title_delete: "Supprimer l'événement récurrent"
+            this: "Cette occurrence"
+            this_hint_edit: "Les autres restent où elles sont."
+            this_hint_delete: "Les autres sont conservées."
+            following: "Celle-ci et les suivantes"
+            following_hint_edit: "Les occurrences passées ne changent pas."
+            following_hint_delete: "Les occurrences passées sont conservées."
+            all: "Toute la série"
+            all_hint_edit: "Y compris les occurrences déjà passées."
+            all_hint_delete: "Y compris les occurrences déjà passées."
+        recurrence:
+            label: "Récurrence"
+            none: "Ne se répète pas"
+            daily: "Chaque jour"
+            weekly: "Chaque semaine"
+            monthly: "Chaque mois"
+            yearly: "Chaque année"
+            custom: "Personnalisé…"
+            every: "Tous les"
+            freq_DAILY: "jours"
+            freq_WEEKLY: "semaines"
+            freq_MONTHLY: "mois"
+            freq_YEARLY: "ans"
+            on_days: "Les jours"
+            ends: "Se termine"
+            until_placeholder: "JJ/MM/AAAA"
+            end_never: "Jamais"
+            end_until: "Le"
+            end_count: "Après"
+            occurrences: "occurrences"
+            day_MO: L
+            day_TU: M
+            day_WE: M
+            day_TH: J
+            day_FR: V
+            day_SA: S
+            day_SU: D
+        mail:
+            alert_subject: "Bientôt : %title%"
+            alert_intro: "Cet événement du calendrier %calendar% approche."
+            reminder_subject: "Rappel : %title%"
+            reminder_intro: "Ce rappel du calendrier %calendar% est arrivé à échéance."
+            open: "Ouvrir le calendrier"
+        errors:
+            name_required: Le calendrier a besoin d'un nom.
+            colour_out_of_range: "Cette couleur n'existe pas dans la palette."
+            timezone_unknown: Ce fuseau horaire est inconnu.
+            window_invalid: "La période demandée est invalide."
+        reminders:
+            # L'intitulé de la bande, dans la grille.
+            title: Rappels
+            # Le libellé du champ, dans la fenêtre.
+            title_label: Titre
+            title_placeholder: "Appeler le client, relire le brouillon…"
+            new: Nouveau rappel
+            edit: Modifier le rappel
+            due: Échéance
+            due_placeholder: "Le jour et l'heure de l'échéance"
+            notes: Notes
+            notes_placeholder: "Ce qu'il faut savoir pour le faire"
+            completed: Terminé
+            overdue: En retard
+            all_day: "Toute la journée"
+            none: "Aucun rappel dans la période affichée."
+            notification: "%calendar% · c'est le moment"
+            errors:
+                title_required: "Le rappel a besoin d'un titre."
+                due_required: "Le rappel a besoin d'une échéance."
+        attendees:
+            label: Participants
+            placeholder: "Inviter quelqu'un…"
+            none: "Personne d'invité."
+            invited_body: "Vous êtes invité à un événement du calendrier %calendar%."
+            your_answer: "Votre réponse"
+            status_needs_action: "Sans réponse"
+            status_accepted: Accepté
+            status_declined: Refusé
+            status_tentative: Peut-être
+            errors:
+                not_invited: "Vous n'êtes pas invité à cet événement."
+                status_unknown: "Cette réponse n'existe pas."
+        alerts:
+            channel: "Par"
+            channel_hint: "Une alerte qui n'arrive que dans l'application ne se voit qu'en y étant déjà."
+            channel_notification: "Notification"
+            channel_email: "E-mail"
+            custom: "Personnalisé…"
+            add: Ajouter une alerte
+            at_placeholder: "Le jour et l'heure de l'alerte"
+            label: "Alertes"
+            none: "Aucune alerte pour cet événement."
+            notification: "%calendar% · commence à %when%"
+            # One key per offset, so a translator reads phrases and not a
+            # number plus a unit that needs a plural rule.
+            offsets:
+                0: "À l'heure"
+                5: "5 minutes avant"
+                10: "10 minutes avant"
+                15: "15 minutes avant"
+                30: "30 minutes avant"
+                60: "1 heure avant"
+                120: "2 heures avant"
+                1440: "1 jour avant"
+                10080: "1 semaine avant"
         events:
-          create: Créer des événements et des rappels
-          edit: Modifier des événements et des rappels
-          delete: Supprimer des événements et des rappels
-  modules:
-    planning: Calendrier
-    planning_backend: Calendrier
-    planning_backend_description: "Active le calendrier dans l'administration."
-  nav:
-    sections:
-      planning: Calendrier
-    planning: Calendrier
-    planning_description: "Voir les événements et les rappels des calendriers, en mois, semaine ou jour."
-  plannings:
-    guide:
-      title: "Comment marche le calendrier"
-      step_1: "Le menu latéral liste vos calendriers : masquez-en un pour retirer ses événements de la grille, ou créez un événement, un rappel ou un calendrier."
-      step_2: "Les flèches changent de période, Jour, Semaine, Mois et Agenda changent l'affichage, et Aujourd'hui revient à la date du jour."
-      step_3: "Sur ordinateur, cliquez sur un jour ou un créneau libre pour y créer un événement, et faites glisser un événement pour le déplacer."
-      step_4: "Un rappel est une échéance à cocher une fois faite ; modifier un événement récurrent demande s'il s'agit de cette occurrence, des suivantes ou de toute la série."
-      step_5: "Partager un calendrier l'ouvre à d'autres utilisateurs, ou crée un lien secret lisible sans compte, en page web ou en abonnement."
-    title: Calendrier
-    upcoming: "À venir"
-    nothing_upcoming: "Rien de prévu pour le moment."
-    open_calendar: "Ouvrir le calendrier"
-    shortcuts: "Raccourcis : D jour, W semaine, M mois, T aujourd'hui, N/P naviguer, C événement, R rappel"
-    display_zone: "Fuseau d'affichage"
-    today: "Aujourd'hui"
-    views:
-      day: Jour
-      week: Semaine
-      month: Mois
-      agenda: Agenda
-    more: "+{count} autre(s)"
-    calendars: Mes calendriers
-    new_calendar: Nouveau calendrier
-    edit_calendar: Modifier le calendrier
-    name_placeholder: "Travail, Perso, Photo…"
-    colour_slot: "Couleur {slot}"
-    visibility_hint: "Un calendrier partagé est visible par tous ceux qui ont accès au calendrier."
-    timezone_hint: "Le fuseau qui découpe les journées entières de ce calendrier."
-    events_in_range: "Événements dans la période affichée"
-    nothing_in_range: "Rien dans cette période."
-    nothing_on_day: "Rien ce jour-là."
-    empty: "Aucun calendrier pour l'instant."
-    name: Nom
-    description: Description
-    colour: Couleur
-    timezone: Fuseau horaire
-    visibility:
-      label: Visibilité
-      private: Privé
-      shared: Partagé
-    shares:
-      label: "Partagé avec"
-      placeholder: "Ajouter quelqu'un…"
-      can_write: "Peut modifier"
-      save: "Enregistrer le partage"
-      errors:
-        owner_only: "Seul le propriétaire du calendrier peut changer son partage."
-    links:
-      title: "Partager {name}"
-      label: "Partage par lien"
-      hint: "Une adresse secrète pour consulter ce calendrier sans compte. Toute personne qui l'a peut le lire, jusqu'à l'échéance ou la révocation."
-      empty: "Aucun lien"
-      mode: "Type"
-      mode_web: "Page web"
-      mode_ics: "Abonnement (.ics)"
-      create: "Créer le lien"
-      revoke: "Révoquer"
-      new_label: "Pour qui ?"
-      new_label_placeholder: "Marie, studio photo"
-      new_label_hint: "Sert à retrouver quel lien révoquer plus tard."
-      expires: "Expire le"
-      expires_placeholder: "Jamais"
-      expires_hint: "Vide : n'expire pas. À réserver aux abonnements."
-      no_expiry: "N'expire pas"
-      expires_on: "Expire le {date}"
-      expired_on: "Expiré le {date}"
-      revoked_on: "Révoqué le {date}"
-      last_used: "Ouvert le {date}"
-      never_used: "Jamais ouvert"
-      also_covers: "Couvre aussi 1 autre calendrier | Couvre aussi {count} autres calendriers"
-      errors:
-        calendars_required: "Choisissez au moins un calendrier."
-        label_required: "Donnez un nom à ce lien."
-        label_too_long: "Ce nom est trop long."
-        not_owned: "Vous ne pouvez partager que vos propres calendriers."
-    scope:
-      title_edit: "Modifier l'événement récurrent"
-      title_delete: "Supprimer l'événement récurrent"
-      this: "Cette occurrence"
-      this_hint_edit: "Les autres restent où elles sont."
-      this_hint_delete: "Les autres sont conservées."
-      following: "Celle-ci et les suivantes"
-      following_hint_edit: "Les occurrences passées ne changent pas."
-      following_hint_delete: "Les occurrences passées sont conservées."
-      all: "Toute la série"
-      all_hint_edit: "Y compris les occurrences déjà passées."
-      all_hint_delete: "Y compris les occurrences déjà passées."
-    recurrence:
-      label: "Récurrence"
-      none: "Ne se répète pas"
-      daily: "Chaque jour"
-      weekly: "Chaque semaine"
-      monthly: "Chaque mois"
-      yearly: "Chaque année"
-      custom: "Personnalisé…"
-      every: "Tous les"
-      freq_DAILY: "jours"
-      freq_WEEKLY: "semaines"
-      freq_MONTHLY: "mois"
-      freq_YEARLY: "ans"
-      on_days: "Les jours"
-      ends: "Se termine"
-      until_placeholder: "JJ/MM/AAAA"
-      end_never: "Jamais"
-      end_until: "Le"
-      end_count: "Après"
-      occurrences: "occurrences"
-      day_MO: L
-      day_TU: M
-      day_WE: M
-      day_TH: J
-      day_FR: V
-      day_SA: S
-      day_SU: D
-    mail:
-      alert_subject: "Bientôt : %title%"
-      alert_intro: "Cet événement du calendrier %calendar% approche."
-      reminder_subject: "Rappel : %title%"
-      reminder_intro: "Ce rappel du calendrier %calendar% est arrivé à échéance."
-      open: "Ouvrir le calendrier"
-    errors:
-      name_required: Le calendrier a besoin d'un nom.
-      colour_out_of_range: "Cette couleur n'existe pas dans la palette."
-      timezone_unknown: Ce fuseau horaire est inconnu.
-      window_invalid: "La période demandée est invalide."
-    reminders:
-      # L'intitulé de la bande, dans la grille.
-      title: Rappels
-      # Le libellé du champ, dans la fenêtre.
-      title_label: Titre
-      title_placeholder: "Appeler le client, relire le brouillon…"
-      new: Nouveau rappel
-      edit: Modifier le rappel
-      due: Échéance
-      due_placeholder: "Le jour et l'heure de l'échéance"
-      notes: Notes
-      notes_placeholder: "Ce qu'il faut savoir pour le faire"
-      completed: Terminé
-      overdue: En retard
-      all_day: "Toute la journée"
-      none: "Aucun rappel dans la période affichée."
-      notification: "%calendar% · c'est le moment"
-      errors:
-        title_required: "Le rappel a besoin d'un titre."
-        due_required: "Le rappel a besoin d'une échéance."
-    attendees:
-      label: Participants
-      placeholder: "Inviter quelqu'un…"
-      none: "Personne d'invité."
-      invited_body: "Vous êtes invité à un événement du calendrier %calendar%."
-      your_answer: "Votre réponse"
-      status_needs_action: "Sans réponse"
-      status_accepted: Accepté
-      status_declined: Refusé
-      status_tentative: Peut-être
-      errors:
-        not_invited: "Vous n'êtes pas invité à cet événement."
-        status_unknown: "Cette réponse n'existe pas."
-    alerts:
-      channel: "Par"
-      channel_hint: "Une alerte qui n'arrive que dans l'application ne se voit qu'en y étant déjà."
-      channel_notification: "Notification"
-      channel_email: "E-mail"
-      custom: "Personnalisé…"
-      add: Ajouter une alerte
-      at_placeholder: "Le jour et l'heure de l'alerte"
-      label: "Alertes"
-      none: "Aucune alerte pour cet événement."
-      notification: "%calendar% · commence à %when%"
-      # One key per offset, so a translator reads phrases and not a
-      # number plus a unit that needs a plural rule.
-      offsets:
-        0: "À l'heure"
-        5: "5 minutes avant"
-        10: "10 minutes avant"
-        15: "15 minutes avant"
-        30: "30 minutes avant"
-        60: "1 heure avant"
-        120: "2 heures avant"
-        1440: "1 jour avant"
-        10080: "1 semaine avant"
-    events:
-      # Le libellé du champ, au singulier : c'est un titre qu'on y écrit,
-      # pas une liste d'événements. La bande des rappels de la grille garde
-      # son intitulé à elle, `reminders.title`.
-      title: Titre
-      new: Nouvel événement
-      all_day: Toute la journée
-      all_day_short: Journée
-      starts: Début
-      ends: Fin
-      starts_placeholder: "Le jour et l'heure de début"
-      ends_placeholder: "Le jour et l'heure de fin"
-      in_zone: "Les heures sont celles du fuseau {zone} du calendrier."
-      colour_from_calendar: "Celle du calendrier"
-      location: Lieu
-      location_placeholder: "Une salle, une adresse, un lien"
-      status:
-        tentative: À confirmer
-        confirmed: Confirmé
-        cancelled: Annulé
-      from_module: "Depuis un module"
-      open_source: Ouvrir la source
-      errors:
-        title_required: "L'événement a besoin d'un titre."
-        calendar_required: Choisissez un calendrier.
-        start_required: "L'événement a besoin d'une date de début."
-        end_required: "L'événement a besoin d'une date de fin."
-        end_before_start: "La fin ne peut pas précéder le début."
-        occurrence_required: "Précisez de quelle occurrence il s'agit."
-        read_only: "Cet événement vient d'un autre module : il se modifie à sa source."
+            # Le libellé du champ, au singulier : c'est un titre qu'on y écrit,
+            # pas une liste d'événements. La bande des rappels de la grille garde
+            # son intitulé à elle, `reminders.title`.
+            title: Titre
+            new: Nouvel événement
+            all_day: Toute la journée
+            all_day_short: Journée
+            starts: Début
+            ends: Fin
+            starts_placeholder: "Le jour et l'heure de début"
+            ends_placeholder: "Le jour et l'heure de fin"
+            in_zone: "Les heures sont celles du fuseau {zone} du calendrier."
+            colour_from_calendar: "Celle du calendrier"
+            location: Lieu
+            location_placeholder: "Une salle, une adresse, un lien"
+            status:
+                tentative: À confirmer
+                confirmed: Confirmé
+                cancelled: Annulé
+            from_module: "Depuis un module"
+            open_source: Ouvrir la source
+            errors:
+                title_required: "L'événement a besoin d'un titre."
+                calendar_required: Choisissez un calendrier.
+                start_required: "L'événement a besoin d'une date de début."
+                end_required: "L'événement a besoin d'une date de fin."
+                end_before_start: "La fin ne peut pas précéder le début."
+                occurrence_required: "Précisez de quelle occurrence il s'agit."
+                read_only: "Cet événement vient d'un autre module : il se modifie à sa source."
 frontend:
-  plannings:
-    share:
-      unavailable_title: "Lien indisponible"
-      unavailable_body: "Ce lien n'est plus valable. Il a peut-être expiré ou été révoqué. Demandez-en un nouveau à la personne qui vous l'a envoyé."
-      read_only: "Consultation seule"
-      until: "jusqu'au %date%"
-      times_in: "Heures en {zone}"
-      nothing: "Aucun calendrier"
+    plannings:
+        share:
+            unavailable_title: "Lien indisponible"
+            unavailable_body: "Ce lien n'est plus valable. Il a peut-être expiré ou été révoqué. Demandez-en un nouveau à la personne qui vous l'a envoyé."
+            read_only: "Consultation seule"
+            until: "jusqu'au %date%"
+            times_in: "Heures en {zone}"
+            nothing: "Aucun calendrier"

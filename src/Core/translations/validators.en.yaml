@@ -1,171 +1,171 @@
 backend:
-  access_requests:
-    approved: Request from {name} approved.
-    purged: Processed requests deleted.
-    rejected: Request from {name} rejected.
-  invitations:
-    sent: Invitation sent to {email}.
-  tabs:
-    access_requests: Access Requests
-    invitations: Invitations
-    overview: Overview
-    parameters: Parameters
-    users: Users
-  users:
-    cannot_delete_self: You cannot delete your own account.
-    cannot_modify_higher_role: You cannot modify a user with a higher role than yours.
-    cannot_modify_self: You cannot modify your own role.
-    created: User created successfully.
-    deleted: User deleted.
-    dev_granted: Dev role granted.
-    dev_revoked: Dev role revoked.
+    access_requests:
+        approved: Request from {name} approved.
+        purged: Processed requests deleted.
+        rejected: Request from {name} rejected.
+    invitations:
+        sent: Invitation sent to {email}.
+    tabs:
+        access_requests: Access Requests
+        invitations: Invitations
+        overview: Overview
+        parameters: Parameters
+        users: Users
+    users:
+        cannot_delete_self: You cannot delete your own account.
+        cannot_modify_higher_role: You cannot modify a user with a higher role than yours.
+        cannot_modify_self: You cannot modify your own role.
+        created: User created successfully.
+        deleted: User deleted.
+        dev_granted: Dev role granted.
+        dev_revoked: Dev role revoked.
+        errors:
+            email_invalid: Invalid email address.
+            email_required: Email address is required.
+            email_taken: This email address is already in use.
+            email_too_long: Email address must not exceed 180 characters.
+            name_required: Name is required.
+            name_too_long: Name must not exceed 100 characters.
+            role_invalid: Invalid role.
+            role_required: Role is required.
+        updated: User updated.
+    auth:
+        access_request:
+            already_account: Already have an account?
+            description: Fill out this form to request access to the administration.
+            email: Email
+            login_link: Sign in
+            message: Message
+            message_placeholder: Describe your need...
+            name: Name
+            name_placeholder: John Doe
+            submit: Send request
+            success_toast: Your access request has been sent.
+            title: Request access
+        forgot_password:
+            back_login: Back to login
+            instructions: Enter your email address and we'll send you a link to reset your password.
+            sent: If this address is linked to an account, you will receive an email shortly.
+            submit: Send reset link
+            title: Forgot password
+        hero:
+            description: A modern interface to create, manage and publish your web content.
+            feature_1: Flexible content management
+            feature_2: Customizable content types
+            feature_3: Built-in media management
+            feature_4: Modern and fast interface
+            heading: Manage your content
+            heading_accent: with {siteName}.
+        invitation:
+            accept_title: Accept invitation
+            confirm_password: Confirm password
+            errors:
+                password_confirm_required: Confirmation is required.
+                password_mismatch: Passwords do not match.
+                password_required: Password is required.
+                password_too_short: Password must be at least 8 characters.
+            expired: This invitation link is invalid or has expired.
+            password: Password
+            set_password: Set your password to activate your account.
+            submit: Activate my account
+            success: Your account is active, welcome!
+            welcome: Welcome {name}
+        login:
+            email: Email
+            email_placeholder: your@email.com
+            forgot: Forgot password?
+            no_account: No account yet?
+            password: Password
+            remember: Remember me
+            request_access: Request access
+            submit: Sign in
+            title: Login
+        register:
+            already_account: Already have an account?
+            closed_desc: New registrations are currently disabled.
+            closed_title: Registration closed
+            email: Email
+            error_email_invalid: Invalid email address.
+            error_email_required: Email address is required.
+            error_email_taken: This email address is already in use.
+            error_name_required: Name is required.
+            error_password_length: Password must be at least 8 characters.
+            error_password_mismatch: Passwords do not match.
+            heading: Create an account
+            login_link: Sign in
+            name: Name
+            name_placeholder: John Doe
+            password: Password
+            password_confirm: Confirm password
+            submit: Create account
+            title: Create an account
+        reset_password:
+            instructions: Choose a new password for your account.
+            invalid_link: This link is invalid or has expired.
+            submit: Reset password
+            success: Your password has been reset successfully.
+            title: Reset password
+    profile:
+        errors:
+            current_password_invalid: The current password is incorrect.
+            email_invalid: Invalid email address.
+            email_taken: This email address is already in use.
+            invalid_csrf: Invalid security token.
+            invalid_locale: Unsupported language.
+            name_required: Name is required.
+            password_mismatch: Passwords do not match.
+            password_too_short: The password must be at least 8 characters long.
+    media:
+        errors:
+            alt_required: Alternative text is required.
+            focal_out_of_range: Focal point must be between 0 and 1.
+            folder_name_required: Folder name is required.
+    post_types:
+        errors:
+            slug_required: Slug is required.
+            slug_format: Slug may only contain lowercase letters, numbers and underscores.
+            label_required: Label is required.
+            field_name_required: Field name is required.
+            field_name_format: Field name may only contain lowercase letters, numbers and underscores.
+            field_label_required: Field label is required.
+            field_type_invalid: Invalid field type.
+    taxonomies:
+        errors:
+            slug_required: Slug is required.
+            slug_format: Slug may only contain lowercase letters, numbers, hyphens and underscores.
+            translations_required: At least one translation is required.
+    posts:
+        errors:
+            post_type_required: Post type is required.
+            status_required: Status is required.
+            status_invalid: Invalid status.
+            visibility_invalid: Invalid visibility.
+    forms:
+        errors:
+            translations_required: At least one language must be filled in.
+            type_required: Field type is required.
+            field_label_required: At least one label is required.
+frontend:
     errors:
-      email_invalid: Invalid email address.
-      email_required: Email address is required.
-      email_taken: This email address is already in use.
-      email_too_long: Email address must not exceed 180 characters.
-      name_required: Name is required.
-      name_too_long: Name must not exceed 100 characters.
-      role_invalid: Invalid role.
-      role_required: Role is required.
-    updated: User updated.
-  auth:
-    access_request:
-      already_account: Already have an account?
-      description: Fill out this form to request access to the administration.
-      email: Email
-      login_link: Sign in
-      message: Message
-      message_placeholder: Describe your need...
-      name: Name
-      name_placeholder: John Doe
-      submit: Send request
-      success_toast: Your access request has been sent.
-      title: Request access
-    forgot_password:
-      back_login: Back to login
-      instructions: Enter your email address and we'll send you a link to reset your password.
-      sent: If this address is linked to an account, you will receive an email shortly.
-      submit: Send reset link
-      title: Forgot password
-    hero:
-      description: A modern interface to create, manage and publish your web content.
-      feature_1: Flexible content management
-      feature_2: Customizable content types
-      feature_3: Built-in media management
-      feature_4: Modern and fast interface
-      heading: Manage your content
-      heading_accent: with {siteName}.
-    invitation:
-      accept_title: Accept invitation
-      confirm_password: Confirm password
-      errors:
-        password_confirm_required: Confirmation is required.
-        password_mismatch: Passwords do not match.
+        name_required: Name is required.
+        email_required: Email address is required.
+        email_invalid: Invalid email address.
+        email_taken: This email address is already in use.
         password_required: Password is required.
         password_too_short: Password must be at least 8 characters.
-      expired: This invitation link is invalid or has expired.
-      password: Password
-      set_password: Set your password to activate your account.
-      submit: Activate my account
-      success: Your account is active, welcome!
-      welcome: Welcome {name}
-    login:
-      email: Email
-      email_placeholder: your@email.com
-      forgot: Forgot password?
-      no_account: No account yet?
-      password: Password
-      remember: Remember me
-      request_access: Request access
-      submit: Sign in
-      title: Login
-    register:
-      already_account: Already have an account?
-      closed_desc: New registrations are currently disabled.
-      closed_title: Registration closed
-      email: Email
-      error_email_invalid: Invalid email address.
-      error_email_required: Email address is required.
-      error_email_taken: This email address is already in use.
-      error_name_required: Name is required.
-      error_password_length: Password must be at least 8 characters.
-      error_password_mismatch: Passwords do not match.
-      heading: Create an account
-      login_link: Sign in
-      name: Name
-      name_placeholder: John Doe
-      password: Password
-      password_confirm: Confirm password
-      submit: Create account
-      title: Create an account
-    reset_password:
-      instructions: Choose a new password for your account.
-      invalid_link: This link is invalid or has expired.
-      submit: Reset password
-      success: Your password has been reset successfully.
-      title: Reset password
-  profile:
-    errors:
-      current_password_invalid: The current password is incorrect.
-      email_invalid: Invalid email address.
-      email_taken: This email address is already in use.
-      invalid_csrf: Invalid security token.
-      invalid_locale: Unsupported language.
-      name_required: Name is required.
-      password_mismatch: Passwords do not match.
-      password_too_short: The password must be at least 8 characters long.
-  media:
-    errors:
-      alt_required: Alternative text is required.
-      focal_out_of_range: Focal point must be between 0 and 1.
-      folder_name_required: Folder name is required.
-  post_types:
-    errors:
-      slug_required: Slug is required.
-      slug_format: Slug may only contain lowercase letters, numbers and underscores.
-      label_required: Label is required.
-      field_name_required: Field name is required.
-      field_name_format: Field name may only contain lowercase letters, numbers and underscores.
-      field_label_required: Field label is required.
-      field_type_invalid: Invalid field type.
-  taxonomies:
-    errors:
-      slug_required: Slug is required.
-      slug_format: Slug may only contain lowercase letters, numbers, hyphens and underscores.
-      translations_required: At least one translation is required.
-  posts:
-    errors:
-      post_type_required: Post type is required.
-      status_required: Status is required.
-      status_invalid: Invalid status.
-      visibility_invalid: Invalid visibility.
-  forms:
-    errors:
-      translations_required: At least one language must be filled in.
-      type_required: Field type is required.
-      field_label_required: At least one label is required.
-frontend:
-  errors:
-    name_required: Name is required.
-    email_required: Email address is required.
-    email_invalid: Invalid email address.
-    email_taken: This email address is already in use.
-    password_required: Password is required.
-    password_too_short: Password must be at least 8 characters.
-    email_not_verified: Please verify your email address before logging in.
-    account_disabled: Your account has been disabled.
+        email_not_verified: Please verify your email address before logging in.
+        account_disabled: Your account has been disabled.
 
 crm:
-  contacts:
-    errors:
-      first_name_required: First name is required.
-      last_name_required: Last name is required.
-      email_invalid: Invalid email address.
-  companies:
-    errors:
-      name_required: Company name is required.
-      website_invalid: Invalid URL.
-  deals:
-    errors:
-      name_required: Deal name is required.
+    contacts:
+        errors:
+            first_name_required: First name is required.
+            last_name_required: Last name is required.
+            email_invalid: Invalid email address.
+    companies:
+        errors:
+            name_required: Company name is required.
+            website_invalid: Invalid URL.
+    deals:
+        errors:
+            name_required: Deal name is required.

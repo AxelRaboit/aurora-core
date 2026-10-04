@@ -1,51 +1,51 @@
 backend:
-  mount_points:
-    intro: 'Gérez les connexions vers des ressources externes (bases de données, API, SFTP).'
-    search_placeholder: Rechercher un point de montage…
-    add: Ajouter un point de montage
-    edit: Modifier
-    empty: Aucun point de montage configuré.
-    name: Nom
-    type: Type
-    host: Hôte
-    port: Port
-    username: Utilisateur
-    password: Mot de passe
-    password_placeholder: Laisser vide pour conserver le mot de passe actuel
-    database: Base de données
-    ssh_public_key: Clé SSH publique
-    ssh_public_key_placeholder: ssh-ed25519 AAAA…
-    ssh_tunnel: Tunnel SSH
-    ssh_tunnel_hint: Se connecter à la base de données via un tunnel SSH.
-    ssh_host: Hôte SSH
-    ssh_host_placeholder: 'ex : 72.60.130.238'
-    ssh_port: Port SSH
-    ssh_user: Utilisateur SSH
-    ssh_user_placeholder: 'ex : ubuntu'
-    ssh_private_key: Clé privée SSH
-    ssh_private_key_placeholder: "-----BEGIN OPENSSH PRIVATE KEY-----\n…"
-    ssh_private_key_hint: Laisser vide pour conserver la clé actuelle.
-    name_placeholder: 'ex : Production DB'
-    host_placeholder: 'ex : 192.168.1.10 ou db.example.com'
-    port_placeholder: 'ex : 5432'
-    username_placeholder: 'ex : aurora_user'
-    database_placeholder: 'ex : aurora_prod'
-    config: Config avancée (JSON)
-    test: Tester la connexion
-    testing: Test en cours…
-    test_success: Connexion réussie.
-    test_failure: Échec de la connexion.
-    test_title: 'Test de connexion : {name}'
-    retry: Relancer
-    last_tested: Dernier test
-    never: Jamais testé
-    delete_confirm: Supprimer ce point de montage ?
-    types:
-      database: Base de données
-      api: API
-      sftp: SFTP
-    errors:
-      name_required: Le nom est requis.
-      name_too_long: Le nom ne doit pas dépasser 100 caractères.
-      host_required: L'hôte est requis.
-      host_too_long: L'hôte ne doit pas dépasser 255 caractères.
+    mount_points:
+        intro: 'Gérez les connexions vers des ressources externes (bases de données, API, SFTP).'
+        search_placeholder: Rechercher un point de montage…
+        add: Ajouter un point de montage
+        edit: Modifier
+        empty: Aucun point de montage configuré.
+        name: Nom
+        type: Type
+        host: Hôte
+        port: Port
+        username: Utilisateur
+        password: Mot de passe
+        password_placeholder: Laisser vide pour conserver le mot de passe actuel
+        database: Base de données
+        ssh_public_key: Clé SSH publique
+        ssh_public_key_placeholder: ssh-ed25519 AAAA…
+        ssh_tunnel: Tunnel SSH
+        ssh_tunnel_hint: Se connecter à la base de données via un tunnel SSH.
+        ssh_host: Hôte SSH
+        ssh_host_placeholder: 'ex : 72.60.130.238'
+        ssh_port: Port SSH
+        ssh_user: Utilisateur SSH
+        ssh_user_placeholder: 'ex : ubuntu'
+        ssh_private_key: Clé privée SSH
+        ssh_private_key_placeholder: "-----BEGIN OPENSSH PRIVATE KEY-----\n…"
+        ssh_private_key_hint: Laisser vide pour conserver la clé actuelle.
+        name_placeholder: 'ex : Production DB'
+        host_placeholder: 'ex : 192.168.1.10 ou db.example.com'
+        port_placeholder: 'ex : 5432'
+        username_placeholder: 'ex : aurora_user'
+        database_placeholder: 'ex : aurora_prod'
+        config: Config avancée (JSON)
+        test: Tester la connexion
+        testing: Test en cours…
+        test_success: Connexion réussie.
+        test_failure: Échec de la connexion.
+        test_title: 'Test de connexion : {name}'
+        retry: Relancer
+        last_tested: Dernier test
+        never: Jamais testé
+        delete_confirm: Supprimer ce point de montage ?
+        types:
+            database: Base de données
+            api: API
+            sftp: SFTP
+        errors:
+            name_required: Le nom est requis.
+            name_too_long: Le nom ne doit pas dépasser 100 caractères.
+            host_required: L'hôte est requis.
+            host_too_long: L'hôte ne doit pas dépasser 255 caractères.

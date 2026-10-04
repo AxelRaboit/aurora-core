@@ -1,20 +1,20 @@
 backend:
-  search:
-    button: Search…
-    placeholder: 'Search the back-office…'
-    hint: 'Type to search content, media, calendars, notes, client spaces and contracts.'
-    empty: No results.
-    keys:
-      navigate: Navigate
-      select: Select
-      close: Close
-    sections:
-      recent: Recent
-      nav: Navigation
-      projects: Projects
-      tasks: Tasks
-      posts: Content
-      terms: Terms
-      media: Media
-      events: Events
-      reminders: Reminders
+    search:
+        button: Search…
+        placeholder: 'Search the back-office…'
+        hint: 'Type to search content, media, calendars, notes, client spaces and contracts.'
+        empty: No results.
+        keys:
+            navigate: Navigate
+            select: Select
+            close: Close
+        sections:
+            recent: Recent
+            nav: Navigation
+            projects: Projects
+            tasks: Tasks
+            posts: Content
+            terms: Terms
+            media: Media
+            events: Events
+            reminders: Reminders
