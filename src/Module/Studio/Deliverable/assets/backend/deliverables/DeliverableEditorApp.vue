@@ -352,8 +352,7 @@ const headerActions = computed(() => {
                 :banner-preview-path="bannerPreviewPath"
                 :toggleable="false"
                 :hidden-types="hiddenZoneTypes"
-                :preview-class="'display' === form.appearance?.headingStyle ? 'aurora-headings-display' : ''"
-                :preview-background="form.appearance?.backgroundColor ?? ''"
+                :preview-extra="{ title: form.title, summary: form.summary, appearance: form.appearance, readingHeader: form.readingHeader }"
             />
         </div>
 

@@ -1,0 +1,11 @@
+{# A grid as the public page draws it, for the editor's preview beside the
+   grid: the site's layout and theme around it - header, footer, colours,
+   fonts - so the preview is the page and not a likeness of it. Each zone
+   carries its id (`editorPreview`), for a click to pick it. #}
+{% extends 'Frontend/themes/default/layout.html.twig' %}
+
+{% block body %}
+    <article class="prose max-w-none">
+        {{ include('Frontend/themes/default/editorial/post/_grid.html.twig', {grid: grid, locale: locale}) }}
+    </article>
+{% endblock %}

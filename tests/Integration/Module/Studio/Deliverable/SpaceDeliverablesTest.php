@@ -232,6 +232,29 @@ final class SpaceDeliverablesTest extends IntegrationTestCase
         self::assertStringContainsString('data-grid-zone="l1"', $html);
     }
 
+    /** Asked for the whole page, the preview is the page the client reads: theme, header and all. */
+    public function testTheSidePreviewIsTheWholePageInTheSitesTheme(): void
+    {
+        $space = $this->givenSpace();
+
+        $this->client->request('POST', sprintf('/workspace/%d/deliverables/grid-preview', $space->getId()), [], [], ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'], (string) json_encode([
+            'frame' => true,
+            'title' => 'Audit',
+            'appearance' => ['backgroundColor' => '#130918', 'headingStyle' => 'display'],
+            'layout' => ['enabled' => true, 'zones' => [['id' => 't1', 'type' => 'text', 'span' => ['base' => 48, 'md' => 48, 'lg' => 48]]]],
+            'content' => ['zones' => ['t1' => ['blocks' => [['type' => 'header', 'data' => ['text' => 'Objectifs [marque]', 'level' => 2]]]]]],
+            'locale' => 'fr',
+        ]));
+
+        self::assertResponseIsSuccessful();
+        $html = (string) json_decode((string) $this->client->getResponse()->getContent(), true)['html'];
+        self::assertStringContainsString('<html', $html);
+        self::assertStringContainsString('#130918', $html);
+        self::assertStringContainsString('aurora-headings-display', $html);
+        self::assertStringContainsString('data-grid-zone="t1"', $html);
+        self::assertStringContainsString('aurora-placeholder', $html);
+    }
+
     public function testAnEmptyTitleIsRefusedOnSave(): void
     {
         $space = $this->givenSpace();

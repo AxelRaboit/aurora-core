@@ -38,7 +38,7 @@ Un modèle d'audit compte une cinquantaine de zones, et le canevas les dessinait
 - **Exporter en PDF**, dans les actions de l'éditeur : le livrable s'ouvre en diapositives, une par page A4 paysage, et la fenêtre d'impression propose « Enregistrer en PDF ». Les [crochets] n'y sont pas surlignés.
 
 #### Composer avec l'aperçu sous les yeux
-- **Aperçu à côté** : sur grand écran, la grille et sa page rendue se partagent l'écran, l'aperçu se met à jour pendant la saisie, en ordinateur, tablette ou téléphone (une vraie largeur d'appareil, ses points de rupture compris). Un clic sur une zone de l'aperçu la sélectionne ; la zone sélectionnée y est soulignée. Dans un livrable, l'aperçu prend son fond et ses grands titres.
+- **Aperçu à côté** : sur grand écran, la grille et sa page rendue se partagent l'écran, l'aperçu se met à jour pendant la saisie, en ordinateur, tablette ou téléphone (une vraie largeur d'appareil, ses points de rupture compris). C'est la vraie page, rendue par le serveur dans le thème public : pour un livrable, sa page de lecture avec son fond, son en-tête et ses grands titres ; pour une publication, la grille dans la mise en page du site. Un clic sur une zone de l'aperçu la sélectionne ; la zone sélectionnée y est soulignée.
 - **Emojis** : une pastille au-dessus du texte d'une zone insère 👀 🔥 ✅ ❌ 👉 et une quarantaine d'autres à l'endroit du curseur.
 
 #### Masquer une zone selon l'écran

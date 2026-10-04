@@ -12,6 +12,7 @@ use Aurora\Module\Editorial\Post\Grid\GridSlides;
 use Aurora\Module\Editorial\Post\Grid\GridViewBuilder;
 use Aurora\Module\Editorial\Post\Service\ReadingTimeCalculator;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
+use DateTimeImmutable;
 use DateTimeInterface;
 use IntlDateFormatter;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,6 +21,7 @@ use Twig\Environment;
 use function array_map;
 use function in_array;
 use function is_array;
+use function is_string;
 
 /**
  * La page d'un livrable, telle que le client la lit.
@@ -79,7 +81,64 @@ final readonly class DeliverablePageRenderer
     public function render(DeliverableInterface $deliverable, ?string $backUrl = null, bool $markPlaceholders = false, bool $print = false): Response
     {
         $locale = $deliverable->getLocale();
-        $grid = $this->gridViewBuilder->build($deliverable->getGridLayout(), $deliverable->getGridContent(), $locale, null);
+
+        $response = new Response($this->page(
+            [
+                'locale' => $locale,
+                'title' => $deliverable->getTitle(),
+                'summary' => $deliverable->getSummary(),
+                'gridLayout' => $deliverable->getGridLayout(),
+                'gridContent' => $deliverable->getGridContent(),
+                'appearance' => $deliverable->getAppearance(),
+                'readingHeader' => $deliverable->getReadingHeader(),
+                'updatedAt' => $deliverable->getUpdatedAt(),
+            ],
+            $backUrl,
+            $markPlaceholders,
+            $print,
+        ));
+        $response->headers->set('Content-Language', $locale);
+
+        return $response;
+    }
+
+    /**
+     * La page telle que la lira le client, rendue depuis ce que l'éditeur
+     * tient encore sans l'avoir enregistré : l'aperçu posé à côté de la
+     * grille, au thème public près, fond, en-tête et grands titres compris.
+     * Chaque zone y porte son identifiant, pour qu'un clic la sélectionne.
+     *
+     * @param array<string, mixed> $payload ce que l'éditeur envoie
+     */
+    public function editorPreviewPage(array $payload): string
+    {
+        return $this->page(
+            [
+                'locale' => is_string($payload['locale'] ?? null) ? $payload['locale'] : $this->context->defaultLocale(),
+                'title' => is_string($payload['title'] ?? null) ? $payload['title'] : '',
+                'summary' => is_string($payload['summary'] ?? null) ? $payload['summary'] : null,
+                'gridLayout' => is_array($payload['layout'] ?? null) ? $payload['layout'] : [],
+                'gridContent' => is_array($payload['content'] ?? null) ? $payload['content'] : [],
+                'appearance' => $payload['appearance'] ?? [],
+                'readingHeader' => $payload['readingHeader'] ?? [],
+                'updatedAt' => new DateTimeImmutable(),
+            ],
+            null,
+            markPlaceholders: true,
+            print: false,
+            editorPreview: true,
+        );
+    }
+
+    /**
+     * @param array{locale: string, title: string, summary: ?string, gridLayout: array<string, mixed>, gridContent: array<string, mixed>, appearance: mixed, readingHeader: mixed, updatedAt: DateTimeInterface} $source
+     */
+    private function page(array $source, ?string $backUrl, bool $markPlaceholders, bool $print, bool $editorPreview = false): string
+    {
+        $locale = $source['locale'];
+        $grid = $editorPreview
+            ? $this->gridViewBuilder->buildForPreview($source['gridLayout'], $source['gridContent'], $locale, null)
+            : $this->gridViewBuilder->build($source['gridLayout'], $source['gridContent'], $locale, null);
 
         // L'éditeur ne les propose pas ; une grille venue d'ailleurs, d'une
         // duplication ou d'un import, peut quand même en porter.
@@ -88,7 +147,7 @@ final readonly class DeliverablePageRenderer
             $grid['hasComments'] = false;
         }
 
-        $appearance = DeliverableAppearance::normalize($deliverable->getAppearance());
+        $appearance = DeliverableAppearance::normalize($source['appearance']);
 
         // Shown as a presentation: the same grid, cut at each section. Every
         // slide is a grid of its own for the template; the picture overlay is
@@ -97,24 +156,25 @@ final readonly class DeliverablePageRenderer
         if (null !== $grid && ('slides' === $appearance['display'] || $print)) {
             $slides = array_map(
                 static fn (array $zones): array => [...$grid, 'zones' => $zones, 'lightbox' => []],
-                $this->gridSlides->split($grid['zones'], $deliverable->getGridContent()),
+                $this->gridSlides->split($grid['zones'], $source['gridContent']),
             );
         }
 
-        $body = $this->twig->render('@Studio/public/deliverable.html.twig', [
+        return $this->twig->render('@Studio/public/deliverable.html.twig', [
             'locale' => $locale,
             'context' => $this->context,
             'themeContext' => $this->themeContext,
             'deliverable' => [
-                'title' => $deliverable->getTitle(),
-                'summary' => $deliverable->getSummary(),
+                'title' => $source['title'],
+                'summary' => $source['summary'],
             ],
             'appearance' => $appearance,
             'grid' => $grid,
             'slides' => $slides,
             'print' => $print,
             'markPlaceholders' => $markPlaceholders,
-            'readingTimeMinutes' => null !== $grid ? $this->readingTimeCalculator->minutesFor($deliverable->getGridContent()) : 0,
+            'editorPreview' => $editorPreview,
+            'readingTimeMinutes' => null !== $grid ? $this->readingTimeCalculator->minutesFor($source['gridContent']) : 0,
             // Les trois surfaces que le thème sait repeindre, surface par
             // surface : nul laisse passer la sienne.
             'surfaceOverrides' => [
@@ -123,19 +183,14 @@ final readonly class DeliverablePageRenderer
                 'footer_color' => $appearance['footerColor'],
             ],
             'reading' => [
-                ...DeliverableReadingHeader::normalize($deliverable->getReadingHeader()),
-                'updatedAt' => $deliverable->getUpdatedAt()->format(DateTimeInterface::ATOM),
-                'updatedOn' => new IntlDateFormatter($locale, IntlDateFormatter::LONG, IntlDateFormatter::NONE, $this->siteTimezone->get())->format($deliverable->getUpdatedAt()),
+                ...DeliverableReadingHeader::normalize($source['readingHeader']),
+                'updatedAt' => $source['updatedAt']->format(DateTimeInterface::ATOM),
+                'updatedOn' => new IntlDateFormatter($locale, IntlDateFormatter::LONG, IntlDateFormatter::NONE, $this->siteTimezone->get())->format($source['updatedAt']),
                 // Une seule langue : le sélecteur ne se dessine pas.
                 'localeUrls' => [],
                 'backUrl' => $backUrl,
             ],
         ]);
-
-        $response = new Response($body);
-        $response->headers->set('Content-Language', $locale);
-
-        return $response;
     }
 
     /**

@@ -39,11 +39,18 @@ final readonly class DeliverableEditorPreviews
         private BannerViewBuilder $bannerViewBuilder,
         private LocaleContextInterface $localeContext,
         private PlaceholderMarkExtension $placeholders,
+        private DeliverablePageRenderer $pageRenderer,
     ) {}
 
     /** @param array<string, mixed> $payload ce que l'éditeur envoie : `{layout, content, locale}` */
     public function grid(array $payload): string
     {
+        // La page entière, au thème public, pour l'aperçu posé à côté de la
+        // grille ; la grille seule pour la fenêtre d'aperçu.
+        if (true === ($payload['frame'] ?? false)) {
+            return $this->pageRenderer->editorPreviewPage($payload);
+        }
+
         $layout = is_array($payload['layout'] ?? null) ? $payload['layout'] : [];
         $content = is_array($payload['content'] ?? null) ? $payload['content'] : [];
         $locale = $this->locale($payload['locale'] ?? null);

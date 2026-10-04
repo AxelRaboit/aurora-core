@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Editorial\Post\Controller\Backend;
 
 use Aurora\Core\Enum\HttpMethodEnum;
+use Aurora\Core\Frontend\Service\Context;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Locale\Service\LocaleContextInterface;
@@ -38,6 +39,7 @@ final class GridPreviewController extends AbstractController
         private readonly GridViewBuilder $gridViewBuilder,
         private readonly ThemeResolver $themeResolver,
         private readonly LocaleContextInterface $localeContext,
+        private readonly Context $context,
     ) {}
 
     #[Route('/grid-preview', name: '_grid_preview', methods: [HttpMethodEnum::Post->value])]
@@ -62,6 +64,21 @@ final class GridPreviewController extends AbstractController
         // buildForEditor either: its zones carry the editor's shapes, and a
         // list zone drew nothing there.
         $grid = $this->gridViewBuilder->buildForPreview($layout, $content, $locale);
+
+        // The whole page in the site's theme, for the preview beside the
+        // grid: the grid inside the public layout, header and footer
+        // included, so what is seen there is what the reader will see.
+        if (true === ($payload['frame'] ?? false)) {
+            return $this->json([
+                'success' => true,
+                'html' => $this->renderView('Frontend/themes/default/editorial/post/grid_preview_page.html.twig', [
+                    'grid' => $grid,
+                    'locale' => $locale,
+                    'context' => $this->context,
+                    'editorPreview' => true,
+                ]),
+            ]);
+        }
 
         return $this->json([
             'success' => true,

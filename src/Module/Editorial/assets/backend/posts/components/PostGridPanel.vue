@@ -78,12 +78,11 @@ const props = defineProps({
      */
     hiddenTypes: { type: Array, default: () => [] },
     /**
-     * Classes the host's page puts around its grid, for the preview beside
-     * the editor: a deliverable's bold capital headings, say.
+     * What else the host's page is made of, for the preview beside the
+     * editor to be that page: a deliverable's title, appearance and header.
+     * Sent with the grid; the server renders the whole page from it.
      */
-    previewClass: { type: String, default: "" },
-    /** And the page's own background, when the host sets one. */
-    previewBackground: { type: String, default: "" },
+    previewExtra: { type: Object, default: () => ({}) },
 });
 
 const { t } = useI18n();
@@ -242,7 +241,16 @@ const { html: previewHtml, loading: previewLoading } = useServerPreview(
     () => ({ layout: props.layout, content: props.content, locale: props.locale }),
     [() => props.layout, () => props.content, () => props.locale],
     props.previewPath,
-    { enabled: () => showPreview.value || split.value },
+    { enabled: () => showPreview.value },
+);
+
+// The page beside the editor: the same request, asking for the whole page in
+// the site's theme rather than the grid alone.
+const { html: framePageHtml, loading: frameLoading } = useServerPreview(
+    () => ({ layout: props.layout, content: props.content, locale: props.locale, frame: true, ...props.previewExtra }),
+    [() => props.layout, () => props.content, () => props.locale, () => props.previewExtra],
+    props.previewPath,
+    { enabled: () => split.value },
 );
 
 /** Opens the library filtered to what a browser can play, like the video zone's own picker. */
@@ -288,16 +296,19 @@ function pickFromPreview(event) {
  * same `app.css` the site loads - and the page's background and classes.
  */
 const frame = ref(null);
-const frameHeight = ref(600);
+const frameHeight = ref(300);
 
-function headStyles() {
-    return Array.from(document.querySelectorAll('link[rel="stylesheet"], style'))
-        .map((node) => node.outerHTML)
-        .join("");
-}
-
-const frameDoc = computed(
-    () => `<!doctype html><html><head><meta charset="utf-8"><base target="_blank">${headStyles()}<style>html,body{margin:0;background:${props.previewBackground || "var(--th-bg, #fff)"};} body{padding:16px;cursor:pointer;}</style><style data-highlight></style></head><body><div class="prose max-w-none ${props.previewClass}">${previewHtml.value}</div></body></html>`,
+/**
+ * The page as served, made still: its scripts go (they would be refused
+ * under the back-office's policy anyway, and a preview has nothing to run),
+ * links open elsewhere, and a style tag waits for the selected zone. What
+ * is sized to the screen (`100vh`) is let go: the frame grows to fit its
+ * page, and a page as tall as its frame would grow with it for ever.
+ */
+const frameDoc = computed(() =>
+    String(framePageHtml.value ?? "")
+        .replace(/<script\b[\s\S]*?<\/script>/gi, "")
+        .replace(/<head([^>]*)>/i, '<head$1><base target="_blank"><style>body{cursor:pointer;min-height:0!important}.aurora-slide{min-height:0!important}</style><style data-highlight></style>'),
 );
 
 /** The selected zone, outlined in the frame. */
@@ -315,11 +326,11 @@ function onFrameLoad() {
     if (!doc) return;
 
     doc.addEventListener("click", pickFromPreview);
-    frameHeight.value = Math.max(200, doc.documentElement.scrollHeight);
+    frameHeight.value = Math.max(200, doc.body.scrollHeight);
     paintHighlight();
     // Pictures arrive after the frame: measure again when they have.
     doc.querySelectorAll("img").forEach((image) => image.addEventListener("load", () => {
-        frameHeight.value = Math.max(200, doc.documentElement.scrollHeight);
+        frameHeight.value = Math.max(200, doc.body.scrollHeight);
     }, { once: true }));
 }
 
@@ -1214,7 +1225,7 @@ function resizeZone(index, columns) {
                         v-on:load="onFrameLoad"
                     />
                 </div>
-                <AppLoader :active="previewLoading" />
+                <AppLoader :active="frameLoading" />
             </div>
         </aside>
 
