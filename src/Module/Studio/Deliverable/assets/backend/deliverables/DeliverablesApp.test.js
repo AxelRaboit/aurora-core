@@ -132,6 +132,14 @@ describe("DeliverablesApp", () => {
         expect(wrapper.text()).not.toContain("Brouillon libre");
     });
 
+    it("falls back to every category when the address names one that is gone", () => {
+        window.history.replaceState(null, "", "/?category=99");
+        const wrapper = mountFiled();
+
+        expect(wrapper.text()).toContain("Audit Dupont");
+        expect(wrapper.text()).toContain("Brouillon libre");
+    });
+
     it("filters on what has no category yet", () => {
         window.history.replaceState(null, "", "/?category=none");
         const wrapper = mountFiled();

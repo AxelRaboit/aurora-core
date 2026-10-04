@@ -98,7 +98,19 @@ function refresh(data) {
 
 const NO_CATEGORY = "none";
 
-const { value: categoryFilter, set: setCategory } = useQueryState("category", { defaultValue: "" });
+const { value: categoryQuery, set: setCategory } = useQueryState("category", { defaultValue: "" });
+
+/**
+ * Le filtre en vigueur : celui de l'adresse, s'il désigne encore une catégorie.
+ * Une catégorie supprimée (depuis la fenêtre, ou un vieux lien) ne doit pas
+ * laisser une liste vide sans raison : le filtre retombe sur « Toutes ».
+ */
+const categoryFilter = computed(() => {
+    const value = categoryQuery.value;
+    const known = NO_CATEGORY === value || categories.value.some((category) => String(category.id) === value);
+
+    return known ? value : "";
+});
 const { value: layout, set: setLayout } = useQueryState("layout", { defaultValue: "grouped", valid: ["grouped", "flat"] });
 
 /** Désélectionner rend null, et le filtre parle en chaînes. */

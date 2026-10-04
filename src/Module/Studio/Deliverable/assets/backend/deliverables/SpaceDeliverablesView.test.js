@@ -47,6 +47,18 @@ function actionKeys(wrapper) {
 }
 
 describe("SpaceDeliverablesView", () => {
+    it("offers to keep a copy in Studio only with the right to create there", () => {
+        expect(actionKeys(mountView())).not.toContain("copy-to-studio");
+
+        const keys = actionKeys(
+            mountView({
+                copyToStudioPathTemplate:
+                    "/workspace/1/deliverables/__id__/copy-to-studio",
+            }),
+        );
+        expect(keys).toContain("copy-to-studio");
+    });
+
     it("offers the reading links in a deliverable's menu", () => {
         const wrapper = mountView({
             linksPathTemplate: "/workspace/1/deliverables/__id__/links",
