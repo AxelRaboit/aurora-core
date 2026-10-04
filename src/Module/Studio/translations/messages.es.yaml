@@ -2090,6 +2090,11 @@ backend:
                 title_section: "Título"
                 title_visible: "Mostrar el título y el resumen arriba de la página"
                 title_visible_hint: "Desmárquelo si el documento se abre con un bloque de cabecera que ya lleva su título. El título sigue legible para los lectores de pantalla."
+                heading_style: "Títulos grandes"
+                heading_style_hint: "Los títulos de sección de las zonas de texto. « Mayúsculas en negrita » les da el aspecto de un título de página de informe."
+                heading_styles:
+                    theme: "Como el tema"
+                    display: "Mayúsculas en negrita"
             settings:
                 prepared_for_placeholder: "El destinatario"
                 document_title: "El documento"

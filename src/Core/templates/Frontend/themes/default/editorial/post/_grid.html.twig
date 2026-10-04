@@ -63,8 +63,13 @@
            `|default('none')` couvre les grilles écrites avant que la clé
            existe. #}
         {% set reveal = zone.reveal|default('none') %}
+        {# A zone shorter than its row sits at the top by default, stretched;
+           a card beside a tall phone reads better centred against it. From
+           the tablet up only: on a phone every zone has its own row. #}
+        {% set valign = {center: 'md:self-center', end: 'md:self-end'}[zone.options.valign|default('stretch')]|default('') %}
         <div
-            {% if zone.anchor|default('') %}id="{{ zone.anchor }}" class="scroll-mt-24"{% endif %}
+            {% if zone.anchor|default('') or valign %}class="{{ zone.anchor|default('') ? 'scroll-mt-24' : '' }} {{ valign }}"{% endif %}
+            {% if zone.anchor|default('') %}id="{{ zone.anchor }}"{% endif %}
             {% if reveal != 'none' %}data-reveal="{{ reveal }}"{% endif %}
             {% if zone.highlight|default(null) %}data-zone-highlight="{{ zone.highlight }}"{% endif %}
             {% if zone.accentColor|default(null) or zone.siteAccent|default(false) %}data-zone-accent="{{ zone.id }}"{% endif %}

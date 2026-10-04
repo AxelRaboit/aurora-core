@@ -55,6 +55,12 @@ final class GridZoneOptions
     /** What a media zone's picture is drawn inside. */
     public const array FRAMES = ['none', 'laptop', 'phone', 'browser'];
 
+    /** A picture set slightly askew, the way a phone lies on a slide. */
+    public const array TILTS = ['none', 'left', 'right'];
+
+    /** Where a zone sits in a row taller than itself. */
+    public const array VALIGNS = ['stretch', 'center', 'end'];
+
     public const array CODE_STYLES = ['plain', 'terminal', 'diff'];
 
     public const array LIST_LAYOUTS = ['cards', 'index'];
@@ -86,7 +92,7 @@ final class GridZoneOptions
 
     public const array SOCIAL_NETWORKS = ['instagram', 'linkedin', 'facebook', 'x'];
 
-    public const array CHART_TYPES = ['bar', 'line', 'donut', 'growth'];
+    public const array CHART_TYPES = ['bar', 'line', 'donut', 'pie', 'growth'];
 
     /** When a poll shows its results: once the reader has voted, or from the start. */
     public const array POLL_RESULTS = ['after', 'always'];
@@ -115,6 +121,9 @@ final class GridZoneOptions
         return [
             'galleryLayout' => self::GALLERY_LAYOUTS[0],
             'frame' => self::FRAMES[0],
+            'tilt' => self::TILTS[0],
+            'showCredit' => true,
+            'valign' => self::VALIGNS[0],
             'parallax' => false,
             'codeStyle' => self::CODE_STYLES[0],
             'listLayout' => self::LIST_LAYOUTS[0],
@@ -169,6 +178,12 @@ final class GridZoneOptions
         return [
             'galleryLayout' => self::oneOf($data['galleryLayout'] ?? null, self::GALLERY_LAYOUTS),
             'frame' => self::oneOf($data['frame'] ?? null, self::FRAMES),
+            'tilt' => self::oneOf($data['tilt'] ?? null, self::TILTS),
+            // A photo's author under it, as the library recorded them. On by
+            // default; a licence that asks for nothing (Pexels) lets the
+            // author of a report take it off.
+            'showCredit' => false !== ($data['showCredit'] ?? true),
+            'valign' => self::oneOf($data['valign'] ?? null, self::VALIGNS),
             // A band that scrolls slower than the page. Only a full-bleed
             // picture has somewhere to move; the template reads both.
             'parallax' => true === ($data['parallax'] ?? false),

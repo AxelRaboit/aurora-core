@@ -552,6 +552,12 @@ function resizeZone(index, columns) {
                         :hint="t('backend.posts.grid.reveal_hint')"
                         :options="zoneChoices.reveal"
                     />
+                    <AppChoiceRow
+                        v-model="zoneFields(index).valign.value"
+                        :label="t('backend.posts.grid.valign')"
+                        :hint="t('backend.posts.grid.valign_hint')"
+                        :options="zoneChoices.valign"
+                    />
                     <AppToggle
                         v-model="zoneFields(index).sticky.value"
                         :label="t('backend.posts.grid.sticky')"

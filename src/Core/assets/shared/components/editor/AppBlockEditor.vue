@@ -27,6 +27,8 @@ import MediaTextBlock from "@shared/components/editor/tools/MediaTextBlock.js";
 import TwoColumnBlock from "@shared/components/editor/tools/TwoColumnBlock.js";
 import CalloutBlock, { DEFAULT_TYPES as CALLOUT_TYPES } from "@shared/components/editor/tools/CalloutBlock.js";
 import { CALLOUT_ICONS } from "@shared/components/editor/tools/calloutIcons.js";
+import LabelBlock, { LABEL_TONES } from "@shared/components/editor/tools/LabelBlock.js";
+import SocialsBlock from "@shared/components/editor/tools/SocialsBlock.js";
 import DragDrop from "editorjs-drag-drop";
 import Undo from "editorjs-undo";
 
@@ -82,7 +84,7 @@ const props = defineProps({
 });
 
 /** The block tools of the built-in set, as opposed to the inline ones. */
-const BLOCK_TOOLS = ["header", "paragraph", "list", "image", "embed", "raw", "table", "quote", "callout", "mediaText", "twoColumn"];
+const BLOCK_TOOLS = ["header", "paragraph", "list", "image", "embed", "raw", "table", "quote", "callout", "label", "socials", "mediaText", "twoColumn"];
 
 function offered(tools) {
     if (null === props.blockTools) return tools;
@@ -198,6 +200,8 @@ onMounted(async () => {
                     "Callout":        t("backend.editor.tool_names.callout"),
                     "Image + Text":   t("backend.editor.tool_names.media_text"),
                     "Two Columns":    t("backend.editor.tool_names.two_column"),
+                    "Label":          t("backend.editor.tool_names.label"),
+                    "Social networks": t("backend.editor.tool_names.socials"),
                 },
                 blockTunes: {
                     delete: {
@@ -346,6 +350,26 @@ onMounted(async () => {
                         CALLOUT_ICONS.map(({ value }) => [value, t(`backend.editor.callout.icons.${value}`)]),
                     ),
                     noIconLabel: t("backend.editor.callout.no_icon"),
+                },
+            },
+
+            // Une pastille au-dessus d'une colonne, le nom d'un concurrent.
+            label: {
+                class: LabelBlock,
+                config: {
+                    placeholder: t("backend.editor.label.placeholder"),
+                    tiltLabel:   t("backend.editor.label.tilt"),
+                    toneLabels:  Object.fromEntries(LABEL_TONES.map((tone) => [tone, t(`backend.editor.label.tones.${tone}`)])),
+                },
+            },
+            // Les comptes d'une marque, chacun avec le logo de son réseau.
+            socials: {
+                class: SocialsBlock,
+                config: {
+                    handlePlaceholder: t("backend.editor.socials.handle_placeholder"),
+                    urlPlaceholder:    t("backend.editor.socials.url_placeholder"),
+                    addLabel:          t("backend.editor.socials.add"),
+                    removeLabel:       t("backend.editor.socials.remove"),
                 },
             },
 

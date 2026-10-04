@@ -251,6 +251,40 @@
             {% endfor %}
         </div>
 
+    {% elseif items.display == 'showcase' %}
+        {# Pictures that did well, each with what it was and how it did: the
+           page of a report where the best posts are shown, not described.
+           The picture is the card's top and fills it, portrait like the post
+           it stands for; the figures under it are one per line, as bullets,
+           because « 17 k vues · 60 interactions » on one line is two numbers
+           competing for one glance. #}
+        <div class="grid grid-cols-1 items-start gap-5 {{ columns[items.columns] }}">
+            {% for entry in items.entries %}
+                <figure class="aurora-reveal-item m-0 flex flex-col gap-3" style="--reveal-index: {{ loop.index0 }};">
+                    {% if entry.media %}
+                        <img
+                            src="{{ entry.media.url }}"
+                            alt="{{ entry.media.alt|default(entry.title) }}"
+                            loading="lazy"
+                            class="aspect-[4/5] w-full rounded-2xl object-cover"
+                            style="object-position: {{ entry.media.focalPosition|default('50% 50%') }};"
+                        >
+                    {% endif %}
+                    <figcaption class="flex flex-col gap-1 px-1">
+                        {% if entry.title %}<h3 class="m-0 text-base font-semibold text-primary">{{ entry.title }}</h3>{% endif %}
+                        {% if entry.caption %}<p class="m-0 text-sm text-muted">{{ entry.caption }}</p>{% endif %}
+                        {% if entry.description %}
+                            <ul class="m-0 mt-1 list-disc space-y-0.5 pl-5 text-sm text-secondary marker:text-accent">
+                                {% for line in entry.description|split('\n') %}
+                                    {% if line|trim %}<li>{{ line|trim }}</li>{% endif %}
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </figcaption>
+                </figure>
+            {% endfor %}
+        </div>
+
     {% elseif items.display == 'offers' %}
         {# What each card has to answer, in the order it is asked: what is this,
            what does it cost, what do I get, how do I start.

@@ -742,6 +742,7 @@ backend:
             surfaces:
                 none: None
                 card: Card
+                raised: Raised
                 soft: Tinted
                 accent: Accent
                 custom: Custom
@@ -847,6 +848,7 @@ backend:
                 editorial: Editorial list
                 process: Horizontal timeline
                 features: "Icon cards"
+                showcase: "Picture showcase"
             item_columns: Columns
             item_number: "Entry {number}"
             item_add: Add an entry
@@ -882,6 +884,13 @@ backend:
             timeline_date_placeholder: "2024"
             timeline_title_placeholder: "The studio opens"
             timeline_text_placeholder: "What it changed, in one sentence."
+            showcase_title: "Title"
+            showcase_title_placeholder: "Baby carousel"
+            showcase_caption: "Detail (optional)"
+            showcase_caption_placeholder: "Posted in January"
+            showcase_lines: "Figures"
+            showcase_lines_placeholder: "17k views\n60 interactions"
+            showcase_lines_hint: "One line per figure: each becomes a bullet under the picture."
             feature_title: "Title"
             feature_title_placeholder: "Strategy"
             feature_text: "Text"
@@ -1017,6 +1026,20 @@ backend:
                 laptop: Laptop
                 phone: Phone
                 browser: Browser window
+            tilt: "Tilt"
+            tilt_hint: "Sets the picture slightly askew, like a phone on a slide. Upright on phones."
+            tilts:
+                none: "Upright"
+                left: "To the left"
+                right: "To the right"
+            show_credit: "Show the photo credit"
+            show_credit_hint: "The author's name under the picture, as the library recorded it. A Pexels photo can do without."
+            valign: "Vertical alignment"
+            valign_hint: "Where the zone sits when its neighbour is taller, a card beside a phone for instance. On phones every zone has its own row."
+            valigns:
+                stretch: "Top"
+                center: "Centre"
+                end: "Bottom"
             parallax: Band that scrolls slower
             parallax_hint: "The picture becomes a band that scrolls slower than the page, with the caption set over it. Combine with « Full width » for a real band."
             code_style: Presentation
@@ -1114,12 +1137,13 @@ backend:
                 bar: Bars
                 line: Line
                 donut: Ring
+                pie: Pie
                 growth: Growth
             chart_unit: Unit
             chart_unit_hint: "Written after every value: %, €, k. Optional."
             chart_title: Title
             chart_data: Values
-            chart_data_hint: "One line per value: the name, a semicolon, the number. « Growth » also shows the change between the first and the last."
+            chart_data_hint: "One line per value: the name, a semicolon, the number, and optionally a second semicolon and a colour (#2f1bea). « Growth » also shows the change from the first to the last."
             chart_note: Source or detail
             video_wall_count: "{count} video of {max} | {count} videos of {max}"
             video_wall_add: Add videos

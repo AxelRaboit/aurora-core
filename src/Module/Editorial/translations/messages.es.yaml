@@ -742,6 +742,7 @@ backend:
             surfaces:
                 none: Ninguno
                 card: Tarjeta
+                raised: En relieve
                 soft: Tintado
                 accent: Acento
                 custom: Personalizado
@@ -847,6 +848,7 @@ backend:
                 editorial: 'Lista editorial'
                 process: 'Línea de tiempo horizontal'
                 features: "Tarjetas con pictograma"
+                showcase: "Escaparate en imágenes"
             item_columns: Columnas
             item_number: 'Entrada {number}'
             item_add: 'Añadir una entrada'
@@ -882,6 +884,13 @@ backend:
             timeline_date_placeholder: '2024'
             timeline_title_placeholder: 'Apertura del estudio'
             timeline_text_placeholder: 'Lo que cambió, en una frase.'
+            showcase_title: "Título"
+            showcase_title_placeholder: "Carrusel bebé"
+            showcase_caption: "Precisión (opcional)"
+            showcase_caption_placeholder: "Publicado en enero"
+            showcase_lines: "Cifras"
+            showcase_lines_placeholder: "17 k vistas\n60 interacciones"
+            showcase_lines_hint: "Una línea por cifra: cada una se convierte en una viñeta bajo la foto."
             feature_title: "Título"
             feature_title_placeholder: "Estrategia"
             feature_text: "Texto"
@@ -1023,6 +1032,20 @@ backend:
                 laptop: Portátil
                 phone: Teléfono
                 browser: 'Ventana de navegador'
+            tilt: "Inclinación"
+            tilt_hint: "Coloca la imagen ligeramente inclinada, como un teléfono en una diapositiva. Recta en el móvil."
+            tilts:
+                none: "Recta"
+                left: "Hacia la izquierda"
+                right: "Hacia la derecha"
+            show_credit: "Mostrar el crédito de la foto"
+            show_credit_hint: "El nombre del autor bajo la imagen, tal como lo anotó la mediateca. Una foto de Pexels puede prescindir de él."
+            valign: "Alineación vertical"
+            valign_hint: "Dónde se coloca la zona cuando su vecina es más alta, por ejemplo una tarjeta junto a un teléfono. En el móvil cada zona tiene su fila."
+            valigns:
+                stretch: "Arriba"
+                center: "Centro"
+                end: "Abajo"
             parallax: 'Banda que se desplaza más despacio'
             parallax_hint: 'La imagen se convierte en una banda que se desplaza más despacio que la página, con la leyenda encima. Combínelo con «Ancho completo» para obtener una verdadera banda.'
             code_style: Presentación
@@ -1120,12 +1143,13 @@ backend:
                 bar: Barras
                 line: Curva
                 donut: Anillo
+                pie: Tarta
                 growth: Crecimiento
             chart_unit: Unidad
             chart_unit_hint: 'Se escribe tras cada valor: %, €, k. Opcional.'
             chart_title: Título
             chart_data: Valores
-            chart_data_hint: 'Una línea por valor: el nombre, un punto y coma, el número. «Crecimiento» muestra además la evolución entre el primero y el último.'
+            chart_data_hint: "Una línea por valor: el nombre, un punto y coma, el número y, si hace falta, otro punto y coma y un color (#2f1bea). « Crecimiento » muestra además la evolución entre el primero y el último."
             chart_note: 'Fuente o detalle'
             video_wall_count: '{count} vídeo de {max} | {count} vídeos de {max}'
             video_wall_add: 'Añadir vídeos'

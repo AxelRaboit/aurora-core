@@ -336,6 +336,8 @@ backend:
             callout: "Encadré"
             media_text: Image + Texte
             two_column: 2 Colonnes
+            label: "Étiquette"
+            socials: "Réseaux sociaux"
         ui:
             block_tunes:
                 toggler:
@@ -384,6 +386,23 @@ backend:
             empty: Aucun média trouvé
             loading: Chargement…
             select: Sélectionner
+        label:
+            placeholder: "Étiquette…"
+            tilt: "Penchée"
+            tones:
+                dark: "Noir"
+                accent: "Couleur du thème"
+                rose: "Rose"
+                indigo: "Indigo"
+                lime: "Citron"
+                amber: "Ambre"
+                sky: "Ciel"
+                emerald: "Émeraude"
+        socials:
+            handle_placeholder: "@identifiant ou nom de la page"
+            url_placeholder: "Adresse (facultative)"
+            add: "Ajouter un réseau"
+            remove: "Retirer"
         callout:
             title_placeholder: Titre…
             message_placeholder: Message…

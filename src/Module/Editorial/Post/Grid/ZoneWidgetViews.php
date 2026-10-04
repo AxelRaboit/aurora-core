@@ -440,7 +440,12 @@ final readonly class ZoneWidgetViews
                 continue;
             }
 
-            $rows[] = ['label' => $cells[0], 'value' => $value, 'valueLabel' => $numbers->format($value).('' === $unit ? '' : "\u{202f}".$unit)];
+            // A third cell may name the colour of this row - a slice, a bar -
+            // when the shades of the accent are not the brand's own. Only a
+            // hex colour passes: it is printed inside a style attribute.
+            $color = 1 === preg_match('/^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i', $cells[2] ?? '') ? mb_strtolower($cells[2]) : null;
+
+            $rows[] = ['label' => $cells[0], 'value' => $value, 'valueLabel' => $numbers->format($value).('' === $unit ? '' : "\u{202f}".$unit), 'color' => $color];
         }
 
         if ([] === $rows) {
@@ -457,7 +462,7 @@ final readonly class ZoneWidgetViews
             $rows[$index]['share'] = round(($row['value'] - $min) / $span * 100, 2);
         }
 
-        $view = ['type' => $type, 'rows' => $rows, 'title' => $held['label'], 'note' => $held['caption']];
+        $view = ['type' => $type, 'rows' => $rows, 'title' => $held['label'], 'note' => $held['caption'], 'unit' => $unit];
 
         if (in_array($type, ['line', 'growth'], true)) {
             // A 600 by 240 drawing, room left for the dots at the edges.
@@ -483,7 +488,7 @@ final readonly class ZoneWidgetViews
             $view['growthUp'] = $change >= 0;
         }
 
-        if ('donut' === $type) {
+        if (in_array($type, ['donut', 'pie'], true)) {
             // A circle of circumference 100, so each share is its own dash.
             $total = array_sum(array_map(abs(...), $values)) ?: 1.0;
             $offset = 0.0;

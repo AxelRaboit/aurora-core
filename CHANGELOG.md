@@ -5,6 +5,29 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [Unreleased]
+
+### Ajouté
+
+#### De quoi mettre en page un audit comme un diaporama
+Un audit de réseaux sociaux se lit comme une suite de diapositives : de grands titres, des cartes posées sur la page, un téléphone de biais à côté, un camembert aux couleurs de la marque. La grille sait maintenant le faire :
+- **Carte en relief** : un nouveau fond de zone, une carte sans bordure qu'une ombre douce détache de la page.
+- **Étiquette** : un nouveau bloc de texte, un mot sur une pastille (noir, couleur du thème, rose, indigo, citron, ambre, ciel, émeraude), droite ou penchée. La pastille noire prend la couleur du texte de la page, elle se lit donc aussi sur un thème sombre.
+- **Réseaux sociaux** : un nouveau bloc de texte, la liste des comptes d'une marque avec le logo de chaque réseau (Instagram, Facebook, LinkedIn, TikTok, YouTube, X, site) et l'identifiant, en lien quand une adresse est donnée.
+- **Camembert** : une nouvelle forme de graphique. Chaque ligne de valeurs peut porter sa couleur (`Photos ; 60 ; #2f1bea`), pour les barres comme pour les parts. Un graphique posé sur une zone qui a déjà un fond ne dessine plus sa propre carte, et des valeurs déjà en pourcentage ne répètent plus leur part dans la légende.
+- **Vitrine en images** : un nouvel affichage de liste, une photo en portrait par entrée, son titre, une précision et des chiffres en puces : les meilleurs posts d'un compte.
+- **Inclinaison** d'une image, vers la gauche ou la droite, cadre d'appareil compris ; droite sur téléphone.
+- **Alignement vertical** d'une zone dans sa ligne (en haut, au centre, en bas) : une carte se centre à côté du téléphone plus haut qu'elle. Sur téléphone, chaque zone garde sa ligne.
+- **Grands titres en capitales grasses**, réglables par livrable dans l'onglet Apparence.
+
+#### Masquer le crédit photo d'une image
+Une image ou une galerie peut ne plus afficher le nom de son auteur sous la photo. Le crédit reste affiché par défaut ; une photo Pexels, dont la licence ne demande rien, peut s'en passer.
+
+### Modifié
+
+#### Le lien de retour d'une page de lecture, en flèche seule sur téléphone
+Sur téléphone, « Retour à l'espace » en tête d'un livrable ou d'une publication hors site n'affiche plus que sa flèche, dans un bouton de la taille d'un doigt. Le libellé revient à partir de la tablette et reste lu par les lecteurs d'écran.
+
 ## [1.10.0] - 2026-10-04
 
 ### Ajouté

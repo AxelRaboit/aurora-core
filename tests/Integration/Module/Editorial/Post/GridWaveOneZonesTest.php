@@ -273,6 +273,40 @@ final class GridWaveOneZonesTest extends IntegrationTestCase
         self::assertStringContainsString('aspect-ratio: 16 / 10;', $laptop);
     }
 
+    /** A card centred against the tall phone beside it, from the tablet up. */
+    public function testAZoneCanSitCentredInATallerRow(): void
+    {
+        $text = ['blocks' => [['type' => 'paragraph', 'data' => ['text' => 'Carte']]]];
+
+        self::assertStringContainsString('md:self-center', $this->renderGrid(['type' => 'text', 'options' => ['valign' => 'center']], $text));
+        self::assertStringNotContainsString('self-center', $this->renderGrid(['type' => 'text'], $text));
+    }
+
+    /** @param array<string, mixed> $zone @param array<string, mixed> $held */
+    private function renderGrid(array $zone, array $held): string
+    {
+        static::bootKernel();
+        $builder = static::getContainer()->get(GridViewBuilder::class);
+        $twig = static::getContainer()->get(Environment::class);
+        self::assertInstanceOf(Environment::class, $twig);
+
+        $grid = $builder->build(['enabled' => true, 'zones' => [['id' => 'z1', ...$zone]]], ['zones' => ['z1' => $held]], 'fr');
+        self::assertNotNull($grid);
+
+        return $twig->render('Frontend/themes/default/editorial/post/_grid.html.twig', ['grid' => $grid, 'locale' => 'fr']);
+    }
+
+    /** A phone laid askew on the page, but upright on a phone itself. */
+    public function testAPictureCanBeSetAskewFromTheTabletUp(): void
+    {
+        $tilted = $this->render(['type' => 'media', 'mediaUrl' => 'https://picsum.photos/900/1600', 'options' => ['frame' => 'phone', 'tilt' => 'right']]);
+        self::assertStringContainsString('sm:rotate-3', $tilted);
+        self::assertStringNotContainsString(' rotate-3', $tilted);
+
+        $upright = $this->render(['type' => 'media', 'mediaUrl' => 'https://picsum.photos/900/1600', 'options' => ['frame' => 'phone']]);
+        self::assertStringNotContainsString('rotate-3', $upright);
+    }
+
     /** @param array<string, mixed> $zone @param array<string, mixed> $held */
     private function render(array $zone, array $held = []): string
     {

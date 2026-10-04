@@ -59,6 +59,8 @@ final class GridContractMirrorTest extends TestCase
         yield 'item displays' => [GridNormalizer::ITEM_DISPLAYS, 'ITEM_DISPLAYS'];
         yield 'gallery layouts' => [GridZoneOptions::GALLERY_LAYOUTS, 'GALLERY_LAYOUTS'];
         yield 'frames' => [GridZoneOptions::FRAMES, 'FRAMES'];
+        yield 'tilts' => [GridZoneOptions::TILTS, 'TILTS'];
+        yield 'valigns' => [GridZoneOptions::VALIGNS, 'VALIGNS'];
         yield 'code styles' => [GridZoneOptions::CODE_STYLES, 'CODE_STYLES'];
         yield 'list layouts' => [GridZoneOptions::LIST_LAYOUTS, 'LIST_LAYOUTS'];
         yield 'toc layouts' => [GridZoneOptions::TOC_LAYOUTS, 'TOC_LAYOUTS'];

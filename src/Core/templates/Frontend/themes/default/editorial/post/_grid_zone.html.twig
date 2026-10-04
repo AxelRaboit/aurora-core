@@ -104,7 +104,8 @@
                framing it: two radii on the same corner leave a sliver of the
                card showing through, which reads as a rendering fault rather
                than as a frame. #}
-            {% set framed = zone.surface|default('none') != 'none' and not zone.caption and not (zone.media.credit|default(null)) %}
+            {% set showCredit = (zone.options.showCredit ?? true) %}
+            {% set framed = zone.surface|default('none') != 'none' and not zone.caption and not (showCredit and zone.media.credit|default(null)) %}
             {% set picture %}
                 {# `width` et `height` réservent la hauteur avant que l'image
                    arrive : avec `h-auto`, le navigateur n'en garde que le
@@ -159,6 +160,15 @@
                     {% endif %}
                 {% endset %}
             {% endif %}
+            {# Set askew, like a phone laid on a slide: a few degrees, enough to
+               read as placed rather than pasted. Turned as a whole - frame,
+               screen and all - and never on a phone, where the column is too
+               narrow to spare the corners it pushes out. #}
+            {% set tilt = zone.options.tilt|default('none') %}
+            {% if tilt != 'none' %}
+                {% set upright = picture %}
+                {% set picture %}<span class="block sm:py-4 {{ tilt == 'left' ? 'sm:-rotate-3' : 'sm:rotate-3' }}">{{ upright }}</span>{% endset %}
+            {% endif %}
             {% if enlargeable %}
                 {# A column when it fills, and not only a flex item: the button
                    takes the height flex gives it, but a block child inside
@@ -184,10 +194,11 @@
                 {# What the camera was set to, as a photographer would say it. #}
                 <p class="m-0 mt-1.5 font-mono text-xs text-muted{{ fills ? ' lg:shrink-0' : '' }}">{{ zone.media.exif }}</p>
             {% endif %}
-            {% if zone.media.credit|default(null) %}
-                {# Not decoration: a stock photo may only be shown with its
-                   photographer named, so this line travels with the picture
-                   wherever the zone is rendered. #}
+            {% if showCredit and zone.media.credit|default(null) %}
+                {# On by default: a photo whose licence asks for its author
+                   keeps the name with it wherever the zone is rendered. The
+                   author can take it off where the licence asks for nothing,
+                   Pexels for one (`showCredit`). #}
                 {{ include('Frontend/themes/default/editorial/post/_media_credit.html.twig', {credit: zone.media.credit}, false) }}
             {% endif %}
         </figure>
@@ -506,7 +517,7 @@
                                 style="object-position: {{ picture.focalPosition }};{{ flows ? '' : zone.gallery.ratioStyle }}"
                             >
                         </button>
-                        {% if picture.credit %}
+                        {% if picture.credit and (zone.options.showCredit ?? true) %}
                             {{ include('Frontend/themes/default/editorial/post/_media_credit.html.twig', {credit: picture.credit}, false) }}
                         {% endif %}
                     </figure>

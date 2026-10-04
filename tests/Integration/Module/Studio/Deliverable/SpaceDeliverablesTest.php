@@ -157,6 +157,22 @@ final class SpaceDeliverablesTest extends IntegrationTestCase
         self::assertStringNotContainsString('alert(1)', $page);
     }
 
+    /** Bold capitals for the section headings, or the theme's; nothing else passes. */
+    public function testTheHeadingStyleIsOneOfTwoAndReachesThePage(): void
+    {
+        $space = $this->givenSpace();
+        $deliverable = $this->givenDeliverable($space, 'Audit '.$this->suffix);
+
+        $this->update($space, $deliverable, ['appearance' => ['headingStyle' => 'display']]);
+        self::assertSame('display', $this->find($deliverable)->getAppearance()['headingStyle']);
+
+        $this->client->request('GET', sprintf('/workspace/%d/deliverables/%d/preview', $space->getId(), $deliverable));
+        self::assertStringContainsString('aurora-headings-display', (string) $this->client->getResponse()->getContent());
+
+        $this->update($space, $deliverable, ['appearance' => ['headingStyle' => 'comic-sans']]);
+        self::assertSame('theme', $this->find($deliverable)->getAppearance()['headingStyle']);
+    }
+
     public function testAnEmptyTitleIsRefusedOnSave(): void
     {
         $space = $this->givenSpace();

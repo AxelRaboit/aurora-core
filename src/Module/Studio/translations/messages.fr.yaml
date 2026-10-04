@@ -2121,6 +2121,11 @@ backend:
                 title_section: "Titre"
                 title_visible: "Afficher le titre et le résumé en tête de page"
                 title_visible_hint: "Décochez-le si le document s'ouvre sur un bloc d'entête qui porte déjà son titre. Le titre reste lisible par les lecteurs d'écran."
+                heading_style: "Grands titres"
+                heading_style_hint: "Les titres de section des zones de texte. « Capitales grasses » leur donne l'allure d'un titre de page de rapport."
+                heading_styles:
+                    theme: "Comme le thème"
+                    display: "Capitales grasses"
             settings:
                 prepared_for_placeholder: "Le destinataire"
                 document_title: "Le document"

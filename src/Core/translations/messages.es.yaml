@@ -332,6 +332,8 @@ backend:
             callout: "Destacado"
             media_text: 'Imagen + Texto'
             two_column: '2 columnas'
+            label: "Etiqueta"
+            socials: "Redes sociales"
         ui:
             block_tunes:
                 toggler:
@@ -380,6 +382,23 @@ backend:
             empty: 'Ningún medio encontrado'
             loading: Cargando…
             select: Seleccionar
+        label:
+            placeholder: "Etiqueta…"
+            tilt: "Inclinada"
+            tones:
+                dark: "Negro"
+                accent: "Color del tema"
+                rose: "Rosa"
+                indigo: "Índigo"
+                lime: "Lima"
+                amber: "Ámbar"
+                sky: "Cielo"
+                emerald: "Esmeralda"
+        socials:
+            handle_placeholder: "@usuario o nombre de la página"
+            url_placeholder: "Dirección (opcional)"
+            add: "Añadir una red"
+            remove: "Quitar"
         callout:
             title_placeholder: Título…
             message_placeholder: Mensaje…

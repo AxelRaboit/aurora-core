@@ -2110,6 +2110,11 @@ backend:
                 title_section: "Title"
                 title_visible: "Show the title and summary at the top of the page"
                 title_visible_hint: "Untick it if the document opens on a header block that already carries its title. The title stays readable by screen readers."
+                heading_style: "Large headings"
+                heading_style_hint: "The section headings of text zones. « Bold capitals » gives them the look of a report page title."
+                heading_styles:
+                    theme: "As the theme"
+                    display: "Bold capitals"
             settings:
                 prepared_for_placeholder: "The recipient"
                 document_title: "The document"

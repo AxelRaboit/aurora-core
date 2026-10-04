@@ -1,8 +1,12 @@
 {# A chart drawn on the server: bars, a line, a growth curve or a ring. No
    library in the page, and the figures stay readable as text - every value
    is printed beside what draws it, so a screen reader and a reader who
-   cannot tell two shades apart both get the numbers. #}
-<figure class="not-prose m-0 rounded-xl border border-card-line bg-surface p-5">
+   cannot tell two shades apart both get the numbers.
+
+   The chart draws its own card only when the zone has none: on a card it
+   would be a box in a box. #}
+{% set bare = (zone.surface|default('none')) != 'none' %}
+<figure class="not-prose m-0{{ bare ? '' : ' rounded-xl border border-card-line bg-surface p-5' }}">
     {% if widget.title or widget.growth is defined %}
         <div class="mb-4 flex flex-wrap items-baseline justify-between gap-2">
             {% if widget.title %}<p class="m-0 text-base font-semibold text-primary">{{ widget.title }}</p>{% endif %}
@@ -17,7 +21,7 @@
             {% for row in widget.rows %}
                 <div class="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1.5">
                     <span class="text-xs font-semibold tabular-nums text-primary">{{ row.valueLabel }}</span>
-                    <span class="block w-full rounded-t-md bg-accent-500" style="height: {{ max(row.share, 1) }}%;"></span>
+                    <span class="block w-full rounded-t-md{{ row.color ? '' : ' bg-accent-500' }}" style="height: {{ max(row.share, 1) }}%;{{ row.color ? ' background-color: ' ~ row.color ~ ';' : '' }}"></span>
                     <span class="w-full truncate text-center text-xs text-muted" title="{{ row.label }}">{{ row.label }}</span>
                 </div>
             {% endfor %}
@@ -42,16 +46,25 @@
         {% set tones = ['stroke-accent-500', 'stroke-accent-300', 'stroke-accent-700', 'stroke-accent-200', 'stroke-accent-800', 'stroke-accent-400', 'stroke-accent-900', 'stroke-accent-100'] %}
         {% set dots = ['bg-accent-500', 'bg-accent-300', 'bg-accent-700', 'bg-accent-200', 'bg-accent-800', 'bg-accent-400', 'bg-accent-900', 'bg-accent-100'] %}
         <div class="flex flex-col items-center gap-5 sm:flex-row">
-            <svg viewBox="0 0 42 42" class="h-44 w-44 shrink-0 -rotate-90" role="img" aria-label="{{ widget.title }}">
+            {# A pie is the same ring drawn at half the radius with a stroke as
+               wide as the circle: the dashes then fill it to the centre, and
+               the geometry - a circumference of 50 instead of 100 - halves. #}
+            {% set pie = widget.type == 'pie' %}
+            <svg viewBox="0 0 42 42" class="{{ pie ? 'h-56 w-56' : 'h-44 w-44' }} shrink-0 -rotate-90" role="img" aria-label="{{ widget.title }}">
                 {% for row in widget.rows %}
-                    <circle cx="21" cy="21" r="15.9155" fill="none" class="{{ tones[loop.index0 % 8] }}" stroke-width="6" stroke-dasharray="{{ row.dash }} {{ 100 - row.dash }}" stroke-dashoffset="{{ row.offset + 25 }}" />
+                    {% if pie %}
+                        <circle cx="21" cy="21" r="7.9577" fill="none" class="{{ row.color ? '' : tones[loop.index0 % 8] }}"{% if row.color %} stroke="{{ row.color }}"{% endif %} stroke-width="15.9155" stroke-dasharray="{{ row.dash / 2 }} {{ 50 - row.dash / 2 }}" stroke-dashoffset="{{ (row.offset + 25) / 2 }}" />
+                    {% else %}
+                        <circle cx="21" cy="21" r="15.9155" fill="none" class="{{ row.color ? '' : tones[loop.index0 % 8] }}"{% if row.color %} stroke="{{ row.color }}"{% endif %} stroke-width="6" stroke-dasharray="{{ row.dash }} {{ 100 - row.dash }}" stroke-dashoffset="{{ row.offset + 25 }}" />
+                    {% endif %}
                 {% endfor %}
             </svg>
             <ul class="m-0 w-full list-none space-y-1.5 p-0 text-sm">
                 {% for row in widget.rows %}
                     <li class="flex items-center justify-between gap-3">
-                        <span class="flex min-w-0 items-center gap-2"><span class="h-2.5 w-2.5 shrink-0 rounded-full {{ dots[loop.index0 % 8] }}"></span><span class="truncate text-secondary">{{ row.label }}</span></span>
-                        <span class="tabular-nums text-primary"><strong class="font-semibold">{{ row.valueLabel }}</strong> <span class="text-muted">· {{ row.percent }}</span></span>
+                        <span class="flex min-w-0 items-center gap-2"><span class="h-2.5 w-2.5 shrink-0 rounded-full {{ row.color ? '' : dots[loop.index0 % 8] }}"{% if row.color %} style="background-color: {{ row.color }};"{% endif %}></span><span class="truncate text-secondary">{{ row.label }}</span></span>
+                        {# Values already in percent would print their share twice. #}
+                        <span class="tabular-nums text-primary"><strong class="font-semibold">{{ row.valueLabel }}</strong>{% if widget.unit|default('') != '%' %} <span class="text-muted">· {{ row.percent }}</span>{% endif %}</span>
                     </li>
                 {% endfor %}
             </ul>

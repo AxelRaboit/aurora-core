@@ -61,6 +61,19 @@ final class GridSurfaceRenderTest extends IntegrationTestCase
         self::assertStringContainsString('border-card-line', $html);
     }
 
+    /**
+     * The card a report is made of: lifted off the page by its shadow, with
+     * no line around it - the line is what the plain card is for.
+     */
+    public function testARaisedCardCastsAShadowAndDrawsNoLine(): void
+    {
+        $html = $this->render($this->zone(['surface' => 'raised']));
+
+        self::assertStringContainsString('shadow-[', $html);
+        self::assertStringContainsString('rounded-2xl', $html);
+        self::assertStringNotContainsString('border-card-line', $html);
+    }
+
     public function testATintedZoneReadsAsOneSection(): void
     {
         self::assertStringContainsString('bg-surface-2', $this->render($this->zone(['surface' => 'soft'])));

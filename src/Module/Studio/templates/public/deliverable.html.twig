@@ -37,7 +37,7 @@
     html[data-theme] .aurora-deliverable [style*="--th-primary"]{--th-heading: var(--th-primary);}</style>
 {% endif %}
 
-<article class="prose max-w-none aurora-deliverable{{ appearance.accentColor ? ' aurora-post-accent' : '' }}{{ deliverableHighlightCss ? ' aurora-post-highlight' : '' }}">
+<article class="prose max-w-none aurora-deliverable{{ appearance.headingStyle|default('theme') == 'display' ? ' aurora-headings-display' : '' }}{{ appearance.accentColor ? ' aurora-post-accent' : '' }}{{ deliverableHighlightCss ? ' aurora-post-highlight' : '' }}">
     {# Le titre reste dans le document quand il est caché : c'est le seul
        `<h1>` de la page, et une zone de texte n'en fait pas. #}
     {% set hasSummary = appearance.titleVisible and deliverable.summary %}

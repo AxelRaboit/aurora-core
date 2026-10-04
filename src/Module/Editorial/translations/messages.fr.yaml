@@ -742,6 +742,7 @@ backend:
             surfaces:
                 none: Aucun
                 card: Carte
+                raised: En relief
                 soft: Teinté
                 accent: Accent
                 custom: Personnalisé
@@ -847,6 +848,7 @@ backend:
                 editorial: Liste éditoriale
                 process: Frise horizontale
                 features: "Cartes à picto"
+                showcase: "Vitrine en images"
             item_columns: Colonnes
             item_number: "Entrée {number}"
             item_add: Ajouter une entrée
@@ -882,6 +884,13 @@ backend:
             timeline_date_placeholder: "2024"
             timeline_title_placeholder: "Lancement du studio"
             timeline_text_placeholder: "Ce que ça a changé, en une phrase."
+            showcase_title: "Titre"
+            showcase_title_placeholder: "Carrousel bébé"
+            showcase_caption: "Précision (facultative)"
+            showcase_caption_placeholder: "Publié en janvier"
+            showcase_lines: "Chiffres"
+            showcase_lines_placeholder: "17 k vues\n60 interactions"
+            showcase_lines_hint: "Une ligne par chiffre : chacune devient une puce sous la photo."
             feature_title: "Titre"
             feature_title_placeholder: "Stratégie"
             feature_text: "Texte"
@@ -1017,6 +1026,20 @@ backend:
                 laptop: Ordinateur portable
                 phone: Téléphone
                 browser: Fenêtre de navigateur
+            tilt: "Inclinaison"
+            tilt_hint: "Pose l'image légèrement de biais, comme un téléphone sur une diapositive. Droite sur téléphone."
+            tilts:
+                none: "Droite"
+                left: "Vers la gauche"
+                right: "Vers la droite"
+            show_credit: "Afficher le crédit photo"
+            show_credit_hint: "Le nom de l'auteur sous l'image, tel que la médiathèque l'a noté. Une photo Pexels peut s'en passer."
+            valign: "Alignement vertical"
+            valign_hint: "Où la zone se place quand sa voisine est plus haute qu'elle, par exemple une carte à côté d'un téléphone. Sur téléphone, chaque zone a sa ligne."
+            valigns:
+                stretch: "En haut"
+                center: "Au centre"
+                end: "En bas"
             parallax: Bandeau qui défile plus lentement
             parallax_hint: "L'image devient un bandeau qui défile plus lentement que la page, avec la légende posée dessus. À combiner avec « Pleine largeur » pour un vrai bandeau."
             code_style: Présentation
@@ -1114,12 +1137,13 @@ backend:
                 bar: Barres
                 line: Courbe
                 donut: Anneau
+                pie: Camembert
                 growth: Croissance
             chart_unit: Unité
             chart_unit_hint: "Écrite après chaque valeur : %, €, k. Facultative."
             chart_title: Titre
             chart_data: Valeurs
-            chart_data_hint: "Une ligne par valeur : le nom, un point-virgule, le nombre. « Croissance » affiche en plus l'évolution entre la première et la dernière."
+            chart_data_hint: "Une ligne par valeur : le nom, un point-virgule, le nombre, et si besoin un second point-virgule et une couleur (#2f1bea). « Croissance » affiche en plus l'évolution entre la première et la dernière."
             chart_note: Source ou précision
             video_wall_count: "{count} vidéo sur {max} | {count} vidéos sur {max}"
             video_wall_add: Ajouter des vidéos

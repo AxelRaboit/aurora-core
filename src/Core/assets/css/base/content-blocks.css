@@ -488,3 +488,75 @@ pre .hljs-attribute {
         transition: none;
     }
 }
+
+/*
+ * A label: a short word on a pill, the way a report marks a column -
+ * « Réseaux sociaux » on black, a competitor's name on its colour. Tilted a
+ * couple of degrees when the author asks, the look of a sticker placed by
+ * hand. The live block in the editor wears the same classes.
+ */
+.label-pill-row { margin: 1rem 0 0.75rem; }
+.label-pill {
+    display: inline-block;
+    padding: 0.35rem 0.95rem;
+    border-radius: 0.65rem;
+    font-weight: 600;
+    font-size: 1.05rem;
+    line-height: 1.35;
+    background: var(--label-bg, #111);
+    color: var(--label-fg, #fff);
+    outline: none;
+}
+.label-pill--tilt { transform: rotate(-2deg); }
+/* « Ink »: the page's own text colour, so it reads on a light page and a dark one. */
+.label-pill--dark    { --label-bg: var(--th-primary, #111111); --label-fg: var(--th-bg, #ffffff); }
+.label-pill--accent  { --label-bg: var(--th-accent-500, var(--color-accent-500)); --label-fg: #ffffff; }
+.label-pill--rose    { --label-bg: #e8338f; --label-fg: #ffffff; }
+.label-pill--indigo  { --label-bg: #2f1bea; --label-fg: #ffffff; }
+.label-pill--lime    { --label-bg: #e4f76b; --label-fg: #111111; }
+.label-pill--amber   { --label-bg: #f5b324; --label-fg: #111111; }
+.label-pill--sky     { --label-bg: #38bdf8; --label-fg: #0b2233; }
+.label-pill--emerald { --label-bg: #10b981; --label-fg: #ffffff; }
+.label-pill:empty::before { content: attr(data-placeholder); opacity: 0.6; }
+
+/*
+ * The accounts a brand is found on: each network's mark on its own colour,
+ * the handle beside it. Instagram keeps its gradient, the one mark people
+ * recognise by colour before shape.
+ */
+.social-list { list-style: none; margin: 1rem 0; padding: 0; display: grid; gap: 0.75rem; }
+.social-list__item { display: flex; align-items: center; gap: 0.75rem; }
+.social-list__icon {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.75rem;
+    background: var(--social-bg, var(--th-accent-500, var(--color-accent-500)));
+    color: #ffffff;
+}
+.social-list__handle { min-width: 0; overflow-wrap: anywhere; }
+.social-list__handle a { color: inherit; text-decoration: none; }
+.social-list__handle a:hover { text-decoration: underline; }
+.social-list__item--instagram { --social-bg: linear-gradient(45deg, #f9ce34, #ee2a7b 55%, #6228d7); }
+.social-list__item--facebook  { --social-bg: #1877f2; }
+.social-list__item--linkedin  { --social-bg: #0a66c2; }
+.social-list__item--tiktok    { --social-bg: #111111; }
+.social-list__item--youtube   { --social-bg: #ff0000; }
+.social-list__item--x         { --social-bg: #111111; }
+
+/*
+ * Section headings in bold capitals, the page title of a report
+ * (« ANALYSE DE L'ENGAGEMENT »). Chosen per deliverable in its appearance;
+ * only the second level - the section - changes, the sub-headings under it
+ * keep the theme's so the two still read as two levels.
+ */
+.aurora-headings-display :where(h2):not(:where(.not-prose *)) {
+    text-transform: uppercase;
+    font-weight: 900;
+    letter-spacing: -0.01em;
+    line-height: 1.05;
+    font-size: clamp(1.75rem, 1.2rem + 2.4vw, 3rem);
+}

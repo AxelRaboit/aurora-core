@@ -208,6 +208,12 @@ export const SIZES = ["sm", "md", "lg"];
 /** Mirrors GridZoneOptions: the settings one kind of zone has and no other. */
 export const GALLERY_LAYOUTS = ["grid", "carousel"];
 export const FRAMES = ["none", "laptop", "phone", "browser"];
+
+/** Mirrors GridZoneOptions::TILTS - a picture set slightly askew. */
+export const TILTS = ["none", "left", "right"];
+
+/** Mirrors GridZoneOptions::VALIGNS - where a zone sits in a taller row. */
+export const VALIGNS = ["stretch", "center", "end"];
 export const CODE_STYLES = ["plain", "terminal", "diff"];
 export const LIST_LAYOUTS = ["cards", "index"];
 export const TOC_LAYOUTS = ["list", "pills", "index"];
@@ -216,7 +222,7 @@ export const GITHUB_MODES = ["activity", "repos", "releases"];
 export const AVAILABILITIES = ["available", "soon", "busy"];
 export const WEEKDAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
 export const SOCIAL_NETWORKS = ["instagram", "linkedin", "facebook", "x"];
-export const CHART_TYPES = ["bar", "line", "donut", "growth"];
+export const CHART_TYPES = ["bar", "line", "donut", "pie", "growth"];
 export const POLL_RESULTS = ["after", "always"];
 export const SLOT_DURATIONS = [15, 30, 45, 60, 90];
 export const BOOKING_WINDOWS = [7, 14, 21, 30, 45];
@@ -239,6 +245,9 @@ export function defaultZoneOptions() {
     return {
         galleryLayout: "grid",
         frame: "none",
+        tilt: "none",
+        showCredit: true,
+        valign: "stretch",
         parallax: false,
         codeStyle: "plain",
         listLayout: "cards",
@@ -286,7 +295,7 @@ export function defaultZoneOptions() {
 /** Mirrors GridNormalizer::SEPARATOR_STYLES. */
 export const SEPARATOR_STYLES = ["line", "space", "wave", "diagonal", "bevel"];
 
-/** Mirrors GridNormalizer::ITEM_DISPLAYS - the twelve costumes of an item list. */
+/** Mirrors GridNormalizer::ITEM_DISPLAYS - the costumes of an item list. */
 export const ITEM_DISPLAYS = [
     "steps",
     "stats",
@@ -300,6 +309,7 @@ export const ITEM_DISPLAYS = [
     "editorial",
     "process",
     "features",
+    "showcase",
 ];
 
 /** Mirrors GridNormalizer::ITEM_COLUMNS. */
@@ -345,7 +355,7 @@ export const AUDIENCES = ["everyone", "members"];
 export const TEXT_SIZES = ["normal", "lead", "small"];
 
 /** Mirrors GridNormalizer::SURFACES - what a zone sits on. */
-export const SURFACES = ["none", "card", "soft", "accent", "custom"];
+export const SURFACES = ["none", "card", "raised", "soft", "accent", "custom"];
 
 /** Mirrors GridNormalizer::ZONE_FILL_TYPES - a zone's own background, read only under `custom`. */
 export const ZONE_FILL_TYPES = ["none", "solid", "gradient"];
@@ -820,6 +830,8 @@ export function usePostGrid(layout, content) {
         columns: ITEM_COLUMNS.map((value) => ({ value, label: String(value) })),
         galleryLayout: labelled(GALLERY_LAYOUTS, "gallery_layouts"),
         frame: labelled(FRAMES, "frames"),
+        tilt: labelled(TILTS, "tilts"),
+        valign: labelled(VALIGNS, "valigns"),
         codeStyle: labelled(CODE_STYLES, "code_styles"),
         listLayout: labelled(LIST_LAYOUTS, "list_layouts"),
         tocLayout: labelled(TOC_LAYOUTS, "toc_layouts"),

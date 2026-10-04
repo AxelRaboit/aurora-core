@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { Palette, PanelTop, Type } from "lucide-vue-next";
+import AppChoiceRow from "@/shared/components/form/select/AppChoiceRow.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
 import { highlightModeOptions } from "@configuration/backend/themes/highlightModes.js";
@@ -55,6 +56,21 @@ const highlight = computed({
             highlight: value || null,
             highlightColor: "custom" === value ? appearance.value.highlightColor : null,
         };
+    },
+});
+
+/** Les grands titres : ceux du thème, ou en capitales grasses. */
+const headingStyleOptions = computed(() =>
+    ["theme", "display"].map((value) => ({
+        value,
+        label: t(`backend.studio.deliverables.appearance.heading_styles.${value}`),
+    })),
+);
+
+const headingStyle = computed({
+    get: () => appearance.value.headingStyle ?? "theme",
+    set: (value) => {
+        appearance.value = { ...appearance.value, headingStyle: value };
     },
 });
 
@@ -182,6 +198,12 @@ const swatch = computed(() => ({
                 v-model="titleVisible"
                 :label="t('backend.studio.deliverables.appearance.title_visible')"
                 :hint="t('backend.studio.deliverables.appearance.title_visible_hint')"
+            />
+            <AppChoiceRow
+                v-model="headingStyle"
+                :label="t('backend.studio.deliverables.appearance.heading_style')"
+                :hint="t('backend.studio.deliverables.appearance.heading_style_hint')"
+                :options="headingStyleOptions"
             />
         </section>
     </div>

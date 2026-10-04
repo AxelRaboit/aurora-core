@@ -230,6 +230,26 @@ final class GridItemDisplaysTest extends IntegrationTestCase
         self::assertStringContainsString('border-accent', $unknown);
     }
 
+    /**
+     * The best posts of a report: the picture on top, portrait like the post,
+     * then what it was, then one bullet per figure.
+     */
+    public function testAShowcasePutsThePictureFirstAndOneBulletPerFigure(): void
+    {
+        $mediaId = $this->picture();
+
+        $html = $this->render(
+            'showcase',
+            [['id' => 'i1', 'mediaId' => $mediaId]],
+            ['i1' => ['title' => 'Carrousel bébé', 'caption' => 'Publié en janvier', 'description' => "17 k vues\n60 interactions\n"]],
+        );
+
+        self::assertStringContainsString('aspect-[4/5]', $html);
+        self::assertSame(2, mb_substr_count($html, '<li>'));
+        self::assertStringContainsString('Publié en janvier', $html);
+        self::assertLessThan((int) mb_strpos($html, 'Carrousel bébé'), (int) mb_strpos($html, 'picto.png'));
+    }
+
     private function render(string $display, array $items, array $words, bool $exclusiveOpen = false, ?string $featuredTone = null): string
     {
         $grid = $this->gridViewBuilder->build(
