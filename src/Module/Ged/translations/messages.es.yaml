@@ -87,6 +87,10 @@ backend:
                 inline_uploads: 'Medios editoriales'
                 inline_uploads_description: 'Imágenes importadas desde un formulario de edición: banners, imágenes destacadas, campos personalizados.'
         documents:
+            trashed:
+                title: 'Este documento está en la papelera'
+                body: 'Enviado a la papelera el {date}. Su archivo ya no se sirve a los visitantes, y la purga automática lo borrará si no se restaura.'
+                badge: 'En la papelera'
             show_guide:
                 title: 'Lo que puede hacer aquí'
                 step_1: 'El botón de acciones de arriba permite descargar el archivo, editar el documento o enviarlo a la papelera.'
@@ -106,6 +110,7 @@ backend:
                 qr_description: 'Muestra un código QR que lleva a este documento.'
                 edit_description: 'Título, categoría, etiquetas, carpeta.'
                 delete_description: 'Envía el documento a la papelera, desde donde se restaura.'
+                restore_description: 'Lo saca de la papelera con su archivo, sus tamaños y su lugar en su familia.'
                 relocate_to_remote: 'Enviar al almacenamiento remoto'
                 relocate_to_local: 'Traer de vuelta al servidor'
                 relocate_description: 'Traslada el archivo, sus tamaños generados y su historial. Su dirección no cambia.'

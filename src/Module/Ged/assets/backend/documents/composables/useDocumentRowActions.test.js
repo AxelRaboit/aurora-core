@@ -50,4 +50,23 @@ describe("useDocumentRowActions", () => {
             "relocate",
         );
     });
+    /**
+     * A trashed document opens on its own page from a link or the trash screen.
+     * Its file is no longer served, so the only verb left is bringing it back.
+     */
+    it("offers only the restore for a trashed document", () => {
+        const restore = vi.fn();
+        const trashed = { ...DOC, trashed: true };
+
+        expect(keysFor({ restore }, trashed)).toEqual(["restore"]);
+    });
+
+    it("offers nothing for a trashed document without the right to restore", () => {
+        const trashed = { ...DOC, trashed: true };
+
+        expect(
+            keysFor({ restore: vi.fn(), can: () => false }, trashed),
+        ).toEqual([]);
+        expect(keysFor({}, trashed)).toEqual([]);
+    });
 });
