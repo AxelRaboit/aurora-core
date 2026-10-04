@@ -19,6 +19,7 @@ use Aurora\Module\Studio\Deliverable\Service\DeliverableAppearance;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableReadingHeader;
 use Doctrine\ORM\EntityManagerInterface;
 
+use function array_key_exists;
 use function ctype_digit;
 use function in_array;
 use function is_array;
@@ -114,9 +115,20 @@ final readonly class DeliverableManager
             // Sans espace, il n'y a pas de client pour le voir : la case reste
             // fermée, quoi que dise l'éditeur.
             ->setVisibleToClient(!$deliverable->isStandalone() && true === ($data['visibleToClient'] ?? false))
-            ->setCategory($deliverable->isStandalone() ? $this->category($data['categoryId'] ?? null) : null)
-            ->setThumbnail($this->thumbnail($data['thumbnailId'] ?? null))
             ->touch();
+
+        // La catégorie et l'image ne changent que si l'envoi les nomme : un
+        // appel qui les omet ne les efface pas. Un livrable d'espace n'a
+        // jamais de catégorie.
+        if (!$deliverable->isStandalone()) {
+            $deliverable->setCategory(null);
+        } elseif (array_key_exists('categoryId', $data)) {
+            $deliverable->setCategory($this->category($data['categoryId']));
+        }
+
+        if (array_key_exists('thumbnailId', $data)) {
+            $deliverable->setThumbnail($this->thumbnail($data['thumbnailId']));
+        }
 
         $this->entityManager->flush();
 
