@@ -1,253 +1,253 @@
 backend:
-  audit:
-    actions:
-      planning:
-        calendar:
-          created: Calendar created
-          updated: Calendar updated
-          deleted: Calendar deleted
-        share_link:
-          created: Share link created
-          revoked: Share link revoked
-        event:
-          created: Event created
-          updated: Event updated
-          deleted: Event deleted
-        reminder:
-          created: Reminder created
-          updated: Reminder updated
-          deleted: Reminder deleted
-  permissions:
-    names:
-      planning:
-        calendars:
-          view: View the calendar
-          manage: Manage calendars
+    audit:
+        actions:
+            planning:
+                calendar:
+                    created: Calendar created
+                    updated: Calendar updated
+                    deleted: Calendar deleted
+                share_link:
+                    created: Share link created
+                    revoked: Share link revoked
+                event:
+                    created: Event created
+                    updated: Event updated
+                    deleted: Event deleted
+                reminder:
+                    created: Reminder created
+                    updated: Reminder updated
+                    deleted: Reminder deleted
+    permissions:
+        names:
+            planning:
+                calendars:
+                    view: View the calendar
+                    manage: Manage calendars
+                events:
+                    create: Create events and reminders
+                    edit: Edit events and reminders
+                    delete: Delete events and reminders
+    modules:
+        planning: Calendar
+        planning_backend: Calendar
+        planning_backend_description: "Enables the calendar in the admin."
+    nav:
+        sections:
+            planning: Calendar
+        planning: Calendar
+        planning_description: "See what is on your calendars, by month, week or day."
+    plannings:
+        guide:
+            title: "How the calendar works"
+            step_1: "The side menu lists your calendars: hide one to take its events off the grid, or create an event, a reminder or a calendar."
+            step_2: "The arrows change the period, Day, Week, Month and Agenda change the view, and Today brings you back to the current date."
+            step_3: "On a computer, click a day or a free slot to create an event there, and drag an event to move it."
+            step_4: "A reminder is a due item you tick once done; editing a recurring event asks whether it is this occurrence, the following ones or the whole series."
+            step_5: "Sharing a calendar opens it to other users, or creates a secret link readable without an account, as a web page or a subscription."
+        title: Calendar
+        upcoming: "Coming up"
+        nothing_upcoming: "Nothing coming up."
+        open_calendar: "Open the calendar"
+        shortcuts: "Shortcuts: D day, W week, M month, T today, N/P navigate, C event, R reminder"
+        display_zone: "Display timezone"
+        today: Today
+        views:
+            day: Day
+            week: Week
+            month: Month
+            agenda: Agenda
+        more: "+{count} more"
+        calendars: My calendars
+        new_calendar: New calendar
+        edit_calendar: Edit calendar
+        name_placeholder: "Work, Personal, Photo…"
+        colour_slot: "Colour {slot}"
+        visibility_hint: "A shared calendar is visible to everyone who can reach the calendar."
+        timezone_hint: "The zone this calendar cuts its whole days in."
+        events_in_range: "Events in the range on screen"
+        nothing_in_range: "Nothing in this range."
+        nothing_on_day: "Nothing on this day."
+        empty: "No calendar yet."
+        name: Name
+        description: Description
+        colour: Colour
+        timezone: Time zone
+        visibility:
+            label: Visibility
+            private: Private
+            shared: Shared
+        shares:
+            label: "Shared with"
+            placeholder: "Add somebody…"
+            can_write: "Can edit"
+            save: "Save sharing"
+            errors:
+                owner_only: "Only the calendar's owner can change its sharing."
+        links:
+            title: "Share {name}"
+            label: "Share by link"
+            hint: "A secret address for reading this calendar without an account. Anyone who has it can read it, until it expires or is revoked."
+            empty: "No links"
+            mode: "Type"
+            mode_web: "Web page"
+            mode_ics: "Subscription (.ics)"
+            create: "Create the link"
+            revoke: "Revoke"
+            new_label: "Who is it for?"
+            new_label_placeholder: "Marie, photo studio"
+            new_label_hint: "So you know which link to revoke later."
+            expires: "Expires on"
+            expires_placeholder: "Never"
+            expires_hint: "Empty: never expires. Keep that for subscriptions."
+            no_expiry: "Never expires"
+            expires_on: "Expires {date}"
+            expired_on: "Expired {date}"
+            revoked_on: "Revoked {date}"
+            last_used: "Opened {date}"
+            never_used: "Never opened"
+            also_covers: "Also covers 1 other calendar | Also covers {count} other calendars"
+            errors:
+                calendars_required: "Choose at least one calendar."
+                label_required: "Give this link a name."
+                label_too_long: "That name is too long."
+                not_owned: "You can only share your own calendars."
+        scope:
+            title_edit: "Edit the recurring event"
+            title_delete: "Delete the recurring event"
+            this: "This occurrence"
+            this_hint_edit: "The others stay where they are."
+            this_hint_delete: "The others are kept."
+            following: "This and the following ones"
+            following_hint_edit: "The past occurrences do not change."
+            following_hint_delete: "The past occurrences are kept."
+            all: "The whole series"
+            all_hint_edit: "Including the occurrences already past."
+            all_hint_delete: "Including the occurrences already past."
+        recurrence:
+            label: "Repeat"
+            none: "Does not repeat"
+            daily: "Every day"
+            weekly: "Every week"
+            monthly: "Every month"
+            yearly: "Every year"
+            custom: "Custom…"
+            every: "Every"
+            freq_DAILY: "days"
+            freq_WEEKLY: "weeks"
+            freq_MONTHLY: "months"
+            freq_YEARLY: "years"
+            on_days: "On"
+            ends: "Ends"
+            until_placeholder: "DD/MM/YYYY"
+            end_never: "Never"
+            end_until: "On"
+            end_count: "After"
+            occurrences: "occurrences"
+            day_MO: M
+            day_TU: T
+            day_WE: W
+            day_TH: T
+            day_FR: F
+            day_SA: S
+            day_SU: S
+        mail:
+            alert_subject: "Coming up: %title%"
+            alert_intro: "This event on the %calendar% calendar is coming up."
+            reminder_subject: "Reminder: %title%"
+            reminder_intro: "This reminder on the %calendar% calendar is due."
+            open: "Open the calendar"
+        errors:
+            name_required: A calendar needs a name.
+            colour_out_of_range: "That colour is not in the palette."
+            timezone_unknown: That time zone is unknown.
+            window_invalid: "The requested range is not valid."
+        reminders:
+            title: Reminders
+            title_label: Title
+            title_placeholder: "Call the client, reread the draft…"
+            new: New reminder
+            edit: Edit reminder
+            due: Due
+            due_placeholder: "The day and time it is due"
+            notes: Notes
+            notes_placeholder: "What you need to know to do it"
+            completed: Done
+            overdue: Overdue
+            all_day: "All day"
+            none: "No reminder in the range on screen."
+            notification: "%calendar% · it is time"
+            errors:
+                title_required: "The reminder needs a title."
+                due_required: "The reminder needs a due date."
+        attendees:
+            label: Attendees
+            placeholder: "Invite somebody…"
+            none: "Nobody invited."
+            invited_body: "You have been invited to an event on the %calendar% calendar."
+            your_answer: "Your answer"
+            status_needs_action: "No answer"
+            status_accepted: Accepted
+            status_declined: Declined
+            status_tentative: Maybe
+            errors:
+                not_invited: "You are not invited to this event."
+                status_unknown: "That answer does not exist."
+        alerts:
+            channel: "By"
+            channel_hint: "An alert that only arrives in the application is only seen by somebody already in it."
+            channel_notification: "Notification"
+            channel_email: "Email"
+            custom: "Custom…"
+            add: Add an alert
+            at_placeholder: "The day and time of the alert"
+            label: "Alerts"
+            none: "No alert on this event."
+            notification: "%calendar% · starts at %when%"
+            # One key per offset, so a translator reads phrases and not a
+            # number plus a unit that needs a plural rule.
+            offsets:
+                0: "At the start"
+                5: "5 minutes before"
+                10: "10 minutes before"
+                15: "15 minutes before"
+                30: "30 minutes before"
+                60: "1 hour before"
+                120: "2 hours before"
+                1440: "1 day before"
+                10080: "1 week before"
         events:
-          create: Create events and reminders
-          edit: Edit events and reminders
-          delete: Delete events and reminders
-  modules:
-    planning: Calendar
-    planning_backend: Calendar
-    planning_backend_description: "Enables the calendar in the admin."
-  nav:
-    sections:
-      planning: Calendar
-    planning: Calendar
-    planning_description: "See what is on your calendars, by month, week or day."
-  plannings:
-    guide:
-      title: "How the calendar works"
-      step_1: "The side menu lists your calendars: hide one to take its events off the grid, or create an event, a reminder or a calendar."
-      step_2: "The arrows change the period, Day, Week, Month and Agenda change the view, and Today brings you back to the current date."
-      step_3: "On a computer, click a day or a free slot to create an event there, and drag an event to move it."
-      step_4: "A reminder is a due item you tick once done; editing a recurring event asks whether it is this occurrence, the following ones or the whole series."
-      step_5: "Sharing a calendar opens it to other users, or creates a secret link readable without an account, as a web page or a subscription."
-    title: Calendar
-    upcoming: "Coming up"
-    nothing_upcoming: "Nothing coming up."
-    open_calendar: "Open the calendar"
-    shortcuts: "Shortcuts: D day, W week, M month, T today, N/P navigate, C event, R reminder"
-    display_zone: "Display timezone"
-    today: Today
-    views:
-      day: Day
-      week: Week
-      month: Month
-      agenda: Agenda
-    more: "+{count} more"
-    calendars: My calendars
-    new_calendar: New calendar
-    edit_calendar: Edit calendar
-    name_placeholder: "Work, Personal, Photo…"
-    colour_slot: "Colour {slot}"
-    visibility_hint: "A shared calendar is visible to everyone who can reach the calendar."
-    timezone_hint: "The zone this calendar cuts its whole days in."
-    events_in_range: "Events in the range on screen"
-    nothing_in_range: "Nothing in this range."
-    nothing_on_day: "Nothing on this day."
-    empty: "No calendar yet."
-    name: Name
-    description: Description
-    colour: Colour
-    timezone: Time zone
-    visibility:
-      label: Visibility
-      private: Private
-      shared: Shared
-    shares:
-      label: "Shared with"
-      placeholder: "Add somebody…"
-      can_write: "Can edit"
-      save: "Save sharing"
-      errors:
-        owner_only: "Only the calendar's owner can change its sharing."
-    links:
-      title: "Share {name}"
-      label: "Share by link"
-      hint: "A secret address for reading this calendar without an account. Anyone who has it can read it, until it expires or is revoked."
-      empty: "No links"
-      mode: "Type"
-      mode_web: "Web page"
-      mode_ics: "Subscription (.ics)"
-      create: "Create the link"
-      revoke: "Revoke"
-      new_label: "Who is it for?"
-      new_label_placeholder: "Marie, photo studio"
-      new_label_hint: "So you know which link to revoke later."
-      expires: "Expires on"
-      expires_placeholder: "Never"
-      expires_hint: "Empty: never expires. Keep that for subscriptions."
-      no_expiry: "Never expires"
-      expires_on: "Expires {date}"
-      expired_on: "Expired {date}"
-      revoked_on: "Revoked {date}"
-      last_used: "Opened {date}"
-      never_used: "Never opened"
-      also_covers: "Also covers 1 other calendar | Also covers {count} other calendars"
-      errors:
-        calendars_required: "Choose at least one calendar."
-        label_required: "Give this link a name."
-        label_too_long: "That name is too long."
-        not_owned: "You can only share your own calendars."
-    scope:
-      title_edit: "Edit the recurring event"
-      title_delete: "Delete the recurring event"
-      this: "This occurrence"
-      this_hint_edit: "The others stay where they are."
-      this_hint_delete: "The others are kept."
-      following: "This and the following ones"
-      following_hint_edit: "The past occurrences do not change."
-      following_hint_delete: "The past occurrences are kept."
-      all: "The whole series"
-      all_hint_edit: "Including the occurrences already past."
-      all_hint_delete: "Including the occurrences already past."
-    recurrence:
-      label: "Repeat"
-      none: "Does not repeat"
-      daily: "Every day"
-      weekly: "Every week"
-      monthly: "Every month"
-      yearly: "Every year"
-      custom: "Custom…"
-      every: "Every"
-      freq_DAILY: "days"
-      freq_WEEKLY: "weeks"
-      freq_MONTHLY: "months"
-      freq_YEARLY: "years"
-      on_days: "On"
-      ends: "Ends"
-      until_placeholder: "DD/MM/YYYY"
-      end_never: "Never"
-      end_until: "On"
-      end_count: "After"
-      occurrences: "occurrences"
-      day_MO: M
-      day_TU: T
-      day_WE: W
-      day_TH: T
-      day_FR: F
-      day_SA: S
-      day_SU: S
-    mail:
-      alert_subject: "Coming up: %title%"
-      alert_intro: "This event on the %calendar% calendar is coming up."
-      reminder_subject: "Reminder: %title%"
-      reminder_intro: "This reminder on the %calendar% calendar is due."
-      open: "Open the calendar"
-    errors:
-      name_required: A calendar needs a name.
-      colour_out_of_range: "That colour is not in the palette."
-      timezone_unknown: That time zone is unknown.
-      window_invalid: "The requested range is not valid."
-    reminders:
-      title: Reminders
-      title_label: Title
-      title_placeholder: "Call the client, reread the draft…"
-      new: New reminder
-      edit: Edit reminder
-      due: Due
-      due_placeholder: "The day and time it is due"
-      notes: Notes
-      notes_placeholder: "What you need to know to do it"
-      completed: Done
-      overdue: Overdue
-      all_day: "All day"
-      none: "No reminder in the range on screen."
-      notification: "%calendar% · it is time"
-      errors:
-        title_required: "The reminder needs a title."
-        due_required: "The reminder needs a due date."
-    attendees:
-      label: Attendees
-      placeholder: "Invite somebody…"
-      none: "Nobody invited."
-      invited_body: "You have been invited to an event on the %calendar% calendar."
-      your_answer: "Your answer"
-      status_needs_action: "No answer"
-      status_accepted: Accepted
-      status_declined: Declined
-      status_tentative: Maybe
-      errors:
-        not_invited: "You are not invited to this event."
-        status_unknown: "That answer does not exist."
-    alerts:
-      channel: "By"
-      channel_hint: "An alert that only arrives in the application is only seen by somebody already in it."
-      channel_notification: "Notification"
-      channel_email: "Email"
-      custom: "Custom…"
-      add: Add an alert
-      at_placeholder: "The day and time of the alert"
-      label: "Alerts"
-      none: "No alert on this event."
-      notification: "%calendar% · starts at %when%"
-      # One key per offset, so a translator reads phrases and not a
-      # number plus a unit that needs a plural rule.
-      offsets:
-        0: "At the start"
-        5: "5 minutes before"
-        10: "10 minutes before"
-        15: "15 minutes before"
-        30: "30 minutes before"
-        60: "1 hour before"
-        120: "2 hours before"
-        1440: "1 day before"
-        10080: "1 week before"
-    events:
-      title: Title
-      new: New event
-      all_day: All day
-      all_day_short: All day
-      starts: Starts
-      ends: Ends
-      starts_placeholder: "The day and time it starts"
-      ends_placeholder: "The day and time it ends"
-      in_zone: "Times are in the calendar's {zone} timezone."
-      colour_from_calendar: "The calendar's"
-      location: Location
-      location_placeholder: "A room, an address, a link"
-      status:
-        tentative: Tentative
-        confirmed: Confirmed
-        cancelled: Cancelled
-      from_module: "From a module"
-      open_source: Open the source
-      errors:
-        title_required: "An event needs a title."
-        calendar_required: Pick a calendar.
-        start_required: "An event needs a start date."
-        end_required: "An event needs an end date."
-        end_before_start: "The end cannot come before the start."
-        occurrence_required: "Say which occurrence this applies to."
-        read_only: "This event comes from another module: change it at its source."
+            title: Title
+            new: New event
+            all_day: All day
+            all_day_short: All day
+            starts: Starts
+            ends: Ends
+            starts_placeholder: "The day and time it starts"
+            ends_placeholder: "The day and time it ends"
+            in_zone: "Times are in the calendar's {zone} timezone."
+            colour_from_calendar: "The calendar's"
+            location: Location
+            location_placeholder: "A room, an address, a link"
+            status:
+                tentative: Tentative
+                confirmed: Confirmed
+                cancelled: Cancelled
+            from_module: "From a module"
+            open_source: Open the source
+            errors:
+                title_required: "An event needs a title."
+                calendar_required: Pick a calendar.
+                start_required: "An event needs a start date."
+                end_required: "An event needs an end date."
+                end_before_start: "The end cannot come before the start."
+                occurrence_required: "Say which occurrence this applies to."
+                read_only: "This event comes from another module: change it at its source."
 frontend:
-  plannings:
-    share:
-      unavailable_title: "Link unavailable"
-      unavailable_body: "This link no longer works. It may have expired or been revoked. Ask whoever sent it to you for a new one."
-      read_only: "Read only"
-      until: "until %date%"
-      times_in: "Times in {zone}"
-      nothing: "No calendars"
+    plannings:
+        share:
+            unavailable_title: "Link unavailable"
+            unavailable_body: "This link no longer works. It may have expired or been revoked. Ask whoever sent it to you for a new one."
+            read_only: "Read only"
+            until: "until %date%"
+            times_in: "Times in {zone}"
+            nothing: "No calendars"

@@ -23,7 +23,6 @@ import { useContractFlow } from "./composables/useContractFlow.js";
 import ContractFormFields from "./components/ContractFormFields.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
-import AppCardActions from "@/shared/components/action/AppCardActions.vue";
 import AppListToolbar from "@/shared/components/list/AppListToolbar.vue";
 import AppMessage from "@/shared/components/feedback/AppMessage.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
@@ -294,10 +293,12 @@ const pageActions = computed(() =>
                             <AppBadge v-if="contract.isAdapted" color="violet" class="ml-1 align-middle">{{ t("backend.studio.contracts.wording.badge") }}</AppBadge>
                         </p>
                     </div>
-                    <AppBadge :color="contractStatusColor(contract.status)">{{ t(contract.statusLabel) }}</AppBadge>
-                </div>
-                <div class="border-t border-line/40 pt-2">
-                    <AppCardActions :actions="rowActions(contract)" />
+                    <!-- Le statut, puis les gestes derrière le bouton « … », comme
+                         sur toutes les listes (décision d'Axel du 04/10/2026). -->
+                    <div class="flex shrink-0 items-start gap-1">
+                        <AppBadge :color="contractStatusColor(contract.status)">{{ t(contract.statusLabel) }}</AppBadge>
+                        <AppRowActions :actions="rowActions(contract)" :label="contract.reference ?? contract.customerName ?? ''" />
+                    </div>
                 </div>
             </article>
         </div>

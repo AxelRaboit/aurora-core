@@ -930,16 +930,31 @@ function isLate(event) {
         <section v-if="'documents' === view" class="space-y-3">
             <ul class="space-y-2">
                 <li v-for="document in documents" :key="document.id">
+                    <!-- L'image du livrable à gauche, comme chez le studio ; sans
+                         image, une tuile neutre garde les titres alignés. -->
                     <a
                         :href="document.url"
-                        class="aurora-card flex flex-col gap-1 p-3 no-underline transition-colors hover:bg-surface-2/60"
+                        class="aurora-card flex items-center gap-3 p-3 no-underline transition-colors hover:bg-surface-2/60"
                     >
-                        <span class="text-sm font-medium text-primary">
-                            {{ document.title || t("studio.public.space.document_untitled") }}
+                        <span class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-line bg-surface-2 sm:h-14 sm:w-14">
+                            <img
+                                v-if="document.thumbnailUrl"
+                                :src="document.thumbnailUrl"
+                                alt=""
+                                loading="lazy"
+                                class="h-full w-full object-cover"
+                                :style="{ objectPosition: document.thumbnailPosition || '50% 50%' }"
+                            >
+                            <FileText v-else class="h-5 w-5 text-muted" :stroke-width="1.75" />
                         </span>
-                        <span v-if="document.description" class="text-xs text-secondary">{{ document.description }}</span>
-                        <span class="text-xs text-muted">
-                            {{ t("studio.public.space.document_updated_on", { date: d(new Date(document.updatedAt), "long") }) }}
+                        <span class="flex min-w-0 flex-1 flex-col gap-1">
+                            <span class="text-sm font-medium text-primary">
+                                {{ document.title || t("studio.public.space.document_untitled") }}
+                            </span>
+                            <span v-if="document.description" class="text-xs text-secondary">{{ document.description }}</span>
+                            <span class="text-xs text-muted">
+                                {{ t("studio.public.space.document_updated_on", { date: d(new Date(document.updatedAt), "long") }) }}
+                            </span>
                         </span>
                     </a>
                 </li>

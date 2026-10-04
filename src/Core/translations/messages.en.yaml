@@ -1,404 +1,415 @@
 shared:
-  thread:
-    title: Discussion
-    empty: No message yet.
-    placeholder: Write a message…
-    send: Send
-    from_client: client
-    verdict:
-      approved: '{who} approved'
-      changes_requested: '{who} asked for changes'
-  space_information:
-    siret: SIRET
-    siren: SIREN
-    phone: Mobile
-    landline: Landline
-    email: Email
-    postal_address: Postal address
-    links: Links
-    notes: Notes
-    empty: This sheet is still empty.
-    empty_hint: There is nothing to read here beyond the company name.
-  space_resources:
-    kinds:
-      link: Link
-      text: Text
-      contact: Contact
-  space_chat:
-    title: Chat
-    empty: "No messages yet. This is where everything that does not belong on one card gets said: the month's brief, a campaign moving, a quick question."
-    placeholder: Write a message…
-    shortcut_hint: "Enter to send, Shift+Enter for a new line"
-    send: Send
-    from_client: client
-    deleted: Message deleted
-    live: live
-    reconnecting: reconnecting…
-    channels:
-      label: Channels
-      new: New channel
-      new_hint: "A channel has a name and an audience. Both can be changed later from its settings."
-      new_open_to_client: Open this channel to the client
-      new_open_to_client_hint: "Anyone holding an access link to this space will read this channel."
-      new_internal_hint: "The channel stays between you. The client does not see it, and knows neither its name nor that it exists."
-      name_placeholder: Channel name
-      name_example: "e.g. Next month"
-      create: Open
-      cancel: Cancel
-      rename: Rename
-      delete: Delete channel
-      delete_confirm: "Delete this channel? Its messages go with it."
-      internal: internal
-      client_reads: read by the client
-      open_to_client: Open to the client
-      close_to_client: Close to the client
-      invite: Add somebody
-      notice_internal: "An internal channel: the client does not read it."
-      notice_direct: "A private conversation: nobody else reads it."
-      participants: "Participants"
-      everybody: "Everybody, the client included."
-      audience: "Who reads it"
-      audience_open: "The client reads this channel."
-      audience_internal: "This channel stays between you."
-      hide: "Put the conversation away"
-      hide_hint: "It leaves your list. Nothing is deleted, the other person still sees it, and reopening it gives you the whole history back."
-      nobody_left: "There is nobody else to add."
-      pick_direct: "Talk to somebody"
-      pick_invite: "Add to the channel"
-      older: "Load earlier messages"
-      room_settings: "Room settings"
-      directs: Direct messages
-      new_direct: New conversation
-      invited: Added to the channel
-      uninvite: Remove from the channel
-      uninvited: Removed from the channel
-      members: 'Nobody | 1 person | {count} people'
-  attachments:
-    title: Files
-    empty: No file yet.
-    add: Add a file
-    pick: Choose from GED
-    pick_drive: From the Drive
-    drop: Drop a file here
-    remove: Remove from the card
-    remove_confirm: Remove this file from the card? It stays in GED.
-    open: Open the file
-    count: 'No file | 1 file | {count} files'
-  palette:
-    no_colour: No colour
-    colour_slot: 'Colour {slot}'
-  placeholders:
-    name: A short name
-    title: A short title
-    slug: page-title
-    description: A sentence to place it.
-    email: first.last@example.com
-    password: At least 8 characters
-    url: https://example.com/page
-    search: Search…
-    one_per_line: One value per line
-    value: Enter a value
-  drop_zone:
-    cta: Drag a file here, or click to browse
-    drop: Drop to upload
-    uploading: Uploading…
-  media:
-    choose: Choose an image
-    change: Change
-    remove: Remove
-    focal_pick: Click the picture to choose where it crops
-    focal_inherited: Point inherited from the document
-    focal_reset: Back to the document's point
-    upload: Browse
-    uploading: Uploading
-    upload_failed: The upload failed.
-  locale_switcher: Language
-  main_menu: Main menu
-  menu_parent_page: View this page
-  errors:
-    page_not_found:
-      title: Page not found
-      message: The page you are looking for does not exist or has been moved.
-      back: Back to home
-    server_error:
-      title: An error occurred
-      message: The server encountered an unexpected problem. Our team has been notified. Please try again in a few moments.
-      back: Back to home
-    maintenance:
-      title: Site under maintenance
-      message: The site is temporarily closed for maintenance. Please check back in a few moments.
-  actions:
-    plain_title: Actions
-    title: "Actions : {name}"
-    open: "Actions for {name}"
-  chart:
-    share: "{count} of {total} ({percent}%)"
-  common:
-    help: Help
-    list_view: List view
-    grid_view: Card view
-    search: Search
-    selected: selected
-    pagination: 'Page {page} of {totalPages}'
-    built_with: '© {year} {siteName}'
-    save: Save
-    cancel: Cancel
-    delete: Delete
-    edit: Edit
-    create: Create
-    add: Add
-    loading: Loading…
-    confirm: Confirm
-    refresh: Refresh
-    error: An error occurred.
-    saved: Saved.
-    deleted: Deleted.
-    previous: Previous
-    autosave:
-      pending: Unsaved changes
-      saving: Saving…
-      saved: Saved
-      error: Save failed
-      last_saved: 'Saved {time}'
-    actions: Actions
-    status: Status
-    or: or
-    name: Name
-    description: Description
-    view: View
-    close: Close
-    back: Back
-    expand: Expand
-    collapse: Collapse
-    select_placeholder: Select…
-    no_options: No items available
-    add_tag_hint: Add a tag…
-    no_result: No results found
-    select_selected: Selected
-    download: Download
-    qr_code: QR Code
-    download_qr: Download QR Code
-    copied: Copied.
-    copy: Copy
-    dates: Dates
-    created: Created
-    updated: Updated
-    reset: Reset
-    select_to_remove: Press enter to remove
-    remove: Remove
-    all: All
-    load_more: Load more
-    next: Next
-  reveal:
-    more: '1 more | {count} more'
-  pagination:
-    previous: Previous
-    next: Next
-    results: '{from} to {to} of {total} results'
-  comment:
-    title: Comments
-    form_title: Leave a comment
-    name: Name
-    email: Email
-    content: Comment
-    submit: Submit
-    success: Your comment has been submitted and is awaiting moderation.
-    empty: No comments yet.
-    reply: Reply
-    react: React
-  form:
-    signature_pad:
-      clear: 'Clear'
-      hint: 'Sign with your finger, a mouse or a stylus.'
-    submit: Submit
-    submitting: Sending…
-    next: Next
-    prev: Back
-    success: 'Thank you, your message has been sent!'
-    error: An error occurred. Please try again.
-    field_required: This field is required.
-    select_placeholder: Choose…
-  locales:
-    fr: Français
-    en: English
-    es: Español
-    de: Deutsch
-  image_cropper:
-    title: Crop image
-    apply: Apply crop
-    cropped: Image cropped
+    categories:
+        name: "Category name"
+        new_placeholder: "New category, for example Audit"
+        add: "Add"
+        created: "Category created."
+        saved: "Category saved."
+        deleted: "Category deleted."
+        move_up: "Move up"
+        move_down: "Move down"
+        empty: "No categories yet."
+        delete_confirm: "Delete “{name}”? What was filed under it stays, without a category."
+    thread:
+        title: Discussion
+        empty: No message yet.
+        placeholder: Write a message…
+        send: Send
+        from_client: client
+        verdict:
+            approved: '{who} approved'
+            changes_requested: '{who} asked for changes'
+    space_information:
+        siret: SIRET
+        siren: SIREN
+        phone: Mobile
+        landline: Landline
+        email: Email
+        postal_address: Postal address
+        links: Links
+        notes: Notes
+        empty: This sheet is still empty.
+        empty_hint: There is nothing to read here beyond the company name.
+    space_resources:
+        kinds:
+            link: Link
+            text: Text
+            contact: Contact
+    space_chat:
+        title: Chat
+        empty: "No messages yet. This is where everything that does not belong on one card gets said: the month's brief, a campaign moving, a quick question."
+        placeholder: Write a message…
+        shortcut_hint: "Enter to send, Shift+Enter for a new line"
+        send: Send
+        from_client: client
+        deleted: Message deleted
+        live: live
+        reconnecting: reconnecting…
+        channels:
+            label: Channels
+            new: New channel
+            new_hint: "A channel has a name and an audience. Both can be changed later from its settings."
+            new_open_to_client: Open this channel to the client
+            new_open_to_client_hint: "Anyone holding an access link to this space will read this channel."
+            new_internal_hint: "The channel stays between you. The client does not see it, and knows neither its name nor that it exists."
+            name_placeholder: Channel name
+            name_example: "e.g. Next month"
+            create: Open
+            cancel: Cancel
+            rename: Rename
+            delete: Delete channel
+            delete_confirm: "Delete this channel? Its messages go with it."
+            internal: internal
+            client_reads: read by the client
+            open_to_client: Open to the client
+            close_to_client: Close to the client
+            invite: Add somebody
+            notice_internal: "An internal channel: the client does not read it."
+            notice_direct: "A private conversation: nobody else reads it."
+            participants: "Participants"
+            everybody: "Everybody, the client included."
+            audience: "Who reads it"
+            audience_open: "The client reads this channel."
+            audience_internal: "This channel stays between you."
+            hide: "Put the conversation away"
+            hide_hint: "It leaves your list. Nothing is deleted, the other person still sees it, and reopening it gives you the whole history back."
+            nobody_left: "There is nobody else to add."
+            pick_direct: "Talk to somebody"
+            pick_invite: "Add to the channel"
+            older: "Load earlier messages"
+            room_settings: "Room settings"
+            directs: Direct messages
+            new_direct: New conversation
+            invited: Added to the channel
+            uninvite: Remove from the channel
+            uninvited: Removed from the channel
+            members: 'Nobody | 1 person | {count} people'
+    attachments:
+        title: Files
+        empty: No file yet.
+        add: Add a file
+        pick: Choose from GED
+        pick_drive: From the Drive
+        drop: Drop a file here
+        remove: Remove from the card
+        remove_confirm: Remove this file from the card? It stays in GED.
+        open: Open the file
+        count: 'No file | 1 file | {count} files'
+    palette:
+        no_colour: No colour
+        colour_slot: 'Colour {slot}'
+    placeholders:
+        name: A short name
+        title: A short title
+        slug: page-title
+        description: A sentence to place it.
+        email: first.last@example.com
+        password: At least 8 characters
+        url: https://example.com/page
+        search: Search…
+        one_per_line: One value per line
+        value: Enter a value
+    drop_zone:
+        cta: Drag a file here, or click to browse
+        drop: Drop to upload
+        uploading: Uploading…
+    media:
+        choose: Choose an image
+        change: Change
+        remove: Remove
+        focal_pick: Click the picture to choose where it crops
+        focal_inherited: Point inherited from the document
+        focal_reset: Back to the document's point
+        upload: Browse
+        uploading: Uploading
+        upload_failed: The upload failed.
+    locale_switcher: Language
+    main_menu: Main menu
+    menu_parent_page: View this page
+    errors:
+        page_not_found:
+            title: Page not found
+            message: The page you are looking for does not exist or has been moved.
+            back: Back to home
+        server_error:
+            title: An error occurred
+            message: The server encountered an unexpected problem. Our team has been notified. Please try again in a few moments.
+            back: Back to home
+        maintenance:
+            title: Site under maintenance
+            message: The site is temporarily closed for maintenance. Please check back in a few moments.
+    actions:
+        plain_title: Actions
+        title: "Actions : {name}"
+        open: "Actions for {name}"
+    chart:
+        share: "{count} of {total} ({percent}%)"
+    common:
+        help: Help
+        list_view: List view
+        grid_view: Card view
+        search: Search
+        selected: selected
+        pagination: 'Page {page} of {totalPages}'
+        built_with: '© {year} {siteName}'
+        save: Save
+        cancel: Cancel
+        delete: Delete
+        edit: Edit
+        create: Create
+        add: Add
+        loading: Loading…
+        confirm: Confirm
+        refresh: Refresh
+        error: An error occurred.
+        saved: Saved.
+        deleted: Deleted.
+        previous: Previous
+        autosave:
+            pending: Unsaved changes
+            saving: Saving…
+            saved: Saved
+            error: Save failed
+            last_saved: 'Saved {time}'
+        actions: Actions
+        status: Status
+        or: or
+        name: Name
+        description: Description
+        view: View
+        close: Close
+        back: Back
+        expand: Expand
+        collapse: Collapse
+        select_placeholder: Select…
+        no_options: No items available
+        add_tag_hint: Add a tag…
+        no_result: No results found
+        select_selected: Selected
+        download: Download
+        qr_code: QR Code
+        download_qr: Download QR Code
+        copied: Copied.
+        copy: Copy
+        dates: Dates
+        created: Created
+        updated: Updated
+        reset: Reset
+        select_to_remove: Press enter to remove
+        remove: Remove
+        all: All
+        load_more: Load more
+        next: Next
+    reveal:
+        more: '1 more | {count} more'
+    pagination:
+        previous: Previous
+        next: Next
+        results: '{from} to {to} of {total} results'
+    comment:
+        title: Comments
+        form_title: Leave a comment
+        name: Name
+        email: Email
+        content: Comment
+        submit: Submit
+        success: Your comment has been submitted and is awaiting moderation.
+        empty: No comments yet.
+        reply: Reply
+        react: React
+    form:
+        signature_pad:
+            clear: 'Clear'
+            hint: 'Sign with your finger, a mouse or a stylus.'
+        submit: Submit
+        submitting: Sending…
+        next: Next
+        prev: Back
+        success: 'Thank you, your message has been sent!'
+        error: An error occurred. Please try again.
+        field_required: This field is required.
+        select_placeholder: Choose…
+    locales:
+        fr: Français
+        en: English
+        es: Español
+        de: Deutsch
+    image_cropper:
+        title: Crop image
+        apply: Apply crop
+        cropped: Image cropped
 
 # Editor.js - keys shared by all consumers of AppBlockEditor. Labels for
 # module-specific tools injected via `extraTools` stay in that module's
 # own messages.en.yaml.
 backend:
-  help:
-    storage:
-      delivery_mode:
-        title: How files are served
-        intro: "This choice does not change where your files are stored, only the route they take to reach a visitor."
-        address_title: The address never changes
-        address_body: "Whichever mode you pick, a document keeps the same address. A link pasted into an article, an email or another site keeps working if you change your mind later."
-        proxy_title: Through the application
-        proxy_body: "The bytes pass through your server on their way to the visitor. It is the simplest option, and your access rules keep applying: a draft document stays invisible. In exchange, your server does the work on every download."
-        presigned_title: Through a temporary signed link
-        presigned_body: "The application builds a link valid for a few minutes and sends the visitor to it. The bytes go straight from the storage to their browser without touching your server, and the files stay private. The link expires, so it cannot be shared for long."
-        public_url_title: Through the public domain
-        public_url_body: "Files are served by the domain you attached to the bucket, and cached close to the visitor. It is the fastest option. In exchange, anyone who knows a file's address can read it, including a document you thought was restricted."
-        choosing_title: Which one to take
-        choosing_body: "Stay on \"through the application\" until something bothers you. Move to the signed link if your server struggles with large files. Only take the public domain for files anyone may read without it mattering."
-      connection:
-        title: The remote storage connection
-        what_is_tested_title: What the test checks
-        what_is_tested_body: "It writes a real witness file into the bucket, reads it back, checks it shows up in the listing, then deletes it. Four filled fields prove nothing: only a real write shows the token is allowed to write."
-        what_is_stored_title: What is stored
-        what_is_stored_body: "The account address, the bucket and the two keys, the latter encrypted. They are never shown back to you: the fields only say that a value exists."
-        disconnecting_title: Disconnecting
-        disconnecting_body: "The \"Disconnect storage\" button erases both keys, forgets the address and the bucket, cancels the verification and brings new files back onto the server's disk. Documents already sent to the remote storage stay there: bring them back first, or they become unreachable."
-  nav:
-    sections:
-      general: General
-      platform: Platform
-      media: Media library
-      configuration: Configuration
-      dev: Administration
-      account: Account
-    go_back: Previous page
-    go_forward: Next page
-    hard_reload: Reload and clear caches
-    expand_menu: Show the menu
-    collapse_menu: Hide the menu
-    administration: Developer access
-    administration_description: "Technical tools: audit, access requests, permissions, modules and mount points."
-    dashboard: Dashboard
-    dashboard_description: "An overview of recent activity and the site's key figures."
-    media: Media
-    media_description: "The shared library of reusable images, videos and files."
-    profile: My profile
-    settings: Settings
-    settings_description: "Application-wide settings and default preferences."
-    themes: Themes
-    themes_description: "Dress the site: colours, logo and favicon."
-    trash: Trash
-    trash_description: "What was deleted in each module, and how long it has left."
-    users: Users
-    users_description: "Manage accounts, their roles and the detail of their privileges."
-    resize_hint: Drag to resize, double-click to reset
-    filter_nav: Filter menu…
-    breadcrumb: Breadcrumb
-    show_descriptions: Show descriptions
-    filter_nav_empty: No items found
-    view_site: View site
-    counts:
-      terms: '{0}No term|{1}One term|]1,Inf[%count% terms'
-      fields: '{0}No field|{1}One field|]1,Inf[%count% fields'
-      posts: '{0}No post|{1}One post|]1,Inf[%count% posts'
-    back_to_modules: All modules
-    back_to_module: "Back to {module}"
-    logout: Log out
-    light_mode: Light mode
-    dark_mode: Dark mode
-  editor:
-    placeholder: Start writing…
-    tool_names:
-      text: Text
-      heading: Heading
-      list: List
-      ordered_list: Ordered List
-      unordered_list: Unordered List
-      checklist: Checklist
-      quote: Quote
-      code: Code
-      delimiter: Delimiter
-      raw: Raw HTML
-      table: Table
-      image: Image
-      embed: Embed
-      marker: Marker
-      inline_code: Inline Code
-      underline: Underline
-      strikethrough: Strikethrough
-      text_color: Text Color
-      text_background: Background Color
-      font_size: Font Size
-      clear_formatting: Clear formatting
-      callout: "Callout"
-      media_text: Image + Text
-      two_column: 2 Columns
-    ui:
-      block_tunes:
-        toggler:
-          Click to tune: Click to tune
-          or drag to move: or drag to move
-      inline_toolbar:
-        converter:
-          Convert to: Convert to
-      toolbar:
-        toolbox:
-          Add: Add
-      popover:
-        Filter: Filter
-        Nothing found: Nothing found
-        nothing_found_extended: Nothing found. Try searching for something else.
-    block_tunes:
-      delete:
-        Delete: Delete
-        Click to delete: Click to delete
-      move_up:
-        Move up: Move up
-      move_down:
-        Move down: Move down
-    image:
-      caption_placeholder: Caption…
-    raw:
-      placeholder: "Raw HTML. Scripts, event handlers and frames pointing at a host that is not allowed are stripped when the page is rendered."
-    quote:
-      placeholder: Quote…
-      caption_placeholder: Author…
-    media_text:
-      flip_left: ⇄ Image left
-      flip_right: ⇄ Image right
-      caption_placeholder: Caption…
-      text_placeholder: Your text…
-      url_placeholder: Image URL…
-      change_url: Change URL
-      confirm: Confirm
-      browse: Browse
-      actions: Actions
-      or: or
-    media_picker:
-      title: Choose a media
-      search: Search by name or alt…
-      all_folders: All folders
-      empty: No media found
-      loading: Loading…
-      select: Select
-    callout:
-      title_placeholder: Title…
-      message_placeholder: Message…
-      no_icon: "No icon"
-      types:
-        info: "Info"
-        success: "Success"
-        warning: "Warning"
-        danger: "Danger"
-        tip: "Tip"
-        note: "Note"
-        question: "Question"
-        important: "Important"
-        update: "Update"
-        rose: "Rose"
-        accent: "Theme colour"
-        lime: "Lime"
-        amber: "Amber"
-        fuchsia: "Fuchsia"
-      icons:
-        info: "Information"
-        check-circle: "Done"
-        alert-triangle: "Alert"
-        clock: "Clock"
-        calendar: "Calendar"
-        star: "Star"
-        lightbulb: "Idea"
-        message-circle: "Message"
-        pause-circle: "Pause"
+    help:
+        storage:
+            delivery_mode:
+                title: How files are served
+                intro: "This choice does not change where your files are stored, only the route they take to reach a visitor."
+                address_title: The address never changes
+                address_body: "Whichever mode you pick, a document keeps the same address. A link pasted into an article, an email or another site keeps working if you change your mind later."
+                proxy_title: Through the application
+                proxy_body: "The bytes pass through your server on their way to the visitor. It is the simplest option, and your access rules keep applying: a draft document stays invisible. In exchange, your server does the work on every download."
+                presigned_title: Through a temporary signed link
+                presigned_body: "The application builds a link valid for a few minutes and sends the visitor to it. The bytes go straight from the storage to their browser without touching your server, and the files stay private. The link expires, so it cannot be shared for long."
+                public_url_title: Through the public domain
+                public_url_body: "Files are served by the domain you attached to the bucket, and cached close to the visitor. It is the fastest option. In exchange, anyone who knows a file's address can read it, including a document you thought was restricted."
+                choosing_title: Which one to take
+                choosing_body: "Stay on \"through the application\" until something bothers you. Move to the signed link if your server struggles with large files. Only take the public domain for files anyone may read without it mattering."
+            connection:
+                title: The remote storage connection
+                what_is_tested_title: What the test checks
+                what_is_tested_body: "It writes a real witness file into the bucket, reads it back, checks it shows up in the listing, then deletes it. Four filled fields prove nothing: only a real write shows the token is allowed to write."
+                what_is_stored_title: What is stored
+                what_is_stored_body: "The account address, the bucket and the two keys, the latter encrypted. They are never shown back to you: the fields only say that a value exists."
+                disconnecting_title: Disconnecting
+                disconnecting_body: "The \"Disconnect storage\" button erases both keys, forgets the address and the bucket, cancels the verification and brings new files back onto the server's disk. Documents already sent to the remote storage stay there: bring them back first, or they become unreachable."
+    nav:
+        sections:
+            general: General
+            platform: Platform
+            media: Media library
+            configuration: Configuration
+            dev: Administration
+            account: Account
+        go_back: Previous page
+        go_forward: Next page
+        hard_reload: Reload and clear caches
+        expand_menu: Show the menu
+        collapse_menu: Hide the menu
+        administration: Developer access
+        administration_description: "Technical tools: audit, access requests, permissions, modules and mount points."
+        dashboard: Dashboard
+        dashboard_description: "An overview of recent activity and the site's key figures."
+        media: Media
+        media_description: "The shared library of reusable images, videos and files."
+        profile: My profile
+        settings: Settings
+        settings_description: "Application-wide settings and default preferences."
+        themes: Themes
+        themes_description: "Dress the site: colours, logo and favicon."
+        trash: Trash
+        trash_description: "What was deleted in each module, and how long it has left."
+        users: Users
+        users_description: "Manage accounts, their roles and the detail of their privileges."
+        resize_hint: Drag to resize, double-click to reset
+        filter_nav: Filter menu…
+        breadcrumb: Breadcrumb
+        show_descriptions: Show descriptions
+        filter_nav_empty: No items found
+        view_site: View site
+        counts:
+            terms: '{0}No term|{1}One term|]1,Inf[%count% terms'
+            fields: '{0}No field|{1}One field|]1,Inf[%count% fields'
+            posts: '{0}No post|{1}One post|]1,Inf[%count% posts'
+        back_to_modules: All modules
+        back_to_module: "Back to {module}"
+        logout: Log out
+        light_mode: Light mode
+        dark_mode: Dark mode
+    editor:
+        placeholder: Start writing…
+        tool_names:
+            text: Text
+            heading: Heading
+            list: List
+            ordered_list: Ordered List
+            unordered_list: Unordered List
+            checklist: Checklist
+            quote: Quote
+            code: Code
+            delimiter: Delimiter
+            raw: Raw HTML
+            table: Table
+            image: Image
+            embed: Embed
+            marker: Marker
+            inline_code: Inline Code
+            underline: Underline
+            strikethrough: Strikethrough
+            text_color: Text Color
+            text_background: Background Color
+            font_size: Font Size
+            clear_formatting: Clear formatting
+            callout: "Callout"
+            media_text: Image + Text
+            two_column: 2 Columns
+        ui:
+            block_tunes:
+                toggler:
+                    Click to tune: Click to tune
+                    or drag to move: or drag to move
+            inline_toolbar:
+                converter:
+                    Convert to: Convert to
+            toolbar:
+                toolbox:
+                    Add: Add
+            popover:
+                Filter: Filter
+                Nothing found: Nothing found
+                nothing_found_extended: Nothing found. Try searching for something else.
+        block_tunes:
+            delete:
+                Delete: Delete
+                Click to delete: Click to delete
+            move_up:
+                Move up: Move up
+            move_down:
+                Move down: Move down
+        image:
+            caption_placeholder: Caption…
+        raw:
+            placeholder: "Raw HTML. Scripts, event handlers and frames pointing at a host that is not allowed are stripped when the page is rendered."
+        quote:
+            placeholder: Quote…
+            caption_placeholder: Author…
+        media_text:
+            flip_left: ⇄ Image left
+            flip_right: ⇄ Image right
+            caption_placeholder: Caption…
+            text_placeholder: Your text…
+            url_placeholder: Image URL…
+            change_url: Change URL
+            confirm: Confirm
+            browse: Browse
+            actions: Actions
+            or: or
+        media_picker:
+            title: Choose a media
+            search: Search by name or alt…
+            all_folders: All folders
+            empty: No media found
+            loading: Loading…
+            select: Select
+        callout:
+            title_placeholder: Title…
+            message_placeholder: Message…
+            no_icon: "No icon"
+            types:
+                info: "Info"
+                success: "Success"
+                warning: "Warning"
+                danger: "Danger"
+                tip: "Tip"
+                note: "Note"
+                question: "Question"
+                important: "Important"
+                update: "Update"
+                rose: "Rose"
+                accent: "Theme colour"
+                lime: "Lime"
+                amber: "Amber"
+                fuchsia: "Fuchsia"
+            icons:
+                info: "Information"
+                check-circle: "Done"
+                alert-triangle: "Alert"
+                clock: "Clock"
+                calendar: "Calendar"
+                star: "Star"
+                lightbulb: "Idea"
+                message-circle: "Message"
+                pause-circle: "Pause"

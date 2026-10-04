@@ -23,10 +23,11 @@ function mountActions(actions, props = {}) {
 }
 
 const DELETE = { key: "delete", title: "Supprimer", color: "rose" };
+const EDIT = { key: "edit", title: "Modifier" };
 
 describe("AppRowActions", () => {
     it("shows nothing until the trigger is pressed", async () => {
-        const wrapper = mountActions([DELETE]);
+        const wrapper = mountActions([EDIT, DELETE]);
 
         expect(wrapper.find('[data-test="sheet"]').exists()).toBe(false);
 
@@ -56,10 +57,13 @@ describe("AppRowActions", () => {
 
     it("calls the action it was given, and closes on the way out", async () => {
         const onSelect = vi.fn();
-        const wrapper = mountActions([{ ...DELETE, onSelect }]);
+        const wrapper = mountActions([EDIT, { ...DELETE, onSelect }]);
 
         await wrapper.find("button").trigger("click");
-        await wrapper.find('[data-test="sheet"] button').trigger("click");
+        await wrapper
+            .findAll('[data-test="sheet"] button')
+            .at(-1)
+            .trigger("click");
 
         expect(onSelect).toHaveBeenCalledOnce();
         // Closed before the caller's own modal opens: two stacked overlays is
@@ -72,6 +76,7 @@ describe("AppRowActions", () => {
     it("renders a link for an action that navigates", async () => {
         const wrapper = mountActions([
             { key: "open", title: "Ouvrir", href: "/documents/1" },
+            DELETE,
         ]);
 
         await wrapper.find("button").trigger("click");
@@ -83,12 +88,65 @@ describe("AppRowActions", () => {
 
     it("does nothing for a disabled action, and stays open", async () => {
         const onSelect = vi.fn();
-        const wrapper = mountActions([{ ...DELETE, onSelect, disabled: true }]);
+        const wrapper = mountActions([
+            EDIT,
+            { ...DELETE, onSelect, disabled: true },
+        ]);
 
         await wrapper.find("button").trigger("click");
-        await wrapper.find('[data-test="sheet"] button').trigger("click");
+        await wrapper
+            .findAll('[data-test="sheet"] button')
+            .at(-1)
+            .trigger("click");
 
         expect(onSelect).not.toHaveBeenCalled();
         expect(wrapper.find('[data-test="sheet"]').exists()).toBe(true);
+    });
+
+    // A single action is not a menu (Axel, 04/10/2026): it is shown as itself.
+    it("shows a single action as its own button from sm, without a sheet", async () => {
+        const onSelect = vi.fn();
+        const wrapper = mountActions([{ ...EDIT, onSelect }]);
+
+        const direct = wrapper.find(".sm\\:block button");
+        expect(direct.text()).toContain("Modifier");
+
+        await direct.trigger("click");
+
+        expect(onSelect).toHaveBeenCalledOnce();
+        expect(wrapper.find('[data-test="sheet"]').exists()).toBe(false);
+    });
+
+    // On a phone a single action stays behind « … » (Axel, 04/10/2026).
+    it("keeps the menu button for a single action on a phone", async () => {
+        const wrapper = mountActions([EDIT]);
+        const menu = wrapper.find(".sm\\:hidden button");
+
+        expect(menu.exists()).toBe(true);
+        await menu.trigger("click");
+        expect(wrapper.find('[data-test="sheet"]').exists()).toBe(true);
+    });
+
+    it("shows a single navigation as a link", () => {
+        const wrapper = mountActions([
+            { key: "open", title: "Ouvrir", href: "/documents/1" },
+        ]);
+
+        expect(wrapper.find(".sm\\:block a").attributes("href")).toBe(
+            "/documents/1",
+        );
+    });
+
+    it("does not run a single action that is disabled", async () => {
+        const onSelect = vi.fn();
+        const wrapper = mountActions([{ ...EDIT, onSelect, disabled: true }]);
+
+        await wrapper.find(".sm\\:block button").trigger("click");
+
+        expect(onSelect).not.toHaveBeenCalled();
+    });
+
+    it("draws nothing without an action", () => {
+        expect(mountActions([]).html()).not.toContain("button");
     });
 });

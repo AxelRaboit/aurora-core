@@ -1,64 +1,64 @@
 frontend:
-  mail:
-    user:
-      subject_account_deleted: Eliminación de su cuenta
-      subject_role_changed: Modificación de su rol
-      account_deleted_heading: Cuenta eliminada
-      account_deleted_intro: 'Hola {name}, su cuenta en {siteName} ha sido eliminada.'
-      account_deleted_outro: "Todos los datos asociados a su cuenta han sido eliminados. Si no ha sido usted quien ha realizado esta acción, póngase en contacto con nosotros de inmediato."
-      role_changed_heading: Su rol ha cambiado
-      role_changed_intro: 'Hola {name}, su rol ha sido modificado en {siteName}.'
-      role_changed_label: Nuevo rol
-      role_changed_outro: "Si no ha sido usted quien ha solicitado esta modificación, póngase en contacto con su administrador."
+    mail:
+        user:
+            subject_account_deleted: Eliminación de su cuenta
+            subject_role_changed: Modificación de su rol
+            account_deleted_heading: Cuenta eliminada
+            account_deleted_intro: 'Hola {name}, su cuenta en {siteName} ha sido eliminada.'
+            account_deleted_outro: "Todos los datos asociados a su cuenta han sido eliminados. Si no ha sido usted quien ha realizado esta acción, póngase en contacto con nosotros de inmediato."
+            role_changed_heading: Su rol ha cambiado
+            role_changed_intro: 'Hola {name}, su rol ha sido modificado en {siteName}.'
+            role_changed_label: Nuevo rol
+            role_changed_outro: "Si no ha sido usted quien ha solicitado esta modificación, póngase en contacto con su administrador."
 shared:
-  mail:
-    invitation:
-      cta: Activar mi cuenta
-      expires: 'Este enlace caduca el {date}.'
-      fallback_intro: 'Si el botón no funciona, copie y pegue este enlace en su navegador:'
-      footer_note: "Si no esperaba esta invitación, puede ignorar este correo."
-      greeting: 'Hola {name},'
-      heading: 'Invitación para unirse a {siteName}'
-      intro: 'Le han invitado a unirse a {siteName}. Haga clic en el botón de abajo para activar su cuenta y definir su contraseña.'
-    verify_email:
-      cta: Confirmar mi dirección de correo
-      expires: 'Este enlace caduca el {date}.'
-      fallback_intro: 'Si el botón no funciona, copie y pegue este enlace en su navegador:'
-      footer_note: "Si no ha creado ninguna cuenta, puede ignorar este correo."
-      greeting: 'Hola {name},'
-      heading: Confirme su dirección de correo
-      intro: 'Gracias por registrarse en {siteName}. Haga clic en el botón de abajo para confirmar su dirección de correo y activar su cuenta.'
-    reset_password:
-      cta: Restablecer mi contraseña
-      expires: Este enlace caduca en 1 hora.
-      expires_at: 'Este enlace caduca el {date}.'
-      fallback_intro: 'Si el botón no funciona, copie y pegue este enlace en su navegador:'
-      footer_note: "Si no ha solicitado ningún restablecimiento, puede ignorar este correo."
-      greeting: 'Hola {name},'
-      heading: Restablecimiento de su contraseña
-      intro: 'Ha solicitado restablecer su contraseña en {siteName}. Haga clic en el botón de abajo para elegir una nueva contraseña.'
-    access_request_admin:
-      heading: Nueva solicitud de acceso
-      intro: Se acaba de recibir una nueva solicitud de acceso.
-      label_name: Nombre
-      label_email: Correo electrónico
-      label_message: Mensaje
-      cta: Ver en la administración
-      footer_note: 'Este correo se ha enviado automáticamente, le rogamos que no responda.'
-    access_request_approved:
-      heading: Su solicitud ha sido aprobada
-      greeting: 'Hola {name},'
-      intro: "Su solicitud de acceso a {siteName} ha sido aprobada."
-      credentials_intro: 'Se ha creado una cuenta para usted con los siguientes datos:'
-      label_email: Correo electrónico
-      label_password: Contraseña
-      password_note: No olvide cambiar su contraseña después de la primera conexión.
-      existing_account: Puede conectarse con su cuenta existente.
-      cta: Acceder a la administración
-      footer_note: 'Este correo se ha enviado automáticamente, le rogamos que no responda.'
-    access_request_rejected:
-      heading: Solicitud de acceso no concedida
-      greeting: 'Hola {name},'
-      intro: "Tras revisarla, su solicitud de acceso no ha podido ser concedida."
-      retry: "Si cree que se trata de un error, no dude en enviar una nueva."
-      footer_note: 'Este correo se ha enviado automáticamente, le rogamos que no responda.'
+    mail:
+        invitation:
+            cta: Activar mi cuenta
+            expires: 'Este enlace caduca el {date}.'
+            fallback_intro: 'Si el botón no funciona, copie y pegue este enlace en su navegador:'
+            footer_note: "Si no esperaba esta invitación, puede ignorar este correo."
+            greeting: 'Hola {name},'
+            heading: 'Invitación para unirse a {siteName}'
+            intro: 'Le han invitado a unirse a {siteName}. Haga clic en el botón de abajo para activar su cuenta y definir su contraseña.'
+        verify_email:
+            cta: Confirmar mi dirección de correo
+            expires: 'Este enlace caduca el {date}.'
+            fallback_intro: 'Si el botón no funciona, copie y pegue este enlace en su navegador:'
+            footer_note: "Si no ha creado ninguna cuenta, puede ignorar este correo."
+            greeting: 'Hola {name},'
+            heading: Confirme su dirección de correo
+            intro: 'Gracias por registrarse en {siteName}. Haga clic en el botón de abajo para confirmar su dirección de correo y activar su cuenta.'
+        reset_password:
+            cta: Restablecer mi contraseña
+            expires: Este enlace caduca en 1 hora.
+            expires_at: 'Este enlace caduca el {date}.'
+            fallback_intro: 'Si el botón no funciona, copie y pegue este enlace en su navegador:'
+            footer_note: "Si no ha solicitado ningún restablecimiento, puede ignorar este correo."
+            greeting: 'Hola {name},'
+            heading: Restablecimiento de su contraseña
+            intro: 'Ha solicitado restablecer su contraseña en {siteName}. Haga clic en el botón de abajo para elegir una nueva contraseña.'
+        access_request_admin:
+            heading: Nueva solicitud de acceso
+            intro: Se acaba de recibir una nueva solicitud de acceso.
+            label_name: Nombre
+            label_email: Correo electrónico
+            label_message: Mensaje
+            cta: Ver en la administración
+            footer_note: 'Este correo se ha enviado automáticamente, le rogamos que no responda.'
+        access_request_approved:
+            heading: Su solicitud ha sido aprobada
+            greeting: 'Hola {name},'
+            intro: "Su solicitud de acceso a {siteName} ha sido aprobada."
+            credentials_intro: 'Se ha creado una cuenta para usted con los siguientes datos:'
+            label_email: Correo electrónico
+            label_password: Contraseña
+            password_note: No olvide cambiar su contraseña después de la primera conexión.
+            existing_account: Puede conectarse con su cuenta existente.
+            cta: Acceder a la administración
+            footer_note: 'Este correo se ha enviado automáticamente, le rogamos que no responda.'
+        access_request_rejected:
+            heading: Solicitud de acceso no concedida
+            greeting: 'Hola {name},'
+            intro: "Tras revisarla, su solicitud de acceso no ha podido ser concedida."
+            retry: "Si cree que se trata de un error, no dude en enviar una nueva."
+            footer_note: 'Este correo se ha enviado automáticamente, le rogamos que no responda.'

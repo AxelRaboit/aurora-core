@@ -27,6 +27,10 @@ const props = defineProps({
     calendars: { type: Array, required: true },
     errors: { type: Object, default: () => ({}) },
     saving: { type: Boolean, default: false },
+    /** `planning.events.edit` for an existing reminder, `.create` for a new one. */
+    canSave: { type: Boolean, default: true },
+    /** `planning.events.delete`. */
+    canDelete: { type: Boolean, default: true },
 });
 
 const emit = defineEmits(["close", "save", "delete"]);
@@ -144,13 +148,19 @@ function payload() {
 
         <template #footer>
             <AppModalFooter>
-                <AppButton v-if="!isNew" variant="ghost" size="md" v-on:click="emit('delete', reminder)">
+                <AppButton v-if="!isNew && canDelete" variant="ghost" size="md" v-on:click="emit('delete', reminder)">
                     <Trash2 class="w-4 h-4" :stroke-width="2" /> {{ t("shared.common.delete") }}
                 </AppButton>
                 <AppButton variant="ghost" size="md" v-on:click="emit('close')">
                     {{ t("shared.common.cancel") }}
                 </AppButton>
-                <AppButton variant="primary" size="md" :loading="saving" v-on:click="emit('save', payload())">
+                <AppButton
+                    v-if="canSave"
+                    variant="primary"
+                    size="md"
+                    :loading="saving"
+                    v-on:click="emit('save', payload())"
+                >
                     {{ t("shared.common.save") }}
                 </AppButton>
             </AppModalFooter>

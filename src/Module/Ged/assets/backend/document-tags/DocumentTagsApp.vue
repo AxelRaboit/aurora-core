@@ -13,7 +13,6 @@ import AppListToolbar from "@/shared/components/list/AppListToolbar.vue";
 import AppColorPicker from "@/shared/components/form/picker/AppColorPicker.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
-import AppCardActions from "@/shared/components/action/AppCardActions.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import { Plus, Pencil, Trash2, Save, X, Tag } from "lucide-vue-next";
@@ -91,16 +90,13 @@ const pageActions = computed(() => {
             <div v-for="tag in filteredItems" :key="tag.id" class="aurora-card overflow-hidden">
                 <div class="flex items-center gap-3 px-4 py-3">
                     <span v-if="tag.color" class="inline-block w-3 h-3 rounded-full shrink-0" :style="{ backgroundColor: tag.color }" />
-                    <div class="min-w-0">
+                    <div class="min-w-0 flex-1">
                         <p class="font-medium text-primary text-sm truncate">{{ tag.name }}</p>
                         <p v-if="tag.color" class="text-xs text-muted font-mono mt-0.5">{{ tag.color }}</p>
                     </div>
-                </div>
-                <!-- Les gestes en toutes lettres plutôt que derrière trois
-                     points : la carte a la largeur de les nommer, et la ligne
-                     qui ne portait que le bouton est rendue au contenu. -->
-                <div class="px-2 pb-2 pt-1 border-t border-line/40 bg-surface-2/40">
-                    <AppCardActions :actions="actionsFor(tag)" />
+                    <!-- Les gestes derrière le bouton « … », comme sur toutes
+                         les listes (décision d'Axel du 04/10/2026). -->
+                    <AppRowActions class="shrink-0" :actions="actionsFor(tag)" :label="tag.name" />
                 </div>
             </div>
         </div>

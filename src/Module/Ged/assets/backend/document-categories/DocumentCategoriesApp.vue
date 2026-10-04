@@ -14,7 +14,6 @@ import AppListToolbar from "@/shared/components/list/AppListToolbar.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppPagination from "@/shared/components/nav/AppPagination.vue";
-import AppCardActions from "@/shared/components/action/AppCardActions.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppLoader from "@/shared/components/feedback/AppLoader.vue";
@@ -108,16 +107,15 @@ const pageActions = computed(() => {
             <div class="sm:hidden space-y-2">
                 <AppNoData v-if="!items?.length" :message="t('backend.ged.categories.empty')" />
                 <div v-for="cat in items" :key="cat.id" class="aurora-card overflow-hidden">
-                    <div class="px-4 py-3">
-                        <p class="font-medium text-primary text-sm">{{ cat.name }}</p>
-                        <p class="text-xs text-muted font-mono mt-0.5">{{ cat.slug }}</p>
-                    </div>
-                    <!-- Les gestes en toutes lettres plutôt que derrière trois
-                         points : la carte a la largeur de les nommer, et la
-                         ligne qui ne portait que le bouton est rendue au
-                         contenu. -->
-                    <div class="px-2 pb-2 pt-1 border-t border-line/40 bg-surface-2/40">
-                        <AppCardActions :actions="actionsFor(cat)" />
+                    <div class="flex items-start gap-3 px-4 py-3">
+                        <div class="min-w-0 flex-1">
+                            <p class="font-medium text-primary text-sm">{{ cat.name }}</p>
+                            <p class="text-xs text-muted font-mono mt-0.5">{{ cat.slug }}</p>
+                        </div>
+                        <!-- Les gestes derrière le bouton « … », à hauteur du
+                             nom, comme sur toutes les listes (décision d'Axel
+                             du 04/10/2026). -->
+                        <AppRowActions class="shrink-0" :actions="actionsFor(cat)" :label="cat.name" />
                     </div>
                 </div>
             </div>

@@ -1,143 +1,143 @@
 backend:
-  themes:
-    guide:
-      title: "How themes work"
-      step_1: "Only one theme is active at a time: “Activate” applies it at once to the public site, not to the administration."
-      step_2: "A theme sets the main colour (the palette follows), the surfaces, the content callouts, the font, the content width, the header and the footer."
-      step_3: "The text on each surface turns light or dark depending on what stays readable."
-      step_4: "The active theme and the default theme cannot be deleted; deleting another theme is permanent."
-    title: Themes
-    new: New theme
-    activate: Activate
-    active: Active
-    edit: Edit
-    colors: Colors
-    reset_color: Reset
-    primary_color: Primary color
-    primary_color_label: Accent colour
-    primary_color_hint: 'Used for buttons, links, badges and the logo. The full palette is generated automatically.'
-    highlight: Hovers and card markers
-    highlight_accent: Primary colour
-    highlight_neutral: Neutral
-    highlight_custom: Custom
-    highlight_color: Hover and marker colour
-    highlight_hint: "Hover outlines and titles, card category and arrow. Neutral uses the text colour; custom uses a colour of your choice, across the whole site."
-    menu_active: Active page in the menu
-    menu_active_color: Marker colour
-    menu_active_hint: "The line under the navigation bar entry that matches the page being viewed."
-    surfaces: Public site colours
-    surfaces_hint: "One colour per surface. Text, labels and borders are derived from it, light or dark depending on what stays readable."
-    surface_background: Page background
-    surface_header: Navigation bar
-    surface_footer: Footer
-    surface_unset: Unset, keeps the default look
-    surface_light_text: light text
-    surface_dark_text: dark text
-    surface_ratio: "contrast %ratio%:1"
-    surface_below_aaa: readable, but below AAA comfort
-    ink_text: Public site text
-    ink_line: Lines and borders
-    ink_card_line: Card outline
-    ink_card_unset: "Not set, follows the lines"
-    ink_card: 'Card background'
-    ink_card_bg_unset: 'Not set, derived from the background'
-    ink_heading: 'Content headings'
-    ink_heading_unset: 'Not set, text colour'
-    ink_success: 'Validation (ticks)'
-    ink_success_unset: 'Not set, green by default'
-    ink_figure: 'Key figures (statistics, prices)'
-    ink_figure_unset: 'Not set, main colour'
-    callouts:
-      title: "Content callouts"
-      hint: "One colour per callout type used in pages. Left empty, a callout keeps its original colour; \"Accent\" already follows the main colour."
-      set: "Theme colour"
-      unset: "Original colour"
-      types:
-        info: "Information"
-        success: "Success"
-        warning: "Warning"
-        danger: "Danger"
-        tip: "Tip"
-        note: "Note"
-        question: "Question"
-        important: "Important"
-        update: "Update"
-        rose: "Rose"
-        lime: "Lime"
-        amber: "Amber"
-        fuchsia: "Fuchsia"
-    icon: 'Card pictograms'
-    icon_original: 'The file''s own colour'
-    icon_accent: 'Main colour'
-    icon_custom: 'Custom colour'
-    icon_color: 'Pictogram colour'
-    icon_hint: 'For the SVG pictograms of cards: only their shape counts, one file serves every theme.'
-    ink_set: "Replaces the derived colour wherever it stays readable"
-    ink_unset: "Not set, derived from the background"
-    sections:
-      general: General
-      header: Header
-      footer: Footer
-    vars:
-      accent: Primary color
-      accent_hover: Solid button hover
-      bg: Background
-      surface: Surface
-      surface2: Secondary surface
-      primary: Main text
-      secondary: Secondary text
-      muted: Muted text
-      border: Border
-      text: Text
-    header_content: Content
-    header_mode_default: Site name
-    header_mode_text: Custom text
-    header_mode_image: "Logo and name"
-    header_custom_text: Custom text
-    header_logo: "Logo"
-    footer_text: Footer text
-    content_width: Content width
-    content_width_narrow: Narrow (reading column)
-    content_width_wide: Wide
-    content_width_full: Full width
-    font_family: Font
-    font_preview: The quick brown fox jumps over the lazy dog.
-    fonts:
-      poppins: Geometric, evenly drawn. The default setting.
-      inter: Neutral, drawn for screens. Stays out of the way.
-      work-sans: Grotesque, a little wider and warmer than Inter.
-      nunito: Rounded. The least institutional tone of the list.
-      lora: Serif. Makes the page read as a text rather than a screen.
-      playfair-display: "High-contrast serif. An editorial, upscale tone, for photography or luxury."
-      space-grotesk: "Grotesque with character. Headings that stand out, for a modern tone."
-    slug_label: Slug
-    header_media_hint: "Shown left of the site name in the top bar. A square image works best."
-    header_text_hidden_on_phone: 'Logo only on phones'
-    header_text_hidden_on_phone_hint: 'The site name leaves the top bar below 640 px wide; screen readers still read it.'
-    reading_progress: 'Reading bar'
-    reading_progress_hint: 'A thin bar at the top of every page of the site fills up as the visitor scrolls.'
-    watermark_visible: 'Footer credit'
-    watermark_visible_hint: 'A small credit link in the footer. A public marker to help spot unauthorized reuse of the code.'
-    header_text_placeholder: My site
-    config_hint: 'Available variables: --th-bg, --th-surface, --th-surface-2, --th-primary, --th-secondary, --th-muted, --th-accent, --th-accent-hover'
-    config_placeholder: "{\n  \"--th-accent\": \"#6366f1\"\n}"
-    config_json_error: The configuration JSON is invalid.
-    delete_confirm: 'Delete theme "{name}"? This action is irreversible.'
-    cannot_delete_default: Cannot delete the default theme.
-    cannot_delete_active: Cannot delete the active theme.
-    created: Theme created.
-    updated: Theme updated.
-    activated: Theme activated.
-    deleted: Theme deleted.
-    template_count: '{count} template file(s)'
-    errors:
-      slug_invalid: 'Slug may only contain lowercase letters, numbers, and hyphens.'
-      slug_taken: This slug is already in use.
-      name_required: Name is required.
+    themes:
+        guide:
+            title: "How themes work"
+            step_1: "Only one theme is active at a time: “Activate” applies it at once to the public site, not to the administration."
+            step_2: "A theme sets the main colour (the palette follows), the surfaces, the content callouts, the font, the content width, the header and the footer."
+            step_3: "The text on each surface turns light or dark depending on what stays readable."
+            step_4: "The active theme and the default theme cannot be deleted; deleting another theme is permanent."
+        title: Themes
+        new: New theme
+        activate: Activate
+        active: Active
+        edit: Edit
+        colors: Colors
+        reset_color: Reset
+        primary_color: Primary color
+        primary_color_label: Accent colour
+        primary_color_hint: 'Used for buttons, links, badges and the logo. The full palette is generated automatically.'
+        highlight: Hovers and card markers
+        highlight_accent: Primary colour
+        highlight_neutral: Neutral
+        highlight_custom: Custom
+        highlight_color: Hover and marker colour
+        highlight_hint: "Hover outlines and titles, card category and arrow. Neutral uses the text colour; custom uses a colour of your choice, across the whole site."
+        menu_active: Active page in the menu
+        menu_active_color: Marker colour
+        menu_active_hint: "The line under the navigation bar entry that matches the page being viewed."
+        surfaces: Public site colours
+        surfaces_hint: "One colour per surface. Text, labels and borders are derived from it, light or dark depending on what stays readable."
+        surface_background: Page background
+        surface_header: Navigation bar
+        surface_footer: Footer
+        surface_unset: Unset, keeps the default look
+        surface_light_text: light text
+        surface_dark_text: dark text
+        surface_ratio: "contrast %ratio%:1"
+        surface_below_aaa: readable, but below AAA comfort
+        ink_text: Public site text
+        ink_line: Lines and borders
+        ink_card_line: Card outline
+        ink_card_unset: "Not set, follows the lines"
+        ink_card: 'Card background'
+        ink_card_bg_unset: 'Not set, derived from the background'
+        ink_heading: 'Content headings'
+        ink_heading_unset: 'Not set, text colour'
+        ink_success: 'Validation (ticks)'
+        ink_success_unset: 'Not set, green by default'
+        ink_figure: 'Key figures (statistics, prices)'
+        ink_figure_unset: 'Not set, main colour'
+        callouts:
+            title: "Content callouts"
+            hint: "One colour per callout type used in pages. Left empty, a callout keeps its original colour; \"Accent\" already follows the main colour."
+            set: "Theme colour"
+            unset: "Original colour"
+            types:
+                info: "Information"
+                success: "Success"
+                warning: "Warning"
+                danger: "Danger"
+                tip: "Tip"
+                note: "Note"
+                question: "Question"
+                important: "Important"
+                update: "Update"
+                rose: "Rose"
+                lime: "Lime"
+                amber: "Amber"
+                fuchsia: "Fuchsia"
+        icon: 'Card pictograms'
+        icon_original: 'The file''s own colour'
+        icon_accent: 'Main colour'
+        icon_custom: 'Custom colour'
+        icon_color: 'Pictogram colour'
+        icon_hint: 'For the SVG pictograms of cards: only their shape counts, one file serves every theme.'
+        ink_set: "Replaces the derived colour wherever it stays readable"
+        ink_unset: "Not set, derived from the background"
+        sections:
+            general: General
+            header: Header
+            footer: Footer
+        vars:
+            accent: Primary color
+            accent_hover: Solid button hover
+            bg: Background
+            surface: Surface
+            surface2: Secondary surface
+            primary: Main text
+            secondary: Secondary text
+            muted: Muted text
+            border: Border
+            text: Text
+        header_content: Content
+        header_mode_default: Site name
+        header_mode_text: Custom text
+        header_mode_image: "Logo and name"
+        header_custom_text: Custom text
+        header_logo: "Logo"
+        footer_text: Footer text
+        content_width: Content width
+        content_width_narrow: Narrow (reading column)
+        content_width_wide: Wide
+        content_width_full: Full width
+        font_family: Font
+        font_preview: The quick brown fox jumps over the lazy dog.
+        fonts:
+            poppins: Geometric, evenly drawn. The default setting.
+            inter: Neutral, drawn for screens. Stays out of the way.
+            work-sans: Grotesque, a little wider and warmer than Inter.
+            nunito: Rounded. The least institutional tone of the list.
+            lora: Serif. Makes the page read as a text rather than a screen.
+            playfair-display: "High-contrast serif. An editorial, upscale tone, for photography or luxury."
+            space-grotesk: "Grotesque with character. Headings that stand out, for a modern tone."
+        slug_label: Slug
+        header_media_hint: "Shown left of the site name in the top bar. A square image works best."
+        header_text_hidden_on_phone: 'Logo only on phones'
+        header_text_hidden_on_phone_hint: 'The site name leaves the top bar below 640 px wide; screen readers still read it.'
+        reading_progress: 'Reading bar'
+        reading_progress_hint: 'A thin bar at the top of every page of the site fills up as the visitor scrolls.'
+        watermark_visible: 'Footer credit'
+        watermark_visible_hint: 'A small credit link in the footer. A public marker to help spot unauthorized reuse of the code.'
+        header_text_placeholder: My site
+        config_hint: 'Available variables: --th-bg, --th-surface, --th-surface-2, --th-primary, --th-secondary, --th-muted, --th-accent, --th-accent-hover'
+        config_placeholder: "{\n  \"--th-accent\": \"#6366f1\"\n}"
+        config_json_error: The configuration JSON is invalid.
+        delete_confirm: 'Delete theme "{name}"? This action is irreversible.'
+        cannot_delete_default: Cannot delete the default theme.
+        cannot_delete_active: Cannot delete the active theme.
+        created: Theme created.
+        updated: Theme updated.
+        activated: Theme activated.
+        deleted: Theme deleted.
+        template_count: '{count} template file(s)'
+        errors:
+            slug_invalid: 'Slug may only contain lowercase letters, numbers, and hyphens.'
+            slug_taken: This slug is already in use.
+            name_required: Name is required.
 frontend:
-  theme:
-    title: Articles
-    no_posts: No posts published yet.
-    no_content: No content.
-    search_placeholder: Search articles…
-    no_results: No articles match your search.
+    theme:
+        title: Articles
+        no_posts: No posts published yet.
+        no_content: No content.
+        search_placeholder: Search articles…
+        no_results: No articles match your search.

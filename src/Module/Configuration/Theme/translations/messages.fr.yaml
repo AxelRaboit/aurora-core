@@ -1,143 +1,143 @@
 backend:
-  themes:
-    guide:
-      title: "Comment fonctionnent les thèmes"
-      step_1: "Un seul thème est actif à la fois : « Activer » l'applique tout de suite au site public, pas à l'administration."
-      step_2: "Un thème règle la couleur principale (la palette en découle), les surfaces, les encadrés du contenu, la police, la largeur du contenu, l'en-tête et le pied de page."
-      step_3: "Le texte posé sur chaque surface passe en clair ou en sombre selon ce qui reste lisible."
-      step_4: "Le thème actif et le thème par défaut ne se suppriment pas ; supprimer un autre thème est définitif."
-    title: Thèmes
-    new: Nouveau thème
-    activate: Activer
-    active: Actif
-    edit: Modifier
-    colors: Couleurs
-    reset_color: Réinitialiser
-    primary_color: Couleur principale
-    primary_color_label: Couleur d'accent
-    primary_color_hint: 'Sert de base aux boutons, liens, badges et au logo. Toute la palette est dérivée automatiquement.'
-    highlight: Survols et repères des cartes
-    highlight_accent: Couleur principale
-    highlight_neutral: Neutres
-    highlight_custom: Personnalisée
-    highlight_color: Couleur des survols et repères
-    highlight_hint: "Liserés et titres au survol, catégorie et flèche des cartes. En neutre, ils prennent la couleur du texte ; en personnalisée, la couleur de votre choix, sur tout le site."
-    menu_active: Page active dans le menu
-    menu_active_color: Couleur du repère
-    menu_active_hint: "Le trait sous l'entrée de la barre de navigation qui correspond à la page affichée."
-    surfaces: Couleurs du site public
-    surfaces_hint: "Une couleur par surface. La couleur du texte, des libellés et des bordures en est déduite automatiquement, en clair ou en sombre selon ce qui reste lisible."
-    surface_background: Fond des pages
-    surface_header: Barre de navigation
-    surface_footer: Pied de page
-    surface_unset: Non définie, garde l'apparence par défaut
-    surface_light_text: texte clair
-    surface_dark_text: texte sombre
-    surface_ratio: "contraste %ratio%:1"
-    surface_below_aaa: lisible, mais en dessous du confort AAA
-    ink_text: Texte du site public
-    ink_line: Traits et bordures
-    ink_card_line: Contour des cartes
-    ink_card_unset: "Non définie, suit les traits"
-    ink_card: 'Fond des cartes'
-    ink_card_bg_unset: 'Non défini, déduit du fond'
-    ink_heading: 'Titres du contenu'
-    ink_heading_unset: 'Non définie, couleur du texte'
-    ink_success: 'Validation (coches)'
-    ink_success_unset: 'Non définie, vert par défaut'
-    ink_figure: 'Chiffres clés (statistiques, prix)'
-    ink_figure_unset: 'Non définie, couleur principale'
-    callouts:
-      title: "Encadrés du contenu"
-      hint: "Une couleur par type d'encadré posé dans les pages. Laissée vide, l'encadré garde sa couleur d'origine ; « Accent » suit déjà la couleur principale."
-      set: "Couleur du thème"
-      unset: "Couleur d'origine"
-      types:
-        info: "Information"
-        success: "Succès"
-        warning: "Attention"
-        danger: "Danger"
-        tip: "Astuce"
-        note: "Note"
-        question: "Question"
-        important: "Important"
-        update: "Mise à jour"
-        rose: "Rose"
-        lime: "Citron vert"
-        amber: "Ambre"
-        fuchsia: "Fuchsia"
-    icon: 'Pictogrammes des cartes'
-    icon_original: 'Couleur d''origine du fichier'
-    icon_accent: 'Couleur principale'
-    icon_custom: 'Couleur personnalisée'
-    icon_color: 'Couleur des pictogrammes'
-    icon_hint: 'Pour les pictogrammes SVG des cartes : seule leur forme compte, un même fichier sert à tous les thèmes.'
-    ink_set: "Remplace la couleur déduite, là où elle reste lisible"
-    ink_unset: "Non définie, déduite du fond"
-    sections:
-      general: Général
-      header: En-tête
-      footer: Pied de page
-    vars:
-      accent: Couleur principale
-      accent_hover: Survol des boutons pleins
-      bg: Fond
-      surface: Surface
-      surface2: Surface secondaire
-      primary: Texte principal
-      secondary: Texte secondaire
-      muted: Texte atténué
-      border: Bordure
-      text: Texte
-    header_content: Contenu
-    header_mode_default: Nom du site
-    header_mode_text: Texte custom
-    header_mode_image: "Logo et nom"
-    header_custom_text: Texte personnalisé
-    header_logo: "Logo"
-    footer_text: Texte du pied de page
-    content_width: Largeur du contenu
-    content_width_narrow: Étroite (colonne de lecture)
-    content_width_wide: Large
-    content_width_full: Pleine largeur
-    font_family: Police d'écriture
-    font_preview: Portez ce vieux whisky au juge blond qui fume.
-    fonts:
-      poppins: Géométrique, aux formes régulières. Le réglage par défaut.
-      inter: Neutre, dessinée pour les écrans. Se fait oublier.
-      work-sans: Grotesque, un peu plus large et plus chaleureuse qu'Inter.
-      nunito: Arrondie. Le ton le moins institutionnel de la liste.
-      lora: À empattements. Fait lire la page comme un texte plutôt qu'un écran.
-      playfair-display: "À empattements contrastés. Le ton éditorial et haut de gamme, pour la photographie ou le luxe."
-      space-grotesk: "Grotesque au dessin marqué. Des titres qui se remarquent, pour un ton moderne."
-    slug_label: Slug
-    header_media_hint: "Affiché à gauche du nom du site dans la barre du haut. Image carrée conseillée."
-    header_text_hidden_on_phone: 'Logo seul sur téléphone'
-    header_text_hidden_on_phone_hint: 'Le nom du site disparaît de la barre du haut sous 640 px de large ; il reste lu par les lecteurs d''écran.'
-    reading_progress: 'Barre de lecture'
-    reading_progress_hint: 'Une fine barre en haut de chaque page du site se remplit à mesure qu''on la fait défiler.'
-    watermark_visible: 'Crédit en pied de page'
-    watermark_visible_hint: 'Un petit lien de crédit en pied de page. Sert de repère public pour détecter une réutilisation non autorisée du code.'
-    header_text_placeholder: Mon site
-    config_hint: 'Variables disponibles : --th-bg, --th-surface, --th-surface-2, --th-primary, --th-secondary, --th-muted, --th-accent, --th-accent-hover'
-    config_placeholder: "{\n  \"--th-accent\": \"#6366f1\"\n}"
-    config_json_error: Le JSON de configuration est invalide.
-    delete_confirm: 'Supprimer le thème "{name}" ? Cette action est irréversible.'
-    cannot_delete_default: Impossible de supprimer le thème par défaut.
-    cannot_delete_active: Impossible de supprimer le thème actif.
-    created: Thème créé.
-    updated: Thème mis à jour.
-    activated: Thème activé.
-    deleted: Thème supprimé.
-    template_count: '{count} fichier(s) de template'
-    errors:
-      slug_invalid: 'Le slug ne peut contenir que des lettres minuscules, chiffres et tirets.'
-      slug_taken: Ce slug est déjà utilisé.
-      name_required: Le nom est requis.
+    themes:
+        guide:
+            title: "Comment fonctionnent les thèmes"
+            step_1: "Un seul thème est actif à la fois : « Activer » l'applique tout de suite au site public, pas à l'administration."
+            step_2: "Un thème règle la couleur principale (la palette en découle), les surfaces, les encadrés du contenu, la police, la largeur du contenu, l'en-tête et le pied de page."
+            step_3: "Le texte posé sur chaque surface passe en clair ou en sombre selon ce qui reste lisible."
+            step_4: "Le thème actif et le thème par défaut ne se suppriment pas ; supprimer un autre thème est définitif."
+        title: Thèmes
+        new: Nouveau thème
+        activate: Activer
+        active: Actif
+        edit: Modifier
+        colors: Couleurs
+        reset_color: Réinitialiser
+        primary_color: Couleur principale
+        primary_color_label: Couleur d'accent
+        primary_color_hint: 'Sert de base aux boutons, liens, badges et au logo. Toute la palette est dérivée automatiquement.'
+        highlight: Survols et repères des cartes
+        highlight_accent: Couleur principale
+        highlight_neutral: Neutres
+        highlight_custom: Personnalisée
+        highlight_color: Couleur des survols et repères
+        highlight_hint: "Liserés et titres au survol, catégorie et flèche des cartes. En neutre, ils prennent la couleur du texte ; en personnalisée, la couleur de votre choix, sur tout le site."
+        menu_active: Page active dans le menu
+        menu_active_color: Couleur du repère
+        menu_active_hint: "Le trait sous l'entrée de la barre de navigation qui correspond à la page affichée."
+        surfaces: Couleurs du site public
+        surfaces_hint: "Une couleur par surface. La couleur du texte, des libellés et des bordures en est déduite automatiquement, en clair ou en sombre selon ce qui reste lisible."
+        surface_background: Fond des pages
+        surface_header: Barre de navigation
+        surface_footer: Pied de page
+        surface_unset: Non définie, garde l'apparence par défaut
+        surface_light_text: texte clair
+        surface_dark_text: texte sombre
+        surface_ratio: "contraste %ratio%:1"
+        surface_below_aaa: lisible, mais en dessous du confort AAA
+        ink_text: Texte du site public
+        ink_line: Traits et bordures
+        ink_card_line: Contour des cartes
+        ink_card_unset: "Non définie, suit les traits"
+        ink_card: 'Fond des cartes'
+        ink_card_bg_unset: 'Non défini, déduit du fond'
+        ink_heading: 'Titres du contenu'
+        ink_heading_unset: 'Non définie, couleur du texte'
+        ink_success: 'Validation (coches)'
+        ink_success_unset: 'Non définie, vert par défaut'
+        ink_figure: 'Chiffres clés (statistiques, prix)'
+        ink_figure_unset: 'Non définie, couleur principale'
+        callouts:
+            title: "Encadrés du contenu"
+            hint: "Une couleur par type d'encadré posé dans les pages. Laissée vide, l'encadré garde sa couleur d'origine ; « Accent » suit déjà la couleur principale."
+            set: "Couleur du thème"
+            unset: "Couleur d'origine"
+            types:
+                info: "Information"
+                success: "Succès"
+                warning: "Attention"
+                danger: "Danger"
+                tip: "Astuce"
+                note: "Note"
+                question: "Question"
+                important: "Important"
+                update: "Mise à jour"
+                rose: "Rose"
+                lime: "Citron vert"
+                amber: "Ambre"
+                fuchsia: "Fuchsia"
+        icon: 'Pictogrammes des cartes'
+        icon_original: 'Couleur d''origine du fichier'
+        icon_accent: 'Couleur principale'
+        icon_custom: 'Couleur personnalisée'
+        icon_color: 'Couleur des pictogrammes'
+        icon_hint: 'Pour les pictogrammes SVG des cartes : seule leur forme compte, un même fichier sert à tous les thèmes.'
+        ink_set: "Remplace la couleur déduite, là où elle reste lisible"
+        ink_unset: "Non définie, déduite du fond"
+        sections:
+            general: Général
+            header: En-tête
+            footer: Pied de page
+        vars:
+            accent: Couleur principale
+            accent_hover: Survol des boutons pleins
+            bg: Fond
+            surface: Surface
+            surface2: Surface secondaire
+            primary: Texte principal
+            secondary: Texte secondaire
+            muted: Texte atténué
+            border: Bordure
+            text: Texte
+        header_content: Contenu
+        header_mode_default: Nom du site
+        header_mode_text: Texte custom
+        header_mode_image: "Logo et nom"
+        header_custom_text: Texte personnalisé
+        header_logo: "Logo"
+        footer_text: Texte du pied de page
+        content_width: Largeur du contenu
+        content_width_narrow: Étroite (colonne de lecture)
+        content_width_wide: Large
+        content_width_full: Pleine largeur
+        font_family: Police d'écriture
+        font_preview: Portez ce vieux whisky au juge blond qui fume.
+        fonts:
+            poppins: Géométrique, aux formes régulières. Le réglage par défaut.
+            inter: Neutre, dessinée pour les écrans. Se fait oublier.
+            work-sans: Grotesque, un peu plus large et plus chaleureuse qu'Inter.
+            nunito: Arrondie. Le ton le moins institutionnel de la liste.
+            lora: À empattements. Fait lire la page comme un texte plutôt qu'un écran.
+            playfair-display: "À empattements contrastés. Le ton éditorial et haut de gamme, pour la photographie ou le luxe."
+            space-grotesk: "Grotesque au dessin marqué. Des titres qui se remarquent, pour un ton moderne."
+        slug_label: Slug
+        header_media_hint: "Affiché à gauche du nom du site dans la barre du haut. Image carrée conseillée."
+        header_text_hidden_on_phone: 'Logo seul sur téléphone'
+        header_text_hidden_on_phone_hint: 'Le nom du site disparaît de la barre du haut sous 640 px de large ; il reste lu par les lecteurs d''écran.'
+        reading_progress: 'Barre de lecture'
+        reading_progress_hint: 'Une fine barre en haut de chaque page du site se remplit à mesure qu''on la fait défiler.'
+        watermark_visible: 'Crédit en pied de page'
+        watermark_visible_hint: 'Un petit lien de crédit en pied de page. Sert de repère public pour détecter une réutilisation non autorisée du code.'
+        header_text_placeholder: Mon site
+        config_hint: 'Variables disponibles : --th-bg, --th-surface, --th-surface-2, --th-primary, --th-secondary, --th-muted, --th-accent, --th-accent-hover'
+        config_placeholder: "{\n  \"--th-accent\": \"#6366f1\"\n}"
+        config_json_error: Le JSON de configuration est invalide.
+        delete_confirm: 'Supprimer le thème "{name}" ? Cette action est irréversible.'
+        cannot_delete_default: Impossible de supprimer le thème par défaut.
+        cannot_delete_active: Impossible de supprimer le thème actif.
+        created: Thème créé.
+        updated: Thème mis à jour.
+        activated: Thème activé.
+        deleted: Thème supprimé.
+        template_count: '{count} fichier(s) de template'
+        errors:
+            slug_invalid: 'Le slug ne peut contenir que des lettres minuscules, chiffres et tirets.'
+            slug_taken: Ce slug est déjà utilisé.
+            name_required: Le nom est requis.
 frontend:
-  theme:
-    title: Articles
-    no_posts: Aucun article publié pour le moment.
-    no_content: Aucun contenu.
-    search_placeholder: Rechercher un article…
-    no_results: Aucun article ne correspond à votre recherche.
+    theme:
+        title: Articles
+        no_posts: Aucun article publié pour le moment.
+        no_content: Aucun contenu.
+        search_placeholder: Rechercher un article…
+        no_results: Aucun article ne correspond à votre recherche.

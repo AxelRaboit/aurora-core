@@ -7,14 +7,18 @@ namespace Aurora\Module\Studio\Deliverable\View;
 use Aurora\Core\Locale\Service\LocaleContextInterface;
 use Aurora\Core\Routing\PathTemplateGenerator;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
+use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
+use Aurora\Module\Studio\Deliverable\Repository\DeliverableCategoryRepository;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
 use Aurora\Module\Studio\Deliverable\Security\DeliverableAccess;
 use Aurora\Module\Studio\Deliverable\Serializer\DeliverableSerializer;
 use Aurora\Module\Studio\Deliverable\Service\DeliverablePageRenderer;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
+use function array_filter;
 use function array_map;
+use function array_values;
 
 /**
  * Ce que reçoivent les écrans des livrables de Studio, ceux qui ne sont
@@ -29,6 +33,7 @@ final readonly class DeliverablesViewBuilder
         private UrlGeneratorInterface $urlGenerator,
         private PathTemplateGenerator $pathTemplates,
         private LocaleContextInterface $localeContext,
+        private DeliverableCategoryRepository $categories,
     ) {}
 
     /**
@@ -48,7 +53,35 @@ final readonly class DeliverablesViewBuilder
             'duplicatePathTemplate' => $template('duplicate'),
             'deletePathTemplate' => $template('delete'),
             'linksPathTemplate' => $template('links'),
+            'copyToSpacePathTemplate' => $template('copy_to_space'),
+            'copyTargets' => $this->copyTargets(),
+            ...$this->categoriesPayload(),
+            'canManageCategories' => $this->access->canManageCategories(),
+            'categoryCreatePath' => $this->urlGenerator->generate('backend_studio_deliverables_category_create'),
+            'categoryUpdatePathTemplate' => $template('category_update'),
+            'categoryDeletePathTemplate' => $template('category_delete'),
+            'categoryReorderPath' => $this->urlGenerator->generate('backend_studio_deliverables_category_reorder'),
         ];
+    }
+
+    /**
+     * Les catégories, et les deux rayons qui les affichent : renommer ou
+     * supprimer une catégorie change les cartes.
+     *
+     * @return array{categories: list<array<string, mixed>>, personal: list<array<string, mixed>>, shared: list<array<string, mixed>>}
+     */
+    public function categoriesPayload(): array
+    {
+        return [
+            'categories' => $this->categoryList(),
+            ...$this->lists(),
+        ];
+    }
+
+    /** @return list<array<string, mixed>> */
+    private function categoryList(): array
+    {
+        return array_values(array_filter(array_map($this->serializer->category(...), $this->categories->findOrdered())));
     }
 
     /**
@@ -100,7 +133,28 @@ final readonly class DeliverablesViewBuilder
             'linksPath' => $route('links'),
             'duplicatePath' => $route('duplicate'),
             'deletePath' => $route('delete'),
+            'copyToSpacePath' => $route('copy_to_space'),
+            'copyTargets' => $this->copyTargets(),
+            'categories' => $this->categoryList(),
         ];
+    }
+
+    /**
+     * Les espaces où déposer une copie, pour le sélecteur : vide quand la
+     * personne n'écrit dans aucun, et le geste ne s'affiche pas.
+     *
+     * @return list<array{id: int|null, name: string, customer: string}>
+     */
+    private function copyTargets(): array
+    {
+        return array_map(
+            static fn (CustomerSpaceInterface $space): array => [
+                'id' => $space->getId(),
+                'name' => $space->getName(),
+                'customer' => $space->getCustomer()->getLegalName(),
+            ],
+            $this->access->spacesToCopyInto(),
+        );
     }
 
     /** @return array{canEdit: bool, canShare: bool, canDelete: bool, canChangeScope: bool, canDuplicate: bool} */

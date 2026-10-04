@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Aurora\Tests\Integration\Module\Studio\Deliverable;
 
+use Aurora\Module\Ged\Document\Entity\Document;
+use Aurora\Module\Ged\Enum\DocumentStatusEnum;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\Customer\Entity\Customer;
@@ -44,6 +46,9 @@ final class SpaceDeliverablesTest extends IntegrationTestCase
 
     private KernelBrowser $client;
 
+    /** @var list<int> */
+    private array $documents = [];
+
     private EntityManagerInterface $entityManager;
 
     private string $suffix;
@@ -52,12 +57,13 @@ final class SpaceDeliverablesTest extends IntegrationTestCase
     {
         parent::setUp();
 
-        $this->client = static::createClient();
+        $this->client = self::createClient();
         $this->client->disableReboot();
-        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
+
+        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
         $this->suffix = bin2hex(random_bytes(4));
 
-        $admin = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
         self::assertInstanceOf(User::class, $admin);
         $this->client->loginUser($admin, 'admin');
 
@@ -68,6 +74,10 @@ final class SpaceDeliverablesTest extends IntegrationTestCase
     {
         foreach ([DeliverableLink::class, Deliverable::class, SpaceAccessLink::class, CustomerSpace::class, Customer::class] as $class) {
             $this->entityManager->createQuery(sprintf('DELETE FROM %s', $class))->execute();
+        }
+
+        foreach ($this->documents as $id) {
+            $this->entityManager->createQuery(sprintf('DELETE FROM %s d WHERE d.id = :id', Document::class))->setParameter('id', $id)->execute();
         }
 
         parent::tearDown();
@@ -193,6 +203,32 @@ final class SpaceDeliverablesTest extends IntegrationTestCase
      * Le livrable d'un autre espace n'existe pas sous celui-ci, ni côté
      * studio ni côté client.
      */
+    /**
+     * Le client voit l'image d'un livrable quand elle est publiée dans la
+     * médiathèque ; une image privée ne lui est pas envoyée, elle ne
+     * s'afficherait pas chez lui.
+     */
+    public function testTheClientSeesAPublishedImageOnly(): void
+    {
+        $space = $this->givenSpace();
+        $withPublished = $this->givenDeliverable($space, 'Audit illustre '.$this->suffix);
+        $withPrivate = $this->givenDeliverable($space, 'Strategie illustree '.$this->suffix);
+        $published = $this->givenImage('publie-'.$this->suffix.'.jpg', DocumentStatusEnum::Published);
+        $private = $this->givenImage('prive-'.$this->suffix.'.jpg', DocumentStatusEnum::Draft);
+
+        $this->update($space, $withPublished, ['thumbnailId' => $published, 'visibleToClient' => true]);
+        $this->update($space, $withPrivate, ['thumbnailId' => $private, 'visibleToClient' => true]);
+        self::assertSame($private, $this->find($withPrivate)->getThumbnail()?->getId(), 'the studio keeps a private image');
+
+        $link = $this->givenAccessLink($space);
+        $this->client->request('GET', sprintf('/spaces/%s/%s', $link->getSelector(), (string) $link->getPlainToken()));
+        self::assertResponseIsSuccessful();
+        $page = (string) $this->client->getResponse()->getContent();
+
+        self::assertStringContainsString('publie-'.$this->suffix.'.jpg', $page);
+        self::assertStringNotContainsString('prive-'.$this->suffix.'.jpg', $page);
+    }
+
     public function testADeliverableOfAnotherSpaceIsNotFoundUnderThisOne(): void
     {
         $mine = $this->givenSpace();
@@ -301,7 +337,7 @@ final class SpaceDeliverablesTest extends IntegrationTestCase
 
         $live = $this->entityManager->getRepository(CustomerSpace::class)->find($space->getId());
         self::assertInstanceOf(CustomerSpace::class, $live);
-        static::getContainer()->get(CustomerSpaceManagerInterface::class)->delete($live);
+        self::getContainer()->get(CustomerSpaceManagerInterface::class)->delete($live);
 
         $this->entityManager->clear();
         self::assertNull($this->entityManager->find(Deliverable::class, $deliverable));
@@ -347,12 +383,23 @@ final class SpaceDeliverablesTest extends IntegrationTestCase
         self::fail(sprintf('Le livrable « %s » n\'est pas revenu dans la liste.', $title));
     }
 
+    private function givenImage(string $fileName, DocumentStatusEnum $status): int
+    {
+        $document = new Document();
+        $document->setTitle($fileName)->setFilePath('ged/2026/10/'.$fileName)->setFileName($fileName)->setOriginalName($fileName)->setMimeType('image/jpeg')->setSize(1024)->setStatus($status);
+        $this->entityManager->persist($document);
+        $this->entityManager->flush();
+        $this->documents[] = (int) $document->getId();
+
+        return (int) $document->getId();
+    }
+
     private function givenAccessLink(CustomerSpace $space): SpaceAccessLinkInterface
     {
         $fresh = $this->entityManager->getRepository(CustomerSpace::class)->find($space->getId());
         self::assertInstanceOf(CustomerSpace::class, $fresh);
 
-        return static::getContainer()->get(SpaceAccessLinkManagerInterface::class)
+        return self::getContainer()->get(SpaceAccessLinkManagerInterface::class)
             ->issue($fresh, 'client@example.test', 'Le client', 30, true, true);
     }
 

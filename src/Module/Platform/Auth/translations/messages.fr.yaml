@@ -1,186 +1,186 @@
 backend:
-  auth:
-    access_request:
-      already_account: Déjà un compte ?
-      description: Remplissez ce formulaire pour demander l'accès à l'administration.
-      email: Email
-      login_link: Se connecter
-      message: Message
-      message_placeholder: Décrivez votre besoin...
-      name: Nom
-      name_placeholder: Jean Dupont
-      submit: Envoyer la demande
-      success_toast: Votre demande d'accès a été envoyée.
-      title: Demander l'accès
-      closed_title: Demandes d'accès fermées
-      closed_desc: Les demandes d'accès sont actuellement désactivées.
-    forgot_password:
-      back_login: Retour à la connexion
-      instructions: Entrez votre adresse email et nous vous enverrons un lien pour réinitialiser votre mot de passe.
-      sent: 'Si cette adresse est associée à un compte, vous recevrez un email sous peu.'
-      submit: Envoyer le lien
-      title: Mot de passe oublié
-    hero:
-      description: 'Un CMS headless pour gérer contenus multilingues, pages et formulaires.'
-      feature_1: Gestion de contenu et SEO
-      feature_2: 'Édition multilingue par blocs'
-      feature_3: 'Types de contenus et taxonomies personnalisés'
-      feature_4: Formulaires et commentaires
-      heading: Pilotez votre contenu
-      heading_accent: 'sur {siteName}.'
-    invitation:
-      accept_title: Accepter l'invitation
-      confirm_password: Confirmer le mot de passe
-      errors:
-        password_confirm_required: La confirmation est requise.
-        password_mismatch: Les mots de passe ne correspondent pas.
-        password_required: Le mot de passe est requis.
-      expired: Ce lien d'invitation est invalide ou a expiré.
-      password: Mot de passe
-      set_password: Définissez votre mot de passe pour activer votre compte.
-      submit: Activer mon compte
-      success: 'Votre compte est activé, bienvenue !'
-      welcome: 'Bienvenue {name}'
-    login:
-      subtitle: 'Bon retour, connectez-vous à votre espace.'
-      email: Adresse e-mail
-      email_placeholder: 'votre@email.com'
-      forgot: Mot de passe oublié ?
-      no_account: Pas encore de compte ?
-      password: Mot de passe
-      remember: Se souvenir de moi
-      request_access: Demander l'accès
-      submit: Se connecter
-      title: Connexion
-    register:
-      subtitle: Créez votre compte en quelques secondes.
-      already_account: Déjà un compte ?
-      closed_desc: Les nouvelles inscriptions sont désactivées pour le moment.
-      closed_title: Inscriptions fermées
-      email: Email
-      error_email_invalid: Adresse email invalide.
-      error_email_required: L'adresse email est requise.
-      error_email_taken: Cette adresse email est déjà utilisée.
-      error_name_required: Le nom est requis.
-      error_password_length: Le mot de passe doit contenir au moins 8 caractères.
-      error_password_mismatch: Les mots de passe ne correspondent pas.
-      heading: Créer un compte
-      login_link: Se connecter
-      name: Nom
-      name_placeholder: Jean Dupont
-      password: Mot de passe
-      password_confirm: Confirmer le mot de passe
-      submit: Créer le compte
-      title: Créer un compte
-    register_confirm:
-      title: Vérifiez votre e-mail
-      heading: Vérifiez votre e-mail
-      message: Un e-mail de confirmation vous a été envoyé. Cliquez sur le lien pour activer votre compte.
-      login_link: Aller à la connexion
-      resend_hint: Vous n'avez pas reçu l'e-mail ?
-      resend_link: Renvoyer l'e-mail de confirmation
-      resent_success: L'e-mail de confirmation a été renvoyé.
-    reset_password:
-      instructions: Choisissez un nouveau mot de passe pour votre compte.
-      invalid_link: Ce lien est invalide ou a expiré.
-      submit: Réinitialiser
-      success: Votre mot de passe a été réinitialisé avec succès.
-      title: Réinitialiser le mot de passe
-    verify_email:
-      title: Vérification de l'e-mail
-      success_heading: 'E-mail confirmé !'
-      success_message: Votre adresse e-mail a été vérifiée. Vous pouvez maintenant vous connecter.
-      error_heading: Lien invalide ou expiré
-      error_message: Ce lien est invalide ou a expiré. Veuillez vous réinscrire.
+    auth:
+        access_request:
+            already_account: Déjà un compte ?
+            description: Remplissez ce formulaire pour demander l'accès à l'administration.
+            email: Email
+            login_link: Se connecter
+            message: Message
+            message_placeholder: Décrivez votre besoin...
+            name: Nom
+            name_placeholder: Jean Dupont
+            submit: Envoyer la demande
+            success_toast: Votre demande d'accès a été envoyée.
+            title: Demander l'accès
+            closed_title: Demandes d'accès fermées
+            closed_desc: Les demandes d'accès sont actuellement désactivées.
+        forgot_password:
+            back_login: Retour à la connexion
+            instructions: Entrez votre adresse email et nous vous enverrons un lien pour réinitialiser votre mot de passe.
+            sent: 'Si cette adresse est associée à un compte, vous recevrez un email sous peu.'
+            submit: Envoyer le lien
+            title: Mot de passe oublié
+        hero:
+            description: 'Un CMS headless pour gérer contenus multilingues, pages et formulaires.'
+            feature_1: Gestion de contenu et SEO
+            feature_2: 'Édition multilingue par blocs'
+            feature_3: 'Types de contenus et taxonomies personnalisés'
+            feature_4: Formulaires et commentaires
+            heading: Pilotez votre contenu
+            heading_accent: 'sur {siteName}.'
+        invitation:
+            accept_title: Accepter l'invitation
+            confirm_password: Confirmer le mot de passe
+            errors:
+                password_confirm_required: La confirmation est requise.
+                password_mismatch: Les mots de passe ne correspondent pas.
+                password_required: Le mot de passe est requis.
+            expired: Ce lien d'invitation est invalide ou a expiré.
+            password: Mot de passe
+            set_password: Définissez votre mot de passe pour activer votre compte.
+            submit: Activer mon compte
+            success: 'Votre compte est activé, bienvenue !'
+            welcome: 'Bienvenue {name}'
+        login:
+            subtitle: 'Bon retour, connectez-vous à votre espace.'
+            email: Adresse e-mail
+            email_placeholder: 'votre@email.com'
+            forgot: Mot de passe oublié ?
+            no_account: Pas encore de compte ?
+            password: Mot de passe
+            remember: Se souvenir de moi
+            request_access: Demander l'accès
+            submit: Se connecter
+            title: Connexion
+        register:
+            subtitle: Créez votre compte en quelques secondes.
+            already_account: Déjà un compte ?
+            closed_desc: Les nouvelles inscriptions sont désactivées pour le moment.
+            closed_title: Inscriptions fermées
+            email: Email
+            error_email_invalid: Adresse email invalide.
+            error_email_required: L'adresse email est requise.
+            error_email_taken: Cette adresse email est déjà utilisée.
+            error_name_required: Le nom est requis.
+            error_password_length: Le mot de passe doit contenir au moins 8 caractères.
+            error_password_mismatch: Les mots de passe ne correspondent pas.
+            heading: Créer un compte
+            login_link: Se connecter
+            name: Nom
+            name_placeholder: Jean Dupont
+            password: Mot de passe
+            password_confirm: Confirmer le mot de passe
+            submit: Créer le compte
+            title: Créer un compte
+        register_confirm:
+            title: Vérifiez votre e-mail
+            heading: Vérifiez votre e-mail
+            message: Un e-mail de confirmation vous a été envoyé. Cliquez sur le lien pour activer votre compte.
+            login_link: Aller à la connexion
+            resend_hint: Vous n'avez pas reçu l'e-mail ?
+            resend_link: Renvoyer l'e-mail de confirmation
+            resent_success: L'e-mail de confirmation a été renvoyé.
+        reset_password:
+            instructions: Choisissez un nouveau mot de passe pour votre compte.
+            invalid_link: Ce lien est invalide ou a expiré.
+            submit: Réinitialiser
+            success: Votre mot de passe a été réinitialisé avec succès.
+            title: Réinitialiser le mot de passe
+        verify_email:
+            title: Vérification de l'e-mail
+            success_heading: 'E-mail confirmé !'
+            success_message: Votre adresse e-mail a été vérifiée. Vous pouvez maintenant vous connecter.
+            error_heading: Lien invalide ou expiré
+            error_message: Ce lien est invalide ou a expiré. Veuillez vous réinscrire.
 frontend:
-  login:
-    title: Connexion
-    heading: Connexion
-    subtitle: Connectez-vous à votre espace personnel.
-    email: Adresse e-mail
-    email_placeholder: 'vous@exemple.com'
-    password: Mot de passe
-    forgot_password: Mot de passe oublié ?
-    remember_me: Se souvenir de moi
-    submit: Se connecter
-    no_account: Pas encore de compte ?
-    register_link: Créer un compte
-  register:
-    title: Créer un compte
-    heading: Créer un compte
-    subtitle: Rejoignez notre espace personnel.
-    name: Nom complet
-    name_placeholder: Jean Dupont
-    email: Adresse e-mail
-    email_placeholder: 'vous@exemple.com'
-    password: Mot de passe
-    submit: Créer le compte
-    already_account: Déjà un compte ?
-    login_link: Se connecter
-    confirm_title: Vérifiez votre e-mail
-    confirm_heading: Vérifiez votre e-mail
-    confirm_message: Un e-mail de confirmation vous a été envoyé. Cliquez sur le lien pour activer votre compte.
-    closed_title: Inscriptions fermées
-    closed_desc: Les nouvelles inscriptions sont désactivées pour le moment.
-    resend_hint: Vous n'avez pas reçu l'e-mail ?
-    resend_link: Renvoyer l'e-mail de confirmation
-    resent_success: L'e-mail de confirmation a été renvoyé.
-  verify_email:
-    title: Vérification de l'e-mail
-    success_heading: 'E-mail confirmé !'
-    success_message: Votre adresse e-mail a été vérifiée. Vous pouvez maintenant vous connecter.
-    error_heading: Lien invalide ou expiré
-    error_message: Ce lien est invalide ou a expiré. Veuillez vous réinscrire.
-  account:
-    title: Mon compte
-    heading: Mon compte
-    name: Nom
-    email: E-mail
-    logout: Se déconnecter
-  forgot_password:
-    title: Mot de passe oublié
-    heading: Mot de passe oublié
-    subtitle: Saisissez votre adresse e-mail et nous vous enverrons un lien pour réinitialiser votre mot de passe.
-    submit: Envoyer le lien
-    sent: Un e-mail de réinitialisation vous a été envoyé. Vérifiez votre boîte de réception.
-    back_login: Retour à la connexion
-  reset_password:
-    title: Nouveau mot de passe
-    heading: Nouveau mot de passe
-    subtitle: Choisissez un nouveau mot de passe pour votre compte.
-    new_password: Nouveau mot de passe
-    confirm_password: Confirmer le mot de passe
-    submit: Réinitialiser le mot de passe
-    invalid_link: Ce lien est invalide ou a expiré. Veuillez faire une nouvelle demande.
-    success: Votre mot de passe a été réinitialisé. Vous pouvez maintenant vous connecter.
-  invitation:
-    title: Bienvenue
-    heading: Bienvenue
-    heading_named: 'Bienvenue {name}'
-    subtitle: Choisissez le mot de passe qui vous servira à vous connecter.
-    password: Mot de passe
-    confirm_password: Confirmer le mot de passe
-    submit: Activer mon compte
-    invalid_link: "Cette invitation est invalide ou a expiré. Demandez-en une nouvelle à la personne qui vous a inscrit."
-  errors:
-    name_required: Le nom est requis.
-    email_required: L'adresse e-mail est requise.
-    email_invalid: Adresse e-mail invalide.
-    email_taken: Cette adresse e-mail est déjà utilisée.
-    password_required: Le mot de passe est requis.
-    password_too_short: Le mot de passe doit contenir au moins 8 caractères.
-    passwords_mismatch: Les mots de passe ne correspondent pas.
-    email_not_verified: Veuillez confirmer votre adresse e-mail avant de vous connecter.
-    account_disabled: Votre compte a été désactivé.
-shared:
-  password:
-    criteria:
-      length: 8 caractères minimum
-      uppercase: Une lettre majuscule
-      number: Un chiffre
-      special: Un caractère spécial
+    login:
+        title: Connexion
+        heading: Connexion
+        subtitle: Connectez-vous à votre espace personnel.
+        email: Adresse e-mail
+        email_placeholder: 'vous@exemple.com'
+        password: Mot de passe
+        forgot_password: Mot de passe oublié ?
+        remember_me: Se souvenir de moi
+        submit: Se connecter
+        no_account: Pas encore de compte ?
+        register_link: Créer un compte
+    register:
+        title: Créer un compte
+        heading: Créer un compte
+        subtitle: Rejoignez notre espace personnel.
+        name: Nom complet
+        name_placeholder: Jean Dupont
+        email: Adresse e-mail
+        email_placeholder: 'vous@exemple.com'
+        password: Mot de passe
+        submit: Créer le compte
+        already_account: Déjà un compte ?
+        login_link: Se connecter
+        confirm_title: Vérifiez votre e-mail
+        confirm_heading: Vérifiez votre e-mail
+        confirm_message: Un e-mail de confirmation vous a été envoyé. Cliquez sur le lien pour activer votre compte.
+        closed_title: Inscriptions fermées
+        closed_desc: Les nouvelles inscriptions sont désactivées pour le moment.
+        resend_hint: Vous n'avez pas reçu l'e-mail ?
+        resend_link: Renvoyer l'e-mail de confirmation
+        resent_success: L'e-mail de confirmation a été renvoyé.
+    verify_email:
+        title: Vérification de l'e-mail
+        success_heading: 'E-mail confirmé !'
+        success_message: Votre adresse e-mail a été vérifiée. Vous pouvez maintenant vous connecter.
+        error_heading: Lien invalide ou expiré
+        error_message: Ce lien est invalide ou a expiré. Veuillez vous réinscrire.
+    account:
+        title: Mon compte
+        heading: Mon compte
+        name: Nom
+        email: E-mail
+        logout: Se déconnecter
+    forgot_password:
+        title: Mot de passe oublié
+        heading: Mot de passe oublié
+        subtitle: Saisissez votre adresse e-mail et nous vous enverrons un lien pour réinitialiser votre mot de passe.
+        submit: Envoyer le lien
+        sent: Un e-mail de réinitialisation vous a été envoyé. Vérifiez votre boîte de réception.
+        back_login: Retour à la connexion
+    reset_password:
+        title: Nouveau mot de passe
+        heading: Nouveau mot de passe
+        subtitle: Choisissez un nouveau mot de passe pour votre compte.
+        new_password: Nouveau mot de passe
+        confirm_password: Confirmer le mot de passe
+        submit: Réinitialiser le mot de passe
+        invalid_link: Ce lien est invalide ou a expiré. Veuillez faire une nouvelle demande.
+        success: Votre mot de passe a été réinitialisé. Vous pouvez maintenant vous connecter.
+    invitation:
+        title: Bienvenue
+        heading: Bienvenue
+        heading_named: 'Bienvenue {name}'
+        subtitle: Choisissez le mot de passe qui vous servira à vous connecter.
+        password: Mot de passe
+        confirm_password: Confirmer le mot de passe
+        submit: Activer mon compte
+        invalid_link: "Cette invitation est invalide ou a expiré. Demandez-en une nouvelle à la personne qui vous a inscrit."
     errors:
-      too_short: Le mot de passe doit contenir au moins 8 caractères.
-      no_uppercase: Le mot de passe doit contenir au moins une majuscule.
-      no_number: Le mot de passe doit contenir au moins un chiffre.
-      no_special: Le mot de passe doit contenir au moins un caractère spécial.
+        name_required: Le nom est requis.
+        email_required: L'adresse e-mail est requise.
+        email_invalid: Adresse e-mail invalide.
+        email_taken: Cette adresse e-mail est déjà utilisée.
+        password_required: Le mot de passe est requis.
+        password_too_short: Le mot de passe doit contenir au moins 8 caractères.
+        passwords_mismatch: Les mots de passe ne correspondent pas.
+        email_not_verified: Veuillez confirmer votre adresse e-mail avant de vous connecter.
+        account_disabled: Votre compte a été désactivé.
+shared:
+    password:
+        criteria:
+            length: 8 caractères minimum
+            uppercase: Une lettre majuscule
+            number: Un chiffre
+            special: Un caractère spécial
+        errors:
+            too_short: Le mot de passe doit contenir au moins 8 caractères.
+            no_uppercase: Le mot de passe doit contenir au moins une majuscule.
+            no_number: Le mot de passe doit contenir au moins un chiffre.
+            no_special: Le mot de passe doit contenir au moins un caractère spécial.

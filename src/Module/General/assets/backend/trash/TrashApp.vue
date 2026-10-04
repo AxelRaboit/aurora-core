@@ -4,6 +4,7 @@ import { useI18n } from "vue-i18n";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import AppTab from "@/shared/components/nav/AppTab.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
+import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import AppMessage from "@/shared/components/feedback/AppMessage.vue";
 import AppLink from "@/shared/components/nav/AppLink.vue";
@@ -42,6 +43,31 @@ const {
 
 function mayAct(trash) {
     return !trash.actionPrivilege || can(trash.actionPrivilege);
+}
+
+/** Ce qu'on peut faire d'un élément de la corbeille, derrière le bouton « … ». */
+function itemActions(trash, item) {
+    const actions = [];
+    if (trash.restorePath) {
+        actions.push({
+            key: "restore",
+            icon: RotateCcw,
+            title: t("backend.trash.restore"),
+            loading: busyId.value === item.id,
+            onSelect: () => restore(trash, item),
+        });
+    }
+    if (trash.forceDeletePath) {
+        actions.push({
+            key: "delete-forever",
+            color: "rose",
+            icon: Trash2,
+            title: t("backend.trash.delete_forever"),
+            onSelect: () => askForceDelete(trash, item),
+        });
+    }
+
+    return actions;
 }
 
 function formatDate(value) {
@@ -145,17 +171,14 @@ function formatDate(value) {
                 </AppMessage>
 
                 <div v-else class="aurora-card overflow-hidden divide-y divide-line/40">
-                    <!-- **Empilé sur téléphone.** « Restaurer » et « Supprimer
-                         définitivement » font trois cents pixels à eux deux :
-                         sur trois cent cinquante-neuf, il en restait **trois**
-                         pour le nom, qui se pliait en colonne d'une lettre par
-                         ligne. Le nom prend sa ligne, puis chaque geste la
-                         sienne, pleine largeur (02/10/2026 : moitié-moitié,
-                         « Supprimer définitivement » passait sur deux lignes). -->
+                    <!-- Le nom garde toute la ligne, et ses gestes (restaurer,
+                         supprimer définitivement) sont derrière le bouton « … »,
+                         comme sur toutes les listes (décision d'Axel du
+                         04/10/2026). -->
                     <div
                         v-for="item in active.items"
                         :key="item.id"
-                        class="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3"
+                        class="flex items-center gap-3 px-4 py-3"
                     >
                         <div class="flex-1 min-w-0">
                             <p class="text-sm font-medium text-primary truncate">{{ item.label }}</p>
@@ -164,27 +187,12 @@ function formatDate(value) {
                                 {{ t("backend.trash.deleted_on", { date: formatDate(item.deletedAt) }) }}
                             </p>
                         </div>
-                        <div v-if="mayAct(active)" class="flex flex-col gap-2 sm:flex-row sm:items-center">
-                            <AppButton
-                                v-if="active.restorePath"
-                                class="w-full sm:w-auto"
-                                size="sm"
-                                variant="ghost"
-                                :loading="busyId === item.id"
-                                v-on:click="restore(active, item)"
-                            >
-                                <RotateCcw class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("backend.trash.restore") }}
-                            </AppButton>
-                            <AppButton
-                                v-if="active.forceDeletePath"
-                                class="w-full sm:w-auto"
-                                size="sm"
-                                variant="danger"
-                                v-on:click="askForceDelete(active, item)"
-                            >
-                                <Trash2 class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("backend.trash.delete_forever") }}
-                            </AppButton>
-                        </div>
+                        <AppRowActions
+                            v-if="mayAct(active)"
+                            class="shrink-0"
+                            :actions="itemActions(active, item)"
+                            :label="item.label"
+                        />
                     </div>
                 </div>
 

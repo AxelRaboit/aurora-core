@@ -1,89 +1,89 @@
 backend:
-  audit:
-    intro: Historique des actions effectuées par les utilisateurs de l'administration.
-    module: Module
-    action: Action
-    user: Utilisateur
-    date: Date
-    empty: Aucune entrée d'audit.
-    actions:
-      core:
-        auth:
-          login: Connexion
-          login_failed: Échec de connexion
-          logout: Déconnexion
-        settings:
-          updated: Paramètre modifié
-        menu:
-          created: Menu créé
-          updated: Menu modifié
-          deleted: Menu supprimé
-          item:
-            created: Élément de menu ajouté
-            updated: Élément de menu modifié
-            deleted: Élément de menu supprimé
-        user:
-          created: Utilisateur créé
-          updated: Utilisateur modifié
-          deleted: Utilisateur supprimé
-          registered: Utilisateur inscrit
-          invited: Utilisateur invité
-          invitation_resent: Invitation renvoyée
-          invitation_consumed: Invitation acceptée
-          email_verified: Adresse e-mail vérifiée
-          password_changed: Mot de passe modifié
-          role_updated: Rôle mis à jour
-          dev_role_toggled: Rôle développeur modifié
-          privileges_updated: Privilèges mis à jour
-          disabled_toggled: Compte activé ou désactivé
-          disabled_modules_updated: Modules désactivés mis à jour
-          sidemenu_preferences_updated: Préférences du menu latéral mises à jour
-          sidemenu_preferences_reset: Préférences du menu latéral réinitialisées
-        frontend_user:
-          profile_updated: Profil mis à jour
-          account_deleted: Compte supprimé
-        password_reset:
-          link_requested: Réinitialisation demandée
-          completed: Mot de passe réinitialisé
-        access_request:
-          created: Demande d'accès envoyée
-          approved: Demande d'accès approuvée
-          rejected: Demande d'accès rejetée
-        theme:
-          created: Thème créé
-          updated: Thème modifié
-          deleted: Thème supprimé
-          activated: Thème activé
-        mount_point:
-          created: Point de montage créé
-          updated: Point de montage modifié
-          deleted: Point de montage supprimé
-      ged:
-        document:
-          created: Document créé
-          updated: Document modifié
-          trashed: Document mis à la corbeille
-          restored: Document restauré
-          deleted: Document supprimé définitivement
-          cropped: Document recadré
-          moved: Document déplacé
-          categorized: Document rangé dans une catégorie
-        folder:
-          trashed: Dossier mis à la corbeille
-          restored: Dossier restauré
-          created: Dossier créé
-          updated: Dossier modifié
-          deleted: Dossier supprimé
-        category:
-          trashed: Catégorie mise à la corbeille
-          restored: Catégorie restaurée
-          created: Catégorie créée
-          updated: Catégorie modifiée
-          deleted: Catégorie supprimée définitivement
-        tag:
-          created: Tag créé
-          updated: Tag modifié
-          deleted: Tag supprimé
-      users:
-        photo_uploaded: Photo de profil téléversée
-        photo_removed: Photo de profil supprimée
+    audit:
+        intro: Historique des actions effectuées par les utilisateurs de l'administration.
+        module: Module
+        action: Action
+        user: Utilisateur
+        date: Date
+        empty: Aucune entrée d'audit.
+        actions:
+            core:
+                auth:
+                    login: Connexion
+                    login_failed: Échec de connexion
+                    logout: Déconnexion
+                settings:
+                    updated: Paramètre modifié
+                menu:
+                    created: Menu créé
+                    updated: Menu modifié
+                    deleted: Menu supprimé
+                    item:
+                        created: Élément de menu ajouté
+                        updated: Élément de menu modifié
+                        deleted: Élément de menu supprimé
+                user:
+                    created: Utilisateur créé
+                    updated: Utilisateur modifié
+                    deleted: Utilisateur supprimé
+                    registered: Utilisateur inscrit
+                    invited: Utilisateur invité
+                    invitation_resent: Invitation renvoyée
+                    invitation_consumed: Invitation acceptée
+                    email_verified: Adresse e-mail vérifiée
+                    password_changed: Mot de passe modifié
+                    role_updated: Rôle mis à jour
+                    dev_role_toggled: Rôle développeur modifié
+                    privileges_updated: Privilèges mis à jour
+                    disabled_toggled: Compte activé ou désactivé
+                    disabled_modules_updated: Modules désactivés mis à jour
+                    sidemenu_preferences_updated: Préférences du menu latéral mises à jour
+                    sidemenu_preferences_reset: Préférences du menu latéral réinitialisées
+                frontend_user:
+                    profile_updated: Profil mis à jour
+                    account_deleted: Compte supprimé
+                password_reset:
+                    link_requested: Réinitialisation demandée
+                    completed: Mot de passe réinitialisé
+                access_request:
+                    created: Demande d'accès envoyée
+                    approved: Demande d'accès approuvée
+                    rejected: Demande d'accès rejetée
+                theme:
+                    created: Thème créé
+                    updated: Thème modifié
+                    deleted: Thème supprimé
+                    activated: Thème activé
+                mount_point:
+                    created: Point de montage créé
+                    updated: Point de montage modifié
+                    deleted: Point de montage supprimé
+            ged:
+                document:
+                    created: Document créé
+                    updated: Document modifié
+                    trashed: Document mis à la corbeille
+                    restored: Document restauré
+                    deleted: Document supprimé définitivement
+                    cropped: Document recadré
+                    moved: Document déplacé
+                    categorized: Document rangé dans une catégorie
+                folder:
+                    trashed: Dossier mis à la corbeille
+                    restored: Dossier restauré
+                    created: Dossier créé
+                    updated: Dossier modifié
+                    deleted: Dossier supprimé
+                category:
+                    trashed: Catégorie mise à la corbeille
+                    restored: Catégorie restaurée
+                    created: Catégorie créée
+                    updated: Catégorie modifiée
+                    deleted: Catégorie supprimée définitivement
+                tag:
+                    created: Tag créé
+                    updated: Tag modifié
+                    deleted: Tag supprimé
+            users:
+                photo_uploaded: Photo de profil téléversée
+                photo_removed: Photo de profil supprimée

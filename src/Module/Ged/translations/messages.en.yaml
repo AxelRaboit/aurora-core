@@ -1,417 +1,417 @@
 backend:
-  stats:
+    stats:
+        ged:
+            documents: "Documents"
+            categories: "Categories"
+            tags: "Tags"
+            folders: "Folders"
+            by_type: "Split by file type"
+    parameters:
+        ged_document_prefix:
+            label: DMS document reference prefix
+            description: Auto-generated DMS document reference prefix (e.g. DOC). 1 to 10 capital letters or digits, required.
+    permissions:
+        names:
+            ged:
+                documents:
+                    view: View documents
+                    create: Create documents
+                    edit: Edit documents
+                    delete: Delete documents
+                    relocate: Move documents between storage backends
+                categories:
+                    view: View categories
+                    create: Create categories
+                    edit: Edit categories
+                    delete: Delete categories
+                tags:
+                    manage: Manage tags
+                folders:
+                    manage: Manage folders
+    modules:
+        ged: DMS
+        ged_backend: DMS
+        ged_backend_description: 'Enables the DMS section in the admin.'
+        ged_tags: DMS Tags
+        ged_tags_description: 'Enables document tag management.'
+        ged_folders: DMS Folders
+        ged_folders_description: 'Enables document folder management.'
+        ged_frontend: GED Public Library
+        ged_frontend_description: Exposes published documents on the public site.
+    nav:
+        sections:
+            ged: DMS
+        documents: Documents
+        documents_description: "Upload, file and find the documents in the library."
+        ged_categories: Categories
+        ged_categories_description: "Sort documents by nature, one category per document."
+        ged_tags: Tags
+        ged_tags_description: "Tag a document freely, with as many tags as it needs."
+        ged_folders: Folders
+        ged_folders_description: "Keep documents in a tree of nested folders."
     ged:
-      documents: "Documents"
-      categories: "Categories"
-      tags: "Tags"
-      folders: "Folders"
-      by_type: "Split by file type"
-  parameters:
-    ged_document_prefix:
-      label: DMS document reference prefix
-      description: Auto-generated DMS document reference prefix (e.g. DOC). 1 to 10 capital letters or digits, required.
-  permissions:
-    names:
-      ged:
+        pexels:
+            tab: Pexels
+            search_placeholder: "Search a photo: desk, nature, portrait…"
+            empty: No photo for this search.
+            not_configured: "The Pexels photo library is not enabled. Go to Configuration › Pexels to turn it on."
+            settings:
+                what_title: What this is for
+                what_body: "Pexels is a free stock photo library. Once enabled, a \"Pexels\" tab appears in the image picker: you search for a photo, you pick it, it is downloaded into your media library and becomes yours. Your site no longer depends on Pexels to display it."
+                how_title: Getting your key
+                how_step_account: "Create a free account on pexels.com, or sign in to yours."
+                how_step_request: "Go to pexels.com/api/, click \"Get Started\" and describe in one sentence what you will use it for (for example: illustrating the pages of my website). The key is issued immediately."
+                how_step_paste: "Copy the key shown there, paste it in the field below, and save."
+                how_link: Open the Pexels API keys page
+                terms_label: I have read and accept the Pexels terms of service
+                terms_hint: "The Pexels account is yours, and its holder answers for how the photos are used. On a site that sells a product or a service in particular, avoid photos showing a recognisable face or a brand: they can suggest an endorsement. Do not redistribute the files themselves either, for instance in a folder handed to a third party."
+                terms_link: Read the terms of service
+                license_link: Read the Pexels licence
+                accepted_on: "Terms accepted on {date} by {user}."
+                key_label: Pexels API key
+                key_hint: It is stored encrypted and never shown again.
+                key_stored: A key is stored. Leave the field empty to keep it, or enter a new one to replace it.
+                enabled_label: Enable the Pexels photo library
+                enabled_hint: The Pexels tab will appear in the image picker.
+                enabled_blocked: Accept the terms and enter a key before enabling.
+            errors:
+                invalid_photo: This photo cannot be imported.
+                download_failed: The photo could not be downloaded. Try again in a moment.
+                terms_required: The terms of service must be accepted to enable the integration.
+                key_required: An API key is required to enable the integration.
+                unknown_disk: No such storage location.
+                relocation_busy: A move is already under way for this document.
+                relocation_failed: The move failed. The document stayed where it was.
+        bootstrap:
+            categories:
+                inline_uploads: Editorial media
+                inline_uploads_description: "Images uploaded from an editing form : banners, featured images, custom fields."
         documents:
-          view: View documents
-          create: Create documents
-          edit: Edit documents
-          delete: Delete documents
-          relocate: Move documents between storage backends
+            trashed:
+                title: "This document is in the trash"
+                body: "Moved to the trash on {date}. Its file is no longer served to visitors, and the automatic purge will erase it unless it is restored."
+                badge: "In the trash"
+            show_guide:
+                title: "What you can do here"
+                step_1: "The actions button at the top lets you download the file, edit the document or send it to the trash."
+                step_2: "Only a document with the “Published” status is served to the site's visitors; a draft or an archive stays in the back office."
+                step_3: "On an image, “Crop” saves a new version of the file, regenerates its sizes and keeps the previous one in the history."
+                step_4: "If the document has variants, its family appears at the bottom with where each one is used, and a click opens a variant's page."
+            guide:
+                title: "How the media library is organised"
+                step_1: "An uploaded file becomes a document, filed in a folder, with one category (its nature) and as many tags as you like."
+                step_2: "A variant (another colour, a text-free version) is attached to its original and forms a family; “Colour variant” creates one from an image."
+                step_3: "The “Unused” badge marks a document no page, presentation or space shows; “Keep” keeps it anyway."
+                step_4: "Deleting sends the document to the trash, where it can be restored until the automatic purge."
+                step_5: "Search also reads the file name, the texts and the tags; “More filters” narrows by date, shape or weight."
+            row_actions:
+                view_description: Opens the preview, its versions and where it is used.
+                download_description: Downloads the file exactly as it was uploaded.
+                qr_description: Shows a QR code pointing at this document.
+                edit_description: Title, category, tags, folder.
+                delete_description: Sends the document to the trash, where it can be restored.
+                restore_description: "Brings it back from the trash with its file, its sizes and its place in its family."
+                relocate_to_remote: Move to remote storage
+                relocate_to_local: Bring back to the server
+                relocate_description: "Moves the file, its resized copies and its history. Its address does not change."
+                relocate_pending: A move is already under way for this document.
+            storage:
+                column: Storage
+                local: Server
+                remote: Remote
+                moving: Moving
+                failed: Move failed
+                hint: "File stored: {place}."
+            relocation:
+                done: Document moved.
+                queued: Move started. It continues in the background.
+                already_there: This document is already there.
+                bulk_done: "{done} document(s) moved, {skipped} left as they were."
+                bulk_partial: "{done} document(s) moved, {failed} failed."
+                all_to_remote: Move everything to remote storage
+                all_to_local: Move everything to the server
+                all_confirm_remote: Move every document that is not on the remote storage yet?
+                all_confirm_local: Bring back to the server every document that is not on it yet?
+                all_explain: "Documents already there are left alone. The trash is not moved."
+                all_background: "The move runs in the background: rows turn to \u201cMoving\u201d as it goes."
+                all_queued: "{queued} document(s) queued, {skipped} already there."
+                all_nothing: Every document is already there.
+            reference: Reference
+            title: Title
+            description: Description
+            status: Status
+            category: Category
+            file: File
+            size: Size
+            add: Add document
+            create: New document
+            edit: "Edit document {title}"
+            search_placeholder: "Search: title, file, text, tag…"
+            picker_title: Pick a document
+            picker_empty: No document available
+            picker_confirm: Select
+            picker_tab_library: Media library
+            created: Document created successfully
+            updated: Document updated
+            deleted: Document moved to trash
+            empty: No documents yet
+            delete_confirm: "Are you sure you want to delete document « {title} »?"
+            delete_warning: The document goes to the trash. You can restore it until the trash is emptied.
+            back_to_list: Back to documents
+            no_category: No category
+            tags: Tags
+            no_tags: No tags
+            folder: Folder
+            no_folder: No folder
+            versions: Version history
+            filter_by_status: Filter by status
+            filter_by_category: Filter by category
+            filter_by_tag: Filter by tag
+            filter_by_folder: Filter by folder
+            filter_by_type: Filter by type
+            filter_no_tag: No tag
+            more_filters: More filters
+            any: Any
+            search_in: Search in
+            search_in_all: Everywhere
+            search_in_title: Title and reference
+            search_in_file: File name
+            search_in_text: Description, alt text, caption, credit
+            search_in_classification: Tags, category, folder
+            added_from: Added from
+            added_to: Added until
+            orientation: Shape
+            orientation_landscape: Landscape
+            orientation_portrait: Portrait
+            orientation_square: Square
+            weight: Weight
+            weight_light: Light (under 500 KB)
+            weight_medium: Medium (500 KB to 5 MB)
+            weight_heavy: Heavy (over 5 MB)
+            type_image: Images
+            type_video: Videos
+            type_audio: Audio
+            type_pdf: PDF
+            type_other: Other
+            alt: Alternative text
+            alt_placeholder: Describe the image for screen readers and SEO…
+            caption: Caption
+            caption_placeholder: Caption shown below the image…
+            permalink: Permalink
+            dimensions: Dimensions
+            crop: Crop
+            type: Type
+            preview: Preview
+            preview_of: "Preview: {name}"
+            choose_file: Choose a file
+            choose_file_library: Media library
+            choose_file_local: From your computer
+            title_placeholder: Document title…
+            description_placeholder: Optional description…
+            status_draft: Draft
+            status_published: Published
+            status_archived: Archived
+            usage_title: Usage
+            usage_none: This document is not used anywhere
+            select_mode: Select
+            stop_selecting: Stop selecting
+            usage_unused_badge: Unused
+            usage_unused_hint: No page, deck or space is drawing it
+            kept_badge: Keep
+            kept_hint: Unused on purpose, do not delete
+            alternates_badge: "No variant | 1 variant | {count} variants"
+            alternate_badge: Variant
+            alternate_badge_labelled: "Variant · {label}"
+            alternate_of: "Variant of “{title}”"
+            family:
+                section: Variants and keeping
+                kept: Keep
+                kept_hint: "Unused or not, this document stays: a variant held in reserve, a picture waiting for its page."
+                original: Variant of
+                original_none: This document is not a variant of another one.
+                original_choose: Choose the original
+                original_change: Change
+                original_remove: Remove
+                original_locked: "This document has variants of its own: it stays an original."
+                label: What sets it apart
+                label_placeholder: "yellow, red, no text…"
+                alternates: Its variants
+                alternates_empty: No variant yet.
+                open_original: Open the original
+                chip_original: "Original"
+                chip_original_short: "orig."
+                chip_used: "in use"
+                open: "Show the family"
+                strip_title: "Family: no alternate | Family: 1 alternate | Family: {count} alternates"
+                strip_empty: "Family"
+                add_variant: "Add an alternate"
+                with_alternates: "Also delete its alternates | Also delete its alternate | Also delete its {count} alternates"
+                move_with_alternates: "Also move the chosen originals' alternates"
+                categorize_with_alternates: "Also file the alternates of the chosen originals"
+                label_suggestions: "Already in use:"
+                usage_none: "No version of the family is used"
+                usage_types:
+                    other: "{count} use | {count} use | {count} uses"
+                    editorial_post: "{count} post | {count} post | {count} posts"
+                    studio_deck: "{count} deck | {count} deck | {count} decks"
+                    studio_space_note: "{count} space note | {count} space note | {count} space notes"
+                    studio_space_file: "{count} space file | {count} space file | {count} space files"
+                    studio_space_attachment: "{count} attachment | {count} attachment | {count} attachments"
+                    configuration_setting: "{count} site setting | {count} site setting | {count} site settings"
+            recolor:
+                open: "Colour alternate"
+                title: "Create a colour alternate"
+                intro: "A copy of “{title}” in another colour, filed in its family. Every pixel of the visual’s hue takes the new one and keeps its lightness."
+                color: "New colour"
+                theme_color: "Theme colour"
+                source: "Colour to replace"
+                source_auto: "Detected"
+                source_pick: "Chosen"
+                source_hint: "Detected: the visual’s dominant hue, such as the green of a green background."
+                spare: "Colours to spare"
+                spare_hint: "They stay as they are, even within the replaced hue: the green of a logo, of a marker."
+                spare_add: "Add a colour"
+                protect_detail: "Protect photos and screenshots"
+                protect_detail_hint: "The detailed areas laid on the visual (a photo, a screenshot) keep their colours."
+                working: "Creating the copy… a few seconds for a large image."
+                submit: "Create the alternate"
+                created: "Alternate “{label}” created."
+                errors:
+                    color_required: "Choose the new colour."
+                    color_invalid: "A colour in #rrggbb format."
+                    label_required: "Give the alternate a label."
+                    not_an_image: "Only a still image (PNG, JPEG, WebP) can be declined."
+                    nothing_to_replace: "No colour to replace was found: choose it."
+            originals_only: Group variants
+            originals_only_hint: "Show originals only; their variants open from each one."
+            usage:
+                billing_invoice: Invoice
+                billing_ocr: OCR import
+                project_task: Project task
+            moved: Document moved
+            bulk_moved: Documents moved
+            bulk_move: "Move {count} documents"
+            change_category: Change category
+            bulk_category: "File {count} documents in a category"
+            bulk_categorized: "Category changed: {count} documents"
+            all_documents: All documents
+            root_folder: Root
+            subfolders: Subfolders
+            files: Files
+            folders_section: Folders
+            favourites: Favourites
+            favourite: Add to favourites
+            unfavourite: Remove from favourites
+            new_folder: New folder
+            edit_folder: Edit folder
+            delete_folder_confirm: "Delete folder « {name} »?"
+            delete_folder_cascade: Move the folder and its contents to the trash
+            delete_folder_cascade_hint: Documents and sub-folders go with it. Restoring puts everything back in place.
+            delete_folder_only: Delete the folder only
+            delete_folder_only_hint: Its contents surface at the root. Restoring the folder brings it back empty.
+            delete_folder_with_alternates: "Also take the alternate filed elsewhere | Also take the alternate filed elsewhere | Also take the {count} alternates filed elsewhere"
+            folder_name: Folder name
+            folder_name_placeholder: Folder name…
+            parent_folder: Parent folder
+            expand: Expand
+            collapse: Collapse
+            folder_tree: Folders
+            folder_tree_empty: No folder yet.
+            move: Move
+            errors:
+                title_required: Title is required
+                original_self: A document cannot be its own variant.
+                original_not_found: That original no longer exists.
+                category_unknown: "This category does not exist, or is in the trash."
+                original_is_alternate: That original is itself a variant; choose the document it comes from.
+                original_has_alternates: This document has variants of its own and cannot become one.
+                upload_required: No file received
+                image_required: This field only accepts images.
+                upload_too_large: "That file is over 100 MB. Shrink it or file it another way."
+                upload_type_refused: That file type is not accepted here.
+                upload_failed: "The upload did not arrive complete. Try again."
         categories:
-          view: View categories
-          create: Create categories
-          edit: Edit categories
-          delete: Delete categories
+            guide:
+                title: "Category, tag or folder"
+                step_1: "The category states what a document is, such as an invoice, a photo or a logo: each document has one at most."
+                step_2: "Tags are free keywords: a document carries as many as you like, on top of its category."
+                step_3: "The folder states where the document is filed in the tree, whatever its nature."
+                step_4: "Images uploaded from an editing form or imported from Pexels are filed under “Editorial media” automatically."
+                step_5: "Deleting a category sends it to the trash, where you can restore it; no document is deleted."
+            row_actions:
+                edit_description: Rename the category and change its description.
+                delete_description: "Sends the category to the trash. Its documents keep it until the purge or a permanent delete."
+            name: Name
+            slug: Identifier
+            description: Description
+            add: Add category
+            create: New category
+            edit: "Edit category {name}"
+            search_placeholder: Search a category…
+            created: Category created successfully
+            updated: Category updated
+            deleted: Category deleted
+            empty: No categories yet
+            delete_confirm: "Are you sure you want to delete category « {name} »?"
+            delete_warning: Linked documents will not be deleted.
+            name_placeholder: Category name…
+            description_placeholder: Optional description…
+            errors:
+                name_required: Name is required
         tags:
-          manage: Manage tags
+            guide:
+                title: "What tags are for"
+                step_1: "A tag is a free keyword: a document can carry as many as you like, on top of its category and its folder."
+                step_2: "You add them to a document when you upload it or edit it, from the media library."
+                step_3: "In the document list, the tag filter finds the documents that carry it, or those that have none, and search also reads tag names."
+                step_4: "The colour is optional: it tints the tag's chip in the media library."
+                step_5: "Deleting a tag removes it from every document, without deleting any document."
+            row_actions:
+                edit_description: Rename the tag and change its colour.
+                delete_description: Removes the tag, and takes it off every document.
+            name: Name
+            color: Color
+            search_placeholder: Search a tag…
+            add: Add tag
+            create: New tag
+            edit: "Edit tag {name}"
+            created: Tag created successfully
+            updated: Tag updated
+            deleted: Tag deleted
+            empty: No tags yet
+            delete_confirm: "Are you sure you want to delete tag « {name} »?"
+            delete_warning: Linked documents will not be deleted.
+            name_placeholder: Tag name…
+            errors:
+                name_required: Name is required
         folders:
-          manage: Manage folders
-  modules:
-    ged: DMS
-    ged_backend: DMS
-    ged_backend_description: 'Enables the DMS section in the admin.'
-    ged_tags: DMS Tags
-    ged_tags_description: 'Enables document tag management.'
-    ged_folders: DMS Folders
-    ged_folders_description: 'Enables document folder management.'
-    ged_frontend: GED Public Library
-    ged_frontend_description: Exposes published documents on the public site.
-  nav:
-    sections:
-      ged: DMS
-    documents: Documents
-    documents_description: "Upload, file and find the documents in the library."
-    ged_categories: Categories
-    ged_categories_description: "Sort documents by nature, one category per document."
-    ged_tags: Tags
-    ged_tags_description: "Tag a document freely, with as many tags as it needs."
-    ged_folders: Folders
-    ged_folders_description: "Keep documents in a tree of nested folders."
-  ged:
-    pexels:
-      tab: Pexels
-      search_placeholder: "Search a photo: desk, nature, portrait…"
-      empty: No photo for this search.
-      not_configured: "The Pexels photo library is not enabled. Go to Configuration › Pexels to turn it on."
-      settings:
-        what_title: What this is for
-        what_body: "Pexels is a free stock photo library. Once enabled, a \"Pexels\" tab appears in the image picker: you search for a photo, you pick it, it is downloaded into your media library and becomes yours. Your site no longer depends on Pexels to display it."
-        how_title: Getting your key
-        how_step_account: "Create a free account on pexels.com, or sign in to yours."
-        how_step_request: "Go to pexels.com/api/, click \"Get Started\" and describe in one sentence what you will use it for (for example: illustrating the pages of my website). The key is issued immediately."
-        how_step_paste: "Copy the key shown there, paste it in the field below, and save."
-        how_link: Open the Pexels API keys page
-        terms_label: I have read and accept the Pexels terms of service
-        terms_hint: "The Pexels account is yours, and its holder answers for how the photos are used. On a site that sells a product or a service in particular, avoid photos showing a recognisable face or a brand: they can suggest an endorsement. Do not redistribute the files themselves either, for instance in a folder handed to a third party."
-        terms_link: Read the terms of service
-        license_link: Read the Pexels licence
-        accepted_on: "Terms accepted on {date} by {user}."
-        key_label: Pexels API key
-        key_hint: It is stored encrypted and never shown again.
-        key_stored: A key is stored. Leave the field empty to keep it, or enter a new one to replace it.
-        enabled_label: Enable the Pexels photo library
-        enabled_hint: The Pexels tab will appear in the image picker.
-        enabled_blocked: Accept the terms and enter a key before enabling.
-      errors:
-        invalid_photo: This photo cannot be imported.
-        download_failed: The photo could not be downloaded. Try again in a moment.
-        terms_required: The terms of service must be accepted to enable the integration.
-        key_required: An API key is required to enable the integration.
-        unknown_disk: No such storage location.
-        relocation_busy: A move is already under way for this document.
-        relocation_failed: The move failed. The document stayed where it was.
-    bootstrap:
-      categories:
-        inline_uploads: Editorial media
-        inline_uploads_description: "Images uploaded from an editing form : banners, featured images, custom fields."
-    documents:
-      trashed:
-        title: "This document is in the trash"
-        body: "Moved to the trash on {date}. Its file is no longer served to visitors, and the automatic purge will erase it unless it is restored."
-        badge: "In the trash"
-      show_guide:
-        title: "What you can do here"
-        step_1: "The actions button at the top lets you download the file, edit the document or send it to the trash."
-        step_2: "Only a document with the “Published” status is served to the site's visitors; a draft or an archive stays in the back office."
-        step_3: "On an image, “Crop” saves a new version of the file, regenerates its sizes and keeps the previous one in the history."
-        step_4: "If the document has variants, its family appears at the bottom with where each one is used, and a click opens a variant's page."
-      guide:
-        title: "How the media library is organised"
-        step_1: "An uploaded file becomes a document, filed in a folder, with one category (its nature) and as many tags as you like."
-        step_2: "A variant (another colour, a text-free version) is attached to its original and forms a family; “Colour variant” creates one from an image."
-        step_3: "The “Unused” badge marks a document no page, presentation or space shows; “Keep” keeps it anyway."
-        step_4: "Deleting sends the document to the trash, where it can be restored until the automatic purge."
-        step_5: "Search also reads the file name, the texts and the tags; “More filters” narrows by date, shape or weight."
-      row_actions:
-        view_description: Opens the preview, its versions and where it is used.
-        download_description: Downloads the file exactly as it was uploaded.
-        qr_description: Shows a QR code pointing at this document.
-        edit_description: Title, category, tags, folder.
-        delete_description: Sends the document to the trash, where it can be restored.
-        restore_description: "Brings it back from the trash with its file, its sizes and its place in its family."
-        relocate_to_remote: Move to remote storage
-        relocate_to_local: Bring back to the server
-        relocate_description: "Moves the file, its resized copies and its history. Its address does not change."
-        relocate_pending: A move is already under way for this document.
-      storage:
-        column: Storage
-        local: Server
-        remote: Remote
-        moving: Moving
-        failed: Move failed
-        hint: "File stored: {place}."
-      relocation:
-        done: Document moved.
-        queued: Move started. It continues in the background.
-        already_there: This document is already there.
-        bulk_done: "{done} document(s) moved, {skipped} left as they were."
-        bulk_partial: "{done} document(s) moved, {failed} failed."
-        all_to_remote: Move everything to remote storage
-        all_to_local: Move everything to the server
-        all_confirm_remote: Move every document that is not on the remote storage yet?
-        all_confirm_local: Bring back to the server every document that is not on it yet?
-        all_explain: "Documents already there are left alone. The trash is not moved."
-        all_background: "The move runs in the background: rows turn to \u201cMoving\u201d as it goes."
-        all_queued: "{queued} document(s) queued, {skipped} already there."
-        all_nothing: Every document is already there.
-      reference: Reference
-      title: Title
-      description: Description
-      status: Status
-      category: Category
-      file: File
-      size: Size
-      add: Add document
-      create: New document
-      edit: "Edit document {title}"
-      search_placeholder: "Search: title, file, text, tag…"
-      picker_title: Pick a document
-      picker_empty: No document available
-      picker_confirm: Select
-      picker_tab_library: Media library
-      created: Document created successfully
-      updated: Document updated
-      deleted: Document moved to trash
-      empty: No documents yet
-      delete_confirm: "Are you sure you want to delete document « {title} »?"
-      delete_warning: The document goes to the trash. You can restore it until the trash is emptied.
-      back_to_list: Back to documents
-      no_category: No category
-      tags: Tags
-      no_tags: No tags
-      folder: Folder
-      no_folder: No folder
-      versions: Version history
-      filter_by_status: Filter by status
-      filter_by_category: Filter by category
-      filter_by_tag: Filter by tag
-      filter_by_folder: Filter by folder
-      filter_by_type: Filter by type
-      filter_no_tag: No tag
-      more_filters: More filters
-      any: Any
-      search_in: Search in
-      search_in_all: Everywhere
-      search_in_title: Title and reference
-      search_in_file: File name
-      search_in_text: Description, alt text, caption, credit
-      search_in_classification: Tags, category, folder
-      added_from: Added from
-      added_to: Added until
-      orientation: Shape
-      orientation_landscape: Landscape
-      orientation_portrait: Portrait
-      orientation_square: Square
-      weight: Weight
-      weight_light: Light (under 500 KB)
-      weight_medium: Medium (500 KB to 5 MB)
-      weight_heavy: Heavy (over 5 MB)
-      type_image: Images
-      type_video: Videos
-      type_audio: Audio
-      type_pdf: PDF
-      type_other: Other
-      alt: Alternative text
-      alt_placeholder: Describe the image for screen readers and SEO…
-      caption: Caption
-      caption_placeholder: Caption shown below the image…
-      permalink: Permalink
-      dimensions: Dimensions
-      crop: Crop
-      type: Type
-      preview: Preview
-      preview_of: "Preview: {name}"
-      choose_file: Choose a file
-      choose_file_library: Media library
-      choose_file_local: From your computer
-      title_placeholder: Document title…
-      description_placeholder: Optional description…
-      status_draft: Draft
-      status_published: Published
-      status_archived: Archived
-      usage_title: Usage
-      usage_none: This document is not used anywhere
-      select_mode: Select
-      stop_selecting: Stop selecting
-      usage_unused_badge: Unused
-      usage_unused_hint: No page, deck or space is drawing it
-      kept_badge: Keep
-      kept_hint: Unused on purpose, do not delete
-      alternates_badge: "No variant | 1 variant | {count} variants"
-      alternate_badge: Variant
-      alternate_badge_labelled: "Variant · {label}"
-      alternate_of: "Variant of “{title}”"
-      family:
-        section: Variants and keeping
-        kept: Keep
-        kept_hint: "Unused or not, this document stays: a variant held in reserve, a picture waiting for its page."
-        original: Variant of
-        original_none: This document is not a variant of another one.
-        original_choose: Choose the original
-        original_change: Change
-        original_remove: Remove
-        original_locked: "This document has variants of its own: it stays an original."
-        label: What sets it apart
-        label_placeholder: "yellow, red, no text…"
-        alternates: Its variants
-        alternates_empty: No variant yet.
-        open_original: Open the original
-        chip_original: "Original"
-        chip_original_short: "orig."
-        chip_used: "in use"
-        open: "Show the family"
-        strip_title: "Family: no alternate | Family: 1 alternate | Family: {count} alternates"
-        strip_empty: "Family"
-        add_variant: "Add an alternate"
-        with_alternates: "Also delete its alternates | Also delete its alternate | Also delete its {count} alternates"
-        move_with_alternates: "Also move the chosen originals' alternates"
-        categorize_with_alternates: "Also file the alternates of the chosen originals"
-        label_suggestions: "Already in use:"
-        usage_none: "No version of the family is used"
-        usage_types:
-          other: "{count} use | {count} use | {count} uses"
-          editorial_post: "{count} post | {count} post | {count} posts"
-          studio_deck: "{count} deck | {count} deck | {count} decks"
-          studio_space_note: "{count} space note | {count} space note | {count} space notes"
-          studio_space_file: "{count} space file | {count} space file | {count} space files"
-          studio_space_attachment: "{count} attachment | {count} attachment | {count} attachments"
-          configuration_setting: "{count} site setting | {count} site setting | {count} site settings"
-      recolor:
-        open: "Colour alternate"
-        title: "Create a colour alternate"
-        intro: "A copy of “{title}” in another colour, filed in its family. Every pixel of the visual’s hue takes the new one and keeps its lightness."
-        color: "New colour"
-        theme_color: "Theme colour"
-        source: "Colour to replace"
-        source_auto: "Detected"
-        source_pick: "Chosen"
-        source_hint: "Detected: the visual’s dominant hue, such as the green of a green background."
-        spare: "Colours to spare"
-        spare_hint: "They stay as they are, even within the replaced hue: the green of a logo, of a marker."
-        spare_add: "Add a colour"
-        protect_detail: "Protect photos and screenshots"
-        protect_detail_hint: "The detailed areas laid on the visual (a photo, a screenshot) keep their colours."
-        working: "Creating the copy… a few seconds for a large image."
-        submit: "Create the alternate"
-        created: "Alternate “{label}” created."
-        errors:
-          color_required: "Choose the new colour."
-          color_invalid: "A colour in #rrggbb format."
-          label_required: "Give the alternate a label."
-          not_an_image: "Only a still image (PNG, JPEG, WebP) can be declined."
-          nothing_to_replace: "No colour to replace was found: choose it."
-      originals_only: Group variants
-      originals_only_hint: "Show originals only; their variants open from each one."
-      usage:
-        billing_invoice: Invoice
-        billing_ocr: OCR import
-        project_task: Project task
-      moved: Document moved
-      bulk_moved: Documents moved
-      bulk_move: "Move {count} documents"
-      change_category: Change category
-      bulk_category: "File {count} documents in a category"
-      bulk_categorized: "Category changed: {count} documents"
-      all_documents: All documents
-      root_folder: Root
-      subfolders: Subfolders
-      files: Files
-      folders_section: Folders
-      favourites: Favourites
-      favourite: Add to favourites
-      unfavourite: Remove from favourites
-      new_folder: New folder
-      edit_folder: Edit folder
-      delete_folder_confirm: "Delete folder « {name} »?"
-      delete_folder_cascade: Move the folder and its contents to the trash
-      delete_folder_cascade_hint: Documents and sub-folders go with it. Restoring puts everything back in place.
-      delete_folder_only: Delete the folder only
-      delete_folder_only_hint: Its contents surface at the root. Restoring the folder brings it back empty.
-      delete_folder_with_alternates: "Also take the alternate filed elsewhere | Also take the alternate filed elsewhere | Also take the {count} alternates filed elsewhere"
-      folder_name: Folder name
-      folder_name_placeholder: Folder name…
-      parent_folder: Parent folder
-      expand: Expand
-      collapse: Collapse
-      folder_tree: Folders
-      folder_tree_empty: No folder yet.
-      move: Move
-      errors:
-        title_required: Title is required
-        original_self: A document cannot be its own variant.
-        original_not_found: That original no longer exists.
-        category_unknown: "This category does not exist, or is in the trash."
-        original_is_alternate: That original is itself a variant; choose the document it comes from.
-        original_has_alternates: This document has variants of its own and cannot become one.
-        upload_required: No file received
-        image_required: This field only accepts images.
-        upload_too_large: "That file is over 100 MB. Shrink it or file it another way."
-        upload_type_refused: That file type is not accepted here.
-        upload_failed: "The upload did not arrive complete. Try again."
-    categories:
-      guide:
-        title: "Category, tag or folder"
-        step_1: "The category states what a document is, such as an invoice, a photo or a logo: each document has one at most."
-        step_2: "Tags are free keywords: a document carries as many as you like, on top of its category."
-        step_3: "The folder states where the document is filed in the tree, whatever its nature."
-        step_4: "Images uploaded from an editing form or imported from Pexels are filed under “Editorial media” automatically."
-        step_5: "Deleting a category sends it to the trash, where you can restore it; no document is deleted."
-      row_actions:
-        edit_description: Rename the category and change its description.
-        delete_description: "Sends the category to the trash. Its documents keep it until the purge or a permanent delete."
-      name: Name
-      slug: Identifier
-      description: Description
-      add: Add category
-      create: New category
-      edit: "Edit category {name}"
-      search_placeholder: Search a category…
-      created: Category created successfully
-      updated: Category updated
-      deleted: Category deleted
-      empty: No categories yet
-      delete_confirm: "Are you sure you want to delete category « {name} »?"
-      delete_warning: Linked documents will not be deleted.
-      name_placeholder: Category name…
-      description_placeholder: Optional description…
-      errors:
-        name_required: Name is required
-    tags:
-      guide:
-        title: "What tags are for"
-        step_1: "A tag is a free keyword: a document can carry as many as you like, on top of its category and its folder."
-        step_2: "You add them to a document when you upload it or edit it, from the media library."
-        step_3: "In the document list, the tag filter finds the documents that carry it, or those that have none, and search also reads tag names."
-        step_4: "The colour is optional: it tints the tag's chip in the media library."
-        step_5: "Deleting a tag removes it from every document, without deleting any document."
-      row_actions:
-        edit_description: Rename the tag and change its colour.
-        delete_description: Removes the tag, and takes it off every document.
-      name: Name
-      color: Color
-      search_placeholder: Search a tag…
-      add: Add tag
-      create: New tag
-      edit: "Edit tag {name}"
-      created: Tag created successfully
-      updated: Tag updated
-      deleted: Tag deleted
-      empty: No tags yet
-      delete_confirm: "Are you sure you want to delete tag « {name} »?"
-      delete_warning: Linked documents will not be deleted.
-      name_placeholder: Tag name…
-      errors:
-        name_required: Name is required
-    folders:
-      row_actions:
-        edit_description: Rename the folder and move it.
-        delete_description: Removes the folder. The documents inside move up one level.
-      name: Name
-      parent: Parent folder
-      position: Position
-      add: Add folder
-      create: New folder
-      edit: "Edit folder {name}"
-      created: Folder created successfully
-      updated: Folder updated
-      deleted: Folder deleted
-      empty: No folders yet
-      delete_confirm: "Are you sure you want to delete folder « {name} »?"
-      delete_warning: Linked documents will not be deleted.
-      name_placeholder: Folder name…
-      search_placeholder: Search a folder…
-      no_parent: None (root)
-      errors:
-        cycle: "A folder cannot be filed inside one of its own subfolders."
-        name_required: Name is required
+            row_actions:
+                edit_description: Rename the folder and move it.
+                delete_description: Removes the folder. The documents inside move up one level.
+            name: Name
+            parent: Parent folder
+            position: Position
+            add: Add folder
+            create: New folder
+            edit: "Edit folder {name}"
+            created: Folder created successfully
+            updated: Folder updated
+            deleted: Folder deleted
+            empty: No folders yet
+            delete_confirm: "Are you sure you want to delete folder « {name} »?"
+            delete_warning: Linked documents will not be deleted.
+            name_placeholder: Folder name…
+            search_placeholder: Search a folder…
+            no_parent: None (root)
+            errors:
+                cycle: "A folder cannot be filed inside one of its own subfolders."
+                name_required: Name is required
 ged:
-  frontend:
-    documents:
-      title: Document Library
-      empty: No documents available at the moment.
-      no_category: No category
-      search_placeholder: Search documents…
-      no_results: No documents match your search.
-      result_count: '{count} document|{count} documents'
+    frontend:
+        documents:
+            title: Document Library
+            empty: No documents available at the moment.
+            no_category: No category
+            search_placeholder: Search documents…
+            no_results: No documents match your search.
+            result_count: '{count} document|{count} documents'

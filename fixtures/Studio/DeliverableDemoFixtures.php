@@ -12,8 +12,11 @@ use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
 use Aurora\Module\Studio\Deliverable\Entity\Deliverable;
+use Aurora\Module\Studio\Deliverable\Entity\DeliverableCategory;
+use Aurora\Module\Studio\Deliverable\Entity\DeliverableCategoryInterface;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableLink;
 use Aurora\Module\Studio\Deliverable\Enum\DeliverableScopeEnum;
+use Aurora\Module\Studio\Deliverable\Repository\DeliverableCategoryRepository;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableAppearance;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableReadingHeader;
@@ -65,6 +68,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
         private readonly DeliverableRepository $deliverables,
         private readonly GridNormalizer $gridNormalizer,
         private readonly UserRepository $users,
+        private readonly DeliverableCategoryRepository $categories,
     ) {}
 
     public static function getGroups(): array
@@ -87,6 +91,13 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
         $this->deliverable($manager, $dupont, ...$this->strategy());
         $this->deliverable($manager, $fabre, ...$this->proposal());
 
+        // Les catégories des livrables de Studio, dans l'ordre où l'équipe les
+        // range : chaque modèle ci-dessous en reçoit une.
+        $proposals = $this->category($manager, 'Propositions', '#34d399', 1);
+        $audits = $this->category($manager, 'Audits', '#bd4a55', 2);
+        $strategies = $this->category($manager, 'Stratégies', '#8b6cff', 3);
+        $reports = $this->category($manager, 'Bilans', '#cd8f31', 4);
+
         // Deux livrables de Studio, hors de tout espace : une proposition que
         // le compte de démo garde pour lui, et un modèle d'audit que l'équipe
         // partage et reprend pour chaque prospect.
@@ -103,6 +114,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
             $proposalContent,
             $author instanceof CoreUserInterface ? $author : null,
             DeliverableScopeEnum::Personal,
+            $proposals,
         );
         [, , , $auditLook, $auditZones, $auditContent] = $this->audit();
         $this->deliverable(
@@ -116,6 +128,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
             $auditContent,
             $author instanceof CoreUserInterface ? $author : null,
             DeliverableScopeEnum::Shared,
+            $audits,
         );
 
         // Un partagé écrit par une collègue, et un second brouillon perso :
@@ -134,6 +147,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
             $strategyContent,
             $colleague instanceof CoreUserInterface ? $colleague : null,
             DeliverableScopeEnum::Shared,
+            $strategies,
         );
         [, , , $reportLook, $reportZones, $reportContent] = $this->monthlyReport();
         $this->deliverable(
@@ -147,6 +161,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
             $reportContent,
             $author instanceof CoreUserInterface ? $author : null,
             DeliverableScopeEnum::Personal,
+            $reports,
         );
 
         $manager->flush();
@@ -190,6 +205,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
         array $content,
         ?CoreUserInterface $owner = null,
         DeliverableScopeEnum $scope = DeliverableScopeEnum::Shared,
+        ?DeliverableCategoryInterface $category = null,
     ): ?Deliverable {
         if (null !== $this->deliverables->findOneBy(['space' => $space, 'title' => $title])) {
             return null;
@@ -206,11 +222,27 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
             ->setAppearance(DeliverableAppearance::normalize($appearance))
             ->setReadingHeader(DeliverableReadingHeader::normalize(['preparedFor' => $space?->getCustomer()->getLegalName() ?? '']))
             ->setOwner($owner)
-            ->setScope($scope);
+            ->setScope($scope)
+            ->setCategory($category);
 
         $manager->persist($deliverable);
 
         return $deliverable;
+    }
+
+    /** Une catégorie de livrables, si elle n'existe pas déjà sous ce nom. */
+    private function category(ObjectManager $manager, string $name, string $color, int $position): DeliverableCategoryInterface
+    {
+        $category = $this->categories->findOneBy(['name' => $name]);
+        if ($category instanceof DeliverableCategoryInterface) {
+            return $category;
+        }
+
+        $category = new DeliverableCategory();
+        $category->setName($name)->setColor($color)->setPosition($position);
+        $manager->persist($category);
+
+        return $category;
     }
 
     /**

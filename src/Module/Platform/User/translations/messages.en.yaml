@@ -1,187 +1,187 @@
 backend:
-  stats:
-    platform:
-      users: "Users"
-      by_role: "Split by role"
-  users:
-    guide:
-      title: "How accounts work"
-      step_1: "A Backend account reaches the administration; a Frontend account is only an account on the public site."
-      step_2: "An Administrator can do everything; a User only has the privileges you tick, screen by screen."
-      step_3: "Inviting sends an email so the person chooses their password."
-      step_4: "Deactivating blocks sign-in without losing anything, whereas deleting is permanent; you cannot change your own role."
-    intro: Manage administration users and their roles.
-    name: Name
-    user_label: User
-    email: Email
-    created: Created
-    actions: Actions
-    search_placeholder: Search a user…
-    all_roles: All roles
-    empty: No users found
-    you: You
-    invite: Invite user
-    send_invite: Send invite
-    invite_message: Message
-    invite_message_placeholder: Add a message...
-    invite_disabled: Create the account disabled
-    invite_disabled_hint: "For somebody arriving later: the account exists, nobody is told, and signing in is refused. The invitation goes out when you re-enable the account from the list."
-    create_disabled_account: Create the account
-    invite_frontend_role_hint: "A public-site account has one role: user. There is nothing to pick."
-    edit_title: 'Edit {name}'
-    delete_confirm: 'Delete {name}?'
-    detail:
-      type: Type
-      locale: Locale
-      created_at: Created at
-      invited_at: Invited at
-    role_label: Role
-    role:
-      user: User
-      admin: Administrator
-      dev: Developer
-    type_label: Type
-    type:
-      backend: Backend
-      frontend: Frontend
-    status_label: Status
-    status:
-      active: Active
-      invited: Invited
-      disabled: Disabled
-      pending_verification: Pending verification
-    cannot_delete_self: You cannot delete your own account.
-    cannot_modify_higher_role: You cannot modify a user with a higher role than yours.
-    cannot_modify_self: You cannot modify your own role.
-    dev_granted: Dev role granted.
-    dev_revoked: Dev role revoked.
-    errors:
-      email_invalid: Invalid email address.
-      email_required: Email address is required.
-      email_taken: This email address is already in use.
-      email_too_long: Email address must not exceed 180 characters.
-      name_required: Name is required.
-      name_too_long: Name must not exceed 100 characters.
-      role_invalid: Invalid role.
-      type_invalid: Invalid account type.
-      role_required: Role is required.
-      password_too_short: Password must be at least 8 characters.
-      manager_self: A user cannot be their own manager.
-      manager_not_found: The selected manager does not exist.
-      manager_cycle: This assignment would create a reporting loop.
-      cannot_manage_target: You cannot edit the access of a user with a higher rank.
-    new_password: New password
-    new_password_placeholder: Leave empty to keep current
-    toast:
-      created: User created successfully.
-      updated: User updated.
-      deleted: User deleted.
-    add: Add user
-    invitation_sent: Invitation sent.
-    account_created_disabled: Account created, disabled. The invitation goes out when you re-enable it.
-    invitation_resent: Invitation resent.
-    resend_invitation: Resend invitation
-    enable: Enable
-    enable_and_invite: Enable and invite
-    disable: Disable
-    edit: Edit
-    name_placeholder: John Doe
-    email_placeholder: "john@example.com"
-    password: Password
-    password_optional: Password (leave empty to keep)
-    locale: Language
-    role_dev: Dev
-    role_user: User
-    grant_dev: Grant Dev role
-    revoke_dev: Revoke Dev role
-    grant_dev_confirm: 'Grant Dev role to {name}?'
-    revoke_dev_confirm: 'Revoke Dev role from {name}?'
-    impersonate: 'Impersonate {name}'
-    impersonate_front: 'View frontend as {name}'
-    disable_confirm: "Disable {name}'s account? They will no longer be able to sign in."
-    enable_confirm: "Re-enable {name}'s account?"
-    enable_and_invite_confirm: "Enable {name}'s account? An invitation will be sent so they can choose a password."
-    view: View profile
-    row_actions:
-      title: "Actions : {name}"
-      open: "Actions for {name}"
-      view_description: Read the full record without changing anything.
-      revoke_dev_description: Removes the Dev role, access to the technical tools goes with it.
-      grant_dev_description: Grants the Dev role, and the technical tools with it.
-      dev_delete_description: Removes the account for good. There is no undo.
-      resend_description: Sends a fresh invitation to the same address.
-      impersonate_description: Opens the backend with their rights, to see what they see.
-      impersonate_front_description: Opens the public site as their account.
-      edit_description: Name, address, language and role.
-      privileges_description: Choose what this account may reach, screen by screen.
-      modules_description: Turn modules on or off for this account alone.
-      disable_description: The account is kept but can no longer sign in.
-      enable_description: Gives the account back its access, as it was.
-      enable_and_invite_description: "Nobody has ever been contacted about this account: opening it sends the invitation."
-      delete_description: Removes the account for good. There is no undo.
-    manager:
-      label: Manager
-      none: No manager
-      subordinates: 'Direct reports ({count})'
-    privileges:
-      title: Privileges
-      save: Save privileges
-      saved: Privileges updated
-      no_dev_target: Cannot assign privileges to a Dev user.
-    modules:
-      title: Module access
-      hint: Uncheck the modules to hide from this user. Disabling a parent module automatically hides its sub-modules.
-      saved: Module access updated.
-    photo:
-      upload: Change photo
-      remove: Remove photo
-      hint: 'JPEG, PNG or WebP. 5 MB max.'
-      uploaded: Photo updated.
-      removed: Photo removed.
-      errors:
-        invalid_type: 'Unsupported format. Use JPEG, PNG or WebP.'
-        too_large: The image is too large (5 MB max).
-        missing: No image selected.
-  roles:
-    ROLE_USER: User
-    ROLE_ADMIN: Admin
-    ROLE_DEV: Developer
-  invitations:
-    sent: 'Invitation sent to {email}.'
-    description: Send an email invitation to allow someone to join the administration.
-    email: Recipient email address
-    email_placeholder: "example@domain.com"
-    message: Custom message (optional)
-    message_placeholder: Add a message to accompany the invitation…
-    credentials_hint: You can include login credentials in the email.
-    credential_email: Login email
-    credential_password: Password
-    send: Send invitation
-    sending: Sending…
-  access_requests:
-    intro: Manage pending access requests to the administration.
-    approved: 'Request from {name} approved.'
-    purged: Processed requests deleted.
-    rejected: 'Request from {name} rejected.'
-    status_pending: Pending
-    status_approved: Approved
-    status_rejected: Rejected
-    requester: Requester
-    message: Message
-    status: Status
-    date: Date
-    expires: Expires
-    empty: No access requests.
-    approve: Approve
-    row_actions:
-      approve_description: Creates the account and tells the requester by email.
-      reject_description: Turns the request down and tells the requester.
-    reject: Reject
-    purge: Purge
-    approve_confirm: 'Approve the request from {name}? They will receive an email.'
-    reject_confirm: 'Reject the request from {name}?'
-    purge_confirm: Delete all approved and rejected requests? This action cannot be undone.
-    approved_toast: Access request approved.
-    rejected_toast: Access request rejected.
-    purged_toast: Processed requests deleted.
-    search_placeholder: 'Search by email, name or message…'
+    stats:
+        platform:
+            users: "Users"
+            by_role: "Split by role"
+    users:
+        guide:
+            title: "How accounts work"
+            step_1: "A Backend account reaches the administration; a Frontend account is only an account on the public site."
+            step_2: "An Administrator can do everything; a User only has the privileges you tick, screen by screen."
+            step_3: "Inviting sends an email so the person chooses their password."
+            step_4: "Deactivating blocks sign-in without losing anything, whereas deleting is permanent; you cannot change your own role."
+        intro: Manage administration users and their roles.
+        name: Name
+        user_label: User
+        email: Email
+        created: Created
+        actions: Actions
+        search_placeholder: Search a user…
+        all_roles: All roles
+        empty: No users found
+        you: You
+        invite: Invite user
+        send_invite: Send invite
+        invite_message: Message
+        invite_message_placeholder: Add a message...
+        invite_disabled: Create the account disabled
+        invite_disabled_hint: "For somebody arriving later: the account exists, nobody is told, and signing in is refused. The invitation goes out when you re-enable the account from the list."
+        create_disabled_account: Create the account
+        invite_frontend_role_hint: "A public-site account has one role: user. There is nothing to pick."
+        edit_title: 'Edit {name}'
+        delete_confirm: 'Delete {name}?'
+        detail:
+            type: Type
+            locale: Locale
+            created_at: Created at
+            invited_at: Invited at
+        role_label: Role
+        role:
+            user: User
+            admin: Administrator
+            dev: Developer
+        type_label: Type
+        type:
+            backend: Backend
+            frontend: Frontend
+        status_label: Status
+        status:
+            active: Active
+            invited: Invited
+            disabled: Disabled
+            pending_verification: Pending verification
+        cannot_delete_self: You cannot delete your own account.
+        cannot_modify_higher_role: You cannot modify a user with a higher role than yours.
+        cannot_modify_self: You cannot modify your own role.
+        dev_granted: Dev role granted.
+        dev_revoked: Dev role revoked.
+        errors:
+            email_invalid: Invalid email address.
+            email_required: Email address is required.
+            email_taken: This email address is already in use.
+            email_too_long: Email address must not exceed 180 characters.
+            name_required: Name is required.
+            name_too_long: Name must not exceed 100 characters.
+            role_invalid: Invalid role.
+            type_invalid: Invalid account type.
+            role_required: Role is required.
+            password_too_short: Password must be at least 8 characters.
+            manager_self: A user cannot be their own manager.
+            manager_not_found: The selected manager does not exist.
+            manager_cycle: This assignment would create a reporting loop.
+            cannot_manage_target: You cannot edit the access of a user with a higher rank.
+        new_password: New password
+        new_password_placeholder: Leave empty to keep current
+        toast:
+            created: User created successfully.
+            updated: User updated.
+            deleted: User deleted.
+        add: Add user
+        invitation_sent: Invitation sent.
+        account_created_disabled: Account created, disabled. The invitation goes out when you re-enable it.
+        invitation_resent: Invitation resent.
+        resend_invitation: Resend invitation
+        enable: Enable
+        enable_and_invite: Enable and invite
+        disable: Disable
+        edit: Edit
+        name_placeholder: John Doe
+        email_placeholder: "john@example.com"
+        password: Password
+        password_optional: Password (leave empty to keep)
+        locale: Language
+        role_dev: Dev
+        role_user: User
+        grant_dev: Grant Dev role
+        revoke_dev: Revoke Dev role
+        grant_dev_confirm: 'Grant Dev role to {name}?'
+        revoke_dev_confirm: 'Revoke Dev role from {name}?'
+        impersonate: 'Impersonate {name}'
+        impersonate_front: 'View frontend as {name}'
+        disable_confirm: "Disable {name}'s account? They will no longer be able to sign in."
+        enable_confirm: "Re-enable {name}'s account?"
+        enable_and_invite_confirm: "Enable {name}'s account? An invitation will be sent so they can choose a password."
+        view: View profile
+        row_actions:
+            title: "Actions : {name}"
+            open: "Actions for {name}"
+            view_description: Read the full record without changing anything.
+            revoke_dev_description: Removes the Dev role, access to the technical tools goes with it.
+            grant_dev_description: Grants the Dev role, and the technical tools with it.
+            dev_delete_description: Removes the account for good. There is no undo.
+            resend_description: Sends a fresh invitation to the same address.
+            impersonate_description: Opens the backend with their rights, to see what they see.
+            impersonate_front_description: Opens the public site as their account.
+            edit_description: Name, address, language and role.
+            privileges_description: Choose what this account may reach, screen by screen.
+            modules_description: Turn modules on or off for this account alone.
+            disable_description: The account is kept but can no longer sign in.
+            enable_description: Gives the account back its access, as it was.
+            enable_and_invite_description: "Nobody has ever been contacted about this account: opening it sends the invitation."
+            delete_description: Removes the account for good. There is no undo.
+        manager:
+            label: Manager
+            none: No manager
+            subordinates: 'Direct reports ({count})'
+        privileges:
+            title: Privileges
+            save: Save privileges
+            saved: Privileges updated
+            no_dev_target: Cannot assign privileges to a Dev user.
+        modules:
+            title: Module access
+            hint: Uncheck the modules to hide from this user. Disabling a parent module automatically hides its sub-modules.
+            saved: Module access updated.
+        photo:
+            upload: Change photo
+            remove: Remove photo
+            hint: 'JPEG, PNG or WebP. 5 MB max.'
+            uploaded: Photo updated.
+            removed: Photo removed.
+            errors:
+                invalid_type: 'Unsupported format. Use JPEG, PNG or WebP.'
+                too_large: The image is too large (5 MB max).
+                missing: No image selected.
+    roles:
+        ROLE_USER: User
+        ROLE_ADMIN: Admin
+        ROLE_DEV: Developer
+    invitations:
+        sent: 'Invitation sent to {email}.'
+        description: Send an email invitation to allow someone to join the administration.
+        email: Recipient email address
+        email_placeholder: "example@domain.com"
+        message: Custom message (optional)
+        message_placeholder: Add a message to accompany the invitation…
+        credentials_hint: You can include login credentials in the email.
+        credential_email: Login email
+        credential_password: Password
+        send: Send invitation
+        sending: Sending…
+    access_requests:
+        intro: Manage pending access requests to the administration.
+        approved: 'Request from {name} approved.'
+        purged: Processed requests deleted.
+        rejected: 'Request from {name} rejected.'
+        status_pending: Pending
+        status_approved: Approved
+        status_rejected: Rejected
+        requester: Requester
+        message: Message
+        status: Status
+        date: Date
+        expires: Expires
+        empty: No access requests.
+        approve: Approve
+        row_actions:
+            approve_description: Creates the account and tells the requester by email.
+            reject_description: Turns the request down and tells the requester.
+        reject: Reject
+        purge: Purge
+        approve_confirm: 'Approve the request from {name}? They will receive an email.'
+        reject_confirm: 'Reject the request from {name}?'
+        purge_confirm: Delete all approved and rejected requests? This action cannot be undone.
+        approved_toast: Access request approved.
+        rejected_toast: Access request rejected.
+        purged_toast: Processed requests deleted.
+        search_placeholder: 'Search by email, name or message…'

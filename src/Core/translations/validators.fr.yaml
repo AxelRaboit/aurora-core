@@ -1,171 +1,171 @@
 backend:
-  access_requests:
-    approved: Demande de {name} approuvée.
-    purged: Demandes traitées supprimées.
-    rejected: Demande de {name} rejetée.
-  invitations:
-    sent: Invitation envoyée à {email}.
-  tabs:
-    access_requests: Demandes d'accès
-    invitations: Invitations
-    overview: Vue d'ensemble
-    parameters: Paramètres
-    users: Utilisateurs
-  users:
-    cannot_delete_self: Vous ne pouvez pas supprimer votre propre compte.
-    cannot_modify_higher_role: Vous ne pouvez pas modifier un utilisateur avec un rôle supérieur au vôtre.
-    cannot_modify_self: Vous ne pouvez pas modifier votre propre rôle.
-    created: Utilisateur créé avec succès.
-    deleted: Utilisateur supprimé.
-    dev_granted: Rôle Dev attribué.
-    dev_revoked: Rôle Dev retiré.
+    access_requests:
+        approved: Demande de {name} approuvée.
+        purged: Demandes traitées supprimées.
+        rejected: Demande de {name} rejetée.
+    invitations:
+        sent: Invitation envoyée à {email}.
+    tabs:
+        access_requests: Demandes d'accès
+        invitations: Invitations
+        overview: Vue d'ensemble
+        parameters: Paramètres
+        users: Utilisateurs
+    users:
+        cannot_delete_self: Vous ne pouvez pas supprimer votre propre compte.
+        cannot_modify_higher_role: Vous ne pouvez pas modifier un utilisateur avec un rôle supérieur au vôtre.
+        cannot_modify_self: Vous ne pouvez pas modifier votre propre rôle.
+        created: Utilisateur créé avec succès.
+        deleted: Utilisateur supprimé.
+        dev_granted: Rôle Dev attribué.
+        dev_revoked: Rôle Dev retiré.
+        errors:
+            email_invalid: Adresse e-mail invalide.
+            email_required: L'adresse e-mail est requise.
+            email_taken: Cette adresse e-mail est déjà utilisée.
+            email_too_long: L'adresse e-mail ne doit pas dépasser 180 caractères.
+            name_required: Le nom est requis.
+            name_too_long: Le nom ne doit pas dépasser 100 caractères.
+            role_invalid: Rôle invalide.
+            role_required: Le rôle est requis.
+        updated: Utilisateur mis à jour.
+    auth:
+        access_request:
+            already_account: Déjà un compte ?
+            description: Remplissez ce formulaire pour demander l'accès à l'administration.
+            email: Email
+            login_link: Se connecter
+            message: Message
+            message_placeholder: Décrivez votre besoin...
+            name: Nom
+            name_placeholder: Jean Dupont
+            submit: Envoyer la demande
+            success_toast: Votre demande d'accès a été envoyée.
+            title: Demander l'accès
+        forgot_password:
+            back_login: Retour à la connexion
+            instructions: Entrez votre adresse email et nous vous enverrons un lien pour réinitialiser votre mot de passe.
+            sent: Si cette adresse est associée à un compte, vous recevrez un email sous peu.
+            submit: Envoyer le lien
+            title: Mot de passe oublié
+        hero:
+            description: Une interface moderne pour créer, gérer et publier vos contenus web.
+            feature_1: Gestion de contenu flexible
+            feature_2: Types de contenu personnalisables
+            feature_3: Gestion des médias intégrée
+            feature_4: Interface moderne et rapide
+            heading: Gérez vos contenus
+            heading_accent: avec {siteName}.
+        invitation:
+            accept_title: Accepter l'invitation
+            confirm_password: Confirmer le mot de passe
+            errors:
+                password_confirm_required: La confirmation est requise.
+                password_mismatch: Les mots de passe ne correspondent pas.
+                password_required: Le mot de passe est requis.
+                password_too_short: Le mot de passe doit contenir au moins 8 caractères.
+            expired: Ce lien d'invitation est invalide ou a expiré.
+            password: Mot de passe
+            set_password: Définissez votre mot de passe pour activer votre compte.
+            submit: Activer mon compte
+            success: Votre compte est activé, bienvenue !
+            welcome: Bienvenue {name}
+        login:
+            email: Adresse e-mail
+            email_placeholder: votre@email.com
+            forgot: Mot de passe oublié ?
+            no_account: Pas encore de compte ?
+            password: Mot de passe
+            remember: Se souvenir de moi
+            request_access: Demander l'accès
+            submit: Se connecter
+            title: Connexion
+        register:
+            already_account: Déjà un compte ?
+            closed_desc: Les nouvelles inscriptions sont désactivées pour le moment.
+            closed_title: Inscriptions fermées
+            email: Email
+            error_email_invalid: Adresse email invalide.
+            error_email_required: L'adresse email est requise.
+            error_email_taken: Cette adresse email est déjà utilisée.
+            error_name_required: Le nom est requis.
+            error_password_length: Le mot de passe doit contenir au moins 8 caractères.
+            error_password_mismatch: Les mots de passe ne correspondent pas.
+            heading: Créer un compte
+            login_link: Se connecter
+            name: Nom
+            name_placeholder: Jean Dupont
+            password: Mot de passe
+            password_confirm: Confirmer le mot de passe
+            submit: Créer le compte
+            title: Créer un compte
+        reset_password:
+            instructions: Choisissez un nouveau mot de passe pour votre compte.
+            invalid_link: Ce lien est invalide ou a expiré.
+            submit: Réinitialiser
+            success: Votre mot de passe a été réinitialisé avec succès.
+            title: Réinitialiser le mot de passe
+    profile:
+        errors:
+            current_password_invalid: Le mot de passe actuel est incorrect.
+            email_invalid: Adresse e-mail invalide.
+            email_taken: Cette adresse e-mail est déjà utilisée.
+            invalid_csrf: Jeton de sécurité invalide.
+            invalid_locale: Langue non supportée.
+            name_required: Le nom est requis.
+            password_mismatch: Les mots de passe ne correspondent pas.
+            password_too_short: Le mot de passe doit contenir au moins 8 caractères.
+    media:
+        errors:
+            alt_required: Le texte alternatif est requis.
+            focal_out_of_range: Le point focal doit être compris entre 0 et 1.
+            folder_name_required: Le nom du dossier est requis.
+    post_types:
+        errors:
+            slug_required: Le slug est requis.
+            slug_format: Le slug ne peut contenir que des lettres minuscules, chiffres et underscores.
+            label_required: Le libellé est requis.
+            field_name_required: Le nom du champ est requis.
+            field_name_format: Le nom du champ ne peut contenir que des lettres minuscules, chiffres et underscores.
+            field_label_required: Le libellé du champ est requis.
+            field_type_invalid: Type de champ invalide.
+    taxonomies:
+        errors:
+            slug_required: Le slug est requis.
+            slug_format: Le slug ne peut contenir que des lettres minuscules, chiffres, tirets et underscores.
+            translations_required: Au moins une traduction est requise.
+    posts:
+        errors:
+            post_type_required: Le type de contenu est requis.
+            status_required: Le statut est requis.
+            status_invalid: Statut invalide.
+            visibility_invalid: Diffusion invalide.
+    forms:
+        errors:
+            translations_required: Au moins une langue doit être renseignée.
+            type_required: Le type de champ est requis.
+            field_label_required: Au moins un libellé est requis.
+frontend:
     errors:
-      email_invalid: Adresse e-mail invalide.
-      email_required: L'adresse e-mail est requise.
-      email_taken: Cette adresse e-mail est déjà utilisée.
-      email_too_long: L'adresse e-mail ne doit pas dépasser 180 caractères.
-      name_required: Le nom est requis.
-      name_too_long: Le nom ne doit pas dépasser 100 caractères.
-      role_invalid: Rôle invalide.
-      role_required: Le rôle est requis.
-    updated: Utilisateur mis à jour.
-  auth:
-    access_request:
-      already_account: Déjà un compte ?
-      description: Remplissez ce formulaire pour demander l'accès à l'administration.
-      email: Email
-      login_link: Se connecter
-      message: Message
-      message_placeholder: Décrivez votre besoin...
-      name: Nom
-      name_placeholder: Jean Dupont
-      submit: Envoyer la demande
-      success_toast: Votre demande d'accès a été envoyée.
-      title: Demander l'accès
-    forgot_password:
-      back_login: Retour à la connexion
-      instructions: Entrez votre adresse email et nous vous enverrons un lien pour réinitialiser votre mot de passe.
-      sent: Si cette adresse est associée à un compte, vous recevrez un email sous peu.
-      submit: Envoyer le lien
-      title: Mot de passe oublié
-    hero:
-      description: Une interface moderne pour créer, gérer et publier vos contenus web.
-      feature_1: Gestion de contenu flexible
-      feature_2: Types de contenu personnalisables
-      feature_3: Gestion des médias intégrée
-      feature_4: Interface moderne et rapide
-      heading: Gérez vos contenus
-      heading_accent: avec {siteName}.
-    invitation:
-      accept_title: Accepter l'invitation
-      confirm_password: Confirmer le mot de passe
-      errors:
-        password_confirm_required: La confirmation est requise.
-        password_mismatch: Les mots de passe ne correspondent pas.
+        name_required: Le nom est requis.
+        email_required: L'adresse e-mail est requise.
+        email_invalid: Adresse e-mail invalide.
+        email_taken: Cette adresse e-mail est déjà utilisée.
         password_required: Le mot de passe est requis.
         password_too_short: Le mot de passe doit contenir au moins 8 caractères.
-      expired: Ce lien d'invitation est invalide ou a expiré.
-      password: Mot de passe
-      set_password: Définissez votre mot de passe pour activer votre compte.
-      submit: Activer mon compte
-      success: Votre compte est activé, bienvenue !
-      welcome: Bienvenue {name}
-    login:
-      email: Adresse e-mail
-      email_placeholder: votre@email.com
-      forgot: Mot de passe oublié ?
-      no_account: Pas encore de compte ?
-      password: Mot de passe
-      remember: Se souvenir de moi
-      request_access: Demander l'accès
-      submit: Se connecter
-      title: Connexion
-    register:
-      already_account: Déjà un compte ?
-      closed_desc: Les nouvelles inscriptions sont désactivées pour le moment.
-      closed_title: Inscriptions fermées
-      email: Email
-      error_email_invalid: Adresse email invalide.
-      error_email_required: L'adresse email est requise.
-      error_email_taken: Cette adresse email est déjà utilisée.
-      error_name_required: Le nom est requis.
-      error_password_length: Le mot de passe doit contenir au moins 8 caractères.
-      error_password_mismatch: Les mots de passe ne correspondent pas.
-      heading: Créer un compte
-      login_link: Se connecter
-      name: Nom
-      name_placeholder: Jean Dupont
-      password: Mot de passe
-      password_confirm: Confirmer le mot de passe
-      submit: Créer le compte
-      title: Créer un compte
-    reset_password:
-      instructions: Choisissez un nouveau mot de passe pour votre compte.
-      invalid_link: Ce lien est invalide ou a expiré.
-      submit: Réinitialiser
-      success: Votre mot de passe a été réinitialisé avec succès.
-      title: Réinitialiser le mot de passe
-  profile:
-    errors:
-      current_password_invalid: Le mot de passe actuel est incorrect.
-      email_invalid: Adresse e-mail invalide.
-      email_taken: Cette adresse e-mail est déjà utilisée.
-      invalid_csrf: Jeton de sécurité invalide.
-      invalid_locale: Langue non supportée.
-      name_required: Le nom est requis.
-      password_mismatch: Les mots de passe ne correspondent pas.
-      password_too_short: Le mot de passe doit contenir au moins 8 caractères.
-  media:
-    errors:
-      alt_required: Le texte alternatif est requis.
-      focal_out_of_range: Le point focal doit être compris entre 0 et 1.
-      folder_name_required: Le nom du dossier est requis.
-  post_types:
-    errors:
-      slug_required: Le slug est requis.
-      slug_format: Le slug ne peut contenir que des lettres minuscules, chiffres et underscores.
-      label_required: Le libellé est requis.
-      field_name_required: Le nom du champ est requis.
-      field_name_format: Le nom du champ ne peut contenir que des lettres minuscules, chiffres et underscores.
-      field_label_required: Le libellé du champ est requis.
-      field_type_invalid: Type de champ invalide.
-  taxonomies:
-    errors:
-      slug_required: Le slug est requis.
-      slug_format: Le slug ne peut contenir que des lettres minuscules, chiffres, tirets et underscores.
-      translations_required: Au moins une traduction est requise.
-  posts:
-    errors:
-      post_type_required: Le type de contenu est requis.
-      status_required: Le statut est requis.
-      status_invalid: Statut invalide.
-      visibility_invalid: Diffusion invalide.
-  forms:
-    errors:
-      translations_required: Au moins une langue doit être renseignée.
-      type_required: Le type de champ est requis.
-      field_label_required: Au moins un libellé est requis.
-frontend:
-  errors:
-    name_required: Le nom est requis.
-    email_required: L'adresse e-mail est requise.
-    email_invalid: Adresse e-mail invalide.
-    email_taken: Cette adresse e-mail est déjà utilisée.
-    password_required: Le mot de passe est requis.
-    password_too_short: Le mot de passe doit contenir au moins 8 caractères.
-    email_not_verified: Veuillez confirmer votre adresse e-mail avant de vous connecter.
-    account_disabled: Votre compte a été désactivé.
+        email_not_verified: Veuillez confirmer votre adresse e-mail avant de vous connecter.
+        account_disabled: Votre compte a été désactivé.
 
 crm:
-  contacts:
-    errors:
-      first_name_required: Le prénom est requis.
-      last_name_required: Le nom est requis.
-      email_invalid: Adresse e-mail invalide.
-  companies:
-    errors:
-      name_required: "Le nom de l'entreprise est requis."
-      website_invalid: URL invalide.
-  deals:
-    errors:
-      name_required: "Le nom de l'affaire est requis."
+    contacts:
+        errors:
+            first_name_required: Le prénom est requis.
+            last_name_required: Le nom est requis.
+            email_invalid: Adresse e-mail invalide.
+    companies:
+        errors:
+            name_required: "Le nom de l'entreprise est requis."
+            website_invalid: URL invalide.
+    deals:
+        errors:
+            name_required: "Le nom de l'affaire est requis."

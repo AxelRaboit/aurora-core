@@ -1,4 +1,4 @@
 backend:
-  migrations:
-    pending:
-      banner: "{count} migration(s) en attente sur la base dev. Lance la commande pour synchroniser :"
+    migrations:
+        pending:
+            banner: "{count} migration(s) en attente sur la base dev. Lance la commande pour synchroniser :"

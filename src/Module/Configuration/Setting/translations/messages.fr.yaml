@@ -1,600 +1,600 @@
 backend:
-  settings:
-    studio_guide:
-      title: "Votre identité dans les contrats"
-      step_1: "Ces champs remplissent le bloc d'identité du prestataire de chaque contrat au moment où il est scellé, et ceux déjà scellés gardent leurs valeurs."
-      step_2: "Un contrat dont la trame utilise un champ resté vide ne peut pas être scellé tant que vous ne l'avez pas rempli ici."
-      step_3: "La durée de conservation ne descend jamais sous cinq ans, même si vous saisissez moins."
-      step_4: "Les relances, désactivées par défaut, renvoient un nouveau lien de signature après le délai choisi, jusqu'au nombre maximum, et 0 dans l'un des deux champs les arrête."
-      step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
-    media_guide:
-      title: "Les limites des fichiers"
-      step_1: "La taille maximale vaut pour tout fichier déposé, médiathèque comme espaces clients, et les invités d'un espace restent en plus limités à 25 Mo."
-      step_2: "Le serveur peut refuser plus tôt : ses propres limites d'envoi doivent être relevées pour qu'une valeur plus haute serve."
-      step_3: "Les versions conservées comptent le fichier actuel ; au-delà, les plus anciennes sont supprimées avec leur fichier, et 0 les garde toutes."
-      step_4: "Masquer le crédit des photos demande une confirmation, car les conditions de l'API Pexels demandent de le montrer."
-      step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
-    email_guide:
-      title: "La langue et les couleurs des e-mails"
-      step_1: "Ce réglage fixe la langue des e-mails que l'application envoie sans connaître celle du destinataire, comme les messages adressés à l'administration."
-      step_2: "« Suivre la langue par défaut » reprend la langue choisie dans l'onglet Localisation."
-      step_3: "Un e-mail lié à un contrat part dans la langue du contrat, et l'avis d'un nouveau commentaire dans la langue du compte de l'auteur de l'article."
-      step_4: "Par défaut, l'accent des e-mails (bouton, liens, pastille du logo) suit la couleur principale du thème ; coupez « Suivre la couleur du thème » pour en choisir une autre. Le fond, les titres et le texte se règlent à côté, et « Couleur d'origine » remet celle de départ."
-      step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
-    system_guide:
-      title: "Qui peut entrer, et quand"
-      step_1: "Le mode maintenance ferme le site public à tous ses visiteurs, alors que le back-office et sa page de connexion restent ouverts."
-      step_2: "Les inscriptions admin ouvrent un formulaire de création de compte pour le back-office, à refermer une fois le premier compte créé."
-      step_3: "Les demandes d'accès laissent quelqu'un demander un compte, que vous approuvez ensuite depuis l'espace développeur."
-      step_4: "Couper la connexion frontend retire du site public la connexion, l'inscription et la page de compte, et rend les inscriptions frontend sans effet."
-      step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
-    seo_guide:
-      title: "Ce que voient les moteurs et les réseaux"
-      step_1: "Le modèle de titre place le titre de la page et le nom du site aux endroits marqués dans le champ, et une page sans titre affiche le nom seul."
-      step_2: "La description par défaut sert aux pages qui n'ont pas la leur ; vide, c'est la description de l'onglet Général qui est reprise."
-      step_3: "L'image de partage illustre les liens partagés sur les réseaux quand la page n'en a pas ; sans elle, le logo prend sa place."
-      step_4: "Le compte X renseigné ici est indiqué dans les aperçus des liens partagés sur ce réseau."
-      step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
-    branding_guide:
-      title: "Le logo et l'icône du site"
-      step_1: "Le logo s'affiche dans le menu latéral du back-office et sur les pages de connexion, et sert d'image de partage quand aucune autre n'est définie."
-      step_2: "Sans favicon choisi, l'onglet du navigateur affiche l'initiale du nom du site sur la couleur principale du thème."
-      step_3: "Une image prise dans la médiathèque doit être au statut « Publié » pour s'afficher aux visiteurs."
-      step_4: "Sur téléphone, le nom du site peut être masqué à côté du logo de la barre du haut, pour ne garder que le logo."
-      step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
-    localization_guide:
-      title: "Langues, heure et dates du site"
-      step_1: "La langue par défaut sert de repli au site public, et aux e-mails quand l'onglet Emails suit cette langue."
-      step_2: "Le mode mono-langue n'affiche et n'enregistre plus que la langue par défaut, et redirige vers elle les adresses des autres langues."
-      step_3: "Le désactiver plus tard rend leur place aux contenus saisis dans les autres langues, restés en base."
-      step_4: "La langue du back-office ne se règle pas ici : chacun la choisit dans son profil."
-      step_5: "Le fuseau horaire donne l'heure du site : 9 h dans une publication programmée veut dire 9 h ici, et les emails et PDF datent à cette heure, dans le style de dates choisi."
-      step_6: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
-    reading_guide:
-      title: "Ce que lisent les visiteurs"
-      step_1: "La page d'accueil se choisit en cherchant une page ou en saisissant son numéro ; sans choix, l'accueil liste les derniers articles."
-      step_2: "Un commentaire n'est possible que si les commentaires sont activés ici et sur la publication ; avec la modération, chacun attend votre validation."
-      step_3: "Le délai de purge vaut pour les corbeilles des articles, des notes et de la médiathèque, et 0 garde tout jusqu'à ce que vous les vidiez."
-      step_4: "Les réponses aux formulaires, adresse IP comprise, sont effacées après leur délai de conservation, et 0 les garde sans limite."
-      step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
-    administration_guide:
-      title: "L'espace développeur"
-      step_1: "Cet espace est réservé au rôle développeur, et chaque rubrique du menu latéral ouvre l'un de ses onglets."
-      step_2: "Utilisateurs et Demandes d'accès gèrent les comptes et leurs rôles, et traitent les inscriptions en attente."
-      step_3: "Modules active ou désactive une fonctionnalité pour tout le site, après confirmation de votre mot de passe."
-      step_4: "Audit retrace les actions enregistrées, et Permissions liste les privilèges déclarés par chaque module."
-      step_5: "Points de montage décrit les connexions vers des ressources externes et permet de les tester."
-    notes_guide:
-      title: "Les images des notes"
-      step_1: "Ces deux réglages s'appliquent aux images que vous ajoutez dans une note Markdown."
-      step_2: "Une image plus grande que la taille maximale est réduite dans votre navigateur, puis envoyée au format WebP."
-      step_3: "La qualité, de 0 à 100, ne joue que sur les images réduites ; 85 est un bon compromis entre poids et netteté."
-      step_4: "Les images déjà présentes dans les notes ne changent pas, et les GIF animés passent sans retouche."
-      step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
-    sequences_guide:
-      title: "Comment se numérotent les références"
-      step_1: "Chaque préfixe numérote un type d'enregistrement, comme les documents, les publications ou les contrats."
-      step_2: "Une référence s'écrit préfixe, tiret puis numéro, et certaines séries, comme les contrats, repartent à 1 chaque année."
-      step_3: "Un préfixe compte de 1 à 10 lettres ou chiffres, sans espace ni tiret, et passe en majuscules à l'enregistrement."
-      step_4: "Changer un préfixe ne touche pas aux références déjà attribuées : seules les suivantes le prennent."
-      step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
-    general_guide:
-      title: "Les réglages de base du site"
-      step_1: "Le nom du site s'affiche sur le site public et signe les e-mails envoyés par l'application."
-      step_2: "La description du site présente le flux RSS, et sert aux moteurs de recherche quand ni la page ni l'onglet SEO n'en donnent une."
-      step_3: "L'adresse publique, sans barre oblique finale, construit les liens des e-mails et du plan du site ; vide, l'application déduit celle du serveur."
-      step_4: "L'e-mail administrateur reçoit les messages destinés à l'administration ; vide, l'adresse déclarée à l'installation du serveur prend le relais."
-      step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
-    integration:
-      status_active: Active
-      status_off: Désactivée
-      status_todo: À configurer
-      settings_title: Connexion
-      guide_title: Comment l'obtenir
-    disable_anyway: Désactiver quand même
-    usage_detail: Paramètres du site
-    tabs:
-      general: Général
-      general_description: 'Nom du site, email admin, URL publique.'
-      reading: Lecture
-      reading_description: "Articles par page, page d'accueil, commentaires."
-      localization: Localisation
-      localization_description: 'Langue, fuseau horaire, style des dates.'
-      branding: Branding
-      branding_description: 'Logo, favicon et identité visuelle.'
-      appearance: Apparence
-      appearance_description: 'Personnaliser la palette de couleurs et autres paramètres visuels de l''admin.'
-      seo: SEO
-      seo_description: Template de titre et meta description par défaut.
-      system: Système
-      system_description: 'Maintenance, inscriptions, accès et uploads.'
-      email: Emails
-      email_description: Langue et couleurs des emails sortants.
-      media: Médias & uploads
-      media_description: Limites d'upload des fichiers (taille maximale, extensions autorisées).
-      sequences: Séquences
-      sequences_description: Préfixes des références auto-générées. Onglet réservé aux développeurs.
-      navigation: Navigation
-      studio: Studio
-      studio_description: "L'identité du prestataire imprimée dans chaque contrat : dénomination, SIRET, coordonnées bancaires."
-      navigation_description: Personnalisez les noms des sections et des items du menu latéral.
-      pexels: Pexels
-      craft: Craft
-      github: GitHub
-      instagram: Instagram
-      google_reviews: Avis Google
-      newsletter: Lettre d'information
-      useful_links: Liens utiles
-      drive: Google Drive
-      drive_description: "Lire les dossiers Drive des clients et celui de l'agence : compte de service, clé, activation."
-      github_description: "La grille de contributions de vos comptes GitHub, à afficher dans une page : comptes et activation."
-      instagram_description: "Le fil de vos publications Instagram, à afficher dans une page : compte et jeton d'accès."
-      google_reviews_description: "Votre note et vos derniers avis Google, à afficher dans une page : fiche d'établissement et clé."
-      useful_links_description: "Les liens posés en bas de chaque publication, à côté de « Partager » : réseaux, profils, adresse e-mail."
-      newsletter_description: "L'inscription à votre lettre d'information (Brevo ou Mailchimp), à poser dans une page : fournisseur, clé et liste."
-      craft_description: "Importer une note écrite dans Craft : adresse de la connexion, jeton, activation."
-      pexels_description: 'Banque de photos gratuites : activation, clé d''API et acceptation des conditions.'
-      captcha: Anti-robots
-      captcha_description: "Vérification des commentaires et des formulaires : service, clés et activation."
-      notes: Notes
-      notes_description: 'Paramètres du module Notes Markdown : taille / qualité des images uploadées.'
-      storage: Stockage des fichiers
-      storage_description: "Où sont écrits les fichiers de l'application : le disque du serveur, ou un stockage objet Cloudflare R2."
-      modules: Modules
-    storage:
-      guide:
-        title: "Dans quel ordre s'y prendre"
-        step_1: "Sans rien brancher, vos fichiers restent sur le disque du serveur : cet écran ne sert que pour passer à Cloudflare R2."
-        step_2: "Renseignez l'adresse du compte, le compartiment et les deux clés, puis lancez « Tester la connexion », qui enregistre avant de vérifier."
-        step_3: "Une fois le test réussi, choisissez où écrire les nouveaux fichiers et enregistrez : ceux déjà en place ne bougent pas."
-        step_4: "Pour déplacer des documents existants, utilisez le déplacement de la médiathèque, document par document ou tous à la fois."
-        step_5: "« Débrancher le stockage » efface les clés, et reste refusé tant qu'un document se trouve encore sur le stockage distant."
-      intro: "Par défaut, les fichiers que vous déposez sont écrits sur le disque du serveur. Vous pouvez à la place les confier à un stockage objet Cloudflare R2, sur votre propre compte."
-      when_useful: "Utile surtout si vous stockez beaucoup, ou de gros fichiers. En dessous de quelques giga-octets, le disque du serveur fait très bien l'affaire et demande moins de réglages."
-      how_title: Comment obtenir les identifiants
-      how_step_bucket: "Dans le tableau de bord Cloudflare, ouvrez R2 et créez un compartiment, ou choisissez-en un existant."
-      how_step_token: "Créez un jeton d'API avec la permission « Object Read & Write », limitée à ce seul compartiment. La lecture seule ne suffit pas : l'application doit pouvoir écrire."
-      how_step_copy: "Copiez l'identifiant de clé et la clé secrète. Cloudflare ne les affiche qu'une fois."
-      how_link: Ouvrir la documentation Cloudflare R2
-      endpoint_label: Adresse du compte
-      endpoint_hint: "L'URL du compte, sans le nom du compartiment à la fin. La console en affiche une avec le compartiment ajouté : la coller telle quelle le ferait apparaître deux fois."
-      bucket_label: Compartiment
-      bucket_hint: Le nom du compartiment, seul.
-      access_key_label: Identifiant de clé
-      secret_key_label: Clé secrète
-      key_stored: Une valeur est enregistrée. Laissez vide pour la conserver.
-      key_hint: Copiée depuis Cloudflare au moment de la création du jeton.
-      public_url_label: Domaine public
-      public_url_hint: "Facultatif. Le nom de domaine que vous avez branché sur le compartiment, si vous en avez branché un. Sans lui, les fichiers restent servis par l'application."
-      delivery_title: Comment les fichiers sont servis
-      delivery_hint: "L'adresse d'un document ne change jamais, quel que soit ce choix. Seule change la façon dont l'application y répond."
-      delivery_proxy: Par l'application
-      delivery_proxy_hint: "Les octets traversent le serveur. Le plus simple, et vos règles d'accès continuent de s'appliquer."
-      delivery_presigned: Par lien signé temporaire
-      delivery_presigned_hint: "Les octets vont directement du stockage au visiteur, et les fichiers restent privés."
-      delivery_public_url: Par le domaine public
-      delivery_public_url_hint: "Le plus rapide, mis en cache. Les fichiers deviennent lisibles par quiconque connaît leur adresse."
-      test_button: Tester la connexion
-      banner_none: "Aucun stockage distant configuré. Les fichiers sont écrits sur le disque du serveur."
-      banner_untested: "Configuration renseignée mais jamais testée. Lancez le test avant de vous en servir."
-      banner_connected: "Connecté à Cloudflare R2, compartiment « {bucket} », vérifié le {date}. Les nouveaux fichiers vont sur : {target}."
-      banner_from_environment: "Cette configuration vient de l'environnement du serveur, pas de cet écran."
-      disconnect_button: "Débrancher le stockage"
-      disconnect_confirm: "Les deux clés seront effacées, ainsi que l'adresse et le compartiment. Les nouveaux fichiers repartiront sur le disque du serveur."
-      disconnect_warning: "Cloudflare n'affiche une clé qu'à sa création : pour revenir en arrière il faudra créer un nouveau jeton, pas retrouver celui-ci."
-      disconnected: "Stockage distant débranché."
-      test_intro: "Le test écrit un fichier témoin, le relit, vérifie qu'il est bien là, puis le supprime. C'est la seule façon de savoir qu'un jeton a vraiment le droit d'écrire."
-      test_passed: "Connexion vérifiée le {date}."
-      test_never: "Jamais testée. Le test est nécessaire avant de pouvoir basculer le stockage."
-      active_disk_label: Écrire les nouveaux fichiers sur
-      disk_local: Le disque du serveur
-      usage_title: Ce qui est stocké
-      usage_active: en écriture
-      usage_files: "Aucun fichier | 1 fichier | {count} fichiers"
-      usage_hint: "Le poids des documents de la médiathèque, corbeille exclue. Les restes d'un import raté ou les tailles générées qu'une purge n'a pas ramassées n'y sont pas."
-      disk_r2: Cloudflare R2
-      switch_blocked: Testez la connexion avant de pouvoir basculer.
-      switch_hint: "Ne concerne que les fichiers à venir. Ceux déjà en place ne bougent pas."
-      probe:
-        write: écriture
-        read_back: relecture
-        exists: présence
-        metadata: taille et date
-        listing: visible dans la liste
-        cleanup: nettoyage
-      hints:
-        incomplete: "Il manque une information. Renseignez l'adresse du compte, le compartiment et les deux clés."
-        signature: "La clé secrète ne correspond pas à l'identifiant de clé. Les deux ne s'affichent qu'à la création du jeton : en recréer un est plus rapide que de chercher."
-        denied: "Cloudflare répond mais refuse. Vérifiez que le jeton porte « Object Read & Write » et non la lecture seule, et qu'il couvre bien ce compartiment."
-        no_bucket: "Ce compartiment n'existe pas à cette adresse. Attention : l'adresse du compte ne doit pas contenir le nom du compartiment à la fin."
-        unreachable: "L'adresse ne répond pas. Vérifiez-la, et vérifiez que le serveur peut l'atteindre."
-      errors:
-        verification_required: Testez la connexion avant de basculer le stockage.
-        documents_still_remote: "Impossible de débrancher : un document est encore sur le stockage distant. | Impossible de débrancher : {count} documents sont encore sur le stockage distant. Rapatriez-les d'abord, sinon leurs fichiers deviendraient inaccessibles."
-        configured_by_environment: "Cette configuration est posée dans l'environnement du serveur. Retirez-y les variables R2 : cet écran ne peut pas les effacer."
-        endpoint_not_https: "L'adresse du compte doit commencer par https://."
-        access_key_length: "L'identifiant de clé doit faire 32 caractères. Celui-ci n'en fait pas autant : c'est probablement une autre valeur de la page Cloudflare, ou une copie incomplète."
-        secret_key_length: "La clé secrète doit faire 64 caractères. Celle-ci n'en fait pas autant : c'est probablement une copie incomplète."
-    color_reset: "Couleur d'origine"
-    appearance:
-      guide:
-        title: "Composer la palette"
-        step_1: "Ajouter une couleur demande un code hexadécimal à six chiffres, et une couleur déjà présente n'est pas ajoutée deux fois."
-        step_2: "La croix d'une pastille la retire de la palette ; sur ordinateur, elle apparaît au survol."
-        step_3: "« Réinitialiser aux couleurs par défaut » remet les seize couleurs d'origine."
-        step_4: "Les couleurs déjà choisies ailleurs ne changent pas : la palette ne propose que des raccourcis."
-        step_5: "Rien n'est enregistré avant le bouton Enregistrer, grisé tant que la palette est vide."
-      color_presets:
-        title: Palette du sélecteur de couleurs
-        help: 'Ces couleurs s''affichent en raccourci dans tous les sélecteurs de couleurs de l''admin.'
-        add: Ajouter une couleur
-        confirm_add: Ajouter
-        remove: Retirer cette couleur
-        reset: Réinitialiser aux couleurs par défaut
-        invalid_hex: 'Code hexadécimal invalide. Format attendu : #rrggbb.'
-      palette:
-        title: "Gris du clair et du sombre"
-        help: "Les fonds, traits, textes et couleurs d'état du back-office et de l'espace client, pour chaque mode. Le site public garde son thème."
-        family: "Famille de gris"
-        modes:
-          light: "Mode clair"
-          dark: "Mode sombre"
-        families:
-          gray: "Gris (d'origine)"
-          slate: "Ardoise, bleutée"
-          zinc: "Zinc, gris froid"
-          neutral: "Neutre, sans teinte"
-          stone: "Pierre, gris chaud"
-        tokens:
-          bg: "Fond de page"
-          surface: "Cartes et panneaux"
-          surface_2: "Champs et zones secondaires"
-          surface_3: "Pastilles et zones appuyées"
-          line: "Traits et bordures"
-          line_strong: "Bordures appuyées"
-          primary: "Texte principal"
-          secondary: "Texte secondaire"
-          muted: "Texte atténué"
-          subtle: "Texte effacé"
-          success: "Succès"
-          warning: "Attention"
-          danger: "Erreur"
-          info: "Information"
-        groups:
-          tones: "Fonds, traits et textes"
-          states: "Couleurs d'état"
-        unchanged:
-          tones: "Suit la famille"
-          states: "Couleur d'origine"
-        overridden: "Retouchée à la main"
-        reset_color:
-          tones: "Revenir à la couleur de la famille"
-          states: "Revenir à la couleur d'origine"
-        reset_mode: "Revenir au gris d'origine"
-        preview:
-          title: "Aperçu d'une carte"
-          body: "Le texte courant d'un écran."
-          meta: "Modifié il y a 2 heures"
-          field: "Un champ"
-          chip: "Brouillon"
+    settings:
+        studio_guide:
+            title: "Votre identité dans les contrats"
+            step_1: "Ces champs remplissent le bloc d'identité du prestataire de chaque contrat au moment où il est scellé, et ceux déjà scellés gardent leurs valeurs."
+            step_2: "Un contrat dont la trame utilise un champ resté vide ne peut pas être scellé tant que vous ne l'avez pas rempli ici."
+            step_3: "La durée de conservation ne descend jamais sous cinq ans, même si vous saisissez moins."
+            step_4: "Les relances, désactivées par défaut, renvoient un nouveau lien de signature après le délai choisi, jusqu'au nombre maximum, et 0 dans l'un des deux champs les arrête."
+            step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
+        media_guide:
+            title: "Les limites des fichiers"
+            step_1: "La taille maximale vaut pour tout fichier déposé, médiathèque comme espaces clients, et les invités d'un espace restent en plus limités à 25 Mo."
+            step_2: "Le serveur peut refuser plus tôt : ses propres limites d'envoi doivent être relevées pour qu'une valeur plus haute serve."
+            step_3: "Les versions conservées comptent le fichier actuel ; au-delà, les plus anciennes sont supprimées avec leur fichier, et 0 les garde toutes."
+            step_4: "Masquer le crédit des photos demande une confirmation, car les conditions de l'API Pexels demandent de le montrer."
+            step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
+        email_guide:
+            title: "La langue et les couleurs des e-mails"
+            step_1: "Ce réglage fixe la langue des e-mails que l'application envoie sans connaître celle du destinataire, comme les messages adressés à l'administration."
+            step_2: "« Suivre la langue par défaut » reprend la langue choisie dans l'onglet Localisation."
+            step_3: "Un e-mail lié à un contrat part dans la langue du contrat, et l'avis d'un nouveau commentaire dans la langue du compte de l'auteur de l'article."
+            step_4: "Par défaut, l'accent des e-mails (bouton, liens, pastille du logo) suit la couleur principale du thème ; coupez « Suivre la couleur du thème » pour en choisir une autre. Le fond, les titres et le texte se règlent à côté, et « Couleur d'origine » remet celle de départ."
+            step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
+        system_guide:
+            title: "Qui peut entrer, et quand"
+            step_1: "Le mode maintenance ferme le site public à tous ses visiteurs, alors que le back-office et sa page de connexion restent ouverts."
+            step_2: "Les inscriptions admin ouvrent un formulaire de création de compte pour le back-office, à refermer une fois le premier compte créé."
+            step_3: "Les demandes d'accès laissent quelqu'un demander un compte, que vous approuvez ensuite depuis l'espace développeur."
+            step_4: "Couper la connexion frontend retire du site public la connexion, l'inscription et la page de compte, et rend les inscriptions frontend sans effet."
+            step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
+        seo_guide:
+            title: "Ce que voient les moteurs et les réseaux"
+            step_1: "Le modèle de titre place le titre de la page et le nom du site aux endroits marqués dans le champ, et une page sans titre affiche le nom seul."
+            step_2: "La description par défaut sert aux pages qui n'ont pas la leur ; vide, c'est la description de l'onglet Général qui est reprise."
+            step_3: "L'image de partage illustre les liens partagés sur les réseaux quand la page n'en a pas ; sans elle, le logo prend sa place."
+            step_4: "Le compte X renseigné ici est indiqué dans les aperçus des liens partagés sur ce réseau."
+            step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
+        branding_guide:
+            title: "Le logo et l'icône du site"
+            step_1: "Le logo s'affiche dans le menu latéral du back-office et sur les pages de connexion, et sert d'image de partage quand aucune autre n'est définie."
+            step_2: "Sans favicon choisi, l'onglet du navigateur affiche l'initiale du nom du site sur la couleur principale du thème."
+            step_3: "Une image prise dans la médiathèque doit être au statut « Publié » pour s'afficher aux visiteurs."
+            step_4: "Sur téléphone, le nom du site peut être masqué à côté du logo de la barre du haut, pour ne garder que le logo."
+            step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
+        localization_guide:
+            title: "Langues, heure et dates du site"
+            step_1: "La langue par défaut sert de repli au site public, et aux e-mails quand l'onglet Emails suit cette langue."
+            step_2: "Le mode mono-langue n'affiche et n'enregistre plus que la langue par défaut, et redirige vers elle les adresses des autres langues."
+            step_3: "Le désactiver plus tard rend leur place aux contenus saisis dans les autres langues, restés en base."
+            step_4: "La langue du back-office ne se règle pas ici : chacun la choisit dans son profil."
+            step_5: "Le fuseau horaire donne l'heure du site : 9 h dans une publication programmée veut dire 9 h ici, et les emails et PDF datent à cette heure, dans le style de dates choisi."
+            step_6: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
+        reading_guide:
+            title: "Ce que lisent les visiteurs"
+            step_1: "La page d'accueil se choisit en cherchant une page ou en saisissant son numéro ; sans choix, l'accueil liste les derniers articles."
+            step_2: "Un commentaire n'est possible que si les commentaires sont activés ici et sur la publication ; avec la modération, chacun attend votre validation."
+            step_3: "Le délai de purge vaut pour les corbeilles des articles, des notes et de la médiathèque, et 0 garde tout jusqu'à ce que vous les vidiez."
+            step_4: "Les réponses aux formulaires, adresse IP comprise, sont effacées après leur délai de conservation, et 0 les garde sans limite."
+            step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
+        administration_guide:
+            title: "L'espace développeur"
+            step_1: "Cet espace est réservé au rôle développeur, et chaque rubrique du menu latéral ouvre l'un de ses onglets."
+            step_2: "Utilisateurs et Demandes d'accès gèrent les comptes et leurs rôles, et traitent les inscriptions en attente."
+            step_3: "Modules active ou désactive une fonctionnalité pour tout le site, après confirmation de votre mot de passe."
+            step_4: "Audit retrace les actions enregistrées, et Permissions liste les privilèges déclarés par chaque module."
+            step_5: "Points de montage décrit les connexions vers des ressources externes et permet de les tester."
+        notes_guide:
+            title: "Les images des notes"
+            step_1: "Ces deux réglages s'appliquent aux images que vous ajoutez dans une note Markdown."
+            step_2: "Une image plus grande que la taille maximale est réduite dans votre navigateur, puis envoyée au format WebP."
+            step_3: "La qualité, de 0 à 100, ne joue que sur les images réduites ; 85 est un bon compromis entre poids et netteté."
+            step_4: "Les images déjà présentes dans les notes ne changent pas, et les GIF animés passent sans retouche."
+            step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
+        sequences_guide:
+            title: "Comment se numérotent les références"
+            step_1: "Chaque préfixe numérote un type d'enregistrement, comme les documents, les publications ou les contrats."
+            step_2: "Une référence s'écrit préfixe, tiret puis numéro, et certaines séries, comme les contrats, repartent à 1 chaque année."
+            step_3: "Un préfixe compte de 1 à 10 lettres ou chiffres, sans espace ni tiret, et passe en majuscules à l'enregistrement."
+            step_4: "Changer un préfixe ne touche pas aux références déjà attribuées : seules les suivantes le prennent."
+            step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
+        general_guide:
+            title: "Les réglages de base du site"
+            step_1: "Le nom du site s'affiche sur le site public et signe les e-mails envoyés par l'application."
+            step_2: "La description du site présente le flux RSS, et sert aux moteurs de recherche quand ni la page ni l'onglet SEO n'en donnent une."
+            step_3: "L'adresse publique, sans barre oblique finale, construit les liens des e-mails et du plan du site ; vide, l'application déduit celle du serveur."
+            step_4: "L'e-mail administrateur reçoit les messages destinés à l'administration ; vide, l'adresse déclarée à l'installation du serveur prend le relais."
+            step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
+        integration:
+            status_active: Active
+            status_off: Désactivée
+            status_todo: À configurer
+            settings_title: Connexion
+            guide_title: Comment l'obtenir
+        disable_anyway: Désactiver quand même
+        usage_detail: Paramètres du site
+        tabs:
+            general: Général
+            general_description: 'Nom du site, email admin, URL publique.'
+            reading: Lecture
+            reading_description: "Articles par page, page d'accueil, commentaires."
+            localization: Localisation
+            localization_description: 'Langue, fuseau horaire, style des dates.'
+            branding: Branding
+            branding_description: 'Logo, favicon et identité visuelle.'
+            appearance: Apparence
+            appearance_description: 'Personnaliser la palette de couleurs et autres paramètres visuels de l''admin.'
+            seo: SEO
+            seo_description: Template de titre et meta description par défaut.
+            system: Système
+            system_description: 'Maintenance, inscriptions, accès et uploads.'
+            email: Emails
+            email_description: Langue et couleurs des emails sortants.
+            media: Médias & uploads
+            media_description: Limites d'upload des fichiers (taille maximale, extensions autorisées).
+            sequences: Séquences
+            sequences_description: Préfixes des références auto-générées. Onglet réservé aux développeurs.
+            navigation: Navigation
+            studio: Studio
+            studio_description: "L'identité du prestataire imprimée dans chaque contrat : dénomination, SIRET, coordonnées bancaires."
+            navigation_description: Personnalisez les noms des sections et des items du menu latéral.
+            pexels: Pexels
+            craft: Craft
+            github: GitHub
+            instagram: Instagram
+            google_reviews: Avis Google
+            newsletter: Lettre d'information
+            useful_links: Liens utiles
+            drive: Google Drive
+            drive_description: "Lire les dossiers Drive des clients et celui de l'agence : compte de service, clé, activation."
+            github_description: "La grille de contributions de vos comptes GitHub, à afficher dans une page : comptes et activation."
+            instagram_description: "Le fil de vos publications Instagram, à afficher dans une page : compte et jeton d'accès."
+            google_reviews_description: "Votre note et vos derniers avis Google, à afficher dans une page : fiche d'établissement et clé."
+            useful_links_description: "Les liens posés en bas de chaque publication, à côté de « Partager » : réseaux, profils, adresse e-mail."
+            newsletter_description: "L'inscription à votre lettre d'information (Brevo ou Mailchimp), à poser dans une page : fournisseur, clé et liste."
+            craft_description: "Importer une note écrite dans Craft : adresse de la connexion, jeton, activation."
+            pexels_description: 'Banque de photos gratuites : activation, clé d''API et acceptation des conditions.'
+            captcha: Anti-robots
+            captcha_description: "Vérification des commentaires et des formulaires : service, clés et activation."
+            notes: Notes
+            notes_description: 'Paramètres du module Notes Markdown : taille / qualité des images uploadées.'
+            storage: Stockage des fichiers
+            storage_description: "Où sont écrits les fichiers de l'application : le disque du serveur, ou un stockage objet Cloudflare R2."
+            modules: Modules
+        storage:
+            guide:
+                title: "Dans quel ordre s'y prendre"
+                step_1: "Sans rien brancher, vos fichiers restent sur le disque du serveur : cet écran ne sert que pour passer à Cloudflare R2."
+                step_2: "Renseignez l'adresse du compte, le compartiment et les deux clés, puis lancez « Tester la connexion », qui enregistre avant de vérifier."
+                step_3: "Une fois le test réussi, choisissez où écrire les nouveaux fichiers et enregistrez : ceux déjà en place ne bougent pas."
+                step_4: "Pour déplacer des documents existants, utilisez le déplacement de la médiathèque, document par document ou tous à la fois."
+                step_5: "« Débrancher le stockage » efface les clés, et reste refusé tant qu'un document se trouve encore sur le stockage distant."
+            intro: "Par défaut, les fichiers que vous déposez sont écrits sur le disque du serveur. Vous pouvez à la place les confier à un stockage objet Cloudflare R2, sur votre propre compte."
+            when_useful: "Utile surtout si vous stockez beaucoup, ou de gros fichiers. En dessous de quelques giga-octets, le disque du serveur fait très bien l'affaire et demande moins de réglages."
+            how_title: Comment obtenir les identifiants
+            how_step_bucket: "Dans le tableau de bord Cloudflare, ouvrez R2 et créez un compartiment, ou choisissez-en un existant."
+            how_step_token: "Créez un jeton d'API avec la permission « Object Read & Write », limitée à ce seul compartiment. La lecture seule ne suffit pas : l'application doit pouvoir écrire."
+            how_step_copy: "Copiez l'identifiant de clé et la clé secrète. Cloudflare ne les affiche qu'une fois."
+            how_link: Ouvrir la documentation Cloudflare R2
+            endpoint_label: Adresse du compte
+            endpoint_hint: "L'URL du compte, sans le nom du compartiment à la fin. La console en affiche une avec le compartiment ajouté : la coller telle quelle le ferait apparaître deux fois."
+            bucket_label: Compartiment
+            bucket_hint: Le nom du compartiment, seul.
+            access_key_label: Identifiant de clé
+            secret_key_label: Clé secrète
+            key_stored: Une valeur est enregistrée. Laissez vide pour la conserver.
+            key_hint: Copiée depuis Cloudflare au moment de la création du jeton.
+            public_url_label: Domaine public
+            public_url_hint: "Facultatif. Le nom de domaine que vous avez branché sur le compartiment, si vous en avez branché un. Sans lui, les fichiers restent servis par l'application."
+            delivery_title: Comment les fichiers sont servis
+            delivery_hint: "L'adresse d'un document ne change jamais, quel que soit ce choix. Seule change la façon dont l'application y répond."
+            delivery_proxy: Par l'application
+            delivery_proxy_hint: "Les octets traversent le serveur. Le plus simple, et vos règles d'accès continuent de s'appliquer."
+            delivery_presigned: Par lien signé temporaire
+            delivery_presigned_hint: "Les octets vont directement du stockage au visiteur, et les fichiers restent privés."
+            delivery_public_url: Par le domaine public
+            delivery_public_url_hint: "Le plus rapide, mis en cache. Les fichiers deviennent lisibles par quiconque connaît leur adresse."
+            test_button: Tester la connexion
+            banner_none: "Aucun stockage distant configuré. Les fichiers sont écrits sur le disque du serveur."
+            banner_untested: "Configuration renseignée mais jamais testée. Lancez le test avant de vous en servir."
+            banner_connected: "Connecté à Cloudflare R2, compartiment « {bucket} », vérifié le {date}. Les nouveaux fichiers vont sur : {target}."
+            banner_from_environment: "Cette configuration vient de l'environnement du serveur, pas de cet écran."
+            disconnect_button: "Débrancher le stockage"
+            disconnect_confirm: "Les deux clés seront effacées, ainsi que l'adresse et le compartiment. Les nouveaux fichiers repartiront sur le disque du serveur."
+            disconnect_warning: "Cloudflare n'affiche une clé qu'à sa création : pour revenir en arrière il faudra créer un nouveau jeton, pas retrouver celui-ci."
+            disconnected: "Stockage distant débranché."
+            test_intro: "Le test écrit un fichier témoin, le relit, vérifie qu'il est bien là, puis le supprime. C'est la seule façon de savoir qu'un jeton a vraiment le droit d'écrire."
+            test_passed: "Connexion vérifiée le {date}."
+            test_never: "Jamais testée. Le test est nécessaire avant de pouvoir basculer le stockage."
+            active_disk_label: Écrire les nouveaux fichiers sur
+            disk_local: Le disque du serveur
+            usage_title: Ce qui est stocké
+            usage_active: en écriture
+            usage_files: "Aucun fichier | 1 fichier | {count} fichiers"
+            usage_hint: "Le poids des documents de la médiathèque, corbeille exclue. Les restes d'un import raté ou les tailles générées qu'une purge n'a pas ramassées n'y sont pas."
+            disk_r2: Cloudflare R2
+            switch_blocked: Testez la connexion avant de pouvoir basculer.
+            switch_hint: "Ne concerne que les fichiers à venir. Ceux déjà en place ne bougent pas."
+            probe:
+                write: écriture
+                read_back: relecture
+                exists: présence
+                metadata: taille et date
+                listing: visible dans la liste
+                cleanup: nettoyage
+            hints:
+                incomplete: "Il manque une information. Renseignez l'adresse du compte, le compartiment et les deux clés."
+                signature: "La clé secrète ne correspond pas à l'identifiant de clé. Les deux ne s'affichent qu'à la création du jeton : en recréer un est plus rapide que de chercher."
+                denied: "Cloudflare répond mais refuse. Vérifiez que le jeton porte « Object Read & Write » et non la lecture seule, et qu'il couvre bien ce compartiment."
+                no_bucket: "Ce compartiment n'existe pas à cette adresse. Attention : l'adresse du compte ne doit pas contenir le nom du compartiment à la fin."
+                unreachable: "L'adresse ne répond pas. Vérifiez-la, et vérifiez que le serveur peut l'atteindre."
+            errors:
+                verification_required: Testez la connexion avant de basculer le stockage.
+                documents_still_remote: "Impossible de débrancher : un document est encore sur le stockage distant. | Impossible de débrancher : {count} documents sont encore sur le stockage distant. Rapatriez-les d'abord, sinon leurs fichiers deviendraient inaccessibles."
+                configured_by_environment: "Cette configuration est posée dans l'environnement du serveur. Retirez-y les variables R2 : cet écran ne peut pas les effacer."
+                endpoint_not_https: "L'adresse du compte doit commencer par https://."
+                access_key_length: "L'identifiant de clé doit faire 32 caractères. Celui-ci n'en fait pas autant : c'est probablement une autre valeur de la page Cloudflare, ou une copie incomplète."
+                secret_key_length: "La clé secrète doit faire 64 caractères. Celle-ci n'en fait pas autant : c'est probablement une copie incomplète."
+        color_reset: "Couleur d'origine"
+        appearance:
+            guide:
+                title: "Composer la palette"
+                step_1: "Ajouter une couleur demande un code hexadécimal à six chiffres, et une couleur déjà présente n'est pas ajoutée deux fois."
+                step_2: "La croix d'une pastille la retire de la palette ; sur ordinateur, elle apparaît au survol."
+                step_3: "« Réinitialiser aux couleurs par défaut » remet les seize couleurs d'origine."
+                step_4: "Les couleurs déjà choisies ailleurs ne changent pas : la palette ne propose que des raccourcis."
+                step_5: "Rien n'est enregistré avant le bouton Enregistrer, grisé tant que la palette est vide."
+            color_presets:
+                title: Palette du sélecteur de couleurs
+                help: 'Ces couleurs s''affichent en raccourci dans tous les sélecteurs de couleurs de l''admin.'
+                add: Ajouter une couleur
+                confirm_add: Ajouter
+                remove: Retirer cette couleur
+                reset: Réinitialiser aux couleurs par défaut
+                invalid_hex: 'Code hexadécimal invalide. Format attendu : #rrggbb.'
+            palette:
+                title: "Gris du clair et du sombre"
+                help: "Les fonds, traits, textes et couleurs d'état du back-office et de l'espace client, pour chaque mode. Le site public garde son thème."
+                family: "Famille de gris"
+                modes:
+                    light: "Mode clair"
+                    dark: "Mode sombre"
+                families:
+                    gray: "Gris (d'origine)"
+                    slate: "Ardoise, bleutée"
+                    zinc: "Zinc, gris froid"
+                    neutral: "Neutre, sans teinte"
+                    stone: "Pierre, gris chaud"
+                tokens:
+                    bg: "Fond de page"
+                    surface: "Cartes et panneaux"
+                    surface_2: "Champs et zones secondaires"
+                    surface_3: "Pastilles et zones appuyées"
+                    line: "Traits et bordures"
+                    line_strong: "Bordures appuyées"
+                    primary: "Texte principal"
+                    secondary: "Texte secondaire"
+                    muted: "Texte atténué"
+                    subtle: "Texte effacé"
+                    success: "Succès"
+                    warning: "Attention"
+                    danger: "Erreur"
+                    info: "Information"
+                groups:
+                    tones: "Fonds, traits et textes"
+                    states: "Couleurs d'état"
+                unchanged:
+                    tones: "Suit la famille"
+                    states: "Couleur d'origine"
+                overridden: "Retouchée à la main"
+                reset_color:
+                    tones: "Revenir à la couleur de la famille"
+                    states: "Revenir à la couleur d'origine"
+                reset_mode: "Revenir au gris d'origine"
+                preview:
+                    title: "Aperçu d'une carte"
+                    body: "Le texte courant d'un écran."
+                    meta: "Modifié il y a 2 heures"
+                    field: "Un champ"
+                    chip: "Brouillon"
+                guide:
+                    title: "Régler les gris"
+                    step_1: "Choisissez une famille par mode : elle donne d'un coup les fonds, les traits et les textes."
+                    step_2: "Une pastille de la liste reprend une seule nuance ; la flèche la rend à la famille. Les couleurs d'état entraînent avec elles leur fond pâle et leurs badges."
+                    step_3: "L'aperçu montre chaque mode avec ses propres couleurs, quel que soit celui affiché à l'écran."
+                    step_4: "Rien ne change avant Enregistrer ; ensuite l'écran se repeint sans recharger, et le site public ne bouge pas."
+        nav_aliases_empty: Aucune section de navigation disponible.
+        nav_aliases:
+            guide:
+                title: "Renommer et ranger le menu"
+                step_1: "Ces noms et cet ordre valent pour tous les utilisateurs, alors que les préférences de chacun ne cachent ou ne colorent que son propre menu."
+                step_2: "Saisissez un nom dans le champ d'une section ou d'un module pour remplacer son libellé ; la croix rend le nom d'origine."
+                step_3: "La poignée à gauche déplace une section, ou un module à l'intérieur de sa section, et la flèche déplie ses modules."
+                step_4: "Un nom personnalisé s'affiche tel quel, quelle que soit la langue de l'administration."
+                step_5: "Rien n'est enregistré avant Enregistrer, « Tout réinitialiser » compris, et le menu se met à jour à la page suivante."
+            title: Menu latéral
+            help: 'Renommez et réordonnez les regroupements et les modules du menu latéral. Glissez la poignée pour déplacer une section ou un module. Cliquez sur une section pour développer ses items.'
+            items_empty: Aucun item dans cette section.
+            reset_item: Réinitialiser
+            reset_all: Tout réinitialiser
+            save: Enregistrer
+            drag_handle: Glisser pour réordonner
+        cascade_locked: "Activez d'abord « {parent} » pour pouvoir modifier ce paramètre."
+        invalid_prefix: "« {label} » : de 1 à 10 lettres majuscules ou chiffres, sans espace ni tiret."
+        media_square_hint: 'Recommandé : image carrée (1:1).'
+        modules_intro: Activez ou désactivez les modules de l'application. Les modifications sont enregistrées immédiatement.
+        modules_empty: Aucun module trouvé.
+        module_type:
+            backend: Backend
+            frontend: Frontend
+        save: Enregistrer
+        saved: Réglages sauvegardés.
+        modules_search_placeholder: Rechercher un module…
+        confirm_password: Confirmer l'action
+        confirm_password_description: Confirmez le mot de passe pour activer ou désactiver des modules.
+        confirm_password_placeholder: Mot de passe…
+        confirm_password_invalid: Mot de passe incorrect.
+        confirm_password_confirm: Confirmer
+        browse_media: Parcourir les médias
+        no_page_selected: "Aucune page sélectionnée : affichage de la liste des articles par défaut."
+        search_post: Rechercher une page…
+        or_id: "ou saisir l'ID :"
+        sequence_search: Rechercher une séquence…
+    parameters:
+        media_credit_visible:
+            label: Afficher le crédit des photos
+            off_warning: "Les conditions d'usage de l'API Pexels demandent de créditer le photographe et de lier vers Pexels pour les photos importées avec votre clé. En masquant le crédit, vous sortez de ces conditions sur votre propre compte. La licence des photos, elle, n'impose pas l'attribution."
+            description: "Affiche le nom du photographe et le lien vers la banque d'images sous les photos qui en portent un. Les conditions d'usage de l'API Pexels demandent ce crédit : le désactiver relève de votre décision sur votre propre compte."
+        captcha:
+            title: Vérification anti-robots
+            intro: "Une vérification supplémentaire sur tout ce qu'un visiteur peut envoyer, commentaires et formulaires, en plus du piège à robots, du filtre à liens, de la limite d'envois et de la modération qui existent déjà."
+            privacy: "Le service choisi reçoit l'adresse IP du visiteur. C'est une donnée personnelle : le compte doit être celui du site, et la politique de confidentialité doit le dire."
+            enabled: Activer la vérification
+            provider: Service
+            site_key: Clé publique
+            site_key_placeholder: '0x4AAAAAAA…'
+            site_key_hint: "Affichée dans la page, c'est normal : le widget en a besoin."
+            guide_turnstile_1: "Ouvrez le tableau de bord Cloudflare (un compte gratuit suffit), rubrique Turnstile, puis « Ajouter un widget »."
+            guide_turnstile_2: "Donnez-lui un nom, ajoutez le domaine du site (sans https://), et gardez le mode « Géré »."
+            guide_turnstile_3: "Copiez la clé du site et la clé secrète affichées, collez-les ci-contre, puis activez la vérification."
+            guide_recaptcha_1: "Ouvrez la console d'administration reCAPTCHA avec un compte Google, et créez un site."
+            guide_recaptcha_2: "Choisissez « Basé sur les scores (v3) » et ajoutez le domaine du site (sans https://)."
+            guide_recaptcha_3: "Copiez la clé du site et la clé secrète, collez-les ci-contre, puis activez la vérification."
+            guide_link_turnstile: Ouvrir Cloudflare Turnstile
+            guide_link_recaptcha: Ouvrir la console reCAPTCHA
+            secret_key: Clé secrète
+            secret_key_placeholder: '0x4AAAAAAA…'
+            secret_key_hint: "Chiffrée en base. Laissée vide, la clé enregistrée est conservée."
+            secret_set: Une clé secrète est enregistrée.
+            secret_unset: Aucune clé secrète enregistrée.
+            providers:
+                turnstile: "Cloudflare Turnstile (recommandé : sans énigme ni cookie publicitaire)"
+                recaptcha: "Google reCAPTCHA v3 (invisible, note de 0 à 1)"
+            errors:
+                keys_required: "Les deux clés sont requises pour activer la vérification."
+        site_name:
+            label: Nom du site
+            description: Nom affiché sur le site public et dans les emails
+            placeholder: Mon entreprise
+        site_description:
+            label: Description du site
+            description: Courte description utilisée comme meta description par défaut
+            placeholder: Plateforme de gestion d'entreprise multi-modules
+        site_url:
+            label: URL publique du site
+            description: 'URL absolue du site (sans slash final), utilisée dans les emails et le sitemap'
+            placeholder: 'https://app.example.com'
+        admin_email:
+            label: Email administrateur
+            description: Adresse email de l'administrateur
+            placeholder: 'admin@example.com'
+        default_locale:
+            label: Langue par défaut
+            description: 'Langue par défaut du site (affichage public, emails par défaut).'
+        single_locale_mode:
+            label: Mode mono-langue
+            description: "Si activé, l'application n'affiche et n'enregistre qu'une seule langue (celle définie par « Langue par défaut »). Les onglets multi-langues sont masqués et les URLs avec un autre code de langue sont redirigées (301). Réversible : les contenus saisis dans les autres langues restent en base."
+        posts_per_page:
+            label: Articles par page
+            description: Nombre d'articles affichés par page sur les listes publiques
+            placeholder: 10
+        max_upload_size_mb:
+            label: Taille max d'upload (Mo)
+            description: "Plafond, en mégaoctets, de tout fichier déposé - bibliothèque comme espaces clients. Les invités d'un espace restent en plus limités à 25 Mo."
+            placeholder: 100
+        timezone:
+            label: Fuseau horaire
+            description: "L'heure du site : celle d'une publication programmée, des dates dans les emails et les PDF, des envois du matin (relances, retards de relecture), et le fuseau proposé pour un nouveau calendrier ou un nouvel espace. Les dates déjà enregistrées ne bougent pas."
+        date_format:
+            label: Style des dates
+            description: "Comment s'écrivent les dates des emails, des PDF et des pages de contrat, dans la langue de chacun. Le back-office garde ses formats compacts."
+        comments_enabled:
+            label: Commentaires activés
+            description: 'Si activé, les visiteurs peuvent laisser des commentaires sur les articles du site public.'
+        comment_moderation_enabled:
+            label: Modération des commentaires
+            description: 'Si activé, les commentaires sont en attente de modération avant publication. Si désactivé, ils sont approuvés automatiquement.'
+        maintenance_mode:
+            label: Mode maintenance
+            description: 'Si activé, le site public est fermé aux visiteurs et affiche une page de maintenance.'
+        admin_registration_enabled:
+            label: Inscriptions admin ouvertes
+            description: Autoriser les inscriptions via /backend/platform/register. À désactiver après la création du premier compte admin.
+        admin_access_request_enabled:
+            label: Demandes d'accès admin ouvertes
+            description: Autoriser les demandes d'accès via /backend/platform/access-request (formulaire de demande d'accès à l'administration)
+        front_login_enabled:
+            label: Connexion frontend activée
+            description: "Si désactivé, le site public n'a plus de comptes du tout : connexion, inscription, espace client et mot de passe oublié renvoient une 404, et les liens correspondants disparaissent des menus. À couper pour une application purement vitrine."
+        front_registration_enabled:
+            label: Inscriptions frontend ouvertes
+            description: 'Si activé, les visiteurs peuvent créer un compte depuis le site public. Sans effet si la connexion frontend est désactivée.'
+        post_revisions_limit:
+            label: Nombre de révisions gardées par article
+            description: Nombre maximal de révisions conservées par article (les plus anciennes sont supprimées)
+        file_versions_limit:
+            label: Versions de fichier conservées
+            description: Nombre maximal de versions gardées par fichier GED. Au-delà, les plus anciennes sont supprimées avec leur fichier. 0 = illimité.
+        trash_auto_purge_days:
+            label: Purge auto de la corbeille (jours)
+            description: "Nombre de jours avant suppression définitive de ce qui est en corbeille : publications, notes, documents, dossiers et catégories de la médiathèque (0 = jamais)"
+        form_submission_retention_days:
+            label: Conservation des soumissions (jours)
+            description: "Nombre de jours de conservation des réponses aux formulaires, adresse IP comprise, avant suppression définitive (0 = sans limite)"
+        homepage_post_id:
+            label: Page d'accueil (ID du post)
+            description: ID d'un post affiché sur la page d'accueil. Vide = liste des derniers articles.
+        default_front:
+            label: Front par défaut
+            description: 'Slug du front affiché par défaut sur "/".'
+        logo_media_id:
+            label: Logo du site
+            description: ID du média utilisé comme logo
+        favicon_media_id:
+            label: Favicon
+            description: ID du média utilisé comme favicon
+        backend_bar_site_name_on_phone:
+            label: "Nom du site dans la barre du back-office sur téléphone"
+            description: "Affiche le nom du site à côté du logo dans la barre du haut du back-office, sous 640 px de large. Désactivé, seul le logo reste ; le nom est toujours lu par les lecteurs d'écran. Pour le site public, le réglage équivalent est dans le thème."
+        seo_title_template:
+            label: Template de titre SEO
+            description: 'Template pour le titre des pages. Utilisez {title} et {siteName}. Ex. : {title} · {siteName}'
+            placeholder: '{title} · {siteName}'
+        seo_default_description:
+            label: Description SEO par défaut
+            description: Meta description utilisée quand aucune description spécifique n'est définie
+            placeholder: "Plateforme de gestion d'entreprise : modules CRM, ventes, GED…"
+        seo_default_og_image:
+            label: Image Open Graph par défaut
+            description: Image utilisée pour les previews sociaux (Facebook, LinkedIn, Twitter…) quand la page n'en définit pas. 1200×630 px recommandé.
+        seo_twitter_handle:
+            label: Handle Twitter / X
+            description: 'Handle Twitter du site (avec @, ex : @aurora_app). Utilisé pour la balise twitter:site dans les Twitter Cards.'
+            placeholder: '@aurora_app'
+        email_locale:
+            label: Langue forcée pour les emails
+            description: "Langue des emails du site qui ne connaissent pas celle du destinataire. Les emails d'un contrat suivent la langue du contrat, ceux du compte (mot de passe, vérification, demande d'accès) celle de la page d'où part la demande. « Suivre la langue par défaut » applique la langue par défaut du site."
+        email_locale_auto: Suivre la langue par défaut
+        date_format_short: Courte
+        date_format_medium: Moyenne
+        date_format_long: Longue
+        core_user_prefix:
+            label: Préfixe des références utilisateurs
+            description: 'Préfixe de la référence auto-générée (ex: XXX). De 1 à 10 lettres majuscules ou chiffres, obligatoire.'
+        core_media_prefix:
+            label: Préfixe des références médias
+            description: 'Préfixe de la référence auto-générée (ex: XXX). De 1 à 10 lettres majuscules ou chiffres, obligatoire.'
+        core_access_request_prefix:
+            label: Préfixe des références demandes d'accès
+            description: 'Préfixe de la référence auto-générée (ex: XXX). De 1 à 10 lettres majuscules ou chiffres, obligatoire.'
+        core_audit_log_prefix:
+            label: Préfixe des logs d'audit
+            description: 'Préfixe de la référence auto-générée (ex: XXX). De 1 à 10 lettres majuscules ou chiffres, obligatoire.'
+        core_reset_password_prefix:
+            label: Préfixe des demandes de réinitialisation de mot de passe
+            description: 'Préfixe de la référence auto-générée (ex: XXX). De 1 à 10 lettres majuscules ou chiffres, obligatoire.'
+        core_media_folder_prefix:
+            label: Préfixe des références dossiers médias
+            description: 'Préfixe de la référence auto-générée (ex: XXX). De 1 à 10 lettres majuscules ou chiffres, obligatoire.'
+        core_menu_item_prefix:
+            label: Préfixe des références éléments de menu
+            description: 'Préfixe de la référence auto-générée (ex: XXX). De 1 à 10 lettres majuscules ou chiffres, obligatoire.'
+        studio_contract_prefix:
+            label: Préfixe des références de contrat
+            description: 'Préfixe des références de contrat. CTR par défaut, ce qui donne CTR-2026-0001.'
+        studio_provider_name:
+            label: Dénomination du prestataire
+            description: 'Le nom sous lequel vous contractez, tel qu''il s''imprime en tête du contrat.'
+        studio_provider_representative:
+            label: Nom et prénom
+            description: 'La personne physique qui signe. Imprimée avec la dénomination.'
+        studio_provider_address:
+            label: Adresse professionnelle
+            description: 'Adresse complète, sur une ligne : elle apparaît dans le bloc d''identité du contrat.'
+        studio_provider_siret:
+            label: SIRET
+            description: 'Le SIRET de l''établissement qui contracte.'
+        studio_provider_ape_code:
+            label: Code APE
+            description: 'Code et libellé, par exemple 7021Z - conseil en relations publiques et communication.'
+        studio_provider_vat_mention:
+            label: Mention de TVA
+            description: 'La phrase exacte à imprimer, par exemple « non assujetti - TVA non applicable, art. 293 B du CGI ».'
+        studio_provider_email:
+            label: Email
+            description: 'L''adresse à laquelle le client vous écrit au titre du contrat.'
+        studio_provider_phone:
+            label: Téléphone
+            description: 'Le numéro imprimé dans le bloc d''identité.'
+        studio_provider_bank_holder:
+            label: Titulaire du compte
+            description: 'Le nom du titulaire, tel qu''il figure sur le relevé.'
+        studio_provider_bank_iban:
+            label: IBAN
+            description: 'L''IBAN imprimé dans les conditions financières du contrat.'
+        studio_provider_bank_bic:
+            label: BIC
+            description: 'Le BIC de l''établissement.'
+        studio_provider_bank_name:
+            label: Banque
+            description: 'Le nom de l''établissement, et son adresse si vous l''imprimez.'
+        studio_contract_retention_years:
+            label: Durée de conservation (années)
+            description: 'Combien d''années un contrat scellé est conservé avant de pouvoir être supprimé. Cinq ans est le minimum légal, dix sont conseillés pour une prestation de services ; sous cinq, la valeur est ramenée à cinq.'
+        studio_contract_reminder_enabled:
+            label: Relancer automatiquement
+            description: 'Relance par email les contrats envoyés et non signés. Chaque relance crée une nouvelle adresse de signature et invalide la précédente, comme un renvoi manuel.'
+        studio_contract_reminder_days:
+            label: Délai entre deux relances (jours)
+            description: 'Nombre de jours sans réponse avant une relance. Compté depuis le dernier envoi, pas depuis le scellement.'
+        studio_contract_reminder_max:
+            label: Nombre maximum de relances
+            description: 'Au-delà, le contrat est laissé tranquille. Le silence est une réponse aussi.'
+        nav_section_aliases:
+            label: Alias des sections de navigation
+            description: 'Carte JSON des alias de sections (géré via l''interface).'
+        nav_item_aliases:
+            label: Alias des items de navigation
+            description: 'Carte JSON des alias d''items du menu (géré via l''interface).'
+        color_picker_presets:
+            label: Palette du sélecteur de couleurs
+            description: 'Liste JSON de couleurs hexadécimales proposées en raccourci dans tous les sélecteurs de couleurs de l''admin.'
+        email_accent_follows_theme:
+            label: "Suivre la couleur du thème"
+            description: "Les e-mails prennent la couleur principale du thème actif, et la suivent quand elle change. Coupé, c'est la couleur d'accent ci-dessous qui sert."
+        email_accent_color:
+            label: "Couleur d'accent des e-mails"
+            description: "Bouton, liens, pastille du logo et nom du site en tête de chaque e-mail. Sert quand « Suivre la couleur du thème » est coupé."
+        email_background_color:
+            label: "Fond des e-mails"
+            description: "Le fond autour de la carte blanche du message."
+        email_heading_color:
+            label: "Titres des e-mails"
+            description: "Le titre en tête du message."
+        email_text_color:
+            label: "Texte des e-mails"
+            description: "Le texte courant du message."
+        backend_palette:
+            label: "Gris du clair et du sombre"
+            description: "Famille de gris et retouches de chaque mode, en JSON (géré via l'interface)."
+        intro: Consultez et modifiez les paramètres techniques de l'application.
+        key: Paramètre
+        value: Valeur
+        description: Description
+        empty: Aucun paramètre.
+        saved: Paramètre enregistré.
+        search_placeholder: Rechercher par clé…
+        all_groups: Tous les groupes
+    title: Administration
+    # Coquille du dashboard uniquement - un module qui dessine un panneau
+    # embarque ses propres libellés.
+    stats:
         guide:
-          title: "Régler les gris"
-          step_1: "Choisissez une famille par mode : elle donne d'un coup les fonds, les traits et les textes."
-          step_2: "Une pastille de la liste reprend une seule nuance ; la flèche la rend à la famille. Les couleurs d'état entraînent avec elles leur fond pâle et leurs badges."
-          step_3: "L'aperçu montre chaque mode avec ses propres couleurs, quel que soit celui affiché à l'écran."
-          step_4: "Rien ne change avant Enregistrer ; ensuite l'écran se repeint sans recharger, et le site public ne bouge pas."
-    nav_aliases_empty: Aucune section de navigation disponible.
-    nav_aliases:
-      guide:
-        title: "Renommer et ranger le menu"
-        step_1: "Ces noms et cet ordre valent pour tous les utilisateurs, alors que les préférences de chacun ne cachent ou ne colorent que son propre menu."
-        step_2: "Saisissez un nom dans le champ d'une section ou d'un module pour remplacer son libellé ; la croix rend le nom d'origine."
-        step_3: "La poignée à gauche déplace une section, ou un module à l'intérieur de sa section, et la flèche déplie ses modules."
-        step_4: "Un nom personnalisé s'affiche tel quel, quelle que soit la langue de l'administration."
-        step_5: "Rien n'est enregistré avant Enregistrer, « Tout réinitialiser » compris, et le menu se met à jour à la page suivante."
-      title: Menu latéral
-      help: 'Renommez et réordonnez les regroupements et les modules du menu latéral. Glissez la poignée pour déplacer une section ou un module. Cliquez sur une section pour développer ses items.'
-      items_empty: Aucun item dans cette section.
-      reset_item: Réinitialiser
-      reset_all: Tout réinitialiser
-      save: Enregistrer
-      drag_handle: Glisser pour réordonner
-    cascade_locked: "Activez d'abord « {parent} » pour pouvoir modifier ce paramètre."
-    invalid_prefix: "« {label} » : de 1 à 10 lettres majuscules ou chiffres, sans espace ni tiret."
-    media_square_hint: 'Recommandé : image carrée (1:1).'
-    modules_intro: Activez ou désactivez les modules de l'application. Les modifications sont enregistrées immédiatement.
-    modules_empty: Aucun module trouvé.
-    module_type:
-      backend: Backend
-      frontend: Frontend
-    save: Enregistrer
-    saved: Réglages sauvegardés.
-    modules_search_placeholder: Rechercher un module…
-    confirm_password: Confirmer l'action
-    confirm_password_description: Confirmez le mot de passe pour activer ou désactiver des modules.
-    confirm_password_placeholder: Mot de passe…
-    confirm_password_invalid: Mot de passe incorrect.
-    confirm_password_confirm: Confirmer
-    browse_media: Parcourir les médias
-    no_page_selected: "Aucune page sélectionnée : affichage de la liste des articles par défaut."
-    search_post: Rechercher une page…
-    or_id: "ou saisir l'ID :"
-    sequence_search: Rechercher une séquence…
-  parameters:
-    media_credit_visible:
-      label: Afficher le crédit des photos
-      off_warning: "Les conditions d'usage de l'API Pexels demandent de créditer le photographe et de lier vers Pexels pour les photos importées avec votre clé. En masquant le crédit, vous sortez de ces conditions sur votre propre compte. La licence des photos, elle, n'impose pas l'attribution."
-      description: "Affiche le nom du photographe et le lien vers la banque d'images sous les photos qui en portent un. Les conditions d'usage de l'API Pexels demandent ce crédit : le désactiver relève de votre décision sur votre propre compte."
-    captcha:
-      title: Vérification anti-robots
-      intro: "Une vérification supplémentaire sur tout ce qu'un visiteur peut envoyer, commentaires et formulaires, en plus du piège à robots, du filtre à liens, de la limite d'envois et de la modération qui existent déjà."
-      privacy: "Le service choisi reçoit l'adresse IP du visiteur. C'est une donnée personnelle : le compte doit être celui du site, et la politique de confidentialité doit le dire."
-      enabled: Activer la vérification
-      provider: Service
-      site_key: Clé publique
-      site_key_placeholder: '0x4AAAAAAA…'
-      site_key_hint: "Affichée dans la page, c'est normal : le widget en a besoin."
-      guide_turnstile_1: "Ouvrez le tableau de bord Cloudflare (un compte gratuit suffit), rubrique Turnstile, puis « Ajouter un widget »."
-      guide_turnstile_2: "Donnez-lui un nom, ajoutez le domaine du site (sans https://), et gardez le mode « Géré »."
-      guide_turnstile_3: "Copiez la clé du site et la clé secrète affichées, collez-les ci-contre, puis activez la vérification."
-      guide_recaptcha_1: "Ouvrez la console d'administration reCAPTCHA avec un compte Google, et créez un site."
-      guide_recaptcha_2: "Choisissez « Basé sur les scores (v3) » et ajoutez le domaine du site (sans https://)."
-      guide_recaptcha_3: "Copiez la clé du site et la clé secrète, collez-les ci-contre, puis activez la vérification."
-      guide_link_turnstile: Ouvrir Cloudflare Turnstile
-      guide_link_recaptcha: Ouvrir la console reCAPTCHA
-      secret_key: Clé secrète
-      secret_key_placeholder: '0x4AAAAAAA…'
-      secret_key_hint: "Chiffrée en base. Laissée vide, la clé enregistrée est conservée."
-      secret_set: Une clé secrète est enregistrée.
-      secret_unset: Aucune clé secrète enregistrée.
-      providers:
-        turnstile: "Cloudflare Turnstile (recommandé : sans énigme ni cookie publicitaire)"
-        recaptcha: "Google reCAPTCHA v3 (invisible, note de 0 à 1)"
-      errors:
-        keys_required: "Les deux clés sont requises pour activer la vérification."
-    site_name:
-      label: Nom du site
-      description: Nom affiché sur le site public et dans les emails
-      placeholder: Mon entreprise
-    site_description:
-      label: Description du site
-      description: Courte description utilisée comme meta description par défaut
-      placeholder: Plateforme de gestion d'entreprise multi-modules
-    site_url:
-      label: URL publique du site
-      description: 'URL absolue du site (sans slash final), utilisée dans les emails et le sitemap'
-      placeholder: 'https://app.example.com'
-    admin_email:
-      label: Email administrateur
-      description: Adresse email de l'administrateur
-      placeholder: 'admin@example.com'
-    default_locale:
-      label: Langue par défaut
-      description: 'Langue par défaut du site (affichage public, emails par défaut).'
-    single_locale_mode:
-      label: Mode mono-langue
-      description: "Si activé, l'application n'affiche et n'enregistre qu'une seule langue (celle définie par « Langue par défaut »). Les onglets multi-langues sont masqués et les URLs avec un autre code de langue sont redirigées (301). Réversible : les contenus saisis dans les autres langues restent en base."
-    posts_per_page:
-      label: Articles par page
-      description: Nombre d'articles affichés par page sur les listes publiques
-      placeholder: 10
-    max_upload_size_mb:
-      label: Taille max d'upload (Mo)
-      description: "Plafond, en mégaoctets, de tout fichier déposé - bibliothèque comme espaces clients. Les invités d'un espace restent en plus limités à 25 Mo."
-      placeholder: 100
-    timezone:
-      label: Fuseau horaire
-      description: "L'heure du site : celle d'une publication programmée, des dates dans les emails et les PDF, des envois du matin (relances, retards de relecture), et le fuseau proposé pour un nouveau calendrier ou un nouvel espace. Les dates déjà enregistrées ne bougent pas."
-    date_format:
-      label: Style des dates
-      description: "Comment s'écrivent les dates des emails, des PDF et des pages de contrat, dans la langue de chacun. Le back-office garde ses formats compacts."
-    comments_enabled:
-      label: Commentaires activés
-      description: 'Si activé, les visiteurs peuvent laisser des commentaires sur les articles du site public.'
-    comment_moderation_enabled:
-      label: Modération des commentaires
-      description: 'Si activé, les commentaires sont en attente de modération avant publication. Si désactivé, ils sont approuvés automatiquement.'
-    maintenance_mode:
-      label: Mode maintenance
-      description: 'Si activé, le site public est fermé aux visiteurs et affiche une page de maintenance.'
-    admin_registration_enabled:
-      label: Inscriptions admin ouvertes
-      description: Autoriser les inscriptions via /backend/platform/register. À désactiver après la création du premier compte admin.
-    admin_access_request_enabled:
-      label: Demandes d'accès admin ouvertes
-      description: Autoriser les demandes d'accès via /backend/platform/access-request (formulaire de demande d'accès à l'administration)
-    front_login_enabled:
-      label: Connexion frontend activée
-      description: "Si désactivé, le site public n'a plus de comptes du tout : connexion, inscription, espace client et mot de passe oublié renvoient une 404, et les liens correspondants disparaissent des menus. À couper pour une application purement vitrine."
-    front_registration_enabled:
-      label: Inscriptions frontend ouvertes
-      description: 'Si activé, les visiteurs peuvent créer un compte depuis le site public. Sans effet si la connexion frontend est désactivée.'
-    post_revisions_limit:
-      label: Nombre de révisions gardées par article
-      description: Nombre maximal de révisions conservées par article (les plus anciennes sont supprimées)
-    file_versions_limit:
-      label: Versions de fichier conservées
-      description: Nombre maximal de versions gardées par fichier GED. Au-delà, les plus anciennes sont supprimées avec leur fichier. 0 = illimité.
-    trash_auto_purge_days:
-      label: Purge auto de la corbeille (jours)
-      description: "Nombre de jours avant suppression définitive de ce qui est en corbeille : publications, notes, documents, dossiers et catégories de la médiathèque (0 = jamais)"
-    form_submission_retention_days:
-      label: Conservation des soumissions (jours)
-      description: "Nombre de jours de conservation des réponses aux formulaires, adresse IP comprise, avant suppression définitive (0 = sans limite)"
-    homepage_post_id:
-      label: Page d'accueil (ID du post)
-      description: ID d'un post affiché sur la page d'accueil. Vide = liste des derniers articles.
-    default_front:
-      label: Front par défaut
-      description: 'Slug du front affiché par défaut sur "/".'
-    logo_media_id:
-      label: Logo du site
-      description: ID du média utilisé comme logo
-    favicon_media_id:
-      label: Favicon
-      description: ID du média utilisé comme favicon
-    backend_bar_site_name_on_phone:
-      label: "Nom du site dans la barre du back-office sur téléphone"
-      description: "Affiche le nom du site à côté du logo dans la barre du haut du back-office, sous 640 px de large. Désactivé, seul le logo reste ; le nom est toujours lu par les lecteurs d'écran. Pour le site public, le réglage équivalent est dans le thème."
-    seo_title_template:
-      label: Template de titre SEO
-      description: 'Template pour le titre des pages. Utilisez {title} et {siteName}. Ex. : {title} · {siteName}'
-      placeholder: '{title} · {siteName}'
-    seo_default_description:
-      label: Description SEO par défaut
-      description: Meta description utilisée quand aucune description spécifique n'est définie
-      placeholder: "Plateforme de gestion d'entreprise : modules CRM, ventes, GED…"
-    seo_default_og_image:
-      label: Image Open Graph par défaut
-      description: Image utilisée pour les previews sociaux (Facebook, LinkedIn, Twitter…) quand la page n'en définit pas. 1200×630 px recommandé.
-    seo_twitter_handle:
-      label: Handle Twitter / X
-      description: 'Handle Twitter du site (avec @, ex : @aurora_app). Utilisé pour la balise twitter:site dans les Twitter Cards.'
-      placeholder: '@aurora_app'
-    email_locale:
-      label: Langue forcée pour les emails
-      description: "Langue des emails du site qui ne connaissent pas celle du destinataire. Les emails d'un contrat suivent la langue du contrat, ceux du compte (mot de passe, vérification, demande d'accès) celle de la page d'où part la demande. « Suivre la langue par défaut » applique la langue par défaut du site."
-    email_locale_auto: Suivre la langue par défaut
-    date_format_short: Courte
-    date_format_medium: Moyenne
-    date_format_long: Longue
-    core_user_prefix:
-      label: Préfixe des références utilisateurs
-      description: 'Préfixe de la référence auto-générée (ex: XXX). De 1 à 10 lettres majuscules ou chiffres, obligatoire.'
-    core_media_prefix:
-      label: Préfixe des références médias
-      description: 'Préfixe de la référence auto-générée (ex: XXX). De 1 à 10 lettres majuscules ou chiffres, obligatoire.'
-    core_access_request_prefix:
-      label: Préfixe des références demandes d'accès
-      description: 'Préfixe de la référence auto-générée (ex: XXX). De 1 à 10 lettres majuscules ou chiffres, obligatoire.'
-    core_audit_log_prefix:
-      label: Préfixe des logs d'audit
-      description: 'Préfixe de la référence auto-générée (ex: XXX). De 1 à 10 lettres majuscules ou chiffres, obligatoire.'
-    core_reset_password_prefix:
-      label: Préfixe des demandes de réinitialisation de mot de passe
-      description: 'Préfixe de la référence auto-générée (ex: XXX). De 1 à 10 lettres majuscules ou chiffres, obligatoire.'
-    core_media_folder_prefix:
-      label: Préfixe des références dossiers médias
-      description: 'Préfixe de la référence auto-générée (ex: XXX). De 1 à 10 lettres majuscules ou chiffres, obligatoire.'
-    core_menu_item_prefix:
-      label: Préfixe des références éléments de menu
-      description: 'Préfixe de la référence auto-générée (ex: XXX). De 1 à 10 lettres majuscules ou chiffres, obligatoire.'
-    studio_contract_prefix:
-      label: Préfixe des références de contrat
-      description: 'Préfixe des références de contrat. CTR par défaut, ce qui donne CTR-2026-0001.'
-    studio_provider_name:
-      label: Dénomination du prestataire
-      description: 'Le nom sous lequel vous contractez, tel qu''il s''imprime en tête du contrat.'
-    studio_provider_representative:
-      label: Nom et prénom
-      description: 'La personne physique qui signe. Imprimée avec la dénomination.'
-    studio_provider_address:
-      label: Adresse professionnelle
-      description: 'Adresse complète, sur une ligne : elle apparaît dans le bloc d''identité du contrat.'
-    studio_provider_siret:
-      label: SIRET
-      description: 'Le SIRET de l''établissement qui contracte.'
-    studio_provider_ape_code:
-      label: Code APE
-      description: 'Code et libellé, par exemple 7021Z - conseil en relations publiques et communication.'
-    studio_provider_vat_mention:
-      label: Mention de TVA
-      description: 'La phrase exacte à imprimer, par exemple « non assujetti - TVA non applicable, art. 293 B du CGI ».'
-    studio_provider_email:
-      label: Email
-      description: 'L''adresse à laquelle le client vous écrit au titre du contrat.'
-    studio_provider_phone:
-      label: Téléphone
-      description: 'Le numéro imprimé dans le bloc d''identité.'
-    studio_provider_bank_holder:
-      label: Titulaire du compte
-      description: 'Le nom du titulaire, tel qu''il figure sur le relevé.'
-    studio_provider_bank_iban:
-      label: IBAN
-      description: 'L''IBAN imprimé dans les conditions financières du contrat.'
-    studio_provider_bank_bic:
-      label: BIC
-      description: 'Le BIC de l''établissement.'
-    studio_provider_bank_name:
-      label: Banque
-      description: 'Le nom de l''établissement, et son adresse si vous l''imprimez.'
-    studio_contract_retention_years:
-      label: Durée de conservation (années)
-      description: 'Combien d''années un contrat scellé est conservé avant de pouvoir être supprimé. Cinq ans est le minimum légal, dix sont conseillés pour une prestation de services ; sous cinq, la valeur est ramenée à cinq.'
-    studio_contract_reminder_enabled:
-      label: Relancer automatiquement
-      description: 'Relance par email les contrats envoyés et non signés. Chaque relance crée une nouvelle adresse de signature et invalide la précédente, comme un renvoi manuel.'
-    studio_contract_reminder_days:
-      label: Délai entre deux relances (jours)
-      description: 'Nombre de jours sans réponse avant une relance. Compté depuis le dernier envoi, pas depuis le scellement.'
-    studio_contract_reminder_max:
-      label: Nombre maximum de relances
-      description: 'Au-delà, le contrat est laissé tranquille. Le silence est une réponse aussi.'
-    nav_section_aliases:
-      label: Alias des sections de navigation
-      description: 'Carte JSON des alias de sections (géré via l''interface).'
-    nav_item_aliases:
-      label: Alias des items de navigation
-      description: 'Carte JSON des alias d''items du menu (géré via l''interface).'
-    color_picker_presets:
-      label: Palette du sélecteur de couleurs
-      description: 'Liste JSON de couleurs hexadécimales proposées en raccourci dans tous les sélecteurs de couleurs de l''admin.'
-    email_accent_follows_theme:
-      label: "Suivre la couleur du thème"
-      description: "Les e-mails prennent la couleur principale du thème actif, et la suivent quand elle change. Coupé, c'est la couleur d'accent ci-dessous qui sert."
-    email_accent_color:
-      label: "Couleur d'accent des e-mails"
-      description: "Bouton, liens, pastille du logo et nom du site en tête de chaque e-mail. Sert quand « Suivre la couleur du thème » est coupé."
-    email_background_color:
-      label: "Fond des e-mails"
-      description: "Le fond autour de la carte blanche du message."
-    email_heading_color:
-      label: "Titres des e-mails"
-      description: "Le titre en tête du message."
-    email_text_color:
-      label: "Texte des e-mails"
-      description: "Le texte courant du message."
-    backend_palette:
-      label: "Gris du clair et du sombre"
-      description: "Famille de gris et retouches de chaque mode, en JSON (géré via l'interface)."
-    intro: Consultez et modifiez les paramètres techniques de l'application.
-    key: Paramètre
-    value: Valeur
-    description: Description
-    empty: Aucun paramètre.
-    saved: Paramètre enregistré.
-    search_placeholder: Rechercher par clé…
-    all_groups: Tous les groupes
-  title: Administration
-  # Coquille du dashboard uniquement - un module qui dessine un panneau
-  # embarque ses propres libellés.
-  stats:
-    guide:
-      title: "Lire le tableau de bord"
-      step_1: "Chaque onglet résume un module, Éditorial, GED, Calendrier, Studio ou Plateforme, avec ses propres chiffres."
-      step_2: "Un onglet n'apparaît que si son module est activé et que votre rôle vous permet de le consulter."
-      step_3: "L'onglet ouvert s'inscrit dans l'adresse de la page : un lien copié rouvre le même onglet."
-      step_4: "Les chiffres sont calculés à l'ouverture de la page : rechargez-la pour les mettre à jour."
-    no_module_enabled: Aucun module de dashboard activé.
-  forms:
-    errors:
-      slug_format: 'Le slug ne peut contenir que des lettres minuscules, chiffres et tirets.'
-      slug_taken: Ce slug est déjà utilisé pour cette langue.
-  tabs:
-    access_requests: Demandes d'accès
-    access_requests_description: Demandes d'accès en attente d'approbation.
-    audit: Audit
-    audit_description: Historique de toutes les actions effectuées dans l'application.
-    invitations: Invitations
-    overview: Vue d'ensemble
-    overview_description: Indicateurs clés et activité récente.
-    parameters: Paramètres
-    parameters_description: Paramètres techniques et valeurs de configuration.
-    modules: Modules
-    modules_description: Activer ou désactiver les modules et leurs fonctionnalités.
-    mount_points: Points de montage
-    mount_points_description: 'Connexions vers des ressources externes (BDD, API, SFTP).'
-    permissions: Permissions
-    permissions_description: Consulter les privilèges enregistrés par module.
-    users: Utilisateurs
-    users_description: 'Gérer les comptes, rôles et privilèges des utilisateurs.'
+            title: "Lire le tableau de bord"
+            step_1: "Chaque onglet résume un module, Éditorial, GED, Calendrier, Studio ou Plateforme, avec ses propres chiffres."
+            step_2: "Un onglet n'apparaît que si son module est activé et que votre rôle vous permet de le consulter."
+            step_3: "L'onglet ouvert s'inscrit dans l'adresse de la page : un lien copié rouvre le même onglet."
+            step_4: "Les chiffres sont calculés à l'ouverture de la page : rechargez-la pour les mettre à jour."
+        no_module_enabled: Aucun module de dashboard activé.
+    forms:
+        errors:
+            slug_format: 'Le slug ne peut contenir que des lettres minuscules, chiffres et tirets.'
+            slug_taken: Ce slug est déjà utilisé pour cette langue.
+    tabs:
+        access_requests: Demandes d'accès
+        access_requests_description: Demandes d'accès en attente d'approbation.
+        audit: Audit
+        audit_description: Historique de toutes les actions effectuées dans l'application.
+        invitations: Invitations
+        overview: Vue d'ensemble
+        overview_description: Indicateurs clés et activité récente.
+        parameters: Paramètres
+        parameters_description: Paramètres techniques et valeurs de configuration.
+        modules: Modules
+        modules_description: Activer ou désactiver les modules et leurs fonctionnalités.
+        mount_points: Points de montage
+        mount_points_description: 'Connexions vers des ressources externes (BDD, API, SFTP).'
+        permissions: Permissions
+        permissions_description: Consulter les privilèges enregistrés par module.
+        users: Utilisateurs
+        users_description: 'Gérer les comptes, rôles et privilèges des utilisateurs.'

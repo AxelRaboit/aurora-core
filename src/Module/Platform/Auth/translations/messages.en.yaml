@@ -1,186 +1,186 @@
 backend:
-  auth:
-    access_request:
-      already_account: Already have an account?
-      description: Fill out this form to request access to the administration.
-      email: Email
-      login_link: Sign in
-      message: Message
-      message_placeholder: Describe your need...
-      name: Name
-      name_placeholder: John Doe
-      submit: Send request
-      success_toast: Your access request has been sent.
-      title: Request access
-      closed_title: Access requests closed
-      closed_desc: Access requests are currently disabled.
-    forgot_password:
-      back_login: Back to login
-      instructions: Enter your email address and we'll send you a link to reset your password.
-      sent: 'If this address is linked to an account, you will receive an email shortly.'
-      submit: Send reset link
-      title: Forgot password
-    hero:
-      description: 'A headless CMS to manage multilingual content, pages and forms.'
-      feature_1: 'Content management & SEO'
-      feature_2: 'Multi-language, block-based editing'
-      feature_3: 'Custom post types & taxonomies'
-      feature_4: Forms & comments
-      heading: Run your content
-      heading_accent: 'on {siteName}.'
-    invitation:
-      accept_title: Accept invitation
-      confirm_password: Confirm password
-      errors:
-        password_confirm_required: Confirmation is required.
-        password_mismatch: Passwords do not match.
-        password_required: Password is required.
-      expired: This invitation link is invalid or has expired.
-      password: Password
-      set_password: Set your password to activate your account.
-      submit: Activate my account
-      success: 'Your account is active, welcome!'
-      welcome: 'Welcome {name}'
-    login:
-      subtitle: 'Welcome back, sign in to your workspace.'
-      email: Email
-      email_placeholder: 'your@email.com'
-      forgot: Forgot password?
-      no_account: No account yet?
-      password: Password
-      remember: Remember me
-      request_access: Request access
-      submit: Sign in
-      title: Login
-    register:
-      subtitle: Create your account in seconds.
-      already_account: Already have an account?
-      closed_desc: New registrations are currently disabled.
-      closed_title: Registration closed
-      email: Email
-      error_email_invalid: Invalid email address.
-      error_email_required: Email address is required.
-      error_email_taken: This email address is already in use.
-      error_name_required: Name is required.
-      error_password_length: Password must be at least 8 characters.
-      error_password_mismatch: Passwords do not match.
-      heading: Create an account
-      login_link: Sign in
-      name: Name
-      name_placeholder: John Doe
-      password: Password
-      password_confirm: Confirm password
-      submit: Create account
-      title: Create an account
-    register_confirm:
-      title: Check your email
-      heading: Check your email
-      message: A confirmation email has been sent. Click the link to activate your account.
-      login_link: Go to sign in
-      resend_hint: Didn't receive the email?
-      resend_link: Resend confirmation email
-      resent_success: The confirmation email has been resent.
-    reset_password:
-      instructions: Choose a new password for your account.
-      invalid_link: This link is invalid or has expired.
-      submit: Reset password
-      success: Your password has been reset successfully.
-      title: Reset password
-    verify_email:
-      title: Email verification
-      success_heading: 'Email confirmed!'
-      success_message: Your email address has been verified. You can now sign in.
-      error_heading: Invalid or expired link
-      error_message: This verification link is invalid or has expired. Please register again.
+    auth:
+        access_request:
+            already_account: Already have an account?
+            description: Fill out this form to request access to the administration.
+            email: Email
+            login_link: Sign in
+            message: Message
+            message_placeholder: Describe your need...
+            name: Name
+            name_placeholder: John Doe
+            submit: Send request
+            success_toast: Your access request has been sent.
+            title: Request access
+            closed_title: Access requests closed
+            closed_desc: Access requests are currently disabled.
+        forgot_password:
+            back_login: Back to login
+            instructions: Enter your email address and we'll send you a link to reset your password.
+            sent: 'If this address is linked to an account, you will receive an email shortly.'
+            submit: Send reset link
+            title: Forgot password
+        hero:
+            description: 'A headless CMS to manage multilingual content, pages and forms.'
+            feature_1: 'Content management & SEO'
+            feature_2: 'Multi-language, block-based editing'
+            feature_3: 'Custom post types & taxonomies'
+            feature_4: Forms & comments
+            heading: Run your content
+            heading_accent: 'on {siteName}.'
+        invitation:
+            accept_title: Accept invitation
+            confirm_password: Confirm password
+            errors:
+                password_confirm_required: Confirmation is required.
+                password_mismatch: Passwords do not match.
+                password_required: Password is required.
+            expired: This invitation link is invalid or has expired.
+            password: Password
+            set_password: Set your password to activate your account.
+            submit: Activate my account
+            success: 'Your account is active, welcome!'
+            welcome: 'Welcome {name}'
+        login:
+            subtitle: 'Welcome back, sign in to your workspace.'
+            email: Email
+            email_placeholder: 'your@email.com'
+            forgot: Forgot password?
+            no_account: No account yet?
+            password: Password
+            remember: Remember me
+            request_access: Request access
+            submit: Sign in
+            title: Login
+        register:
+            subtitle: Create your account in seconds.
+            already_account: Already have an account?
+            closed_desc: New registrations are currently disabled.
+            closed_title: Registration closed
+            email: Email
+            error_email_invalid: Invalid email address.
+            error_email_required: Email address is required.
+            error_email_taken: This email address is already in use.
+            error_name_required: Name is required.
+            error_password_length: Password must be at least 8 characters.
+            error_password_mismatch: Passwords do not match.
+            heading: Create an account
+            login_link: Sign in
+            name: Name
+            name_placeholder: John Doe
+            password: Password
+            password_confirm: Confirm password
+            submit: Create account
+            title: Create an account
+        register_confirm:
+            title: Check your email
+            heading: Check your email
+            message: A confirmation email has been sent. Click the link to activate your account.
+            login_link: Go to sign in
+            resend_hint: Didn't receive the email?
+            resend_link: Resend confirmation email
+            resent_success: The confirmation email has been resent.
+        reset_password:
+            instructions: Choose a new password for your account.
+            invalid_link: This link is invalid or has expired.
+            submit: Reset password
+            success: Your password has been reset successfully.
+            title: Reset password
+        verify_email:
+            title: Email verification
+            success_heading: 'Email confirmed!'
+            success_message: Your email address has been verified. You can now sign in.
+            error_heading: Invalid or expired link
+            error_message: This verification link is invalid or has expired. Please register again.
 frontend:
-  login:
-    title: Sign in
-    heading: Sign in
-    subtitle: Sign in to your personal space.
-    email: Email address
-    email_placeholder: 'you@example.com'
-    password: Password
-    forgot_password: Forgot password?
-    remember_me: Remember me
-    submit: Sign in
-    no_account: Don't have an account?
-    register_link: Create an account
-  register:
-    title: Create an account
-    heading: Create an account
-    subtitle: Join our community.
-    name: Full name
-    name_placeholder: John Doe
-    email: Email address
-    email_placeholder: 'you@example.com'
-    password: Password
-    submit: Create account
-    already_account: Already have an account?
-    login_link: Sign in
-    confirm_title: Check your email
-    confirm_heading: Check your email
-    confirm_message: A confirmation email has been sent. Click the link to activate your account.
-    closed_title: Registrations closed
-    closed_desc: New registrations are disabled at the moment.
-    resend_hint: Didn't receive the email?
-    resend_link: Resend confirmation email
-    resent_success: The confirmation email has been resent.
-  verify_email:
-    title: Email verification
-    success_heading: 'Email confirmed!'
-    success_message: Your email address has been verified. You can now sign in.
-    error_heading: Invalid or expired link
-    error_message: This verification link is invalid or has expired. Please register again.
-  account:
-    title: My account
-    heading: My account
-    name: Name
-    email: Email
-    logout: Sign out
-  forgot_password:
-    title: Forgot password
-    heading: Forgot your password?
-    subtitle: Enter your email address and we'll send you a link to reset your password.
-    submit: Send reset link
-    sent: A password reset email has been sent. Check your inbox.
-    back_login: Back to sign in
-  reset_password:
-    title: Reset password
-    heading: Reset your password
-    subtitle: Choose a new password for your account.
-    new_password: New password
-    confirm_password: Confirm password
-    submit: Reset password
-    invalid_link: This link is invalid or has expired. Please submit a new request.
-    success: Your password has been reset. You can now sign in.
-  invitation:
-    title: Welcome
-    heading: Welcome
-    heading_named: 'Welcome {name}'
-    subtitle: Choose the password you will sign in with.
-    password: Password
-    confirm_password: Confirm the password
-    submit: Activate my account
-    invalid_link: "This invitation is invalid or has expired. Ask whoever signed you up for a new one."
-  errors:
-    name_required: Name is required.
-    email_required: Email address is required.
-    email_invalid: Invalid email address.
-    email_taken: This email address is already in use.
-    password_required: Password is required.
-    password_too_short: Password must be at least 8 characters.
-    passwords_mismatch: Passwords do not match.
-    email_not_verified: Please verify your email address before signing in.
-    account_disabled: Your account has been disabled.
-shared:
-  password:
-    criteria:
-      length: At least 8 characters
-      uppercase: One uppercase letter
-      number: One number
-      special: One special character
+    login:
+        title: Sign in
+        heading: Sign in
+        subtitle: Sign in to your personal space.
+        email: Email address
+        email_placeholder: 'you@example.com'
+        password: Password
+        forgot_password: Forgot password?
+        remember_me: Remember me
+        submit: Sign in
+        no_account: Don't have an account?
+        register_link: Create an account
+    register:
+        title: Create an account
+        heading: Create an account
+        subtitle: Join our community.
+        name: Full name
+        name_placeholder: John Doe
+        email: Email address
+        email_placeholder: 'you@example.com'
+        password: Password
+        submit: Create account
+        already_account: Already have an account?
+        login_link: Sign in
+        confirm_title: Check your email
+        confirm_heading: Check your email
+        confirm_message: A confirmation email has been sent. Click the link to activate your account.
+        closed_title: Registrations closed
+        closed_desc: New registrations are disabled at the moment.
+        resend_hint: Didn't receive the email?
+        resend_link: Resend confirmation email
+        resent_success: The confirmation email has been resent.
+    verify_email:
+        title: Email verification
+        success_heading: 'Email confirmed!'
+        success_message: Your email address has been verified. You can now sign in.
+        error_heading: Invalid or expired link
+        error_message: This verification link is invalid or has expired. Please register again.
+    account:
+        title: My account
+        heading: My account
+        name: Name
+        email: Email
+        logout: Sign out
+    forgot_password:
+        title: Forgot password
+        heading: Forgot your password?
+        subtitle: Enter your email address and we'll send you a link to reset your password.
+        submit: Send reset link
+        sent: A password reset email has been sent. Check your inbox.
+        back_login: Back to sign in
+    reset_password:
+        title: Reset password
+        heading: Reset your password
+        subtitle: Choose a new password for your account.
+        new_password: New password
+        confirm_password: Confirm password
+        submit: Reset password
+        invalid_link: This link is invalid or has expired. Please submit a new request.
+        success: Your password has been reset. You can now sign in.
+    invitation:
+        title: Welcome
+        heading: Welcome
+        heading_named: 'Welcome {name}'
+        subtitle: Choose the password you will sign in with.
+        password: Password
+        confirm_password: Confirm the password
+        submit: Activate my account
+        invalid_link: "This invitation is invalid or has expired. Ask whoever signed you up for a new one."
     errors:
-      too_short: Password must be at least 8 characters.
-      no_uppercase: Password must contain at least one uppercase letter.
-      no_number: Password must contain at least one number.
-      no_special: Password must contain at least one special character.
+        name_required: Name is required.
+        email_required: Email address is required.
+        email_invalid: Invalid email address.
+        email_taken: This email address is already in use.
+        password_required: Password is required.
+        password_too_short: Password must be at least 8 characters.
+        passwords_mismatch: Passwords do not match.
+        email_not_verified: Please verify your email address before signing in.
+        account_disabled: Your account has been disabled.
+shared:
+    password:
+        criteria:
+            length: At least 8 characters
+            uppercase: One uppercase letter
+            number: One number
+            special: One special character
+        errors:
+            too_short: Password must be at least 8 characters.
+            no_uppercase: Password must contain at least one uppercase letter.
+            no_number: Password must contain at least one number.
+            no_special: Password must contain at least one special character.

@@ -22,5 +22,13 @@
     duplicatePathTemplate: view.duplicatePathTemplate,
     deletePathTemplate: view.deletePathTemplate,
     linksPathTemplate: view.linksPathTemplate,
+    copyToSpacePathTemplate: view.copyToSpacePathTemplate|default(''),
+    copyTargets: view.copyTargets|default([]),
+    categories: view.categories|default([]),
+    canManageCategories: view.canManageCategories|default(false),
+    categoryCreatePath: view.categoryCreatePath|default(''),
+    categoryUpdatePathTemplate: view.categoryUpdatePathTemplate|default(''),
+    categoryDeletePathTemplate: view.categoryDeletePathTemplate|default(''),
+    categoryReorderPath: view.categoryReorderPath|default(''),
 }) }} class="flex-1 min-w-0"></div>
 {% endblock %}

@@ -1,64 +1,64 @@
 frontend:
-  mail:
-    user:
-      subject_account_deleted: Suppression de votre compte
-      subject_role_changed: Modification de votre rôle
-      account_deleted_heading: Compte supprimé
-      account_deleted_intro: 'Bonjour {name}, votre compte sur {siteName} a bien été supprimé.'
-      account_deleted_outro: "Toutes les données associées à votre compte ont été supprimées. Si vous n'avez pas effectué cette action, contactez-nous immédiatement."
-      role_changed_heading: Votre rôle a changé
-      role_changed_intro: 'Bonjour {name}, votre rôle a été modifié sur {siteName}.'
-      role_changed_label: Nouveau rôle
-      role_changed_outro: "Si vous n'êtes pas à l'origine de cette modification, contactez votre administrateur."
+    mail:
+        user:
+            subject_account_deleted: Suppression de votre compte
+            subject_role_changed: Modification de votre rôle
+            account_deleted_heading: Compte supprimé
+            account_deleted_intro: 'Bonjour {name}, votre compte sur {siteName} a bien été supprimé.'
+            account_deleted_outro: "Toutes les données associées à votre compte ont été supprimées. Si vous n'avez pas effectué cette action, contactez-nous immédiatement."
+            role_changed_heading: Votre rôle a changé
+            role_changed_intro: 'Bonjour {name}, votre rôle a été modifié sur {siteName}.'
+            role_changed_label: Nouveau rôle
+            role_changed_outro: "Si vous n'êtes pas à l'origine de cette modification, contactez votre administrateur."
 shared:
-  mail:
-    invitation:
-      cta: Activer mon compte
-      expires: 'Ce lien expire le {date}.'
-      fallback_intro: 'Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur :'
-      footer_note: "Si vous n'attendiez pas cette invitation, vous pouvez ignorer cet e-mail."
-      greeting: 'Bonjour {name},'
-      heading: 'Invitation à rejoindre {siteName}'
-      intro: 'Vous avez été invité à rejoindre {siteName}. Cliquez sur le bouton ci-dessous pour activer votre compte et définir votre mot de passe.'
-    verify_email:
-      cta: Confirmer mon adresse e-mail
-      expires: 'Ce lien expire le {date}.'
-      fallback_intro: 'Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur :'
-      footer_note: "Si vous n'avez pas créé de compte, vous pouvez ignorer cet e-mail."
-      greeting: 'Bonjour {name},'
-      heading: Confirmez votre adresse e-mail
-      intro: 'Merci de vous être inscrit sur {siteName}. Cliquez sur le bouton ci-dessous pour confirmer votre adresse e-mail et activer votre compte.'
-    reset_password:
-      cta: Réinitialiser mon mot de passe
-      expires: Ce lien expire dans 1 heure.
-      expires_at: 'Ce lien expire le {date}.'
-      fallback_intro: 'Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur :'
-      footer_note: "Si vous n'avez pas demandé de réinitialisation, vous pouvez ignorer cet e-mail."
-      greeting: 'Bonjour {name},'
-      heading: Réinitialisation de votre mot de passe
-      intro: 'Vous avez demandé à réinitialiser votre mot de passe sur {siteName}. Cliquez sur le bouton ci-dessous pour choisir un nouveau mot de passe.'
-    access_request_admin:
-      heading: Nouvelle demande d'accès
-      intro: Une nouvelle demande d'accès vient d'être reçue.
-      label_name: Nom
-      label_email: E-mail
-      label_message: Message
-      cta: Voir dans l'administration
-      footer_note: 'Cet e-mail a été envoyé automatiquement, merci de ne pas y répondre.'
-    access_request_approved:
-      heading: Votre demande a été approuvée
-      greeting: 'Bonjour {name},'
-      intro: "Votre demande d'accès à {siteName} a été approuvée."
-      credentials_intro: 'Un compte a été créé pour vous avec les identifiants suivants :'
-      label_email: E-mail
-      label_password: Mot de passe
-      password_note: Pensez à changer votre mot de passe après votre première connexion.
-      existing_account: Vous pouvez vous connecter avec votre compte existant.
-      cta: Accéder à l'administration
-      footer_note: 'Cet e-mail a été envoyé automatiquement, merci de ne pas y répondre.'
-    access_request_rejected:
-      heading: Demande d'accès non accordée
-      greeting: 'Bonjour {name},'
-      intro: "Après examen, votre demande d'accès n'a pas pu être accordée."
-      retry: "Si vous pensez qu'il s'agit d'une erreur, n'hésitez pas à en soumettre une nouvelle."
-      footer_note: 'Cet e-mail a été envoyé automatiquement, merci de ne pas y répondre.'
+    mail:
+        invitation:
+            cta: Activer mon compte
+            expires: 'Ce lien expire le {date}.'
+            fallback_intro: 'Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur :'
+            footer_note: "Si vous n'attendiez pas cette invitation, vous pouvez ignorer cet e-mail."
+            greeting: 'Bonjour {name},'
+            heading: 'Invitation à rejoindre {siteName}'
+            intro: 'Vous avez été invité à rejoindre {siteName}. Cliquez sur le bouton ci-dessous pour activer votre compte et définir votre mot de passe.'
+        verify_email:
+            cta: Confirmer mon adresse e-mail
+            expires: 'Ce lien expire le {date}.'
+            fallback_intro: 'Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur :'
+            footer_note: "Si vous n'avez pas créé de compte, vous pouvez ignorer cet e-mail."
+            greeting: 'Bonjour {name},'
+            heading: Confirmez votre adresse e-mail
+            intro: 'Merci de vous être inscrit sur {siteName}. Cliquez sur le bouton ci-dessous pour confirmer votre adresse e-mail et activer votre compte.'
+        reset_password:
+            cta: Réinitialiser mon mot de passe
+            expires: Ce lien expire dans 1 heure.
+            expires_at: 'Ce lien expire le {date}.'
+            fallback_intro: 'Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur :'
+            footer_note: "Si vous n'avez pas demandé de réinitialisation, vous pouvez ignorer cet e-mail."
+            greeting: 'Bonjour {name},'
+            heading: Réinitialisation de votre mot de passe
+            intro: 'Vous avez demandé à réinitialiser votre mot de passe sur {siteName}. Cliquez sur le bouton ci-dessous pour choisir un nouveau mot de passe.'
+        access_request_admin:
+            heading: Nouvelle demande d'accès
+            intro: Une nouvelle demande d'accès vient d'être reçue.
+            label_name: Nom
+            label_email: E-mail
+            label_message: Message
+            cta: Voir dans l'administration
+            footer_note: 'Cet e-mail a été envoyé automatiquement, merci de ne pas y répondre.'
+        access_request_approved:
+            heading: Votre demande a été approuvée
+            greeting: 'Bonjour {name},'
+            intro: "Votre demande d'accès à {siteName} a été approuvée."
+            credentials_intro: 'Un compte a été créé pour vous avec les identifiants suivants :'
+            label_email: E-mail
+            label_password: Mot de passe
+            password_note: Pensez à changer votre mot de passe après votre première connexion.
+            existing_account: Vous pouvez vous connecter avec votre compte existant.
+            cta: Accéder à l'administration
+            footer_note: 'Cet e-mail a été envoyé automatiquement, merci de ne pas y répondre.'
+        access_request_rejected:
+            heading: Demande d'accès non accordée
+            greeting: 'Bonjour {name},'
+            intro: "Après examen, votre demande d'accès n'a pas pu être accordée."
+            retry: "Si vous pensez qu'il s'agit d'une erreur, n'hésitez pas à en soumettre une nouvelle."
+            footer_note: 'Cet e-mail a été envoyé automatiquement, merci de ne pas y répondre.'

@@ -5,7 +5,6 @@ import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useCommentRowActions } from "./composables/useCommentRowActions.js";
 import { useComments } from "./composables/useComments.js";
 import AppButton from "@/shared/components/action/AppButton.vue";
-import AppCardActions from "@/shared/components/action/AppCardActions.vue";
 import AppPagination from "@/shared/components/nav/AppPagination.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
@@ -139,14 +138,9 @@ function badgeColor(value) {
                             {{ t(`backend.comments.status.${comment.status}`) }}
                         </AppBadge>
 
-                        <!-- Les trois points restent là où il y a une souris :
-                             sur un grand écran, trois rangées pleine largeur
-                             sous chaque commentaire pèseraient plus que le
-                             commentaire. Sur téléphone, ils sont écrits en bas
-                             de la carte. -->
-                        <div class="hidden sm:block">
-                            <AppRowActions :actions="actionsFor(comment)" :label="comment.authorName ?? ''" />
-                        </div>
+                        <!-- Les trois points sur tous les écrans, comme sur
+                             toutes les listes (décision d'Axel du 04/10/2026). -->
+                        <AppRowActions :actions="actionsFor(comment)" :label="comment.authorName ?? ''" />
                     </div>
                 </header>
 
@@ -156,10 +150,6 @@ function badgeColor(value) {
                     <span v-if="comment.replyCount">{{ t("backend.comments.replies", { count: comment.replyCount }) }}</span>
                     <span v-for="(count, type) in comment.reactions" :key="type">{{ type }} · {{ count }}</span>
                 </footer>
-
-                <div class="border-t border-line/40 pt-2 sm:hidden">
-                    <AppCardActions :actions="actionsFor(comment)" />
-                </div>
             </article>
         </div>
 

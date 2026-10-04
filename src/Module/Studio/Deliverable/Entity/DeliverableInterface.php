@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\Deliverable\Entity;
 
+use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\Deliverable\Enum\DeliverableScopeEnum;
@@ -21,6 +22,14 @@ interface DeliverableInterface
     public function getOwner(): ?CoreUserInterface;
 
     public function setOwner(?CoreUserInterface $owner): static;
+
+    public function getThumbnail(): ?DocumentInterface;
+
+    public function setThumbnail(?DocumentInterface $thumbnail): static;
+
+    public function getCategory(): ?DeliverableCategoryInterface;
+
+    public function setCategory(?DeliverableCategoryInterface $category): static;
 
     public function getScope(): DeliverableScopeEnum;
 

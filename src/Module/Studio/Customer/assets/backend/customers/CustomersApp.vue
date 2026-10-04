@@ -15,7 +15,6 @@ import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppListToolbar from "@/shared/components/list/AppListToolbar.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
-import AppCardActions from "@/shared/components/action/AppCardActions.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import { Building2, Pencil, Plus, Save, Trash2, X } from "lucide-vue-next";
@@ -232,28 +231,29 @@ const pageActions = computed(() => {
                 :key="customer.id"
                 class="aurora-card overflow-hidden"
             >
-                <div class="px-4 py-3 space-y-1">
-                    <p class="font-medium text-primary text-sm">
-                        {{ customer.legalName }}
-                        <span v-if="customer.legalForm" class="text-muted font-normal">
-                            · {{ customer.legalForm }}
-                        </span>
-                    </p>
-                    <p v-if="customer.representativeFullName" class="text-xs text-secondary">
-                        {{ customer.representativeFullName }}
-                        <span v-if="customer.representativeRole">
-                            - {{ customer.representativeRole }}
-                        </span>
-                    </p>
-                    <p class="text-xs text-muted">{{ customer.contractualEmail }}</p>
-                    <p v-if="customer.siret" class="text-xs text-muted font-mono">
-                        {{ formatSiret(customer.siret) }}
-                    </p>
-                </div>
-                <!-- Les gestes en toutes lettres plutôt que derrière trois
-                     points : la carte a la largeur de les nommer. -->
-                <div class="px-2 pb-2 pt-1 border-t border-line/40 bg-surface-2/40">
-                    <AppCardActions :actions="actionsFor(customer)" />
+                <div class="flex items-start gap-3 px-4 py-3">
+                    <div class="min-w-0 flex-1 space-y-1">
+                        <p class="font-medium text-primary text-sm">
+                            {{ customer.legalName }}
+                            <span v-if="customer.legalForm" class="text-muted font-normal">
+                                · {{ customer.legalForm }}
+                            </span>
+                        </p>
+                        <p v-if="customer.representativeFullName" class="text-xs text-secondary">
+                            {{ customer.representativeFullName }}
+                            <span v-if="customer.representativeRole">
+                                - {{ customer.representativeRole }}
+                            </span>
+                        </p>
+                        <p class="text-xs text-muted">{{ customer.contractualEmail }}</p>
+                        <p v-if="customer.siret" class="text-xs text-muted font-mono">
+                            {{ formatSiret(customer.siret) }}
+                        </p>
+                    </div>
+                    <!-- Les gestes derrière le bouton « … », à hauteur du titre,
+                     comme sur toutes les listes (décision d'Axel du 04/10/2026) :
+                     la carte garde sa place pour son contenu. -->
+                    <AppRowActions class="shrink-0" :actions="actionsFor(customer)" :label="customer.legalName" />
                 </div>
             </div>
         </div>

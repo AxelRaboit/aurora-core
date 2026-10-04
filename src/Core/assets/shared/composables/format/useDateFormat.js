@@ -54,6 +54,15 @@ export function useDateFormat() {
         }).format(new Date(isoString));
     }
 
+    /** The hour alone, « 16:33 » in FR, « 4:33 PM » in EN: to follow a date written out. */
+    function formatTime(isoString) {
+        return new Intl.DateTimeFormat(locale.value, {
+            timeZone: zoneFor(isoString),
+            hour: "2-digit",
+            minute: "2-digit",
+        }).format(new Date(isoString));
+    }
+
     /**
      * Strict numeric date (locale-aware): DD/MM/YYYY in FR, MM/DD/YYYY in EN, …
      * Returns the placeholder when the input is empty / null - handy in
@@ -102,6 +111,7 @@ export function useDateFormat() {
         formatDate,
         formatDateShort,
         formatDateTime,
+        formatTime,
         formatDateNumeric,
         formatDateTimeNumeric,
         formatMonthYear,

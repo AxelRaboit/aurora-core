@@ -1,11 +1,11 @@
 backend:
-  notifications:
-    title: Notifications
-    empty: No notifications.
-    close: Close
-    delete: Delete this notification
-    delete_all: Delete all
-    mark_all_read: Mark all as read
-    just_now: just now
-    minutes_ago: '{n} min ago'
-    hours_ago: '{n} h ago'
+    notifications:
+        title: Notifications
+        empty: No notifications.
+        close: Close
+        delete: Delete this notification
+        delete_all: Delete all
+        mark_all_read: Mark all as read
+        just_now: just now
+        minutes_ago: '{n} min ago'
+        hours_ago: '{n} h ago'

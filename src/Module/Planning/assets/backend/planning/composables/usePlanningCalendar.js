@@ -25,7 +25,10 @@ import { toDisplayRow, useDisplayZone } from "./displayZone.js";
  * reloaded. Hidden calendars stay in memory on purpose: which of your own
  * calendars you have folded away is not something you send anyone.
  */
-export function usePlanningCalendar(props, { fixedZone = null } = {}) {
+export function usePlanningCalendar(
+    props,
+    { fixedZone = null, canEdit = () => true } = {},
+) {
     const { request } = useRequest();
 
     const calendars = ref([...(props.calendars ?? [])]);
@@ -204,8 +207,15 @@ export function usePlanningCalendar(props, { fixedZone = null } = {}) {
             // make a network blip look like a month with nothing in it.
             // Assigned separately and each guarded, because a response missing
             // one key should leave that half as it was rather than emptying it.
+            // An event the reader may not edit arrives read-only, as one a
+            // module announced does: no drag, no edit button. `lockedBySource`
+            // keeps the server's own answer, which is what deleting asks.
             if (data?.events) {
-                events.value = data.events;
+                events.value = data.events.map((event) => ({
+                    ...event,
+                    lockedBySource: event.readOnly,
+                    readOnly: event.readOnly || !canEdit(),
+                }));
             }
             if (data?.reminders) {
                 reminders.value = data.reminders;

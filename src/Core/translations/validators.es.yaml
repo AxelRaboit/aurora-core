@@ -1,171 +1,171 @@
 backend:
-  access_requests:
-    approved: Solicitud de {name} aprobada.
-    purged: Solicitudes procesadas eliminadas.
-    rejected: Solicitud de {name} rechazada.
-  invitations:
-    sent: Invitación enviada a {email}.
-  tabs:
-    access_requests: Solicitudes de acceso
-    invitations: Invitaciones
-    overview: Resumen
-    parameters: Parámetros
-    users: Usuarios
-  users:
-    cannot_delete_self: No puedes eliminar tu propia cuenta.
-    cannot_modify_higher_role: No puedes modificar un usuario con un rol superior al tuyo.
-    cannot_modify_self: No puedes modificar tu propio rol.
-    created: Usuario creado con éxito.
-    deleted: Usuario eliminado.
-    dev_granted: Rol Dev otorgado.
-    dev_revoked: Rol Dev retirado.
+    access_requests:
+        approved: Solicitud de {name} aprobada.
+        purged: Solicitudes procesadas eliminadas.
+        rejected: Solicitud de {name} rechazada.
+    invitations:
+        sent: Invitación enviada a {email}.
+    tabs:
+        access_requests: Solicitudes de acceso
+        invitations: Invitaciones
+        overview: Resumen
+        parameters: Parámetros
+        users: Usuarios
+    users:
+        cannot_delete_self: No puedes eliminar tu propia cuenta.
+        cannot_modify_higher_role: No puedes modificar un usuario con un rol superior al tuyo.
+        cannot_modify_self: No puedes modificar tu propio rol.
+        created: Usuario creado con éxito.
+        deleted: Usuario eliminado.
+        dev_granted: Rol Dev otorgado.
+        dev_revoked: Rol Dev retirado.
+        errors:
+            email_invalid: Dirección de correo electrónico inválida.
+            email_required: La dirección de correo es obligatoria.
+            email_taken: Esta dirección de correo ya está en uso.
+            email_too_long: La dirección de correo no debe superar los 180 caracteres.
+            name_required: El nombre es obligatorio.
+            name_too_long: El nombre no debe superar los 100 caracteres.
+            role_invalid: Rol inválido.
+            role_required: El rol es obligatorio.
+        updated: Usuario actualizado.
+    auth:
+        access_request:
+            already_account: ¿Ya tienes cuenta?
+            description: Rellena este formulario para solicitar acceso a la administración.
+            email: Correo electrónico
+            login_link: Iniciar sesión
+            message: Mensaje
+            message_placeholder: Describe tu necesidad...
+            name: Nombre
+            name_placeholder: Juan García
+            submit: Enviar solicitud
+            success_toast: Tu solicitud de acceso ha sido enviada.
+            title: Solicitar acceso
+        forgot_password:
+            back_login: Volver al inicio de sesión
+            instructions: Introduce tu dirección de correo y te enviaremos un enlace para restablecer tu contraseña.
+            sent: Si esta dirección está asociada a una cuenta, recibirás un correo en breve.
+            submit: Enviar enlace
+            title: Contraseña olvidada
+        hero:
+            description: Una interfaz moderna para crear, gestionar y publicar contenido web.
+            feature_1: Gestión de contenido flexible
+            feature_2: Tipos de contenido personalizables
+            feature_3: Gestión de medios integrada
+            feature_4: Interfaz moderna y rápida
+            heading: Gestiona tu contenido
+            heading_accent: con {siteName}.
+        invitation:
+            accept_title: Aceptar invitación
+            confirm_password: Confirmar contraseña
+            errors:
+                password_confirm_required: La confirmación es obligatoria.
+                password_mismatch: Las contraseñas no coinciden.
+                password_required: La contraseña es obligatoria.
+                password_too_short: La contraseña debe tener al menos 8 caracteres.
+            expired: Este enlace de invitación es inválido o ha expirado.
+            password: Contraseña
+            set_password: Defina su contraseña para activar su cuenta.
+            submit: Activar mi cuenta
+            success: Tu cuenta está activa, ¡bienvenido/a!
+            welcome: Bienvenido/a {name}
+        login:
+            email: Correo electrónico
+            email_placeholder: tu@email.com
+            forgot: ¿Olvidaste tu contraseña?
+            no_account: ¿No tienes cuenta?
+            password: Contraseña
+            remember: Recordarme
+            request_access: Solicitar acceso
+            submit: Iniciar sesión
+            title: Iniciar sesión
+        register:
+            already_account: ¿Ya tienes cuenta?
+            closed_desc: Los nuevos registros están desactivados actualmente.
+            closed_title: Registro cerrado
+            email: Correo electrónico
+            error_email_invalid: Dirección de correo electrónico inválida.
+            error_email_required: La dirección de correo es obligatoria.
+            error_email_taken: Esta dirección de correo ya está en uso.
+            error_name_required: El nombre es obligatorio.
+            error_password_length: La contraseña debe tener al menos 8 caracteres.
+            error_password_mismatch: Las contraseñas no coinciden.
+            heading: Crear una cuenta
+            login_link: Iniciar sesión
+            name: Nombre
+            name_placeholder: Juan García
+            password: Contraseña
+            password_confirm: Confirmar contraseña
+            submit: Crear cuenta
+            title: Crear una cuenta
+        reset_password:
+            instructions: Elige una nueva contraseña para tu cuenta.
+            invalid_link: Este enlace es inválido o ha expirado.
+            submit: Restablecer contraseña
+            success: Tu contraseña ha sido restablecida con éxito.
+            title: Restablecer contraseña
+    profile:
+        errors:
+            current_password_invalid: La contraseña actual es incorrecta.
+            email_invalid: Dirección de correo electrónico inválida.
+            email_taken: Esta dirección de correo ya está en uso.
+            invalid_csrf: Token de seguridad inválido.
+            invalid_locale: Idioma no compatible.
+            name_required: El nombre es obligatorio.
+            password_mismatch: Las contraseñas no coinciden.
+            password_too_short: La contraseña debe tener al menos 8 caracteres.
+    media:
+        errors:
+            alt_required: El texto alternativo es obligatorio.
+            focal_out_of_range: El punto focal debe estar entre 0 y 1.
+            folder_name_required: El nombre de la carpeta es obligatorio.
+    post_types:
+        errors:
+            slug_required: El slug es obligatorio.
+            slug_format: El slug solo puede contener letras minúsculas, números y guiones bajos.
+            label_required: La etiqueta es obligatoria.
+            field_name_required: El nombre del campo es obligatorio.
+            field_name_format: El nombre del campo solo puede contener letras minúsculas, números y guiones bajos.
+            field_label_required: La etiqueta del campo es obligatoria.
+            field_type_invalid: Tipo de campo inválido.
+    taxonomies:
+        errors:
+            slug_required: El slug es obligatorio.
+            slug_format: El slug solo puede contener letras minúsculas, números, guiones y guiones bajos.
+            translations_required: Se requiere al menos una traducción.
+    posts:
+        errors:
+            post_type_required: El tipo de contenido es obligatorio.
+            status_required: El estado es obligatorio.
+            status_invalid: Estado inválido.
+            visibility_invalid: Difusión no válida.
+    forms:
+        errors:
+            translations_required: Al menos un idioma debe estar rellenado.
+            type_required: El tipo de campo es obligatorio.
+            field_label_required: Al menos una etiqueta es obligatoria.
+frontend:
     errors:
-      email_invalid: Dirección de correo electrónico inválida.
-      email_required: La dirección de correo es obligatoria.
-      email_taken: Esta dirección de correo ya está en uso.
-      email_too_long: La dirección de correo no debe superar los 180 caracteres.
-      name_required: El nombre es obligatorio.
-      name_too_long: El nombre no debe superar los 100 caracteres.
-      role_invalid: Rol inválido.
-      role_required: El rol es obligatorio.
-    updated: Usuario actualizado.
-  auth:
-    access_request:
-      already_account: ¿Ya tienes cuenta?
-      description: Rellena este formulario para solicitar acceso a la administración.
-      email: Correo electrónico
-      login_link: Iniciar sesión
-      message: Mensaje
-      message_placeholder: Describe tu necesidad...
-      name: Nombre
-      name_placeholder: Juan García
-      submit: Enviar solicitud
-      success_toast: Tu solicitud de acceso ha sido enviada.
-      title: Solicitar acceso
-    forgot_password:
-      back_login: Volver al inicio de sesión
-      instructions: Introduce tu dirección de correo y te enviaremos un enlace para restablecer tu contraseña.
-      sent: Si esta dirección está asociada a una cuenta, recibirás un correo en breve.
-      submit: Enviar enlace
-      title: Contraseña olvidada
-    hero:
-      description: Una interfaz moderna para crear, gestionar y publicar contenido web.
-      feature_1: Gestión de contenido flexible
-      feature_2: Tipos de contenido personalizables
-      feature_3: Gestión de medios integrada
-      feature_4: Interfaz moderna y rápida
-      heading: Gestiona tu contenido
-      heading_accent: con {siteName}.
-    invitation:
-      accept_title: Aceptar invitación
-      confirm_password: Confirmar contraseña
-      errors:
-        password_confirm_required: La confirmación es obligatoria.
-        password_mismatch: Las contraseñas no coinciden.
+        name_required: El nombre es obligatorio.
+        email_required: La dirección de correo es obligatoria.
+        email_invalid: Dirección de correo electrónico inválida.
+        email_taken: Esta dirección de correo ya está en uso.
         password_required: La contraseña es obligatoria.
         password_too_short: La contraseña debe tener al menos 8 caracteres.
-      expired: Este enlace de invitación es inválido o ha expirado.
-      password: Contraseña
-      set_password: Defina su contraseña para activar su cuenta.
-      submit: Activar mi cuenta
-      success: Tu cuenta está activa, ¡bienvenido/a!
-      welcome: Bienvenido/a {name}
-    login:
-      email: Correo electrónico
-      email_placeholder: tu@email.com
-      forgot: ¿Olvidaste tu contraseña?
-      no_account: ¿No tienes cuenta?
-      password: Contraseña
-      remember: Recordarme
-      request_access: Solicitar acceso
-      submit: Iniciar sesión
-      title: Iniciar sesión
-    register:
-      already_account: ¿Ya tienes cuenta?
-      closed_desc: Los nuevos registros están desactivados actualmente.
-      closed_title: Registro cerrado
-      email: Correo electrónico
-      error_email_invalid: Dirección de correo electrónico inválida.
-      error_email_required: La dirección de correo es obligatoria.
-      error_email_taken: Esta dirección de correo ya está en uso.
-      error_name_required: El nombre es obligatorio.
-      error_password_length: La contraseña debe tener al menos 8 caracteres.
-      error_password_mismatch: Las contraseñas no coinciden.
-      heading: Crear una cuenta
-      login_link: Iniciar sesión
-      name: Nombre
-      name_placeholder: Juan García
-      password: Contraseña
-      password_confirm: Confirmar contraseña
-      submit: Crear cuenta
-      title: Crear una cuenta
-    reset_password:
-      instructions: Elige una nueva contraseña para tu cuenta.
-      invalid_link: Este enlace es inválido o ha expirado.
-      submit: Restablecer contraseña
-      success: Tu contraseña ha sido restablecida con éxito.
-      title: Restablecer contraseña
-  profile:
-    errors:
-      current_password_invalid: La contraseña actual es incorrecta.
-      email_invalid: Dirección de correo electrónico inválida.
-      email_taken: Esta dirección de correo ya está en uso.
-      invalid_csrf: Token de seguridad inválido.
-      invalid_locale: Idioma no compatible.
-      name_required: El nombre es obligatorio.
-      password_mismatch: Las contraseñas no coinciden.
-      password_too_short: La contraseña debe tener al menos 8 caracteres.
-  media:
-    errors:
-      alt_required: El texto alternativo es obligatorio.
-      focal_out_of_range: El punto focal debe estar entre 0 y 1.
-      folder_name_required: El nombre de la carpeta es obligatorio.
-  post_types:
-    errors:
-      slug_required: El slug es obligatorio.
-      slug_format: El slug solo puede contener letras minúsculas, números y guiones bajos.
-      label_required: La etiqueta es obligatoria.
-      field_name_required: El nombre del campo es obligatorio.
-      field_name_format: El nombre del campo solo puede contener letras minúsculas, números y guiones bajos.
-      field_label_required: La etiqueta del campo es obligatoria.
-      field_type_invalid: Tipo de campo inválido.
-  taxonomies:
-    errors:
-      slug_required: El slug es obligatorio.
-      slug_format: El slug solo puede contener letras minúsculas, números, guiones y guiones bajos.
-      translations_required: Se requiere al menos una traducción.
-  posts:
-    errors:
-      post_type_required: El tipo de contenido es obligatorio.
-      status_required: El estado es obligatorio.
-      status_invalid: Estado inválido.
-      visibility_invalid: Difusión no válida.
-  forms:
-    errors:
-      translations_required: Al menos un idioma debe estar rellenado.
-      type_required: El tipo de campo es obligatorio.
-      field_label_required: Al menos una etiqueta es obligatoria.
-frontend:
-  errors:
-    name_required: El nombre es obligatorio.
-    email_required: La dirección de correo es obligatoria.
-    email_invalid: Dirección de correo electrónico inválida.
-    email_taken: Esta dirección de correo ya está en uso.
-    password_required: La contraseña es obligatoria.
-    password_too_short: La contraseña debe tener al menos 8 caracteres.
-    email_not_verified: Por favor, verifica tu dirección de correo antes de iniciar sesión.
-    account_disabled: Tu cuenta ha sido desactivada.
+        email_not_verified: Por favor, verifica tu dirección de correo antes de iniciar sesión.
+        account_disabled: Tu cuenta ha sido desactivada.
 
 crm:
-  contacts:
-    errors:
-      first_name_required: El nombre es obligatorio.
-      last_name_required: El apellido es obligatorio.
-      email_invalid: Dirección de correo inválida.
-  companies:
-    errors:
-      name_required: El nombre de la empresa es obligatorio.
-      website_invalid: URL inválida.
-  deals:
-    errors:
-      name_required: El nombre del negocio es obligatorio.
+    contacts:
+        errors:
+            first_name_required: El nombre es obligatorio.
+            last_name_required: El apellido es obligatorio.
+            email_invalid: Dirección de correo inválida.
+    companies:
+        errors:
+            name_required: El nombre de la empresa es obligatorio.
+            website_invalid: URL inválida.
+    deals:
+        errors:
+            name_required: El nombre del negocio es obligatorio.
