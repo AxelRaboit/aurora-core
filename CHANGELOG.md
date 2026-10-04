@@ -15,6 +15,9 @@ Un livrable de Studio se copie dans l'espace d'un client : « Copier dans un esp
 #### Des catégories pour les livrables de Studio
 Les livrables de Studio se rangent par catégorie : audit, stratégie, proposition, ou ce que l'équipe veut. « Gérer les catégories », dans le menu Actions de la liste, les crée, les renomme, leur donne une couleur, les range dans l'ordre voulu et les supprime ; supprimer une catégorie laisse ses livrables, sans catégorie. Un livrable reçoit sa catégorie à la création ou dans l'onglet Réglages de l'éditeur. La liste s'affiche par catégorie, en sections dans l'ordre choisi et « Sans catégorie » à la fin, ou en simple liste avec la catégorie sur chaque carte ; un filtre à côté des rayons montre une catégorie, ou ce qui n'est pas encore rangé, avec le compte de chacune. Le filtre et l'affichage restent dans l'adresse de la page, et la recherche porte aussi sur le résumé. Gérer les catégories demande le droit de modifier les livrables ; ranger son propre livrable, non. Un livrable copié dans Studio garde sa catégorie, une copie dans un espace client la laisse : l'espace range seul. La démonstration range ses modèles en Propositions, Audits, Stratégies et Bilans.
 
+#### Une image pour chaque livrable
+Un livrable, de Studio comme d'un espace client, peut porter une image : le champ « Image » de l'onglet Réglages la choisit dans la médiathèque ou la téléverse. Elle s'affiche en vignette carrée à gauche de sa carte, cadrée sur le point d'intérêt du document, pour repérer un livrable avant d'en lire le titre ; sans image, une tuile neutre garde la place et les titres restent alignés. Seule une image est retenue, et supprimer le document la retire du livrable. Les copies gardent l'image de l'original.
+
 ### Modifié
 
 #### L'heure de la dernière modification sur les cartes de livrables
@@ -26,7 +29,7 @@ Les cartes de livrables, dans Studio comme dans un espace, disent « Modifié le
 Dans Studio > Livrables, la phrase qui décrit le rayon ouvert touchait la première carte. Elle reste maintenant contre ses onglets, et l'espace habituel de la page la sépare des cartes.
 
 ### Dans aurora-client
-Rien à faire à la main : `make deploy-prod` joue la migration (table `core_studio_deliverable_categories`, colonne `category_id` sur `core_studio_deliverables`).
+Rien à faire à la main : `make deploy-prod` joue les deux migrations (table `core_studio_deliverable_categories`, colonnes `category_id` et `thumbnail_id` sur `core_studio_deliverables`).
 
 ## [1.9.0] - 2026-10-04
 

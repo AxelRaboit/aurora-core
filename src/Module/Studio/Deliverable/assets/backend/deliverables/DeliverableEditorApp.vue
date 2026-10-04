@@ -347,6 +347,7 @@ const headerActions = computed(() => {
             v-model:visible-to-client="form.visibleToClient"
             v-model:scope="form.scope"
             v-model:category-id="form.categoryId"
+            v-model:thumbnail="form.thumbnail"
             :locales="locales"
             :errors="errors"
             :customer-name="space?.customerName ?? ''"

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\Deliverable\Entity;
 
 use Aurora\Core\Timestampable\TimestampableTrait;
+use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
@@ -97,6 +98,14 @@ abstract class AbstractDeliverable implements DeliverableInterface
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     protected ?DeliverableCategoryInterface $category = null;
 
+    /**
+     * Son image, prise dans la médiathèque : la vignette qui le distingue des
+     * autres dans une liste. Supprimer le document la retire, rien de plus.
+     */
+    #[ORM\ManyToOne(targetEntity: DocumentInterface::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    protected ?DocumentInterface $thumbnail = null;
+
     /** Perso ou partagé, pour un livrable sans espace ; ignoré dans un espace. */
     #[ORM\Column(length: 16, enumType: DeliverableScopeEnum::class, options: ['default' => 'shared'])]
     protected DeliverableScopeEnum $scope = DeliverableScopeEnum::Shared;
@@ -131,6 +140,18 @@ abstract class AbstractDeliverable implements DeliverableInterface
     public function setOwner(?CoreUserInterface $owner): static
     {
         $this->owner = $owner;
+
+        return $this;
+    }
+
+    public function getThumbnail(): ?DocumentInterface
+    {
+        return $this->thumbnail;
+    }
+
+    public function setThumbnail(?DocumentInterface $thumbnail): static
+    {
+        $this->thumbnail = $thumbnail;
 
         return $this;
     }

@@ -7,6 +7,7 @@ namespace Aurora\Tests\Integration\Module\Studio\Deliverable;
 use Aurora\Core\Module\Service\ModuleAccessChecker;
 use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
+use Aurora\Module\Ged\Document\Entity\Document;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Enum\UserRoleEnum;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
@@ -51,6 +52,9 @@ final class StudioDeliverablesTest extends IntegrationTestCase
     /** @var list<int> */
     private array $users = [];
 
+    /** @var list<int> */
+    private array $documents = [];
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -72,6 +76,10 @@ final class StudioDeliverablesTest extends IntegrationTestCase
     {
         foreach ([DeliverableLink::class, Deliverable::class, DeliverableCategory::class, CustomerSpace::class, Customer::class] as $class) {
             $this->entityManager->createQuery(sprintf('DELETE FROM %s', $class))->execute();
+        }
+
+        foreach ($this->documents as $id) {
+            $this->entityManager->createQuery(sprintf('DELETE FROM %s d WHERE d.id = :id', Document::class))->setParameter('id', $id)->execute();
         }
 
         foreach ($this->users as $id) {
@@ -462,6 +470,43 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         self::assertNull($this->find($inSpace)->getCategory());
     }
 
+    /** Une image de la médiathèque devient la vignette de la carte ; un PDF, non ; les copies la gardent. */
+    public function testADeliverableCarriesAnImage(): void
+    {
+        $image = $this->givenDocument('Couverture', 'image/jpeg');
+        $pdf = $this->givenDocument('Contrat', 'application/pdf');
+        $id = $this->create('Modèle illustré', DeliverableScopeEnum::Personal);
+
+        $this->update($id, ['thumbnailId' => $image]);
+        self::assertSame($image, $this->find($id)->getThumbnail()?->getId());
+        self::assertNotNull($this->rowOf($id)['thumbnailUrl']);
+
+        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/duplicate', $id), []);
+        $copy = (int) basename((string) json_decode((string) $this->client->getResponse()->getContent(), true)['editPath']);
+        self::assertSame($image, $this->find($copy)->getThumbnail()?->getId());
+
+        $space = $this->givenSpace();
+        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/copy-to-space', $id), ['spaceId' => $space->getId()]);
+        $inSpace = (int) basename((string) json_decode((string) $this->client->getResponse()->getContent(), true)['editPath']);
+        self::assertSame($image, $this->find($inSpace)->getThumbnail()?->getId());
+
+        $this->update($id, ['thumbnailId' => $pdf]);
+        self::assertNull($this->find($id)->getThumbnail(), 'a PDF is no thumbnail');
+        self::assertNull($this->rowOf($id)['thumbnailUrl']);
+    }
+
+    private function givenDocument(string $title, string $mime): int
+    {
+        $extension = 'image/jpeg' === $mime ? 'jpg' : 'pdf';
+        $document = new Document();
+        $document->setTitle($title)->setFilePath('ged/2026/10/'.bin2hex(random_bytes(4)).'.'.$extension)->setFileName('f.'.$extension)->setOriginalName('f.'.$extension)->setMimeType($mime)->setSize(1024);
+        $this->entityManager->persist($document);
+        $this->entityManager->flush();
+        $this->documents[] = (int) $document->getId();
+
+        return (int) $document->getId();
+    }
+
     private function createCategory(string $name, ?string $color): int
     {
         $this->client->jsonRequest('POST', '/backend/studio/deliverables/categories/create', ['name' => $name, 'color' => $color]);
@@ -530,6 +575,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
             'readingHeader' => $entity->getReadingHeader(),
             'visibleToClient' => $entity->isVisibleToClient(),
             'categoryId' => $entity->getCategory()?->getId(),
+            'thumbnailId' => $entity->getThumbnail()?->getId(),
         ];
     }
 

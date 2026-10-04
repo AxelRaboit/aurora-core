@@ -6,6 +6,8 @@ namespace Aurora\Module\Studio\Deliverable\Manager;
 
 use Aurora\Core\Locale\Service\LocaleContextInterface;
 use Aurora\Module\Editorial\Post\Grid\GridNormalizer;
+use Aurora\Module\Ged\Document\Entity\DocumentInterface;
+use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\Deliverable\Entity\Deliverable;
@@ -24,6 +26,7 @@ use function is_int;
 use function is_string;
 use function mb_strlen;
 use function mb_trim;
+use function str_starts_with;
 
 /**
  * Écrit les livrables : création, enregistrement, copie, suppression.
@@ -41,6 +44,7 @@ final readonly class DeliverableManager
         private GridNormalizer $gridNormalizer,
         private LocaleContextInterface $localeContext,
         private DeliverableCategoryRepository $categories,
+        private DocumentRepository $documents,
     ) {}
 
     /**
@@ -111,6 +115,7 @@ final readonly class DeliverableManager
             // fermée, quoi que dise l'éditeur.
             ->setVisibleToClient(!$deliverable->isStandalone() && true === ($data['visibleToClient'] ?? false))
             ->setCategory($deliverable->isStandalone() ? $this->category($data['categoryId'] ?? null) : null)
+            ->setThumbnail($this->thumbnail($data['thumbnailId'] ?? null))
             ->touch();
 
         $this->entityManager->flush();
@@ -215,6 +220,19 @@ final readonly class DeliverableManager
         return null === $id ? null : $this->categories->find($id);
     }
 
+    /**
+     * L'image qu'envoie l'éditeur : un document de la médiathèque, et une
+     * image. Un identifiant qui ne résout rien, ou un PDF, laisse le livrable
+     * sans image plutôt que de refuser l'enregistrement.
+     */
+    private function thumbnail(mixed $id): ?DocumentInterface
+    {
+        $id = is_int($id) || (is_string($id) && ctype_digit($id)) ? (int) $id : null;
+        $document = null === $id ? null : $this->documents->find($id);
+
+        return $document instanceof DocumentInterface && str_starts_with((string) $document->getMimeType(), 'image/') ? $document : null;
+    }
+
     /** Le corps de l'original dans la copie, puis enregistrée. */
     private function persistCopy(DeliverableInterface $source, DeliverableInterface $copy): DeliverableInterface
     {
@@ -222,7 +240,8 @@ final readonly class DeliverableManager
             ->setSummary($source->getSummary())
             ->setGridLayout($source->getGridLayout())
             ->setGridContent($source->getGridContent())
-            ->setAppearance($source->getAppearance());
+            ->setAppearance($source->getAppearance())
+            ->setThumbnail($source->getThumbnail());
 
         $this->entityManager->persist($copy);
         $this->entityManager->flush();

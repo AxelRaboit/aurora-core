@@ -2123,6 +2123,8 @@ backend:
                 summary_placeholder: "Where your online presence stands, and what we suggest for the next three months."
                 summary_hint: "Under the title, in the client's list and at the top of the page."
                 summary_hint_studio: "Under the title, in the deliverables list and at the top of the page."
+                thumbnail: "Image"
+                thumbnail_hint: "The deliverable's thumbnail in the lists, to spot it at a glance. Picked from the media library or uploaded."
                 locale: "Language"
                 locale_hint: "The document's own: it sets the page's dates and labels."
                 client_title: "What the client sees"

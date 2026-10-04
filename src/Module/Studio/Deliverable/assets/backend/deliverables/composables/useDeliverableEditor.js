@@ -14,6 +14,7 @@ function snapshot(form) {
         appearance: form.appearance,
         readingHeader: form.readingHeader,
         visibleToClient: form.visibleToClient,
+        thumbnailId: form.thumbnail?.id ?? null,
         // Le rayon et la catégorie d'un livrable de Studio ; absents pour un
         // livrable d'espace.
         ...(form.scope

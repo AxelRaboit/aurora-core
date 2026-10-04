@@ -2103,6 +2103,8 @@ backend:
                 summary_placeholder: "Dónde está su presencia en línea y lo que proponemos para los próximos tres meses."
                 summary_hint: "Bajo el título, en la lista del cliente y arriba de la página."
                 summary_hint_studio: "Bajo el título, en la lista de entregables y arriba de la página."
+                thumbnail: "Imagen"
+                thumbnail_hint: "La miniatura del entregable en las listas, para reconocerlo de un vistazo. Elegida en la mediateca o subida."
                 locale: "Idioma"
                 locale_hint: "El del documento: ajusta las fechas y los textos de la página."
                 client_title: "Lo que ve el cliente"

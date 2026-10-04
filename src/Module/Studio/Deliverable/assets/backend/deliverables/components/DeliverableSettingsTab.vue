@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { Eye, FileText, Lock, PanelTop, Users } from "lucide-vue-next";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
+import AppImagePickerField from "@/shared/components/form/file/AppImagePickerField.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
@@ -26,6 +27,8 @@ const readingHeader = defineModel("readingHeader", { type: Object, required: tru
 const visibleToClient = defineModel("visibleToClient", { type: Boolean, default: false });
 const scope = defineModel("scope", { type: String, default: null });
 const categoryId = defineModel("categoryId", { type: [Number, null], default: null });
+/** L'image de la carte : `{ id, url }`, prise dans la médiathèque. */
+const thumbnail = defineModel("thumbnail", { type: Object, default: () => ({ id: null, url: null }) });
 
 const props = defineProps({
     locales: { type: Array, default: () => [] },
@@ -110,6 +113,14 @@ const showLogo = computed({
                 :hint="t('backend.studio.deliverables.settings.locale_hint')"
                 :options="localeOptions"
                 :error="errors.locale ?? ''"
+            />
+            <!-- La vignette de la carte, dans les deux listes : on repère un
+                 livrable à son image avant de lire son titre. -->
+            <AppImagePickerField
+                v-model="thumbnail"
+                :label="t('backend.studio.deliverables.settings.thumbnail')"
+                :hint="t('backend.studio.deliverables.settings.thumbnail_hint')"
+                :size="96"
             />
             <!-- Studio seulement : un livrable d'espace se range par son espace. -->
             <AppSelect
