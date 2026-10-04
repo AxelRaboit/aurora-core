@@ -50,6 +50,7 @@ final class DocumentSerializerTest extends TestCase
         ?DocumentFolderInterface $folder = null,
         string $createdAt = '2025-01-01T00:00:00+00:00',
         string $updatedAt = '2025-06-01T00:00:00+00:00',
+        ?string $deletedAt = null,
     ): DocumentInterface {
         $document = $this->createStub(DocumentInterface::class);
         $document->method('getId')->willReturn($id);
@@ -73,6 +74,8 @@ final class DocumentSerializerTest extends TestCase
         $document->method('getFolder')->willReturn($folder);
         $document->method('getCreatedAt')->willReturn(new DateTimeImmutable($createdAt));
         $document->method('getUpdatedAt')->willReturn(new DateTimeImmutable($updatedAt));
+        $document->method('getDeletedAt')->willReturn(null === $deletedAt ? null : new DateTimeImmutable($deletedAt));
+        $document->method('isTrashed')->willReturn(null !== $deletedAt);
 
         return $document;
     }
@@ -101,6 +104,20 @@ final class DocumentSerializerTest extends TestCase
         self::assertNull($result['folderName']);
         self::assertSame('2025-01-01T00:00:00+00:00', $result['createdAt']);
         self::assertSame('2025-06-01T00:00:00+00:00', $result['updatedAt']);
+        self::assertFalse($result['trashed']);
+        self::assertNull($result['deletedAt']);
+    }
+
+    /**
+     * A trashed document still opens on its own page; the page needs to know,
+     * or it shows the document as live and offers to trash it again.
+     */
+    public function testSerializeTrashedDocumentSaysSoAndSinceWhen(): void
+    {
+        $result = $this->serializer->serialize($this->makeDocument(deletedAt: '2026-10-04T08:12:00+00:00'));
+
+        self::assertTrue($result['trashed']);
+        self::assertSame('2026-10-04T08:12:00+00:00', $result['deletedAt']);
     }
 
     public function testSerializeStatusLabelCallsTranslator(): void

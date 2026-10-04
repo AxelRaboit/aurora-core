@@ -1,8 +1,11 @@
 <script setup>
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
+import AppMessage from "@/shared/components/feedback/AppMessage.vue";
 import AppPageBar from "@/shared/components/nav/AppPageBar.vue";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { toast } from "vue-sonner";
+import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { useDocumentsForm, DOCUMENT_STATUS_BADGE } from "./composables/useDocumentsForm.js";
@@ -21,7 +24,7 @@ import AppMultiselect from "@/shared/components/form/select/AppMultiselect.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppIconButton from "@/shared/components/action/AppIconButton.vue";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
-import { Pencil, Trash2, Download, FileText, Folder, Tag, Save, X, Paperclip, Crop } from "lucide-vue-next";
+import { Pencil, Trash2, Download, FileText, Folder, Tag, Save, X, Paperclip, Crop, RotateCcw } from "lucide-vue-next";
 import AppImagePreview from "@/shared/components/display/AppImagePreview.vue";
 import ImageCropperModal from "@/shared/components/overlay/ImageCropperModal.vue";
 import DocumentTagChip from "@ged/backend/documents/components/DocumentTagChip.vue";
@@ -36,6 +39,7 @@ const props = defineProps({
     backPath: { type: String, required: true },
     updatePath: { type: String, required: true },
     deletePath: { type: String, required: true },
+    restorePath: { type: String, default: "" },
     cropPath: { type: String, required: true },
     listPath: { type: String, required: true },
     storagePath: { type: String, default: "" },
@@ -106,12 +110,33 @@ const {
  * to spell out its own relocation direction and its own pending check, which
  * is the drift this list exists to avoid.
  */
+/**
+ * A trashed document still opens here, from a link or the trash screen. The page
+ * says so and offers the way back, rather than showing it as live with a menu
+ * that would trash it a second time.
+ */
+const { request } = useRequest();
+const restoring = ref(false);
+
+async function restore() {
+    if (!props.restorePath || restoring.value) return;
+
+    restoring.value = true;
+    const data = await request(props.restorePath, {});
+    restoring.value = false;
+    if (!data?.success) return;
+
+    toast.success(t("backend.trash.restored"));
+    window.location.reload();
+}
+
 const actionsFor = useDocumentRowActions({
     can,
     openEdit,
     confirmDelete,
     relocate,
     relocationAvailable: props.storageRelocationAvailable,
+    restore: props.restorePath ? restore : null,
 });
 
 const documentActions = computed(() => actionsFor(doc.value));
@@ -147,6 +172,16 @@ function isPdf(mimeType) {
             />
         </AppPageBar>
 
+        <AppMessage v-if="doc.trashed" variant="trash">
+            <p class="font-medium">{{ t("backend.ged.documents.trashed.title") }}</p>
+            <p class="mt-0.5">{{ t("backend.ged.documents.trashed.body", { date: formatDate(doc.deletedAt) }) }}</p>
+            <template v-if="restorePath && can('ged.documents.delete')" #actions>
+                <AppButton size="sm" variant="ghost" :loading="restoring" v-on:click="restore">
+                    <RotateCcw class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("backend.trash.restore") }}
+                </AppButton>
+            </template>
+        </AppMessage>
+
         <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
              replié ou déplié, le choix vaut pour tous les encarts. -->
         <AppGuide :title="t('backend.ged.documents.show_guide.title')" storage-key="ged-document-show">
@@ -168,7 +203,8 @@ function isPdf(mimeType) {
             <div class="px-4 py-5 sm:px-6">
                 <div class="flex items-start justify-between gap-4">
                     <p v-if="doc.reference" class="font-mono text-sm text-secondary">{{ doc.reference }}</p>
-                    <AppBadge :color="DOCUMENT_STATUS_BADGE[doc.status]" class="shrink-0">{{ doc.statusLabel }}</AppBadge>
+                    <AppBadge v-if="doc.trashed" color="rose" class="shrink-0">{{ t("backend.ged.documents.trashed.badge") }}</AppBadge>
+                    <AppBadge v-else :color="DOCUMENT_STATUS_BADGE[doc.status]" class="shrink-0">{{ doc.statusLabel }}</AppBadge>
                 </div>
                 <p v-if="doc.description" class="mt-3 text-sm text-secondary leading-relaxed">{{ doc.description }}</p>
             </div>

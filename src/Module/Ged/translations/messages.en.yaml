@@ -87,6 +87,10 @@ backend:
         inline_uploads: Editorial media
         inline_uploads_description: "Images uploaded from an editing form : banners, featured images, custom fields."
     documents:
+      trashed:
+        title: "This document is in the trash"
+        body: "Moved to the trash on {date}. Its file is no longer served to visitors, and the automatic purge will erase it unless it is restored."
+        badge: "In the trash"
       show_guide:
         title: "What you can do here"
         step_1: "The actions button at the top lets you download the file, edit the document or send it to the trash."
@@ -106,6 +110,7 @@ backend:
         qr_description: Shows a QR code pointing at this document.
         edit_description: Title, category, tags, folder.
         delete_description: Sends the document to the trash, where it can be restored.
+        restore_description: "Brings it back from the trash with its file, its sizes and its place in its family."
         relocate_to_remote: Move to remote storage
         relocate_to_local: Bring back to the server
         relocate_description: "Moves the file, its resized copies and its history. Its address does not change."

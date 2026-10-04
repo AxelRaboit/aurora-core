@@ -187,6 +187,7 @@ final class DocumentsController extends AbstractController
             'backPath' => $this->urlGenerator->generate('backend_ged_documents'),
             'updatePath' => $this->urlGenerator->generate('backend_ged_documents_update', ['id' => $document->getId()]),
             'deletePath' => $this->urlGenerator->generate('backend_ged_documents_delete', ['id' => $document->getId()]),
+            'restorePath' => $this->urlGenerator->generate('backend_ged_documents_restore', ['id' => $document->getId()]),
             'cropPath' => $this->urlGenerator->generate('backend_ged_documents_crop', ['id' => $document->getId()]),
             'listPath' => $this->urlGenerator->generate('backend_ged_documents'),
             'storagePath' => $this->urlGenerator->generate('backend_ged_documents_storage', ['id' => $document->getId()]),

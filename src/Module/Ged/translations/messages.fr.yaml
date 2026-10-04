@@ -87,6 +87,10 @@ backend:
         inline_uploads: Médias éditoriaux
         inline_uploads_description: "Images importées depuis un formulaire d'édition : bannières, images à la une, champs personnalisés."
     documents:
+      trashed:
+        title: "Ce document est dans la corbeille"
+        body: "Mis à la corbeille le {date}. Son fichier n'est plus servi aux visiteurs, et la purge automatique l'effacera s'il n'est pas restauré."
+        badge: "Dans la corbeille"
       show_guide:
         title: "Ce que vous pouvez faire ici"
         step_1: "Le bouton d'actions en haut permet de télécharger le fichier, de modifier le document ou de l'envoyer à la corbeille."
@@ -106,6 +110,7 @@ backend:
         qr_description: Affiche un QR code menant à ce document.
         edit_description: Titre, catégorie, étiquettes, dossier.
         delete_description: Envoie le document à la corbeille, d'où il se restaure.
+        restore_description: "Le sort de la corbeille avec son fichier, ses tailles et sa place dans sa famille."
         relocate_to_remote: Envoyer vers le stockage distant
         relocate_to_local: Rapatrier sur le serveur
         relocate_description: "Déplace le fichier, ses tailles générées et son historique. Son adresse ne change pas."

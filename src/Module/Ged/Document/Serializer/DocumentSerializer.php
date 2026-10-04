@@ -95,6 +95,10 @@ class DocumentSerializer implements DocumentSerializerInterface
             'originalId' => $original?->getId(),
             'originalTitle' => $original?->getTitle(),
             'alternateLabel' => $document->getAlternateLabel(),
+            // A trashed document still opens on its own page, from a link or
+            // the trash screen. Without this, that page showed it as live.
+            'trashed' => $document->isTrashed(),
+            'deletedAt' => $document->getDeletedAt()?->format(DateTimeInterface::ATOM),
             'createdAt' => $document->getCreatedAt()->format(DateTimeInterface::ATOM),
             'updatedAt' => $document->getUpdatedAt()->format(DateTimeInterface::ATOM),
         ];
