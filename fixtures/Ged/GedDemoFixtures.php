@@ -79,8 +79,8 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
 
         $this->createColorFamily($manager);
 
-        // Favicon + logo point at the drawn mark (the last media), not at one
-        // of the photographs: a logo is a mark, and the demo's photographs are
+        // Favicon + logo point at Aurora's own mark (the last media), not at
+        // one of the photographs: a logo is a mark, and the demo's photographs are
         // subjects - a flag in the corner of every screen of the manual reads
         // as the product's identity, which it is not. After flush so IDs exist.
         $mark = $media[array_key_last($media)] ?? null;
@@ -134,8 +134,9 @@ class GedDemoFixtures extends Fixture implements DependentFixtureInterface, Fixt
             ['src' => 'images/pexels/pexels-37190347.jpg', 'name' => 'cote-rocheuse.jpg',      'original' => 'Une côte rocheuse',            'mime' => 'image/jpeg', 'w' => 1920, 'h' => 1080, 'pexels' => [37190347, 'Hobi Photography'], 'alt' => 'Une côte rocheuse vue du ciel, les vagues qui se brisent'],
             ['src' => 'images/pexels/pexels-17191088.jpg', 'name' => 'plage.jpg',              'original' => 'Une plage',                    'mime' => 'image/jpeg', 'w' => 1920, 'h' => 1080, 'pexels' => [17191088, 'Field Photography'], 'alt' => 'Une plage de sable doré vue du ciel'],
             ['src' => 'images/pexels/pexels-8725071.jpg',  'name' => 'gratte-ciel.jpg',        'original' => 'Des gratte-ciel',              'mime' => 'image/jpeg', 'w' => 1920, 'h' => 1282, 'pexels' => [8725071, 'Josh Hild'], 'alt' => 'Des gratte-ciel au coucher du soleil'],
-            // Un aplat, exprès : le favicon et le logo de la démo sont une
-            // marque, pas une photo. Il n'a pas de source et se dessine.
+            // Le favicon et le logo de la démo : la marque d'Aurora (« Lever
+            // du jour », sans fond), pas une photo. Depuis le 04/10/2026 ;
+            // c'était avant un aplat dessiné, un carré violet sans rapport.
             ['src' => 'images/aurora-mark.png', 'name' => 'aurora-mark.png', 'original' => 'Marque Aurora', 'mime' => 'image/png', 'w' => 512, 'h' => 512],
         ];
 

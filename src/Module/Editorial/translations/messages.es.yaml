@@ -531,6 +531,17 @@ backend:
                 start: 'A la izquierda'
                 center: Centrado
                 end: 'A la derecha'
+            title_icon: 'Icono del título'
+            title_icon_hint: 'Una imagen junto al título, a la altura de sus letras o más grande: un logotipo, por ejemplo. Un PNG con fondo transparente recortado al ras (o un SVG) queda mejor.'
+            title_icon_position: 'Posición del icono'
+            title_icon_positions:
+                before: 'Antes del título'
+                after: 'Después del título'
+            title_icon_size: 'Tamaño del icono'
+            title_icon_sizes:
+                md: 'A la altura de las letras'
+                lg: 'Grande'
+                xl: 'Muy grande'
         title: Publicaciones
         create: 'Nueva publicación'
         edit: 'Editar la publicación'

@@ -192,14 +192,14 @@ final readonly class BannerViewBuilder
 
         $mainIds = $this->backgroundIds($layout['background'], $texts['background']);
         $slideIds = [];
-        $ids = [$layout['logoMediaId'], ...$mainIds, ...array_column($layout['items'], 'mediaId')];
+        $ids = [$layout['logoMediaId'], ...$mainIds, ...array_column($layout['items'], 'mediaId'), ...array_column($layout['items'], 'titleIconId')];
 
         foreach ($layout['slides'] as $slide) {
             $slideIds[$slide['id']] = $this->backgroundIds(
                 $slide['background'],
                 $texts['slides'][$slide['id']]['background'] ?? [],
             );
-            array_push($ids, ...$slideIds[$slide['id']], ...array_column($slide['items'], 'mediaId'));
+            array_push($ids, ...$slideIds[$slide['id']], ...array_column($slide['items'], 'mediaId'), ...array_column($slide['items'], 'titleIconId'));
         }
 
         // Every picture of every slide in one query: a carousel of five is
@@ -305,6 +305,10 @@ final readonly class BannerViewBuilder
                         ...$item,
                         ...$text,
                         'media' => $this->mediaData($documents[$item['mediaId']] ?? null, $text['alt']),
+                        // Decorative: the title beside it already says what it
+                        // names, so the picture carries no alternative text of
+                        // its own and a screen reader reads the title once.
+                        'titleIcon' => $this->mediaData($documents[$item['titleIconId']] ?? null, ''),
                         // Custom properties rather than classes: a span is a number
                         // between 1 and 48 chosen at runtime, and Tailwind only
                         // emits classes it can read in the source.

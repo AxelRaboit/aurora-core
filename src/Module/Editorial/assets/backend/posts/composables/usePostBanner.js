@@ -105,6 +105,11 @@ function newItem(type) {
         descriptionFont: null,
         mediaId: null,
         media: null,
+        // A picture beside the title, at the height of its letters.
+        titleIconId: null,
+        titleIcon: null,
+        titleIconPosition: "before",
+        titleIconSize: "md",
         buttonColor: null,
         buttonTextColor: null,
         // The site's accent, read from the theme at render.
@@ -131,7 +136,8 @@ function emptyLocalBackground() {
 /**
  * A further slide for a carousel, laid out like the one it follows.
  *
- * The items are the first slide's, with new ids and no picture: slides that
+ * The items are the first slide's, with new ids and no picture (nor title
+ * icon, which belongs to the words it stands beside): slides that
  * take turns in the same place read as a set when their words sit in the
  * same spot at the same size, and starting from that saves rebuilding it
  * by hand. The words themselves start empty - they are what changes.
@@ -147,6 +153,8 @@ function newSlide(model) {
             span: { ...item.span },
             mediaId: null,
             media: null,
+            titleIconId: null,
+            titleIcon: null,
         })),
     };
 }
@@ -272,6 +280,16 @@ export function usePostBanner(layout, texts) {
         "heights",
     );
     const alignOptions = options(["start", "center", "end"], "aligns");
+    // Mirrors BannerNormalizer::TITLE_ICON_POSITIONS.
+    const titleIconPositionOptions = options(
+        ["before", "after"],
+        "title_icon_positions",
+    );
+    // Mirrors BannerNormalizer::TITLE_ICON_SIZES.
+    const titleIconSizeOptions = options(
+        ["md", "lg", "xl"],
+        "title_icon_sizes",
+    );
     const fillOptions = options(["none", "solid", "gradient"], "fills");
     const widthModeOptions = options(
         // Mirrors BannerNormalizer::WIDTHS. `full` retired 2026-08-09.
@@ -730,6 +748,23 @@ export function usePostBanner(layout, texts) {
                     () => pickerModel(item(), "media", "mediaId"),
                     (value) => applyPicked(item(), value, "media", "mediaId"),
                 ),
+                titleIcon: writable(
+                    () => pickerModel(item(), "titleIcon", "titleIconId"),
+                    (value) =>
+                        applyPicked(item(), value, "titleIcon", "titleIconId"),
+                ),
+                titleIconPosition: writable(
+                    () => item()?.titleIconPosition ?? "before",
+                    (value) => {
+                        item().titleIconPosition = value;
+                    },
+                ),
+                titleIconSize: writable(
+                    () => item()?.titleIconSize ?? "md",
+                    (value) => {
+                        item().titleIconSize = value;
+                    },
+                ),
             });
         }
 
@@ -748,6 +783,8 @@ export function usePostBanner(layout, texts) {
         transitionOptions,
         heightOptions,
         alignOptions,
+        titleIconPositionOptions,
+        titleIconSizeOptions,
         fillOptions,
         widthModeOptions,
         verticalAlignOptions,
