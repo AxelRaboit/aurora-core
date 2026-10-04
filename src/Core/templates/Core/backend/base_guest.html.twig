@@ -64,12 +64,14 @@
         {% endset %}
 
         {% if hero_content|trim %}
-            {# **Sur téléphone, le formulaire passe avant l'argumentaire.**
-               Le titre, la phrase et les quatre atouts font près de cinq cents
-               pixels : sur un écran de huit cents, quelqu'un qui vient se
-               connecter faisait défiler une page de vente pour trouver son
-               champ e-mail. À partir de `lg`, les deux colonnes reprennent leur
-               place et l'ordre écrit redevient l'ordre lu.
+            {# **Sur téléphone, le titre et sa phrase, puis le formulaire.**
+               L'argumentaire complet (titre, phrase et quatre atouts) faisait
+               près de trois cents pixels : avant le formulaire, il repoussait
+               « Se connecter » sous la barre du navigateur ; après, la page
+               s'ouvrait sur des champs sans dire où l'on était. Les atouts
+               sont donc réservés à l'ordinateur (cf. auth_hero.html.twig), et
+               ce qui reste passe en tête. À partir de `lg`, les deux colonnes
+               reprennent leur place et l'ordre écrit redevient l'ordre lu.
 
                `contents` défait la cellule de gauche pour que le logo,
                l'argumentaire et la carte deviennent trois éléments de la
@@ -85,9 +87,9 @@
                             withText: true,
                             appVersion: appVersion ?? null,
                         }) }}
-                        <div class="order-3 lg:order-none">{{ hero_content|raw }}</div>
+                        <div class="order-2 lg:order-none">{{ hero_content|raw }}</div>
                     </div>
-                    <div class="order-2 lg:order-none flex flex-col items-center gap-3">
+                    <div class="order-3 lg:order-none flex flex-col items-center gap-3">
                         {{ form_card|raw }}
                         <p class="text-xs text-muted/40">{{ 'shared.common.built_with'|trans({'{year}': 'now'|date('Y'), '{siteName}': siteName}) }}</p>
                     </div>
