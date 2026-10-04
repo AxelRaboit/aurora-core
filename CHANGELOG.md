@@ -5,6 +5,13 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [1.7.2] - 2026-10-04
+
+### Modifié
+
+#### Les pages de connexion sur téléphone s'ouvrent sur leur titre
+Sur téléphone, la page de connexion (et les autres pages d'accueil du back-office : mot de passe oublié, inscription, invitation) s'ouvrait sur le formulaire, et le titre, la phrase et les quatre atouts venaient dessous. Le titre et la phrase passent maintenant avant le formulaire, et les quatre atouts ne s'affichent plus que sur ordinateur : on sait où l'on est, et « Se connecter » reste visible sans défiler. Rien ne change sur ordinateur.
+
 ## [1.7.1] - 2026-10-04
 
 ### Modifié
