@@ -65,8 +65,8 @@ final class PostVisibilityTest extends IntegrationTestCase
     {
         parent::setUp();
 
-        $this->client = static::createClient();
-        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $this->client = self::createClient();
+        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
 
         $this->suffix = bin2hex(random_bytes(4));
         $this->type = new PostType();
@@ -201,26 +201,26 @@ final class PostVisibilityTest extends IntegrationTestCase
         $link->addTerm($term);
         $this->entityManager->flush();
 
-        $xml = static::getContainer()->get(SitemapBuilder::class)->buildData()->xml;
+        $xml = self::getContainer()->get(SitemapBuilder::class)->buildData()->xml;
 
         self::assertStringContainsString('rapport-'.$this->suffix, $xml);
         self::assertStringNotContainsString('audit-'.$this->suffix, $xml);
         self::assertStringNotContainsString('client-secret-'.$this->suffix, $xml);
         self::assertArrayNotHasKey(
             (int) $term->getId(),
-            static::getContainer()->get(PostRepository::class)->findTermIdsWithPublishedPost(),
+            self::getContainer()->get(PostRepository::class)->findTermIdsWithPublishedPost(),
         );
     }
 
     public function testTheFeedLeavesItOut(): void
     {
-        $article = static::getContainer()->get(PostTypeRepository::class)->findOneBySlug('article');
+        $article = self::getContainer()->get(PostTypeRepository::class)->findOneBySlug('article');
         self::assertInstanceOf(PostType::class, $article, 'the built-in article type is missing; run aurora:install');
 
         $this->publish('Article '.$this->suffix, type: $article);
         $this->publish('Audit '.$this->suffix, PostVisibilityEnum::Link, type: $article);
 
-        $xml = static::getContainer()->get(RssFeedBuilder::class)->buildXml('fr');
+        $xml = self::getContainer()->get(RssFeedBuilder::class)->buildXml('fr');
 
         self::assertStringContainsString('Article '.$this->suffix, $xml);
         self::assertStringNotContainsString('Audit '.$this->suffix, $xml);
@@ -238,13 +238,14 @@ final class PostVisibilityTest extends IntegrationTestCase
         $link = $this->publish('Audit confidentiel', PostVisibilityEnum::Link);
         $draft = $this->publish('Brouillon du site');
         $draft->setStatus(PostStatusEnum::Draft);
+
         $this->entityManager->flush();
 
-        $latest = static::getContainer()->get(PostRepository::class)->findLatestPublished('fr', 50, $this->type->getId());
+        $latest = self::getContainer()->get(PostRepository::class)->findLatestPublished('fr', 50, $this->type->getId());
         $ids = array_map(static fn (Post $post): int => (int) $post->getId(), $latest);
         self::assertSame([(int) $site->getId()], $ids);
 
-        $views = static::getContainer()->get(ZoneListingViews::class);
+        $views = self::getContainer()->get(ZoneListingViews::class);
         self::assertNotNull($views->postCard($site, 'fr'));
         self::assertNull($views->postCard($link, 'fr'));
         self::assertNull($views->postCard($draft, 'fr'));
@@ -272,10 +273,10 @@ final class PostVisibilityTest extends IntegrationTestCase
         // the collection.
         $this->entityManager->refresh($menu);
 
-        $tree = static::getContainer()->get(MenuRenderer::class)->render($location, 'fr');
+        $tree = self::getContainer()->get(MenuRenderer::class)->render($location, 'fr');
         self::assertSame(['Rapport '.$this->suffix], array_column($tree, 'label'));
 
-        $offered = static::getContainer()->get(MenuTargetFinder::class)->search(MenuItemTargetTypeEnum::Post, $this->suffix, 'fr');
+        $offered = self::getContainer()->get(MenuTargetFinder::class)->search(MenuItemTargetTypeEnum::Post, $this->suffix, 'fr');
         self::assertSame(['Rapport '.$this->suffix], array_column($offered, 'label'));
     }
 
@@ -287,7 +288,7 @@ final class PostVisibilityTest extends IntegrationTestCase
 
         $ids = array_map(
             static fn (Post $post): int => (int) $post->getId(),
-            static::getContainer()->get(PostRepository::class)->findAllPublishedForPicker(),
+            self::getContainer()->get(PostRepository::class)->findAllPublishedForPicker(),
         );
 
         self::assertContains((int) $site->getId(), $ids);
@@ -306,7 +307,7 @@ final class PostVisibilityTest extends IntegrationTestCase
 
         $ids = array_map(
             static fn (Post $post): int => (int) $post->getId(),
-            static::getContainer()->get(PostRepository::class)->findAllPublished(),
+            self::getContainer()->get(PostRepository::class)->findAllPublished(),
         );
 
         self::assertContains((int) $link->getId(), $ids);
@@ -314,7 +315,7 @@ final class PostVisibilityTest extends IntegrationTestCase
 
     public function testTheChoiceIsSavedAndComesBackToTheEditor(): void
     {
-        $container = static::getContainer();
+        $container = self::getContainer();
         $post = $container->get(PostManagerInterface::class)->create($container->get(PostInputFactoryInterface::class)->fromArray([
             'postTypeId' => $this->type->getId(),
             'status' => 'draft',
@@ -336,14 +337,14 @@ final class PostVisibilityTest extends IntegrationTestCase
      */
     public function testAnUnknownValueIsRefused(): void
     {
-        $input = static::getContainer()->get(PostInputFactoryInterface::class)->fromArray([
+        $input = self::getContainer()->get(PostInputFactoryInterface::class)->fromArray([
             'postTypeId' => $this->type->getId(),
             'status' => 'draft',
             'visibility' => 'public',
             'translations' => ['fr' => ['title' => 'Audit confidentiel']],
         ]);
 
-        $violations = static::getContainer()->get(ValidatorInterface::class)->validate($input);
+        $violations = self::getContainer()->get(ValidatorInterface::class)->validate($input);
 
         self::assertGreaterThan(0, $violations->count());
     }
@@ -354,7 +355,7 @@ final class PostVisibilityTest extends IntegrationTestCase
         $this->publish('Rapport '.$this->suffix);
         $link = $this->publish('Audit '.$this->suffix, PostVisibilityEnum::Link);
 
-        $result = static::getContainer()->get(PostRepository::class)->findPaginated(
+        $result = self::getContainer()->get(PostRepository::class)->findPaginated(
             page: 1,
             locale: 'fr',
             postTypeIds: [(int) $this->type->getId()],

@@ -18,7 +18,7 @@ import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { Copy, ExternalLink, FolderInput, FolderOutput, Link2, Lock, Save, Trash2, Users } from "lucide-vue-next";
+import { Copy, ExternalLink, FileDown, FolderInput, FolderOutput, Link2, Lock, Save, Trash2, Users } from "lucide-vue-next";
 import AppBackLink from "@/shared/components/nav/AppBackLink.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
@@ -26,6 +26,7 @@ import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import AppTab from "@/shared/components/nav/AppTab.vue";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { useTabState } from "@/shared/composables/useTabState.js";
+import { countPlaceholders } from "@/shared/utils/format/placeholders.js";
 import PostGridPanel from "../../../../../Editorial/assets/backend/posts/components/PostGridPanel.vue";
 import DeliverableAppearanceTab from "./components/DeliverableAppearanceTab.vue";
 import DeliverableCopyToSpaceModal from "./components/DeliverableCopyToSpaceModal.vue";
@@ -79,6 +80,9 @@ const backLabel = computed(() =>
 );
 const { form, saving, errors, dirty, save, markClean } = useDeliverableEditor(props);
 
+/** The [blanks] still in the document, for the badge in the header and the client toggle. */
+const placeholders = computed(() => countPlaceholders(form.value.gridContent?.zones));
+
 /**
  * Le retour rouvre le rayon où le livrable se trouve maintenant : l'auteur
  * peut l'avoir fait passer de l'un à l'autre depuis les réglages.
@@ -120,6 +124,16 @@ async function openPreview() {
     if (dirty.value && !(await save())) return;
 
     window.open(props.previewPath, "_blank", "noopener");
+}
+
+/**
+ * The document as slides, one landscape page each, ready for the browser's
+ * « Save as PDF »: the only renderer that draws the grid as the page does.
+ */
+async function exportPdf() {
+    if (dirty.value && !(await save())) return;
+
+    window.open(`${props.previewPath}?print=1`, "_blank", "noopener");
 }
 
 async function duplicate() {
@@ -188,6 +202,13 @@ const headerActions = computed(() => {
             title: t("backend.studio.deliverables.preview"),
             description: t("backend.studio.deliverables.preview_hint"),
             onSelect: openPreview,
+        },
+        {
+            key: "pdf",
+            icon: FileDown,
+            title: t("backend.studio.deliverables.export_pdf"),
+            description: t("backend.studio.deliverables.export_pdf_hint"),
+            onSelect: exportPdf,
         },
     ];
 
@@ -265,6 +286,9 @@ const headerActions = computed(() => {
                         ? "backend.studio.deliverables.visible_badge"
                         : "backend.studio.deliverables.hidden_badge") }}
                 </AppBadge>
+                <AppBadge v-if="placeholders" color="amber" :title="t('backend.posts.grid.placeholders_left', { count: placeholders })">
+                    [{{ placeholders }}] {{ t("backend.studio.deliverables.placeholders_badge") }}
+                </AppBadge>
                 <AppPageActions :actions="headerActions" icon-only-on-phone />
                 <AppButton
                     v-if="canEdit"
@@ -328,6 +352,7 @@ const headerActions = computed(() => {
                 :banner-preview-path="bannerPreviewPath"
                 :toggleable="false"
                 :hidden-types="hiddenZoneTypes"
+                :preview-extra="{ title: form.title, summary: form.summary, appearance: form.appearance, readingHeader: form.readingHeader }"
             />
         </div>
 
@@ -354,6 +379,7 @@ const headerActions = computed(() => {
             :with-client="!!space"
             :can-change-scope="canChangeScope"
             :categories="categories"
+            :placeholders="placeholders"
         />
 
         <DeliverableLinksModal :show="showLinks" :links-path="linksPath" v-on:close="showLinks = false" />

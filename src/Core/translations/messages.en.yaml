@@ -336,6 +336,8 @@ backend:
             callout: "Callout"
             media_text: Image + Text
             two_column: 2 Columns
+            label: "Label"
+            socials: "Social networks"
         ui:
             block_tunes:
                 toggler:
@@ -384,6 +386,31 @@ backend:
             empty: No media found
             loading: Loading…
             select: Select
+        label:
+            placeholder: "Label…"
+            tilt: "Tilted"
+            tones:
+                dark: "Black"
+                accent: "Theme colour"
+                rose: "Rose"
+                indigo: "Indigo"
+                lime: "Lime"
+                amber: "Amber"
+                sky: "Sky"
+                emerald: "Emerald"
+        emoji:
+            label: "Emoji"
+            open: "Insert an emoji at the caret"
+            groups:
+                marks: "Marks"
+                hands: "Hands"
+                work: "Work"
+                feelings: "Feelings"
+        socials:
+            handle_placeholder: "@handle or page name"
+            url_placeholder: "Address (optional)"
+            add: "Add a network"
+            remove: "Remove"
         callout:
             title_placeholder: Title…
             message_placeholder: Message…

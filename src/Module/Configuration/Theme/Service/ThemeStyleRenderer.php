@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Configuration\Theme\Service;
 
 use Aurora\Module\Configuration\Theme\Enum\ThemeFontEnum;
+use Throwable;
 
 /**
  * Everything a theme writes into a `<style>` tag, and nothing else.
@@ -120,6 +121,29 @@ final readonly class ThemeStyleRenderer
      * `var(--th-accent-600)` - overriding --th-accent-* at runtime cascades to every
      * accent-coloured element in the app.
      */
+    /**
+     * The theme on an error page: its surfaces, its raw overrides, its accent
+     * and its font - what the public layout's head poses, in one string.
+     *
+     * Never throws. A 500 or a 503 can be rendered while the database is the
+     * very thing that failed, and an error page that errors leaves the reader
+     * with Symfony's bare fallback: the page then keeps the neutral colours
+     * it carries itself.
+     */
+    public function errorPageCss(): string
+    {
+        try {
+            $overrides = $this->cssVariableOverrides();
+
+            return $this->frontendSurfacesCss()
+                .('' !== $overrides ? 'html[data-theme]{'.$overrides.'}' : '')
+                .$this->primaryColorCss()
+                .$this->fontFamilyCss();
+        } catch (Throwable) {
+            return '';
+        }
+    }
+
     public function primaryColorCss(): string
     {
         return ':root{'.implode('', $this->accentScale($this->themeContext->primaryColor())).'}';

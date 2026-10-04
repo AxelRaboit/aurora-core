@@ -58,18 +58,23 @@
 
 {% macro wrap(zone, body) %}
     {% import _self as this %}
+    {# The room a surface leaves around its words: the zone's choice, the
+       usual padding when it made none. #}
+    {% set padding = {compact: 'p-4', normal: 'p-6 sm:p-8', roomy: 'p-8 sm:p-12'}[zone.options.padding|default('normal')]|default('p-6 sm:p-8') %}
     {% set surfaces = {
         none: '',
-        card: 'rounded-xl border border-card-line bg-surface p-6 sm:p-8',
-        soft: 'rounded-xl bg-surface-2 p-6 sm:p-8',
-        accent: 'rounded-xl border border-accent-500/30 bg-accent-500/10 p-6 sm:p-8',
-        custom: 'relative isolate overflow-hidden rounded-xl p-6 sm:p-8',
+        card: 'rounded-xl border border-card-line bg-surface ' ~ padding,
+        raised: 'rounded-2xl bg-surface shadow-[0_18px_50px_-20px_rgb(0_0_0/0.28)] ' ~ padding,
+        soft: 'rounded-xl bg-surface-2 ' ~ padding,
+        accent: 'rounded-xl border border-accent-500/30 bg-accent-500/10 ' ~ padding,
+        custom: 'relative isolate overflow-hidden rounded-xl ' ~ padding,
     } %}
     {# Across the viewport the corners go: a band with rounded ends reads as a
        very wide card that has overflowed, which is not what it is. #}
     {% set bleedSurfaces = {
         none: '',
         card: 'border-y border-card-line bg-surface py-10 sm:py-14',
+        raised: 'bg-surface py-10 sm:py-14 shadow-[0_18px_50px_-20px_rgb(0_0_0/0.28)]',
         soft: 'bg-surface-2 py-10 sm:py-14',
         accent: 'border-y border-accent-500/30 bg-accent-500/10 py-10 sm:py-14',
         custom: 'relative isolate overflow-hidden py-10 sm:py-14',
@@ -83,10 +88,11 @@
        A picture with a caption or a credit keeps the padding, because those
        are words and words must not touch an edge. The zone knows which it is,
        which is why the question is asked here rather than left to the author. #}
-    {% set framed = zone.type == 'media' and not zone.caption and not (zone.media.credit|default(null)) %}
+    {% set framed = zone.type == 'media' and not zone.caption and not ((zone.options.showCredit ?? true) and zone.media.credit|default(null)) %}
     {% set frames = {
         none: '',
         card: 'overflow-hidden rounded-xl border border-card-line bg-surface',
+        raised: 'overflow-hidden rounded-2xl bg-surface shadow-[0_18px_50px_-20px_rgb(0_0_0/0.28)]',
         soft: 'overflow-hidden rounded-xl bg-surface-2',
         accent: 'overflow-hidden rounded-xl border border-accent-500/30 bg-accent-500/10',
         custom: 'relative isolate overflow-hidden rounded-xl',

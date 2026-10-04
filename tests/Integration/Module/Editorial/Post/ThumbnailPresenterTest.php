@@ -30,10 +30,10 @@ final class ThumbnailPresenterTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        static::bootKernel();
+        self::bootKernel();
 
-        $this->presenter = static::getContainer()->get(ThumbnailPresenter::class);
-        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $this->presenter = self::getContainer()->get(ThumbnailPresenter::class);
+        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
     }
 
     public function testAPostWithNoThumbnailPresentsNoUrl(): void

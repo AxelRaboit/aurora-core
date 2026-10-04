@@ -30,9 +30,9 @@ final class BannerSplitPersistenceTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        static::bootKernel();
+        self::bootKernel();
 
-        $container = static::getContainer();
+        $container = self::getContainer();
         $this->postManager = $container->get(PostManagerInterface::class);
         $this->inputFactory = $container->get(PostInputFactoryInterface::class);
         $this->entityManager = $container->get(EntityManagerInterface::class);

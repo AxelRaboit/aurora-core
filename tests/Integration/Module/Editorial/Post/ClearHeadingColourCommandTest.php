@@ -28,8 +28,8 @@ final class ClearHeadingColourCommandTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        static::createClient();
-        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        self::createClient();
+        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
     }
 
     public function testAWholeColouredHeadingFollowsTheThemeAgain(): void
@@ -89,7 +89,7 @@ final class ClearHeadingColourCommandTest extends IntegrationTestCase
      */
     private function launch(array $options): CommandTester
     {
-        $application = new Application(static::$kernel);
+        $application = new Application(self::$kernel);
         $tester = new CommandTester($application->find('aurora:editorial:headings:clear-colour'));
         $tester->execute($options);
 

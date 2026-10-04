@@ -115,4 +115,13 @@ final class GridZoneOptionsTest extends TestCase
         self::assertSame(0, $options['socialLikes']);
         self::assertSame(12, $options['socialComments']);
     }
+
+    /** A credit is shown unless the author turned it off; an unknown alignment stretches. */
+    public function testTheCreditIsShownByDefaultAndAlignmentFallsBackToStretch(): void
+    {
+        self::assertTrue(GridZoneOptions::normalize([])['showCredit']);
+        self::assertFalse(GridZoneOptions::normalize(['showCredit' => false])['showCredit']);
+        self::assertSame('stretch', GridZoneOptions::normalize(['valign' => 'middle'])['valign']);
+        self::assertSame('center', GridZoneOptions::normalize(['valign' => 'center'])['valign']);
+    }
 }

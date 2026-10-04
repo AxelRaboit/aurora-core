@@ -1,14 +1,18 @@
 <!DOCTYPE html>
-<html lang="{{ app.request.locale }}">
+<html lang="{{ app.request.locale }}" data-theme>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>404 - {{ 'shared.errors.page_not_found.title'|trans }}</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     {{ vite_entry_link_tags('app') }}
-    <style>:root{--th-bg:#f9fafb;--th-surface:#ffffff;--th-primary:#111827;--th-secondary:#4b5563;--th-muted:#9ca3af;--th-accent:#6366f1}</style>
+    {# The site's theme - its background, text, accent and font - rather than
+       the stylesheet's default green; the neutral values stay underneath for
+       when the theme cannot be read. #}
+    <style>:root{--th-bg:#f9fafb;--th-surface:#ffffff;--th-primary:#111827;--th-secondary:#4b5563;--th-muted:#9ca3af}</style>
+    <style>{{ themeStyles.errorPageCss()|raw }}</style>
 </head>
-<body class="min-h-screen bg-bg flex flex-col items-center justify-center px-4 text-center">
+<body class="aurora-front min-h-screen bg-bg text-primary flex flex-col items-center justify-center px-4 text-center">
 
     <p class="text-8xl font-black text-accent-400/30 leading-none select-none mb-6">404</p>
 

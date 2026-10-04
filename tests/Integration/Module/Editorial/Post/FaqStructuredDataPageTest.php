@@ -37,8 +37,8 @@ final class FaqStructuredDataPageTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->client = static::createClient();
-        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $this->client = self::createClient();
+        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
     }
 
     protected function tearDown(): void
@@ -66,7 +66,7 @@ final class FaqStructuredDataPageTest extends IntegrationTestCase
         $data = json_decode($match[1], true);
 
         self::assertSame('FAQPage', $data['@type']);
-        self::assertSame(['Faut-il s\'engager ?'], array_column($data['mainEntity'], 'name'));
+        self::assertSame(["Faut-il s'engager ?"], array_column($data['mainEntity'], 'name'));
         self::assertSame('Trois mois, puis sans durée.', $data['mainEntity'][0]['acceptedAnswer']['text']);
     }
 
@@ -95,7 +95,7 @@ final class FaqStructuredDataPageTest extends IntegrationTestCase
 
         $slug = 'faq-'.bin2hex(random_bytes(4));
         $post->translate('fr')->setTitle('Questions')->setSlug($slug)->setGrid(['zones' => [
-            'z1' => ['items' => ['q1' => ['title' => 'Faut-il s\'engager ?', 'description' => 'Trois mois, puis sans durée.']]],
+            'z1' => ['items' => ['q1' => ['title' => "Faut-il s'engager ?", 'description' => 'Trois mois, puis sans durée.']]],
             'z2' => ['items' => ['q2' => ['title' => 'Promotion passée ?', 'description' => 'Oui.']]],
         ]]);
 

@@ -27,16 +27,16 @@ final class GridWaveFourZonesTest extends IntegrationTestCase
 {
     public function testAnInstagramZonePlacedWhileTheIntegrationIsOffDrawsNothing(): void
     {
-        static::bootKernel();
-        static::getContainer()->get(InstagramSettings::class)->save(enabled: false, termsAccepted: false, accessToken: null, businessAccountId: null, acceptedBy: '');
+        self::bootKernel();
+        self::getContainer()->get(InstagramSettings::class)->save(enabled: false, termsAccepted: false, accessToken: null, businessAccountId: null, acceptedBy: '');
 
         self::assertSame('', mb_trim($this->render(['type' => 'instagramFeed'])));
     }
 
     public function testAnInstagramFeedShowsItsThumbnailsAndMarksItsVideos(): void
     {
-        static::bootKernel();
-        static::getContainer()->get(InstagramSettings::class)->save(enabled: true, termsAccepted: true, accessToken: 'token', businessAccountId: '999', acceptedBy: 'axel@example.com');
+        self::bootKernel();
+        self::getContainer()->get(InstagramSettings::class)->save(enabled: true, termsAccepted: true, accessToken: 'token', businessAccountId: '999', acceptedBy: 'axel@example.com');
 
         $page = <<<'JSON'
             {"data": [
@@ -45,7 +45,7 @@ final class GridWaveFourZonesTest extends IntegrationTestCase
             ]}
             JSON;
 
-        static::getContainer()->set(InstagramFeed::class, new InstagramFeed(new MockHttpClient(new MockResponse($page)), new ArrayAdapter(), new NullLogger()));
+        self::getContainer()->set(InstagramFeed::class, new InstagramFeed(new MockHttpClient(new MockResponse($page)), new ArrayAdapter(), new NullLogger()));
 
         $html = $this->render(['type' => 'instagramFeed', 'options' => ['feedCount' => 6]]);
 
@@ -55,19 +55,19 @@ final class GridWaveFourZonesTest extends IntegrationTestCase
 
     public function testAGoogleReviewsZonePlacedWhileTheIntegrationIsOffDrawsNothing(): void
     {
-        static::bootKernel();
-        static::getContainer()->get(GoogleReviewsSettings::class)->save(enabled: false, termsAccepted: false, apiKey: null, placeId: null, acceptedBy: '');
+        self::bootKernel();
+        self::getContainer()->get(GoogleReviewsSettings::class)->save(enabled: false, termsAccepted: false, apiKey: null, placeId: null, acceptedBy: '');
 
         self::assertSame('', mb_trim($this->render(['type' => 'googleReviews'])));
     }
 
     public function testAGoogleReviewsZoneShowsTheRatingAndItsMostRecentReviews(): void
     {
-        static::bootKernel();
-        static::getContainer()->get(GoogleReviewsSettings::class)->save(enabled: true, termsAccepted: true, apiKey: 'key', placeId: 'place-id', acceptedBy: 'axel@example.com');
+        self::bootKernel();
+        self::getContainer()->get(GoogleReviewsSettings::class)->save(enabled: true, termsAccepted: true, apiKey: 'key', placeId: 'place-id', acceptedBy: 'axel@example.com');
 
         $page = '{"status": "OK", "result": {"rating": 4.8, "user_ratings_total": 42, "url": "https://maps.google.com/place", "reviews": [{"author_name": "Marie", "rating": 5, "relative_time_description": "il y a un mois", "text": "Superbe séance"}]}}';
-        static::getContainer()->set(GoogleReviews::class, new GoogleReviews(new MockHttpClient(new MockResponse($page)), new ArrayAdapter(), new NullLogger()));
+        self::getContainer()->set(GoogleReviews::class, new GoogleReviews(new MockHttpClient(new MockResponse($page)), new ArrayAdapter(), new NullLogger()));
 
         $html = $this->render(['type' => 'googleReviews']);
 
@@ -78,16 +78,16 @@ final class GridWaveFourZonesTest extends IntegrationTestCase
 
     public function testANewsletterZonePlacedWhileTheIntegrationIsOffDrawsNothing(): void
     {
-        static::bootKernel();
-        static::getContainer()->get(NewsletterSettings::class)->save(enabled: false, termsAccepted: false, provider: 'brevo', apiKey: null, listId: null, acceptedBy: '');
+        self::bootKernel();
+        self::getContainer()->get(NewsletterSettings::class)->save(enabled: false, termsAccepted: false, provider: 'brevo', apiKey: null, listId: null, acceptedBy: '');
 
         self::assertSame('', mb_trim($this->render(['type' => 'newsletterSignup'])));
     }
 
     public function testANewsletterZoneShowsItsFormAndPostsToTheSubscribeEndpoint(): void
     {
-        static::bootKernel();
-        static::getContainer()->get(NewsletterSettings::class)->save(enabled: true, termsAccepted: true, provider: 'brevo', apiKey: 'key', listId: '3', acceptedBy: 'axel@example.com', brevoTemplateId: '12', privacyUrl: '/fr/page/confidentialite');
+        self::bootKernel();
+        self::getContainer()->get(NewsletterSettings::class)->save(enabled: true, termsAccepted: true, provider: 'brevo', apiKey: 'key', listId: '3', acceptedBy: 'axel@example.com', brevoTemplateId: '12', privacyUrl: '/fr/page/confidentialite');
 
         $html = $this->render(['type' => 'newsletterSignup'], ['label' => 'Recevez les prochaines dates', 'caption' => 'Une fois par mois']);
 
@@ -109,8 +109,8 @@ final class GridWaveFourZonesTest extends IntegrationTestCase
      */
     public function testTheNewsletterPrivacyParagraphFollowsTheProvider(): void
     {
-        static::bootKernel();
-        $settings = static::getContainer()->get(NewsletterSettings::class);
+        self::bootKernel();
+        $settings = self::getContainer()->get(NewsletterSettings::class);
 
         $settings->save(enabled: false, termsAccepted: false, provider: 'brevo', apiKey: null, listId: null, acceptedBy: '');
         self::assertStringNotContainsString('aurora-newsletter-privacy', $this->render(['type' => 'newsletterPrivacy']));
@@ -132,7 +132,7 @@ final class GridWaveFourZonesTest extends IntegrationTestCase
     /** @param array<string, mixed> $zone @param array<string, mixed> $held */
     private function render(array $zone, array $held = []): string
     {
-        $grid = static::getContainer()->get(GridViewBuilder::class)->build(
+        $grid = self::getContainer()->get(GridViewBuilder::class)->build(
             ['enabled' => true, 'zones' => [['id' => 'z1', ...$zone]]],
             ['zones' => ['z1' => $held]],
             'fr',
@@ -140,7 +140,7 @@ final class GridWaveFourZonesTest extends IntegrationTestCase
 
         self::assertNotNull($grid);
 
-        $twig = static::getContainer()->get(Environment::class);
+        $twig = self::getContainer()->get(Environment::class);
         self::assertInstanceOf(Environment::class, $twig);
 
         return $twig->render('Frontend/themes/default/editorial/post/_grid_zone.html.twig', ['zone' => $grid['zones'][0], 'locale' => 'fr']);

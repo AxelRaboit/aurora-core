@@ -50,11 +50,11 @@ final class PostReviewTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->client = static::createClient();
-        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
-        $this->urlGenerator = static::getContainer()->get(UrlGeneratorInterface::class);
+        $this->client = self::createClient();
+        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        $this->urlGenerator = self::getContainer()->get(UrlGeneratorInterface::class);
 
-        $users = static::getContainer()->get(UserRepository::class);
+        $users = self::getContainer()->get(UserRepository::class);
 
         $admin = $users->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
         self::assertInstanceOf(User::class, $admin);
@@ -74,6 +74,7 @@ final class PostReviewTest extends IntegrationTestCase
                 $this->entityManager->remove($entity);
             }
         }
+
         $this->entityManager->flush();
         $this->created = [];
 
@@ -238,7 +239,7 @@ final class PostReviewTest extends IntegrationTestCase
     public function testAPublisherSchedulesDirectly(): void
     {
         $post = $this->draft();
-        $admin = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
         self::assertInstanceOf(User::class, $admin);
 
         $this->client->loginUser($admin, 'admin');
@@ -290,7 +291,7 @@ final class PostReviewTest extends IntegrationTestCase
     {
         $post = $this->pending(new DateTimeImmutable('-1 hour'));
 
-        static::getContainer()->get(PublishScheduledPostsHandler::class)(new PublishScheduledPostsMessage());
+        self::getContainer()->get(PublishScheduledPostsHandler::class)(new PublishScheduledPostsMessage());
 
         self::assertSame(PostStatusEnum::PendingReview, $this->reload($post)->getStatus());
     }
@@ -320,7 +321,7 @@ final class PostReviewTest extends IntegrationTestCase
     /** @return list<object> */
     private function notificationsFor(User $user, string $type): array
     {
-        return static::getContainer()->get(NotificationRepository::class)
+        return self::getContainer()->get(NotificationRepository::class)
             ->findBy(['recipient' => $user, 'type' => $type]);
     }
 
@@ -349,18 +350,20 @@ final class PostReviewTest extends IntegrationTestCase
         $postType = new PostType();
         $postType->setSlug('review-'.bin2hex(random_bytes(4)));
         $postType->setLabel('Review type');
+
         $this->entityManager->persist($postType);
         $this->entityManager->flush();
         $this->created[] = [PostType::class, (int) $postType->getId()];
 
-        $post = static::getContainer()->get(PostManagerInterface::class)->create(
-            static::getContainer()->get(PostInputFactoryInterface::class)->fromArray([
+        $post = self::getContainer()->get(PostManagerInterface::class)->create(
+            self::getContainer()->get(PostInputFactoryInterface::class)->fromArray([
                 'postTypeId' => $postType->getId(),
                 'status' => 'draft',
                 'translations' => ['fr' => ['title' => 'Brouillon']],
             ]),
         );
         $post->setAuthor($this->author);
+
         $this->entityManager->flush();
         $this->created[] = [Post::class, (int) $post->getId()];
 
@@ -372,6 +375,7 @@ final class PostReviewTest extends IntegrationTestCase
         $post = $this->draft();
         $post->setStatus(PostStatusEnum::PendingReview);
         $post->setScheduledAt($scheduledAt);
+
         $this->entityManager->flush();
 
         return $post;

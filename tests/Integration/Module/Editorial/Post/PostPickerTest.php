@@ -32,13 +32,14 @@ final class PostPickerTest extends IntegrationTestCase
 
     protected function tearDown(): void
     {
-        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $entityManager = self::getContainer()->get(EntityManagerInterface::class);
         foreach ($this->ids as $id) {
             $post = $entityManager->find(Post::class, $id);
             if (null !== $post) {
                 $entityManager->remove($post);
             }
         }
+
         $entityManager->flush();
 
         parent::tearDown();
@@ -46,12 +47,12 @@ final class PostPickerTest extends IntegrationTestCase
 
     public function testSavedIdsComeBackInTheirOrderWithTheirTitles(): void
     {
-        $client = static::createClient();
-        $admin = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $client = self::createClient();
+        $admin = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
         self::assertInstanceOf(User::class, $admin);
         $client->loginUser($admin, 'admin');
 
-        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $entityManager = self::getContainer()->get(EntityManagerInterface::class);
         $type = $entityManager->getRepository(PostType::class)->findOneBy([]);
         $tag = bin2hex(random_bytes(4));
 

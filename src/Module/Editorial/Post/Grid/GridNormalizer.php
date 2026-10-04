@@ -473,7 +473,7 @@ final readonly class GridNormalizer
      * written. New ones go at the end: the first is the default, and moving it
      * would restyle every list already published.
      */
-    public const array ITEM_DISPLAYS = ['steps', 'stats', 'faq', 'quotes', 'logos', 'timeline', 'offers', 'people', 'scrolly', 'editorial', 'process', 'features'];
+    public const array ITEM_DISPLAYS = ['steps', 'stats', 'faq', 'quotes', 'logos', 'timeline', 'offers', 'people', 'scrolly', 'editorial', 'process', 'features', 'showcase'];
 
     /**
      * How densely a publication card is drawn. The same publication either
@@ -532,7 +532,7 @@ final readonly class GridNormalizer
      * Shared, like the width beside it - a translated page does not repaint
      * its own sections.
      */
-    public const array SURFACES = ['none', 'card', 'soft', 'accent', 'custom'];
+    public const array SURFACES = ['none', 'card', 'raised', 'soft', 'accent', 'custom'];
 
     public const string SURFACE_CUSTOM = 'custom';
 
@@ -581,6 +581,9 @@ final readonly class GridNormalizer
      * reader who asked for less motion gets the zone outright.
      */
     public const array REVEALS = ['none', 'fade', 'up', 'left', 'right', 'zoom', 'blur'];
+
+    /** The air between two rows of the page: tight, as it was, or roomy. */
+    public const array ROW_GAPS = ['tight', 'normal', 'loose'];
 
     /**
      * The same list, plus the answer a zone gives by default: whatever the
@@ -820,6 +823,8 @@ final readonly class GridNormalizer
             // At the root because it is a decision about the page, and
             // because it is the only place an author can make it once.
             'reveal' => $this->values->oneOf($data['reveal'] ?? null, self::REVEALS, self::REVEALS[0]),
+            // `normal` is the gap every page had before it could be chosen.
+            'rowGap' => $this->values->oneOf($data['rowGap'] ?? null, self::ROW_GAPS, self::ROW_GAPS[1]),
             'zones' => $this->zones($data),
         ];
     }

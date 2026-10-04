@@ -26,10 +26,10 @@ final class GridViewBuilderTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        static::bootKernel();
+        self::bootKernel();
 
-        $this->gridViewBuilder = static::getContainer()->get(GridViewBuilder::class);
-        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $this->gridViewBuilder = self::getContainer()->get(GridViewBuilder::class);
+        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
     }
 
     public function testAZoneCarriesBothItsArrangementAndItsContent(): void

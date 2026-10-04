@@ -5,6 +5,67 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [1.11.0] - 2026-10-04
+
+### Ajouté
+
+#### De quoi mettre en page un audit comme un diaporama
+Un audit de réseaux sociaux se lit comme une suite de diapositives : de grands titres, des cartes posées sur la page, un téléphone de biais à côté, un camembert aux couleurs de la marque. La grille sait maintenant le faire :
+- **Carte en relief** : un nouveau fond de zone, une carte sans bordure qu'une ombre douce détache de la page.
+- **Étiquette** : un nouveau bloc de texte, un mot sur une pastille (noir, couleur du thème, rose, indigo, citron, ambre, ciel, émeraude), droite ou penchée. La pastille noire prend la couleur du texte de la page, elle se lit donc aussi sur un thème sombre.
+- **Réseaux sociaux** : un nouveau bloc de texte, la liste des comptes d'une marque avec le logo de chaque réseau (Instagram, Facebook, LinkedIn, TikTok, YouTube, X, site) et l'identifiant, en lien quand une adresse est donnée.
+- **Camembert** : une nouvelle forme de graphique. Chaque ligne de valeurs peut porter sa couleur (`Photos ; 60 ; #2f1bea`), pour les barres comme pour les parts. Un graphique posé sur une zone qui a déjà un fond ne dessine plus sa propre carte, et des valeurs déjà en pourcentage ne répètent plus leur part dans la légende.
+- **Vitrine en images** : un nouvel affichage de liste, une photo en portrait par entrée, son titre, une précision et des chiffres en puces : les meilleurs posts d'un compte.
+- **Inclinaison** d'une image, vers la gauche ou la droite, cadre d'appareil compris ; droite sur téléphone.
+- **Alignement vertical** d'une zone dans sa ligne (en haut, au centre, en bas) : une carte se centre à côté du téléphone plus haut qu'elle. Sur téléphone, chaque zone garde sa ligne.
+- **Grands titres en capitales grasses**, réglables par livrable dans l'onglet Apparence.
+
+#### Se repérer dans une longue grille
+Un modèle d'audit compte une cinquantaine de zones, et le canevas les dessinait toutes en « Texte 48/48 ». Désormais :
+- **Les tuiles parlent** : chaque tuile montre son premier titre, ou à défaut sa première ligne, le titre d'un graphique ou la première entrée d'une liste avec leur nombre, et des pastilles pour ce qui change son allure (en relief, téléphone, inclinaison, au centre, masquée sur téléphone).
+- **Un plan du document** au-dessus du canevas liste les sections, c'est-à-dire chaque grand titre posé en pleine largeur. Un clic sélectionne la section et fait défiler le canevas jusqu'à elle.
+- **Les [crochets] se repèrent** : chaque tuile et chaque section du plan affichent combien de passages entre crochets restent à remplacer, la grille donne le total, l'en-tête d'un livrable porte un badge, et l'aperçu du back-office les surligne (jamais la page que lit le client). Rendre visible au client un livrable qui en contient encore affiche un avertissement.
+
+#### Construire plus vite
+- **Sections toutes faites** : « Insérer une section » propose une dizaine d'arrangements prêts, remplis de [crochets] à remplacer (titre de section, carte et téléphone, deux cartes, quatre cartes en carré, trois colonnes à étiquette, trois comptes comparés, à garder / à éviter, meilleurs posts et chiffre, texte et camembert, réseaux de la marque). La section arrive après la zone sélectionnée.
+- **Mes sections** : une zone, ou une section entière depuis le plan, s'enregistre sous un nom pour être réinsérée dans n'importe quelle publication ou livrable. Chacun ne voit que les siennes.
+- **Dupliquer, copier, coller** : une zone se duplique sur place ; une zone ou une section se copie et se colle dans une autre grille, même ouverte dans un autre onglet.
+- **Déposer une image** depuis l'ordinateur sur une tuile Image ou Galerie : elle rejoint la médiathèque et prend sa place. Une tuile d'image vide dit « Image à choisir ».
+- **Ambiances** d'un livrable en un clic, dans l'onglet Apparence : couleurs du site, rapport blanc, sombre, ou aux couleurs du client, lues dans son logo (l'accent et les chiffres, puis les titres, sur fond blanc).
+
+#### Un livrable en présentation, et son export en PDF
+- **Mode présentation** : dans l'onglet Apparence, « Affichage » passe un livrable de « Page web » à « Présentation ». Le client le fait alors passer section par section, comme un diaporama : une diapositive par zone de texte qui ouvre sa ligne avec un grand titre, la même règle que le plan de l'éditeur. Flèches, clavier, glissé au doigt, plein écran, et l'adresse suit la diapositive (`#diapo-3`). Sans JavaScript, les diapositives se lisent à la suite.
+- **Exporter en PDF**, dans les actions de l'éditeur : le livrable s'ouvre en diapositives, une par page A4 paysage, et la fenêtre d'impression propose « Enregistrer en PDF ». Les [crochets] n'y sont pas surlignés.
+
+#### Composer avec l'aperçu sous les yeux
+- **Aperçu à côté** : sur grand écran, la grille et sa page rendue se partagent l'écran, l'aperçu se met à jour pendant la saisie, en ordinateur, tablette ou téléphone (une vraie largeur d'appareil, ses points de rupture compris). C'est la vraie page, rendue par le serveur dans le thème public : pour un livrable, sa page de lecture avec son fond, son en-tête et ses grands titres ; pour une publication, la grille dans la mise en page du site. Un clic sur une zone de l'aperçu la sélectionne ; la zone sélectionnée y est soulignée.
+- **Emojis** : une pastille au-dessus du texte d'une zone insère 👀 🔥 ✅ ❌ 👉 et une quarantaine d'autres à l'endroit du curseur.
+
+#### Masquer une zone selon l'écran
+Une zone peut ne pas s'afficher sur téléphone, ou sur ordinateur et tablette : un téléphone décoratif en double, une image trop large pour un petit écran.
+
+#### Régler les espacements
+L'air entre deux lignes de zones se règle pour toute la page (serré, normal, large), et la marge intérieure d'une zone posée sur un fond (compacte, normale, généreuse).
+
+#### Masquer le crédit photo d'une image
+Une image ou une galerie peut ne plus afficher le nom de son auteur sous la photo. Le crédit reste affiché par défaut ; une photo Pexels, dont la licence ne demande rien, peut s'en passer.
+
+### Modifié
+
+#### Le lien de retour d'une page de lecture, en flèche seule sur téléphone
+Sur téléphone, « Retour à l'espace » en tête d'un livrable ou d'une publication hors site n'affiche plus que sa flèche, dans un bouton de la taille d'un doigt. Le libellé revient à partir de la tablette et reste lu par les lecteurs d'écran.
+
+### Corrigé
+
+#### Les pages d'erreur aux couleurs du thème
+Les pages 404, 500 et 503 portaient l'accent vert par défaut de la feuille de style, quel que soit le thème du site. Elles prennent maintenant le fond, le texte, l'accent et la police du thème actif. Si le thème ne peut pas être lu, par exemple quand la base est justement ce qui a échoué, la page s'affiche quand même avec ses couleurs neutres.
+
+#### L'aperçu de l'éditeur montre les listes
+L'aperçu de la grille, dans l'éditeur d'une publication ou d'un livrable, rendait la grille sous sa forme d'éditeur : une zone de liste n'y apparaissait pas (et l'aperçu échouait en développement). Il rend maintenant la page telle qu'elle sera lue.
+
+### Dans aurora-client
+Rien à faire à la main : `make deploy-prod` joue la migration (table `core_editorial_grid_sections`, les sections enregistrées).
+
 ## [1.10.0] - 2026-10-04
 
 ### Ajouté

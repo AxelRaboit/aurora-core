@@ -34,8 +34,8 @@ final class PostListLocalesTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        static::bootKernel();
-        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        self::bootKernel();
+        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
     }
 
     protected function tearDown(): void
@@ -62,12 +62,14 @@ final class PostListLocalesTest extends IntegrationTestCase
         foreach (['fr' => 'Trois langues '.$tag, 'en' => 'Three languages '.$tag, 'es' => 'Tres idiomas '.$tag] as $locale => $title) {
             $post->translate($locale)->setTitle($title)->setSlug(sprintf('%s-%s', $tag, $locale));
         }
+
         $this->entityManager->persist($post);
         $this->entityManager->flush();
+
         $this->postId = (int) $post->getId();
         $this->entityManager->clear();
 
-        $result = static::getContainer()->get(PostRepository::class)->findPaginated(1, 'fr', 100);
+        $result = self::getContainer()->get(PostRepository::class)->findPaginated(1, 'fr', 100);
         $listed = array_values(array_filter($result['items'], fn (Post $item): bool => $item->getId() === $this->postId));
         self::assertCount(1, $listed);
 
@@ -75,6 +77,7 @@ final class PostListLocalesTest extends IntegrationTestCase
         foreach ($listed[0]->getTranslations() as $translation) {
             $locales[] = $translation->getLocale();
         }
+
         sort($locales);
 
         self::assertSame(['en', 'es', 'fr'], $locales);

@@ -85,6 +85,54 @@ final class BlocksRendererTest extends TestCase
         self::assertSame(BlocksRenderer::CALLOUT_ICON_NAMES, array_keys($drawings));
     }
 
+    public function testALabelIsAPillInItsToneAndTiltsWhenAsked(): void
+    {
+        self::assertSame(
+            '<p class="label-pill-row"><span class="label-pill label-pill--rose label-pill--tilt">Studio Grenadine</span></p>',
+            $this->render([['type' => 'label', 'data' => ['text' => 'Studio Grenadine', 'tone' => 'rose', 'tilt' => true]]]),
+        );
+    }
+
+    /** The tone becomes a class: an unknown one falls back to black. */
+    public function testALabelIgnoresAToneItDoesNotKnowAndDrawsNothingEmpty(): void
+    {
+        self::assertSame(
+            '<p class="label-pill-row"><span class="label-pill label-pill--dark">Réseaux</span></p>',
+            $this->render([['type' => 'label', 'data' => ['text' => 'Réseaux', 'tone' => 'x" onclick="y']]]),
+        );
+        self::assertSame('', $this->render([['type' => 'label', 'data' => ['text' => '  ']]]));
+    }
+
+    public function testASocialListDrawsEachKnownNetworkWithItsMark(): void
+    {
+        $html = $this->render([['type' => 'socials', 'data' => ['items' => [
+            ['network' => 'instagram', 'handle' => '@the.familystudio', 'url' => 'https://instagram.com/the.familystudio'],
+            ['network' => 'myspace', 'handle' => 'oublié'],
+            ['network' => 'linkedin', 'handle' => 'Family Studio', 'url' => 'javascript:alert(1)'],
+            ['network' => 'facebook', 'handle' => ''],
+        ]]]]);
+
+        self::assertSame(2, mb_substr_count($html, '<li '));
+        self::assertStringContainsString('social-list__item--instagram', $html);
+        self::assertStringContainsString('href="https://instagram.com/the.familystudio"', $html);
+        // A handle without a safe address stays words, not a link.
+        self::assertStringNotContainsString('javascript:', $html);
+        self::assertStringNotContainsString('oublié', $html);
+    }
+
+    public function testASocialListWithNothingToShowDrawsNothing(): void
+    {
+        self::assertSame('', $this->render([['type' => 'socials', 'data' => ['items' => []]]]));
+    }
+
+    /** Every network the list announces has a drawing, and none goes unannounced. */
+    public function testTheSocialNetworksAreTheOnesTheEditorOffers(): void
+    {
+        $drawings = (new ReflectionClassConstant(BlocksRenderer::class, 'SOCIAL_ICONS'))->getValue();
+        self::assertIsArray($drawings);
+        self::assertSame(BlocksRenderer::SOCIAL_NETWORK_NAMES, array_keys($drawings));
+    }
+
     /** @editorjs/list v1 stored plain strings, v2 stores {content, meta}. */
     public function testRendersBothListShapes(): void
     {

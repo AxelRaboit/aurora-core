@@ -49,13 +49,13 @@ final class PostDuplicateTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->client = static::createClient();
+        $this->client = self::createClient();
 
-        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
-        $this->duplicator = static::getContainer()->get(PostDuplicator::class);
-        $this->urlGenerator = static::getContainer()->get(UrlGeneratorInterface::class);
+        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        $this->duplicator = self::getContainer()->get(PostDuplicator::class);
+        $this->urlGenerator = self::getContainer()->get(UrlGeneratorInterface::class);
 
-        $admin = static::getContainer()->get(UserRepository::class)
+        $admin = self::getContainer()->get(UserRepository::class)
             ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
         self::assertInstanceOf(User::class, $admin);
         $this->admin = $admin;
@@ -69,6 +69,7 @@ final class PostDuplicateTest extends IntegrationTestCase
                 $this->entityManager->remove($entity);
             }
         }
+
         $this->entityManager->flush();
         $this->created = [];
 
@@ -102,6 +103,7 @@ final class PostDuplicateTest extends IntegrationTestCase
         $source->setReviewNote('Il manque la source.');
         $source->setReviewedAt(new DateTimeImmutable());
         $source->setScheduledAt(new DateTimeImmutable('+1 day'));
+
         $this->entityManager->flush();
 
         $copy = $this->duplicator->duplicate($source);
@@ -164,6 +166,7 @@ final class PostDuplicateTest extends IntegrationTestCase
     {
         $source = $this->published();
         $source->setGalleryLayout(['enabled' => true, 'layout' => 'masonry', 'columns' => 4, 'ratio' => 'natural', 'items' => []]);
+
         $this->entityManager->flush();
 
         $copy = $this->duplicator->duplicate($source);
@@ -238,12 +241,13 @@ final class PostDuplicateTest extends IntegrationTestCase
         $postType = new PostType();
         $postType->setSlug('dup-'.bin2hex(random_bytes(4)));
         $postType->setLabel('Duplicate type');
+
         $this->entityManager->persist($postType);
         $this->entityManager->flush();
         $this->created[] = [PostType::class, (int) $postType->getId()];
 
-        $post = static::getContainer()->get(PostManagerInterface::class)->create(
-            static::getContainer()->get(PostInputFactoryInterface::class)->fromArray([
+        $post = self::getContainer()->get(PostManagerInterface::class)->create(
+            self::getContainer()->get(PostInputFactoryInterface::class)->fromArray([
                 'postTypeId' => $postType->getId(),
                 'status' => 'published',
                 'translations' => [

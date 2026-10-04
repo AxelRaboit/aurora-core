@@ -742,6 +742,7 @@ backend:
             surfaces:
                 none: None
                 card: Card
+                raised: Raised
                 soft: Tinted
                 accent: Accent
                 custom: Custom
@@ -847,6 +848,7 @@ backend:
                 editorial: Editorial list
                 process: Horizontal timeline
                 features: "Icon cards"
+                showcase: "Picture showcase"
             item_columns: Columns
             item_number: "Entry {number}"
             item_add: Add an entry
@@ -882,6 +884,13 @@ backend:
             timeline_date_placeholder: "2024"
             timeline_title_placeholder: "The studio opens"
             timeline_text_placeholder: "What it changed, in one sentence."
+            showcase_title: "Title"
+            showcase_title_placeholder: "Baby carousel"
+            showcase_caption: "Detail (optional)"
+            showcase_caption_placeholder: "Posted in January"
+            showcase_lines: "Figures"
+            showcase_lines_placeholder: "17k views\n60 interactions"
+            showcase_lines_hint: "One line per figure: each becomes a bullet under the picture."
             feature_title: "Title"
             feature_title_placeholder: "Strategy"
             feature_text: "Text"
@@ -1017,6 +1026,137 @@ backend:
                 laptop: Laptop
                 phone: Phone
                 browser: Browser window
+            tilt: "Tilt"
+            tilt_hint: "Sets the picture slightly askew, like a phone on a slide. Upright on phones."
+            tilts:
+                none: "Upright"
+                left: "To the left"
+                right: "To the right"
+            show_credit: "Show the photo credit"
+            show_credit_hint: "The author's name under the picture, as the library recorded it. A Pexels photo can do without."
+            valign: "Vertical alignment"
+            valign_hint: "Where the zone sits when its neighbour is taller, a card beside a phone for instance. On phones every zone has its own row."
+            valigns:
+                stretch: "Top"
+                center: "Centre"
+                end: "Bottom"
+            hide_on: "Hide on"
+            hide_on_hint: "A screen the zone does not appear on: a decorative phone shown twice, a picture too wide for a small screen."
+            hide_ons:
+                none: "None"
+                phone: "Phone"
+                desktop: "Desktop and tablet"
+            hide_on_badges:
+                phone: "Hidden on phone"
+                desktop: "Hidden on desktop"
+            row_gap: "Space between rows"
+            row_gap_hint: "The space between two rows of zones, for the whole page."
+            row_gaps:
+                tight: "Tight"
+                normal: "Normal"
+                loose: "Loose"
+            padding: "Inner padding"
+            padding_hint: "The space between the edge of the background and what it holds."
+            paddings:
+                normal: "Normal"
+                compact: "Compact"
+                roomy: "Roomy"
+            tile_entries: "{count} entry | {count} entries"
+            tile_full_bleed: "Full width"
+            tile_image_missing: "Picture to choose"
+            placeholders_left: "{count} passage in [brackets] is left to replace. | {count} passages in [brackets] are left to replace."
+            split_on: "Preview alongside"
+            split_off: "Close the side preview"
+            devices:
+                desktop: "Desktop"
+                tablet: "Tablet"
+                phone: "Phone"
+            drop_image_where: "Drop a picture on an Image or Gallery zone."
+            drop_image_forbidden: "You may not add documents to the media library."
+            drop_image_done: "Picture added to the library and placed in the zone."
+            outline: "Outline · {count} sections"
+            sections:
+                title: "Insert a section"
+                builtin: "Ready-made"
+                mine: "My sections"
+                intro: "A section is a few zones already laid out and filled with [brackets] to replace. It lands after the selected zone, or at the end."
+                intro_mine: "The sections you saved, from a publication or a deliverable. Only you see them."
+                empty_mine: "No saved section yet. Select a zone or a section of the outline, then « Save as a section »."
+                insert: "Insert"
+                delete: "Delete this section"
+                paste: "Paste {count} zone | Paste {count} zones"
+                copied: "{count} zone copied, to paste into another grid | {count} zones copied, to paste into another grid"
+                duplicate: "Duplicate the zone"
+                copy_zone: "Copy the zone"
+                save_zone: "Save the zone as a section"
+                copy_section: "Copy the section"
+                save_section: "Save the section"
+                save: "Save as a section"
+                save_intro: "{count} zone, with its words, kept to insert again into any grid. | {count} zones, with their words, kept to insert again into any grid."
+                name: "Section name"
+                name_placeholder: "My SWOT block"
+                name_required: "Give the section a name."
+                save_submit: "Save"
+                saved: "Section saved."
+                save_failed: "The section could not be saved."
+                too_many: "You have reached 100 saved sections."
+                empty: "Nothing to save."
+                patterns:
+                    title:
+                        name: "Section title"
+                        description: "A large heading and a sentence announcing what follows."
+                    card_phone:
+                        name: "Card and phone"
+                        description: "A raised card centred beside a tilted phone."
+                    two_cards:
+                        name: "Two cards"
+                        description: "Two cards side by side: what works, my remarks."
+                    square:
+                        name: "Four cards in a square"
+                        description: "Strengths, weaknesses, opportunities, threats."
+                    three_columns:
+                        name: "Three labelled columns"
+                        description: "Three columns, each under a black label."
+                    three_tags:
+                        name: "Three accounts compared"
+                        description: "Three coloured labels, and the same questions under each."
+                    keep_avoid:
+                        name: "Keep, avoid"
+                        description: "Two cards: the ideas to keep, the things to avoid."
+                    showcase_figure:
+                        name: "Best posts and a figure"
+                        description: "Three posts in pictures and a key figure explained."
+                    text_chart:
+                        name: "Text and pie chart"
+                        description: "An analysis card beside a pie chart in chosen colours."
+                    networks:
+                        name: "Brand networks"
+                        description: "The accounts with their logos, and a column of text."
+                words:
+                    title: "[Section title]"
+                    intro: "[A sentence announcing the section.]"
+                    heading: "[Title]"
+                    point: "[A point]"
+                    text: "[A paragraph.]"
+                    label: "[Label]"
+                    strengths: "Strengths"
+                    weaknesses: "Weaknesses"
+                    opportunities: "Opportunities"
+                    threats: "Threats"
+                    competitor: "[Account]"
+                    lead: "[Criterion]"
+                    keep: "Ideas to keep ✅"
+                    avoid: "Things to avoid ❌"
+                    post: "[Post]"
+                    post_when: "[Posted in …]"
+                    post_figures: "[0 views]\n[0 interactions]"
+                    figure: "[0.0 %]"
+                    figure_label: "[what this figure measures]"
+                    chart: "[Breakdown]"
+                    slice: "[Share]"
+                    networks: "Social networks"
+                    handle: "@[account]"
+                    page: "[Page name]"
             parallax: Band that scrolls slower
             parallax_hint: "The picture becomes a band that scrolls slower than the page, with the caption set over it. Combine with « Full width » for a real band."
             code_style: Presentation
@@ -1114,12 +1254,13 @@ backend:
                 bar: Bars
                 line: Line
                 donut: Ring
+                pie: Pie
                 growth: Growth
             chart_unit: Unit
             chart_unit_hint: "Written after every value: %, €, k. Optional."
             chart_title: Title
             chart_data: Values
-            chart_data_hint: "One line per value: the name, a semicolon, the number. « Growth » also shows the change between the first and the last."
+            chart_data_hint: "One line per value: the name, a semicolon, the number, and optionally a second semicolon and a colour (#2f1bea). « Growth » also shows the change from the first to the last."
             chart_note: Source or detail
             video_wall_count: "{count} video of {max} | {count} videos of {max}"
             video_wall_add: Add videos
@@ -1818,6 +1959,12 @@ backend:
         css_class_placeholder: "menu-item--featured"
         label_placeholder: "Home"
 frontend:
+    slides:
+        slide: "slide"
+        controls: "Slides"
+        previous: "Previous slide"
+        next: "Next slide"
+        fullscreen: "Full screen"
     reading:
         prepared_for: 'Prepared for %name%'
         back: 'Back to the space'

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\Deliverable\Service;
 
 use Aurora\Core\Locale\Service\LocaleContextInterface;
+use Aurora\Core\Twig\PlaceholderMarkExtension;
 use Aurora\Module\Configuration\Theme\Service\ThemeResolver;
 use Aurora\Module\Configuration\Theme\Service\ThemeStyleRenderer;
 use Aurora\Module\Editorial\Post\Banner\BannerViewBuilder;
@@ -37,19 +38,29 @@ final readonly class DeliverableEditorPreviews
         private GridViewBuilder $gridViewBuilder,
         private BannerViewBuilder $bannerViewBuilder,
         private LocaleContextInterface $localeContext,
+        private PlaceholderMarkExtension $placeholders,
+        private DeliverablePageRenderer $pageRenderer,
     ) {}
 
     /** @param array<string, mixed> $payload ce que l'éditeur envoie : `{layout, content, locale}` */
     public function grid(array $payload): string
     {
+        // La page entière, au thème public, pour l'aperçu posé à côté de la
+        // grille ; la grille seule pour la fenêtre d'aperçu.
+        if (true === ($payload['frame'] ?? false)) {
+            return $this->pageRenderer->editorPreviewPage($payload);
+        }
+
         $layout = is_array($payload['layout'] ?? null) ? $payload['layout'] : [];
         $content = is_array($payload['content'] ?? null) ? $payload['content'] : [];
         $locale = $this->locale($payload['locale'] ?? null);
 
-        return $this->twig->render(
+        // Les [passages à remplacer] surlignés, comme dans l'aperçu de la page :
+        // c'est l'auteur qui regarde.
+        return $this->placeholders->mark($this->twig->render(
             $this->themeResolver->resolve('editorial/post/_grid'),
-            ['grid' => $this->gridViewBuilder->buildForEditor($layout, $content, $locale), 'locale' => $locale],
-        );
+            ['grid' => $this->gridViewBuilder->buildForPreview($layout, $content, $locale), 'locale' => $locale, 'editorPreview' => true],
+        ));
     }
 
     /** @param array<string, mixed> $payload ce que l'éditeur envoie : `{layout, texts, slide}` */

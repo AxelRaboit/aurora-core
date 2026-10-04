@@ -243,18 +243,21 @@ const ITEM_LABELS = {
     process: { title: "step_title", description: "step_text", caption: "process_when", url: null },
     // A pictogram, a title, a sentence, and an optional pill in the corner.
     features: { title: "feature_title", description: "feature_text", caption: "feature_badge", url: null },
+    // A picture first, then what it was and how it did: one figure a line,
+    // drawn as bullets like an offer's lines.
+    showcase: { title: "showcase_title", description: "showcase_lines", caption: "showcase_caption", url: null },
 };
 
 const itemLabels = computed(() => ITEM_LABELS[bound.display.value] ?? ITEM_LABELS.steps);
 
 /** The costumes that hang a picture on an entry: a face, a mark, a portrait. */
 const itemHasMedia = computed(() =>
-    ["quotes", "logos", "people", "features"].includes(bound.display.value),
+    ["quotes", "logos", "people", "features", "showcase"].includes(bound.display.value),
 );
 
 /** Only the displays that lay their entries in a row have a count to choose. */
 const itemHasColumns = computed(() =>
-    ["stats", "quotes", "offers", "people", "editorial", "features"].includes(bound.display.value),
+    ["stats", "quotes", "offers", "people", "editorial", "features", "showcase"].includes(bound.display.value),
 );
 
 /**
@@ -268,9 +271,12 @@ const itemHasFeatured = computed(() => ["offers", "features"].includes(bound.dis
  * The one field that needs a word of explanation: what an author types on
  * several lines becomes several bullets, and nothing on the screen says so.
  */
-const descriptionHint = computed(() =>
-    "offers" === bound.display.value ? t("backend.posts.grid.offer_lines_hint") : undefined,
-);
+const descriptionHint = computed(() => {
+    if ("offers" === bound.display.value) return t("backend.posts.grid.offer_lines_hint");
+    if ("showcase" === bound.display.value) return t("backend.posts.grid.showcase_lines_hint");
+
+    return undefined;
+});
 
 /**
  * Only the folding costume has panels to keep shut.
@@ -312,6 +318,7 @@ const displayHint = computed(() =>
                 </p>
                 <AppBlockEditor
                     v-model="bound.blocks.value"
+                    emoji
                     :placeholder="t('backend.posts.content_placeholder')"
                 />
             </div>
@@ -330,6 +337,17 @@ const displayHint = computed(() =>
                 :label="t('backend.posts.grid.frame')"
                 :hint="t('backend.posts.grid.frame_hint')"
                 :options="choices.frame ?? []"
+            />
+            <AppChoiceRow
+                v-model="bound.tilt.value"
+                :label="t('backend.posts.grid.tilt')"
+                :hint="t('backend.posts.grid.tilt_hint')"
+                :options="choices.tilt ?? []"
+            />
+            <AppToggle
+                v-model="bound.showCredit.value"
+                :label="t('backend.posts.grid.show_credit')"
+                :hint="t('backend.posts.grid.show_credit_hint')"
             />
             <AppToggle
                 v-model="bound.parallax.value"
@@ -1190,6 +1208,11 @@ const displayHint = computed(() =>
                 :hint="t('backend.posts.grid.gallery_layout_hint')"
                 :options="choices.galleryLayout ?? []"
             />
+            <AppToggle
+                v-model="bound.showCredit.value"
+                :label="t('backend.posts.grid.show_credit')"
+                :hint="t('backend.posts.grid.show_credit_hint')"
+            />
             <div class="flex items-center justify-between gap-3">
                 <span class="text-sm text-secondary">
                     {{ t("backend.posts.grid.gallery_count", { count: galleryImages.length, max: MAX_GALLERY_IMAGES }) }}
@@ -1536,7 +1559,7 @@ const displayHint = computed(() =>
                             :label="t(`backend.posts.grid.${itemLabels.description}`)"
                             :placeholder="t(`backend.posts.grid.${itemLabels.description}_placeholder`)"
                             :hint="descriptionHint"
-                            :rows="itemLabels.description === 'offer_lines' ? 4 : 2"
+                            :rows="['offer_lines', 'showcase_lines'].includes(itemLabels.description) ? 4 : 2"
                         />
                         <AppInput
                             v-if="itemLabels.caption"

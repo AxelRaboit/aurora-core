@@ -208,6 +208,21 @@ export const SIZES = ["sm", "md", "lg"];
 /** Mirrors GridZoneOptions: the settings one kind of zone has and no other. */
 export const GALLERY_LAYOUTS = ["grid", "carousel"];
 export const FRAMES = ["none", "laptop", "phone", "browser"];
+
+/** Mirrors GridZoneOptions::TILTS - a picture set slightly askew. */
+export const TILTS = ["none", "left", "right"];
+
+/** Mirrors GridZoneOptions::VALIGNS - where a zone sits in a taller row. */
+export const VALIGNS = ["stretch", "center", "end"];
+
+/** Mirrors GridZoneOptions::HIDE_ON - a screen a zone stays off. */
+export const HIDE_ON = ["none", "phone", "desktop"];
+
+/** Mirrors GridZoneOptions::PADDINGS - the room a surface leaves around its words. */
+export const PADDINGS = ["normal", "compact", "roomy"];
+
+/** Mirrors GridNormalizer::ROW_GAPS - the air between two rows of the page. */
+export const ROW_GAPS = ["tight", "normal", "loose"];
 export const CODE_STYLES = ["plain", "terminal", "diff"];
 export const LIST_LAYOUTS = ["cards", "index"];
 export const TOC_LAYOUTS = ["list", "pills", "index"];
@@ -216,7 +231,7 @@ export const GITHUB_MODES = ["activity", "repos", "releases"];
 export const AVAILABILITIES = ["available", "soon", "busy"];
 export const WEEKDAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
 export const SOCIAL_NETWORKS = ["instagram", "linkedin", "facebook", "x"];
-export const CHART_TYPES = ["bar", "line", "donut", "growth"];
+export const CHART_TYPES = ["bar", "line", "donut", "pie", "growth"];
 export const POLL_RESULTS = ["after", "always"];
 export const SLOT_DURATIONS = [15, 30, 45, 60, 90];
 export const BOOKING_WINDOWS = [7, 14, 21, 30, 45];
@@ -239,6 +254,11 @@ export function defaultZoneOptions() {
     return {
         galleryLayout: "grid",
         frame: "none",
+        tilt: "none",
+        showCredit: true,
+        valign: "stretch",
+        hideOn: "none",
+        padding: "normal",
         parallax: false,
         codeStyle: "plain",
         listLayout: "cards",
@@ -286,7 +306,7 @@ export function defaultZoneOptions() {
 /** Mirrors GridNormalizer::SEPARATOR_STYLES. */
 export const SEPARATOR_STYLES = ["line", "space", "wave", "diagonal", "bevel"];
 
-/** Mirrors GridNormalizer::ITEM_DISPLAYS - the twelve costumes of an item list. */
+/** Mirrors GridNormalizer::ITEM_DISPLAYS - the costumes of an item list. */
 export const ITEM_DISPLAYS = [
     "steps",
     "stats",
@@ -300,6 +320,7 @@ export const ITEM_DISPLAYS = [
     "editorial",
     "process",
     "features",
+    "showcase",
 ];
 
 /** Mirrors GridNormalizer::ITEM_COLUMNS. */
@@ -345,7 +366,7 @@ export const AUDIENCES = ["everyone", "members"];
 export const TEXT_SIZES = ["normal", "lead", "small"];
 
 /** Mirrors GridNormalizer::SURFACES - what a zone sits on. */
-export const SURFACES = ["none", "card", "soft", "accent", "custom"];
+export const SURFACES = ["none", "card", "raised", "soft", "accent", "custom"];
 
 /** Mirrors GridNormalizer::ZONE_FILL_TYPES - a zone's own background, read only under `custom`. */
 export const ZONE_FILL_TYPES = ["none", "solid", "gradient"];
@@ -779,6 +800,17 @@ export function usePostGrid(layout, content) {
 
     const revealOptions = computed(() => labelled(REVEALS, "reveals"));
 
+    // The air between rows, for the whole page. A grid saved before it could
+    // be chosen reads as the gap it always had.
+    const rowGap = writable(
+        () => layout.value.rowGap ?? "normal",
+        (value) => {
+            layout.value.rowGap = value;
+        },
+    );
+
+    const rowGapOptions = computed(() => labelled(ROW_GAPS, "row_gaps"));
+
     const snapOptions = computed(() =>
         SNAPS.map((step) => ({
             value: step,
@@ -820,6 +852,10 @@ export function usePostGrid(layout, content) {
         columns: ITEM_COLUMNS.map((value) => ({ value, label: String(value) })),
         galleryLayout: labelled(GALLERY_LAYOUTS, "gallery_layouts"),
         frame: labelled(FRAMES, "frames"),
+        tilt: labelled(TILTS, "tilts"),
+        valign: labelled(VALIGNS, "valigns"),
+        hideOn: labelled(HIDE_ON, "hide_ons"),
+        padding: labelled(PADDINGS, "paddings"),
         codeStyle: labelled(CODE_STYLES, "code_styles"),
         listLayout: labelled(LIST_LAYOUTS, "list_layouts"),
         tocLayout: labelled(TOC_LAYOUTS, "toc_layouts"),
@@ -988,6 +1024,83 @@ export function usePostGrid(layout, content) {
 
     function addZone(type) {
         addZoneAt(type, layout.value.zones.length);
+    }
+
+    /** A plain copy, free of the reactive proxies: what a clipboard can keep. */
+    function plain(value) {
+        return JSON.parse(JSON.stringify(value ?? null));
+    }
+
+    /**
+     * Zones copied out with what they hold in this language: the layout of
+     * `count` zones from `from`, and the content of each, children of a
+     * stack included. Ids are kept - they are what ties a zone to its words -
+     * and replaced on the way back in by `insertZones`.
+     *
+     * @return {{zones: object[], content: object}}
+     */
+    function snapshotZones(from, count = 1) {
+        const list = layout.value.zones.slice(from, from + count);
+        const owners = list.flatMap((zone) => [zone, ...(zone.children ?? [])]);
+
+        return plain({
+            zones: list,
+            content: Object.fromEntries(
+                owners.map((zone) => [
+                    zone.id,
+                    content.value.zones[zone.id] ?? newZoneContent(),
+                ]),
+            ),
+        });
+    }
+
+    /** One copied zone made new: a fresh id, every key a zone carries, its words. */
+    function prepareZone(source, sourceContent) {
+        const base = newZone(source?.type ?? "text");
+        const copy = plain(source) ?? {};
+        const zone = {
+            ...base,
+            ...copy,
+            id: base.id,
+            span: { ...base.span, ...(copy.span ?? {}) },
+            options: { ...base.options, ...(copy.options ?? {}) },
+            background: { ...base.background, ...(copy.background ?? {}) },
+        };
+        zone.children = (copy.children ?? []).map((child) =>
+            prepareZone(child, sourceContent),
+        );
+        content.value.zones[zone.id] = {
+            ...newZoneContent(),
+            ...plain(sourceContent?.[source?.id] ?? {}),
+        };
+
+        return zone;
+    }
+
+    /**
+     * Zones put back into the order at `at`: a duplicate, a paste, a section
+     * from the library. Each gets a new id, so the copy and the original are
+     * two zones rather than one shown twice. Only as many as the cap leaves
+     * room for.
+     *
+     * @return {number|null} where the first one landed, for the selection.
+     */
+    function insertZones(at, payload) {
+        const room = MAX_ZONES - layout.value.zones.length;
+        const list = (payload?.zones ?? []).slice(0, Math.max(0, room));
+        if (0 === list.length) return null;
+
+        const where = Math.min(
+            Math.max(0, at ?? layout.value.zones.length),
+            layout.value.zones.length,
+        );
+        layout.value.zones.splice(
+            where,
+            0,
+            ...list.map((zone) => prepareZone(zone, payload.content ?? {})),
+        );
+
+        return where;
     }
 
     /**
@@ -1932,6 +2045,8 @@ export function usePostGrid(layout, content) {
         snapOptions,
         reveal,
         revealOptions,
+        rowGap,
+        rowGapOptions,
         typeOptions,
         leafTypeOptions,
         widthOptions,
@@ -1950,6 +2065,8 @@ export function usePostGrid(layout, content) {
         childShare,
         addZone,
         addZoneAt,
+        snapshotZones,
+        insertZones,
         removeZone,
         moveZone,
         moveZoneTo,

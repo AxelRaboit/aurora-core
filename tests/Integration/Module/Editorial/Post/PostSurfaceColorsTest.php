@@ -37,8 +37,8 @@ final class PostSurfaceColorsTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->client = static::createClient();
-        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $this->client = self::createClient();
+        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
     }
 
     protected function tearDown(): void
@@ -49,6 +49,7 @@ final class PostSurfaceColorsTest extends IntegrationTestCase
                 $this->entityManager->remove($entity);
             }
         }
+
         $this->entityManager->flush();
         $this->created = [];
 
@@ -341,8 +342,8 @@ final class PostSurfaceColorsTest extends IntegrationTestCase
             $this->created[] = [PostType::class, (int) $postType->getId()];
         }
 
-        $post = static::getContainer()->get(PostManagerInterface::class)->create(
-            static::getContainer()->get(PostInputFactoryInterface::class)->fromArray([
+        $post = self::getContainer()->get(PostManagerInterface::class)->create(
+            self::getContainer()->get(PostInputFactoryInterface::class)->fromArray([
                 'postTypeId' => $postType->getId(),
                 'status' => 'published',
                 'translations' => ['fr' => ['title' => $title]],

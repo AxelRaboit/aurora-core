@@ -32,11 +32,11 @@ final class GridItemDisplaysTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        static::bootKernel();
+        self::bootKernel();
 
-        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
-        $this->gridViewBuilder = static::getContainer()->get(GridViewBuilder::class);
-        $twig = static::getContainer()->get(Environment::class);
+        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        $this->gridViewBuilder = self::getContainer()->get(GridViewBuilder::class);
+        $twig = self::getContainer()->get(Environment::class);
         self::assertInstanceOf(Environment::class, $twig);
         $this->twig = $twig;
     }
@@ -228,6 +228,26 @@ final class GridItemDisplaysTest extends IntegrationTestCase
         $unknown = $this->render('offers', [['id' => 'i1', 'featured' => true]], ['i1' => ['title' => 'Simple']], featuredTone: 'fuchsia');
 
         self::assertStringContainsString('border-accent', $unknown);
+    }
+
+    /**
+     * The best posts of a report: the picture on top, portrait like the post,
+     * then what it was, then one bullet per figure.
+     */
+    public function testAShowcasePutsThePictureFirstAndOneBulletPerFigure(): void
+    {
+        $mediaId = $this->picture();
+
+        $html = $this->render(
+            'showcase',
+            [['id' => 'i1', 'mediaId' => $mediaId]],
+            ['i1' => ['title' => 'Carrousel bébé', 'caption' => 'Publié en janvier', 'description' => "17 k vues\n60 interactions\n"]],
+        );
+
+        self::assertStringContainsString('aspect-[4/5]', $html);
+        self::assertSame(2, mb_substr_count($html, '<li>'));
+        self::assertStringContainsString('Publié en janvier', $html);
+        self::assertLessThan((int) mb_strpos($html, 'Carrousel bébé'), (int) mb_strpos($html, 'picto.png'));
     }
 
     private function render(string $display, array $items, array $words, bool $exclusiveOpen = false, ?string $featuredTone = null): string
