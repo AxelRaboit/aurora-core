@@ -59,7 +59,7 @@ const props = defineProps({
 const { themeList, accentColor } = useThemesList(props.themes);
 const { activateTheme } = useThemesActivate(themeList, props.activatePath);
 const { createModal, createForm, openCreate, submitCreate } = useThemesCreate(themeList, props.createPath, { extraFields: props.extraFields });
-const { CSS_SECTIONS, DEFAULTS, editModal, editForm, colorFields, contentWidth, readingProgress, highlight, highlightColor, menuActive, menuActiveColor, iconMode, iconColor, fontFamily, footerText, headerLogo, headerCustomText, headerTextHiddenOnPhone, headerMode, primaryColor, surfaceColors, calloutColors, openEdit, resetPrimaryColor, submitEdit } = useThemesEdit(themeList, props.updatePath, { extraFields: props.extraFields });
+const { CSS_SECTIONS, DEFAULTS, editModal, editForm, colorFields, contentWidth, readingProgress, watermarkVisible, highlight, highlightColor, menuActive, menuActiveColor, iconMode, iconColor, fontFamily, footerText, headerLogo, headerCustomText, headerTextHiddenOnPhone, headerMode, primaryColor, surfaceColors, calloutColors, openEdit, resetPrimaryColor, submitEdit } = useThemesEdit(themeList, props.updatePath, { extraFields: props.extraFields });
 
 const fontOptions = computed(() => props.fonts.map((font) => ({ value: font.value, label: font.label })));
 const selectedFont = computed(() => props.fonts.find((font) => font.value === fontFamily.value) ?? null);
@@ -524,6 +524,12 @@ const pageActions = computed(() => {
                         v-model="readingProgress"
                         :label="t('backend.themes.reading_progress')"
                         :hint="t('backend.themes.reading_progress_hint')"
+                    />
+                    <AppToggle
+                        v-if="section.key === 'general'"
+                        v-model="watermarkVisible"
+                        :label="t('backend.themes.watermark_visible')"
+                        :hint="t('backend.themes.watermark_visible_hint')"
                     />
                     <!-- La police de toute l'application. ThemeContext::fontFamilyCss()
                          la pose sur --th-font-sans dans le <head>, donc le

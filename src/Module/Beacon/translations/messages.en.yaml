@@ -1,0 +1,28 @@
+backend:
+  nav:
+    beacon: Deployments
+    beacon_description: "The site instances that check in, and the way unauthorized copies are spotted."
+    sections:
+      beacon: Protection
+  beacon:
+    intro: "Every deployed instance checks in here once a day. Anything running on a domain that is not yours is reuse to look into (see the licence)."
+    instances_title: Detected instances
+    empty: No instance has checked in yet.
+    col_status: Status
+    col_domain: Domain
+    col_host: Host
+    col_version: Version
+    col_signed: Signed
+    col_pings: Check-ins
+    col_last_seen: Last seen
+    known: Mine
+    lead: Investigate
+    signed_yes: "yes"
+    signed_no: "no"
+    forget: Forget this instance
+    forget_confirm: Forget this instance? It will reappear if it checks in again.
+    allowlist_title: Known domains
+    allowlist_hint: "One domain per line. Instances on these domains are yours; others are flagged to investigate."
+    allowlist_placeholder: "app.axelraboit.fr"
+    save: Save
+    saved: Known domains saved.

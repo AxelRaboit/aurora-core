@@ -122,6 +122,17 @@ final class ThemeContext implements ResetInterface
         return 'hidden' !== ($this->activeTheme()?->getConfig()['reading_progress'] ?? null);
     }
 
+    /**
+     * Le crédit « Aurora » en pied des pages publiques. Masqué par défaut :
+     * seul un thème qui l'a allumé porte la clé, à l'inverse des réglages
+     * actifs par défaut. Sert d'ancrage visible, indexable par les moteurs,
+     * pour repérer une réutilisation non autorisée du code (voir LICENSE).
+     */
+    public function watermarkVisible(): bool
+    {
+        return true === ($this->activeTheme()?->getConfig()['watermark_visible'] ?? null);
+    }
+
     public function footerText(string $siteName): string
     {
         $custom = $this->activeTheme()?->getConfig()['footer_text'] ?? '';

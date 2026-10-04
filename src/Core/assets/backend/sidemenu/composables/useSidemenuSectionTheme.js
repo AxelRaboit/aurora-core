@@ -46,6 +46,7 @@ const SECTION_THEMES = {
     notes: makeTheme("violet"),
     studio: makeTheme("emerald"),
     dev: makeTheme("orange"),
+    beacon: makeTheme("red"),
 };
 
 const FALLBACK_THEME = makeTheme("accent");

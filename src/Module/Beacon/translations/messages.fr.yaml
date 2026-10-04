@@ -1,0 +1,28 @@
+backend:
+  nav:
+    beacon: Déploiements
+    beacon_description: "Les instances du site qui se signalent, et le repérage des copies non autorisées."
+    sections:
+      beacon: Protection
+  beacon:
+    intro: "Chaque instance déployée du site se signale ici une fois par jour. Ce qui tourne sur un domaine qui n'est pas le vôtre est une réutilisation à vérifier (voir la licence)."
+    instances_title: Instances détectées
+    empty: Aucune instance ne s'est encore signalée.
+    col_status: Statut
+    col_domain: Domaine
+    col_host: Serveur
+    col_version: Version
+    col_signed: Signé
+    col_pings: Signalements
+    col_last_seen: Vu le
+    known: À moi
+    lead: À vérifier
+    signed_yes: oui
+    signed_no: non
+    forget: Oublier cette instance
+    forget_confirm: Oublier cette instance ? Elle réapparaîtra si elle se signale à nouveau.
+    allowlist_title: Domaines connus
+    allowlist_hint: "Un domaine par ligne. Les instances sur ces domaines sont les vôtres ; les autres sont signalées à vérifier."
+    allowlist_placeholder: "app.axelraboit.fr"
+    save: Enregistrer
+    saved: Domaines connus enregistrés.
