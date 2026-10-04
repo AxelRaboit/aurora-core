@@ -12,6 +12,9 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 #### Copier un livrable entre Studio et les espaces clients
 Un livrable de Studio se copie dans l'espace d'un client : « Copier dans un espace client », depuis sa carte ou le menu de l'éditeur, demande l'espace et le titre, puis ouvre la copie dans son espace. Elle arrive cachée au client, avec son nom en « Préparé pour » ; l'original reste dans Studio. C'est le chemin d'un modèle d'audit ou de stratégie vers le client pour qui on le remplit. Dans l'autre sens, « Copier dans Studio » garde un livrable d'espace comme modèle : la copie arrive dans « Mes livrables », sans client. Ne sont proposés que les espaces que la personne voit et où elle écrit, hors archives ; la copie vers Studio demande le droit de créer un livrable de Studio.
 
+#### Des catégories pour les livrables de Studio
+Les livrables de Studio se rangent par catégorie : audit, stratégie, proposition, ou ce que l'équipe veut. « Gérer les catégories », dans le menu Actions de la liste, les crée, les renomme, leur donne une couleur, les range dans l'ordre voulu et les supprime ; supprimer une catégorie laisse ses livrables, sans catégorie. Un livrable reçoit sa catégorie à la création ou dans l'onglet Réglages de l'éditeur. La liste s'affiche par catégorie, en sections dans l'ordre choisi et « Sans catégorie » à la fin, ou en simple liste avec la catégorie sur chaque carte ; un filtre à côté des rayons montre une catégorie, ou ce qui n'est pas encore rangé, avec le compte de chacune. Le filtre et l'affichage restent dans l'adresse de la page, et la recherche porte aussi sur le résumé. Gérer les catégories demande le droit de modifier les livrables ; ranger son propre livrable, non. Un livrable copié dans Studio garde sa catégorie, une copie dans un espace client la laisse : l'espace range seul. La démonstration range ses modèles en Propositions, Audits, Stratégies et Bilans.
+
 ### Modifié
 
 #### L'heure de la dernière modification sur les cartes de livrables
@@ -23,7 +26,7 @@ Les cartes de livrables, dans Studio comme dans un espace, disent « Modifié le
 Dans Studio > Livrables, la phrase qui décrit le rayon ouvert touchait la première carte. Elle reste maintenant contre ses onglets, et l'espace habituel de la page la sépare des cartes.
 
 ### Dans aurora-client
-Rien à faire.
+Rien à faire à la main : `make deploy-prod` joue la migration (table `core_studio_deliverable_categories`, colonne `category_id` sur `core_studio_deliverables`).
 
 ## [1.9.0] - 2026-10-04
 

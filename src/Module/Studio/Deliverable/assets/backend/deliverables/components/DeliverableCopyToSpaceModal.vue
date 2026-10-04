@@ -99,6 +99,7 @@ async function copy() {
             <AppInput
                 v-model="title"
                 :label="t('backend.studio.deliverables.title')"
+                :placeholder="t('backend.studio.deliverables.title_placeholder')"
                 :hint="t('backend.studio.deliverables.copy_to_space.title_hint')"
                 :error="errors.title ?? ''"
             />

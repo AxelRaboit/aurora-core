@@ -61,6 +61,8 @@ const props = defineProps({
     copyTargets: { type: Array, default: () => [] },
     /** Espace : garder une copie dans Studio ; vide sans le droit. */
     copyToStudioPath: { type: String, default: "" },
+    /** Les catégories des livrables de Studio. */
+    categories: { type: Array, default: () => [] },
 });
 
 const { t } = useI18n();
@@ -344,11 +346,13 @@ const headerActions = computed(() => {
             v-model:reading-header="form.readingHeader"
             v-model:visible-to-client="form.visibleToClient"
             v-model:scope="form.scope"
+            v-model:category-id="form.categoryId"
             :locales="locales"
             :errors="errors"
             :customer-name="space?.customerName ?? ''"
             :with-client="!!space"
             :can-change-scope="canChangeScope"
+            :categories="categories"
         />
 
         <DeliverableLinksModal :show="showLinks" :links-path="linksPath" v-on:close="showLinks = false" />

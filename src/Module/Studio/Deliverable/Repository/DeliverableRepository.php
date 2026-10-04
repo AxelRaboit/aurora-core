@@ -109,6 +109,9 @@ class DeliverableRepository extends ResolveTargetEntityRepository
         return $this->createQueryBuilder('d')
             ->leftJoin('d.owner', 'o')
             ->addSelect('o')
+            // La catégorie de chaque carte, dans la même requête.
+            ->leftJoin('d.category', 'c')
+            ->addSelect('c')
             ->where('d.space IS NULL')
             ->andWhere('d.scope = :scope')
             ->setParameter('scope', $scope)

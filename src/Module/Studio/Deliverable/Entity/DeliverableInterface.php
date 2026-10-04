@@ -22,6 +22,10 @@ interface DeliverableInterface
 
     public function setOwner(?CoreUserInterface $owner): static;
 
+    public function getCategory(): ?DeliverableCategoryInterface;
+
+    public function setCategory(?DeliverableCategoryInterface $category): static;
+
     public function getScope(): DeliverableScopeEnum;
 
     public function setScope(DeliverableScopeEnum $scope): static;

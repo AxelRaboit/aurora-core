@@ -9,14 +9,18 @@ use Aurora\Module\Editorial\Post\Grid\GridNormalizer;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\Deliverable\Entity\Deliverable;
+use Aurora\Module\Studio\Deliverable\Entity\DeliverableCategoryInterface;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
 use Aurora\Module\Studio\Deliverable\Enum\DeliverableScopeEnum;
+use Aurora\Module\Studio\Deliverable\Repository\DeliverableCategoryRepository;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableAppearance;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableReadingHeader;
 use Doctrine\ORM\EntityManagerInterface;
 
+use function ctype_digit;
 use function in_array;
 use function is_array;
+use function is_int;
 use function is_string;
 use function mb_strlen;
 use function mb_trim;
@@ -36,6 +40,7 @@ final readonly class DeliverableManager
         private EntityManagerInterface $entityManager,
         private GridNormalizer $gridNormalizer,
         private LocaleContextInterface $localeContext,
+        private DeliverableCategoryRepository $categories,
     ) {}
 
     /**
@@ -54,10 +59,12 @@ final readonly class DeliverableManager
         string $title,
         ?CoreUserInterface $owner = null,
         DeliverableScopeEnum $scope = DeliverableScopeEnum::Shared,
+        ?DeliverableCategoryInterface $category = null,
     ): DeliverableInterface {
         $deliverable = new Deliverable($space, $title, $this->localeContext->getDefaultLocale());
         $deliverable
             ->setOwner($owner)
+            ->setCategory($space instanceof CustomerSpaceInterface ? null : $category)
             ->setScope($space instanceof CustomerSpaceInterface ? DeliverableScopeEnum::Shared : $scope);
         $layout = $this->gridNormalizer->normalizeLayout(['enabled' => true]);
 
@@ -103,6 +110,7 @@ final readonly class DeliverableManager
             // Sans espace, il n'y a pas de client pour le voir : la case reste
             // fermée, quoi que dise l'éditeur.
             ->setVisibleToClient(!$deliverable->isStandalone() && true === ($data['visibleToClient'] ?? false))
+            ->setCategory($deliverable->isStandalone() ? $this->category($data['categoryId'] ?? null) : null)
             ->touch();
 
         $this->entityManager->flush();
@@ -133,6 +141,7 @@ final readonly class DeliverableManager
         $copy
             ->setOwner($author ?? $source->getOwner())
             ->setScope($source->getScope())
+            ->setCategory($source->getCategory())
             ->setReadingHeader($source->getReadingHeader());
 
         return $this->persistCopy($source, $copy);
@@ -190,6 +199,20 @@ final readonly class DeliverableManager
         }
 
         $this->entityManager->flush();
+    }
+
+    /**
+     * La catégorie qu'envoie l'éditeur ou la fenêtre de création.
+     *
+     * Un identifiant que plus rien ne résout laisse le livrable sans catégorie
+     * plutôt que de refuser l'enregistrement : il ne peut venir que d'une
+     * catégorie supprimée entre l'ouverture de la page et l'enregistrement.
+     */
+    public function category(mixed $id): ?DeliverableCategoryInterface
+    {
+        $id = is_int($id) || (is_string($id) && ctype_digit($id)) ? (int) $id : null;
+
+        return null === $id ? null : $this->categories->find($id);
     }
 
     /** Le corps de l'original dans la copie, puis enregistrée. */

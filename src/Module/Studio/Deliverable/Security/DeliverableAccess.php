@@ -136,6 +136,17 @@ final readonly class DeliverableAccess
             && ($this->isOwner($deliverable) || $this->adopts($deliverable));
     }
 
+    /**
+     * Créer, renommer, ranger ou supprimer les catégories : c'est réorganiser
+     * la bibliothèque de l'équipe, donc le droit de modifier les livrables.
+     * Ranger son propre livrable dans une catégorie existante, lui, ne demande
+     * que de pouvoir l'écrire.
+     */
+    public function canManageCategories(): bool
+    {
+        return $this->security->isGranted(self::VIEW) && $this->security->isGranted(self::EDIT);
+    }
+
     public function canCreate(): bool
     {
         return $this->security->isGranted(self::VIEW) && $this->security->isGranted(self::CREATE);

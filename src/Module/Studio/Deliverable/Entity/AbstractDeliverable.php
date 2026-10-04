@@ -88,6 +88,15 @@ abstract class AbstractDeliverable implements DeliverableInterface
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     protected ?CoreUserInterface $owner = null;
 
+    /**
+     * Sa catégorie, pour un livrable de Studio ; un livrable d'espace se range
+     * par son espace et n'en a pas. Supprimer la catégorie ne supprime rien :
+     * le livrable redevient « sans catégorie ».
+     */
+    #[ORM\ManyToOne(targetEntity: DeliverableCategoryInterface::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    protected ?DeliverableCategoryInterface $category = null;
+
     /** Perso ou partagé, pour un livrable sans espace ; ignoré dans un espace. */
     #[ORM\Column(length: 16, enumType: DeliverableScopeEnum::class, options: ['default' => 'shared'])]
     protected DeliverableScopeEnum $scope = DeliverableScopeEnum::Shared;
@@ -122,6 +131,18 @@ abstract class AbstractDeliverable implements DeliverableInterface
     public function setOwner(?CoreUserInterface $owner): static
     {
         $this->owner = $owner;
+
+        return $this;
+    }
+
+    public function getCategory(): ?DeliverableCategoryInterface
+    {
+        return $this->category;
+    }
+
+    public function setCategory(?DeliverableCategoryInterface $category): static
+    {
+        $this->category = $category;
 
         return $this;
     }

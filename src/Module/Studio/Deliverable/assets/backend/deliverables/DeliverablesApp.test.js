@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect } from "vitest";
 import { mount } from "@vue/test-utils";
 import { createTestI18n } from "@/tests/helpers/createTestI18n.js";
 import DeliverablesApp from "./DeliverablesApp.vue";
@@ -61,6 +61,7 @@ function mountApp(extra = {}) {
             stubs: {
                 DeliverableLinksModal: true,
                 DeliverableCopyToSpaceModal: true,
+                DeliverableCategoriesModal: true,
             },
         },
     });
@@ -73,7 +74,84 @@ function actionKeys(wrapper) {
         .map((action) => action.key);
 }
 
+const CATEGORIES = [
+    { id: 1, name: "Audit", color: "#bd4a55", position: 1 },
+    { id: 2, name: "Stratégie", color: null, position: 2 },
+];
+
+/** Trois livrables perso : un audit, une stratégie, un sans catégorie. */
+function mountFiled(extra = {}) {
+    return mountApp({
+        personal: [
+            row(1, "Audit Dupont", { category: CATEGORIES[0] }),
+            row(2, "Stratégie Fabre", { category: CATEGORIES[1] }),
+            row(3, "Brouillon libre", { category: null }),
+        ],
+        categories: CATEGORIES,
+        ...extra,
+    });
+}
+
+function sectionTitles(wrapper) {
+    return wrapper.findAll("section h3").map((title) => title.text());
+}
+
 describe("DeliverablesApp", () => {
+    afterEach(() => window.history.replaceState(null, "", "/"));
+
+    it("shows one section per category, the uncategorised last", () => {
+        const wrapper = mountFiled();
+        const titles = sectionTitles(wrapper);
+
+        expect(titles).toHaveLength(3);
+        expect(titles[0]).toContain("Audit");
+        expect(titles[1]).toContain("Stratégie");
+        // La dernière section est celle des livrables sans catégorie.
+        expect(titles[2]).toContain("categories.none");
+        expect(wrapper.findAll("section").at(-1).text()).toContain(
+            "Brouillon libre",
+        );
+    });
+
+    it("lists without sections when there is no category, or when asked to", () => {
+        expect(sectionTitles(mountApp())).toHaveLength(0);
+
+        window.history.replaceState(null, "", "/?layout=flat");
+        const wrapper = mountFiled();
+        expect(sectionTitles(wrapper)).toHaveLength(0);
+        expect(wrapper.text()).toContain("Audit Dupont");
+        expect(wrapper.text()).toContain("Brouillon libre");
+    });
+
+    it("filters on the category the address asks for", () => {
+        window.history.replaceState(null, "", "/?category=2");
+        const wrapper = mountFiled();
+
+        expect(wrapper.text()).toContain("Stratégie Fabre");
+        expect(wrapper.text()).not.toContain("Audit Dupont");
+        expect(wrapper.text()).not.toContain("Brouillon libre");
+    });
+
+    it("filters on what has no category yet", () => {
+        window.history.replaceState(null, "", "/?category=none");
+        const wrapper = mountFiled();
+
+        expect(wrapper.text()).toContain("Brouillon libre");
+        expect(wrapper.text()).not.toContain("Audit Dupont");
+    });
+
+    it("offers to manage categories only with the right", () => {
+        const keys = (wrapper) =>
+            wrapper
+                .findAllComponents({ name: "AppPageActions" })
+                .flatMap((c) => c.props("actions").map((a) => a.key));
+
+        expect(keys(mountFiled())).not.toContain("categories");
+        expect(keys(mountFiled({ canManageCategories: true }))).toContain(
+            "categories",
+        );
+    });
+
     it("offers to copy into a client space only when there is one to write in", () => {
         expect(actionKeys(mountApp())).not.toContain("copy-to-space");
 

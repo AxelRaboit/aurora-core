@@ -8,11 +8,16 @@ use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Http\PrivateAddressResponseTrait;
+use Aurora\Core\Validation\Service\PayloadValidator;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
+use Aurora\Module\Studio\Deliverable\Dto\DeliverableCategoryInput;
+use Aurora\Module\Studio\Deliverable\Entity\DeliverableCategoryInterface;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
 use Aurora\Module\Studio\Deliverable\Enum\DeliverableScopeEnum;
+use Aurora\Module\Studio\Deliverable\Manager\DeliverableCategoryManager;
 use Aurora\Module\Studio\Deliverable\Manager\DeliverableManager;
+use Aurora\Module\Studio\Deliverable\Repository\DeliverableCategoryRepository;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
 use Aurora\Module\Studio\Deliverable\Security\DeliverableAccess;
 use Aurora\Module\Studio\Deliverable\Serializer\DeliverableSerializer;
@@ -30,6 +35,9 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
+use function array_filter;
+use function array_values;
+use function is_array;
 use function is_int;
 use function is_numeric;
 use function is_string;
@@ -68,6 +76,9 @@ final class DeliverablesController extends AbstractController
         private readonly DeliverableLinksView $linksView,
         private readonly TranslatorInterface $translator,
         private readonly CustomerSpaceRepository $spaces,
+        private readonly DeliverableCategoryRepository $categories,
+        private readonly DeliverableCategoryManager $categoryManager,
+        private readonly PayloadValidator $payloadValidator,
     ) {}
 
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
@@ -108,7 +119,13 @@ final class DeliverablesController extends AbstractController
             return $this->jsonInvalidInput(['title' => 'backend.studio.deliverables.errors.title_too_long']);
         }
 
-        $deliverable = $this->manager->create(null, $title, $this->access->user(), DeliverableScopeEnum::fromInput($payload['scope'] ?? null));
+        $deliverable = $this->manager->create(
+            null,
+            $title,
+            $this->access->user(),
+            DeliverableScopeEnum::fromInput($payload['scope'] ?? null),
+            $this->manager->category($payload['categoryId'] ?? null),
+        );
 
         return $this->jsonSuccess([
             'editPath' => $this->generateUrl('backend_studio_deliverables_edit', ['id' => $deliverable->getId()]),
@@ -288,6 +305,87 @@ final class DeliverablesController extends AbstractController
         }
 
         return $this->jsonSuccess($this->linksView->payload($deliverable));
+    }
+
+    #[Route('/categories/create', name: '_category_create', methods: [HttpMethodEnum::Post->value])]
+    public function createCategory(Request $request): JsonResponse
+    {
+        if (!$this->access->canManageCategories()) {
+            return $this->jsonForbidden();
+        }
+
+        $input = $this->categoryInput($request);
+        $errors = $this->payloadValidator->errors($input);
+        if ([] !== $errors) {
+            return $this->jsonInvalidInput($errors);
+        }
+
+        $category = $this->categoryManager->create($input);
+
+        return $this->jsonSuccess(['categoryId' => $category->getId(), ...$this->viewBuilder->categoriesPayload()]);
+    }
+
+    #[Route('/categories/{id}/update', name: '_category_update', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    public function updateCategory(int $id, Request $request): JsonResponse
+    {
+        if (!$this->access->canManageCategories()) {
+            return $this->jsonForbidden();
+        }
+
+        $category = $this->categories->find($id);
+        if (!$category instanceof DeliverableCategoryInterface) {
+            return $this->jsonNotFound();
+        }
+
+        $input = $this->categoryInput($request);
+        $errors = $this->payloadValidator->errors($input);
+        if ([] !== $errors) {
+            return $this->jsonInvalidInput($errors);
+        }
+
+        $this->categoryManager->update($category, $input);
+
+        return $this->jsonSuccess($this->viewBuilder->categoriesPayload());
+    }
+
+    /** Ses livrables restent, sans catégorie. */
+    #[Route('/categories/{id}/delete', name: '_category_delete', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    public function deleteCategory(int $id): JsonResponse
+    {
+        if (!$this->access->canManageCategories()) {
+            return $this->jsonForbidden();
+        }
+
+        $category = $this->categories->find($id);
+        if (!$category instanceof DeliverableCategoryInterface) {
+            return $this->jsonNotFound();
+        }
+
+        $this->categoryManager->delete($category);
+
+        return $this->jsonSuccess($this->viewBuilder->categoriesPayload());
+    }
+
+    /** L'ordre des catégories, tel qu'on l'a rangé dans la fenêtre. */
+    #[Route('/categories/reorder', name: '_category_reorder', methods: [HttpMethodEnum::Post->value])]
+    public function reorderCategories(Request $request): JsonResponse
+    {
+        if (!$this->access->canManageCategories()) {
+            return $this->jsonForbidden();
+        }
+
+        $ids = $this->decodeJson($request)['ids'] ?? null;
+        $this->categoryManager->reorder(is_array($ids) ? array_values(array_filter($ids, is_int(...))) : []);
+
+        return $this->jsonSuccess($this->viewBuilder->categoriesPayload());
+    }
+
+    private function categoryInput(Request $request): DeliverableCategoryInput
+    {
+        $payload = $this->decodeJson($request);
+        $color = is_string($payload['color'] ?? null) && '' !== $payload['color'] ? $payload['color'] : null;
+
+        return new DeliverableCategoryInput(is_string($payload['name'] ?? null) ? mb_trim($payload['name']) : '', $color);
     }
 
     /** Un livrable de Studio que la personne peut lire, ou 404. */

@@ -9,13 +9,16 @@ use Aurora\Core\Routing\PathTemplateGenerator;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
+use Aurora\Module\Studio\Deliverable\Repository\DeliverableCategoryRepository;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
 use Aurora\Module\Studio\Deliverable\Security\DeliverableAccess;
 use Aurora\Module\Studio\Deliverable\Serializer\DeliverableSerializer;
 use Aurora\Module\Studio\Deliverable\Service\DeliverablePageRenderer;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
+use function array_filter;
 use function array_map;
+use function array_values;
 
 /**
  * Ce que reçoivent les écrans des livrables de Studio, ceux qui ne sont
@@ -30,6 +33,7 @@ final readonly class DeliverablesViewBuilder
         private UrlGeneratorInterface $urlGenerator,
         private PathTemplateGenerator $pathTemplates,
         private LocaleContextInterface $localeContext,
+        private DeliverableCategoryRepository $categories,
     ) {}
 
     /**
@@ -51,7 +55,33 @@ final readonly class DeliverablesViewBuilder
             'linksPathTemplate' => $template('links'),
             'copyToSpacePathTemplate' => $template('copy_to_space'),
             'copyTargets' => $this->copyTargets(),
+            ...$this->categoriesPayload(),
+            'canManageCategories' => $this->access->canManageCategories(),
+            'categoryCreatePath' => $this->urlGenerator->generate('backend_studio_deliverables_category_create'),
+            'categoryUpdatePathTemplate' => $template('category_update'),
+            'categoryDeletePathTemplate' => $template('category_delete'),
+            'categoryReorderPath' => $this->urlGenerator->generate('backend_studio_deliverables_category_reorder'),
         ];
+    }
+
+    /**
+     * Les catégories, et les deux rayons qui les affichent : renommer ou
+     * supprimer une catégorie change les cartes.
+     *
+     * @return array{categories: list<array<string, mixed>>, personal: list<array<string, mixed>>, shared: list<array<string, mixed>>}
+     */
+    public function categoriesPayload(): array
+    {
+        return [
+            'categories' => $this->categoryList(),
+            ...$this->lists(),
+        ];
+    }
+
+    /** @return list<array<string, mixed>> */
+    private function categoryList(): array
+    {
+        return array_values(array_filter(array_map($this->serializer->category(...), $this->categories->findOrdered())));
     }
 
     /**
@@ -105,6 +135,7 @@ final readonly class DeliverablesViewBuilder
             'deletePath' => $route('delete'),
             'copyToSpacePath' => $route('copy_to_space'),
             'copyTargets' => $this->copyTargets(),
+            'categories' => $this->categoryList(),
         ];
     }
 

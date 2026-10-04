@@ -14,6 +14,7 @@ use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Module\Studio\Customer\Entity\Customer;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\Deliverable\Entity\Deliverable;
+use Aurora\Module\Studio\Deliverable\Entity\DeliverableCategory;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableLink;
 use Aurora\Module\Studio\Deliverable\Enum\DeliverableScopeEnum;
 use Aurora\Tests\Integration\Concern\ResetsRateLimiters;
@@ -69,7 +70,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
 
     protected function tearDown(): void
     {
-        foreach ([DeliverableLink::class, Deliverable::class, CustomerSpace::class, Customer::class] as $class) {
+        foreach ([DeliverableLink::class, Deliverable::class, DeliverableCategory::class, CustomerSpace::class, Customer::class] as $class) {
             $this->entityManager->createQuery(sprintf('DELETE FROM %s', $class))->execute();
         }
 
@@ -371,6 +372,117 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         self::assertResponseStatusCodeSame(403);
     }
 
+    /** Une catégorie se crée, se renomme, se range ; ses livrables la portent sur leur carte. */
+    public function testADeliverableIsFiledUnderACategory(): void
+    {
+        $audit = $this->createCategory('Audit', '#bd4a55');
+        $strategy = $this->createCategory('Stratégie', null);
+
+        $this->client->jsonRequest('POST', '/backend/studio/deliverables/create', ['title' => 'Modèle d\'audit', 'scope' => 'personal', 'categoryId' => $audit]);
+        self::assertResponseIsSuccessful();
+        $id = (int) basename((string) json_decode((string) $this->client->getResponse()->getContent(), true)['editPath']);
+        self::assertSame($audit, $this->find($id)->getCategory()?->getId());
+
+        $this->update($id, ['categoryId' => $strategy]);
+        self::assertSame($strategy, $this->find($id)->getCategory()?->getId());
+
+        $row = $this->rowOf($id);
+        self::assertSame(['id' => $strategy, 'name' => 'Stratégie', 'color' => null, 'position' => 2], $row['category']);
+
+        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/categories/%d/update', $strategy), ['name' => 'Stratégie éditoriale', 'color' => '#2a2050']);
+        self::assertResponseIsSuccessful();
+        self::assertSame('Stratégie éditoriale', $this->rowOf($id)['category']['name']);
+
+        $this->client->jsonRequest('POST', '/backend/studio/deliverables/categories/reorder', ['ids' => [$strategy, $audit]]);
+        self::assertResponseIsSuccessful();
+        $categories = json_decode((string) $this->client->getResponse()->getContent(), true)['categories'];
+        self::assertSame([$strategy, $audit], array_column($categories, 'id'));
+
+        // Un identifiant que rien ne résout laisse sans catégorie, sans refuser l'enregistrement.
+        $this->update($id, ['categoryId' => 999999]);
+        self::assertNull($this->find($id)->getCategory());
+    }
+
+    /** Supprimer une catégorie laisse ses livrables, sans catégorie. */
+    public function testDeletingACategoryKeepsItsDeliverables(): void
+    {
+        $audit = $this->createCategory('Audit', null);
+        $id = $this->create('Modèle', DeliverableScopeEnum::Shared);
+        $this->update($id, ['categoryId' => $audit]);
+
+        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/categories/%d/delete', $audit), []);
+        self::assertResponseIsSuccessful();
+
+        self::assertNull($this->find($id)->getCategory());
+        self::assertNull($this->rowOf($id)['category']);
+    }
+
+    /** Une catégorie a un nom, et une couleur valide quand elle en a une. */
+    public function testACategoryNeedsANameAndAValidColour(): void
+    {
+        $this->client->jsonRequest('POST', '/backend/studio/deliverables/categories/create', ['name' => '  ']);
+        self::assertResponseStatusCodeSame(422);
+
+        $this->client->jsonRequest('POST', '/backend/studio/deliverables/categories/create', ['name' => 'Audit', 'color' => 'red']);
+        self::assertResponseStatusCodeSame(422);
+    }
+
+    /** Ranger la bibliothèque demande le droit de modifier les livrables ; ranger son livrable, non. */
+    public function testManagingCategoriesNeedsTheEditRight(): void
+    {
+        $audit = $this->createCategory('Audit', null);
+
+        $author = $this->accountWith(['studio.deliverables.view', 'studio.deliverables.create']);
+        $this->client->loginUser($author, 'admin');
+
+        $this->client->jsonRequest('POST', '/backend/studio/deliverables/categories/create', ['name' => 'Proposition']);
+        self::assertResponseStatusCodeSame(403);
+        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/categories/%d/delete', $audit), []);
+        self::assertResponseStatusCodeSame(403);
+
+        $id = $this->create('Mon brouillon', DeliverableScopeEnum::Personal);
+        $this->update($id, ['categoryId' => $audit]);
+        self::assertSame($audit, $this->find($id)->getCategory()?->getId());
+    }
+
+    /** La copie dans Studio garde la catégorie ; la copie chez un client la laisse, l'espace range seul. */
+    public function testACopyKeepsItsCategoryOnlyInStudio(): void
+    {
+        $audit = $this->createCategory('Audit', null);
+        $id = $this->create('Modèle d\'audit', DeliverableScopeEnum::Shared);
+        $this->update($id, ['categoryId' => $audit]);
+
+        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/duplicate', $id), []);
+        $copy = (int) basename((string) json_decode((string) $this->client->getResponse()->getContent(), true)['editPath']);
+        self::assertSame($audit, $this->find($copy)->getCategory()?->getId());
+
+        $space = $this->givenSpace();
+        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/copy-to-space', $id), ['spaceId' => $space->getId()]);
+        $inSpace = (int) basename((string) json_decode((string) $this->client->getResponse()->getContent(), true)['editPath']);
+        self::assertNull($this->find($inSpace)->getCategory());
+    }
+
+    private function createCategory(string $name, ?string $color): int
+    {
+        $this->client->jsonRequest('POST', '/backend/studio/deliverables/categories/create', ['name' => $name, 'color' => $color]);
+        self::assertResponseIsSuccessful();
+
+        return (int) json_decode((string) $this->client->getResponse()->getContent(), true)['categoryId'];
+    }
+
+    /** @return array<string, mixed> */
+    private function rowOf(int $id): array
+    {
+        $lists = $this->lists();
+        foreach ([...$lists['personal'], ...$lists['shared']] as $row) {
+            if ($row['id'] === $id) {
+                return $row;
+            }
+        }
+
+        self::fail(sprintf("Le livrable %d n'est dans aucun rayon.", $id));
+    }
+
     private function create(string $title, DeliverableScopeEnum $scope): int
     {
         $this->client->jsonRequest('POST', '/backend/studio/deliverables/create', ['title' => $title, 'scope' => $scope->value]);
@@ -417,6 +529,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
             'appearance' => $entity->getAppearance(),
             'readingHeader' => $entity->getReadingHeader(),
             'visibleToClient' => $entity->isVisibleToClient(),
+            'categoryId' => $entity->getCategory()?->getId(),
         ];
     }
 
