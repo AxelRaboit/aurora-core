@@ -54,8 +54,8 @@ final class PostSequenceTest extends IntegrationTestCase
     {
         parent::setUp();
 
-        $this->client = static::createClient();
-        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $this->client = self::createClient();
+        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
         $this->suffix = bin2hex(random_bytes(4));
 
         $this->type = new PostType();
@@ -313,10 +313,10 @@ final class PostSequenceTest extends IntegrationTestCase
         $post = $this->entityManager->find(Post::class, $postId);
         self::assertInstanceOf(Post::class, $post);
 
-        $holder = static::getContainer()->get('doctrine.debug_data_holder');
+        $holder = self::getContainer()->get('doctrine.debug_data_holder');
         $holder->reset();
 
-        $sequence = static::getContainer()->get(PostSequenceBuilder::class)->build($post, 'fr');
+        $sequence = self::getContainer()->get(PostSequenceBuilder::class)->build($post, 'fr');
         self::assertNotNull($sequence);
         $queries = count($holder->getData()['default'] ?? []);
 

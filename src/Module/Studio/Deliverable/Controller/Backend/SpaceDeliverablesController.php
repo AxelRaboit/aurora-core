@@ -201,12 +201,16 @@ final class SpaceDeliverablesController extends AbstractController
         CustomerSpace $space,
         #[MapEntity(id: 'deliverableId')]
         Deliverable $deliverable,
+        Request $request,
     ): Response {
         $this->assertOwned($space, $deliverable->getSpace()?->getId());
+        $print = $request->query->getBoolean('print');
 
         return $this->privately($this->renderer->render(
             $deliverable,
             $this->generateUrl('workspace_space_deliverables_edit', ['id' => $space->getId(), 'deliverableId' => $deliverable->getId()]),
+            markPlaceholders: !$print,
+            print: $print,
         ));
     }
 

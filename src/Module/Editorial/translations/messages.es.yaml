@@ -742,6 +742,7 @@ backend:
             surfaces:
                 none: Ninguno
                 card: Tarjeta
+                raised: En relieve
                 soft: Tintado
                 accent: Acento
                 custom: Personalizado
@@ -847,6 +848,7 @@ backend:
                 editorial: 'Lista editorial'
                 process: 'Línea de tiempo horizontal'
                 features: "Tarjetas con pictograma"
+                showcase: "Escaparate en imágenes"
             item_columns: Columnas
             item_number: 'Entrada {number}'
             item_add: 'Añadir una entrada'
@@ -882,6 +884,13 @@ backend:
             timeline_date_placeholder: '2024'
             timeline_title_placeholder: 'Apertura del estudio'
             timeline_text_placeholder: 'Lo que cambió, en una frase.'
+            showcase_title: "Título"
+            showcase_title_placeholder: "Carrusel bebé"
+            showcase_caption: "Precisión (opcional)"
+            showcase_caption_placeholder: "Publicado en enero"
+            showcase_lines: "Cifras"
+            showcase_lines_placeholder: "17 k vistas\n60 interacciones"
+            showcase_lines_hint: "Una línea por cifra: cada una se convierte en una viñeta bajo la foto."
             feature_title: "Título"
             feature_title_placeholder: "Estrategia"
             feature_text: "Texto"
@@ -1023,6 +1032,137 @@ backend:
                 laptop: Portátil
                 phone: Teléfono
                 browser: 'Ventana de navegador'
+            tilt: "Inclinación"
+            tilt_hint: "Coloca la imagen ligeramente inclinada, como un teléfono en una diapositiva. Recta en el móvil."
+            tilts:
+                none: "Recta"
+                left: "Hacia la izquierda"
+                right: "Hacia la derecha"
+            show_credit: "Mostrar el crédito de la foto"
+            show_credit_hint: "El nombre del autor bajo la imagen, tal como lo anotó la mediateca. Una foto de Pexels puede prescindir de él."
+            valign: "Alineación vertical"
+            valign_hint: "Dónde se coloca la zona cuando su vecina es más alta, por ejemplo una tarjeta junto a un teléfono. En el móvil cada zona tiene su fila."
+            valigns:
+                stretch: "Arriba"
+                center: "Centro"
+                end: "Abajo"
+            hide_on: "Ocultar en"
+            hide_on_hint: "Una pantalla en la que la zona no aparece: un teléfono decorativo repetido, una imagen demasiado ancha para una pantalla pequeña."
+            hide_ons:
+                none: "Ninguna"
+                phone: "Teléfono"
+                desktop: "Ordenador y tableta"
+            hide_on_badges:
+                phone: "Oculto en el móvil"
+                desktop: "Oculto en ordenador"
+            row_gap: "Espacio entre filas"
+            row_gap_hint: "El espacio entre dos filas de zonas, para toda la página."
+            row_gaps:
+                tight: "Ajustado"
+                normal: "Normal"
+                loose: "Amplio"
+            padding: "Margen interior"
+            padding_hint: "El espacio entre el borde del fondo y lo que contiene."
+            paddings:
+                normal: "Normal"
+                compact: "Compacto"
+                roomy: "Generoso"
+            tile_entries: "{count} entrada | {count} entradas"
+            tile_full_bleed: "Ancho completo"
+            tile_image_missing: "Imagen por elegir"
+            placeholders_left: "Queda {count} pasaje entre [corchetes] por reemplazar. | Quedan {count} pasajes entre [corchetes] por reemplazar."
+            split_on: "Vista previa al lado"
+            split_off: "Cerrar la vista previa lateral"
+            devices:
+                desktop: "Ordenador"
+                tablet: "Tableta"
+                phone: "Teléfono"
+            drop_image_where: "Suelte una imagen sobre una zona Imagen o Galería."
+            drop_image_forbidden: "No tiene permiso para añadir documentos a la mediateca."
+            drop_image_done: "Imagen añadida a la mediateca y colocada en la zona."
+            outline: "Esquema del documento · {count} secciones"
+            sections:
+                title: "Insertar una sección"
+                builtin: "Listas para usar"
+                mine: "Mis secciones"
+                intro: "Una sección son unas cuantas zonas ya dispuestas y rellenas de [corchetes] por reemplazar. Llega tras la zona seleccionada, o al final."
+                intro_mine: "Las secciones que guardó, desde una publicación o un entregable. Solo usted las ve."
+                empty_mine: "Aún no hay secciones guardadas. Seleccione una zona o una sección del esquema y luego « Guardar como sección »."
+                insert: "Insertar"
+                delete: "Eliminar esta sección"
+                paste: "Pegar {count} zona | Pegar {count} zonas"
+                copied: "{count} zona copiada, para pegar en otra cuadrícula | {count} zonas copiadas, para pegar en otra cuadrícula"
+                duplicate: "Duplicar la zona"
+                copy_zone: "Copiar la zona"
+                save_zone: "Guardar la zona como sección"
+                copy_section: "Copiar la sección"
+                save_section: "Guardar la sección"
+                save: "Guardar como sección"
+                save_intro: "{count} zona, con sus textos, guardada para volver a insertarla en cualquier cuadrícula. | {count} zonas, con sus textos, guardadas para volver a insertarlas en cualquier cuadrícula."
+                name: "Nombre de la sección"
+                name_placeholder: "Mi bloque DAFO"
+                name_required: "Dé un nombre a la sección."
+                save_submit: "Guardar"
+                saved: "Sección guardada."
+                save_failed: "No se pudo guardar la sección."
+                too_many: "Ha alcanzado las 100 secciones guardadas."
+                empty: "Nada que guardar."
+                patterns:
+                    title:
+                        name: "Título de sección"
+                        description: "Un título grande y una frase que anuncia lo que sigue."
+                    card_phone:
+                        name: "Tarjeta y teléfono"
+                        description: "Una tarjeta en relieve centrada junto a un teléfono inclinado."
+                    two_cards:
+                        name: "Dos tarjetas"
+                        description: "Dos tarjetas lado a lado: lo que funciona, mis observaciones."
+                    square:
+                        name: "Cuatro tarjetas en cuadro"
+                        description: "Fortalezas, debilidades, oportunidades, amenazas."
+                    three_columns:
+                        name: "Tres columnas con etiqueta"
+                        description: "Tres columnas, cada una bajo una etiqueta negra."
+                    three_tags:
+                        name: "Tres cuentas comparadas"
+                        description: "Tres etiquetas de color y las mismas preguntas bajo cada una."
+                    keep_avoid:
+                        name: "Conservar, evitar"
+                        description: "Dos tarjetas: las ideas que conservar, lo que evitar."
+                    showcase_figure:
+                        name: "Mejores publicaciones y cifra"
+                        description: "Tres publicaciones en imágenes y una cifra clave explicada."
+                    text_chart:
+                        name: "Texto y gráfico de tarta"
+                        description: "Una tarjeta de análisis junto a un gráfico de tarta con colores elegidos."
+                    networks:
+                        name: "Redes de la marca"
+                        description: "Las cuentas con sus logotipos y una columna de texto."
+                words:
+                    title: "[Título de la sección]"
+                    intro: "[Una frase que anuncia la sección.]"
+                    heading: "[Título]"
+                    point: "[Un punto]"
+                    text: "[Un párrafo.]"
+                    label: "[Etiqueta]"
+                    strengths: "Fortalezas"
+                    weaknesses: "Debilidades"
+                    opportunities: "Oportunidades"
+                    threats: "Amenazas"
+                    competitor: "[Cuenta]"
+                    lead: "[Criterio]"
+                    keep: "Ideas que conservar ✅"
+                    avoid: "Lo que evitar ❌"
+                    post: "[Publicación]"
+                    post_when: "[Publicada en …]"
+                    post_figures: "[0 vistas]\n[0 interacciones]"
+                    figure: "[0,0 %]"
+                    figure_label: "[lo que mide esta cifra]"
+                    chart: "[Reparto]"
+                    slice: "[Parte]"
+                    networks: "Redes sociales"
+                    handle: "@[cuenta]"
+                    page: "[Nombre de la página]"
             parallax: 'Banda que se desplaza más despacio'
             parallax_hint: 'La imagen se convierte en una banda que se desplaza más despacio que la página, con la leyenda encima. Combínelo con «Ancho completo» para obtener una verdadera banda.'
             code_style: Presentación
@@ -1120,12 +1260,13 @@ backend:
                 bar: Barras
                 line: Curva
                 donut: Anillo
+                pie: Tarta
                 growth: Crecimiento
             chart_unit: Unidad
             chart_unit_hint: 'Se escribe tras cada valor: %, €, k. Opcional.'
             chart_title: Título
             chart_data: Valores
-            chart_data_hint: 'Una línea por valor: el nombre, un punto y coma, el número. «Crecimiento» muestra además la evolución entre el primero y el último.'
+            chart_data_hint: "Una línea por valor: el nombre, un punto y coma, el número y, si hace falta, otro punto y coma y un color (#2f1bea). « Crecimiento » muestra además la evolución entre el primero y el último."
             chart_note: 'Fuente o detalle'
             video_wall_count: '{count} vídeo de {max} | {count} vídeos de {max}'
             video_wall_add: 'Añadir vídeos'
@@ -1844,6 +1985,12 @@ backend:
         css_class_placeholder: menu-item--mis-en-avant
         label_placeholder: Inicio
 frontend:
+    slides:
+        slide: "diapositiva"
+        controls: "Diapositivas"
+        previous: "Diapositiva anterior"
+        next: "Diapositiva siguiente"
+        fullscreen: "Pantalla completa"
     reading:
         prepared_for: 'Preparado para %name%'
         back: 'Volver al espacio'

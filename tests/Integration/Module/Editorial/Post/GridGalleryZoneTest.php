@@ -34,11 +34,11 @@ final class GridGalleryZoneTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        static::bootKernel();
+        self::bootKernel();
 
-        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
-        $this->gridViewBuilder = static::getContainer()->get(GridViewBuilder::class);
-        $twig = static::getContainer()->get(Environment::class);
+        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        $this->gridViewBuilder = self::getContainer()->get(GridViewBuilder::class);
+        $twig = self::getContainer()->get(Environment::class);
         self::assertInstanceOf(Environment::class, $twig);
         $this->twig = $twig;
     }

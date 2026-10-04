@@ -43,6 +43,8 @@ use Aurora\Module\Editorial\Menu\Entity\MenuItem;
 use Aurora\Module\Editorial\Menu\Entity\MenuItemInterface;
 use Aurora\Module\Editorial\Menu\Entity\MenuItemTranslation;
 use Aurora\Module\Editorial\Menu\Entity\MenuItemTranslationInterface;
+use Aurora\Module\Editorial\Post\Entity\GridSection;
+use Aurora\Module\Editorial\Post\Entity\GridSectionInterface;
 use Aurora\Module\Editorial\Post\Entity\Post;
 use Aurora\Module\Editorial\Post\Entity\PostInterface;
 use Aurora\Module\Editorial\Post\Entity\PostRevision;
@@ -317,6 +319,7 @@ class AuroraBundle extends AbstractBundle
                     DeliverableInterface::class => Deliverable::class,
                     DeliverableLinkInterface::class => DeliverableLink::class,
                     DeliverableCategoryInterface::class => DeliverableCategory::class,
+                    GridSectionInterface::class => GridSection::class,
                     DeckInterface::class => Deck::class,
                     DeckCategoryInterface::class => DeckCategory::class,
                     SlideInterface::class => Slide::class,

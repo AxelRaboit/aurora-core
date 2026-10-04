@@ -25,10 +25,10 @@ final class BannerStripesTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        static::bootKernel();
+        self::bootKernel();
 
-        $this->bannerViewBuilder = static::getContainer()->get(BannerViewBuilder::class);
-        $twig = static::getContainer()->get(Environment::class);
+        $this->bannerViewBuilder = self::getContainer()->get(BannerViewBuilder::class);
+        $twig = self::getContainer()->get(Environment::class);
         self::assertInstanceOf(Environment::class, $twig);
         $this->twig = $twig;
     }

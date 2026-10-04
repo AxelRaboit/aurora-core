@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Editorial\Post\Controller\Backend;
 
 use Aurora\Core\Enum\HttpMethodEnum;
+use Aurora\Core\Frontend\Service\Context;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Locale\Service\LocaleContextInterface;
@@ -38,6 +39,7 @@ final class GridPreviewController extends AbstractController
         private readonly GridViewBuilder $gridViewBuilder,
         private readonly ThemeResolver $themeResolver,
         private readonly LocaleContextInterface $localeContext,
+        private readonly Context $context,
     ) {}
 
     #[Route('/grid-preview', name: '_grid_preview', methods: [HttpMethodEnum::Post->value])]
@@ -56,10 +58,27 @@ final class GridPreviewController extends AbstractController
         // and a linked publication's card has to be the German one.
         $locale = $this->locale($payload['locale'] ?? null);
 
-        // buildForEditor rather than build: the panel asks for a preview while
+        // buildForPreview rather than build: the panel asks for a preview while
         // the grid is still switched off or half-composed, and answering
-        // "nothing" there would look like a bug rather than a state.
-        $grid = $this->gridViewBuilder->buildForEditor($layout, $content, $locale);
+        // "nothing" there would look like a bug rather than a state. Not
+        // buildForEditor either: its zones carry the editor's shapes, and a
+        // list zone drew nothing there.
+        $grid = $this->gridViewBuilder->buildForPreview($layout, $content, $locale);
+
+        // The whole page in the site's theme, for the preview beside the
+        // grid: the grid inside the public layout, header and footer
+        // included, so what is seen there is what the reader will see.
+        if (true === ($payload['frame'] ?? false)) {
+            return $this->json([
+                'success' => true,
+                'html' => $this->renderView('Frontend/themes/default/editorial/post/grid_preview_page.html.twig', [
+                    'grid' => $grid,
+                    'locale' => $locale,
+                    'context' => $this->context,
+                    'editorPreview' => true,
+                ]),
+            ]);
+        }
 
         return $this->json([
             'success' => true,
@@ -67,7 +86,7 @@ final class GridPreviewController extends AbstractController
                 $this->themeResolver->resolve('editorial/post/_grid'),
                 // `locale` too: the partial builds a card's link from it, and
                 // the route needs one whatever the payload said.
-                ['grid' => $grid, 'locale' => $locale],
+                ['grid' => $grid, 'locale' => $locale, 'editorPreview' => true],
             ),
         ]);
     }

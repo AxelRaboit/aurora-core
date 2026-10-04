@@ -61,9 +61,9 @@ final class PostGalleryScopeTest extends IntegrationTestCase
         // A client rather than a bare kernel: the tests added below go through the
         // routes, which is where the permission lives - the payload's narrowness is
         // only half the boundary.
-        $this->client = static::createClient();
+        $this->client = self::createClient();
 
-        $container = static::getContainer();
+        $container = self::getContainer();
         $this->urlGenerator = $container->get(UrlGeneratorInterface::class);
         $this->postManager = $container->get(PostManagerInterface::class);
         $this->postInputFactory = $container->get(PostInputFactoryInterface::class);
@@ -80,6 +80,7 @@ final class PostGalleryScopeTest extends IntegrationTestCase
                 $this->entityManager->remove($entity);
             }
         }
+
         $this->entityManager->flush();
         $this->created = [];
 
@@ -288,6 +289,7 @@ final class PostGalleryScopeTest extends IntegrationTestCase
         $postType = new PostType();
         $postType->setSlug('gallery-scope-'.bin2hex(random_bytes(4)));
         $postType->setLabel('Gallery scope');
+
         $this->entityManager->persist($postType);
         $this->entityManager->flush();
 

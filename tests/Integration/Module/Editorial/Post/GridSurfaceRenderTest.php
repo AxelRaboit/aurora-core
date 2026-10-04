@@ -36,11 +36,11 @@ final class GridSurfaceRenderTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        static::bootKernel();
+        self::bootKernel();
 
-        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
-        $this->gridViewBuilder = static::getContainer()->get(GridViewBuilder::class);
-        $twig = static::getContainer()->get(Environment::class);
+        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        $this->gridViewBuilder = self::getContainer()->get(GridViewBuilder::class);
+        $twig = self::getContainer()->get(Environment::class);
         self::assertInstanceOf(Environment::class, $twig);
         $this->twig = $twig;
     }
@@ -59,6 +59,27 @@ final class GridSurfaceRenderTest extends IntegrationTestCase
 
         self::assertStringContainsString('rounded-xl', $html);
         self::assertStringContainsString('border-card-line', $html);
+    }
+
+    /**
+     * The card a report is made of: lifted off the page by its shadow, with
+     * no line around it - the line is what the plain card is for.
+     */
+    public function testARaisedCardCastsAShadowAndDrawsNoLine(): void
+    {
+        $html = $this->render($this->zone(['surface' => 'raised']));
+
+        self::assertStringContainsString('shadow-[', $html);
+        self::assertStringContainsString('rounded-2xl', $html);
+        self::assertStringNotContainsString('border-card-line', $html);
+    }
+
+    /** The room around the words follows the zone's choice, the usual one by default. */
+    public function testACardTakesThePaddingItAskedFor(): void
+    {
+        self::assertStringContainsString('p-6 sm:p-8', $this->render($this->zone(['surface' => 'raised'])));
+        self::assertStringContainsString('p-8 sm:p-12', $this->render($this->zone(['surface' => 'raised', 'options' => ['padding' => 'roomy']])));
+        self::assertStringContainsString(' p-4', $this->render($this->zone(['surface' => 'card', 'options' => ['padding' => 'compact']])));
     }
 
     public function testATintedZoneReadsAsOneSection(): void
@@ -492,8 +513,8 @@ final class GridSurfaceRenderTest extends IntegrationTestCase
      */
     public function testAZoneCanTakeTheSitesAccentOverThePages(): void
     {
-        $themeContext = static::getContainer()->get(ThemeContext::class);
-        $styles = static::getContainer()->get(ThemeStyleRenderer::class);
+        $themeContext = self::getContainer()->get(ThemeContext::class);
+        $styles = self::getContainer()->get(ThemeStyleRenderer::class);
         $expected = $styles->postAccentCss('[data-zone-accent="z1"]', $themeContext->primaryColor());
 
         $html = $this->renderGrid(['siteAccent' => true, 'accentColor' => '#bd4a55']);

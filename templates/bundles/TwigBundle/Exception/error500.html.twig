@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ app.request.locale }}">
+<html lang="{{ app.request.locale }}" data-theme>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,13 +7,17 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <style>
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-        body{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1rem;text-align:center;background:#f9fafb;font-family:ui-sans-serif,system-ui,sans-serif;color:#111827}
-        .code{font-size:6rem;font-weight:900;color:#e5e7eb;line-height:1;margin-bottom:1.5rem;user-select:none}
+        body{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1rem;text-align:center;background:var(--th-bg,#f9fafb);font-family:var(--th-font-sans,ui-sans-serif),system-ui,sans-serif;color:var(--th-primary,#111827)}
+        .code{font-size:6rem;font-weight:900;color:var(--th-accent-400,#e5e7eb);opacity:.3;line-height:1;margin-bottom:1.5rem;user-select:none}
         h1{font-size:1.5rem;font-weight:700;margin-bottom:.5rem}
-        p{color:#6b7280;max-width:24rem;line-height:1.6;margin-bottom:2rem}
-        a{display:inline-flex;align-items:center;gap:.5rem;padding:.625rem 1.25rem;border-radius:.5rem;background:#6366f1;color:#fff;font-size:.875rem;font-weight:700;text-decoration:none}
-        a:hover{background:#4f46e5}
+        p{color:var(--th-secondary,#6b7280);max-width:24rem;line-height:1.6;margin-bottom:2rem}
+        a{display:inline-flex;align-items:center;gap:.5rem;padding:.625rem 1.25rem;border-radius:.5rem;background:var(--th-accent-600,#6366f1);color:#fff;font-size:.875rem;font-weight:700;text-decoration:none}
+        a:hover{background:var(--th-accent-700,#4f46e5)}
     </style>
+    {# Kept free of the stylesheet bundle on purpose - a 500 must render even
+       when the build or the database is what broke - but dressed in the
+       theme when it can be read. #}
+    <style>{{ themeStyles.errorPageCss()|raw }}</style>
 </head>
 <body>
 

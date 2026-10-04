@@ -152,8 +152,8 @@ final class GridWaveOneZonesTest extends IntegrationTestCase
      */
     public function testABlankLineDoesNotShiftTheTravelPhotos(): void
     {
-        static::bootKernel();
-        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        self::bootKernel();
+        $entityManager = self::getContainer()->get(EntityManagerInterface::class);
         $ids = [];
         foreach (['monument', 'londres'] as $name) {
             $document = new Document();
@@ -165,7 +165,7 @@ final class GridWaveOneZonesTest extends IntegrationTestCase
             $ids[$name] = (int) $document->getId();
         }
 
-        $grid = static::getContainer()->get(GridViewBuilder::class)->build(
+        $grid = self::getContainer()->get(GridViewBuilder::class)->build(
             ['enabled' => true, 'zones' => [['id' => 'z1', 'type' => 'travelMap', 'mediaIds' => [$ids['monument'], $ids['londres']]]]],
             ['zones' => ['z1' => ['code' => "Monument Valley | 36.9989 | -110.098\n\nLondres | 51.5072 | -0.1276"]]],
             'fr',
@@ -273,12 +273,69 @@ final class GridWaveOneZonesTest extends IntegrationTestCase
         self::assertStringContainsString('aspect-ratio: 16 / 10;', $laptop);
     }
 
+    /** A card centred against the tall phone beside it, from the tablet up. */
+    public function testAZoneCanSitCentredInATallerRow(): void
+    {
+        $text = ['blocks' => [['type' => 'paragraph', 'data' => ['text' => 'Carte']]]];
+
+        self::assertStringContainsString('md:self-center', $this->renderGrid(['type' => 'text', 'options' => ['valign' => 'center']], $text));
+        self::assertStringNotContainsString('self-center', $this->renderGrid(['type' => 'text'], $text));
+    }
+
+    /** A zone can stay off the phone, or off the larger screens. */
+    public function testAZoneCanStayOffAScreen(): void
+    {
+        $text = ['blocks' => [['type' => 'paragraph', 'data' => ['text' => 'Décor']]]];
+
+        self::assertStringContainsString('max-md:hidden', $this->renderGrid(['type' => 'text', 'options' => ['hideOn' => 'phone']], $text));
+        self::assertStringContainsString('md:hidden', $this->renderGrid(['type' => 'text', 'options' => ['hideOn' => 'desktop']], $text));
+        self::assertStringNotContainsString('hidden', $this->renderGrid(['type' => 'text'], $text));
+    }
+
+    /** The air between rows is the page's choice, the usual gap by default. */
+    public function testThePageChoosesTheAirBetweenItsRows(): void
+    {
+        $text = ['blocks' => [['type' => 'paragraph', 'data' => ['text' => 'Ligne']]]];
+
+        self::assertStringContainsString('gap-y-8', $this->renderGrid(['type' => 'text'], $text));
+        self::assertStringContainsString('gap-y-16', $this->renderGrid(['type' => 'text'], $text, ['rowGap' => 'loose']));
+    }
+
+    /**
+     * @param array<string, mixed> $zone
+     * @param array<string, mixed> $held
+     * @param array<string, mixed> $page
+     */
+    private function renderGrid(array $zone, array $held, array $page = []): string
+    {
+        self::bootKernel();
+        $builder = self::getContainer()->get(GridViewBuilder::class);
+        $twig = self::getContainer()->get(Environment::class);
+        self::assertInstanceOf(Environment::class, $twig);
+
+        $grid = $builder->build(['enabled' => true, ...$page, 'zones' => [['id' => 'z1', ...$zone]]], ['zones' => ['z1' => $held]], 'fr');
+        self::assertNotNull($grid);
+
+        return $twig->render('Frontend/themes/default/editorial/post/_grid.html.twig', ['grid' => $grid, 'locale' => 'fr']);
+    }
+
+    /** A phone laid askew on the page, but upright on a phone itself. */
+    public function testAPictureCanBeSetAskewFromTheTabletUp(): void
+    {
+        $tilted = $this->render(['type' => 'media', 'mediaUrl' => 'https://picsum.photos/900/1600', 'options' => ['frame' => 'phone', 'tilt' => 'right']]);
+        self::assertStringContainsString('sm:rotate-3', $tilted);
+        self::assertStringNotContainsString(' rotate-3', $tilted);
+
+        $upright = $this->render(['type' => 'media', 'mediaUrl' => 'https://picsum.photos/900/1600', 'options' => ['frame' => 'phone']]);
+        self::assertStringNotContainsString('rotate-3', $upright);
+    }
+
     /** @param array<string, mixed> $zone @param array<string, mixed> $held */
     private function render(array $zone, array $held = []): string
     {
-        static::bootKernel();
-        $builder = static::getContainer()->get(GridViewBuilder::class);
-        $twig = static::getContainer()->get(Environment::class);
+        self::bootKernel();
+        $builder = self::getContainer()->get(GridViewBuilder::class);
+        $twig = self::getContainer()->get(Environment::class);
         self::assertInstanceOf(Environment::class, $twig);
 
         $grid = $builder->build(

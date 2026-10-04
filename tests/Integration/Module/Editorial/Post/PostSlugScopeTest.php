@@ -55,8 +55,8 @@ final class PostSlugScopeTest extends IntegrationTestCase
     {
         parent::setUp();
 
-        $this->client = static::createClient();
-        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $this->client = self::createClient();
+        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
 
         $suffix = bin2hex(random_bytes(4));
         $this->slug = 'tableau-de-bord-'.$suffix;

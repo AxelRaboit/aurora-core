@@ -45,8 +45,8 @@ final class PostDocumentUsageTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        static::createClient();
-        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        self::createClient();
+        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
     }
 
     protected function tearDown(): void
@@ -220,7 +220,7 @@ final class PostDocumentUsageTest extends IntegrationTestCase
         self::assertCount(1, $this->usagesOf($wide));
         self::assertCount(1, $this->usagesOf($phone));
 
-        $counts = static::getContainer()->get(DocumentUsageService::class)->countUsagesFor([(int) $wide->getId(), (int) $phone->getId()]);
+        $counts = self::getContainer()->get(DocumentUsageService::class)->countUsagesFor([(int) $wide->getId(), (int) $phone->getId()]);
 
         self::assertSame(1, $counts[(int) $wide->getId()]);
         self::assertSame(1, $counts[(int) $phone->getId()]);
@@ -299,7 +299,7 @@ final class PostDocumentUsageTest extends IntegrationTestCase
         });
 
         $ids = [(int) $drawn->getId(), (int) $twice->getId(), (int) $free->getId()];
-        $counts = static::getContainer()->get(DocumentUsageService::class)->countUsagesFor($ids);
+        $counts = self::getContainer()->get(DocumentUsageService::class)->countUsagesFor($ids);
 
         foreach ($ids as $id) {
             self::assertSame(
@@ -321,7 +321,7 @@ final class PostDocumentUsageTest extends IntegrationTestCase
     {
         $id = $document instanceof DocumentInterface ? (int) $document->getId() : $document;
 
-        $usages = static::getContainer()->get(DocumentUsageService::class)->findUsages($id);
+        $usages = self::getContainer()->get(DocumentUsageService::class)->findUsages($id);
 
         if ([] === $usages['groups']) {
             return [];

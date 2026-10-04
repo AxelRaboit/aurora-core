@@ -45,12 +45,12 @@ final class PostPreviewTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->client = static::createClient();
-        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
-        $this->urlGenerator = static::getContainer()->get(UrlGeneratorInterface::class);
-        $this->previews = static::getContainer()->get(PostPreviewTokenManagerInterface::class);
+        $this->client = self::createClient();
+        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        $this->urlGenerator = self::getContainer()->get(UrlGeneratorInterface::class);
+        $this->previews = self::getContainer()->get(PostPreviewTokenManagerInterface::class);
 
-        $admin = static::getContainer()->get(UserRepository::class)
+        $admin = self::getContainer()->get(UserRepository::class)
             ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
         self::assertInstanceOf(User::class, $admin);
         $this->admin = $admin;
@@ -64,6 +64,7 @@ final class PostPreviewTest extends IntegrationTestCase
                 $this->entityManager->remove($entity);
             }
         }
+
         $this->entityManager->flush();
         $this->created = [];
 
@@ -131,6 +132,7 @@ final class PostPreviewTest extends IntegrationTestCase
     {
         $token = $this->previews->resolveOrCreate($this->draft(), $this->admin);
         $token->setExpiresAt(new DateTimeImmutable('-1 minute'));
+
         $this->entityManager->flush();
 
         $this->client->request('GET', $this->previewUrl($token->getToken()));
@@ -214,12 +216,13 @@ final class PostPreviewTest extends IntegrationTestCase
         $postType = new PostType();
         $postType->setSlug('preview-type');
         $postType->setLabel('Preview type');
+
         $this->entityManager->persist($postType);
         $this->entityManager->flush();
         $this->created[] = [PostType::class, (int) $postType->getId()];
 
-        $post = static::getContainer()->get(PostManagerInterface::class)->create(
-            static::getContainer()->get(PostInputFactoryInterface::class)->fromArray([
+        $post = self::getContainer()->get(PostManagerInterface::class)->create(
+            self::getContainer()->get(PostInputFactoryInterface::class)->fromArray([
                 'postTypeId' => $postType->getId(),
                 'status' => 'draft',
                 'translations' => ['fr' => ['title' => $title]],

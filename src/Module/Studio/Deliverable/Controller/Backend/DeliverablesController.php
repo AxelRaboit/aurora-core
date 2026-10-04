@@ -251,13 +251,16 @@ final class DeliverablesController extends AbstractController
 
     /** La page telle que la lira celui qui reçoit le lien. */
     #[Route('/{id}/preview', name: '_preview', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Get->value])]
-    public function preview(int $id): Response
+    public function preview(int $id, Request $request): Response
     {
         $deliverable = $this->readable($id);
+        $print = $request->query->getBoolean('print');
 
         return $this->privately($this->renderer->render(
             $deliverable,
             $this->generateUrl('backend_studio_deliverables_edit', ['id' => $deliverable->getId()]),
+            markPlaceholders: !$print,
+            print: $print,
         ));
     }
 

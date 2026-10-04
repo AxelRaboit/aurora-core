@@ -39,7 +39,19 @@ final class DeliverableAppearance
     ];
 
     /**
-     * @return array{backgroundColor: ?string, headerColor: ?string, footerColor: ?string, accentColor: ?string, headingColor: ?string, figureColor: ?string, highlight: ?string, highlightColor: ?string, titleVisible: bool}
+     * Comment les grands titres sont dessinés : ceux du thème, ou en capitales
+     * grasses, le titre de page d'un rapport (« ANALYSE DE L'ENGAGEMENT »).
+     */
+    public const array HEADING_STYLES = ['theme', 'display'];
+
+    /**
+     * Comment le document se lit : une page qu'on fait défiler, ou une
+     * présentation qu'on fait passer section par section.
+     */
+    public const array DISPLAYS = ['page', 'slides'];
+
+    /**
+     * @return array{backgroundColor: ?string, headerColor: ?string, footerColor: ?string, accentColor: ?string, headingColor: ?string, figureColor: ?string, highlight: ?string, highlightColor: ?string, titleVisible: bool, headingStyle: string, display: string}
      */
     public static function normalize(mixed $raw): array
     {
@@ -67,6 +79,8 @@ final class DeliverableAppearance
             // Le titre et le résumé en tête de page. Vrai par défaut : un
             // livrable qui ouvre sur un bloc d'entête l'éteint lui-même.
             'titleVisible' => false !== ($data['titleVisible'] ?? true),
+            'headingStyle' => in_array($data['headingStyle'] ?? null, self::HEADING_STYLES, true) ? $data['headingStyle'] : self::HEADING_STYLES[0],
+            'display' => in_array($data['display'] ?? null, self::DISPLAYS, true) ? $data['display'] : self::DISPLAYS[0],
         ];
     }
 

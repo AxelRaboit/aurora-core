@@ -22,9 +22,9 @@ final class PostCardHighlightRenderTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        static::bootKernel();
+        self::bootKernel();
 
-        $twig = static::getContainer()->get(Environment::class);
+        $twig = self::getContainer()->get(Environment::class);
         self::assertInstanceOf(Environment::class, $twig);
         $this->twig = $twig;
     }

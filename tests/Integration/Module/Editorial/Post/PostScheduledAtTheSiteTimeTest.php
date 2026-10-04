@@ -34,13 +34,14 @@ final class PostScheduledAtTheSiteTimeTest extends IntegrationTestCase
 
     protected function tearDown(): void
     {
-        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $entityManager = self::getContainer()->get(EntityManagerInterface::class);
         foreach (array_reverse($this->created) as [$class, $id]) {
             $entity = $entityManager->find($class, $id);
             if (null !== $entity) {
                 $entityManager->remove($entity);
             }
         }
+
         $entityManager->flush();
         $this->created = [];
 
@@ -57,14 +58,15 @@ final class PostScheduledAtTheSiteTimeTest extends IntegrationTestCase
     #[DataProvider('sentForms')]
     public function testNineOClockIsNineOClockAtTheSite(bool $withOffset): void
     {
-        $zone = static::getContainer()->get(SiteTimezone::class)->get();
+        $zone = self::getContainer()->get(SiteTimezone::class)->get();
         $local = new DateTimeImmutable('+5 days', $zone)->setTime(9, 0);
         $sent = $withOffset ? $local->format('Y-m-d\TH:i:sP') : $local->format('Y-m-d\TH:i');
 
         $post = $this->create($sent);
 
-        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $entityManager = self::getContainer()->get(EntityManagerInterface::class);
         $entityManager->clear();
+
         $stored = $entityManager->find(Post::class, $post->getId());
         self::assertInstanceOf(Post::class, $stored);
 
@@ -76,17 +78,18 @@ final class PostScheduledAtTheSiteTimeTest extends IntegrationTestCase
 
     private function create(string $scheduledAt): Post
     {
-        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $entityManager = self::getContainer()->get(EntityManagerInterface::class);
 
         $postType = new PostType();
         $postType->setSlug('site-time-'.bin2hex(random_bytes(4)));
         $postType->setLabel('Site time');
+
         $entityManager->persist($postType);
         $entityManager->flush();
         $this->created[] = [PostType::class, (int) $postType->getId()];
 
-        $post = static::getContainer()->get(PostManagerInterface::class)->create(
-            static::getContainer()->get(PostInputFactoryInterface::class)->fromArray([
+        $post = self::getContainer()->get(PostManagerInterface::class)->create(
+            self::getContainer()->get(PostInputFactoryInterface::class)->fromArray([
                 'postTypeId' => $postType->getId(),
                 'status' => 'scheduled',
                 'scheduledAt' => $scheduledAt,

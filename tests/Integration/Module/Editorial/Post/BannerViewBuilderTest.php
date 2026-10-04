@@ -27,10 +27,10 @@ final class BannerViewBuilderTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        static::bootKernel();
+        self::bootKernel();
 
-        $this->bannerViewBuilder = static::getContainer()->get(BannerViewBuilder::class);
-        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $this->bannerViewBuilder = self::getContainer()->get(BannerViewBuilder::class);
+        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
     }
 
     public function testAnItemCarriesBothItsDesignAndItsWords(): void

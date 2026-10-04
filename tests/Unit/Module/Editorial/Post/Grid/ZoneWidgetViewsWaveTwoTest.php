@@ -44,6 +44,37 @@ final class ZoneWidgetViewsWaveTwoTest extends TestCase
         self::assertSame(25.0, $view['rows'][1]['dash']);
     }
 
+    public function testAPieSharesOneHundredLikeTheRing(): void
+    {
+        $view = $this->build('chart', ['chartType' => 'pie'], code: "Photos ; 60\nCarrousels ; 25\nRéels ; 15");
+
+        self::assertNotNull($view);
+        self::assertSame('pie', $view['type']);
+        self::assertSame([60.0, 25.0, 15.0], array_column($view['rows'], 'dash'));
+    }
+
+    /**
+     * A row may carry its own colour, so a chart can wear the brand's rather
+     * than shades of the accent; anything but a hex colour is dropped, since
+     * it ends up in a style attribute.
+     */
+    public function testARowMayNameItsColourAndOnlyAHexOnePasses(): void
+    {
+        $view = $this->build('chart', ['chartType' => 'pie'], code: "Photos ; 60 ; #2F1BEA\nCarrousels ; 25 ; red;background:url(x)\nRéels ; 15");
+
+        self::assertNotNull($view);
+        self::assertSame(['#2f1bea', null, null], array_column($view['rows'], 'color'));
+    }
+
+    /** The unit travels with the chart, so a share already in percent is not printed twice. */
+    public function testTheChartCarriesItsUnit(): void
+    {
+        $view = $this->build('chart', ['chartType' => 'pie', 'chartUnit' => '%'], code: "A ; 60\nB ; 40");
+
+        self::assertNotNull($view);
+        self::assertSame('%', $view['unit']);
+    }
+
     public function testAChartWithNoValueDrawsNothing(): void
     {
         self::assertNull($this->build('chart', code: 'rien à compter'));

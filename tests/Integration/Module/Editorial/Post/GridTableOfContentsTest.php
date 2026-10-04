@@ -23,9 +23,9 @@ final class GridTableOfContentsTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        static::bootKernel();
+        self::bootKernel();
 
-        $this->gridViewBuilder = static::getContainer()->get(GridViewBuilder::class);
+        $this->gridViewBuilder = self::getContainer()->get(GridViewBuilder::class);
     }
 
     public function testItListsTheHeadingsAndAnchorsThem(): void
@@ -96,7 +96,7 @@ final class GridTableOfContentsTest extends IntegrationTestCase
         $grid = $this->build(withToc: true, tocLayout: 'pills');
         self::assertNotNull($grid);
 
-        $html = static::getContainer()->get(Environment::class)->render(
+        $html = self::getContainer()->get(Environment::class)->render(
             'Frontend/themes/default/editorial/post/_grid.html.twig',
             ['grid' => $grid, 'locale' => 'fr'],
         );
@@ -141,7 +141,7 @@ final class GridTableOfContentsTest extends IntegrationTestCase
     {
         self::assertNotNull($grid);
 
-        return static::getContainer()->get(Environment::class)->render(
+        return self::getContainer()->get(Environment::class)->render(
             'Frontend/themes/default/editorial/post/_grid.html.twig',
             ['grid' => $grid, 'locale' => 'fr'],
         );

@@ -36,9 +36,9 @@ final class GridGitHubActivityZoneTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        static::bootKernel();
+        self::bootKernel();
 
-        static::getContainer()->set(GitHubContributions::class, new GitHubContributions(
+        self::getContainer()->set(GitHubContributions::class, new GitHubContributions(
             new MockHttpClient(function (string $method, string $url): MockResponse {
                 $this->requested[] = $url;
 
@@ -93,13 +93,13 @@ final class GridGitHubActivityZoneTest extends IntegrationTestCase
     /** @param list<string> $logins */
     private function configure(bool $enabled, array $logins): void
     {
-        static::getContainer()->get(GitHubSettings::class)->save(enabled: $enabled, logins: $logins);
+        self::getContainer()->get(GitHubSettings::class)->save(enabled: $enabled, logins: $logins);
     }
 
     /** @return array<string, mixed> */
     private function grid(): array
     {
-        $grid = static::getContainer()->get(GridViewBuilder::class)->build(
+        $grid = self::getContainer()->get(GridViewBuilder::class)->build(
             ['enabled' => true, 'zones' => [['id' => 'z1', 'type' => 'githubActivity']]],
             ['zones' => []],
             'fr',
@@ -112,7 +112,7 @@ final class GridGitHubActivityZoneTest extends IntegrationTestCase
 
     private function render(): string
     {
-        $twig = static::getContainer()->get(Environment::class);
+        $twig = self::getContainer()->get(Environment::class);
         self::assertInstanceOf(Environment::class, $twig);
 
         return $twig->render(

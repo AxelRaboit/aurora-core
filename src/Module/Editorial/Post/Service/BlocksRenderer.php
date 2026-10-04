@@ -46,6 +46,33 @@ final readonly class BlocksRenderer
     ];
 
     /**
+     * The colours a label can wear. A closed list, mirrored by `LabelBlock.js`:
+     * the name becomes a class, so nothing typed reaches the markup.
+     *
+     * @var list<string>
+     */
+    public const array LABEL_TONES = ['dark', 'accent', 'rose', 'indigo', 'lime', 'amber', 'sky', 'emerald'];
+
+    /**
+     * The networks a social list knows, each as the inside of a 24x24 stroked
+     * SVG - the Lucide pictograms the site already uses for its own links,
+     * plus TikTok, which Lucide does not draw. Mirrored by `socialNetworks.js`
+     * for the editor, which draws the same marks while one types.
+     */
+    private const array SOCIAL_ICONS = [
+        'instagram' => '<rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>',
+        'facebook' => '<path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>',
+        'linkedin' => '<path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/>',
+        'tiktok' => '<path d="M9 12a4 4 0 1 0 4 4V3c.5 2.7 2.6 4.6 5 5"/>',
+        'youtube' => '<path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"/><path d="m10 15 5-3-5-3z"/>',
+        'x' => '<path d="M4 4l16 16"/><path d="M20 4 4 20"/>',
+        'website' => '<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>',
+    ];
+
+    /** @var list<string> */
+    public const array SOCIAL_NETWORK_NAMES = ['instagram', 'facebook', 'linkedin', 'tiktok', 'youtube', 'x', 'website'];
+
+    /**
      * @param iterable<BlockRendererInterface> $blockRenderers module-contributed renderers
      *                                                         for block types this one does not know
      */
@@ -95,6 +122,8 @@ final readonly class BlocksRenderer
             'callout' => $this->renderCallout($data),
             'twoColumn' => $this->renderTwoColumn($data, $locale),
             'mediaText' => $this->renderMediaText($data),
+            'label' => $this->renderLabel($data),
+            'socials' => $this->renderSocials($data),
             default => $this->renderExtensionBlock($type, $data, $locale),
         };
     }
@@ -310,6 +339,75 @@ final readonly class BlocksRenderer
             self::CALLOUT_ICONS[$icon],
             $words,
         );
+    }
+
+    /**
+     * A short word set on a pill, the way a report marks a section: « Réseaux
+     * sociaux » on black, a competitor's name on its colour. Tilted when the
+     * author asked, a few degrees, the hand-placed look of a sticker.
+     *
+     * @param array<string, mixed> $data
+     */
+    private function renderLabel(array $data): string
+    {
+        $text = $this->safe($data['text'] ?? '');
+        if ('' === mb_trim(strip_tags($text))) {
+            return '';
+        }
+
+        $tone = in_array($data['tone'] ?? null, self::LABEL_TONES, true) ? $data['tone'] : self::LABEL_TONES[0];
+        $tilt = true === ($data['tilt'] ?? false) ? ' label-pill--tilt' : '';
+
+        return sprintf('<p class="label-pill-row"><span class="label-pill label-pill--%s%s">%s</span></p>', $tone, $tilt, $text);
+    }
+
+    /**
+     * The accounts a brand is found on, each with its network's mark: the
+     * opening page of an audit, which says where we looked before saying
+     * what we saw. A row whose network is not in the list is dropped, and a
+     * link is drawn only for an http(s) address.
+     *
+     * @param array<string, mixed> $data
+     */
+    private function renderSocials(array $data): string
+    {
+        $rows = '';
+
+        foreach (is_array($data['items'] ?? null) ? $data['items'] : [] as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+
+            $network = $item['network'] ?? null;
+            $handle = mb_trim(strip_tags((string) ($item['handle'] ?? '')));
+            if (!is_string($network)) {
+                continue;
+            }
+
+            if (!isset(self::SOCIAL_ICONS[$network])) {
+                continue;
+            }
+
+            if ('' === $handle) {
+                continue;
+            }
+
+            $url = mb_trim((string) ($item['url'] ?? ''));
+            $name = 1 === preg_match('#^https?://#i', $url)
+                ? sprintf('<a href="%s" target="_blank" rel="noopener noreferrer">%s</a>', $this->attr($url), $this->attr($handle))
+                : $this->attr($handle);
+
+            $rows .= sprintf(
+                '<li class="social-list__item social-list__item--%s"><span class="social-list__icon" aria-hidden="true">'
+                .'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">%s</svg>'
+                .'</span><span class="social-list__handle">%s</span></li>',
+                $network,
+                self::SOCIAL_ICONS[$network],
+                $name,
+            );
+        }
+
+        return '' === $rows ? '' : sprintf('<ul class="social-list">%s</ul>', $rows);
     }
 
     /** @param array<string, mixed> $data */

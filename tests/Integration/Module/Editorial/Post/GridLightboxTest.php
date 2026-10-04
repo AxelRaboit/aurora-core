@@ -22,9 +22,9 @@ final class GridLightboxTest extends IntegrationTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        static::bootKernel();
+        self::bootKernel();
 
-        $this->gridViewBuilder = static::getContainer()->get(GridViewBuilder::class);
+        $this->gridViewBuilder = self::getContainer()->get(GridViewBuilder::class);
     }
 
     public function testEveryPictureIsNumberedInTheOrderItIsRead(): void

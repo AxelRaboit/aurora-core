@@ -488,3 +488,160 @@ pre .hljs-attribute {
         transition: none;
     }
 }
+
+/*
+ * A label: a short word on a pill, the way a report marks a column -
+ * « Réseaux sociaux » on black, a competitor's name on its colour. Tilted a
+ * couple of degrees when the author asks, the look of a sticker placed by
+ * hand. The live block in the editor wears the same classes.
+ */
+.label-pill-row { margin: 1rem 0 0.75rem; }
+.label-pill {
+    display: inline-block;
+    padding: 0.35rem 0.95rem;
+    border-radius: 0.65rem;
+    font-weight: 600;
+    font-size: 1.05rem;
+    line-height: 1.35;
+    background: var(--label-bg, #111);
+    color: var(--label-fg, #fff);
+    outline: none;
+}
+.label-pill--tilt { transform: rotate(-2deg); }
+/* « Ink »: the page's own text colour, so it reads on a light page and a dark one. */
+.label-pill--dark    { --label-bg: var(--th-primary, #111111); --label-fg: var(--th-bg, #ffffff); }
+.label-pill--accent  { --label-bg: var(--th-accent-500, var(--color-accent-500)); --label-fg: #ffffff; }
+.label-pill--rose    { --label-bg: #e8338f; --label-fg: #ffffff; }
+.label-pill--indigo  { --label-bg: #2f1bea; --label-fg: #ffffff; }
+.label-pill--lime    { --label-bg: #e4f76b; --label-fg: #111111; }
+.label-pill--amber   { --label-bg: #f5b324; --label-fg: #111111; }
+.label-pill--sky     { --label-bg: #38bdf8; --label-fg: #0b2233; }
+.label-pill--emerald { --label-bg: #10b981; --label-fg: #ffffff; }
+.label-pill:empty::before { content: attr(data-placeholder); opacity: 0.6; }
+
+/*
+ * The accounts a brand is found on: each network's mark on its own colour,
+ * the handle beside it. Instagram keeps its gradient, the one mark people
+ * recognise by colour before shape.
+ */
+.social-list { list-style: none; margin: 1rem 0; padding: 0; display: grid; gap: 0.75rem; }
+.social-list__item { display: flex; align-items: center; gap: 0.75rem; }
+.social-list__icon {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.75rem;
+    background: var(--social-bg, var(--th-accent-500, var(--color-accent-500)));
+    color: #ffffff;
+}
+.social-list__handle { min-width: 0; overflow-wrap: anywhere; }
+.social-list__handle a { color: inherit; text-decoration: none; }
+.social-list__handle a:hover { text-decoration: underline; }
+.social-list__item--instagram { --social-bg: linear-gradient(45deg, #f9ce34, #ee2a7b 55%, #6228d7); }
+.social-list__item--facebook  { --social-bg: #1877f2; }
+.social-list__item--linkedin  { --social-bg: #0a66c2; }
+.social-list__item--tiktok    { --social-bg: #111111; }
+.social-list__item--youtube   { --social-bg: #ff0000; }
+.social-list__item--x         { --social-bg: #111111; }
+
+/*
+ * Section headings in bold capitals, the page title of a report
+ * (« ANALYSE DE L'ENGAGEMENT »). Chosen per deliverable in its appearance;
+ * only the second level - the section - changes, the sub-headings under it
+ * keep the theme's so the two still read as two levels.
+ */
+.aurora-headings-display :where(h2):not(:where(.not-prose *)) {
+    text-transform: uppercase;
+    font-weight: 900;
+    letter-spacing: -0.01em;
+    line-height: 1.05;
+    font-size: clamp(1.75rem, 1.2rem + 2.4vw, 3rem);
+}
+
+/*
+ * A blank of a model still waiting for its words, lit in the back-office
+ * preview only (`mark_placeholders`), so it cannot be sent unnoticed.
+ */
+.aurora-placeholder {
+    background: color-mix(in srgb, rgb(245 158 11) 32%, transparent);
+    color: inherit;
+    border-radius: 0.25rem;
+    padding: 0 0.15em;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+}
+
+/*
+ * A document shown as a presentation (`slides.js`). Without the script the
+ * slides follow one another, each a screen tall, with a rule between them;
+ * with it, one is shown at a time over the controls. Printed, each slide is
+ * a landscape page.
+ */
+.aurora-slides { position: relative; }
+.aurora-slide {
+    min-height: calc(100vh - 8rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 2rem 0 3rem;
+}
+.aurora-slides:not(.is-presenting) .aurora-slide + .aurora-slide { border-top: 1px solid var(--color-border, rgb(229 231 235)); }
+.aurora-slide[hidden] { display: none; }
+.aurora-slide__inner { width: 100%; }
+/* A phone on a slide stays within the screen: its width follows the height left. */
+.aurora-slides.is-presenting .aurora-device-phone { max-width: min(18rem, calc((100vh - 16rem) * 9 / 19.5)); }
+.aurora-slides__controls {
+    position: sticky;
+    bottom: 1rem;
+    margin: 0 auto;
+    width: max-content;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.35rem;
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--th-surface, #fff) 92%, transparent);
+    border: 1px solid var(--color-border, rgb(229 231 235));
+    box-shadow: 0 10px 30px -12px rgb(0 0 0 / 0.35);
+    backdrop-filter: blur(8px);
+    z-index: 20;
+}
+.aurora-slides__controls[hidden] { display: none; }
+.aurora-slides__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.375rem;
+    height: 2.375rem;
+    border-radius: 9999px;
+    border: 0;
+    background: transparent;
+    color: var(--th-primary, inherit);
+    cursor: pointer;
+}
+.aurora-slides__button:hover { background: var(--th-surface-2, rgb(243 244 246)); }
+.aurora-slides__button:disabled { opacity: 0.35; cursor: default; }
+.aurora-slides__counter { padding: 0 0.5rem; font-size: 0.875rem; color: var(--th-secondary, inherit); }
+
+/* Full screen: the slide fills it, on the page's own background. */
+.aurora-slides:fullscreen {
+    background: var(--th-bg, #fff);
+    overflow-y: auto;
+    padding: 0 max(1.5rem, 5vw);
+}
+.aurora-slides:fullscreen .aurora-slide { min-height: calc(100vh - 5rem); }
+
+@media print {
+    @page { size: A4 landscape; margin: 12mm; }
+    /* The page's colours and the cards' backgrounds, as on screen. */
+    html:has(.aurora-slides) { -webkit-print-color-adjust: exact; print-color-adjust: exact; font-size: 11.5px; }
+    /* A landscape page is 186 mm tall inside its margins: a phone stays well within. */
+    .aurora-slides .aurora-device-phone { max-width: 52mm; }
+    .aurora-slide { break-inside: avoid; }
+    .aurora-slide, .aurora-slide[hidden] { display: flex !important; min-height: auto; break-after: page; padding: 0; border: 0 !important; }
+    .aurora-slide:last-of-type { break-after: auto; }
+    .aurora-slides__controls { display: none !important; }
+}

@@ -24,6 +24,7 @@ import "./shared/utils/bannerCarousel.js";
 import "./shared/utils/terminal.js";
 import "./shared/utils/countdown.js";
 import "./shared/utils/parallax.js";
+import "./shared/utils/slides.js";
 import "./shared/utils/contactCard.js";
 import "./shared/utils/qrCode.js";
 import "./shared/utils/videoWall.js";
