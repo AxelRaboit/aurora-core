@@ -8,6 +8,8 @@ use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Http\PrivateAddressResponseTrait;
+use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
+use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
 use Aurora\Module\Studio\Deliverable\Enum\DeliverableScopeEnum;
 use Aurora\Module\Studio\Deliverable\Manager\DeliverableManager;
@@ -28,6 +30,8 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
+use function is_int;
+use function is_numeric;
 use function is_string;
 use function mb_strlen;
 use function mb_substr;
@@ -63,6 +67,7 @@ final class DeliverablesController extends AbstractController
         private readonly DeliverableLinkIssuer $linkIssuer,
         private readonly DeliverableLinksView $linksView,
         private readonly TranslatorInterface $translator,
+        private readonly CustomerSpaceRepository $spaces,
     ) {}
 
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
@@ -175,6 +180,43 @@ final class DeliverablesController extends AbstractController
             'editPath' => $this->generateUrl('backend_studio_deliverables_edit', ['id' => $copy->getId()]),
             ...$this->viewBuilder->lists(),
         ]);
+    }
+
+    /**
+     * Une copie déposée dans l'espace d'un client : le modèle qu'on remplit
+     * pour lui. On arrive dans l'éditeur de la copie, dans son espace.
+     *
+     * Un espace inconnu, invisible ou archivé répond 404, comme un livrable
+     * qu'on ne lit pas ; un espace qu'on voit sans pouvoir y écrire, 403.
+     */
+    #[Route('/{id}/copy-to-space', name: '_copy_to_space', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    public function copyToSpace(int $id, Request $request): JsonResponse
+    {
+        $source = $this->readable($id);
+        $payload = $this->decodeJson($request);
+
+        $spaceId = $payload['spaceId'] ?? null;
+        $space = is_int($spaceId) || (is_string($spaceId) && is_numeric($spaceId)) ? $this->spaces->find((int) $spaceId) : null;
+        if (!$space instanceof CustomerSpaceInterface || $space->isArchived() || !$this->access->canReadSpace($space)) {
+            return $this->jsonNotFound();
+        }
+
+        if (!$this->access->canCopyInto($space)) {
+            return $this->jsonForbidden();
+        }
+
+        $title = is_string($payload['title'] ?? null) ? mb_trim($payload['title']) : '';
+        if ('' === $title) {
+            $title = $source->getTitle();
+        }
+
+        if (mb_strlen($title) > DeliverableManager::TITLE_MAX) {
+            return $this->jsonInvalidInput(['title' => 'backend.studio.deliverables.errors.title_too_long']);
+        }
+
+        $copy = $this->manager->copyToSpace($source, $space, $title, $this->access->user());
+
+        return $this->jsonSuccess(['editPath' => $this->serializer->path($copy, 'edit')]);
     }
 
     #[Route('/{id}/delete', name: '_delete', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Post->value])]

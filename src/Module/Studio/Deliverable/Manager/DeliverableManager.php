@@ -133,16 +133,46 @@ final readonly class DeliverableManager
         $copy
             ->setOwner($author ?? $source->getOwner())
             ->setScope($source->getScope())
-            ->setSummary($source->getSummary())
-            ->setGridLayout($source->getGridLayout())
-            ->setGridContent($source->getGridContent())
-            ->setAppearance($source->getAppearance())
             ->setReadingHeader($source->getReadingHeader());
 
-        $this->entityManager->persist($copy);
-        $this->entityManager->flush();
+        return $this->persistCopy($source, $copy);
+    }
 
-        return $copy;
+    /**
+     * Un livrable de Studio recopié dans l'espace d'un client : le modèle
+     * d'audit ou de stratégie qu'on remplit pour lui.
+     *
+     * La copie vit désormais dans l'espace, avec ses droits ; l'original
+     * reste dans Studio, intact. Elle arrive fermée au client, comme toute
+     * copie, et « Préparé pour » prend le nom du client de l'espace.
+     */
+    public function copyToSpace(DeliverableInterface $source, CustomerSpaceInterface $space, string $title, ?CoreUserInterface $author = null): DeliverableInterface
+    {
+        $copy = new Deliverable($space, $title, $source->getLocale());
+        $copy
+            ->setOwner($author)
+            ->setScope(DeliverableScopeEnum::Shared)
+            ->setReadingHeader(DeliverableReadingHeader::normalize([
+                ...$source->getReadingHeader(),
+                'preparedFor' => $space->getCustomer()->getLegalName(),
+            ]));
+
+        return $this->persistCopy($source, $copy);
+    }
+
+    /**
+     * Un livrable d'espace recopié dans Studio, pour en faire un modèle : il
+     * arrive dans les livrables perso de qui le copie, sans client à nommer.
+     */
+    public function copyToStudio(DeliverableInterface $source, string $title, ?CoreUserInterface $author = null): DeliverableInterface
+    {
+        $copy = new Deliverable(null, $title, $source->getLocale());
+        $copy
+            ->setOwner($author)
+            ->setScope(DeliverableScopeEnum::Personal)
+            ->setReadingHeader(DeliverableReadingHeader::normalize([...$source->getReadingHeader(), 'preparedFor' => '']));
+
+        return $this->persistCopy($source, $copy);
     }
 
     /** Perso ou partagé, pour un livrable sans espace. */
@@ -160,6 +190,21 @@ final readonly class DeliverableManager
         }
 
         $this->entityManager->flush();
+    }
+
+    /** Le corps de l'original dans la copie, puis enregistrée. */
+    private function persistCopy(DeliverableInterface $source, DeliverableInterface $copy): DeliverableInterface
+    {
+        $copy
+            ->setSummary($source->getSummary())
+            ->setGridLayout($source->getGridLayout())
+            ->setGridContent($source->getGridContent())
+            ->setAppearance($source->getAppearance());
+
+        $this->entityManager->persist($copy);
+        $this->entityManager->flush();
+
+        return $copy;
     }
 
     public function delete(DeliverableInterface $deliverable): void

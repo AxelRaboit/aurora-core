@@ -19,7 +19,7 @@ defineProps({
 });
 
 const { t } = useI18n();
-const { formatDateShort } = useDateFormat();
+const { formatDateShort, formatTime } = useDateFormat();
 </script>
 
 <template>
@@ -36,7 +36,7 @@ const { formatDateShort } = useDateFormat();
                 <p v-if="deliverable.summary" class="m-0 mt-0.5 text-xs text-secondary line-clamp-2">{{ deliverable.summary }}</p>
                 <p class="m-0 mt-1 flex flex-wrap items-center gap-2 text-xs text-muted">
                     <slot name="meta" :deliverable="deliverable" />
-                    <span>{{ t("backend.studio.deliverables.updated_on", { date: formatDateShort(deliverable.updatedAt) }) }}</span>
+                    <span>{{ t("backend.studio.deliverables.updated_on", { date: formatDateShort(deliverable.updatedAt), time: formatTime(deliverable.updatedAt) }) }}</span>
                 </p>
             </div>
 

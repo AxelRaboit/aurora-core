@@ -54,11 +54,12 @@ final class StudioDeliverablesTest extends IntegrationTestCase
     {
         parent::setUp();
 
-        $this->client = static::createClient();
+        $this->client = self::createClient();
         $this->client->disableReboot();
-        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
 
-        $admin = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
+
+        $admin = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
         self::assertInstanceOf(User::class, $admin);
         $this->admin = $admin;
         $this->client->loginUser($admin, 'admin');
@@ -76,8 +77,8 @@ final class StudioDeliverablesTest extends IntegrationTestCase
             $this->entityManager->createQuery(sprintf('DELETE FROM %s u WHERE u.id = :id', User::class))->setParameter('id', $id)->execute();
         }
 
-        static::getContainer()->get(SettingRepository::class)->set(ModuleParameterEnum::StudioDeliverables->value, '1');
-        static::getContainer()->get(ModuleAccessChecker::class)->reset();
+        self::getContainer()->get(SettingRepository::class)->set(ModuleParameterEnum::StudioDeliverables->value, '1');
+        self::getContainer()->get(ModuleAccessChecker::class)->reset();
 
         parent::tearDown();
     }
@@ -213,7 +214,7 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         $this->entityManager->clear();
         self::assertNull($this->find($id)->getOwner());
 
-        $admin = static::getContainer()->get(UserRepository::class)->find($this->admin->getId());
+        $admin = self::getContainer()->get(UserRepository::class)->find($this->admin->getId());
         self::assertInstanceOf(User::class, $admin);
         $this->client->loginUser($admin, 'admin');
         self::assertContains($id, array_column($this->lists()['personal'], 'id'));
@@ -238,8 +239,8 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         $this->client->request('GET', $path);
         self::assertResponseIsSuccessful();
 
-        static::getContainer()->get(SettingRepository::class)->set(ModuleParameterEnum::StudioDeliverables->value, '0');
-        static::getContainer()->get(ModuleAccessChecker::class)->reset();
+        self::getContainer()->get(SettingRepository::class)->set(ModuleParameterEnum::StudioDeliverables->value, '0');
+        self::getContainer()->get(ModuleAccessChecker::class)->reset();
 
         $this->client->request('GET', $path);
         self::assertResponseStatusCodeSame(404);
@@ -254,10 +255,10 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         $standalone = $this->create('Hors espace', DeliverableScopeEnum::Shared);
         $space = $this->givenSpace();
 
-        $this->client->jsonRequest('POST', sprintf('/workspace/%d/deliverables/create', $space->getId()), ['title' => 'Dans l\'espace']);
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/deliverables/create', $space->getId()), ['title' => "Dans l'espace"]);
         self::assertResponseIsSuccessful();
         $rows = json_decode((string) $this->client->getResponse()->getContent(), true)['deliverables'];
-        self::assertSame(['Dans l\'espace'], array_column($rows, 'title'), 'a Studio deliverable never shows in a space');
+        self::assertSame(["Dans l'espace"], array_column($rows, 'title'), 'a Studio deliverable never shows in a space');
         $inSpace = (int) $rows[0]['id'];
 
         $this->client->request('GET', sprintf('/backend/studio/deliverables/%d', $inSpace));
@@ -282,6 +283,92 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         self::assertSame($teammate->getId(), $copy->getOwner()?->getId());
         self::assertSame(DeliverableScopeEnum::Shared, $copy->getScope());
         self::assertNull($copy->getSpace());
+    }
+
+    /** Le modèle de Studio recopié chez un client : la copie vit dans l'espace, l'original reste. */
+    public function testACopyLandsInAClientSpaceAndTheOriginalStays(): void
+    {
+        $id = $this->create('Modèle d\'audit', DeliverableScopeEnum::Personal);
+        $this->update($id, ['summary' => 'À remplir pour chaque client']);
+        $space = $this->givenSpace();
+
+        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/copy-to-space', $id), ['spaceId' => $space->getId(), 'title' => 'Audit du client']);
+        self::assertResponseIsSuccessful();
+        $editPath = (string) json_decode((string) $this->client->getResponse()->getContent(), true)['editPath'];
+        self::assertStringStartsWith(sprintf('/workspace/%d/deliverables/', $space->getId()), (string) parse_url($editPath, PHP_URL_PATH));
+
+        $copy = $this->find((int) basename($editPath));
+        self::assertSame($space->getId(), $copy->getSpace()?->getId());
+        self::assertSame('Audit du client', $copy->getTitle());
+        self::assertSame('À remplir pour chaque client', $copy->getSummary());
+        self::assertFalse($copy->isVisibleToClient(), 'a copy is work in progress');
+        self::assertSame('Client livrables', $copy->getReadingHeader()['preparedFor'] ?? null);
+
+        $original = $this->find($id);
+        self::assertNull($original->getSpace());
+        self::assertSame('Modèle d\'audit', $original->getTitle());
+
+        $this->client->request('GET', $editPath);
+        self::assertResponseIsSuccessful();
+    }
+
+    /** Un espace qu'on ne voit pas, ou qui n'existe pas, ne reçoit rien ; sans titre, la copie garde celui de l'original. */
+    public function testCopyingIntoASpaceNeedsToSeeIt(): void
+    {
+        $id = $this->create('Gabarit partagé', DeliverableScopeEnum::Shared);
+        $space = $this->givenSpace();
+
+        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/copy-to-space', $id), ['spaceId' => 999999]);
+        self::assertResponseStatusCodeSame(404);
+
+        $teammate = $this->accountWith([...self::TEAM, 'studio.spaces.view', 'studio.spaces.edit']);
+        $this->client->loginUser($teammate, 'admin');
+        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/copy-to-space', $id), ['spaceId' => $space->getId()]);
+        self::assertResponseStatusCodeSame(404, 'a space the teammate is not a member of stays unknown to them');
+
+        $this->client->loginUser($this->admin, 'admin');
+        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/copy-to-space', $id), ['spaceId' => (string) $space->getId()]);
+        self::assertResponseIsSuccessful();
+        $copyId = (int) basename((string) json_decode((string) $this->client->getResponse()->getContent(), true)['editPath']);
+        self::assertSame('Gabarit partagé', $this->find($copyId)->getTitle());
+    }
+
+    /** Un livrable d'espace gardé comme modèle : la copie arrive dans « Mes livrables », sans client. */
+    public function testASpaceDeliverableCopiesIntoStudio(): void
+    {
+        $space = $this->givenSpace();
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/deliverables/create', $space->getId()), ['title' => 'Stratégie du client']);
+        self::assertResponseIsSuccessful();
+        $inSpace = (int) json_decode((string) $this->client->getResponse()->getContent(), true)['deliverables'][0]['id'];
+
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/deliverables/%d/copy-to-studio', $space->getId(), $inSpace), []);
+        self::assertResponseIsSuccessful();
+        $editPath = (string) json_decode((string) $this->client->getResponse()->getContent(), true)['editPath'];
+        self::assertStringStartsWith('/backend/studio/deliverables/', (string) parse_url($editPath, PHP_URL_PATH));
+
+        $copy = $this->find((int) basename($editPath));
+        self::assertNull($copy->getSpace());
+        self::assertSame($this->admin->getId(), $copy->getOwner()?->getId());
+        self::assertSame(DeliverableScopeEnum::Personal, $copy->getScope());
+        self::assertSame('Stratégie du client', $copy->getTitle());
+        self::assertEmpty($copy->getReadingHeader()['preparedFor'] ?? '');
+        self::assertContains($copy->getId(), array_column($this->lists()['personal'], 'id'));
+
+        self::assertSame($space->getId(), $this->find($inSpace)->getSpace()?->getId(), 'the space keeps its own');
+    }
+
+    /** Module des livrables éteint : rien ne part d'un espace vers Studio. */
+    public function testCopyingIntoStudioNeedsTheModule(): void
+    {
+        $space = $this->givenSpace();
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/deliverables/create', $space->getId()), ['title' => 'Rapport']);
+        $inSpace = (int) json_decode((string) $this->client->getResponse()->getContent(), true)['deliverables'][0]['id'];
+
+        self::getContainer()->get(SettingRepository::class)->set(ModuleParameterEnum::StudioDeliverables->value, '0');
+        self::getContainer()->get(ModuleAccessChecker::class)->reset();
+
+        $this->client->jsonRequest('POST', sprintf('/workspace/%d/deliverables/%d/copy-to-studio', $space->getId(), $inSpace), []);
+        self::assertResponseStatusCodeSame(403);
     }
 
     private function create(string $title, DeliverableScopeEnum $scope): int

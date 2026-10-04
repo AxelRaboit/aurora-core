@@ -56,7 +56,13 @@ function mountApp(extra = {}) {
             ...PATHS,
             ...extra,
         },
-        global: { plugins: [i18n], stubs: { DeliverableLinksModal: true } },
+        global: {
+            plugins: [i18n],
+            stubs: {
+                DeliverableLinksModal: true,
+                DeliverableCopyToSpaceModal: true,
+            },
+        },
     });
 }
 
@@ -68,6 +74,23 @@ function actionKeys(wrapper) {
 }
 
 describe("DeliverablesApp", () => {
+    it("offers to copy into a client space only when there is one to write in", () => {
+        expect(actionKeys(mountApp())).not.toContain("copy-to-space");
+
+        const wrapper = mountApp({
+            copyToSpacePathTemplate:
+                "/backend/studio/deliverables/__id__/copy-to-space",
+            copyTargets: [
+                {
+                    id: 7,
+                    name: "Atelier Dupont",
+                    customer: "Atelier Dupont SARL",
+                },
+            ],
+        });
+        expect(actionKeys(wrapper)).toContain("copy-to-space");
+    });
+
     it("opens on my deliverables by default", () => {
         const wrapper = mountApp();
 

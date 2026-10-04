@@ -5,6 +5,26 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [Unreleased]
+
+### Ajouté
+
+#### Copier un livrable entre Studio et les espaces clients
+Un livrable de Studio se copie dans l'espace d'un client : « Copier dans un espace client », depuis sa carte ou le menu de l'éditeur, demande l'espace et le titre, puis ouvre la copie dans son espace. Elle arrive cachée au client, avec son nom en « Préparé pour » ; l'original reste dans Studio. C'est le chemin d'un modèle d'audit ou de stratégie vers le client pour qui on le remplit. Dans l'autre sens, « Copier dans Studio » garde un livrable d'espace comme modèle : la copie arrive dans « Mes livrables », sans client. Ne sont proposés que les espaces que la personne voit et où elle écrit, hors archives ; la copie vers Studio demande le droit de créer un livrable de Studio.
+
+### Modifié
+
+#### L'heure de la dernière modification sur les cartes de livrables
+Les cartes de livrables, dans Studio comme dans un espace, disent « Modifié le 4 oct. 2026 à 16:33 » au lieu de la date seule.
+
+### Corrigé
+
+#### La phrase sous les rayons des livrables n'est plus collée aux cartes
+Dans Studio > Livrables, la phrase qui décrit le rayon ouvert touchait la première carte. Elle reste maintenant contre ses onglets, et l'espace habituel de la page la sépare des cartes.
+
+### Dans aurora-client
+Rien à faire.
+
 ## [1.9.0] - 2026-10-04
 
 ### Ajouté

@@ -7,6 +7,7 @@ namespace Aurora\Module\Studio\Deliverable\View;
 use Aurora\Core\Locale\Service\LocaleContextInterface;
 use Aurora\Core\Routing\PathTemplateGenerator;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
+use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
 use Aurora\Module\Studio\Deliverable\Security\DeliverableAccess;
@@ -48,6 +49,8 @@ final readonly class DeliverablesViewBuilder
             'duplicatePathTemplate' => $template('duplicate'),
             'deletePathTemplate' => $template('delete'),
             'linksPathTemplate' => $template('links'),
+            'copyToSpacePathTemplate' => $template('copy_to_space'),
+            'copyTargets' => $this->copyTargets(),
         ];
     }
 
@@ -100,7 +103,27 @@ final readonly class DeliverablesViewBuilder
             'linksPath' => $route('links'),
             'duplicatePath' => $route('duplicate'),
             'deletePath' => $route('delete'),
+            'copyToSpacePath' => $route('copy_to_space'),
+            'copyTargets' => $this->copyTargets(),
         ];
+    }
+
+    /**
+     * Les espaces où déposer une copie, pour le sélecteur : vide quand la
+     * personne n'écrit dans aucun, et le geste ne s'affiche pas.
+     *
+     * @return list<array{id: int|null, name: string, customer: string}>
+     */
+    private function copyTargets(): array
+    {
+        return array_map(
+            static fn (CustomerSpaceInterface $space): array => [
+                'id' => $space->getId(),
+                'name' => $space->getName(),
+                'customer' => $space->getCustomer()->getLegalName(),
+            ],
+            $this->access->spacesToCopyInto(),
+        );
     }
 
     /** @return array{canEdit: bool, canShare: bool, canDelete: bool, canChangeScope: bool, canDuplicate: bool} */

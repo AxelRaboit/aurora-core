@@ -15,7 +15,7 @@ import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { Copy, Eye, EyeOff, ExternalLink, Link2, Pencil, Plus, Trash2, X } from "lucide-vue-next";
+import { Copy, Eye, EyeOff, ExternalLink, FolderOutput, Link2, Pencil, Plus, Trash2, X } from "lucide-vue-next";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
@@ -37,6 +37,8 @@ const props = defineProps({
     deletePathTemplate: { type: String, required: true },
     /** Les liens de lecture d'un livrable ; vide, l'action n'est pas proposée. */
     linksPathTemplate: { type: String, default: "" },
+    /** Garder une copie dans Studio ; vide sans le droit d'y créer. */
+    copyToStudioPathTemplate: { type: String, default: "" },
 });
 
 const { t } = useI18n();
@@ -108,6 +110,19 @@ async function duplicate(deliverable) {
     }
 }
 
+async function copyToStudio(deliverable) {
+    busyId.value = deliverable.id;
+    try {
+        const data = await request(buildPath(props.copyToStudioPathTemplate, { id: deliverable.id }), {});
+        if (data?.success) {
+            toast.success(t("backend.studio.deliverables.copy_to_studio.done"));
+            window.location.href = data.editPath;
+        }
+    } finally {
+        busyId.value = null;
+    }
+}
+
 const pendingDelete = ref(null);
 const deleting = ref(false);
 
@@ -162,6 +177,19 @@ function actionsFor(deliverable) {
             title: t("backend.studio.deliverables.links.title"),
             description: t("backend.studio.deliverables.links_hint"),
             onSelect: () => (linksFor.value = deliverable),
+        });
+    }
+
+    // Garder ce livrable comme modèle : il suffit de le lire ici et de
+    // pouvoir créer dans Studio.
+    if (props.copyToStudioPathTemplate) {
+        actions.push({
+            key: "copy-to-studio",
+            icon: FolderOutput,
+            title: t("backend.studio.deliverables.copy_to_studio.action"),
+            description: t("backend.studio.deliverables.copy_to_studio.action_hint"),
+            disabled: busyId.value === deliverable.id,
+            onSelect: () => copyToStudio(deliverable),
         });
     }
 

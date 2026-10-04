@@ -14,7 +14,7 @@
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { Copy, ExternalLink, Link2, Lock, Pencil, Plus, Trash2, Users, X } from "lucide-vue-next";
+import { Copy, ExternalLink, FolderInput, Link2, Lock, Pencil, Plus, Trash2, Users, X } from "lucide-vue-next";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
@@ -29,6 +29,7 @@ import AppPageActions from "@/shared/components/action/AppPageActions.vue";
 import AppSearchInput from "@/shared/components/form/input/AppSearchInput.vue";
 import AppTab from "@/shared/components/nav/AppTab.vue";
 import DeliverableCards from "./components/DeliverableCards.vue";
+import DeliverableCopyToSpaceModal from "./components/DeliverableCopyToSpaceModal.vue";
 import DeliverableDeleteModal from "./components/DeliverableDeleteModal.vue";
 import DeliverableLinksModal from "./components/DeliverableLinksModal.vue";
 
@@ -42,6 +43,9 @@ const props = defineProps({
     duplicatePathTemplate: { type: String, required: true },
     deletePathTemplate: { type: String, required: true },
     linksPathTemplate: { type: String, required: true },
+    copyToSpacePathTemplate: { type: String, default: "" },
+    /** Les espaces où déposer une copie ; vide, le geste ne s'affiche pas. */
+    copyTargets: { type: Array, default: () => [] },
 });
 
 const { t } = useI18n();
@@ -163,6 +167,9 @@ async function doDelete() {
 /** Le livrable dont la fenêtre des liens est ouverte. */
 const linksFor = ref(null);
 
+/** Le livrable qu'on recopie dans un espace client. */
+const copyFor = ref(null);
+
 function actionsFor(deliverable) {
     const actions = [
         {
@@ -215,6 +222,16 @@ function actionsFor(deliverable) {
         });
     }
 
+    if (props.copyTargets.length && props.copyToSpacePathTemplate) {
+        actions.push({
+            key: "copy-to-space",
+            icon: FolderInput,
+            title: t("backend.studio.deliverables.copy_to_space.action"),
+            description: t("backend.studio.deliverables.copy_to_space.action_hint"),
+            onSelect: () => (copyFor.value = deliverable),
+        });
+    }
+
     if (deliverable.canDelete) {
         actions.push({
             key: "delete",
@@ -247,28 +264,32 @@ function actionsFor(deliverable) {
             </ol>
         </AppGuide>
 
-        <!-- Les deux rayons, en pastilles avec leur compte, comme les filtres
-             des autres listes de Studio. -->
-        <div class="flex w-full flex-col p-1 bg-surface-2 border border-line rounded-lg gap-1 sm:inline-flex sm:w-auto sm:flex-row sm:self-start">
-            <AppTab
-                v-for="value in SCOPES"
-                :key="value"
-                size="sm"
-                class="justify-between sm:flex-none sm:justify-start"
-                :active="scope === value"
-                active-class="bg-surface text-primary shadow-sm"
-                inactive-class="text-secondary hover:text-primary"
-                v-on:click="setScope(value)"
-            >
-                <span class="inline-flex items-center gap-1.5">
-                    <component :is="'shared' === value ? Users : Lock" class="h-3.5 w-3.5" :stroke-width="2" />
-                    {{ t(`backend.studio.deliverables.scope.tab_${value}`) }}
-                </span>
-                <span class="ml-1 text-xs text-muted">{{ lists[value].length }}</span>
-            </AppTab>
-        </div>
+        <!-- Les rayons et la phrase qui dit ce qu'est celui qu'on regarde :
+             un seul bloc, l'espace de la page vient après, avant les cartes. -->
+        <div class="flex flex-col gap-2">
+            <!-- Les deux rayons, en pastilles avec leur compte, comme les filtres
+                 des autres listes de Studio. -->
+            <div class="flex w-full flex-col p-1 bg-surface-2 border border-line rounded-lg gap-1 sm:inline-flex sm:w-auto sm:flex-row sm:self-start">
+                <AppTab
+                    v-for="value in SCOPES"
+                    :key="value"
+                    size="sm"
+                    class="justify-between sm:flex-none sm:justify-start"
+                    :active="scope === value"
+                    active-class="bg-surface text-primary shadow-sm"
+                    inactive-class="text-secondary hover:text-primary"
+                    v-on:click="setScope(value)"
+                >
+                    <span class="inline-flex items-center gap-1.5">
+                        <component :is="'shared' === value ? Users : Lock" class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ t(`backend.studio.deliverables.scope.tab_${value}`) }}
+                    </span>
+                    <span class="ml-1 text-xs text-muted">{{ lists[value].length }}</span>
+                </AppTab>
+            </div>
 
-        <p class="m-0 text-xs text-muted sm:max-w-xl">{{ t(`backend.studio.deliverables.scope.intro_${scope}`) }}</p>
+            <p class="m-0 text-xs text-muted sm:max-w-xl">{{ t(`backend.studio.deliverables.scope.intro_${scope}`) }}</p>
+        </div>
 
         <AppNoData
             v-if="!visible.length"
@@ -295,6 +316,14 @@ function actionsFor(deliverable) {
             :show="null !== linksFor"
             :links-path="linksFor ? buildPath(linksPathTemplate, { id: linksFor.id }) : ''"
             v-on:close="linksFor = null"
+        />
+
+        <DeliverableCopyToSpaceModal
+            :show="null !== copyFor"
+            :source-title="copyFor?.title ?? ''"
+            :copy-path="copyFor ? buildPath(copyToSpacePathTemplate, { id: copyFor.id }) : ''"
+            :targets="copyTargets"
+            v-on:close="copyFor = null"
         />
 
         <AppModal

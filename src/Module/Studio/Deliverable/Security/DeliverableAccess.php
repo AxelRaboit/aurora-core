@@ -10,7 +10,11 @@ use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Security\SpaceVisibility;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
 use Aurora\Module\Studio\Deliverable\Enum\DeliverableScopeEnum;
+use Aurora\Module\Studio\StudioContext;
 use Symfony\Bundle\SecurityBundle\Security;
+
+use function array_filter;
+use function array_values;
 
 /**
  * Qui lit et qui modifie un livrable : la seule règle, pour tout le module.
@@ -30,6 +34,13 @@ use Symfony\Bundle\SecurityBundle\Security;
  * le lire ni le supprimer. Hors de ce cas, un administrateur n'ouvre pas le
  * livrable perso d'un autre : le droit de tout voir porte sur les modules,
  * pas sur ce que chacun garde pour soi.
+ *
+ * **Copier un livrable de Studio dans un espace**, c'est écrire dans cet
+ * espace : il faut lire l'original, et pouvoir créer un livrable dans
+ * l'espace visé, c'est-à-dire le voir avec `studio.spaces.edit`, module des
+ * espaces allumé. Un espace archivé n'en reçoit pas. Dans l'autre sens, la
+ * copie d'un livrable d'espace arrive dans « Mes livrables » de Studio : il
+ * faut lire l'espace et pouvoir créer un livrable de Studio.
  */
 final readonly class DeliverableAccess
 {
@@ -46,6 +57,7 @@ final readonly class DeliverableAccess
     public function __construct(
         private Security $security,
         private SpaceVisibility $spaceVisibility,
+        private StudioContext $studioContext,
     ) {}
 
     public function canRead(DeliverableInterface $deliverable): bool
@@ -127,6 +139,47 @@ final readonly class DeliverableAccess
     public function canCreate(): bool
     {
         return $this->security->isGranted(self::VIEW) && $this->security->isGranted(self::CREATE);
+    }
+
+    /**
+     * Les espaces où la personne peut déposer la copie d'un livrable de
+     * Studio : ceux qu'elle voit et où elle écrit, hors archives.
+     *
+     * @return list<CustomerSpaceInterface>
+     */
+    public function spacesToCopyInto(): array
+    {
+        if (!$this->studioContext->areSpacesEnabled() || !$this->security->isGranted('studio.spaces.edit')) {
+            return [];
+        }
+
+        return array_values(array_filter(
+            $this->spaceVisibility->visibleSpaces(),
+            static fn (CustomerSpaceInterface $space): bool => !$space->isArchived(),
+        ));
+    }
+
+    /**
+     * Recopier un livrable d'espace dans Studio : c'est créer un livrable de
+     * Studio, module allumé. La copie arrive dans « Mes livrables ».
+     */
+    public function canCopyToStudio(): bool
+    {
+        return $this->studioContext->areDeliverablesEnabled() && $this->canCreate();
+    }
+
+    /** Voir l'espace, de quoi savoir qu'il existe : sans quoi on n'en dit rien. */
+    public function canReadSpace(CustomerSpaceInterface $space): bool
+    {
+        return $this->studioContext->areSpacesEnabled() && $this->spaceVisibility->canSee($space);
+    }
+
+    public function canCopyInto(CustomerSpaceInterface $space): bool
+    {
+        return $this->studioContext->areSpacesEnabled()
+            && $this->security->isGranted('studio.spaces.edit')
+            && !$space->isArchived()
+            && $this->spaceVisibility->canSee($space);
     }
 
     public function isOwner(DeliverableInterface $deliverable): bool

@@ -13,6 +13,8 @@ use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\CustomerSpace\EventSubscriber\SpaceVisibilitySubscriber;
 use Aurora\Module\Studio\Deliverable\Entity\Deliverable;
 use Aurora\Module\Studio\Deliverable\Manager\DeliverableManager;
+use Aurora\Module\Studio\Deliverable\Security\DeliverableAccess;
+use Aurora\Module\Studio\Deliverable\Serializer\DeliverableSerializer;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableEditorPreviews;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableLinkIssuer;
 use Aurora\Module\Studio\Deliverable\Service\DeliverablePageRenderer;
@@ -58,6 +60,8 @@ final class SpaceDeliverablesController extends AbstractController
         private readonly DeliverableLinkIssuer $linkIssuer,
         private readonly DeliverableLinksView $linksView,
         private readonly TranslatorInterface $translator,
+        private readonly DeliverableAccess $access,
+        private readonly DeliverableSerializer $serializer,
     ) {}
 
     /** Un titre, et on arrive dans l'éditeur. */
@@ -150,6 +154,27 @@ final class SpaceDeliverablesController extends AbstractController
             'editPath' => $this->generateUrl('workspace_space_deliverables_edit', ['id' => $space->getId(), 'deliverableId' => $copy->getId()]),
             'deliverables' => $this->viewBuilder->rows($space),
         ]);
+    }
+
+    /**
+     * Une copie dans Studio, pour garder ce livrable comme modèle : elle
+     * arrive dans « Mes livrables », et l'on ouvre son éditeur.
+     */
+    #[Route('/{deliverableId}/copy-to-studio', name: '_copy_to_studio', requirements: ['deliverableId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    public function copyToStudio(
+        CustomerSpace $space,
+        #[MapEntity(id: 'deliverableId')]
+        Deliverable $deliverable,
+    ): JsonResponse {
+        $this->assertOwned($space, $deliverable->getSpace()?->getId());
+
+        if (!$this->access->canCopyToStudio()) {
+            return $this->jsonForbidden();
+        }
+
+        $copy = $this->manager->copyToStudio($deliverable, $deliverable->getTitle(), $this->access->user());
+
+        return $this->jsonSuccess(['editPath' => $this->serializer->path($copy, 'edit')]);
     }
 
     #[Route('/{deliverableId}/delete', name: '_delete', requirements: ['deliverableId' => '\d+'], methods: [HttpMethodEnum::Post->value])]

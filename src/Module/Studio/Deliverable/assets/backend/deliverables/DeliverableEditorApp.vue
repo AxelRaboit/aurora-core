@@ -18,7 +18,7 @@ import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { Copy, ExternalLink, Link2, Lock, Save, Trash2, Users } from "lucide-vue-next";
+import { Copy, ExternalLink, FolderInput, FolderOutput, Link2, Lock, Save, Trash2, Users } from "lucide-vue-next";
 import AppBackLink from "@/shared/components/nav/AppBackLink.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
@@ -28,6 +28,7 @@ import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { useTabState } from "@/shared/composables/useTabState.js";
 import PostGridPanel from "../../../../../Editorial/assets/backend/posts/components/PostGridPanel.vue";
 import DeliverableAppearanceTab from "./components/DeliverableAppearanceTab.vue";
+import DeliverableCopyToSpaceModal from "./components/DeliverableCopyToSpaceModal.vue";
 import DeliverableDeleteModal from "./components/DeliverableDeleteModal.vue";
 import DeliverableLinksModal from "./components/DeliverableLinksModal.vue";
 import DeliverableSettingsTab from "./components/DeliverableSettingsTab.vue";
@@ -55,6 +56,11 @@ const props = defineProps({
     linksPath: { type: String, required: true },
     duplicatePath: { type: String, required: true },
     deletePath: { type: String, required: true },
+    /** Studio : déposer une copie dans un espace client, parmi ces espaces. */
+    copyToSpacePath: { type: String, default: "" },
+    copyTargets: { type: Array, default: () => [] },
+    /** Espace : garder une copie dans Studio ; vide sans le droit. */
+    copyToStudioPath: { type: String, default: "" },
 });
 
 const { t } = useI18n();
@@ -130,6 +136,32 @@ async function duplicate() {
     }
 }
 
+const showCopyToSpace = ref(false);
+const copyingToStudio = ref(false);
+
+/** La copie part de ce qui est en base : on enregistre d'abord. */
+async function openCopyToSpace() {
+    if (dirty.value && !(await save())) return;
+
+    showCopyToSpace.value = true;
+}
+
+async function copyToStudio() {
+    if (copyingToStudio.value) return;
+    if (dirty.value && !(await save())) return;
+
+    copyingToStudio.value = true;
+    try {
+        const data = await request(props.copyToStudioPath, {});
+        if (data?.success) {
+            toast.success(t("backend.studio.deliverables.copy_to_studio.done"));
+            window.location.href = data.editPath;
+        }
+    } finally {
+        copyingToStudio.value = false;
+    }
+}
+
 async function doDelete() {
     if (deleting.value) return;
 
@@ -175,6 +207,27 @@ const headerActions = computed(() => {
             description: t("backend.studio.deliverables.duplicate_hint"),
             disabled: duplicating.value,
             onSelect: duplicate,
+        });
+    }
+
+    if (props.copyToSpacePath && props.copyTargets.length) {
+        actions.push({
+            key: "copy-to-space",
+            icon: FolderInput,
+            title: t("backend.studio.deliverables.copy_to_space.action"),
+            description: t("backend.studio.deliverables.copy_to_space.action_hint"),
+            onSelect: openCopyToSpace,
+        });
+    }
+
+    if (props.copyToStudioPath) {
+        actions.push({
+            key: "copy-to-studio",
+            icon: FolderOutput,
+            title: t("backend.studio.deliverables.copy_to_studio.action"),
+            description: t("backend.studio.deliverables.copy_to_studio.action_hint"),
+            disabled: copyingToStudio.value,
+            onSelect: copyToStudio,
         });
     }
 
@@ -299,6 +352,15 @@ const headerActions = computed(() => {
         />
 
         <DeliverableLinksModal :show="showLinks" :links-path="linksPath" v-on:close="showLinks = false" />
+
+        <DeliverableCopyToSpaceModal
+            v-if="copyToSpacePath"
+            :show="showCopyToSpace"
+            :source-title="form.title"
+            :copy-path="copyToSpacePath"
+            :targets="copyTargets"
+            v-on:close="showCopyToSpace = false"
+        />
 
         <DeliverableDeleteModal
             :show="pendingDelete"
