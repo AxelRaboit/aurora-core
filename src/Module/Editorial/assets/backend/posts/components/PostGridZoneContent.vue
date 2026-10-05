@@ -29,6 +29,7 @@ import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-vue-next";
 import OpeningHoursField from "./zones/OpeningHoursField.vue";
 import PostBannerPanel from "./PostBannerPanel.vue";
 import ChartDataField from "./zones/ChartDataField.vue";
+import CalendarEntriesField from "./zones/CalendarEntriesField.vue";
 import { parseLines } from "./zones/openingHours.js";
 
 const props = defineProps({
@@ -860,13 +861,8 @@ const displayHint = computed(() =>
                     {{ t("backend.posts.grid.translated_fields", { locale }) }}
                 </p>
                 <AppInput v-model="bound.label.value" :label="t('backend.posts.grid.calendar_title')" :placeholder="t('backend.posts.grid.examples.calendar_title')" />
-                <AppTextarea
-                    v-model="bound.code.value"
-                    :label="t('backend.posts.grid.calendar_entries')"
-                    :hint="t('backend.posts.grid.calendar_entries_hint')"
-                    :placeholder="t('backend.posts.grid.examples.calendar_data')"
-                    :rows="8"
-                />
+                <CalendarEntriesField v-model="bound.code.value" :month="bound.calendarMonth.value" />
+                <AppInput v-model="bound.caption.value" :label="t('backend.posts.grid.calendar_note')" :placeholder="t('backend.posts.grid.examples.calendar_note')" />
             </div>
         </template>
 

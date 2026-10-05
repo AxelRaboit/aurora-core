@@ -21,6 +21,10 @@ const props = defineProps({
     /** Topic id from `helpTopics.js`, surfaced next to the label. */
     help: { type: String, default: '' },
     readonly: { type: Boolean, default: false },
+    /** Suggestions d'un `<datalist>` voisin, par son identifiant : le champ reste libre. */
+    list: { type: String, default: '' },
+    /** Le nom du champ pour un lecteur d'écran, quand il n'a pas d'étiquette visible. */
+    ariaLabel: { type: String, default: '' },
     toggleable: { type: Boolean, default: false },
     /**
      * Visual flavor. `default` ships the full form-field chrome (border,
@@ -61,6 +65,8 @@ defineExpose({
         :placeholder="placeholder"
         :required="required"
         :readonly="readonly"
+        :list="list || undefined"
+        :aria-label="ariaLabel || undefined"
         class="block w-full bg-transparent border-0 focus:outline-none focus:ring-0 text-inherit"
         :class="readonly ? 'cursor-not-allowed opacity-70' : ''"
         v-on:input="$emit('update:modelValue', $event.target.value)"
@@ -79,6 +85,8 @@ defineExpose({
                 :placeholder="placeholder"
                 :required="required"
                 :readonly="readonly"
+                :list="list || undefined"
+                :aria-label="ariaLabel || undefined"
                 class="block w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-primary placeholder-muted focus:border-accent-500 focus:ring-1 focus:ring-accent-500 transition"
                 :class="[{ 'border-red-500 focus:border-red-500 focus:ring-red-500': error }, readonly ? 'bg-surface-2 text-secondary cursor-not-allowed' : '', (toggleable || $slots.suffix) ? 'pr-10' : '', $slots.prefix ? 'pl-8' : '']"
                 v-on:input="$emit('update:modelValue', $event.target.value)"

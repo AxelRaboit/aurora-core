@@ -1,7 +1,14 @@
 {# A month of planned posts. The grid on a wide screen, where seven columns
    have room; the same entries as a list on a phone, where a day is 45px wide
    and a title would be three letters. #}
+{# Les formats en pastilles pleines, lisibles sur un fond clair comme sur un
+   fond sombre (un livrable aux couleurs d'un client) ; les réseaux gardent
+   leur teinte légère. #}
 {% set tones = {
+    carousel: 'bg-amber-400 text-zinc-900',
+    post: 'bg-violet-600 text-white',
+    reel: 'bg-rose-600 text-white',
+    story: 'bg-emerald-400 text-zinc-900',
     instagram: 'bg-pink-500/15 text-pink-600',
     linkedin: 'bg-sky-600/15 text-sky-700',
     facebook: 'bg-blue-600/15 text-blue-700',
@@ -25,7 +32,9 @@
                         <span class="mb-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px] tabular-nums {{ day.today ? 'bg-accent font-semibold text-white' : 'text-muted' }}">{{ day.day }}</span>
                         <ul class="m-0 list-none space-y-1 p-0">
                             {% for entry in day.entries %}
-                                <li class="rounded px-1.5 py-1 leading-tight {{ tones[entry.tone] }}" title="{{ entry.network }}"><span class="block text-[10px] font-semibold uppercase tracking-wide opacity-80">{{ entry.network }}</span>{{ entry.title }}</li>
+                                {# Un format se lit à sa couleur et à la légende : son nom dans la case
+                                   la chargerait sans rien dire de plus. Un réseau garde le sien. #}
+                                <li class="rounded px-1.5 py-1 leading-tight {{ tones[entry.tone] }}" title="{{ entry.network }}">{% if entry.tone not in ['carousel', 'post', 'reel', 'story'] %}<span class="block text-[10px] font-semibold uppercase tracking-wide opacity-80">{{ entry.network }}</span>{% endif %}{{ entry.title }}</li>
                             {% endfor %}
                         </ul>
                     </div>
@@ -41,4 +50,14 @@
             </li>
         {% endfor %}
     </ol>
+    {% if widget.legend|default([]) is not empty %}
+        <ul class="m-0 mt-3 flex list-none flex-wrap items-center gap-2 p-0 text-xs" aria-label="{{ 'frontend.editorial.calendar.legend'|trans }}">
+            {% for item in widget.legend %}
+                <li class="rounded px-2 py-1 font-semibold {{ tones[item.tone] }}">{{ item.label }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    {% if widget.note|default('') %}
+        <p class="m-0 mt-3 text-xs text-muted">{{ widget.note }}</p>
+    {% endif %}
 </section>

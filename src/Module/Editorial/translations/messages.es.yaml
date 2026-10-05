@@ -1289,6 +1289,14 @@ backend:
             calendar_title: Título
             calendar_entries: 'Publicaciones previstas'
             calendar_entries_hint: 'Una línea por publicación: la fecha (AAAA-MM-DD), la red, el título, separados por barras «|».'
+            calendar_entry: "Publicación {number}"
+            calendar_entry_date: "Fecha"
+            calendar_entry_kind: "Formato o red"
+            calendar_entry_title: "Tema"
+            calendar_entry_add: "Añadir una publicación"
+            calendar_entry_remove: "Quitar esta publicación"
+            calendar_entries_table_hint: "El formato (carrusel, post, reel, story) o la red da su color a la casilla, y la leyenda sigue bajo el calendario."
+            calendar_note: "Nota bajo el calendario"
             feed_github: 'Añadir las versiones de GitHub'
             feed_github_hint: 'Mezcla con las publicaciones las últimas versiones de los repositorios indicados, si la integración con GitHub está activa.'
             price_title: Título
@@ -1347,6 +1355,9 @@ backend:
                 calendar_data: |-
                     2026-10-03 {'|'} Instagram {'|'} Reel entre bastidores
                     2026-10-07 {'|'} LinkedIn {'|'} Caso práctico
+                calendar_entry_kind: "Carrusel"
+                calendar_entry_title: "[Tema de la publicación]"
+                calendar_note: "Las stories acompañan los días en que sale un contenido."
                 price_title: 'La carta'
                 price_data: |-
                     # Entrantes
@@ -2038,6 +2049,8 @@ frontend:
         next: 'Imagen siguiente'
     editorial:
         reading_time: '%minutes% min de lectura'
+        calendar:
+            legend: "Leyenda"
         banner:
             carousel:
                 role: "carrusel"

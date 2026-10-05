@@ -86,4 +86,16 @@ final class DeliverablePageRendererHiddenZonesTest extends TestCase
         self::assertSame(['enabled' => true], DeliverablePageRenderer::withoutHiddenLayoutZones(['enabled' => true]));
         self::assertSame(['zones' => 'oops'], DeliverablePageRenderer::contentOfShownZones(['zones' => []], ['zones' => 'oops']));
     }
+
+    /**
+     * A month of planned posts is written by hand in the zone: it reads no
+     * data of the site, and a strategy plans its months with it.
+     */
+    public function testAMonthCalendarIsKeptInADeliverable(): void
+    {
+        $layout = DeliverablePageRenderer::withoutHiddenLayoutZones(['enabled' => true, 'zones' => [['id' => 'c1', 'type' => 'editorialCalendar']]]);
+
+        self::assertSame(['c1'], array_column($layout['zones'], 'id'));
+        self::assertNotContains('editorialCalendar', DeliverablePageRenderer::HIDDEN_ZONE_TYPES);
+    }
 }

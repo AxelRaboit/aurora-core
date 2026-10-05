@@ -194,6 +194,8 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
         // Les deux modèles d'audit, partagés avec l'équipe et rangés dans les audits.
         $this->model($manager, 'deliverable-audit-model.json', $author, $audits);
         $this->model($manager, 'deliverable-audit-presentation.json', $author, $audits);
+        // La stratégie qui suit l'audit, au même habillage, rangée dans les stratégies.
+        $this->model($manager, 'deliverable-strategy-presentation.json', $author, $strategies);
 
         // Un livrable que l'équipe a mis à la corbeille : de quoi montrer
         // l'onglet des livrables, et qu'on peut le reprendre.
