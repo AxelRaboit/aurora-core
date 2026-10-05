@@ -1260,7 +1260,9 @@ backend:
             chart_unit_hint: "Écrite après chaque valeur : %, €, k. Facultative."
             chart_title: Titre
             chart_data: Valeurs
-            chart_data_hint: "Une ligne par valeur : le nom, un point-virgule, le nombre, et si besoin un second point-virgule et une couleur (#2f1bea). « Croissance » affiche en plus l'évolution entre la première et la dernière."
+            chart_data_hint: "Une ligne par valeur : le nom, un point-virgule, le nombre (entre [crochets] dans un modèle, pour le signaler à remplacer), et si besoin un second point-virgule et une couleur (#2f1bea). « Croissance » affiche en plus l'évolution entre la première et la dernière."
+            chart_colors: Couleurs
+            chart_colors_hint: "Une pastille par ligne ; sans couleur choisie, le graphique prend les teintes du thème."
             chart_note: Source ou précision
             video_wall_count: "{count} vidéo sur {max} | {count} vidéos sur {max}"
             video_wall_add: Ajouter des vidéos
@@ -1317,7 +1319,7 @@ backend:
                 social_text: "Lumière du matin sur le port, sans retouche."
                 qr_caption: "Scannez pour voir le site"
                 chart_title: "Abonnés Instagram"
-                chart_data: "Janvier ; 1200\nFévrier ; 1480\nMars ; 2100"
+                chart_data: "Janvier ; 1200 ; #2f1bea\nFévrier ; 1480 ; #111111\nMars ; 2100"
                 chart_source: "Source : statistiques du compte"
                 calendar_title: "Planning d'octobre"
                 calendar_data: "2026-10-03 {'|'} Instagram {'|'} Réel coulisses\n2026-10-07 {'|'} LinkedIn {'|'} Étude de cas"

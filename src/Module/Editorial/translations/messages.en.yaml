@@ -1260,7 +1260,9 @@ backend:
             chart_unit_hint: "Written after every value: %, €, k. Optional."
             chart_title: Title
             chart_data: Values
-            chart_data_hint: "One line per value: the name, a semicolon, the number, and optionally a second semicolon and a colour (#2f1bea). « Growth » also shows the change from the first to the last."
+            chart_data_hint: "One line per value: the name, a semicolon, the number (between [brackets] in a template, to flag it to replace), and optionally a second semicolon and a colour (#2f1bea). « Growth » also shows the change from the first to the last."
+            chart_colors: Colours
+            chart_colors_hint: "One swatch per line; with no colour picked, the chart takes the theme's shades."
             chart_note: Source or detail
             video_wall_count: "{count} video of {max} | {count} videos of {max}"
             video_wall_add: Add videos
@@ -1317,7 +1319,7 @@ backend:
                 social_text: "Morning light on the harbour, no retouching."
                 qr_caption: "Scan to see the site"
                 chart_title: "Instagram followers"
-                chart_data: "January ; 1200\nFebruary ; 1480\nMarch ; 2100"
+                chart_data: "January ; 1200 ; #2f1bea\nFebruary ; 1480 ; #111111\nMarch ; 2100"
                 chart_source: "Source: account statistics"
                 calendar_title: "October schedule"
                 calendar_data: "2026-10-03 {'|'} Instagram {'|'} Behind-the-scenes reel\n2026-10-07 {'|'} LinkedIn {'|'} Case study"

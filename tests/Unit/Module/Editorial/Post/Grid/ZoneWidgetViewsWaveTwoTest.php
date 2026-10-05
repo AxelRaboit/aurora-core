@@ -66,6 +66,17 @@ final class ZoneWidgetViewsWaveTwoTest extends TestCase
         self::assertSame(['#2f1bea', null, null], array_column($view['rows'], 'color'));
     }
 
+    /** A value between brackets is a blank of a model: still drawn, printed with its brackets. */
+    public function testABracketedValueIsDrawnAndKeepsItsBrackets(): void
+    {
+        $view = $this->build('chart', ['chartType' => 'pie', 'chartUnit' => '%'], code: "[Photos] ; [60] ; #2f1bea\n[Réels] ; [40]");
+
+        self::assertNotNull($view);
+        self::assertSame([60.0, 40.0], array_column($view['rows'], 'value'));
+        self::assertSame("[60\u{202f}%]", $view['rows'][0]['valueLabel']);
+        self::assertSame('[Photos]', $view['rows'][0]['label']);
+    }
+
     /** The unit travels with the chart, so a share already in percent is not printed twice. */
     public function testTheChartCarriesItsUnit(): void
     {

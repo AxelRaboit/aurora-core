@@ -1266,7 +1266,9 @@ backend:
             chart_unit_hint: 'Se escribe tras cada valor: %, €, k. Opcional.'
             chart_title: Título
             chart_data: Valores
-            chart_data_hint: "Una línea por valor: el nombre, un punto y coma, el número y, si hace falta, otro punto y coma y un color (#2f1bea). « Crecimiento » muestra además la evolución entre el primero y el último."
+            chart_data_hint: "Una línea por valor: el nombre, un punto y coma, el número (entre [corchetes] en una plantilla, para señalarlo por reemplazar) y, si hace falta, otro punto y coma y un color (#2f1bea). « Crecimiento » muestra además la evolución entre el primero y el último."
+            chart_colors: Colores
+            chart_colors_hint: "Una muestra por línea; sin color elegido, el gráfico toma los tonos del tema."
             chart_note: 'Fuente o detalle'
             video_wall_count: '{count} vídeo de {max} | {count} vídeos de {max}'
             video_wall_add: 'Añadir vídeos'
@@ -1324,8 +1326,8 @@ backend:
                 qr_caption: 'Escanee para ver el sitio'
                 chart_title: 'Seguidores de Instagram'
                 chart_data: |-
-                    Enero ; 1200
-                    Febrero ; 1480
+                    Enero ; 1200 ; #2f1bea
+                    Febrero ; 1480 ; #111111
                     Marzo ; 2100
                 chart_source: 'Fuente: estadísticas de la cuenta'
                 calendar_title: 'Planificación de octubre'

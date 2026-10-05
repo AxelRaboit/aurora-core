@@ -5,6 +5,17 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [Unreleased]
+
+### Ajouté
+- **Couleurs d'un graphique en pastilles** : sous « Valeurs », une pastille par ligne choisit sa couleur (ou la rend au thème) sans taper de code `#2f1bea` ; le texte des valeurs suit. L'exemple du champ montre aussi la couleur.
+
+### Corrigé
+- **Légende d'un graphique dans une carte étroite** : à côté d'une autre zone, le camembert et sa légende débordaient de leur carte. Le graphique se règle maintenant sur la largeur de sa zone, pas sur celle de l'écran : il passe au-dessus de la légende quand la place manque, et les valeurs ne se coupent plus.
+- **Valeurs à remplacer dans un graphique** : une valeur entre crochets, `[60]`, se dessine comme un nombre et s'affiche `[60 %]`, surlignée dans l'aperçu avec les autres passages à remplacer. La section toute faite « texte et camembert » en profite.
+
+---
+
 ## [1.11.0] - 2026-10-04
 
 ### Ajouté
