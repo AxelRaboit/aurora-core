@@ -5,7 +5,7 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
-## [Unreleased]
+## [1.12.0] - 2026-10-05
 
 ### Ajouté
 - **Valeurs d'un graphique en tableau** : plus besoin de taper « nom ; valeur ; #couleur ». Chaque valeur a sa ligne, avec son nom, son nombre et une pastille de couleur (ou la couleur du thème) ; on ajoute, retire et déplace les lignes à la souris. Un graphique vide s'ouvre sur une ligne dont les exemples montrent quoi écrire. « Saisir en texte » garde l'ancien champ, pour coller une colonne copiée d'un tableur. Rien ne change dans les données enregistrées.
