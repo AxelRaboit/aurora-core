@@ -817,12 +817,13 @@ backend:
             create: Créer une présentation
             created: Présentation créée
             updated: Présentation mise à jour
-            deleted: Présentation supprimée
+            deleted: "Présentation mise à la corbeille"
             duplicated: Présentation dupliquée
             duplicate: Dupliquer
             duplicate_hint: Copie les slides, sans le client.
             edit_hint: Le titre, la catégorie et le client.
-            delete_hint: La présentation et toutes ses slides.
+            delete_hint: "La met à la corbeille : elle sort des listes et ses liens de partage cessent de répondre, jusqu'à sa restauration."
+            trash_action: "Mettre à la corbeille"
             copy_of: '%title% (copie)'
             title_column: Titre
             title_placeholder: Réunion de lancement, octobre
@@ -838,7 +839,7 @@ backend:
             search_placeholder: Rechercher une présentation…
             empty_title: Aucune présentation
             empty_description: Une présentation est un jeu de slides que vous montrez à quelqu'un. Créez la première.
-            delete_confirm: 'Supprimer « {title} » et toutes ses slides ?'
+            delete_confirm: "Mettre « {title} » à la corbeille ? Elle sort des listes et ses liens de partage cessent de répondre. Vous la retrouvez dans la corbeille, d'où vous pouvez la restaurer, jusqu'à sa suppression définitive."
             errors:
                 title_required: Le titre est obligatoire.
                 title_too_long: Le titre est trop long.

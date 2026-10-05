@@ -817,12 +817,13 @@ backend:
             create: New presentation
             created: Presentation created
             updated: Presentation updated
-            deleted: Presentation deleted
+            deleted: "Presentation moved to the trash"
             duplicated: Presentation duplicated
             duplicate: Duplicate
             duplicate_hint: Copies the slides, without the customer.
             edit_hint: The title, the category and the customer.
-            delete_hint: The presentation and every one of its slides.
+            delete_hint: "Moves it to the trash: it leaves the lists and its share links stop answering, until it is restored."
+            trash_action: "Move to the trash"
             copy_of: '%title% (copy)'
             title_column: Title
             title_placeholder: Kick-off meeting, October
@@ -838,7 +839,7 @@ backend:
             search_placeholder: Search a presentation…
             empty_title: No presentation
             empty_description: A presentation is a deck of slides you show somebody. Create the first one.
-            delete_confirm: 'Delete "{title}" and every one of its slides?'
+            delete_confirm: "Move \"{title}\" to the trash? It leaves the lists and its share links stop answering. You will find it in the trash, where you can restore it, until it is deleted for good."
             errors:
                 title_required: The title is required.
                 title_too_long: The title is too long.

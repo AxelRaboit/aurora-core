@@ -7,6 +7,7 @@ namespace Aurora\Module\Studio\Deck\Entity;
 use Aurora\Core\Timestampable\TimestampableInterface;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\Deck\Enum\DeckThemeEnum;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\Collection;
 
 interface DeckInterface extends TimestampableInterface
@@ -49,4 +50,11 @@ interface DeckInterface extends TimestampableInterface
     public function addSlide(SlideInterface $slide): static;
 
     public function removeSlide(SlideInterface $slide): static;
+
+    /** Quand elle a été mise à la corbeille ; nul, elle est vivante. */
+    public function getDeletedAt(): ?DateTimeImmutable;
+
+    public function setDeletedAt(?DateTimeImmutable $deletedAt): static;
+
+    public function isTrashed(): bool;
 }

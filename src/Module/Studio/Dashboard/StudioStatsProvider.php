@@ -102,7 +102,7 @@ final readonly class StudioStatsProvider implements DashboardStatsProviderInterf
                 'upcomingDays' => SpaceWorkload::HORIZON_DAYS,
                 'awaitingSignature' => $this->countContracts(self::WITH_CUSTOMER),
                 'awaitingCountersignature' => $this->countContracts([ContractStatusEnum::SignedByCustomer]),
-                'decks' => $this->authorizationChecker->isGranted('studio.decks.view') ? $this->deckRepository->count([]) : null,
+                'decks' => $this->authorizationChecker->isGranted('studio.decks.view') ? $this->deckRepository->countLive() : null,
                 'deliverables' => $this->countDeliverables(),
                 'deliverablesPath' => $this->deliverablesPath(),
                 'attention' => $this->attention($rows, $spaces),

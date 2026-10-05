@@ -68,7 +68,9 @@ final readonly class DeckDocumentUsageProvider implements BatchDocumentUsageProv
                 'type' => $this->usageType(),
                 'label' => $deck->getTitle(),
                 'detail' => $this->translator->trans('backend.studio.decks.usage_detail'),
-                'href' => $this->urlGenerator->generate('backend_studio_deck', ['id' => $deck->getId()]),
+                // Nothing to open from the trash: the row stays so the picture is not
+                // released before the purge, but the deck is not reachable.
+                'href' => $deck->isTrashed() ? null : $this->urlGenerator->generate('backend_studio_deck', ['id' => $deck->getId()]),
             ];
         }
 

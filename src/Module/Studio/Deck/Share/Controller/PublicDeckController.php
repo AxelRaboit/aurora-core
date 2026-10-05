@@ -68,7 +68,9 @@ final class PublicDeckController extends AbstractController
         // same 404 a wrong address gets. Telling a holder which of the three it
         // is would confirm that the address was real, which is the one thing a
         // guessed token must not learn.
-        if (!$link instanceof DeckShareLinkInterface || !$link->isUsable($now)) {
+        // A deck in the trash is no longer there for anybody: its links answer
+        // like an unknown address and resume if it is restored.
+        if (!$link instanceof DeckShareLinkInterface || !$link->isUsable($now) || $link->getDeck()->isTrashed()) {
             throw $this->createNotFoundException();
         }
 
@@ -131,6 +133,7 @@ final class PublicDeckController extends AbstractController
 
         if (!$link instanceof DeckShareLinkInterface
             || !$link->isUsable(new DateTimeImmutable())
+            || $link->getDeck()->isTrashed()
             || !$link->isLocked()
             || !password_verify($password, (string) $link->getPasswordHash())
         ) {
