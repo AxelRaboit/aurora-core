@@ -302,6 +302,32 @@ class SlidesController extends AbstractController
     }
 
     /**
+     * Hiding is for a link that no longer opens anything (retired or expired):
+     * it leaves the panel's list, its row stays. A live link is refused (409):
+     * it has to be retired first. Same rule as a deliverable's reading links.
+     */
+    #[Route('/share/{linkId}/hide', name: '_share_hide', requirements: ['linkId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.decks.share')]
+    public function hideShare(Deck $deck, int $linkId): JsonResponse
+    {
+        $link = $this->shareLinks->find($linkId);
+
+        if (null === $link || $link->getDeck()->getId() !== $deck->getId()) {
+            return $this->jsonNotFound();
+        }
+
+        $now = new DateTimeImmutable();
+        if (!ShareLinkRules::canBeHidden($link->isUsable($now))) {
+            return $this->jsonInvalidInput(['link' => 'backend.studio.sharing.errors.link_active'], HttpStatusEnum::Conflict->value);
+        }
+
+        $link->hide($now);
+        $this->entityManager->flush();
+
+        return $this->jsonSuccess($this->viewBuilder->sharePayload($deck));
+    }
+
+    /**
      * Deleting is for an address nobody ever opened: there is then nothing to
      * remember. One that was opened is revoked and its row stays, for the same
      * reason as above. Same rule as a deliverable's reading links.

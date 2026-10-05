@@ -399,6 +399,27 @@ final class DeliverablesController extends AbstractController
         return $this->jsonSuccess($this->linksView->payload($deliverable));
     }
 
+    /** Masquer de la liste un lien retiré ou expiré : sa ligne reste, un lien vivant ne se masque pas. */
+    #[Route('/{id}/links/{linkId}/hide', name: '_links_hide', requirements: ['id' => '\d+', 'linkId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    public function hideLink(int $id, int $linkId): JsonResponse
+    {
+        $deliverable = $this->readable($id);
+        if (!$this->access->canShare($deliverable)) {
+            return $this->jsonForbidden();
+        }
+
+        $hidden = $this->linkIssuer->hide($deliverable, $linkId);
+        if (null === $hidden) {
+            return $this->jsonNotFound();
+        }
+
+        if (!$hidden) {
+            return $this->jsonInvalidInput(['link' => 'backend.studio.sharing.errors.link_active'], HttpStatusEnum::Conflict->value);
+        }
+
+        return $this->jsonSuccess($this->linksView->payload($deliverable));
+    }
+
     /** Supprimer une adresse que personne n'a jamais ouverte ; une adresse déjà ouverte se révoque seulement. */
     #[Route('/{id}/links/{linkId}/delete', name: '_links_delete', requirements: ['id' => '\d+', 'linkId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
     public function deleteLink(int $id, int $linkId): JsonResponse

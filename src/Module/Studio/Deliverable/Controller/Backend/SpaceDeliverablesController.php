@@ -321,6 +321,28 @@ final class SpaceDeliverablesController extends AbstractController
         return $this->jsonSuccess($this->linksView->payload($deliverable));
     }
 
+    /** Masquer de la liste un lien retiré ou expiré : sa ligne reste, un lien vivant ne se masque pas. */
+    #[Route('/{deliverableId}/links/{linkId}/hide', name: '_links_hide', requirements: ['deliverableId' => '\d+', 'linkId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted(DeliverableAccess::SPACE_SHARE)]
+    public function hideLink(
+        CustomerSpace $space,
+        int $deliverableId,
+        int $linkId,
+    ): JsonResponse {
+        $deliverable = $this->owned($space, $deliverableId);
+
+        $hidden = $this->linkIssuer->hide($deliverable, $linkId);
+        if (null === $hidden) {
+            return $this->jsonNotFound();
+        }
+
+        if (!$hidden) {
+            return $this->jsonInvalidInput(['link' => 'backend.studio.sharing.errors.link_active'], HttpStatusEnum::Conflict->value);
+        }
+
+        return $this->jsonSuccess($this->linksView->payload($deliverable));
+    }
+
     /** Supprimer une adresse que personne n'a jamais ouverte ; une adresse déjà ouverte se révoque seulement. */
     #[Route('/{deliverableId}/links/{linkId}/delete', name: '_links_delete', requirements: ['deliverableId' => '\d+', 'linkId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
     #[IsGranted(DeliverableAccess::SPACE_SHARE)]

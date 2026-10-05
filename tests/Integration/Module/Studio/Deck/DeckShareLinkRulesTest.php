@@ -13,6 +13,7 @@ use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 
+use function array_column;
 use function json_decode;
 use function json_encode;
 use function sprintf;
@@ -115,11 +116,61 @@ final class DeckShareLinkRulesTest extends IntegrationTestCase
         $this->client->jsonRequest('POST', $uri, $body);
     }
 
+    /** @return array<string, mixed> */
+    private function json(): array
+    {
+        return json_decode((string) $this->client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+    }
+
     private function deck(string $title): int
     {
         $this->post('/backend/studio/decks/create', ['title' => $title]);
         self::assertResponseIsSuccessful();
 
         return (int) json_decode((string) $this->client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR)['deck']['id'];
+    }
+
+    public function testARetiredLinkCanBeHiddenButALiveOneCannot(): void
+    {
+        $deck = $this->deck('Masquage');
+        $this->post(sprintf('/backend/studio/decks/%d/share/create', $deck), ['label' => 'Retiré']);
+        $this->post(sprintf('/backend/studio/decks/%d/share/create', $deck), ['label' => 'Vivant']);
+
+        $this->entityManager->clear();
+        $links = [];
+        foreach ($this->entityManager->getRepository(DeckShareLink::class)->findBy([], ['id' => 'ASC']) as $link) {
+            $links[$link->getLabel()] = $link;
+        }
+        $links['Retiré']->touch(new DateTimeImmutable());
+        $links['Retiré']->revoke(new DateTimeImmutable());
+        $this->entityManager->flush();
+        $retired = $links['Retiré']->getId();
+        $live = $links['Vivant']->getId();
+
+        $this->post(sprintf('/backend/studio/decks/%d/share/%d/hide', $deck, $live));
+        self::assertResponseStatusCodeSame(409);
+
+        $this->post(sprintf('/backend/studio/decks/%d/share/%d/hide', $deck, $retired));
+        self::assertResponseIsSuccessful();
+        $rows = array_column($this->json()['shareLinks'], 'hidden', 'label');
+        self::assertEqualsCanonicalizing(['Retiré' => true, 'Vivant' => false], $rows);
+
+        $this->entityManager->clear();
+        self::assertTrue($this->entityManager->find(DeckShareLink::class, $retired)->isHidden(), 'The row stays, flagged.');
+    }
+
+    public function testAnotherDecksLinkCannotBeHiddenThroughThisOne(): void
+    {
+        $mine = $this->deck('Le mien');
+        $other = $this->deck('Un autre');
+        $this->post(sprintf('/backend/studio/decks/%d/share/create', $other), []);
+        $this->entityManager->clear();
+        $link = $this->entityManager->getRepository(DeckShareLink::class)->findOneBy([]);
+        $link->revoke(new DateTimeImmutable());
+        $this->entityManager->flush();
+
+        $this->post(sprintf('/backend/studio/decks/%d/share/%d/hide', $mine, $link->getId()));
+
+        self::assertResponseStatusCodeSame(404);
     }
 }

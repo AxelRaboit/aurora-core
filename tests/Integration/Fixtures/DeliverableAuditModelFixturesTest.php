@@ -14,6 +14,7 @@ use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
 use Aurora\Module\Studio\Deliverable\Entity\Deliverable;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableCategory;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableCategoryRepository;
+use Aurora\Module\Studio\Deliverable\Repository\DeliverableLinkRepository;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use Doctrine\ORM\EntityManagerInterface;
@@ -130,6 +131,7 @@ final class DeliverableAuditModelFixturesTest extends IntegrationTestCase
             $container->get(UserRepository::class),
             $container->get(DeliverableCategoryRepository::class),
             $container->get(DocumentRepository::class),
+            $container->get(DeliverableLinkRepository::class),
         );
 
         $model = new ReflectionMethod($fixtures, 'model');

@@ -135,4 +135,68 @@ final class DeliverableLinkTokenStorageTest extends IntegrationTestCase
 
         self::assertResponseStatusCodeSame(404);
     }
+
+    public function testARetiredOrExpiredLinkCanBeHiddenButALiveOneCannot(): void
+    {
+        $this->client->jsonRequest('POST', '/backend/studio/deliverables/create', ['title' => 'À masquer', 'scope' => 'shared']);
+        $id = (int) json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR)['shared'][0]['id'];
+        foreach (['Retiré', 'Expiré', 'Vivant'] as $label) {
+            $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/links/create', $id), ['label' => $label]);
+        }
+
+        $this->entityManager->clear();
+        $links = [];
+        foreach ($this->entityManager->getRepository(DeliverableLink::class)->findBy([], ['id' => 'ASC']) as $link) {
+            $links[$link->getLabel()] = $link;
+        }
+        $links['Retiré']->touch(new DateTimeImmutable());
+        $links['Retiré']->revoke(new DateTimeImmutable());
+        $links['Expiré']->setExpiresAt(new DateTimeImmutable('-1 day'));
+        $this->entityManager->flush();
+        $ids = array_map(static fn (DeliverableLink $link): int => (int) $link->getId(), $links);
+
+        // A live link has to be retired first: hiding it would leave an address working that nobody sees.
+        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/links/%d/hide', $id, $ids['Vivant']));
+        self::assertResponseStatusCodeSame(409);
+
+        foreach (['Retiré', 'Expiré'] as $label) {
+            $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/links/%d/hide', $id, $ids[$label]));
+            self::assertResponseIsSuccessful($label);
+        }
+
+        // Hidden is a flag on the row, which stays: who could read is still known.
+        $payload = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR)['links'];
+        $byLabel = array_column($payload, 'hidden', 'label');
+        self::assertEqualsCanonicalizing(['Retiré' => true, 'Expiré' => true, 'Vivant' => false], $byLabel);
+
+        $this->entityManager->clear();
+        self::assertNotNull($this->entityManager->find(DeliverableLink::class, $ids['Retiré']));
+        self::assertTrue($this->entityManager->find(DeliverableLink::class, $ids['Retiré'])->isHidden());
+        self::assertTrue($this->entityManager->find(DeliverableLink::class, $ids['Retiré'])->getRevokedAt() instanceof DateTimeImmutable, 'Hiding reopens nothing.');
+
+        $actions = array_map(
+            static fn (AuditLog $log): string => $log->getAction(),
+            $this->entityManager->getRepository(AuditLog::class)->findBy(['entityType' => 'DeliverableLink']),
+        );
+        self::assertContains('deliverable_link.hidden', $actions);
+    }
+
+    public function testAnotherDeliverablesLinkCannotBeHiddenThroughThisOne(): void
+    {
+        foreach (['Un', 'Deux'] as $title) {
+            $this->client->jsonRequest('POST', '/backend/studio/deliverables/create', ['title' => $title, 'scope' => 'shared']);
+        }
+
+        $rows = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR)['shared'];
+        [$first, $second] = [(int) $rows[0]['id'], (int) $rows[1]['id']];
+        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/links/create', $first), []);
+        $this->entityManager->clear();
+        $link = $this->entityManager->getRepository(DeliverableLink::class)->findOneBy([]);
+        $link->revoke(new DateTimeImmutable());
+        $this->entityManager->flush();
+
+        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/links/%d/hide', $second, $link->getId()));
+
+        self::assertResponseStatusCodeSame(404);
+    }
 }
