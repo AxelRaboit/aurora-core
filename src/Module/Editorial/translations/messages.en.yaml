@@ -1065,6 +1065,9 @@ backend:
             tile_full_bleed: "Full width"
             tile_image_missing: "Picture to choose"
             placeholders_left: "{count} passage in [brackets] is left to replace. | {count} passages in [brackets] are left to replace."
+            zone_placeholders: "{count} passage in [brackets] is left to replace in this zone. | {count} passages in [brackets] are left to replace in this zone."
+            section_placeholders: "{count} passage in [brackets] is left to replace in this section. | {count} passages in [brackets] are left to replace in this section."
+            section_placeholders_zones: "Spread over {count} zones, from the heading to the next section."
             split_on: "Preview alongside"
             split_off: "Close the side preview"
             devices:

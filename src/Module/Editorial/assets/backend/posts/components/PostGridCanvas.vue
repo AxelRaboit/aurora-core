@@ -263,7 +263,7 @@ const fillTypes = computed(() =>
                             <span
                                 v-if="tiles[zone.id]?.placeholders"
                                 class="absolute right-4 top-1 z-10 rounded-full bg-amber-500 px-1.5 text-[10px] font-semibold leading-4 text-white tabular-nums"
-                                :title="t('backend.posts.grid.placeholders_left', { count: tiles[zone.id].placeholders })"
+                                :title="t('backend.posts.grid.zone_placeholders', { count: tiles[zone.id].placeholders })"
                             >[{{ tiles[zone.id].placeholders }}]</span>
                             <img
                                 v-if="imageOf(zone)"

@@ -1065,6 +1065,9 @@ backend:
             tile_full_bleed: "Pleine largeur"
             tile_image_missing: "Image à choisir"
             placeholders_left: "{count} passage entre [crochets] reste à remplacer. | {count} passages entre [crochets] restent à remplacer."
+            zone_placeholders: "{count} passage entre [crochets] reste à remplacer dans cette zone. | {count} passages entre [crochets] restent à remplacer dans cette zone."
+            section_placeholders: "{count} passage entre [crochets] reste à remplacer dans cette section. | {count} passages entre [crochets] restent à remplacer dans cette section."
+            section_placeholders_zones: "Répartis sur {count} zones, du titre jusqu'à la section suivante."
             split_on: "Aperçu à côté"
             split_off: "Fermer l'aperçu à côté"
             devices:

@@ -212,19 +212,36 @@ const outline = computed(() => {
             : null;
         const title = heading ? plainText(heading.data?.text) : "";
 
-        if (title) sections.push({ index, title, placeholders: 0 });
+        if (title) sections.push({ index, title, placeholders: 0, zonesWithPlaceholders: 0 });
 
+        // A section counts the blanks of every zone down to the next
+        // heading, where a tile counts its own: the zones are kept too, so
+        // the badge can say why it holds more than the heading's tile.
         const current = sections.at(-1);
-        if (current) {
-            current.placeholders += [zone, ...(zone.children ?? [])].reduce(
-                (total, owner) => total + countPlaceholders(props.content?.zones?.[owner.id]),
-                0,
-            );
+        const blanks = [zone, ...(zone.children ?? [])].reduce(
+            (total, owner) => total + countPlaceholders(props.content?.zones?.[owner.id]),
+            0,
+        );
+        if (current && blanks) {
+            current.placeholders += blanks;
+            current.zonesWithPlaceholders += 1;
         }
     });
 
     return sections;
 });
+
+/**
+ * What a section's badge counts: its blanks, and, when they sit in more than
+ * one zone, over how many - the reason it can read more than its heading's tile.
+ */
+function sectionPlaceholdersTitle(section) {
+    const total = t("backend.posts.grid.section_placeholders", { count: section.placeholders });
+
+    return section.zonesWithPlaceholders > 1
+        ? `${total} ${t("backend.posts.grid.section_placeholders_zones", { count: section.zonesWithPlaceholders })}`
+        : total;
+}
 
 /** The [blanks] still in this language's content, for the line above the canvas. */
 const placeholders = computed(() => countPlaceholders(props.content?.zones));
@@ -494,7 +511,7 @@ function resizeZone(index, columns) {
                                 <span
                                     v-if="section.placeholders"
                                     class="shrink-0 rounded-full bg-amber-500/15 px-1.5 text-[10px] font-semibold text-amber-700 dark:text-amber-400 tabular-nums"
-                                    :title="t('backend.posts.grid.placeholders_left', { count: section.placeholders })"
+                                    :title="sectionPlaceholdersTitle(section)"
                                 >[{{ section.placeholders }}]</span>
                             </button>
                             <span class="flex shrink-0 items-center">

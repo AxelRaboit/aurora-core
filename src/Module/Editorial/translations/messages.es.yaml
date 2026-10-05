@@ -1071,6 +1071,9 @@ backend:
             tile_full_bleed: "Ancho completo"
             tile_image_missing: "Imagen por elegir"
             placeholders_left: "Queda {count} pasaje entre [corchetes] por reemplazar. | Quedan {count} pasajes entre [corchetes] por reemplazar."
+            zone_placeholders: "Queda {count} pasaje entre [corchetes] por reemplazar en esta zona. | Quedan {count} pasajes entre [corchetes] por reemplazar en esta zona."
+            section_placeholders: "Queda {count} pasaje entre [corchetes] por reemplazar en esta sección. | Quedan {count} pasajes entre [corchetes] por reemplazar en esta sección."
+            section_placeholders_zones: "Repartidos en {count} zonas, desde el título hasta la sección siguiente."
             split_on: "Vista previa al lado"
             split_off: "Cerrar la vista previa lateral"
             devices:
