@@ -5,7 +5,7 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
-## [Unreleased]
+## [1.17.1] - 2026-10-05
 
 ### Corrigé
 - **La page « Déploiements » n'ouvre plus le menu d'administration** : ses routes s'appelaient `dev_beacon…`, et l'entrée « Administration », qui réclame tout ce qui commence par `dev_`, prenait la page pour elle. Le menu restait sur le module Administration alors que la page vit dans sa propre section « Protection ». Les routes s'appellent désormais `beacon_instances`, `beacon_known_domains` et `beacon_forget` (l'adresse `/dev/beacon` ne change pas), et un test vérifie qu'aucune entrée du menu ne tombe sous le préfixe d'un autre module.
