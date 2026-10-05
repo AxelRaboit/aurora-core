@@ -35,7 +35,7 @@ final readonly class BeaconModule implements ModuleInterface
     {
         return [
             new NavSection('beacon', [
-                new NavItem('dev_beacon', 'backend.nav.beacon', 'radar', 'ROLE_DEV', 'rose', 'dev_beacon', descriptionKey: 'backend.nav.beacon_description'),
+                new NavItem('beacon_instances', 'backend.nav.beacon', 'radar', 'ROLE_DEV', 'rose', 'beacon_', descriptionKey: 'backend.nav.beacon_description'),
             ], priority: 1001),
         ];
     }
