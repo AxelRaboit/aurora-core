@@ -507,10 +507,11 @@ function resizeZone(index, columns) {
                         {{ t("backend.posts.grid.outline", { count: outline.length }) }}
                     </summary>
                     <ol class="m-0 mt-2 grid list-none gap-x-4 gap-y-0.5 p-0 sm:grid-cols-2">
-                        <li v-for="(section, position) in outline" :key="section.index" class="flex items-center gap-1">
+                        <!-- `min-w-0` : un élément de grille garde sinon la largeur de son contenu, et un titre de section long poussait les deux boutons hors de l'écran sur téléphone (la page défilait de côté). -->
+                        <li v-for="(section, position) in outline" :key="section.index" class="flex min-w-0 items-center gap-1">
                             <button
                                 type="button"
-                                class="flex w-full items-baseline gap-2 rounded px-1.5 py-1 text-left text-sm hover:bg-surface-2"
+                                class="flex w-full min-w-0 items-baseline gap-2 rounded px-1.5 py-1 text-left text-sm hover:bg-surface-2"
                                 :class="selectedIndex !== null && selectedIndex >= section.index && (outline[position + 1]?.index ?? Infinity) > selectedIndex ? 'text-accent font-medium' : 'text-primary'"
                                 v-on:click="goToSection(section.index)"
                             >
