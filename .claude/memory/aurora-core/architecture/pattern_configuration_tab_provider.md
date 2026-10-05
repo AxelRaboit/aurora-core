@@ -61,7 +61,7 @@ prefixes, site globals, nav aliases, color presets). Convention :
   `ApplicationParameterEnumInterface` (port direct du contrat existant).
 - `src/Module/<Name>/Setting/<Name>ConfigurationTabProvider.php` - itère
   l'enum, construit la `ConfigurationTab`. `final readonly`.
-- Traductions `backend.parameters.<key>.*` + `backend.settings.tabs.<id>` +
+- Traductions `suite.parameters.<key>.*` + `suite.settings.tabs.<id>` +
   `_description` vivent dans le `messages.<locale>.yaml` du module.
 - Setting keys persistées **inchangées** entre core et module (zéro
   migration SQL).
@@ -101,10 +101,10 @@ final readonly class MyModuleConfigurationTabProvider implements ConfigurationTa
                     new SettingFieldDescriptor(
                         key: 'my_module.foo',
                         type: 'bool',
-                        labelKey: 'backend.parameters.my_module_foo.label',
-                        descriptionKey: 'backend.parameters.my_module_foo.description',
+                        labelKey: 'suite.parameters.my_module_foo.label',
+                        descriptionKey: 'suite.parameters.my_module_foo.description',
                         defaultValue: '0',
-                        placeholderKey: 'backend.parameters.my_module_foo.placeholder', // optional
+                        placeholderKey: 'suite.parameters.my_module_foo.placeholder', // optional
                     ),
                 ],
             ),
@@ -114,7 +114,7 @@ final readonly class MyModuleConfigurationTabProvider implements ConfigurationTa
 ```
 
 Le tag se pose automatiquement (`_instanceof` dans `config/services.yaml`).
-Pas oublier les clés de trad `backend.settings.tabs.<id>` + `_description`
+Pas oublier les clés de trad `suite.settings.tabs.<id>` + `_description`
 côté i18n + le rebuild via `app:translations:dump-js`.
 
 **Pour un tab à UI custom Vue** (comme `navigation`/`appearance` aujourd'hui) :

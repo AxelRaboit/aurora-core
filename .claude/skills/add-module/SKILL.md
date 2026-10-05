@@ -61,7 +61,7 @@ sequence prefix, asset path, and which `Module.*.php.tpl` /
 | Namespace prefix | `Aurora\Module\<X>` | `App\Module\<X>` |
 | Sequence prefix (entity later) | `seq_core_<entity>_id` | `seq_app_<entity>_id` |
 | Asset path | `src/Module/<X>/assets/` | `src/Module/<X>/assets/` (same since 0.5) |
-| Toggle storage | a `<X>Backend` case in the central `ModuleParameterEnum` | `<X>Context::BACKEND_KEY` const |
+| Toggle storage | a `<X>Suite` case in the central `ModuleParameterEnum` | `<X>Context::SUITE_KEY` const |
 | Package shape | a plain directory under `src/Module/` - no composer.json, no bundle, no services.php | lives in the client app - no package, no bundle |
 | Templates root for skill reads | `vendor/axelraboit/aurora/.claude/skills/add-module/templates/` (when running from a client) OR `.claude/skills/add-module/templates/` (core) | same |
 
@@ -101,7 +101,7 @@ Compute these from the module name and the user's answers :
 | `{{ICON}}` | user input | `award` |
 | `{{PRIORITY}}` | user input as string | `'60'` |
 | `{{NAMESPACE}}` | `Aurora\Module\<X>` (core) or `App\Module\<X>` (client) | `Aurora\Module\Loyalty` |
-| `{{MODULE_TOGGLE_LITERAL}}` | `ModuleParameterEnum::<X>Backend` (core) / `<X>Context::BACKEND_KEY` (client) / `null` (no-toggle) | `ModuleParameterEnum::LoyaltyBackend` |
+| `{{MODULE_TOGGLE_LITERAL}}` | `ModuleParameterEnum::<X>Suite` (core) / `<X>Context::SUITE_KEY` (client) / `null` (no-toggle) | `ModuleParameterEnum::LoyaltySuite` |
 | `{{MODULE_TOGGLE_USE}}` | `use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;\n` for CORE / `use <NAMESPACE>\<X>Context;\n` for client | the central enum's `use` line |
 | `{{SERVICES_EXTRA_USE}}` | extra `use` lines for `config/services.php`, one per `--with-*` flag, else empty | see Step 2b |
 | `{{SERVICES_EXTRA_INSTANCEOF}}` | extra `instanceof()->tag()` lines for `config/services.php`, else empty | see Step 2b |
@@ -153,9 +153,9 @@ For each chosen template :
 | `FrontendDescriptor.{core,client}.php.tpl` | `src/Module/<Module>/<Module>FrontendDescriptor.php` |
 | `SettingEnum.php.tpl` | `src/Module/<Module>/Setting/<Module>SettingEnum.php` |
 | `ConfigurationTabProvider.php.tpl` | `src/Module/<Module>/Setting/<Module>ConfigurationTabProvider.php` |
-| `Controller.php.tpl` | `src/Module/<Module>/Controller/Backend/<Module>Controller.php` |
-| `index.html.twig.tpl` | `src/Module/<Module>/templates/backend/index.html.twig` |
-| `App.vue.tpl` | `src/Module/<Module>/assets/backend/<Module>App.vue` |
+| `Controller.php.tpl` | `src/Module/<Module>/Controller/Suite/<Module>Controller.php` |
+| `index.html.twig.tpl` | `src/Module/<Module>/templates/suite/index.html.twig` |
+| `App.vue.tpl` | `src/Module/<Module>/assets/suite/<Module>App.vue` |
 | `messages.fr.yaml.tpl` | `src/Module/<Module>/translations/messages.fr.yaml` |
 | `messages.en.yaml.tpl` | `src/Module/<Module>/translations/messages.en.yaml` |
 
@@ -171,13 +171,13 @@ exactly the gap this skill closes.
 One edit, in `src/Module/Configuration/Setting/Enum/ModuleParameterEnum.php`:
 
 ```php
-case <Module>Backend = 'modules_<module_id>_backend';
+case <Module>Backend = 'modules_<module_id>_suite';
 ```
 
 Put it with the other top-level backend cases, and give it its arms in
 `getLabel()` and `getDescription()`. A sub-toggle that only makes sense with the
 module on gets a `getCascadeRequires()` arm pointing at
-`self::<Module>Backend->value` - mirror `EditorialPosts`.
+`self::<Module>Suite->value` - mirror `EditorialPosts`.
 
 There is nothing else to wire. No bundle to register in `config/bundles.php`, no
 exclusion to add to the `services.yaml` glob: the module is inside the glob on
@@ -215,13 +215,13 @@ that case, and it has no alias on purpose.
 
 The template fills `messages.{fr,en}.yaml` with `{{MODULE_LABEL}}` plus
 short placeholders. Open both files and write proper sentences for :
-- `backend.modules.<module_id>_backend` - the toggle's name on
-  `/dev/dashboard/modules`, and `_backend_description` below it
-- `backend.modules.<module_id>` - the bare module name an audit row carries.
+- `suite.modules.<module_id>_suite` - the toggle's name on
+  `/dev/dashboard/modules`, and `_suite_description` below it
+- `suite.modules.<module_id>` - the bare module name an audit row carries.
   Not the toggle key, and the two differ on purpose: `planning` is
-  "Calendrier", `planning_backend` is the switch that turns it on
-- `backend.nav.sections.<module_id>` - the sidemenu section heading
-- `backend.nav.<module_id>` and `_description` - sidemenu label and tooltip
+  "Calendrier", `planning_suite` is the switch that turns it on
+- `suite.nav.sections.<module_id>` - the sidemenu section heading
+- `suite.nav.<module_id>` and `_description` - sidemenu label and tooltip
 - `<module_id>.title` - page H1 in the Vue entrypoint
 
 Both catalogues indent with **two spaces**, like every module but Studio.

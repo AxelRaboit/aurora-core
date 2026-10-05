@@ -10,15 +10,15 @@
 ## Règle
 
 ### Localisation
-- `Controller/Backend/` : endpoints admin sous `/backend/...`
+- `Controller/Suite/` : endpoints admin sous `/suite/...`
   protégés par `IsGranted` (rôle ou privilege).
-- `Controller/Frontend/` : endpoints publics frontend (sans `/backend`),
+- `Controller/Frontend/` : endpoints publics frontend (sans `/suite`),
   pas d'auth requise (souvent locale-aware via `{locale}` dans la route).
 
 ### Naming
 - `<Plural>Controller` (au pluriel) : `AgenciesController`,
   `PostsController`. Cohérent avec le pluriel de la route
-  `/backend/platform/agencies`, `/backend/editorial/posts`.
+  `/suite/platform/agencies`, `/suite/editorial/posts`.
 - Exception : un singulier si le controller gère une seule ressource
   spécifique (ex: `ProfileController`, `DashboardController`).
 
@@ -47,7 +47,7 @@
 
 declare(strict_types=1);
 
-namespace Aurora\Module\Platform\Agency\Controller\Backend;
+namespace Aurora\Module\Platform\Agency\Controller\Suite;
 
 use Aurora\Module\Platform\Agency\Dto\AgencyInputFactoryInterface;
 use Aurora\Module\Platform\Agency\Entity\AgencyInterface;
@@ -66,7 +66,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/backend/platform/agencies', name: 'backend_platform_agencies')]
+#[Route('/suite/platform/agencies', name: 'suite_platform_agencies')]
 #[IsGranted('ROLE_ADMIN')]
 class AgenciesController extends AbstractController
 {
@@ -85,7 +85,7 @@ class AgenciesController extends AbstractController
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
     public function index(): Response
     {
-        return $this->render('@Core/backend/agencies/index.html.twig', $this->viewBuilder->indexView());
+        return $this->render('@Core/suite/agencies/index.html.twig', $this->viewBuilder->indexView());
     }
 
     #[Route('', name: '_create', methods: [HttpMethodEnum::Post->value])]
@@ -121,23 +121,23 @@ class AgenciesController extends AbstractController
 ## Conventions de routes
 
 - **Backend admin** : **toute** route backend est préfixée par son module
-  → `/backend/<module>/` + nom au pluriel (`/backend/editorial/posts`,
-  `/backend/crm/contacts`, `/backend/ged/documents`). Le **nom de route**
-  suit le même namespacing (`backend_editorial_posts`, `backend_crm_contacts`).
+  → `/suite/<module>/` + nom au pluriel (`/suite/editorial/posts`,
+  `/suite/crm/contacts`, `/suite/ged/documents`). Le **nom de route**
+  suit le même namespacing (`suite_editorial_posts`, `suite_crm_contacts`).
   **Décision 2026-05 (user) : on namespace TOUT**, y compris les pages
-  transverses/auth (`/backend/platform/users`, `/backend/configuration/settings`,
-  `/backend/platform/login`). Pas d'exception "core reste plat".
+  transverses/auth (`/suite/platform/users`, `/suite/configuration/settings`,
+  `/suite/platform/login`). Pas d'exception "core reste plat".
   ✅ Migration terminée (2026-05) : tous les modules namespacés. Seules
-  exceptions assumées : `backend_dashboard` reste à `/backend` (home), et
-  `/backend/password-generator` (outil sans entité). Détail + méthode :
+  exceptions assumées : `suite_dashboard` reste à `/suite` (home), et
+  `/suite/password-generator` (outil sans entité). Détail + méthode :
   [[project_url_namespacing_backlog]].
 - **Frontend public** : `{locale}` souvent en premier segment
   (`/{locale}/editorial/{postTypeSlug}/{slug}`).
 - **Action atomique** : suffixe POST `/_create`, `/_update`, `/_delete`
   pour éviter les méthodes PUT/PATCH (l'admin Aurora utilise POST partout
   pour simplifier les forms).
-- **Name de route** : `backend_<plural>_<action>` (ex:
-  `backend_platform_agencies_create`).
+- **Name de route** : `suite_<plural>_<action>` (ex:
+  `suite_platform_agencies_create`).
 
 ## Type-hints à respecter
 

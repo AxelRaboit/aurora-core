@@ -19,12 +19,12 @@ use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnumInterface;
  */
 enum PexelsSettingEnum: string
 {
-    case Enabled = 'backend_ged_pexels_enabled';
+    case Enabled = 'suite_ged_pexels_enabled';
 
     /** Stored encrypted; see {@see PexelsSettings}. */
-    case ApiKey = 'backend_ged_pexels_api_key';
+    case ApiKey = 'suite_ged_pexels_api_key';
 
-    case TermsAcceptedAt = 'backend_ged_pexels_terms_accepted_at';
+    case TermsAcceptedAt = 'suite_ged_pexels_terms_accepted_at';
 
-    case TermsAcceptedBy = 'backend_ged_pexels_terms_accepted_by';
+    case TermsAcceptedBy = 'suite_ged_pexels_terms_accepted_by';
 }

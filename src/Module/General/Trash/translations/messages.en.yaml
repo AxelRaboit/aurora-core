@@ -1,4 +1,4 @@
-backend:
+suite:
     trash:
         guide:
             title: "How the trash works"

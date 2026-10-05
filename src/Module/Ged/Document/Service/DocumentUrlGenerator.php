@@ -27,7 +27,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  * **Two routes, one method.** A published document is addressed through the
  * public catch-all, which is what an image embedded in a page needs: one
  * stable address, cacheable, no session. Anything else is addressed through
- * `backend_ged_files`, which asks for the privilege. Callers do not choose
+ * `suite_ged_files`, which asks for the privilege. Callers do not choose
  * and mostly do not know - a serializer, a banner builder and an `og:image`
  * tag each ask for "the URL of this document" and get one that works for
  * whoever is entitled to it.
@@ -54,7 +54,7 @@ final readonly class DocumentUrlGenerator
     {
         return DocumentStatusEnum::Published === $document?->getStatus()
             ? 'uploads_serve'
-            : 'backend_ged_files';
+            : 'suite_ged_files';
     }
 
     public function publicUrl(?DocumentInterface $document): ?string

@@ -102,7 +102,7 @@ final readonly class DeckPictures
      *
      * Asked at the moment of sharing rather than at composing time, because
      * until there is a link there is nobody who cannot see the picture: the
-     * back office resolves the same document through `backend_ged_files`, and
+     * back office resolves the same document through `suite_ged_files`, and
      * the editor, the player and the print page all show it perfectly.
      *
      * @return list<array{id: int, name: string}>

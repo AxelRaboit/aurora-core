@@ -24,6 +24,6 @@ final readonly class AuthEntryPoint implements AuthenticationEntryPointInterface
             );
         }
 
-        return new RedirectResponse($this->urlGenerator->generate('backend_platform_login'));
+        return new RedirectResponse($this->urlGenerator->generate('suite_platform_login'));
     }
 }

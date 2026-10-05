@@ -51,7 +51,7 @@ final class UserManagerSidemenuPreferencesTest extends IntegrationTestCase
         // Seed directly via the entity setter so we don't depend on which
         // section/route ids are exposed by the running module set in tests.
         $user->setHiddenNavSections(['crm', 'billing']);
-        $user->setHiddenNavItems(['backend_crm_contacts']);
+        $user->setHiddenNavItems(['suite_crm_contacts']);
 
         $this->userManager->resetSidemenuPreferences($user);
 
@@ -64,10 +64,10 @@ final class UserManagerSidemenuPreferencesTest extends IntegrationTestCase
         $user = $this->createTestUser('dedup', role: UserRoleEnum::User);
 
         $user->setHiddenNavSections(['crm', 'crm', 'billing']);
-        $user->setHiddenNavItems(['backend_route_a', 'backend_route_a']);
+        $user->setHiddenNavItems(['suite_route_a', 'suite_route_a']);
 
         self::assertSame(['crm', 'billing'], $user->getHiddenNavSections());
-        self::assertSame(['backend_route_a'], $user->getHiddenNavItems());
+        self::assertSame(['suite_route_a'], $user->getHiddenNavItems());
     }
 
     public function testEntitySettersAlwaysReturnListShapes(): void

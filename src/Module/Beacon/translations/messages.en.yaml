@@ -1,4 +1,4 @@
-backend:
+suite:
     nav:
         beacon: Deployments
         beacon_description: "The site instances that check in, and the way unauthorized copies are spotted."

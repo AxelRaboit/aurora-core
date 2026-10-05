@@ -10,7 +10,7 @@ use Aurora\Module\Configuration\Setting\Enum\ModuleParameterEnum;
  * One tab in the admin Settings page. The `$id` is both the persisted
  * "group" identifier (matching the legacy `ApplicationParameterEnum::getGroup()`
  * values) and the translation-key suffix the Vue layer uses to resolve the
- * tab label / description (`backend.settings.tabs.{id}` + `_description`).
+ * tab label / description (`suite.settings.tabs.{id}` + `_description`).
  *
  * @phpstan-import-type SelectOption from SettingFieldDescriptor
  */
@@ -38,12 +38,12 @@ class ConfigurationTab
         public readonly bool $devOnly = false,
         /**
          * Optional name resolved against the Vue-side tab registry
-         * (`src/Module/Configuration/assets/backend/settings/tabRegistry.js`). When set, the
+         * (`src/Module/Configuration/assets/suite/settings/tabRegistry.js`). When set, the
          * Settings page renders the matching component instead of the
          * generic field renderer; clients can plug their own components
          * via `registerSettingsTabComponent(name, component)`.
          *
-         * Note: the registry name lives on the JS side; the backend only
+         * Note: the registry name lives on the JS side; the suite only
          * carries the string so the Vue layer can look it up.
          */
         public readonly ?string $componentName = null,
@@ -51,11 +51,11 @@ class ConfigurationTab
          * When set, the tab is only rendered while the module toggle is
          * enabled (resolved through `ModuleAccessChecker::isEnabled()`).
          * Disabling the module via `/dev/dashboard/modules` immediately
-         * hides the tab from `/backend/configuration/settings` so the UI stays consistent
+         * hides the tab from `/suite/configuration/settings` so the UI stays consistent
          * with what's actually accessible. Pass a `ModuleParameterEnum`
          * case for core modules or a raw toggle key string for client
          * modules whose top-level toggle isn't part of aurora-core's enum
-         * (e.g. `'modules_<module_id>_backend'`).
+         * (e.g. `'modules_<module_id>_suite'`).
          *
          * Shared tabs that aggregate fields across modules (notably
          * `sequences`) MUST leave this null - they should remain visible

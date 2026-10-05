@@ -121,12 +121,12 @@ final readonly class DeliverableDocumentUsageProvider implements BatchDocumentUs
 
         return [
             'type' => $this->usageType(),
-            'label' => $readable ? $deliverable->getTitle() : $this->translator->trans('backend.studio.deliverables.usage_private'),
+            'label' => $readable ? $deliverable->getTitle() : $this->translator->trans('suite.studio.deliverables.usage_private'),
             'detail' => $trashed
-                ? $this->translator->trans('backend.studio.deliverables.usage_detail_trashed')
+                ? $this->translator->trans('suite.studio.deliverables.usage_detail_trashed')
                 : ($space instanceof CustomerSpaceInterface
-                    ? $this->translator->trans('backend.studio.deliverables.usage_detail_space', ['%space%' => $space->getName()])
-                    : $this->translator->trans('backend.studio.deliverables.usage_detail')),
+                    ? $this->translator->trans('suite.studio.deliverables.usage_detail_space', ['%space%' => $space->getName()])
+                    : $this->translator->trans('suite.studio.deliverables.usage_detail')),
             'href' => $readable && !$trashed ? $this->serializer->path($deliverable, 'edit') : null,
         ];
     }

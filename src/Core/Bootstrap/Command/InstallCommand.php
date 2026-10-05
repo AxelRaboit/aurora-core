@@ -79,7 +79,7 @@ final class InstallCommand extends Command
     }
 
     /**
-     * An install with no user is unusable - nobody can reach the backend - and
+     * An install with no user is unusable - nobody can reach the suite - and
      * it is the one gap this command deliberately leaves, so it says so loudly
      * rather than reporting success on a site nobody can log into.
      */
@@ -90,7 +90,7 @@ final class InstallCommand extends Command
         }
 
         $symfonyStyle->warning([
-            "Aucun utilisateur n'existe : le backend est inaccessible.",
+            "Aucun utilisateur n'existe : la suite est inaccessible.",
             // `--dev` and not `--admin`: /dev is gated on ROLE_DEV, so an owner
             // created as an administrator cannot reach the dashboard that toggles
             // modules on their own installation.

@@ -42,7 +42,7 @@ final class CustomerSpacesControllerTest extends IntegrationTestCase
         $container = static::getContainer();
 
         $admin = $container->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
 
         $this->admin = $admin;
@@ -75,7 +75,7 @@ final class CustomerSpacesControllerTest extends IntegrationTestCase
     {
         $customer = $this->givenCustomer('Boulangerie Durand', '73282932000074');
 
-        $this->client->jsonRequest('POST', '/backend/studio/spaces/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/spaces/create', [
             'name' => 'Boulangerie Durand - Réseaux sociaux',
             'description' => 'Deux publications par semaine.',
             'customerId' => $customer->getId(),
@@ -101,7 +101,7 @@ final class CustomerSpacesControllerTest extends IntegrationTestCase
         $customer = $this->givenCustomer('Groupe Martin', '90451233600028');
 
         foreach (['Marque A', 'Marque B'] as $name) {
-            $this->client->jsonRequest('POST', '/backend/studio/spaces/create', [
+            $this->client->jsonRequest('POST', '/suite/studio/spaces/create', [
                 'name' => $name,
                 'customerId' => $customer->getId(),
             ]);
@@ -117,7 +117,7 @@ final class CustomerSpacesControllerTest extends IntegrationTestCase
 
     public function testASpaceWithoutACustomerIsRefused(): void
     {
-        $this->client->jsonRequest('POST', '/backend/studio/spaces/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/spaces/create', [
             'name' => 'Espace orphelin',
         ]);
 
@@ -128,7 +128,7 @@ final class CustomerSpacesControllerTest extends IntegrationTestCase
 
     public function testAnUnknownCustomerIsRefusedUnderItsOwnField(): void
     {
-        $this->client->jsonRequest('POST', '/backend/studio/spaces/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/spaces/create', [
             'name' => 'Espace fantôme',
             'customerId' => 987654,
         ]);
@@ -143,7 +143,7 @@ final class CustomerSpacesControllerTest extends IntegrationTestCase
     {
         $customer = $this->givenCustomer('Atelier Renard', '39860733100024');
 
-        $this->client->jsonRequest('POST', '/backend/studio/spaces/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/spaces/create', [
             'name' => 'Atelier Renard - Contenus',
             'customerId' => $customer->getId(),
             'members' => [
@@ -161,7 +161,7 @@ final class CustomerSpacesControllerTest extends IntegrationTestCase
 
         // Same account, different role. The row must move rather than be
         // dropped and re-inserted, which is what would churn its id.
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/spaces/%d/update', $spaceId), [
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/spaces/%d/update', $spaceId), [
             'name' => 'Atelier Renard - Contenus',
             'customerId' => $customer->getId(),
             'members' => [
@@ -176,7 +176,7 @@ final class CustomerSpacesControllerTest extends IntegrationTestCase
         self::assertSame('lead', $updated['members'][0]['role']);
 
         // And an empty set removes them.
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/spaces/%d/update', $spaceId), [
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/spaces/%d/update', $spaceId), [
             'name' => 'Atelier Renard - Contenus',
             'customerId' => $customer->getId(),
             'members' => [],
@@ -190,7 +190,7 @@ final class CustomerSpacesControllerTest extends IntegrationTestCase
     {
         $customer = $this->givenCustomer('Studio Double', '44306184100047');
 
-        $this->client->jsonRequest('POST', '/backend/studio/spaces/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/spaces/create', [
             'name' => 'Espace doublon',
             'customerId' => $customer->getId(),
             'members' => [
@@ -212,13 +212,13 @@ final class CustomerSpacesControllerTest extends IntegrationTestCase
     {
         $customer = $this->givenCustomer('Client occupé', '52847521100014');
 
-        $this->client->jsonRequest('POST', '/backend/studio/spaces/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/spaces/create', [
             'name' => 'Travail en cours',
             'customerId' => $customer->getId(),
         ]);
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/customers/%d/delete', $customer->getId()));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/customers/%d/delete', $customer->getId()));
 
         // A sentence under the field, not the 500 the `RESTRICT` foreign key
         // produces on its own.
@@ -230,7 +230,7 @@ final class CustomerSpacesControllerTest extends IntegrationTestCase
     {
         $customer = $this->givenCustomer('Ancien client', '38012986600038');
 
-        $this->client->jsonRequest('POST', '/backend/studio/spaces/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/spaces/create', [
             'name' => 'Chantier terminé',
             'customerId' => $customer->getId(),
             'status' => 'archived',
@@ -249,7 +249,7 @@ final class CustomerSpacesControllerTest extends IntegrationTestCase
     {
         $customer = $this->givenCustomer('Client éphémère', '41231234500019');
 
-        $this->client->jsonRequest('POST', '/backend/studio/spaces/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/spaces/create', [
             'name' => 'À supprimer',
             'customerId' => $customer->getId(),
             'members' => [['userId' => $this->admin->getId(), 'role' => 'lead']],
@@ -257,7 +257,7 @@ final class CustomerSpacesControllerTest extends IntegrationTestCase
 
         $id = $this->payload()['space']['id'];
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/spaces/%d/delete', $id));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/spaces/%d/delete', $id));
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
         self::assertNull($this->spaces->find($id));
@@ -265,7 +265,7 @@ final class CustomerSpacesControllerTest extends IntegrationTestCase
 
     public function testTheIndexScreenRenders(): void
     {
-        $this->client->request('GET', '/backend/studio/spaces');
+        $this->client->request('GET', '/suite/studio/spaces');
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
     }
@@ -279,7 +279,7 @@ final class CustomerSpacesControllerTest extends IntegrationTestCase
      */
     public function testASpaceOpensAProspectWhenNoCustomerIsNamed(): void
     {
-        $this->client->jsonRequest('POST', '/backend/studio/spaces/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/spaces/create', [
             'name' => 'Verrerie Lemoine - Lancement',
             'prospectName' => 'Verrerie Lemoine',
             'prospectEmail' => 'contact@verrerie-lemoine.test',
@@ -313,7 +313,7 @@ final class CustomerSpacesControllerTest extends IntegrationTestCase
      */
     public function testAProspectNeedsNothingButItsName(): void
     {
-        $this->client->jsonRequest('POST', '/backend/studio/spaces/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/spaces/create', [
             'name' => 'Rien que le nom',
             'prospectName' => 'Verrerie Lemoine',
             'timezone' => 'Europe/Paris',
@@ -331,7 +331,7 @@ final class CustomerSpacesControllerTest extends IntegrationTestCase
 
     public function testASpaceStillNeedsSomebodyToBelongTo(): void
     {
-        $this->client->jsonRequest('POST', '/backend/studio/spaces/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/spaces/create', [
             'name' => 'Pour personne',
             'timezone' => 'Europe/Paris',
         ]);
@@ -351,7 +351,7 @@ final class CustomerSpacesControllerTest extends IntegrationTestCase
     {
         $customer = $this->givenCustomer('Atelier Dupont', '73282932000074');
 
-        $this->client->jsonRequest('POST', '/backend/studio/spaces/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/spaces/create', [
             'name' => 'Les deux a la fois',
             'customerId' => $customer->getId(),
             'prospectName' => 'Verrerie Lemoine',

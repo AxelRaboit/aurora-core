@@ -61,16 +61,16 @@ final class MarkdownNoteTest extends IntegrationTestCase
 
         $users = static::getContainer()->get(UserRepository::class);
 
-        $owner = $users->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $owner = $users->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $owner);
         $this->owner = $owner;
 
-        $other = $users->findOneBy(['type' => UserTypeEnum::Backend->value, 'email' => 'notes@aurora.test']);
+        $other = $users->findOneBy(['type' => UserTypeEnum::Suite->value, 'email' => 'notes@aurora.test']);
         if (!$other instanceof User) {
             $other = new User();
             $other->setEmail('notes@aurora.test');
             $other->setName('Autre');
-            $other->setType(UserTypeEnum::Backend);
+            $other->setType(UserTypeEnum::Suite);
             $other->setPassword('x');
             $other->setRoles($owner->getRoles());
             $this->entityManager->persist($other);
@@ -98,7 +98,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
     {
         $this->client->loginUser($this->owner, 'admin');
 
-        $body = $this->post('backend_notes_markdown_create', [
+        $body = $this->post('suite_notes_markdown_create', [
             'title' => 'Première note',
             'content' => "# Titre\n\nDu texte.",
             'tags' => ['essai'],
@@ -127,7 +127,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
         self::assertNotContains($note->getId(), $this->listedIds());
 
         $this->client->request('GET', $this->urlGenerator->generate(
-            'backend_notes_markdown_show',
+            'suite_notes_markdown_show',
             ['id' => $note->getId()],
         ));
         self::assertResponseStatusCodeSame(404);
@@ -139,7 +139,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
         $note = $this->note($this->owner, 'Intacte');
 
         $this->client->loginUser($this->other, 'admin');
-        $this->post('backend_notes_markdown_update', ['title' => 'Piratée'], ['id' => $note->getId()]);
+        $this->post('suite_notes_markdown_update', ['title' => 'Piratée'], ['id' => $note->getId()]);
 
         self::assertResponseStatusCodeSame(404);
 
@@ -166,7 +166,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
         $folderId = (int) $folder->getId();
 
         $this->client->loginUser($this->owner, 'admin');
-        $this->post('backend_notes_markdown_folders_delete', [], ['id' => $folderId]);
+        $this->post('suite_notes_markdown_folders_delete', [], ['id' => $folderId]);
         self::assertResponseIsSuccessful();
 
         $this->entityManager->clear();
@@ -185,8 +185,8 @@ final class MarkdownNoteTest extends IntegrationTestCase
         $folderId = (int) $folder->getId();
 
         $this->client->loginUser($this->owner, 'admin');
-        $this->post('backend_notes_markdown_folders_delete', [], ['id' => $folderId]);
-        $this->post('backend_notes_markdown_folders_restore', [], ['id' => $folderId]);
+        $this->post('suite_notes_markdown_folders_delete', [], ['id' => $folderId]);
+        $this->post('suite_notes_markdown_folders_restore', [], ['id' => $folderId]);
         self::assertResponseIsSuccessful();
 
         $this->entityManager->clear();
@@ -205,9 +205,9 @@ final class MarkdownNoteTest extends IntegrationTestCase
 
         $this->client->loginUser($this->owner, 'admin');
         // The note goes first, by hand: that is a decision of its own.
-        $this->post('backend_notes_markdown_delete', [], ['id' => $noteId]);
-        $this->post('backend_notes_markdown_folders_delete', [], ['id' => $folderId]);
-        $this->post('backend_notes_markdown_folders_restore', [], ['id' => $folderId]);
+        $this->post('suite_notes_markdown_delete', [], ['id' => $noteId]);
+        $this->post('suite_notes_markdown_folders_delete', [], ['id' => $folderId]);
+        $this->post('suite_notes_markdown_folders_restore', [], ['id' => $folderId]);
 
         $this->entityManager->clear();
         $stillTrashed = $this->entityManager->find(MarkdownNote::class, $noteId);
@@ -229,7 +229,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
 
         $this->client->loginUser($this->owner, 'admin');
         $this->post(
-            'backend_notes_markdown_folders_move',
+            'suite_notes_markdown_folders_move',
             ['parentId' => $child->getId()],
             ['id' => $parent->getId()],
         );
@@ -252,7 +252,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
     {
         $this->client->loginUser($this->owner, 'admin');
 
-        $created = $this->post('backend_notes_markdown_folders_create', [
+        $created = $this->post('suite_notes_markdown_folders_create', [
             'name' => 'Clients',
             'color' => '#22c55e',
         ]);
@@ -264,7 +264,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
         $this->created[] = [NoteFolder::class, $id];
 
         $this->post(
-            'backend_notes_markdown_folders_update',
+            'suite_notes_markdown_folders_update',
             ['name' => 'Clients', 'color' => 'rouge'],
             ['id' => $id],
         );
@@ -288,7 +288,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
         $note = $this->note($this->owner, 'Avec une image');
 
         $this->client->loginUser($this->owner, 'admin');
-        $this->post('backend_notes_markdown_update', [
+        $this->post('suite_notes_markdown_update', [
             'title' => 'Avec une image',
             'content' => '',
             'coverUrl' => 'https://images.pexels.com/photos/1/photo.jpg',
@@ -319,7 +319,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
         $note = $this->note($this->owner, 'Extrait', content: 'Ancien texte.');
 
         $this->client->loginUser($this->owner, 'admin');
-        $response = $this->post('backend_notes_markdown_update', [
+        $response = $this->post('suite_notes_markdown_update', [
             'title' => 'Extrait',
             'content' => "# Nouveau\n\n![photo](data:image/png;base64,AAAA)Un texte neuf.",
         ], ['id' => $note->getId()]);
@@ -334,7 +334,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
         $note = $this->note($this->owner, 'Sans image');
 
         $this->client->loginUser($this->owner, 'admin');
-        $this->post('backend_notes_markdown_update', [
+        $this->post('suite_notes_markdown_update', [
             'title' => 'Sans image',
             'content' => '',
             'coverUrl' => 'javascript:alert(1)',
@@ -366,17 +366,17 @@ final class MarkdownNoteTest extends IntegrationTestCase
 
         $this->client->loginUser($this->owner, 'admin');
         $this->client->request('GET', $this->urlGenerator->generate(
-            'backend_notes_markdown_read',
+            'suite_notes_markdown_read',
             ['id' => $first->getId()],
         ));
 
         self::assertResponseIsSuccessful();
 
         $html = (string) $this->client->getResponse()->getContent();
-        self::assertStringContainsString('notes/backend/markdown/NoteReadApp', $html);
+        self::assertStringContainsString('notes/suite/markdown/NoteReadApp', $html);
         // Un espace épuré : pas le menu du back-office, sa propre
         // arborescence à la place.
-        self::assertStringNotContainsString('core/backend/sidemenu/AppSidemenu', $html);
+        self::assertStringNotContainsString('core/suite/sidemenu/AppSidemenu', $html);
 
         $props = $this->readProps($html);
         $inTree = array_column($props['treeNotes'], 'id');
@@ -388,7 +388,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
 
         $this->client->loginUser($this->other, 'admin');
         $this->client->request('GET', $this->urlGenerator->generate(
-            'backend_notes_markdown_read',
+            'suite_notes_markdown_read',
             ['id' => $first->getId()],
         ));
 
@@ -402,12 +402,12 @@ final class MarkdownNoteTest extends IntegrationTestCase
     public function testTheReaderHasAnEntryOfItsOwn(): void
     {
         $this->client->loginUser($this->other, 'admin');
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_read_entry'));
-        self::assertResponseRedirects($this->urlGenerator->generate('backend_notes_markdown'));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_read_entry'));
+        self::assertResponseRedirects($this->urlGenerator->generate('suite_notes_markdown'));
 
         $note = $this->note($this->other, 'Seule note');
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_read_entry'));
-        self::assertResponseRedirects($this->urlGenerator->generate('backend_notes_markdown_read', ['id' => $note->getId()]));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_read_entry'));
+        self::assertResponseRedirects($this->urlGenerator->generate('suite_notes_markdown_read', ['id' => $note->getId()]));
     }
 
     /**
@@ -424,7 +424,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
         $b = $this->folder($this->owner, 'B', $parent);
 
         $this->client->loginUser($this->owner, 'admin');
-        $this->post('backend_notes_markdown_folders_reorder', ['entries' => [
+        $this->post('suite_notes_markdown_folders_reorder', ['entries' => [
             ['id' => $b->getId(), 'parentId' => $parent->getId(), 'position' => 0],
             ['id' => $a->getId(), 'parentId' => $parent->getId(), 'position' => 1],
         ]]);
@@ -455,7 +455,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
         $this->entityManager->flush();
 
         $this->client->loginUser($this->owner, 'admin');
-        $body = $this->post('backend_notes_markdown_create', ['title' => 'Tâches', 'folderId' => $parent->getId()]);
+        $body = $this->post('suite_notes_markdown_create', ['title' => 'Tâches', 'folderId' => $parent->getId()]);
         self::assertResponseIsSuccessful();
 
         $note = $this->entityManager->find(MarkdownNote::class, $body['note']['id']);
@@ -476,7 +476,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
         $this->entityManager->flush();
 
         $this->client->loginUser($this->owner, 'admin');
-        $this->post('backend_notes_markdown_move', ['folderId' => $target->getId()], ['id' => $moving->getId()]);
+        $this->post('suite_notes_markdown_move', ['folderId' => $target->getId()], ['id' => $moving->getId()]);
         self::assertResponseIsSuccessful();
 
         $this->entityManager->clear();
@@ -537,7 +537,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
         $this->entityManager->flush();
 
         $this->client->loginUser($this->owner, 'admin');
-        $body = $this->post('backend_notes_markdown_duplicate', [], ['id' => $original->getId()]);
+        $body = $this->post('suite_notes_markdown_duplicate', [], ['id' => $original->getId()]);
         self::assertResponseIsSuccessful();
         $this->created[] = [MarkdownNote::class, (int) $body['note']['id']];
 
@@ -559,7 +559,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
         $note = $this->note($this->owner, 'Personnel');
 
         $this->client->loginUser($this->other, 'admin');
-        $this->post('backend_notes_markdown_duplicate', [], ['id' => $note->getId()]);
+        $this->post('suite_notes_markdown_duplicate', [], ['id' => $note->getId()]);
 
         self::assertResponseStatusCodeSame(404);
     }
@@ -574,10 +574,10 @@ final class MarkdownNoteTest extends IntegrationTestCase
         $target = $this->folder($this->owner, 'Réunions');
 
         $this->client->loginUser($this->owner, 'admin');
-        $this->post('backend_notes_markdown_template', ['template' => true], ['id' => $template->getId()]);
+        $this->post('suite_notes_markdown_template', ['template' => true], ['id' => $template->getId()]);
         self::assertResponseIsSuccessful();
 
-        $body = $this->post('backend_notes_markdown_from_template', ['folderId' => $target->getId(), 'title' => 'Point Lumen'], ['id' => $template->getId()]);
+        $body = $this->post('suite_notes_markdown_from_template', ['folderId' => $target->getId(), 'title' => 'Point Lumen'], ['id' => $template->getId()]);
         self::assertResponseIsSuccessful();
         $this->created[] = [MarkdownNote::class, (int) $body['note']['id']];
 
@@ -599,7 +599,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
         $note = $this->note($this->owner, 'Ordinaire');
 
         $this->client->loginUser($this->owner, 'admin');
-        $this->post('backend_notes_markdown_from_template', [], ['id' => $note->getId()]);
+        $this->post('suite_notes_markdown_from_template', [], ['id' => $note->getId()]);
 
         self::assertResponseStatusCodeSame(404);
     }
@@ -614,17 +614,17 @@ final class MarkdownNoteTest extends IntegrationTestCase
         $note = $this->note($this->owner, 'Brief', null, 'Version 1');
 
         $this->client->loginUser($this->owner, 'admin');
-        $this->post('backend_notes_markdown_update', ['title' => 'Brief', 'content' => 'Version 2'], ['id' => $note->getId()]);
+        $this->post('suite_notes_markdown_update', ['title' => 'Brief', 'content' => 'Version 2'], ['id' => $note->getId()]);
         self::assertResponseIsSuccessful();
-        $this->post('backend_notes_markdown_update', ['title' => 'Brief', 'content' => 'Version 3'], ['id' => $note->getId()]);
+        $this->post('suite_notes_markdown_update', ['title' => 'Brief', 'content' => 'Version 3'], ['id' => $note->getId()]);
         self::assertResponseIsSuccessful();
 
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_revisions', ['id' => $note->getId()]));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_revisions', ['id' => $note->getId()]));
         $revisions = json_decode((string) $this->client->getResponse()->getContent(), true)['revisions'];
 
         self::assertCount(1, $revisions);
 
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_revision', ['id' => $note->getId(), 'revisionId' => $revisions[0]['id']]));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_revision', ['id' => $note->getId(), 'revisionId' => $revisions[0]['id']]));
         self::assertSame('Version 1', json_decode((string) $this->client->getResponse()->getContent(), true)['revision']['content']);
     }
 
@@ -634,20 +634,20 @@ final class MarkdownNoteTest extends IntegrationTestCase
         $note = $this->note($this->owner, 'Brief', null, 'Ancien texte');
 
         $this->client->loginUser($this->owner, 'admin');
-        $this->post('backend_notes_markdown_update', ['title' => 'Brief', 'content' => 'Nouveau texte'], ['id' => $note->getId()]);
+        $this->post('suite_notes_markdown_update', ['title' => 'Brief', 'content' => 'Nouveau texte'], ['id' => $note->getId()]);
 
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_revisions', ['id' => $note->getId()]));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_revisions', ['id' => $note->getId()]));
         $old = json_decode((string) $this->client->getResponse()->getContent(), true)['revisions'][0]['id'];
 
-        $body = $this->post('backend_notes_markdown_revision_restore', [], ['id' => $note->getId(), 'revisionId' => $old]);
+        $body = $this->post('suite_notes_markdown_revision_restore', [], ['id' => $note->getId(), 'revisionId' => $old]);
         self::assertResponseIsSuccessful();
         self::assertSame('Ancien texte', $body['note']['content']);
 
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_revisions', ['id' => $note->getId()]));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_revisions', ['id' => $note->getId()]));
         $revisions = json_decode((string) $this->client->getResponse()->getContent(), true)['revisions'];
         self::assertCount(2, $revisions);
 
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_revision', ['id' => $note->getId(), 'revisionId' => $revisions[0]['id']]));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_revision', ['id' => $note->getId(), 'revisionId' => $revisions[0]['id']]));
         self::assertSame('Nouveau texte', json_decode((string) $this->client->getResponse()->getContent(), true)['revision']['content']);
     }
 
@@ -666,15 +666,15 @@ final class MarkdownNoteTest extends IntegrationTestCase
         ));
         $this->client->request(
             'POST',
-            $this->urlGenerator->generate('backend_notes_markdown_images_upload'),
+            $this->urlGenerator->generate('suite_notes_markdown_images_upload'),
             files: ['image' => new UploadedFile($source, 'pixel.png', 'image/png', null, true)],
         );
         $url = json_decode((string) $this->client->getResponse()->getContent(), true)['url'];
 
-        $note = $this->post('backend_notes_markdown_create', ['title' => 'Illustrée', 'content' => sprintf('![Un pixel](%s)', $url)]);
+        $note = $this->post('suite_notes_markdown_create', ['title' => 'Illustrée', 'content' => sprintf('![Un pixel](%s)', $url)]);
         $this->created[] = [MarkdownNote::class, (int) $note['note']['id']];
 
-        $this->post('backend_notes_markdown_update', ['title' => 'Illustrée', 'content' => 'Sans image'], ['id' => $note['note']['id']]);
+        $this->post('suite_notes_markdown_update', ['title' => 'Illustrée', 'content' => 'Sans image'], ['id' => $note['note']['id']]);
         self::assertResponseIsSuccessful();
 
         $this->client->request('GET', $url);
@@ -687,7 +687,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
         $note = $this->note($this->owner, 'Personnel', null, 'Secret');
 
         $this->client->loginUser($this->other, 'admin');
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_revisions', ['id' => $note->getId()]));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_revisions', ['id' => $note->getId()]));
 
         self::assertResponseStatusCodeSame(404);
     }
@@ -703,7 +703,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
         $child = $this->folder($this->owner, 'Enfant', $top);
 
         $this->client->loginUser($this->owner, 'admin');
-        $this->post('backend_notes_markdown_folders_reorder', ['entries' => [
+        $this->post('suite_notes_markdown_folders_reorder', ['entries' => [
             ['id' => $top->getId(), 'parentId' => $child->getId(), 'position' => 0],
         ]]);
 
@@ -722,20 +722,20 @@ final class MarkdownNoteTest extends IntegrationTestCase
         $note = $this->note($this->owner, 'Versionnée', content: 'v1');
         $this->client->loginUser($this->owner, 'admin');
 
-        $saved = $this->post('backend_notes_markdown_update', ['title' => 'Versionnée', 'content' => 'v2', 'version' => 1], ['id' => $note->getId()]);
+        $saved = $this->post('suite_notes_markdown_update', ['title' => 'Versionnée', 'content' => 'v2', 'version' => 1], ['id' => $note->getId()]);
         self::assertResponseIsSuccessful();
         self::assertSame(2, $saved['note']['version']);
 
         // Parti de la version 1 alors que la note est en 2 : refusé.
-        $this->post('backend_notes_markdown_update', ['title' => 'Versionnée', 'content' => 'écrasé', 'version' => 1], ['id' => $note->getId()]);
+        $this->post('suite_notes_markdown_update', ['title' => 'Versionnée', 'content' => 'écrasé', 'version' => 1], ['id' => $note->getId()]);
         self::assertResponseStatusCodeSame(409);
         $body = json_decode((string) $this->client->getResponse()->getContent(), true);
         self::assertTrue($body['conflict']);
 
         // Écraser en le sachant passe, et un appel sans version aussi.
-        $this->post('backend_notes_markdown_update', ['title' => 'Versionnée', 'content' => 'forcé', 'version' => 1, 'force' => true], ['id' => $note->getId()]);
+        $this->post('suite_notes_markdown_update', ['title' => 'Versionnée', 'content' => 'forcé', 'version' => 1, 'force' => true], ['id' => $note->getId()]);
         self::assertResponseIsSuccessful();
-        $this->post('backend_notes_markdown_update', ['title' => 'Versionnée', 'content' => 'sans version'], ['id' => $note->getId()]);
+        $this->post('suite_notes_markdown_update', ['title' => 'Versionnée', 'content' => 'sans version'], ['id' => $note->getId()]);
         self::assertResponseIsSuccessful();
 
         $this->entityManager->clear();
@@ -748,7 +748,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
         $folder = $this->folder($this->owner, 'Privé');
 
         $this->client->loginUser($this->other, 'admin');
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_folders_list'));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_folders_list'));
         self::assertResponseIsSuccessful();
 
         $body = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
@@ -757,7 +757,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
         self::assertNotContains((int) $folder->getId(), $ids);
 
         $this->client->request('GET', $this->urlGenerator->generate(
-            'backend_notes_markdown_folder',
+            'suite_notes_markdown_folder',
             ['id' => $folder->getId()],
         ));
         self::assertResponseStatusCodeSame(404);
@@ -775,7 +775,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
         $this->note($this->owner, 'Une note');
 
         $this->client->loginUser($this->owner, 'admin');
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown'));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown'));
 
         self::assertResponseIsSuccessful();
     }
@@ -788,7 +788,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
 
         $this->client->loginUser($this->owner, 'admin');
         $this->client->request('GET', $this->urlGenerator->generate(
-            'backend_notes_markdown_folder',
+            'suite_notes_markdown_folder',
             ['id' => $child->getId()],
         ));
 
@@ -818,7 +818,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
         $note = $this->note($this->owner, 'Devis', $folder);
 
         $this->client->loginUser($this->owner, 'admin');
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_list'));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_list'));
 
         $body = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
 
@@ -845,7 +845,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
         $note = $this->note($this->owner, 'Avec du texte', content: "# Titre\n\n- une liste\n- deux");
 
         $this->client->loginUser($this->owner, 'admin');
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_list'));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_list'));
 
         $body = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
 
@@ -874,7 +874,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
         );
 
         $this->client->loginUser($this->owner, 'admin');
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_list'));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_list'));
 
         $body = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
 
@@ -901,15 +901,15 @@ final class MarkdownNoteTest extends IntegrationTestCase
 
         $this->client->loginUser($this->owner, 'admin');
 
-        $body = $this->post('backend_notes_markdown_favorite', [], ['id' => $note->getId()]);
+        $body = $this->post('suite_notes_markdown_favorite', [], ['id' => $note->getId()]);
         self::assertTrue($body['favorite']);
         self::assertNotNull($this->listedRow((int) $note->getId())['favoritedAt']);
 
         // Le lecteur le sait aussi : son étoile s'allume.
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_read', ['id' => $note->getId()]));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_read', ['id' => $note->getId()]));
         self::assertTrue($this->readProps((string) $this->client->getResponse()->getContent())['favorited']);
 
-        $body = $this->post('backend_notes_markdown_favorite', [], ['id' => $note->getId()]);
+        $body = $this->post('suite_notes_markdown_favorite', [], ['id' => $note->getId()]);
         self::assertFalse($body['favorite']);
         self::assertNull($this->listedRow((int) $note->getId())['favoritedAt']);
     }
@@ -923,7 +923,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
         $folder = $this->folder($this->owner, 'Clients');
 
         $this->client->loginUser($this->other, 'admin');
-        $this->post('backend_notes_markdown_folders_favorite', [], ['id' => $folder->getId()]);
+        $this->post('suite_notes_markdown_folders_favorite', [], ['id' => $folder->getId()]);
         self::assertResponseStatusCodeSame(404);
 
         // Dans un espace ouvert à tous, chacun épingle pour lui.
@@ -937,20 +937,20 @@ final class MarkdownNoteTest extends IntegrationTestCase
         $this->entityManager->flush();
 
         $this->client->loginUser($this->other, 'admin');
-        $body = $this->post('backend_notes_markdown_favorite', [], ['id' => $shared->getId()]);
+        $body = $this->post('suite_notes_markdown_favorite', [], ['id' => $shared->getId()]);
         self::assertTrue($body['favorite']);
         self::assertNotNull($this->listedRow((int) $shared->getId())['favoritedAt']);
 
         $this->client->loginUser($this->owner, 'admin');
         self::assertNull($this->listedRow((int) $shared->getId())['favoritedAt']);
-        $body = $this->post('backend_notes_markdown_folders_favorite', [], ['id' => $folder->getId()]);
+        $body = $this->post('suite_notes_markdown_folders_favorite', [], ['id' => $folder->getId()]);
         self::assertTrue($body['favorite']);
     }
 
     /** @return array<string, mixed> */
     private function listedRow(int $id): array
     {
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_list'));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_list'));
         self::assertResponseIsSuccessful();
 
         $body = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
@@ -974,7 +974,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
         $note = $this->note($this->owner, 'Datée');
 
         $this->client->loginUser($this->owner, 'admin');
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_list'));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_list'));
 
         $body = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
 
@@ -1051,7 +1051,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
     /** @return list<int> */
     private function listedIds(): array
     {
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_list'));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_list'));
         self::assertResponseIsSuccessful();
 
         $body = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
@@ -1074,18 +1074,18 @@ final class MarkdownNoteTest extends IntegrationTestCase
     {
         $this->client->loginUser($this->owner, 'admin');
 
-        $folder = $this->post('backend_notes_markdown_folders_create', ['name' => 'Clients']);
+        $folder = $this->post('suite_notes_markdown_folders_create', ['name' => 'Clients']);
         $folderId = $folder['folder']['id'];
         $this->created[] = [NoteFolder::class, (int) $folderId];
 
-        $child = $this->post('backend_notes_markdown_create', [
+        $child = $this->post('suite_notes_markdown_create', [
             'title' => 'Studio Lumen',
             'content' => 'Photo, en cours.',
             'folderId' => $folderId,
         ]);
         $this->created[] = [MarkdownNote::class, (int) $child['note']['id']];
 
-        $this->client->request('GET', $this->urlGenerator->generate('backend_notes_markdown_export'));
+        $this->client->request('GET', $this->urlGenerator->generate('suite_notes_markdown_export'));
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
@@ -1113,7 +1113,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
 
         $this->client->request(
             'POST',
-            $this->urlGenerator->generate('backend_notes_markdown_import'),
+            $this->urlGenerator->generate('suite_notes_markdown_import'),
             files: ['files' => [new UploadedFile($path, 'notes.zip', 'application/zip', null, true)]],
         );
 
@@ -1155,7 +1155,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
     {
         $this->client->loginUser($this->owner, 'admin');
 
-        $note = $this->post('backend_notes_markdown_create', [
+        $note = $this->post('suite_notes_markdown_create', [
             'title' => 'Avec étiquettes',
             'content' => 'Du texte.',
             'tags' => ['photo', 'méthode'],
@@ -1164,7 +1164,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
 
         $this->client->request(
             'GET',
-            $this->urlGenerator->generate('backend_notes_markdown_export_one', ['id' => $note['note']['id']]),
+            $this->urlGenerator->generate('suite_notes_markdown_export_one', ['id' => $note['note']['id']]),
         );
 
         $body = (string) $this->client->getResponse()->getContent();
@@ -1176,7 +1176,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
 
         $this->client->request(
             'POST',
-            $this->urlGenerator->generate('backend_notes_markdown_import'),
+            $this->urlGenerator->generate('suite_notes_markdown_import'),
             files: ['files' => [new UploadedFile($path, 'Avec étiquettes.md', 'text/markdown', null, true)]],
         );
 
@@ -1242,7 +1242,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
 
         $this->client->request(
             'POST',
-            $this->urlGenerator->generate('backend_notes_markdown_images_upload'),
+            $this->urlGenerator->generate('suite_notes_markdown_images_upload'),
             files: ['image' => new UploadedFile($source, 'pixel.png', 'image/png', null, true)],
         );
 
@@ -1253,10 +1253,10 @@ final class MarkdownNoteTest extends IntegrationTestCase
         // La note est rangée dans un dossier, pour que le chemin relatif ait
         // un cran à remonter : c'est là que l'export se trompait le plus
         // facilement.
-        $folder = $this->post('backend_notes_markdown_folders_create', ['name' => 'Illustré']);
+        $folder = $this->post('suite_notes_markdown_folders_create', ['name' => 'Illustré']);
         $this->created[] = [NoteFolder::class, (int) $folder['folder']['id']];
 
-        $note = $this->post('backend_notes_markdown_create', [
+        $note = $this->post('suite_notes_markdown_create', [
             'title' => 'Une note illustrée',
             'content' => sprintf('Voici le pixel :\n\n![Un pixel](%s)\n', $url),
             'folderId' => $folder['folder']['id'],
@@ -1283,7 +1283,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
             'la note remonte d\'un cran, puisqu\'elle est dans un dossier',
         );
         self::assertStringNotContainsString(
-            '/backend/notes/markdown/images/',
+            '/suite/notes/markdown/images/',
             $exported,
             "plus aucune adresse du back-office dans l'archive",
         );
@@ -1291,7 +1291,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
         // Le retour.
         $this->client->request(
             'POST',
-            $this->urlGenerator->generate('backend_notes_markdown_import'),
+            $this->urlGenerator->generate('suite_notes_markdown_import'),
             files: ['files' => [new UploadedFile($path, 'notes.zip', 'application/zip', null, true)]],
         );
 
@@ -1317,7 +1317,7 @@ final class MarkdownNoteTest extends IntegrationTestCase
         $contenu = (string) $reimported->getContent();
 
         self::assertStringContainsString(
-            '/backend/notes/markdown/images/',
+            '/suite/notes/markdown/images/',
             $contenu,
             "le chemin relatif est redevenu une adresse servie par l'application",
         );

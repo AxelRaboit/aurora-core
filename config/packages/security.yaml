@@ -12,7 +12,7 @@ security:
                 class: Aurora\Module\Platform\User\Entity\User
                 property: email
         admin_user_provider:
-            id: Aurora\Module\Platform\Auth\Security\Backend\UserProvider
+            id: Aurora\Module\Platform\Auth\Security\Suite\UserProvider
         front_user_provider:
             id: Aurora\Module\Platform\Auth\Security\Frontend\UserProvider
 
@@ -21,33 +21,33 @@ security:
             pattern: ^/(_profiler|_wdt|assets|build)/
             security: false
 
-        # ── Admin / CMS backend ───────────────────────────────────────────────
+        # ── Admin / CMS suite ───────────────────────────────────────────────
         admin:
             context: admin
             # `workspace` is staff-only like the other two, and it is not
-            # under `/backend` on purpose: a client space is opened in its own
+            # under `/suite` on purpose: a client space is opened in its own
             # shell, without the admin chrome, and the address says so. What it
             # must not lose by leaving that prefix is the identity - outside
-            # this pattern no backend session is restored, and a member of the
+            # this pattern no suite session is restored, and a member of the
             # team would arrive on their own client's board as an anonymous
             # visitor. Adding the prefix here is what keeps the two apart:
             # what is drawn, and who is recognised.
-            pattern: ^/(backend|dev|workspace)
+            pattern: ^/(suite|dev|workspace)
             provider: admin_user_provider
-            user_checker: Aurora\Module\Platform\Auth\Security\Backend\UserChecker
+            user_checker: Aurora\Module\Platform\Auth\Security\Suite\UserChecker
             form_login:
-                login_path: backend_platform_login
-                check_path: backend_platform_login
+                login_path: suite_platform_login
+                check_path: suite_platform_login
                 enable_csrf: true
-                default_target_path: backend_dashboard
+                default_target_path: suite_dashboard
                 username_parameter: email
                 password_parameter: password
             login_throttling:
                 max_attempts: 5
                 interval: '15 minutes'
             logout:
-                path: backend_platform_logout
-                target: backend_platform_login
+                path: suite_platform_logout
+                target: suite_platform_login
             remember_me:
                 secret: '%kernel.secret%'
                 lifetime: 604800
@@ -70,15 +70,15 @@ security:
                 lifetime: 2592000
 
     access_control:
-        - { path: ^/backend/platform/login, roles: PUBLIC_ACCESS }
-        - { path: ^/backend/platform/logout, roles: PUBLIC_ACCESS }
-        - { path: ^/backend/platform/register, roles: PUBLIC_ACCESS }
-        - { path: ^/backend/platform/forgot-password, roles: PUBLIC_ACCESS }
-        - { path: ^/backend/platform/reset-password, roles: PUBLIC_ACCESS }
-        - { path: ^/backend/platform/access-request, roles: PUBLIC_ACCESS }
-        - { path: ^/backend/platform/invitation, roles: PUBLIC_ACCESS }
-        - { path: ^/backend/platform/verify-email, roles: PUBLIC_ACCESS }
-        - { path: ^/backend/platform/resend-verification, roles: PUBLIC_ACCESS }
+        - { path: ^/suite/platform/login, roles: PUBLIC_ACCESS }
+        - { path: ^/suite/platform/logout, roles: PUBLIC_ACCESS }
+        - { path: ^/suite/platform/register, roles: PUBLIC_ACCESS }
+        - { path: ^/suite/platform/forgot-password, roles: PUBLIC_ACCESS }
+        - { path: ^/suite/platform/reset-password, roles: PUBLIC_ACCESS }
+        - { path: ^/suite/platform/access-request, roles: PUBLIC_ACCESS }
+        - { path: ^/suite/platform/invitation, roles: PUBLIC_ACCESS }
+        - { path: ^/suite/platform/verify-email, roles: PUBLIC_ACCESS }
+        - { path: ^/suite/platform/resend-verification, roles: PUBLIC_ACCESS }
         - { path: ^/front-login-check, roles: PUBLIC_ACCESS }
         - { path: '^/[a-z]{2}/impersonate/', roles: PUBLIC_ACCESS }
         - { path: '^/[a-z]{2}/forgot-password', roles: PUBLIC_ACCESS }
@@ -92,13 +92,13 @@ security:
         - { path: '^/[a-z]{2}/register', roles: PUBLIC_ACCESS }
         - { path: '^/[a-z]{2}/resend-verification', roles: PUBLIC_ACCESS }
         - { path: '^/[a-z]{2}/verify-email', roles: PUBLIC_ACCESS }
-        - { path: ^/backend, roles: ROLE_USER }
+        - { path: ^/suite, roles: ROLE_USER }
         - { path: ^/dev, roles: ROLE_DEV }
         # Le second mur des espaces clients. Le contrôleur porte déjà son
         # `#[IsGranted]`, donc un anonyme est refusé sans cette ligne - mais le
         # jour où une action arrive sous ce préfixe sans attribut, le fourre-tout
-        # `^/` plus bas la rendrait publique en silence. `/backend` a cette
-        # ceinture depuis toujours ; `/workspace` est sorti de `/backend` sans
+        # `^/` plus bas la rendrait publique en silence. `/suite` a cette
+        # ceinture depuis toujours ; `/workspace` est sorti de `/suite` sans
         # elle, et c'est tout ce que cette ligne répare.
         - { path: ^/workspace, roles: ROLE_USER }
         - { path: '^/[a-z]{2}/account', roles: ROLE_USER }

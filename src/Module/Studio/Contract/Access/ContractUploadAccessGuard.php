@@ -14,7 +14,7 @@ use function str_starts_with;
  * Signed contracts are never served by the catch-all. Ever, to anybody.
  *
  * `ContractsController::storedPdf()` already explains why the module built
- * its own route under `/backend`: a signed contract is not the kind of file
+ * its own route under `/suite`: a signed contract is not the kind of file
  * `/uploads/{path}` should hand out. What that reasoning assumed, and what
  * was not true, is that the catch-all asked for a session at all. It did
  * not, and the path it answers on is guessable by construction -

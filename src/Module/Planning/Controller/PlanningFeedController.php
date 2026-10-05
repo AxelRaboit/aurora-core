@@ -29,8 +29,8 @@ use Symfony\Component\Routing\Attribute\Route;
  * A feed's expiry is normally null on purpose: a subscription that closes
  * underneath a phone does not report an error, it just goes quiet.
  *
- * Outside `/backend`, so the firewall's `PUBLIC_ACCESS` fallback applies rather
- * than a hole punched in the admin rules. A route under `/backend` would have
+ * Outside `/suite`, so the firewall's `PUBLIC_ACCESS` fallback applies rather
+ * than a hole punched in the admin rules. A route under `/suite` would have
  * needed an `access_control` exception, and exceptions there are read by everyone
  * who ever audits this file.
  *
@@ -64,9 +64,9 @@ final class PlanningFeedController extends AbstractController
     public function show(string $token): Response
     {
         // A module switched off stops serving. Checked here rather than left to a
-        // route gate, because this route is not under `/backend` and the gates
+        // route gate, because this route is not under `/suite` and the gates
         // there do not see it.
-        if (!$this->planningContext->isBackendEnabled()) {
+        if (!$this->planningContext->isSuiteEnabled()) {
             throw $this->createNotFoundException();
         }
 

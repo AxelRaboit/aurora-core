@@ -1,4 +1,4 @@
-backend:
+suite:
     themes:
         guide:
             title: "How themes work"

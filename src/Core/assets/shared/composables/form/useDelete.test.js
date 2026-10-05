@@ -5,7 +5,7 @@ let response = { success: true };
 
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key) => key }) }));
 vi.mock("vue-sonner", () => ({ toast }));
-vi.mock("@/shared/composables/http/backend/useRequest.js", () => ({
+vi.mock("@/shared/composables/http/suite/useRequest.js", () => ({
     useRequest: () => ({ request: () => Promise.resolve(response) }),
 }));
 

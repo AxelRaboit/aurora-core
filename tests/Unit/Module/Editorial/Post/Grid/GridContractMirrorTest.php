@@ -231,7 +231,7 @@ final class GridContractMirrorTest extends TestCase
     private function source(): string
     {
         $path = dirname(__DIR__, 6)
-            .'/src/Module/Editorial/assets/backend/posts/composables/usePostGrid.js';
+            .'/src/Module/Editorial/assets/suite/posts/composables/usePostGrid.js';
 
         $source = file_get_contents($path);
 

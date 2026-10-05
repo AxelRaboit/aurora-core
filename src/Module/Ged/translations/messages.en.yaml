@@ -1,4 +1,4 @@
-backend:
+suite:
     stats:
         ged:
             documents: "Documents"
@@ -30,8 +30,8 @@ backend:
                     manage: Manage folders
     modules:
         ged: DMS
-        ged_backend: DMS
-        ged_backend_description: 'Enables the DMS section in the admin.'
+        ged_suite: DMS
+        ged_suite_description: 'Enables the DMS section in the admin.'
         ged_tags: DMS Tags
         ged_tags_description: 'Enables document tag management.'
         ged_folders: DMS Folders

@@ -11,8 +11,8 @@ final class AccessRequestStatusEnumTest extends TestCase
 {
     public function testGetLabelKeyPrefixesValue(): void
     {
-        self::assertSame('backend.access_requests.status_pending', AccessRequestStatusEnum::Pending->getLabelKey());
-        self::assertSame('backend.access_requests.status_approved', AccessRequestStatusEnum::Approved->getLabelKey());
-        self::assertSame('backend.access_requests.status_rejected', AccessRequestStatusEnum::Rejected->getLabelKey());
+        self::assertSame('suite.access_requests.status_pending', AccessRequestStatusEnum::Pending->getLabelKey());
+        self::assertSame('suite.access_requests.status_approved', AccessRequestStatusEnum::Approved->getLabelKey());
+        self::assertSame('suite.access_requests.status_rejected', AccessRequestStatusEnum::Rejected->getLabelKey());
     }
 }

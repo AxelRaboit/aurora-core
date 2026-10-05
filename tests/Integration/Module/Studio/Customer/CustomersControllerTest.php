@@ -38,7 +38,7 @@ final class CustomersControllerTest extends IntegrationTestCase
         $container = static::getContainer();
 
         $admin = $container->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         $this->client->loginUser($admin, 'admin');
 
         $this->customers = $container->get(CustomerRepository::class);
@@ -68,7 +68,7 @@ final class CustomersControllerTest extends IntegrationTestCase
 
     public function testACustomerIsCreatedWithItsIdentityBlock(): void
     {
-        $this->client->jsonRequest('POST', '/backend/studio/customers/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/customers/create', [
             'legalName' => 'Boulangerie Durand',
             'legalForm' => 'SARL',
             'shareCapital' => '10 000,50',
@@ -104,10 +104,10 @@ final class CustomersControllerTest extends IntegrationTestCase
             'contractualEmail' => 'first@example.test',
         ];
 
-        $this->client->jsonRequest('POST', '/backend/studio/customers/create', $body);
+        $this->client->jsonRequest('POST', '/suite/studio/customers/create', $body);
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
-        $this->client->jsonRequest('POST', '/backend/studio/customers/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/customers/create', [
             ...$body,
             'legalName' => 'Seconde société',
             'contractualEmail' => 'second@example.test',
@@ -125,7 +125,7 @@ final class CustomersControllerTest extends IntegrationTestCase
     public function testAnInvalidChecksumIsRefused(): void
     {
         // The reference number with two digits transposed.
-        $this->client->jsonRequest('POST', '/backend/studio/customers/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/customers/create', [
             'legalName' => 'Société fautive',
             'siret' => '73282932000047',
             'contractualEmail' => 'typo@example.test',
@@ -140,7 +140,7 @@ final class CustomersControllerTest extends IntegrationTestCase
 
     public function testACustomerKeepsItsOwnSiretWhenEdited(): void
     {
-        $this->client->jsonRequest('POST', '/backend/studio/customers/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/customers/create', [
             'legalName' => 'Atelier Martin',
             'siret' => '73282932000074',
             'contractualEmail' => 'atelier@example.test',
@@ -151,7 +151,7 @@ final class CustomersControllerTest extends IntegrationTestCase
 
         // Re-sending the row's own number must not read as a duplicate of
         // itself, which is the mistake a naive uniqueness check makes.
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/customers/%d/update', $id), [
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/customers/%d/update', $id), [
             'legalName' => 'Atelier Martin & Fils',
             'siret' => '73282932000074',
             'contractualEmail' => 'atelier@example.test',
@@ -165,7 +165,7 @@ final class CustomersControllerTest extends IntegrationTestCase
 
     public function testAMissingLegalNameIsRefused(): void
     {
-        $this->client->jsonRequest('POST', '/backend/studio/customers/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/customers/create', [
             'contractualEmail' => 'nameless@example.test',
         ]);
 
@@ -199,7 +199,7 @@ final class CustomersControllerTest extends IntegrationTestCase
         $this->entityManager->persist($contract);
         $this->entityManager->flush();
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/customers/%d/delete', $customer->getId()));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/customers/%d/delete', $customer->getId()));
 
         self::assertSame(422, $this->client->getResponse()->getStatusCode());
 
@@ -217,7 +217,7 @@ final class CustomersControllerTest extends IntegrationTestCase
      */
     public function testAProspectNeedsNothingButItsName(): void
     {
-        $this->client->jsonRequest('POST', '/backend/studio/customers/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/customers/create', [
             'legalName' => 'Verrerie Lemoine',
             'status' => 'prospect',
         ]);
@@ -232,7 +232,7 @@ final class CustomersControllerTest extends IntegrationTestCase
 
     public function testAClientIsRefusedWithoutAnAddress(): void
     {
-        $this->client->jsonRequest('POST', '/backend/studio/customers/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/customers/create', [
             'legalName' => 'Sans adresse',
             'status' => 'client',
         ]);
@@ -261,7 +261,7 @@ final class CustomersControllerTest extends IntegrationTestCase
 
         $this->client->jsonRequest(
             'POST',
-            sprintf('/backend/studio/customers/%d/update', $prospect->getId()),
+            sprintf('/suite/studio/customers/%d/update', $prospect->getId()),
             ['legalName' => 'Verrerie Lemoine', 'status' => 'client'],
         );
 
@@ -286,7 +286,7 @@ final class CustomersControllerTest extends IntegrationTestCase
 
         $this->client->jsonRequest(
             'POST',
-            sprintf('/backend/studio/customers/%d/convert', $prospect->getId()),
+            sprintf('/suite/studio/customers/%d/convert', $prospect->getId()),
             ['contractualEmail' => 'Direction@Verrerie-Lemoine.TEST'],
         );
 
@@ -307,7 +307,7 @@ final class CustomersControllerTest extends IntegrationTestCase
 
         $this->client->jsonRequest(
             'POST',
-            sprintf('/backend/studio/customers/%d/convert', $prospect->getId()),
+            sprintf('/suite/studio/customers/%d/convert', $prospect->getId()),
             ['contractualEmail' => ''],
         );
 
@@ -332,7 +332,7 @@ final class CustomersControllerTest extends IntegrationTestCase
 
         $this->client->jsonRequest(
             'POST',
-            sprintf('/backend/studio/customers/%d/convert', $prospect->getId()),
+            sprintf('/suite/studio/customers/%d/convert', $prospect->getId()),
             [],
         );
 
@@ -356,7 +356,7 @@ final class CustomersControllerTest extends IntegrationTestCase
         $this->entityManager->flush();
         $id = $customer->getId();
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/customers/%d/delete', $id));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/customers/%d/delete', $id));
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
         self::assertNull($this->customers->find($id));

@@ -57,18 +57,18 @@ final class ContractPrivilegesTest extends IntegrationTestCase
         $this->logInWith(['studio.contracts.view'], 'lecteur-contrats@example.test');
 
         // Reading stays open: the refusals below are about the gesture.
-        $this->client->request('GET', sprintf('/backend/studio/contracts/%d', $contract->getId()));
+        $this->client->request('GET', sprintf('/suite/studio/contracts/%d', $contract->getId()));
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
-        $this->client->request('GET', sprintf('/backend/studio/contracts/%d/wording/body', $contract->getId()));
+        $this->client->request('GET', sprintf('/suite/studio/contracts/%d/wording/body', $contract->getId()));
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
         foreach (['update', 'freeze', 'send', 'remind', 'revoke-link', 'cancel', 'duplicate', 'terminate', 'countersign', 'delete', 'wording/body/save', 'wording/body/reset'] as $gesture) {
-            $this->client->jsonRequest('POST', sprintf('/backend/studio/contracts/%d/%s', $contract->getId(), $gesture));
+            $this->client->jsonRequest('POST', sprintf('/suite/studio/contracts/%d/%s', $contract->getId(), $gesture));
 
             self::assertSame(403, $this->client->getResponse()->getStatusCode(), $gesture);
         }
 
-        $this->client->jsonRequest('POST', '/backend/studio/contracts/create', []);
+        $this->client->jsonRequest('POST', '/suite/studio/contracts/create', []);
         self::assertSame(403, $this->client->getResponse()->getStatusCode(), 'create');
     }
 
@@ -79,14 +79,14 @@ final class ContractPrivilegesTest extends IntegrationTestCase
         $this->logInWith(['studio.contracts.view', 'studio.contracts.edit'], 'redacteur-contrats@example.test');
 
         foreach (['send', 'remind', 'revoke-link', 'countersign', 'delete'] as $gesture) {
-            $this->client->jsonRequest('POST', sprintf('/backend/studio/contracts/%d/%s', $contract->getId(), $gesture));
+            $this->client->jsonRequest('POST', sprintf('/suite/studio/contracts/%d/%s', $contract->getId(), $gesture));
 
             self::assertSame(403, $this->client->getResponse()->getStatusCode(), $gesture);
         }
 
         // And what editing does include goes through: the refusals above are
         // the privilege's, not the account's.
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/contracts/%d/freeze', $contract->getId()));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/contracts/%d/freeze', $contract->getId()));
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
     }
 
@@ -96,7 +96,7 @@ final class ContractPrivilegesTest extends IntegrationTestCase
         $versionId = $template->getDraft()?->getId();
         $this->logInWith(['studio.contract_templates.view'], 'lecteur-trames@example.test');
 
-        $this->client->request('GET', sprintf('/backend/studio/contract-templates/%d/versions/%d', $template->getId(), $versionId));
+        $this->client->request('GET', sprintf('/suite/studio/contract-templates/%d/versions/%d', $template->getId(), $versionId));
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
         $paths = [
@@ -113,7 +113,7 @@ final class ContractPrivilegesTest extends IntegrationTestCase
         ];
 
         foreach ($paths as $path) {
-            $this->client->jsonRequest('POST', '/backend/studio/contract-templates'.$path, []);
+            $this->client->jsonRequest('POST', '/suite/studio/contract-templates'.$path, []);
 
             self::assertSame(403, $this->client->getResponse()->getStatusCode(), $path);
         }
@@ -126,7 +126,7 @@ final class ContractPrivilegesTest extends IntegrationTestCase
         $user
             ->setEmail($email)
             ->setName('Équipier')
-            ->setType(UserTypeEnum::Backend)
+            ->setType(UserTypeEnum::Suite)
             ->setRoles([UserRoleEnum::User->value])
             ->setPrivileges($privileges)
             ->setPassword('x');

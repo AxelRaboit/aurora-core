@@ -149,7 +149,7 @@ php bin/console dbal:run-sql "UPDATE core_themes SET active = true WHERE slug = 
 ```
 
 Alternativement, les thèmes sont gérables depuis le backend admin :
-`/backend/configuration/themes`.
+`/suite/configuration/themes`.
 
 ---
 

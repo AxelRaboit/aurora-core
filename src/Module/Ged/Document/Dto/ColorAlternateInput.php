@@ -28,15 +28,15 @@ final readonly class ColorAlternateInput
 
     /** @param list<string> $spare */
     public function __construct(
-        #[Assert\NotBlank(message: 'backend.ged.documents.recolor.errors.color_required')]
-        #[Assert\Regex(pattern: '/^#[0-9a-f]{6}$/', message: 'backend.ged.documents.recolor.errors.color_invalid')]
+        #[Assert\NotBlank(message: 'suite.ged.documents.recolor.errors.color_required')]
+        #[Assert\Regex(pattern: '/^#[0-9a-f]{6}$/', message: 'suite.ged.documents.recolor.errors.color_invalid')]
         public string $color = '',
-        #[Assert\NotBlank(message: 'backend.ged.documents.recolor.errors.label_required')]
+        #[Assert\NotBlank(message: 'suite.ged.documents.recolor.errors.label_required')]
         #[Assert\Length(max: 40)]
         public string $label = '',
-        #[Assert\Regex(pattern: '/^#[0-9a-f]{6}$/', message: 'backend.ged.documents.recolor.errors.color_invalid')]
+        #[Assert\Regex(pattern: '/^#[0-9a-f]{6}$/', message: 'suite.ged.documents.recolor.errors.color_invalid')]
         public ?string $sourceColor = null,
-        #[Assert\All([new Assert\Regex(pattern: '/^#[0-9a-f]{6}$/', message: 'backend.ged.documents.recolor.errors.color_invalid')])]
+        #[Assert\All([new Assert\Regex(pattern: '/^#[0-9a-f]{6}$/', message: 'suite.ged.documents.recolor.errors.color_invalid')])]
         public array $spare = [],
         public bool $protectDetail = true,
     ) {}

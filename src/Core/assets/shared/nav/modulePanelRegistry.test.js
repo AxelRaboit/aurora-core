@@ -9,10 +9,9 @@ import {
 
 /**
  * A `vue_component` path as the panel contract spells it:
- * `<module>/backend/<dirs>/<Component>`.
+ * `<module>/suite/<dirs>/<Component>`.
  */
-const PANEL_PATH =
-    /'([a-z0-9-]+\/backend\/[A-Za-z0-9/_-]+\/[A-Z][A-Za-z0-9]+)'/g;
+const PANEL_PATH = /'([a-z0-9-]+\/suite\/[A-Za-z0-9/_-]+\/[A-Z][A-Za-z0-9]+)'/g;
 
 /** Panel names the PHP modules name, from the classes allowed to name one. */
 function declaredPanels() {

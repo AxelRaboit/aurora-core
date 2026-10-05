@@ -8,7 +8,7 @@ the Composer package `axelraboit/aurora` and is consumed by client projects
 > It was rewritten from scratch on that date: the previous version described
 > ten business modules (Crm, Erp, Billing, Ecommerce, Photo, Project, Hr, …)
 > extracted from this monorepo in July 2026, an `App\` namespace that has since
-> become `Aurora\`, an `admin/` asset folder that is now `backend/`, and a dozen
+> become `Aurora\`, an `admin/` asset folder that is now `suite/`, and a dozen
 > manual registration steps that are all auto-discovery today. Read
 > `src/Module/` for the live inventory; module names below are the real ones.
 
@@ -196,8 +196,8 @@ only wiring a new entity costs.
 
 ### 4.3 Templates
 
-Co-located: `src/Module/<Name>/templates/backend/<feature>/index.html.twig`,
-addressed as `@<Name>/backend/<feature>/index.html.twig`. Core's own live in
+Co-located: `src/Module/<Name>/templates/suite/<feature>/index.html.twig`,
+addressed as `@<Name>/suite/<feature>/index.html.twig`. Core's own live in
 `src/Core/templates/` under `@Core`, `@Shared` and `@AuroraTheme`. The root
 `templates/` directory holds Twig bundle overrides and nothing else.
 
@@ -214,8 +214,8 @@ import.meta.glob("../../Module/**/assets/**/*.vue")
 the module name plus whatever follows `assets/`:
 
 ```
-src/Module/Ged/assets/backend/documents/App.vue            → ged/backend/documents/App
-src/Module/Studio/SpaceContent/assets/backend/content/X.vue → studio/backend/content/X
+src/Module/Ged/assets/suite/documents/App.vue            → ged/suite/documents/App
+src/Module/Studio/SpaceContent/assets/suite/content/X.vue → studio/suite/content/X
 ```
 
 Both layouts are valid. Nine modules keep their assets at the module root;
@@ -233,7 +233,7 @@ adds one `type: aurora_modules` routing entry and gets every module's routes.
 
 Prefixes carry meaning and the firewalls depend on them: `^/(backend|dev|workspace)`
 is the `admin` firewall, everything else is the front. `/workspace` is the client
-space's own prefix, deliberately outside `/backend` because the surface is
+space's own prefix, deliberately outside `/suite` because the surface is
 delivered to clients rather than operated by staff.
 
 ### 4.6 Client extensions
@@ -256,7 +256,7 @@ order:
 
 1. `src/Module/<Name>/` with its domain subfolders.
 2. `<Name>Module.php` implementing `ModuleInterface`, plus a `<Name>Context`.
-3. A `<Name>Backend` case in the central `ModuleParameterEnum`, with its
+3. A `<Name>Suite` case in the central `ModuleParameterEnum`, with its
    `getLabel()` / `getDescription()` arms and `getModuleId()`.
 4. `translations/messages.{fr,en}.yaml` in the module. Spanish only for what a
    customer reads - the back office falls back to French by design, and

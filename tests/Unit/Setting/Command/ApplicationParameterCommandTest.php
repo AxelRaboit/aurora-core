@@ -53,7 +53,7 @@ final class ApplicationParameterCommandTest extends TestCase
      */
     public function testSparesAKeyAnOwnerClaims(): void
     {
-        $owned = $this->makeSettingStub('backend_ged_pexels_api_key');
+        $owned = $this->makeSettingStub('suite_ged_pexels_api_key');
         $repository = $this->createMock(SettingRepository::class);
         $repository->method('findAll')->willReturn([$owned]);
 
@@ -63,7 +63,7 @@ final class ApplicationParameterCommandTest extends TestCase
         $owner = new class implements OwnedSettingProviderInterface {
             public function getOwnedSettingKeys(): iterable
             {
-                yield 'backend_ged_pexels_api_key';
+                yield 'suite_ged_pexels_api_key';
             }
         };
 
@@ -178,7 +178,7 @@ final class ApplicationParameterCommandTest extends TestCase
 
         $repository->method('findAll')->willReturn([]);
 
-        $customKey = 'backend_extension_custom_setting';
+        $customKey = 'suite_extension_custom_setting';
         $customProvider = $this->makeProviderWith($this->stubParameterEnum($customKey));
 
         $tester = $this->makeTester($repository, $em, [$customProvider]);
@@ -193,7 +193,7 @@ final class ApplicationParameterCommandTest extends TestCase
         $repository = $this->createMock(SettingRepository::class);
         $em = $this->createMock(EntityManagerInterface::class);
 
-        $customKey = 'backend_extension_custom_setting';
+        $customKey = 'suite_extension_custom_setting';
         // Existing setting already in DB (admin saved a value via the UI)
         $existing = $this->makeSettingStub($customKey);
         $repository->method('findAll')->willReturn([$existing]);

@@ -61,7 +61,7 @@ final class FolderTrashCarriesFamiliesTest extends IntegrationTestCase
         $this->client = static::createClient();
         $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
 
-        $admin = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->client->loginUser($admin, 'admin');
 
@@ -97,7 +97,7 @@ final class FolderTrashCarriesFamiliesTest extends IntegrationTestCase
 
     public function testTheConfirmationKnowsHowManyAlternatesAreFiledOutside(): void
     {
-        $this->client->request('GET', sprintf('/backend/ged/folders/%d/alternates-elsewhere', $this->visuals->getId()));
+        $this->client->request('GET', sprintf('/suite/ged/folders/%d/alternates-elsewhere', $this->visuals->getId()));
         self::assertResponseIsSuccessful();
 
         $data = json_decode((string) $this->client->getResponse()->getContent(), true);
@@ -115,7 +115,7 @@ final class FolderTrashCarriesFamiliesTest extends IntegrationTestCase
             self::assertSame($this->visuals->getId(), $found->getTrashedWithFolderId());
         }
 
-        $this->client->request('POST', sprintf('/backend/ged/folders/%d/restore', $this->visuals->getId()));
+        $this->client->request('POST', sprintf('/suite/ged/folders/%d/restore', $this->visuals->getId()));
         self::assertResponseIsSuccessful();
 
         $this->entityManager->clear();
@@ -149,7 +149,7 @@ final class FolderTrashCarriesFamiliesTest extends IntegrationTestCase
     {
         $this->trash($this->visuals, ['withAlternates' => true]);
 
-        $this->client->request('POST', sprintf('/backend/ged/folders/%d/force-delete', $this->visuals->getId()));
+        $this->client->request('POST', sprintf('/suite/ged/folders/%d/force-delete', $this->visuals->getId()));
         self::assertResponseIsSuccessful();
 
         $this->entityManager->clear();
@@ -168,7 +168,7 @@ final class FolderTrashCarriesFamiliesTest extends IntegrationTestCase
         $manager->restore($this->reload($this->redElsewhere));
         $manager->delete($this->reload($this->redElsewhere));
 
-        $this->client->request('POST', sprintf('/backend/ged/folders/%d/restore', $this->visuals->getId()));
+        $this->client->request('POST', sprintf('/suite/ged/folders/%d/restore', $this->visuals->getId()));
         self::assertResponseIsSuccessful();
 
         $this->entityManager->clear();
@@ -191,7 +191,7 @@ final class FolderTrashCarriesFamiliesTest extends IntegrationTestCase
     {
         $this->client->request(
             'POST',
-            sprintf('/backend/ged/folders/%d/delete', $folder->getId()),
+            sprintf('/suite/ged/folders/%d/delete', $folder->getId()),
             server: ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'],
             content: json_encode($payload) ?: '{}',
         );

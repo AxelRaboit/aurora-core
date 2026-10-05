@@ -1,0 +1,30 @@
+{% extends '@Core/suite/layout.html.twig' %}
+
+{% block title %}{{ 'suite.nav.studio_customers'|trans }} - {{ parent() }}{% endblock %}
+
+{% block page_header_slot %}
+    {{ include('@Shared/components/page_header.html.twig', {
+        crumbs: [
+            {label: 'suite.nav.sections.studio'|trans},
+            {label: 'suite.nav.studio_customers'|trans},
+        ],
+    }) }}
+{% endblock %}
+
+{% block body %}
+{# `spacesPath` : l'adresse de la liste des espaces, pour y aller depuis un
+   client. Le nom de la société part en recherche, c'est ce que cette liste
+   cherche. Le commentaire est ici et non dans l'appel : à l'intérieur d'une
+   expression Twig, `{#` n'est pas un commentaire et l'apostrophe casse le
+   gabarit. #}
+<div {{ vue_component('studio/suite/customers/CustomersApp', {
+    customers: customers,
+    users: users,
+    currencies: currencies,
+    createPath: createPath,
+    updatePath: updatePath,
+    convertPath: convertPath,
+    deletePath: deletePath,
+    spacesPath: path('suite_studio_spaces'),
+}) }} class="flex-1 min-w-0"></div>
+{% endblock %}

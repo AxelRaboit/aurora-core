@@ -1,4 +1,4 @@
-backend:
+suite:
     settings:
         studio_guide:
             title: "Votre identité dans les contrats"
@@ -305,7 +305,7 @@ backend:
         modules_intro: Activez ou désactivez les modules de l'application. Les modifications sont enregistrées immédiatement.
         modules_empty: Aucun module trouvé.
         module_type:
-            backend: Backend
+            suite: Suite
             frontend: Frontend
         save: Enregistrer
         saved: Réglages sauvegardés.
@@ -399,10 +399,10 @@ backend:
             description: 'Si activé, le site public est fermé aux visiteurs et affiche une page de maintenance.'
         admin_registration_enabled:
             label: Inscriptions admin ouvertes
-            description: Autoriser les inscriptions via /backend/platform/register. À désactiver après la création du premier compte admin.
+            description: Autoriser les inscriptions via /suite/platform/register. À désactiver après la création du premier compte admin.
         admin_access_request_enabled:
             label: Demandes d'accès admin ouvertes
-            description: Autoriser les demandes d'accès via /backend/platform/access-request (formulaire de demande d'accès à l'administration)
+            description: Autoriser les demandes d'accès via /suite/platform/access-request (formulaire de demande d'accès à l'administration)
         front_login_enabled:
             label: Connexion frontend activée
             description: "Si désactivé, le site public n'a plus de comptes du tout : connexion, inscription, espace client et mot de passe oublié renvoient une 404, et les liens correspondants disparaissent des menus. À couper pour une application purement vitrine."
@@ -433,7 +433,7 @@ backend:
         favicon_media_id:
             label: Favicon
             description: ID du média utilisé comme favicon
-        backend_bar_site_name_on_phone:
+        suite_bar_site_name_on_phone:
             label: "Nom du site dans la barre du back-office sur téléphone"
             description: "Affiche le nom du site à côté du logo dans la barre du haut du back-office, sous 640 px de large. Désactivé, seul le logo reste ; le nom est toujours lu par les lecteurs d'écran. Pour le site public, le réglage équivalent est dans le thème."
         seo_title_template:
@@ -554,7 +554,7 @@ backend:
         email_text_color:
             label: "Texte des e-mails"
             description: "Le texte courant du message."
-        backend_palette:
+        suite_palette:
             label: "Gris du clair et du sombre"
             description: "Famille de gris et retouches de chaque mode, en JSON (géré via l'interface)."
         intro: Consultez et modifiez les paramètres techniques de l'application.

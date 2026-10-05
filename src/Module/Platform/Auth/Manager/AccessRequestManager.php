@@ -96,7 +96,7 @@ class AccessRequestManager implements AccessRequestManagerInterface
     private function sendRequesterApproval(AccessRequestInterface $request, ?string $generatedPassword = null): void
     {
         $siteName = $this->siteName();
-        $loginUrl = $this->urlGenerator->generate('backend_platform_login', [], UrlGeneratorInterface::ABSOLUTE_URL);
+        $loginUrl = $this->urlGenerator->generate('suite_platform_login', [], UrlGeneratorInterface::ABSOLUTE_URL);
 
         $body = $this->twig->render('@Shared/email/access_request_approved.html.twig', [
             'request' => $request,

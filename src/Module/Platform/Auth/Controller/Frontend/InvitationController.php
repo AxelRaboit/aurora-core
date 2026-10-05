@@ -23,14 +23,14 @@ use Symfony\Component\Security\Core\User\UserInterface;
 /**
  * Accepter une invitation sur le site public.
  *
- * Le miroir de {@see \Aurora\Module\Platform\Auth\Controller\Backend\InvitationController},
+ * Le miroir de {@see \Aurora\Module\Platform\Auth\Controller\Suite\InvitationController},
  * et un contrôleur séparé pour la même raison que les deux firewalls le sont :
  * les deux populations ne se mélangent pas. Ce qui change ici est le firewall où
  * la personne est connectée, la page où elle atterrit, et le type de compte
  * accepté.
  *
  * Le jeton et son cycle de vie, eux, sont partagés : c'est le même
- * `findValidInvitation` / `consumeInvitation` que le backend, donc une seule
+ * `findValidInvitation` / `consumeInvitation` que la suite, donc une seule
  * mécanique d'expiration et de hachage à maintenir.
  */
 final class InvitationController extends AbstractController
@@ -58,12 +58,12 @@ final class InvitationController extends AbstractController
         $user = $this->userManager->findValidInvitation($selector, $token);
 
         /*
-         * Un jeton de compte backend n'est pas accepté ici, et réciproquement.
+         * Un jeton de compte suite n'est pas accepté ici, et réciproquement.
          *
          * `findValidInvitation` ne filtre pas le type - il n'a pas à le faire,
          * la mécanique du jeton est commune. C'est donc à chaque route de
          * refuser la population qui n'est pas la sienne. Sans ce garde, un
-         * invité backend qui suivrait cette adresse serait connecté sur le
+         * invité suite qui suivrait cette adresse serait connecté sur le
          * firewall public, où son compte n'existe pas : sa session sauterait au
          * rafraîchissement suivant, sans rien qui le lui explique.
          *
@@ -94,7 +94,7 @@ final class InvitationController extends AbstractController
             $this->userManager->consumeInvitation($user, $input->password);
 
             // Le firewall public, nommé explicitement : la route n'est pas sous
-            // ^/backend, donc il serait déduit correctement, mais un déduit
+            // ^/suite, donc il serait déduit correctement, mais un déduit
             // silencieux sur une connexion programmatique est ce qu'on relit
             // trois fois sans en être sûr.
             $this->security->login($user, firewallName: 'main');

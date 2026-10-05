@@ -1,0 +1,426 @@
+<script setup>
+import AppGuide from "@/shared/components/feedback/AppGuide.vue";
+import { computed } from "vue";
+import { useI18n } from "vue-i18n";
+import { usePrivileges } from "@/shared/composables/usePrivileges.js";
+import AppRowActions from "@/shared/components/action/AppRowActions.vue";
+import { useEditDeleteActions } from "@/shared/composables/useEditDeleteActions.js";
+import { useTaxonomiesForm } from "./composables/useTaxonomiesForm.js";
+import { useTaxonomyTerms } from "./composables/useTaxonomyTerms.js";
+import AppButton from "@/shared/components/action/AppButton.vue";
+import AppPageActions from "@/shared/components/action/AppPageActions.vue";
+import AppIconButton from "@/shared/components/action/AppIconButton.vue";
+import AppInput from "@/shared/components/form/input/AppInput.vue";
+import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
+import AppSelect from "@/shared/components/form/select/AppSelect.vue";
+import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
+import AppModal from "@/shared/components/overlay/AppModal.vue";
+import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
+import AppBadge from "@/shared/components/feedback/AppBadge.vue";
+import AppNoData from "@/shared/components/feedback/AppNoData.vue";
+import { Plus, Pencil, Trash2, Save, X, Tags, ChevronUp, ChevronDown } from "lucide-vue-next";
+
+const { t } = useI18n();
+const { can } = usePrivileges();
+
+const props = defineProps({
+    taxonomies: { type: Array, default: () => [] },
+    postTypes: { type: Array, default: () => [] },
+    locales: { type: Array, default: () => [] },
+    createPath: { type: String, required: true },
+    updatePathTemplate: { type: String, required: true },
+    deletePathTemplate: { type: String, required: true },
+    termCreatePathTemplate: { type: String, required: true },
+    termEditPathTemplate: { type: String, required: true },
+    termDeletePathTemplate: { type: String, required: true },
+    termReorderPathTemplate: { type: String, required: true },
+    /** The taxonomy this URL is. Decided by the server, not by the browser. */
+    activeId: { type: Number, default: null },
+});
+
+const {
+    items, selected, upsert,
+    showCreate, createForm, createErrors, createLoading, openCreate, submitCreate,
+    showEdit, editing, editForm, editErrors, editLoading, openEdit, submitEdit,
+    pendingDelete, deleteLoading, confirmDelete, doDelete,
+    togglePostType,
+} = useTaxonomiesForm(props);
+
+const {
+    rows, showTerm, editingTerm, form, termErrors, termLoading, parentOptions,
+    openTermCreate, openTermEdit, submitTerm,
+    pendingTermDelete, termDeleteLoading, deleteTerm, move,
+} = useTaxonomyTerms(props, selected, upsert);
+
+// The two actions a term row offers. The reorder arrows beside them stay as they
+// are: they are pressed repeatedly, and a sheet would turn each nudge into
+// open-click-close.
+const termActions = useEditDeleteActions({
+    can,
+    editPermission: "editorial.taxonomies.edit",
+    deletePermission: "editorial.taxonomies.edit",
+    openEdit: openTermEdit,
+    confirmDelete: (term) => {
+        pendingTermDelete.value = term;
+    },
+    editDescription: "suite.taxonomies.terms.row_actions.edit_description",
+    deleteDescription: "suite.taxonomies.terms.row_actions.delete_description",
+});
+
+/**
+ * The taxonomy itself, in the card header above its terms.
+ *
+ * Written out rather than borrowed from `useEditDeleteActions`, which asks for
+ * a description key per entry: the terms have theirs, the taxonomy never got
+ * any. A named row with no sentence under it is what AppActionButton is built
+ * to render, so it stays honest rather than inventing copy.
+ */
+function taxonomyActions(taxonomy) {
+    const actions = [];
+
+    if (can("editorial.taxonomies.edit")) {
+        actions.push({
+            key: "edit",
+            color: "accent",
+            icon: Pencil,
+            title: t("shared.common.edit"),
+            onSelect: () => openEdit(taxonomy),
+        });
+    }
+
+    if (can("editorial.taxonomies.delete") && !taxonomy.isBuiltIn) {
+        actions.push({
+            key: "delete",
+            color: "rose",
+            icon: Trash2,
+            title: t("shared.common.delete"),
+            onSelect: () => confirmDelete(taxonomy),
+        });
+    }
+
+    return actions;
+}
+
+const primaryLocale = computed(() => props.locales[0] ?? "en");
+
+function labelOf(taxonomy) {
+    return taxonomy.translations?.[primaryLocale.value]?.label || taxonomy.slug;
+}
+
+function nameOf(term) {
+    return term.translations?.[primaryLocale.value]?.name || `#${term.id}`;
+}
+
+// One entry and still a sheet: every list in the suite opens its actions the
+// same way, and a toolbar's width belongs to the search, not to a verb.
+const pageActions = computed(() => {
+    if (!can("editorial.taxonomies.create")) {
+        return [];
+    }
+
+    return [
+        {
+            key: "create",
+            color: "accent",
+            icon: Plus,
+            title: t("suite.taxonomies.create"),
+            onSelect: openCreate,
+        },
+    ];
+});
+</script>
+
+<template>
+    <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
+         replié ou déplié, le choix vaut pour tous les encarts. -->
+    <AppGuide :title="t('suite.taxonomies.guide.title')" storage-key="taxonomies" class="mb-[var(--aurora-page-margin)]">
+        <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
+            <li v-for="step in 5" :key="step">{{ t(`suite.taxonomies.guide.step_${step}`) }}</li>
+        </ol>
+    </AppGuide>
+    <AppNoData v-if="!items.length" :message="t('suite.taxonomies.empty')">
+        <template v-if="can('editorial.taxonomies.create')" #action>
+            <AppButton variant="primary" size="md" v-on:click="openCreate">
+                <Plus class="w-4 h-4" :stroke-width="2" /> {{ t("suite.taxonomies.create") }}
+            </AppButton>
+        </template>
+    </AppNoData>
+
+    <div v-else class="aurora-stack">
+        <!-- No picker column: the side menu lists the taxonomies, one entry per
+             record and one address each. The create button stays - a group
+             header in the menu has nowhere to put one. -->
+        <!-- Pleine largeur sous `sm` : seul geste de la page, il prend la
+             ligne plutôt que de se serrer dans un coin.
+
+             La largeur est posée sur l'enfant rendu et non sur le composant :
+             {@see AppActionSheet} a deux racines - le déclencheur et sa modale
+             - et Vue laisse alors tomber les attributs qu'on lui passe. C'est
+             la même réponse que dans {@see AppListToolbar}. -->
+        <div v-if="pageActions.length" class="flex justify-end *:w-full sm:*:w-auto">
+            <AppPageActions :actions="pageActions" />
+        </div>
+
+        <section v-if="selected" class="space-y-4">
+            <div class="aurora-card p-3 sm:p-5 space-y-4">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <h2 class="text-lg font-semibold text-primary truncate">{{ labelOf(selected) }}</h2>
+                        <p class="text-xs text-muted font-mono mt-0.5">{{ selected.slug }}</p>
+                    </div>
+                    <AppRowActions
+                        v-if="taxonomyActions(selected).length"
+                        class="shrink-0"
+                        :actions="taxonomyActions(selected)"
+                        :label="labelOf(selected)"
+                    />
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <AppBadge v-if="selected.hierarchical" color="accent">{{ t("suite.taxonomies.hierarchical") }}</AppBadge>
+                    <AppBadge
+                        v-for="postType in postTypes.filter((item) => selected.postTypeIds.includes(item.id))"
+                        :key="postType.id"
+                        color="gray"
+                    >
+                        {{ postType.label }}
+                    </AppBadge>
+                </div>
+            </div>
+
+            <div class="aurora-card p-3 sm:p-5 space-y-3">
+                <div class="flex items-center justify-between gap-3">
+                    <h3 class="text-sm font-semibold text-primary">{{ t("suite.taxonomies.terms.title") }}</h3>
+                    <AppButton
+                        v-if="can('editorial.taxonomies.edit')"
+                        variant="ghost"
+                        size="sm"
+                        v-on:click="openTermCreate"
+                    >
+                        <Plus class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("suite.taxonomies.terms.create") }}
+                    </AppButton>
+                </div>
+
+                <AppNoData v-if="!rows.length" :message="t('suite.taxonomies.terms.empty')" />
+
+                <div class="divide-y divide-line/40">
+                    <div
+                        v-for="term in rows"
+                        :key="term.id"
+                        class="flex items-center justify-between gap-3 py-2.5 text-sm"
+                    >
+                        <div class="min-w-0" :style="{ paddingLeft: `${term.depth * 1.25}rem` }">
+                            <p class="font-medium text-primary truncate">{{ nameOf(term) }}</p>
+                            <p class="text-xs text-muted font-mono mt-0.5 truncate">
+                                {{ term.translations?.[primaryLocale]?.slug }}
+                                <span v-if="term.reference"> · {{ term.reference }}</span>
+                            </p>
+                        </div>
+                        <div v-if="can('editorial.taxonomies.edit')" class="flex items-center gap-0.5 shrink-0">
+                            <AppIconButton :title="t('suite.taxonomies.terms.move_up')" v-on:click="move(term, -1)">
+                                <ChevronUp class="w-4 h-4" :stroke-width="2" />
+                            </AppIconButton>
+                            <AppIconButton :title="t('suite.taxonomies.terms.move_down')" v-on:click="move(term, 1)">
+                                <ChevronDown class="w-4 h-4" :stroke-width="2" />
+                            </AppIconButton>
+                            <AppRowActions :actions="termActions(term)" :label="term.label ?? term.name ?? ''" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Outside the `v-else` on purpose. These modals used to live inside it,
+         so with nothing created yet the branch was not rendered and neither
+         were they: the empty state's button set the flag and nothing existed
+         to react. The first item could never be created, and only the first -
+         once one existed the branch rendered and the button worked. -->
+    <AppModal
+        :show="showCreate"
+        :title="t('suite.taxonomies.create')"
+        :icon="Tags"
+        :closeable="false"
+        v-on:close="showCreate = false"
+    >
+        <form class="space-y-4" v-on:submit.prevent="submitCreate">
+            <AppInput
+                v-model="createForm.slug"
+                :label="t('suite.taxonomies.slug')"
+                :placeholder="t('shared.placeholders.slug')"
+                :error="createErrors.slug"
+                required
+            />
+            <AppCheckbox v-model="createForm.hierarchical" :label="t('suite.taxonomies.hierarchical')" :hint="t('suite.taxonomies.hierarchical_hint')" />
+
+            <div v-for="locale in locales" :key="locale" class="space-y-2 border-t border-line/40 pt-3">
+                <p class="text-xs uppercase tracking-wide text-muted">{{ locale }}</p>
+                <AppInput
+                    v-model="createForm.translations[locale].label"
+                    :label="t('suite.taxonomies.label')"
+                    :placeholder="t('suite.taxonomies.label_placeholder')"
+                />
+                <AppTextarea
+                    v-model="createForm.translations[locale].description"
+                    :label="t('suite.taxonomies.description')"
+                    :placeholder="t('shared.placeholders.description')"
+                    :rows="2"
+                />
+            </div>
+
+            <div class="space-y-2 border-t border-line/40 pt-3">
+                <label class="block text-xs text-secondary uppercase tracking-wide">{{ t("suite.taxonomies.post_types") }}</label>
+                <AppCheckbox
+                    v-for="postType in postTypes"
+                    :key="postType.id"
+                    :model-value="createForm.postTypeIds.includes(postType.id)"
+                    :label="postType.label"
+                    v-on:update:model-value="togglePostType(createForm, postType.id)"
+                />
+            </div>
+        </form>
+        <template #footer>
+            <AppModalFooter>
+                <AppButton variant="ghost" size="md" v-on:click="showCreate = false"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
+                <AppButton variant="primary" size="md" :loading="createLoading" v-on:click="submitCreate"><Save class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.save") }}</AppButton>
+            </AppModalFooter>
+        </template>
+    </AppModal>
+
+    <AppModal
+        :show="showEdit"
+        :title="t('suite.taxonomies.edit')"
+        :icon="Pencil"
+        :closeable="false"
+        v-on:close="showEdit = false"
+    >
+        <form class="space-y-4" v-on:submit.prevent="submitEdit">
+            <AppInput
+                v-model="editForm.slug"
+                :label="t('suite.taxonomies.slug')"
+                :placeholder="t('shared.placeholders.slug')"
+                :error="editErrors.slug"
+                :disabled="editing?.isBuiltIn"
+                :hint="editing?.isBuiltIn ? t('suite.taxonomies.slug_locked') : null"
+            />
+            <AppCheckbox
+                v-model="editForm.hierarchical"
+                :label="t('suite.taxonomies.hierarchical')"
+                :hint="t('suite.taxonomies.hierarchical_hint')"
+                :disabled="editing?.isBuiltIn"
+            />
+
+            <div v-for="locale in locales" :key="locale" class="space-y-2 border-t border-line/40 pt-3">
+                <p class="text-xs uppercase tracking-wide text-muted">{{ locale }}</p>
+                <AppInput
+                    v-model="editForm.translations[locale].label"
+                    :label="t('suite.taxonomies.label')"
+                    :placeholder="t('suite.taxonomies.label_placeholder')"
+                />
+                <AppTextarea
+                    v-model="editForm.translations[locale].description"
+                    :label="t('suite.taxonomies.description')"
+                    :placeholder="t('shared.placeholders.description')"
+                    :rows="2"
+                />
+            </div>
+
+            <div class="space-y-2 border-t border-line/40 pt-3">
+                <label class="block text-xs text-secondary uppercase tracking-wide">{{ t("suite.taxonomies.post_types") }}</label>
+                <AppCheckbox
+                    v-for="postType in postTypes"
+                    :key="postType.id"
+                    :model-value="editForm.postTypeIds.includes(postType.id)"
+                    :label="postType.label"
+                    v-on:update:model-value="togglePostType(editForm, postType.id)"
+                />
+            </div>
+        </form>
+        <template #footer>
+            <AppModalFooter>
+                <AppButton variant="ghost" size="md" v-on:click="showEdit = false"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
+                <AppButton variant="primary" size="md" :loading="editLoading" v-on:click="submitEdit"><Save class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.save") }}</AppButton>
+            </AppModalFooter>
+        </template>
+    </AppModal>
+
+    <AppModal
+        :show="showTerm"
+        :title="editingTerm ? t('suite.taxonomies.terms.edit') : t('suite.taxonomies.terms.create')"
+        :icon="editingTerm ? Pencil : Plus"
+        :closeable="false"
+        v-on:close="showTerm = false"
+    >
+        <form class="space-y-4" v-on:submit.prevent="submitTerm">
+            <AppSelect
+                v-if="selected?.hierarchical"
+                v-model="form.parentId"
+                :label="t('suite.taxonomies.terms.parent')"
+                :placeholder="t('suite.taxonomies.terms.no_parent')"
+                :options="parentOptions"
+                :error="termErrors.parentId"
+            />
+
+            <div v-for="locale in locales" :key="locale" class="space-y-2 border-t border-line/40 pt-3">
+                <p class="text-xs uppercase tracking-wide text-muted">{{ locale }}</p>
+                <AppInput
+                    v-model="form.translations[locale].name"
+                    :label="t('suite.taxonomies.terms.name')"
+                    :placeholder="t('shared.placeholders.name')"
+                />
+                <AppInput
+                    v-model="form.translations[locale].slug"
+                    :label="t('suite.taxonomies.terms.slug')"
+                    :placeholder="t('shared.placeholders.slug')"
+                    :hint="t('suite.taxonomies.terms.slug_hint')"
+                />
+                <AppTextarea
+                    v-model="form.translations[locale].description"
+                    :label="t('suite.taxonomies.terms.description')"
+                    :placeholder="t('shared.placeholders.description')"
+                    :rows="2"
+                />
+            </div>
+        </form>
+        <template #footer>
+            <AppModalFooter>
+                <AppButton variant="ghost" size="md" v-on:click="showTerm = false"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
+                <AppButton variant="primary" size="md" :loading="termLoading" v-on:click="submitTerm"><Save class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.save") }}</AppButton>
+            </AppModalFooter>
+        </template>
+    </AppModal>
+
+    <AppModal
+        :show="!!pendingDelete"
+        max-width="sm"
+        :closeable="false"
+        :title="t('shared.common.delete')"
+        :icon="Trash2"
+        v-on:close="pendingDelete = null"
+    >
+        <p class="text-sm text-primary">{{ t("suite.taxonomies.delete_confirm", { slug: pendingDelete?.slug ?? "" }) }}</p>
+        <template #footer>
+            <AppModalFooter>
+                <AppButton variant="ghost" size="md" v-on:click="pendingDelete = null"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
+                <AppButton variant="danger" size="md" :loading="deleteLoading" v-on:click="doDelete"><Trash2 class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.delete") }}</AppButton>
+            </AppModalFooter>
+        </template>
+    </AppModal>
+
+    <AppModal
+        :show="!!pendingTermDelete"
+        max-width="sm"
+        :closeable="false"
+        :title="t('shared.common.delete')"
+        :icon="Trash2"
+        v-on:close="pendingTermDelete = null"
+    >
+        <p class="text-sm text-primary">{{ t("suite.taxonomies.terms.delete_confirm", { name: pendingTermDelete ? nameOf(pendingTermDelete) : "" }) }}</p>
+        <template #footer>
+            <AppModalFooter>
+                <AppButton variant="ghost" size="md" v-on:click="pendingTermDelete = null"><X class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}</AppButton>
+                <AppButton variant="danger" size="md" :loading="termDeleteLoading" v-on:click="deleteTerm"><Trash2 class="w-3.5 h-3.5" :stroke-width="2" /> {{ t("shared.common.delete") }}</AppButton>
+            </AppModalFooter>
+        </template>
+    </AppModal>
+</template>

@@ -53,7 +53,7 @@ const canManage = computed(() => canCreate.value || canEdit.value || canDelete.v
 
 ## Traductions
 
-Chaque permission doit avoir sa clé sous `backend.permissions.names.{module}.{entity}.{action}` :
+Chaque permission doit avoir sa clé sous `suite.permissions.names.{module}.{entity}.{action}` :
 
 ```yaml
 backend:

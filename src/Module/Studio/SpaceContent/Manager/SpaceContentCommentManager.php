@@ -34,7 +34,7 @@ class SpaceContentCommentManager implements SpaceContentCommentManagerInterface
         $user = $this->security->getUser();
 
         if (!$user instanceof CoreUserInterface) {
-            throw new FieldException('body', $this->translator->trans('backend.studio.space_content.errors.comment_needs_account'));
+            throw new FieldException('body', $this->translator->trans('suite.studio.space_content.errors.comment_needs_account'));
         }
 
         $comment = $this->createComment();
@@ -57,7 +57,7 @@ class SpaceContentCommentManager implements SpaceContentCommentManagerInterface
         string $body,
     ): SpaceContentCommentInterface {
         if ($item->getSpace()->getId() !== $link->getSpace()->getId()) {
-            throw new FieldException('item', $this->translator->trans('backend.studio.space_content.errors.not_in_space'));
+            throw new FieldException('item', $this->translator->trans('suite.studio.space_content.errors.not_in_space'));
         }
 
         $comment = $this->createComment();
@@ -87,7 +87,7 @@ class SpaceContentCommentManager implements SpaceContentCommentManagerInterface
     public function delete(SpaceContentCommentInterface $comment): void
     {
         if ($comment->isFromClient()) {
-            throw new FieldException('comment', $this->translator->trans('backend.studio.space_content.errors.comment_from_client'));
+            throw new FieldException('comment', $this->translator->trans('suite.studio.space_content.errors.comment_from_client'));
         }
 
         $this->auditDeleted($comment);

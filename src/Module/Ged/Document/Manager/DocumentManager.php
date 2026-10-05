@@ -62,7 +62,7 @@ class DocumentManager implements DocumentManagerInterface
         $this->applyInput($document, $input);
         // The uploader wrote these bytes moments ago, so they are wherever the
         // active disk is. Stamped before the renditions, which are generated
-        // alongside the source and therefore land on the same backend.
+        // alongside the source and therefore land on the same suite.
         $document->setStorageDisk($this->storageManager->activeDisk());
         $this->regenerateRenditionsIfImage($document);
         $this->entityManager->persist($document);
@@ -104,7 +104,7 @@ class DocumentManager implements DocumentManagerInterface
             $document->setStorageDisk($this->storageManager->activeDisk());
 
             // Old renditions belong to the old file, and possibly to the old
-            // backend. Dropped through that one rather than the active one.
+            // suite. Dropped through that one rather than the active one.
             $this->renditionGenerator->deleteRenditions(
                 $this->storageManager->forDisk($previousDisk),
                 $previousRenditions,
@@ -517,7 +517,7 @@ class DocumentManager implements DocumentManagerInterface
             ->setMimeType((string) $document->getMimeType())
             ->setSize((int) $document->getSize())
             // The version points at the document's current file, so it points
-            // at the same backend. They diverge later, when the document moves
+            // at the same suite. They diverge later, when the document moves
             // and its history stays where it was.
             ->setStorageDisk($document->getStorageDisk())
             ->setVersionNumber($number);

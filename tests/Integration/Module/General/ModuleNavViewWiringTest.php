@@ -31,7 +31,7 @@ final class ModuleNavViewWiringTest extends IntegrationTestCase
         $this->client = static::createClient();
 
         $userRepository = static::getContainer()->get(UserRepository::class);
-        $user = $userRepository->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $user = $userRepository->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $user);
 
         $this->client->loginUser($user, 'admin');
@@ -39,7 +39,7 @@ final class ModuleNavViewWiringTest extends IntegrationTestCase
 
     public function testTheMenuIsHandedTheModuleViewForTheCurrentRoute(): void
     {
-        $this->client->request('GET', '/backend/general/profile');
+        $this->client->request('GET', '/suite/general/profile');
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
         self::assertStringContainsString(

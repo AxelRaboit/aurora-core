@@ -21,8 +21,8 @@ class SpaceResourceInput implements SpaceResourceInputInterface
 {
     public function __construct(
         public readonly SpaceResourceKindEnum $kind = SpaceResourceKindEnum::Link,
-        #[Assert\NotBlank(message: 'backend.studio.space_resources.errors.label_required')]
-        #[Assert\Length(max: 180, maxMessage: 'backend.studio.space_resources.errors.label_too_long')]
+        #[Assert\NotBlank(message: 'suite.studio.space_resources.errors.label_required')]
+        #[Assert\Length(max: 180, maxMessage: 'suite.studio.space_resources.errors.label_too_long')]
         public readonly string $label = '',
         // **Les deux schémas web seulement** : ce champ finit dans un `href`,
         // et `javascript:` y serait une adresse que quelqu'un a pu enregistrer.
@@ -31,15 +31,15 @@ class SpaceResourceInput implements SpaceResourceInputInterface
         // adresses saisies dans l'application : une ressource qu'on garde pour
         // soi peut pointer une machine interne, et le contrôle qui compte ici
         // est le schéma.
-        #[Assert\Url(message: 'backend.studio.space_resources.errors.url_invalid', protocols: ['http', 'https'], requireTld: false)]
-        #[Assert\Length(max: 2048, maxMessage: 'backend.studio.space_resources.errors.url_too_long')]
+        #[Assert\Url(message: 'suite.studio.space_resources.errors.url_invalid', protocols: ['http', 'https'], requireTld: false)]
+        #[Assert\Length(max: 2048, maxMessage: 'suite.studio.space_resources.errors.url_too_long')]
         public readonly ?string $url = null,
-        #[Assert\Length(max: 10000, maxMessage: 'backend.studio.space_resources.errors.body_too_long')]
+        #[Assert\Length(max: 10000, maxMessage: 'suite.studio.space_resources.errors.body_too_long')]
         public readonly ?string $body = null,
-        #[Assert\Email(message: 'backend.studio.space_resources.errors.email_invalid')]
-        #[Assert\Length(max: 180, maxMessage: 'backend.studio.space_resources.errors.email_too_long')]
+        #[Assert\Email(message: 'suite.studio.space_resources.errors.email_invalid')]
+        #[Assert\Length(max: 180, maxMessage: 'suite.studio.space_resources.errors.email_too_long')]
         public readonly ?string $email = null,
-        #[Assert\Length(max: 30, maxMessage: 'backend.studio.space_resources.errors.phone_too_long')]
+        #[Assert\Length(max: 30, maxMessage: 'suite.studio.space_resources.errors.phone_too_long')]
         public readonly ?string $phone = null,
         // Fermé par défaut, jusque dans la saisie : une requête qui ne dit
         // rien de la visibilité ne publie pas.
@@ -51,13 +51,13 @@ class SpaceResourceInput implements SpaceResourceInputInterface
     public function validateKindHasWhatItNeeds(ExecutionContextInterface $context): void
     {
         if ($this->kind->needsUrl() && (null === $this->url || '' === $this->url)) {
-            $context->buildViolation('backend.studio.space_resources.errors.url_required')
+            $context->buildViolation('suite.studio.space_resources.errors.url_required')
                 ->atPath('url')
                 ->addViolation();
         }
 
         if ($this->kind->needsBody() && (null === $this->body || '' === $this->body)) {
-            $context->buildViolation('backend.studio.space_resources.errors.body_required')
+            $context->buildViolation('suite.studio.space_resources.errors.body_required')
                 ->atPath('body')
                 ->addViolation();
         }

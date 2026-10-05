@@ -18,7 +18,7 @@ final class NotificationSerializerTest extends TestCase
         $notif->method('getType')->willReturn('comment.new');
         $notif->method('getTitle')->willReturn('New comment');
         $notif->method('getBody')->willReturn('Someone commented');
-        $notif->method('getUrl')->willReturn('/backend/editorial/comments/42');
+        $notif->method('getUrl')->willReturn('/suite/editorial/comments/42');
         $notif->method('getData')->willReturn($data);
         $notif->method('getReadAt')->willReturn($readAt);
         $notif->method('getCreatedAt')->willReturn(new DateTimeImmutable('2026-01-15T10:00:00+00:00'));
@@ -34,7 +34,7 @@ final class NotificationSerializerTest extends TestCase
         self::assertSame('comment.new', $result['type']);
         self::assertSame('New comment', $result['title']);
         self::assertSame('Someone commented', $result['body']);
-        self::assertSame('/backend/editorial/comments/42', $result['url']);
+        self::assertSame('/suite/editorial/comments/42', $result['url']);
         self::assertNull($result['data']);
         self::assertNull($result['readAt']);
         self::assertSame('2026-01-15T10:00:00+00:00', $result['createdAt']);

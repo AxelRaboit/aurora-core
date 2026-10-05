@@ -73,7 +73,7 @@ function collectFiles(dir, suffix, acc = []) {
 }
 
 // Map an absolute file path to the exposed component key the rest of the app
-// uses (e.g. `./tools/backend/vault/VaultApp.vue`). `moduleKey` is the package
+// uses (e.g. `./tools/suite/vault/VaultApp.vue`). `moduleKey` is the package
 // module name; everything after the LAST `assets/` segment is the rest.
 function exposedKey(moduleKey, file) {
     const normalized = file.split(path.sep).join("/");

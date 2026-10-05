@@ -20,7 +20,7 @@ interface PasswordResetManagerInterface
 
     public function sendResetEmail(User $user, string $resetUrl, ?DateTimeImmutable $expiresAt = null): void;
 
-    public function validateToken(string $selector, string $token, ?UserTypeEnum $expectedType = UserTypeEnum::Backend): ?ResetPasswordRequest;
+    public function validateToken(string $selector, string $token, ?UserTypeEnum $expectedType = UserTypeEnum::Suite): ?ResetPasswordRequest;
 
     public function resetPassword(ResetPasswordRequest $resetRequest, string $newPassword): void;
 }

@@ -116,7 +116,7 @@ class FormFieldInputFactory implements FormFieldInputFactoryInterface
         }
 
         return FormFieldTypeEnum::tryFrom($raw)
-            ?? throw new InvalidArgumentException($this->translator->trans('backend.forms.errors.field_type_invalid'));
+            ?? throw new InvalidArgumentException($this->translator->trans('suite.forms.errors.field_type_invalid'));
     }
 
     private function logic(mixed $raw): ConditionLogicEnum
@@ -126,6 +126,6 @@ class FormFieldInputFactory implements FormFieldInputFactoryInterface
         }
 
         return ConditionLogicEnum::tryFrom($raw)
-            ?? throw new InvalidArgumentException($this->translator->trans('backend.forms.errors.condition_logic_invalid'));
+            ?? throw new InvalidArgumentException($this->translator->trans('suite.forms.errors.condition_logic_invalid'));
     }
 }

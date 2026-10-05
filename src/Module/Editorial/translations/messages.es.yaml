@@ -1,4 +1,4 @@
-backend:
+suite:
     permissions:
         names:
             editorial:
@@ -34,8 +34,8 @@ backend:
                     delete: 'Eliminar los formularios'
     modules:
         editorial: Editorial
-        editorial_backend: Editorial
-        editorial_backend_description: 'Activa la sección Editorial en la administración.'
+        editorial_suite: Editorial
+        editorial_suite_description: 'Activa la sección Editorial en la administración.'
         editorial_frontend: 'Sitio público editorial'
         editorial_frontend_description: 'Sirve a los lectores las publicaciones, las páginas de lista y las páginas de taxonomía.'
     editorial:

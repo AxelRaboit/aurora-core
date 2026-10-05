@@ -38,7 +38,7 @@ class SpaceFileSerializer implements SpaceFileSerializerInterface
         return $this->shape($file) + [
             // Par la route de l'espace et pas celle de la médiathèque : un
             // fichier déposé ici est un brouillon, que `DocumentUrlGenerator`
-            // adresse par `backend_ged_files` derrière un privilège que
+            // adresse par `suite_ged_files` derrière un privilège que
             // quelqu'un qui gère des espaces clients n'a pas forcément.
             'url' => $this->urlGenerator->generate('workspace_space_files_file', $parameters + ['variant' => 'file']),
             'preview' => $this->isImage($file->getDocument())

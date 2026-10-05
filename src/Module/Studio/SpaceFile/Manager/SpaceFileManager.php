@@ -44,7 +44,7 @@ class SpaceFileManager implements SpaceFileManagerInterface
         $user = $this->security->getUser();
 
         if (!$user instanceof CoreUserInterface) {
-            throw new FieldException('document', $this->translator->trans('backend.studio.space_files.errors.needs_account'));
+            throw new FieldException('document', $this->translator->trans('suite.studio.space_files.errors.needs_account'));
         }
 
         $this->refuseDuplicate($space, $document);
@@ -85,7 +85,7 @@ class SpaceFileManager implements SpaceFileManagerInterface
     protected function refuseDuplicate(CustomerSpaceInterface $space, DocumentInterface $document): void
     {
         if ($this->files->has($space, $document)) {
-            throw new FieldException('document', $this->translator->trans('backend.studio.space_files.errors.duplicate'));
+            throw new FieldException('document', $this->translator->trans('suite.studio.space_files.errors.duplicate'));
         }
     }
 

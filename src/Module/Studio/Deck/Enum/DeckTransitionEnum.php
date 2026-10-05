@@ -33,6 +33,6 @@ enum DeckTransitionEnum: string
 
     public function labelKey(): string
     {
-        return 'backend.studio.decks.transitions.'.$this->value;
+        return 'suite.studio.decks.transitions.'.$this->value;
     }
 }

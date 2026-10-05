@@ -39,7 +39,7 @@ final class StudioScreensTest extends IntegrationTestCase
         $this->client = static::createClient();
 
         $admin = static::getContainer()->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         $this->client->loginUser($admin, 'admin');
     }
 
@@ -48,9 +48,9 @@ final class StudioScreensTest extends IntegrationTestCase
      */
     public static function screenProvider(): iterable
     {
-        yield 'les clients' => ['/backend/studio/customers'];
-        yield 'les trames de contrat' => ['/backend/studio/contract-templates'];
-        yield 'les contrats' => ['/backend/studio/contracts'];
+        yield 'les clients' => ['/suite/studio/customers'];
+        yield 'les trames de contrat' => ['/suite/studio/contract-templates'];
+        yield 'les contrats' => ['/suite/studio/contracts'];
     }
 
     #[DataProvider('screenProvider')]

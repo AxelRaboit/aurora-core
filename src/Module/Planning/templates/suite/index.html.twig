@@ -1,0 +1,38 @@
+{% extends '@Core/suite/layout.html.twig' %}
+
+{% block title %}{{ 'suite.nav.planning'|trans }} - {{ parent() }}{% endblock %}
+
+{% block page_header_slot %}
+    {{ include('@Shared/components/page_header.html.twig', {
+        crumbs: [
+            {label: 'suite.nav.sections.planning'|trans},
+            {label: 'suite.nav.planning'|trans},
+        ],
+    }) }}
+{% endblock %}
+
+{% block body %}
+<div {{ vue_component('planning/suite/planning/PlanningApp', {
+    calendars: calendars,
+    timezones: timezones,
+    people: people,
+    shareLinks: shareLinks,
+    currentUserId: currentUserId,
+    respondEventPathTemplate: path_template('suite_planning_events_respond', {id: '__id__'}),
+    eventsPath: path('suite_planning_events'),
+    createCalendarPath: path('suite_planning_calendars_create'),
+    createLinkPath: path('suite_planning_links_create'),
+    revokeLinkPathTemplate: path_template('suite_planning_links_revoke', {id: '__id__'}),
+    sharesCalendarPathTemplate: path_template('suite_planning_calendars_shares', {id: '__id__'}),
+    updateCalendarPathTemplate: path_template('suite_planning_calendars_update', {id: '__id__'}),
+    deleteCalendarPathTemplate: path_template('suite_planning_calendars_delete', {id: '__id__'}),
+    createEventPath: path('suite_planning_events_create'),
+    moveEventPathTemplate: path_template('suite_planning_events_move', {id: '__id__'}),
+    createReminderPath: path('suite_planning_reminders_create'),
+    updateReminderPathTemplate: path_template('suite_planning_reminders_update', {id: '__id__'}),
+    deleteReminderPathTemplate: path_template('suite_planning_reminders_delete', {id: '__id__'}),
+    toggleReminderPathTemplate: path_template('suite_planning_reminders_toggle', {id: '__id__'}),
+    updateEventPathTemplate: path_template('suite_planning_events_update', {id: '__id__'}),
+    deleteEventPathTemplate: path_template('suite_planning_events_delete', {id: '__id__'}),
+}) }}></div>
+{% endblock %}

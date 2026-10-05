@@ -91,7 +91,7 @@ If CRUD AND user didn't skip the controller (Layer 5) :
 
 | Template | Target |
 |---|---|
-| `Controller.php.tpl` | `src/<ModulePath>/<Name>/Controller/Backend/<Plural>Controller.php` |
+| `Controller.php.tpl` | `src/<ModulePath>/<Name>/Controller/Suite/<Plural>Controller.php` |
 
 ## Step 3 - Read, substitute, write
 
@@ -192,7 +192,7 @@ backend:
 ```
 
 The error keys MUST match what `<Name>Input` references
-(`backend.<plural_snake>.errors.name_required` etc.) - keep them in
+(`suite.<plural_snake>.errors.name_required` etc.) - keep them in
 sync.
 
 ### 4g. Index ViewBuilder + Twig + Vue (optional)
@@ -204,7 +204,7 @@ fields). After fleshing out the backend :
   Pattern : `<Plural>Repository` → `['<plural_snake>' => [serialized
   rows], <other index-page payload>]`. Reference :
   `DocumentCategoriesViewBuilder` in `src/Module/Ged/DocumentCategory/View/`.
-- **Twig template** : `src/<ModulePath>/templates/backend/<plural_snake>/index.html.twig`,
+- **Twig template** : `src/<ModulePath>/templates/suite/<plural_snake>/index.html.twig`,
   extending the standard layout, mounting the Vue component.
 - **Vue list page** : chain to `/add-crud-list-ui` to scaffold
   `<Plural>App.vue` + `use<Plural>Form.js` with the toolbar / table /

@@ -34,7 +34,7 @@ final class ImageUploadContractTest extends IntegrationTestCase
         $this->client = static::createClient();
 
         $userRepository = static::getContainer()->get(UserRepository::class);
-        $admin = $userRepository->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = $userRepository->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->client->loginUser($admin, 'admin');
     }
@@ -116,7 +116,7 @@ final class ImageUploadContractTest extends IntegrationTestCase
 
         $this->client->request(
             'POST',
-            '/backend/ged/documents/upload-image',
+            '/suite/ged/documents/upload-image',
             files: ['file' => new UploadedFile($path, 'note.txt', 'text/plain', null, true)],
         );
 
@@ -127,7 +127,7 @@ final class ImageUploadContractTest extends IntegrationTestCase
 
     public function testUploadingNothingIsRefusedRatherThanStored(): void
     {
-        $this->client->request('POST', '/backend/ged/documents/upload-image');
+        $this->client->request('POST', '/suite/ged/documents/upload-image');
 
         $payload = json_decode((string) $this->client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
 
@@ -202,7 +202,7 @@ final class ImageUploadContractTest extends IntegrationTestCase
 
         $this->client->request(
             'POST',
-            '/backend/ged/documents/upload-image',
+            '/suite/ged/documents/upload-image',
             files: ['file' => new UploadedFile(
                 $path,
                 'jpeg' === $format ? 'photo.jpg' : 'pixel.png',

@@ -65,7 +65,7 @@ class PostTypeManager implements PostTypeManagerInterface
     public function delete(PostTypeInterface $postType): void
     {
         if ($postType->isBuiltIn()) {
-            throw new RuntimeException($this->translator->trans('backend.post_types.errors.builtin_protected'));
+            throw new RuntimeException($this->translator->trans('suite.post_types.errors.builtin_protected'));
         }
 
         // Posts point at their type with a non-nullable column, so letting
@@ -73,7 +73,7 @@ class PostTypeManager implements PostTypeManagerInterface
         // an answer the editor can act on. Trashed posts still count: they
         // are recoverable, and would come back to a type that no longer is.
         if ($postType->getPosts()->count() > 0) {
-            throw new RuntimeException($this->translator->trans('backend.post_types.errors.has_posts'));
+            throw new RuntimeException($this->translator->trans('suite.post_types.errors.has_posts'));
         }
 
         $this->auditDeleted($postType);
@@ -207,7 +207,7 @@ class PostTypeManager implements PostTypeManagerInterface
     private function assertSlugIsFree(string $slug): void
     {
         if ($this->postTypeRepository->findOneBySlug($slug) instanceof PostTypeInterface) {
-            throw new InvalidArgumentException($this->translator->trans('backend.post_types.errors.slug_taken', ['{slug}' => $slug]));
+            throw new InvalidArgumentException($this->translator->trans('suite.post_types.errors.slug_taken', ['{slug}' => $slug]));
         }
     }
 
@@ -215,7 +215,7 @@ class PostTypeManager implements PostTypeManagerInterface
     {
         foreach ($postType->getFields() as $field) {
             if ($field !== $ignore && $field->getName() === $name) {
-                throw new InvalidArgumentException($this->translator->trans('backend.post_types.errors.field_name_taken', ['{name}' => $name]));
+                throw new InvalidArgumentException($this->translator->trans('suite.post_types.errors.field_name_taken', ['{name}' => $name]));
             }
         }
     }

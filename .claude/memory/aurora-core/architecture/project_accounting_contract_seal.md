@@ -121,7 +121,7 @@ d'être gardée.
 ## L'export PDF, et pourquoi il ne contredit pas la mesure 4
 
 Depuis la 0.9.162, la liste des contrats a une action « Exporter en PDF »
-(`/backend/studio/contracts/{id}/export`). Elle rend **trois** réponses, et
+(`/suite/studio/contracts/{id}/export`). Elle rend **trois** réponses, et
 l'ordre des tests est la sécurité :
 
 1. contrat conclu → les octets stockés, tels quels, jamais un re-rendu ;

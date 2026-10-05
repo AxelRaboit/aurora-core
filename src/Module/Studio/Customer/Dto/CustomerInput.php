@@ -12,14 +12,14 @@ use Symfony\Component\Validator\Constraints as Assert;
 class CustomerInput implements CustomerInputInterface
 {
     public function __construct(
-        #[Assert\NotBlank(message: 'backend.studio.customers.errors.legal_name_required')]
-        #[Assert\Length(max: 180, maxMessage: 'backend.studio.customers.errors.legal_name_too_long')]
+        #[Assert\NotBlank(message: 'suite.studio.customers.errors.legal_name_required')]
+        #[Assert\Length(max: 180, maxMessage: 'suite.studio.customers.errors.legal_name_too_long')]
         public readonly string $legalName = '',
         #[Assert\Length(max: 60)]
         public readonly ?string $legalForm = null,
         // Zero is a real answer (an association has no capital), so the floor
         // is zero rather than one - and negative capital is not a thing.
-        #[Assert\PositiveOrZero(message: 'backend.studio.customers.errors.share_capital_invalid')]
+        #[Assert\PositiveOrZero(message: 'suite.studio.customers.errors.share_capital_invalid')]
         public readonly ?int $shareCapitalCents = null,
         public readonly ?CurrencyEnum $shareCapitalCurrency = null,
         #[Assert\Length(max: 500)]
@@ -40,7 +40,7 @@ class CustomerInput implements CustomerInputInterface
         public readonly ?string $representativeRole = null,
         // Requis d'un client et pas d'un prospect, donc la regle porte sur la
         // paire : le Manager la tient, c'est lui qui voit le statut.
-        #[Assert\Email(message: 'backend.studio.customers.errors.contractual_email_invalid')]
+        #[Assert\Email(message: 'suite.studio.customers.errors.contractual_email_invalid')]
         #[Assert\Length(max: 180)]
         public readonly ?string $contractualEmail = null,
         #[Assert\Length(max: 30)]

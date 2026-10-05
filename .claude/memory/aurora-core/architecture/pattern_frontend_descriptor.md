@@ -51,7 +51,7 @@ points d'extension structurels.
 ### Pour un nouveau module avec partie publique
 
 1. Ajouter une case `<Module>Frontend` dans `ModuleParameterEnum` (cascade
-   parent vers `<Module>Backend` si pertinent).
+   parent vers `<Module>Suite` si pertinent).
 2. Créer `src/Module/<Module>/<Module>FrontendDescriptor.php` (calquer sur
    `EditorialFrontendDescriptor.php`).
 3. Pour `getRoutePrefixes()` : lancer

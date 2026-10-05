@@ -30,7 +30,7 @@ final class ShareLinkRulesTest extends TestCase
     public function testADurationIsAWholeNumberOfDaysUpToAYearOrNothing(mixed $days, bool $valid): void
     {
         self::assertSame($valid, ShareLinkRules::expiryIsValid($days));
-        self::assertSame($valid ? [] : ['expiresInDays' => 'backend.studio.sharing.errors.expiry_invalid'], ShareLinkRules::errors(['expiresInDays' => $days]));
+        self::assertSame($valid ? [] : ['expiresInDays' => 'suite.studio.sharing.errors.expiry_invalid'], ShareLinkRules::errors(['expiresInDays' => $days]));
     }
 
     public function testAnAbsentDurationMeansNever(): void

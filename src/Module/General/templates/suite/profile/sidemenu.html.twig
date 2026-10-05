@@ -1,0 +1,26 @@
+{% extends '@Core/suite/layout.html.twig' %}
+
+{% block title %}{{ 'suite.profile.preferences.title'|trans }} - {{ parent() }}{% endblock %}
+
+{% block page_header_slot %}
+    {{ include('@Shared/components/page_header.html.twig', {
+        crumbs: [
+            {label: 'suite.nav.sections.account'|trans},
+            {label: 'suite.nav.profile'|trans, href: path('suite_general_profile')},
+            {label: 'suite.profile.preferences.title'|trans},
+        ],
+    }) }}
+{% endblock %}
+
+{% block body %}
+<div {{ vue_component('general/suite/profile/preferences/PreferencesApp', {
+    navPreferences: navPreferences,
+    sectionAliases: nav_section_aliases(),
+    itemAliases: nav_item_aliases(),
+    hiddenNavSections: hiddenNavSections,
+    hiddenNavItems: hiddenNavItems,
+    navSectionColors: navSectionColors,
+    savePath: path('suite_general_profile_sidemenu_save'),
+    resetPath: path('suite_general_profile_sidemenu_reset'),
+}) }} class="flex-1"></div>
+{% endblock %}

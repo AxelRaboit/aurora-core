@@ -54,7 +54,7 @@ final class PlanningNotificationDeliveryTest extends IntegrationTestCase
         static::getContainer()->get(UrlGeneratorInterface::class);
 
         $admin = static::getContainer()->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->admin = $admin;
     }

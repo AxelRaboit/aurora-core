@@ -53,7 +53,7 @@ final class DocumentFamiliesTest extends IntegrationTestCase
         $this->client = static::createClient();
         $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
 
-        $admin = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->client->loginUser($admin, 'admin');
     }
@@ -163,7 +163,7 @@ final class DocumentFamiliesTest extends IntegrationTestCase
 
         $this->client->request(
             'POST',
-            sprintf('/backend/ged/documents/%d/delete', $green->getId()),
+            sprintf('/suite/ged/documents/%d/delete', $green->getId()),
             server: ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'],
             content: json_encode(['withAlternates' => true]) ?: '{}',
         );
@@ -179,7 +179,7 @@ final class DocumentFamiliesTest extends IntegrationTestCase
         $this->givenDocument('Portrait rouge', $green, 'rouge');
         $this->givenDocument('Portrait jaune', $green, 'jaune');
 
-        $this->client->request('GET', sprintf('/backend/ged/documents/%d/alternates', $green->getId()));
+        $this->client->request('GET', sprintf('/suite/ged/documents/%d/alternates', $green->getId()));
         $data = json_decode((string) $this->client->getResponse()->getContent(), true);
 
         self::assertSame(['jaune', 'rouge'], array_column($data['alternates'], 'alternateLabel'));
@@ -329,7 +329,7 @@ final class DocumentFamiliesTest extends IntegrationTestCase
 
         $this->client->request(
             'POST',
-            sprintf('/backend/ged/documents/%d/update', $document->getId()),
+            sprintf('/suite/ged/documents/%d/update', $document->getId()),
             server: ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'],
             content: json_encode($payload) ?: '{}',
         );

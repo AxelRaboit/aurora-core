@@ -19,7 +19,7 @@ use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
- * What is coming up, on the backend dashboard.
+ * What is coming up, on the suite dashboard.
  *
  * **Scoped to the reader, unlike Editorial's provider.** That one is deliberately
  * unscoped because "how much content does the site hold" is a question about the
@@ -85,7 +85,7 @@ final readonly class PlanningStatsProvider implements DashboardStatsProviderInte
                 // Carried in the payload because a panel is handed its stats and
                 // nothing else. Inventing a prop the dashboard does not pass
                 // would have been a link that never appeared.
-                'path' => $this->urlGenerator->generate('backend_planning_calendar'),
+                'path' => $this->urlGenerator->generate('suite_planning_calendar'),
             ],
         ];
     }
@@ -152,7 +152,7 @@ final readonly class PlanningStatsProvider implements DashboardStatsProviderInte
             'calendars' => 0,
             'overdue' => 0,
             'upcoming' => [],
-            'path' => $this->urlGenerator->generate('backend_planning_calendar'),
+            'path' => $this->urlGenerator->generate('suite_planning_calendar'),
         ];
     }
 
@@ -164,7 +164,7 @@ final readonly class PlanningStatsProvider implements DashboardStatsProviderInte
     {
         // The day in the calendar's own zone: a 23:30 event in Paris is on
         // Tuesday there, whatever day UTC says.
-        return $this->urlGenerator->generate('backend_planning_calendar', [
+        return $this->urlGenerator->generate('suite_planning_calendar', [
             'view' => 'day',
             'date' => $at->setTimezone(PlanningClock::zone($planning))->format('Y-m-d'),
         ]);

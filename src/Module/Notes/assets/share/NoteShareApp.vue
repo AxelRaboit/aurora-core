@@ -1,13 +1,13 @@
 <script setup>
-import "@notes/backend/markdown/components/preview.css";
+import "@notes/suite/markdown/components/preview.css";
 import "@notes/share/appearance.css";
 import "@notes/share/print.css";
 
 import { computed, onMounted, onUnmounted } from "vue";
 import { useI18n } from "vue-i18n";
-import { useMarkdownRenderer } from "@notes/backend/markdown/composables/useMarkdownRenderer.js";
+import { useMarkdownRenderer } from "@notes/suite/markdown/composables/useMarkdownRenderer.js";
 import { shareHtml } from "@notes/share/useSharedNoteHtml.js";
-import { withoutLeadingTitle } from "@notes/backend/markdown/composables/noteBody.js";
+import { withoutLeadingTitle } from "@notes/suite/markdown/composables/noteBody.js";
 import { lightWhilePrinting } from "@notes/share/useNotePrint.js";
 
 const props = defineProps({

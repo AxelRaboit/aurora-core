@@ -1,4 +1,4 @@
-backend:
+suite:
     search:
         sections:
             spaces: Espacios de cliente
@@ -28,8 +28,8 @@ backend:
             attention_empty: 'Nada pendiente con sus clientes.'
     modules:
         studio: Studio
-        studio_backend: Studio
-        studio_backend_description: 'Lo que vende y lo que entrega a un cliente: los clientes, los contratos y las presentaciones.'
+        studio_suite: Studio
+        studio_suite_description: 'Lo que vende y lo que entrega a un cliente: los clientes, los contratos y las presentaciones.'
         studio_decks: Presentaciones
         studio_decks_description: 'Crear conjuntos de diapositivas, clasificarlos y duplicarlos.'
         studio_deliverables: "Entregables"

@@ -58,7 +58,7 @@ enum PostBulkActionEnum: string
 
     public function getLabelKey(): string
     {
-        return 'backend.posts.bulk.action_'.$this->value;
+        return 'suite.posts.bulk.action_'.$this->value;
     }
 
     /** @return list<string> */

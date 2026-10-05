@@ -25,16 +25,16 @@ final class StudioRouteGateSubscriberTest extends TestCase
 {
     public function testEverythingIsOpenWhileStudioIsOn(): void
     {
-        foreach (['backend_studio_spaces', 'backend_studio_contracts', 'workspace_space_content', 'public_space_show', 'public_contract_sign', 'public_deck_show'] as $route) {
+        foreach (['suite_studio_spaces', 'suite_studio_contracts', 'workspace_space_content', 'public_space_show', 'public_contract_sign', 'public_deck_show'] as $route) {
             $this->assertGate($route, [], false);
         }
     }
 
     public function testStudioOffClosesTheScreensAndTheClientPages(): void
     {
-        $off = [ModuleParameterEnum::StudioBackend->value];
+        $off = [ModuleParameterEnum::StudioSuite->value];
 
-        foreach (['backend_studio_customers', 'backend_studio_craft_settings', 'workspace_space_content', 'public_space_show', 'public_contract_sign', 'public_deck_show'] as $route) {
+        foreach (['suite_studio_customers', 'suite_studio_craft_settings', 'workspace_space_content', 'public_space_show', 'public_contract_sign', 'public_deck_show'] as $route) {
             $this->assertGate($route, $off, true);
         }
     }
@@ -43,11 +43,11 @@ final class StudioRouteGateSubscriberTest extends TestCase
     {
         $off = [ModuleParameterEnum::StudioContracts->value];
 
-        $this->assertGate('backend_studio_contracts', $off, true);
-        $this->assertGate('backend_studio_contract_templates', $off, true);
+        $this->assertGate('suite_studio_contracts', $off, true);
+        $this->assertGate('suite_studio_contract_templates', $off, true);
         $this->assertGate('public_contract_sign', $off, true);
 
-        $this->assertGate('backend_studio_spaces', $off, false);
+        $this->assertGate('suite_studio_spaces', $off, false);
         $this->assertGate('workspace_space_content', $off, false);
         $this->assertGate('public_space_show', $off, false);
     }
@@ -56,16 +56,16 @@ final class StudioRouteGateSubscriberTest extends TestCase
     {
         $off = [ModuleParameterEnum::StudioSpaces->value];
 
-        $this->assertGate('backend_studio_spaces', $off, true);
+        $this->assertGate('suite_studio_spaces', $off, true);
         $this->assertGate('workspace_space_chat_post', $off, true);
         $this->assertGate('public_space_answer', $off, true);
-        $this->assertGate('backend_studio_decks', $off, false);
+        $this->assertGate('suite_studio_decks', $off, false);
     }
 
     public function testRoutesOfAnotherModuleAreNotItsBusiness(): void
     {
-        $this->assertGate('backend_planning_calendar', [ModuleParameterEnum::StudioBackend->value], false);
-        $this->assertGate('editorial_post', [ModuleParameterEnum::StudioBackend->value], false);
+        $this->assertGate('suite_planning_calendar', [ModuleParameterEnum::StudioSuite->value], false);
+        $this->assertGate('editorial_post', [ModuleParameterEnum::StudioSuite->value], false);
     }
 
     /** @param list<string> $disabled */

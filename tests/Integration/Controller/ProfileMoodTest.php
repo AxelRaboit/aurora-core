@@ -23,7 +23,7 @@ final class ProfileMoodTest extends IntegrationTestCase
         $this->client = static::createClient();
 
         $userRepository = static::getContainer()->get(UserRepository::class);
-        $admin = $userRepository->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = $userRepository->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->client->loginUser($admin, 'admin');
 
@@ -32,7 +32,7 @@ final class ProfileMoodTest extends IntegrationTestCase
 
     public function testSavingValidMessagePersistsAndReturnsIt(): void
     {
-        [$status, $body] = $this->postJson('backend_general_profile_mood', [], ['moodMessage' => 'Shipping things ✨']);
+        [$status, $body] = $this->postJson('suite_general_profile_mood', [], ['moodMessage' => 'Shipping things ✨']);
 
         self::assertSame(200, $status);
         self::assertTrue($body['success']);
@@ -42,10 +42,10 @@ final class ProfileMoodTest extends IntegrationTestCase
 
     public function testEmptyStringClearsTheMoodMessage(): void
     {
-        $this->postJson('backend_general_profile_mood', [], ['moodMessage' => 'set']);
+        $this->postJson('suite_general_profile_mood', [], ['moodMessage' => 'set']);
         self::assertSame('set', $this->reloadAdmin()->getMoodMessage());
 
-        [$status, $body] = $this->postJson('backend_general_profile_mood', [], ['moodMessage' => '   ']);
+        [$status, $body] = $this->postJson('suite_general_profile_mood', [], ['moodMessage' => '   ']);
 
         self::assertSame(200, $status);
         self::assertTrue($body['success']);
@@ -57,7 +57,7 @@ final class ProfileMoodTest extends IntegrationTestCase
     {
         $tooLong = str_repeat('a', User::MOOD_MESSAGE_MAX_LENGTH + 1);
 
-        [$status, $body] = $this->postJson('backend_general_profile_mood', [], ['moodMessage' => $tooLong]);
+        [$status, $body] = $this->postJson('suite_general_profile_mood', [], ['moodMessage' => $tooLong]);
 
         self::assertSame(422, $status);
         self::assertFalse($body['success']);
@@ -69,7 +69,7 @@ final class ProfileMoodTest extends IntegrationTestCase
     {
         $exact = str_repeat('a', User::MOOD_MESSAGE_MAX_LENGTH);
 
-        [$status, $body] = $this->postJson('backend_general_profile_mood', [], ['moodMessage' => $exact]);
+        [$status, $body] = $this->postJson('suite_general_profile_mood', [], ['moodMessage' => $exact]);
 
         self::assertSame(200, $status);
         self::assertTrue($body['success']);
@@ -89,7 +89,7 @@ final class ProfileMoodTest extends IntegrationTestCase
         $repository = static::getContainer()->get(UserRepository::class);
         // Clear identity map to force a fresh read after the request.
         $repository->getEntityManager()->clear();
-        $admin = $repository->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = $repository->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
 
         return $admin;

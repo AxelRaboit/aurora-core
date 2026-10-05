@@ -16,7 +16,7 @@ namespace Aurora\Module\Configuration\Theme\Service;
  * invisibles. La décision porte sur le jeu entier, pas sur une couleur.
  *
  * Les deux jeux sont ceux que `theme.css` définit déjà pour `:root` et `.dark`.
- * Ils sont repris tels quels plutôt que réinventés : le backend en mode sombre
+ * Ils sont repris tels quels plutôt que réinventés : la suite en mode sombre
  * les éprouve tous les jours.
  *
  * Le choix se fait au rapport de contraste WCAG, pas à un seuil de luminance à

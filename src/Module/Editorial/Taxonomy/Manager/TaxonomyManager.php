@@ -71,7 +71,7 @@ class TaxonomyManager implements TaxonomyManagerInterface
     public function delete(TaxonomyInterface $taxonomy): void
     {
         if ($taxonomy->isBuiltIn()) {
-            throw new RuntimeException($this->translator->trans('backend.taxonomies.errors.builtin_protected'));
+            throw new RuntimeException($this->translator->trans('suite.taxonomies.errors.builtin_protected'));
         }
 
         $this->auditTaxonomyDeleted($taxonomy);
@@ -108,7 +108,7 @@ class TaxonomyManager implements TaxonomyManagerInterface
         $parent = $this->resolveParent($term->getTaxonomy(), $input->getParentId());
 
         if ($parent instanceof TaxonomyTermInterface && ($parent === $term || $parent->isDescendantOf($term))) {
-            throw new InvalidArgumentException($this->translator->trans('backend.taxonomies.errors.term_self_nested'));
+            throw new InvalidArgumentException($this->translator->trans('suite.taxonomies.errors.term_self_nested'));
         }
 
         $this->applyTermInput($term, $input, $parent);
@@ -241,7 +241,7 @@ class TaxonomyManager implements TaxonomyManagerInterface
                 continue;
             }
 
-            throw new InvalidArgumentException($this->translator->trans('backend.taxonomies.errors.term_slug_taken', ['{slug}' => $slug, '{term}' => $translation->getName()]));
+            throw new InvalidArgumentException($this->translator->trans('suite.taxonomies.errors.term_slug_taken', ['{slug}' => $slug, '{term}' => $translation->getName()]));
         }
     }
 
@@ -294,7 +294,7 @@ class TaxonomyManager implements TaxonomyManagerInterface
     private function assertSlugIsFree(string $slug): void
     {
         if ($this->taxonomyRepository->findOneBySlug($slug) instanceof TaxonomyInterface) {
-            throw new InvalidArgumentException($this->translator->trans('backend.taxonomies.errors.slug_taken', ['{slug}' => $slug]));
+            throw new InvalidArgumentException($this->translator->trans('suite.taxonomies.errors.slug_taken', ['{slug}' => $slug]));
         }
     }
 
@@ -315,7 +315,7 @@ class TaxonomyManager implements TaxonomyManagerInterface
             $current = $parentMap[$id];
             while (null !== $current) {
                 if (isset($seen[$current])) {
-                    throw new InvalidArgumentException($this->translator->trans('backend.taxonomies.errors.reorder_cycle', ['{id}' => $id]));
+                    throw new InvalidArgumentException($this->translator->trans('suite.taxonomies.errors.reorder_cycle', ['{id}' => $id]));
                 }
 
                 $seen[$current] = true;
@@ -350,7 +350,7 @@ class TaxonomyManager implements TaxonomyManagerInterface
 
         $parent = $this->termRepository->find($parentId);
         if (!$parent instanceof TaxonomyTermInterface || $parent->getTaxonomy()->getId() !== $taxonomy->getId()) {
-            throw new InvalidArgumentException($this->translator->trans('backend.taxonomies.errors.parent_wrong_taxonomy', ['{parentId}' => $parentId, '{taxonomy}' => $taxonomy->getSlug()]));
+            throw new InvalidArgumentException($this->translator->trans('suite.taxonomies.errors.parent_wrong_taxonomy', ['{parentId}' => $parentId, '{taxonomy}' => $taxonomy->getSlug()]));
         }
 
         return $parent;

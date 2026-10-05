@@ -24,8 +24,8 @@ final class GedContextTest extends TestCase
 
     public function testIsAdminEnabled(): void
     {
-        self::assertTrue($this->makeContext([ModuleParameterEnum::GedBackend->value => true])->isBackendEnabled());
-        self::assertFalse($this->makeContext([ModuleParameterEnum::GedBackend->value => false])->isBackendEnabled());
+        self::assertTrue($this->makeContext([ModuleParameterEnum::GedSuite->value => true])->isSuiteEnabled());
+        self::assertFalse($this->makeContext([ModuleParameterEnum::GedSuite->value => false])->isSuiteEnabled());
     }
 
     public function testIsDocumentsEnabled(): void

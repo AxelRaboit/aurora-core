@@ -30,17 +30,17 @@ final readonly class CategoriesTrashSource implements TrashSourceInterface
 
         return new TrashSummary(
             key: 'ged_categories',
-            labelKey: 'backend.nav.ged_categories',
+            labelKey: 'suite.nav.ged_categories',
             sectionId: 'ged',
             icon: 'tags',
             count: count($trashed),
             items: array_map($this->present(...), array_slice($trashed, 0, $limit)),
             oldestDeletedAt: $this->categoryRepository->oldestTrashedAt(),
-            restoreRoute: 'backend_ged_categories_restore',
-            forceDeleteRoute: 'backend_ged_categories_force_delete',
-            emptyTrashRoute: 'backend_ged_categories_empty_trash',
+            restoreRoute: 'suite_ged_categories_restore',
+            forceDeleteRoute: 'suite_ged_categories_force_delete',
+            emptyTrashRoute: 'suite_ged_categories_empty_trash',
             actionPrivilege: 'ged.categories.delete',
-            listRoute: 'backend_ged_categories',
+            listRoute: 'suite_ged_categories',
         );
     }
 

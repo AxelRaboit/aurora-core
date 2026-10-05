@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block body %}
-<div {{ vue_component('planning/backend/share/PlanningShareApp', {
+<div {{ vue_component('planning/suite/share/PlanningShareApp', {
     calendars: calendars,
     zone: zone,
     eventsPath: path('planning_share_events', {token: token}),

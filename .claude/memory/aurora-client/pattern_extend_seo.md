@@ -83,7 +83,7 @@ ou non-indexable) : toujours `noindex: true` dans l'appel `seo()`.
 
 ## Paramètres globaux configurables en backend
 
-`/backend/dev/parameters`, groupe **SEO** :
+`/suite/dev/parameters`, groupe **SEO** :
 
 - `seo_title_template` - concat titre + siteName
 - `seo_default_description` - fallback meta description

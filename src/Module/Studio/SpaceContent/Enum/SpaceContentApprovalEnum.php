@@ -32,9 +32,9 @@ enum SpaceContentApprovalEnum: string
     public function getLabelKey(): string
     {
         return match ($this) {
-            self::Pending => 'backend.studio.space_content.approvals.pending',
-            self::Approved => 'backend.studio.space_content.approvals.approved',
-            self::ChangesRequested => 'backend.studio.space_content.approvals.changes_requested',
+            self::Pending => 'suite.studio.space_content.approvals.pending',
+            self::Approved => 'suite.studio.space_content.approvals.approved',
+            self::ChangesRequested => 'suite.studio.space_content.approvals.changes_requested',
         };
     }
 

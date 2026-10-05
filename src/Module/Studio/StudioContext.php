@@ -16,9 +16,9 @@ final readonly class StudioContext
 {
     public function __construct(private ModuleAccessChecker $moduleAccessChecker) {}
 
-    public function isBackendEnabled(): bool
+    public function isSuiteEnabled(): bool
     {
-        return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::StudioBackend);
+        return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::StudioSuite);
     }
 
     public function areCustomersEnabled(): bool

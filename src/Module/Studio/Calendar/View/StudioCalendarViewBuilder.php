@@ -49,7 +49,7 @@ final readonly class StudioCalendarViewBuilder
                 'customerName' => $space->getCustomer()->getLegalName(),
                 'colourSlot' => $space->getColourSlot(),
             ], $this->activeSpaces($scope)),
-            'itemsPath' => $this->urlGenerator->generate('backend_studio_calendar_items'),
+            'itemsPath' => $this->urlGenerator->generate('suite_studio_calendar_items'),
         ];
     }
 

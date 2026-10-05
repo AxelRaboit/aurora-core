@@ -1,4 +1,4 @@
-backend:
+suite:
     settings:
         studio_guide:
             title: 'Su identidad en los contratos'
@@ -305,7 +305,7 @@ backend:
         modules_intro: 'Active o desactive los módulos de la aplicación. Los cambios se guardan de inmediato.'
         modules_empty: 'No se ha encontrado ningún módulo.'
         module_type:
-            backend: Backend
+            suite: Suite
             frontend: Frontend
         save: Guardar
         saved: 'Ajustes guardados.'
@@ -399,10 +399,10 @@ backend:
             description: 'Si se activa, el sitio público se cierra a los visitantes y muestra una página de mantenimiento.'
         admin_registration_enabled:
             label: 'Registros de administración abiertos'
-            description: 'Permitir los registros a través de /backend/platform/register. Desactívelo después de crear la primera cuenta de administrador.'
+            description: 'Permitir los registros a través de /suite/platform/register. Desactívelo después de crear la primera cuenta de administrador.'
         admin_access_request_enabled:
             label: 'Solicitudes de acceso de administración abiertas'
-            description: 'Permitir las solicitudes de acceso a través de /backend/platform/access-request (formulario de solicitud de acceso a la administración)'
+            description: 'Permitir las solicitudes de acceso a través de /suite/platform/access-request (formulario de solicitud de acceso a la administración)'
         front_login_enabled:
             label: 'Inicio de sesión en el frontend activado'
             description: 'Si se desactiva, el sitio público deja de tener cuentas: el inicio de sesión, el registro, el espacio de cliente y la contraseña olvidada devuelven un 404, y los enlaces correspondientes desaparecen de los menús. Desactívelo para una aplicación puramente de escaparate.'
@@ -433,7 +433,7 @@ backend:
         favicon_media_id:
             label: Favicon
             description: 'ID del medio utilizado como favicon'
-        backend_bar_site_name_on_phone:
+        suite_bar_site_name_on_phone:
           label: "Nombre del sitio en la barra del back-office en el móvil"
           description: "Muestra el nombre del sitio junto al logotipo en la barra superior del back-office, por debajo de 640 px de ancho. Desactivado, solo queda el logotipo; los lectores de pantalla siguen leyendo el nombre. Para el sitio público, el ajuste equivalente está en el tema."
         seo_title_template:
@@ -554,7 +554,7 @@ backend:
         email_text_color:
             label: "Texto de los correos"
             description: "El texto corriente del mensaje."
-        backend_palette:
+        suite_palette:
             label: "Grises del modo claro y oscuro"
             description: "Familia de grises y ajustes de cada modo, en JSON (gestionado desde la interfaz)."
         intro: 'Consulte y edite los ajustes técnicos de la aplicación.'

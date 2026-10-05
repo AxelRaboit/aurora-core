@@ -12,7 +12,7 @@ use SplFileInfo;
 /**
  * A panel that is a drawer on mobile must drop its z-index on desktop.
  *
- * The backend page header is `lg:sticky lg:z-20`, and a page container marked
+ * The suite page header is `lg:sticky lg:z-20`, and a page container marked
  * `relative` with no z-index of its own creates no stacking context - so a
  * child carrying `z-40` competes with that header directly and wins. Scrolling
  * then draws the panel over the breadcrumb.

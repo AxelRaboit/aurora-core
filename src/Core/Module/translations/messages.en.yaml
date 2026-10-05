@@ -1,4 +1,4 @@
-backend:
+suite:
     permissions:
         intro: Manage user access rights per module. Each permission can be granted individually.
         search_placeholder: Filter modules…
@@ -35,10 +35,10 @@ backend:
         project: Project
         core: Core
         general: General
-        general_backend: General
-        general_backend_description: Dashboard and post-login landing page.
+        general_suite: General
+        general_suite_description: Dashboard and post-login landing page.
         platform: Platform
-        platform_backend: Platform
-        platform_backend_description: Technical backend section.
+        platform_suite: Platform
+        platform_suite_description: The technical section of the suite.
         configuration: Configuration
         configuration_description: Global application parameters and visual customization.

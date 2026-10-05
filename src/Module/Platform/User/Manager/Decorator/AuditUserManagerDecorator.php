@@ -131,7 +131,7 @@ final readonly class AuditUserManagerDecorator implements UserManagerInterface
         return $this->inner->isEmailTaken($email, $excludeUser);
     }
 
-    public function invite(string $name, string $email, string $role, ?string $customMessage, bool $disabled = false, UserTypeEnum $type = UserTypeEnum::Backend): User
+    public function invite(string $name, string $email, string $role, ?string $customMessage, bool $disabled = false, UserTypeEnum $type = UserTypeEnum::Suite): User
     {
         $user = $this->inner->invite($name, $email, $role, $customMessage, $disabled, $type);
         // `disabled` est journalisé parce que les deux actes sont différents : un

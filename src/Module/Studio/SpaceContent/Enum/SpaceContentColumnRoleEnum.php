@@ -31,6 +31,6 @@ enum SpaceContentColumnRoleEnum: string
 
     public function getLabelKey(): string
     {
-        return 'backend.studio.space_content.column_roles.'.$this->value;
+        return 'suite.studio.space_content.column_roles.'.$this->value;
     }
 }

@@ -6,7 +6,7 @@ namespace Aurora\Module\Configuration\Setting\Configuration;
 
 /**
  * One row in the admin Settings page. Identifies the persisted key, its type
- * (steering the Vue renderer + backend casting), and the i18n keys used for
+ * (steering the Vue renderer + suite casting), and the i18n keys used for
  * label / help text. Each tab returned by a {@see ConfigurationTabProviderInterface}
  * carries a list of these.
  *

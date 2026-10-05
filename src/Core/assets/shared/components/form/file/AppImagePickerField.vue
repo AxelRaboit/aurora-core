@@ -20,7 +20,7 @@ import AppButton from "@/shared/components/action/AppButton.vue";
 import AppFilePickerButton from "@/shared/components/action/AppFilePickerButton.vue";
 import AppImage from "@/shared/components/display/AppImage.vue";
 import { openDocumentPicker } from "@/shared/utils/documentPicker.js";
-import { useImageUpload } from "@/shared/composables/http/backend/useImageUpload.js";
+import { useImageUpload } from "@/shared/composables/http/suite/useImageUpload.js";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
 
 const props = defineProps({

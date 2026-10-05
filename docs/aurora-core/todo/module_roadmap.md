@@ -106,16 +106,16 @@ Inspiré de Dolibarr, cette liste recense les modules manquants dans Aurora, cla
 > **Étape 1 - purge des résidus** (ce qui restait après l'extraction :
 > 97 occurrences sur 47 fichiers source). Tag `pre-editorial-purge` =
 > état juste avant. Commits sur `develop`, du plus ancien au plus récent :
-> `e6b89bdc` (crash `/backend/settings`), `f06f8934` (bloc `postsList`),
+> `e6b89bdc` (crash `/suite/settings`), `f06f8934` (bloc `postsList`),
 > `c09200ff` (panneau de dashboard), `ba464f10` (câblage : alias Vite,
 > `ThemeResolver::resolveAll()`, thèmes de couleur, persona de démo,
 > défauts `DefaultFront`), `04a94e06` (5 templates de thème),
 > `726f1dd9` (`bin/make-frontend`).
 >
 > Trois trouvailles qui n'étaient pas du simple code mort :
-> - `SettingsViewBuilder` générait la route `backend_editorial_posts_search` ;
+> - `SettingsViewBuilder` générait la route `suite_editorial_posts_search` ;
 >   `UrlGeneratorInterface::generate()` lève `RouteNotFoundException` plutôt
->   que de dégrader, donc **toute la page `/backend/configuration/settings`
+>   que de dégrader, donc **toute la page `/suite/configuration/settings`
 >   tombait** dès qu'Editorial n'était plus installé.
 > - `bin/make-frontend` générait un import `@editorial/frontend/LocaleSwitcher.vue`
 >   et un appel Twig `menu_items()` : tout module scaffoldé produisait un
@@ -147,7 +147,7 @@ neutralisé et la substitution promise au client ne fonctionne pas.
 
 | Défaut | Ce que ça donnait |
 |---|---|
-| `SettingsViewBuilder` générant une route absente | `/backend/configuration/settings` en 500 |
+| `SettingsViewBuilder` générant une route absente | `/suite/configuration/settings` en 500 |
 | `bin/make-frontend` générant un import et une fonction Twig absents | Tout module scaffoldé cassé au build et au rendu |
 | Kit client épinglé sur `dev-split/core`, branche gelée | Tout nouveau projet démarrait sur un core périmé |
 | `AbstractPostType::$supports` déclarant `excerpt` | Capacité annoncée que rien ne lit |
@@ -162,7 +162,7 @@ neutralisé et la substitution promise au client ne fonctionne pas.
 | Publication programmée et purge sans écriture d'audit | Un post passe en ligne ou disparaît sans trace |
 | Docblock du filtre par termes annonçant ET, code faisant OU | Documentation fausse |
 | `BlocksRenderer::renderCallout()` lisant `text` et émettant `.callout-info` | Encart vide et non coloré, mais **seulement une fois publié** |
-| `robots.txt` interdisant `/admin/` et `/dev/` | Le backend d'Aurora est sous `/backend/` : le fichier ne bloquait rien qui existe et **annonçait l'administration comme indexable**. Bien formé, route en 200, aucun symptôme avant de voir des URL d'admin dans les résultats de recherche. |
+| `robots.txt` interdisant `/admin/` et `/dev/` | Le backend d'Aurora est sous `/suite/` : le fichier ne bloquait rien qui existe et **annonçait l'administration comme indexable**. Bien formé, route en 200, aucun symptôme avant de voir des URL d'admin dans les résultats de recherche. |
 | Filtre anti-spam des commentaires notifiant **avant** de filtrer | Le décorateur appelait `submit()` - qui persiste, journalise **et envoie le mail** - puis basculait le résultat en spam. Chaque commentaire indésirable prévenait donc l'administrateur, exactement ce qu'un filtre anti-spam existe pour éviter ; et modération coupée, il écrivait à l'adresse saisie par le spammeur, faisant du site un relais pour qui remplit le formulaire. Rien ne le signalait : le commentaire atterrissait bien dans la file « indésirable », seule la boîte mail était en désaccord. |
 | `ReactionTypeEnum::label()` renvoyant du français en dur | Sur le site public, un lecteur anglophone survolant une réaction lisait « J'adore ». |
 | Empreinte de réaction en `sha256(ip + user-agent)` non salée | L'espace est assez petit pour être parcouru : avec la table et une IP suspectée, on confirme ce que quelqu'un a aimé. Salée avec le secret applicatif désormais. |
@@ -221,7 +221,7 @@ les deux côtés étant normalisés de la même façon. `array<array-key, mixed>
 un accès par entier.
 
 **Un test à moi qui encodait une coïncidence.** `ValidationMessageKeyTest`
-affirmait que toute clé de contrainte commence par `backend.` - vrai de tous
+affirmait que toute clé de contrainte commence par `suite.` - vrai de tous
 les DTO au moment où je l'ai écrit, faux dès le premier formulaire public. Le
 test a bloqué le travail correct au lieu de le protéger. Réécrit pour poser la
 vraie question : la clé se résout-elle dans le catalogue ? Ce qui attrape en

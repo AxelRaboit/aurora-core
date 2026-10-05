@@ -19,14 +19,14 @@ use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnumInterface;
  */
 enum CaptchaSettingEnum: string
 {
-    case Enabled = 'backend_editorial_captcha_enabled';
+    case Enabled = 'suite_editorial_captcha_enabled';
 
     /** `turnstile` or `recaptcha`; see {@see CaptchaProviderEnum}. */
-    case Provider = 'backend_editorial_captcha_provider';
+    case Provider = 'suite_editorial_captcha_provider';
 
     /** Printed in the page, on purpose: the widget needs it. */
-    case SiteKey = 'backend_editorial_captcha_site_key';
+    case SiteKey = 'suite_editorial_captcha_site_key';
 
     /** Stored encrypted; see {@see CaptchaSettings}. */
-    case SecretKey = 'backend_editorial_captcha_secret_key';
+    case SecretKey = 'suite_editorial_captcha_secret_key';
 }

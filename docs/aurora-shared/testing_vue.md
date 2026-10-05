@@ -13,7 +13,7 @@ src/Core/assets/shared/components/form/
   AppInput.vue
   AppInput.test.js       ✅ co-localisé
 
-src/Module/Ged/assets/backend/documents/composables/
+src/Module/Ged/assets/suite/documents/composables/
   useDocumentsForm.js
   useDocumentsForm.test.js  ✅ co-localisé
 ```

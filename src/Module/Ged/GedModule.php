@@ -23,7 +23,7 @@ final readonly class GedModule implements ModuleInterface, ModuleNavViewProvider
      * hierarchical, it is as long as the reader made it, and its rows are data
      * rather than destinations declared in PHP.
      */
-    private const string FOLDER_TREE_PANEL = 'ged/backend/documents/FolderTreePanel';
+    private const string FOLDER_TREE_PANEL = 'ged/suite/documents/FolderTreePanel';
 
     public function __construct(private GedContext $gedContext) {}
 
@@ -51,7 +51,7 @@ final readonly class GedModule implements ModuleInterface, ModuleNavViewProvider
 
     public function getNavSections(): array
     {
-        if (!$this->gedContext->isBackendEnabled()) {
+        if (!$this->gedContext->isSuiteEnabled()) {
             return [];
         }
 
@@ -94,7 +94,7 @@ final readonly class GedModule implements ModuleInterface, ModuleNavViewProvider
      */
     public function getModuleNavView(): ?ModuleNavView
     {
-        if (!$this->gedContext->isBackendEnabled()) {
+        if (!$this->gedContext->isSuiteEnabled()) {
             return null;
         }
 
@@ -116,7 +116,7 @@ final readonly class GedModule implements ModuleInterface, ModuleNavViewProvider
     public function getToggles(): array
     {
         return [
-            ModuleParameterEnum::GedBackend->toToggle(),
+            ModuleParameterEnum::GedSuite->toToggle(),
             ModuleParameterEnum::GedDocuments->toToggle(),
             ModuleParameterEnum::GedCategories->toToggle(),
             ModuleParameterEnum::GedTags->toToggle(),
@@ -160,16 +160,16 @@ final readonly class GedModule implements ModuleInterface, ModuleNavViewProvider
 
     private function documentsNavItem(): NavItem
     {
-        return new NavItem('backend_ged_documents', 'backend.nav.documents', 'folder-open', requiredPrivilege: 'ged.documents.view', descriptionKey: 'backend.nav.documents_description');
+        return new NavItem('suite_ged_documents', 'suite.nav.documents', 'folder-open', requiredPrivilege: 'ged.documents.view', descriptionKey: 'suite.nav.documents_description');
     }
 
     private function categoriesNavItem(): NavItem
     {
-        return new NavItem('backend_ged_categories', 'backend.nav.ged_categories', 'tags', requiredPrivilege: 'ged.categories.view', descriptionKey: 'backend.nav.ged_categories_description');
+        return new NavItem('suite_ged_categories', 'suite.nav.ged_categories', 'tags', requiredPrivilege: 'ged.categories.view', descriptionKey: 'suite.nav.ged_categories_description');
     }
 
     private function tagsNavItem(): NavItem
     {
-        return new NavItem('backend_ged_tags', 'backend.nav.ged_tags', 'tag', requiredPrivilege: 'ged.tags.manage', descriptionKey: 'backend.nav.ged_tags_description');
+        return new NavItem('suite_ged_tags', 'suite.nav.ged_tags', 'tag', requiredPrivilege: 'ged.tags.manage', descriptionKey: 'suite.nav.ged_tags_description');
     }
 }

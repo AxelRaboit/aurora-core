@@ -34,7 +34,7 @@ use Aurora\Module\Studio\Deck\Manager\DeckManager;
 use Aurora\Module\Studio\Deck\Repository\DeckRepository;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
 use Aurora\Module\Studio\Deliverable\Security\DeliverableAccess;
-use Aurora\Module\Studio\Search\StudioBackendSearchProvider;
+use Aurora\Module\Studio\Search\StudioSuiteSearchProvider;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumn;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItem;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentItemRepository;
@@ -70,7 +70,7 @@ final class StudioSearchTest extends IntegrationTestCase
 
     private EntityManagerInterface $entityManager;
 
-    private StudioBackendSearchProvider $provider;
+    private StudioSuiteSearchProvider $provider;
 
     private SettingRepository $settings;
 
@@ -91,10 +91,10 @@ final class StudioSearchTest extends IntegrationTestCase
         $this->client = self::createClient();
         $container = self::getContainer();
         $this->entityManager = $container->get(EntityManagerInterface::class);
-        $this->provider = $container->get(StudioBackendSearchProvider::class);
+        $this->provider = $container->get(StudioSuiteSearchProvider::class);
         $this->settings = $container->get(SettingRepository::class);
 
-        $admin = $container->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = $container->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->admin = $admin;
 
@@ -119,7 +119,7 @@ final class StudioSearchTest extends IntegrationTestCase
 
         $this->templateIds = [];
 
-        foreach ([ModuleParameterEnum::StudioBackend, ModuleParameterEnum::StudioSpaces, ModuleParameterEnum::StudioCustomers, ModuleParameterEnum::StudioContracts, ModuleParameterEnum::StudioDecks] as $toggle) {
+        foreach ([ModuleParameterEnum::StudioSuite, ModuleParameterEnum::StudioSpaces, ModuleParameterEnum::StudioCustomers, ModuleParameterEnum::StudioContracts, ModuleParameterEnum::StudioDecks] as $toggle) {
             $this->settings->set($toggle->value, '1');
         }
 
@@ -151,19 +151,19 @@ final class StudioSearchTest extends IntegrationTestCase
         self::assertSame(sprintf('/workspace/%d?item=%d', $space->getId(), $item->getId()), $results['space_contents'][0]['path']);
 
         self::assertSame(['Boulangerie '.$this->needle], array_column($results['customers'], 'title'));
-        self::assertStringStartsWith('/backend/studio/customers?search=', $results['customers'][0]['path']);
+        self::assertStringStartsWith('/suite/studio/customers?search=', $results['customers'][0]['path']);
 
         self::assertSame(['CT-'.$this->needle], array_column($results['contracts'], 'title'));
-        self::assertSame(sprintf('/backend/studio/contracts/%d', $contract->getId()), $results['contracts'][0]['path']);
+        self::assertSame(sprintf('/suite/studio/contracts/%d', $contract->getId()), $results['contracts'][0]['path']);
 
         self::assertSame(['Trame '.$this->needle], array_column($results['contract_templates'], 'title'));
         self::assertSame(
-            sprintf('/backend/studio/contract-templates/%d/versions/%d', $template->getId(), $template->getDraft()?->getId()),
+            sprintf('/suite/studio/contract-templates/%d/versions/%d', $template->getId(), $template->getDraft()?->getId()),
             $results['contract_templates'][0]['path'],
         );
 
         self::assertSame(['Atelier '.$this->needle], array_column($results['decks'], 'title'));
-        self::assertSame(sprintf('/backend/studio/decks/%d', $deck->getId()), $results['decks'][0]['path']);
+        self::assertSame(sprintf('/suite/studio/decks/%d', $deck->getId()), $results['decks'][0]['path']);
     }
 
     /** Through the search box's own endpoint, which merges every provider. */
@@ -172,11 +172,11 @@ final class StudioSearchTest extends IntegrationTestCase
         $deck = $this->deck('Atelier '.$this->needle);
 
         $this->client->loginUser($this->admin, 'admin');
-        $this->client->request('GET', '/backend/general/search?q='.$this->needle, server: self::FROM_THE_PAGE);
+        $this->client->request('GET', '/suite/general/search?q='.$this->needle, server: self::FROM_THE_PAGE);
         self::assertResponseIsSuccessful();
 
         $payload = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
-        self::assertSame(sprintf('/backend/studio/decks/%d', $deck->getId()), $payload['decks'][0]['path'] ?? null);
+        self::assertSame(sprintf('/suite/studio/decks/%d', $deck->getId()), $payload['decks'][0]['path'] ?? null);
     }
 
     /** A space is found by its client's name too, and a customer by its number written in groups. */
@@ -257,7 +257,7 @@ final class StudioSearchTest extends IntegrationTestCase
         $this->forgetSwitches();
         self::assertSame(['customers', 'decks', 'deliverables'], array_keys($this->provider->search($this->needle)));
 
-        $this->settings->set(ModuleParameterEnum::StudioBackend->value, '0');
+        $this->settings->set(ModuleParameterEnum::StudioSuite->value, '0');
         $this->forgetSwitches();
         self::assertSame([], $this->provider->search($this->needle));
     }
@@ -291,7 +291,7 @@ final class StudioSearchTest extends IntegrationTestCase
         $customers->method('searchByNameOrNumber')->willThrowException(new RuntimeException('Base indisponible'));
 
         $container = self::getContainer();
-        $provider = new StudioBackendSearchProvider(
+        $provider = new StudioSuiteSearchProvider(
             $container->get(StudioContext::class),
             $container->get(Security::class),
             $container->get(SpaceVisibility::class),
@@ -394,7 +394,7 @@ final class StudioSearchTest extends IntegrationTestCase
         $user
             ->setEmail('recherche-studio-'.bin2hex(random_bytes(5)).'@aurora.app')
             ->setName('Équipier')
-            ->setType(UserTypeEnum::Backend)
+            ->setType(UserTypeEnum::Suite)
             ->setRoles([UserRoleEnum::User->value])
             ->setPassword('irrelevant')
             ->setPrivileges($privileges);

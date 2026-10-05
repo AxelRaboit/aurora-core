@@ -79,7 +79,7 @@ voici les étapes ordonnées. Chaque étape pointe vers le pattern détaillé.
 - [ ] Utiliser les slots `extra-headers` / `extra-cells` /
       `extra-form-fields` pour injecter le champ.
 - [ ] Override Twig admin (si nécessaire) pour pointer le mount Vue vers
-      le wrapper client : `templates/<Module>/backend/<plural>/index.html.twig`.
+      le wrapper client : `templates/<Module>/suite/<plural>/index.html.twig`.
 
 ## 6. Validation finale
 

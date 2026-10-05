@@ -100,21 +100,21 @@ class ContractRefusalManager implements ContractRefusalManagerInterface
     protected function assertRefusable(ContractInterface $contract): void
     {
         if (!$contract->isFrozen()) {
-            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.seal_before_signing', [], null, $contract->getLocale()));
+            throw new FieldException('status', $this->translator->trans('suite.studio.contracts.errors.seal_before_signing', [], null, $contract->getLocale()));
         }
 
         if ($contract->getStatus()->isEngaged()) {
-            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.already_engaged', [], null, $contract->getLocale()));
+            throw new FieldException('status', $this->translator->trans('suite.studio.contracts.errors.already_engaged', [], null, $contract->getLocale()));
         }
 
         // Read by the customer on the signing page, so in the contract's
         // language rather than the back office's.
         if (in_array($contract->getStatus(), [ContractStatusEnum::Expired, ContractStatusEnum::Revoked, ContractStatusEnum::Cancelled], true)) {
-            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.contract_closed', [], null, $contract->getLocale()));
+            throw new FieldException('status', $this->translator->trans('suite.studio.contracts.errors.contract_closed', [], null, $contract->getLocale()));
         }
 
         if (ContractStatusEnum::Refused === $contract->getStatus()) {
-            throw new FieldException('status', $this->translator->trans('backend.studio.contracts.errors.already_refused', [], null, $contract->getLocale()));
+            throw new FieldException('status', $this->translator->trans('suite.studio.contracts.errors.already_refused', [], null, $contract->getLocale()));
         }
     }
 

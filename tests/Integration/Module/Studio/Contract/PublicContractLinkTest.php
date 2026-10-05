@@ -63,7 +63,7 @@ final class PublicContractLinkTest extends IntegrationTestCase
         $container = static::getContainer();
 
         $this->admin = $container->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         $this->login();
 
         $this->entityManager = $container->get(EntityManagerInterface::class);
@@ -178,7 +178,7 @@ final class PublicContractLinkTest extends IntegrationTestCase
         // becoming a guest above dropped the session.
         $this->login();
         $this->client->jsonRequest('POST', sprintf(
-            '/backend/studio/contracts/%d/revoke-link',
+            '/suite/studio/contracts/%d/revoke-link',
             $link->getContract()->getId(),
         ));
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
@@ -211,7 +211,7 @@ final class PublicContractLinkTest extends IntegrationTestCase
         $created = $this->draftContract();
 
         $this->client->jsonRequest('POST', sprintf(
-            '/backend/studio/contracts/%d/send',
+            '/suite/studio/contracts/%d/send',
             $created['contract']['id'],
         ));
 
@@ -232,7 +232,7 @@ final class PublicContractLinkTest extends IntegrationTestCase
         $link = $this->links->findAll()[0];
         $contractId = $link->getContract()->getId();
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/contracts/%d/send', $contractId));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/contracts/%d/send', $contractId));
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
         $guest = $this->asGuest();
@@ -253,10 +253,10 @@ final class PublicContractLinkTest extends IntegrationTestCase
         $created = $this->draftContract();
         $id = $created['contract']['id'];
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/contracts/%d/freeze', $id));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/contracts/%d/freeze', $id));
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/contracts/%d/send', $id));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/contracts/%d/send', $id));
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
         $this->entityManager->clear();
@@ -324,7 +324,7 @@ final class PublicContractLinkTest extends IntegrationTestCase
     /** @return array<string, mixed> */
     private function draftContract(): array
     {
-        $this->client->jsonRequest('POST', '/backend/studio/contracts/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/contracts/create', [
             'customerId' => $this->customer()->getId(),
             'bodyTemplateId' => $this->publishedTemplate()->getId(),
             'locale' => 'fr',

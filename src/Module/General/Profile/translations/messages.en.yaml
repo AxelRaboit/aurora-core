@@ -1,4 +1,4 @@
-backend:
+suite:
     profile:
         guide:
             title: "Your profile at a glance"

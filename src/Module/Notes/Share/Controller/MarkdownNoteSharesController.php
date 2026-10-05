@@ -32,7 +32,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
  * way a note enters this controller, so a note belonging to somebody else is a
  * 404 here rather than a permission message that confirms it exists.
  */
-#[Route('/backend/notes/markdown/shares', name: 'backend_notes_markdown_shares')]
+#[Route('/suite/notes/markdown/shares', name: 'suite_notes_markdown_shares')]
 #[IsGranted('notes.markdown.use')]
 final class MarkdownNoteSharesController extends AbstractController
 {

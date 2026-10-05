@@ -267,7 +267,7 @@
                 <span class="block truncate font-medium text-primary">{{ zone.document.title }}</span>
                 {# What the reader is about to receive, in the order they ask
                    it: what kind of file, and how big. The size is spelled out
-                   by `file_size`, which is the filter the backend's own lists
+                   by `file_size`, which is the filter the suite's own lists
                    already use. #}
                 <span class="block text-sm text-muted">
                     {{ zone.document.extension }}{% if zone.document.size %} &middot; {{ zone.document.size|file_size }}{% endif %}

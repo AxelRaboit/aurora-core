@@ -11,7 +11,7 @@ assets/client/
 │       └── frontend/
 │           └── <Feature>App.vue      # composant frontend public
 ├── Overrides/
-│   └── backend/
+│   └── suite/
 │       └── <feature>/
 │           └── <Feature>App.vue      # remplace un composant Aurora
 └── locales/
@@ -28,13 +28,13 @@ Les composants sont enregistrés automatiquement par Aurora selon leur chemin :
 | Fichier | Identifiant vue_component |
 |---|---|
 | `src/Module/Tracking/assets/admin/ProjectsApp.vue` | `tracking/admin/ProjectsApp` |
-| `src/Module/Ged/DocumentCategory/assets/backend/document-categories/DocumentCategoriesApp.vue` | `platform/backend/document-categories/DocumentCategoriesApp` *(co-localisé avec l'extension PHP - shadow direct via clientModules)* |
+| `src/Module/Ged/DocumentCategory/assets/suite/document-categories/DocumentCategoriesApp.vue` | `platform/suite/document-categories/DocumentCategoriesApp` *(co-localisé avec l'extension PHP - shadow direct via clientModules)* |
 
 Dans Twig :
 
 ```twig
 {{ vue_component('tracking/admin/ProjectsApp') }}
-{{ vue_component('platform/backend/document-categories/DocumentCategoriesApp') }}
+{{ vue_component('platform/suite/document-categories/DocumentCategoriesApp') }}
 ```
 
 > Convention complète des 3 buckets sous `src/` :
@@ -189,7 +189,7 @@ export default {
 ```
 
 > **Important** : pour chaque `NavPermission('tracking.projects.manage')` déclaré
-> dans `TrackingModule`, ajouter la clé `backend.permissions.names.tracking.projects.manage`
+> dans `TrackingModule`, ajouter la clé `suite.permissions.names.tracking.projects.manage`
 > en FR **et** EN dans les locales Vue. Sans ça, la permission s'affiche avec
 > sa clé brute dans l'UI de gestion des droits.
 
@@ -203,14 +203,14 @@ Pour remplacer un composant Aurora existant, créer un fichier
 
 ```
 # Composant Aurora
-vendor/axelraboit/aurora/src/Module/Ged/assets/backend/document-categories/DocumentCategoriesApp.vue
+vendor/axelraboit/aurora/src/Module/Ged/assets/suite/document-categories/DocumentCategoriesApp.vue
                                  ↓
 # Override client (co-localisé avec src/Module/Ged/DocumentCategory/ qui contient
 # Entity/, Dto/, Manager/, Serializer/ de l'extension)
-src/Module/Ged/DocumentCategory/assets/backend/document-categories/DocumentCategoriesApp.vue
+src/Module/Ged/DocumentCategory/assets/suite/document-categories/DocumentCategoriesApp.vue
 ```
 
-Le chemin `vue_component('platform/backend/document-categories/DocumentCategoriesApp')` reste
+Le chemin `vue_component('platform/suite/document-categories/DocumentCategoriesApp')` reste
 identique - le glob `@client/src/Module/**/assets/**/*.vue` flatten les
 feature folders, donc la clé exposée est la même que celle d'Aurora.
 Comme `clientModules` est spread APRÈS `auroraModules`, ton fichier wins

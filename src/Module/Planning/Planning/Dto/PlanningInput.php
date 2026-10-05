@@ -11,18 +11,18 @@ use Symfony\Component\Validator\Constraints as Assert;
 class PlanningInput implements PlanningInputInterface
 {
     public function __construct(
-        #[Assert\NotBlank(message: 'backend.plannings.errors.name_required')]
+        #[Assert\NotBlank(message: 'suite.plannings.errors.name_required')]
         #[Assert\Length(max: 150)]
         public readonly string $name = '',
         public readonly ?string $description = null,
-        #[Assert\Range(notInRangeMessage: 'backend.plannings.errors.colour_out_of_range', min: 1, max: AbstractPlanning::MAX_COLOUR_SLOT)]
+        #[Assert\Range(notInRangeMessage: 'suite.plannings.errors.colour_out_of_range', min: 1, max: AbstractPlanning::MAX_COLOUR_SLOT)]
         public readonly int $colourSlot = AbstractPlanning::DEFAULT_COLOUR_SLOT,
         /**
          * Validated against the zones PHP knows rather than a list of our own:
          * a calendar cutting its days in a zone the runtime cannot resolve puts
          * every all-day event on the wrong day.
          */
-        #[Assert\Timezone(message: 'backend.plannings.errors.timezone_unknown')]
+        #[Assert\Timezone(message: 'suite.plannings.errors.timezone_unknown')]
         public readonly string $timezone = 'Europe/Paris',
         public readonly PlanningVisibilityEnum $visibility = PlanningVisibilityEnum::Private,
     ) {}

@@ -1,4 +1,4 @@
-backend:
+suite:
     profile:
         guide:
             title: "Votre profil en bref"

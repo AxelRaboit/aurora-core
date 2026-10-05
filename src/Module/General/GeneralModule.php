@@ -31,9 +31,9 @@ final readonly class GeneralModule implements ModuleInterface, ModuleToggleProvi
     {
         return [
             new NavPermission('general.dashboard.view'),
-            // Global search (header input - omnipresent across the backend,
+            // Global search (header input - omnipresent across the suite,
             // not a NavItem in any section). Lives here because it's
-            // general-purpose backend infra, not Platform-specific.
+            // general-purpose suite infra, not Platform-specific.
             new NavPermission('general.search.view'),
             new NavPermission('general.trash.view'),
         ];
@@ -41,14 +41,14 @@ final readonly class GeneralModule implements ModuleInterface, ModuleToggleProvi
 
     public function getNavSections(): array
     {
-        if (!$this->generalContext->isBackendEnabled()) {
+        if (!$this->generalContext->isSuiteEnabled()) {
             return [];
         }
 
         $items = [];
 
         if ($this->generalContext->isDashboardEnabled()) {
-            $items[] = new NavItem('backend_dashboard', 'backend.nav.dashboard', 'layout-dashboard', requiredPrivilege: 'general.dashboard.view', descriptionKey: 'backend.nav.dashboard_description');
+            $items[] = new NavItem('suite_dashboard', 'suite.nav.dashboard', 'layout-dashboard', requiredPrivilege: 'general.dashboard.view', descriptionKey: 'suite.nav.dashboard_description');
         }
 
         // No toggle of its own: it lists what other modules' toggles already
@@ -63,7 +63,7 @@ final readonly class GeneralModule implements ModuleInterface, ModuleToggleProvi
     {
         return [
             new NavSection('general', [
-                new NavItem('backend_dashboard', 'backend.nav.dashboard', 'layout-dashboard', requiredPrivilege: 'general.dashboard.view', descriptionKey: 'backend.nav.dashboard_description'),
+                new NavItem('suite_dashboard', 'suite.nav.dashboard', 'layout-dashboard', requiredPrivilege: 'general.dashboard.view', descriptionKey: 'suite.nav.dashboard_description'),
                 $this->trashNavItem(),
             ], priority: 10),
         ];
@@ -71,13 +71,13 @@ final readonly class GeneralModule implements ModuleInterface, ModuleToggleProvi
 
     private function trashNavItem(): NavItem
     {
-        return new NavItem('backend_general_trash', 'backend.nav.trash', 'trash-2', requiredPrivilege: 'general.trash.view', descriptionKey: 'backend.nav.trash_description');
+        return new NavItem('suite_general_trash', 'suite.nav.trash', 'trash-2', requiredPrivilege: 'general.trash.view', descriptionKey: 'suite.nav.trash_description');
     }
 
     public function getToggles(): array
     {
         return [
-            ModuleParameterEnum::GeneralBackend->toToggle(),
+            ModuleParameterEnum::GeneralSuite->toToggle(),
             ModuleParameterEnum::GeneralDashboard->toToggle(),
         ];
     }

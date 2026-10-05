@@ -5,7 +5,7 @@ const request = vi.fn();
 
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key) => key }) }));
 vi.mock("vue-sonner", () => ({ toast: { success: vi.fn() } }));
-vi.mock("@/shared/composables/http/backend/useRequest.js", () => ({
+vi.mock("@/shared/composables/http/suite/useRequest.js", () => ({
     useRequest: () => ({ request }),
 }));
 

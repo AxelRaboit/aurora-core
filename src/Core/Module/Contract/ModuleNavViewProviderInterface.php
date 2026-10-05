@@ -31,7 +31,7 @@ interface ModuleNavViewProviderInterface
      *
      * Returning null is not the same as returning an empty view: null means
      * "this module has no second level", and the menu never leaves the project
-     * view. Called on every backend page render, so keep it cheap - declare
+     * view. Called on every suite page render, so keep it cheap - declare
      * structure, do not query.
      */
     public function getModuleNavView(): ?ModuleNavView;

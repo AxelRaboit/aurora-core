@@ -18,11 +18,11 @@ plupart des features historiquement sous `src/Core/<Feature>/` ont migré sous
 ### Core
 
 ```
-src/Core/translations/               → shared.*, backend.* + security.* / validators.*
+src/Core/translations/               → shared.*, suite.* + security.* / validators.*
 src/Core/Mail/translations/          → frontend.*, shared.*
-src/Core/Migration/translations/     → backend.*
-src/Core/Module/translations/        → backend.* (permissions, modules)
-src/Core/Notification/translations/  → backend.*
+src/Core/Migration/translations/     → suite.*
+src/Core/Module/translations/        → suite.* (permissions, modules)
+src/Core/Notification/translations/  → suite.*
 ```
 
 `src/Core/translations/` porte aussi `security.{fr,en,es,de}.yaml` et
@@ -33,16 +33,16 @@ ne sont **pas** générées côté JS.
 ### Modules
 
 ```
-src/Module/Platform/Auth/translations/        → backend.*, frontend.*, shared.*
-src/Module/Platform/User/translations/        → backend.*
-src/Module/Configuration/Setting/translations/ → backend.* (settings, parameters, tabs)
-src/Module/Configuration/Theme/translations/  → backend.*, frontend.*
-src/Module/Editorial/translations/            → backend.*, frontend.*, editorial.*
-src/Module/General/Profile/translations/      → backend.*
-src/Module/General/Search/translations/       → backend.*
-src/Module/Dev/Audit/translations/            → backend.*
-src/Module/Dev/MountPoint/translations/       → backend.*
-src/Module/Ged/translations/                  → backend.*, ged.*
+src/Module/Platform/Auth/translations/        → suite.*, frontend.*, shared.*
+src/Module/Platform/User/translations/        → suite.*
+src/Module/Configuration/Setting/translations/ → suite.* (settings, parameters, tabs)
+src/Module/Configuration/Theme/translations/  → suite.*, frontend.*
+src/Module/Editorial/translations/            → suite.*, frontend.*, editorial.*
+src/Module/General/Profile/translations/      → suite.*
+src/Module/General/Search/translations/       → suite.*
+src/Module/Dev/Audit/translations/            → suite.*
+src/Module/Dev/MountPoint/translations/       → suite.*
+src/Module/Ged/translations/                  → suite.*, ged.*
 ```
 
 **Découverte automatique** via glob dans `AuroraBundle` (~l. 298-310) -
@@ -68,20 +68,20 @@ make translation   # régénère src/Core/assets/locales/generated/{fr,en}.json
 généré - c'est écrit dans son en-tête, pour qu'il tienne que le dump ait été
 lancé ou non. Résultat : une clé ajoutée en YAML mais pas dumpée passe
 `make ft` en entier, passe le build Vite, et ne se voit **qu'à l'écran**, sous
-la forme de `backend.posts.grid.canvas` affiché tel quel.
+la forme de `suite.posts.grid.canvas` affiché tel quel.
 
 Le catalogue généré est gitignoré : un `git status` propre ne prouve donc rien
 non plus. Le seul contrôle fiable est de regarder la page - ou de vérifier la
 clé directement :
 
 ```bash
-node -e 'console.log(require("./src/Core/assets/locales/generated/fr.json").backend.posts.grid.canvas)'
+node -e 'console.log(require("./src/Core/assets/locales/generated/fr.json").suite.posts.grid.canvas)'
 ```
 
 ## Where does a key go?
 
-- `backend.parameters.*` → `src/Module/Configuration/Setting/translations/`
-- `backend.users.*` → `src/Module/Platform/User/translations/`
+- `suite.parameters.*` → `src/Module/Configuration/Setting/translations/`
+- `suite.users.*` → `src/Module/Platform/User/translations/`
 - `frontend.login.*` → `src/Module/Platform/Auth/translations/`
 - `shared.common.*` → `src/Core/translations/messages.{fr,en}.yaml`
 - Nouveau module → `src/Module/<Domaine>/<Module>/translations/messages.{fr,en}.yaml`, découvert auto

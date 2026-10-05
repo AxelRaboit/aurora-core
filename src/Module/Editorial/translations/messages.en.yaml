@@ -1,4 +1,4 @@
-backend:
+suite:
     permissions:
         names:
             editorial:
@@ -34,8 +34,8 @@ backend:
                     delete: Delete forms
     modules:
         editorial: Editorial
-        editorial_backend: Editorial
-        editorial_backend_description: 'Enables the Editorial section in the admin.'
+        editorial_suite: Editorial
+        editorial_suite_description: 'Enables the Editorial section in the admin.'
         editorial_frontend: Editorial public site
         editorial_frontend_description: 'Serves the posts, listing pages and taxonomy pages to readers.'
     editorial:
@@ -979,7 +979,7 @@ backend:
             zone_document_label: Link wording
             zone_document_label_placeholder: "Our 2026 brochure"
             terms_taxonomy: Taxonomy
-            terms_taxonomy_hint: "Every one of its terms is shown, in the backend's order, each linking to its page. A term added later appears on its own."
+            terms_taxonomy_hint: "Every one of its terms is shown, in the suite's order, each linking to its page. A term added later appears on its own."
             terms_taxonomy_none: "Choose a taxonomy…"
             terms_caption: Heading above
             terms_caption_placeholder: "What we do"

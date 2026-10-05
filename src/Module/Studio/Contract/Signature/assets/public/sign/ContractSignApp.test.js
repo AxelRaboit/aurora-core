@@ -4,7 +4,7 @@ import { createTestI18n } from "@/tests/helpers/createTestI18n.js";
 
 const request = vi.fn();
 
-vi.mock("@/shared/composables/http/backend/useRequest.js", () => ({
+vi.mock("@/shared/composables/http/suite/useRequest.js", () => ({
     useRequest: () => ({ request }),
 }));
 

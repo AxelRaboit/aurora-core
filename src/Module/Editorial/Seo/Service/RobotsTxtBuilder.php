@@ -13,8 +13,8 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  * because getting it wrong is silent in both directions: a path that does
  * not exist blocks nothing, and the administration it was meant to cover
  * stays open to indexing. The reference this was rebuilt from disallowed
- * `/admin/` and `/dev/` on an application whose backend has always lived
- * under `/backend/` - so every admin screen was announced as crawlable, and
+ * `/admin/` and `/dev/` on an application whose suite has always lived
+ * under `/suite/` - so every admin screen was announced as crawlable, and
  * the file looked correct while doing the opposite of its job.
  */
 final readonly class RobotsTxtBuilder
@@ -26,7 +26,7 @@ final readonly class RobotsTxtBuilder
      * @var list<string>
      */
     private const array DISALLOWED = [
-        '/backend/',
+        '/suite/',
         '/_profiler/',
     ];
 

@@ -12,7 +12,7 @@ use Aurora\Module\Editorial\PostType\Repository\PostTypeRepository;
 use Aurora\Module\Editorial\Taxonomy\Repository\TaxonomyRepository;
 
 /**
- * Editorial's figures on the backend dashboard.
+ * Editorial's figures on the suite dashboard.
  *
  * Deliberately unscoped by author, unlike the posts list: this answers "how
  * much content does the site hold", a question about the site rather than

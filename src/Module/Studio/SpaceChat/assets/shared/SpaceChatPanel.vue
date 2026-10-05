@@ -14,7 +14,7 @@
  * deliberately - a flag one forgets once is worse than not having one.
  *
  * It lives in `assets/shared/` and speaks `shared.space_chat.*` because both
- * surfaces mount it: a key under `backend.` rendered on a page a customer reads
+ * surfaces mount it: a key under `suite.` rendered on a page a customer reads
  * is a namespace that has stopped meaning anything.
  */
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";

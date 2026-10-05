@@ -46,7 +46,7 @@ final class FreeSlideTest extends IntegrationTestCase
         $this->signIn();
         [$deckId, $slideId] = $this->freeSlide();
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/decks/%d/slides/%d/update', $deckId, $slideId), [
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/decks/%d/slides/%d/update', $deckId, $slideId), [
             'layout' => 'free',
             'content' => [
                 'fill' => ['type' => 'linear', 'angle' => 90, 'stops' => [['color' => 'accent', 'at' => 0], ['color' => '#000000', 'at' => 100]]],
@@ -95,7 +95,7 @@ final class FreeSlideTest extends IntegrationTestCase
         $path = tempnam(sys_get_temp_dir(), 'font');
         file_put_contents($path, '<?php echo "pas une police";');
 
-        $this->client->request('POST', '/backend/studio/decks/fonts/upload', [], [
+        $this->client->request('POST', '/suite/studio/decks/fonts/upload', [], [
             'file' => new UploadedFile($path, 'police.woff2', null, null, true),
         ]);
 
@@ -103,7 +103,7 @@ final class FreeSlideTest extends IntegrationTestCase
 
         $payload = json_decode((string) $this->client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
 
-        self::assertSame('backend.studio.decks.free.font_errors.not_a_font', $payload['error']);
+        self::assertSame('suite.studio.decks.free.font_errors.not_a_font', $payload['error']);
     }
 
     /**
@@ -118,7 +118,7 @@ final class FreeSlideTest extends IntegrationTestCase
         $path = tempnam(sys_get_temp_dir(), 'font');
         copy($source, $path);
 
-        $this->client->request('POST', '/backend/studio/decks/fonts/upload', [], [
+        $this->client->request('POST', '/suite/studio/decks/fonts/upload', [], [
             'file' => new UploadedFile($path, 'Marque Display.woff2', null, null, true),
         ]);
 
@@ -129,7 +129,7 @@ final class FreeSlideTest extends IntegrationTestCase
         self::assertSame('Marque Display', $font['name']);
         self::assertMatchesRegularExpression('/^upload-\d+$/', $font['key']);
 
-        $this->client->request('GET', '/backend/studio/decks/fonts');
+        $this->client->request('GET', '/suite/studio/decks/fonts');
         $listed = json_decode((string) $this->client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR)['fonts'];
 
         self::assertContains($font['key'], array_column($listed, 'key'));
@@ -163,7 +163,7 @@ final class FreeSlideTest extends IntegrationTestCase
     private function signIn(): void
     {
         $admin = static::getContainer()->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
 
         $this->client->loginUser($admin, 'admin');
     }

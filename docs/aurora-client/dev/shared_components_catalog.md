@@ -480,7 +480,7 @@ la page : sur une page maître-détail vide, la barre latérale qui portait le
 bouton « Créer » n'est pas rendue, donc sans ça le vide est un cul-de-sac. |
 
 ```vue
-<AppNoData v-if="!items.length" :message="t('backend.forms.empty')">
+<AppNoData v-if="!items.length" :message="t('suite.forms.empty')">
     <template v-if="can('editorial.forms.create')" #action>
         <AppButton variant="primary" size="md" v-on:click="openCreate">…</AppButton>
     </template>
@@ -513,7 +513,7 @@ le toggle vient de l'élément cliquable parent.
 
 ### `AppModal`
 
-Modale principale du backend. API : `:show` + `v-on:close` - **pas
+Modale principale de la suite. API : `:show` + `v-on:close` - **pas
 `v-model:open`**. Empêche le scroll body, gère Escape, Back button et
 focus-trap.
 

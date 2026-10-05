@@ -1,0 +1,194 @@
+<script setup>
+/**
+ * The form of one piece of content.
+ *
+ * Four fields and a notice. The notice is the one thing that is not obvious:
+ * the hour typed here is read in the space's timezone, not the reader's, so a
+ * person on holiday abroad does not move a client's Tuesday morning by opening
+ * the page.
+ */
+import { computed } from "vue";
+import { useI18n } from "vue-i18n";
+import AppInput from "@/shared/components/form/input/AppInput.vue";
+import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
+import AppSelect from "@/shared/components/form/select/AppSelect.vue";
+import AppCheckbox from "@/shared/components/form/toggle/AppCheckbox.vue";
+import AppDatePicker from "@/shared/components/form/picker/AppDatePicker.vue";
+import SpaceContentThread from "../../../shared/SpaceContentThread.vue";
+import SpaceContentAttachments from "../../../shared/SpaceContentAttachments.vue";
+
+const props = defineProps({
+    modelValue: { type: Object, required: true },
+    errors: { type: Object, default: () => ({}) },
+    columnOptions: { type: Array, default: () => [] },
+    timezone: { type: String, default: "Europe/Paris" },
+    approval: { type: String, default: "pending" },
+    approvalBy: { type: String, default: "" },
+    approvalAt: { type: String, default: null },
+    comments: { type: Array, default: () => [] },
+    commentLoading: { type: Boolean, default: false },
+    /** False while creating: a card with no id has nothing to hang a thread on. */
+    canDiscuss: { type: Boolean, default: false },
+    attachments: { type: Array, default: () => [] },
+    attachmentLoading: { type: Boolean, default: false },
+    canPickDrive: { type: Boolean, default: false },
+    /** Whether the reader may browse the media library the picker lists. */
+    canPickDocuments: { type: Boolean, default: false },
+    /**
+     * A reader who may see the space but not edit it.
+     *
+     * The fields go flat rather than disappearing: what a card says is what
+     * such a reader came for, and a panel that hid the text to signal it was
+     * uneditable would have answered the wrong question. What does disappear is
+     * every way to write - the save button, the drop zone, the delete on a
+     * message - because offering one the server would refuse is how a screen
+     * teaches somebody to distrust it.
+     */
+    readonly: { type: Boolean, default: false },
+});
+
+const emit = defineEmits([
+    "update:modelValue",
+    "post-comment",
+    "delete-comment",
+    "upload-attachment",
+    "pick-attachment",
+    "pick-drive-attachment",
+    "remove-attachment",
+]);
+
+const { t } = useI18n();
+
+const form = computed(() => props.modelValue);
+
+function set(field, value) {
+    emit("update:modelValue", { ...props.modelValue, [field]: value });
+}
+</script>
+
+<template>
+    <div class="space-y-4">
+        <AppInput
+            :model-value="form.title"
+            :label="t('suite.studio.space_content.title')"
+            :placeholder="t('suite.studio.space_content.title_placeholder')"
+            :error="errors.title"
+            :disabled="readonly"
+            required
+            v-on:update:model-value="set('title', $event)"
+        />
+
+        <AppTextarea
+            :model-value="form.body"
+            :label="t('suite.studio.space_content.body')"
+            :placeholder="t('suite.studio.space_content.body_placeholder')"
+            :error="errors.body"
+            :rows="6"
+            :disabled="readonly"
+            v-on:update:model-value="set('body', $event)"
+        />
+
+        <div class="grid gap-4 sm:grid-cols-2">
+            <AppSelect
+                :model-value="String(form.columnId ?? '')"
+                :label="t('suite.studio.space_content.column')"
+                :options="columnOptions"
+                :error="errors.columnId"
+                :disabled="readonly"
+                required
+                v-on:update:model-value="set('columnId', $event)"
+            />
+
+            <!-- The application's own picker, not a native `datetime-local`:
+                 the browser's control takes its format from the machine's
+                 locale rather than the reader's, so a French back-office showed
+                 an American date on an English system. This one reads the app's
+                 locale, accepts several typed formats, and emits exactly the
+                 `Y-m-d\TH:i` wall clock the field carries. -->
+            <AppDatePicker
+                :model-value="form.scheduledAt"
+                enable-time
+                :label="t('suite.studio.space_content.scheduled_at')"
+                :placeholder="t('suite.studio.space_content.scheduled_at_placeholder')"
+                :hint="t('suite.studio.space_content.scheduled_at_hint')"
+                :error="errors.scheduledAt"
+                :disabled="readonly"
+                v-on:update:model-value="set('scheduledAt', $event)"
+            />
+
+            <!-- Une date de parution ne dit pas quand il faut avoir tranché.
+                 Celle-ci n'apparaît qu'une fois la parution posée : demander
+                 une relecture pour quelque chose qui ne sort pas encore n'a
+                 personne à qui la demander. -->
+            <AppDatePicker
+                v-if="form.scheduledAt"
+                :model-value="form.reviewBy"
+                enable-time
+                :label="t('suite.studio.space_content.review_by')"
+                :placeholder="t('suite.studio.space_content.scheduled_at_placeholder')"
+                :hint="t('suite.studio.space_content.review_by_hint')"
+                :error="errors.reviewBy"
+                :disabled="readonly"
+                v-on:update:model-value="set('reviewBy', $event)"
+            />
+        </div>
+
+        <!-- Sous la date, et seulement quand il y en a une : décocher une
+             carte qui n'a pas de date ne changerait rien, et une case sans
+             effet se lit comme cassée. -->
+        <AppCheckbox
+            v-if="form.scheduledAt"
+            :model-value="false !== form.showOnCalendar"
+            :label="t('suite.studio.space_content.show_on_calendar')"
+            :hint="t('suite.studio.space_content.show_on_calendar_hint')"
+            :disabled="readonly"
+            v-on:update:model-value="set('showOnCalendar', $event)"
+        />
+
+        <p class="text-xs text-muted">
+            {{ t("suite.studio.space_content.timezone_notice", { timezone }) }}
+        </p>
+
+        <!-- The files, above the conversation on purpose: the visual is what a
+             client is usually being asked to approve, and reading the thread
+             without it in view is answering half a question. Like the thread,
+             it needs a saved card to hang off. -->
+        <SpaceContentAttachments
+            v-if="canDiscuss"
+            :attachments="attachments"
+            :loading="attachmentLoading"
+            :can-add="!readonly"
+            :can-remove="!readonly"
+            :can-pick="!readonly && canPickDocuments"
+            :can-pick-drive="canPickDrive"
+            v-on:upload="emit('upload-attachment', $event)"
+            v-on:pick="emit('pick-attachment')"
+            v-on:pick-drive="emit('pick-drive-attachment')"
+            v-on:remove="emit('remove-attachment', $event)"
+        />
+
+        <!-- The conversation, which the verdict above does not carry: resetting
+             an approval must not take the client's words with it, and it is
+             those words the studio is acting on. -->
+        <!-- The verdict travels into the thread instead of sitting above it.
+             It used to be a panel of its own plus a sentence warning that
+             rewriting the text would drop it: three places for one
+             conversation. As a line in the stream it is met where somebody
+             reading the exchange expects to meet it, and it simply disappears
+             when the wording changes - which says the same thing as the
+             warning, at the moment it matters. -->
+        <SpaceContentThread
+            v-if="canDiscuss"
+            :comments="comments"
+            :verdict="approval"
+            :verdict-by="approvalBy"
+            :verdict-at="approvalAt"
+            :loading="commentLoading"
+            :can-post="!readonly"
+            :can-delete="!readonly"
+            :notice="t('suite.studio.space_content.thread_notice')"
+            v-on:post="emit('post-comment', $event)"
+            v-on:delete="emit('delete-comment', $event)"
+        />
+    </div>
+</template>

@@ -28,7 +28,7 @@ import { CalendarDays, IdCard, Link2, MessagesSquare, NotebookText, Paperclip } 
 import { useFileSize } from "@/shared/composables/format/useFileSize.js";
 import { toast } from "vue-sonner";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
-import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
+import { useRequest } from "@/shared/composables/http/suite/useRequest.js";
 import CalendarMonth from "@/shared/components/calendar/CalendarMonth.vue";
 import AppModal from "@/shared/components/overlay/AppModal.vue";
 import AppThemeToggle from "@/shared/components/action/AppThemeToggle.vue";

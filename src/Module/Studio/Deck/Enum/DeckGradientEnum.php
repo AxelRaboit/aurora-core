@@ -53,6 +53,6 @@ enum DeckGradientEnum: string
 
     public function labelKey(): string
     {
-        return 'backend.studio.decks.gradients.'.$this->value;
+        return 'suite.studio.decks.gradients.'.$this->value;
     }
 }

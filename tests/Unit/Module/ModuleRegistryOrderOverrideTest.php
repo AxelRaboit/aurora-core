@@ -68,14 +68,14 @@ final class ModuleRegistryOrderOverrideTest extends TestCase
     {
         $registry = $this->makeRegistry(
             sectionOrder: '[]',
-            itemOrder: '{"crm": ["backend_crm_deals", "backend_crm_companies", "backend_crm_contacts"]}',
+            itemOrder: '{"crm": ["suite_crm_deals", "suite_crm_companies", "suite_crm_contacts"]}',
         );
 
         $sections = $registry->getNavSections();
         $crmSection = array_values(array_filter($sections, static fn (array $s): bool => 'crm' === $s['id']))[0];
 
         self::assertSame(
-            ['backend_crm_deals', 'backend_crm_companies', 'backend_crm_contacts'],
+            ['suite_crm_deals', 'suite_crm_companies', 'suite_crm_contacts'],
             array_column($crmSection['items'], 'key'),
         );
     }
@@ -84,16 +84,16 @@ final class ModuleRegistryOrderOverrideTest extends TestCase
     {
         $registry = $this->makeRegistry(
             sectionOrder: '[]',
-            itemOrder: '{"crm": ["backend_crm_archived", "backend_crm_deals"]}',
+            itemOrder: '{"crm": ["suite_crm_archived", "suite_crm_deals"]}',
         );
 
         $sections = $registry->getNavSections();
         $crmSection = array_values(array_filter($sections, static fn (array $s): bool => 'crm' === $s['id']))[0];
 
-        // backend_crm_deals lands first (the only known route in the override),
+        // suite_crm_deals lands first (the only known route in the override),
         // then the rest in their natural order.
         self::assertSame(
-            ['backend_crm_deals', 'backend_crm_contacts', 'backend_crm_companies'],
+            ['suite_crm_deals', 'suite_crm_contacts', 'suite_crm_companies'],
             array_column($crmSection['items'], 'key'),
         );
     }
@@ -172,9 +172,9 @@ final class ModuleRegistryOrderOverrideTest extends TestCase
                 public function getNavSections(): array
                 {
                     return [new NavSection('crm', [
-                        new NavItem('backend_crm_contacts', 'backend.nav.crm_contacts', 'users'),
-                        new NavItem('backend_crm_companies', 'backend.nav.crm_companies', 'building'),
-                        new NavItem('backend_crm_deals', 'backend.nav.crm_deals', 'handshake'),
+                        new NavItem('suite_crm_contacts', 'suite.nav.crm_contacts', 'users'),
+                        new NavItem('suite_crm_companies', 'suite.nav.crm_companies', 'building'),
+                        new NavItem('suite_crm_deals', 'suite.nav.crm_deals', 'handshake'),
                     ], priority: 40)];
                 }
 
@@ -197,7 +197,7 @@ final class ModuleRegistryOrderOverrideTest extends TestCase
                 public function getNavSections(): array
                 {
                     return [new NavSection('billing', [
-                        new NavItem('backend_billing_invoices', 'backend.nav.billing_invoices', 'file-text'),
+                        new NavItem('suite_billing_invoices', 'suite.nav.billing_invoices', 'file-text'),
                     ], priority: 50)];
                 }
 
@@ -220,7 +220,7 @@ final class ModuleRegistryOrderOverrideTest extends TestCase
                 public function getNavSections(): array
                 {
                     return [new NavSection('notes', [
-                        new NavItem('backend_notes', 'backend.nav.notes', 'sticky-note'),
+                        new NavItem('suite_notes', 'suite.nav.notes', 'sticky-note'),
                     ], priority: 60)];
                 }
 

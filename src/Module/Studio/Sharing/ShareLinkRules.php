@@ -77,11 +77,11 @@ final class ShareLinkRules
         $errors = [];
 
         if (!self::expiryIsValid($payload['expiresInDays'] ?? null)) {
-            $errors['expiresInDays'] = 'backend.studio.sharing.errors.expiry_invalid';
+            $errors['expiresInDays'] = 'suite.studio.sharing.errors.expiry_invalid';
         }
 
         if (self::passwordIsTooLong(self::password($payload))) {
-            $errors[self::PASSWORD_FIELD] = 'backend.studio.sharing.errors.password_too_long';
+            $errors[self::PASSWORD_FIELD] = 'suite.studio.sharing.errors.password_too_long';
         }
 
         return $errors;

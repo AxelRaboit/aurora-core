@@ -45,7 +45,7 @@ final class DeliverableLinkTokenStorageTest extends IntegrationTestCase
         $this->client->disableReboot();
         $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
 
-        $admin = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         $this->client->loginUser($admin, 'admin');
     }
 
@@ -59,10 +59,10 @@ final class DeliverableLinkTokenStorageTest extends IntegrationTestCase
 
     public function testTheTokenIsEncryptedInTheTableAndTheAddressStillWorks(): void
     {
-        $this->client->jsonRequest('POST', '/backend/studio/deliverables/create', ['title' => 'Secret', 'scope' => 'shared']);
+        $this->client->jsonRequest('POST', '/suite/studio/deliverables/create', ['title' => 'Secret', 'scope' => 'shared']);
         $id = (int) json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR)['shared'][0]['id'];
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/links/create', $id), []);
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/%d/links/create', $id), []);
         self::assertResponseIsSuccessful();
         $token = basename((string) parse_url(json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR)['links'][0]['url'], PHP_URL_PATH));
 
@@ -86,10 +86,10 @@ final class DeliverableLinkTokenStorageTest extends IntegrationTestCase
 
     public function testALinkNobodyOpenedIsDeletedAndAnOpenedOneIsOnlyRevoked(): void
     {
-        $this->client->jsonRequest('POST', '/backend/studio/deliverables/create', ['title' => 'Liens', 'scope' => 'shared']);
+        $this->client->jsonRequest('POST', '/suite/studio/deliverables/create', ['title' => 'Liens', 'scope' => 'shared']);
         $id = (int) json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR)['shared'][0]['id'];
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/links/create', $id), ['label' => 'Jamais ouvert']);
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/links/create', $id), ['label' => 'Déjà ouvert']);
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/%d/links/create', $id), ['label' => 'Jamais ouvert']);
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/%d/links/create', $id), ['label' => 'Déjà ouvert']);
 
         $this->entityManager->clear();
         [$unopened, $opened] = $this->entityManager->getRepository(DeliverableLink::class)->findBy([], ['id' => 'ASC']);
@@ -98,13 +98,13 @@ final class DeliverableLinkTokenStorageTest extends IntegrationTestCase
         [$unopenedId, $openedId] = [$unopened->getId(), $opened->getId()];
 
         // An opened link is not deleted: its row says who could read.
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/links/%d/delete', $id, $openedId));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/%d/links/%d/delete', $id, $openedId));
         self::assertResponseStatusCodeSame(409);
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/links/%d/revoke', $id, $openedId));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/%d/links/%d/revoke', $id, $openedId));
         self::assertResponseIsSuccessful();
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/links/%d/delete', $id, $unopenedId));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/%d/links/%d/delete', $id, $unopenedId));
         self::assertResponseIsSuccessful();
         self::assertCount(1, json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR)['links']);
 
@@ -122,26 +122,26 @@ final class DeliverableLinkTokenStorageTest extends IntegrationTestCase
     public function testAnotherDeliverablesLinkCannotBeDeletedThroughThisOne(): void
     {
         foreach (['Un', 'Deux'] as $title) {
-            $this->client->jsonRequest('POST', '/backend/studio/deliverables/create', ['title' => $title, 'scope' => 'shared']);
+            $this->client->jsonRequest('POST', '/suite/studio/deliverables/create', ['title' => $title, 'scope' => 'shared']);
         }
 
         $rows = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR)['shared'];
         [$first, $second] = [(int) $rows[0]['id'], (int) $rows[1]['id']];
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/links/create', $first), []);
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/%d/links/create', $first), []);
         $this->entityManager->clear();
         $link = $this->entityManager->getRepository(DeliverableLink::class)->findOneBy([]);
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/links/%d/delete', $second, $link->getId()));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/%d/links/%d/delete', $second, $link->getId()));
 
         self::assertResponseStatusCodeSame(404);
     }
 
     public function testARetiredOrExpiredLinkCanBeHiddenButALiveOneCannot(): void
     {
-        $this->client->jsonRequest('POST', '/backend/studio/deliverables/create', ['title' => 'À masquer', 'scope' => 'shared']);
+        $this->client->jsonRequest('POST', '/suite/studio/deliverables/create', ['title' => 'À masquer', 'scope' => 'shared']);
         $id = (int) json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR)['shared'][0]['id'];
         foreach (['Retiré', 'Expiré', 'Vivant'] as $label) {
-            $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/links/create', $id), ['label' => $label]);
+            $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/%d/links/create', $id), ['label' => $label]);
         }
 
         $this->entityManager->clear();
@@ -156,11 +156,11 @@ final class DeliverableLinkTokenStorageTest extends IntegrationTestCase
         $ids = array_map(static fn (DeliverableLink $link): int => (int) $link->getId(), $links);
 
         // A live link has to be retired first: hiding it would leave an address working that nobody sees.
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/links/%d/hide', $id, $ids['Vivant']));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/%d/links/%d/hide', $id, $ids['Vivant']));
         self::assertResponseStatusCodeSame(409);
 
         foreach (['Retiré', 'Expiré'] as $label) {
-            $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/links/%d/hide', $id, $ids[$label]));
+            $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/%d/links/%d/hide', $id, $ids[$label]));
             self::assertResponseIsSuccessful($label);
         }
 
@@ -184,18 +184,18 @@ final class DeliverableLinkTokenStorageTest extends IntegrationTestCase
     public function testAnotherDeliverablesLinkCannotBeHiddenThroughThisOne(): void
     {
         foreach (['Un', 'Deux'] as $title) {
-            $this->client->jsonRequest('POST', '/backend/studio/deliverables/create', ['title' => $title, 'scope' => 'shared']);
+            $this->client->jsonRequest('POST', '/suite/studio/deliverables/create', ['title' => $title, 'scope' => 'shared']);
         }
 
         $rows = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR)['shared'];
         [$first, $second] = [(int) $rows[0]['id'], (int) $rows[1]['id']];
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/links/create', $first), []);
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/%d/links/create', $first), []);
         $this->entityManager->clear();
         $link = $this->entityManager->getRepository(DeliverableLink::class)->findOneBy([]);
         $link->revoke(new DateTimeImmutable());
         $this->entityManager->flush();
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/links/%d/hide', $second, $link->getId()));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/%d/links/%d/hide', $second, $link->getId()));
 
         self::assertResponseStatusCodeSame(404);
     }

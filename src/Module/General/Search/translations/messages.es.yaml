@@ -1,4 +1,4 @@
-backend:
+suite:
     search:
         button: Buscar…
         placeholder: 'Buscar en el back-office…'

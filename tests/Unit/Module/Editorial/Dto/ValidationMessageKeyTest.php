@@ -20,7 +20,7 @@ use Symfony\Component\Yaml\Yaml;
  * validation therefore showed the user a raw key instead of a sentence.
  *
  * The check is that the key **resolves**, not that it carries a particular
- * prefix. An earlier version of this test asserted `backend.`, which was true
+ * prefix. An earlier version of this test asserted `suite.`, which was true
  * of every DTO at the time and stopped being true the moment a public form
  * arrived - a rule read off a coincidence, which then blocked the correct
  * work. Looking the key up in the catalogue asks the real question and

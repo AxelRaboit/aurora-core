@@ -142,8 +142,8 @@ final readonly class PostDuplicator
 
         return sprintf(
             '%s %s',
-            null !== $title && '' !== $title ? $title : $this->translator->trans('backend.posts.untitled'),
-            $this->translator->trans('backend.posts.duplicate.suffix'),
+            null !== $title && '' !== $title ? $title : $this->translator->trans('suite.posts.untitled'),
+            $this->translator->trans('suite.posts.duplicate.suffix'),
         );
     }
 

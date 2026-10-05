@@ -44,7 +44,7 @@ final readonly class DocumentColorAlternateCreator
         $mime = MimeTypeEnum::tryFrom((string) $original->getMimeType());
 
         if (!$mime?->isRasterImage() || $mime->supportsAnimation() || null === $original->getFilePath()) {
-            return ['color' => 'backend.ged.documents.recolor.errors.not_an_image'];
+            return ['color' => 'suite.ged.documents.recolor.errors.not_an_image'];
         }
 
         $alternate = $this->input($original, $input, []);
@@ -64,7 +64,7 @@ final readonly class DocumentColorAlternateCreator
         );
 
         if (null === $file) {
-            return ['color' => 'backend.ged.documents.recolor.errors.nothing_to_replace'];
+            return ['color' => 'suite.ged.documents.recolor.errors.nothing_to_replace'];
         }
 
         return $this->documentManager->create($this->input($original, $input, $file));

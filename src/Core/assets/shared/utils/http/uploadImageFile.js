@@ -5,10 +5,10 @@ import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
  *
  * One constant because three callers need to agree on it, and the last time
  * they did not the block editor spent months posting to
- * `/backend/media/media/upload` - a route removed with the Media module, which
+ * `/suite/media/media/upload` - a route removed with the Media module, which
  * no test noticed because nothing asserted the route existed.
  */
-export const IMAGE_UPLOAD_ENDPOINT = "/backend/ged/documents/upload-image";
+export const IMAGE_UPLOAD_ENDPOINT = "/suite/ged/documents/upload-image";
 
 /**
  * Uploads one image and returns the filed document, or null.

@@ -1,0 +1,19 @@
+{% extends '@Core/suite/layout.html.twig' %}
+
+{% block title %}{{ 'suite.nav.dashboard'|trans }} - {{ parent() }}{% endblock %}
+
+{% block page_header_slot %}
+    {{ include('@Shared/components/page_header.html.twig', {
+        crumbs: [
+            {label: 'suite.nav.sections.general'|trans},
+            {label: 'suite.nav.dashboard'|trans},
+        ],
+    }) }}
+{% endblock %}
+
+{% block body %}
+<div {{ vue_component('general/suite/dashboard/DashboardApp', {
+    stats: stats,
+    enabledModules: enabledModules,
+}) }}></div>
+{% endblock %}

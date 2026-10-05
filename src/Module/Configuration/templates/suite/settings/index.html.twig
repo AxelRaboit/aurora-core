@@ -1,0 +1,28 @@
+{% extends '@Core/suite/layout.html.twig' %}
+
+{% set tabLabel = ('suite.settings.tabs.' ~ activeTab)|trans %}
+
+{% block title %}{{ tabLabel }} - {{ 'suite.nav.settings'|trans }} - {{ parent() }}{% endblock %}
+
+{% block page_header_slot %}
+    {# The tab is the page now, so it is the last crumb - and "Réglages" above it
+       leads back to the first tab rather than to a page that draws all of them. #}
+    {{ include('@Shared/components/page_header.html.twig', {
+        crumbs: [
+            {label: 'suite.nav.sections.configuration'|trans},
+            {label: 'suite.nav.settings'|trans, href: path('suite_configuration_settings')},
+            {label: tabLabel},
+        ],
+    }) }}
+{% endblock %}
+
+{% block body %}
+<div {{ vue_component('configuration/suite/settings/SettingsApp', {
+    groups: groups,
+    tabs: tabs,
+    activeTab: activeTab,
+    updatePath: path('suite_configuration_settings_update'),
+    postSearchPath: postSearchPath,
+    navSections: sidemenu_nav_sections(),
+}) }}></div>
+{% endblock %}

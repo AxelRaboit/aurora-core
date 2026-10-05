@@ -21,7 +21,7 @@ use Doctrine\DBAL\Connection;
  */
 final class SettingsFollowTheWorkerResetTest extends IntegrationTestCase
 {
-    private const string KEY = ModuleParameterEnum::PlanningBackend->value;
+    private const string KEY = ModuleParameterEnum::PlanningSuite->value;
 
     private string|false $before = false;
 

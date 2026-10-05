@@ -32,7 +32,7 @@ abstract class AbstractNotification implements NotificationInterface
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     protected ?string $body = null;
 
-    /** Deep link to the related entity ('/backend/project/projects/12'). */
+    /** Deep link to the related entity ('/suite/project/projects/12'). */
     #[ORM\Column(length: 500, nullable: true)]
     protected ?string $url = null;
 

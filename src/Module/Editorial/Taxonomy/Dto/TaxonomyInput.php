@@ -13,12 +13,12 @@ class TaxonomyInput implements TaxonomyInputInterface
      * @param list<int>                                                   $postTypeIds
      */
     public function __construct(
-        #[Assert\NotBlank(message: 'backend.taxonomies.errors.slug_required')]
-        #[Assert\Regex(pattern: '/^[a-z0-9_\-]+$/', message: 'backend.taxonomies.errors.slug_format')]
+        #[Assert\NotBlank(message: 'suite.taxonomies.errors.slug_required')]
+        #[Assert\Regex(pattern: '/^[a-z0-9_\-]+$/', message: 'suite.taxonomies.errors.slug_format')]
         #[Assert\Length(max: 100)]
         public readonly string $slug,
         public readonly bool $hierarchical,
-        #[Assert\Count(min: 1, minMessage: 'backend.taxonomies.errors.translations_required')]
+        #[Assert\Count(min: 1, minMessage: 'suite.taxonomies.errors.translations_required')]
         public readonly array $translations,
         public readonly array $postTypeIds = [],
     ) {}

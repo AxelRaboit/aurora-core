@@ -84,7 +84,7 @@ correspondait plus à un module class réel.
 4. Déclarer dans `<Module>Module.php::getPermissions()`.
 5. Ajouter les traductions FR + EN dans
    `<module-translations>/messages.{fr,en}.yaml` sous
-   `backend.permissions.names.<module>.<entity>.<action>` (cf
+   `suite.permissions.names.<module>.<entity>.<action>` (cf
    [[convention_privilege_translations]]).
 
 ### Audit de cohérence
@@ -112,7 +112,7 @@ sans alias legacy (pas de prod). La migration Doctrine
 
 ```
 core.media.view          ❌ Préfixe `core.*` obsolète depuis Jalon 5
-backend.users.manage     ❌ `backend.*` n'est pas un module id
+suite.users.manage     ❌ `suite.*` n'est pas un module id
 crm.manage               ❌ Manque l'entity (granularité insuffisante)
 editorial.post.list      ❌ Préférer `view` (action standardisée)
 ```

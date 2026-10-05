@@ -28,7 +28,7 @@ namespace Aurora\Core\Bootstrap;
  * **Implementations must be idempotent.** `aurora:install` is meant to be safe
  * on an existing production database - it runs on every deploy - so a provider
  * creates what is missing and never overwrites what an administrator has since
- * edited. Renaming a locale in the backend must survive the next deploy.
+ * edited. Renaming a locale in the suite must survive the next deploy.
  */
 interface BootstrapProviderInterface
 {

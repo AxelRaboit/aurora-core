@@ -72,7 +72,7 @@ final readonly class SpaceFilesViewBuilder
             // qui a la main sur la configuration seulement : les autres lisent
             // la phrase, sans geste qui finirait sur un 403.
             'driveAgencyFolderPath' => $this->canConfigureDrive()
-                ? $this->urlGenerator->generate('backend_studio_drive_settings_agency_folder')
+                ? $this->urlGenerator->generate('suite_studio_drive_settings_agency_folder')
                 : null,
             // L'adresse avec laquelle partager un dossier, à copier dans la
             // fenêtre : pour celui de l'agence, et d'abord pour celui du

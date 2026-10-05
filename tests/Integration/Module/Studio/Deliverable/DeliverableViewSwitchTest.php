@@ -43,7 +43,7 @@ final class DeliverableViewSwitchTest extends IntegrationTestCase
         $this->client = self::createClient();
         $this->client->disableReboot();
         $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
-        $this->client->loginUser(self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']), 'admin');
+        $this->client->loginUser(self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']), 'admin');
     }
 
     protected function tearDown(): void
@@ -135,7 +135,7 @@ final class DeliverableViewSwitchTest extends IntegrationTestCase
         $this->givenLink(['display' => 'slides'], sections: 2);
         $id = (int) $this->entityManager->getRepository(Deliverable::class)->findOneBy([])->getId();
 
-        $this->client->request('GET', sprintf('/backend/studio/deliverables/%d/preview?view=page', $id));
+        $this->client->request('GET', sprintf('/suite/studio/deliverables/%d/preview?view=page', $id));
         self::assertResponseIsSuccessful();
         $preview = (string) $this->client->getResponse()->getContent();
         self::assertStringNotContainsString('class="aurora-slides"', $preview);
@@ -164,7 +164,7 @@ final class DeliverableViewSwitchTest extends IntegrationTestCase
     /** @param array<string, mixed> $appearance */
     private function givenLink(array $appearance, int $sections, ?string $anchor = null): string
     {
-        $this->client->jsonRequest('POST', '/backend/studio/deliverables/create', ['title' => 'Bascule', 'scope' => 'shared']);
+        $this->client->jsonRequest('POST', '/suite/studio/deliverables/create', ['title' => 'Bascule', 'scope' => 'shared']);
         $id = (int) json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR)['shared'][0]['id'];
 
         $zones = [];
@@ -186,7 +186,7 @@ final class DeliverableViewSwitchTest extends IntegrationTestCase
             ->setAppearance($appearance);
         $this->entityManager->flush();
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/links/create', $id), []);
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/%d/links/create', $id), []);
         self::assertResponseIsSuccessful();
         $url = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR)['links'][0]['url'];
 

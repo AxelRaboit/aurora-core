@@ -1,4 +1,4 @@
-backend:
+suite:
     nav:
         beacon: Déploiements
         beacon_description: "Les instances du site qui se signalent, et le repérage des copies non autorisées."

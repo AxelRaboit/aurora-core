@@ -27,16 +27,16 @@ final readonly class EditorialMenuLocationProvider implements MenuLocationProvid
         return [
             new MenuLocation(
                 self::PRIMARY,
-                'backend.menus.locations.primary',
-                'backend.menus.locations.primary_description',
+                'suite.menus.locations.primary',
+                'suite.menus.locations.primary_description',
                 [
-                    new DefaultMenuItem('editorial.primary.home', 'backend.menus.defaults.home', MenuItemTargetTypeEnum::Home),
+                    new DefaultMenuItem('editorial.primary.home', 'suite.menus.defaults.home', MenuItemTargetTypeEnum::Home),
                 ],
             ),
             new MenuLocation(
                 self::FOOTER,
-                'backend.menus.locations.footer',
-                'backend.menus.locations.footer_description',
+                'suite.menus.locations.footer',
+                'suite.menus.locations.footer_description',
             ),
             // Seeded with the sign-in pair rather than left empty: an account
             // menu with nothing in it renders as nothing, and the first thing
@@ -44,18 +44,18 @@ final readonly class EditorialMenuLocationProvider implements MenuLocationProvid
             // the side of the sign-in line that can use it.
             new MenuLocation(
                 self::ACCOUNT,
-                'backend.menus.locations.account',
-                'backend.menus.locations.account_description',
+                'suite.menus.locations.account',
+                'suite.menus.locations.account_description',
                 [
                     new DefaultMenuItem(
                         'editorial.account.login',
-                        'backend.menus.defaults.login',
+                        'suite.menus.defaults.login',
                         MenuItemTargetTypeEnum::FrontLogin,
                         visibility: MenuItemVisibilityEnum::GuestsOnly,
                     ),
                     new DefaultMenuItem(
                         'editorial.account.logout',
-                        'backend.menus.defaults.logout',
+                        'suite.menus.defaults.logout',
                         MenuItemTargetTypeEnum::FrontLogout,
                         visibility: MenuItemVisibilityEnum::AuthenticatedOnly,
                     ),

@@ -12,6 +12,6 @@ enum DocumentStatusEnum: string
 
     public function getLabelKey(): string
     {
-        return 'backend.ged.documents.status_'.$this->value;
+        return 'suite.ged.documents.status_'.$this->value;
     }
 }

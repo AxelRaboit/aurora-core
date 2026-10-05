@@ -1,4 +1,4 @@
-backend:
+suite:
     settings:
         studio_guide:
             title: "Your identity in contracts"
@@ -305,7 +305,7 @@ backend:
         modules_intro: Enable or disable application modules. Changes are saved immediately.
         modules_empty: No module found.
         module_type:
-            backend: Backend
+            suite: Suite
             frontend: Frontend
         save: Save
         saved: Settings saved.
@@ -399,10 +399,10 @@ backend:
             description: 'If enabled, the public site is closed to visitors and displays a maintenance page.'
         admin_registration_enabled:
             label: Admin registrations open
-            description: Allow registrations via /backend/platform/register. Disable after creating the first admin account.
+            description: Allow registrations via /suite/platform/register. Disable after creating the first admin account.
         admin_access_request_enabled:
             label: Admin access requests open
-            description: Allow access requests via /backend/platform/access-request (access request form for the administration)
+            description: Allow access requests via /suite/platform/access-request (access request form for the administration)
         front_login_enabled:
             label: Front-end login enabled
             description: "If disabled, the public site has no accounts at all: login, registration, the account area and password reset return 404, and the matching menu links disappear. Turn it off for a brochure-only application."
@@ -433,7 +433,7 @@ backend:
         favicon_media_id:
             label: Favicon
             description: ID of the media used as the favicon
-        backend_bar_site_name_on_phone:
+        suite_bar_site_name_on_phone:
             label: "Site name in the back-office bar on phones"
             description: "Shows the site name beside the logo in the back-office top bar, below 640 px wide. Turned off, only the logo stays; screen readers still read the name. For the public site, the matching setting lives in the theme."
         seo_title_template:
@@ -554,7 +554,7 @@ backend:
         email_text_color:
             label: "Email text"
             description: "The running text of the message."
-        backend_palette:
+        suite_palette:
             label: "Light and dark grays"
             description: "Gray family and adjustments for each mode, as JSON (managed through the interface)."
         intro: View and edit the application technical parameters.

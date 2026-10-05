@@ -26,12 +26,12 @@ final class GedRouteGateSubscriberTest extends TestCase
     /** @return iterable<string, array{ModuleParameterEnum, list<string>, list<string>}> toggle off, closed routes, routes left open */
     public static function toggleProvider(): iterable
     {
-        yield 'documents' => [ModuleParameterEnum::GedDocuments, ['backend_ged_documents', 'backend_ged_documents_update', 'backend_ged_pexels_search'], ['backend_ged_tags', 'backend_ged_files', 'backend_ged_categories']];
-        yield 'categories' => [ModuleParameterEnum::GedCategories, ['backend_ged_categories', 'backend_ged_categories_restore'], ['backend_ged_documents', 'backend_ged_tags']];
-        yield 'tags' => [ModuleParameterEnum::GedTags, ['backend_ged_tags', 'backend_ged_tags_delete'], ['backend_ged_documents', 'backend_ged_folders']];
-        yield 'folders' => [ModuleParameterEnum::GedFolders, ['backend_ged_folders', 'backend_ged_folders_move'], ['backend_ged_documents', 'backend_ged_files']];
-        yield 'frontend' => [ModuleParameterEnum::GedFrontend, ['frontend_ged_index', 'frontend_ged_search'], ['backend_ged_documents', 'ged_document_view']];
-        yield 'backend' => [ModuleParameterEnum::GedBackend, ['backend_ged_documents', 'backend_ged_tags', 'backend_ged_files'], ['frontend_ged_index', 'ged_document_view']];
+        yield 'documents' => [ModuleParameterEnum::GedDocuments, ['suite_ged_documents', 'suite_ged_documents_update', 'suite_ged_pexels_search'], ['suite_ged_tags', 'suite_ged_files', 'suite_ged_categories']];
+        yield 'categories' => [ModuleParameterEnum::GedCategories, ['suite_ged_categories', 'suite_ged_categories_restore'], ['suite_ged_documents', 'suite_ged_tags']];
+        yield 'tags' => [ModuleParameterEnum::GedTags, ['suite_ged_tags', 'suite_ged_tags_delete'], ['suite_ged_documents', 'suite_ged_folders']];
+        yield 'folders' => [ModuleParameterEnum::GedFolders, ['suite_ged_folders', 'suite_ged_folders_move'], ['suite_ged_documents', 'suite_ged_files']];
+        yield 'frontend' => [ModuleParameterEnum::GedFrontend, ['frontend_ged_index', 'frontend_ged_search'], ['suite_ged_documents', 'ged_document_view']];
+        yield 'suite' => [ModuleParameterEnum::GedSuite, ['suite_ged_documents', 'suite_ged_tags', 'suite_ged_files'], ['frontend_ged_index', 'ged_document_view']];
     }
 
     /**

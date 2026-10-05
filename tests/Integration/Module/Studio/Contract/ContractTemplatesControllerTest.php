@@ -39,7 +39,7 @@ final class ContractTemplatesControllerTest extends IntegrationTestCase
         $container = static::getContainer();
 
         $admin = $container->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         $this->client->loginUser($admin, 'admin');
 
         $this->templates = $container->get(ContractTemplateRepository::class);
@@ -76,7 +76,7 @@ final class ContractTemplatesControllerTest extends IntegrationTestCase
 
         $this->client->jsonRequest(
             'POST',
-            sprintf('/backend/studio/contract-templates/%d/versions/%d/save', $templateId, $versionId),
+            sprintf('/suite/studio/contract-templates/%d/versions/%d/save', $templateId, $versionId),
             ['translations' => [
                 'fr' => ['title' => 'CONTRAT DE PRESTATION DE SERVICES', 'content' => ['blocks' => [['type' => 'header']]]],
             ]],
@@ -89,7 +89,7 @@ final class ContractTemplatesControllerTest extends IntegrationTestCase
 
         $this->client->jsonRequest(
             'POST',
-            sprintf('/backend/studio/contract-templates/%d/versions/%d/publish', $templateId, $versionId),
+            sprintf('/suite/studio/contract-templates/%d/versions/%d/publish', $templateId, $versionId),
         );
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
@@ -100,7 +100,7 @@ final class ContractTemplatesControllerTest extends IntegrationTestCase
         // a sentence under the field rather than as a server error.
         $this->client->jsonRequest(
             'POST',
-            sprintf('/backend/studio/contract-templates/%d/versions/%d/save', $templateId, $versionId),
+            sprintf('/suite/studio/contract-templates/%d/versions/%d/save', $templateId, $versionId),
             ['translations' => ['fr' => ['title' => 'Texte réécrit', 'content' => []]]],
         );
 
@@ -116,7 +116,7 @@ final class ContractTemplatesControllerTest extends IntegrationTestCase
         $this->client->jsonRequest(
             'POST',
             sprintf(
-                '/backend/studio/contract-templates/%d/versions/%d/publish',
+                '/suite/studio/contract-templates/%d/versions/%d/publish',
                 $created['template']['id'],
                 $created['draftId'],
             ),
@@ -133,7 +133,7 @@ final class ContractTemplatesControllerTest extends IntegrationTestCase
 
         $this->client->jsonRequest(
             'POST',
-            sprintf('/backend/studio/contract-templates/%d/open-draft', $created['template']['id']),
+            sprintf('/suite/studio/contract-templates/%d/open-draft', $created['template']['id']),
         );
 
         self::assertSame(422, $this->client->getResponse()->getStatusCode());
@@ -156,7 +156,7 @@ final class ContractTemplatesControllerTest extends IntegrationTestCase
         $this->client->jsonRequest(
             'POST',
             sprintf(
-                '/backend/studio/contract-templates/%d/versions/%d/save',
+                '/suite/studio/contract-templates/%d/versions/%d/save',
                 $first['template']['id'],
                 $second['draftId'],
             ),
@@ -171,7 +171,7 @@ final class ContractTemplatesControllerTest extends IntegrationTestCase
         $created = $this->create('Contrat mensuel');
         $id = $created['template']['id'];
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/contract-templates/%d/archive', $id));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/contract-templates/%d/archive', $id));
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
         $payload = json_decode((string) $this->client->getResponse()->getContent(), true);
@@ -186,7 +186,7 @@ final class ContractTemplatesControllerTest extends IntegrationTestCase
         self::assertNotNull($archived);
         self::assertTrue($archived['isArchived']);
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/contract-templates/%d/restore', $id));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/contract-templates/%d/restore', $id));
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
     }
 
@@ -197,7 +197,7 @@ final class ContractTemplatesControllerTest extends IntegrationTestCase
         $this->client->request(
             'GET',
             sprintf(
-                '/backend/studio/contract-templates/%d/versions/%d',
+                '/suite/studio/contract-templates/%d/versions/%d',
                 $created['template']['id'],
                 $created['draftId'],
             ),
@@ -224,18 +224,18 @@ final class ContractTemplatesControllerTest extends IntegrationTestCase
 
         $this->client->jsonRequest(
             'POST',
-            sprintf('/backend/studio/contract-templates/%d/versions/%d/save', $templateId, $versionId),
+            sprintf('/suite/studio/contract-templates/%d/versions/%d/save', $templateId, $versionId),
             ['translations' => [
                 'fr' => ['title' => 'Contrat', 'content' => ['blocks' => [['type' => 'header']]]],
             ]],
         );
         $this->client->jsonRequest(
             'POST',
-            sprintf('/backend/studio/contract-templates/%d/versions/%d/publish', $templateId, $versionId),
+            sprintf('/suite/studio/contract-templates/%d/versions/%d/publish', $templateId, $versionId),
         );
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
-        $this->client->request('GET', '/backend/studio/contract-templates');
+        $this->client->request('GET', '/suite/studio/contract-templates');
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
@@ -259,7 +259,7 @@ final class ContractTemplatesControllerTest extends IntegrationTestCase
 
         self::assertNull($created['template']['category']);
 
-        $this->client->jsonRequest('POST', '/backend/studio/contract-templates/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/contract-templates/create', [
             'name' => 'Reportage photo',
             'kind' => 'body',
             'category' => 'photography',
@@ -270,7 +270,7 @@ final class ContractTemplatesControllerTest extends IntegrationTestCase
         self::assertSame('photography', $photo['template']['category']);
 
         // A value the enum does not know is not a reason to invent one.
-        $this->client->jsonRequest('POST', '/backend/studio/contract-templates/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/contract-templates/create', [
             'name' => 'Trame bancale',
             'kind' => 'body',
             'category' => 'plomberie',
@@ -286,7 +286,7 @@ final class ContractTemplatesControllerTest extends IntegrationTestCase
         $created = $this->create('Contrat mensuel');
         $templateId = $created['template']['id'];
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/contract-templates/%d/update', $templateId), [
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/contract-templates/%d/update', $templateId), [
             'name' => 'Contrat mensuel',
             'kind' => 'body',
             'category' => 'development',
@@ -294,25 +294,25 @@ final class ContractTemplatesControllerTest extends IntegrationTestCase
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
-        $this->client->request('GET', '/backend/studio/contract-templates');
+        $this->client->request('GET', '/suite/studio/contract-templates');
         self::assertSame('development', $this->rowFromIndex($templateId)['category']);
 
         // And back to none, which the form offers as an option rather than as
         // a way of leaving the field alone.
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/contract-templates/%d/update', $templateId), [
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/contract-templates/%d/update', $templateId), [
             'name' => 'Contrat mensuel',
             'kind' => 'body',
             'category' => '',
         ]);
 
-        $this->client->request('GET', '/backend/studio/contract-templates');
+        $this->client->request('GET', '/suite/studio/contract-templates');
         self::assertNull($this->rowFromIndex($templateId)['category']);
     }
 
     /** A copy is a document for the same business, so the trade travels with it. */
     public function testDuplicatingATemplateKeepsItsTrade(): void
     {
-        $this->client->jsonRequest('POST', '/backend/studio/contract-templates/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/contract-templates/create', [
             'name' => 'Prestation photo',
             'kind' => 'body',
             'category' => 'photography',
@@ -320,7 +320,7 @@ final class ContractTemplatesControllerTest extends IntegrationTestCase
 
         $source = json_decode((string) $this->client->getResponse()->getContent(), true)['template'];
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/contract-templates/%d/duplicate', $source['id']));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/contract-templates/%d/duplicate', $source['id']));
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
         $payload = json_decode((string) $this->client->getResponse()->getContent(), true);
@@ -352,26 +352,26 @@ final class ContractTemplatesControllerTest extends IntegrationTestCase
         $templateId = $created['template']['id'];
         $versionId = $created['draftId'];
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/contract-templates/%d/update', $templateId), [
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/contract-templates/%d/update', $templateId), [
             'name' => 'Corps photo',
             'kind' => 'body',
             'category' => 'photography',
         ]);
         $this->client->jsonRequest(
             'POST',
-            sprintf('/backend/studio/contract-templates/%d/versions/%d/save', $templateId, $versionId),
+            sprintf('/suite/studio/contract-templates/%d/versions/%d/save', $templateId, $versionId),
             ['translations' => ['fr' => ['title' => 'Contrat', 'content' => ['blocks' => [['type' => 'header']]]]]],
         );
         $this->client->jsonRequest(
             'POST',
-            sprintf('/backend/studio/contract-templates/%d/versions/%d/publish', $templateId, $versionId),
+            sprintf('/suite/studio/contract-templates/%d/versions/%d/publish', $templateId, $versionId),
         );
 
-        $this->client->request('GET', '/backend/studio/contracts');
+        $this->client->request('GET', '/suite/studio/contracts');
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
         $props = json_decode((string) $this->client->getCrawler()
-            ->filter('[data-symfony--ux-vue--vue-component-value="studio/backend/contracts/ContractsApp"]')
+            ->filter('[data-symfony--ux-vue--vue-component-value="studio/suite/contracts/ContractsApp"]')
             ->attr('data-symfony--ux-vue--vue-props-value'), true);
 
         $option = null;
@@ -401,7 +401,7 @@ final class ContractTemplatesControllerTest extends IntegrationTestCase
 
         $this->client->jsonRequest(
             'POST',
-            sprintf('/backend/studio/contract-templates/%d/versions/%d/save', $templateId, $versionId),
+            sprintf('/suite/studio/contract-templates/%d/versions/%d/save', $templateId, $versionId),
             ['translations' => ['fr' => [
                 'title' => 'Contrat avec {{customer.legal_name}}',
                 'content' => ['blocks' => [
@@ -411,7 +411,7 @@ final class ContractTemplatesControllerTest extends IntegrationTestCase
             ]]],
         );
 
-        $this->client->request('GET', sprintf('/backend/studio/contract-templates/%d/versions/%d/preview', $templateId, $versionId));
+        $this->client->request('GET', sprintf('/suite/studio/contract-templates/%d/versions/%d/preview', $templateId, $versionId));
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
         $payload = json_decode((string) $this->client->getResponse()->getContent(), true);
@@ -447,13 +447,13 @@ final class ContractTemplatesControllerTest extends IntegrationTestCase
 
         $this->client->jsonRequest(
             'POST',
-            sprintf('/backend/studio/contract-templates/%d/versions/%d/save', $templateId, $versionId),
+            sprintf('/suite/studio/contract-templates/%d/versions/%d/save', $templateId, $versionId),
             ['translations' => ['fr' => ['title' => 'Contrat', 'content' => ['blocks' => [['type' => 'header']]]]]],
         );
 
         // Asked in English, answered in French rather than with an empty page:
         // the version has one language and that is the one to show.
-        $this->client->request('GET', sprintf('/backend/studio/contract-templates/%d/versions/%d/preview?locale=en', $templateId, $versionId));
+        $this->client->request('GET', sprintf('/suite/studio/contract-templates/%d/versions/%d/preview?locale=en', $templateId, $versionId));
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
         $payload = json_decode((string) $this->client->getResponse()->getContent(), true);
@@ -466,14 +466,14 @@ final class ContractTemplatesControllerTest extends IntegrationTestCase
      * One row of the `templates` prop, read back out of the rendered page.
      *
      * Named by its component rather than by the props attribute alone: the
-     * backend layout mounts the sidemenu the same way, and it comes first.
+     * suite layout mounts the sidemenu the same way, and it comes first.
      *
      * @return array<string, mixed>|null
      */
     private function rowFromIndex(int $templateId): ?array
     {
         $props = $this->client->getCrawler()
-            ->filter('[data-symfony--ux-vue--vue-component-value="studio/backend/contract-templates/ContractTemplatesApp"]')
+            ->filter('[data-symfony--ux-vue--vue-component-value="studio/suite/contract-templates/ContractTemplatesApp"]')
             ->attr('data-symfony--ux-vue--vue-props-value');
 
         $templates = json_decode((string) $props, true)['templates'] ?? [];
@@ -490,7 +490,7 @@ final class ContractTemplatesControllerTest extends IntegrationTestCase
     /** @return array<string, mixed> */
     private function create(string $name): array
     {
-        $this->client->jsonRequest('POST', '/backend/studio/contract-templates/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/contract-templates/create', [
             'name' => $name,
             'kind' => 'body',
         ]);

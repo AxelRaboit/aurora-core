@@ -1,0 +1,21 @@
+{% extends '@Core/suite/layout.html.twig' %}
+
+{% block title %}{{ 'suite.nav.studio_calendar'|trans }} - {{ parent() }}{% endblock %}
+
+{% block page_header_slot %}
+    {{ include('@Shared/components/page_header.html.twig', {
+        crumbs: [
+            {label: 'suite.nav.sections.studio'|trans},
+            {label: 'suite.nav.studio_calendar'|trans},
+        ],
+    }) }}
+{% endblock %}
+
+{% block body %}
+<div {{ vue_component('studio/suite/calendar/StudioCalendarApp', {
+    scope: scope,
+    hasScopeChoice: hasScopeChoice,
+    spaces: spaces,
+    itemsPath: itemsPath,
+}) }}></div>
+{% endblock %}

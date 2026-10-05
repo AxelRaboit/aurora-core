@@ -89,7 +89,7 @@ class UserRepository extends ResolveTargetEntityRepository
     }
 
     /**
-     * Backend users grouped by the roles they actually store, for counting.
+     * Suite users grouped by the roles they actually store, for counting.
      *
      * One row per distinct roles array, not one per user, so this stays a
      * handful of rows however many accounts exist. The caller folds them into
@@ -108,7 +108,7 @@ class UserRepository extends ResolveTargetEntityRepository
         $sql = 'SELECT roles::text AS roles, COUNT(*) AS cnt FROM core_users WHERE type = :type GROUP BY roles::text';
 
         $rows = $this->getEntityManager()->getConnection()->fetchAllAssociative($sql, [
-            'type' => UserTypeEnum::Backend->value,
+            'type' => UserTypeEnum::Suite->value,
         ]);
 
         $counts = [];
@@ -142,7 +142,7 @@ class UserRepository extends ResolveTargetEntityRepository
     {
         return $this->createQueryBuilder('u')
             ->andWhere('u.type = :type')
-            ->setParameter('type', UserTypeEnum::Backend->value)
+            ->setParameter('type', UserTypeEnum::Suite->value)
             ->orderBy('u.name', Order::Ascending->value)
             ->getQuery()
             ->getResult();

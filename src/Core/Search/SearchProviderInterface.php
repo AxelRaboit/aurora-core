@@ -8,7 +8,7 @@ use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 
 /**
  * Module-contributed search adapter aggregated by the Assistant's
- * `aurora_search` tool (and, eventually, the backend global search
+ * `aurora_search` tool (and, eventually, the suite global search
  * controller). Decouples the Assistant module from every domain
  * module's repositories - without this, the tool would have to import
  * Editorial, Project, Media, etc. directly, violating Aurora's

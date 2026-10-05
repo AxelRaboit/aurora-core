@@ -63,11 +63,11 @@ de `services.yaml` enregistre ses services, `AuroraBundle` mappe ses entités vi
 
 ```
 src/Module/<Module>/<Module>Module.php                       # ModuleInterface + ModuleToggleProviderInterface
-src/Module/<Module>/<Module>Context.php                      # isBackendEnabled() → ModuleParameterEnum::<Module>Backend
-src/Module/<Module>/Controller/Backend/<Module>Controller.php
-src/Module/<Module>/templates/backend/index.html.twig
+src/Module/<Module>/<Module>Context.php                      # isSuiteEnabled() → ModuleParameterEnum::<Module>Backend
+src/Module/<Module>/Controller/Suite/<Module>Controller.php
+src/Module/<Module>/templates/suite/index.html.twig
 src/Module/<Module>/translations/messages.{fr,en}.yaml
-src/Module/<Module>/assets/backend/<Module>App.vue
+src/Module/<Module>/assets/suite/<Module>App.vue
 ```
 
 Plus **deux éditions centrales** :
@@ -168,8 +168,8 @@ final readonly class MyModuleModule implements ModuleInterface
 ### 3.2 Controller
 
 ```php
-// src/Module/MyModule/Controller/Backend/MyModuleController.php
-namespace Aurora\Module\MyModule\Controller\Backend;
+// src/Module/MyModule/Controller/Suite/MyModuleController.php
+namespace Aurora\Module\MyModule\Controller\Suite;
 
 use Aurora\Core\Enum\HttpMethodEnum;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -177,14 +177,14 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/backend/my-module', name: 'backend_my_module')]
+#[Route('/suite/my-module', name: 'suite_my_module')]
 #[IsGranted('my_module.use')]
 final class MyModuleController extends AbstractController
 {
     #[Route('', name: '', methods: [HttpMethodEnum::Get->value])]
     public function index(): Response
     {
-        return $this->render('@MyModule/backend/index.html.twig');
+        return $this->render('@MyModule/suite/index.html.twig');
     }
 }
 ```
@@ -193,27 +193,27 @@ final class MyModuleController extends AbstractController
 - `final class` (pas `final readonly`) - les controllers Symfony ne peuvent pas
   être `readonly` car `setContainer()` est appelé après instanciation.
 - Permission string = `<module_id>.<action>` (`my_module.use`, `vault.password_generator.use`).
-- Route prefix kebab-case = `/backend/<module-id-en-kebab>`.
+- Route prefix kebab-case = `/suite/<module-id-en-kebab>`.
 
 ### 3.3 Template Twig
 
 ```twig
-{# src/Module/MyModule/templates/backend/index.html.twig #}
-{% extends '@Core/backend/layout.html.twig' %}
+{# src/Module/MyModule/templates/suite/index.html.twig #}
+{% extends '@Core/suite/layout.html.twig' %}
 
-{% block title %}{{ 'backend.nav.my_module'|trans }} - {{ parent() }}{% endblock %}
+{% block title %}{{ 'suite.nav.my_module'|trans }} - {{ parent() }}{% endblock %}
 
 {% block page_header_slot %}
     {{ include('@Shared/components/page_header.html.twig', {
         crumbs: [
-            {label: 'backend.nav.sections.my_section'|trans},
-            {label: 'backend.nav.my_module'|trans},
+            {label: 'suite.nav.sections.my_section'|trans},
+            {label: 'suite.nav.my_module'|trans},
         ],
     }) }}
 {% endblock %}
 
 {% block body %}
-<div {{ vue_component('mymodule/backend/MyModuleApp', {}) }} class="flex-1 min-w-0"></div>
+<div {{ vue_component('mymodule/suite/MyModuleApp', {}) }} class="flex-1 min-w-0"></div>
 {% endblock %}
 ```
 
@@ -243,7 +243,7 @@ my_module:
   # … clés UI spécifiques au composant Vue
 ```
 
-> **Note** : les permissions (`backend.permissions.names.my_module.use`) ne sont
+> **Note** : les permissions (`suite.permissions.names.my_module.use`) ne sont
 > nécessaires que si tu exposes l'admin Users/Permissions au libellé custom.
 > Pour les sous-modules d'un module parent (ex. `Spaces` → `Studio`), les
 > traductions de permission vivent dans le **module parent** qui déclare les
@@ -271,12 +271,12 @@ my_module:
 **Composant principal :**
 
 ```vue
-<!-- src/Module/MyModule/assets/backend/MyModuleApp.vue -->
+<!-- src/Module/MyModule/assets/suite/MyModuleApp.vue -->
 <script setup>
 // Composables : choisir le bon endroit
 //  - logique réutilisable cross-modules → @shared/composables/
-//  - logique propre au module → @my-module/backend/composables/
-import { useMyFeature } from '@my-module/backend/composables/useMyFeature.js';
+//  - logique propre au module → @my-module/suite/composables/
+import { useMyFeature } from '@my-module/suite/composables/useMyFeature.js';
 const { /* ... */ } = useMyFeature();
 </script>
 ```
@@ -333,13 +333,13 @@ Context**.
 
 Le nom de case est **préfixé par son module** (`StudioSpaces`, `GedDocuments`) :
 elles partagent toutes un même espace de noms. La clé de premier niveau garde
-son suffixe `_backend`, sinon `modules_studio` serait un préfixe de
+son suffixe `_suite`, sinon `modules_studio` serait un préfixe de
 `modules_studio_spaces` et les deux se confondraient dans toute comparaison par
 préfixe.
 
 ```php
 // Top-level modules - backend (admin UI)
-case StudioBackend = 'modules_studio_backend';
+case StudioSuite = 'modules_studio_suite';
 
 // Sub-modules - Studio
 case StudioCustomers = 'modules_studio_customers';
@@ -374,9 +374,9 @@ final readonly class StudioContext
 {
     public function __construct(private ModuleAccessChecker $moduleAccessChecker) {}
 
-    public function isBackendEnabled(): bool
+    public function isSuiteEnabled(): bool
     {
-        return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::StudioBackend);
+        return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::StudioSuite);
     }
 
     public function areSpacesEnabled(): bool
@@ -400,7 +400,7 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
 
     public function getNavSections(): array
     {
-        if (!$this->studioContext->isBackendEnabled()) {
+        if (!$this->studioContext->isSuiteEnabled()) {
             return [];
         }
 
@@ -422,7 +422,7 @@ final readonly class StudioModule implements ModuleInterface, ModuleToggleProvid
     public function getToggles(): array
     {
         return [
-            ModuleParameterEnum::StudioBackend->toToggle(),
+            ModuleParameterEnum::StudioSuite->toToggle(),
             ModuleParameterEnum::StudioSpaces->toToggle(),
         ];
     }
@@ -532,7 +532,7 @@ final class GedFrontendDescriptor implements FrontendInterface
 - Convention nom : `<Module>FrontendDescriptor` à la racine `src/Module/<Module>/`
   (symétrie avec les deux modules qui en ont un : Ged et Editorial).
 - `getModuleSettingKey()` pointe vers la case `<Module>Frontend` de l'enum
-  **central** - une bascule dédiée au frontend, distincte de celle du backend.
+  **central** - une bascule dédiée au frontend, distincte de celle de la suite.
 - `FrontendRouteGateSubscriber` 404 automatiquement les routes du frontend
   désactivé (matche par `getRoutePrefixes()`).
 
@@ -596,7 +596,7 @@ final readonly class MyModuleConfigurationTabProvider implements ConfigurationTa
   exemple concret est plus parlant que la description seule (préfixe,
   email, template SEO…).
 - Pour gater l'onglet sur l'état du module : passer
-  `moduleToggle: <Module>ModuleParameterEnum::Backend->value` (string) sur le
+  `moduleToggle: <Module>ModuleParameterEnum::Suite->value` (string) sur le
   `ConfigurationTab` du module - cf. `CrmConfigurationTabProvider`.
   L'onglet disparaît automatiquement quand le module est désactivé
   dans `/dev/dashboard/modules`. Les onglets partagés (`sequences`)
@@ -610,13 +610,13 @@ Doc référence :
 ## 9. Icônes de navigation
 
 Les icônes nav sont des **chaînes kebab-case** résolues via `ICON_MAP` dans
-`src/Core/assets/backend/sidemenu/composables/useSidemenuNav.js`. Si l'icône
+`src/Core/assets/suite/sidemenu/composables/useSidemenuNav.js`. Si l'icône
 manque → fallback automatique sur `FileText`.
 
 Pour ajouter une nouvelle icône :
 
 ```js
-// src/Core/assets/backend/sidemenu/composables/useSidemenuNav.js
+// src/Core/assets/suite/sidemenu/composables/useSidemenuNav.js
 import { KeyRound } from 'lucide-vue-next';
 
 const ICON_MAP = {
@@ -658,10 +658,10 @@ togglables** (cas le plus complet) :
    par entité)
 6. [ ] DTO + Manager + Serializer + Repository (convention 5 couches -
    cf. [`entity_extensibility_convention.md`](entity_extensibility_convention.md))
-7. [ ] `Controller/Backend/<Name>Controller.php` (type-hint les **interfaces**,
+7. [ ] `Controller/Suite/<Name>Controller.php` (type-hint les **interfaces**,
    pas les classes concrètes)
-8. [ ] `src/Module/<Module>/templates/backend/*.html.twig`
-9. [ ] `src/Module/<Module>/assets/backend/*.vue` (avec `extraFields` + slots
+8. [ ] `src/Module/<Module>/templates/suite/*.html.twig`
+9. [ ] `src/Module/<Module>/assets/suite/*.vue` (avec `extraFields` + slots
    scoped pour extensibilité Vue)
 10. [ ] `aliases.js` : `"@<module-kebab>": moduleAlias("<Module>")`
 11. [ ] `src/Module/<Module>/translations/messages.{fr,en}.yaml`

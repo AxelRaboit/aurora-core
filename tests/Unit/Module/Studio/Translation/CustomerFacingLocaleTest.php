@@ -31,7 +31,7 @@ use function sprintf;
  * ask for, half of it in French.
  *
  * Hence the boundary this test draws: the `studio` tree, which is what
- * leaves the building, has to be complete in fr, en and es. The `backend` tree
+ * leaves the building, has to be complete in fr, en and es. The `suite` tree
  * is not asserted, and that omission is the decision rather than an oversight.
  *
  * Placeholders are compared too. A translation that dropped `{date}` would
@@ -42,7 +42,7 @@ final class CustomerFacingLocaleTest extends TestCase
 {
     private const string DIRECTORY = __DIR__.'/../../../../../src/Module/Studio/translations';
 
-    /** The tree a customer reads. Anything under `backend` is out of scope. */
+    /** The tree a customer reads. Anything under `suite` is out of scope. */
     private const string TREE = 'studio';
 
     public function testEveryLocaleCarriesTheWholeCustomerFacingTree(): void

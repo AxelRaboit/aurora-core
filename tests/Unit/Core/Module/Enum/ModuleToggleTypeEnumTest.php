@@ -11,14 +11,14 @@ final class ModuleToggleTypeEnumTest extends TestCase
 {
     public function testFromKeyDetectsFrontendSuffix(): void
     {
-        self::assertSame(ModuleToggleTypeEnum::Frontend, ModuleToggleTypeEnum::fromKey('backend_editorial_frontend'));
-        self::assertSame(ModuleToggleTypeEnum::Frontend, ModuleToggleTypeEnum::fromKey('backend_photo_frontend'));
+        self::assertSame(ModuleToggleTypeEnum::Frontend, ModuleToggleTypeEnum::fromKey('suite_editorial_frontend'));
+        self::assertSame(ModuleToggleTypeEnum::Frontend, ModuleToggleTypeEnum::fromKey('suite_photo_frontend'));
     }
 
-    public function testFromKeyDefaultsToBackend(): void
+    public function testFromKeyDefaultsToSuite(): void
     {
-        self::assertSame(ModuleToggleTypeEnum::Backend, ModuleToggleTypeEnum::fromKey('backend_editorial'));
-        self::assertSame(ModuleToggleTypeEnum::Backend, ModuleToggleTypeEnum::fromKey('frontend_root'));
-        self::assertSame(ModuleToggleTypeEnum::Backend, ModuleToggleTypeEnum::fromKey('anything_else'));
+        self::assertSame(ModuleToggleTypeEnum::Suite, ModuleToggleTypeEnum::fromKey('suite_editorial'));
+        self::assertSame(ModuleToggleTypeEnum::Suite, ModuleToggleTypeEnum::fromKey('frontend_root'));
+        self::assertSame(ModuleToggleTypeEnum::Suite, ModuleToggleTypeEnum::fromKey('anything_else'));
     }
 }

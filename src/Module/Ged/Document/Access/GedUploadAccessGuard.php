@@ -26,10 +26,10 @@ use function str_starts_with;
  *
  * **Two answers only, and never `Restricted`.** That is not an oversight, it
  * is the firewall: `/uploads/{path}` is not matched by
- * `^/(backend|dev)`, so a backend session is never restored on one of these
+ * `^/(suite|dev)`, so a suite session is never restored on one of these
  * requests and asking whether the visitor holds `ged.documents.view` would
  * be asking a question whose answer is always no. Staff read a withheld file
- * through `backend_ged_files` instead, which is under the prefix the
+ * through `suite_ged_files` instead, which is under the prefix the
  * firewall does cover - the arrangement CLAUDE.md §5bis prescribes, and the
  * one the contracts module already uses.
  */

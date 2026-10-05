@@ -63,7 +63,7 @@ final readonly class ContractsViewBuilder
                     'templateName' => $eachVersion->getTemplate()->getName(),
                     'versionNumber' => $eachVersion->getNumber(),
                     'isAdapted' => $contract->isAdapted($each),
-                    'path' => $this->urlGenerator->generate('backend_studio_contracts_wording', ['id' => $id, 'part' => $each->value]),
+                    'path' => $this->urlGenerator->generate('suite_studio_contracts_wording', ['id' => $id, 'part' => $each->value]),
                 ];
             }
         }
@@ -92,10 +92,10 @@ final readonly class ContractsViewBuilder
             ],
             'locale' => $contract->getLocale(),
             'variableGroups' => $this->variables->groups(),
-            'savePath' => $this->urlGenerator->generate('backend_studio_contracts_wording_save', ['id' => $id, 'part' => $part->value]),
-            'resetPath' => $this->urlGenerator->generate('backend_studio_contracts_wording_reset', ['id' => $id, 'part' => $part->value]),
-            'showPath' => $this->urlGenerator->generate('backend_studio_contracts_show', ['id' => $id]),
-            'templateVersionPath' => $this->pathTemplates->generate('backend_studio_contract_templates_editor', ['id' => '__id__', 'versionId' => '__versionId__']),
+            'savePath' => $this->urlGenerator->generate('suite_studio_contracts_wording_save', ['id' => $id, 'part' => $part->value]),
+            'resetPath' => $this->urlGenerator->generate('suite_studio_contracts_wording_reset', ['id' => $id, 'part' => $part->value]),
+            'showPath' => $this->urlGenerator->generate('suite_studio_contracts_show', ['id' => $id]),
+            'templateVersionPath' => $this->pathTemplates->generate('suite_studio_contract_templates_editor', ['id' => '__id__', 'versionId' => '__versionId__']),
         ];
     }
 
@@ -120,16 +120,16 @@ final readonly class ContractsViewBuilder
             'annexes' => $this->templateOptions(ContractTemplateKindEnum::Annex),
             'locales' => $this->localeOptions->getActiveOptions(),
             'currencies' => $this->currencyOptions(),
-            'createPath' => $this->urlGenerator->generate('backend_studio_contracts_create'),
-            'updatePath' => $this->pathTemplates->generate('backend_studio_contracts_update', ['id' => '__id__']),
-            'previewPath' => $this->pathTemplates->generate('backend_studio_contracts_preview', ['id' => '__id__']),
-            'duplicatePath' => $this->pathTemplates->generate('backend_studio_contracts_duplicate', ['id' => '__id__']),
-            'pdfPath' => $this->pathTemplates->generate('backend_studio_contracts_pdf', ['id' => '__id__']),
+            'createPath' => $this->urlGenerator->generate('suite_studio_contracts_create'),
+            'updatePath' => $this->pathTemplates->generate('suite_studio_contracts_update', ['id' => '__id__']),
+            'previewPath' => $this->pathTemplates->generate('suite_studio_contracts_preview', ['id' => '__id__']),
+            'duplicatePath' => $this->pathTemplates->generate('suite_studio_contracts_duplicate', ['id' => '__id__']),
+            'pdfPath' => $this->pathTemplates->generate('suite_studio_contracts_pdf', ['id' => '__id__']),
             // One address for every row, whatever state it is in: the signed
             // file when there is one, a working copy otherwise.
-            'exportPath' => $this->pathTemplates->generate('backend_studio_contracts_export', ['id' => '__id__']),
+            'exportPath' => $this->pathTemplates->generate('suite_studio_contracts_export', ['id' => '__id__']),
             // The contract's own screen, where every other gesture is.
-            'showPath' => $this->pathTemplates->generate('backend_studio_contracts_show', ['id' => '__id__']),
+            'showPath' => $this->pathTemplates->generate('suite_studio_contracts_show', ['id' => '__id__']),
             // What an amendment may be attached to. Only concluded, running,
             // non-amendment contracts, so the picker cannot offer a choice the
             // manager would refuse a second later.
@@ -145,30 +145,30 @@ final readonly class ContractsViewBuilder
 
         return [
             'contract' => $this->serializer->serializeDocument($contract),
-            'indexPath' => $this->urlGenerator->generate('backend_studio_contracts'),
+            'indexPath' => $this->urlGenerator->generate('suite_studio_contracts'),
             // Every gesture the screen can offer, so the next step is always a
             // button on this page rather than a trip back to the list.
-            'updatePath' => $path('backend_studio_contracts_update'),
-            'deletePath' => $path('backend_studio_contracts_delete'),
-            'previewPath' => $path('backend_studio_contracts_preview'),
-            'freezePath' => $path('backend_studio_contracts_freeze'),
-            'sendPath' => $path('backend_studio_contracts_send'),
-            'remindPath' => $path('backend_studio_contracts_remind'),
-            'revokeLinkPath' => $path('backend_studio_contracts_revoke_link'),
-            'cancelPath' => $path('backend_studio_contracts_cancel'),
-            'duplicatePath' => $path('backend_studio_contracts_duplicate'),
-            'countersignPath' => $path('backend_studio_contracts_countersign'),
-            'pdfPath' => $path('backend_studio_contracts_pdf'),
-            'exportPath' => $path('backend_studio_contracts_export'),
-            'terminatePath' => $path('backend_studio_contracts_terminate'),
+            'updatePath' => $path('suite_studio_contracts_update'),
+            'deletePath' => $path('suite_studio_contracts_delete'),
+            'previewPath' => $path('suite_studio_contracts_preview'),
+            'freezePath' => $path('suite_studio_contracts_freeze'),
+            'sendPath' => $path('suite_studio_contracts_send'),
+            'remindPath' => $path('suite_studio_contracts_remind'),
+            'revokeLinkPath' => $path('suite_studio_contracts_revoke_link'),
+            'cancelPath' => $path('suite_studio_contracts_cancel'),
+            'duplicatePath' => $path('suite_studio_contracts_duplicate'),
+            'countersignPath' => $path('suite_studio_contracts_countersign'),
+            'pdfPath' => $path('suite_studio_contracts_pdf'),
+            'exportPath' => $path('suite_studio_contracts_export'),
+            'terminatePath' => $path('suite_studio_contracts_terminate'),
             'terminationOrigins' => $this->terminationOrigins(),
             // Where an amendment starts from: the list, with this contract
             // already chosen. One screen creates contracts, and an amendment
             // is a contract.
-            'amendPath' => $this->urlGenerator->generate('backend_studio_contracts', ['amends' => $id]),
-            'showPath' => $this->pathTemplates->generate('backend_studio_contracts_show', ['id' => '__id__']),
-            'templateVersionPath' => $this->pathTemplates->generate('backend_studio_contract_templates_editor', ['id' => '__id__', 'versionId' => '__versionId__']),
-            'wordingPath' => $this->pathTemplates->generate('backend_studio_contracts_wording', ['id' => $id, 'part' => '__part__']),
+            'amendPath' => $this->urlGenerator->generate('suite_studio_contracts', ['amends' => $id]),
+            'showPath' => $this->pathTemplates->generate('suite_studio_contracts_show', ['id' => '__id__']),
+            'templateVersionPath' => $this->pathTemplates->generate('suite_studio_contract_templates_editor', ['id' => '__id__', 'versionId' => '__versionId__']),
+            'wordingPath' => $this->pathTemplates->generate('suite_studio_contracts_wording', ['id' => $id, 'part' => '__part__']),
             // What the edit form offers, as on the list: a draft is corrected
             // where it is read.
             'customers' => $contract->isFrozen() ? [] : $this->customerOptions(),

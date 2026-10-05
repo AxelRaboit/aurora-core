@@ -19,31 +19,31 @@ import { expect, test } from "@playwright/test";
  * est fait pour toucher un bord.
  */
 const SCREENS = [
-    "/backend",
-    "/backend/editorial/posts",
-    "/backend/editorial/posts/1/edit",
-    "/backend/editorial/forms",
-    "/backend/editorial/comments",
-    "/backend/editorial/menus",
-    "/backend/editorial/post-types",
-    "/backend/editorial/taxonomies",
-    "/backend/editorial/post-galleries",
-    "/backend/ged/documents",
-    "/backend/ged/categories",
-    "/backend/ged/tags",
-    "/backend/notes/markdown",
-    "/backend/planning/calendar",
-    "/backend/studio/contracts",
-    "/backend/studio/contract-templates",
-    "/backend/studio/customers",
-    "/backend/studio/decks",
-    "/backend/studio/calendar",
-    "/backend/platform/users",
-    "/backend/configuration/themes",
-    "/backend/configuration/settings/general",
-    "/backend/configuration/settings/pexels",
-    "/backend/trash",
-    "/backend/general/profile",
+    "/suite",
+    "/suite/editorial/posts",
+    "/suite/editorial/posts/1/edit",
+    "/suite/editorial/forms",
+    "/suite/editorial/comments",
+    "/suite/editorial/menus",
+    "/suite/editorial/post-types",
+    "/suite/editorial/taxonomies",
+    "/suite/editorial/post-galleries",
+    "/suite/ged/documents",
+    "/suite/ged/categories",
+    "/suite/ged/tags",
+    "/suite/notes/markdown",
+    "/suite/planning/calendar",
+    "/suite/studio/contracts",
+    "/suite/studio/contract-templates",
+    "/suite/studio/customers",
+    "/suite/studio/decks",
+    "/suite/studio/calendar",
+    "/suite/platform/users",
+    "/suite/configuration/themes",
+    "/suite/configuration/settings/general",
+    "/suite/configuration/settings/pexels",
+    "/suite/trash",
+    "/suite/general/profile",
     "/workspace/1?view=board",
     "/workspace/1?view=files",
     "/workspace/1?view=deliverables",
@@ -56,7 +56,7 @@ const SCREENS = [
 const MIN_GAP = 4;
 
 async function signIn(page) {
-    await page.goto("/backend/platform/login");
+    await page.goto("/suite/platform/login");
     await page.getByPlaceholder("votre@email.com").fill("dev@aurora.app");
     await page.getByPlaceholder("••••••••").fill("password");
     await page.keyboard.press("Enter");

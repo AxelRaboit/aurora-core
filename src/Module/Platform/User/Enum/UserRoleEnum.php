@@ -22,9 +22,9 @@ enum UserRoleEnum: string
     public function getLabelKey(): string
     {
         return match ($this) {
-            self::User => 'backend.users.role.user',
-            self::Admin => 'backend.users.role.admin',
-            self::Dev => 'backend.users.role.dev',
+            self::User => 'suite.users.role.user',
+            self::Admin => 'suite.users.role.admin',
+            self::Dev => 'suite.users.role.dev',
         };
     }
 

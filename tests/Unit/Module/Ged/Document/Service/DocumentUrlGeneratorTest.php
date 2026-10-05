@@ -183,30 +183,30 @@ final class DocumentUrlGeneratorTest extends TestCase
     //
     // The public catch-all serves published documents alone, so addressing a
     // draft there would hand out a URL that answers 404 to everybody,
-    // including the backend screen that asked for it.
+    // including the suite screen that asked for it.
 
-    public function testADraftIsAddressedThroughTheGatedBackendRoute(): void
+    public function testADraftIsAddressedThroughTheGatedSuiteRoute(): void
     {
         $this->urlGenerator->expects(self::once())
             ->method('generate')
-            ->with('backend_ged_files', ['path' => 'ged/2026/05/contract.pdf'])
-            ->willReturn('/backend/ged/files/ged/2026/05/contract.pdf');
+            ->with('suite_ged_files', ['path' => 'ged/2026/05/contract.pdf'])
+            ->willReturn('/suite/ged/files/ged/2026/05/contract.pdf');
 
         $document = $this->makeDocument('ged/2026/05/contract.pdf', status: DocumentStatusEnum::Draft);
 
-        self::assertSame('/backend/ged/files/ged/2026/05/contract.pdf', $this->documentUrlGenerator->publicUrl($document));
+        self::assertSame('/suite/ged/files/ged/2026/05/contract.pdf', $this->documentUrlGenerator->publicUrl($document));
     }
 
-    public function testAnArchivedDocumentIsAddressedThroughTheGatedBackendRouteToo(): void
+    public function testAnArchivedDocumentIsAddressedThroughTheGatedSuiteRouteToo(): void
     {
         $this->urlGenerator->expects(self::once())
             ->method('generate')
-            ->with('backend_ged_files', self::anything())
-            ->willReturn('/backend/ged/files/x');
+            ->with('suite_ged_files', self::anything())
+            ->willReturn('/suite/ged/files/x');
 
         $document = $this->makeDocument('ged/2026/05/old.pdf', status: DocumentStatusEnum::Archived);
 
-        self::assertSame('/backend/ged/files/x', $this->documentUrlGenerator->publicUrl($document));
+        self::assertSame('/suite/ged/files/x', $this->documentUrlGenerator->publicUrl($document));
     }
 
     /**
@@ -218,8 +218,8 @@ final class DocumentUrlGeneratorTest extends TestCase
     {
         $this->urlGenerator->expects(self::once())
             ->method('generate')
-            ->with('backend_ged_files', ['path' => 'ged/2026/05/variants/medium/photo.webp'])
-            ->willReturn('/backend/ged/files/ged/2026/05/variants/medium/photo.webp');
+            ->with('suite_ged_files', ['path' => 'ged/2026/05/variants/medium/photo.webp'])
+            ->willReturn('/suite/ged/files/ged/2026/05/variants/medium/photo.webp');
 
         $document = $this->makeDocument(
             'ged/2026/05/photo.jpg',
@@ -228,7 +228,7 @@ final class DocumentUrlGeneratorTest extends TestCase
         );
 
         self::assertSame(
-            '/backend/ged/files/ged/2026/05/variants/medium/photo.webp',
+            '/suite/ged/files/ged/2026/05/variants/medium/photo.webp',
             $this->documentUrlGenerator->renditionUrl($document, 'medium'),
         );
     }

@@ -130,7 +130,7 @@ final readonly class SpaceDeliverablesViewBuilder
             'deliverablesPath' => $this->urlGenerator->generate('workspace_space_content', ['id' => $space->getId()]).'?view=deliverables',
             // Ce que la coquille de l'espace attend pour son en-tête et ses
             // deux onglets.
-            'backPath' => $this->urlGenerator->generate('backend_studio_spaces'),
+            'backPath' => $this->urlGenerator->generate('suite_studio_spaces'),
             'boardPath' => $this->urlGenerator->generate('workspace_space_content', ['id' => $space->getId()]),
             'accessPath' => $this->urlGenerator->generate('workspace_space_access', ['id' => $space->getId()]),
             'updatePath' => $this->urlGenerator->generate('workspace_space_deliverables_update', $params),

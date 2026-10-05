@@ -633,7 +633,7 @@ class AuroraBundle extends AbstractBundle
                 // restate an aurora string - the priority client templates
                 // already get. Listed first, they were loaded and immediately
                 // overwritten by the bundle's own. Verified on a real project:
-                // a client entry for `backend.ged.categories.name` has no
+                // a client entry for `suite.ged.categories.name` has no
                 // effect from the front of the list and takes over from the
                 // back.
                 //

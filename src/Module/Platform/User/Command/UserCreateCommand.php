@@ -80,7 +80,7 @@ class UserCreateCommand extends Command
             ->addOption('name', null, InputOption::VALUE_REQUIRED, 'Nom affiché')
             ->addOption('admin', null, InputOption::VALUE_NONE, 'Donne le rôle administrateur (ROLE_ADMIN)')
             ->addOption('dev', null, InputOption::VALUE_NONE, "Donne le rôle développeur (ROLE_DEV) - à utiliser pour le premier compte d'une installation")
-            ->addOption('frontend', null, InputOption::VALUE_NONE, 'Crée un compte frontend au lieu du backend');
+            ->addOption('frontend', null, InputOption::VALUE_NONE, 'Crée un compte frontend au lieu de la suite');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -92,9 +92,9 @@ class UserCreateCommand extends Command
             return Command::FAILURE;
         }
 
-        $type = $input->getOption('frontend') ? UserTypeEnum::Frontend : UserTypeEnum::Backend;
+        $type = $input->getOption('frontend') ? UserTypeEnum::Frontend : UserTypeEnum::Suite;
 
-        // Backend and frontend accounts are distinct rows and may legitimately
+        // Suite and frontend accounts are distinct rows and may legitimately
         // share an address, so uniqueness is checked per type rather than on
         // the email alone.
         if (null !== $this->userRepository->findOneBy(['email' => $email, 'type' => $type])) {

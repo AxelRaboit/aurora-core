@@ -107,12 +107,12 @@ class CustomerManager implements CustomerManagerInterface
     {
         $contracts = $this->contractRepository->countForCustomer($customer);
         if ($contracts > 0) {
-            throw new FieldException('customer', $this->translator->trans('backend.studio.customers.errors.has_contracts', ['{count}' => (string) $contracts]));
+            throw new FieldException('customer', $this->translator->trans('suite.studio.customers.errors.has_contracts', ['{count}' => (string) $contracts]));
         }
 
         $spaces = $this->spaceRepository->countForCustomer($customer);
         if ($spaces > 0) {
-            throw new FieldException('customer', $this->translator->trans('backend.studio.customers.errors.has_spaces', ['{count}' => (string) $spaces]));
+            throw new FieldException('customer', $this->translator->trans('suite.studio.customers.errors.has_spaces', ['{count}' => (string) $spaces]));
         }
 
         $this->auditDeleted($customer);
@@ -142,7 +142,7 @@ class CustomerManager implements CustomerManagerInterface
         $email = $customer->getContractualEmail();
 
         if (null === $email || '' === $email) {
-            throw new FieldException('contractualEmail', $this->translator->trans('backend.studio.customers.errors.contractual_email_required'));
+            throw new FieldException('contractualEmail', $this->translator->trans('suite.studio.customers.errors.contractual_email_required'));
         }
 
         $customer->setStatus(CustomerStatusEnum::Client);
@@ -174,7 +174,7 @@ class CustomerManager implements CustomerManagerInterface
         $email = $input->getContractualEmail();
 
         if (null === $email || '' === $email) {
-            throw new FieldException('contractualEmail', $this->translator->trans('backend.studio.customers.errors.contractual_email_required'));
+            throw new FieldException('contractualEmail', $this->translator->trans('suite.studio.customers.errors.contractual_email_required'));
         }
     }
 
@@ -251,7 +251,7 @@ class CustomerManager implements CustomerManagerInterface
             return;
         }
 
-        throw new FieldException('siret', $this->translator->trans('backend.studio.customers.errors.siret_taken', ['{name}' => $existing->getLegalName()]));
+        throw new FieldException('siret', $this->translator->trans('suite.studio.customers.errors.siret_taken', ['{name}' => $existing->getLegalName()]));
     }
 
     protected function auditCreated(CustomerInterface $customer): void

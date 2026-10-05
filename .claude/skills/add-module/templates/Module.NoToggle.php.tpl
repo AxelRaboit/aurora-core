@@ -26,11 +26,11 @@ final readonly class {{MODULE}}Module implements ModuleInterface
         return [
             new NavSection('{{MODULE_ID}}', [
                 new NavItem(
-                    'backend_{{MODULE_ID}}',
-                    'backend.nav.{{MODULE_ID}}',
+                    'suite_{{MODULE_ID}}',
+                    'suite.nav.{{MODULE_ID}}',
                     '{{ICON}}',
                     requiredPrivilege: '{{MODULE_ID}}.use',
-                    descriptionKey: 'backend.nav.{{MODULE_ID}}_description',
+                    descriptionKey: 'suite.nav.{{MODULE_ID}}_description',
                 ),
             ], priority: {{PRIORITY}}),
         ];

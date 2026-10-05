@@ -1,0 +1,35 @@
+{% extends '@Core/suite/layout.html.twig' %}
+
+{% block title %}{{ 'suite.nav.posts'|trans }} - {{ parent() }}{% endblock %}
+
+{% block page_header_slot %}
+    {{ include('@Shared/components/page_header.html.twig', {
+        crumbs: [
+            {label: 'suite.nav.sections.editorial'|trans},
+            {label: 'suite.nav.posts'|trans},
+        ],
+    }) }}
+{% endblock %}
+
+{% block body %}
+<div {{ vue_component('editorial/suite/posts/PostsApp', {
+    posts: posts,
+    search: search,
+    postTypes: postTypes,
+    taxonomies: taxonomies,
+    locales: locales,
+    statusOptions: statusOptions,
+    visibilityOptions: visibilityOptions,
+    postTypeIds: postTypeIds,
+    termIds: termIds,
+    statuses: statuses,
+    visibilities: visibilities,
+    listPath: path('suite_editorial_posts'),
+    newPath: path('suite_editorial_posts_new'),
+    editPathTemplate: path_template('suite_editorial_posts_edit', {id: '__id__'}),
+    deletePathTemplate: path_template('suite_editorial_posts_delete', {id: '__id__'}),
+    duplicatePathTemplate: path_template('suite_editorial_posts_duplicate', {id: '__id__'}),
+    previewPathTemplate: path_template('suite_editorial_posts_preview', {id: '__id__'}),
+    bulkPath: path('suite_editorial_posts_bulk'),
+}) }} class="flex-1 min-w-0"></div>
+{% endblock %}

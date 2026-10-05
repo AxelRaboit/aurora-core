@@ -8,7 +8,7 @@ import AppBlockEditor from "./AppBlockEditor.vue";
  *
  * Everything else covering this component works on doubles - `AppBlockEditor.test.js`
  * mocks Editor.js, `blockShapes.test.js` drives the tools directly with plain
- * objects. Both were green throughout a bug that made every list in the backend
+ * objects. Both were green throughout a bug that made every list in the suite
  * read « The block can not be displayed correctly », because the defect was in
  * neither the data nor the wiring but in the *handoff*: `modelValue` arrives
  * deeply reactive, so each block is a `Proxy`, and `@editorjs/list` copies its

@@ -47,7 +47,7 @@ class SpaceChatMessageManager implements SpaceChatMessageManagerInterface
         $user = $this->security->getUser();
 
         if (!$user instanceof CoreUserInterface) {
-            throw new FieldException('body', $this->translator->trans('backend.studio.space_chat.errors.needs_account'));
+            throw new FieldException('body', $this->translator->trans('suite.studio.space_chat.errors.needs_account'));
         }
 
         $message = $this->createMessage();
@@ -70,14 +70,14 @@ class SpaceChatMessageManager implements SpaceChatMessageManagerInterface
         $space = $channel->getSpace();
 
         if ($space->getId() !== $link->getSpace()->getId()) {
-            throw new FieldException('space', $this->translator->trans('backend.studio.space_chat.errors.not_in_space'));
+            throw new FieldException('space', $this->translator->trans('suite.studio.space_chat.errors.not_in_space'));
         }
 
         // A room the client does not read is a room the client cannot write
         // in. Checked here rather than only at the controller, because this is
         // the door every surface goes through.
         if (!$this->reachableByClient($channel, $link)) {
-            throw new FieldException('channel', $this->translator->trans('backend.studio.space_chat.errors.channel_closed'));
+            throw new FieldException('channel', $this->translator->trans('suite.studio.space_chat.errors.channel_closed'));
         }
 
         $message = $this->createMessage();
@@ -118,7 +118,7 @@ class SpaceChatMessageManager implements SpaceChatMessageManagerInterface
     public function delete(SpaceChatMessageInterface $message): void
     {
         if ($message->isFromClient()) {
-            throw new FieldException('message', $this->translator->trans('backend.studio.space_chat.errors.from_client'));
+            throw new FieldException('message', $this->translator->trans('suite.studio.space_chat.errors.from_client'));
         }
 
         $channel = $message->getChannel();

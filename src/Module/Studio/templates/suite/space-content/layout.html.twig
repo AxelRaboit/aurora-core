@@ -1,0 +1,225 @@
+{# The shell a client space is worked in.
+
+   **Neither the back-office nor the public site, and that is deliberate.** A
+   space is not a screen somebody passes through on the way to another one: it
+   is a place they stay in for an hour, and the admin chrome around it costs
+   what the work needs. The side menu alone is 260 pixels of a board whose
+   columns are 288 - a whole column, given to a menu nobody uses while dragging
+   a card.
+
+   It is modelled on `@Studio/public/layout.html.twig`, which made the same
+   choice for the same reason one screen earlier: a page addressed to one
+   customer has no side menu to put a customer in.
+
+   **The route stays under `/suite` even so, and that is not a detail.** The
+   admin firewall is `^/(suite|dev)`: outside it no suite identity is
+   restored, so a staff member would arrive as an anonymous visitor on their own
+   client's board. This layout changes what is drawn, never where it lives - the
+   trap that `suite_ged_files` exists to work around, met head-on.
+
+   The client reads the same space through a page of their own, on a public
+   route reached by a signed link, with the layout this one was modelled on:
+   two addresses, two ways of proving who you are, and one space behind them. #}
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        {# A client's content plan is nobody's business but theirs, and the page
+           is behind a login either way; saying so costs nothing. #}
+        <meta name="robots" content="noindex, nofollow">
+        <title>{% block title %}{{ space.name }}{% endblock %}</title>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+        {{ include('@Shared/components/theme_script.html.twig', {colorScheme: true}) }}
+        {{ vite_entry_link_tags('app') }}
+        {{ include('@Shared/components/primary_color_style.html.twig') }}
+        {# Privileges, flash messages and the colour presets. Without them a
+           `usePrivileges()` call answers "no" to everything and the screen
+           draws itself with every button missing. #}
+        {{ include('@Shared/components/suite_globals.html.twig') }}
+        {{ vite_entry_script_tags('app') }}
+        {{ vite_entry_script_tags('theme') }}
+        {# Every write on this screen reports through a toast, so the
+           entry that mounts one has to be here as well as on the pages
+           that inherit the admin layout. #}
+        {{ vite_entry_script_tags('flash') }}
+
+        {# **Un écran qui veut la fenêtre entière le dit, et la coquille suit.**
+
+           Une colonne flex ne distribue que la place qu'elle connaît : `flex-1`
+           vaut `flex-basis: 0%`, et un pourcentage mesuré contre une hauteur
+           automatique est traité comme « la taille du contenu ». Un
+           `min-height` sur le corps ne suffit donc pas - la page reprenait la
+           hauteur de ce qu'elle contenait, et la discussion dépassait de
+           soixante pixels, ce qui est la pire quantité : assez pour faire
+           défiler, pas assez pour servir.
+
+           L'écran qui veut tenir dedans pose `data-fills-viewport`. La fenêtre
+           devient alors une hauteur ferme, et les maillons de la colonne - le
+           `main`, la div de montage, la racine du composant - acceptent de
+           descendre sous la taille de leur contenu, ce qui laisse le fil
+           défiler en dedans plutôt que la page en dehors.
+
+           Rien n'est masqué : sur un écran vraiment bas, un téléphone couché,
+           la page redéfile comme avant plutôt que de couper le champ
+           d'écriture. #}
+        <style>
+            body:has([data-fills-viewport]) { height: 100dvh; }
+            body:has([data-fills-viewport]) > main,
+            body:has([data-fills-viewport]) > main > *,
+            body:has([data-fills-viewport]) > main > * > * { min-height: 0; }
+        </style>
+    </head>
+    {# **Une colonne haute d'un écran, et rien de plus.** La discussion est le seul
+       écran d'un espace qui se lit sans rien autour : elle veut la place qui
+       reste sous l'en-tête, exactement, pour que le fil défile en dedans et que
+       le champ d'écriture reste sous le pouce. Elle l'obtenait par une
+       soustraction - la hauteur de la fenêtre moins huit rem et demie - qui
+       valait pour un en-tête sur une ligne ; sur téléphone il en prend deux, et
+       les soixante pixels de trop faisaient défiler la page entière de presque
+       rien, ce qui est la pire quantité : assez pour bouger, pas assez pour
+       servir.
+
+       La page mesure maintenant au lieu de deviner. Le corps est une colonne
+       d'au moins une fenêtre, `main` prend ce qui reste, et l'écran qui veut
+       tenir dedans le dit avec `flex-1`. Ceux qui sont plus grands que la
+       fenêtre poussent comme avant : un flex item ne descend pas sous la taille
+       de son contenu.
+
+       `dvh` et non `vh` : sur un téléphone, `100vh` compte la barre d'adresse
+       qui n'est pas là, et la page sortirait de l'écran par le bas. #}
+    <body class="flex min-h-dvh flex-col bg-body transition-colors duration-200">
+        {# The exit is explicit because the menu is gone. A page that removes
+           the way back and offers none is a page people reach for the browser
+           button on, which loses whatever they had open. #}
+        <header class="sticky top-0 z-20 border-b border-line bg-surface/95 backdrop-blur">
+            <div class="aurora-page-x flex flex-wrap items-center gap-x-2 gap-y-2 py-2 sm:gap-x-4 sm:py-2.5">
+                {# **Une flèche seule sur téléphone.** Le libellé fait cent
+                   soixante-treize pixels sur trois cent soixante-quinze, soit
+                   près de la moitié de la barre pour un mot que le chevron dit
+                   déjà ; le nom de l'espace, lui, se retrouvait dans cent
+                   soixante-dix. Le texte revient dès qu'il y a la place, et il
+                   reste lisible par un lecteur d'écran dans les deux cas. #}
+                <a
+                    href="{{ backPath }}"
+                    class="-ml-2 flex shrink-0 items-center gap-1.5 rounded-md px-2 py-2 text-sm text-muted transition-colors hover:bg-surface-2 hover:text-primary sm:py-1"
+                    aria-label="{{ 'suite.studio.space_content.back_to_spaces'|trans }}"
+                >
+                    <svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="m15 18-6-6 6-6"/>
+                    </svg>
+                    <span class="hidden sm:inline">
+                        {{ 'suite.studio.space_content.back_to_spaces'|trans }}
+                    </span>
+                </a>
+
+                <div class="flex min-w-0 flex-1 items-center gap-2.5">
+                    {# The same palette slot the space wears everywhere else, so
+                       arriving here confirms which space was opened. #}
+                    <span
+                        class="h-2.5 w-2.5 shrink-0 rounded-full"
+                        style="background-color: var(--chart-cat-{{ space.colourSlot }})"
+                    ></span>
+                    {# **Le nom ouvre les autres espaces.** Passer d'un client au
+                       suivant obligeait à revenir à la liste à chaque fois. Un
+                       `<details>` plutôt qu'un script : il s'ouvre sans
+                       JavaScript et se referme d'un second clic, et choisir un
+                       espace quitte la page de toute façon. #}
+                    {% set otherSpaces = studio_other_spaces(space.id, activeTab|default('content')) %}
+                    {% if otherSpaces is empty %}
+                        <div class="min-w-0">
+                            <h1 class="truncate text-sm font-medium text-primary">{{ space.name }}</h1>
+                            <p class="truncate text-xs text-muted">{{ space.customerName }}</p>
+                        </div>
+                    {% else %}
+                        <details class="group relative min-w-0">
+                            <summary
+                                class="-mx-1.5 flex min-w-0 cursor-pointer list-none items-center gap-1.5 rounded-md px-1.5 py-0.5 transition-colors hover:bg-surface-2 [&::-webkit-details-marker]:hidden"
+                                aria-label="{{ 'suite.studio.space_content.switch_space'|trans }}"
+                            >
+                                <span class="min-w-0">
+                                    <h1 class="truncate text-sm font-medium text-primary">{{ space.name }}</h1>
+                                    <span class="block truncate text-xs text-muted">{{ space.customerName }}</span>
+                                </span>
+                                <svg class="h-3.5 w-3.5 shrink-0 text-muted transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="m6 9 6 6 6-6"/>
+                                </svg>
+                            </summary>
+                            <div class="absolute left-0 z-30 mt-1 max-h-80 w-72 max-w-[calc(100vw-1.5rem)] overflow-y-auto rounded-lg border border-line bg-surface p-1 shadow-lg">
+                                <p class="px-2.5 py-1.5 text-xs font-medium uppercase tracking-wide text-muted">{{ 'suite.studio.space_content.switch_space'|trans }}</p>
+                                {% for other in otherSpaces %}
+                                    <a href="{{ other.url }}" class="flex items-center gap-2.5 rounded-md px-2.5 py-1.5 transition-colors hover:bg-surface-2">
+                                        <span class="h-2 w-2 shrink-0 rounded-full" style="background-color: var(--chart-cat-{{ other.colourSlot }})"></span>
+                                        <span class="min-w-0">
+                                            <span class="block truncate text-sm text-primary">{{ other.name }}</span>
+                                            <span class="block truncate text-xs text-muted">{{ other.customerName }}</span>
+                                        </span>
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        </details>
+                    {% endif %}
+                    {% if space.archived %}
+                        <span class="shrink-0 rounded-full bg-surface-2 px-2 py-0.5 text-xs text-muted">
+                            {{ 'suite.studio.spaces.archived_badge'|trans }}
+                        </span>
+                    {% endif %}
+                </div>
+
+                {# Real links rather than a client-side switch: each view is a
+                   place somebody sends a colleague to, and a URL that says
+                   which one is open is what makes that possible. The back
+                   button works for free. #}
+                {# Pleine largeur sur téléphone, où elle occupe sa propre ligne
+                   de toute façon : deux cibles de doigt valent mieux que deux
+                   mots serrés à gauche d'un vide. #}
+                <nav
+                    class="flex w-full shrink-0 items-center gap-1 sm:w-auto"
+                    aria-label="{{ space.name }}"
+                >
+                    {# Two tabs, not four. The board, the list and the month are
+                       three ways of reading the same rows, so they are a
+                       selector inside Contenu rather than destinations beside
+                       it: a reader should not have to know that one alternative
+                       lives in a tab and another in a switch. #}
+                    {% set tabs = [
+                        {label: 'suite.studio.space_content.tab'|trans, url: boardPath, key: 'content'},
+                        {label: 'suite.studio.space_access.tab'|trans, url: accessPath, key: 'access'},
+                    ] %}
+                    {% for tab in tabs %}
+                        {% if tab.key == activeTab|default('content') %}
+                            <span class="flex-1 rounded-md bg-surface-2 px-2.5 py-1 text-center text-sm font-medium text-primary sm:flex-none sm:text-left" aria-current="page">
+                                {{ tab.label }}
+                            </span>
+                        {% else %}
+                            <a
+                                href="{{ tab.url }}"
+                                class="flex-1 rounded-md px-2.5 py-1 text-center text-sm text-muted transition-colors hover:bg-surface-2 hover:text-primary sm:flex-none sm:text-left"
+                            >
+                                {{ tab.label }}
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+                </nav>
+            </div>
+        </header>
+
+        {# **Sur téléphone, une gouttière juste assez large pour se voir.**
+           Seize pixels de chaque côté sur trois cent soixante-quinze, c'est
+           près d'un dixième de la largeur donné à du vide, sur le seul appareil
+           qui n'en a pas à donner. Huit suffisent : les cartes gardent leurs
+           coins arrondis, donc elles se lisent comme des blocs posés, et elles
+           récupèrent seize pixels de contenu au passage.
+
+           La règle vaut pour le reste de l'application : la gouttière se réduit
+           sur téléphone, elle ne disparaît pas, et rien ne change au dessin des
+           blocs. #}
+        {# La marge commune du back-office (`aurora-page`, spacing.css) plutôt
+           que la sienne : écrite ici en dur, elle valait vingt-quatre pixels
+           sur les côtés pour seize en haut, et aucun écart entre les blocs
+           ne la suivait. #}
+        <main class="aurora-page flex flex-1 flex-col">
+            {% block body %}{% endblock %}
+        </main>
+    </body>
+</html>

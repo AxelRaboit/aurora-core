@@ -1,4 +1,4 @@
-backend:
+suite:
     search:
         sections:
             notes: Notes
@@ -24,10 +24,10 @@ backend:
                     create: 'Create shared note spaces'
                     publish: 'Publish note spaces on the web'
     modules:
-        notes_backend: Notes
+        notes_suite: Notes
         # The module string an audit row carries, which is not the toggle key.
         notes_markdown: Markdown notes
-        notes_backend_description: Enables markdown note-taking, with links between notes and a graph.
+        notes_suite_description: Enables markdown note-taking, with links between notes and a graph.
     nav:
         sections:
             notes: Notes

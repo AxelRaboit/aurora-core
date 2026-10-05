@@ -9,7 +9,7 @@ import Delimiter from "@editorjs/delimiter";
  *
  * `BlocksRenderer` accepts every shape an Editor.js tool has ever emitted, so
  * malformed content renders perfectly on the public site and only fails when
- * somebody opens the post in the backend - where Editor.js swallows the error
+ * somebody opens the post in the suite - where Editor.js swallows the error
  * and prints "The block can not be displayed correctly". Nothing throws
  * server-side, no PHP test fails, and the report arrives as a person saying
  * "the list is broken".

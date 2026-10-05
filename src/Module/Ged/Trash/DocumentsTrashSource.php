@@ -30,17 +30,17 @@ final readonly class DocumentsTrashSource implements TrashSourceInterface
 
         return new TrashSummary(
             key: 'ged_documents',
-            labelKey: 'backend.nav.documents',
+            labelKey: 'suite.nav.documents',
             sectionId: 'ged',
             icon: 'folder-open',
             count: $page['total'],
             items: array_map($this->present(...), $page['items']),
             oldestDeletedAt: $this->documentRepository->oldestTrashedAt(),
-            restoreRoute: 'backend_ged_documents_restore',
-            forceDeleteRoute: 'backend_ged_documents_force_delete',
-            emptyTrashRoute: 'backend_ged_documents_empty_trash',
+            restoreRoute: 'suite_ged_documents_restore',
+            forceDeleteRoute: 'suite_ged_documents_force_delete',
+            emptyTrashRoute: 'suite_ged_documents_empty_trash',
             actionPrivilege: 'ged.documents.delete',
-            listRoute: 'backend_ged_documents',
+            listRoute: 'suite_ged_documents',
         );
     }
 

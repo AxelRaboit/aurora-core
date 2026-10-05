@@ -24,7 +24,7 @@ toute l'arithmétique déjà écrite et déjà testée continue de fonctionner s
 touchée. Le fuseau n'existe qu'à deux frontières : `toDisplay` à l'entrée des
 données, `fromDisplay` à la sortie vers le serveur.
 
-Fichier : `src/Module/Planning/assets/backend/planning/composables/displayZone.js`
+Fichier : `src/Module/Planning/assets/suite/planning/composables/displayZone.js`
 (`toDisplay`, `fromDisplay`, `toDisplayRow`, `useDisplayZone`, `isKnownZone`).
 
 ## Pourquoi

@@ -21,7 +21,7 @@ si un cas n'entre pas dans la grille, le faire entrer.
 
 ## Pattern de référence
 
-Module de référence : `Module/Editorial/backend/taxonomies/TaxonomiesApp.vue`.
+Module de référence : `Module/Editorial/suite/taxonomies/TaxonomiesApp.vue`.
 
 ### Modal footer
 
@@ -67,7 +67,7 @@ utiliser `AppIconButton` (variant icon-only), mais alors il faut un
 | Surface | Label | Clé i18n |
 |---|---|---|
 | **Bouton visible** sous un header de section ("Termes" + "+") | court | `shared.common.add` → "Ajouter" |
-| **Titre de modale** de création | complet | `backend.<module>.addX` → "Ajouter un terme" |
+| **Titre de modale** de création | complet | `suite.<module>.addX` → "Ajouter un terme" |
 | **Tooltip d'AppIconButton** (icon-only) | complet | même clé que le titre de modale |
 
 Quand la modale ne montre que "Ajouter" comme titre, c'est trop sec -

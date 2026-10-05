@@ -57,7 +57,7 @@ final readonly class SpaceBoardViewBuilder
             'items' => $this->items($space),
             'comments' => $this->comments($space),
             'attachments' => $this->attachments($space),
-            'backPath' => $this->urlGenerator->generate('backend_studio_spaces'),
+            'backPath' => $this->urlGenerator->generate('suite_studio_spaces'),
             'boardPath' => $this->urlGenerator->generate('workspace_space_content', ['id' => $space->getId()]),
             'accessPath' => $this->urlGenerator->generate('workspace_space_access', ['id' => $space->getId()]),
             // L'invitation à relire vit sur le tableau parce que c'est là que

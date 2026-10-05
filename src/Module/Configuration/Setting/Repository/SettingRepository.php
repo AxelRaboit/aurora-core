@@ -122,7 +122,7 @@ class SettingRepository extends ResolveTargetEntityRepository implements ResetIn
      * @return array{items: Setting[], total: int, page: int, totalPages: int}
      */
     /**
-     * @param list<string> $excludeKeys Keys to exclude from results (e.g. those already surfaced in /backend/settings)
+     * @param list<string> $excludeKeys Keys to exclude from results (e.g. those already surfaced in /suite/settings)
      */
     public function findPaginated(int $page, int $limit = 20, ?string $search = null, ?string $group = null, array $excludeKeys = []): array
     {

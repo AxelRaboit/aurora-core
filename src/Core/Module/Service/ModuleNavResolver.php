@@ -31,7 +31,7 @@ use Symfony\Bundle\SecurityBundle\Security;
  *
  * **Why two passes.** `getModuleNavView()` is not always cheap: Configuration's
  * has to read the contributed settings tabs, which resolve timezones, locales
- * and the front registry. Asking every module on every backend page would put
+ * and the front registry. Asking every module on every suite page would put
  * that on the dashboard, on a note, on a document. So the first pass matches on
  * `getNavSections()` alone - the modules already build those for the menu - and
  * only the winner is asked for its view. The second pass exists for routes no

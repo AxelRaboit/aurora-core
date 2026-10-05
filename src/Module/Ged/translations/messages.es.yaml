@@ -1,4 +1,4 @@
-backend:
+suite:
     stats:
         ged:
             documents: Documentos
@@ -30,8 +30,8 @@ backend:
                     manage: 'Gestionar las carpetas'
     modules:
         ged: Mediateca
-        ged_backend: Mediateca
-        ged_backend_description: 'Activa la sección de mediateca en la administración.'
+        ged_suite: Mediateca
+        ged_suite_description: 'Activa la sección de mediateca en la administración.'
         ged_tags: 'Etiquetas de la mediateca'
         ged_tags_description: 'Activa la gestión de las etiquetas de documentos.'
         ged_folders: 'Carpetas de la mediateca'

@@ -31,13 +31,13 @@ use Symfony\Component\HttpKernel\Exception\ServiceUnavailableHttpException;
 final readonly class MaintenanceModeListener
 {
     /**
-     * Prefixes that stay reachable. `/backend` and `/dev` above all - locking
+     * Prefixes that stay reachable. `/suite` and `/dev` above all - locking
      * the administrator out of the screen that turns maintenance back off
      * would make this setting a one-way door. `/build` matters too: the
      * maintenance page loads its own stylesheet from there.
      */
     private const array OPEN_PREFIXES = [
-        '/backend',
+        '/suite',
         '/dev',
         '/_',       // profiler, wdt, error previews
         '/assets',
@@ -58,7 +58,7 @@ final readonly class MaintenanceModeListener
 
         $path = $event->getRequest()->getPathInfo();
 
-        // Path check first: a backend request should not even ask the
+        // Path check first: a suite request should not even ask the
         // database whether the public site is closed.
         foreach (self::OPEN_PREFIXES as $prefix) {
             if (str_starts_with($path, $prefix)) {

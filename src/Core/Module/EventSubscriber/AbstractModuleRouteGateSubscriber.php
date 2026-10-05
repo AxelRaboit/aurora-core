@@ -20,7 +20,7 @@ use Symfony\Component\HttpKernel\KernelEvents;
  *
  * The public front has its own version of this driven by
  * {@see FrontendInterface::getRoutePrefixes()};
- * this is the backend half, and it works at sub-module granularity because
+ * this is the suite half, and it works at sub-module granularity because
  * that is where the toggles are - turning off "Taxonomies" alone must close
  * the taxonomy screens and leave the rest of Editorial open.
  *
@@ -59,7 +59,7 @@ abstract readonly class AbstractModuleRouteGateSubscriber implements EventSubscr
 
     /**
      * The route-name prefixes every gate below sits under, e.g.
-     * `backend_editorial_`. Requests outside them are none of this module's
+     * `suite_editorial_`. Requests outside them are none of this module's
      * business and are waved through without touching the settings.
      *
      * @return list<string>

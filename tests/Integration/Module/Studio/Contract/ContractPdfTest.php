@@ -97,7 +97,7 @@ final class ContractPdfTest extends IntegrationTestCase
         $container = static::getContainer();
 
         $this->admin = $container->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         $this->login();
 
         // The signing endpoints are rate limited by IP, and every test in this
@@ -335,7 +335,7 @@ final class ContractPdfTest extends IntegrationTestCase
         $contract = $this->concludedContract();
 
         $this->login();
-        $this->client->request('GET', sprintf('/backend/studio/contracts/%d/pdf', $contract->getId()));
+        $this->client->request('GET', sprintf('/suite/studio/contracts/%d/pdf', $contract->getId()));
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
         self::assertStringContainsString(
@@ -361,7 +361,7 @@ final class ContractPdfTest extends IntegrationTestCase
         $contract = $this->concludedContract();
 
         $this->login();
-        $this->client->request('GET', sprintf('/backend/studio/contracts/%d/export', $contract->getId()));
+        $this->client->request('GET', sprintf('/suite/studio/contracts/%d/export', $contract->getId()));
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
@@ -393,7 +393,7 @@ final class ContractPdfTest extends IntegrationTestCase
     /**
      * A guest cannot read it.
      *
-     * The route lives under `/backend` and carries the contract permission, so
+     * The route lives under `/suite` and carries the contract permission, so
      * the session is what stands between somebody with the URL and a signed
      * document.
      */
@@ -402,7 +402,7 @@ final class ContractPdfTest extends IntegrationTestCase
         $contract = $this->concludedContract();
 
         $this->client->getCookieJar()->clear();
-        $this->client->request('GET', sprintf('/backend/studio/contracts/%d/pdf', $contract->getId()));
+        $this->client->request('GET', sprintf('/suite/studio/contracts/%d/pdf', $contract->getId()));
 
         self::assertNotSame(200, $this->client->getResponse()->getStatusCode());
     }
@@ -413,7 +413,7 @@ final class ContractPdfTest extends IntegrationTestCase
         $contractId = $this->links->findAll()[0]->getContract()->getId();
 
         $this->login();
-        $this->client->request('GET', sprintf('/backend/studio/contracts/%d/pdf', $contractId));
+        $this->client->request('GET', sprintf('/suite/studio/contracts/%d/pdf', $contractId));
 
         self::assertSame(404, $this->client->getResponse()->getStatusCode());
     }
@@ -601,7 +601,7 @@ final class ContractPdfTest extends IntegrationTestCase
     private function countersign(int $contractId): void
     {
         $this->login();
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/contracts/%d/countersign', $contractId), [
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/contracts/%d/countersign', $contractId), [
             'firstName' => 'Axel',
             'lastName' => 'Raboit',
             'email' => 'axel@example.test',
@@ -644,7 +644,7 @@ final class ContractPdfTest extends IntegrationTestCase
 
     private function sentContractUrl(): string
     {
-        $this->client->jsonRequest('POST', '/backend/studio/contracts/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/contracts/create', [
             'customerId' => $this->customer()->getId(),
             'bodyTemplateId' => $this->publishedTemplate()->getId(),
             'locale' => 'fr',
@@ -655,8 +655,8 @@ final class ContractPdfTest extends IntegrationTestCase
         $created = json_decode((string) $this->client->getResponse()->getContent(), true);
         $id = $created['contract']['id'];
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/contracts/%d/freeze', $id));
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/contracts/%d/send', $id));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/contracts/%d/freeze', $id));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/contracts/%d/send', $id));
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
         foreach ($this->mailerMessages() as $message) {

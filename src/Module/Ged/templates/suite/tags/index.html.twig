@@ -1,0 +1,21 @@
+{% extends '@Core/suite/layout.html.twig' %}
+
+{% block title %}{{ 'suite.nav.ged_tags'|trans }} - {{ parent() }}{% endblock %}
+
+{% block page_header_slot %}
+    {{ include('@Shared/components/page_header.html.twig', {
+        crumbs: [
+            {label: 'suite.nav.sections.ged'|trans},
+            {label: 'suite.nav.ged_tags'|trans},
+        ],
+    }) }}
+{% endblock %}
+
+{% block body %}
+<div {{ vue_component('ged/suite/document-tags/DocumentTagsApp', {
+    tags: tags,
+    createPath: createPath,
+    updatePath: updatePath,
+    deletePath: deletePath,
+}) }} class="flex-1 min-w-0"></div>
+{% endblock %}

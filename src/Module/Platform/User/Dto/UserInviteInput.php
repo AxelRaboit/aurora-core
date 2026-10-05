@@ -12,16 +12,16 @@ use Symfony\Component\Validator\Constraints as Assert;
 class UserInviteInput implements UserInviteInputInterface
 {
     public function __construct(
-        #[Assert\NotBlank(message: 'backend.users.errors.name_required')]
-        #[Assert\Length(max: 100, maxMessage: 'backend.users.errors.name_too_long')]
+        #[Assert\NotBlank(message: 'suite.users.errors.name_required')]
+        #[Assert\Length(max: 100, maxMessage: 'suite.users.errors.name_too_long')]
         public readonly string $name,
-        #[Assert\NotBlank(message: 'backend.users.errors.email_required')]
-        #[Assert\Email(message: 'backend.users.errors.email_invalid')]
-        #[Assert\Length(max: 180, maxMessage: 'backend.users.errors.email_too_long')]
-        #[UniqueEmail(message: 'backend.users.errors.email_taken')]
+        #[Assert\NotBlank(message: 'suite.users.errors.email_required')]
+        #[Assert\Email(message: 'suite.users.errors.email_invalid')]
+        #[Assert\Length(max: 180, maxMessage: 'suite.users.errors.email_too_long')]
+        #[UniqueEmail(message: 'suite.users.errors.email_taken')]
         public readonly string $email,
-        #[Assert\NotBlank(message: 'backend.users.errors.role_required')]
-        #[Assert\Choice(callback: [UserRoleEnum::class, 'allAssignableValues'], message: 'backend.users.errors.role_invalid')]
+        #[Assert\NotBlank(message: 'suite.users.errors.role_required')]
+        #[Assert\Choice(callback: [UserRoleEnum::class, 'allAssignableValues'], message: 'suite.users.errors.role_invalid')]
         public readonly string $role,
         public readonly ?string $message = null,
         /**
@@ -41,8 +41,8 @@ class UserInviteInput implements UserInviteInputInterface
          * il est ignoré pour un compte frontend : le manager y force ROLE_USER,
          * parce que le frontend n'a qu'un rôle et que ce n'est pas un choix.
          */
-        #[Assert\Choice(callback: [UserTypeEnum::class, 'values'], message: 'backend.users.errors.type_invalid')]
-        public readonly string $type = 'backend',
+        #[Assert\Choice(callback: [UserTypeEnum::class, 'values'], message: 'suite.users.errors.type_invalid')]
+        public readonly string $type = 'suite',
     ) {}
 
     public function getName(): string

@@ -36,7 +36,7 @@ symlink) :
 ```
 .claude/memory/<nom-du-projet>/
 ├── MEMORY.md                              # index racine
-├── backend/
+├── suite/
 │   ├── MEMORY.md                          # sous-index
 │   └── pattern_<topic>.md
 ├── vue-backend/
@@ -48,12 +48,12 @@ symlink) :
 ```
 
 Mirror exactement la structure d'aurora-core
-(`backend/`, `vue-backend/`, `vue-frontend/`, `vue-transversal/`,
+(`suite/`, `vue-backend/`, `vue-frontend/`, `vue-transversal/`,
 `architecture/`, `process/`, `preferences/`). Cette homogénéité aide
 Claude à retrouver les bons fichiers.
 
 **Règle de placement** (idem aurora-core) :
-- PHP serveur → `backend/`
+- PHP serveur → `suite/`
 - Vue interface admin → `vue-backend/`
 - Vue/Twig site public → `vue-frontend/`
 - Vue/JS transversal → `vue-transversal/`

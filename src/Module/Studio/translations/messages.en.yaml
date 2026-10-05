@@ -1,4 +1,4 @@
-backend:
+suite:
     search:
         sections:
             spaces: Client spaces
@@ -28,8 +28,8 @@ backend:
             attention_empty: Nothing is waiting at your clients'.
     modules:
         studio: Studio
-        studio_backend: Studio
-        studio_backend_description: "What you sell and what you deliver to a client: customers, contracts and presentations."
+        studio_suite: Studio
+        studio_suite_description: "What you sell and what you deliver to a client: customers, contracts and presentations."
         studio_decks: Presentations
         studio_decks_description: Build slide decks, file them and duplicate them.
         studio_deliverables: "Deliverables"

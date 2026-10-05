@@ -58,11 +58,11 @@ final readonly class NoteFoldersTrashSource implements TrashSourceInterface
             oldestDeletedAt: $user instanceof CoreUserInterface
                 ? $this->folderRepository->oldestTrashedAtForUser($user)
                 : null,
-            restoreRoute: 'backend_notes_markdown_folders_restore',
-            forceDeleteRoute: 'backend_notes_markdown_folders_force_delete',
-            emptyTrashRoute: 'backend_notes_markdown_folders_empty_trash',
+            restoreRoute: 'suite_notes_markdown_folders_restore',
+            forceDeleteRoute: 'suite_notes_markdown_folders_force_delete',
+            emptyTrashRoute: 'suite_notes_markdown_folders_empty_trash',
             actionPrivilege: 'notes.markdown.use',
-            listRoute: 'backend_notes_markdown',
+            listRoute: 'suite_notes_markdown',
         );
     }
 

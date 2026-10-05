@@ -83,7 +83,7 @@ The heart of the review. For each changed file, ask where the logic *belongs*:
 Judge against the domain index for the layer touched, opened from
 `.claude/memory/aurora-core/MEMORY.md`:
 
-- PHP / Symfony / Doctrine → `backend/MEMORY.md`
+- PHP / Symfony / Doctrine → `suite/MEMORY.md`
 - Vue admin → `vue-backend/MEMORY.md`
 - Vue / Twig public site → `vue-frontend/MEMORY.md`
 - Cross-cutting Vue / JS → `vue-transversal/MEMORY.md`

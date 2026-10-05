@@ -39,5 +39,5 @@ tester ce que la page fait d'un rejet.
   résolue : c'est le cas réel, pas un cas tordu.
 - Et se souvenir du symptôme : **un écran qui se vide sans un mot au clic sur
   un bouton est presque toujours une exception remontée**, pas une donnée
-  manquante. Voir aussi `backend/pitfall_array_hydration_dates.md`, l'autre
+  manquante. Voir aussi `suite/pitfall_array_hydration_dates.md`, l'autre
   façon de vider une page le même jour.

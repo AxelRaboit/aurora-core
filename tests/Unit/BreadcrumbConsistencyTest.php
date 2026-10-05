@@ -18,7 +18,7 @@ use function str_contains;
 use function str_replace;
 
 /**
- * Every backend page's trail, checked against the shape the header can render.
+ * Every suite page's trail, checked against the shape the header can render.
  *
  * A crumb is `{label: …}` plus an optional `href:`. Those are the only two keys
  * `page_header.html.twig` reads, and anything else is silently ignored - the
@@ -29,7 +29,7 @@ use function str_replace;
  * The first crumb has to be a section, because the navigation is exactly two
  * levels deep everywhere: `NavItem` accepts children and no module passes any,
  * so a page is either a section's item or the detail of one. Two profile pages
- * used to start at themselves, which left them the only trails in the backend
+ * used to start at themselves, which left them the only trails in the suite
  * with no idea where they sat.
  *
  * Read from the templates rather than from rendered pages because the point is
@@ -46,7 +46,7 @@ final class BreadcrumbConsistencyTest extends TestCase
     /**
      * @return iterable<string, array{string}>
      */
-    public static function backendPages(): iterable
+    public static function suitePages(): iterable
     {
         $root = dirname(__DIR__, 2).'/src';
         $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root, RecursiveDirectoryIterator::SKIP_DOTS));
@@ -84,7 +84,7 @@ final class BreadcrumbConsistencyTest extends TestCase
         return $matches[0];
     }
 
-    #[DataProvider('backendPages')]
+    #[DataProvider('suitePages')]
     public function testEveryPageDeclaresItsTrail(string $path): void
     {
         self::assertNotEmpty(
@@ -96,7 +96,7 @@ final class BreadcrumbConsistencyTest extends TestCase
     /**
      * `path:` reads as correct and does nothing. So does `url:`, or `route:`.
      */
-    #[DataProvider('backendPages')]
+    #[DataProvider('suitePages')]
     public function testALinkingCrumbUsesTheKeyTheHeaderReads(string $path): void
     {
         foreach ($this->crumbsOf($path) as $crumb) {
@@ -117,14 +117,14 @@ final class BreadcrumbConsistencyTest extends TestCase
      * trail starts at a section. A trail that starts at the page itself cannot
      * say where the page sits.
      */
-    #[DataProvider('backendPages')]
+    #[DataProvider('suitePages')]
     public function testTheTrailStartsAtASection(string $path): void
     {
         $first = $this->crumbsOf($path)[0] ?? '';
 
         self::assertSame(
             1,
-            preg_match("/\{label: 'backend\.nav\.sections\.[a-z_]+'\|trans\}/", $first),
+            preg_match("/\{label: 'suite\.nav\.sections\.[a-z_]+'\|trans\}/", $first),
             sprintf('The first crumb is `%s`, which is not a section.', $first),
         );
     }

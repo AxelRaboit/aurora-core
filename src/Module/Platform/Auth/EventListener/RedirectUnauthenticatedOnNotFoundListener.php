@@ -16,8 +16,8 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
- * An unknown backend URL is a 404 for someone signed in, and the login page for
- * everyone else - so the backend does not tell a stranger which of its routes
+ * An unknown suite URL is a 404 for someone signed in, and the login page for
+ * everyone else - so the suite does not tell a stranger which of its routes
  * exist.
  *
  * `access_control` cannot express this: `RouterListener` throws
@@ -57,7 +57,7 @@ final readonly class RedirectUnauthenticatedOnNotFoundListener
         }
 
         $event->setResponse(new RedirectResponse(
-            $this->urlGenerator->generate('backend_platform_login'),
+            $this->urlGenerator->generate('suite_platform_login'),
         ));
     }
 
@@ -100,7 +100,7 @@ final readonly class RedirectUnauthenticatedOnNotFoundListener
 
     private function isProtectedPath(string $path): bool
     {
-        $adminPrefix = $this->urlGenerator->generate('backend_dashboard');
+        $adminPrefix = $this->urlGenerator->generate('suite_dashboard');
         $devPrefix = $this->urlGenerator->generate('dev_dashboard');
 
         return str_starts_with($path, $adminPrefix) || str_starts_with($path, $devPrefix);

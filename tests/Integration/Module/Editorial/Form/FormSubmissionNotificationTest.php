@@ -162,7 +162,7 @@ final class FormSubmissionNotificationTest extends IntegrationTestCase
         self::assertIsString($body);
 
         self::assertMatchesRegularExpression('/FSUB|SUB/', $body, 'the mail names no submission reference');
-        self::assertStringContainsString('/backend/editorial/forms/'.$form->getId(), $body);
+        self::assertStringContainsString('/suite/editorial/forms/'.$form->getId(), $body);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

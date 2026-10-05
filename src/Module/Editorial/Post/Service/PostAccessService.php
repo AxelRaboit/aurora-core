@@ -9,7 +9,7 @@ use Aurora\Module\Platform\User\Enum\UserRoleEnum;
 use Symfony\Bundle\SecurityBundle\Security;
 
 /**
- * Who sees whose posts in the backend list.
+ * Who sees whose posts in the suite list.
  *
  * The voter guards a post once you have one; a list has none to guard, so
  * the scoping has to happen in the query. Without it an editor with only

@@ -161,7 +161,7 @@ final class PlanningEventWindowTest extends IntegrationTestCase
      */
     public function testTheGridLoadsItsEventsWithWhatItDraws(): void
     {
-        $user = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $user = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $user);
 
         foreach (['4', '5', '6'] as $day) {

@@ -16,7 +16,7 @@ class FormFieldInput implements FormFieldInputInterface
      * @param list<array{fieldId: int, value: string}>                                         $conditions
      */
     public function __construct(
-        #[Assert\Count(min: 1, minMessage: 'backend.forms.errors.field_translations_required')]
+        #[Assert\Count(min: 1, minMessage: 'suite.forms.errors.field_translations_required')]
         public readonly array $translations,
         public readonly FormFieldTypeEnum $type = FormFieldTypeEnum::Text,
         public readonly bool $required = false,
@@ -39,7 +39,7 @@ class FormFieldInput implements FormFieldInputInterface
 
         foreach ($this->translations as $locale => $translation) {
             if ([] === $translation['options']) {
-                $context->buildViolation('backend.forms.errors.options_required')
+                $context->buildViolation('suite.forms.errors.options_required')
                     ->atPath(sprintf('translations[%s].options', $locale))
                     ->addViolation();
             }

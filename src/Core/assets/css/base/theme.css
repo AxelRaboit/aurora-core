@@ -268,7 +268,7 @@ html[data-theme] [data-card-highlight][data-card-highlight] * {
  *
  * Les variables du plugin sont donc rebranchees sur les jetons. Le mapping est
  * global et non limite au frontend, parce que le defaut vaut aussi pour le
- * backend : l'apercu de note en mode sombre souffrait du meme probleme.
+ * suite : l'apercu de note en mode sombre souffrait du meme probleme.
  *
  * Le corps de texte prend `--th-primary` et non un gris intermediaire, pour
  * qu'un paragraphe rendu dans `.prose` ait exactement la couleur d'un

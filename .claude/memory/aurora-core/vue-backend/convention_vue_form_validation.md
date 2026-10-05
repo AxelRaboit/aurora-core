@@ -45,7 +45,7 @@ Et dans le template, **chaque AppInput doit avoir son `:error`** :
 **Why:** Lors de la création du module Vault (2026-05-09), les premières implémentations utilisaient :
 - De la validation inline (`error.value = 'message'` → une seule erreur globale, pas bindée par champ)
 - `t` passé en paramètre aux composables et fonctions (`submitCreate(t)`, `openCreate(t)`) - anti-pattern, `useI18n()` doit être appelé **à l'intérieur** du composable
-- Des clés de traduction inventées (`shared.validation.required`, `backend.shared.weak`) qui n'existent pas
+- Des clés de traduction inventées (`shared.validation.required`, `suite.shared.weak`) qui n'existent pas
 
 Ces patterns ne sont jamais utilisés dans les autres modules.
 

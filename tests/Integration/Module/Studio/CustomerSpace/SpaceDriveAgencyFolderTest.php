@@ -59,7 +59,7 @@ final class SpaceDriveAgencyFolderTest extends IntegrationTestCase
         $container = static::getContainer();
 
         $admin = $container->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->client->loginUser($admin, 'admin');
 
@@ -157,7 +157,7 @@ final class SpaceDriveAgencyFolderTest extends IntegrationTestCase
     {
         $this->givenSpace(agencyFolder: null);
 
-        $this->client->jsonRequest('POST', '/backend/studio/drive/settings', [
+        $this->client->jsonRequest('POST', '/suite/studio/drive/settings', [
             'enabled' => true,
             'agencyFolderId' => 'https://drive.google.com/drive/folders/1AbCdEfGhIjKlMnOp?usp=sharing',
         ]);
@@ -173,7 +173,7 @@ final class SpaceDriveAgencyFolderTest extends IntegrationTestCase
     {
         $this->givenSpace(agencyFolder: 'dossier-agence-0001');
 
-        $this->client->jsonRequest('POST', '/backend/studio/drive/settings', [
+        $this->client->jsonRequest('POST', '/suite/studio/drive/settings', [
             'enabled' => true,
             'agencyFolderId' => 'pas un dossier',
         ]);
@@ -186,7 +186,7 @@ final class SpaceDriveAgencyFolderTest extends IntegrationTestCase
     {
         $this->givenSpace(agencyFolder: 'dossier-agence-0001');
 
-        $this->client->jsonRequest('POST', '/backend/studio/drive/settings', ['enabled' => true, 'agencyFolderId' => '']);
+        $this->client->jsonRequest('POST', '/suite/studio/drive/settings', ['enabled' => true, 'agencyFolderId' => '']);
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
         self::assertNull(static::getContainer()->get(DriveSettings::class)->agencyFolderId());
@@ -205,7 +205,7 @@ final class SpaceDriveAgencyFolderTest extends IntegrationTestCase
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
         self::assertMatchesRegularExpression(
-            '#driveAgencyFolderPath&quot;:&quot;(\\\\)?/backend(\\\\)?/studio(\\\\)?/drive(\\\\)?/settings(\\\\)?/agency-folder&quot;#',
+            '#driveAgencyFolderPath&quot;:&quot;(\\\\)?/suite(\\\\)?/studio(\\\\)?/drive(\\\\)?/settings(\\\\)?/agency-folder&quot;#',
             (string) $this->client->getResponse()->getContent(),
         );
     }
@@ -222,7 +222,7 @@ final class SpaceDriveAgencyFolderTest extends IntegrationTestCase
         // and a service kept from before answers from its own cache.
         $settings = static fn (): DriveSettings => static::getContainer()->get(DriveSettings::class);
 
-        $this->client->jsonRequest('POST', '/backend/studio/drive/settings/agency-folder', [
+        $this->client->jsonRequest('POST', '/suite/studio/drive/settings/agency-folder', [
             'agencyFolderId' => 'https://drive.google.com/drive/folders/dossier-agence-0002?usp=sharing',
         ]);
 
@@ -230,11 +230,11 @@ final class SpaceDriveAgencyFolderTest extends IntegrationTestCase
         self::assertSame('dossier-agence-0002', $settings()->agencyFolderId());
         self::assertTrue($settings()->isEnabled(), 'the Drive is still on');
 
-        $this->client->jsonRequest('POST', '/backend/studio/drive/settings/agency-folder', ['agencyFolderId' => 'https://example.com/pas-un-dossier']);
+        $this->client->jsonRequest('POST', '/suite/studio/drive/settings/agency-folder', ['agencyFolderId' => 'https://example.com/pas-un-dossier']);
         self::assertSame(400, $this->client->getResponse()->getStatusCode());
         self::assertSame('dossier-agence-0002', $settings()->agencyFolderId(), 'a refused address changes nothing');
 
-        $this->client->jsonRequest('POST', '/backend/studio/drive/settings/agency-folder', ['agencyFolderId' => '']);
+        $this->client->jsonRequest('POST', '/suite/studio/drive/settings/agency-folder', ['agencyFolderId' => '']);
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
         self::assertNull($settings()->agencyFolderId());
         self::assertTrue($settings()->isEnabled());
@@ -309,7 +309,7 @@ final class SpaceDriveAgencyFolderTest extends IntegrationTestCase
         $this->entityManager->persist($customer);
         $this->entityManager->flush();
 
-        $this->client->jsonRequest('POST', '/backend/studio/spaces/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/spaces/create', [
             'name' => 'Espace du Drive',
             'customerId' => $customer->getId(),
             'timezone' => 'Europe/Paris',

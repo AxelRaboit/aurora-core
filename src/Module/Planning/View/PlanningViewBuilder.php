@@ -56,7 +56,7 @@ final readonly class PlanningViewBuilder
     /**
      * The accounts that can be invited or shared with.
      *
-     * Backend accounts only. A front-office account has no calendar to be invited
+     * Suite accounts only. A front-office account has no calendar to be invited
      * into, and offering one would be an invitation nobody can answer.
      *
      * @return list<array{value: int, label: string}>
@@ -64,7 +64,7 @@ final readonly class PlanningViewBuilder
     private function invitablePeople(): array
     {
         $people = [];
-        foreach ($this->users->findBy(['type' => UserTypeEnum::Backend->value], ['name' => 'ASC']) as $user) {
+        foreach ($this->users->findBy(['type' => UserTypeEnum::Suite->value], ['name' => 'ASC']) as $user) {
             $people[] = ['value' => (int) $user->getId(), 'label' => $user->getName()];
         }
 

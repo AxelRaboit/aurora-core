@@ -1,4 +1,4 @@
-backend:
+suite:
     stats:
         ged:
             documents: "Documents"
@@ -30,8 +30,8 @@ backend:
                     manage: Gérer les dossiers
     modules:
         ged: GED
-        ged_backend: GED
-        ged_backend_description: "Active la section GED dans l'administration."
+        ged_suite: GED
+        ged_suite_description: "Active la section GED dans l'administration."
         ged_tags: Étiquettes GED
         ged_tags_description: "Active la gestion des étiquettes de documents."
         ged_folders: Dossiers GED

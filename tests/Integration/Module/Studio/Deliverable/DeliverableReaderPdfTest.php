@@ -42,7 +42,7 @@ final class DeliverableReaderPdfTest extends IntegrationTestCase
         $this->client->disableReboot();
         $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
 
-        $admin = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         $this->client->loginUser($admin, 'admin');
     }
 
@@ -88,7 +88,7 @@ final class DeliverableReaderPdfTest extends IntegrationTestCase
 
     public function testTheEditorPreviewDoesNotCarryTheButton(): void
     {
-        $this->client->jsonRequest('POST', '/backend/studio/deliverables/grid-preview', [
+        $this->client->jsonRequest('POST', '/suite/studio/deliverables/grid-preview', [
             'frame' => true,
             'locale' => 'fr',
             'title' => 'Aperçu',
@@ -115,7 +115,7 @@ final class DeliverableReaderPdfTest extends IntegrationTestCase
 
     private function givenLink(bool $readerPdf): string
     {
-        $this->client->jsonRequest('POST', '/backend/studio/deliverables/create', ['title' => 'Pour le client', 'scope' => 'shared']);
+        $this->client->jsonRequest('POST', '/suite/studio/deliverables/create', ['title' => 'Pour le client', 'scope' => 'shared']);
         $id = (int) json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR)['shared'][0]['id'];
 
         $this->entityManager->clear();
@@ -126,10 +126,10 @@ final class DeliverableReaderPdfTest extends IntegrationTestCase
             ->setAppearance(['readerPdf' => $readerPdf]);
         $this->entityManager->flush();
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/links/create', $id), []);
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/deliverables/%d/links/create', $id), []);
         self::assertResponseIsSuccessful();
 
-        $this->client->loginUser(self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']), 'admin');
+        $this->client->loginUser(self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']), 'admin');
         $url = json_decode((string) $this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR)['links'][0]['url'];
 
         return basename((string) parse_url($url, PHP_URL_PATH));

@@ -5,7 +5,7 @@ import { Pencil, Trash2 } from "lucide-vue-next";
  * The two actions most list rows have, and nothing else.
  *
  * Edit and delete, each behind its own permission. Half the lists in the
- * backend offer exactly this pair and no more - tags, categories, folders,
+ * suite offer exactly this pair and no more - tags, categories, folders,
  * taxonomies, post types - and writing the same twenty lines in each of their
  * modules would be five copies of one rule, drifting apart the first time the
  * wording of a description changes.

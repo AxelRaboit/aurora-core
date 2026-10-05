@@ -24,8 +24,8 @@ enum ContractTemplateKindEnum: string
     public function getLabel(): string
     {
         return match ($this) {
-            self::Body => 'backend.studio.contract_templates.kind.body',
-            self::Annex => 'backend.studio.contract_templates.kind.annex',
+            self::Body => 'suite.studio.contract_templates.kind.body',
+            self::Annex => 'suite.studio.contract_templates.kind.annex',
         };
     }
 

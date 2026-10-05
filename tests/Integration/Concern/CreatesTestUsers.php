@@ -25,7 +25,7 @@ trait CreatesTestUsers
         string $name,
         ?string $email = null,
         UserRoleEnum $role = UserRoleEnum::Admin,
-        UserTypeEnum $type = UserTypeEnum::Backend,
+        UserTypeEnum $type = UserTypeEnum::Suite,
         UserStatusEnum $status = UserStatusEnum::Active,
         string $plainPassword = 'verysecure123',
     ): User {

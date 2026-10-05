@@ -239,11 +239,11 @@ class PostManager implements PostManagerInterface
             sourceId: $id,
             // Untitled drafts exist, and a calendar entry with an empty label
             // would be an unclickable sliver. Named for what it is instead.
-            label: $this->anyTitle($post) ?? $this->translator->trans('backend.posts.untitled'),
+            label: $this->anyTitle($post) ?? $this->translator->trans('suite.posts.untitled'),
             startAt: $scheduledAt,
-            calendarName: $this->translator->trans('backend.posts.calendar_name'),
-            sourceLabel: $this->translator->trans('backend.nav.sections.editorial'),
-            url: $this->urlGenerator->generate('backend_editorial_posts_edit', ['id' => $id]),
+            calendarName: $this->translator->trans('suite.posts.calendar_name'),
+            sourceLabel: $this->translator->trans('suite.nav.sections.editorial'),
+            url: $this->urlGenerator->generate('suite_editorial_posts_edit', ['id' => $id]),
         ));
     }
 
@@ -309,7 +309,7 @@ class PostManager implements PostManagerInterface
     {
         $postType = $this->postTypeRepository->find($input->getPostTypeId());
         if (null === $postType) {
-            throw new InvalidArgumentException($this->translator->trans('backend.posts.errors.post_type_not_found', ['{id}' => $input->getPostTypeId()]));
+            throw new InvalidArgumentException($this->translator->trans('suite.posts.errors.post_type_not_found', ['{id}' => $input->getPostTypeId()]));
         }
 
         $post->setPostType($postType);

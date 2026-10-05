@@ -22,9 +22,9 @@ use function str_starts_with;
  *
  * **`Denied` and never `Restricted`.** The same reasoning the GED's guard
  * spells out: `/uploads/{path}` is not matched by the admin firewall's
- * pattern, so no backend identity is restored on such a request and asking
+ * pattern, so no suite identity is restored on such a request and asking
  * whether the visitor is signed in would be asking a question whose answer is
- * always no. Staff read a photo through `backend_platform_profile_photos_serve`
+ * always no. Staff read a photo through `suite_platform_profile_photos_serve`
  * instead, which is under the prefix the firewall does cover.
  *
  * A photo of a person's face is not something to hand to whoever guesses an

@@ -78,8 +78,8 @@ final readonly class EditorialBootstrapProvider implements BootstrapProviderInte
     private function seedPostTypes(): iterable
     {
         $definitions = [
-            ['page', 'backend.editorial.bootstrap.post_types.page', 'file-text', false],
-            ['article', 'backend.editorial.bootstrap.post_types.article', 'newspaper', true],
+            ['page', 'suite.editorial.bootstrap.post_types.page', 'file-text', false],
+            ['article', 'suite.editorial.bootstrap.post_types.article', 'newspaper', true],
         ];
 
         foreach ($definitions as [$slug, $labelKey, $icon, $hasArchive]) {
@@ -122,8 +122,8 @@ final readonly class EditorialBootstrapProvider implements BootstrapProviderInte
     private function seedTaxonomies(): iterable
     {
         $definitions = [
-            ['category', 'backend.editorial.bootstrap.taxonomies.category', true],
-            ['tag', 'backend.editorial.bootstrap.taxonomies.tag', false],
+            ['category', 'suite.editorial.bootstrap.taxonomies.category', true],
+            ['tag', 'suite.editorial.bootstrap.taxonomies.tag', false],
         ];
 
         $article = $this->postTypeRepository->findOneBySlug('article');

@@ -32,9 +32,9 @@ enum SpaceResourceKindEnum: string
     public function getLabelKey(): string
     {
         return match ($this) {
-            self::Link => 'backend.studio.space_resources.kinds.link',
-            self::Text => 'backend.studio.space_resources.kinds.text',
-            self::Contact => 'backend.studio.space_resources.kinds.contact',
+            self::Link => 'suite.studio.space_resources.kinds.link',
+            self::Text => 'suite.studio.space_resources.kinds.text',
+            self::Contact => 'suite.studio.space_resources.kinds.contact',
         };
     }
 

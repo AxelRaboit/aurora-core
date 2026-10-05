@@ -295,7 +295,7 @@ class ContractSerializer implements ContractSerializerInterface
         $page = $this->auditLogs->findPaginatedForEntity('Contract', $contract->getId(), 1, 50);
 
         return array_map(fn (AuditLogInterface $log): array => [
-            'label' => $this->translator->trans('backend.audit.actions.'.$log->getModule().'.'.$log->getAction()),
+            'label' => $this->translator->trans('suite.audit.actions.'.$log->getModule().'.'.$log->getAction()),
             'userName' => $log->getUserName(),
             'at' => $log->getCreatedAt()->format(DATE_ATOM),
         ], $page['items'] ?? []);

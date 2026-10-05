@@ -66,7 +66,7 @@ abstract class AbstractUser implements CoreUserInterface
      * Per-section colour overrides for the sidemenu - `{sectionId: colorName}`
      * (e.g. `{"ged": "emerald", "configuration": "rose"}`). Unknown
      * sections fall back to the default palette defined in
-     * `useSidemenuSectionTheme`. User-managed via /backend/profile/sidemenu.
+     * `useSidemenuSectionTheme`. User-managed via /suite/profile/sidemenu.
      *
      * @var array<string, string>
      */
@@ -118,9 +118,9 @@ abstract class AbstractUser implements CoreUserInterface
     #[Groups(['user:read'])]
     protected UserStatusEnum $status = UserStatusEnum::Active;
 
-    #[ORM\Column(length: 20, enumType: UserTypeEnum::class, options: ['default' => 'backend'])]
+    #[ORM\Column(length: 20, enumType: UserTypeEnum::class, options: ['default' => 'suite'])]
     #[Groups(['user:read'])]
-    protected UserTypeEnum $type = UserTypeEnum::Backend;
+    protected UserTypeEnum $type = UserTypeEnum::Suite;
 
     #[ORM\Column(length: 255, nullable: true)]
     #[Groups(['user:read'])]
@@ -345,7 +345,7 @@ abstract class AbstractUser implements CoreUserInterface
 
     public function isAdmin(): bool
     {
-        return UserTypeEnum::Backend === $this->type;
+        return UserTypeEnum::Suite === $this->type;
     }
 
     public function isFrontUser(): bool

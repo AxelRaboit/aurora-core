@@ -84,7 +84,7 @@ final class DeckFontsController extends AbstractController
     /**
      * The uploaded fonts, for the picker.
      */
-    #[Route('/backend/studio/decks/fonts', name: 'backend_studio_deck_fonts', methods: [HttpMethodEnum::Get->value], priority: 10)]
+    #[Route('/suite/studio/decks/fonts', name: 'suite_studio_deck_fonts', methods: [HttpMethodEnum::Get->value], priority: 10)]
     #[IsGranted('studio.decks.view')]
     public function list(): JsonResponse
     {
@@ -98,7 +98,7 @@ final class DeckFontsController extends AbstractController
      * creating documents, since the file becomes one. The library's own upload
      * asks for the second, and a font must not be a way round it.
      */
-    #[Route('/backend/studio/decks/fonts/upload', name: 'backend_studio_deck_font_upload', methods: [HttpMethodEnum::Post->value], priority: 10)]
+    #[Route('/suite/studio/decks/fonts/upload', name: 'suite_studio_deck_font_upload', methods: [HttpMethodEnum::Post->value], priority: 10)]
     #[IsGranted('studio.decks.edit')]
     #[IsGranted('ged.documents.create')]
     public function upload(Request $request): JsonResponse
@@ -107,15 +107,15 @@ final class DeckFontsController extends AbstractController
         $file = $request->files->get('file');
 
         if (null === $file) {
-            return $this->jsonFailure('backend.studio.decks.free.font_errors.required');
+            return $this->jsonFailure('suite.studio.decks.free.font_errors.required');
         }
 
         if (!$this->fonts->isFontFile($file, $file->getClientOriginalName())) {
-            return $this->jsonFailure('backend.studio.decks.free.font_errors.not_a_font');
+            return $this->jsonFailure('suite.studio.decks.free.font_errors.not_a_font');
         }
 
         if ($this->uploadPolicies->forStaffDocuments()->refusalFor($file) instanceof UploadRefusalEnum) {
-            return $this->jsonFailure('backend.studio.decks.free.font_errors.refused');
+            return $this->jsonFailure('suite.studio.decks.free.font_errors.refused');
         }
 
         return $this->jsonSuccess(['font' => $this->fonts->describe($this->uploader->upload($file))]);

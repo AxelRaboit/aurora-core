@@ -19,9 +19,9 @@ final readonly class EditorialContext
 {
     public function __construct(private ModuleAccessChecker $moduleAccessChecker) {}
 
-    public function isBackendEnabled(): bool
+    public function isSuiteEnabled(): bool
     {
-        return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::EditorialBackend);
+        return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::EditorialSuite);
     }
 
     public function isPostsEnabled(): bool

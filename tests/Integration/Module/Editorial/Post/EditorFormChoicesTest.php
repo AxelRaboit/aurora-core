@@ -41,7 +41,7 @@ final class EditorFormChoicesTest extends IntegrationTestCase
         $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
 
         $admin = self::getContainer()->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->client->loginUser($admin, 'admin');
     }
@@ -63,7 +63,7 @@ final class EditorFormChoicesTest extends IntegrationTestCase
         $title = 'Devis '.bin2hex(random_bytes(4));
         $this->publishForm($title);
 
-        $this->client->request('GET', '/backend/editorial/posts/new');
+        $this->client->request('GET', '/suite/editorial/posts/new');
 
         self::assertResponseIsSuccessful();
         self::assertStringContainsString(

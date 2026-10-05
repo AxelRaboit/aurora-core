@@ -22,7 +22,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 /**
  * Turns due alerts into notifications.
  *
- * They land on the backend's existing notification list rather than a channel of
+ * They land on the suite's existing notification list rather than a channel of
  * their own. A calendar alert is the same kind of thing as "a comment needs
  * moderation" - something that happened which you may want to look at - and a
  * second inbox would mean a second bell for the reader to remember to check.
@@ -101,12 +101,12 @@ readonly class PlanningNotifier
             $recipient,
             'planning.reminder',
             $reminder->getTitle(),
-            $this->translator->trans('backend.plannings.reminders.notification', [
+            $this->translator->trans('suite.plannings.reminders.notification', [
                 '%calendar%' => $reminder->getPlanning()->getName(),
             ]),
             // Un chemin, pas une adresse absolue : cf. NotificationManagerInterface::notify().
             $this->urlGenerator->generate(
-                'backend_planning_calendar',
+                'suite_planning_calendar',
                 ['view' => 'day', 'date' => $reminder->getDueAt()->format('Y-m-d')]
             ),
             ['reminderId' => $reminder->getId()],
@@ -185,7 +185,7 @@ readonly class PlanningNotifier
 
         $this->mail->send(
             $recipient->getEmail(),
-            'backend.plannings.mail.alert_subject',
+            'suite.plannings.mail.alert_subject',
             '@Planning/email/alert.html.twig',
             [
                 'title' => $event->getTitle(),
@@ -205,7 +205,7 @@ readonly class PlanningNotifier
     {
         $this->mail->send(
             $recipient->getEmail(),
-            'backend.plannings.mail.reminder_subject',
+            'suite.plannings.mail.reminder_subject',
             '@Planning/email/reminder.html.twig',
             [
                 'title' => $reminder->getTitle(),
@@ -224,7 +224,7 @@ readonly class PlanningNotifier
         // la configuration du routeur, pas d'une requête, c'est ce qui la rend
         // juste même écrite par le worker.
         return $this->urlGenerator->generate(
-            'backend_planning_calendar',
+            'suite_planning_calendar',
             ['view' => 'day', 'date' => $date],
             UrlGeneratorInterface::ABSOLUTE_URL,
         );
@@ -258,13 +258,13 @@ readonly class PlanningNotifier
             $recipient,
             'planning.alert',
             $event->getTitle(),
-            $this->translator->trans('backend.plannings.alerts.notification', [
+            $this->translator->trans('suite.plannings.alerts.notification', [
                 '%calendar%' => $event->getPlanning()->getName(),
                 '%when%' => $this->localTime($event),
             ]),
             // Un chemin, pas une adresse absolue : cf. NotificationManagerInterface::notify().
             $this->urlGenerator->generate(
-                'backend_planning_calendar',
+                'suite_planning_calendar',
                 // The day, not the month: a alert is about one event, and the
                 // day view is where it is the thing you are looking at rather
                 // than one chip among forty.

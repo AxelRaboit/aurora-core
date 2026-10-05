@@ -48,7 +48,7 @@ final class PostPickerTest extends IntegrationTestCase
     public function testSavedIdsComeBackInTheirOrderWithTheirTitles(): void
     {
         $client = self::createClient();
-        $admin = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $client->loginUser($admin, 'admin');
 
@@ -66,7 +66,7 @@ final class PostPickerTest extends IntegrationTestCase
         }
 
         $asked = array_reverse($this->ids);
-        $client->request('GET', '/backend/editorial/posts/search?ids='.implode(',', $asked), server: ['HTTP_X-Requested-With' => 'XMLHttpRequest']);
+        $client->request('GET', '/suite/editorial/posts/search?ids='.implode(',', $asked), server: ['HTTP_X-Requested-With' => 'XMLHttpRequest']);
         self::assertResponseIsSuccessful();
 
         $posts = json_decode((string) $client->getResponse()->getContent(), true)['posts'];

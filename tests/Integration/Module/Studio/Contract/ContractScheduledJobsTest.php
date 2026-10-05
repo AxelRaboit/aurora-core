@@ -68,7 +68,7 @@ final class ContractScheduledJobsTest extends IntegrationTestCase
         $container = static::getContainer();
 
         $admin = $container->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         $this->client->loginUser($admin, 'admin');
 
         $this->entityManager = $container->get(EntityManagerInterface::class);
@@ -228,7 +228,7 @@ final class ContractScheduledJobsTest extends IntegrationTestCase
     /** Sealed and sent through the routes the screen calls. */
     private function sentContract(): int
     {
-        $this->client->jsonRequest('POST', '/backend/studio/contracts/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/contracts/create', [
             'customerId' => $this->customer()->getId(),
             'bodyTemplateId' => $this->publishedTemplate()->getId(),
             'locale' => 'fr',
@@ -239,7 +239,7 @@ final class ContractScheduledJobsTest extends IntegrationTestCase
         $id = (int) json_decode((string) $this->client->getResponse()->getContent(), true)['contract']['id'];
 
         foreach (['freeze', 'send'] as $gesture) {
-            $this->client->jsonRequest('POST', sprintf('/backend/studio/contracts/%d/%s', $id, $gesture));
+            $this->client->jsonRequest('POST', sprintf('/suite/studio/contracts/%d/%s', $id, $gesture));
             self::assertSame(200, $this->client->getResponse()->getStatusCode(), $gesture);
         }
 

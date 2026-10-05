@@ -29,14 +29,14 @@ final readonly class TrackingModule implements ModuleInterface, ModuleToggleProv
         return [
             new ModuleToggle(
                 key: 'app_tracking_admin',                       // clé en core_settings + dans User::disabledModules
-                labelKey: 'backend.modules.tracking',
-                descriptionKey: 'backend.modules.tracking_description',
+                labelKey: 'suite.modules.tracking',
+                descriptionKey: 'suite.modules.tracking_description',
                 moduleId: 'tracking',                            // top-level → apparaît dans le picker
             ),
             new ModuleToggle(
                 key: 'app_tracking_pixels',
-                labelKey: 'backend.nav.tracking_pixels',
-                descriptionKey: 'backend.nav.tracking_pixels_description',
+                labelKey: 'suite.nav.tracking_pixels',
+                descriptionKey: 'suite.nav.tracking_pixels_description',
                 parentKey: 'app_tracking_admin',                 // cascade : OFF si parent OFF
             ),
         ];
@@ -54,7 +54,7 @@ mécanisme est strictement parallèle à `PermissionRegistry`.
 ## How to apply
 
 1. Crée ta clé `app_<module>_<feature>` (préfixe `app_` recommandé pour
-   distinguer des clés `backend_*` du core).
+   distinguer des clés `suite_*` du core).
 2. Ajoute les traductions FR + EN des `labelKey` et `descriptionKey` dans
    le YAML du module client.
 3. **Top-level** (`moduleId` non-null) : le toggle apparaît dans la modale

@@ -7,7 +7,7 @@ namespace Aurora\Tests\Integration\Module\Planning;
 use Aurora\Module\Planning\Event\Entity\PlanningEvent;
 use Aurora\Module\Planning\Planning\Entity\Planning;
 use Aurora\Module\Planning\Reminder\Entity\PlanningReminder;
-use Aurora\Module\Planning\Search\PlanningBackendSearchProvider;
+use Aurora\Module\Planning\Search\PlanningSuiteSearchProvider;
 use Aurora\Module\Platform\User\Entity\User;
 use Aurora\Module\Platform\User\Repository\UserRepository;
 use Aurora\Tests\Integration\IntegrationTestCase;
@@ -28,7 +28,7 @@ final class PlanningSearchTest extends IntegrationTestCase
 
     private EntityManagerInterface $entityManager;
 
-    private PlanningBackendSearchProvider $provider;
+    private PlanningSuiteSearchProvider $provider;
 
     private User $admin;
 
@@ -40,10 +40,10 @@ final class PlanningSearchTest extends IntegrationTestCase
         parent::setUp();
         $this->client = static::createClient();
         $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
-        $this->provider = static::getContainer()->get(PlanningBackendSearchProvider::class);
+        $this->provider = static::getContainer()->get(PlanningSuiteSearchProvider::class);
 
         $admin = static::getContainer()->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->admin = $admin;
     }

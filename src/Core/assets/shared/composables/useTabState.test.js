@@ -81,11 +81,11 @@ describe("useTabState", () => {
     });
 
     it("keeps the path and the query intact", () => {
-        window.history.replaceState(null, "", "/backend/posts/1/edit?x=1");
+        window.history.replaceState(null, "", "/suite/posts/1/edit?x=1");
 
         run({ hash: true }).api.select("seo");
 
-        expect(window.location.pathname).toBe("/backend/posts/1/edit");
+        expect(window.location.pathname).toBe("/suite/posts/1/edit");
         expect(window.location.search).toBe("?x=1");
         expect(window.location.hash).toBe("#seo");
     });

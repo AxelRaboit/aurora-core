@@ -1,4 +1,4 @@
-backend:
+suite:
     nav:
         beacon: Despliegues
         beacon_description: "Las instancias del sitio que se anuncian, y la detección de copias no autorizadas."

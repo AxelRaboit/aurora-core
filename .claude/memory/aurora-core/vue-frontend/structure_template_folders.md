@@ -14,7 +14,7 @@ Pour chaque feature Twig :
   (`category.html.twig`, `tag.html.twig`, `show.html.twig`, …).
 - **Single-file** → reste plat : `<Module>/<area>/<feature>.html.twig`.
 
-S'applique aux deux `<area>` : `backend/` et `frontend/`. Aligné avec le
+S'applique aux deux `<area>` : `suite/` et `frontend/`. Aligné avec le
 backend admin qui suivait déjà la convention.
 
 ### Exemples post-refacto

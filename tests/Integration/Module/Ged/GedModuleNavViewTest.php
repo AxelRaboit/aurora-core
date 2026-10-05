@@ -32,7 +32,7 @@ final class GedModuleNavViewTest extends IntegrationTestCase
         $this->client = static::createClient();
 
         $userRepository = static::getContainer()->get(UserRepository::class);
-        $user = $userRepository->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $user = $userRepository->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $user);
 
         $this->client->loginUser($user, 'admin');
@@ -45,18 +45,18 @@ final class GedModuleNavViewTest extends IntegrationTestCase
      */
     public function testTheDocumentsPageCarriesTheGedViewAndItsPanel(): void
     {
-        $view = $this->moduleNavViewOn('/backend/ged/documents');
+        $view = $this->moduleNavViewOn('/suite/ged/documents');
 
         self::assertNotNull($view);
         self::assertSame('ged', $view['moduleId']);
-        self::assertSame('ged/backend/documents/FolderTreePanel', $view['panelComponent']);
+        self::assertSame('ged/suite/documents/FolderTreePanel', $view['panelComponent']);
         self::assertCount(1, $view['groups']);
 
         $routes = array_column($view['groups'][0]['items'], 'route');
         self::assertSame([
-            'backend_ged_documents',
-            'backend_ged_categories',
-            'backend_ged_tags',
+            'suite_ged_documents',
+            'suite_ged_categories',
+            'suite_ged_tags',
         ], $routes);
     }
 
@@ -67,21 +67,21 @@ final class GedModuleNavViewTest extends IntegrationTestCase
      */
     public function testTheTagsPageCarriesItToo(): void
     {
-        $view = $this->moduleNavViewOn('/backend/ged/tags');
+        $view = $this->moduleNavViewOn('/suite/ged/tags');
 
         self::assertNotNull($view);
-        self::assertSame('ged/backend/documents/FolderTreePanel', $view['panelComponent']);
+        self::assertSame('ged/suite/documents/FolderTreePanel', $view['panelComponent']);
     }
 
     /**
      * A page outside the GED must not get the GED's column.
      *
-     * The resolver picks the longest matching prefix, and `backend_ged_*` is a
+     * The resolver picks the longest matching prefix, and `suite_ged_*` is a
      * narrow one - but a rule that only ever says yes has not been tested.
      */
     public function testAPageOutsideTheGedDoesNotGetItsPanel(): void
     {
-        $view = $this->moduleNavViewOn('/backend/general/profile');
+        $view = $this->moduleNavViewOn('/suite/general/profile');
 
         self::assertNotSame('ged', $view['moduleId'] ?? null);
     }
@@ -90,7 +90,7 @@ final class GedModuleNavViewTest extends IntegrationTestCase
      * The menu's props, read back off the served HTML.
      *
      * Decoded rather than grepped: Twig writes the payload as HTML-escaped JSON
-     * with escaped slashes, so `ged/backend/...` is not in the response as
+     * with escaped slashes, so `ged/suite/...` is not in the response as
      * written, and a substring assertion for it fails while the feature works.
      *
      * @return ?array<string, mixed>
@@ -101,7 +101,7 @@ final class GedModuleNavViewTest extends IntegrationTestCase
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
         $matched = preg_match(
-            '/vue-component-value="core\/backend\/sidemenu\/AppSidemenu" data-symfony--ux-vue--vue-props-value="([^"]*)"/',
+            '/vue-component-value="core\/suite\/sidemenu\/AppSidemenu" data-symfony--ux-vue--vue-props-value="([^"]*)"/',
             (string) $this->client->getResponse()->getContent(),
             $matches,
         );
@@ -125,7 +125,7 @@ final class GedModuleNavViewTest extends IntegrationTestCase
      */
     public function testTheOldFoldersPageIsGone(): void
     {
-        $this->client->request('GET', '/backend/ged/folders');
+        $this->client->request('GET', '/suite/ged/folders');
 
         self::assertSame(404, $this->client->getResponse()->getStatusCode());
     }
@@ -140,7 +140,7 @@ final class GedModuleNavViewTest extends IntegrationTestCase
         $entityManager->persist($child);
         $entityManager->flush();
 
-        $this->client->request('GET', '/backend/ged/documents/folders');
+        $this->client->request('GET', '/suite/ged/documents/folders');
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 

@@ -23,7 +23,7 @@ aurora-client est le **projet de démonstration et template de départ** d'auror
 
 | Changement dans aurora-core | Vérif obligatoire côté aurora-client |
 |---|---|
-| Split de controller (`X → X + Y`) | Recherche les routes par leur nom (`urlGenerator->generate('backend_xxx')`) - les noms doivent rester fonctionnels |
+| Split de controller (`X → X + Y`) | Recherche les routes par leur nom (`urlGenerator->generate('suite_xxx')`) - les noms doivent rester fonctionnels |
 | Nouvelle entité instrumentée (Sylius 5-couches) | Possible nouvel exemple d'extension à ajouter dans aurora-client (vérifie `App\AuroraBundle::$resolve_target_entities`) |
 | Nouvelle convention dure (thin controller, thin SFC, autosave, etc.) | Audit du code client : applique-t-il déjà la convention ? Sinon, ouvrir un follow-up |
 | Refacto de Manager (changement de signature de hook protected) | Si le client override le hook, sa signature doit suivre |
@@ -42,18 +42,18 @@ Ouvrir aurora-client en parallèle et :
 ```bash
 # Grep pour les usages potentiels du symbole modifié
 cd "$AURORA_CLIENT_DIR"   # chemin local du checkout aurora-client
-grep -rn "<ClassName>\|<methodName>\|backend_xxx_routename" src/ assets/ templates/ config/
+grep -rn "<ClassName>\|<methodName>\|suite_xxx_routename" src/ assets/ templates/ config/
 ```
 
 ### 2. Après un split de controller (cas typique)
 
-Tous les **noms de routes** doivent être préservés à l'identique côté core. Mais aurora-client peut référencer ces routes côté Twig (`path('backend_xxx_yyy')`) ou JS (props passées au composant Vue). Si le split renomme accidentellement une route, le client casse en runtime.
+Tous les **noms de routes** doivent être préservés à l'identique côté core. Mais aurora-client peut référencer ces routes côté Twig (`path('suite_xxx_yyy')`) ou JS (props passées au composant Vue). Si le split renomme accidentellement une route, le client casse en runtime.
 
 ```bash
 # Liste rapide des routes utilisées par aurora-client
 cd "$AURORA_CLIENT_DIR"   # chemin local du checkout aurora-client
-grep -rnE "(path|url)\(['\"]backend_" templates/ src/
-grep -rn "backend_" assets/ | grep -v node_modules
+grep -rnE "(path|url)\(['\"]suite_" templates/ src/
+grep -rn "suite_" assets/ | grep -v node_modules
 ```
 
 ### 3. Après un changement de convention (mémoire dans aurora-shared)

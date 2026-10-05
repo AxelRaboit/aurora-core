@@ -138,11 +138,11 @@ final readonly class StorageProbe
         $message = mb_strtolower($message);
 
         return match (true) {
-            str_contains($message, 'not configured') => 'backend.settings.storage.hints.incomplete',
-            str_contains($message, 'signature') => 'backend.settings.storage.hints.signature',
-            str_contains($message, 'access denied'), str_contains($message, '403') => 'backend.settings.storage.hints.denied',
-            str_contains($message, 'nosuchbucket'), str_contains($message, '404') => 'backend.settings.storage.hints.no_bucket',
-            str_contains($message, 'could not resolve'), str_contains($message, 'timed out') => 'backend.settings.storage.hints.unreachable',
+            str_contains($message, 'not configured') => 'suite.settings.storage.hints.incomplete',
+            str_contains($message, 'signature') => 'suite.settings.storage.hints.signature',
+            str_contains($message, 'access denied'), str_contains($message, '403') => 'suite.settings.storage.hints.denied',
+            str_contains($message, 'nosuchbucket'), str_contains($message, '404') => 'suite.settings.storage.hints.no_bucket',
+            str_contains($message, 'could not resolve'), str_contains($message, 'timed out') => 'suite.settings.storage.hints.unreachable',
             default => null,
         };
     }

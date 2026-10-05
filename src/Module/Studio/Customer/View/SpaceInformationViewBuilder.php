@@ -71,21 +71,21 @@ final readonly class SpaceInformationViewBuilder
         return [
             'contracts' => $this->studioContext->areContractsEnabled() && $this->authorizationChecker->isGranted('studio.contracts.view')
                 ? array_map(fn (ContractInterface $contract): array => [
-                    'label' => $contract->getReference() ?? $this->translator->trans('backend.studio.space_information.draft_contract'),
+                    'label' => $contract->getReference() ?? $this->translator->trans('suite.studio.space_information.draft_contract'),
                     'detail' => $this->translator->trans($contract->getStatus()->getLabel()),
-                    'url' => $this->urlGenerator->generate('backend_studio_contracts_show', ['id' => $contract->getId()]),
+                    'url' => $this->urlGenerator->generate('suite_studio_contracts_show', ['id' => $contract->getId()]),
                 ], $this->contracts->findBy(['customer' => $customer], ['id' => 'DESC']))
                 : null,
             'decks' => $this->studioContext->areDecksEnabled() && $this->authorizationChecker->isGranted('studio.decks.view')
                 ? array_map(fn (DeckInterface $deck): array => [
                     'label' => $deck->getTitle(),
                     'detail' => null,
-                    'url' => $this->urlGenerator->generate('backend_studio_deck', ['id' => $deck->getId()]),
+                    'url' => $this->urlGenerator->generate('suite_studio_deck', ['id' => $deck->getId()]),
                 ], $this->decks->findLiveForCustomer($customer))
                 : null,
             'spaces' => array_values(array_map(fn (CustomerSpaceInterface $other): array => [
                 'label' => $other->getName(),
-                'detail' => $other->isArchived() ? $this->translator->trans('backend.studio.spaces.archived_badge') : null,
+                'detail' => $other->isArchived() ? $this->translator->trans('suite.studio.spaces.archived_badge') : null,
                 'url' => $this->urlGenerator->generate('workspace_space_content', ['id' => $other->getId()]),
             ], array_filter(
                 $this->visibility->visibleSpaces(),

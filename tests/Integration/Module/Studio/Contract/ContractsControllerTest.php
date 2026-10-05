@@ -51,7 +51,7 @@ final class ContractsControllerTest extends IntegrationTestCase
         $container = static::getContainer();
 
         $admin = $container->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         $this->client->loginUser($admin, 'admin');
 
         $this->entityManager = $container->get(EntityManagerInterface::class);
@@ -86,7 +86,7 @@ final class ContractsControllerTest extends IntegrationTestCase
         self::assertFalse($created['contract']['body']['isOutdated']);
 
         $id = $created['contract']['id'];
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/contracts/%d/freeze', $id));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/contracts/%d/freeze', $id));
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
         $sealed = json_decode((string) $this->client->getResponse()->getContent(), true);
@@ -110,7 +110,7 @@ final class ContractsControllerTest extends IntegrationTestCase
     {
         $id = $this->createContract()['contract']['id'];
         $post = function (string $gesture) use ($id): array {
-            $this->client->jsonRequest('POST', sprintf('/backend/studio/contracts/%d/%s', $id, $gesture));
+            $this->client->jsonRequest('POST', sprintf('/suite/studio/contracts/%d/%s', $id, $gesture));
 
             return ['status' => $this->client->getResponse()->getStatusCode(), 'body' => json_decode((string) $this->client->getResponse()->getContent(), true)];
         };
@@ -150,10 +150,10 @@ final class ContractsControllerTest extends IntegrationTestCase
         $created = $this->createContract();
         $id = $created['contract']['id'];
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/contracts/%d/freeze', $id));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/contracts/%d/freeze', $id));
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/contracts/%d/update', $id), [
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/contracts/%d/update', $id), [
             'customerId' => $created['contract']['customerId'],
             'bodyTemplateId' => $created['contract']['body']['templateId'],
             'amount' => '9999',
@@ -163,7 +163,7 @@ final class ContractsControllerTest extends IntegrationTestCase
         $refused = json_decode((string) $this->client->getResponse()->getContent(), true);
         self::assertArrayHasKey('status', $refused['errors']);
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/contracts/%d/delete', $id));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/contracts/%d/delete', $id));
         self::assertSame(422, $this->client->getResponse()->getStatusCode());
     }
 
@@ -172,9 +172,9 @@ final class ContractsControllerTest extends IntegrationTestCase
         $created = $this->createContract();
         $id = $created['contract']['id'];
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/contracts/%d/freeze', $id));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/contracts/%d/freeze', $id));
 
-        $this->client->request('GET', sprintf('/backend/studio/contracts/%d', $id));
+        $this->client->request('GET', sprintf('/suite/studio/contracts/%d', $id));
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
         $body = (string) $this->client->getResponse()->getContent();
@@ -189,7 +189,7 @@ final class ContractsControllerTest extends IntegrationTestCase
         $created = $this->createContract();
         $id = $created['contract']['id'];
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/contracts/%d/freeze', $id));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/contracts/%d/freeze', $id));
 
         // What a manual database edit would do.
         $this->entityManager->getConnection()->executeStatement(
@@ -197,7 +197,7 @@ final class ContractsControllerTest extends IntegrationTestCase
             ['html' => '<section><h1>CONTRAT</h1><p>Le forfait est de 1 €.</p></section>', 'id' => $id],
         );
 
-        $this->client->request('GET', sprintf('/backend/studio/contracts/%d', $id));
+        $this->client->request('GET', sprintf('/suite/studio/contracts/%d', $id));
 
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
         // The page says so rather than showing the altered document as valid.
@@ -209,7 +209,7 @@ final class ContractsControllerTest extends IntegrationTestCase
         $customer = $this->customer();
         $template = $this->templates->create(new ContractTemplateInput('Trame vierge', ContractTemplateKindEnum::Body));
 
-        $this->client->jsonRequest('POST', '/backend/studio/contracts/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/contracts/create', [
             'customerId' => $customer->getId(),
             'bodyTemplateId' => $template->getId(),
             'locale' => 'fr',
@@ -223,7 +223,7 @@ final class ContractsControllerTest extends IntegrationTestCase
 
     public function testAContractWithoutACustomerIsRefused(): void
     {
-        $this->client->jsonRequest('POST', '/backend/studio/contracts/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/contracts/create', [
             'bodyTemplateId' => $this->publishedTemplate()->getId(),
             'locale' => 'fr',
         ]);
@@ -301,7 +301,7 @@ final class ContractsControllerTest extends IntegrationTestCase
     /** @return array<string, mixed> */
     private function createContract(): array
     {
-        $this->client->jsonRequest('POST', '/backend/studio/contracts/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/contracts/create', [
             'customerId' => $this->customer()->getId(),
             'bodyTemplateId' => $this->publishedTemplate()->getId(),
             'locale' => 'fr',

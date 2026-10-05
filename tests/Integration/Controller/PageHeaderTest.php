@@ -17,7 +17,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  * band above already names the page. Fourteen of the nineteen pages have exactly
  * two crumbs, so the trail collapsed to one word - the section name, which the
  * side menu was already showing. Nothing failed: the page rendered, the tests
- * passed, and `/backend/platform/users` said only "Plateforme".
+ * passed, and `/suite/platform/users` said only "Plateforme".
  *
  * That is the shape of regression this guards. Slicing the trail, hiding a level
  * behind a breakpoint, or reordering the loop all read as correct in a diff and
@@ -39,7 +39,7 @@ final class PageHeaderTest extends IntegrationTestCase
         $this->client = static::createClient();
 
         $userRepository = static::getContainer()->get(UserRepository::class);
-        $admin = $userRepository->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = $userRepository->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->client->loginUser($admin, 'admin');
 
@@ -52,7 +52,7 @@ final class PageHeaderTest extends IntegrationTestCase
      */
     public function testTheTrailKeepsTheSectionAndThePage(): void
     {
-        $crawler = $this->client->request('GET', $this->urlGenerator->generate('backend_platform_users'));
+        $crawler = $this->client->request('GET', $this->urlGenerator->generate('suite_platform_users'));
 
         self::assertResponseIsSuccessful();
 
@@ -102,7 +102,7 @@ final class PageHeaderTest extends IntegrationTestCase
      */
     public function testTheHeaderHasASingleHeading(): void
     {
-        $crawler = $this->client->request('GET', $this->urlGenerator->generate('backend_editorial_posts'));
+        $crawler = $this->client->request('GET', $this->urlGenerator->generate('suite_editorial_posts'));
 
         self::assertSame(1, $crawler->filter('header h2')->count());
         self::assertSame(0, $crawler->filter('header h1')->count());
@@ -111,14 +111,14 @@ final class PageHeaderTest extends IntegrationTestCase
     /**
      * The profile page, which used to be the exception.
      *
-     * It began its trail at itself - the only page in the backend that did - so
+     * It began its trail at itself - the only page in the suite that did - so
      * it could not say where it sat, and it was the one page whose trail held a
      * single item. It sits under the account section now, like every other page
      * sits under its own.
      */
     public function testTheProfilePageSitsUnderASectionLikeEveryOther(): void
     {
-        $crawler = $this->client->request('GET', $this->urlGenerator->generate('backend_general_profile'));
+        $crawler = $this->client->request('GET', $this->urlGenerator->generate('suite_general_profile'));
 
         self::assertResponseIsSuccessful();
 

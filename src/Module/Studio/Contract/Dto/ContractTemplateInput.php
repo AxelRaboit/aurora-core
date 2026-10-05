@@ -11,8 +11,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 class ContractTemplateInput implements ContractTemplateInputInterface
 {
     public function __construct(
-        #[Assert\NotBlank(message: 'backend.studio.contract_templates.errors.name_required')]
-        #[Assert\Length(max: 180, maxMessage: 'backend.studio.contract_templates.errors.name_too_long')]
+        #[Assert\NotBlank(message: 'suite.studio.contract_templates.errors.name_required')]
+        #[Assert\Length(max: 180, maxMessage: 'suite.studio.contract_templates.errors.name_too_long')]
         public readonly string $name = '',
         public readonly ContractTemplateKindEnum $kind = ContractTemplateKindEnum::Body,
         // Null is a value here, not a missing one: it is how a template says

@@ -15,7 +15,7 @@ use function str_starts_with;
  * `UploadAccessEnum::Restricted` is the vocabulary the interface offers a
  * client's own area: served, but through the application and to this visitor
  * only. Both guards aurora-core ships answer `Anonymous` or `Denied` - the GED
- * because its private files are read under `/backend`, the contracts module
+ * because its private files are read under `/suite`, the contracts module
  * because nothing of its area is served here at all - so the branch that
  * honours the third answer was never executed by anything.
  *

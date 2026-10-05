@@ -41,37 +41,37 @@ final class ModuleTogglesCloseTheirRoutesTest extends IntegrationTestCase
     {
         // The dashboard switched off sends to the profile rather than a 404:
         // it is the page one lands on after signing in.
-        yield 'general' => [ModuleParameterEnum::GeneralBackend, 'backend_dashboard', 302];
-        yield 'dashboard' => [ModuleParameterEnum::GeneralDashboard, 'backend_dashboard', 302];
-        yield 'platform' => [ModuleParameterEnum::PlatformBackend, 'backend_platform_users', 404];
-        yield 'users' => [ModuleParameterEnum::PlatformUsers, 'backend_platform_users', 404];
-        yield 'configuration' => [ModuleParameterEnum::ConfigurationBackend, 'backend_configuration_settings', 404];
-        yield 'settings' => [ModuleParameterEnum::ConfigurationSettings, 'backend_configuration_settings', 404];
-        yield 'themes' => [ModuleParameterEnum::ConfigurationThemes, 'backend_configuration_themes', 404];
-        yield 'editorial' => [ModuleParameterEnum::EditorialBackend, 'backend_editorial_posts', 404];
+        yield 'general' => [ModuleParameterEnum::GeneralSuite, 'suite_dashboard', 302];
+        yield 'dashboard' => [ModuleParameterEnum::GeneralDashboard, 'suite_dashboard', 302];
+        yield 'platform' => [ModuleParameterEnum::PlatformSuite, 'suite_platform_users', 404];
+        yield 'users' => [ModuleParameterEnum::PlatformUsers, 'suite_platform_users', 404];
+        yield 'configuration' => [ModuleParameterEnum::ConfigurationSuite, 'suite_configuration_settings', 404];
+        yield 'settings' => [ModuleParameterEnum::ConfigurationSettings, 'suite_configuration_settings', 404];
+        yield 'themes' => [ModuleParameterEnum::ConfigurationThemes, 'suite_configuration_themes', 404];
+        yield 'editorial' => [ModuleParameterEnum::EditorialSuite, 'suite_editorial_posts', 404];
         yield 'editorial front' => [ModuleParameterEnum::EditorialFrontend, 'editorial_home', 404];
-        yield 'posts' => [ModuleParameterEnum::EditorialPosts, 'backend_editorial_posts', 404];
-        yield 'post types' => [ModuleParameterEnum::EditorialPostTypes, 'backend_editorial_post_types', 404];
-        yield 'taxonomies' => [ModuleParameterEnum::EditorialTaxonomies, 'backend_editorial_taxonomies', 404];
-        yield 'menus' => [ModuleParameterEnum::EditorialMenus, 'backend_editorial_menus', 404];
+        yield 'posts' => [ModuleParameterEnum::EditorialPosts, 'suite_editorial_posts', 404];
+        yield 'post types' => [ModuleParameterEnum::EditorialPostTypes, 'suite_editorial_post_types', 404];
+        yield 'taxonomies' => [ModuleParameterEnum::EditorialTaxonomies, 'suite_editorial_taxonomies', 404];
+        yield 'menus' => [ModuleParameterEnum::EditorialMenus, 'suite_editorial_menus', 404];
         yield 'seo' => [ModuleParameterEnum::EditorialSeo, 'editorial_sitemap', 404];
-        yield 'comments' => [ModuleParameterEnum::EditorialComments, 'backend_editorial_comments', 404];
-        yield 'forms' => [ModuleParameterEnum::EditorialForms, 'backend_editorial_forms', 404];
-        yield 'ged' => [ModuleParameterEnum::GedBackend, 'backend_ged_documents', 404];
-        yield 'documents' => [ModuleParameterEnum::GedDocuments, 'backend_ged_documents', 404];
-        yield 'ged categories' => [ModuleParameterEnum::GedCategories, 'backend_ged_categories', 404];
-        yield 'tags' => [ModuleParameterEnum::GedTags, 'backend_ged_tags', 404];
-        yield 'folders' => [ModuleParameterEnum::GedFolders, 'backend_ged_folders_create', 404];
+        yield 'comments' => [ModuleParameterEnum::EditorialComments, 'suite_editorial_comments', 404];
+        yield 'forms' => [ModuleParameterEnum::EditorialForms, 'suite_editorial_forms', 404];
+        yield 'ged' => [ModuleParameterEnum::GedSuite, 'suite_ged_documents', 404];
+        yield 'documents' => [ModuleParameterEnum::GedDocuments, 'suite_ged_documents', 404];
+        yield 'ged categories' => [ModuleParameterEnum::GedCategories, 'suite_ged_categories', 404];
+        yield 'tags' => [ModuleParameterEnum::GedTags, 'suite_ged_tags', 404];
+        yield 'folders' => [ModuleParameterEnum::GedFolders, 'suite_ged_folders_create', 404];
         yield 'ged front' => [ModuleParameterEnum::GedFrontend, 'frontend_ged_index', 404];
-        yield 'planning' => [ModuleParameterEnum::PlanningBackend, 'backend_planning_calendar', 404];
-        yield 'notes' => [ModuleParameterEnum::NotesBackend, 'backend_notes_markdown', 404];
-        yield 'markdown' => [ModuleParameterEnum::NotesMarkdown, 'backend_notes_markdown', 404];
-        yield 'studio' => [ModuleParameterEnum::StudioBackend, 'backend_studio_customers', 404];
-        yield 'customers' => [ModuleParameterEnum::StudioCustomers, 'backend_studio_customers', 404];
-        yield 'spaces' => [ModuleParameterEnum::StudioSpaces, 'backend_studio_spaces', 404];
-        yield 'contracts' => [ModuleParameterEnum::StudioContracts, 'backend_studio_contracts', 404];
-        yield 'decks' => [ModuleParameterEnum::StudioDecks, 'backend_studio_decks', 404];
-        yield 'deliverables' => [ModuleParameterEnum::StudioDeliverables, 'backend_studio_deliverables', 404];
+        yield 'planning' => [ModuleParameterEnum::PlanningSuite, 'suite_planning_calendar', 404];
+        yield 'notes' => [ModuleParameterEnum::NotesSuite, 'suite_notes_markdown', 404];
+        yield 'markdown' => [ModuleParameterEnum::NotesMarkdown, 'suite_notes_markdown', 404];
+        yield 'studio' => [ModuleParameterEnum::StudioSuite, 'suite_studio_customers', 404];
+        yield 'customers' => [ModuleParameterEnum::StudioCustomers, 'suite_studio_customers', 404];
+        yield 'spaces' => [ModuleParameterEnum::StudioSpaces, 'suite_studio_spaces', 404];
+        yield 'contracts' => [ModuleParameterEnum::StudioContracts, 'suite_studio_contracts', 404];
+        yield 'decks' => [ModuleParameterEnum::StudioDecks, 'suite_studio_decks', 404];
+        yield 'deliverables' => [ModuleParameterEnum::StudioDeliverables, 'suite_studio_deliverables', 404];
     }
 
     protected function setUp(): void
@@ -79,7 +79,7 @@ final class ModuleTogglesCloseTheirRoutesTest extends IntegrationTestCase
         parent::setUp();
         $this->client = self::createClient();
         $this->client->disableReboot();
-        $this->client->loginUser(self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']), 'admin');
+        $this->client->loginUser(self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']), 'admin');
     }
 
     #[DataProvider('toggleProvider')]

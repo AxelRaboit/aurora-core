@@ -38,11 +38,11 @@ final class GridPreviewFrameTest extends IntegrationTestCase
     private function preview(array $extra): string
     {
         $client = self::createClient();
-        $admin = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertNotNull($admin);
         $client->loginUser($admin, 'admin');
 
-        $client->request('POST', '/backend/editorial/posts/grid-preview', [], [], ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'], (string) json_encode([
+        $client->request('POST', '/suite/editorial/posts/grid-preview', [], [], ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'], (string) json_encode([
             ...$extra,
             'layout' => ['enabled' => true, 'zones' => [['id' => 't1', 'type' => 'text', 'span' => ['base' => 48, 'md' => 48, 'lg' => 48]]]],
             'content' => ['zones' => ['t1' => ['blocks' => [['type' => 'paragraph', 'data' => ['text' => 'Une phrase']]]]]],

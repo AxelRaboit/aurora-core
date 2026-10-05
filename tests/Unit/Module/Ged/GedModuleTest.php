@@ -15,7 +15,7 @@ use PHPUnit\Framework\TestCase;
 final class GedModuleTest extends TestCase
 {
     private function makeModule(
-        bool $backendEnabled = true,
+        bool $suiteEnabled = true,
         bool $documentsEnabled = true,
         bool $categoriesEnabled = true,
         bool $tagsEnabled = true,
@@ -24,7 +24,7 @@ final class GedModuleTest extends TestCase
         $checker = $this->createStub(ModuleAccessChecker::class);
         $checker->method('isEnabled')->willReturnCallback(
             static fn (ModuleParameterEnum $param): bool => match ($param) {
-                ModuleParameterEnum::GedBackend => $backendEnabled,
+                ModuleParameterEnum::GedSuite => $suiteEnabled,
                 ModuleParameterEnum::GedDocuments => $documentsEnabled,
                 ModuleParameterEnum::GedCategories => $categoriesEnabled,
                 ModuleParameterEnum::GedTags => $tagsEnabled,
@@ -46,9 +46,9 @@ final class GedModuleTest extends TestCase
         self::assertCount(11, $this->makeModule()->getPermissions());
     }
 
-    public function testGetNavSectionsReturnsEmptyWhenBackendDisabled(): void
+    public function testGetNavSectionsReturnsEmptyWhenSuiteDisabled(): void
     {
-        self::assertSame([], $this->makeModule(backendEnabled: false)->getNavSections());
+        self::assertSame([], $this->makeModule(suiteEnabled: false)->getNavSections());
     }
 
     /**
@@ -64,7 +64,7 @@ final class GedModuleTest extends TestCase
             $this->makeModule()->getCatalogNavSections()[0]->items,
         );
 
-        self::assertNotContains('backend_ged_folders', $routes);
+        self::assertNotContains('suite_ged_folders', $routes);
     }
 
     public function testGetNavSectionsReturnsEmptyWhenAllSubFeaturesDisabled(): void
@@ -93,7 +93,7 @@ final class GedModuleTest extends TestCase
 
     public function testGetCatalogNavSectionsReturnsAllItems(): void
     {
-        $sections = $this->makeModule(backendEnabled: false)->getCatalogNavSections();
+        $sections = $this->makeModule(suiteEnabled: false)->getCatalogNavSections();
 
         self::assertCount(1, $sections);
     }
@@ -103,9 +103,9 @@ final class GedModuleTest extends TestCase
         self::assertCount(6, $this->makeModule()->getToggles());
     }
 
-    public function testGetModuleNavViewReturnsNullWhenBackendDisabled(): void
+    public function testGetModuleNavViewReturnsNullWhenSuiteDisabled(): void
     {
-        self::assertNull($this->makeModule(backendEnabled: false)->getModuleNavView());
+        self::assertNull($this->makeModule(suiteEnabled: false)->getModuleNavView());
     }
 
     /**
@@ -156,14 +156,14 @@ final class GedModuleTest extends TestCase
             $module->getModuleNavView()->groups[0]->items,
         );
 
-        self::assertSame(['backend_ged_documents', 'backend_ged_tags'], $sectionRoutes);
+        self::assertSame(['suite_ged_documents', 'suite_ged_tags'], $sectionRoutes);
         self::assertSame($sectionRoutes, $viewRoutes);
     }
 
     public function testGetModuleNavViewNamesTheFolderTreePanel(): void
     {
         self::assertSame(
-            'ged/backend/documents/FolderTreePanel',
+            'ged/suite/documents/FolderTreePanel',
             $this->makeModule()->getModuleNavView()->panelComponent,
         );
     }

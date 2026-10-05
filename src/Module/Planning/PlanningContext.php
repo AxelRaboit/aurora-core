@@ -16,9 +16,9 @@ final readonly class PlanningContext
 {
     public function __construct(private ModuleAccessChecker $moduleAccessChecker) {}
 
-    public function isBackendEnabled(): bool
+    public function isSuiteEnabled(): bool
     {
-        return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::PlanningBackend);
+        return $this->moduleAccessChecker->isEnabled(ModuleParameterEnum::PlanningSuite);
     }
 
     /**
@@ -31,6 +31,6 @@ final readonly class PlanningContext
      */
     public function isGloballyEnabled(): bool
     {
-        return $this->moduleAccessChecker->isGloballyEnabled(ModuleParameterEnum::PlanningBackend);
+        return $this->moduleAccessChecker->isGloballyEnabled(ModuleParameterEnum::PlanningSuite);
     }
 }

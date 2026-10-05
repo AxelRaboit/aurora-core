@@ -10,12 +10,12 @@ use Symfony\Component\Validator\Constraints as Assert;
 class MountPointInput implements MountPointInputInterface
 {
     public function __construct(
-        #[Assert\NotBlank(message: 'backend.mount_points.errors.name_required')]
-        #[Assert\Length(max: 100, maxMessage: 'backend.mount_points.errors.name_too_long')]
+        #[Assert\NotBlank(message: 'suite.mount_points.errors.name_required')]
+        #[Assert\Length(max: 100, maxMessage: 'suite.mount_points.errors.name_too_long')]
         public readonly string $name,
         public readonly MountPointTypeEnum $type,
-        #[Assert\NotBlank(message: 'backend.mount_points.errors.host_required')]
-        #[Assert\Length(max: 255, maxMessage: 'backend.mount_points.errors.host_too_long')]
+        #[Assert\NotBlank(message: 'suite.mount_points.errors.host_required')]
+        #[Assert\Length(max: 255, maxMessage: 'suite.mount_points.errors.host_too_long')]
         public readonly string $host,
         public readonly ?int $port = null,
         public readonly ?string $username = null,

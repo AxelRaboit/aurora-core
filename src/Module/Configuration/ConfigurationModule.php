@@ -63,18 +63,18 @@ final readonly class ConfigurationModule implements ModuleInterface, ModuleNavVi
 
     public function getNavSections(): array
     {
-        if (!$this->configurationContext->isBackendEnabled()) {
+        if (!$this->configurationContext->isSuiteEnabled()) {
             return [];
         }
 
         $items = [];
 
         if ($this->configurationContext->isSettingsEnabled()) {
-            $items[] = new NavItem('backend_configuration_settings', 'backend.nav.settings', 'settings', requiredPrivilege: 'configuration.settings.manage', descriptionKey: 'backend.nav.settings_description');
+            $items[] = new NavItem('suite_configuration_settings', 'suite.nav.settings', 'settings', requiredPrivilege: 'configuration.settings.manage', descriptionKey: 'suite.nav.settings_description');
         }
 
         if ($this->configurationContext->isThemesEnabled()) {
-            $items[] = new NavItem('backend_configuration_themes', 'backend.nav.themes', 'palette', requiredPrivilege: 'configuration.themes.manage', descriptionKey: 'backend.nav.themes_description');
+            $items[] = new NavItem('suite_configuration_themes', 'suite.nav.themes', 'palette', requiredPrivilege: 'configuration.themes.manage', descriptionKey: 'suite.nav.themes_description');
         }
 
         if ([] === $items) {
@@ -88,8 +88,8 @@ final readonly class ConfigurationModule implements ModuleInterface, ModuleNavVi
     {
         return [
             new NavSection('configuration', [
-                new NavItem('backend_configuration_settings', 'backend.nav.settings', 'settings', requiredPrivilege: 'configuration.settings.manage', descriptionKey: 'backend.nav.settings_description'),
-                new NavItem('backend_configuration_themes', 'backend.nav.themes', 'palette', requiredPrivilege: 'configuration.themes.manage', descriptionKey: 'backend.nav.themes_description'),
+                new NavItem('suite_configuration_settings', 'suite.nav.settings', 'settings', requiredPrivilege: 'configuration.settings.manage', descriptionKey: 'suite.nav.settings_description'),
+                new NavItem('suite_configuration_themes', 'suite.nav.themes', 'palette', requiredPrivilege: 'configuration.themes.manage', descriptionKey: 'suite.nav.themes_description'),
             ], priority: 25),
         ];
     }
@@ -110,7 +110,7 @@ final readonly class ConfigurationModule implements ModuleInterface, ModuleNavVi
      */
     public function getModuleNavView(): ?ModuleNavView
     {
-        if (!$this->configurationContext->isBackendEnabled()) {
+        if (!$this->configurationContext->isSuiteEnabled()) {
             return null;
         }
 
@@ -121,11 +121,11 @@ final readonly class ConfigurationModule implements ModuleInterface, ModuleNavVi
 
             foreach ($this->tabAccess->visibleTabs() as $tab) {
                 $items[] = new NavItem(
-                    route: 'backend_configuration_settings_tab',
-                    labelKey: sprintf('backend.settings.tabs.%s', $tab->id),
+                    route: 'suite_configuration_settings_tab',
+                    labelKey: sprintf('suite.settings.tabs.%s', $tab->id),
                     icon: self::TAB_ICONS[$tab->id] ?? 'sliders-horizontal',
                     requiredPrivilege: 'configuration.settings.manage',
-                    descriptionKey: sprintf('backend.settings.tabs.%s_description', $tab->id),
+                    descriptionKey: sprintf('suite.settings.tabs.%s_description', $tab->id),
                     routeParams: ['tab' => $tab->id],
                     // Eleven entries share one route name, so the route name
                     // cannot be the stable key: hiding one tab from the menu
@@ -136,18 +136,18 @@ final readonly class ConfigurationModule implements ModuleInterface, ModuleNavVi
             }
 
             if ([] !== $items) {
-                $groups[] = new ModuleNavGroup('settings', $items, labelKey: 'backend.nav.settings');
+                $groups[] = new ModuleNavGroup('settings', $items, labelKey: 'suite.nav.settings');
             }
         }
 
         if ($this->configurationContext->isThemesEnabled()) {
             $groups[] = new ModuleNavGroup('appearance', [
                 new NavItem(
-                    'backend_configuration_themes',
-                    'backend.nav.themes',
+                    'suite_configuration_themes',
+                    'suite.nav.themes',
                     'palette',
                     requiredPrivilege: 'configuration.themes.manage',
-                    descriptionKey: 'backend.nav.themes_description',
+                    descriptionKey: 'suite.nav.themes_description',
                 ),
             ]);
         }
@@ -162,7 +162,7 @@ final readonly class ConfigurationModule implements ModuleInterface, ModuleNavVi
     public function getToggles(): array
     {
         return [
-            ModuleParameterEnum::ConfigurationBackend->toToggle(),
+            ModuleParameterEnum::ConfigurationSuite->toToggle(),
             ModuleParameterEnum::ConfigurationSettings->toToggle(),
             ModuleParameterEnum::ConfigurationThemes->toToggle(),
         ];

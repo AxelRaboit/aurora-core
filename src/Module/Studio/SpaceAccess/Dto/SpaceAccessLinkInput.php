@@ -10,8 +10,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 class SpaceAccessLinkInput implements SpaceAccessLinkInputInterface
 {
     public function __construct(
-        #[Assert\NotBlank(message: 'backend.studio.space_access.errors.email_required')]
-        #[Assert\Email(message: 'backend.studio.space_access.errors.email_invalid')]
+        #[Assert\NotBlank(message: 'suite.studio.space_access.errors.email_required')]
+        #[Assert\Email(message: 'suite.studio.space_access.errors.email_invalid')]
         #[Assert\Length(max: 180)]
         public readonly string $recipientEmail = '',
         /**
@@ -22,7 +22,7 @@ class SpaceAccessLinkInput implements SpaceAccessLinkInputInterface
          * espace. Un libellé facultatif aurait laissé le choix entre nommer
          * quelqu'un et exposer son adresse, ce qui n'est pas un choix.
          */
-        #[Assert\NotBlank(message: 'backend.studio.space_access.errors.label_required')]
+        #[Assert\NotBlank(message: 'suite.studio.space_access.errors.label_required')]
         #[Assert\Length(max: 120)]
         public readonly ?string $label = null,
         // A ceiling rather than a free number: past a year nobody is choosing a

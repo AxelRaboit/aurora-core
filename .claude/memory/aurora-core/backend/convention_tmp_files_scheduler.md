@@ -39,13 +39,13 @@ final readonly class MonHandler {
 ## Fichiers générés protégés (PdfForm)
 
 PDFs générés → `var/pdfform/YYYY-MM/REF.pdf` (hors `public/`).
-Servis via `GET /backend/pdfform/documents/{id}/download` (auth requise).
+Servis via `GET /suite/pdfform/documents/{id}/download` (auth requise).
 **Ne pas utiliser MediaManager** pour des fichiers techniques internes → pollution médiathèque.
 
 ## Pourquoi
 
 - Crash PHP avant `unlink()` → orphelins dans `/tmp` → nettoyage horaire automatique
-- Fichiers techniques dans MediaManager → polluent `/backend/media/media` (expérience utilisateur dégradée)
+- Fichiers techniques dans MediaManager → polluent `/suite/media/media` (expérience utilisateur dégradée)
 - Scheduler > cron système : versionné, testable, pas de dépendance infra
 
 ## Références

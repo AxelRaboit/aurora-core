@@ -9,7 +9,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 class DocumentFolderInput implements DocumentFolderInputInterface
 {
     public function __construct(
-        #[Assert\NotBlank(message: 'backend.ged.folders.errors.name_required')]
+        #[Assert\NotBlank(message: 'suite.ged.folders.errors.name_required')]
         #[Assert\Length(max: 150)]
         public readonly string $name = '',
         public readonly ?int $parentId = null,

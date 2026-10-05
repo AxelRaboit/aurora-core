@@ -64,7 +64,7 @@ final class SignatureChallengeTest extends IntegrationTestCase
         $container = static::getContainer();
 
         $admin = $container->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         $this->client->loginUser($admin, 'admin');
 
         $this->entityManager = $container->get(EntityManagerInterface::class);
@@ -263,7 +263,7 @@ final class SignatureChallengeTest extends IntegrationTestCase
         $code = $this->challenges->issue($link)->getPlainCode();
         $contractId = $link->getContract()->getId();
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/contracts/%d/send', $contractId));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/contracts/%d/send', $contractId));
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
         $this->entityManager->clear();
@@ -286,7 +286,7 @@ final class SignatureChallengeTest extends IntegrationTestCase
 
     private function sentLink(): ContractAccessLinkInterface
     {
-        $this->client->jsonRequest('POST', '/backend/studio/contracts/create', [
+        $this->client->jsonRequest('POST', '/suite/studio/contracts/create', [
             'customerId' => $this->customer()->getId(),
             'bodyTemplateId' => $this->publishedTemplate()->getId(),
             'locale' => 'fr',
@@ -297,10 +297,10 @@ final class SignatureChallengeTest extends IntegrationTestCase
         $created = json_decode((string) $this->client->getResponse()->getContent(), true);
         $id = $created['contract']['id'];
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/contracts/%d/freeze', $id));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/contracts/%d/freeze', $id));
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
-        $this->client->jsonRequest('POST', sprintf('/backend/studio/contracts/%d/send', $id));
+        $this->client->jsonRequest('POST', sprintf('/suite/studio/contracts/%d/send', $id));
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
 
         $link = $this->links->findAll()[0];

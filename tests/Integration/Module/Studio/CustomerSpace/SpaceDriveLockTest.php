@@ -57,7 +57,7 @@ final class SpaceDriveLockTest extends IntegrationTestCase
         $container = static::getContainer();
 
         $admin = $container->get(UserRepository::class)
-            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+            ->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->admin = $admin;
         $this->client->loginUser($admin, 'admin');
@@ -377,7 +377,7 @@ final class SpaceDriveLockTest extends IntegrationTestCase
         $user
             ->setEmail($email)
             ->setName('Équipier')
-            ->setType(UserTypeEnum::Backend)
+            ->setType(UserTypeEnum::Suite)
             ->setRoles([UserRoleEnum::User->value])
             ->setPrivileges(['studio.spaces.view', 'studio.spaces.edit'])
             ->setPassword('x');

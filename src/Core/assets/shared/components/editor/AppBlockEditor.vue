@@ -177,71 +177,71 @@ async function renderBlocks(blocks) {
 onMounted(async () => {
     editor = new EditorJS({
         holder: holderEl.value,
-        placeholder: props.placeholder || t("backend.editor.placeholder"),
+        placeholder: props.placeholder || t("suite.editor.placeholder"),
         data: { blocks: toPlainBlocks(props.modelValue) },
         i18n: {
             messages: {
                 ui: {
                     blockTunes: {
                         toggler: {
-                            "Click to tune":   t("backend.editor.ui.block_tunes.toggler.Click to tune"),
-                            "or drag to move": t("backend.editor.ui.block_tunes.toggler.or drag to move"),
+                            "Click to tune":   t("suite.editor.ui.block_tunes.toggler.Click to tune"),
+                            "or drag to move": t("suite.editor.ui.block_tunes.toggler.or drag to move"),
                         },
                     },
                     inlineToolbar: {
                         converter: {
-                            "Convert to": t("backend.editor.ui.inline_toolbar.converter.Convert to"),
+                            "Convert to": t("suite.editor.ui.inline_toolbar.converter.Convert to"),
                         },
                     },
                     toolbar: {
                         toolbox: {
-                            Add: t("backend.editor.ui.toolbar.toolbox.Add"),
+                            Add: t("suite.editor.ui.toolbar.toolbox.Add"),
                         },
                     },
                     popover: {
-                        Filter:           t("backend.editor.ui.popover.Filter"),
-                        "Nothing found":  t("backend.editor.ui.popover.Nothing found"),
-                        "Nothing found. Try searching for something else.": t("backend.editor.ui.popover.nothing_found_extended"),
+                        Filter:           t("suite.editor.ui.popover.Filter"),
+                        "Nothing found":  t("suite.editor.ui.popover.Nothing found"),
+                        "Nothing found. Try searching for something else.": t("suite.editor.ui.popover.nothing_found_extended"),
                     },
                 },
                 toolNames: {
-                    "Text":           t("backend.editor.tool_names.text"),
-                    "Heading":        t("backend.editor.tool_names.heading"),
-                    "List":           t("backend.editor.tool_names.list"),
-                    "Ordered List":   t("backend.editor.tool_names.ordered_list"),
-                    "Unordered List": t("backend.editor.tool_names.unordered_list"),
-                    "Checklist":      t("backend.editor.tool_names.checklist"),
-                    "Quote":          t("backend.editor.tool_names.quote"),
-                    "Code":           t("backend.editor.tool_names.code"),
-                    "Delimiter":      t("backend.editor.tool_names.delimiter"),
-                    "Raw HTML":       t("backend.editor.tool_names.raw"),
-                    "Table":          t("backend.editor.tool_names.table"),
-                    "Image":          t("backend.editor.tool_names.image"),
-                    "Embed":          t("backend.editor.tool_names.embed"),
-                    "Marker":         t("backend.editor.tool_names.marker"),
-                    "InlineCode":     t("backend.editor.tool_names.inline_code"),
-                    "Underline":      t("backend.editor.tool_names.underline"),
-                    "Strikethrough":  t("backend.editor.tool_names.strikethrough"),
-                    "Text Color":     t("backend.editor.tool_names.text_color"),
-                    "Background Color": t("backend.editor.tool_names.text_background"),
-                    "Font Size":      t("backend.editor.tool_names.font_size"),
-                    "Clear formatting": t("backend.editor.tool_names.clear_formatting"),
-                    "Callout":        t("backend.editor.tool_names.callout"),
-                    "Image + Text":   t("backend.editor.tool_names.media_text"),
-                    "Two Columns":    t("backend.editor.tool_names.two_column"),
-                    "Label":          t("backend.editor.tool_names.label"),
-                    "Social networks": t("backend.editor.tool_names.socials"),
+                    "Text":           t("suite.editor.tool_names.text"),
+                    "Heading":        t("suite.editor.tool_names.heading"),
+                    "List":           t("suite.editor.tool_names.list"),
+                    "Ordered List":   t("suite.editor.tool_names.ordered_list"),
+                    "Unordered List": t("suite.editor.tool_names.unordered_list"),
+                    "Checklist":      t("suite.editor.tool_names.checklist"),
+                    "Quote":          t("suite.editor.tool_names.quote"),
+                    "Code":           t("suite.editor.tool_names.code"),
+                    "Delimiter":      t("suite.editor.tool_names.delimiter"),
+                    "Raw HTML":       t("suite.editor.tool_names.raw"),
+                    "Table":          t("suite.editor.tool_names.table"),
+                    "Image":          t("suite.editor.tool_names.image"),
+                    "Embed":          t("suite.editor.tool_names.embed"),
+                    "Marker":         t("suite.editor.tool_names.marker"),
+                    "InlineCode":     t("suite.editor.tool_names.inline_code"),
+                    "Underline":      t("suite.editor.tool_names.underline"),
+                    "Strikethrough":  t("suite.editor.tool_names.strikethrough"),
+                    "Text Color":     t("suite.editor.tool_names.text_color"),
+                    "Background Color": t("suite.editor.tool_names.text_background"),
+                    "Font Size":      t("suite.editor.tool_names.font_size"),
+                    "Clear formatting": t("suite.editor.tool_names.clear_formatting"),
+                    "Callout":        t("suite.editor.tool_names.callout"),
+                    "Image + Text":   t("suite.editor.tool_names.media_text"),
+                    "Two Columns":    t("suite.editor.tool_names.two_column"),
+                    "Label":          t("suite.editor.tool_names.label"),
+                    "Social networks": t("suite.editor.tool_names.socials"),
                 },
                 blockTunes: {
                     delete: {
-                        Delete:           t("backend.editor.block_tunes.delete.Delete"),
-                        "Click to delete": t("backend.editor.block_tunes.delete.Click to delete"),
+                        Delete:           t("suite.editor.block_tunes.delete.Delete"),
+                        "Click to delete": t("suite.editor.block_tunes.delete.Click to delete"),
                     },
                     moveUp: {
-                        "Move up": t("backend.editor.block_tunes.move_up.Move up"),
+                        "Move up": t("suite.editor.block_tunes.move_up.Move up"),
                     },
                     moveDown: {
-                        "Move down": t("backend.editor.block_tunes.move_down.Move down"),
+                        "Move down": t("suite.editor.block_tunes.move_down.Move down"),
                     },
                 },
             },
@@ -296,7 +296,7 @@ onMounted(async () => {
                                 : { success: 0 };
                         },
                     },
-                    captionPlaceholder: t("backend.editor.image.caption_placeholder"),
+                    captionPlaceholder: t("suite.editor.image.caption_placeholder"),
                 },
             },
             embed: {
@@ -318,7 +318,7 @@ onMounted(async () => {
             raw: {
                 class: Raw,
                 config: {
-                    placeholder: t("backend.editor.raw.placeholder"),
+                    placeholder: t("suite.editor.raw.placeholder"),
                 },
             },
             table: {
@@ -332,8 +332,8 @@ onMounted(async () => {
                 class: Quote,
                 inlineToolbar: true,
                 config: {
-                    quotePlaceholder:   t("backend.editor.quote.placeholder"),
-                    captionPlaceholder: t("backend.editor.quote.caption_placeholder"),
+                    quotePlaceholder:   t("suite.editor.quote.placeholder"),
+                    captionPlaceholder: t("suite.editor.quote.caption_placeholder"),
                 },
             },
             delimiter: Delimiter,
@@ -369,16 +369,16 @@ onMounted(async () => {
             callout: {
                 class: CalloutBlock,
                 config: {
-                    titlePlaceholder:   t("backend.editor.callout.title_placeholder"),
-                    messagePlaceholder: t("backend.editor.callout.message_placeholder"),
+                    titlePlaceholder:   t("suite.editor.callout.title_placeholder"),
+                    messagePlaceholder: t("suite.editor.callout.message_placeholder"),
                     types: CALLOUT_TYPES.map(({ value }) => ({
                         value,
-                        label: t(`backend.editor.callout.types.${value}`),
+                        label: t(`suite.editor.callout.types.${value}`),
                     })),
                     iconLabels: Object.fromEntries(
-                        CALLOUT_ICONS.map(({ value }) => [value, t(`backend.editor.callout.icons.${value}`)]),
+                        CALLOUT_ICONS.map(({ value }) => [value, t(`suite.editor.callout.icons.${value}`)]),
                     ),
-                    noIconLabel: t("backend.editor.callout.no_icon"),
+                    noIconLabel: t("suite.editor.callout.no_icon"),
                 },
             },
 
@@ -386,19 +386,19 @@ onMounted(async () => {
             label: {
                 class: LabelBlock,
                 config: {
-                    placeholder: t("backend.editor.label.placeholder"),
-                    tiltLabel:   t("backend.editor.label.tilt"),
-                    toneLabels:  Object.fromEntries(LABEL_TONES.map((tone) => [tone, t(`backend.editor.label.tones.${tone}`)])),
+                    placeholder: t("suite.editor.label.placeholder"),
+                    tiltLabel:   t("suite.editor.label.tilt"),
+                    toneLabels:  Object.fromEntries(LABEL_TONES.map((tone) => [tone, t(`suite.editor.label.tones.${tone}`)])),
                 },
             },
             // Les comptes d'une marque, chacun avec le logo de son réseau.
             socials: {
                 class: SocialsBlock,
                 config: {
-                    handlePlaceholder: t("backend.editor.socials.handle_placeholder"),
-                    urlPlaceholder:    t("backend.editor.socials.url_placeholder"),
-                    addLabel:          t("backend.editor.socials.add"),
-                    removeLabel:       t("backend.editor.socials.remove"),
+                    handlePlaceholder: t("suite.editor.socials.handle_placeholder"),
+                    urlPlaceholder:    t("suite.editor.socials.url_placeholder"),
+                    addLabel:          t("suite.editor.socials.add"),
+                    removeLabel:       t("suite.editor.socials.remove"),
                 },
             },
 
@@ -406,18 +406,18 @@ onMounted(async () => {
             mediaText: {
                 class: MediaTextBlock,
                 config: {
-                    flipLeft:           t("backend.editor.media_text.flip_left"),
-                    flipRight:          t("backend.editor.media_text.flip_right"),
-                    captionPlaceholder: t("backend.editor.media_text.caption_placeholder"),
-                    textPlaceholder:    t("backend.editor.media_text.text_placeholder"),
-                    urlPlaceholder:     t("backend.editor.media_text.url_placeholder"),
-                    changeUrl:          t("backend.editor.media_text.change_url"),
-                    confirm:            t("backend.editor.media_text.confirm"),
-                    browse:             t("backend.editor.media_text.browse"),
+                    flipLeft:           t("suite.editor.media_text.flip_left"),
+                    flipRight:          t("suite.editor.media_text.flip_right"),
+                    captionPlaceholder: t("suite.editor.media_text.caption_placeholder"),
+                    textPlaceholder:    t("suite.editor.media_text.text_placeholder"),
+                    urlPlaceholder:     t("suite.editor.media_text.url_placeholder"),
+                    changeUrl:          t("suite.editor.media_text.change_url"),
+                    confirm:            t("suite.editor.media_text.confirm"),
+                    browse:             t("suite.editor.media_text.browse"),
                     upload:             t("shared.media.upload"),
                     uploading:          t("shared.media.uploading"),
                     uploadFailed:       t("shared.media.upload_failed"),
-                    orLabel:            t("backend.editor.media_text.or"),
+                    orLabel:            t("suite.editor.media_text.or"),
                 },
             },
             twoColumn: { class: TwoColumnBlock },

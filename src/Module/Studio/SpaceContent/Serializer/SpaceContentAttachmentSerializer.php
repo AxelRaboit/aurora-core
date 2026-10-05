@@ -50,7 +50,7 @@ class SpaceContentAttachmentSerializer implements SpaceContentAttachmentSerializ
 
         return $this->shape($attachment) + [
             // Through the space's own route, not GED's. A file uploaded here
-            // is a draft, which GED addresses through `backend_ged_files` and
+            // is a draft, which GED addresses through `suite_ged_files` and
             // gates on `ged.documents.view` - a privilege somebody who manages
             // client spaces need not hold, and without which the board would
             // draw broken images and say nothing. Whatever grants the board

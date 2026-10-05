@@ -19,7 +19,7 @@ use Symfony\Component\Validator\Constraint;
 final class Siret extends Constraint
 {
     public function __construct(
-        public string $message = 'backend.studio.customers.errors.siret_invalid',
+        public string $message = 'suite.studio.customers.errors.siret_invalid',
         mixed $options = null,
         ?array $groups = null,
         mixed $payload = null,

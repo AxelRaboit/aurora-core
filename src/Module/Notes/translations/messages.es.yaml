@@ -1,4 +1,4 @@
-backend:
+suite:
     search:
         sections:
             notes: Notas
@@ -24,9 +24,9 @@ backend:
                     create: 'Crear espacios de notas compartidos'
                     publish: 'Publicar espacios de notas en la web'
     modules:
-        notes_backend: Notas
+        notes_suite: Notas
         notes_markdown: 'Notas Markdown'
-        notes_backend_description: 'Activa la toma de notas en Markdown, con enlaces entre notas y grafo.'
+        notes_suite_description: 'Activa la toma de notas en Markdown, con enlaces entre notas y grafo.'
     nav:
         sections:
             notes: Notas

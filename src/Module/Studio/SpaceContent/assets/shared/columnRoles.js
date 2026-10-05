@@ -8,22 +8,22 @@
 export const COLUMN_ROLES = [
     {
         value: "idea",
-        labelKey: "backend.studio.space_content.column_roles.idea",
+        labelKey: "suite.studio.space_content.column_roles.idea",
     },
     {
         value: "production",
-        labelKey: "backend.studio.space_content.column_roles.production",
+        labelKey: "suite.studio.space_content.column_roles.production",
     },
     {
         value: "review",
-        labelKey: "backend.studio.space_content.column_roles.review",
+        labelKey: "suite.studio.space_content.column_roles.review",
     },
     {
         value: "scheduled",
-        labelKey: "backend.studio.space_content.column_roles.scheduled",
+        labelKey: "suite.studio.space_content.column_roles.scheduled",
     },
     {
         value: "published",
-        labelKey: "backend.studio.space_content.column_roles.published",
+        labelKey: "suite.studio.space_content.column_roles.published",
     },
 ];

@@ -121,7 +121,7 @@ readonly class FormNotificationService
     private function submissionUrl(FormInterface $form): string
     {
         return $this->urlGenerator->generate(
-            'backend_editorial_forms_show',
+            'suite_editorial_forms_show',
             ['id' => $form->getId()],
             UrlGeneratorInterface::ABSOLUTE_URL,
         );

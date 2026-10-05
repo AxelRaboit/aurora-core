@@ -21,7 +21,7 @@ use Aurora\Module\Studio\Deliverable\Entity\DeliverableLink;
 use Aurora\Module\Studio\Deliverable\Enum\DeliverableScopeEnum;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableDocumentUsageProvider;
-use Aurora\Module\Studio\Search\StudioBackendSearchProvider;
+use Aurora\Module\Studio\Search\StudioSuiteSearchProvider;
 use Aurora\Tests\Integration\Concern\ResetsRateLimiters;
 use Aurora\Tests\Integration\IntegrationTestCase;
 use DateTimeImmutable;
@@ -85,7 +85,7 @@ final class DeliverableAuditTest extends IntegrationTestCase
         $this->client->disableReboot();
         $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
 
-        $admin = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $admin = self::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $admin);
         $this->admin = $admin;
         $this->client->loginUser($admin, 'admin');
@@ -116,17 +116,17 @@ final class DeliverableAuditTest extends IntegrationTestCase
     public function testTheLinksOfAStudioDeliverableAreForWhoMayShareIt(): void
     {
         $id = $this->createStudio('Audit partagé', DeliverableScopeEnum::Shared);
-        $this->post(sprintf('/backend/studio/deliverables/%d/links/create', $id), ['label' => 'Pour Jean']);
+        $this->post(sprintf('/suite/studio/deliverables/%d/links/create', $id), ['label' => 'Pour Jean']);
         self::assertResponseIsSuccessful();
 
         $reader = $this->accountWith(['studio.deliverables.view']);
         $this->client->loginUser($reader, 'admin');
-        $this->client->request('GET', sprintf('/backend/studio/deliverables/%d/links', $id));
+        $this->client->request('GET', sprintf('/suite/studio/deliverables/%d/links', $id));
         self::assertResponseStatusCodeSame(403);
 
         $sharer = $this->accountWith(self::TEAM);
         $this->client->loginUser($sharer, 'admin');
-        $this->client->request('GET', sprintf('/backend/studio/deliverables/%d/links', $id));
+        $this->client->request('GET', sprintf('/suite/studio/deliverables/%d/links', $id));
         self::assertResponseIsSuccessful();
         self::assertCount(1, $this->json()['links']);
     }
@@ -186,7 +186,7 @@ final class DeliverableAuditTest extends IntegrationTestCase
     {
         $id = $this->createStudio('Audit', DeliverableScopeEnum::Shared);
 
-        $this->post(sprintf('/backend/studio/deliverables/%d/links/create', $id), $settings);
+        $this->post(sprintf('/suite/studio/deliverables/%d/links/create', $id), $settings);
 
         self::assertResponseStatusCodeSame(422);
         self::assertArrayHasKey($field, $this->json()['errors']);
@@ -197,9 +197,9 @@ final class DeliverableAuditTest extends IntegrationTestCase
     {
         $id = $this->createStudio('Audit', DeliverableScopeEnum::Shared);
 
-        $this->post(sprintf('/backend/studio/deliverables/%d/links/create', $id), []);
+        $this->post(sprintf('/suite/studio/deliverables/%d/links/create', $id), []);
         self::assertResponseIsSuccessful();
-        $this->post(sprintf('/backend/studio/deliverables/%d/links/create', $id), ['expiresInDays' => 30]);
+        $this->post(sprintf('/suite/studio/deliverables/%d/links/create', $id), ['expiresInDays' => 30]);
         self::assertResponseIsSuccessful();
 
         $expiries = array_column($this->json()['links'], 'expiresAt');
@@ -212,9 +212,9 @@ final class DeliverableAuditTest extends IntegrationTestCase
     public function testIssuingAndRevokingALinkAreWrittenToTheAuditLog(): void
     {
         $id = $this->createStudio('Audit tracé', DeliverableScopeEnum::Shared);
-        $this->post(sprintf('/backend/studio/deliverables/%d/links/create', $id), ['label' => 'Pour Léa', 'password' => 'secret phrase']);
+        $this->post(sprintf('/suite/studio/deliverables/%d/links/create', $id), ['label' => 'Pour Léa', 'password' => 'secret phrase']);
         $linkId = $this->json()['links'][0]['id'];
-        $this->post(sprintf('/backend/studio/deliverables/%d/links/%d/revoke', $id, $linkId), []);
+        $this->post(sprintf('/suite/studio/deliverables/%d/links/%d/revoke', $id, $linkId), []);
 
         $actions = $this->auditActions();
         self::assertContains('deliverable.created', $actions);
@@ -234,14 +234,14 @@ final class DeliverableAuditTest extends IntegrationTestCase
     public function testDeletingAndCopyingADeliverableAreWrittenToTheAuditLog(): void
     {
         $id = $this->createStudio('Éphémère', DeliverableScopeEnum::Shared);
-        $this->post(sprintf('/backend/studio/deliverables/%d/duplicate', $id), []);
+        $this->post(sprintf('/suite/studio/deliverables/%d/duplicate', $id), []);
         self::assertResponseIsSuccessful();
-        $this->post(sprintf('/backend/studio/deliverables/%d/delete', $id), []);
+        $this->post(sprintf('/suite/studio/deliverables/%d/delete', $id), []);
         self::assertResponseIsSuccessful();
-        $this->post(sprintf('/backend/studio/deliverables/%d/restore', $id), []);
+        $this->post(sprintf('/suite/studio/deliverables/%d/restore', $id), []);
         self::assertResponseIsSuccessful();
-        $this->post(sprintf('/backend/studio/deliverables/%d/delete', $id), []);
-        $this->post(sprintf('/backend/studio/deliverables/%d/force-delete', $id), []);
+        $this->post(sprintf('/suite/studio/deliverables/%d/delete', $id), []);
+        $this->post(sprintf('/suite/studio/deliverables/%d/force-delete', $id), []);
         self::assertResponseIsSuccessful();
 
         $actions = $this->auditActions();
@@ -257,12 +257,12 @@ final class DeliverableAuditTest extends IntegrationTestCase
         $id = $this->createStudio('Pour l\'équipe', DeliverableScopeEnum::Shared);
 
         foreach ([[], ['scope' => ''], ['scope' => 'prive'], ['scope' => 5]] as $body) {
-            $this->post(sprintf('/backend/studio/deliverables/%d/scope', $id), $body);
+            $this->post(sprintf('/suite/studio/deliverables/%d/scope', $id), $body);
             self::assertResponseStatusCodeSame(422);
             self::assertSame(DeliverableScopeEnum::Shared, $this->find($id)->getScope());
         }
 
-        $this->post(sprintf('/backend/studio/deliverables/%d/scope', $id), ['scope' => 'personal']);
+        $this->post(sprintf('/suite/studio/deliverables/%d/scope', $id), ['scope' => 'personal']);
         self::assertResponseIsSuccessful();
         self::assertSame(DeliverableScopeEnum::Personal, $this->find($id)->getScope());
     }
@@ -280,12 +280,12 @@ final class DeliverableAuditTest extends IntegrationTestCase
             ->setParameter('id', $id)
             ->execute();
 
-        $this->post(sprintf('/backend/studio/deliverables/%d/update', $id), [...$opened, 'title' => 'Mon titre']);
+        $this->post(sprintf('/suite/studio/deliverables/%d/update', $id), [...$opened, 'title' => 'Mon titre']);
         self::assertResponseStatusCodeSame(409);
         self::assertTrue($this->json()['conflict']);
         self::assertSame('Version de la collègue', $this->find($id)->getTitle());
 
-        $this->post(sprintf('/backend/studio/deliverables/%d/update', $id), [...$opened, 'title' => 'Mon titre', 'force' => true]);
+        $this->post(sprintf('/suite/studio/deliverables/%d/update', $id), [...$opened, 'title' => 'Mon titre', 'force' => true]);
         self::assertResponseIsSuccessful();
         self::assertSame('Mon titre', $this->find($id)->getTitle());
     }
@@ -294,12 +294,12 @@ final class DeliverableAuditTest extends IntegrationTestCase
     {
         $id = $this->createStudio('Écrit seul', DeliverableScopeEnum::Shared);
 
-        $this->post(sprintf('/backend/studio/deliverables/%d/update', $id), [...$this->editorPayload($id), 'title' => 'Premier']);
+        $this->post(sprintf('/suite/studio/deliverables/%d/update', $id), [...$this->editorPayload($id), 'title' => 'Premier']);
         self::assertResponseIsSuccessful();
         $afterFirst = $this->json()['deliverable']['updatedAt'];
 
         // The editor sends back the date it was just given, and is not in conflict with itself.
-        $this->post(sprintf('/backend/studio/deliverables/%d/update', $id), [...$this->editorPayload($id), 'title' => 'Second', 'updatedAt' => $afterFirst]);
+        $this->post(sprintf('/suite/studio/deliverables/%d/update', $id), [...$this->editorPayload($id), 'title' => 'Second', 'updatedAt' => $afterFirst]);
         self::assertResponseIsSuccessful();
         self::assertSame('Second', $this->find($id)->getTitle());
     }
@@ -308,7 +308,7 @@ final class DeliverableAuditTest extends IntegrationTestCase
     {
         $id = $this->createStudio('Appel venu d\'ailleurs', DeliverableScopeEnum::Shared);
 
-        $this->post(sprintf('/backend/studio/deliverables/%d/update', $id), [...$this->editorPayload($id), 'title' => 'Sans date']);
+        $this->post(sprintf('/suite/studio/deliverables/%d/update', $id), [...$this->editorPayload($id), 'title' => 'Sans date']);
 
         self::assertResponseIsSuccessful();
     }
@@ -393,7 +393,7 @@ final class DeliverableAuditTest extends IntegrationTestCase
         $space = $this->givenSpace();
         $this->givenSpaceDeliverable($space, 'Espace '.$needle);
 
-        $provider = self::getContainer()->get(StudioBackendSearchProvider::class);
+        $provider = self::getContainer()->get(StudioSuiteSearchProvider::class);
 
         $this->client->loginUser($this->admin, 'admin');
         self::assertEqualsCanonicalizing(
@@ -425,7 +425,7 @@ final class DeliverableAuditTest extends IntegrationTestCase
     public function testTheUnlockLimitCountsFailuresPerLinkAndIgnoresSuccesses(): void
     {
         $id = $this->createStudio('Verrouillé', DeliverableScopeEnum::Shared);
-        $this->post(sprintf('/backend/studio/deliverables/%d/links/create', $id), ['password' => '  phrase secrète  ']);
+        $this->post(sprintf('/suite/studio/deliverables/%d/links/create', $id), ['password' => '  phrase secrète  ']);
         self::assertResponseIsSuccessful();
         $token = $this->tokenOf($this->json()['links'][0]['url']);
 
@@ -447,7 +447,7 @@ final class DeliverableAuditTest extends IntegrationTestCase
         self::assertResponseStatusCodeSame(429);
 
         // Another link, from the same address, is not locked out with it.
-        $this->post(sprintf('/backend/studio/deliverables/%d/links/create', $id), ['password' => self::OTHER_PHRASE]);
+        $this->post(sprintf('/suite/studio/deliverables/%d/links/create', $id), ['password' => self::OTHER_PHRASE]);
         $other = $this->tokenOf($this->json()['links'][0]['url']);
         $this->client->request('POST', sprintf('/deliverables/%s/unlock', $other), ['password' => self::OTHER_PHRASE]);
         self::assertResponseRedirects(sprintf('/deliverables/%s', $other));
@@ -459,7 +459,7 @@ final class DeliverableAuditTest extends IntegrationTestCase
         $payload = $this->editorPayload($id);
 
         foreach ([true, false] as $frame) {
-            $this->post('/backend/studio/deliverables/grid-preview', [
+            $this->post('/suite/studio/deliverables/grid-preview', [
                 'layout' => $payload['gridLayout'],
                 'content' => $payload['gridContent'],
                 'locale' => '../../etc/passwd',
@@ -517,7 +517,7 @@ final class DeliverableAuditTest extends IntegrationTestCase
         $this->entityManager->find(Deliverable::class, $id)->setThumbnail($this->entityManager->find(Document::class, $thumbnail));
         $this->entityManager->flush();
 
-        $this->client->request('GET', sprintf('/backend/studio/deliverables/%d/links', $id));
+        $this->client->request('GET', sprintf('/suite/studio/deliverables/%d/links', $id));
         self::assertResponseIsSuccessful();
 
         $withheld = array_column($this->json()['withheldPictures'], 'id');
@@ -531,7 +531,7 @@ final class DeliverableAuditTest extends IntegrationTestCase
         $id = $this->createStudio('Zone cachée', DeliverableScopeEnum::Shared);
         $this->setLayout($id, [['id' => 'feed', 'type' => 'githubActivity', 'mediaId' => $draft]]);
 
-        $this->client->request('GET', sprintf('/backend/studio/deliverables/%d/links', $id));
+        $this->client->request('GET', sprintf('/suite/studio/deliverables/%d/links', $id));
 
         self::assertSame([], $this->json()['withheldPictures']);
     }
@@ -540,14 +540,14 @@ final class DeliverableAuditTest extends IntegrationTestCase
     public function testBlanksOutsideTheGridCountAsWell(): void
     {
         $id = $this->createStudio('Audit [Client]', DeliverableScopeEnum::Shared);
-        $this->post(sprintf('/backend/studio/deliverables/%d/update', $id), [
+        $this->post(sprintf('/suite/studio/deliverables/%d/update', $id), [
             ...$this->editorPayload($id),
             'summary' => 'Pour [Nom] en [mois]',
             'readingHeader' => ['preparedFor' => '[Client]'],
         ]);
         self::assertResponseIsSuccessful();
 
-        $this->client->request('GET', sprintf('/backend/studio/deliverables/%d/links', $id));
+        $this->client->request('GET', sprintf('/suite/studio/deliverables/%d/links', $id));
 
         self::assertSame(4, $this->json()['placeholders']);
     }
@@ -557,7 +557,7 @@ final class DeliverableAuditTest extends IntegrationTestCase
     {
         $id = $this->createStudio('Avec un fil', DeliverableScopeEnum::Shared);
         $this->setLayout($id, [['id' => 'talk', 'type' => 'comments'], ['id' => 'words', 'type' => 'text']]);
-        $this->post(sprintf('/backend/studio/deliverables/%d/links/create', $id), []);
+        $this->post(sprintf('/suite/studio/deliverables/%d/links/create', $id), []);
         $token = $this->tokenOf($this->json()['links'][0]['url']);
 
         $this->client->request('GET', sprintf('/deliverables/%s', $token));
@@ -585,7 +585,7 @@ final class DeliverableAuditTest extends IntegrationTestCase
 
     private function createStudio(string $title, DeliverableScopeEnum $scope): int
     {
-        $this->post('/backend/studio/deliverables/create', ['title' => $title, 'scope' => $scope->value]);
+        $this->post('/suite/studio/deliverables/create', ['title' => $title, 'scope' => $scope->value]);
         self::assertResponseIsSuccessful();
 
         foreach ($this->json()[$scope->value] as $row) {
@@ -677,7 +677,7 @@ final class DeliverableAuditTest extends IntegrationTestCase
         $user
             ->setEmail('audit-livrables-'.bin2hex(random_bytes(5)).'@aurora.app')
             ->setName('Équipier '.bin2hex(random_bytes(2)))
-            ->setType(UserTypeEnum::Backend)
+            ->setType(UserTypeEnum::Suite)
             ->setRoles([UserRoleEnum::User->value])
             ->setPassword('irrelevant')
             ->setPrivileges($privileges);
@@ -696,7 +696,7 @@ final class DeliverableAuditTest extends IntegrationTestCase
         $this->entityManager->flush();
 
         $this->client->loginUser($this->admin, 'admin');
-        $this->post('/backend/studio/spaces/create', ['name' => 'Espace audit', 'customerId' => $customer->getId(), 'timezone' => 'Europe/Paris']);
+        $this->post('/suite/studio/spaces/create', ['name' => 'Espace audit', 'customerId' => $customer->getId(), 'timezone' => 'Europe/Paris']);
         self::assertResponseIsSuccessful();
 
         $space = $this->entityManager->getRepository(CustomerSpace::class)->find($this->json()['space']['id']);

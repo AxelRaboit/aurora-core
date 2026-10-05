@@ -37,7 +37,7 @@ vers `var/uploads/`.
    délègue à `BinaryFileServer::serve()` ou `servePublic()`. Le
    catch-all `/uploads/{path}` (UploadsServeController) couvre le cas
    public ; les catégories auth-gated (OCR, PDF, notes per-user)
-   définissent leur propre route sous `/backend/<module>/files/...`
+   définissent leur propre route sous `/suite/<module>/files/...`
    qui prend précédence.
 
    **Depuis la 0.9.140, le catch-all n'est plus public par défaut pour
@@ -52,8 +52,8 @@ vers `var/uploads/`.
    `^/(backend|dev)` : sur `/uploads/…` aucune identité backend n'est
    restaurée, donc un guard qui testerait un privilège là refuserait le
    personnel comme les inconnus. Une catégorie qui doit rester lisible
-   par le back-office a donc *besoin* de sa route sous `/backend`
-   (cf. `backend_ged_files`) - ce n'est pas une préférence de style.
+   par le back-office a donc *besoin* de sa route sous `/suite`
+   (cf. `suite_ged_files`) - ce n'est pas une préférence de style.
 4. **URL construction** : injecter `UrlGeneratorInterface` ou un URL
    generator dédié (cf. `DocumentUrlGenerator`, `UserProfilePhotoUrlGenerator`
    comme exemples canoniques côté core). **Jamais** concaténer

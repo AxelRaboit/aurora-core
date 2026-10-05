@@ -31,7 +31,7 @@ readonly class CommentNotificationService
             [
                 'comment' => $comment,
                 'moderationUrl' => $this->urlGenerator->generate(
-                    'backend_editorial_comments',
+                    'suite_editorial_comments',
                     [],
                     UrlGeneratorInterface::ABSOLUTE_URL,
                 ),

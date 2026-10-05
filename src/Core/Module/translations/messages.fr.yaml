@@ -1,4 +1,4 @@
-backend:
+suite:
     permissions:
         intro: Gérez les droits d'accès des utilisateurs par module. Chaque permission peut être accordée individuellement.
         search_placeholder: Filtrer les modules…
@@ -35,10 +35,10 @@ backend:
         project: Projet
         core: Cœur
         general: Général
-        general_backend: Général
-        general_backend_description: Tableau de bord et page d'accueil après connexion.
+        general_suite: Général
+        general_suite_description: Tableau de bord et page d'accueil après connexion.
         platform: Plateforme
-        platform_backend: Plateforme
-        platform_backend_description: Section technique du back-office.
+        platform_suite: Plateforme
+        platform_suite_description: Section technique du back-office.
         configuration: Configuration
         configuration_description: Paramétrage global de l'application et personnalisation visuelle.

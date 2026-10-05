@@ -16,7 +16,7 @@ use function sprintf;
  *
  * *Where do I write?* - `active()`, the disk this installation writes new
  * files to. *Who owns these bytes?* - `forDisk()`, the adapter for a file that
- * was written some time ago, possibly on a different backend. Keeping them
+ * was written some time ago, possibly on a different suite. Keeping them
  * apart is what will later let one document sit on object storage while its
  * neighbour is still on the server's disk, without either of them knowing.
  *

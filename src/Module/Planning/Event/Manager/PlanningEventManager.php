@@ -434,10 +434,10 @@ class PlanningEventManager implements PlanningEventManagerInterface
             $user,
             'planning.invitation',
             $event->getTitle(),
-            $this->translator->trans('backend.plannings.attendees.invited_body', [
+            $this->translator->trans('suite.plannings.attendees.invited_body', [
                 '%calendar%' => $event->getPlanning()->getName(),
             ]),
-            $this->urlGenerator->generate('backend_planning_calendar', [
+            $this->urlGenerator->generate('suite_planning_calendar', [
                 'view' => 'day',
                 'date' => $event->getStartAt()->format('Y-m-d'),
             ]),

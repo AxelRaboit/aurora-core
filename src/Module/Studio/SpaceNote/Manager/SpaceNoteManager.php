@@ -43,7 +43,7 @@ class SpaceNoteManager implements SpaceNoteManagerInterface
         $user = $this->security->getUser();
 
         if (!$user instanceof CoreUserInterface) {
-            throw new FieldException('title', $this->translator->trans('backend.studio.space_notes.errors.needs_account'));
+            throw new FieldException('title', $this->translator->trans('suite.studio.space_notes.errors.needs_account'));
         }
 
         $note = $this->createNote();

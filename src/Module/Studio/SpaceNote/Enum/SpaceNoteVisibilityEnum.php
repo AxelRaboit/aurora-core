@@ -34,8 +34,8 @@ enum SpaceNoteVisibilityEnum: string
     public function getLabelKey(): string
     {
         return match ($this) {
-            self::Shared => 'backend.studio.space_notes.visibilities.shared',
-            self::Personal => 'backend.studio.space_notes.visibilities.personal',
+            self::Shared => 'suite.studio.space_notes.visibilities.shared',
+            self::Personal => 'suite.studio.space_notes.visibilities.personal',
         };
     }
 

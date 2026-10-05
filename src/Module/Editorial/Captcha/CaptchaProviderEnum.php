@@ -55,8 +55,8 @@ enum CaptchaProviderEnum: string
     public function labelKey(): string
     {
         return match ($this) {
-            self::Turnstile => 'backend.parameters.captcha.providers.turnstile',
-            self::Recaptcha => 'backend.parameters.captcha.providers.recaptcha',
+            self::Turnstile => 'suite.parameters.captcha.providers.turnstile',
+            self::Recaptcha => 'suite.parameters.captcha.providers.recaptcha',
         };
     }
 }

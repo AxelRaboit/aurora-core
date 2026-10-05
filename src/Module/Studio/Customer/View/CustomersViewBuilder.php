@@ -49,10 +49,10 @@ final readonly class CustomersViewBuilder
             'customers' => $this->customers(),
             'users' => $this->userOptions(),
             'currencies' => $this->currencyOptions(),
-            'createPath' => $this->urlGenerator->generate('backend_studio_customers_create'),
-            'updatePath' => $this->pathTemplates->generate('backend_studio_customers_update', ['id' => '__id__']),
-            'convertPath' => $this->pathTemplates->generate('backend_studio_customers_convert', ['id' => '__id__']),
-            'deletePath' => $this->pathTemplates->generate('backend_studio_customers_delete', ['id' => '__id__']),
+            'createPath' => $this->urlGenerator->generate('suite_studio_customers_create'),
+            'updatePath' => $this->pathTemplates->generate('suite_studio_customers_update', ['id' => '__id__']),
+            'convertPath' => $this->pathTemplates->generate('suite_studio_customers_convert', ['id' => '__id__']),
+            'deletePath' => $this->pathTemplates->generate('suite_studio_customers_delete', ['id' => '__id__']),
         ];
     }
 
@@ -82,7 +82,7 @@ final readonly class CustomersViewBuilder
                 'spaces' => $spacesByCustomer[(int) $customer->getId()] ?? [],
                 'contracts' => $contractsShown ? [
                     'count' => $contractCounts[(int) $customer->getId()] ?? 0,
-                    'url' => $this->urlGenerator->generate('backend_studio_contracts', ['customer' => $customer->getId()]),
+                    'url' => $this->urlGenerator->generate('suite_studio_contracts', ['customer' => $customer->getId()]),
                 ] : null,
             ],
             $this->customerRepository->findAllOrdered(),

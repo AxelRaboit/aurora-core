@@ -1,4 +1,4 @@
-backend:
+suite:
     audit:
         actions:
             planning:
@@ -29,8 +29,8 @@ backend:
                     delete: Delete events and reminders
     modules:
         planning: Calendar
-        planning_backend: Calendar
-        planning_backend_description: "Enables the calendar in the admin."
+        planning_suite: Calendar
+        planning_suite_description: "Enables the calendar in the admin."
     nav:
         sections:
             planning: Calendar

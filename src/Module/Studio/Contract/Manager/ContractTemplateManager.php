@@ -85,7 +85,7 @@ class ContractTemplateManager implements ContractTemplateManagerInterface
         // built on it pointing at a template of the wrong kind: their drafts
         // could no longer be saved. Refused once any contract uses it.
         if ($input->getKind() !== $template->getKind() && $this->contractRepository->countUsingTemplate($template) > 0) {
-            throw new FieldException('kind', $this->translator->trans('backend.studio.contract_templates.errors.kind_locked'));
+            throw new FieldException('kind', $this->translator->trans('suite.studio.contract_templates.errors.kind_locked'));
         }
 
         $this->applyInput($template, $input);
@@ -130,7 +130,7 @@ class ContractTemplateManager implements ContractTemplateManagerInterface
         // silence. Archiving is the way to retire a template that has served.
         $used = $this->contractRepository->countUsingTemplate($template);
         if ($used > 0) {
-            throw new FieldException('template', $this->translator->trans('backend.studio.contract_templates.errors.used_by_contracts', ['{count}' => (string) $used]));
+            throw new FieldException('template', $this->translator->trans('suite.studio.contract_templates.errors.used_by_contracts', ['{count}' => (string) $used]));
         }
 
         $this->auditLogger->log('studio', 'contract_template.deleted', 'ContractTemplate', $template->getId(), $this->auditPayload($template));
@@ -149,7 +149,7 @@ class ContractTemplateManager implements ContractTemplateManagerInterface
         $existing = $this->versionRepository->findDraftFor($template);
 
         if ($existing instanceof ContractTemplateVersionInterface) {
-            throw new FieldException('draft', $this->translator->trans('backend.studio.contract_templates.errors.draft_already_open', ['{number}' => (string) $existing->getNumber()]));
+            throw new FieldException('draft', $this->translator->trans('suite.studio.contract_templates.errors.draft_already_open', ['{number}' => (string) $existing->getNumber()]));
         }
 
         $source = $template->getLatestPublishedVersion();
@@ -208,7 +208,7 @@ class ContractTemplateManager implements ContractTemplateManagerInterface
         // Spanish version this draft does not contain would print a promise
         // about a document nobody can read.
         if (null !== $governing && !array_key_exists($governing, $incoming)) {
-            throw new FieldException('governingLocale', $this->translator->trans('backend.studio.contract_templates.errors.governing_locale_not_written', ['{locale}' => $governing]));
+            throw new FieldException('governingLocale', $this->translator->trans('suite.studio.contract_templates.errors.governing_locale_not_written', ['{locale}' => $governing]));
         }
 
         $version->setGoverningLocale($governing);
@@ -217,7 +217,7 @@ class ContractTemplateManager implements ContractTemplateManagerInterface
         // longer used to reach the database and come back as a 500.
         foreach ($incoming as $wording) {
             if (mb_strlen($wording['title']) > 250) {
-                throw new FieldException('title', $this->translator->trans('backend.studio.contract_templates.errors.title_too_long'));
+                throw new FieldException('title', $this->translator->trans('suite.studio.contract_templates.errors.title_too_long'));
             }
         }
 
@@ -274,7 +274,7 @@ class ContractTemplateManager implements ContractTemplateManagerInterface
     protected function assertNotArchived(ContractTemplateInterface $template): void
     {
         if ($template->isArchived()) {
-            throw new FieldException('template', $this->translator->trans('backend.studio.contract_templates.errors.archived'));
+            throw new FieldException('template', $this->translator->trans('suite.studio.contract_templates.errors.archived'));
         }
     }
 
@@ -300,7 +300,7 @@ class ContractTemplateManager implements ContractTemplateManagerInterface
             }
 
             if ([] !== $unknown) {
-                throw new FieldException('translations', $this->translator->trans('backend.studio.contract_templates.errors.unknown_tokens', ['{locale}' => mb_strtoupper($locale), '{tokens}' => implode(', ', array_map(static fn (string $token): string => sprintf('{{%s}}', $token), $unknown))]));
+                throw new FieldException('translations', $this->translator->trans('suite.studio.contract_templates.errors.unknown_tokens', ['{locale}' => mb_strtoupper($locale), '{tokens}' => implode(', ', array_map(static fn (string $token): string => sprintf('{{%s}}', $token), $unknown))]));
             }
         }
     }
@@ -312,7 +312,7 @@ class ContractTemplateManager implements ContractTemplateManagerInterface
         $version->assertEditable();
 
         if (0 === $version->getTranslations()->count()) {
-            throw new FieldException('translations', $this->translator->trans('backend.studio.contract_templates.errors.nothing_to_publish'));
+            throw new FieldException('translations', $this->translator->trans('suite.studio.contract_templates.errors.nothing_to_publish'));
         }
 
         // A multilingual version has to say which language prevails, and
@@ -321,7 +321,7 @@ class ContractTemplateManager implements ContractTemplateManagerInterface
         // documents with equal authority and no way to settle a divergence.
         // One language has nothing to arbitrate, so null stays legitimate.
         if ($version->getTranslations()->count() > 1 && null === $version->getGoverningLocale()) {
-            throw new FieldException('governingLocale', $this->translator->trans('backend.studio.contract_templates.errors.governing_locale_required'));
+            throw new FieldException('governingLocale', $this->translator->trans('suite.studio.contract_templates.errors.governing_locale_required'));
         }
 
         $this->assertPrintable($version);

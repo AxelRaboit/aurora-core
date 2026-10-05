@@ -19,7 +19,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
  * Le CSS produit ici est la seule chose qui sépare une couleur choisie dans le
- * backend d'une page publique illisible. Ce qui se vérifie : qu'une surface non
+ * suite d'une page publique illisible. Ce qui se vérifie : qu'une surface non
  * configurée n'émette rien, et qu'une surface configurée emporte avec elle tout
  * son jeu de jetons plutôt que le seul fond.
  */
@@ -312,7 +312,7 @@ final class ThemeContextSurfacesTest extends TestCase
 
     /**
      * The regression this method exists for: a banner preview rendered in
-     * whatever colour the backend's own theme happened to be, not the one the
+     * whatever colour the suite's own theme happened to be, not the one the
      * public page actually shows a title with no colour of its own.
      */
     public function testThePreviewRuleCarriesThePageBackgroundUnderItsOwnSelector(): void

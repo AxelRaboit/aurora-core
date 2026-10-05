@@ -30,19 +30,19 @@ class CustomerInformationInput implements CustomerInformationInputInterface
 {
     /** @param list<CustomerLinkInput> $links */
     public function __construct(
-        #[Assert\NotBlank(message: 'backend.studio.space_information.errors.legal_name_required')]
-        #[Assert\Length(max: 180, maxMessage: 'backend.studio.space_information.errors.legal_name_too_long')]
+        #[Assert\NotBlank(message: 'suite.studio.space_information.errors.legal_name_required')]
+        #[Assert\Length(max: 180, maxMessage: 'suite.studio.space_information.errors.legal_name_too_long')]
         public readonly string $legalName = '',
         #[Siret]
         public readonly ?string $siret = null,
         #[Siren]
         public readonly ?string $siren = null,
-        #[Assert\Length(max: 30, maxMessage: 'backend.studio.space_information.errors.phone_too_long')]
+        #[Assert\Length(max: 30, maxMessage: 'suite.studio.space_information.errors.phone_too_long')]
         public readonly ?string $phone = null,
-        #[Assert\Length(max: 30, maxMessage: 'backend.studio.space_information.errors.phone_too_long')]
+        #[Assert\Length(max: 30, maxMessage: 'suite.studio.space_information.errors.phone_too_long')]
         public readonly ?string $landline = null,
-        #[Assert\Email(message: 'backend.studio.space_information.errors.email_invalid')]
-        #[Assert\Length(max: 180, maxMessage: 'backend.studio.space_information.errors.email_too_long')]
+        #[Assert\Email(message: 'suite.studio.space_information.errors.email_invalid')]
+        #[Assert\Length(max: 180, maxMessage: 'suite.studio.space_information.errors.email_too_long')]
         public readonly ?string $email = null,
         public readonly ?string $postalAddress = null,
         /**
@@ -53,9 +53,9 @@ class CustomerInformationInput implements CustomerInformationInputInterface
          * @var list<CustomerLinkInput>
          */
         #[Assert\Valid]
-        #[Assert\Count(max: 30, maxMessage: 'backend.studio.space_information.errors.links_too_many')]
+        #[Assert\Count(max: 30, maxMessage: 'suite.studio.space_information.errors.links_too_many')]
         public readonly array $links = [],
-        #[Assert\Length(max: 5000, maxMessage: 'backend.studio.space_information.errors.notes_too_long')]
+        #[Assert\Length(max: 5000, maxMessage: 'suite.studio.space_information.errors.notes_too_long')]
         public readonly ?string $notes = null,
     ) {}
 
@@ -81,7 +81,7 @@ class CustomerInformationInput implements CustomerInformationInputInterface
             return;
         }
 
-        $context->buildViolation('backend.studio.space_information.errors.siren_mismatch')
+        $context->buildViolation('suite.studio.space_information.errors.siren_mismatch')
             ->atPath('siren')
             ->addViolation();
     }

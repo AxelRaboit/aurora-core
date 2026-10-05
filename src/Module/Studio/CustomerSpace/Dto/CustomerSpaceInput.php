@@ -12,8 +12,8 @@ class CustomerSpaceInput implements CustomerSpaceInputInterface
 {
     /** @param list<array{userId: int, role: string}> $members */
     public function __construct(
-        #[Assert\NotBlank(message: 'backend.studio.spaces.errors.name_required')]
-        #[Assert\Length(max: 150, maxMessage: 'backend.studio.spaces.errors.name_too_long')]
+        #[Assert\NotBlank(message: 'suite.studio.spaces.errors.name_required')]
+        #[Assert\Length(max: 150, maxMessage: 'suite.studio.spaces.errors.name_too_long')]
         public readonly string $name = '',
         #[Assert\Length(max: 2000)]
         public readonly ?string $description = null,
@@ -31,9 +31,9 @@ class CustomerSpaceInput implements CustomerSpaceInputInterface
          * from the first minute and nothing downstream has to cope with a space
          * that belongs to nobody.
          */
-        #[Assert\Length(max: 180, maxMessage: 'backend.studio.customers.errors.legal_name_too_long')]
+        #[Assert\Length(max: 180, maxMessage: 'suite.studio.customers.errors.legal_name_too_long')]
         public readonly ?string $prospectName = null,
-        #[Assert\Email(message: 'backend.studio.customers.errors.contractual_email_invalid')]
+        #[Assert\Email(message: 'suite.studio.customers.errors.contractual_email_invalid')]
         #[Assert\Length(max: 180)]
         public readonly ?string $prospectEmail = null,
         public readonly CustomerSpaceStatusEnum $status = CustomerSpaceStatusEnum::Active,
@@ -41,7 +41,7 @@ class CustomerSpaceInput implements CustomerSpaceInputInterface
         public readonly ?int $colourSlot = null,
         // A zone the browser did not send falls back on the entity's own
         // default, so this is never empty and never needs a NotBlank.
-        #[Assert\Timezone(message: 'backend.studio.spaces.errors.timezone_invalid')]
+        #[Assert\Timezone(message: 'suite.studio.spaces.errors.timezone_invalid')]
         public readonly string $timezone = 'Europe/Paris',
         public readonly array $members = [],
     ) {}

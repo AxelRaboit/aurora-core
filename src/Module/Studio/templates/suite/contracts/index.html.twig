@@ -1,0 +1,31 @@
+{% extends '@Core/suite/layout.html.twig' %}
+
+{% block title %}{{ 'suite.nav.studio_contracts'|trans }} - {{ parent() }}{% endblock %}
+
+{% block page_header_slot %}
+    {{ include('@Shared/components/page_header.html.twig', {
+        crumbs: [
+            {label: 'suite.nav.sections.studio'|trans},
+            {label: 'suite.nav.studio_contracts'|trans},
+        ],
+    }) }}
+{% endblock %}
+
+{% block body %}
+<div {{ vue_component('studio/suite/contracts/ContractsApp', {
+    contracts: contracts,
+    customers: customers,
+    bodies: bodies,
+    annexes: annexes,
+    locales: locales,
+    currencies: currencies,
+    createPath: createPath,
+    updatePath: updatePath,
+    previewPath: previewPath,
+    duplicatePath: duplicatePath,
+    pdfPath: pdfPath,
+    exportPath: exportPath,
+    showPath: showPath,
+    amendable: amendable,
+}) }} class="flex-1 min-w-0"></div>
+{% endblock %}

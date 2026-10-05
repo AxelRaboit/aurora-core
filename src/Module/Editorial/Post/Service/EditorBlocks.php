@@ -10,7 +10,7 @@ use stdClass;
  * Builds Editor.js blocks in the shape the editor can actually open.
  *
  * Writing block JSON by hand is how content ends up rendering on the public
- * site while the backend shows "The block can not be displayed correctly":
+ * site while the suite shows "The block can not be displayed correctly":
  * the server-side renderer is forgiving - it accepts every shape a tool has
  * ever emitted - and the tool itself is not. A list written as
  * `items: [{content: 'x'}]` is neither the old shape (`items: ['x']`) nor the
@@ -82,7 +82,7 @@ final class EditorBlocks
 
     /**
      * `message`, not `text`: the tool saves `{type, title, message}`, and a
-     * callout written the other way opens blank in the backend.
+     * callout written the other way opens blank in the suite.
      *
      * @return array{type: string, data: array<string, mixed>}
      */

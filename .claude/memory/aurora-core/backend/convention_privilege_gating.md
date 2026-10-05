@@ -15,7 +15,7 @@ Au niveau **classe** pour le minimum requis (souvent `view`), au niveau
 **méthode** pour les actions plus restrictives.
 
 ```php
-#[Route('/backend/planning/plannings', name: 'backend_planning_plannings')]
+#[Route('/suite/planning/plannings', name: 'suite_planning_plannings')]
 #[IsGranted('planning.plannings.view')]                  // ← lecture
 class PlanningsController extends AbstractController
 {
@@ -39,7 +39,7 @@ appeler la route** - bug de sécurité.
 ### Audit serveur
 
 **Gardé par test depuis le 04/10/2026** : `tests/Integration/Security/StaffRoutesCarryAPrivilegeTest`
-échoue si une route `/backend` ou `/workspace` n'a pas de `#[IsGranted]` (classe
+échoue si une route `/suite` ou `/workspace` n'a pas de `#[IsGranted]` (classe
 ou méthode), hors pages de connexion listées. `ModuleTogglesCloseTheirRoutesTest`
 éteint chaque interrupteur de `ModuleParameterEnum` et vérifie qu'une route
 derrière lui ne répond plus ; un interrupteur ajouté sans ligne dans ce test
@@ -52,7 +52,7 @@ grep -rn "#\[Route" src/Core/ src/Module/ --include="*.php" -A2 \
   | grep -v "IsGranted" | grep -B1 "Route" | head -30
 ```
 
-Toute route admin (`/backend/...`) doit être suivie d'un `IsGranted`
+Toute route admin (`/suite/...`) doit être suivie d'un `IsGranted`
 explicite.
 
 ## 1bis. Sidemenu : `requiredPrivilege` sur les `NavItem`
@@ -65,11 +65,11 @@ déclarer `requiredPrivilege: 'x.y.z'`.
 ```php
 // XxxModule::getNavSections()
 new NavItem(
-    'backend_billing_tiers',
-    'backend.nav.tiers',
+    'suite_billing_tiers',
+    'suite.nav.tiers',
     'users',
     requiredPrivilege: 'billing.tiers.view',          // ← obligatoire
-    descriptionKey: 'backend.nav.tiers_description',
+    descriptionKey: 'suite.nav.tiers_description',
 )
 ```
 
@@ -100,7 +100,7 @@ const canManageEvents = computed(() => can("planning.events.manage"));
 <template>
     <!-- Bouton de création - gated -->
     <AppButton v-if="canManagePlannings" variant="primary" v-on:click="openCreate()">
-        {{ t("backend.plannings.new") }}
+        {{ t("suite.plannings.new") }}
     </AppButton>
 
     <!-- Actions ligne - gated -->
@@ -159,7 +159,7 @@ laisser l'utilisateur croire qu'il peut faire l'action.
 
 ```bash
 # Trouver les composants App* qui ne gate aucune action visible
-grep -rL "usePrivileges\|can(" src/Core/assets/backend/ src/Module/*/assets/backend/ \
+grep -rL "usePrivileges\|can(" src/Core/assets/suite/ src/Module/*/assets/suite/ \
   --include="*App.vue"
 ```
 

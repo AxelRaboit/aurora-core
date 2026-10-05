@@ -1,0 +1,165 @@
+import { useI18n } from "vue-i18n";
+import {
+    CloudUpload,
+    Download,
+    Eye,
+    HardDriveDownload,
+    Pencil,
+    QrCode,
+    RotateCcw,
+    Trash2,
+} from "lucide-vue-next";
+
+/**
+ * What one document offers, which depends on whether it has a file at all.
+ *
+ * The library keeps records with no file behind them - a draft waiting for its
+ * upload - and downloading or printing a QR code for one of those would offer
+ * an address that resolves to nothing. Three conditions that were three `v-if`
+ * repeated in two places, since the row is written once for the cards and once
+ * for the table.
+ *
+ * Download carries `href` and stays a link: it is a navigation, and the browser
+ * is what should handle it.
+ *
+ * `viewDoc` and `openQr` are optional because the same list is read from two
+ * places now: the library, where a document is a row you can open, and the
+ * document's own page, where opening it is where you already are. Left out,
+ * their entries simply do not appear.
+ *
+ * Moving a document between storage backends is offered here rather than as a
+ * screen of its own: it is a property of one document, like its folder, and
+ * belongs where the other per-document verbs are. It is absent entirely until
+ * a second backend exists, which keeps the menu honest for the installations
+ * that will never have one.
+ *
+ * A trashed document still opens on its own page, from a link or the trash
+ * screen. There, the only thing that makes sense is to bring it back: its file
+ * is no longer served, so the download would answer 404, and editing or moving
+ * something on its way out is work the purge throws away. `restore` is optional
+ * like the others; the library never lists trashed documents, so it passes none.
+ */
+export function useDocumentRowActions({
+    can,
+    viewDoc = null,
+    openQr = null,
+    openEdit,
+    confirmDelete,
+    relocate = null,
+    relocationAvailable = false,
+    restore = null,
+}) {
+    const { t } = useI18n();
+
+    return function actionsFor(doc) {
+        if (doc.trashed) {
+            if (!restore || !can("ged.documents.delete")) return [];
+
+            return [
+                {
+                    key: "restore",
+                    color: "emerald",
+                    icon: RotateCcw,
+                    title: t("suite.trash.restore"),
+                    description: t(
+                        "suite.ged.documents.row_actions.restore_description",
+                    ),
+                    onSelect: () => restore(doc),
+                },
+            ];
+        }
+
+        const actions = [];
+
+        if (viewDoc) {
+            actions.push({
+                key: "view",
+                color: "sky",
+                icon: Eye,
+                title: t("shared.common.view"),
+                description: t(
+                    "suite.ged.documents.row_actions.view_description",
+                ),
+                onSelect: () => viewDoc(doc),
+            });
+        }
+
+        if (doc.fileUrl) {
+            actions.push({
+                key: "download",
+                color: "default",
+                icon: Download,
+                title: t("shared.common.download"),
+                description: t(
+                    "suite.ged.documents.row_actions.download_description",
+                ),
+                href: doc.fileUrl,
+            });
+
+            if (openQr) {
+                actions.push({
+                    key: "qr",
+                    color: "default",
+                    icon: QrCode,
+                    title: t("shared.common.qr_code"),
+                    description: t(
+                        "suite.ged.documents.row_actions.qr_description",
+                    ),
+                    onSelect: () => openQr(doc),
+                });
+            }
+        }
+
+        if (can("ged.documents.edit")) {
+            actions.push({
+                key: "edit",
+                color: "accent",
+                icon: Pencil,
+                title: t("shared.common.edit"),
+                description: t(
+                    "suite.ged.documents.row_actions.edit_description",
+                ),
+                onSelect: () => openEdit(doc),
+            });
+        }
+
+        // Only when a second backend has actually been configured and reached.
+        // Offering a destination that does not exist is an action that can only
+        // fail, and the reader has no way to know why.
+        if (relocationAvailable && relocate && can("ged.documents.relocate")) {
+            const toRemote = doc.storageDisk !== "r2";
+            const pending = doc.storageTransferState === "pending";
+
+            actions.push({
+                key: "relocate",
+                color: "default",
+                icon: toRemote ? CloudUpload : HardDriveDownload,
+                title: t(
+                    toRemote
+                        ? "suite.ged.documents.row_actions.relocate_to_remote"
+                        : "suite.ged.documents.row_actions.relocate_to_local",
+                ),
+                description: pending
+                    ? t("suite.ged.documents.row_actions.relocate_pending")
+                    : t("suite.ged.documents.row_actions.relocate_description"),
+                disabled: pending,
+                onSelect: () => relocate(doc, toRemote ? "r2" : "local"),
+            });
+        }
+
+        if (can("ged.documents.delete")) {
+            actions.push({
+                key: "delete",
+                color: "rose",
+                icon: Trash2,
+                title: t("shared.common.delete"),
+                description: t(
+                    "suite.ged.documents.row_actions.delete_description",
+                ),
+                onSelect: () => confirmDelete(doc),
+            });
+        }
+
+        return actions;
+    };
+}

@@ -52,8 +52,8 @@ final class UnrenderableBlockException extends RuntimeException
     public function describe(TranslatorInterface $translator, string $locale): string
     {
         return null === $this->blockType
-            ? $translator->trans('backend.studio.contract_templates.errors.malformed_block', ['{number}' => $this->blockNumber, '{locale}' => mb_strtoupper($locale)])
-            : $translator->trans('backend.studio.contract_templates.errors.unrenderable_block', ['{number}' => $this->blockNumber, '{locale}' => mb_strtoupper($locale), '{type}' => $this->blockType]);
+            ? $translator->trans('suite.studio.contract_templates.errors.malformed_block', ['{number}' => $this->blockNumber, '{locale}' => mb_strtoupper($locale)])
+            : $translator->trans('suite.studio.contract_templates.errors.unrenderable_block', ['{number}' => $this->blockNumber, '{locale}' => mb_strtoupper($locale), '{type}' => $this->blockType]);
     }
 
     public static function malformed(int $index): self

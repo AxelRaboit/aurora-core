@@ -116,6 +116,6 @@ enum DeckThemeEnum: string
 
     public function labelKey(): string
     {
-        return 'backend.studio.decks.themes.'.$this->value;
+        return 'suite.studio.decks.themes.'.$this->value;
     }
 }

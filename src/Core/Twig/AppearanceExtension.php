@@ -6,8 +6,8 @@ namespace Aurora\Core\Twig;
 
 use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnum;
 use Aurora\Module\Configuration\Setting\Repository\SettingRepository;
-use Aurora\Module\Configuration\Setting\Service\BackendPalette;
 use Aurora\Module\Configuration\Setting\Service\EmailColors;
+use Aurora\Module\Configuration\Setting\Service\SuitePalette;
 use JsonException;
 use Symfony\Contracts\Service\ResetInterface;
 use Twig\Attribute\AsTwigFunction;
@@ -30,7 +30,7 @@ final class AppearanceExtension implements ResetInterface
     private ?array $cachedColorPickerPresets = null;
 
     /** @var array<string, array{family: string, overrides: array<string, string>}>|null */
-    private ?array $cachedBackendPalette = null;
+    private ?array $cachedSuitePalette = null;
 
     public function __construct(
         private readonly SettingRepository $settingRepository,
@@ -40,7 +40,7 @@ final class AppearanceExtension implements ResetInterface
     public function reset(): void
     {
         $this->cachedColorPickerPresets = null;
-        $this->cachedBackendPalette = null;
+        $this->cachedSuitePalette = null;
     }
 
     /**
@@ -92,10 +92,10 @@ final class AppearanceExtension implements ResetInterface
      * Les gris du back-office et de l'espace client, vide tant qu'ils sont
      * ceux de `theme.css`.
      */
-    #[AsTwigFunction(name: 'app_backend_palette_css')]
-    public function getBackendPaletteCss(): string
+    #[AsTwigFunction(name: 'app_suite_palette_css')]
+    public function getSuitePaletteCss(): string
     {
-        return BackendPalette::css($this->backendPalette());
+        return SuitePalette::css($this->suitePalette());
     }
 
     /**
@@ -104,27 +104,27 @@ final class AppearanceExtension implements ResetInterface
      *
      * @return array<string, mixed>
      */
-    #[AsTwigFunction(name: 'app_backend_palette')]
-    public function getBackendPalette(): array
+    #[AsTwigFunction(name: 'app_suite_palette')]
+    public function getSuitePalette(): array
     {
         return [
-            'value' => $this->backendPalette(),
-            'families' => BackendPalette::FAMILIES,
-            'defaultFamily' => BackendPalette::DEFAULT_FAMILY,
-            'tokens' => array_map(static fn (array $definition): array => ['light' => $definition[1], 'dark' => $definition[2]], BackendPalette::TOKENS),
-            'states' => array_map(static fn (array $definition): array => ['light' => $definition[1], 'dark' => $definition[2]], BackendPalette::STATE_TOKENS),
+            'value' => $this->suitePalette(),
+            'families' => SuitePalette::FAMILIES,
+            'defaultFamily' => SuitePalette::DEFAULT_FAMILY,
+            'tokens' => array_map(static fn (array $definition): array => ['light' => $definition[1], 'dark' => $definition[2]], SuitePalette::TOKENS),
+            'states' => array_map(static fn (array $definition): array => ['light' => $definition[1], 'dark' => $definition[2]], SuitePalette::STATE_TOKENS),
         ];
     }
 
     /**
      * @return array<string, array{family: string, overrides: array<string, string>}>
      */
-    private function backendPalette(): array
+    private function suitePalette(): array
     {
-        return $this->cachedBackendPalette ??= BackendPalette::fromStored(
+        return $this->cachedSuitePalette ??= SuitePalette::fromStored(
             $this->settingRepository->get(
-                ApplicationParameterEnum::BackendPalette->value,
-                ApplicationParameterEnum::BackendPalette->getDefaultValue(),
+                ApplicationParameterEnum::SuitePalette->value,
+                ApplicationParameterEnum::SuitePalette->getDefaultValue(),
             ),
         );
     }

@@ -14,12 +14,12 @@ use Aurora\Module\Configuration\Setting\Enum\ApplicationParameterEnumInterface;
  */
 enum EditorialSettingEnum: string implements ApplicationParameterEnumInterface
 {
-    case PostPrefix = 'backend_editorial_post_prefix';
-    case TaxonomyTermPrefix = 'backend_editorial_taxonomy_term_prefix';
-    case CommentPrefix = 'backend_editorial_comment_prefix';
-    case FormPrefix = 'backend_editorial_form_prefix';
-    case FormFieldPrefix = 'backend_editorial_form_field_prefix';
-    case FormSubmissionPrefix = 'backend_editorial_form_submission_prefix';
+    case PostPrefix = 'suite_editorial_post_prefix';
+    case TaxonomyTermPrefix = 'suite_editorial_taxonomy_term_prefix';
+    case CommentPrefix = 'suite_editorial_comment_prefix';
+    case FormPrefix = 'suite_editorial_form_prefix';
+    case FormFieldPrefix = 'suite_editorial_form_field_prefix';
+    case FormSubmissionPrefix = 'suite_editorial_form_submission_prefix';
 
     public function getKey(): string
     {
@@ -29,24 +29,24 @@ enum EditorialSettingEnum: string implements ApplicationParameterEnumInterface
     public function getLabel(): string
     {
         return match ($this) {
-            self::PostPrefix => 'backend.parameters.editorial_post_prefix.label',
-            self::TaxonomyTermPrefix => 'backend.parameters.editorial_taxonomy_term_prefix.label',
-            self::CommentPrefix => 'backend.parameters.editorial_comment_prefix.label',
-            self::FormPrefix => 'backend.parameters.editorial_form_prefix.label',
-            self::FormFieldPrefix => 'backend.parameters.editorial_form_field_prefix.label',
-            self::FormSubmissionPrefix => 'backend.parameters.editorial_form_submission_prefix.label',
+            self::PostPrefix => 'suite.parameters.editorial_post_prefix.label',
+            self::TaxonomyTermPrefix => 'suite.parameters.editorial_taxonomy_term_prefix.label',
+            self::CommentPrefix => 'suite.parameters.editorial_comment_prefix.label',
+            self::FormPrefix => 'suite.parameters.editorial_form_prefix.label',
+            self::FormFieldPrefix => 'suite.parameters.editorial_form_field_prefix.label',
+            self::FormSubmissionPrefix => 'suite.parameters.editorial_form_submission_prefix.label',
         };
     }
 
     public function getDescription(): string
     {
         return match ($this) {
-            self::PostPrefix => 'backend.parameters.editorial_post_prefix.description',
-            self::TaxonomyTermPrefix => 'backend.parameters.editorial_taxonomy_term_prefix.description',
-            self::CommentPrefix => 'backend.parameters.editorial_comment_prefix.description',
-            self::FormPrefix => 'backend.parameters.editorial_form_prefix.description',
-            self::FormFieldPrefix => 'backend.parameters.editorial_form_field_prefix.description',
-            self::FormSubmissionPrefix => 'backend.parameters.editorial_form_submission_prefix.description',
+            self::PostPrefix => 'suite.parameters.editorial_post_prefix.description',
+            self::TaxonomyTermPrefix => 'suite.parameters.editorial_taxonomy_term_prefix.description',
+            self::CommentPrefix => 'suite.parameters.editorial_comment_prefix.description',
+            self::FormPrefix => 'suite.parameters.editorial_form_prefix.description',
+            self::FormFieldPrefix => 'suite.parameters.editorial_form_field_prefix.description',
+            self::FormSubmissionPrefix => 'suite.parameters.editorial_form_submission_prefix.description',
         };
     }
 

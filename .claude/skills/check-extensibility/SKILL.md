@@ -46,7 +46,7 @@ In `src/<Module>/<Name>/Repository/<Name>Repository.php`:
 
 ### Layer 2 - DTO (only if backend CRUD)
 
-Check whether a CRUD controller exists: `find src -path "*<Name>/Controller/Backend*"`.
+Check whether a CRUD controller exists: `find src -path "*<Name>/Controller/Suite*"`.
 If none, mark layers 2-5 as ⚠️ "n/a - no backend CRUD" and skip.
 
 In `src/<Module>/<Name>/Dto/`:
@@ -110,8 +110,8 @@ In `src/<Module>/<Name>/Serializer/`:
 
 ### Layer 5 - Vue (only if backend CRUD page exists)
 
-In `src/Module/<Module>/assets/backend/<plural>/`
-(or `src/Core/assets/backend/<plural>/` for Core entities):
+In `src/Module/<Module>/assets/suite/<plural>/`
+(or `src/Core/assets/suite/<plural>/` for Core entities):
 
 21. `<Plural>App.vue` exists.
 22. Declares prop `extraFields` (grep for `extraFields`).
@@ -130,7 +130,7 @@ In `src/Module/<Module>/assets/backend/<plural>/`
 
 ### Controller wiring
 
-In `src/<Module>/<Name>/Controller/Backend/`:
+In `src/<Module>/<Name>/Controller/Suite/`:
 
 25. Controller constructor type-hints the **interfaces**, not the concrete
     classes:

@@ -145,7 +145,7 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
             return;
         }
 
-        throw new FieldException('members', $this->translator->trans('backend.studio.spaces.errors.team_lead_only'));
+        throw new FieldException('members', $this->translator->trans('suite.studio.spaces.errors.team_lead_only'));
     }
 
     /**
@@ -262,7 +262,7 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
             $customer = $this->customerRepository->find($customerId);
 
             if (!$customer instanceof CustomerInterface) {
-                throw new FieldException('customerId', $this->translator->trans('backend.studio.spaces.errors.customer_required'));
+                throw new FieldException('customerId', $this->translator->trans('suite.studio.spaces.errors.customer_required'));
             }
 
             return $customer;
@@ -291,7 +291,7 @@ class CustomerSpaceManager implements CustomerSpaceManagerInterface
         $name = $input->getProspectName();
 
         if (null === $name || '' === $name) {
-            throw new FieldException('customerId', $this->translator->trans('backend.studio.spaces.errors.customer_required'));
+            throw new FieldException('customerId', $this->translator->trans('suite.studio.spaces.errors.customer_required'));
         }
 
         return $this->customerManager->create($this->customerInputFactory->fromArray([

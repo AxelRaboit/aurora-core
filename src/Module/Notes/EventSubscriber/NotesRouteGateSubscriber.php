@@ -22,15 +22,15 @@ final readonly class NotesRouteGateSubscriber extends AbstractModuleRouteGateSub
 
     protected function routeNamespaces(): array
     {
-        return ['backend_notes_', 'notes_share', 'notes_public'];
+        return ['suite_notes_', 'notes_share', 'notes_public'];
     }
 
     protected function gates(): array
     {
-        $enabled = $this->notesContext->isBackendEnabled() && $this->notesContext->isMarkdownEnabled();
+        $enabled = $this->notesContext->isSuiteEnabled() && $this->notesContext->isMarkdownEnabled();
 
         return [
-            'backend_notes_' => $enabled,
+            'suite_notes_' => $enabled,
             'notes_share' => $enabled,
             'notes_public' => $enabled,
         ];

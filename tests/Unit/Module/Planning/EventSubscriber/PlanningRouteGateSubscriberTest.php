@@ -22,7 +22,7 @@ final class PlanningRouteGateSubscriberTest extends TestCase
 {
     public function testTheCalendarOffClosesItsScreensAndWhatItPublishes(): void
     {
-        foreach (['backend_planning_calendar', 'backend_planning_events_create', 'planning_feed_show', 'planning_share_show', 'planning_share_events'] as $route) {
+        foreach (['suite_planning_calendar', 'suite_planning_events_create', 'planning_feed_show', 'planning_share_show', 'planning_share_events'] as $route) {
             self::assertTrue($this->blocks($route, enabled: false), sprintf('route %s', $route));
             self::assertFalse($this->blocks($route, enabled: true), sprintf('route %s', $route));
         }
@@ -30,7 +30,7 @@ final class PlanningRouteGateSubscriberTest extends TestCase
 
     public function testRoutesOfAnotherModuleAreNotItsBusiness(): void
     {
-        self::assertFalse($this->blocks('backend_studio_spaces', enabled: false));
+        self::assertFalse($this->blocks('suite_studio_spaces', enabled: false));
     }
 
     private function blocks(string $route, bool $enabled): bool

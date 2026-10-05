@@ -22,7 +22,7 @@ final class DevOverviewShowsTheModulesTest extends IntegrationTestCase
     public function testTheOverviewCarriesTheEnabledModulesAndTheirFigures(): void
     {
         $client = static::createClient();
-        $dev = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'backend']);
+        $dev = static::getContainer()->get(UserRepository::class)->findOneBy(['email' => 'dev@aurora.app', 'type' => 'suite']);
         self::assertInstanceOf(User::class, $dev);
         $client->loginUser($dev, 'admin');
 

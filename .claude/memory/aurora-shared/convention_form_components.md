@@ -103,7 +103,7 @@ L'attribut `required` côté Vue doit être miroir de la contrainte côté DTO :
 
 ## Règle complémentaire - Erreurs : `:error` toujours bindé
 
-Tout champ d'un formulaire qui peut échouer côté serveur doit binder `:error="formErrors.fieldName"` où `formErrors` est un `ref({})` peuplé par la réponse `{ success: false, errors: {…} }` du backend.
+Tout champ d'un formulaire qui peut échouer côté serveur doit binder `:error="formErrors.fieldName"` où `formErrors` est un `ref({})` peuplé par la réponse `{ success: false, errors: {…} }` de la suite.
 
 ```vue
 <AppAmountInput
@@ -124,8 +124,8 @@ Tout `AppInput`, `AppTextarea`, `AppDatePicker`, `AppSearchInput`, `AppAmountInp
 ```vue
 <AppInput
     v-model="form.title"
-    :label="t('backend.events.fields.title')"
-    :placeholder="t('backend.events.fields.titlePlaceholder')"
+    :label="t('suite.events.fields.title')"
+    :placeholder="t('suite.events.fields.titlePlaceholder')"
     required
 />
 ```
