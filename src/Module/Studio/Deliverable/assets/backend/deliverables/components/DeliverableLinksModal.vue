@@ -2,7 +2,7 @@
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { Copy, Link2, Plus, Trash2, X } from "lucide-vue-next";
+import { Copy, EyeOff, Link2, Plus, Trash2, X } from "lucide-vue-next";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
 import { HttpMethod } from "@/shared/utils/http/httpMethod.js";
@@ -155,6 +155,41 @@ async function createLink() {
 /** Une adresse jamais ouverte se supprime ; une adresse ouverte se révoque et garde sa ligne. */
 const isDeletable = (link) => 0 === link.openCount;
 
+/**
+ * Un lien retiré ou expiré qu'on a ouvert garde sa ligne (qui a pu lire), et
+ * n'a plus rien à offrir : il se masque de la liste au lieu de l'encombrer.
+ * Un lien jamais ouvert, lui, se supprime.
+ */
+const isHideable = (link) => !link.hidden && !isLive(link) && !isDeletable(link);
+
+/** Les liens masqués ne se montrent que sur demande. */
+const showHidden = ref(false);
+const hiddenCount = computed(() => links.value.filter((link) => link.hidden).length);
+const shownLinks = computed(() => links.value.filter((link) => showHidden.value || !link.hidden));
+const hidingId = ref(null);
+
+async function hide(link) {
+    if (null !== hidingId.value) return;
+
+    hidingId.value = link.id;
+    try {
+        const data = await request(`${base()}/${link.id}/hide`);
+
+        if (!data?.success) {
+            const reason = firstError(data);
+            toast.error(reason ?? t("backend.studio.deliverables.links.hide_failed"));
+            if (reason) await load();
+
+            return;
+        }
+
+        apply(data);
+        toast.success(t("backend.studio.deliverables.links.hidden_toast"));
+    } finally {
+        hidingId.value = null;
+    }
+}
+
 /** Les textes de la confirmation ouverte : supprimer ou retirer. */
 const removal = computed(() => {
     const scope = "backend.studio.deliverables.links";
@@ -291,11 +326,11 @@ async function copy(link) {
                 />
             </form>
 
-            <p v-if="!loading && !links.length" class="m-0 text-sm text-muted">{{ t("backend.studio.deliverables.links.none") }}</p>
+            <p v-if="!loading && !shownLinks.length" class="m-0 text-sm text-muted">{{ t("backend.studio.deliverables.links.none") }}</p>
 
             <ul v-else class="m-0 flex list-none flex-col gap-2 p-0" role="list">
                 <li
-                    v-for="link in links"
+                    v-for="link in shownLinks"
                     :key="link.id"
                     class="rounded-lg border border-line p-3"
                     :class="isLive(link) ? '' : 'opacity-60'"
@@ -315,6 +350,14 @@ async function copy(link) {
                             >
                                 <Trash2 v-if="isDeletable(link)" class="h-3.5 w-3.5" :stroke-width="2" />
                                 <X v-else class="h-3.5 w-3.5" :stroke-width="2" />
+                            </AppIconButton>
+                            <AppIconButton
+                                v-if="isHideable(link)"
+                                :title="t('backend.studio.deliverables.links.hide')"
+                                :disabled="null !== hidingId"
+                                v-on:click="hide(link)"
+                            >
+                                <EyeOff class="h-3.5 w-3.5" :stroke-width="2" />
                             </AppIconButton>
                         </span>
                     </div>
@@ -343,6 +386,7 @@ async function copy(link) {
                     </p>
 
                     <p class="m-0 mt-1 text-xs text-muted">
+                        <span v-if="link.hidden">{{ t("backend.studio.deliverables.links.hidden") }} · </span>
                         <span v-if="link.revokedAt">{{ t("backend.studio.deliverables.links.revoked") }}</span>
                         <span v-else-if="link.expiresAt">{{ t("backend.studio.deliverables.links.expires_on", { date: formatDateShort(link.expiresAt) }) }}</span>
                         <span v-else>{{ t("backend.studio.deliverables.links.no_expiry") }}</span>
@@ -358,6 +402,17 @@ async function copy(link) {
                     </p>
                 </li>
             </ul>
+
+            <!-- Les liens retirés qu'on a masqués restent à portée : un bouton
+                 pour les revoir, un autre pour les cacher de nouveau. -->
+            <button
+                v-if="hiddenCount > 0"
+                type="button"
+                class="text-xs text-muted underline underline-offset-2 hover:text-primary"
+                v-on:click="showHidden = !showHidden"
+            >
+                {{ showHidden ? t("backend.studio.deliverables.links.hide_hidden") : t("backend.studio.deliverables.links.show_hidden", { count: hiddenCount }) }}
+            </button>
         </div>
     </AppModal>
 </template>

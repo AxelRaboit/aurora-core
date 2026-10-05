@@ -42,4 +42,11 @@ interface DeckShareLinkInterface
     public function getPasswordHash(): ?string;
 
     public function setPasswordHash(?string $passwordHash): static;
+
+    /** Quand l'auteur l'a masqué de sa liste ; nul, il y figure. */
+    public function getHiddenAt(): ?DateTimeImmutable;
+
+    public function hide(DateTimeImmutable $at): static;
+
+    public function isHidden(): bool;
 }

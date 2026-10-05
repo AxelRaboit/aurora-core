@@ -92,6 +92,42 @@ export function useDeckSharing(props) {
 
     const isDeletable = (link) => 0 === link.openCount;
 
+    /**
+     * A retired or expired link that was opened keeps its row (who could read)
+     * and has nothing left to offer: it is hidden from the list rather than left
+     * to clutter it. One nobody opened is deleted instead.
+     */
+    const isHideable = (link) =>
+        !link.hidden && !isLive(link) && !isDeletable(link);
+
+    /** The hidden links show only on request. */
+    const showHidden = ref(false);
+    const hiddenCount = computed(
+        () => links.value.filter((link) => link.hidden).length,
+    );
+    const shownLinks = computed(() =>
+        links.value.filter((link) => showHidden.value || !link.hidden),
+    );
+
+    async function hide(link) {
+        const data = await request(
+            buildPath(props.shareHidePath, { linkId: link.id }),
+        );
+
+        if (!data?.success) {
+            // Still live (retired meanwhile elsewhere, or not yet): the server says so.
+            const key = Object.values(data?.errors ?? {}).find(
+                (value) => "string" === typeof value && "" !== value,
+            );
+            if (key) toast.error(t(key));
+
+            return;
+        }
+
+        apply(data);
+        toast.success(t("backend.studio.decks.share_hidden_toast"));
+    }
+
     async function remove(link) {
         const data = await request(
             buildPath(props.shareDeletePath, { linkId: link.id }),
@@ -145,8 +181,13 @@ export function useDeckSharing(props) {
         createLink,
         revoke,
         remove,
+        hide,
         copy,
         isLive,
         isDeletable,
+        isHideable,
+        showHidden,
+        hiddenCount,
+        shownLinks,
     };
 }

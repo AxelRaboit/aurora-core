@@ -46,6 +46,15 @@ abstract class AbstractDeliverableLink implements DeliverableLinkInterface
     #[ORM\Column(nullable: true)]
     protected ?DateTimeImmutable $revokedAt = null;
 
+    /**
+     * Quand l'auteur a masqué ce lien de sa liste ; nul, il y figure. Un lien
+     * retiré ou expiré encombre la fenêtre sans servir : on le masque au lieu de
+     * le supprimer, parce que sa ligne dit encore qui a pu lire et combien de
+     * fois. Masquer ne rouvre rien : le lien reste retiré.
+     */
+    #[ORM\Column(nullable: true)]
+    protected ?DateTimeImmutable $hiddenAt = null;
+
     #[ORM\Column(nullable: true)]
     protected ?DateTimeImmutable $lastUsedAt = null;
 
@@ -112,6 +121,23 @@ abstract class AbstractDeliverableLink implements DeliverableLinkInterface
         $this->revokedAt ??= $at;
 
         return $this;
+    }
+
+    public function getHiddenAt(): ?DateTimeImmutable
+    {
+        return $this->hiddenAt;
+    }
+
+    public function hide(DateTimeImmutable $at): static
+    {
+        $this->hiddenAt ??= $at;
+
+        return $this;
+    }
+
+    public function isHidden(): bool
+    {
+        return $this->hiddenAt instanceof DateTimeImmutable;
     }
 
     public function getLastUsedAt(): ?DateTimeImmutable

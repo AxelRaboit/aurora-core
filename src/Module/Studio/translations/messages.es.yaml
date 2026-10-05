@@ -90,6 +90,7 @@ backend:
                     issued: "Enlace de lectura de un entregable creado"
                     revoked: "Enlace de lectura de un entregable revocado"
                     deleted: "Enlace de lectura de un entregable eliminado"
+                    hidden: "Enlace de lectura de un entregable oculto"
                 space_access_link:
                     issued: 'Enlace de acceso de cliente creado'
                     revoked: 'Enlace de acceso de cliente revocado'
@@ -865,6 +866,11 @@ backend:
             share_revoked_toast: 'Enlace revocado'
             share_delete: Eliminar este enlace
             share_deleted_toast: Enlace eliminado
+            share_hide: "Ocultar este enlace"
+            share_hidden_toast: "Enlace oculto"
+            share_show_hidden: "Mostrar enlaces ocultos ({count})"
+            share_hide_hidden: "Ocultar los enlaces ocultos"
+            share_hidden: "Oculto"
             share_expires_on: 'Caduca el {date}'
             share_last_used: 'Abierto el {date}'
             share_never_opened: 'Nunca abierto'
@@ -1958,6 +1964,7 @@ backend:
                 expiry_invalid: "Un enlace dura de 1 a 365 días."
                 password_too_long: "Esa contraseña es demasiado larga: 72 bytes como máximo (una letra con tilde cuenta por dos)."
                 link_opened: "Este enlace ya se abrió: se puede revocar, no eliminar. Conserva el registro de quién pudo leer."
+                link_active: "Un enlace aún activo no se puede ocultar: retírelo primero."
         deliverables:
             editor_guide:
                 title: 'Cómo componer un entregable'
@@ -2222,6 +2229,12 @@ backend:
                 delete_confirm: "¿Eliminar este enlace? Nadie lo abrió nunca: desaparece de la lista."
                 delete_failed: "No se pudo eliminar este enlace."
                 deleted_toast: "Enlace eliminado"
+                hide: "Ocultar este enlace"
+                hidden_toast: "Enlace oculto"
+                hide_failed: "No se pudo ocultar el enlace."
+                show_hidden: "Mostrar enlaces ocultos ({count})"
+                hide_hidden: "Ocultar los enlaces ocultos"
+                hidden: "Oculto"
             errors:
                 title_required: "Dé un título al entregable."
                 title_too_long: "El título supera los 255 caracteres."

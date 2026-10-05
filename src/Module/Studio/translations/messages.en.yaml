@@ -90,6 +90,7 @@ backend:
                     issued: "Deliverable reading link created"
                     revoked: "Deliverable reading link revoked"
                     deleted: "Deliverable reading link deleted"
+                    hidden: "Deliverable reading link hidden"
                 space_access_link:
                     issued: Client access link created
                     revoked: Client access link revoked
@@ -865,6 +866,11 @@ backend:
             share_revoked_toast: Link revoked
             share_delete: Delete this link
             share_deleted_toast: Link deleted
+            share_hide: "Hide this link"
+            share_hidden_toast: "Link hidden"
+            share_show_hidden: "Show hidden links ({count})"
+            share_hide_hidden: "Hide the hidden links"
+            share_hidden: "Hidden"
             share_expires_on: 'Expires on {date}'
             share_last_used: 'Opened on {date}'
             share_never_opened: Never opened
@@ -1978,6 +1984,7 @@ backend:
                 expiry_invalid: "A link lasts from 1 to 365 days."
                 password_too_long: "That password is too long: 72 bytes at most (an accented letter counts for two)."
                 link_opened: "This link has already been opened: it can be revoked, not deleted. It keeps the record of who could read."
+                link_active: "A link that is still live cannot be hidden: retire it first."
         deliverables:
             editor_guide:
                 title: "How to put a deliverable together"
@@ -2242,6 +2249,12 @@ backend:
                 delete_confirm: "Delete this link? Nobody ever opened it: it leaves the list."
                 delete_failed: "This link could not be deleted."
                 deleted_toast: "Link deleted"
+                hide: "Hide this link"
+                hidden_toast: "Link hidden"
+                hide_failed: "The link could not be hidden."
+                show_hidden: "Show hidden links ({count})"
+                hide_hidden: "Hide the hidden links"
+                hidden: "Hidden"
             errors:
                 title_required: "Give the deliverable a title."
                 title_too_long: "The title is longer than 255 characters."

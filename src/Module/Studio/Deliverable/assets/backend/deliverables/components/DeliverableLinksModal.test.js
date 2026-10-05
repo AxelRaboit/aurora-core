@@ -356,4 +356,87 @@ describe("DeliverableLinksModal", () => {
         expect(address.textContent).not.toContain("Jamais ouvert");
         wrapper.unmount();
     });
+
+    const retired = (id, label) => ({
+        ...opened(id, label),
+        revokedAt: "2026-10-05T10:00:00+00:00",
+    });
+
+    it("offers to hide a retired link that was opened, and nothing on a live one", async () => {
+        request.mockResolvedValueOnce({
+            success: true,
+            links: [opened(1, "Vivant"), retired(2, "Retiré")],
+        });
+        const wrapper = mountModal();
+        await flushPromises();
+
+        expect(
+            document.body.querySelectorAll(
+                'button[title="backend.studio.deliverables.links.hide"]',
+            ),
+        ).toHaveLength(1);
+        wrapper.unmount();
+    });
+
+    it("hides a retired link, keeps it out of the list and brings it back on request", async () => {
+        request.mockResolvedValueOnce({
+            success: true,
+            links: [retired(1, "Retiré")],
+        });
+        const wrapper = mountModal();
+        await flushPromises();
+
+        request.mockResolvedValueOnce({
+            success: true,
+            links: [{ ...retired(1, "Retiré"), hidden: true }],
+        });
+        titled("backend.studio.deliverables.links.hide").click();
+        await flushPromises();
+
+        expect(request).toHaveBeenLastCalledWith("/a/links/1/hide");
+        expect(toast.success).toHaveBeenCalledWith(
+            "backend.studio.deliverables.links.hidden_toast",
+        );
+        expect(body()).not.toContain("Retiré");
+        expect(body()).toContain("links.show_hidden");
+
+        // The toggle brings it back, tagged as hidden, and a second click puts it away again.
+        const toggle = [...document.body.querySelectorAll("button")].find((b) =>
+            b.textContent.includes("links.show_hidden"),
+        );
+        toggle.click();
+        await flushPromises();
+        expect(body()).toContain("Retiré");
+        expect(body()).toContain("links.hide_hidden");
+        // Already hidden: no second hide button.
+        expect(
+            titled("backend.studio.deliverables.links.hide"),
+        ).toBeUndefined();
+        wrapper.unmount();
+    });
+
+    it("says why a link could not be hidden and reloads", async () => {
+        request.mockResolvedValueOnce({
+            success: true,
+            links: [retired(1, "Retiré")],
+        });
+        const wrapper = mountModal();
+        await flushPromises();
+
+        request.mockResolvedValueOnce({
+            success: false,
+            errors: { link: "backend.studio.sharing.errors.link_active" },
+        });
+        request.mockResolvedValueOnce({
+            success: true,
+            links: [opened(1, "Retiré")],
+        });
+        titled("backend.studio.deliverables.links.hide").click();
+        await flushPromises();
+
+        expect(toast.error).toHaveBeenCalledWith(
+            "backend.studio.sharing.errors.link_active",
+        );
+        wrapper.unmount();
+    });
 });
