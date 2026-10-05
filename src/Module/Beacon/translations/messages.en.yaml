@@ -11,6 +11,7 @@ backend:
         col_status: Status
         col_domain: Domain
         col_host: Host
+        col_ip: IP address
         col_version: Version
         col_signed: Signed
         col_pings: Check-ins
@@ -20,7 +21,10 @@ backend:
         signed_yes: "yes"
         signed_no: "no"
         forget: Forget this instance
-        forget_confirm: Forget this instance? It will reappear if it checks in again.
+        forget_confirm: "Forget the instance {name}?"
+        forget_warning: It will come back if it reports in again.
+        forget_action: Forget
+        forgotten: Instance forgotten.
         allowlist_title: Known domains
         allowlist_hint: "One domain per line. Instances on these domains are yours; others are flagged to investigate."
         allowlist_placeholder: "app.axelraboit.fr"

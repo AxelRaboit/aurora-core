@@ -5,6 +5,19 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [Unreleased]
+
+### Ajouté
+- **L'adresse IP de chaque instance** dans l'écran « Déploiements » : elle était déjà relevée à chaque signalement mais n'apparaissait nulle part. Nouvelle colonne « Adresse IP », sélectionnable d'un clic.
+
+### Modifié
+- **« Oublier une instance » suit le geste maison** : l'action passe derrière « … » en rose, et la confirmation est une fenêtre de l'application avec un bouton rouge, au lieu de la boîte native du navigateur.
+
+### Dans aurora-client
+- Nouvelles clés `backend.beacon.col_ip`, `forget_warning`, `forget_action`, `forgotten` (fr, en, es) ; `forget_confirm` prend désormais `{name}`.
+
+---
+
 ## [1.17.1] - 2026-10-05
 
 ### Corrigé

@@ -2,13 +2,16 @@
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { Radar, Trash2, Save, ShieldCheck } from "lucide-vue-next";
+import { Radar, Trash2, Save, ShieldCheck, X } from "lucide-vue-next";
 import AppButton from "@/shared/components/action/AppButton.vue";
+import AppRowActions from "@/shared/components/action/AppRowActions.vue";
+import AppModal from "@/shared/components/overlay/AppModal.vue";
+import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
+import { useDelete } from "@/shared/composables/form/useDelete.js";
 import { useDateFormat } from "@/shared/composables/format/useDateFormat.js";
-import { buildPath } from "@/shared/utils/http/buildPath.js";
 
 const props = defineProps({
     instances: { type: Array, default: () => [] },
@@ -42,12 +45,30 @@ async function saveDomains() {
     }
 }
 
-async function forget(row) {
-    if (!window.confirm(t("backend.beacon.forget_confirm"))) return;
-    const result = await request(buildPath(props.forgetPath, { id: row.id }), {});
-    if (result?.success) {
-        rows.value = rows.value.filter((item) => item.id !== row.id);
-    }
+const {
+    pendingDelete: pendingForget,
+    loading: forgetting,
+    confirm: confirmForget,
+    submit: forget,
+} = useDelete(
+    props.forgetPath,
+    (id) => {
+        rows.value = rows.value.filter((item) => item.id !== id);
+    },
+    "backend.beacon.forgotten",
+);
+
+/** Ce qu'on peut faire d'une instance, derrière « … » comme sur les autres listes. */
+function rowActions(row) {
+    return [
+        {
+            key: "forget",
+            color: "rose",
+            icon: Trash2,
+            title: t("backend.beacon.forget"),
+            onSelect: () => confirmForget(row),
+        },
+    ];
 }
 </script>
 
@@ -73,6 +94,7 @@ async function forget(row) {
                             <th class="px-3 py-2 text-left font-medium">{{ t("backend.beacon.col_status") }}</th>
                             <th class="px-3 py-2 text-left font-medium">{{ t("backend.beacon.col_domain") }}</th>
                             <th class="px-3 py-2 text-left font-medium">{{ t("backend.beacon.col_host") }}</th>
+                            <th class="px-3 py-2 text-left font-medium">{{ t("backend.beacon.col_ip") }}</th>
                             <th class="px-3 py-2 text-left font-medium">{{ t("backend.beacon.col_version") }}</th>
                             <th class="px-3 py-2 text-left font-medium">{{ t("backend.beacon.col_signed") }}</th>
                             <th class="px-3 py-2 text-right font-medium">{{ t("backend.beacon.col_pings") }}</th>
@@ -89,6 +111,7 @@ async function forget(row) {
                             </td>
                             <td class="px-3 py-2 font-medium">{{ row.domain ?? "-" }}</td>
                             <td class="px-3 py-2 text-secondary">{{ row.hostname ?? "-" }}</td>
+                            <td class="px-3 py-2 font-mono text-xs text-secondary select-all" data-beacon-ip>{{ row.lastIp ?? "-" }}</td>
                             <td class="px-3 py-2 text-secondary">{{ row.appVersion ?? "-" }}</td>
                             <td class="px-3 py-2">
                                 <span v-if="row.signatureValid" class="inline-flex items-center gap-1 text-emerald-400">
@@ -99,15 +122,7 @@ async function forget(row) {
                             <td class="px-3 py-2 text-right tabular-nums text-secondary">{{ row.pingCount }}</td>
                             <td class="px-3 py-2 text-secondary">{{ formatDateTime(row.lastSeenAt) }}</td>
                             <td class="px-3 py-2 text-right">
-                                <AppButton
-                                    variant="ghost"
-                                    size="sm"
-                                    icon-only
-                                    :label="t('backend.beacon.forget')"
-                                    v-on:click="forget(row)"
-                                >
-                                    <Trash2 class="w-3.5 h-3.5" :stroke-width="2" />
-                                </AppButton>
+                                <AppRowActions :actions="rowActions(row)" :label="row.domain ?? row.instanceId" />
                             </td>
                         </tr>
                     </tbody>
@@ -130,5 +145,30 @@ async function forget(row) {
                 </AppButton>
             </div>
         </section>
+        <AppModal
+            :show="!!pendingForget"
+            max-width="sm"
+            :closeable="false"
+            :title="t('backend.beacon.forget')"
+            :icon="Trash2"
+            v-on:close="pendingForget = null"
+        >
+            <p class="text-sm text-primary">
+                {{ t("backend.beacon.forget_confirm", { name: pendingForget?.domain ?? pendingForget?.instanceId ?? "" }) }}
+            </p>
+            <p class="text-sm text-secondary">{{ t("backend.beacon.forget_warning") }}</p>
+            <template #footer>
+                <AppModalFooter>
+                    <AppButton variant="ghost" size="md" v-on:click="pendingForget = null">
+                        <X class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ t("shared.common.cancel") }}
+                    </AppButton>
+                    <AppButton variant="danger" size="md" :loading="forgetting" v-on:click="forget">
+                        <Trash2 class="h-3.5 w-3.5" :stroke-width="2" />
+                        {{ t("backend.beacon.forget_action") }}
+                    </AppButton>
+                </AppModalFooter>
+            </template>
+        </AppModal>
     </div>
 </template>
