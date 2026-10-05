@@ -5,7 +5,7 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
-## [Unreleased]
+## [1.16.0] - 2026-10-05
 
 ### Ajouté
 - **Le lecteur choisit sa vue** : un livrable en présentation se lit aussi en page web, et une page se regarde en présentation, depuis la page même (lien de lecture, espace du client, aperçu de l'auteur). La vue choisie par l'auteur reste celle par défaut. La bascule est dans la barre collée en bas de l'écran, au même endroit dans les deux vues (« Lire en page web » à côté de la pagination, « Voir en présentation » seul en page), et elle garde sa place : les deux vues partagent l'adresse des sections, `#diapo-N`, la diapositive N d'un côté, le début de la section N de l'autre. Pas de bascule quand le document n'a qu'une section, ni dans l'aperçu de l'éditeur, ni sur la version imprimée, qui reste une diapositive par page.
