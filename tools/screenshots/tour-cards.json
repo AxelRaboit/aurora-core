@@ -509,6 +509,22 @@
         "tour-livrables-ambiances": {
             "document": 790,
             "slug": "livrables"
+        },
+        "tour-livrables-liens": {
+            "document": 791,
+            "slug": "livrables"
+        },
+        "tour-livrables-pdf": {
+            "document": 792,
+            "slug": "livrables"
+        },
+        "tour-corbeille-livrables": {
+            "document": 793,
+            "slug": "corbeille"
+        },
+        "tour-corbeille-presentations": {
+            "document": 794,
+            "slug": "corbeille"
         }
     }
 }

@@ -264,6 +264,7 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
         // on an instance that already had contracts, which is every instance
         // where `make demo` had been run once.
         $this->seedDecks($marie);
+        $this->seedTrashedDeck();
         $this->seedSpaces($marie, $jean, $sophie);
         $this->seedApprovals();
 
@@ -1289,6 +1290,24 @@ class StudioDemoFixtures extends Fixture implements DependentFixtureInterface, F
      * the library, so the two slides that carry one pull it by reference from
      * the GED fixtures rather than inventing a file of their own.
      */
+    /**
+     * Une présentation que l'équipe a mise à la corbeille, pour l'onglet des
+     * présentations. À part de `seedDecks()`, qui ne joue qu'une fois sur une
+     * base vide : celle-ci se pose aussi sur une démo déjà chargée, et une seule
+     * fois, retrouvée par son titre.
+     */
+    private function seedTrashedDeck(): void
+    {
+        if (null !== $this->deckRepository->findOneBy(['title' => 'Trame de bilan trimestriel'])) {
+            return;
+        }
+
+        $deck = $this->decks->create('Trame de bilan trimestriel');
+        $deck->setDescription('Remplacée par la trame de point mensuel.');
+        $this->slide($deck, SlideLayoutEnum::Title, ['title' => 'Bilan du trimestre', 'subtitle' => '{client}'], null);
+        $deck->setDeletedAt(new DateTimeImmutable('-5 days'));
+    }
+
     private function seedDecks(CustomerInterface $customer): void
     {
         // Built once, like the contracts above. Nothing here is looked up

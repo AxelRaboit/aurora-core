@@ -20,9 +20,11 @@ use Aurora\Module\Studio\Deliverable\Entity\DeliverableCategoryInterface;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableLink;
 use Aurora\Module\Studio\Deliverable\Enum\DeliverableScopeEnum;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableCategoryRepository;
+use Aurora\Module\Studio\Deliverable\Repository\DeliverableLinkRepository;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableAppearance;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableReadingHeader;
+use DateTimeImmutable;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
@@ -36,10 +38,12 @@ use function is_array;
 use function is_string;
 use function json_decode;
 use function mb_substr;
+use function password_hash;
 use function sprintf;
 use function str_starts_with;
 
 use const JSON_THROW_ON_ERROR;
+use const PASSWORD_DEFAULT;
 
 /**
  * Les livrables de la démo : quatre documents qui montrent ce qu'un livrable
@@ -89,6 +93,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
         private readonly UserRepository $users,
         private readonly DeliverableCategoryRepository $categories,
         private readonly DocumentRepository $documents,
+        private readonly DeliverableLinkRepository $links,
     ) {}
 
     public static function getGroups(): array
@@ -190,7 +195,26 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
         $this->model($manager, 'deliverable-audit-model.json', $author, $audits);
         $this->model($manager, 'deliverable-audit-presentation.json', $author, $audits);
 
+        // Un livrable que l'équipe a mis à la corbeille : de quoi montrer
+        // l'onglet des livrables, et qu'on peut le reprendre.
+        $abandoned = $this->deliverable(
+            $manager,
+            null,
+            'Ancienne trame de proposition',
+            'Remplacée par la proposition type : mise de côté en attendant de savoir si on la garde.',
+            false,
+            $proposalLook,
+            $proposalZones,
+            $proposalContent,
+            $author instanceof CoreUserInterface ? $author : null,
+            DeliverableScopeEnum::Shared,
+            $proposals,
+        );
+        $abandoned?->setDeletedAt(new DateTimeImmutable('-3 days'));
+
         $manager->flush();
+
+        $this->readingLinks($manager);
 
         if ($audit instanceof Deliverable) {
             $link = new DeliverableLink($audit);
@@ -198,6 +222,41 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
             $manager->persist($link);
             $manager->flush();
         }
+    }
+
+    /**
+     * Les trois états d'un lien de lecture, sur le modèle d'audit de l'équipe :
+     * un lien déjà ouvert (qui ne peut plus que se retirer), un lien protégé qui
+     * expire et que personne n'a ouvert, et un lien neuf (qui peut encore se
+     * supprimer). Posés une fois : un rechargement ne les double pas.
+     */
+    private function readingLinks(ObjectManager $manager): void
+    {
+        $model = $this->deliverables->findOneBy(['space' => null, 'title' => 'Modèle d\'audit de présence en ligne']);
+        if (!$model instanceof Deliverable || [] !== $this->links->findForDeliverable($model)) {
+            return;
+        }
+
+        $opened = new DeliverableLink($model);
+        $opened->setLabel('Claire Dupont, le 1er octobre');
+        foreach (['-4 days', '-3 days', '-2 days'] as $when) {
+            $opened->touch(new DateTimeImmutable($when));
+        }
+
+        $locked = new DeliverableLink($model);
+        $locked
+            ->setLabel('Direction de la menuiserie Fabre')
+            ->setExpiresAt(new DateTimeImmutable('+30 days'))
+            ->setPasswordHash(password_hash('verysecure123', PASSWORD_DEFAULT));
+
+        $fresh = new DeliverableLink($model);
+        $fresh->setLabel('Marie, version relue');
+
+        foreach ([$opened, $locked, $fresh] as $link) {
+            $manager->persist($link);
+        }
+
+        $manager->flush();
     }
 
     private function space(string $name): CustomerSpaceInterface

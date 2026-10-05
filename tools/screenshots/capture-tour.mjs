@@ -1152,10 +1152,46 @@ const SHOTS = [
             await page.locator("main").getByRole("link", { name: "Modèle d'audit de présence en ligne" }).first().click();
             await page.waitForLoadState("domcontentloaded");
             await page.waitForTimeout(3_000);
-            // Les onglets de l'éditeur sont des boutons, et « Réglages » est
-            // aussi une entrée du menu latéral : visé dans le contenu.
-            await page.locator("main").getByRole("button", { name: "Réglages", exact: true }).first().click();
+            // Les onglets de l'éditeur ont le rôle `tab` (depuis la 1.13.0, pour
+            // les lecteurs d'écran), et « Réglages » est aussi une entrée du
+            // menu latéral : visé dans le contenu.
+            await page.locator("main").getByRole("tab", { name: "Réglages", exact: true }).first().click();
             await page.waitForTimeout(1_500);
+        },
+    },
+
+    /**
+     * Les liens de lecture d'un livrable (1.13.0) : trois états sur le modèle
+     * d'audit de l'équipe, venus des fixtures. Un lien déjà ouvert, qui ne peut
+     * plus que se retirer ; un lien protégé qui expire ; un lien neuf, que sa
+     * corbeille (l'icône) supprime tant que personne ne l'a ouvert.
+     */
+    {
+        name: "tour-livrables-liens",
+        path: "/backend/studio/deliverables?scope=shared",
+        async prepare(page) {
+            await page.locator("main").getByRole("link", { name: "Modèle d'audit de présence en ligne" }).first().click();
+            await page.waitForLoadState("domcontentloaded");
+            await page.waitForTimeout(3_000);
+            await page.locator("main").getByRole("button", { name: "Actions", exact: true }).first().click();
+            await page.waitForTimeout(500);
+            await page.getByText("Liens de lecture", { exact: true }).first().click();
+            await page.getByRole("dialog").first().waitFor();
+            await page.waitForTimeout(1_500);
+        },
+    },
+    {
+        // Le PDF au lecteur : un réglage de l'apparence, éteint par défaut.
+        name: "tour-livrables-pdf",
+        path: "/backend/studio/deliverables?scope=shared",
+        async prepare(page) {
+            await page.locator("main").getByRole("link", { name: "Modèle d'audit de présence en ligne" }).first().click();
+            await page.waitForLoadState("domcontentloaded");
+            await page.waitForTimeout(3_000);
+            await page.locator("main").getByRole("tab", { name: "Apparence", exact: true }).first().click();
+            await page.waitForTimeout(1_500);
+            await page.locator("main").getByText("Autoriser le PDF au lecteur", { exact: true }).first().evaluate((el) => window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 360, behavior: "instant" }));
+            await page.waitForTimeout(800);
         },
     },
 
@@ -1191,7 +1227,7 @@ const SHOTS = [
         async prepare(page) {
             await page.goto(`${BASE_URL}/backend/studio/deliverables/${await deliverableId(page, AUDIT_MODEL)}`, { waitUntil: "domcontentloaded" });
             await page.waitForTimeout(3_000);
-            await page.locator("main").getByRole("button", { name: "Apparence", exact: true }).first().click();
+            await page.locator("main").getByRole("tab", { name: "Apparence", exact: true }).first().click();
             await page.waitForTimeout(1_500);
             await page.locator("main").getByText("Ambiances", { exact: true }).first().evaluate((el) => window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 120, behavior: "instant" }));
             await page.waitForTimeout(800);
@@ -1569,6 +1605,28 @@ const SHOTS = [
         async prepare(page) {
             await page.locator("main").getByRole("button", { name: "Vider", exact: true }).click();
             await page.waitForTimeout(1_000);
+        },
+    },
+
+    /**
+     * Studio dans la corbeille commune (1.13.0 et 1.14.0) : un livrable et une
+     * présentation mis de côté, avec de quoi les reprendre. Un onglet par type,
+     * comme les publications.
+     */
+    {
+        name: "tour-corbeille-livrables",
+        path: "/backend/trash",
+        async prepare(page) {
+            await page.locator("main").getByRole("button", { name: /Livrables/ }).first().click();
+            await page.waitForTimeout(1_200);
+        },
+    },
+    {
+        name: "tour-corbeille-presentations",
+        path: "/backend/trash",
+        async prepare(page) {
+            await page.locator("main").getByRole("button", { name: /Présentations/ }).first().click();
+            await page.waitForTimeout(1_200);
         },
     },
 
