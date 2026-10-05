@@ -81,7 +81,7 @@ final readonly class SpaceInformationViewBuilder
                     'label' => $deck->getTitle(),
                     'detail' => null,
                     'url' => $this->urlGenerator->generate('backend_studio_deck', ['id' => $deck->getId()]),
-                ], $this->decks->findBy(['customer' => $customer], ['id' => 'DESC']))
+                ], $this->decks->findLiveForCustomer($customer))
                 : null,
             'spaces' => array_values(array_map(fn (CustomerSpaceInterface $other): array => [
                 'label' => $other->getName(),

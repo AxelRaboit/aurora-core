@@ -7,6 +7,7 @@ namespace Aurora\Module\Studio\Deck\Entity;
 use Aurora\Core\Timestampable\TimestampableTrait;
 use Aurora\Module\Studio\Customer\Entity\CustomerInterface;
 use Aurora\Module\Studio\Deck\Enum\DeckThemeEnum;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -99,9 +100,35 @@ abstract class AbstractDeck implements DeckInterface
     #[ORM\OrderBy(['position' => 'ASC'])]
     protected Collection $slides;
 
+    /**
+     * Quand la présentation a été mise à la corbeille ; nul, elle est vivante.
+     * Rien n'est détruit à ce moment : ses slides, ses images et ses liens de
+     * partage restent en base jusqu'à la purge planifiée, et la restauration
+     * remet tout comme c'était.
+     */
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    protected ?DateTimeImmutable $deletedAt = null;
+
     public function __construct()
     {
         $this->slides = new ArrayCollection();
+    }
+
+    public function getDeletedAt(): ?DateTimeImmutable
+    {
+        return $this->deletedAt;
+    }
+
+    public function setDeletedAt(?DateTimeImmutable $deletedAt): static
+    {
+        $this->deletedAt = $deletedAt;
+
+        return $this;
+    }
+
+    public function isTrashed(): bool
+    {
+        return $this->deletedAt instanceof DateTimeImmutable;
     }
 
     public function getTitle(): string

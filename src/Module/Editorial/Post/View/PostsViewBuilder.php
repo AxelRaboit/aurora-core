@@ -167,7 +167,7 @@ final readonly class PostsViewBuilder
     {
         $choices = [];
 
-        foreach ($this->deckRepository->findBy([], ['title' => 'ASC']) as $deck) {
+        foreach ($this->deckRepository->findLiveByTitle() as $deck) {
             $id = $deck->getId();
 
             if (null === $id) {

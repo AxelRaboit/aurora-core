@@ -335,7 +335,10 @@ async function copy(link) {
                         </AppButton>
                     </div>
 
-                    <p class="m-0 mt-1 truncate font-mono text-xs text-muted">
+                    <!-- `select-all` : un clic ou un triple clic prend l'adresse entière, et elle seule.
+                         Sans cela, la sélection d'une ligne emportait aussi la ligne du dessous
+                         (« Sans expiration · Jamais ouvert »), et l'adresse collée donnait un 404. -->
+                    <p class="m-0 mt-1 select-all truncate font-mono text-xs text-muted">
                         {{ copiedId === link.id ? t("backend.studio.deliverables.links.copied") : link.url }}
                     </p>
 

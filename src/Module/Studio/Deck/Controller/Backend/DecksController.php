@@ -89,7 +89,7 @@ class DecksController extends AbstractController
         // empty deck rather than failing - the picker is fed from the list, so
         // the only way to send an unknown one is a model deleted between the
         // page load and the save, and refusing then would lose the title.
-        $template = null === $input->fromTemplateId ? null : $this->deckRepository->find($input->fromTemplateId);
+        $template = null === $input->fromTemplateId ? null : $this->deckRepository->findLive($input->fromTemplateId);
 
         if ($template instanceof DeckInterface) {
             $this->deckDuplicator->copyInto($deck, $template);
@@ -160,10 +160,58 @@ class DecksController extends AbstractController
     #[IsGranted('studio.decks.delete')]
     public function delete(Deck $deck): JsonResponse
     {
-        $this->entityManager->remove($deck);
-        $this->entityManager->flush();
+        // To the trash, not destroyed: it can be taken back, and only the
+        // trash's own button or the nightly purge destroys it for good.
+        $this->deckManager->trash($deck);
 
         return $this->jsonSuccess();
+    }
+
+    /**
+     * Take a deck back from the trash. The same right as putting it there: a
+     * person who may delete may undo it. A deck that is not in the trash
+     * answers like an unknown id.
+     */
+    #[Route('/{id}/restore', name: '_restore', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.decks.delete')]
+    public function restore(int $id): JsonResponse
+    {
+        $deck = $this->deckRepository->findTrashed($id);
+        if (!$deck instanceof DeckInterface) {
+            return $this->jsonNotFound();
+        }
+
+        $this->deckManager->restore($deck);
+
+        return $this->jsonSuccess();
+    }
+
+    /** Destroy a trashed deck for good, with its slides and its share links. */
+    #[Route('/{id}/force-delete', name: '_force_delete', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.decks.delete')]
+    public function forceDelete(int $id): JsonResponse
+    {
+        $deck = $this->deckRepository->findTrashed($id);
+        if (!$deck instanceof DeckInterface) {
+            return $this->jsonNotFound();
+        }
+
+        $this->deckManager->forceDelete($deck);
+
+        return $this->jsonSuccess();
+    }
+
+    #[Route('/empty-trash', name: '_empty_trash', methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.decks.delete')]
+    public function emptyTrash(): JsonResponse
+    {
+        $deleted = 0;
+        foreach ($this->deckRepository->findAllTrashed() as $deck) {
+            $this->deckManager->forceDelete($deck);
+            ++$deleted;
+        }
+
+        return $this->jsonSuccess(['deleted' => $deleted]);
     }
 
     /**

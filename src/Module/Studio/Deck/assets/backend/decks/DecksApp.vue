@@ -139,7 +139,7 @@ function actionsFor(deck) {
             key: "delete",
             color: "rose",
             icon: Trash2,
-            title: t("shared.common.delete"),
+            title: t("backend.studio.decks.trash_action"),
             description: t("backend.studio.decks.delete_hint"),
             onSelect: () => confirmDelete(deck),
         });
@@ -533,7 +533,7 @@ const deckUrl = (deck) => buildPath(props.showPath, { id: deck.id });
             :show="!!pendingDelete"
             max-width="sm"
             :closeable="false"
-            :title="t('shared.common.delete')"
+            :title="t('backend.studio.decks.trash_action')"
             :icon="Trash2"
             v-on:close="pendingDelete = null"
         >
@@ -548,7 +548,7 @@ const deckUrl = (deck) => buildPath(props.showPath, { id: deck.id });
                     </AppButton>
                     <AppButton variant="danger" size="md" :loading="deleteLoading" v-on:click="doDelete">
                         <Trash2 class="h-3.5 w-3.5" :stroke-width="2" />
-                        {{ t("shared.common.delete") }}
+                        {{ t("backend.studio.decks.trash_action") }}
                     </AppButton>
                 </AppModalFooter>
             </template>

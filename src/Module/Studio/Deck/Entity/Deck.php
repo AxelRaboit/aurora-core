@@ -9,6 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: DeckRepository::class)]
 #[ORM\Table(name: 'core_decks')]
+#[ORM\Index(name: 'idx_deck_deleted_at', columns: ['deleted_at'])]
 class Deck extends AbstractDeck
 {
     #[ORM\Id]

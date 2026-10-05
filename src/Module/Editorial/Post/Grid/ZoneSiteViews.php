@@ -183,7 +183,7 @@ final readonly class ZoneSiteViews
             return null;
         }
 
-        $deck = $this->deckRepository->find($deckId);
+        $deck = $this->deckRepository->findLive($deckId);
 
         if (!$deck instanceof DeckInterface) {
             return null;
