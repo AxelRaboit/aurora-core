@@ -1980,6 +1980,8 @@ frontend:
         previous: "Previous slide"
         next: "Next slide"
         fullscreen: "Full screen"
+        view_page: "Read as a web page"
+        view_slides: "View as a presentation"
     reading:
         download_pdf: "Download as PDF"
         prepared_for: 'Prepared for %name%'

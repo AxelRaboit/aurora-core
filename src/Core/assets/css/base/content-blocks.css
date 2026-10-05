@@ -621,6 +621,8 @@ pre .hljs-attribute {
     background: transparent;
     color: var(--th-primary, inherit);
     cursor: pointer;
+    /* Une ancre aussi (« Lire en page web ») : sans soulignement, comme les boutons. */
+    text-decoration: none;
 }
 .aurora-slides__button:hover { background: var(--th-surface-2, rgb(243 244 246)); }
 .aurora-slides__button:disabled { opacity: 0.35; cursor: default; }

@@ -58,13 +58,17 @@ final class PublicSpaceDeliverableController extends AbstractController
         $request->setLocale($deliverable->getLocale());
 
         // Lire un livrable, c'est lire l'espace : le lien note son ouverture,
-        // comme la page de l'espace le fait.
-        $this->links->markOpened($link);
+        // comme la page de l'espace le fait. Changer de vue ne la compte pas.
+        $view = DeliverablePageRenderer::requestedView($request->query->all()['view'] ?? null);
+        if (null === $view) {
+            $this->links->markOpened($link);
+        }
 
         return $this->privately($this->renderer->renderForReader(
             $deliverable,
             $request->query->getBoolean('print'),
             $this->generateUrl('public_space_show', ['selector' => $selector, 'token' => $token]),
+            $view,
         ));
     }
 }
