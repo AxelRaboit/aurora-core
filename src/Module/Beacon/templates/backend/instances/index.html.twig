@@ -15,7 +15,7 @@
 <div {{ vue_component('beacon/backend/instances/InstancesApp', {
     instances: instances,
     knownDomains: knownDomains,
-    saveKnownDomainsPath: path('dev_beacon_known_domains'),
-    forgetPath: path_template('dev_beacon_forget', {id: '__id__'}),
+    saveKnownDomainsPath: path('beacon_known_domains'),
+    forgetPath: path_template('beacon_forget', {id: '__id__'}),
 }) }} class="flex-1 min-w-0"></div>
 {% endblock %}

@@ -39,13 +39,13 @@ final class InstancesController extends AbstractController
         private readonly SettingRepository $settings,
     ) {}
 
-    #[Route('', name: 'dev_beacon', methods: ['GET'])]
+    #[Route('', name: 'beacon_instances', methods: ['GET'])]
     public function index(): Response
     {
         return $this->render('@Beacon/backend/instances/index.html.twig', $this->viewBuilder->indexView());
     }
 
-    #[Route('/known-domains', name: 'dev_beacon_known_domains', methods: ['POST'])]
+    #[Route('/known-domains', name: 'beacon_known_domains', methods: ['POST'])]
     public function saveKnownDomains(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
@@ -73,7 +73,7 @@ final class InstancesController extends AbstractController
         return $this->json(['success' => true, 'domains' => $domains]);
     }
 
-    #[Route('/{id}/forget', name: 'dev_beacon_forget', methods: ['POST'])]
+    #[Route('/{id}/forget', name: 'beacon_forget', methods: ['POST'])]
     public function forget(int $id): JsonResponse
     {
         $instance = $this->instances->find($id);
