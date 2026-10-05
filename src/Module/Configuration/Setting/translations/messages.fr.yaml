@@ -23,8 +23,8 @@ suite:
             step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
         system_guide:
             title: "Qui peut entrer, et quand"
-            step_1: "Le mode maintenance ferme le site public à tous ses visiteurs, alors que le back-office et sa page de connexion restent ouverts."
-            step_2: "Les inscriptions admin ouvrent un formulaire de création de compte pour le back-office, à refermer une fois le premier compte créé."
+            step_1: "Le mode maintenance ferme le site public à tous ses visiteurs, alors que la suite et sa page de connexion restent ouverts."
+            step_2: "Les inscriptions admin ouvrent un formulaire de création de compte pour la suite, à refermer une fois le premier compte créé."
             step_3: "Les demandes d'accès laissent quelqu'un demander un compte, que vous approuvez ensuite depuis l'espace développeur."
             step_4: "Couper la connexion frontend retire du site public la connexion, l'inscription et la page de compte, et rend les inscriptions frontend sans effet."
             step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
@@ -37,7 +37,7 @@ suite:
             step_5: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
         branding_guide:
             title: "Le logo et l'icône du site"
-            step_1: "Le logo s'affiche dans le menu latéral du back-office et sur les pages de connexion, et sert d'image de partage quand aucune autre n'est définie."
+            step_1: "Le logo s'affiche dans le menu latéral de la suite et sur les pages de connexion, et sert d'image de partage quand aucune autre n'est définie."
             step_2: "Sans favicon choisi, l'onglet du navigateur affiche l'initiale du nom du site sur la couleur principale du thème."
             step_3: "Une image prise dans la médiathèque doit être au statut « Publié » pour s'afficher aux visiteurs."
             step_4: "Sur téléphone, le nom du site peut être masqué à côté du logo de la barre du haut, pour ne garder que le logo."
@@ -47,7 +47,7 @@ suite:
             step_1: "La langue par défaut sert de repli au site public, et aux e-mails quand l'onglet Emails suit cette langue."
             step_2: "Le mode mono-langue n'affiche et n'enregistre plus que la langue par défaut, et redirige vers elle les adresses des autres langues."
             step_3: "Le désactiver plus tard rend leur place aux contenus saisis dans les autres langues, restés en base."
-            step_4: "La langue du back-office ne se règle pas ici : chacun la choisit dans son profil."
+            step_4: "La langue de la suite ne se règle pas ici : chacun la choisit dans son profil."
             step_5: "Le fuseau horaire donne l'heure du site : 9 h dans une publication programmée veut dire 9 h ici, et les emails et PDF datent à cette heure, dans le style de dates choisi."
             step_6: "Rien n'est enregistré avant le bouton Enregistrer, en bas de l'onglet."
         reading_guide:
@@ -234,7 +234,7 @@ suite:
                 invalid_hex: 'Code hexadécimal invalide. Format attendu : #rrggbb.'
             palette:
                 title: "Gris du clair et du sombre"
-                help: "Les fonds, traits, textes et couleurs d'état du back-office et de l'espace client, pour chaque mode. Le site public garde son thème."
+                help: "Les fonds, traits, textes et couleurs d'état de la suite et de l'espace client, pour chaque mode. Le site public garde son thème."
                 family: "Famille de gris"
                 modes:
                     light: "Mode clair"
@@ -387,7 +387,7 @@ suite:
             description: "L'heure du site : celle d'une publication programmée, des dates dans les emails et les PDF, des envois du matin (relances, retards de relecture), et le fuseau proposé pour un nouveau calendrier ou un nouvel espace. Les dates déjà enregistrées ne bougent pas."
         date_format:
             label: Style des dates
-            description: "Comment s'écrivent les dates des emails, des PDF et des pages de contrat, dans la langue de chacun. Le back-office garde ses formats compacts."
+            description: "Comment s'écrivent les dates des emails, des PDF et des pages de contrat, dans la langue de chacun. La suite garde ses formats compacts."
         comments_enabled:
             label: Commentaires activés
             description: 'Si activé, les visiteurs peuvent laisser des commentaires sur les articles du site public.'
@@ -434,8 +434,8 @@ suite:
             label: Favicon
             description: ID du média utilisé comme favicon
         suite_bar_site_name_on_phone:
-            label: "Nom du site dans la barre du back-office sur téléphone"
-            description: "Affiche le nom du site à côté du logo dans la barre du haut du back-office, sous 640 px de large. Désactivé, seul le logo reste ; le nom est toujours lu par les lecteurs d'écran. Pour le site public, le réglage équivalent est dans le thème."
+            label: "Nom du site dans la barre de la suite sur téléphone"
+            description: "Affiche le nom du site à côté du logo dans la barre du haut de la suite, sous 640 px de large. Désactivé, seul le logo reste ; le nom est toujours lu par les lecteurs d'écran. Pour le site public, le réglage équivalent est dans le thème."
         seo_title_template:
             label: Template de titre SEO
             description: 'Template pour le titre des pages. Utilisez {title} et {siteName}. Ex. : {title} · {siteName}'

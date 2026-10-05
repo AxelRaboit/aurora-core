@@ -2676,7 +2676,7 @@ studio:
             hash: 'Huella del documento'
             observed: 'Firmado el {at}, desde {ip}'
             code_verified: 'Código de confirmación verificado el {at}, enviado a {email}'
-            authenticated: 'Firmado desde una cuenta autenticada del back-office'
+            authenticated: 'Firmado desde una cuenta autenticada dla suite'
             notice: 'Esta huella identifica el texto firmado. Cualquier modificación del documento produciría una huella diferente.'
     email:
         space_review:
@@ -2696,7 +2696,7 @@ studio:
             observed: 'Rechazo registrado el {at}, desde la dirección IP {ip}.'
             reason: 'Motivo indicado:'
             no_reason: 'No se ha indicado ningún motivo.'
-            action: 'Puede volver a enviar el contrato desde el back-office: un nuevo envío borra este rechazo y crea una nueva dirección.'
+            action: 'Puede volver a enviar el contrato desde la suite: un nuevo envío borra este rechazo y crea una nueva dirección.'
         contract_reminder:
             subject: 'Recordatorio: el contrato {reference} espera su firma'
             body: 'El contrato {reference} le fue enviado y aún no está firmado.'
@@ -2716,7 +2716,7 @@ studio:
             declared: 'Declarado: firmado en {place}, el {date}'
             observed: 'Observado: {at}, desde {ip}'
             hash: 'Huella del documento firmado: {hash}'
-            action: 'Contrafírmelo desde el back-office para concluirlo.'
+            action: 'Contrafírmelo desde la suite para concluirlo.'
         concluded:
             subject: 'Contrato {reference} concluido'
             body: 'El contrato {reference} está firmado por ambas partes.'

@@ -94,7 +94,7 @@ suite:
             show_guide:
                 title: "What you can do here"
                 step_1: "The actions button at the top lets you download the file, edit the document or send it to the trash."
-                step_2: "Only a document with the “Published” status is served to the site's visitors; a draft or an archive stays in the back office."
+                step_2: "Only a document with the “Published” status is served to the site's visitors; a draft or an archive stays in the suite."
                 step_3: "On an image, “Crop” saves a new version of the file, regenerates its sizes and keeps the previous one in the history."
                 step_4: "If the document has variants, its family appears at the bottom with where each one is used, and a click opens a variant's page."
             guide:

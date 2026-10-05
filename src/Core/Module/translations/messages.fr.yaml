@@ -39,6 +39,6 @@ suite:
         general_suite_description: Tableau de bord et page d'accueil après connexion.
         platform: Plateforme
         platform_suite: Plateforme
-        platform_suite_description: Section technique du back-office.
+        platform_suite_description: Section technique de la suite.
         configuration: Configuration
         configuration_description: Paramétrage global de l'application et personnalisation visuelle.

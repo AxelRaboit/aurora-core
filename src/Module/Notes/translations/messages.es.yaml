@@ -65,7 +65,7 @@ notes:
         guide:
             title: "Cómo se organizan las notas"
             step_1: "Cada nota pertenece a un espacio: el suyo, siempre privado, o un espacio compartido."
-            step_2: "Un espacio compartido se abre solo a usted, a algunas personas o a todo el back-office, cada una con lectura, escritura o gestión."
+            step_2: "Un espacio compartido se abre solo a usted, a algunas personas o a toda la suite, cada una con lectura, escritura o gestión."
             step_3: "Enlace las notas con [[Título]]: el grafo muestra esos enlaces entre todas las notas que puede leer."
             step_4: "Las etiquetas filtran la biblioteca, y «Gestionar etiquetas» las renombra o fusiona en todas sus notas."
             step_5: "Una nota también se comparte con un enlace de solo lectura; ni siquiera un administrador lee sus notas privadas."
@@ -151,7 +151,7 @@ notes:
             settings: 'Ajustes del espacio'
             members: 'Miembros'
             members_hint: 'Solo entran las personas que añades, cada una con su rol.'
-            members_hint_backoffice: 'Todo el back-office entra con el rol por defecto; añadir a alguien puede darle más.'
+            members_hint_backoffice: 'Toda la suite entra con el rol por defecto; añadir a alguien puede darle más.'
             no_members: 'Todavía no hay nadie.'
             pick_person: 'Elegir una persona'
             add_member: 'Añadir'
@@ -170,7 +170,7 @@ notes:
                 label: 'Quién entra'
                 private: 'Solo yo'
                 members: 'Algunas personas'
-                backoffice: 'Todo el back-office'
+                backoffice: 'Toda la suite'
                 private_hint: 'Nadie más lo ve.'
                 members_hint: 'Solo las personas que añades.'
                 backoffice_hint: 'Cualquiera que use las notas.'

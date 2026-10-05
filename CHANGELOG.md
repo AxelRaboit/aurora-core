@@ -16,6 +16,8 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
   - **classes et services** : `BackendPalette`, `*BackendSearchProvider`, `isBackendEnabled()`, le tag `aurora.backend_search_provider`, etc. prennent `Suite` ;
   - **réglages et type d'utilisateur** : `backend_*`, `modules_*_backend` et le type `backend` deviennent `suite_*`, `modules_*_suite` et `suite`.
 
+  Dans les textes affichés, « back-office » devient aussi « la suite » (fr, en, es).
+
   Le mot garde son autre sens là où il en a un : le moteur de stockage (« storage backend »), `make test-backend` (les tests PHP) et la CI.
 - **Les anciennes adresses continuent de marcher** : toute requête vers `/backend/...` est redirigée en 308 vers la même page sous `/suite/...`, paramètres compris, méthode et corps conservés. Les invitations, liens de mot de passe et favoris déjà envoyés arrivent donc au bon endroit.
 

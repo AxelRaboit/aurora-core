@@ -979,7 +979,7 @@ suite:
             zone_document_label: Intitulé du lien
             zone_document_label_placeholder: "Notre plaquette 2026"
             terms_taxonomy: Taxonomie
-            terms_taxonomy_hint: "Tous ses termes sont affichés, dans l'ordre du back-office, chacun vers sa page. Un terme ajouté plus tard apparaît tout seul."
+            terms_taxonomy_hint: "Tous ses termes sont affichés, dans l'ordre de la suite, chacun vers sa page. Un terme ajouté plus tard apparaît tout seul."
             terms_taxonomy_none: "Choisir une taxonomie…"
             terms_caption: Titre au-dessus
             terms_caption_placeholder: "Nos domaines"
@@ -2219,6 +2219,6 @@ editorial:
             admin_heading: Nouvelle soumission
             admin_intro: "Le formulaire « {form} » vient d'être rempli."
             admin_language: Langue
-            cta_open: Ouvrir dans le back-office
+            cta_open: Ouvrir dans la suite
             confirmation_heading: Message bien reçu
             confirmation_intro: "Merci, nous avons bien reçu votre message envoyé via « {form} »."

@@ -2708,7 +2708,7 @@ studio:
             hash: 'Document hash'
             observed: 'Signed on {at}, from {ip}'
             code_verified: 'Confirmation code verified on {at}, sent to {email}'
-            authenticated: 'Signed from an authenticated back office account'
+            authenticated: 'Signed from an authenticated suite account'
             notice: 'This hash identifies the signed wording. Any change to the document would produce a different one.'
     email:
         space_review:
@@ -2728,7 +2728,7 @@ studio:
             observed: 'Refusal recorded on {at}, from IP address {ip}.'
             reason: 'Reason given:'
             no_reason: 'No reason was given.'
-            action: 'You can send the contract again from the back-office: a new send clears this refusal and mints a new address.'
+            action: 'You can send the contract again from the suite: a new send clears this refusal and mints a new address.'
         contract_reminder:
             subject: 'Reminder: contract {reference} is waiting for your signature'
             body: 'Contract {reference} was sent to you and has not been signed yet.'
@@ -2748,7 +2748,7 @@ studio:
             declared: 'Declared: signed at {place}, on {date}'
             observed: 'Observed: {at}, from {ip}'
             hash: 'Hash of the signed document: {hash}'
-            action: 'Countersign it from the back office to conclude it.'
+            action: 'Countersign it from the suite to conclude it.'
         concluded:
             subject: 'Contract {reference} concluded'
             body: 'Contract {reference} is signed by both parties.'

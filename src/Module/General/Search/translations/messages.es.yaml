@@ -1,7 +1,7 @@
 suite:
     search:
         button: Buscar…
-        placeholder: 'Buscar en el back-office…'
+        placeholder: 'Buscar en la suite…'
         hint: 'Escriba para buscar en los contenidos, los medios, los calendarios, las notas, los espacios de cliente y los contratos.'
         empty: 'Ningún resultado.'
         keys:
