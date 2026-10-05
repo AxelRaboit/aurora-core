@@ -137,6 +137,7 @@ final readonly class DeliverableSerializer
             ),
             'expiresAt' => $link->getExpiresAt()?->format(DATE_ATOM),
             'revokedAt' => $link->getRevokedAt()?->format(DATE_ATOM),
+            'hidden' => $link->isHidden(),
             'lastUsedAt' => $link->getLastUsedAt()?->format(DATE_ATOM),
             'openCount' => $link->getOpenCount(),
             'locked' => $link->isLocked(),

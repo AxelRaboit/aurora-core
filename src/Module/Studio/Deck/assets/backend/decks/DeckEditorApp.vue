@@ -67,6 +67,7 @@ import {
     Share2,
     Trash2,
     X,
+    EyeOff,
 } from "lucide-vue-next";
 
 const { t, d } = useI18n();
@@ -100,6 +101,8 @@ const props = defineProps({
     shareRevokePath: { type: String, required: true },
     /** Deleting an address nobody ever opened; an opened one is only revoked. */
     shareDeletePath: { type: String, required: true },
+    /** Hiding a retired or expired link from the list; its row stays. */
+    shareHidePath: { type: String, required: true },
     themes: { type: Array, default: () => [] },
     fontPairs: { type: Array, default: () => [] },
     logoPlacements: { type: Array, default: () => [] },
@@ -340,10 +343,15 @@ const {
     createLink,
     revoke,
     remove,
+    hide,
     copy,
     copiedId,
     isLive,
     isDeletable,
+    isHideable,
+    showHidden,
+    hiddenCount,
+    shownLinks,
 } = useDeckSharing(props);
 
 /**
@@ -1293,13 +1301,13 @@ onBeforeUnmount(() => {
                     :hint="t('backend.studio.decks.share_password_hint')"
                 />
 
-                <p v-if="!links.length" class="m-0 text-sm text-muted">
+                <p v-if="!shownLinks.length" class="m-0 text-sm text-muted">
                     {{ t("backend.studio.decks.share_none") }}
                 </p>
 
                 <ul v-else class="m-0 flex list-none flex-col gap-2 p-0">
                     <li
-                        v-for="link in links"
+                        v-for="link in shownLinks"
                         :key="link.id"
                         class="rounded-lg border border-line p-3"
                         :class="isLive(link) ? '' : 'opacity-60'"
@@ -1329,6 +1337,13 @@ onBeforeUnmount(() => {
                                 >
                                     <X class="h-3.5 w-3.5" :stroke-width="2" />
                                 </AppIconButton>
+                                <AppIconButton
+                                    v-if="isHideable(link)"
+                                    :title="t('backend.studio.decks.share_hide')"
+                                    v-on:click="hide(link)"
+                                >
+                                    <EyeOff class="h-3.5 w-3.5" :stroke-width="2" />
+                                </AppIconButton>
                             </span>
                         </div>
 
@@ -1340,6 +1355,7 @@ onBeforeUnmount(() => {
                         </p>
 
                         <p class="m-0 mt-1 text-xs text-muted">
+                            <span v-if="link.hidden">{{ t("backend.studio.decks.share_hidden") }} · </span>
                             <span v-if="link.revokedAt">{{ t("backend.studio.decks.share_revoked") }}</span>
                             <span v-else-if="link.expiresAt">{{ t("backend.studio.decks.share_expires_on", { date: d(new Date(link.expiresAt), "short") }) }}</span>
                             <span v-else>{{ t("backend.studio.decks.share_no_expiry") }}</span>
@@ -1355,6 +1371,15 @@ onBeforeUnmount(() => {
                         </p>
                     </li>
                 </ul>
+
+                <button
+                    v-if="hiddenCount > 0"
+                    type="button"
+                    class="text-xs text-muted underline underline-offset-2 hover:text-primary"
+                    v-on:click="showHidden = !showHidden"
+                >
+                    {{ showHidden ? t("backend.studio.decks.share_hide_hidden") : t("backend.studio.decks.share_show_hidden", { count: hiddenCount }) }}
+                </button>
             </div>
         </AppModal>
 

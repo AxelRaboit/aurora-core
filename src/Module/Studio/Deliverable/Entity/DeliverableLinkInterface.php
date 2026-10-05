@@ -41,4 +41,11 @@ interface DeliverableLinkInterface
     public function getCreatedAt(): DateTimeImmutable;
 
     public function isUsable(DateTimeImmutable $now): bool;
+
+    /** Quand l'auteur l'a masqué de sa liste ; nul, il y figure. */
+    public function getHiddenAt(): ?DateTimeImmutable;
+
+    public function hide(DateTimeImmutable $at): static;
+
+    public function isHidden(): bool;
 }

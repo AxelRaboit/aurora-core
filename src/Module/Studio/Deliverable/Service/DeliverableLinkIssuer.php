@@ -132,6 +132,33 @@ readonly class DeliverableLinkIssuer
     }
 
     /**
+     * Masquer de la liste un lien qui n'ouvre plus rien (retiré ou expiré). Sa
+     * ligne reste : elle dit encore qui a pu lire. Un lien vivant ne se masque
+     * pas, il faut d'abord le retirer.
+     *
+     * @return bool|null null quand le lien n'est pas à ce livrable, faux quand il est encore vivant
+     */
+    public function hide(DeliverableInterface $deliverable, int $linkId): ?bool
+    {
+        $link = $this->links->find($linkId);
+        if (null === $link || $link->getDeliverable()->getId() !== $deliverable->getId()) {
+            return null;
+        }
+
+        $now = new DateTimeImmutable();
+        if (!ShareLinkRules::canBeHidden($link->isUsable($now))) {
+            return false;
+        }
+
+        $link->hide($now);
+        $this->entityManager->flush();
+
+        $this->auditLogger->log('studio', 'deliverable_link.hidden', 'DeliverableLink', $link->getId(), $this->auditPayload($deliverable, ['label' => $link->getLabel()]));
+
+        return true;
+    }
+
+    /**
      * Supprimer l'adresse, seulement si personne ne l'a jamais ouverte : il n'y
      * a alors rien à se rappeler. Une adresse ouverte se révoque, et sa ligne
      * garde qui a pu lire. Vérifié contre le livrable reçu, comme la révocation.

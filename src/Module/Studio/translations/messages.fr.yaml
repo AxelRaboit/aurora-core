@@ -90,6 +90,7 @@ backend:
                     issued: "Lien de lecture d'un livrable créé"
                     revoked: "Lien de lecture d'un livrable révoqué"
                     deleted: "Lien de lecture d'un livrable supprimé"
+                    hidden: "Lien de lecture d'un livrable masqué"
                 space_access_link:
                     issued: Lien d'accès client créé
                     revoked: Lien d'accès client révoqué
@@ -865,6 +866,11 @@ backend:
             share_revoked_toast: Lien révoqué
             share_delete: Supprimer ce lien
             share_deleted_toast: Lien supprimé
+            share_hide: "Masquer ce lien"
+            share_hidden_toast: "Lien masqué"
+            share_show_hidden: "Afficher les liens masqués ({count})"
+            share_hide_hidden: "Cacher les liens masqués"
+            share_hidden: "Masqué"
             share_expires_on: 'Expire le {date}'
             share_last_used: 'Ouvert le {date}'
             share_never_opened: Jamais ouvert
@@ -1989,6 +1995,7 @@ backend:
                 expiry_invalid: "La durée d'un lien va de 1 à 365 jours."
                 password_too_long: "Ce mot de passe est trop long : 72 octets au plus (une lettre accentuée en pèse deux)."
                 link_opened: "Ce lien a déjà été ouvert : on peut le révoquer, pas le supprimer. Il garde la trace de qui a pu lire."
+                link_active: "Un lien encore actif ne se masque pas : retirez-le d'abord."
         deliverables:
             editor_guide:
                 title: "Comment composer un livrable"
@@ -2253,6 +2260,12 @@ backend:
                 delete_confirm: "Supprimer ce lien ? Personne ne l'a jamais ouvert : il disparaît de la liste."
                 delete_failed: "Impossible de supprimer ce lien."
                 deleted_toast: "Lien supprimé"
+                hide: "Masquer ce lien"
+                hidden_toast: "Lien masqué"
+                hide_failed: "Le lien n'a pas pu être masqué."
+                show_hidden: "Afficher les liens masqués ({count})"
+                hide_hidden: "Cacher les liens masqués"
+                hidden: "Masqué"
             errors:
                 title_required: "Donnez un titre au livrable."
                 title_too_long: "Le titre dépasse 255 caractères."

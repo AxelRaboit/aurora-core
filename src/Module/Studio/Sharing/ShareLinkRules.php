@@ -23,6 +23,7 @@ use function mb_trim;
  *   into "never": the sender typed one on purpose.
  * - A password is at most {@see self::PASSWORD_MAX_BYTES} BYTES: bcrypt reads no
  *   further, so past it two different phrases would open the same link.
+ * - A retired or expired link may be hidden from the list, never a live one.
  * - A link is revocable at any time, and its row survives (who could read it,
  *   and how often it was opened, is worth knowing afterwards). It may be
  *   DELETED only while it has never been opened: there is then nothing to
@@ -84,6 +85,16 @@ final class ShareLinkRules
         }
 
         return $errors;
+    }
+
+    /**
+     * Only a link that no longer opens anything (retired or expired) may be
+     * hidden from the list: a live one has to be retired first, or hiding it
+     * would leave an address working that its author can no longer see.
+     */
+    public static function canBeHidden(bool $usable): bool
+    {
+        return !$usable;
     }
 
     /** Only a link nobody ever opened may be deleted; any other is revoked. */

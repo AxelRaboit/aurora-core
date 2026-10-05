@@ -61,4 +61,10 @@ final class ShareLinkRulesTest extends TestCase
         self::assertFalse(ShareLinkRules::canBeDeleted(1));
         self::assertFalse(ShareLinkRules::canBeDeleted(40));
     }
+
+    public function testOnlyALinkThatOpensNothingMayBeHidden(): void
+    {
+        self::assertTrue(ShareLinkRules::canBeHidden(false));
+        self::assertFalse(ShareLinkRules::canBeHidden(true));
+    }
 }
