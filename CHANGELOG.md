@@ -8,7 +8,7 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 ## [Unreleased]
 
 ### Ajouté
-- **Couleurs d'un graphique en pastilles** : sous « Valeurs », une pastille par ligne choisit sa couleur (ou la rend au thème) sans taper de code `#2f1bea` ; le texte des valeurs suit. L'exemple du champ montre aussi la couleur.
+- **Valeurs d'un graphique en tableau** : plus besoin de taper « nom ; valeur ; #couleur ». Chaque valeur a sa ligne, avec son nom, son nombre et une pastille de couleur (ou la couleur du thème) ; on ajoute, retire et déplace les lignes à la souris. Un graphique vide s'ouvre sur une ligne dont les exemples montrent quoi écrire. « Saisir en texte » garde l'ancien champ, pour coller une colonne copiée d'un tableur. Rien ne change dans les données enregistrées.
 
 ### Corrigé
 - **Légende d'un graphique dans une carte étroite** : à côté d'une autre zone, le camembert et sa légende débordaient de leur carte. Le graphique se règle maintenant sur la largeur de sa zone, pas sur celle de l'écran : il passe au-dessus de la légende quand la place manque, et les valeurs ne se coupent plus.

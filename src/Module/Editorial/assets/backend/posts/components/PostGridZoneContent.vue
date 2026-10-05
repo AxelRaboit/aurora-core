@@ -28,8 +28,7 @@ import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
 import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-vue-next";
 import OpeningHoursField from "./zones/OpeningHoursField.vue";
 import PostBannerPanel from "./PostBannerPanel.vue";
-import BannerColorField from "./BannerColorField.vue";
-import { chartRows, setChartColor } from "./zones/chartColors.js";
+import ChartDataField from "./zones/ChartDataField.vue";
 import { parseLines } from "./zones/openingHours.js";
 
 const props = defineProps({
@@ -794,30 +793,7 @@ const displayHint = computed(() =>
                     {{ t("backend.posts.grid.translated_fields", { locale }) }}
                 </p>
                 <AppInput v-model="bound.label.value" :label="t('backend.posts.grid.chart_title')" :placeholder="t('backend.posts.grid.examples.chart_title')" />
-                <AppTextarea
-                    v-model="bound.code.value"
-                    :label="t('backend.posts.grid.chart_data')"
-                    :hint="t('backend.posts.grid.chart_data_hint')"
-                    :placeholder="t('backend.posts.grid.examples.chart_data')"
-                    :rows="6"
-                />
-                <div v-if="chartRows(bound.code.value).length" class="space-y-1">
-                    <p class="text-sm font-medium text-secondary">
-                        {{ t("backend.posts.grid.chart_colors") }}
-                    </p>
-                    <p class="text-xs text-muted">
-                        {{ t("backend.posts.grid.chart_colors_hint") }}
-                    </p>
-                    <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                        <BannerColorField
-                            v-for="row in chartRows(bound.code.value)"
-                            :key="row.index"
-                            :model-value="row.color"
-                            :label="row.label"
-                            v-on:update:model-value="bound.code.value = setChartColor(bound.code.value, row.index, $event)"
-                        />
-                    </div>
-                </div>
+                <ChartDataField v-model="bound.code.value" />
                 <AppInput v-model="bound.caption.value" :label="t('backend.posts.grid.chart_note')" :placeholder="t('backend.posts.grid.examples.chart_source')" />
             </div>
         </template>

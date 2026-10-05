@@ -1261,8 +1261,15 @@ backend:
             chart_title: Title
             chart_data: Values
             chart_data_hint: "One line per value: the name, a semicolon, the number (between [brackets] in a template, to flag it to replace), and optionally a second semicolon and a colour (#2f1bea). « Growth » also shows the change from the first to the last."
-            chart_colors: Colours
-            chart_colors_hint: "One swatch per line; with no colour picked, the chart takes the theme's shades."
+            chart_as_text: "Type as text"
+            chart_as_table: "Back to the table"
+            chart_row: "Line {number}"
+            chart_row_move: "Move the line"
+            chart_row_theme_color: "Theme colour"
+            chart_row_clear_color: "Back to the theme colour"
+            chart_row_remove: "Remove the line"
+            chart_row_add: "Add a line"
+            chart_rows_hint: "One line per value: the name, the number and, if needed, its colour; with no colour picked, the chart takes the theme's shades. In a template, put the name and the number between [brackets] to flag them to replace. « Growth » also shows the change from the first to the last."
             chart_note: Source or detail
             video_wall_count: "{count} video of {max} | {count} videos of {max}"
             video_wall_add: Add videos
@@ -1319,6 +1326,8 @@ backend:
                 social_text: "Morning light on the harbour, no retouching."
                 qr_caption: "Scan to see the site"
                 chart_title: "Instagram followers"
+                chart_row_name: "Single photos"
+                chart_row_value: "60"
                 chart_data: "January ; 1200 ; #2f1bea\nFebruary ; 1480 ; #111111\nMarch ; 2100"
                 chart_source: "Source: account statistics"
                 calendar_title: "October schedule"
