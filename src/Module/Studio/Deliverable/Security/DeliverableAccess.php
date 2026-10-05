@@ -21,7 +21,12 @@ use function array_values;
  *
  * **Dans un espace client**, rien ne change : c'est l'espace qui décide. Il
  * faut le voir (son équipe, ou les rôles qui voient tout) et les droits des
- * espaces, `studio.spaces.view` pour lire, `studio.spaces.edit` pour écrire.
+ * espaces : `studio.spaces.view` pour lire, `studio.spaces.edit` pour écrire,
+ * `studio.spaces.share` pour donner une adresse de lecture, le même droit que
+ * l'accès de l'espace lui-même, puisqu'une adresse ouvre un document client
+ * à quiconque la tient. Un espace archivé ne reçoit plus de livrable neuf
+ * (création, duplication, copie) ; ceux qu'il garde restent modifiables, car
+ * archiver n'est pas supprimer.
  *
  * **Sans espace**, deux rayons :
  * - partagé : tous ceux qui ont `studio.deliverables.view` le lisent, ceux
@@ -34,6 +39,12 @@ use function array_values;
  * le lire ni le supprimer. Hors de ce cas, un administrateur n'ouvre pas le
  * livrable perso d'un autre : le droit de tout voir porte sur les modules,
  * pas sur ce que chacun garde pour soi.
+ *
+ * **Dupliquer** est créer : dans Studio, le droit de créer des livrables ;
+ * dans un espace, le droit d'y écrire, et pas dans une archive. Les deux
+ * contextes ne demandent pas le même droit parce qu'ils n'ont pas le même
+ * modèle (les droits du module, ceux de l'espace) : c'est voulu, et chacun
+ * suit la règle de ce qu'il crée.
  *
  * **Copier un livrable de Studio dans un espace**, c'est écrire dans cet
  * espace : il faut lire l'original, et pouvoir créer un livrable dans
@@ -53,6 +64,9 @@ final readonly class DeliverableAccess
     public const string DELETE = 'studio.deliverables.delete';
 
     public const string SHARE = 'studio.deliverables.share';
+
+    /** Donner une adresse de lecture d'un livrable d'espace : le droit de l'accès à l'espace. */
+    public const string SPACE_SHARE = 'studio.spaces.share';
 
     public function __construct(
         private Security $security,
@@ -97,11 +111,18 @@ final readonly class DeliverableAccess
             : $this->holdsPersonal($deliverable);
     }
 
-    /** Créer, révoquer un lien de lecture : un envoi hors du back-office. */
+    /**
+     * Voir, créer ou révoquer les liens de lecture : un envoi hors du
+     * back-office, et la liste porte les adresses elles-mêmes, jetons compris.
+     *
+     * Dans un espace, c'est le droit de partager l'espace, sans celui de
+     * modifier : donner une adresse n'est pas écrire dans le document.
+     */
     public function canShare(DeliverableInterface $deliverable): bool
     {
-        if (!$deliverable->isStandalone()) {
-            return $this->canWrite($deliverable);
+        $space = $deliverable->getSpace();
+        if ($space instanceof CustomerSpaceInterface) {
+            return $this->security->isGranted(self::SPACE_SHARE) && $this->spaceVisibility->canSee($space);
         }
 
         return $this->canWrite($deliverable) && $this->security->isGranted(self::SHARE);
@@ -185,12 +206,21 @@ final readonly class DeliverableAccess
         return $this->studioContext->areSpacesEnabled() && $this->spaceVisibility->canSee($space);
     }
 
-    public function canCopyInto(CustomerSpaceInterface $space): bool
+    /**
+     * Déposer un livrable de plus dans cet espace : en créer un, en
+     * dupliquer un, y copier un modèle de Studio. Les archives n'en reçoivent
+     * pas.
+     */
+    public function canAddTo(CustomerSpaceInterface $space): bool
     {
-        return $this->studioContext->areSpacesEnabled()
-            && $this->security->isGranted('studio.spaces.edit')
+        return $this->security->isGranted('studio.spaces.edit')
             && !$space->isArchived()
             && $this->spaceVisibility->canSee($space);
+    }
+
+    public function canCopyInto(CustomerSpaceInterface $space): bool
+    {
+        return $this->studioContext->areSpacesEnabled() && $this->canAddTo($space);
     }
 
     public function isOwner(DeliverableInterface $deliverable): bool

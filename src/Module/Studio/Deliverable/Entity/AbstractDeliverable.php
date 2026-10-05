@@ -277,6 +277,37 @@ abstract class AbstractDeliverable implements DeliverableInterface
     }
 
     /**
+     * Quand il a été mis à la corbeille ; nul, il est vivant.
+     *
+     * Une suppression douce, comme celle des notes et des publications : un
+     * livrable est un document client écrit à la main, et la suppression
+     * définitive d'un audit par erreur ne se rattrape pas. Mis à la corbeille,
+     * il sort des listes, de la recherche et des comptes, et ses liens de
+     * lecture cessent de répondre ; il garde pourtant ses images (la
+     * médiathèque le compte encore) et ses liens, qui reprennent à la
+     * restauration. La purge planifiée le détruit au bout du délai commun.
+     */
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    protected ?DateTimeImmutable $deletedAt = null;
+
+    public function getDeletedAt(): ?DateTimeImmutable
+    {
+        return $this->deletedAt;
+    }
+
+    public function setDeletedAt(?DateTimeImmutable $deletedAt): static
+    {
+        $this->deletedAt = $deletedAt;
+
+        return $this;
+    }
+
+    public function isTrashed(): bool
+    {
+        return $this->deletedAt instanceof DateTimeImmutable;
+    }
+
+    /**
      * Marque le livrable comme modifié maintenant.
      *
      * Le rappel de Doctrine ne date une modification que si une colonne a

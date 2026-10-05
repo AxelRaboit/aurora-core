@@ -1,6 +1,7 @@
 import { createApp, h, ref, onMounted, onBeforeUnmount } from "vue";
 import { Toaster, toast } from "vue-sonner";
 import "vue-sonner/style.css";
+import { takeFlashes } from "@/shared/utils/flash.js";
 
 // Reads the active app theme from the <html> class set by the theme script.
 // `light` / `dark` switch between the two vue-sonner palettes; on the front
@@ -41,5 +42,10 @@ document.addEventListener("DOMContentLoaded", () => {
         for (const message of messages) {
             (toast[type] ?? toast)(message);
         }
+    }
+
+    // What the previous page's own script queued before navigating away.
+    for (const { type, message } of takeFlashes()) {
+        toast[type](message);
     }
 });

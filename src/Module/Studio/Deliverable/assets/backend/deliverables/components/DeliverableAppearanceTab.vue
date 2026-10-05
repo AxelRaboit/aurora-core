@@ -155,6 +155,13 @@ const display = computed({
     },
 });
 
+const readerPdf = computed({
+    get: () => true === appearance.value.readerPdf,
+    set: (value) => {
+        appearance.value = { ...appearance.value, readerPdf: value };
+    },
+});
+
 const titleVisible = computed({
     get: () => false !== appearance.value.titleVisible,
     set: (value) => {
@@ -321,6 +328,11 @@ const swatch = computed(() => ({
                 :label="t('backend.studio.deliverables.appearance.display')"
                 :hint="t('backend.studio.deliverables.appearance.display_hint')"
                 :options="displayOptions"
+            />
+            <AppToggle
+                v-model="readerPdf"
+                :label="t('backend.studio.deliverables.appearance.reader_pdf')"
+                :hint="t('backend.studio.deliverables.appearance.reader_pdf_hint')"
             />
             <AppChoiceRow
                 v-model="headingStyle"

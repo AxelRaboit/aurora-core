@@ -4,13 +4,10 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\Deliverable\Service;
 
-use Aurora\Module\Configuration\Theme\Service\ThemeContext;
+use Aurora\Module\Configuration\Theme\Service\AppearanceValues;
 
 use function in_array;
 use function is_array;
-use function is_string;
-use function mb_trim;
-use function preg_match;
 
 /**
  * Ce qu'un livrable repeint pour lui seul, et la seule porte d'entrée vers le
@@ -51,7 +48,7 @@ final class DeliverableAppearance
     public const array DISPLAYS = ['page', 'slides'];
 
     /**
-     * @return array{backgroundColor: ?string, headerColor: ?string, footerColor: ?string, accentColor: ?string, headingColor: ?string, figureColor: ?string, highlight: ?string, highlightColor: ?string, titleVisible: bool, headingStyle: string, display: string}
+     * @return array{backgroundColor: ?string, headerColor: ?string, footerColor: ?string, accentColor: ?string, headingColor: ?string, figureColor: ?string, highlight: ?string, highlightColor: ?string, titleVisible: bool, headingStyle: string, display: string, readerPdf: bool}
      */
     public static function normalize(mixed $raw): array
     {
@@ -59,18 +56,12 @@ final class DeliverableAppearance
 
         $appearance = [];
         foreach (self::COLORS as $key) {
-            $appearance[$key] = self::color($data[$key] ?? null);
+            $appearance[$key] = AppearanceValues::color($data[$key] ?? null);
         }
-
-        $highlightColor = self::color($data['highlightColor'] ?? null);
-        $highlight = is_string($data['highlight'] ?? null) && in_array($data['highlight'], ThemeContext::HIGHLIGHTS, true)
-            ? $data['highlight']
-            : null;
 
         // « Personnalisé » sans couleur ne veut rien dire : retour au thème.
-        if ('custom' === $highlight && null === $highlightColor) {
-            $highlight = null;
-        }
+        $highlight = AppearanceValues::highlight($data['highlight'] ?? null, $data['highlightColor'] ?? null);
+        $highlightColor = AppearanceValues::color($data['highlightColor'] ?? null);
 
         return [
             ...$appearance,
@@ -81,17 +72,9 @@ final class DeliverableAppearance
             'titleVisible' => false !== ($data['titleVisible'] ?? true),
             'headingStyle' => in_array($data['headingStyle'] ?? null, self::HEADING_STYLES, true) ? $data['headingStyle'] : self::HEADING_STYLES[0],
             'display' => in_array($data['display'] ?? null, self::DISPLAYS, true) ? $data['display'] : self::DISPLAYS[0],
+            // Le PDF du lecteur : éteint tant que l'auteur ne l'a pas permis.
+            // Seul un `true` franc l'allume, jamais une chaîne ou un 1.
+            'readerPdf' => true === ($data['readerPdf'] ?? false),
         ];
-    }
-
-    private static function color(mixed $raw): ?string
-    {
-        if (!is_string($raw)) {
-            return null;
-        }
-
-        $value = mb_trim($raw);
-
-        return 1 === preg_match(ThemeContext::HEX_COLOR, $value) ? $value : null;
     }
 }

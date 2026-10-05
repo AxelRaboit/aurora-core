@@ -17,13 +17,15 @@
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { toast } from "vue-sonner";
-import { Copy, ExternalLink, FileDown, FolderInput, FolderOutput, Link2, Lock, Save, Trash2, Users } from "lucide-vue-next";
-import AppBackLink from "@/shared/components/nav/AppBackLink.vue";
+import { Copy, ExternalLink, FileDown, FolderInput, FolderOutput, Link2, Lock, RefreshCw, Save, Trash2, Users } from "lucide-vue-next";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
+import AppModal from "@/shared/components/overlay/AppModal.vue";
+import AppModalFooter from "@/shared/components/overlay/AppModalFooter.vue";
 import AppPageActions from "@/shared/components/action/AppPageActions.vue";
+import AppPageBar from "@/shared/components/nav/AppPageBar.vue";
 import AppTab from "@/shared/components/nav/AppTab.vue";
+import { queueFlash } from "@/shared/utils/flash.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { useTabState } from "@/shared/composables/useTabState.js";
 import { countPlaceholders } from "@/shared/utils/format/placeholders.js";
@@ -78,10 +80,16 @@ const backLabel = computed(() =>
         ? t("backend.studio.deliverables.back", { space: props.space.name })
         : t("backend.studio.deliverables.back_to_list"),
 );
-const { form, saving, errors, dirty, save, markClean } = useDeliverableEditor(props);
+const { form, saving, errors, conflict, dirty, save, saveAnyway, dismissConflict, markClean } = useDeliverableEditor(props);
 
-/** The [blanks] still in the document, for the badge in the header and the client toggle. */
-const placeholders = computed(() => countPlaceholders(form.value.gridContent?.zones));
+/**
+ * The [blanks] still in the document, for the badge in the header and the
+ * client toggle: the grid, but also the title, the summary and the reading
+ * header, where « Préparé pour » reads « [Client] » in a copied model.
+ */
+const placeholders = computed(() =>
+    countPlaceholders([form.value.title, form.value.summary, form.value.readingHeader, form.value.gridContent?.zones]),
+);
 
 /**
  * Le retour rouvre le rayon où le livrable se trouve maintenant : l'auteur
@@ -101,16 +109,32 @@ const backHref = computed(() => {
 const TABS = ["content", "appearance", "settings"];
 const { select: selectTab, isActive: isTabActive } = useTabState(TABS, { hash: true });
 
-/** Un onglet qui porte une erreur le dit, même fermé. */
+/**
+ * Un onglet qui porte une erreur le dit, même fermé. Le serveur ne répond que
+ * de ces trois champs : le titre et la langue (réglages), la grille (contenu).
+ */
 const tabsWithErrors = computed(() => {
     const keys = Object.keys(errors.value);
 
     return {
-        content: keys.some((key) => key.startsWith("grid")),
-        appearance: keys.some((key) => key.startsWith("appearance")),
-        settings: keys.some((key) => ["title", "locale", "summary"].includes(key)),
+        content: keys.includes("gridLayout"),
+        appearance: false,
+        settings: keys.some((key) => ["title", "locale"].includes(key)),
     };
 });
+
+/**
+ * Ce que le serveur a refusé, en toutes lettres et en tête de page : une
+ * erreur de grille n'avait qu'un point sur l'onglet, et celle d'une langue
+ * rien du tout quand le sélecteur de langue est masqué (une seule langue).
+ */
+const errorMessages = computed(() => [
+    ...new Set(
+        Object.values(errors.value)
+            .filter((message) => "string" === typeof message && "" !== message)
+            .map((message) => t(message)),
+    ),
+]);
 
 // ── En-tête ─────────────────────────────────────────────────────────────────
 
@@ -144,7 +168,8 @@ async function duplicate() {
     try {
         const data = await request(props.duplicatePath, {});
         if (data?.success) {
-            toast.success(t("backend.studio.deliverables.duplicated"));
+            // Dit à la page d'arrivée : celui-ci serait parti avec la page.
+            queueFlash("success", t("backend.studio.deliverables.duplicated"));
             window.location.href = data.editPath;
         }
     } finally {
@@ -170,7 +195,7 @@ async function copyToStudio() {
     try {
         const data = await request(props.copyToStudioPath, {});
         if (data?.success) {
-            toast.success(t("backend.studio.deliverables.copy_to_studio.done"));
+            queueFlash("success", t("backend.studio.deliverables.copy_to_studio.done"));
             window.location.href = data.editPath;
         }
     } finally {
@@ -185,13 +210,26 @@ async function doDelete() {
     try {
         const data = await request(props.deletePath, {});
         if (data?.success) {
-            toast.success(t("backend.studio.deliverables.deleted"));
+            queueFlash("success", t("backend.studio.deliverables.deleted"));
             markClean();
             window.location.href = props.deliverablesPath;
         }
     } finally {
         deleting.value = false;
     }
+}
+
+/**
+ * L'attribut `inert` d'un panneau, ou rien : Vue écrit `inert="false"` pour un
+ * faux, et pour un navigateur la seule présence de l'attribut rend la zone
+ * inerte. Il faut donc l'omettre (`undefined`) quand on peut écrire.
+ */
+const inertWhenReadOnly = computed(() => (props.canEdit ? undefined : true));
+
+/** Recharger la page : on perd ce qui n'était pas enregistré, et c'est écrit dans la fenêtre. */
+function reload() {
+    markClean();
+    window.location.reload();
 }
 
 const headerActions = computed(() => {
@@ -259,7 +297,7 @@ const headerActions = computed(() => {
             key: "delete",
             color: "rose",
             icon: Trash2,
-            title: t("shared.common.delete"),
+            title: t("backend.studio.deliverables.trash_action"),
             description: t("backend.studio.deliverables.delete_hint"),
             onSelect: () => (pendingDelete.value = true),
         });
@@ -271,12 +309,38 @@ const headerActions = computed(() => {
 
 <template>
     <div class="aurora-stack">
-        <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-            <AppBackLink :href="backHref" :label="backLabel" />
-            <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-                <!-- Ce que voit le client, quel que soit l'onglet : on doit
-                     savoir qu'on modifie un document qu'il lit déjà. Sans
-                     espace, le rayon : perso ou partagé avec l'équipe. -->
+        <!-- La barre de tous les écrans : le retour à gauche, les commandes à
+             droite. Les pastilles d'état n'y entrent pas : trois d'entre elles
+             faisaient passer la barre sur deux lignes sur un téléphone, elles
+             viennent sous le titre. -->
+        <AppPageBar :back-href="backHref" :back-label="backLabel">
+            <AppPageActions :actions="headerActions" icon-only-on-phone />
+            <AppButton
+                v-if="canEdit"
+                variant="primary"
+                size="md"
+                :loading="saving"
+                :label="t('shared.common.save')"
+                icon-only-on-phone
+                v-on:click="save()"
+            >
+                <Save class="h-4 w-4" :stroke-width="2" />
+            </AppButton>
+        </AppPageBar>
+
+        <div class="min-w-0">
+            <h1 class="m-0 truncate text-lg font-semibold text-primary">{{ form.title }}</h1>
+            <p v-if="space" class="m-0 mt-0.5 text-sm text-secondary">
+                {{ t("backend.studio.deliverables.for_customer", { name: space.customerName }) }}
+            </p>
+            <p v-else-if="ownerName" class="m-0 mt-0.5 text-sm text-secondary">
+                {{ t("backend.studio.deliverables.scope.by", { name: ownerName }) }}
+            </p>
+
+            <!-- Ce que voit le client, quel que soit l'onglet : on doit savoir
+                 qu'on modifie un document qu'il lit déjà. Sans espace, le
+                 rayon : perso ou partagé avec l'équipe. -->
+            <div class="mt-2 flex flex-wrap items-center gap-2">
                 <AppBadge v-if="!space" :color="'shared' === form.scope ? 'sky' : 'gray'">
                     <component :is="'shared' === form.scope ? Users : Lock" class="me-1 inline h-3 w-3 align-[-1px]" :stroke-width="2" />
                     {{ t(`backend.studio.deliverables.scope.${form.scope}`) }}
@@ -289,32 +353,24 @@ const headerActions = computed(() => {
                 <AppBadge v-if="placeholders" color="amber" :title="t('backend.posts.grid.placeholders_left', { count: placeholders })">
                     [{{ placeholders }}] {{ t("backend.studio.deliverables.placeholders_badge") }}
                 </AppBadge>
-                <AppPageActions :actions="headerActions" icon-only-on-phone />
-                <AppButton
-                    v-if="canEdit"
-                    variant="primary"
-                    size="md"
-                    :loading="saving"
-                    :title="t('shared.common.save')"
-                    v-on:click="save"
-                >
-                    <Save class="h-4 w-4" :stroke-width="2" />
-                    <span class="sr-only sm:not-sr-only">{{ t("shared.common.save") }}</span>
-                    <span v-if="dirty" class="ms-1 inline-block h-1.5 w-1.5 rounded-full bg-current" :title="t('backend.studio.deliverables.unsaved')" />
-                </AppButton>
+                <!-- Dit en mots, pas par un point : un état qui n'est qu'une
+                     pastille de couleur n'existe pas pour qui ne la voit pas. -->
+                <AppBadge v-if="dirty" color="amber">{{ t("backend.studio.deliverables.unsaved") }}</AppBadge>
+                <AppBadge v-if="!canEdit" color="gray">{{ t("backend.studio.deliverables.read_only") }}</AppBadge>
             </div>
         </div>
 
-        <div class="min-w-0">
-            <h1 class="m-0 truncate text-lg font-semibold text-primary">{{ form.title }}</h1>
-            <p v-if="space" class="m-0 mt-0.5 text-sm text-secondary">
-                {{ t("backend.studio.deliverables.for_customer", { name: space.customerName }) }}
-            </p>
-            <p v-else-if="ownerName" class="m-0 mt-0.5 text-sm text-secondary">
-                {{ t("backend.studio.deliverables.scope.by", { name: ownerName }) }}
-            </p>
-        </div>
+        <ul
+            v-if="errorMessages.length"
+            class="m-0 flex list-none flex-col gap-1 rounded-lg border border-rose-500/40 bg-rose-500/10 p-3 text-sm text-rose-700 dark:text-rose-300"
+            role="alert"
+        >
+            <li v-for="message in errorMessages" :key="message">{{ message }}</li>
+        </ul>
 
+        <p v-if="!canEdit" class="m-0 rounded-lg border border-line bg-surface-2 p-3 text-sm text-secondary" role="status">
+            {{ t("backend.studio.deliverables.read_only_hint") }}
+        </p>
 
         <!-- Le mode d'emploi de l'écran, à côté de ce qu'il explique ;
              replié ou déplié, le choix vaut pour tous les encarts. -->
@@ -322,28 +378,33 @@ const headerActions = computed(() => {
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
                 <!-- Sans espace, les étapes qui parlent du client disent son
                      destinataire et sa visibilité à la place. -->
-                <li v-for="step in 5" :key="step">{{ t(`backend.studio.deliverables.editor_guide.step_${step}${!space && [3, 4].includes(step) ? "_studio" : ""}`) }}</li>
+                <li v-for="step in 6" :key="step">{{ t(`backend.studio.deliverables.editor_guide.step_${step}${!space && [3, 4].includes(step) ? "_studio" : ""}`) }}</li>
             </ol>
         </AppGuide>
 
-        <div class="flex max-w-full gap-1 overflow-x-auto border-b border-line scrollbar-thin">
+        <div class="flex max-w-full gap-1 overflow-x-auto border-b border-line scrollbar-thin" role="tablist" :aria-label="t('backend.studio.deliverables.tabs.label')">
             <AppTab
                 v-for="tab in TABS"
                 :key="tab"
                 class="shrink-0"
                 variant="underline"
+                role="tab"
+                :aria-selected="isTabActive(tab) ? 'true' : 'false'"
                 :active="isTabActive(tab)"
                 v-on:click="selectTab(tab)"
             >
                 {{ t(`backend.studio.deliverables.tabs.${tab}`) }}
-                <span v-if="tabsWithErrors[tab]" class="ms-1 inline-block h-1.5 w-1.5 rounded-full bg-rose-500" />
+                <template v-if="tabsWithErrors[tab]">
+                    <span class="ms-1 inline-block h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden="true" />
+                    <span class="sr-only">{{ t("backend.studio.deliverables.tab_has_error") }}</span>
+                </template>
             </AppTab>
         </div>
 
         <!-- v-show et pas v-if : la grille tient des éditeurs de texte qui
              gardent leur saisie, et changer d'onglet ne doit rien leur faire
              perdre. -->
-        <div v-show="isTabActive('content')" class="aurora-card p-3 sm:p-5">
+        <div v-show="isTabActive('content')" class="aurora-card p-3 sm:p-5" :inert="inertWhenReadOnly">
             <PostGridPanel
                 :layout="form.gridLayout"
                 :content="form.gridContent"
@@ -359,6 +420,7 @@ const headerActions = computed(() => {
         <DeliverableAppearanceTab
             v-show="isTabActive('appearance')"
             v-model:appearance="form.appearance"
+            :inert="inertWhenReadOnly"
             :title="form.title"
             :summary="form.summary"
         />
@@ -373,6 +435,7 @@ const headerActions = computed(() => {
             v-model:scope="form.scope"
             v-model:category-id="form.categoryId"
             v-model:thumbnail="form.thumbnail"
+            :inert="inertWhenReadOnly"
             :locales="locales"
             :errors="errors"
             :customer-name="space?.customerName ?? ''"
@@ -392,6 +455,31 @@ const headerActions = computed(() => {
             :targets="copyTargets"
             v-on:close="showCopyToSpace = false"
         />
+
+        <!-- Quelqu'un d'autre a enregistré avant nous : on le dit, on ne
+             choisit pas à la place de l'auteur entre sa version et la nôtre. -->
+        <AppModal
+            :show="conflict"
+            max-width="md"
+            :title="t('backend.studio.deliverables.conflict.title')"
+            :icon="RefreshCw"
+            v-on:close="dismissConflict"
+        >
+            <p class="m-0 text-sm text-primary">{{ t("backend.studio.deliverables.errors.conflict") }}</p>
+            <template #footer>
+                <AppModalFooter>
+                    <AppButton variant="ghost" size="md" v-on:click="dismissConflict">
+                        {{ t("backend.studio.deliverables.conflict.keep_editing") }}
+                    </AppButton>
+                    <AppButton variant="secondary" size="md" v-on:click="reload">
+                        {{ t("backend.studio.deliverables.conflict.reload") }}
+                    </AppButton>
+                    <AppButton variant="danger" size="md" :loading="saving" v-on:click="saveAnyway">
+                        {{ t("backend.studio.deliverables.conflict.overwrite") }}
+                    </AppButton>
+                </AppModalFooter>
+            </template>
+        </AppModal>
 
         <DeliverableDeleteModal
             :show="pendingDelete"

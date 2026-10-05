@@ -205,6 +205,11 @@ const props = defineProps({
     /** Les documents écrits pour ce client : audits, stratégies, bilans. */
     deliverables: { type: Array, default: () => [] },
     canEditDeliverables: { type: Boolean, default: false },
+    /** Donner une adresse de lecture : le droit de partager l'espace, pas celui de le modifier. */
+    canShareDeliverables: { type: Boolean, default: false },
+    /** Faux dans une archive : elle ne reçoit plus de livrable, ni créé ni dupliqué. */
+    canAddDeliverables: { type: Boolean, default: false },
+    deliverableListPath: { type: String, default: "" },
     deliverableCreatePath: { type: String, default: "" },
     deliverableVisibilityPathTemplate: { type: String, default: "" },
     deliverableDuplicatePathTemplate: { type: String, default: "" },
@@ -773,6 +778,9 @@ watch(stateFilter, (next) => stateInUrl.set(next ?? ""));
                 v-else-if="view === 'deliverables'"
                 :deliverables="deliverables"
                 :can-edit="canEditDeliverables"
+                :can-share="canShareDeliverables"
+                :can-add="canAddDeliverables"
+                :list-path="deliverableListPath"
                 :create-path="deliverableCreatePath"
                 :visibility-path-template="deliverableVisibilityPathTemplate"
                 :duplicate-path-template="deliverableDuplicatePathTemplate"

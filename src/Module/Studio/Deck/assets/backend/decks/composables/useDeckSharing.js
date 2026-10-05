@@ -7,9 +7,10 @@ import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 /**
  * The addresses that open this deck without an account.
  *
- * A link is never deleted, only revoked: "who could open this, and until when"
- * is a question worth being able to answer after the fact, and a deleted row
- * answers nothing. The list therefore shows the revoked ones too, faded.
+ * A link that was opened is never deleted, only revoked: "who could open this,
+ * and until when" is a question worth being able to answer after the fact, and
+ * a deleted row answers nothing. The list therefore shows the revoked ones too,
+ * faded. One nobody ever opened has nothing to remember: it is deleted.
  */
 export function useDeckSharing(props) {
     const { t } = useI18n();
@@ -56,7 +57,15 @@ export function useDeckSharing(props) {
                 password: newPassword.value,
             });
 
-            if (!data?.success) return;
+            if (!data?.success) {
+                // 422: a duration or a password the rules refuse, said in words.
+                const key = Object.values(data?.errors ?? {}).find(
+                    (value) => "string" === typeof value && "" !== value,
+                );
+                if (key) toast.error(t(key));
+
+                return;
+            }
 
             apply(data);
             newLabel.value = "";
@@ -79,6 +88,27 @@ export function useDeckSharing(props) {
 
         apply(data);
         toast.success(t("backend.studio.decks.share_revoked_toast"));
+    }
+
+    const isDeletable = (link) => 0 === link.openCount;
+
+    async function remove(link) {
+        const data = await request(
+            buildPath(props.shareDeletePath, { linkId: link.id }),
+        );
+
+        if (!data?.success) {
+            // Opened in the meantime: the server says so, and it is now a revocation.
+            const key = Object.values(data?.errors ?? {}).find(
+                (value) => "string" === typeof value && "" !== value,
+            );
+            if (key) toast.error(t(key));
+
+            return;
+        }
+
+        apply(data);
+        toast.success(t("backend.studio.decks.share_deleted_toast"));
     }
 
     /**
@@ -114,7 +144,9 @@ export function useDeckSharing(props) {
         copiedId,
         createLink,
         revoke,
+        remove,
         copy,
         isLive,
+        isDeletable,
     };
 }

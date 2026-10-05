@@ -192,8 +192,11 @@ final class StudioDeliverablesTest extends IntegrationTestCase
         $personal = $this->create('Brouillon à jeter', DeliverableScopeEnum::Personal);
         $this->client->jsonRequest('POST', sprintf('/backend/studio/deliverables/%d/delete', $personal));
         self::assertResponseIsSuccessful();
+
+        // Put in the trash, not destroyed: the author's own draft is theirs to bin
+        // without a right, and to take back.
         $this->entityManager->clear();
-        self::assertNull($this->entityManager->find(Deliverable::class, $personal));
+        self::assertTrue($this->entityManager->find(Deliverable::class, $personal)?->isTrashed());
     }
 
     public function testCreatingNeedsItsOwnRight(): void

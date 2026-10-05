@@ -34,6 +34,7 @@ final readonly class TrashViewBuilder
         'ged' => 'modules_ged_backend',
         'editorial' => 'modules_editorial_backend',
         'notes' => 'modules_notes_backend',
+        'studio' => 'modules_studio_backend',
     ];
 
     public function __construct(

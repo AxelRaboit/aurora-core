@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\Deck\Controller\Backend;
 
 use Aurora\Core\Enum\HttpMethodEnum;
+use Aurora\Core\Enum\HttpStatusEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Module\Studio\Deck\Entity\Deck;
@@ -16,6 +17,7 @@ use Aurora\Module\Studio\Deck\Serializer\DeckSerializer;
 use Aurora\Module\Studio\Deck\Share\Entity\DeckShareLink;
 use Aurora\Module\Studio\Deck\Share\Repository\DeckShareLinkRepository;
 use Aurora\Module\Studio\Deck\View\DecksViewBuilder;
+use Aurora\Module\Studio\Sharing\ShareLinkRules;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -243,11 +245,19 @@ class SlidesController extends AbstractController
     {
         $payload = $this->decodeJson($request);
 
-        $link = new DeckShareLink($deck);
-        $link->setLabel(is_string($payload['label'] ?? null) ? mb_substr($payload['label'], 0, 120) : '');
+        // The rules every Studio link obeys: a duration that cannot be read is
+        // refused rather than turned into "never", and a password longer than
+        // bcrypt reads is refused rather than silently cut.
+        $errors = ShareLinkRules::errors($payload);
+        if ([] !== $errors) {
+            return $this->jsonInvalidInput($errors);
+        }
 
-        $days = is_int($payload['expiresInDays'] ?? null) ? $payload['expiresInDays'] : null;
-        if (null !== $days && $days > 0) {
+        $link = new DeckShareLink($deck);
+        $link->setLabel(is_string($payload['label'] ?? null) ? mb_substr(mb_trim($payload['label']), 0, 120) : '');
+
+        $days = $payload['expiresInDays'] ?? null;
+        if (is_int($days)) {
             $link->setExpiresAt(new DateTimeImmutable(sprintf('+%d days', $days)));
         }
 
@@ -255,7 +265,7 @@ class SlidesController extends AbstractController
         // its token. That token is 32 random bytes, where a fast hash is the
         // right tool; this is a phrase a person chose, and people reuse
         // phrases. What leaks here must not open anything else.
-        $password = is_string($payload['password'] ?? null) ? mb_trim($payload['password']) : '';
+        $password = ShareLinkRules::password($payload);
         if ('' !== $password) {
             $link->setPasswordHash(password_hash($password, PASSWORD_DEFAULT));
         }
@@ -286,6 +296,31 @@ class SlidesController extends AbstractController
         }
 
         $link->revoke(new DateTimeImmutable());
+        $this->entityManager->flush();
+
+        return $this->jsonSuccess($this->viewBuilder->sharePayload($deck));
+    }
+
+    /**
+     * Deleting is for an address nobody ever opened: there is then nothing to
+     * remember. One that was opened is revoked and its row stays, for the same
+     * reason as above. Same rule as a deliverable's reading links.
+     */
+    #[Route('/share/{linkId}/delete', name: '_share_delete', requirements: ['linkId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted('studio.decks.share')]
+    public function deleteShare(Deck $deck, int $linkId): JsonResponse
+    {
+        $link = $this->shareLinks->find($linkId);
+
+        if (null === $link || $link->getDeck()->getId() !== $deck->getId()) {
+            return $this->jsonNotFound();
+        }
+
+        if (!ShareLinkRules::canBeDeleted($link->getOpenCount())) {
+            return $this->jsonInvalidInput(['link' => 'backend.studio.sharing.errors.link_opened'], HttpStatusEnum::Conflict->value);
+        }
+
+        $this->entityManager->remove($link);
         $this->entityManager->flush();
 
         return $this->jsonSuccess($this->viewBuilder->sharePayload($deck));

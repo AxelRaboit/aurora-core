@@ -34,7 +34,7 @@ trois langues : français, anglais, espagnol.
 |---|---|
 | **Éditorial** | Publications et pages composées en grille de zones (texte Editor.js, images, galeries, cartes, carrousels, formulaires, sondages, réservations…), types de contenu et taxonomies, menus, commentaires, formulaires et leurs réponses, lettre d'information, référencement, recherche, révisions et relecture avant publication, programmation |
 | **Médiathèque** | Documents rangés en dossiers, catégories et étiquettes, variantes d'une même image, aperçus des PDF et des vidéos, stockage sur le disque ou dans Cloudflare R2, import depuis Pexels |
-| **Studio** | Clients, contrats avec signature électronique et scellé vérifiable, présentations, calendrier éditorial, et l'espace de chaque client : contenus à faire relire, calendrier, discussion en direct, fichiers, Google Drive, livrables, notes, ressources et accès du client |
+| **Studio** | Clients, contrats avec signature électronique et scellé vérifiable, présentations, calendrier éditorial, les livrables (audits, stratégies, propositions, perso ou partagés avec l'équipe, ou rangés dans l'espace d'un client, avec liens de lecture et mode présentation), et l'espace de chaque client : contenus à faire relire, calendrier, discussion en direct, fichiers, Google Drive, livrables, notes, ressources et accès du client |
 | **Notes** | Notes Markdown en dossiers et en espaces partagés, liens entre notes et leur graphe, partage par lien |
 | **Planning** | Calendriers, évènements récurrents, rappels, invités, flux iCal et partage par lien |
 | **Plateforme** | Utilisateurs, rôles et privilèges, invitations, demandes d'accès |

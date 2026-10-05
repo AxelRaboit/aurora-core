@@ -1,12 +1,14 @@
 <script setup>
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { Eye, FileText, Lock, PanelTop, Users } from "lucide-vue-next";
+import { Eye, FileText, PanelTop, Users } from "lucide-vue-next";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
 import AppImagePickerField from "@/shared/components/form/file/AppImagePickerField.vue";
 import AppSelect from "@/shared/components/form/select/AppSelect.vue";
 import AppTextarea from "@/shared/components/form/input/AppTextarea.vue";
 import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
+import DeliverableScopePicker from "./DeliverableScopePicker.vue";
+import { categoryOptions } from "../composables/categoryOptions.js";
 
 /**
  * Ce qui entoure le document : son nom, sa langue, ce que dit l'en-tête de sa
@@ -43,8 +45,6 @@ const props = defineProps({
     placeholders: { type: Number, default: 0 },
 });
 
-const SCOPES = ["personal", "shared"];
-
 const { t } = useI18n();
 
 /** Le nom de chaque langue dans la sienne : c'est ainsi qu'on la cherche. */
@@ -62,7 +62,7 @@ const localeOptions = computed(() =>
     }),
 );
 
-const categoryOptions = computed(() => props.categories.map((category) => ({ value: category.id, label: category.name })));
+const categorySelectOptions = computed(() => categoryOptions(props.categories));
 
 /** Le sélecteur parle en chaînes, le livrable en identifiants. */
 const categoryValue = computed({
@@ -131,7 +131,7 @@ const showLogo = computed({
                 :label="t('backend.studio.deliverables.categories.label')"
                 :placeholder="t('backend.studio.deliverables.categories.none')"
                 :hint="t(categories.length ? 'backend.studio.deliverables.categories.settings_hint' : 'backend.studio.deliverables.categories.settings_empty_hint')"
-                :options="categoryOptions"
+                :options="categorySelectOptions"
             />
         </section>
 
@@ -144,24 +144,7 @@ const showLogo = computed({
                     {{ t(canChangeScope ? "backend.studio.deliverables.scope.settings_hint" : "backend.studio.deliverables.scope.owner_only") }}
                 </p>
             </div>
-            <div class="grid gap-2 sm:grid-cols-2">
-                <button
-                    v-for="value in SCOPES"
-                    :key="value"
-                    type="button"
-                    class="rounded-lg border p-3 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-60"
-                    :class="scope === value ? 'border-accent bg-accent/10' : 'border-line hover:border-line-strong'"
-                    :aria-pressed="scope === value"
-                    :disabled="!canChangeScope"
-                    v-on:click="scope = value"
-                >
-                    <span class="flex items-center gap-1.5 text-sm font-medium text-primary">
-                        <component :is="'shared' === value ? Users : Lock" class="h-3.5 w-3.5" :stroke-width="2" />
-                        {{ t(`backend.studio.deliverables.scope.${value}`) }}
-                    </span>
-                    <span class="mt-0.5 block text-xs text-muted">{{ t(`backend.studio.deliverables.scope.${value}_hint`) }}</span>
-                </button>
-            </div>
+            <DeliverableScopePicker v-model="scope" :disabled="!canChangeScope" />
         </section>
 
         <section v-if="withClient" class="aurora-card space-y-4 p-3 sm:p-5">

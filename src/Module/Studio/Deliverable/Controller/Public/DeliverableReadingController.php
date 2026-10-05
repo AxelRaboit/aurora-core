@@ -8,7 +8,9 @@ use Aurora\Core\Enum\HttpMethodEnum;
 use Aurora\Core\Http\PrivateAddressResponseTrait;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableLinkInterface;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableLinkRepository;
+use Aurora\Module\Studio\Deliverable\Service\DeliverableLinkIssuer;
 use Aurora\Module\Studio\Deliverable\Service\DeliverablePageRenderer;
+use Aurora\Module\Studio\Sharing\ShareToken;
 use Aurora\Module\Studio\StudioContext;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -21,6 +23,7 @@ use Symfony\Component\Routing\Attribute\Route;
 
 use function is_array;
 use function password_verify;
+use function sprintf;
 
 /**
  * Un livrable ouvert par un lien de lecture, sans l'espace du client autour.
@@ -29,8 +32,9 @@ use function password_verify;
  * au porteur laquelle confirmerait que l'adresse était réelle. Un mot de passe
  * faux répond ce que répond une adresse fausse.
  *
- * Nommées `public_space…` : elles s'éteignent avec les espaces clients, par la
- * garde des routes du Studio.
+ * Nommées `public_deliverable_read` : elles s'éteignent avec le module
+ * Livrables pour un livrable de Studio, avec les espaces clients pour celui
+ * d'un espace, par la garde de {@see self::isServed()}.
  */
 #[Route('/deliverables', name: 'public_deliverable_read')]
 final class DeliverableReadingController extends AbstractController
@@ -48,7 +52,7 @@ final class DeliverableReadingController extends AbstractController
         private readonly StudioContext $studioContext,
     ) {}
 
-    #[Route('/{token}', name: '', requirements: ['token' => '[a-f0-9]{64}'], methods: [HttpMethodEnum::Get->value])]
+    #[Route('/{token}', name: '', requirements: ['token' => ShareToken::PATTERN], methods: [HttpMethodEnum::Get->value])]
     public function show(string $token, Request $request): Response
     {
         $link = $this->readable($token);
@@ -66,25 +70,38 @@ final class DeliverableReadingController extends AbstractController
         $link->touch(new DateTimeImmutable());
         $this->entityManager->flush();
 
-        return $this->privately($this->renderer->render($deliverable));
+        return $this->privately($this->renderer->renderForReader($deliverable, $request->query->getBoolean('print')));
     }
 
-    #[Route('/{token}/unlock', name: '_unlock', requirements: ['token' => '[a-f0-9]{64}'], methods: [HttpMethodEnum::Post->value])]
+    #[Route('/{token}/unlock', name: '_unlock', requirements: ['token' => ShareToken::PATTERN], methods: [HttpMethodEnum::Post->value])]
     public function unlock(string $token, Request $request): Response
     {
-        if (false === $this->deliverablePasswordLimiter->create($request->getClientIp())->consume()->isAccepted()) {
+        // Par adresse de lecture et par IP, et seuls les échecs comptent : un
+        // bureau derrière une seule adresse ne se bloque pas pour tous ses
+        // liens, ni parce que dix collègues ont ouvert le même document. La
+        // lecture sans jeton (`consume(0)`) dit s'il reste de la place ; le
+        // jeton n'est dépensé qu'à l'échec, plus bas.
+        $limiter = $this->deliverablePasswordLimiter->create(sprintf('%s|%s', $request->getClientIp(), $token));
+        // `consume(0)` accepte toujours, même fenêtre pleine : c'est ce qui
+        // reste de jetons qui dit si l'on est bloqué.
+        if ($limiter->consume(0)->getRemainingTokens() < 1) {
             throw new TooManyRequestsHttpException();
         }
 
         $link = $this->links->findByToken($token);
-        $password = (string) $request->request->get('password', '');
+        // Nettoyé comme à la création : un mot de passe tapé avec une espace
+        // de fin ouvre le lien qu'il a fermé.
+        $password = DeliverableLinkIssuer::password(['password' => (string) $request->request->get('password', '')]);
 
         if (!$link instanceof DeliverableLinkInterface
             || !$link->isUsable(new DateTimeImmutable())
             || !$this->isServed($link)
+            || $link->getDeliverable()->isTrashed()
             || !$link->isLocked()
             || !password_verify($password, (string) $link->getPasswordHash())
         ) {
+            $limiter->consume();
+
             return $this->privately($this->render('@Studio/public/deliverable_locked.html.twig', [
                 'token' => $token,
                 'failed' => true,
@@ -103,7 +120,7 @@ final class DeliverableReadingController extends AbstractController
     {
         $link = $this->links->findByToken($token);
 
-        if (!$link instanceof DeliverableLinkInterface || !$link->isUsable(new DateTimeImmutable()) || !$this->isServed($link)) {
+        if (!$link instanceof DeliverableLinkInterface || !$link->isUsable(new DateTimeImmutable()) || !$this->isServed($link) || $link->getDeliverable()->isTrashed()) {
             throw $this->createNotFoundException();
         }
 

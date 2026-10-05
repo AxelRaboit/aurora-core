@@ -1,7 +1,8 @@
 <script setup>
 /**
- * La confirmation avant de supprimer un livrable, la même partout : depuis une
- * liste ou depuis l'éditeur.
+ * La confirmation avant de mettre un livrable à la corbeille, la même partout :
+ * depuis une liste ou depuis l'éditeur. Il n'est pas détruit : il se restaure
+ * depuis la corbeille, jusqu'à sa suppression définitive.
  */
 import { useI18n } from "vue-i18n";
 import { Trash2, X } from "lucide-vue-next";
@@ -24,8 +25,7 @@ const { t } = useI18n();
     <AppModal
         :show="show"
         max-width="sm"
-        :closeable="false"
-        :title="t('shared.common.delete')"
+        :title="t('backend.studio.deliverables.trash_action')"
         :icon="Trash2"
         v-on:close="$emit('cancel')"
     >
@@ -36,7 +36,7 @@ const { t } = useI18n();
                     <X class="h-3.5 w-3.5" :stroke-width="2" /> {{ t("shared.common.cancel") }}
                 </AppButton>
                 <AppButton variant="danger" size="md" :loading="deleting" v-on:click="$emit('confirm')">
-                    <Trash2 class="h-3.5 w-3.5" :stroke-width="2" /> {{ t("shared.common.delete") }}
+                    <Trash2 class="h-3.5 w-3.5" :stroke-width="2" /> {{ t("backend.studio.deliverables.trash_action") }}
                 </AppButton>
             </AppModalFooter>
         </template>

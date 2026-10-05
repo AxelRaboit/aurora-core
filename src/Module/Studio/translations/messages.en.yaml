@@ -3,6 +3,7 @@ backend:
         sections:
             spaces: Client spaces
             space_contents: Space content
+            deliverables: Deliverables
             customers: Customers
             contracts: Contracts
             contract_templates: Contract templates
@@ -17,6 +18,7 @@ backend:
             upcoming: "Going out within 7 days"
             awaiting_countersignature: Contracts to countersign
             awaiting_signature: Contracts with the customer
+            deliverables: Deliverables
             decks: Decks
             scope_label: Spaces counted
             scopes:
@@ -73,6 +75,21 @@ backend:
                     shown: Space item shown to the client
                     hidden: Space item hidden from the client
                     deleted: Space item deleted
+                deliverable:
+                    trashed: "Deliverable moved to the trash"
+                    restored: "Deliverable restored from the trash"
+                    created: "Deliverable created"
+                    duplicated: "Deliverable duplicated"
+                    copied_to_space: "Deliverable copied into a client space"
+                    copied_to_studio: "Space deliverable copied to Studio"
+                    deleted: "Deliverable deleted"
+                    scope_changed: "Deliverable moved between personal and shared"
+                    shown_to_client: "Deliverable opened to the client"
+                    hidden_from_client: "Deliverable withdrawn from the client"
+                deliverable_link:
+                    issued: "Deliverable reading link created"
+                    revoked: "Deliverable reading link revoked"
+                    deleted: "Deliverable reading link deleted"
                 space_access_link:
                     issued: Client access link created
                     revoked: Client access link revoked
@@ -150,7 +167,7 @@ backend:
                     create: Create a client space
                     edit: Edit a client space
                     delete: Delete a client space
-                    share: Give a client access to a space
+                    share: See and give the client accesses of a space
                 contract_templates:
                     view: View contract templates
                     create: Create a contract template
@@ -168,15 +185,15 @@ backend:
                     create: Create a presentation
                     edit: Edit a presentation
                     delete: Delete a presentation
-                    share: Share a presentation
+                    share: See and give the reading links of a presentation
                 deck_categories:
                     manage: Manage presentation categories
                 deliverables:
                     view: "View deliverables"
                     create: "Create a deliverable"
-                    edit: "Edit a shared deliverable"
+                    edit: "Edit a shared deliverable and manage the categories"
                     delete: "Delete a deliverable"
-                    share: "Send a deliverable by reading link"
+                    share: "See and give the reading links of a deliverable"
     studio:
         workload:
             next_publication: "next publication on {date}"
@@ -845,6 +862,8 @@ backend:
             share_revoke: Revoke
             share_revoked: Revoked
             share_revoked_toast: Link revoked
+            share_delete: Delete this link
+            share_deleted_toast: Link deleted
             share_expires_on: 'Expires on {date}'
             share_last_used: 'Opened on {date}'
             share_never_opened: Never opened
@@ -1073,11 +1092,6 @@ backend:
             from_nothing: Start from nothing
             fold_chapter: Fold this chapter
             unfold_chapter: Unfold this chapter
-            locked_title: Protected deck
-            locked_intro: This address asks for a password. It was given to you with the link.
-            locked_password: Password
-            locked_submit: Open the deck
-            locked_failed: That link or that password does not fit.
             share_password: Password
             share_password_placeholder: Leave empty for a link without one
             share_password_hint: Send it by something other than the message carrying the link.
@@ -1526,7 +1540,7 @@ backend:
             updated: Space updated.
             deleted: Space deleted.
             delete_confirm: 'Delete {name}?'
-            delete_warning: "The space goes with everything in it: its content, their threads and attachments, its conversations, its notes and its access links. Its dates leave the calendar. The client, their contracts and the media library's documents stay."
+            delete_warning: "The space goes with everything in it: its content, their threads and attachments, its conversations, its notes, its deliverables with their reading links, and its access links. Its dates leave the calendar. The client, their contracts and the media library's documents stay."
             show_archived: Show archived spaces
             sort_by_urgency: Sort by urgency
             archived_badge: Archived
@@ -1958,6 +1972,11 @@ backend:
                 link_url_required: This link has no address.
                 link_url_invalid: "This address is not valid. It has to start with http:// or https://."
                 link_url_too_long: This address is too long.
+        sharing:
+            errors:
+                expiry_invalid: "A link lasts from 1 to 365 days."
+                password_too_long: "That password is too long: 72 bytes at most (an accented letter counts for two)."
+                link_opened: "This link has already been opened: it can be revoked, not deleted. It keeps the record of who could read."
         deliverables:
             editor_guide:
                 title: "How to put a deliverable together"
@@ -1968,6 +1987,7 @@ backend:
                 step_5: "“Reading links” creates a secret address that opens this document alone without an account, with an optional password and expiry."
                 step_3_studio: "“Settings” holds the title, the summary, the language and the header, and its visibility: personal, or shared with the team."
                 step_4_studio: "Save your changes, then “Preview”, in the menu, opens the page as its recipient will read it."
+                step_6: "In the menu, “Export as PDF” gives one page per slide. Passages in [brackets] are to be replaced before opening the deliverable to the client: a counter follows them."
             guide:
                 title: "How deliverables work"
                 step_1: "“New deliverable” creates a document (audit, strategy, report) built like a page, in your colours or the client's."
@@ -1975,6 +1995,7 @@ backend:
                 step_3: "“Reading links”, in a deliverable's ⋯ menu or in its editor, gives someone a secret address that opens this document only, without the space."
                 step_4: "A link can have a password and an expiry, and is revoked one by one; hiding the deliverable does not cut its links."
                 step_5: "“Duplicate” creates a copy hidden from the client, handy to start again from last month's report."
+                step_6: "“Copy to Studio” keeps this deliverable as a model. Passages in [brackets] are to be replaced before opening it to the client: the list asks again if any are left. Reading links need the right to share the space."
             intro: "The documents written for this client: audits, strategies, reports. Each one is built like a page, in its own colours, and the client reads it in their space as soon as you open it to them."
             add: "New deliverable"
             empty: "No deliverables for this client."
@@ -2004,6 +2025,9 @@ backend:
             duplicate_hint: "A copy to rework, hidden from the client: last month's report to write this one."
             duplicated: "Copy created."
             copy_title: "%title% (copy)"
+            usage_detail: "Deliverable"
+            usage_detail_space: "Deliverable in the %space% space"
+            usage_private: "A personal deliverable"
             copy_to_space:
                 action: "Copy to a client space"
                 action_hint: "A copy in a client's space, hidden from them: the template you fill in for them."
@@ -2034,13 +2058,33 @@ backend:
                 action: "Copy to Studio"
                 action_hint: "A copy in your Studio deliverables, to turn it into a template. This one stays in the space."
                 done: "Copy created in Studio."
-            delete_hint: "Deletes the deliverable and its reading links."
-            delete_confirm: "Delete the deliverable \"{title}\"? Its reading links will stop working."
-            deleted: "Deliverable deleted."
+            delete_hint: "Moves it to the trash: it leaves the lists and its reading links stop answering, until it is restored."
+            trash_action: "Move to the trash"
+            usage_detail_trashed: "In the trash"
+            delete_confirm: "Move the deliverable \"{title}\" to the trash? It leaves the lists for everyone and its reading links stop answering. You will find it in the trash, where you can restore it, until it is deleted for good."
+            deleted: "Deliverable moved to the trash."
             back: "Deliverables of {space}"
             for_customer: "Prepared for {name}"
             saved: "Deliverable saved."
             save_failed: "The deliverable could not be saved."
+            archived_hint: "This space is archived: it takes no new deliverable. The ones it holds can still be edited."
+            show_confirm:
+                title: "Open this deliverable to the client?"
+                intro: "“{title}” may not be ready: the client will read it right away."
+                placeholders: "{count} passage in [brackets] is left to replace | {count} passages in [brackets] are left to replace"
+                pictures: "One picture is not published in the library, the client will not see it | {count} pictures are not published in the library, the client will not see them"
+                keep_hidden: "Keep it closed"
+                confirm: "Open it anyway"
+            gone: "This deliverable no longer exists: the list has just been refreshed."
+            not_allowed: "You are no longer allowed to do that on this deliverable: the list has just been refreshed."
+            read_only: "Read only"
+            read_only_hint: "You can read this deliverable but not change it: you would need the right to edit it."
+            tab_has_error: "This tab has an error."
+            conflict:
+                title: "A colleague saved before you"
+                keep_editing: "Keep editing"
+                reload: "Load their version"
+                overwrite: "Save anyway"
             unsaved: "Unsaved changes"
             links_hint: "One secret address per recipient, to pass the document on without opening the space."
             back_to_list: "Deliverables"
@@ -2050,16 +2094,16 @@ backend:
             studio_guide:
                 title: "How deliverables work"
                 step_1: "A deliverable is a document written to be read: an audit, a strategy, a proposal. It is built with the page grid, and never appears on the site."
-                step_2: "“My deliverables” is seen by you alone. “Shared” is read by the whole team with access to deliverables, and edited by those allowed to."
+                step_2: "“My deliverables” is seen by you alone. “Shared” is read by the whole team with access to deliverables; it is edited by those with the right, and by its author, even without it."
                 step_3: "A deliverable is created in the open tab; after that, only its author moves it between personal and shared, from its menu or its settings."
-                step_4: "A reading link sends it to whoever you want, with an optional expiry and password, without an account or a client space."
+                step_4: "A reading link sends it to whoever you want, with an expiry and a password if you like, no account or client space needed. Seeing the links and giving some needs the right to share."
                 step_5: "A client's deliverables are prepared in their space, Deliverables tab: that is where they read them."
                 step_6: "File them by category (audit, strategy, proposal…): filter the list or show it by category. A template is copied into a client's space, and a space deliverable comes back here with “Copy to Studio”."
             scope:
                 label: "Visibility"
                 personal: "Personal"
                 shared: "Shared"
-                personal_hint: "Only you can see it."
+                personal_hint: "Only you can see it in Studio. A reading link already given stays valid."
                 shared_hint: "The whole team reads it; those with the right edit it."
                 tab_personal: "My deliverables"
                 tab_shared: "Shared"
@@ -2075,12 +2119,13 @@ backend:
                 move_shared: "Share with the team"
                 move_shared_hint: "It moves to “Shared”: the whole team reads it, those with the right edit it."
                 move_personal: "Keep to myself"
-                move_personal_hint: "It moves back to “My deliverables”: nobody else sees it any more."
+                move_personal_hint: "It moves back to “My deliverables”: nobody else sees it in Studio any more. Reading links already given keep working; revoke them in “Reading links” to withdraw them."
                 moved_shared: "Deliverable shared with the team."
                 moved_personal: "Deliverable kept to yourself."
                 settings_hint: "Who sees this deliverable. Only its author changes this."
                 owner_only: "Only the deliverable's author changes this."
             tabs:
+                label: "Parts of the deliverable"
                 content: "Content"
                 appearance: "Appearance"
                 settings: "Settings"
@@ -2120,6 +2165,8 @@ backend:
                     display: "Bold capitals"
                 display: "Display"
                 display_hint: "« Web page » is read by scrolling. « Presentation » is turned section by section, like a slide show: one slide per large heading laid across the whole row."
+                reader_pdf: "Let the reader download a PDF"
+                reader_pdf_hint: "Adds « Download as PDF » at the top of the page the client receives, on a link as in the space. Off by default: a document you do not want circulating as a file does not offer it."
                 displays:
                     page: "Web page"
                     slides: "Presentation"
@@ -2185,11 +2232,22 @@ backend:
                 opened_once: "Opened once"
                 last_used: "last opened on {date}"
                 never_opened: "Never opened"
+                placeholders_title: "{count} passage in [brackets] is left to replace | {count} passages in [brackets] are left to replace"
+                placeholders_hint: "Whoever holds the link will read them as they are. Replace them before giving the address out."
+                create_failed: "The link could not be created."
+                revoke_failed: "The link could not be revoked."
+                revoke_confirm: "Revoke this link? Whoever holds it will no longer open the document, and a revoked link is not restored."
+                delete: "Delete"
+                delete_confirm: "Delete this link? Nobody ever opened it: it leaves the list."
+                delete_failed: "This link could not be deleted."
+                deleted_toast: "Link deleted"
             errors:
                 title_required: "Give the deliverable a title."
                 title_too_long: "The title is longer than 255 characters."
                 locale_invalid: "This language is not active on the site."
                 grid_invalid: "The grid sent is unreadable."
+                scope_invalid: "That visibility does not exist: choose personal or shared."
+                conflict: "A colleague saved this deliverable in the meantime. Reload the page to see their version, or save anyway to replace it."
         space_resources:
             guide:
                 title: "How resources work"

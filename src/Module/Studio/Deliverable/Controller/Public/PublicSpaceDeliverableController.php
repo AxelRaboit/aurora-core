@@ -44,13 +44,14 @@ final class PublicSpaceDeliverableController extends AbstractController
     public function show(string $selector, string $token, int $deliverableId, Request $request): Response
     {
         $link = $this->links->resolveUsable($selector, $token);
-        $deliverable = $this->deliverables->find($deliverableId);
 
-        if (!$link instanceof SpaceAccessLinkInterface
-            || !$deliverable instanceof DeliverableInterface
-            || $deliverable->getSpace()?->getId() !== $link->getSpace()->getId()
-            || !$deliverable->isVisibleToClient()
-        ) {
+        // Cherché dans l'espace que le lien ouvre, pas partout puis comparé :
+        // un livrable d'un autre espace n'est jamais lu pour ce lien.
+        $deliverable = $link instanceof SpaceAccessLinkInterface
+            ? $this->deliverables->findInSpace($link->getSpace(), $deliverableId)
+            : null;
+
+        if (!$link instanceof SpaceAccessLinkInterface || !$deliverable instanceof DeliverableInterface || !$deliverable->isVisibleToClient()) {
             throw $this->createNotFoundException();
         }
 
@@ -60,8 +61,9 @@ final class PublicSpaceDeliverableController extends AbstractController
         // comme la page de l'espace le fait.
         $this->links->markOpened($link);
 
-        return $this->privately($this->renderer->render(
+        return $this->privately($this->renderer->renderForReader(
             $deliverable,
+            $request->query->getBoolean('print'),
             $this->generateUrl('public_space_show', ['selector' => $selector, 'token' => $token]),
         ));
     }
