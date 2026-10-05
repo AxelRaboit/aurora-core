@@ -5,7 +5,7 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
-## [Unreleased]
+## [1.15.1] - 2026-10-05
 
 ### Corrigé
 - **L'éditeur d'un livrable ou d'une publication ne déborde plus sur téléphone** : un titre long dans le « Plan du document » poussait ses deux boutons hors de l'écran et la page défilait de côté. La ligne du plan se tronque désormais.
