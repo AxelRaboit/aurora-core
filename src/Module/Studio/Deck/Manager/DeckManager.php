@@ -12,6 +12,7 @@ use Aurora\Module\Studio\Deck\Enum\DeckThemeEnum;
 use Aurora\Module\Studio\Deck\Enum\SlideLayoutEnum;
 use Aurora\Module\Studio\Deck\Service\DeckStyleNormalizer;
 use Aurora\Module\Studio\Deck\Service\FreeSlideNormalizer;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use LogicException;
 
@@ -40,6 +41,44 @@ class DeckManager
         protected readonly DeckStyleNormalizer $styleNormalizer,
         protected readonly FreeSlideNormalizer $freeNormalizer,
     ) {}
+
+    /**
+     * Puts the deck in the trash: it leaves the lists, the search and the
+     * counts, and its share links stop answering. Nothing is destroyed: its
+     * slides, its pictures (still counted by the media library) and its links
+     * with their history stay, and a restore puts everything back.
+     */
+    public function trash(DeckInterface $deck): void
+    {
+        if ($deck->isTrashed()) {
+            return;
+        }
+
+        $deck->setDeletedAt(new DateTimeImmutable());
+        $this->entityManager->flush();
+    }
+
+    /** Takes the deck out of the trash: its share links answer again, as they were. */
+    public function restore(DeckInterface $deck): void
+    {
+        if (!$deck->isTrashed()) {
+            return;
+        }
+
+        $deck->setDeletedAt(null);
+        $this->entityManager->flush();
+    }
+
+    /**
+     * Destroys the deck for good, with its slides and its share links. The
+     * trash's "Delete permanently" button and the scheduled purge both come
+     * here: it is the only place a deck disappears.
+     */
+    public function forceDelete(DeckInterface $deck): void
+    {
+        $this->entityManager->remove($deck);
+        $this->entityManager->flush();
+    }
 
     public function create(string $title): DeckInterface
     {

@@ -5,6 +5,20 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [1.14.0] - 2026-10-05
+
+### Ajouté
+- **Les présentations passent par la corbeille commune**, comme les livrables : supprimer une présentation la met à la corbeille au lieu de la détruire. Elle sort des listes, de la recherche, des compteurs et des fiches client, ses adresses de partage répondent 404, et elle revient intacte avec ses slides et ses liens à la restauration. Le bloc « présentation » d'une publication disparaît aussi tant qu'elle y est. Ses images restent comptées dans la médiathèque jusqu'à la purge. Restaurer, détruire pour de bon et « Vider la corbeille » demandent le droit de supprimer (`studio.decks.delete`) ; la purge planifiée suit le délai commun (`TrashAutoPurgeDays`).
+
+### Corrigé
+- **L'adresse d'un lien se sélectionne seule** : dans la fenêtre des liens d'un livrable et dans le panneau de partage d'une présentation, un clic ou un triple clic sur l'adresse prend l'adresse entière et rien d'autre. Avant, la sélection emportait aussi la ligne du dessous (« Sans expiration · Jamais ouvert »), et l'adresse collée répondait 404.
+
+### Dans aurora-client
+- **Migration** : la colonne `deleted_at` (et son index) arrive sur la table des présentations. Un projet qui étend `AbstractDeck` génère sa propre migration ; `DeckInterface` gagne `getDeletedAt()`, `setDeletedAt()` et `isTrashed()`.
+- Les lectures passent par `DeckRepository::findLive()`, `findLiveForCustomer()`, `findLiveByTitle()` et `countLive()` (corbeille exclue). Toute route qui reçoit `Deck $deck` répond 404 pour une présentation à la corbeille : `TrashedDeckSubscriber` le fait une fois, sur les arguments résolus. `DecksTrashSource` s'enregistre tout seul dans la corbeille commune.
+
+---
+
 ## [1.13.0] - 2026-10-05
 
 ### Sécurité

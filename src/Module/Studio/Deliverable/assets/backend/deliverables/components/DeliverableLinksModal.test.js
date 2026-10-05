@@ -338,4 +338,22 @@ describe("DeliverableLinksModal", () => {
         expect(titled("backend.studio.deliverables.links.revoke")).toBeTruthy();
         wrapper.unmount();
     });
+
+    it("lets the address be selected on its own, without the line under it", async () => {
+        request.mockResolvedValueOnce({
+            success: true,
+            links: [link(1, "Pour Alice")],
+        });
+        const wrapper = mountModal();
+        await flushPromises();
+
+        // A pasted address that carries « Sans expiration · Jamais ouvert » is a 404: the address is
+        // one selectable block.
+        const address = [...document.body.querySelectorAll("p")].find((p) =>
+            p.textContent.includes("https://x.test/deliverables/1"),
+        );
+        expect(address.classList.contains("select-all")).toBe(true);
+        expect(address.textContent).not.toContain("Jamais ouvert");
+        wrapper.unmount();
+    });
 });

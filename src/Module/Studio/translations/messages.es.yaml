@@ -817,12 +817,13 @@ backend:
             create: 'Crear una presentación'
             created: 'Presentación creada'
             updated: 'Presentación actualizada'
-            deleted: 'Presentación eliminada'
+            deleted: "Presentación enviada a la papelera"
             duplicated: 'Presentación duplicada'
             duplicate: Duplicar
             duplicate_hint: 'Copia las diapositivas, sin el cliente.'
             edit_hint: 'El título, la sección y el cliente.'
-            delete_hint: 'La presentación y todas sus diapositivas.'
+            delete_hint: "La envía a la papelera: sale de las listas y sus enlaces para compartir dejan de responder, hasta que se restaure."
+            trash_action: "Enviar a la papelera"
             copy_of: '%title% (copia)'
             title_column: Título
             title_placeholder: 'Reunión de lanzamiento, octubre'
@@ -838,7 +839,7 @@ backend:
             search_placeholder: 'Buscar una presentación…'
             empty_title: 'Ninguna presentación'
             empty_description: 'Una presentación es un conjunto de diapositivas que muestra a alguien. Cree la primera.'
-            delete_confirm: '¿Eliminar «{title}» y todas sus diapositivas?'
+            delete_confirm: "¿Enviar «{title}» a la papelera? Sale de las listas y sus enlaces para compartir dejan de responder. La encontrará en la papelera, donde podrá restaurarla, hasta que se elimine definitivamente."
             errors:
                 title_required: 'El título es obligatorio.'
                 title_too_long: 'El título es demasiado largo.'
