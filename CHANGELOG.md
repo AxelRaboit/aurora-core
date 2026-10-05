@@ -5,7 +5,7 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
-## [Unreleased]
+## [1.13.0] - 2026-10-05
 
 ### Sécurité
 - **Les adresses de lecture d'un livrable sont chiffrées au repos**, et retrouvées par leur empreinte SHA-256 (`token_hash`, unique). Une sauvegarde ou un journal SQL n'est plus une liste d'adresses qui marchent ; la fenêtre des liens peut toujours les afficher, l'application les déchiffre. La migration calcule l'empreinte puis chiffre chaque jeton avec la clé de l'application, sans changer une adresse déjà envoyée (clé absente : elle s'arrête avant d'écrire). Le jeton passe par un service commun, `ShareToken`.
