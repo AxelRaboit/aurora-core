@@ -63,7 +63,6 @@ final readonly class DeliverablePageRenderer
         GridNormalizer::ZONE_DECK,
         GridNormalizer::ZONE_FORM,
         GridNormalizer::ZONE_POLL,
-        GridNormalizer::ZONE_EDITORIAL_CALENDAR,
         GridNormalizer::ZONE_ACTIVITY_FEED,
         GridNormalizer::ZONE_NEWSLETTER_SIGNUP,
         GridNormalizer::ZONE_NEWSLETTER_PRIVACY,

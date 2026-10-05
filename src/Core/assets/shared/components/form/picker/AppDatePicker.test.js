@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { mount } from "@vue/test-utils";
+import { mount, flushPromises } from "@vue/test-utils";
 import { createTestI18n } from "@/tests/helpers/createTestI18n.js";
 import { ref } from "vue";
 
@@ -186,5 +186,29 @@ describe("AppDatePicker", () => {
                 ["2026-10-02T09:00"],
             ]);
         });
+    });
+
+    // Since version 12 the library reads the shown format from `formats.input`
+    // and ignores `format` without a word: every date of the back office came
+    // back as « 11/05/2026, 01:00 » for the 5th of November.
+    it.each([
+        [{ modelValue: "2026-11-05" }, "05/11/2026"],
+        [
+            { modelValue: "2026-11-05T09:30", enableTime: true },
+            "05/11/2026 09:30",
+        ],
+        [{ modelValue: "2026-11", monthOnly: true }, "11/2026"],
+    ])("shows the date the French way %o", async (props, expected) => {
+        // Le vrai composant : la v12 ignore `format`, et un bouchon ne le
+        // verrait pas. Ce qui compte est le texte affiché dans le champ.
+        const wrapper = mount(AppDatePicker, {
+            props,
+            global: { plugins: [createTestI18n({}, "fr")] },
+            attachTo: document.body,
+        });
+        await flushPromises();
+
+        expect(wrapper.find("input").element.value).toBe(expected);
+        wrapper.unmount();
     });
 });

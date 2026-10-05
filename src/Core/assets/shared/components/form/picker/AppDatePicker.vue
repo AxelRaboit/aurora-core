@@ -82,6 +82,10 @@ const acceptedFormats = computed(
  * C'est le même défaut que celui qui avait fait remplacer les `datetime-local`
  * natifs par ce composant : une date lue de travers n'est pas une date
  * illisible, c'est une date comprise à l'envers.
+ *
+ * Passé par `formats.input` : depuis sa version 12, la bibliothèque ne lit plus
+ * `format`, et l'ignorait sans un mot (tout le back-office affichait de
+ * nouveau `11/05/2026, 01:00` pour le 5 novembre).
  */
 const displayFormat = computed(() => acceptedFormats.value[0]);
 
@@ -146,7 +150,7 @@ const internalValue = computed(() => {
             :model-value="internalValue"
             :dark="isDark"
             :locale="dateFnsLocale"
-            :format="displayFormat"
+            :formats="{ input: displayFormat }"
             :enable-time-picker="enableTime"
             :month-picker="monthOnly"
             :placeholder="placeholder"
