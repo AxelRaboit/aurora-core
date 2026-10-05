@@ -1071,6 +1071,9 @@ backend:
             tile_full_bleed: "Ancho completo"
             tile_image_missing: "Imagen por elegir"
             placeholders_left: "Queda {count} pasaje entre [corchetes] por reemplazar. | Quedan {count} pasajes entre [corchetes] por reemplazar."
+            zone_placeholders: "Queda {count} pasaje entre [corchetes] por reemplazar en esta zona. | Quedan {count} pasajes entre [corchetes] por reemplazar en esta zona."
+            section_placeholders: "Queda {count} pasaje entre [corchetes] por reemplazar en esta sección. | Quedan {count} pasajes entre [corchetes] por reemplazar en esta sección."
+            section_placeholders_zones: "Repartidos en {count} zonas, desde el título hasta la sección siguiente."
             split_on: "Vista previa al lado"
             split_off: "Cerrar la vista previa lateral"
             devices:
@@ -1266,7 +1269,16 @@ backend:
             chart_unit_hint: 'Se escribe tras cada valor: %, €, k. Opcional.'
             chart_title: Título
             chart_data: Valores
-            chart_data_hint: "Una línea por valor: el nombre, un punto y coma, el número y, si hace falta, otro punto y coma y un color (#2f1bea). « Crecimiento » muestra además la evolución entre el primero y el último."
+            chart_data_hint: "Una línea por valor: el nombre, un punto y coma, el número (entre [corchetes] en una plantilla, para señalarlo por reemplazar) y, si hace falta, otro punto y coma y un color (#2f1bea). « Crecimiento » muestra además la evolución entre el primero y el último."
+            chart_as_text: "Escribir como texto"
+            chart_as_table: "Volver a la tabla"
+            chart_row: "Línea {number}"
+            chart_row_move: "Mover la línea"
+            chart_row_theme_color: "Color del tema"
+            chart_row_clear_color: "Volver al color del tema"
+            chart_row_remove: "Quitar la línea"
+            chart_row_add: "Añadir una línea"
+            chart_rows_hint: "Una línea por valor: el nombre, el número y, si hace falta, su color; sin color elegido, el gráfico toma los tonos del tema. En una plantilla, ponga el nombre y el número entre [corchetes] para señalarlos por reemplazar. « Crecimiento » muestra además la evolución entre el primero y el último."
             chart_note: 'Fuente o detalle'
             video_wall_count: '{count} vídeo de {max} | {count} vídeos de {max}'
             video_wall_add: 'Añadir vídeos'
@@ -1323,9 +1335,11 @@ backend:
                 social_text: 'Luz de la mañana sobre el puerto, sin retoques.'
                 qr_caption: 'Escanee para ver el sitio'
                 chart_title: 'Seguidores de Instagram'
+                chart_row_name: "Fotos únicas"
+                chart_row_value: "60"
                 chart_data: |-
-                    Enero ; 1200
-                    Febrero ; 1480
+                    Enero ; 1200 ; #2f1bea
+                    Febrero ; 1480 ; #111111
                     Marzo ; 2100
                 chart_source: 'Fuente: estadísticas de la cuenta'
                 calendar_title: 'Planificación de octubre'

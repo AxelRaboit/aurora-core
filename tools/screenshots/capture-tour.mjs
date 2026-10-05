@@ -1140,6 +1140,84 @@ const SHOTS = [
     },
 
     /**
+     * Les nouveautés de la 1.11.0, sur deux livrables de démonstration : le
+     * modèle d'audit mis en page comme un diaporama (fond blanc, cartes en
+     * relief, pastilles, téléphone penché) et le même audit en présentation.
+     * Ils ne viennent pas des fixtures : ils se recréent avec
+     * `~/claude/cm/coach_audit.py` après un `make demo-reset`.
+     */
+    {
+        name: "tour-livrables-audit",
+        path: "/backend/studio/deliverables?scope=personal",
+        async prepare(page) {
+            await page.goto(`${BASE_URL}/backend/studio/deliverables/13/preview`, { waitUntil: "domcontentloaded" });
+            await page.waitForTimeout(2_500);
+            await page.getByRole("heading", { name: /Présentation de l'entreprise/i }).first().evaluate((el) => window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 40, behavior: "instant" }));
+            await page.waitForTimeout(1_500);
+        },
+    },
+    {
+        name: "tour-livrables-presentation",
+        path: "/backend/studio/deliverables?scope=personal",
+        async prepare(page) {
+            await page.goto(`${BASE_URL}/backend/studio/deliverables/14/preview#diapo-11`, { waitUntil: "domcontentloaded" });
+            await page.waitForTimeout(3_000);
+        },
+    },
+    {
+        name: "tour-livrables-ambiances",
+        path: "/backend/studio/deliverables?scope=personal",
+        async prepare(page) {
+            await page.goto(`${BASE_URL}/backend/studio/deliverables/13`, { waitUntil: "domcontentloaded" });
+            await page.waitForTimeout(3_000);
+            await page.locator("main").getByRole("button", { name: "Apparence", exact: true }).first().click();
+            await page.waitForTimeout(1_500);
+            await page.locator("main").getByText("Ambiances", { exact: true }).first().evaluate((el) => window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 120, behavior: "instant" }));
+            await page.waitForTimeout(800);
+        },
+    },
+    {
+        name: "tour-grille-sections",
+        path: "/backend/studio/deliverables?scope=personal",
+        async prepare(page) {
+            await page.goto(`${BASE_URL}/backend/studio/deliverables/13`, { waitUntil: "domcontentloaded" });
+            await page.waitForTimeout(3_000);
+            await page.locator("main").getByRole("button", { name: "Insérer une section" }).first().click();
+            await page.getByRole("dialog").first().waitFor();
+            await page.waitForTimeout(1_000);
+        },
+    },
+    {
+        name: "tour-grille-apercu",
+        path: "/backend/studio/deliverables?scope=personal",
+        async prepare(page) {
+            await page.addInitScript(() => window.localStorage.setItem("aurora.grid.split", "1"));
+            await page.goto(`${BASE_URL}/backend/studio/deliverables/13`, { waitUntil: "domcontentloaded" });
+            await page.waitForTimeout(3_000);
+            await page.locator("main aside").getByTitle("Téléphone").click();
+            await page.waitForTimeout(4_000);
+            // La première zone de la section « Présentation de l'entreprise »,
+            // choisie dans l'aperçu : elle s'y souligne, et son réglage s'ouvre.
+            const frame = page.frameLocator("[data-preview-pane] iframe");
+            await frame.locator("[data-grid-zone]").nth(9).click();
+            await page.waitForTimeout(1_500);
+            await page.locator("main aside").evaluate((el) => window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 90, behavior: "instant" }));
+            await page.waitForTimeout(800);
+        },
+    },
+    {
+        name: "tour-grille-plan",
+        path: "/backend/studio/deliverables?scope=personal",
+        async prepare(page) {
+            await page.addInitScript(() => window.localStorage.setItem("aurora.grid.split", "0"));
+            await page.goto(`${BASE_URL}/backend/studio/deliverables/13`, { waitUntil: "domcontentloaded" });
+            await page.waitForTimeout(3_000);
+            await page.locator("main").getByText(/Plan du document/).first().evaluate((el) => window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 90, behavior: "instant" }));
+            await page.waitForTimeout(1_000);
+        },
+    },
+
+    /**
      * Une variante de couleur, par la famille du « Visuel de campagne » que
      * `make demo` décline en rouge et en bleu. Derrière la fenêtre, le bandeau
      * de famille déplié montre l'original et sa variante. « Voir la famille »

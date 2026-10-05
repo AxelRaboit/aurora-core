@@ -485,6 +485,30 @@
         "tour-livrables-reglages": {
             "document": 777,
             "slug": "livrables"
+        },
+        "tour-grille-plan": {
+            "document": 785,
+            "slug": "composer-une-page"
+        },
+        "tour-grille-sections": {
+            "document": 786,
+            "slug": "composer-une-page"
+        },
+        "tour-grille-apercu": {
+            "document": 787,
+            "slug": "composer-une-page"
+        },
+        "tour-livrables-audit": {
+            "document": 788,
+            "slug": "livrables"
+        },
+        "tour-livrables-presentation": {
+            "document": 789,
+            "slug": "livrables"
+        },
+        "tour-livrables-ambiances": {
+            "document": 790,
+            "slug": "livrables"
         }
     }
 }

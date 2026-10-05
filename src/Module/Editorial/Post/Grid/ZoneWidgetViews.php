@@ -431,7 +431,11 @@ final readonly class ZoneWidgetViews
 
         foreach (array_slice($this->lines($held['code']), 0, 24) as $line) {
             $cells = $this->cells($line);
-            $value = $this->number($cells[1] ?? '');
+            // A value between brackets is a blank of a model, « [60] »: it is
+            // drawn like any figure, and printed with its brackets so the
+            // author's preview lights it with the other passages to replace.
+            $blank = 1 === preg_match('/^\[(.+)\]$/u', $cells[1] ?? '', $inner);
+            $value = $this->number($blank ? $inner[1] : ($cells[1] ?? ''));
             if ('' === ($cells[0] ?? '')) {
                 continue;
             }
@@ -445,7 +449,8 @@ final readonly class ZoneWidgetViews
             // hex colour passes: it is printed inside a style attribute.
             $color = 1 === preg_match('/^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i', $cells[2] ?? '') ? mb_strtolower($cells[2]) : null;
 
-            $rows[] = ['label' => $cells[0], 'value' => $value, 'valueLabel' => $numbers->format($value).('' === $unit ? '' : "\u{202f}".$unit), 'color' => $color];
+            $valueLabel = $numbers->format($value).('' === $unit ? '' : "\u{202f}".$unit);
+            $rows[] = ['label' => $cells[0], 'value' => $value, 'valueLabel' => $blank ? '['.$valueLabel.']' : $valueLabel, 'color' => $color];
         }
 
         if ([] === $rows) {
