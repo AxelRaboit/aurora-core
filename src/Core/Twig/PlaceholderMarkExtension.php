@@ -27,7 +27,8 @@ use function preg_split;
  */
 final readonly class PlaceholderMarkExtension
 {
-    private const string BLANK = '/\[([^\[\]<>\n]{1,300})\]/u';
+    /** The one definition of a blank: shared with {@see PlaceholderCounter}, so what is lit is what is counted. */
+    public const string BLANK = '/\[([^\[\]<>\n]{1,300})\]/u';
 
     #[AsTwigFilter('mark_placeholders', isSafe: ['html'])]
     public function mark(string $html): string

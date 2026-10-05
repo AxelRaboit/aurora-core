@@ -27,7 +27,7 @@ const { formatDateShort, formatTime } = useDateFormat();
 </script>
 
 <template>
-    <ul class="m-0 list-none space-y-2 p-0">
+    <ul class="m-0 list-none space-y-2 p-0" role="list">
         <li
             v-for="deliverable in deliverables"
             :key="deliverable.id"

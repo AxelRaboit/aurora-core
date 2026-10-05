@@ -8,6 +8,7 @@ use Aurora\Core\Repository\ResolveTargetEntityRepository;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableLink;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableLinkInterface;
+use Aurora\Module\Studio\Sharing\ShareToken;
 use Doctrine\Common\Collections\Order;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -23,7 +24,7 @@ class DeliverableLinkRepository extends ResolveTargetEntityRepository
 
     public function findByToken(string $token): ?DeliverableLinkInterface
     {
-        return $this->findOneBy(['token' => $token]);
+        return $this->findOneBy(['tokenHash' => ShareToken::hash($token)]);
     }
 
     /**

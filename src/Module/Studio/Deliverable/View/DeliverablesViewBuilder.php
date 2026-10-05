@@ -48,6 +48,7 @@ final readonly class DeliverablesViewBuilder
         return [
             ...$this->lists(),
             'canCreate' => $this->access->canCreate(),
+            'listsPath' => $this->urlGenerator->generate('backend_studio_deliverables_lists'),
             'createPath' => $this->urlGenerator->generate('backend_studio_deliverables_create'),
             'scopePathTemplate' => $template('scope'),
             'duplicatePathTemplate' => $template('duplicate'),
@@ -126,7 +127,6 @@ final readonly class DeliverablesViewBuilder
             'hiddenZoneTypes' => DeliverablePageRenderer::HIDDEN_ZONE_TYPES,
             'deliverablesPath' => $this->urlGenerator->generate('backend_studio_deliverables').'?scope='.$deliverable->getScope()->value,
             'updatePath' => $route('update'),
-            'scopePath' => $route('scope'),
             'previewPath' => $route('preview'),
             'gridPreviewPath' => $this->urlGenerator->generate('backend_studio_deliverables_grid_preview'),
             'bannerPreviewPath' => $this->urlGenerator->generate('backend_studio_deliverables_banner_preview'),

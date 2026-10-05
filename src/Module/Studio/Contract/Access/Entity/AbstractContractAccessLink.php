@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\Contract\Access\Entity;
 
 use Aurora\Module\Studio\Contract\Entity\ContractInterface;
+use Aurora\Module\Studio\Sharing\ShareToken;
 use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -124,7 +125,7 @@ abstract class AbstractContractAccessLink implements ContractAccessLinkInterface
     public function mint(): string
     {
         $this->selector = bin2hex(random_bytes(16));
-        $this->plainToken = bin2hex(random_bytes(32));
+        $this->plainToken = ShareToken::generate();
         $this->hashedToken = self::hashToken($this->plainToken);
 
         return $this->plainToken;

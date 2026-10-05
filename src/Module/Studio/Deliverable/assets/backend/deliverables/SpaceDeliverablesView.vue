@@ -12,12 +12,12 @@
  * cartes en liste, les gestes écrits en toutes lettres sur téléphone.
  */
 import AppGuide from "@/shared/components/feedback/AppGuide.vue";
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
-import { Copy, Eye, EyeOff, ExternalLink, FolderOutput, Link2, Pencil, Plus, Trash2, X } from "lucide-vue-next";
-import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
+import { AlertTriangle, Copy, Eye, EyeOff, ExternalLink, FolderOutput, Link2, Pencil, Plus, Trash2, X } from "lucide-vue-next";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
+import { queueFlash } from "@/shared/utils/flash.js";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppInput from "@/shared/components/form/input/AppInput.vue";
@@ -27,10 +27,17 @@ import AppNoData from "@/shared/components/feedback/AppNoData.vue";
 import DeliverableCards from "./components/DeliverableCards.vue";
 import DeliverableDeleteModal from "./components/DeliverableDeleteModal.vue";
 import DeliverableLinksModal from "./components/DeliverableLinksModal.vue";
+import { useDeliverableRequest } from "./composables/useDeliverableRequest.js";
 
 const props = defineProps({
     deliverables: { type: Array, default: () => [] },
     canEdit: { type: Boolean, default: false },
+    /** Donner une adresse de lecture : le droit de partager l'espace, qui n'est pas celui de le modifier. */
+    canShare: { type: Boolean, default: false },
+    /** Faux pour une archive : elle ne reçoit plus de livrable, créé ni dupliqué. */
+    canAdd: { type: Boolean, default: false },
+    /** La route qui rend les lignes à jour, pour une liste devenue périmée. */
+    listPath: { type: String, default: "" },
     createPath: { type: String, required: true },
     visibilityPathTemplate: { type: String, required: true },
     duplicatePathTemplate: { type: String, required: true },
@@ -42,9 +49,20 @@ const props = defineProps({
 });
 
 const { t } = useI18n();
-const { request } = useRequest();
 
 const rows = ref([...props.deliverables]);
+
+// La page du parent peut rafraîchir ses lignes : sans cela, celles d'ici
+// restaient celles du premier chargement.
+watch(
+    () => props.deliverables,
+    (next) => (rows.value = [...next]),
+);
+
+const { send } = useDeliverableRequest({
+    listPath: props.listPath,
+    onList: (data) => (rows.value = data.deliverables ?? []),
+});
 
 // ── Création ────────────────────────────────────────────────────────────────
 
@@ -64,7 +82,7 @@ async function create() {
 
     saving.value = true;
     try {
-        const data = await request(props.createPath, { title: title.value });
+        const data = await send(props.createPath, { title: title.value });
 
         if (!data?.success) {
             errors.value = data?.errors ?? {};
@@ -83,13 +101,33 @@ async function create() {
 
 const busyId = ref(null);
 
-async function toggleVisibility(deliverable) {
+/** Ce qui retient l'ouverture au client, en attendant que l'auteur dise qu'il le sait. */
+const pendingShow = ref(null);
+
+async function toggleVisibility(deliverable, confirm = false) {
     busyId.value = deliverable.id;
     try {
-        const data = await request(buildPath(props.visibilityPathTemplate, { id: deliverable.id }), {
-            visible: !deliverable.visibleToClient,
-        });
+        const visible = !deliverable.visibleToClient;
+        const data = await send(
+            buildPath(props.visibilityPathTemplate, { id: deliverable.id }),
+            { visible, ...(confirm ? { confirm: true } : {}) },
+            { own: ["confirmation_needed"] },
+        );
+
+        // Un modèle pas fini, ou des images pas publiées : le serveur refuse
+        // d'ouvrir sans que l'auteur le sache, et dit ce qui reste.
+        if ("confirmation_needed" === data?.error) {
+            pendingShow.value = {
+                deliverable,
+                placeholders: data.placeholders ?? 0,
+                pictures: data.withheldPictures ?? [],
+            };
+
+            return;
+        }
+
         if (data?.success) {
+            pendingShow.value = null;
             rows.value = data.deliverables;
             toast.success(t(deliverable.visibleToClient
                 ? "backend.studio.deliverables.hidden_toast"
@@ -103,8 +141,11 @@ async function toggleVisibility(deliverable) {
 async function duplicate(deliverable) {
     busyId.value = deliverable.id;
     try {
-        const data = await request(buildPath(props.duplicatePathTemplate, { id: deliverable.id }), {});
-        if (data?.success) window.location.href = data.editPath;
+        const data = await send(buildPath(props.duplicatePathTemplate, { id: deliverable.id }), {});
+        if (data?.success) {
+            queueFlash("success", t("backend.studio.deliverables.duplicated"));
+            window.location.href = data.editPath;
+        }
     } finally {
         busyId.value = null;
     }
@@ -113,9 +154,9 @@ async function duplicate(deliverable) {
 async function copyToStudio(deliverable) {
     busyId.value = deliverable.id;
     try {
-        const data = await request(buildPath(props.copyToStudioPathTemplate, { id: deliverable.id }), {});
+        const data = await send(buildPath(props.copyToStudioPathTemplate, { id: deliverable.id }), {});
         if (data?.success) {
-            toast.success(t("backend.studio.deliverables.copy_to_studio.done"));
+            queueFlash("success", t("backend.studio.deliverables.copy_to_studio.done"));
             window.location.href = data.editPath;
         }
     } finally {
@@ -131,12 +172,15 @@ async function doDelete() {
 
     deleting.value = true;
     try {
-        const data = await request(buildPath(props.deletePathTemplate, { id: pendingDelete.value.id }), {});
+        const data = await send(buildPath(props.deletePathTemplate, { id: pendingDelete.value.id }), {});
         if (data?.success) {
             rows.value = data.deliverables;
             toast.success(t("backend.studio.deliverables.deleted"));
-            pendingDelete.value = null;
         }
+
+        // Réussi ou refusé (le livrable n'existe plus), la fenêtre se ferme :
+        // la liste a été redessinée d'un côté ou de l'autre.
+        pendingDelete.value = null;
     } finally {
         deleting.value = false;
     }
@@ -169,8 +213,9 @@ function actionsFor(deliverable) {
     ];
 
     // Les liens de lecture, comme dans l'éditeur : créer une adresse pour un
-    // destinataire ne demande plus d'ouvrir le document d'abord.
-    if (props.linksPathTemplate) {
+    // destinataire ne demande plus d'ouvrir le document d'abord. Seulement
+    // avec le droit de partager l'espace : la liste porte les adresses mêmes.
+    if (props.linksPathTemplate && props.canShare) {
         actions.push({
             key: "links",
             icon: Link2,
@@ -208,19 +253,21 @@ function actionsFor(deliverable) {
             disabled: busyId.value === deliverable.id,
             onSelect: () => toggleVisibility(deliverable),
         },
-        {
-            key: "duplicate",
-            icon: Copy,
-            title: t("backend.studio.deliverables.duplicate"),
-            description: t("backend.studio.deliverables.duplicate_hint"),
-            disabled: busyId.value === deliverable.id,
-            onSelect: () => duplicate(deliverable),
-        },
+        ...(props.canAdd
+            ? [{
+                key: "duplicate",
+                icon: Copy,
+                title: t("backend.studio.deliverables.duplicate"),
+                description: t("backend.studio.deliverables.duplicate_hint"),
+                disabled: busyId.value === deliverable.id,
+                onSelect: () => duplicate(deliverable),
+            }]
+            : []),
         {
             key: "delete",
             color: "rose",
             icon: Trash2,
-            title: t("shared.common.delete"),
+            title: t("backend.studio.deliverables.trash_action"),
             description: t("backend.studio.deliverables.delete_hint"),
             onSelect: () => (pendingDelete.value = deliverable),
         },
@@ -236,7 +283,7 @@ function actionsFor(deliverable) {
             <p class="m-0 text-xs text-muted sm:max-w-lg">{{ t("backend.studio.deliverables.intro") }}</p>
 
             <AppButton
-                v-if="canEdit"
+                v-if="canEdit && canAdd"
                 variant="ghost"
                 size="sm"
                 class="w-full justify-center sm:w-auto"
@@ -251,13 +298,17 @@ function actionsFor(deliverable) {
      replié ou déplié, le choix vaut pour tous les encarts. -->
         <AppGuide :title="t('backend.studio.deliverables.guide.title')" storage-key="space-deliverables">
             <ol class="m-0 flex list-decimal flex-col gap-1.5 pl-5">
-                <li v-for="step in 5" :key="step">{{ t(`backend.studio.deliverables.guide.step_${step}`) }}</li>
+                <li v-for="step in 6" :key="step">{{ t(`backend.studio.deliverables.guide.step_${step}`) }}</li>
             </ol>
         </AppGuide>
+        <p v-if="canEdit && !canAdd" class="m-0 rounded-lg border border-line bg-surface-2 p-3 text-sm text-secondary" role="status">
+            {{ t("backend.studio.deliverables.archived_hint") }}
+        </p>
+
         <AppNoData
             v-if="0 === rows.length"
             :message="t('backend.studio.deliverables.empty')"
-            :hint="t('backend.studio.deliverables.empty_hint')"
+            :hint="canEdit && canAdd ? t('backend.studio.deliverables.empty_hint') : ''"
         />
 
         <DeliverableCards v-else :deliverables="rows" :actions-for="actionsFor">
@@ -301,6 +352,37 @@ function actionsFor(deliverable) {
                     </AppButton>
                     <AppButton variant="primary" size="md" :loading="saving" v-on:click="create">
                         <Plus class="h-3.5 w-3.5" :stroke-width="2" /> {{ t("backend.studio.deliverables.create") }}
+                    </AppButton>
+                </AppModalFooter>
+            </template>
+        </AppModal>
+
+        <!-- Ouvrir au client un document qui n'est pas fini : on le dit, on
+             ne le refuse pas, l'auteur sait ce qu'il fait. -->
+        <AppModal
+            :show="!!pendingShow"
+            max-width="md"
+            :title="t('backend.studio.deliverables.show_confirm.title')"
+            :icon="AlertTriangle"
+            v-on:close="pendingShow = null"
+        >
+            <div v-if="pendingShow" class="space-y-3 text-sm text-primary">
+                <p class="m-0">{{ t("backend.studio.deliverables.show_confirm.intro", { title: pendingShow.deliverable.title }) }}</p>
+                <p v-if="pendingShow.placeholders" class="m-0 rounded-md bg-amber-500/10 px-3 py-2 text-amber-700 dark:text-amber-400">
+                    {{ t("backend.studio.deliverables.show_confirm.placeholders", { count: pendingShow.placeholders }) }}
+                </p>
+                <p v-if="pendingShow.pictures.length" class="m-0 rounded-md bg-amber-500/10 px-3 py-2 text-amber-700 dark:text-amber-400">
+                    {{ t("backend.studio.deliverables.show_confirm.pictures", { count: pendingShow.pictures.length }) }}
+                    <span class="block truncate text-xs text-secondary">{{ pendingShow.pictures.map((picture) => picture.name).join(", ") }}</span>
+                </p>
+            </div>
+            <template #footer>
+                <AppModalFooter>
+                    <AppButton variant="ghost" size="md" v-on:click="pendingShow = null">
+                        <X class="h-3.5 w-3.5" :stroke-width="2" /> {{ t("backend.studio.deliverables.show_confirm.keep_hidden") }}
+                    </AppButton>
+                    <AppButton variant="primary" size="md" :loading="busyId === pendingShow?.deliverable.id" v-on:click="toggleVisibility(pendingShow.deliverable, true)">
+                        <Eye class="h-3.5 w-3.5" :stroke-width="2" /> {{ t("backend.studio.deliverables.show_confirm.confirm") }}
                     </AppButton>
                 </AppModalFooter>
             </template>

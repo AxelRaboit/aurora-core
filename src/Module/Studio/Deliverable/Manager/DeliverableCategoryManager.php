@@ -20,7 +20,7 @@ use function mb_trim;
  * Supprimer une catégorie ne supprime aucun livrable : la colonne est en
  * `ON DELETE SET NULL`, ses livrables redeviennent « sans catégorie ».
  */
-final readonly class DeliverableCategoryManager
+readonly class DeliverableCategoryManager
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
@@ -28,9 +28,15 @@ final readonly class DeliverableCategoryManager
     ) {}
 
     /** Une catégorie neuve se range à la fin : on la remonte ensuite si l'on veut. */
+    /** La catégorie qu'on crée, à un seul endroit : un projet qui étend l'entité surcharge ceci. */
+    protected function instantiate(): DeliverableCategoryInterface
+    {
+        return new DeliverableCategory();
+    }
+
     public function create(DeliverableCategoryInput $input): DeliverableCategoryInterface
     {
-        $category = new DeliverableCategory();
+        $category = $this->instantiate();
         $category->setPosition($this->categories->nextPosition());
         $this->apply($category, $input);
         $this->entityManager->persist($category);

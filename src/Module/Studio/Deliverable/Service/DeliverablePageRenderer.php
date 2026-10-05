@@ -18,6 +18,7 @@ use IntlDateFormatter;
 use Symfony\Component\HttpFoundation\Response;
 use Twig\Environment;
 
+use function array_intersect_key;
 use function array_map;
 use function in_array;
 use function is_array;
@@ -39,12 +40,18 @@ use function is_string;
 final readonly class DeliverablePageRenderer
 {
     /**
-     * Les zones qui ne vivent que sur une page du site : un fil de
-     * commentaires, une recherche, une liste de publications, un formulaire
-     * ou une inscription à la lettre, un sondage. Elles s'accrochent à une
-     * publication ou à l'audience du site, qu'un livrable n'a pas : chacune
-     * ne pourrait dessiner qu'un bloc qui échoue, ou montrer au client ce qui
-     * ne le regarde pas.
+     * Les zones qui n'ont pas leur place dans un document remis à un client.
+     *
+     * Celles qui ne vivent que sur une page du site : un fil de commentaires,
+     * une recherche, une liste de publications, un formulaire ou une
+     * inscription à la lettre, un sondage, une prise de rendez-vous. Elles
+     * s'accrochent à une publication ou à l'audience du site, qu'un livrable
+     * n'a pas : chacune ne pourrait dessiner qu'un bloc qui échoue.
+     *
+     * Et celles qui montreraient ce qui n'est pas au client : le bloc partagé
+     * rend le contenu d'une autre publication, brouillon compris, et l'activité
+     * GitHub, le fil Instagram et les avis Google sont les données des
+     * intégrations du studio, pas celles de son client.
      */
     public const array HIDDEN_ZONE_TYPES = [
         GridNormalizer::ZONE_COMMENTS,
@@ -59,7 +66,86 @@ final readonly class DeliverablePageRenderer
         GridNormalizer::ZONE_ACTIVITY_FEED,
         GridNormalizer::ZONE_NEWSLETTER_SIGNUP,
         GridNormalizer::ZONE_NEWSLETTER_PRIVACY,
+        GridNormalizer::ZONE_APPOINTMENT_BOOKING,
+        GridNormalizer::ZONE_SHARED,
+        GridNormalizer::ZONE_GITHUB_ACTIVITY,
+        GridNormalizer::ZONE_INSTAGRAM_FEED,
+        GridNormalizer::ZONE_GOOGLE_REVIEWS,
     ];
+
+    /**
+     * La disposition sans les zones masquées, avant qu'aucune ne soit résolue.
+     *
+     * C'est ici, sur la disposition, et pas sur la grille construite : une
+     * zone retirée après coup a déjà été résolue, donc déjà lu sa publication
+     * ou son deck. Les aperçus de l'éditeur passent par là eux aussi, pour ne
+     * pas montrer ce que la page du client ne montrera pas.
+     *
+     * @param array<string, mixed> $layout
+     *
+     * @return array<string, mixed>
+     */
+    public static function withoutHiddenLayoutZones(array $layout): array
+    {
+        if (is_array($layout['zones'] ?? null)) {
+            $layout['zones'] = self::keepShownZones($layout['zones']);
+        }
+
+        return $layout;
+    }
+
+    /**
+     * Le contenu des seules zones qui restent : le temps de lecture et le
+     * découpage en diapositives ne comptent pas ce que la page ne montre pas.
+     *
+     * @param array<string, mixed> $layout  la disposition déjà filtrée
+     * @param array<string, mixed> $content
+     *
+     * @return array<string, mixed>
+     */
+    public static function contentOfShownZones(array $layout, array $content): array
+    {
+        if (!is_array($content['zones'] ?? null) || !is_array($layout['zones'] ?? null)) {
+            return $content;
+        }
+
+        $kept = [];
+        foreach (GridNormalizer::flatten($layout['zones']) as $zone) {
+            if (isset($zone['id']) && is_string($zone['id'])) {
+                $kept[$zone['id']] = true;
+            }
+        }
+
+        return [...$content, 'zones' => array_intersect_key($content['zones'], $kept)];
+    }
+
+    /**
+     * @param array<int|string, mixed> $zones
+     *
+     * @return list<array<string, mixed>>
+     */
+    private static function keepShownZones(array $zones): array
+    {
+        $kept = [];
+
+        foreach ($zones as $zone) {
+            if (!is_array($zone)) {
+                continue;
+            }
+
+            if (in_array($zone['type'] ?? null, self::HIDDEN_ZONE_TYPES, true)) {
+                continue;
+            }
+
+            if (is_array($zone['children'] ?? null)) {
+                $zone['children'] = self::keepShownZones($zone['children']);
+            }
+
+            $kept[] = $zone;
+        }
+
+        return $kept;
+    }
 
     public function __construct(
         private Environment $twig,
@@ -103,6 +189,29 @@ final readonly class DeliverablePageRenderer
     }
 
     /**
+     * La page lue par son destinataire, lien de lecture ou espace du client.
+     *
+     * `?print=1` n'y est suivi que si l'auteur a permis le PDF pour ce
+     * livrable (réglage « Autoriser le PDF au lecteur », éteint par défaut) :
+     * sans cela la demande est ignorée et la page se lit comme d'habitude. Ce
+     * n'est pas un secret gardé, le contenu est déjà à l'écran, mais une
+     * décision de l'auteur : un document qu'on ne veut pas voir circuler en
+     * fichier n'offre pas le bouton.
+     *
+     * @param string|null $backUrl où revient le lecteur, quand il vient d'une page à lui
+     */
+    public function renderForReader(DeliverableInterface $deliverable, bool $printRequested, ?string $backUrl = null): Response
+    {
+        return $this->render($deliverable, $backUrl, print: $printRequested && self::allowsReaderPdf($deliverable));
+    }
+
+    /** Si l'auteur a permis au lecteur de tirer son PDF. */
+    public static function allowsReaderPdf(DeliverableInterface $deliverable): bool
+    {
+        return DeliverableAppearance::normalize($deliverable->getAppearance())['readerPdf'];
+    }
+
+    /**
      * La page telle que la lira le client, rendue depuis ce que l'éditeur
      * tient encore sans l'avoir enregistré : l'aperçu posé à côté de la
      * grille, au thème public près, fond, en-tête et grands titres compris.
@@ -136,12 +245,15 @@ final readonly class DeliverablePageRenderer
     private function page(array $source, ?string $backUrl, bool $markPlaceholders, bool $print, bool $editorPreview = false): string
     {
         $locale = $source['locale'];
+        $layout = self::withoutHiddenLayoutZones($source['gridLayout']);
+        $content = self::contentOfShownZones($layout, $source['gridContent']);
         $grid = $editorPreview
-            ? $this->gridViewBuilder->buildForPreview($source['gridLayout'], $source['gridContent'], $locale, null)
-            : $this->gridViewBuilder->build($source['gridLayout'], $source['gridContent'], $locale, null);
+            ? $this->gridViewBuilder->buildForPreview($layout, $content, $locale, null)
+            : $this->gridViewBuilder->build($layout, $content, $locale, null);
 
-        // L'éditeur ne les propose pas ; une grille venue d'ailleurs, d'une
-        // duplication ou d'un import, peut quand même en porter.
+        // L'éditeur ne les propose pas, et la disposition en est déjà
+        // débarrassée ; ce qui reste à faire est de couper ce que la page
+        // n'a pas : un fil de commentaires.
         if (null !== $grid) {
             $grid['zones'] = $this->withoutHiddenZones($grid['zones']);
             $grid['hasComments'] = false;
@@ -156,7 +268,7 @@ final readonly class DeliverablePageRenderer
         if (null !== $grid && ('slides' === $appearance['display'] || $print)) {
             $slides = array_map(
                 static fn (array $zones): array => [...$grid, 'zones' => $zones, 'lightbox' => []],
-                $this->gridSlides->split($grid['zones'], $source['gridContent']),
+                $this->gridSlides->split($grid['zones'], $content),
             );
         }
 
@@ -174,7 +286,7 @@ final readonly class DeliverablePageRenderer
             'print' => $print,
             'markPlaceholders' => $markPlaceholders,
             'editorPreview' => $editorPreview,
-            'readingTimeMinutes' => null !== $grid ? $this->readingTimeCalculator->minutesFor($source['gridContent']) : 0,
+            'readingTimeMinutes' => null !== $grid ? $this->readingTimeCalculator->minutesFor($content) : 0,
             // Les trois surfaces que le thème sait repeindre, surface par
             // surface : nul laisse passer la sienne.
             'surfaceOverrides' => [

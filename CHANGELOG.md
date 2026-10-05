@@ -5,6 +5,58 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [1.13.0] - 2026-10-05
+
+### Sécurité
+- **Les adresses de lecture d'un livrable sont chiffrées au repos**, et retrouvées par leur empreinte SHA-256 (`token_hash`, unique). Une sauvegarde ou un journal SQL n'est plus une liste d'adresses qui marchent ; la fenêtre des liens peut toujours les afficher, l'application les déchiffre. La migration calcule l'empreinte puis chiffre chaque jeton avec la clé de l'application, sans changer une adresse déjà envoyée (clé absente : elle s'arrête avant d'écrire). Le jeton passe par un service commun, `ShareToken`.
+- **Les adresses de lecture d'un livrable ne se lisent plus sans le droit de partager.** La liste des liens répondait à quiconque pouvait lire le livrable, jetons compris. Elle demande maintenant le droit de partager le livrable (Studio) ou de partager l'espace (espace client). Dans un espace, créer ou révoquer un lien demandait seulement le droit de modifier : c'est maintenant `studio.spaces.share`, le droit de l'accès de l'espace lui-même.
+- **Une durée de lien illisible ne donne plus un lien éternel.** `7.5`, `"30"`, `0` ou `400` jours sont refusés (422) ; absente, la durée veut toujours dire « sans fin ». Le mot de passe est nettoyé de ses espaces de la même façon à la création et à l'ouverture, et limité à 72 octets (bcrypt ne lit pas au-delà).
+- **Les zones qui n'ont pas leur place chez un client sont retirées avant d'être résolues**, dans les aperçus de l'éditeur comme sur la page. Le bloc partagé (qui rend une autre publication, brouillon compris), l'activité GitHub, le fil Instagram, les avis Google et la prise de rendez-vous rejoignent la liste. L'aperçu validait mal sa langue et résolvait les zones deck et liste de publications sans les droits.
+- **Le limiteur du mot de passe d'un lien compte par adresse de lecture et par IP, et seulement les échecs** : un bureau derrière une seule IP ne se bloque plus pour tous ses liens parce que dix collègues ont ouvert le même document.
+- **Ouvrir un livrable au client depuis la liste d'un espace demande confirmation** tant qu'il reste des [passages à remplacer] ou des images non publiées, comme l'éditeur le faisait déjà.
+
+### Ajouté
+- **Le PDF au lecteur, quand l'auteur le permet** : réglage « Autoriser le PDF au lecteur » dans l'apparence du livrable, éteint par défaut. Allumé, la page que reçoit le client (lien de lecture ou espace) porte « Télécharger en PDF », et `?print=1` sert la version à imprimer ; éteint, la demande est ignorée.
+- **Supprimer un lien jamais ouvert**, pour les livrables comme pour les présentations. Un lien déjà ouvert se révoque seulement et garde sa ligne (qui a pu lire, combien de fois) : la suppression lui répond 409. Journal d'audit : `deliverable_link.deleted`.
+- **Un contrat de partage commun à Studio** (`Studio\Sharing`) : `ShareLinkRules` (durée de 1 à 365 jours ou aucune, mot de passe de 72 octets au plus, suppression seulement d'un lien jamais ouvert) et `ShareToken` (génération, empreinte, motif de route). Les présentations obéissent désormais aux mêmes règles que les livrables : une durée illisible ou un mot de passe trop long sont refusés (422) au lieu d'être acceptés ou coupés.
+- **Une seule lecture des couleurs d'une page** (`AppearanceValues`), pour les publications et pour les livrables, avec un test de contrat qui compare leurs champs communs.
+- **Les livrables dans la médiathèque** : une image qu'un livrable affiche (miniature, liste de portraits, fond, avatar, QR code, entête) n'est plus annoncée « Inutilisé » ; elle ne peut plus être purgée sous un livrable. Un livrable perso d'un collègue est compté sans être nommé.
+- **Les livrables dans la recherche du back-office et sur le tableau de bord**, chacun contrôlé par la règle qui décide qui le lit.
+- **Journal d'audit** : un livrable créé, dupliqué, copié, supprimé, passé de perso à partagé, ouvert ou fermé au client, et chaque lien de lecture créé ou révoqué (jamais l'adresse ni le mot de passe).
+- **Un enregistrement fondé sur une version périmée est refusé** (409) : deux personnes qui modifient le même livrable partagé ne s'écrasent plus en silence. La fenêtre propose de continuer, de charger la version du collègue ou d'enregistrer quand même.
+- **Un lecteur seul ouvre un éditeur en lecture seule** : plus de saisie qu'on ne pourra pas enregistrer, plus de Ctrl+S qui reçoit un 403, plus d'avertissement de départ.
+- **Les [passages à remplacer] du titre, du résumé et de « Préparé pour »** sont comptés, en plus de ceux de la grille.
+- **Les messages survivent à la redirection** (`queueFlash`) : « Livrable dupliqué » ou « supprimé » se lit sur la page d'arrivée.
+- **Une collecte d'images complète** (`PostPictures`) : listes de portraits, fonds, avatars, QR codes et entêtes comptent, pour l'avertissement « images que vos lecteurs ne verront pas » comme pour l'usage dans la médiathèque, des livrables comme des publications.
+- **Les deux modèles d'audit des réseaux sociaux dans les fixtures de démonstration** (page blanche, et présentation aux couleurs du site), images retrouvées par leur nom ; les fixtures rangent aussi, au rechargement, un livrable déjà là qui n'avait pas de catégorie.
+
+- **Les livrables passent par la corbeille commune** : supprimer un livrable (perso, partagé ou d'un espace) le met à la corbeille au lieu de le détruire. Il disparaît des listes, de la recherche, des compteurs et de l'espace du client, ses adresses de lecture répondent 404, et il revient intact avec ses liens à la restauration. Ses images restent comptées dans la médiathèque jusqu'à la purge. La restauration demande le droit de modifier (ou d'en être l'auteur d'un perso), la destruction définitive celui de supprimer ; « Vider la corbeille » ne détruit que ce que le lecteur peut détruire, jamais le brouillon perso d'un autre. La purge automatique suit le délai commun (`TrashAutoPurgeDays`). Journal d'audit : `deliverable.trashed`, `deliverable.restored`, `deliverable.deleted` (destruction définitive).
+
+### Corrigé
+- **Vocabulaire** : « rubrique » devient « catégorie » dans les présentations (fr) ; les droits de partage se lisent « Voir et donner les liens de lecture de… » pour les livrables et les présentations, « Voir et donner les accès client d'un espace » pour les espaces ; la page verrouillée d'une présentation lit les mêmes textes (`frontend.reading.locked_*`) que celle des publications et des livrables.
+- **Flèche de retour sur téléphone** : en tête d'un livrable ou d'une page de lecture, la flèche « Retour à l'espace » n'est plus encadrée. Elle garde sa zone de toucher de 38 px, alignée sur le texte de la page.
+- **La fenêtre des liens de lecture** gardait les liens et le mot de passe tapé du livrable précédent ; elle se remet à zéro à chaque ouverture et ignore la réponse d'une ouverture dépassée. Retirer un lien demande une seconde confirmation, et Entrée crée le lien.
+- **Un corps de requête vide ou une faute de frappe ne rend plus « perso » un livrable partagé** (422 sur le changement de rayon).
+- **Les actions de liste qui échouaient sans rien dire** (changer de rayon, dupliquer, supprimer, ouvrir au client) disent pourquoi et rafraîchissent la liste quand le livrable n'existe plus ou n'est plus à nous.
+- **La suppression d'un espace cite ses livrables** ; « Garder pour moi » dit que les liens de lecture déjà donnés restent valables.
+- **Un livrable d'espace appartient toujours à son auteur** (créé ou dupliqué), au lieu de personne, de l'auteur de la copie ou de l'ancien auteur selon la voie ; la liste de l'espace ne charge plus le contenu entier de ses livrables.
+- **Un espace archivé ne reçoit plus de livrable neuf** (création, duplication), comme il ne recevait déjà plus de copie ; ceux qu'il garde restent modifiables.
+- **Une section collée ou prise dans « Mes sections » ne ramène plus** une zone que le livrable ne propose pas : elles sont retirées et le nombre est dit.
+- **L'éditeur d'un livrable** : barre commune (retour à gauche, commandes à droite, état sous le titre), onglets et pastilles lisibles par un lecteur d'écran, erreurs du serveur dites en tête de page.
+- **L'aperçu de l'éditeur rend avec les gabarits du thème par défaut**, comme la page du client, quel que soit le thème actif.
+
+### Dans aurora-client
+- **Migration `token_hash`** : `AbstractDeliverableLink::$token` devient `encrypted_string` (255) et gagne `$tokenHash` (SHA-256, unique) ; un projet qui étend l'entité génère sa migration et lit les liens par `DeliverableLinkRepository::findByToken()`, jamais par la colonne `token`. La clé `AURORA_ENCRYPTION_KEY` doit être définie à la migration.
+- Les clés `backend.studio.deliverables.errors.expiry_invalid` et `password_too_long` passent sous `backend.studio.sharing.errors.*` ; `backend.studio.decks.locked_*` disparaissent au profit de `frontend.reading.locked_*`.
+- `DeliverableAppearance` gagne `readerPdf` ; `DeliverablePageRenderer::renderForReader()` sert les pages de lecture. `DeckEditorApp` reçoit la prop `shareDeletePath`.
+- `DeliverableManager`, `DeliverableLinkIssuer` et `DeliverableCategoryManager` ne sont plus `final` : leur méthode `instantiate()` est le point d'accroche d'un projet qui étend l'entité. Les routes d'un espace résolvent le livrable par son interface.
+- Les actions du journal d'audit `studio.deliverable.*` et `studio.deliverable_link.*` ont leurs libellés (fr, en, es).
+- **Migration** : la colonne `deleted_at` (et son index) arrive sur la table des livrables. Un projet qui étend l'entité `AbstractDeliverable` génère sa propre migration ; `DeliverableInterface` gagne `getDeletedAt()` et `isTrashed()`.
+- Les lectures des livrables passent par `DeliverableRepository::findLive()` / `findInSpace()` (corbeille exclue) ; `DeliverablesTrashSource` s'enregistre tout seul dans la corbeille commune.
+- Les guides des livrables passent à six étapes (export PDF, [crochets], droit de partage).
+
+---
+
 ## [1.12.0] - 2026-10-05
 
 ### Ajouté

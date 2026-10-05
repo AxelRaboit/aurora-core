@@ -1088,6 +1088,7 @@ backend:
                 insert: "Insérer"
                 delete: "Supprimer cette section"
                 paste: "Coller {count} zone | Coller {count} zones"
+                dropped_hidden: "{count} zone n'est pas proposée dans ce document et n'a pas été insérée | {count} zones ne sont pas proposées dans ce document et n'ont pas été insérées"
                 copied: "{count} zone copiée, à coller dans une autre grille | {count} zones copiées, à coller dans une autre grille"
                 duplicate: "Dupliquer la zone"
                 copy_zone: "Copier la zone"
@@ -1980,6 +1981,7 @@ frontend:
         next: "Diapositive suivante"
         fullscreen: "Plein écran"
     reading:
+        download_pdf: "Télécharger en PDF"
         prepared_for: 'Préparé pour %name%'
         back: 'Retour à l''espace'
         updated_on: 'Mis à jour le %date%'

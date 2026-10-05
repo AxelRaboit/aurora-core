@@ -98,6 +98,8 @@ const props = defineProps({
     withheldPictures: { type: Array, default: () => [] },
     shareCreatePath: { type: String, required: true },
     shareRevokePath: { type: String, required: true },
+    /** Deleting an address nobody ever opened; an opened one is only revoked. */
+    shareDeletePath: { type: String, required: true },
     themes: { type: Array, default: () => [] },
     fontPairs: { type: Array, default: () => [] },
     logoPlacements: { type: Array, default: () => [] },
@@ -337,9 +339,11 @@ const {
     creating,
     createLink,
     revoke,
+    remove,
     copy,
     copiedId,
     isLive,
+    isDeletable,
 } = useDeckSharing(props);
 
 /**
@@ -1312,7 +1316,14 @@ onBeforeUnmount(() => {
                                     <Copy class="h-3.5 w-3.5" :stroke-width="2" />
                                 </AppIconButton>
                                 <AppIconButton
-                                    v-if="isLive(link)"
+                                    v-if="isDeletable(link)"
+                                    :title="t('backend.studio.decks.share_delete')"
+                                    v-on:click="remove(link)"
+                                >
+                                    <Trash2 class="h-3.5 w-3.5" :stroke-width="2" />
+                                </AppIconButton>
+                                <AppIconButton
+                                    v-else-if="isLive(link)"
                                     :title="t('backend.studio.decks.share_revoke')"
                                     v-on:click="revoke(link)"
                                 >

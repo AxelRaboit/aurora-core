@@ -27,10 +27,17 @@ use function is_int;
  * the 163 documents a post was drawing, it saw 73, and reported the other 90
  * as free to delete.
  *
- * A grid zone holds pictures two ways, and both had to be walked: `mediaId`
+ * A grid zone holds pictures several ways, and all had to be walked: `mediaId`
  * for a single image, `mediaIds` for the lists a gallery or a before/after
- * zone arranges. Zones nest, since a stack holds zones of its own, so the
- * walk is recursive rather than one pass over the top level.
+ * zone arranges, `items[].mediaId` for a list of portraits or logos, the
+ * `background` of a custom surface, a social post's avatar, a QR code's logo,
+ * and a banner zone's own pictures. Zones nest, since a stack holds zones of
+ * its own, so the walk is recursive rather than one pass over the top level.
+ *
+ * It first read only the first two. Measured on 2026-10-05 on a demo
+ * deliverable: three pictures of seven were missed, so the reading-link
+ * dialog stayed silent about unpublished ones and the library called them
+ * free to delete.
  *
  * Nothing here resolves a document. It answers with ids, and lets the caller
  * decide whether to load them, which is what makes it usable both from the
@@ -185,6 +192,38 @@ final readonly class PostPictures
                 foreach ($several as $id) {
                     $this->keep($id, $ids);
                 }
+            }
+
+            // The rest of what a zone can hold, in the order the grid's own
+            // prefetch reads it: a list's portraits and logos, the picture or
+            // film behind a custom surface, the face beside a social post, the
+            // logo in the middle of a QR code, and a banner zone's three kinds.
+            $items = $zone['items'] ?? null;
+
+            if (is_array($items)) {
+                foreach ($items as $item) {
+                    if (is_array($item)) {
+                        $this->keep($item['mediaId'] ?? null, $ids);
+                    }
+                }
+            }
+
+            $background = $zone['background'] ?? null;
+
+            if (is_array($background)) {
+                $this->keep($background['mediaId'] ?? null, $ids);
+                $this->keep($background['videoId'] ?? null, $ids);
+            }
+
+            $options = $zone['options'] ?? null;
+
+            if (is_array($options)) {
+                $this->keep($options['socialAvatarId'] ?? null, $ids);
+                $this->keep($options['qrLogoId'] ?? null, $ids);
+            }
+
+            if (is_array($zone['banner'] ?? null)) {
+                $this->fromBanner($zone['banner'], $ids);
             }
 
             $this->fromZones($zone['children'] ?? null, $ids);

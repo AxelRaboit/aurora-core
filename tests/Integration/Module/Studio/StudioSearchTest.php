@@ -32,6 +32,8 @@ use Aurora\Module\Studio\CustomerSpace\Security\SpaceVisibility;
 use Aurora\Module\Studio\Deck\Entity\Deck;
 use Aurora\Module\Studio\Deck\Manager\DeckManager;
 use Aurora\Module\Studio\Deck\Repository\DeckRepository;
+use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
+use Aurora\Module\Studio\Deliverable\Security\DeliverableAccess;
 use Aurora\Module\Studio\Search\StudioBackendSearchProvider;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentColumn;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItem;
@@ -62,7 +64,7 @@ use function sprintf;
  */
 final class StudioSearchTest extends IntegrationTestCase
 {
-    private const array SECTIONS = ['spaces', 'space_contents', 'customers', 'contracts', 'contract_templates', 'decks'];
+    private const array SECTIONS = ['spaces', 'space_contents', 'customers', 'contracts', 'contract_templates', 'decks', 'deliverables'];
 
     private KernelBrowser $client;
 
@@ -207,7 +209,9 @@ final class StudioSearchTest extends IntegrationTestCase
 
         $results = $this->provider->search($this->needle);
 
-        self::assertSame(['spaces', 'space_contents'], array_keys($results), 'only the sections this account may open');
+        // Reading a space is also reading its deliverables: the section opens, and
+        // each row is still checked one by one.
+        self::assertSame(['spaces', 'space_contents', 'deliverables'], array_keys($results), 'only the sections this account may open');
         self::assertSame(['Le mien '.$this->needle], array_column($results['spaces'], 'title'));
         self::assertSame(['Carte du mien '.$this->needle], array_column($results['space_contents'], 'title'));
     }
@@ -251,7 +255,7 @@ final class StudioSearchTest extends IntegrationTestCase
         $this->settings->set(ModuleParameterEnum::StudioSpaces->value, '0');
         $this->settings->set(ModuleParameterEnum::StudioContracts->value, '0');
         $this->forgetSwitches();
-        self::assertSame(['customers', 'decks'], array_keys($this->provider->search($this->needle)));
+        self::assertSame(['customers', 'decks', 'deliverables'], array_keys($this->provider->search($this->needle)));
 
         $this->settings->set(ModuleParameterEnum::StudioBackend->value, '0');
         $this->forgetSwitches();
@@ -297,6 +301,8 @@ final class StudioSearchTest extends IntegrationTestCase
             $container->get(ContractRepository::class),
             $container->get(ContractTemplateRepository::class),
             $container->get(DeckRepository::class),
+            $container->get(DeliverableRepository::class),
+            $container->get(DeliverableAccess::class),
             $container->get(UrlGeneratorInterface::class),
             $container->get(TranslatorInterface::class),
         );

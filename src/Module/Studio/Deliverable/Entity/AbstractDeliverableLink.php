@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\Deliverable\Entity;
 
+use Aurora\Core\Encryption\Doctrine\EncryptedStringType;
+use Aurora\Module\Studio\Sharing\ShareToken;
 use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
-
-use function bin2hex;
-use function random_bytes;
 
 /**
  * Une adresse secrète qui ouvre un livrable, sans espace client autour.
@@ -25,9 +24,17 @@ use function random_bytes;
 #[ORM\MappedSuperclass]
 abstract class AbstractDeliverableLink implements DeliverableLinkInterface
 {
-    /** 64 caractères hexadécimaux, tirés de 32 octets aléatoires. */
-    #[ORM\Column(length: 64, unique: true)]
+    /**
+     * 64 caractères hexadécimaux, tirés de 32 octets aléatoires, chiffrés au
+     * repos : une sauvegarde ou un journal SQL ne donne plus d'adresse
+     * utilisable, et la fenêtre des liens peut toujours l'afficher.
+     */
+    #[ORM\Column(type: EncryptedStringType::NAME, length: 255)]
     protected string $token;
+
+    /** Empreinte SHA-256 du jeton : ce par quoi on le cherche, jamais ce qu'on montre. */
+    #[ORM\Column(length: 64, unique: true)]
+    protected string $tokenHash;
 
     /** À qui on l'a envoyée, pour s'y retrouver dans la liste. */
     #[ORM\Column(length: 120, options: ['default' => ''])]
@@ -56,7 +63,8 @@ abstract class AbstractDeliverableLink implements DeliverableLinkInterface
         #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
         protected DeliverableInterface $deliverable,
     ) {
-        $this->token = bin2hex(random_bytes(32));
+        $this->token = ShareToken::generate();
+        $this->tokenHash = ShareToken::hash($this->token);
         $this->createdAt = new DateTimeImmutable();
     }
 

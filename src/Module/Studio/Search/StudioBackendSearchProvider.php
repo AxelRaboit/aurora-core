@@ -18,6 +18,9 @@ use Aurora\Module\Studio\CustomerSpace\Repository\CustomerSpaceRepository;
 use Aurora\Module\Studio\CustomerSpace\Security\SpaceVisibility;
 use Aurora\Module\Studio\Deck\Entity\DeckInterface;
 use Aurora\Module\Studio\Deck\Repository\DeckRepository;
+use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
+use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
+use Aurora\Module\Studio\Deliverable\Security\DeliverableAccess;
 use Aurora\Module\Studio\SpaceContent\Entity\SpaceContentItemInterface;
 use Aurora\Module\Studio\SpaceContent\Repository\SpaceContentItemRepository;
 use Aurora\Module\Studio\StudioContext;
@@ -29,13 +32,14 @@ use Throwable;
 use function array_filter;
 use function array_map;
 use function array_values;
+use function count;
 use function implode;
 
 /**
  * Studio's slice of the backend global search: client spaces and their
- * cards, customers, contracts, contract templates and decks.
+ * cards, customers, contracts, contract templates, decks and deliverables.
  *
- * **One provider, six sections, each with its own door.** Studio is several
+ * **One provider, seven sections, each with its own door.** Studio is several
  * screens behind several switches and several privileges, and the search has to
  * ask each section the question its screen asks: the customers list answers to
  * `studio.customers.view` and to the customers switch, the spaces to theirs. A
@@ -67,6 +71,8 @@ final readonly class StudioBackendSearchProvider implements BackendSearchProvide
         private ContractRepository $contracts,
         private ContractTemplateRepository $templates,
         private DeckRepository $decks,
+        private DeliverableRepository $deliverables,
+        private DeliverableAccess $deliverableAccess,
         private UrlGeneratorInterface $urlGenerator,
         private TranslatorInterface $translator,
     ) {}
@@ -106,6 +112,14 @@ final readonly class StudioBackendSearchProvider implements BackendSearchProvide
 
             if ($this->studioContext->areDecksEnabled() && $this->security->isGranted('studio.decks.view')) {
                 $sections['decks'] = $this->section(fn (): array => $this->deckRows($query));
+            }
+
+            // A deliverable lives in Studio or in a space, behind a switch and a
+            // privilege each: the section opens when either door does, and each
+            // row is then checked against the one rule that decides who reads it.
+            if (($this->studioContext->areDeliverablesEnabled() && $this->security->isGranted(DeliverableAccess::VIEW))
+                || ($this->studioContext->areSpacesEnabled() && $this->security->isGranted('studio.spaces.view'))) {
+                $sections['deliverables'] = $this->section(fn (): array => $this->deliverableRows($query));
             }
 
             return $sections;
@@ -279,6 +293,53 @@ final readonly class StudioBackendSearchProvider implements BackendSearchProvide
             ],
             $this->decks->searchByTitle($query, self::LIMIT),
         );
+    }
+
+    /**
+     * The deliverables the reader may open, whichever side they live on.
+     *
+     * Candidates by title, then each one through {@see DeliverableAccess::canRead()}:
+     * a personal deliverable of a colleague, or one in a space the reader is not
+     * on, is exactly what a title in a search result must not reveal. Asked for
+     * more than the section shows, so filtering still leaves a full list.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function deliverableRows(string $query): array
+    {
+        $rows = [];
+
+        foreach ($this->deliverables->searchByTitle($query, self::LIMIT * 5) as $deliverable) {
+            if (!$this->isSearchable($deliverable)) {
+                continue;
+            }
+
+            $space = $deliverable->getSpace();
+            $rows[] = [
+                'id' => $deliverable->getId(),
+                'title' => $deliverable->getTitle(),
+                'subtitle' => $this->join([
+                    $space instanceof CustomerSpaceInterface ? $space->getName() : $this->translator->trans('backend.studio.deliverables.scope.'.$deliverable->getScope()->value),
+                    $deliverable->getSummary(),
+                ]),
+                'path' => $space instanceof CustomerSpaceInterface
+                    ? $this->urlGenerator->generate('workspace_space_deliverables_edit', ['id' => $space->getId(), 'deliverableId' => $deliverable->getId()])
+                    : $this->urlGenerator->generate('backend_studio_deliverables_edit', ['id' => $deliverable->getId()]),
+            ];
+
+            if (count($rows) >= self::LIMIT) {
+                break;
+            }
+        }
+
+        return $rows;
+    }
+
+    private function isSearchable(DeliverableInterface $deliverable): bool
+    {
+        $served = $deliverable->isStandalone() ? $this->studioContext->areDeliverablesEnabled() : $this->studioContext->areSpacesEnabled();
+
+        return $served && $this->deliverableAccess->canRead($deliverable);
     }
 
     /**

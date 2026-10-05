@@ -5,14 +5,19 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\Dashboard;
 
 use Aurora\Core\Dashboard\DashboardStatsProviderInterface;
+use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Studio\Contract\Enum\ContractStatusEnum;
 use Aurora\Module\Studio\Contract\Repository\ContractRepository;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\CustomerSpace\Enum\SpaceScopeEnum;
 use Aurora\Module\Studio\CustomerSpace\Security\SpaceVisibility;
 use Aurora\Module\Studio\Deck\Repository\DeckRepository;
+use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
+use Aurora\Module\Studio\Deliverable\Security\DeliverableAccess;
 use Aurora\Module\Studio\SpaceContent\Workload\SpaceWorkload;
 use Aurora\Module\Studio\SpaceContent\Workload\SpaceWorkloadRow;
+use Aurora\Module\Studio\StudioContext;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
@@ -60,6 +65,9 @@ final readonly class StudioStatsProvider implements DashboardStatsProviderInterf
         private SpaceWorkload $workload,
         private ContractRepository $contractRepository,
         private DeckRepository $deckRepository,
+        private DeliverableRepository $deliverableRepository,
+        private StudioContext $studioContext,
+        private Security $security,
         private RequestStack $requestStack,
         private UrlGeneratorInterface $urlGenerator,
         private AuthorizationCheckerInterface $authorizationChecker,
@@ -95,6 +103,8 @@ final readonly class StudioStatsProvider implements DashboardStatsProviderInterf
                 'awaitingSignature' => $this->countContracts(self::WITH_CUSTOMER),
                 'awaitingCountersignature' => $this->countContracts([ContractStatusEnum::SignedByCustomer]),
                 'decks' => $this->authorizationChecker->isGranted('studio.decks.view') ? $this->deckRepository->count([]) : null,
+                'deliverables' => $this->countDeliverables(),
+                'deliverablesPath' => $this->deliverablesPath(),
                 'attention' => $this->attention($rows, $spaces),
                 'calendarPath' => $this->urlGenerator->generate('backend_studio_calendar'),
                 'contractsPath' => $this->authorizationChecker->isGranted('studio.contracts.view') ? $this->urlGenerator->generate('backend_studio_contracts') : null,
@@ -121,6 +131,28 @@ final readonly class StudioStatsProvider implements DashboardStatsProviderInterf
         $counts = $this->contractRepository->countGroupedByStatus();
 
         return array_sum(array_map(static fn (ContractStatusEnum $status): int => $counts[$status->value] ?? 0, $statuses));
+    }
+
+    /**
+     * Les livrables de Studio que le lecteur ouvre, null quand il n'a pas le
+     * module sous la main : pas de tuile plutôt qu'un chiffre sans destination.
+     * Ceux des espaces se comptent dans leur espace.
+     */
+    private function countDeliverables(): ?int
+    {
+        $user = $this->security->getUser();
+        if (!$user instanceof CoreUserInterface || !$this->studioContext->areDeliverablesEnabled() || !$this->authorizationChecker->isGranted(DeliverableAccess::VIEW)) {
+            return null;
+        }
+
+        return $this->deliverableRepository->countStandaloneFor($user);
+    }
+
+    private function deliverablesPath(): ?string
+    {
+        return $this->studioContext->areDeliverablesEnabled() && $this->authorizationChecker->isGranted(DeliverableAccess::VIEW)
+            ? $this->urlGenerator->generate('backend_studio_deliverables')
+            : null;
     }
 
     private function contractsPathFor(string $step): ?string

@@ -6,7 +6,7 @@ namespace Aurora\Module\Editorial\Post\Dto;
 
 use Aurora\Core\Support\Arr;
 use Aurora\Core\Support\Str;
-use Aurora\Module\Configuration\Theme\Service\ThemeContext;
+use Aurora\Module\Configuration\Theme\Service\AppearanceValues;
 use Aurora\Module\Editorial\Post\Appearance\PostColorOverrides;
 use Aurora\Module\Editorial\Post\Enum\PostStatusEnum;
 use Aurora\Module\Editorial\Post\Enum\PostVisibilityEnum;
@@ -49,12 +49,12 @@ class PostInputFactory implements PostInputFactoryInterface
             thumbnailFit: Str::trimOrNull((string) ($data['thumbnailFit'] ?? '')) ?? ThumbnailFitEnum::Cover->value,
             thumbnailFocalX: $this->fractionOrNull($data['thumbnailFocalX'] ?? null),
             thumbnailFocalY: $this->fractionOrNull($data['thumbnailFocalY'] ?? null),
-            headerColor: $this->colorOrNull($data['headerColor'] ?? null),
-            footerColor: $this->colorOrNull($data['footerColor'] ?? null),
-            backgroundColor: $this->colorOrNull($data['backgroundColor'] ?? null),
-            accentColor: $this->colorOrNull($data['accentColor'] ?? null),
-            highlight: $this->highlightOrNull($data['highlight'] ?? null, $data['highlightColor'] ?? null),
-            highlightColor: $this->colorOrNull($data['highlightColor'] ?? null),
+            headerColor: AppearanceValues::color($data['headerColor'] ?? null),
+            footerColor: AppearanceValues::color($data['footerColor'] ?? null),
+            backgroundColor: AppearanceValues::color($data['backgroundColor'] ?? null),
+            accentColor: AppearanceValues::color($data['accentColor'] ?? null),
+            highlight: AppearanceValues::highlight($data['highlight'] ?? null, $data['highlightColor'] ?? null),
+            highlightColor: AppearanceValues::color($data['highlightColor'] ?? null),
             colorOverrides: PostColorOverrides::normalize($data['colorOverrides'] ?? null),
             chromeFollowsPage: (bool) ($data['chromeFollowsPage'] ?? false),
             // Un champ vidé arrive en chaîne vide, et vide veut dire "aucune
@@ -102,32 +102,5 @@ class PostInputFactory implements PostInputFactoryInterface
         $value = (int) $raw;
 
         return $value > 0 ? $value : null;
-    }
-
-    /**
-     * Un mode inconnu hérite du thème, et un « custom » sans couleur valable
-     * aussi : il rendrait sinon des survols sans couleur.
-     */
-    private function highlightOrNull(mixed $raw, mixed $color): ?string
-    {
-        if (!is_string($raw) || !in_array($raw, ThemeContext::HIGHLIGHTS, true)) {
-            return null;
-        }
-
-        return 'custom' === $raw && null === $this->colorOrNull($color) ? null : $raw;
-    }
-
-    /**
-     * A hex color must be exactly 7 characters: #RRGGBB.
-     */
-    private function colorOrNull(mixed $raw): ?string
-    {
-        $value = Str::trimOrNull((string) ($raw ?? ''));
-
-        if (null === $value) {
-            return null;
-        }
-
-        return preg_match('/^#[0-9a-fA-F]{6}$/', $value) ? $value : null;
     }
 }
