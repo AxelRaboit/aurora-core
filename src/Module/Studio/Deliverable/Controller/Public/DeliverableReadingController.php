@@ -67,10 +67,16 @@ final class DeliverableReadingController extends AbstractController
         $deliverable = $link->getDeliverable();
         $request->setLocale($deliverable->getLocale());
 
-        $link->touch(new DateTimeImmutable());
-        $this->entityManager->flush();
+        // Changer de vue (présentation, page) n'est pas ouvrir de nouveau le
+        // lien : le compteur de l'auteur dit combien de fois on est venu, pas
+        // combien de fois on a basculé.
+        $view = DeliverablePageRenderer::requestedView($request->query->all()['view'] ?? null);
+        if (null === $view) {
+            $link->touch(new DateTimeImmutable());
+            $this->entityManager->flush();
+        }
 
-        return $this->privately($this->renderer->renderForReader($deliverable, $request->query->getBoolean('print')));
+        return $this->privately($this->renderer->renderForReader($deliverable, $request->query->getBoolean('print'), view: $view));
     }
 
     #[Route('/{token}/unlock', name: '_unlock', requirements: ['token' => ShareToken::PATTERN], methods: [HttpMethodEnum::Post->value])]

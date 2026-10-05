@@ -244,6 +244,7 @@ final class SpaceDeliverablesController extends AbstractController
             $this->generateUrl('workspace_space_deliverables_edit', ['id' => $space->getId(), 'deliverableId' => $deliverable->getId()]),
             markPlaceholders: !$print,
             print: $print,
+            view: DeliverablePageRenderer::requestedView($request->query->all()['view'] ?? null),
         ));
     }
 

@@ -20,6 +20,7 @@ use Twig\Environment;
 
 use function array_intersect_key;
 use function array_map;
+use function count;
 use function in_array;
 use function is_array;
 use function is_string;
@@ -163,8 +164,11 @@ final readonly class DeliverablePageRenderer
      *                                      l'auteur, jamais la page du client
      * @param bool        $print            la version à imprimer en PDF : en diapositives, une
      *                                      par page, quel que soit l'affichage choisi
+     * @param string|null $view             la vue que le lecteur a choisie (`?view=`), parmi
+     *                                      {@see DeliverableAppearance::DISPLAYS} ; toute autre
+     *                                      valeur, ou rien, laisse celle de l'auteur
      */
-    public function render(DeliverableInterface $deliverable, ?string $backUrl = null, bool $markPlaceholders = false, bool $print = false): Response
+    public function render(DeliverableInterface $deliverable, ?string $backUrl = null, bool $markPlaceholders = false, bool $print = false, ?string $view = null): Response
     {
         $locale = $deliverable->getLocale();
 
@@ -182,6 +186,7 @@ final readonly class DeliverablePageRenderer
             $backUrl,
             $markPlaceholders,
             $print,
+            view: $view,
         ));
         $response->headers->set('Content-Language', $locale);
 
@@ -200,9 +205,21 @@ final readonly class DeliverablePageRenderer
      *
      * @param string|null $backUrl où revient le lecteur, quand il vient d'une page à lui
      */
-    public function renderForReader(DeliverableInterface $deliverable, bool $printRequested, ?string $backUrl = null): Response
+    public function renderForReader(DeliverableInterface $deliverable, bool $printRequested, ?string $backUrl = null, ?string $view = null): Response
     {
-        return $this->render($deliverable, $backUrl, print: $printRequested && self::allowsReaderPdf($deliverable));
+        return $this->render($deliverable, $backUrl, print: $printRequested && self::allowsReaderPdf($deliverable), view: $view);
+    }
+
+    /**
+     * La vue demandée par l'adresse, si c'en est une : `page` ou `slides`.
+     * Le reste (vide, faute de frappe, valeur fabriquée) vaut « rien », et
+     * l'affichage choisi par l'auteur s'applique. Lue brute dans l'adresse :
+     * un `?view[]=page` est un tableau, et il vaut « rien » lui aussi au lieu
+     * de faire échouer la page.
+     */
+    public static function requestedView(mixed $raw): ?string
+    {
+        return in_array($raw, DeliverableAppearance::DISPLAYS, true) ? $raw : null;
     }
 
     /** Si l'auteur a permis au lecteur de tirer son PDF. */
@@ -242,7 +259,7 @@ final readonly class DeliverablePageRenderer
     /**
      * @param array{locale: string, title: string, summary: ?string, gridLayout: array<string, mixed>, gridContent: array<string, mixed>, appearance: mixed, readingHeader: mixed, updatedAt: DateTimeInterface} $source
      */
-    private function page(array $source, ?string $backUrl, bool $markPlaceholders, bool $print, bool $editorPreview = false): string
+    private function page(array $source, ?string $backUrl, bool $markPlaceholders, bool $print, bool $editorPreview = false, ?string $view = null): string
     {
         $locale = $source['locale'];
         $layout = self::withoutHiddenLayoutZones($source['gridLayout']);
@@ -261,16 +278,37 @@ final readonly class DeliverablePageRenderer
 
         $appearance = DeliverableAppearance::normalize($source['appearance']);
 
+        // La vue : celle que le lecteur a choisie, sinon celle de l'auteur.
+        // L'aperçu de l'éditeur montre toujours celle de l'auteur.
+        $display = ($editorPreview ? null : self::requestedView($view)) ?? $appearance['display'];
+
+        // Les sections du document, une par diapositive : le même découpage
+        // sert aux deux vues, pour qu'on passe de l'une à l'autre au même
+        // endroit (`#diapo-N`).
+        $sections = null !== $grid ? $this->gridSlides->split($grid['zones'], $content) : [];
+
         // Shown as a presentation: the same grid, cut at each section. Every
         // slide is a grid of its own for the template; the picture overlay is
         // left out of them, mounted once per grid it would open N times.
         $slides = null;
-        if (null !== $grid && ('slides' === $appearance['display'] || $print)) {
+        if (null !== $grid && ('slides' === $display || $print)) {
             $slides = array_map(
                 static fn (array $zones): array => [...$grid, 'zones' => $zones, 'lightbox' => []],
-                $this->gridSlides->split($grid['zones'], $content),
+                $sections,
             );
+        } elseif (null !== $grid && count($sections) > 1) {
+            // En page, la première zone de chaque section porte son numéro :
+            // une adresse `#diapo-N` y mène, et repasser en présentation sait
+            // où l'on en était.
+            $grid['zones'] = $this->markSections($grid['zones'], $sections);
         }
+
+        // Changer de vue, seulement quand il y a plusieurs sections : une
+        // présentation d'une seule diapositive ne montre rien de plus. Ni
+        // dans l'aperçu de l'éditeur, ni sur la version à imprimer.
+        $viewSwitch = !$print && !$editorPreview && count($sections) > 1
+            ? ('slides' === $display ? 'page' : 'slides')
+            : null;
 
         return $this->twig->render('@Studio/public/deliverable.html.twig', [
             'locale' => $locale,
@@ -283,6 +321,7 @@ final readonly class DeliverablePageRenderer
             'appearance' => $appearance,
             'grid' => $grid,
             'slides' => $slides,
+            'viewSwitch' => $viewSwitch,
             'print' => $print,
             'markPlaceholders' => $markPlaceholders,
             'editorPreview' => $editorPreview,
@@ -303,6 +342,40 @@ final readonly class DeliverablePageRenderer
                 'backUrl' => $backUrl,
             ],
         ]);
+    }
+
+    /**
+     * Numérote la première zone de chaque section, et lui donne l'ancre
+     * `diapo-N` quand l'auteur ne lui en a pas déjà mis une.
+     *
+     * @param list<array<string, mixed>>       $zones
+     * @param list<list<array<string, mixed>>> $sections
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function markSections(array $zones, array $sections): array
+    {
+        $starts = [];
+        foreach ($sections as $position => $section) {
+            $first = $section[0]['id'] ?? null;
+            if (is_string($first)) {
+                $starts[$first] = $position + 1;
+            }
+        }
+
+        foreach ($zones as $index => $zone) {
+            $number = $starts[$zone['id'] ?? ''] ?? null;
+            if (null === $number) {
+                continue;
+            }
+
+            $zones[$index]['section'] = $number;
+            if ('' === (string) ($zone['anchor'] ?? '')) {
+                $zones[$index]['anchor'] = 'diapo-'.$number;
+            }
+        }
+
+        return $zones;
     }
 
     /**

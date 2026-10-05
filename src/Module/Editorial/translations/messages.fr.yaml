@@ -1980,6 +1980,8 @@ frontend:
         previous: "Diapositive précédente"
         next: "Diapositive suivante"
         fullscreen: "Plein écran"
+        view_page: "Lire en page web"
+        view_slides: "Voir en présentation"
     reading:
         download_pdf: "Télécharger en PDF"
         prepared_for: 'Préparé pour %name%'

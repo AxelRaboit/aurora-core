@@ -5,6 +5,18 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [Unreleased]
+
+### Ajouté
+- **Le lecteur choisit sa vue** : un livrable en présentation se lit aussi en page web, et une page se regarde en présentation, depuis la page même (lien de lecture, espace du client, aperçu de l'auteur). La vue choisie par l'auteur reste celle par défaut. La bascule est dans la barre collée en bas de l'écran, au même endroit dans les deux vues (« Lire en page web » à côté de la pagination, « Voir en présentation » seul en page), et elle garde sa place : les deux vues partagent l'adresse des sections, `#diapo-N`, la diapositive N d'un côté, le début de la section N de l'autre. Pas de bascule quand le document n'a qu'une section, ni dans l'aperçu de l'éditeur, ni sur la version imprimée, qui reste une diapositive par page.
+- **Changer de vue n'est pas ouvrir de nouveau un lien** : le compteur d'ouvertures d'un lien de lecture et celui d'un accès d'espace ne bougent pas quand l'adresse porte `?view=`.
+
+### Dans aurora-client
+- `?view=page|slides` sur les pages de livrable ; toute autre valeur (y compris un tableau `?view[]=`) est ignorée par `DeliverablePageRenderer::requestedView()`. `render()` et `renderForReader()` gagnent un paramètre `$view`.
+- Le gabarit de grille porte `data-section` sur la première zone de chaque section d'un livrable lu en page, et l'ancre `diapo-N` quand l'auteur n'en a pas mis. Nouveau script `shared/utils/viewSwitch.js`, importé par `app.js`. Clés `frontend.slides.view_page` et `view_slides` (fr, en, es).
+
+---
+
 ## [1.15.1] - 2026-10-05
 
 ### Corrigé

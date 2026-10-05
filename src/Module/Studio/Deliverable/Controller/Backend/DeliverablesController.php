@@ -337,6 +337,7 @@ final class DeliverablesController extends AbstractController
             $this->generateUrl('backend_studio_deliverables_edit', ['id' => $deliverable->getId()]),
             markPlaceholders: !$print,
             print: $print,
+            view: DeliverablePageRenderer::requestedView($request->query->all()['view'] ?? null),
         ));
     }
 

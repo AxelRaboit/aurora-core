@@ -79,6 +79,9 @@
                there picks the zone. Only there - the page has no use for it. #}
             {% if editorPreview|default(false) %}data-grid-zone="{{ zone.id }}"{% endif %}
             {% if zone.anchor|default('') %}id="{{ zone.anchor }}"{% endif %}
+            {# Le numéro de section d'un livrable lu en page : là où mène
+               `#diapo-N`, et là où repasser en présentation reprend. #}
+            {% if zone.section|default(null) %}data-section="{{ zone.section }}"{% endif %}
             {% if reveal != 'none' %}data-reveal="{{ reveal }}"{% endif %}
             {% if zone.highlight|default(null) %}data-zone-highlight="{{ zone.highlight }}"{% endif %}
             {% if zone.accentColor|default(null) or zone.siteAccent|default(false) %}data-zone-accent="{{ zone.id }}"{% endif %}
