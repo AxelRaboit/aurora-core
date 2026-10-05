@@ -5,7 +5,7 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
-## [Unreleased]
+## [1.14.0] - 2026-10-05
 
 ### Ajouté
 - **Les présentations passent par la corbeille commune**, comme les livrables : supprimer une présentation la met à la corbeille au lieu de la détruire. Elle sort des listes, de la recherche, des compteurs et des fiches client, ses adresses de partage répondent 404, et elle revient intacte avec ses slides et ses liens à la restauration. Le bloc « présentation » d'une publication disparaît aussi tant qu'elle y est. Ses images restent comptées dans la médiathèque jusqu'à la purge. Restaurer, détruire pour de bon et « Vider la corbeille » demandent le droit de supprimer (`studio.decks.delete`) ; la purge planifiée suit le délai commun (`TrashAutoPurgeDays`).
