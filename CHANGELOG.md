@@ -5,7 +5,7 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
-## [Unreleased]
+## [2.0.0] - 2026-10-06
 
 ### Modifié (rupture)
 - **Le back-office s'appelle désormais « la suite »**, partout où le mot désignait l'endroit :
