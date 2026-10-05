@@ -5,7 +5,7 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
-## [Unreleased]
+## [1.17.0] - 2026-10-05
 
 ### Ajouté
 - **Le calendrier éditorial se colore par format** : Carrousel, Post, Réel et Story ont chacun leur couleur dans la grille du mois, et une légende sous le calendrier reprend les formats utilisés, dans l'ordre où ils apparaissent. Les noms de réseau (Instagram, LinkedIn…) gardent leur couleur d'avant. Une note facultative se pose sous la légende (« Des stories accompagnent les jours où un contenu sort »).
