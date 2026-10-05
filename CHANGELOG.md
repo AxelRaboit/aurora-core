@@ -5,6 +5,15 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [1.15.1] - 2026-10-05
+
+### Corrigé
+- **L'éditeur d'un livrable ou d'une publication ne déborde plus sur téléphone** : un titre long dans le « Plan du document » poussait ses deux boutons hors de l'écran et la page défilait de côté. La ligne du plan se tronque désormais.
+- **La liste des livrables sur téléphone** : la bascule « par catégorie / en liste » ne prend plus toute une ligne pour deux icônes ; elle est masquée sur téléphone, comme celle des trames de contrat.
+- **La fiche d'un contrat** : ses autres gestes (« … ») passent dans la barre du haut, comme sur tous les écrans de détail ; l'étape suivante garde son bouton dans sa carte.
+
+---
+
 ## [1.15.0] - 2026-10-05
 
 ### Ajouté
