@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Aurora\Fixtures\Studio;
 
+use Aurora\Fixtures\Ged\GedDemoFixtures;
 use Aurora\Module\Editorial\Post\Grid\GridNormalizer;
 use Aurora\Module\Editorial\Post\Service\EditorBlocks;
+use Aurora\Module\Ged\Document\Entity\DocumentInterface;
+use Aurora\Module\Ged\Document\Repository\DocumentRepository;
 use Aurora\Module\Platform\User\Entity\CoreUserInterface;
 use Aurora\Module\Platform\User\Enum\UserTypeEnum;
 use Aurora\Module\Platform\User\Repository\UserRepository;
@@ -28,7 +31,15 @@ use RuntimeException;
 
 use function array_keys;
 use function array_map;
+use function file_get_contents;
+use function is_array;
+use function is_string;
+use function json_decode;
+use function mb_substr;
 use function sprintf;
+use function str_starts_with;
+
+use const JSON_THROW_ON_ERROR;
 
 /**
  * Les livrables de la démo : quatre documents qui montrent ce qu'un livrable
@@ -43,6 +54,14 @@ use function sprintf;
  *   montrer qu'un livrable se prépare chez soi avant de s'ouvrir.
  * - **La proposition** faite à la Menuiserie Fabre, prospect : démarche, deux
  *   formules et calendrier, en vert forêt. Ouverte au prospect.
+ *
+ * Et deux **modèles d'audit des réseaux sociaux** dans Studio, ceux que
+ * l'équipe duplique pour chaque client : l'un en page continue, l'autre en
+ * présentation aux couleurs du site. Quinze sections, des cartes colorées, un
+ * camembert, des [passages à remplacer] : le plus complet de ce que la grille
+ * sait faire pour un livrable. Leur grille est dans `data/*.json`, les images
+ * désignées par leur nom (`@doc:`) puisque les identifiants changent à chaque
+ * chargement.
  *
  * En français seulement : un livrable a une langue, celle de son client.
  *
@@ -69,6 +88,7 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
         private readonly GridNormalizer $gridNormalizer,
         private readonly UserRepository $users,
         private readonly DeliverableCategoryRepository $categories,
+        private readonly DocumentRepository $documents,
     ) {}
 
     public static function getGroups(): array
@@ -78,7 +98,9 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
 
     public function getDependencies(): array
     {
-        return [StudioDemoFixtures::class];
+        // La médiathèque de démonstration : les deux modèles d'audit montrent
+        // ses images, retrouvées par leur nom.
+        return [StudioDemoFixtures::class, GedDemoFixtures::class];
     }
 
     public function load(ObjectManager $manager): void
@@ -164,6 +186,10 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
             $reports,
         );
 
+        // Les deux modèles d'audit, partagés avec l'équipe et rangés dans les audits.
+        $this->model($manager, 'deliverable-audit-model.json', $author, $audits);
+        $this->model($manager, 'deliverable-audit-presentation.json', $author, $audits);
+
         $manager->flush();
 
         if ($audit instanceof Deliverable) {
@@ -207,7 +233,10 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
         DeliverableScopeEnum $scope = DeliverableScopeEnum::Shared,
         ?DeliverableCategoryInterface $category = null,
     ): ?Deliverable {
-        if (null !== $this->deliverables->findOneBy(['space' => $space, 'title' => $title])) {
+        $existing = $this->deliverables->findOneBy(['space' => $space, 'title' => $title]);
+        if (null !== $existing) {
+            $this->fileIfUnfiled($existing, $category);
+
             return null;
         }
 
@@ -228,6 +257,70 @@ class DeliverableDemoFixtures extends Fixture implements DependentFixtureInterfa
         $manager->persist($deliverable);
 
         return $deliverable;
+    }
+
+    /**
+     * Range un livrable déjà là dans sa catégorie, s'il n'en a pas encore.
+     *
+     * Les fixtures s'arrêtaient à « existe déjà » : une catégorie ajoutée après
+     * le premier chargement ne rangeait jamais les livrables chargés avant.
+     * Seulement quand il n'en a pas : un rangement fait à la main n'est pas
+     * défait par un rechargement.
+     */
+    private function fileIfUnfiled(object $deliverable, ?DeliverableCategoryInterface $category): void
+    {
+        if ($deliverable instanceof Deliverable && $category instanceof DeliverableCategoryInterface && $deliverable->isStandalone() && !$deliverable->getCategory() instanceof DeliverableCategoryInterface) {
+            $deliverable->setCategory($category);
+        }
+    }
+
+    /**
+     * Un modèle complet, lu dans `data/` : le titre, le résumé, l'apparence, la
+     * grille entière et son contenu, avec les images retrouvées par leur nom.
+     */
+    private function model(ObjectManager $manager, string $file, ?CoreUserInterface $owner, DeliverableCategoryInterface $category): void
+    {
+        /** @var array{title: string, summary: ?string, appearance: array<string, mixed>, layout: array<string, mixed>, content: array<string, mixed>, locale?: string} $model */
+        $model = $this->resolveImages(json_decode((string) file_get_contents(__DIR__.'/data/'.$file), true, flags: JSON_THROW_ON_ERROR));
+
+        $existing = $this->deliverables->findOneBy(['space' => null, 'title' => $model['title']]);
+        if (null !== $existing) {
+            $this->fileIfUnfiled($existing, $category);
+
+            return;
+        }
+
+        $layout = $this->gridNormalizer->normalizeLayout([...$model['layout'], 'enabled' => true]);
+        $deliverable = new Deliverable(null, $model['title'], $model['locale'] ?? 'fr');
+        $deliverable
+            ->setSummary($model['summary'])
+            ->setVisibleToClient(false)
+            ->setGridLayout($layout)
+            ->setGridContent($this->gridNormalizer->normalizeContent($model['content'], $layout))
+            ->setAppearance(DeliverableAppearance::normalize($model['appearance']))
+            ->setReadingHeader(DeliverableReadingHeader::normalize(['preparedFor' => '']))
+            ->setOwner($owner)
+            ->setScope(DeliverableScopeEnum::Shared)
+            ->setCategory($category);
+
+        $manager->persist($deliverable);
+    }
+
+    /**
+     * Les `@doc:Nom d'origine` d'un modèle remplacés par l'identifiant du
+     * document de la médiathèque qui porte ce nom : les identifiants changent à
+     * chaque chargement, les noms non. Une image absente laisse un trou plutôt
+     * que de faire échouer tout le chargement.
+     */
+    private function resolveImages(mixed $value): mixed
+    {
+        if (is_string($value) && str_starts_with($value, '@doc:')) {
+            $document = $this->documents->findOneBy(['originalName' => mb_substr($value, 5)]);
+
+            return $document instanceof DocumentInterface ? $document->getId() : null;
+        }
+
+        return is_array($value) ? array_map($this->resolveImages(...), $value) : $value;
     }
 
     /** Une catégorie de livrables, si elle n'existe pas déjà sous ce nom. */

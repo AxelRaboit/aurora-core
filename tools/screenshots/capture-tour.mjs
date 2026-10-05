@@ -226,6 +226,26 @@ async function openGuides(page) {
     await page.waitForTimeout(800);
 }
 
+/** Les deux modèles d'audit de Studio, tels que les fixtures les nomment. */
+const AUDIT_MODEL = "Modèle · Audit des réseaux sociaux";
+const AUDIT_PRESENTATION = "Audit en présentation";
+
+/**
+ * L'identifiant d'un livrable de Studio, par son titre : il change à chaque
+ * `make demo-reset`, et une adresse écrite en dur (les nos 13 et 14 d'une base
+ * locale) donnait un 404 sur une base neuve. La liste que la page lit elle-même
+ * le dit, sous la session déjà ouverte.
+ */
+async function deliverableId(page, title) {
+    const response = await page.request.get(`${BASE_URL}/backend/studio/deliverables/lists`);
+    const lists = await response.json();
+    const found = [...(lists.shared ?? []), ...(lists.personal ?? [])].find((row) => row.title === title);
+
+    if (!found) throw new Error(`Le livrable « ${title} » n'est pas dans la démo : \`make demo-reset\` le recharge.`);
+
+    return found.id;
+}
+
 /**
  * L'adresse de l'éditeur d'un livrable de l'espace ouvert, par son titre : la
  * liste est rangée par dernière modification, et la démo y met trois
@@ -1142,15 +1162,16 @@ const SHOTS = [
     /**
      * Les nouveautés de la 1.11.0, sur deux livrables de démonstration : le
      * modèle d'audit mis en page comme un diaporama (fond blanc, cartes en
-     * relief, pastilles, téléphone penché) et le même audit en présentation.
-     * Ils ne viennent pas des fixtures : ils se recréent avec
-     * `~/claude/cm/coach_audit.py` après un `make demo-reset`.
+     * relief, pastilles, téléphone penché) et le même audit en présentation
+     * (aux couleurs du site, cartes colorées). Ils viennent des fixtures
+     * (`fixtures/Studio/data/`) et se retrouvent par leur titre : leurs
+     * identifiants changent à chaque `make demo-reset`.
      */
     {
         name: "tour-livrables-audit",
         path: "/backend/studio/deliverables?scope=personal",
         async prepare(page) {
-            await page.goto(`${BASE_URL}/backend/studio/deliverables/13/preview`, { waitUntil: "domcontentloaded" });
+            await page.goto(`${BASE_URL}/backend/studio/deliverables/${await deliverableId(page, AUDIT_MODEL)}/preview`, { waitUntil: "domcontentloaded" });
             await page.waitForTimeout(2_500);
             await page.getByRole("heading", { name: /Présentation de l'entreprise/i }).first().evaluate((el) => window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 40, behavior: "instant" }));
             await page.waitForTimeout(1_500);
@@ -1160,7 +1181,7 @@ const SHOTS = [
         name: "tour-livrables-presentation",
         path: "/backend/studio/deliverables?scope=personal",
         async prepare(page) {
-            await page.goto(`${BASE_URL}/backend/studio/deliverables/14/preview#diapo-11`, { waitUntil: "domcontentloaded" });
+            await page.goto(`${BASE_URL}/backend/studio/deliverables/${await deliverableId(page, AUDIT_PRESENTATION)}/preview#diapo-11`, { waitUntil: "domcontentloaded" });
             await page.waitForTimeout(3_000);
         },
     },
@@ -1168,7 +1189,7 @@ const SHOTS = [
         name: "tour-livrables-ambiances",
         path: "/backend/studio/deliverables?scope=personal",
         async prepare(page) {
-            await page.goto(`${BASE_URL}/backend/studio/deliverables/13`, { waitUntil: "domcontentloaded" });
+            await page.goto(`${BASE_URL}/backend/studio/deliverables/${await deliverableId(page, AUDIT_MODEL)}`, { waitUntil: "domcontentloaded" });
             await page.waitForTimeout(3_000);
             await page.locator("main").getByRole("button", { name: "Apparence", exact: true }).first().click();
             await page.waitForTimeout(1_500);
@@ -1180,7 +1201,7 @@ const SHOTS = [
         name: "tour-grille-sections",
         path: "/backend/studio/deliverables?scope=personal",
         async prepare(page) {
-            await page.goto(`${BASE_URL}/backend/studio/deliverables/13`, { waitUntil: "domcontentloaded" });
+            await page.goto(`${BASE_URL}/backend/studio/deliverables/${await deliverableId(page, AUDIT_MODEL)}`, { waitUntil: "domcontentloaded" });
             await page.waitForTimeout(3_000);
             await page.locator("main").getByRole("button", { name: "Insérer une section" }).first().click();
             await page.getByRole("dialog").first().waitFor();
@@ -1192,7 +1213,7 @@ const SHOTS = [
         path: "/backend/studio/deliverables?scope=personal",
         async prepare(page) {
             await page.addInitScript(() => window.localStorage.setItem("aurora.grid.split", "1"));
-            await page.goto(`${BASE_URL}/backend/studio/deliverables/13`, { waitUntil: "domcontentloaded" });
+            await page.goto(`${BASE_URL}/backend/studio/deliverables/${await deliverableId(page, AUDIT_MODEL)}`, { waitUntil: "domcontentloaded" });
             await page.waitForTimeout(3_000);
             await page.locator("main aside").getByTitle("Téléphone").click();
             await page.waitForTimeout(4_000);
@@ -1210,7 +1231,7 @@ const SHOTS = [
         path: "/backend/studio/deliverables?scope=personal",
         async prepare(page) {
             await page.addInitScript(() => window.localStorage.setItem("aurora.grid.split", "0"));
-            await page.goto(`${BASE_URL}/backend/studio/deliverables/13`, { waitUntil: "domcontentloaded" });
+            await page.goto(`${BASE_URL}/backend/studio/deliverables/${await deliverableId(page, AUDIT_MODEL)}`, { waitUntil: "domcontentloaded" });
             await page.waitForTimeout(3_000);
             await page.locator("main").getByText(/Plan du document/).first().evaluate((el) => window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 90, behavior: "instant" }));
             await page.waitForTimeout(1_000);

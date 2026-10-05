@@ -51,6 +51,15 @@
         </p>
     {% endif %}
 
+    {# Le PDF du lecteur, quand l'auteur l'a permis : la même page, en version à
+       imprimer. Pas dans l'aperçu de l'éditeur ni dans la version imprimée. #}
+    {% if appearance.readerPdf|default(false) and not print|default(false) and not editorPreview|default(false) %}
+        <p class="not-prose mt-0 mb-4 text-sm" data-reader-pdf>
+            <a href="?print=1" class="font-medium underline underline-offset-2">{{ 'frontend.reading.download_pdf'|trans }}</a>
+        </p>
+        <style>@media print{[data-reader-pdf]{display:none}}</style>
+    {% endif %}
+
     {% if slides|default(null) %}
         {# Une présentation : une diapositive par section, passées une à une
            par deliverableSlides.js. Sans lui, elles se lisent à la suite, et

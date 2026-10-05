@@ -21,8 +21,8 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 import { Copy, ExternalLink, FolderInput, Layers, Link2, List, Lock, Pencil, Plus, Tags, Trash2, Users, X } from "lucide-vue-next";
 import { useQueryState } from "@/shared/composables/useQueryState.js";
-import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { buildPath } from "@/shared/utils/http/buildPath.js";
+import { queueFlash } from "@/shared/utils/flash.js";
 import AppBadge from "@/shared/components/feedback/AppBadge.vue";
 import AppButton from "@/shared/components/action/AppButton.vue";
 import AppCategoriesModal from "@/shared/components/category/AppCategoriesModal.vue";
@@ -42,12 +42,17 @@ import DeliverableCards from "./components/DeliverableCards.vue";
 import DeliverableCopyToSpaceModal from "./components/DeliverableCopyToSpaceModal.vue";
 import DeliverableDeleteModal from "./components/DeliverableDeleteModal.vue";
 import DeliverableLinksModal from "./components/DeliverableLinksModal.vue";
+import DeliverableScopePicker from "./components/DeliverableScopePicker.vue";
+import { categoryOptions } from "./composables/categoryOptions.js";
+import { useDeliverableRequest } from "./composables/useDeliverableRequest.js";
 
 const props = defineProps({
     personal: { type: Array, default: () => [] },
     shared: { type: Array, default: () => [] },
     initialScope: { type: String, default: "personal" },
     canCreate: { type: Boolean, default: false },
+    /** La route qui rend les deux rayons à jour, pour une liste devenue périmée. */
+    listsPath: { type: String, default: "" },
     createPath: { type: String, required: true },
     scopePathTemplate: { type: String, required: true },
     duplicatePathTemplate: { type: String, required: true },
@@ -66,21 +71,25 @@ const props = defineProps({
 });
 
 const { t } = useI18n();
-const { request } = useRequest();
 
 const SCOPES = ["personal", "shared"];
 
 const lists = ref({ personal: [...props.personal], shared: [...props.shared] });
-const scope = ref(SCOPES.includes(props.initialScope) ? props.initialScope : "personal");
 const search = ref("");
 
-/** Le rayon ouvert va dans l'adresse : revenir d'un livrable rouvre le même. */
-function setScope(value) {
-    scope.value = value;
-    const url = new URL(window.location.href);
-    url.searchParams.set("scope", value);
-    window.history.replaceState(null, "", url);
+/**
+ * Le rayon ouvert va dans l'adresse : revenir d'un livrable rouvre le même.
+ * Comme tous les états de liste, avec `useQueryState` : le rayon par défaut
+ * n'y est pas écrit, et l'historique du navigateur est conservé.
+ */
+const { value: scopeQuery, set: setScope } = useQueryState("scope", { defaultValue: "personal", valid: SCOPES });
+
+// Sans rayon dans l'adresse, celui que le serveur a choisi pour la page : il
+// lit l'adresse lui aussi, donc cela ne compte que pour un écran monté ailleurs.
+if (!new URLSearchParams(window.location.search).has("scope") && SCOPES.includes(props.initialScope)) {
+    scopeQuery.value = props.initialScope;
 }
+const scope = computed(() => (SCOPES.includes(scopeQuery.value) ? scopeQuery.value : "personal"));
 
 const categories = ref([...props.categories]);
 
@@ -93,6 +102,8 @@ function refresh(data) {
     lists.value = { personal: data.personal ?? [], shared: data.shared ?? [] };
     if (Array.isArray(data.categories)) categories.value = data.categories;
 }
+
+const { send } = useDeliverableRequest({ listPath: props.listsPath, onList: refresh });
 
 // ── Catégories : filtre et affichage ────────────────────────────────────────
 
@@ -177,7 +188,7 @@ const groups = computed(() => {
 /** Ce que la page affiche : les sections, ou une seule, sans titre, en liste simple. */
 const sections = computed(() => (grouped.value ? groups.value : [{ key: "all", name: null, color: null, rows: visible.value }]));
 
-const categoryOptions = computed(() => categories.value.map((category) => ({ value: category.id, label: category.name })));
+const categorySelectOptions = computed(() => categoryOptions(categories.value));
 
 const managingCategories = ref(false);
 
@@ -205,7 +216,7 @@ async function create() {
 
     saving.value = true;
     try {
-        const data = await request(props.createPath, {
+        const data = await send(props.createPath, {
             title: title.value,
             scope: newScope.value,
             categoryId: newCategory.value ? Number(newCategory.value) : null,
@@ -248,7 +259,7 @@ const busyId = ref(null);
 async function changeScope(deliverable, value) {
     busyId.value = deliverable.id;
     try {
-        const data = await request(buildPath(props.scopePathTemplate, { id: deliverable.id }), { scope: value });
+        const data = await send(buildPath(props.scopePathTemplate, { id: deliverable.id }), { scope: value });
         if (data?.success) {
             refresh(data);
             toast.success(t(`backend.studio.deliverables.scope.moved_${value}`));
@@ -261,8 +272,11 @@ async function changeScope(deliverable, value) {
 async function duplicate(deliverable) {
     busyId.value = deliverable.id;
     try {
-        const data = await request(buildPath(props.duplicatePathTemplate, { id: deliverable.id }), {});
-        if (data?.success) window.location.href = data.editPath;
+        const data = await send(buildPath(props.duplicatePathTemplate, { id: deliverable.id }), {});
+        if (data?.success) {
+            queueFlash("success", t("backend.studio.deliverables.duplicated"));
+            window.location.href = data.editPath;
+        }
     } finally {
         busyId.value = null;
     }
@@ -276,12 +290,15 @@ async function doDelete() {
 
     deleting.value = true;
     try {
-        const data = await request(buildPath(props.deletePathTemplate, { id: pendingDelete.value.id }), {});
+        const data = await send(buildPath(props.deletePathTemplate, { id: pendingDelete.value.id }), {});
         if (data?.success) {
             refresh(data);
             toast.success(t("backend.studio.deliverables.deleted"));
-            pendingDelete.value = null;
         }
+
+        // Réussi ou refusé (déjà supprimé par un collègue), la fenêtre se
+        // ferme : la liste a été redessinée d'un côté ou de l'autre.
+        pendingDelete.value = null;
     } finally {
         deleting.value = false;
     }
@@ -360,7 +377,7 @@ function actionsFor(deliverable) {
             key: "delete",
             color: "rose",
             icon: Trash2,
-            title: t("shared.common.delete"),
+            title: t("backend.studio.deliverables.trash_action"),
             description: t("backend.studio.deliverables.delete_hint"),
             onSelect: () => (pendingDelete.value = deliverable),
         });
@@ -416,10 +433,16 @@ function actionsFor(deliverable) {
             <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
                 <!-- Les deux rayons, en pastilles avec leur compte, comme les filtres
                  des autres listes de Studio. -->
-                <div class="flex w-full flex-col p-1 bg-surface-2 border border-line rounded-lg gap-1 sm:inline-flex sm:w-auto sm:flex-row sm:self-start">
+                <div
+                    class="flex w-full flex-col p-1 bg-surface-2 border border-line rounded-lg gap-1 sm:inline-flex sm:w-auto sm:flex-row sm:self-start"
+                    role="tablist"
+                    :aria-label="t('backend.studio.deliverables.scope.label')"
+                >
                     <AppTab
                         v-for="value in SCOPES"
                         :key="value"
+                        role="tab"
+                        :aria-selected="scope === value ? 'true' : 'false'"
                         size="sm"
                         class="justify-between sm:flex-none sm:justify-start"
                         :active="scope === value"
@@ -457,7 +480,7 @@ function actionsFor(deliverable) {
             :message="lists[scope].length
                 ? t('backend.studio.deliverables.no_match')
                 : t(`backend.studio.deliverables.scope.empty_${scope}`)"
-            :hint="lists[scope].length ? '' : t(`backend.studio.deliverables.scope.empty_${scope}_hint`)"
+            :hint="lists[scope].length || !canCreate ? '' : t(`backend.studio.deliverables.scope.empty_${scope}_hint`)"
         />
 
         <!-- Une section par catégorie, ou une seule sans titre en liste
@@ -544,27 +567,11 @@ function actionsFor(deliverable) {
                     v-model="newCategory"
                     :label="t('backend.studio.deliverables.categories.label')"
                     :placeholder="t('backend.studio.deliverables.categories.none')"
-                    :options="categoryOptions"
+                    :options="categorySelectOptions"
                 />
                 <fieldset class="m-0 space-y-2 border-0 p-0">
                     <legend class="mb-1.5 text-sm font-medium text-primary">{{ t("backend.studio.deliverables.scope.label") }}</legend>
-                    <div class="grid gap-2 sm:grid-cols-2">
-                        <button
-                            v-for="value in SCOPES"
-                            :key="value"
-                            type="button"
-                            class="rounded-lg border p-3 text-left transition-colors"
-                            :class="newScope === value ? 'border-accent bg-accent/10' : 'border-line hover:border-line-strong'"
-                            :aria-pressed="newScope === value"
-                            v-on:click="newScope = value"
-                        >
-                            <span class="flex items-center gap-1.5 text-sm font-medium text-primary">
-                                <component :is="'shared' === value ? Users : Lock" class="h-3.5 w-3.5" :stroke-width="2" />
-                                {{ t(`backend.studio.deliverables.scope.${value}`) }}
-                            </span>
-                            <span class="mt-0.5 block text-xs text-muted">{{ t(`backend.studio.deliverables.scope.${value}_hint`) }}</span>
-                        </button>
-                    </div>
+                    <DeliverableScopePicker v-model="newScope" />
                 </fieldset>
             </form>
 

@@ -3,6 +3,7 @@ backend:
         sections:
             spaces: Espaces clients
             space_contents: Contenus des espaces
+            deliverables: Livrables
             customers: Clients
             contracts: Contrats
             contract_templates: Trames de contrat
@@ -17,6 +18,7 @@ backend:
             upcoming: "À paraître sous 7 jours"
             awaiting_countersignature: Contrats à contresigner
             awaiting_signature: Contrats chez le client
+            deliverables: Livrables
             decks: Présentations
             scope_label: Espaces comptés
             scopes:
@@ -73,6 +75,21 @@ backend:
                     shown: Élément d'espace ouvert au client
                     hidden: Élément d'espace retiré au client
                     deleted: Élément d'espace supprimé
+                deliverable:
+                    trashed: "Livrable mis à la corbeille"
+                    restored: "Livrable sorti de la corbeille"
+                    created: "Livrable créé"
+                    duplicated: "Livrable dupliqué"
+                    copied_to_space: "Livrable copié dans l'espace d'un client"
+                    copied_to_studio: "Livrable d'espace copié dans Studio"
+                    deleted: "Livrable supprimé"
+                    scope_changed: "Livrable passé de perso à partagé, ou l'inverse"
+                    shown_to_client: "Livrable ouvert au client"
+                    hidden_from_client: "Livrable retiré au client"
+                deliverable_link:
+                    issued: "Lien de lecture d'un livrable créé"
+                    revoked: "Lien de lecture d'un livrable révoqué"
+                    deleted: "Lien de lecture d'un livrable supprimé"
                 space_access_link:
                     issued: Lien d'accès client créé
                     revoked: Lien d'accès client révoqué
@@ -150,7 +167,7 @@ backend:
                     create: Créer un espace client
                     edit: Modifier un espace client
                     delete: Supprimer un espace client
-                    share: Donner un accès client à un espace
+                    share: Voir et donner les accès client d'un espace
                 contract_templates:
                     view: Consulter les trames de contrat
                     create: Créer une trame de contrat
@@ -168,15 +185,15 @@ backend:
                     create: Créer une présentation
                     edit: Modifier une présentation
                     delete: Supprimer une présentation
-                    share: Partager une présentation
+                    share: Voir et donner les liens de lecture d'une présentation
                 deck_categories:
-                    manage: Gérer les rubriques de présentation
+                    manage: Gérer les catégories de présentation
                 deliverables:
                     view: "Consulter les livrables"
                     create: "Créer un livrable"
-                    edit: "Modifier un livrable partagé"
+                    edit: "Modifier un livrable partagé et gérer les catégories"
                     delete: "Supprimer un livrable"
-                    share: "Envoyer un livrable par lien de lecture"
+                    share: "Voir et donner les liens de lecture d'un livrable"
     studio:
         workload:
             next_publication: "prochaine parution le {date}"
@@ -804,20 +821,20 @@ backend:
             duplicated: Présentation dupliquée
             duplicate: Dupliquer
             duplicate_hint: Copie les slides, sans le client.
-            edit_hint: Le titre, la rubrique et le client.
+            edit_hint: Le titre, la catégorie et le client.
             delete_hint: La présentation et toutes ses slides.
             copy_of: '%title% (copie)'
             title_column: Titre
             title_placeholder: Réunion de lancement, octobre
             description_placeholder: Une ligne, lue dans la liste.
             description: Description
-            category: Rubrique
+            category: Catégorie
             customer: Client
             slides: Slides
-            uncategorised: Sans rubrique
+            uncategorised: Sans catégorie
             no_customer: Aucun client
-            all_categories: Toutes les rubriques
-            filter_by_category: Filtrer par rubrique
+            all_categories: Toutes les catégories
+            filter_by_category: Filtrer par catégorie
             search_placeholder: Rechercher une présentation…
             empty_title: Aucune présentation
             empty_description: Une présentation est un jeu de slides que vous montrez à quelqu'un. Créez la première.
@@ -845,6 +862,8 @@ backend:
             share_revoke: Révoquer
             share_revoked: Révoqué
             share_revoked_toast: Lien révoqué
+            share_delete: Supprimer ce lien
+            share_deleted_toast: Lien supprimé
             share_expires_on: 'Expire le {date}'
             share_last_used: 'Ouvert le {date}'
             share_never_opened: Jamais ouvert
@@ -1073,11 +1092,6 @@ backend:
             from_nothing: Partir de rien
             fold_chapter: Replier ce chapitre
             unfold_chapter: Déplier ce chapitre
-            locked_title: Présentation protégée
-            locked_intro: Cette adresse demande un mot de passe. Il vous a été communiqué avec le lien.
-            locked_password: Mot de passe
-            locked_submit: Ouvrir la présentation
-            locked_failed: Ce lien ou ce mot de passe ne convient pas.
             share_password: Mot de passe
             share_password_placeholder: Laisser vide pour un lien sans mot de passe
             share_password_hint: Communiquez-le autrement que par le message qui porte le lien.
@@ -1526,7 +1540,7 @@ backend:
             updated: Espace mis à jour.
             deleted: Espace supprimé.
             delete_confirm: 'Supprimer {name} ?'
-            delete_warning: "L'espace disparaît avec tout ce qu'il contient : ses contenus, leurs fils et leurs pièces jointes, ses discussions, ses notes et ses liens d'accès. Ses dates quittent le calendrier. Le client, ses contrats et les documents de la médiathèque ne bougent pas."
+            delete_warning: "L'espace disparaît avec tout ce qu'il contient : ses contenus, leurs fils et leurs pièces jointes, ses discussions, ses notes, ses livrables avec leurs liens de lecture, et ses liens d'accès. Ses dates quittent le calendrier. Le client, ses contrats et les documents de la médiathèque ne bougent pas."
             show_archived: Afficher les espaces archivés
             sort_by_urgency: Trier par urgence
             archived_badge: Archivé
@@ -1969,6 +1983,11 @@ backend:
                 link_url_required: Ce lien n'a pas d'adresse.
                 link_url_invalid: "Cette adresse n'est pas valide. Elle doit commencer par http:// ou https://."
                 link_url_too_long: Cette adresse est trop longue.
+        sharing:
+            errors:
+                expiry_invalid: "La durée d'un lien va de 1 à 365 jours."
+                password_too_long: "Ce mot de passe est trop long : 72 octets au plus (une lettre accentuée en pèse deux)."
+                link_opened: "Ce lien a déjà été ouvert : on peut le révoquer, pas le supprimer. Il garde la trace de qui a pu lire."
         deliverables:
             editor_guide:
                 title: "Comment composer un livrable"
@@ -1979,6 +1998,7 @@ backend:
                 step_5: "« Liens de lecture » crée une adresse secrète qui ouvre ce seul document sans compte, avec un mot de passe et une expiration facultatifs."
                 step_3_studio: "« Réglages » porte le titre, le résumé, la langue et l'en-tête, et sa visibilité : perso, ou partagé avec l'équipe."
                 step_4_studio: "Enregistrez vos modifications, puis « Aperçu », dans le menu, ouvre la page telle que la lira son destinataire."
+                step_6: "Dans le menu, « Exporter en PDF » donne une page par diapositive. Les passages entre [crochets] sont à remplacer avant d'ouvrir le livrable au client : un compteur les suit."
             guide:
                 title: "Comment fonctionnent les livrables"
                 step_1: "« Nouveau livrable » crée un document (audit, stratégie, bilan) qui se compose comme une page, à vos couleurs ou à celles du client."
@@ -1986,6 +2006,7 @@ backend:
                 step_3: "« Liens de lecture », dans le menu ⋯ d'un livrable ou dans son éditeur, donne à quelqu'un une adresse secrète qui ouvre ce seul document, sans l'espace."
                 step_4: "Un lien peut avoir un mot de passe et une expiration, et se révoque un par un ; cacher le livrable ne coupe pas ses liens."
                 step_5: "« Dupliquer » crée une copie cachée au client, pratique pour repartir du bilan du mois dernier."
+                step_6: "« Copier dans Studio » garde ce livrable comme modèle. Les passages entre [crochets] sont à remplacer avant de l'ouvrir au client : la liste vous le redemande s'il en reste. Les liens de lecture demandent le droit de partager l'espace."
             intro: "Les documents écrits pour ce client : audits, stratégies, bilans. Chacun se compose comme une page, à ses couleurs, et le client le lit dans son espace dès que vous l'ouvrez."
             add: "Nouveau livrable"
             empty: "Aucun livrable pour ce client."
@@ -2015,6 +2036,9 @@ backend:
             duplicate_hint: "Une copie à reprendre, cachée au client : le bilan du mois dernier pour écrire celui-ci."
             duplicated: "Copie créée."
             copy_title: "%title% (copie)"
+            usage_detail: "Livrable"
+            usage_detail_space: "Livrable de l'espace %space%"
+            usage_private: "Un livrable perso"
             copy_to_space:
                 action: "Copier dans un espace client"
                 action_hint: "Une copie dans l'espace d'un client, cachée à lui : le modèle qu'on remplit pour lui."
@@ -2045,13 +2069,33 @@ backend:
                 action: "Copier dans Studio"
                 action_hint: "Une copie dans « Mes livrables » de Studio, pour en faire un modèle. Celui-ci reste dans l'espace."
                 done: "Copie créée dans Studio."
-            delete_hint: "Supprime le livrable et ses liens de lecture."
-            delete_confirm: "Supprimer le livrable « {title} » ? Ses liens de lecture cesseront de fonctionner."
-            deleted: "Livrable supprimé."
+            delete_hint: "Le met à la corbeille : il sort des listes et ses liens de lecture cessent de répondre, jusqu'à sa restauration."
+            trash_action: "Mettre à la corbeille"
+            usage_detail_trashed: "Dans la corbeille"
+            delete_confirm: "Mettre le livrable « {title} » à la corbeille ? Il sort des listes pour tout le monde et ses liens de lecture cessent de répondre. Vous le retrouvez dans la corbeille, d'où vous pouvez le restaurer, jusqu'à sa suppression définitive."
+            deleted: "Livrable mis à la corbeille."
             back: "Livrables de {space}"
             for_customer: "Préparé pour {name}"
             saved: "Livrable enregistré."
             save_failed: "Le livrable n'a pas pu être enregistré."
+            archived_hint: "Cet espace est archivé : il ne reçoit plus de livrable. Ceux qu'il garde restent modifiables."
+            show_confirm:
+                title: "Ouvrir ce livrable au client ?"
+                intro: "« {title} » n'est peut-être pas prêt : le client le lira dès maintenant."
+                placeholders: "{count} passage entre crochets reste à remplacer | {count} passages entre crochets restent à remplacer"
+                pictures: "Une image n'est pas publiée dans la médiathèque, le client ne la verra pas | {count} images ne sont pas publiées dans la médiathèque, le client ne les verra pas"
+                keep_hidden: "Le garder fermé"
+                confirm: "L'ouvrir quand même"
+            gone: "Ce livrable n'existe plus : la liste vient d'être actualisée."
+            not_allowed: "Vous n'avez plus le droit de faire cela sur ce livrable : la liste vient d'être actualisée."
+            read_only: "Lecture seule"
+            read_only_hint: "Vous pouvez lire ce livrable, pas le modifier : il vous faudrait le droit de le modifier."
+            tab_has_error: "Cet onglet contient une erreur."
+            conflict:
+                title: "Un collègue a enregistré avant vous"
+                keep_editing: "Continuer à modifier"
+                reload: "Recharger sa version"
+                overwrite: "Enregistrer quand même"
             unsaved: "Modifications non enregistrées"
             links_hint: "Une adresse secrète par destinataire, pour transmettre le document sans ouvrir l'espace."
             back_to_list: "Livrables"
@@ -2061,16 +2105,16 @@ backend:
             studio_guide:
                 title: "Comment fonctionnent les livrables"
                 step_1: "Un livrable est un document écrit pour être lu : un audit, une stratégie, une proposition. Il se compose avec la grille des pages, sans jamais être sur le site."
-                step_2: "« Mes livrables » ne se voit que par vous. « Partagés » se lit par toute l'équipe qui a accès aux livrables, et se modifie par ceux qui en ont le droit."
+                step_2: "« Mes livrables » ne se voit que par vous. « Partagés » se lit par toute l'équipe qui a accès aux livrables ; il se modifie par ceux qui en ont le droit, et par son auteur, même sans ce droit."
                 step_3: "Un livrable se crée dans l'onglet ouvert ; ensuite, seul son auteur le fait passer de perso à partagé, ou l'inverse, depuis son menu ou ses réglages."
-                step_4: "Un lien de lecture l'envoie à qui vous voulez, avec une expiration et un mot de passe au choix, sans compte ni espace client."
+                step_4: "Un lien de lecture l'envoie à qui vous voulez, avec une expiration et un mot de passe au choix, sans compte ni espace client. Voir les liens et en donner demande le droit de partager."
                 step_5: "Les livrables d'un client se préparent dans son espace, onglet Livrables : c'est là qu'il les lit."
                 step_6: "Rangez-les par catégorie (audit, stratégie, proposition…) : filtrez la liste ou affichez-la par catégorie. Un modèle se copie dans l'espace d'un client, et un livrable d'espace revient ici par « Copier dans Studio »."
             scope:
                 label: "Visibilité"
                 personal: "Perso"
                 shared: "Partagé"
-                personal_hint: "Vous seul le voyez."
+                personal_hint: "Vous seul le voyez dans Studio. Un lien de lecture donné reste valable."
                 shared_hint: "Toute l'équipe le lit, et le modifie avec le droit."
                 tab_personal: "Mes livrables"
                 tab_shared: "Partagés"
@@ -2086,12 +2130,13 @@ backend:
                 move_shared: "Partager avec l'équipe"
                 move_shared_hint: "Il passe dans « Partagés » : toute l'équipe le lit, et le modifie avec le droit."
                 move_personal: "Garder pour moi"
-                move_personal_hint: "Il revient dans « Mes livrables » : plus personne d'autre ne le voit."
+                move_personal_hint: "Il revient dans « Mes livrables » : plus personne d'autre ne le voit dans Studio. Les liens de lecture déjà donnés restent valables ; révoquez-les dans « Liens de lecture » pour les retirer."
                 moved_shared: "Livrable partagé avec l'équipe."
                 moved_personal: "Livrable gardé pour vous."
                 settings_hint: "Qui voit ce livrable. Seul son auteur change ce choix."
                 owner_only: "Seul l'auteur du livrable change ce choix."
             tabs:
+                label: "Parties du livrable"
                 content: "Contenu"
                 appearance: "Apparence"
                 settings: "Réglages"
@@ -2131,6 +2176,8 @@ backend:
                     display: "Capitales grasses"
                 display: "Affichage"
                 display_hint: "« Page web » se lit en faisant défiler. « Présentation » se fait passer section par section, comme un diaporama : une diapositive par grand titre posé en pleine largeur."
+                reader_pdf: "Autoriser le PDF au lecteur"
+                reader_pdf_hint: "Ajoute « Télécharger en PDF » en haut de la page que reçoit le client, sur un lien comme dans l'espace. Éteint par défaut : un document qu'on ne veut pas voir circuler en fichier ne l'offre pas."
                 displays:
                     page: "Page web"
                     slides: "Présentation"
@@ -2196,11 +2243,22 @@ backend:
                 opened_once: "Ouvert une fois"
                 last_used: "dernière ouverture le {date}"
                 never_opened: "Jamais ouvert"
+                placeholders_title: "{count} passage entre crochets reste à remplacer | {count} passages entre crochets restent à remplacer"
+                placeholders_hint: "Le destinataire du lien les lira tels quels. Remplacez-les avant de donner l'adresse."
+                create_failed: "Le lien n'a pas pu être créé."
+                revoke_failed: "Le lien n'a pas pu être révoqué."
+                revoke_confirm: "Révoquer ce lien ? Celui qui le tient n'ouvrira plus le document, et le lien ne se rétablit pas."
+                delete: "Supprimer"
+                delete_confirm: "Supprimer ce lien ? Personne ne l'a jamais ouvert : il disparaît de la liste."
+                delete_failed: "Impossible de supprimer ce lien."
+                deleted_toast: "Lien supprimé"
             errors:
                 title_required: "Donnez un titre au livrable."
                 title_too_long: "Le titre dépasse 255 caractères."
                 locale_invalid: "Cette langue n'est pas active sur le site."
                 grid_invalid: "La grille envoyée est illisible."
+                scope_invalid: "Cette visibilité n'existe pas : choisissez perso ou partagé."
+                conflict: "Un collègue a enregistré ce livrable entre-temps. Rechargez la page pour voir sa version, ou enregistrez quand même pour la remplacer."
         space_resources:
             guide:
                 title: "Comment fonctionnent les ressources"

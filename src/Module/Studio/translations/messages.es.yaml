@@ -3,6 +3,7 @@ backend:
         sections:
             spaces: Espacios de cliente
             space_contents: Contenidos de los espacios
+            deliverables: Entregables
             customers: Clientes
             contracts: Contratos
             contract_templates: Plantillas de contrato
@@ -17,6 +18,7 @@ backend:
             upcoming: 'Por publicar en 7 días'
             awaiting_countersignature: 'Contratos por contrafirmar'
             awaiting_signature: 'Contratos en manos del cliente'
+            deliverables: Entregables
             decks: Presentaciones
             scope_label: 'Espacios contados'
             scopes:
@@ -73,6 +75,21 @@ backend:
                     shown: 'Elemento de espacio abierto al cliente'
                     hidden: 'Elemento de espacio retirado al cliente'
                     deleted: 'Elemento de espacio eliminado'
+                deliverable:
+                    trashed: "Entregable enviado a la papelera"
+                    restored: "Entregable restaurado desde la papelera"
+                    created: "Entregable creado"
+                    duplicated: "Entregable duplicado"
+                    copied_to_space: "Entregable copiado al espacio de un cliente"
+                    copied_to_studio: "Entregable de espacio copiado a Studio"
+                    deleted: "Entregable eliminado"
+                    scope_changed: "Entregable pasado de personal a compartido, o al revés"
+                    shown_to_client: "Entregable abierto al cliente"
+                    hidden_from_client: "Entregable retirado al cliente"
+                deliverable_link:
+                    issued: "Enlace de lectura de un entregable creado"
+                    revoked: "Enlace de lectura de un entregable revocado"
+                    deleted: "Enlace de lectura de un entregable eliminado"
                 space_access_link:
                     issued: 'Enlace de acceso de cliente creado'
                     revoked: 'Enlace de acceso de cliente revocado'
@@ -150,7 +167,7 @@ backend:
                     create: 'Crear un espacio de cliente'
                     edit: 'Editar un espacio de cliente'
                     delete: 'Eliminar un espacio de cliente'
-                    share: 'Dar acceso de cliente a un espacio'
+                    share: 'Ver y dar los accesos de cliente de un espacio'
                 contract_templates:
                     view: 'Consultar las plantillas de contrato'
                     create: 'Crear una plantilla de contrato'
@@ -168,15 +185,15 @@ backend:
                     create: 'Crear una presentación'
                     edit: 'Editar una presentación'
                     delete: 'Eliminar una presentación'
-                    share: 'Compartir una presentación'
+                    share: 'Ver y dar los enlaces de lectura de una presentación'
                 deck_categories:
                     manage: 'Gestionar las secciones de presentaciones'
                 deliverables:
                     view: "Consultar los entregables"
                     create: "Crear un entregable"
-                    edit: "Modificar un entregable compartido"
+                    edit: "Modificar un entregable compartido y gestionar las categorías"
                     delete: "Eliminar un entregable"
-                    share: "Enviar un entregable por enlace de lectura"
+                    share: "Ver y dar los enlaces de lectura de un entregable"
     studio:
         workload:
             next_publication: 'próxima publicación el {date}'
@@ -845,6 +862,8 @@ backend:
             share_revoke: Revocar
             share_revoked: Revocado
             share_revoked_toast: 'Enlace revocado'
+            share_delete: Eliminar este enlace
+            share_deleted_toast: Enlace eliminado
             share_expires_on: 'Caduca el {date}'
             share_last_used: 'Abierto el {date}'
             share_never_opened: 'Nunca abierto'
@@ -1073,11 +1092,6 @@ backend:
             from_nothing: 'Partir de cero'
             fold_chapter: 'Plegar este capítulo'
             unfold_chapter: 'Desplegar este capítulo'
-            locked_title: 'Presentación protegida'
-            locked_intro: 'Esta dirección requiere una contraseña. Se le ha comunicado junto con el enlace.'
-            locked_password: Contraseña
-            locked_submit: 'Abrir la presentación'
-            locked_failed: 'Este enlace o esta contraseña no son válidos.'
             share_password: Contraseña
             share_password_placeholder: 'Dejar vacío para un enlace sin contraseña'
             share_password_hint: 'Comuníquela por un medio distinto del mensaje que contiene el enlace.'
@@ -1521,7 +1535,7 @@ backend:
             updated: 'Espacio actualizado.'
             deleted: 'Espacio eliminado.'
             delete_confirm: '¿Eliminar {name}?'
-            delete_warning: 'El espacio desaparece con todo lo que contiene: sus contenidos, sus hilos y sus archivos adjuntos, sus conversaciones, sus notas y sus enlaces de acceso. Sus fechas salen del calendario. El cliente, sus contratos y los documentos de la mediateca no cambian.'
+            delete_warning: 'El espacio desaparece con todo lo que contiene: sus contenidos, sus hilos y sus archivos adjuntos, sus conversaciones, sus notas, sus entregables con sus enlaces de lectura, y sus enlaces de acceso. Sus fechas salen del calendario. El cliente, sus contratos y los documentos de la mediateca no cambian.'
             show_archived: 'Mostrar los espacios archivados'
             sort_by_urgency: 'Ordenar por urgencia'
             archived_badge: Archivado
@@ -1938,6 +1952,11 @@ backend:
                 link_url_required: 'Este enlace no tiene dirección.'
                 link_url_invalid: 'Esta dirección no es válida. Debe empezar por http:// o https://.'
                 link_url_too_long: 'Esta dirección es demasiado larga.'
+        sharing:
+            errors:
+                expiry_invalid: "Un enlace dura de 1 a 365 días."
+                password_too_long: "Esa contraseña es demasiado larga: 72 bytes como máximo (una letra con tilde cuenta por dos)."
+                link_opened: "Este enlace ya se abrió: se puede revocar, no eliminar. Conserva el registro de quién pudo leer."
         deliverables:
             editor_guide:
                 title: 'Cómo componer un entregable'
@@ -1948,6 +1967,7 @@ backend:
                 step_5: '«Enlaces de lectura» crea una dirección secreta que abre solo este documento sin cuenta, con contraseña y caducidad opcionales.'
                 step_3_studio: "«Ajustes» lleva el título, el resumen, el idioma y la cabecera, y su visibilidad: personal o compartido con el equipo."
                 step_4_studio: "Guarde sus cambios y luego «Vista previa», en el menú, abre la página tal como la leerá su destinatario."
+                step_6: "En el menú, «Exportar a PDF» da una página por diapositiva. Los pasajes entre [corchetes] hay que reemplazarlos antes de abrir el entregable al cliente: un contador los sigue."
             guide:
                 title: "Cómo funcionan los entregables"
                 step_1: "«Nuevo entregable» crea un documento (auditoría, estrategia, balance) que se compone como una página, con sus colores o los del cliente."
@@ -1955,6 +1975,7 @@ backend:
                 step_3: "«Enlaces de lectura», en el menú ⋯ de un entregable o en su editor, da a alguien una dirección secreta que abre solo este documento, sin el espacio."
                 step_4: "Un enlace puede tener contraseña y caducidad, y se revoca uno por uno; ocultar el entregable no corta sus enlaces."
                 step_5: "«Duplicar» crea una copia oculta al cliente, práctica para partir del balance del mes pasado."
+                step_6: "«Copiar a Studio» guarda este entregable como modelo. Los pasajes entre [corchetes] hay que reemplazarlos antes de abrirlo al cliente: la lista se lo pregunta de nuevo si queda alguno. Los enlaces de lectura requieren el derecho de compartir el espacio."
             intro: "Los documentos escritos para este cliente: auditorías, estrategias, balances. Cada uno se compone como una página, con sus colores, y el cliente lo lee en su espacio en cuanto usted se lo abre."
             add: "Nuevo entregable"
             empty: "Ningún entregable para este cliente."
@@ -1984,6 +2005,9 @@ backend:
             duplicate_hint: "Una copia para retomar, oculta al cliente: el balance del mes pasado para escribir este."
             duplicated: "Copia creada."
             copy_title: "%title% (copia)"
+            usage_detail: "Entregable"
+            usage_detail_space: "Entregable del espacio %space%"
+            usage_private: "Un entregable personal"
             copy_to_space:
                 action: "Copiar en un espacio cliente"
                 action_hint: "Una copia en el espacio de un cliente, oculta para él: la plantilla que se rellena para él."
@@ -2014,13 +2038,33 @@ backend:
                 action: "Copiar en Studio"
                 action_hint: "Una copia en sus entregables de Studio, para convertirla en plantilla. Este se queda en el espacio."
                 done: "Copia creada en Studio."
-            delete_hint: "Elimina el entregable y sus enlaces de lectura."
-            delete_confirm: "¿Eliminar el entregable «{title}»? Sus enlaces de lectura dejarán de funcionar."
-            deleted: "Entregable eliminado."
+            delete_hint: "Lo envía a la papelera: sale de las listas y sus enlaces de lectura dejan de responder, hasta que se restaure."
+            trash_action: "Enviar a la papelera"
+            usage_detail_trashed: "En la papelera"
+            delete_confirm: "¿Enviar el entregable «{title}» a la papelera? Sale de las listas para todos y sus enlaces de lectura dejan de responder. Lo encontrará en la papelera, donde podrá restaurarlo, hasta que se elimine definitivamente."
+            deleted: "Entregable enviado a la papelera."
             back: "Entregables de {space}"
             for_customer: "Preparado para {name}"
             saved: "Entregable guardado."
             save_failed: "No se pudo guardar el entregable."
+            archived_hint: "Este espacio está archivado: ya no recibe entregables. Los que guarda siguen siendo modificables."
+            show_confirm:
+                title: "¿Abrir este entregable al cliente?"
+                intro: "«{title}» quizá no esté listo: el cliente lo leerá de inmediato."
+                placeholders: "Queda {count} pasaje entre [corchetes] por reemplazar | Quedan {count} pasajes entre [corchetes] por reemplazar"
+                pictures: "Una imagen no está publicada en la mediateca, el cliente no la verá | {count} imágenes no están publicadas en la mediateca, el cliente no las verá"
+                keep_hidden: "Mantenerlo cerrado"
+                confirm: "Abrirlo igualmente"
+            gone: "Este entregable ya no existe: la lista acaba de actualizarse."
+            not_allowed: "Ya no tiene permiso para hacer eso en este entregable: la lista acaba de actualizarse."
+            read_only: "Solo lectura"
+            read_only_hint: "Puede leer este entregable pero no modificarlo: necesitaría el derecho de modificarlo."
+            tab_has_error: "Esta pestaña tiene un error."
+            conflict:
+                title: "Un compañero guardó antes que usted"
+                keep_editing: "Seguir editando"
+                reload: "Cargar su versión"
+                overwrite: "Guardar igualmente"
             unsaved: "Cambios sin guardar"
             links_hint: "Una dirección secreta por destinatario, para transmitir el documento sin abrir el espacio."
             back_to_list: "Entregables"
@@ -2030,16 +2074,16 @@ backend:
             studio_guide:
                 title: "Cómo funcionan los entregables"
                 step_1: "Un entregable es un documento escrito para leerse: una auditoría, una estrategia, una propuesta. Se compone con la cuadrícula de las páginas, sin aparecer nunca en el sitio."
-                step_2: "«Mis entregables» solo lo ve usted. «Compartidos» lo lee todo el equipo con acceso a los entregables, y lo modifican quienes tienen el derecho."
+                step_2: "«Mis entregables» solo lo ve usted. «Compartidos» lo lee todo el equipo con acceso a los entregables; lo modifican quienes tienen el derecho, y su autor, aunque no lo tenga."
                 step_3: "Un entregable se crea en la pestaña abierta; después, solo su autor lo pasa de personal a compartido, o al revés, desde su menú o sus ajustes."
-                step_4: "Un enlace de lectura lo envía a quien usted quiera, con caducidad y contraseña opcionales, sin cuenta ni espacio de cliente."
+                step_4: "Un enlace de lectura lo envía a quien quiera, con caducidad y contraseña a su elección, sin cuenta ni espacio de cliente. Ver los enlaces y dar alguno requiere el derecho de compartir."
                 step_5: "Los entregables de un cliente se preparan en su espacio, pestaña Entregables: allí es donde los lee."
                 step_6: "Ordénelos por categoría (auditoría, estrategia, propuesta…): filtre la lista o muéstrela por categoría. Una plantilla se copia en el espacio de un cliente, y un entregable de espacio vuelve aquí con «Copiar en Studio»."
             scope:
                 label: "Visibilidad"
                 personal: "Personal"
                 shared: "Compartido"
-                personal_hint: "Solo usted lo ve."
+                personal_hint: "Solo usted lo ve en Studio. Un enlace de lectura entregado sigue siendo válido."
                 shared_hint: "Todo el equipo lo lee; quien tiene el permiso lo modifica."
                 tab_personal: "Mis entregables"
                 tab_shared: "Compartidos"
@@ -2055,12 +2099,13 @@ backend:
                 move_shared: "Compartir con el equipo"
                 move_shared_hint: "Pasa a «Compartidos»: todo el equipo lo lee, y quien tiene el permiso lo modifica."
                 move_personal: "Guardar para mí"
-                move_personal_hint: "Vuelve a «Mis entregables»: nadie más lo ve."
+                move_personal_hint: "Vuelve a «Mis entregables»: nadie más lo ve en Studio. Los enlaces de lectura ya entregados siguen siendo válidos; revóquelos en «Enlaces de lectura» para retirarlos."
                 moved_shared: "Entregable compartido con el equipo."
                 moved_personal: "Entregable guardado para usted."
                 settings_hint: "Quién ve este entregable. Solo su autor cambia esta elección."
                 owner_only: "Solo el autor del entregable cambia esta elección."
             tabs:
+                label: "Partes del entregable"
                 content: "Contenido"
                 appearance: "Apariencia"
                 settings: "Ajustes"
@@ -2100,6 +2145,8 @@ backend:
                     display: "Mayúsculas en negrita"
                 display: "Visualización"
                 display_hint: "« Página web » se lee desplazándose. « Presentación » se pasa sección por sección, como una diapositiva: una por cada título grande a todo el ancho."
+                reader_pdf: "Permitir al lector descargar un PDF"
+                reader_pdf_hint: "Añade « Descargar en PDF » en la parte superior de la página que recibe el cliente, con un enlace o en el espacio. Desactivado por defecto: un documento que no se quiere ver circular como archivo no lo ofrece."
                 displays:
                     page: "Página web"
                     slides: "Presentación"
@@ -2165,11 +2212,22 @@ backend:
                 opened_once: "Abierto una vez"
                 last_used: "última apertura el {date}"
                 never_opened: "Nunca abierto"
+                placeholders_title: "Queda {count} pasaje entre [corchetes] por reemplazar | Quedan {count} pasajes entre [corchetes] por reemplazar"
+                placeholders_hint: "Quien tenga el enlace los leerá tal cual. Reemplácelos antes de dar la dirección."
+                create_failed: "No se pudo crear el enlace."
+                revoke_failed: "No se pudo revocar el enlace."
+                revoke_confirm: "¿Revocar este enlace? Quien lo tenga ya no abrirá el documento, y un enlace revocado no se restablece."
+                delete: "Eliminar"
+                delete_confirm: "¿Eliminar este enlace? Nadie lo abrió nunca: desaparece de la lista."
+                delete_failed: "No se pudo eliminar este enlace."
+                deleted_toast: "Enlace eliminado"
             errors:
                 title_required: "Dé un título al entregable."
                 title_too_long: "El título supera los 255 caracteres."
                 locale_invalid: "Este idioma no está activo en el sitio."
                 grid_invalid: "La cuadrícula enviada es ilegible."
+                scope_invalid: "Esa visibilidad no existe: elija personal o compartido."
+                conflict: "Un compañero guardó este entregable mientras tanto. Recargue la página para ver su versión, o guarde igualmente para reemplazarla."
         space_resources:
             guide:
                 title: 'Cómo funcionan los recursos'

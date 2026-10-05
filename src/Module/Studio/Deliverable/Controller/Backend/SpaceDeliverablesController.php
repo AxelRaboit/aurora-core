@@ -5,22 +5,24 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\Deliverable\Controller\Backend;
 
 use Aurora\Core\Enum\HttpMethodEnum;
+use Aurora\Core\Enum\HttpStatusEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Http\PrivateAddressResponseTrait;
 use Aurora\Module\Studio\CustomerSpace\Controller\SpaceOwnershipTrait;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpace;
 use Aurora\Module\Studio\CustomerSpace\EventSubscriber\SpaceVisibilitySubscriber;
-use Aurora\Module\Studio\Deliverable\Entity\Deliverable;
+use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
 use Aurora\Module\Studio\Deliverable\Manager\DeliverableManager;
+use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
 use Aurora\Module\Studio\Deliverable\Security\DeliverableAccess;
 use Aurora\Module\Studio\Deliverable\Serializer\DeliverableSerializer;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableEditorPreviews;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableLinkIssuer;
 use Aurora\Module\Studio\Deliverable\Service\DeliverablePageRenderer;
+use Aurora\Module\Studio\Deliverable\Service\DeliverableReadiness;
 use Aurora\Module\Studio\Deliverable\View\DeliverableLinksView;
 use Aurora\Module\Studio\Deliverable\View\SpaceDeliverablesViewBuilder;
-use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -53,6 +55,7 @@ final class SpaceDeliverablesController extends AbstractController
     use SpaceOwnershipTrait;
 
     public function __construct(
+        private readonly DeliverableRepository $deliverables,
         private readonly DeliverableManager $manager,
         private readonly SpaceDeliverablesViewBuilder $viewBuilder,
         private readonly DeliverablePageRenderer $renderer,
@@ -62,13 +65,26 @@ final class SpaceDeliverablesController extends AbstractController
         private readonly TranslatorInterface $translator,
         private readonly DeliverableAccess $access,
         private readonly DeliverableSerializer $serializer,
+        private readonly DeliverableReadiness $readiness,
     ) {}
+
+    /** Les lignes de l'onglet telles qu'elles sont maintenant, pour rafraîchir une liste périmée. */
+    #[Route('/lists', name: '_lists', methods: [HttpMethodEnum::Get->value])]
+    public function lists(CustomerSpace $space): JsonResponse
+    {
+        return $this->jsonSuccess(['deliverables' => $this->viewBuilder->rows($space)]);
+    }
 
     /** Un titre, et on arrive dans l'éditeur. */
     #[Route('/create', name: '_create', methods: [HttpMethodEnum::Post->value])]
     #[IsGranted('studio.spaces.edit')]
     public function create(CustomerSpace $space, Request $request): JsonResponse
     {
+        // Les archives n'en reçoivent plus, comme elles ne reçoivent plus de copie.
+        if (!$this->access->canAddTo($space)) {
+            return $this->jsonForbidden();
+        }
+
         $payload = $this->decodeJson($request);
         $title = is_string($payload['title'] ?? null) ? mb_trim($payload['title']) : '';
 
@@ -80,7 +96,9 @@ final class SpaceDeliverablesController extends AbstractController
             return $this->jsonInvalidInput(['title' => 'backend.studio.deliverables.errors.title_too_long']);
         }
 
-        $deliverable = $this->manager->create($space, $title);
+        // À qui le crée, comme la copie d'un modèle : un livrable d'espace n'a
+        // plus un auteur nul, un auteur copié et l'ancien auteur selon la voie.
+        $deliverable = $this->manager->create($space, $title, $this->access->user());
 
         return $this->jsonSuccess([
             'editPath' => $this->generateUrl('workspace_space_deliverables_edit', ['id' => $space->getId(), 'deliverableId' => $deliverable->getId()]),
@@ -91,10 +109,9 @@ final class SpaceDeliverablesController extends AbstractController
     #[Route('/{deliverableId}', name: '_edit', requirements: ['deliverableId' => '\d+'], methods: [HttpMethodEnum::Get->value])]
     public function edit(
         CustomerSpace $space,
-        #[MapEntity(id: 'deliverableId')]
-        Deliverable $deliverable,
+        int $deliverableId,
     ): Response {
-        $this->assertOwned($space, $deliverable->getSpace()?->getId());
+        $deliverable = $this->owned($space, $deliverableId);
 
         return $this->render('@Studio/backend/space-deliverables/edit.html.twig', $this->viewBuilder->editorView($deliverable));
     }
@@ -103,13 +120,17 @@ final class SpaceDeliverablesController extends AbstractController
     #[IsGranted('studio.spaces.edit')]
     public function update(
         CustomerSpace $space,
-        #[MapEntity(id: 'deliverableId')]
-        Deliverable $deliverable,
+        int $deliverableId,
         Request $request,
     ): JsonResponse {
-        $this->assertOwned($space, $deliverable->getSpace()?->getId());
+        $deliverable = $this->owned($space, $deliverableId);
 
-        $errors = $this->manager->update($deliverable, $this->decodeJson($request));
+        $payload = $this->decodeJson($request);
+        if ($this->manager->isStale($deliverable, $payload)) {
+            return $this->jsonFailure('conflict', HttpStatusEnum::Conflict->value, ['conflict' => true]);
+        }
+
+        $errors = $this->manager->update($deliverable, $payload);
 
         if ([] !== $errors) {
             return $this->jsonInvalidInput($errors);
@@ -123,13 +144,25 @@ final class SpaceDeliverablesController extends AbstractController
     #[IsGranted('studio.spaces.edit')]
     public function visibility(
         CustomerSpace $space,
-        #[MapEntity(id: 'deliverableId')]
-        Deliverable $deliverable,
+        int $deliverableId,
         Request $request,
     ): JsonResponse {
-        $this->assertOwned($space, $deliverable->getSpace()?->getId());
+        $deliverable = $this->owned($space, $deliverableId);
 
-        $this->manager->setVisibleToClient($deliverable, true === ($this->decodeJson($request)['visible'] ?? false));
+        $payload = $this->decodeJson($request);
+        $visible = true === ($payload['visible'] ?? false);
+
+        // Ouvrir au client est le moment où un modèle mal rempli lui parvient :
+        // l'éditeur prévient, la liste doit le faire aussi. Refusé tant que
+        // l'auteur n'a pas dit qu'il le sait (`confirm`), avec ce qui reste.
+        if ($visible && true !== ($payload['confirm'] ?? false)) {
+            $report = $this->readiness->report($deliverable);
+            if ($report['placeholders'] > 0 || [] !== $report['withheldPictures']) {
+                return $this->jsonFailure('confirmation_needed', HttpStatusEnum::Conflict->value, $report);
+            }
+        }
+
+        $this->manager->setVisibleToClient($deliverable, $visible);
 
         return $this->jsonSuccess(['deliverables' => $this->viewBuilder->rows($space)]);
     }
@@ -138,17 +171,20 @@ final class SpaceDeliverablesController extends AbstractController
     #[IsGranted('studio.spaces.edit')]
     public function duplicate(
         CustomerSpace $space,
-        #[MapEntity(id: 'deliverableId')]
-        Deliverable $deliverable,
+        int $deliverableId,
     ): JsonResponse {
-        $this->assertOwned($space, $deliverable->getSpace()?->getId());
+        $deliverable = $this->owned($space, $deliverableId);
+
+        if (!$this->access->canAddTo($space)) {
+            return $this->jsonForbidden();
+        }
 
         $title = mb_substr(
             $this->translator->trans('backend.studio.deliverables.copy_title', ['%title%' => $deliverable->getTitle()]),
             0,
             DeliverableManager::TITLE_MAX,
         );
-        $copy = $this->manager->duplicate($deliverable, $title);
+        $copy = $this->manager->duplicate($deliverable, $title, $this->access->user());
 
         return $this->jsonSuccess([
             'editPath' => $this->generateUrl('workspace_space_deliverables_edit', ['id' => $space->getId(), 'deliverableId' => $copy->getId()]),
@@ -163,10 +199,9 @@ final class SpaceDeliverablesController extends AbstractController
     #[Route('/{deliverableId}/copy-to-studio', name: '_copy_to_studio', requirements: ['deliverableId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
     public function copyToStudio(
         CustomerSpace $space,
-        #[MapEntity(id: 'deliverableId')]
-        Deliverable $deliverable,
+        int $deliverableId,
     ): JsonResponse {
-        $this->assertOwned($space, $deliverable->getSpace()?->getId());
+        $deliverable = $this->owned($space, $deliverableId);
 
         if (!$this->access->canCopyToStudio()) {
             return $this->jsonForbidden();
@@ -181,12 +216,11 @@ final class SpaceDeliverablesController extends AbstractController
     #[IsGranted('studio.spaces.edit')]
     public function delete(
         CustomerSpace $space,
-        #[MapEntity(id: 'deliverableId')]
-        Deliverable $deliverable,
+        int $deliverableId,
     ): JsonResponse {
-        $this->assertOwned($space, $deliverable->getSpace()?->getId());
+        $deliverable = $this->owned($space, $deliverableId);
 
-        $this->manager->delete($deliverable);
+        $this->manager->trash($deliverable);
 
         return $this->jsonSuccess(['deliverables' => $this->viewBuilder->rows($space)]);
     }
@@ -199,11 +233,10 @@ final class SpaceDeliverablesController extends AbstractController
     #[Route('/{deliverableId}/preview', name: '_preview', requirements: ['deliverableId' => '\d+'], methods: [HttpMethodEnum::Get->value])]
     public function preview(
         CustomerSpace $space,
-        #[MapEntity(id: 'deliverableId')]
-        Deliverable $deliverable,
+        int $deliverableId,
         Request $request,
     ): Response {
-        $this->assertOwned($space, $deliverable->getSpace()?->getId());
+        $deliverable = $this->owned($space, $deliverableId);
         $print = $request->query->getBoolean('print');
 
         return $this->privately($this->renderer->render(
@@ -231,13 +264,18 @@ final class SpaceDeliverablesController extends AbstractController
         return $this->json(['success' => true, 'html' => $this->previews->banner($this->decodeJson($request))]);
     }
 
+    /**
+     * Les liens de lecture, adresses comprises : sous le droit de partager
+     * l'espace, comme l'accès de l'espace lui-même, et pas sous celui de le
+     * modifier. Les lire, c'est pouvoir les transmettre.
+     */
     #[Route('/{deliverableId}/links', name: '_links', requirements: ['deliverableId' => '\d+'], methods: [HttpMethodEnum::Get->value])]
+    #[IsGranted(DeliverableAccess::SPACE_SHARE)]
     public function links(
         CustomerSpace $space,
-        #[MapEntity(id: 'deliverableId')]
-        Deliverable $deliverable,
+        int $deliverableId,
     ): JsonResponse {
-        $this->assertOwned($space, $deliverable->getSpace()?->getId());
+        $deliverable = $this->owned($space, $deliverableId);
 
         return $this->jsonSuccess($this->linksView->payload($deliverable));
     }
@@ -247,35 +285,80 @@ final class SpaceDeliverablesController extends AbstractController
      * un mot de passe au choix.
      */
     #[Route('/{deliverableId}/links/create', name: '_links_create', requirements: ['deliverableId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
-    #[IsGranted('studio.spaces.edit')]
+    #[IsGranted(DeliverableAccess::SPACE_SHARE)]
     public function createLink(
         CustomerSpace $space,
-        #[MapEntity(id: 'deliverableId')]
-        Deliverable $deliverable,
+        int $deliverableId,
         Request $request,
     ): JsonResponse {
-        $this->assertOwned($space, $deliverable->getSpace()?->getId());
+        $deliverable = $this->owned($space, $deliverableId);
 
-        $this->linkIssuer->issue($deliverable, $this->decodeJson($request));
+        $payload = $this->decodeJson($request);
+        $errors = $this->linkIssuer->errors($payload);
+        if ([] !== $errors) {
+            return $this->jsonInvalidInput($errors);
+        }
+
+        $this->linkIssuer->issue($deliverable, $payload);
 
         return $this->jsonSuccess($this->linksView->payload($deliverable));
     }
 
     /** Révoquer date la ligne ; elle n'est jamais supprimée. */
     #[Route('/{deliverableId}/links/{linkId}/revoke', name: '_links_revoke', requirements: ['deliverableId' => '\d+', 'linkId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
-    #[IsGranted('studio.spaces.edit')]
+    #[IsGranted(DeliverableAccess::SPACE_SHARE)]
     public function revokeLink(
         CustomerSpace $space,
-        #[MapEntity(id: 'deliverableId')]
-        Deliverable $deliverable,
+        int $deliverableId,
         int $linkId,
     ): JsonResponse {
-        $this->assertOwned($space, $deliverable->getSpace()?->getId());
+        $deliverable = $this->owned($space, $deliverableId);
 
         if (!$this->linkIssuer->revoke($deliverable, $linkId)) {
             return $this->jsonNotFound();
         }
 
         return $this->jsonSuccess($this->linksView->payload($deliverable));
+    }
+
+    /** Supprimer une adresse que personne n'a jamais ouverte ; une adresse déjà ouverte se révoque seulement. */
+    #[Route('/{deliverableId}/links/{linkId}/delete', name: '_links_delete', requirements: ['deliverableId' => '\d+', 'linkId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    #[IsGranted(DeliverableAccess::SPACE_SHARE)]
+    public function deleteLink(
+        CustomerSpace $space,
+        int $deliverableId,
+        int $linkId,
+    ): JsonResponse {
+        $deliverable = $this->owned($space, $deliverableId);
+
+        $deleted = $this->linkIssuer->delete($deliverable, $linkId);
+        if (null === $deleted) {
+            return $this->jsonNotFound();
+        }
+
+        if (!$deleted) {
+            return $this->jsonInvalidInput(['link' => 'backend.studio.sharing.errors.link_opened'], HttpStatusEnum::Conflict->value);
+        }
+
+        return $this->jsonSuccess($this->linksView->payload($deliverable));
+    }
+
+    /**
+     * Le livrable de cet espace, ou 404 : l'identifiant d'un autre espace, ou
+     * d'un livrable de Studio, répond comme un identifiant qui n'existe pas.
+     *
+     * Résolu par le dépôt et rendu en interface, pas par un `MapEntity` sur la
+     * classe du cœur : un projet qui substitue l'entité garde ses routes.
+     */
+    private function owned(CustomerSpace $space, int $deliverableId): DeliverableInterface
+    {
+        $deliverable = $this->deliverables->findLive($deliverableId);
+        $this->assertOwned($space, $deliverable?->getSpace()?->getId());
+
+        if (!$deliverable instanceof DeliverableInterface) {
+            throw $this->createNotFoundException();
+        }
+
+        return $deliverable;
     }
 }

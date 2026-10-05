@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\Deliverable\Serializer;
 
+use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Service\DocumentUrlGenerator;
 use Aurora\Module\Studio\CustomerSpace\Entity\CustomerSpaceInterface;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableCategoryInterface;
@@ -11,6 +12,7 @@ use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableLinkInterface;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableAppearance;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableReadingHeader;
+use DateTimeInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /** Les trois formes d'un livrable : une ligne de liste, l'éditeur, un lien de lecture. */
@@ -38,6 +40,36 @@ final readonly class DeliverableSerializer
             'updatedAt' => $deliverable->getUpdatedAt()->format(DATE_ATOM),
             'editPath' => $this->path($deliverable, 'edit'),
             'previewPath' => $this->path($deliverable, 'preview'),
+        ];
+    }
+
+    /**
+     * La ligne d'un livrable d'espace, depuis les colonnes de la liste : le
+     * même dessin que {@see self::row()}, sans avoir lu le corps du livrable.
+     * Un livrable d'espace n'a ni rayon, ni catégorie, ni propriétaire à
+     * montrer.
+     *
+     * @param array{id: int, title: string, summary: ?string, visibleToClient: bool, updatedAt: DateTimeInterface, thumbnailId: ?int} $row
+     *
+     * @return array<string, mixed>
+     */
+    public function spaceRow(array $row, CustomerSpaceInterface $space, ?DocumentInterface $thumbnail): array
+    {
+        $params = ['id' => $space->getId(), 'deliverableId' => $row['id']];
+
+        return [
+            'id' => $row['id'],
+            'title' => $row['title'],
+            'summary' => $row['summary'],
+            'visibleToClient' => $row['visibleToClient'],
+            'scope' => null,
+            'category' => null,
+            'ownerName' => null,
+            'thumbnailUrl' => $this->documentUrls->thumbUrl($thumbnail),
+            'thumbnailPosition' => $this->documentUrls->focalPositionCss($thumbnail),
+            'updatedAt' => $row['updatedAt']->format(DATE_ATOM),
+            'editPath' => $this->urlGenerator->generate('workspace_space_deliverables_edit', $params),
+            'previewPath' => $this->urlGenerator->generate('workspace_space_deliverables_preview', $params),
         ];
     }
 

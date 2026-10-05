@@ -5,11 +5,9 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\Deck\Share\Entity;
 
 use Aurora\Module\Studio\Deck\Entity\DeckInterface;
+use Aurora\Module\Studio\Sharing\ShareToken;
 use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
-
-use function bin2hex;
-use function random_bytes;
 
 /**
  * One address that opens a deck without an account.
@@ -102,7 +100,7 @@ abstract class AbstractDeckShareLink implements DeckShareLinkInterface
         #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
         protected DeckInterface $deck)
     {
-        $this->token = bin2hex(random_bytes(32));
+        $this->token = ShareToken::generate();
         $this->createdAt = new DateTimeImmutable();
     }
 

@@ -80,4 +80,11 @@ interface DeliverableInterface
     public function getUpdatedAt(): DateTimeImmutable;
 
     public function touch(): static;
+
+    /** Quand il a été mis à la corbeille ; nul, il est vivant. */
+    public function getDeletedAt(): ?DateTimeImmutable;
+
+    public function setDeletedAt(?DateTimeImmutable $deletedAt): static;
+
+    public function isTrashed(): bool;
 }

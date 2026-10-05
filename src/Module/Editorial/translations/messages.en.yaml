@@ -1088,6 +1088,7 @@ backend:
                 insert: "Insert"
                 delete: "Delete this section"
                 paste: "Paste {count} zone | Paste {count} zones"
+                dropped_hidden: "{count} zone is not offered in this document and was not inserted | {count} zones are not offered in this document and were not inserted"
                 copied: "{count} zone copied, to paste into another grid | {count} zones copied, to paste into another grid"
                 duplicate: "Duplicate the zone"
                 copy_zone: "Copy the zone"
@@ -1980,6 +1981,7 @@ frontend:
         next: "Next slide"
         fullscreen: "Full screen"
     reading:
+        download_pdf: "Download as PDF"
         prepared_for: 'Prepared for %name%'
         back: 'Back to the space'
         updated_on: 'Updated on %date%'

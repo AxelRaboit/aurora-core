@@ -4,15 +4,12 @@ declare(strict_types=1);
 
 namespace Aurora\Module\Studio\Deliverable\View;
 
-use Aurora\Module\Editorial\Post\Service\PostPictures;
-use Aurora\Module\Ged\Document\Repository\DocumentRepository;
-use Aurora\Module\Ged\Enum\DocumentStatusEnum;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableLinkRepository;
 use Aurora\Module\Studio\Deliverable\Serializer\DeliverableSerializer;
+use Aurora\Module\Studio\Deliverable\Service\DeliverableReadiness;
 
 use function array_map;
-use function sprintf;
 
 /**
  * Ce que reçoit la fenêtre des liens de lecture d'un livrable, qu'il vive dans
@@ -23,8 +20,7 @@ final readonly class DeliverableLinksView
     public function __construct(
         private DeliverableLinkRepository $links,
         private DeliverableSerializer $serializer,
-        private PostPictures $pictures,
-        private DocumentRepository $documents,
+        private DeliverableReadiness $readiness,
     ) {}
 
     /**
@@ -38,37 +34,10 @@ final readonly class DeliverableLinksView
         return [
             // Rien n'est un brouillon ici : un lien ouvre toujours la page.
             'readable' => true,
-            'withheldPictures' => $this->withheldPictures($deliverable),
+            // Les images non publiées et les [passages à remplacer] qui
+            // partiraient avec l'adresse.
+            ...$this->readiness->report($deliverable),
             'links' => array_map($this->serializer->link(...), $this->links->findForDeliverable($deliverable)),
         ];
-    }
-
-    /**
-     * Les documents de la médiathèque que la page utilise sans qu'ils soient
-     * publiés : un lecteur hors du back-office ne les verra pas, et mieux vaut
-     * le dire avant d'envoyer l'adresse.
-     *
-     * @return list<array{id: int, name: string}>
-     */
-    private function withheldPictures(DeliverableInterface $deliverable): array
-    {
-        $ids = $this->pictures->idsInGridLayout($deliverable->getGridLayout());
-        if ([] === $ids) {
-            return [];
-        }
-
-        $withheld = [];
-        foreach ($this->documents->findBy(['id' => $ids]) as $document) {
-            if (DocumentStatusEnum::Published === $document->getStatus()) {
-                continue;
-            }
-
-            $withheld[] = [
-                'id' => (int) $document->getId(),
-                'name' => $document->getOriginalName() ?? sprintf('#%d', $document->getId()),
-            ];
-        }
-
-        return $withheld;
     }
 }

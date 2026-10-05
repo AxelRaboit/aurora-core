@@ -1,19 +1,26 @@
-import { describe, it, expect } from "vitest";
-import { mount } from "@vue/test-utils";
+import { beforeEach, describe, it, expect, vi } from "vitest";
+import { mount, flushPromises } from "@vue/test-utils";
 import { createTestI18n } from "@/tests/helpers/createTestI18n.js";
 import SpaceDeliverablesView from "./SpaceDeliverablesView.vue";
 import AppRowActions from "@/shared/components/action/AppRowActions.vue";
 import DeliverableLinksModal from "./components/DeliverableLinksModal.vue";
+
+const send = vi.fn();
+
+vi.mock("./composables/useDeliverableRequest.js", () => ({
+    useDeliverableRequest: () => ({ send }),
+}));
 
 const i18n = createTestI18n();
 
 /**
  * Les livrables d'un espace, vus du studio.
  *
- * Ce qui se casserait sans bruit : les liens de lecture depuis la liste. Ils
- * n'étaient proposés que dans l'éditeur, et créer une adresse pour un
- * destinataire obligeait à ouvrir le document d'abord. La fenêtre doit
- * s'ouvrir sur les liens **du livrable choisi**, pas sur ceux d'un voisin.
+ * Ce qui se casserait sans bruit : les liens de lecture depuis la liste, qui
+ * portent les adresses mêmes et ne sont donc proposés qu'avec le droit de
+ * partager l'espace ; la création et la duplication dans une archive, qui ne
+ * reçoit plus de livrable ; et l'ouverture au client d'un livrable pas fini,
+ * que le serveur refuse tant que l'auteur ne confirme pas.
  */
 const PATHS = {
     createPath: "/workspace/1/deliverables/create",
@@ -22,11 +29,13 @@ const PATHS = {
     deletePathTemplate: "/workspace/1/deliverables/__id__/delete",
 };
 
+const LINKS = "/workspace/1/deliverables/__id__/links";
+
 const AUDIT = {
     id: 7,
     title: "Audit de présence en ligne",
     summary: "",
-    visibleToClient: true,
+    visibleToClient: false,
     updatedAt: "2026-10-02T10:00:00+00:00",
     editPath: "/workspace/1/deliverables/7/edit",
     previewPath: "/workspace/1/deliverables/7/preview",
@@ -39,14 +48,17 @@ function mountView(extra = {}) {
     });
 }
 
+function actionsOf(wrapper) {
+    return wrapper.findComponent(AppRowActions).props("actions");
+}
+
 function actionKeys(wrapper) {
-    return wrapper
-        .findComponent(AppRowActions)
-        .props("actions")
-        .map((action) => action.key);
+    return actionsOf(wrapper).map((action) => action.key);
 }
 
 describe("SpaceDeliverablesView", () => {
+    beforeEach(() => send.mockReset());
+
     it("offers to keep a copy in Studio only with the right to create there", () => {
         expect(actionKeys(mountView())).not.toContain("copy-to-studio");
 
@@ -59,22 +71,23 @@ describe("SpaceDeliverablesView", () => {
         expect(keys).toContain("copy-to-studio");
     });
 
-    it("offers the reading links in a deliverable's menu", () => {
-        const wrapper = mountView({
-            linksPathTemplate: "/workspace/1/deliverables/__id__/links",
-        });
+    it("offers the reading links only with the right to share the space", () => {
+        expect(
+            actionKeys(mountView({ linksPathTemplate: LINKS, canShare: true })),
+        ).toContain("links");
 
-        expect(actionKeys(wrapper)).toContain("links");
+        // Editing is not sharing: the list carries the addresses themselves.
+        expect(
+            actionKeys(
+                mountView({ linksPathTemplate: LINKS, canShare: false }),
+            ),
+        ).not.toContain("links");
     });
 
     it("opens the links of the chosen deliverable", async () => {
-        const wrapper = mountView({
-            linksPathTemplate: "/workspace/1/deliverables/__id__/links",
-        });
+        const wrapper = mountView({ linksPathTemplate: LINKS, canShare: true });
 
-        wrapper
-            .findComponent(AppRowActions)
-            .props("actions")
+        actionsOf(wrapper)
             .find((action) => "links" === action.key)
             .onSelect();
         await wrapper.vm.$nextTick();
@@ -87,6 +100,102 @@ describe("SpaceDeliverablesView", () => {
     });
 
     it("leaves the action out without a links path", () => {
-        expect(actionKeys(mountView())).not.toContain("links");
+        expect(actionKeys(mountView({ canShare: true }))).not.toContain(
+            "links",
+        );
+    });
+
+    it("takes no new deliverable in an archive, and says why", () => {
+        const archived = mountView({ canAdd: false });
+
+        expect(actionKeys(archived)).not.toContain("duplicate");
+        expect(actionKeys(archived)).toContain("delete");
+        expect(archived.text()).toContain("archived_hint");
+        expect(
+            archived
+                .findAll("button")
+                .some((button) => button.text().includes("deliverables.add")),
+        ).toBe(false);
+
+        const open = mountView({ canAdd: true });
+        expect(actionKeys(open)).toContain("duplicate");
+        expect(open.text()).not.toContain("archived_hint");
+    });
+
+    it("keeps its rows in step with the page that holds them", async () => {
+        const wrapper = mountView();
+        expect(wrapper.text()).toContain("Audit de présence en ligne");
+
+        await wrapper.setProps({
+            deliverables: [{ ...AUDIT, id: 8, title: "Bilan de septembre" }],
+        });
+
+        expect(wrapper.text()).toContain("Bilan de septembre");
+        expect(wrapper.text()).not.toContain("Audit de présence en ligne");
+    });
+
+    it("asks before opening to the client what the server says is not ready", async () => {
+        send.mockResolvedValueOnce({
+            success: false,
+            error: "confirmation_needed",
+            placeholders: 3,
+            withheldPictures: [{ id: 5, name: "portrait.jpg" }],
+        });
+        const wrapper = mountView({ canAdd: true });
+
+        await actionsOf(wrapper)
+            .find((action) => "visibility" === action.key)
+            .onSelect();
+        await flushPromises();
+
+        // The server was asked to open it, without a confirmation.
+        expect(send).toHaveBeenCalledWith(
+            "/workspace/1/deliverables/7/visibility",
+            { visible: true },
+            { own: ["confirmation_needed"] },
+        );
+
+        // Nothing was opened: the author is told what remains (in the modal,
+        // which is teleported out of the wrapper).
+        const text = document.body.textContent;
+        expect(text).toContain("show_confirm.placeholders");
+        expect(text).toContain("portrait.jpg");
+
+        wrapper.unmount();
+    });
+
+    it("opens it once the author confirms", async () => {
+        send.mockResolvedValueOnce({
+            success: false,
+            error: "confirmation_needed",
+            placeholders: 1,
+            withheldPictures: [],
+        });
+        send.mockResolvedValueOnce({
+            success: true,
+            deliverables: [{ ...AUDIT, visibleToClient: true }],
+        });
+        const wrapper = mountView({ canAdd: true });
+
+        await actionsOf(wrapper)
+            .find((action) => "visibility" === action.key)
+            .onSelect();
+        await flushPromises();
+
+        const confirm = [...document.body.querySelectorAll("button")].find(
+            (button) => button.textContent.includes("show_confirm.confirm"),
+        );
+        confirm.click();
+        await flushPromises();
+
+        expect(send).toHaveBeenLastCalledWith(
+            "/workspace/1/deliverables/7/visibility",
+            { visible: true, confirm: true },
+            { own: ["confirmation_needed"] },
+        );
+        // The row now reads « visible »: what the server answered is what is shown.
+        expect(wrapper.text()).toContain("visible_badge");
+
+        wrapper.unmount();
     });
 });

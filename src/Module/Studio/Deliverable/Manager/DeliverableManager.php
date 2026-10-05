@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\Deliverable\Manager;
 
 use Aurora\Core\Locale\Service\LocaleContextInterface;
+use Aurora\Module\Dev\Audit\Service\AuditLogger;
 use Aurora\Module\Editorial\Post\Grid\GridNormalizer;
 use Aurora\Module\Ged\Document\Entity\DocumentInterface;
 use Aurora\Module\Ged\Document\Repository\DocumentRepository;
@@ -15,9 +16,12 @@ use Aurora\Module\Studio\Deliverable\Entity\DeliverableCategoryInterface;
 use Aurora\Module\Studio\Deliverable\Entity\DeliverableInterface;
 use Aurora\Module\Studio\Deliverable\Enum\DeliverableScopeEnum;
 use Aurora\Module\Studio\Deliverable\Repository\DeliverableCategoryRepository;
+use Aurora\Module\Studio\Deliverable\Repository\DeliverableRepository;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableAppearance;
 use Aurora\Module\Studio\Deliverable\Service\DeliverableReadingHeader;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use Throwable;
 
 use function array_key_exists;
 use function ctype_digit;
@@ -36,7 +40,7 @@ use function str_starts_with;
  * construction, avec les mêmes zones et les mêmes garde-fous, et ce qui est
  * accepté ici est ce qui sait se rendre là-bas.
  */
-final readonly class DeliverableManager
+readonly class DeliverableManager
 {
     public const int TITLE_MAX = 255;
 
@@ -46,6 +50,8 @@ final readonly class DeliverableManager
         private LocaleContextInterface $localeContext,
         private DeliverableCategoryRepository $categories,
         private DocumentRepository $documents,
+        private AuditLogger $auditLogger,
+        private DeliverableRepository $deliverables,
     ) {}
 
     /**
@@ -66,7 +72,7 @@ final readonly class DeliverableManager
         DeliverableScopeEnum $scope = DeliverableScopeEnum::Shared,
         ?DeliverableCategoryInterface $category = null,
     ): DeliverableInterface {
-        $deliverable = new Deliverable($space, $title, $this->localeContext->getDefaultLocale());
+        $deliverable = $this->instantiate($space, $title, $this->localeContext->getDefaultLocale());
         $deliverable
             ->setOwner($owner)
             ->setCategory($space instanceof CustomerSpaceInterface ? null : $category)
@@ -82,7 +88,47 @@ final readonly class DeliverableManager
         $this->entityManager->persist($deliverable);
         $this->entityManager->flush();
 
+        $this->auditLogger->log('studio', 'deliverable.created', 'Deliverable', $deliverable->getId(), $this->auditPayload($deliverable));
+
         return $deliverable;
+    }
+
+    /**
+     * L'entité qu'on crée, à un seul endroit : un projet qui étend le livrable
+     * (un champ de plus, une relation) surcharge ceci et reçoit sa classe à
+     * chaque création, copie ou duplication, sans réécrire le gestionnaire.
+     * C'est le même point d'accroche que celui des espaces clients.
+     */
+    protected function instantiate(?CustomerSpaceInterface $space, string $title, string $locale): DeliverableInterface
+    {
+        return new Deliverable($space, $title, $locale);
+    }
+
+    /**
+     * Ce que l'éditeur tient est-il plus vieux que ce qui est enregistré ?
+     *
+     * L'éditeur renvoie la date de modification qu'il a reçue en ouvrant le
+     * livrable ou en l'enregistrant. Si elle n'est plus celle de la base,
+     * quelqu'un d'autre est passé entre-temps, et enregistrer effacerait son
+     * travail : le livrable partagé a plusieurs auteurs. Un envoi qui ne la
+     * porte pas n'est pas comparé, pour qu'un appel venu d'ailleurs reste
+     * possible, et `force` enregistre quand même, quand l'auteur a choisi
+     * d'écraser ce que l'autre a fait.
+     *
+     * @param array<string, mixed> $data
+     */
+    public function isStale(DeliverableInterface $deliverable, array $data): bool
+    {
+        $seen = $data['updatedAt'] ?? null;
+        if (true === ($data['force'] ?? false) || !is_string($seen) || '' === $seen) {
+            return false;
+        }
+
+        try {
+            return new DateTimeImmutable($seen)->getTimestamp() !== $deliverable->getUpdatedAt()->getTimestamp();
+        } catch (Throwable) {
+            return true;
+        }
     }
 
     /**
@@ -140,6 +186,11 @@ final readonly class DeliverableManager
     {
         $deliverable->setVisibleToClient($visible);
         $this->entityManager->flush();
+        if ($visible) {
+            $this->auditLogger->log('studio', 'deliverable.shown_to_client', 'Deliverable', $deliverable->getId(), $this->auditPayload($deliverable));
+        } else {
+            $this->auditLogger->log('studio', 'deliverable.hidden_from_client', 'Deliverable', $deliverable->getId(), $this->auditPayload($deliverable));
+        }
     }
 
     /**
@@ -152,7 +203,7 @@ final readonly class DeliverableManager
      */
     public function duplicate(DeliverableInterface $source, string $title, ?CoreUserInterface $author = null): DeliverableInterface
     {
-        $copy = new Deliverable($source->getSpace(), $title, $source->getLocale());
+        $copy = $this->instantiate($source->getSpace(), $title, $source->getLocale());
         // La copie est à qui la fait, dans le même rayon que l'original : une
         // copie d'un livrable partagé reste à l'équipe.
         $copy
@@ -161,7 +212,10 @@ final readonly class DeliverableManager
             ->setCategory($source->getCategory())
             ->setReadingHeader($source->getReadingHeader());
 
-        return $this->persistCopy($source, $copy);
+        $copy = $this->persistCopy($source, $copy);
+        $this->auditLogger->log('studio', 'deliverable.duplicated', 'Deliverable', $copy->getId(), $this->auditPayload($copy, ['from' => $source->getId()]));
+
+        return $copy;
     }
 
     /**
@@ -174,7 +228,7 @@ final readonly class DeliverableManager
      */
     public function copyToSpace(DeliverableInterface $source, CustomerSpaceInterface $space, string $title, ?CoreUserInterface $author = null): DeliverableInterface
     {
-        $copy = new Deliverable($space, $title, $source->getLocale());
+        $copy = $this->instantiate($space, $title, $source->getLocale());
         $copy
             ->setOwner($author)
             ->setScope(DeliverableScopeEnum::Shared)
@@ -183,7 +237,10 @@ final readonly class DeliverableManager
                 'preparedFor' => $space->getCustomer()->getLegalName(),
             ]));
 
-        return $this->persistCopy($source, $copy);
+        $copy = $this->persistCopy($source, $copy);
+        $this->auditLogger->log('studio', 'deliverable.copied_to_space', 'Deliverable', $copy->getId(), $this->auditPayload($copy, ['from' => $source->getId()]));
+
+        return $copy;
     }
 
     /**
@@ -192,13 +249,16 @@ final readonly class DeliverableManager
      */
     public function copyToStudio(DeliverableInterface $source, string $title, ?CoreUserInterface $author = null): DeliverableInterface
     {
-        $copy = new Deliverable(null, $title, $source->getLocale());
+        $copy = $this->instantiate(null, $title, $source->getLocale());
         $copy
             ->setOwner($author)
             ->setScope(DeliverableScopeEnum::Personal)
             ->setReadingHeader(DeliverableReadingHeader::normalize([...$source->getReadingHeader(), 'preparedFor' => '']));
 
-        return $this->persistCopy($source, $copy);
+        $copy = $this->persistCopy($source, $copy);
+        $this->auditLogger->log('studio', 'deliverable.copied_to_studio', 'Deliverable', $copy->getId(), $this->auditPayload($copy, ['from' => $source->getId()]));
+
+        return $copy;
     }
 
     /** Perso ou partagé, pour un livrable sans espace. */
@@ -216,6 +276,7 @@ final readonly class DeliverableManager
         }
 
         $this->entityManager->flush();
+        $this->auditLogger->log('studio', 'deliverable.scope_changed', 'Deliverable', $deliverable->getId(), $this->auditPayload($deliverable));
     }
 
     /**
@@ -261,10 +322,90 @@ final readonly class DeliverableManager
         return $copy;
     }
 
-    public function delete(DeliverableInterface $deliverable): void
+    /**
+     * Met le livrable à la corbeille : il sort des listes, de la recherche et
+     * des comptes, et ses liens de lecture cessent de répondre. Rien n'est
+     * détruit : ses images restent comptées par la médiathèque, ses liens et
+     * leur historique restent en base, et la restauration remet tout comme
+     * c'était.
+     */
+    public function trash(DeliverableInterface $deliverable): void
     {
+        if ($deliverable->isTrashed()) {
+            return;
+        }
+
+        $deliverable->setDeletedAt(new DateTimeImmutable());
+        $this->entityManager->flush();
+        $this->auditLogger->log('studio', 'deliverable.trashed', 'Deliverable', $deliverable->getId(), $this->auditPayload($deliverable));
+    }
+
+    /** Sort le livrable de la corbeille : ses liens de lecture reprennent, tels qu'ils étaient. */
+    public function restore(DeliverableInterface $deliverable): void
+    {
+        if (!$deliverable->isTrashed()) {
+            return;
+        }
+
+        $deliverable->setDeletedAt(null);
+        $this->entityManager->flush();
+        $this->auditLogger->log('studio', 'deliverable.restored', 'Deliverable', $deliverable->getId(), $this->auditPayload($deliverable));
+    }
+
+    /**
+     * Détruit le livrable pour de bon, avec ses liens de lecture. Le bouton
+     * « Supprimer définitivement » de la corbeille et la purge planifiée y
+     * passent : c'est le seul endroit où un livrable disparaît.
+     */
+    public function forceDelete(DeliverableInterface $deliverable): void
+    {
+        // Journalisé avant d'être retiré : après, il n'a plus d'identifiant.
+        // Définitif, et c'est le seul témoin de qui l'a fait.
+        $this->auditLogger->log('studio', 'deliverable.deleted', 'Deliverable', $deliverable->getId(), $this->auditPayload($deliverable));
+
         $this->entityManager->remove($deliverable);
         $this->entityManager->flush();
+    }
+
+    /**
+     * Détruit ce qui est à la corbeille depuis avant cette date, et rend
+     * combien : la purge planifiée, après le délai que partagent toutes les
+     * corbeilles.
+     */
+    public function purgeTrashedBefore(DateTimeImmutable $cutoff): int
+    {
+        $purged = 0;
+        foreach ($this->deliverables->findTrashedBefore($cutoff) as $deliverable) {
+            $this->forceDelete($deliverable);
+            ++$purged;
+        }
+
+        return $purged;
+    }
+
+    /**
+     * Ce que dit une ligne du journal sur un livrable : son titre, son espace
+     * et son rayon. Les gestes qui engagent quelqu'un d'autre que l'auteur
+     * s'y inscrivent (créer, copier, supprimer, ouvrir ou fermer au client,
+     * changer de rayon, donner ou retirer une adresse) ; un enregistrement du
+     * contenu n'y figure pas, il aurait une ligne par pause de frappe.
+     *
+     * Chaque appel écrit son action en toutes lettres : le test des libellés du
+     * journal ne lit que les arguments littéraux, et une action construite
+     * échapperait à son contrôle.
+     *
+     * @param array<string, mixed> $extra
+     *
+     * @return array<string, mixed>
+     */
+    private function auditPayload(DeliverableInterface $deliverable, array $extra = []): array
+    {
+        return [
+            'title' => $deliverable->getTitle(),
+            'space' => $deliverable->getSpace()?->getId(),
+            'scope' => $deliverable->isStandalone() ? $deliverable->getScope()->value : null,
+            ...$extra,
+        ];
     }
 
     /**

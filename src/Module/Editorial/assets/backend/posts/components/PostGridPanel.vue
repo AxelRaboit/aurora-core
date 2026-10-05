@@ -38,6 +38,7 @@ import { plainText } from "../composables/gridZoneSummary.js";
 import PostGridCanvas from "./PostGridCanvas.vue";
 import PostGridSaveSectionModal from "./PostGridSaveSectionModal.vue";
 import PostGridSectionLibrary from "./PostGridSectionLibrary.vue";
+import { withoutHiddenTypes } from "../composables/gridHiddenZones.js";
 import { useGridClipboard } from "../composables/gridClipboard.js";
 import { useRequest } from "@/shared/composables/http/backend/useRequest.js";
 import { usePrivileges } from "@/shared/composables/usePrivileges.js";
@@ -363,8 +364,15 @@ const saving = ref(null);
 
 /** Puts zones in after the selected one, or at the end when none is. */
 function insertHere(payload) {
-    insertZones(null === selectedIndex.value ? zones.value.length : selectedIndex.value + 1, payload);
+    // Without the zones this grid does not offer: a section pasted from a
+    // publication into a deliverable must not carry a comments thread or a
+    // form that the client's page would silently drop.
+    const { payload: allowed, dropped } = withoutHiddenTypes(payload, props.hiddenTypes);
+
+    insertZones(null === selectedIndex.value ? zones.value.length : selectedIndex.value + 1, allowed);
     showLibrary.value = false;
+
+    if (dropped > 0) toast.message(t("backend.posts.grid.sections.dropped_hidden", { count: dropped }));
 }
 
 /** The zones of one section of the outline: from its heading to the next. */

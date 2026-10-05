@@ -2,7 +2,7 @@ backend:
     trash:
         guide:
             title: "Comment fonctionne la corbeille"
-            step_1: "Ce qui est supprimé dans les publications, la médiathèque (documents, dossiers, catégories) et les notes attend ici, un onglet par type."
+            step_1: "Ce qui est supprimé dans les publications, la médiathèque (documents, dossiers, catégories), les notes et les livrables attend ici, un onglet par type."
             step_2: "Restaurer remet l'élément à sa place ; si sa place n'existe plus, un dossier revient à la racine."
             step_3: "Chaque élément part définitivement après le délai réglé (trente jours par défaut), lors de la purge de la nuit."
             step_4: "« Supprimer définitivement » et « Vider » ne se défont pas ; les commentaires, menus, formulaires et comptes ne passent jamais par ici."

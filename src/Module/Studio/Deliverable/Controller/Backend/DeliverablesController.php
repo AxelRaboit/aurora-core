@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Aurora\Module\Studio\Deliverable\Controller\Backend;
 
 use Aurora\Core\Enum\HttpMethodEnum;
+use Aurora\Core\Enum\HttpStatusEnum;
 use Aurora\Core\Http\JsonRequestTrait;
 use Aurora\Core\Http\JsonResponseTrait;
 use Aurora\Core\Http\PrivateAddressResponseTrait;
@@ -148,6 +149,13 @@ final class DeliverablesController extends AbstractController
         }
 
         $payload = $this->decodeJson($request);
+
+        // Avant la validation : dire que le titre est invalide quand la vraie
+        // réponse est qu'un collègue a enregistré entre-temps serait faux.
+        if ($this->manager->isStale($deliverable, $payload)) {
+            return $this->jsonFailure('conflict', HttpStatusEnum::Conflict->value, ['conflict' => true]);
+        }
+
         $errors = $this->manager->update($deliverable, $payload);
         if ([] !== $errors) {
             return $this->jsonInvalidInput($errors);
@@ -172,7 +180,16 @@ final class DeliverablesController extends AbstractController
             return $this->jsonForbidden();
         }
 
-        $this->manager->setScope($deliverable, DeliverableScopeEnum::fromInput($this->decodeJson($request)['scope'] ?? null), $this->access->user());
+        // Strict, au contraire de la création : un corps vide ou une faute de
+        // frappe ne doit pas retirer à l'équipe un livrable partagé. « perso »
+        // n'est pas la valeur par défaut d'un geste qui retire.
+        $requested = $this->decodeJson($request)['scope'] ?? null;
+        $scope = is_string($requested) ? DeliverableScopeEnum::tryFrom($requested) : null;
+        if (!$scope instanceof DeliverableScopeEnum) {
+            return $this->jsonInvalidInput(['scope' => 'backend.studio.deliverables.errors.scope_invalid']);
+        }
+
+        $this->manager->setScope($deliverable, $scope, $this->access->user());
 
         return $this->jsonSuccess($this->viewBuilder->lists());
     }
@@ -244,9 +261,68 @@ final class DeliverablesController extends AbstractController
             return $this->jsonForbidden();
         }
 
-        $this->manager->delete($deliverable);
+        // À la corbeille, pas détruit : il y reste le délai commun, et ses
+        // liens de lecture reprennent s'il en sort.
+        $this->manager->trash($deliverable);
 
         return $this->jsonSuccess($this->viewBuilder->lists());
+    }
+
+    /**
+     * Sortir un livrable de la corbeille, de Studio ou d'un espace : c'est ce
+     * que l'écran de la corbeille appelle pour chacun de ses livrables. Le
+     * droit est celui de le modifier ; un livrable qu'on ne lit pas répond 404.
+     */
+    #[Route('/{id}/restore', name: '_restore', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    public function restore(int $id): JsonResponse
+    {
+        $deliverable = $this->trashed($id);
+        if (!$this->access->canWrite($deliverable)) {
+            return $this->jsonForbidden();
+        }
+
+        $this->manager->restore($deliverable);
+
+        return $this->jsonSuccess();
+    }
+
+    /** Détruire pour de bon un livrable de la corbeille : le droit de le supprimer, comme avant la corbeille. */
+    #[Route('/{id}/force-delete', name: '_force_delete', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    public function forceDelete(int $id): JsonResponse
+    {
+        $deliverable = $this->trashed($id);
+        if (!$this->access->canDelete($deliverable)) {
+            return $this->jsonForbidden();
+        }
+
+        $this->manager->forceDelete($deliverable);
+
+        return $this->jsonSuccess();
+    }
+
+    /**
+     * Vider la corbeille : seulement ce que la personne lit et a le droit de
+     * supprimer, jamais le livrable perso d'un collègue ni celui d'un espace
+     * qui n'est pas le sien.
+     */
+    #[Route('/empty-trash', name: '_empty_trash', methods: [HttpMethodEnum::Post->value])]
+    public function emptyTrash(): JsonResponse
+    {
+        $deleted = 0;
+        foreach ($this->deliverables->findAllTrashed() as $deliverable) {
+            if (!$this->access->canRead($deliverable)) {
+                continue;
+            }
+
+            if (!$this->access->canDelete($deliverable)) {
+                continue;
+            }
+
+            $this->manager->forceDelete($deliverable);
+            ++$deleted;
+        }
+
+        return $this->jsonSuccess(['deleted' => $deleted]);
     }
 
     /** La page telle que la lira celui qui reçoit le lien. */
@@ -279,7 +355,14 @@ final class DeliverablesController extends AbstractController
     #[Route('/{id}/links', name: '_links', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Get->value])]
     public function links(int $id): JsonResponse
     {
-        return $this->jsonSuccess($this->linksView->payload($this->readable($id)));
+        // La liste porte les adresses elles-mêmes, jetons compris : la lire,
+        // c'est pouvoir les transmettre. Même droit que d'en créer.
+        $deliverable = $this->readable($id);
+        if (!$this->access->canShare($deliverable)) {
+            return $this->jsonForbidden();
+        }
+
+        return $this->jsonSuccess($this->linksView->payload($deliverable));
     }
 
     #[Route('/{id}/links/create', name: '_links_create', requirements: ['id' => '\d+'], methods: [HttpMethodEnum::Post->value])]
@@ -290,7 +373,13 @@ final class DeliverablesController extends AbstractController
             return $this->jsonForbidden();
         }
 
-        $this->linkIssuer->issue($deliverable, $this->decodeJson($request));
+        $payload = $this->decodeJson($request);
+        $errors = $this->linkIssuer->errors($payload);
+        if ([] !== $errors) {
+            return $this->jsonInvalidInput($errors);
+        }
+
+        $this->linkIssuer->issue($deliverable, $payload);
 
         return $this->jsonSuccess($this->linksView->payload($deliverable));
     }
@@ -305,6 +394,27 @@ final class DeliverablesController extends AbstractController
 
         if (!$this->linkIssuer->revoke($deliverable, $linkId)) {
             return $this->jsonNotFound();
+        }
+
+        return $this->jsonSuccess($this->linksView->payload($deliverable));
+    }
+
+    /** Supprimer une adresse que personne n'a jamais ouverte ; une adresse déjà ouverte se révoque seulement. */
+    #[Route('/{id}/links/{linkId}/delete', name: '_links_delete', requirements: ['id' => '\d+', 'linkId' => '\d+'], methods: [HttpMethodEnum::Post->value])]
+    public function deleteLink(int $id, int $linkId): JsonResponse
+    {
+        $deliverable = $this->readable($id);
+        if (!$this->access->canShare($deliverable)) {
+            return $this->jsonForbidden();
+        }
+
+        $deleted = $this->linkIssuer->delete($deliverable, $linkId);
+        if (null === $deleted) {
+            return $this->jsonNotFound();
+        }
+
+        if (!$deleted) {
+            return $this->jsonInvalidInput(['link' => 'backend.studio.sharing.errors.link_opened'], HttpStatusEnum::Conflict->value);
         }
 
         return $this->jsonSuccess($this->linksView->payload($deliverable));
@@ -389,6 +499,17 @@ final class DeliverablesController extends AbstractController
         $color = is_string($payload['color'] ?? null) && '' !== $payload['color'] ? $payload['color'] : null;
 
         return new DeliverableCategoryInput(is_string($payload['name'] ?? null) ? mb_trim($payload['name']) : '', $color);
+    }
+
+    /** Un livrable à la corbeille que la personne peut lire, ou 404. */
+    private function trashed(int $id): DeliverableInterface
+    {
+        $deliverable = $this->deliverables->findTrashed($id);
+        if (!$deliverable instanceof DeliverableInterface || !$this->access->canRead($deliverable)) {
+            throw new NotFoundHttpException();
+        }
+
+        return $deliverable;
     }
 
     /** Un livrable de Studio que la personne peut lire, ou 404. */

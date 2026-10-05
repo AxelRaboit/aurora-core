@@ -1094,6 +1094,7 @@ backend:
                 insert: "Insertar"
                 delete: "Eliminar esta sección"
                 paste: "Pegar {count} zona | Pegar {count} zonas"
+                dropped_hidden: "{count} zona no se ofrece en este documento y no se insertó | {count} zonas no se ofrecen en este documento y no se insertaron"
                 copied: "{count} zona copiada, para pegar en otra cuadrícula | {count} zonas copiadas, para pegar en otra cuadrícula"
                 duplicate: "Duplicar la zona"
                 copy_zone: "Copiar la zona"
@@ -2006,6 +2007,7 @@ frontend:
         next: "Diapositiva siguiente"
         fullscreen: "Pantalla completa"
     reading:
+        download_pdf: "Descargar en PDF"
         prepared_for: 'Preparado para %name%'
         back: 'Volver al espacio'
         updated_on: 'Actualizado el %date%'

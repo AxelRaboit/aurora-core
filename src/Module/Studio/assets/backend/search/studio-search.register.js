@@ -1,6 +1,7 @@
 import {
     Building2,
     FileSignature,
+    NotebookText,
     PanelsTopLeft,
     Presentation,
     ScrollText,
@@ -8,7 +9,7 @@ import {
 } from "lucide-vue-next";
 import { registerSearchSection } from "@/shared/search/searchSectionRegistry.js";
 
-// Studio's six sections, each keyed as `StudioBackendSearchProvider` returns
+// Studio's seven sections, each keyed as `StudioBackendSearchProvider` returns
 // them and drawn by the palette's generic row (title, subtitle, path). The
 // icons are the ones the Studio menu entries already use, so a result reads as
 // belonging to the screen it opens. The label keys are written out rather than
@@ -59,4 +60,12 @@ registerSearchSection({
     labelKey: "backend.search.sections.decks",
     icon: Presentation,
     order: 130,
+});
+
+registerSearchSection({
+    key: "deliverables",
+    kind: "deliverable",
+    labelKey: "backend.search.sections.deliverables",
+    icon: NotebookText,
+    order: 135,
 });
