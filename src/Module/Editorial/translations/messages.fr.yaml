@@ -1065,6 +1065,9 @@ backend:
             tile_full_bleed: "Pleine largeur"
             tile_image_missing: "Image à choisir"
             placeholders_left: "{count} passage entre [crochets] reste à remplacer. | {count} passages entre [crochets] restent à remplacer."
+            zone_placeholders: "{count} passage entre [crochets] reste à remplacer dans cette zone. | {count} passages entre [crochets] restent à remplacer dans cette zone."
+            section_placeholders: "{count} passage entre [crochets] reste à remplacer dans cette section. | {count} passages entre [crochets] restent à remplacer dans cette section."
+            section_placeholders_zones: "Répartis sur {count} zones, du titre jusqu'à la section suivante."
             split_on: "Aperçu à côté"
             split_off: "Fermer l'aperçu à côté"
             devices:
@@ -1260,7 +1263,16 @@ backend:
             chart_unit_hint: "Écrite après chaque valeur : %, €, k. Facultative."
             chart_title: Titre
             chart_data: Valeurs
-            chart_data_hint: "Une ligne par valeur : le nom, un point-virgule, le nombre, et si besoin un second point-virgule et une couleur (#2f1bea). « Croissance » affiche en plus l'évolution entre la première et la dernière."
+            chart_data_hint: "Une ligne par valeur : le nom, un point-virgule, le nombre (entre [crochets] dans un modèle, pour le signaler à remplacer), et si besoin un second point-virgule et une couleur (#2f1bea). « Croissance » affiche en plus l'évolution entre la première et la dernière."
+            chart_as_text: "Saisir en texte"
+            chart_as_table: "Revenir au tableau"
+            chart_row: "Ligne {number}"
+            chart_row_move: "Déplacer la ligne"
+            chart_row_theme_color: "Couleur du thème"
+            chart_row_clear_color: "Revenir à la couleur du thème"
+            chart_row_remove: "Retirer la ligne"
+            chart_row_add: "Ajouter une ligne"
+            chart_rows_hint: "Une ligne par valeur : le nom, le nombre et, si besoin, sa couleur ; sans couleur choisie, le graphique prend les teintes du thème. Dans un modèle, mettez le nom et le nombre entre [crochets] pour les signaler à remplacer. « Croissance » affiche en plus l'évolution entre la première et la dernière."
             chart_note: Source ou précision
             video_wall_count: "{count} vidéo sur {max} | {count} vidéos sur {max}"
             video_wall_add: Ajouter des vidéos
@@ -1317,7 +1329,9 @@ backend:
                 social_text: "Lumière du matin sur le port, sans retouche."
                 qr_caption: "Scannez pour voir le site"
                 chart_title: "Abonnés Instagram"
-                chart_data: "Janvier ; 1200\nFévrier ; 1480\nMars ; 2100"
+                chart_row_name: "Photos uniques"
+                chart_row_value: "60"
+                chart_data: "Janvier ; 1200 ; #2f1bea\nFévrier ; 1480 ; #111111\nMars ; 2100"
                 chart_source: "Source : statistiques du compte"
                 calendar_title: "Planning d'octobre"
                 calendar_data: "2026-10-03 {'|'} Instagram {'|'} Réel coulisses\n2026-10-07 {'|'} LinkedIn {'|'} Étude de cas"

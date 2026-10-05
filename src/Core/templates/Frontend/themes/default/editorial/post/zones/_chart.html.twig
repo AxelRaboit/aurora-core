@@ -6,7 +6,10 @@
    The chart draws its own card only when the zone has none: on a card it
    would be a box in a box. #}
 {% set bare = (zone.surface|default('none')) != 'none' %}
-<figure class="not-prose m-0{{ bare ? '' : ' rounded-xl border border-card-line bg-surface p-5' }}">
+{# A container: in a narrow card (half a row, a column of three) the legend
+   goes under the ring instead of beside it, and the ring shrinks - beside it,
+   the values ran out of the card. #}
+<figure class="@container not-prose m-0{{ bare ? '' : ' rounded-xl border border-card-line bg-surface p-5' }}">
     {% if widget.title or widget.growth is defined %}
         <div class="mb-4 flex flex-wrap items-baseline justify-between gap-2">
             {% if widget.title %}<p class="m-0 text-base font-semibold text-primary">{{ widget.title }}</p>{% endif %}
@@ -45,12 +48,12 @@
     {% else %}
         {% set tones = ['stroke-accent-500', 'stroke-accent-300', 'stroke-accent-700', 'stroke-accent-200', 'stroke-accent-800', 'stroke-accent-400', 'stroke-accent-900', 'stroke-accent-100'] %}
         {% set dots = ['bg-accent-500', 'bg-accent-300', 'bg-accent-700', 'bg-accent-200', 'bg-accent-800', 'bg-accent-400', 'bg-accent-900', 'bg-accent-100'] %}
-        <div class="flex flex-col items-center gap-5 sm:flex-row">
+        <div class="flex flex-col items-center gap-5 @md:flex-row">
             {# A pie is the same ring drawn at half the radius with a stroke as
                wide as the circle: the dashes then fill it to the centre, and
                the geometry - a circumference of 50 instead of 100 - halves. #}
             {% set pie = widget.type == 'pie' %}
-            <svg viewBox="0 0 42 42" class="{{ pie ? 'h-56 w-56' : 'h-44 w-44' }} shrink-0 -rotate-90" role="img" aria-label="{{ widget.title }}">
+            <svg viewBox="0 0 42 42" class="{{ pie ? 'h-44 w-44 @lg:h-56 @lg:w-56' : 'h-40 w-40 @lg:h-44 @lg:w-44' }} shrink-0 -rotate-90" role="img" aria-label="{{ widget.title }}">
                 {% for row in widget.rows %}
                     {% if pie %}
                         <circle cx="21" cy="21" r="7.9577" fill="none" class="{{ row.color ? '' : tones[loop.index0 % 8] }}"{% if row.color %} stroke="{{ row.color }}"{% endif %} stroke-width="15.9155" stroke-dasharray="{{ row.dash / 2 }} {{ 50 - row.dash / 2 }}" stroke-dashoffset="{{ (row.offset + 25) / 2 }}" />
@@ -64,7 +67,7 @@
                     <li class="flex items-center justify-between gap-3">
                         <span class="flex min-w-0 items-center gap-2"><span class="h-2.5 w-2.5 shrink-0 rounded-full {{ row.color ? '' : dots[loop.index0 % 8] }}"{% if row.color %} style="background-color: {{ row.color }};"{% endif %}></span><span class="truncate text-secondary">{{ row.label }}</span></span>
                         {# Values already in percent would print their share twice. #}
-                        <span class="tabular-nums text-primary"><strong class="font-semibold">{{ row.valueLabel }}</strong>{% if widget.unit|default('') != '%' %} <span class="text-muted">· {{ row.percent }}</span>{% endif %}</span>
+                        <span class="shrink-0 whitespace-nowrap tabular-nums text-primary"><strong class="font-semibold">{{ row.valueLabel }}</strong>{% if widget.unit|default('') != '%' %} <span class="text-muted">· {{ row.percent }}</span>{% endif %}</span>
                     </li>
                 {% endfor %}
             </ul>

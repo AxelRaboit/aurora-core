@@ -28,6 +28,7 @@ import AppToggle from "@/shared/components/form/toggle/AppToggle.vue";
 import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-vue-next";
 import OpeningHoursField from "./zones/OpeningHoursField.vue";
 import PostBannerPanel from "./PostBannerPanel.vue";
+import ChartDataField from "./zones/ChartDataField.vue";
 import { parseLines } from "./zones/openingHours.js";
 
 const props = defineProps({
@@ -792,13 +793,7 @@ const displayHint = computed(() =>
                     {{ t("backend.posts.grid.translated_fields", { locale }) }}
                 </p>
                 <AppInput v-model="bound.label.value" :label="t('backend.posts.grid.chart_title')" :placeholder="t('backend.posts.grid.examples.chart_title')" />
-                <AppTextarea
-                    v-model="bound.code.value"
-                    :label="t('backend.posts.grid.chart_data')"
-                    :hint="t('backend.posts.grid.chart_data_hint')"
-                    :placeholder="t('backend.posts.grid.examples.chart_data')"
-                    :rows="6"
-                />
+                <ChartDataField v-model="bound.code.value" />
                 <AppInput v-model="bound.caption.value" :label="t('backend.posts.grid.chart_note')" :placeholder="t('backend.posts.grid.examples.chart_source')" />
             </div>
         </template>

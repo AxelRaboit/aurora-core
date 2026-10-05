@@ -279,7 +279,7 @@ export const SECTION_PATTERNS = [
                 }),
                 {
                     label: words(t, "chart"),
-                    code: `${words(t, "slice")} 1 ; 60 ; #2f1bea\n${words(t, "slice")} 2 ; 25 ; #111111\n${words(t, "slice")} 3 ; 15 ; #e4f76b`,
+                    code: `${words(t, "slice")} 1 ; [60] ; #2f1bea\n${words(t, "slice")} 2 ; [25] ; #111111\n${words(t, "slice")} 3 ; [15] ; #e4f76b`,
                 },
             );
 
