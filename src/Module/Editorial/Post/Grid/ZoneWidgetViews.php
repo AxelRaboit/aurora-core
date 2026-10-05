@@ -538,7 +538,7 @@ final readonly class ZoneWidgetViews
                 'date' => $cells[0],
                 'network' => $cells[1] ?? '',
                 'title' => implode(' | ', array_slice($cells, 2)),
-                'tone' => $this->networkTone($cells[1] ?? ''),
+                'tone' => $this->entryTone($cells[1] ?? ''),
             ];
         }
 
@@ -570,16 +570,48 @@ final readonly class ZoneWidgetViews
         $inMonth = array_values(array_filter($entries, static fn (array $entry): bool => str_starts_with($entry['date'], $month)));
         usort($inMonth, static fn (array $a, array $b): int => $a['date'] <=> $b['date']);
 
+        // La légende : chaque couleur du mois avec le mot qui la porte, dans
+        // l'ordre où elle apparaît. Un même format écrit deux fois de deux
+        // façons (« Carrousel », « carrousel ») n'en fait qu'un.
+        $legend = [];
+        foreach ($inMonth as $entry) {
+            $key = $entry['tone'].'|'.mb_strtolower($entry['network']);
+            if ('' !== $entry['network'] && !isset($legend[$key])) {
+                $legend[$key] = ['tone' => $entry['tone'], 'label' => $entry['network']];
+            }
+        }
+
         return [
             'month' => $this->capitalise((string) $monthName->format($first)),
             'weekdays' => array_map(fn (int $i): string => $this->capitalise(mb_rtrim((string) $weekdays->format(new DateTimeImmutable(sprintf('2024-01-%02d', $i + 1))), '.')), range(0, 6)),
             'weeks' => $weeks,
             'list' => array_map(fn (array $entry): array => [...$entry, 'dateLabel' => $this->longDate(new DateTimeImmutable($entry['date']), $locale)], $inMonth),
+            'legend' => array_values($legend),
             'title' => $held['label'],
+            'note' => $held['caption'],
         ];
     }
 
-    /** The colour a network is known by, so a month reads at a glance. */
+    /**
+     * The colour of an entry, so a month reads at a glance: its format when
+     * the second cell names one (carrousel, réel, story, post), otherwise the
+     * network it names. A strategy plans by format, a social calendar often
+     * by network; the same zone serves both.
+     */
+    private function entryTone(string $kind): string
+    {
+        $word = mb_strtolower($kind);
+
+        return match (true) {
+            str_contains($word, 'carrousel'), str_contains($word, 'carousel') => 'carousel',
+            str_contains($word, 'reel'), str_contains($word, 'réel'), str_contains($word, 'vidéo'), str_contains($word, 'video') => 'reel',
+            str_contains($word, 'stor') => 'story',
+            str_contains($word, 'post') => 'post',
+            default => $this->networkTone($word),
+        };
+    }
+
+    /** The colour a network is known by. */
     private function networkTone(string $network): string
     {
         return match (true) {

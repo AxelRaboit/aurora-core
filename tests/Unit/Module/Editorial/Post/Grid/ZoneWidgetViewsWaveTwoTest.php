@@ -103,6 +103,30 @@ final class ZoneWidgetViewsWaveTwoTest extends TestCase
         self::assertCount(2, $view['list']);
     }
 
+    public function testACalendarColoursByFormatAndListsItsLegend(): void
+    {
+        $view = $this->build(
+            'editorialCalendar',
+            ['calendarMonth' => '2026-11'],
+            code: "2026-11-03 | Carrousel | Les coulisses\n2026-11-05 | Réel | Une journée\n2026-11-06 | story | Sondage\n2026-11-10 | Post unique | Témoignage\n2026-11-12 | carrousel | Avant, après\n2026-11-14 | Instagram | Un réseau",
+            caption: 'Des stories les jours de publication.',
+        );
+
+        $tones = array_column($view['list'], 'tone', 'title');
+        self::assertSame('carousel', $tones['Les coulisses']);
+        self::assertSame('reel', $tones['Une journée']);
+        self::assertSame('story', $tones['Sondage']);
+        self::assertSame('post', $tones['Témoignage']);
+        self::assertSame('instagram', $tones['Un réseau'], 'A network keeps its own colour.');
+
+        // One legend line per colour and word, in order of appearance: « carrousel » twice is one.
+        self::assertSame(
+            [['carousel', 'Carrousel'], ['reel', 'Réel'], ['story', 'story'], ['post', 'Post unique'], ['instagram', 'Instagram']],
+            array_map(static fn (array $item): array => [$item['tone'], $item['label']], $view['legend']),
+        );
+        self::assertSame('Des stories les jours de publication.', $view['note']);
+    }
+
     public function testAPriceListHasSectionsLinesAndTags(): void
     {
         $view = $this->build('priceList', code: "# Entrées\nSoupe du jour | 8 € | végétarien, nouveau | selon le marché\n# Plats\nTartare | 14 €");
@@ -132,13 +156,13 @@ final class ZoneWidgetViewsWaveTwoTest extends TestCase
     }
 
     /** @param array<string, mixed> $options @return array<string, mixed>|null */
-    private function build(string $type, array $options = [], string $code = '', string $label = ''): ?array
+    private function build(string $type, array $options = [], string $code = '', string $label = '', string $caption = ''): ?array
     {
         $zone = (new GridNormalizer(new ContentValueNormalizer()))->normalizeLayout([
             'zones' => [['id' => 'z1', 'type' => $type, 'options' => $options]],
         ])['zones'][0];
 
-        $held = ['blocks' => [], 'alt' => '', 'caption' => '', 'url' => null, 'label' => $label, 'code' => $code, 'items' => []];
+        $held = ['blocks' => [], 'alt' => '', 'caption' => $caption, 'url' => null, 'label' => $label, 'code' => $code, 'items' => []];
 
         return (new ZoneWidgetViews(new IdentityTranslator(), new MockClock(new DateTimeImmutable('2026-10-10 10:00:00 UTC'))))
             ->build($zone, $held, 'fr', static fn () => null);

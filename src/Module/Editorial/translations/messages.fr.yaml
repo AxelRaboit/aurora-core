@@ -1283,6 +1283,14 @@ backend:
             calendar_title: Titre
             calendar_entries: Publications prévues
             calendar_entries_hint: "Une ligne par publication : la date (AAAA-MM-JJ), le réseau, le titre, séparés par des barres « | »."
+            calendar_entry: "Publication {number}"
+            calendar_entry_date: "Date"
+            calendar_entry_kind: "Format ou réseau"
+            calendar_entry_title: "Sujet"
+            calendar_entry_add: "Ajouter une publication"
+            calendar_entry_remove: "Retirer cette publication"
+            calendar_entries_table_hint: "Le format (carrousel, post, réel, story) ou le réseau donne sa couleur à la case, et la légende suit sous le calendrier."
+            calendar_note: "Note sous le calendrier"
             feed_github: Ajouter les versions GitHub
             feed_github_hint: "Mêle aux publications les dernières versions des dépôts indiqués, si l'intégration GitHub est active."
             price_title: Titre
@@ -1336,6 +1344,9 @@ backend:
                 chart_source: "Source : statistiques du compte"
                 calendar_title: "Planning d'octobre"
                 calendar_data: "2026-10-03 {'|'} Instagram {'|'} Réel coulisses\n2026-10-07 {'|'} LinkedIn {'|'} Étude de cas"
+                calendar_entry_kind: "Carrousel"
+                calendar_entry_title: "[Sujet de la publication]"
+                calendar_note: "Des stories accompagnent les jours où un contenu sort."
                 price_title: "La carte"
                 price_data: "# Entrées\nSoupe du jour {'|'} 8 € {'|'} végétarien {'|'} selon le marché\nTartare de bœuf {'|'} 14 €"
                 price_note: "Prix nets, service compris"
@@ -2012,6 +2023,8 @@ frontend:
         next: Image suivante
     editorial:
         reading_time: '%minutes% min de lecture'
+        calendar:
+            legend: "Légende"
         banner:
             carousel:
                 role: "carrousel"

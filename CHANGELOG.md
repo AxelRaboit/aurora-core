@@ -5,6 +5,23 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
+## [1.17.0] - 2026-10-05
+
+### Ajouté
+- **Le calendrier éditorial se colore par format** : Carrousel, Post, Réel et Story ont chacun leur couleur dans la grille du mois, et une légende sous le calendrier reprend les formats utilisés, dans l'ordre où ils apparaissent. Les noms de réseau (Instagram, LinkedIn…) gardent leur couleur d'avant. Une note facultative se pose sous la légende (« Des stories accompagnent les jours où un contenu sort »).
+- **Le calendrier se remplit en tableau** dans l'éditeur : une ligne par publication (date, format, sujet), une ligne neuve qui démarre dans le mois du calendrier, et le texte brut toujours accessible par la bascule.
+- **Un calendrier dans un livrable** : le bloc n'est plus retiré des livrables, pour poser un calendrier du mois dans une stratégie.
+- **Nouveau modèle « Stratégie réseaux sociaux »** dans les fixtures de démonstration, sur la mise en page de l'audit : enjeux, positionnement, objectifs et indicateurs, cibles, canaux, ton, piliers, rétroplanning, trois calendriers mensuels, référencement Instagram et deux planches d'inspiration.
+
+### Corrigé
+- **Les dates ne s'affichent plus à l'américaine** dans les champs de date : depuis la v12 du sélecteur, le format d'affichage passait par une option disparue et le champ montrait `11/05/2026, 01:00`. Il montre `05/11/2026`, `05/11/2026 09:30` avec l'heure et `11/2026` pour un mois.
+
+### Dans aurora-client
+- `AppInput` accepte `list` (une `<datalist>`) et `ariaLabel`. `AppDatePicker` passe son format par `formats.input`.
+- `ZoneWidgetViews::build()` gagne un paramètre `$caption` ; la vue du calendrier porte `legend` et `note`. Nouvelles clés `frontend.editorial.calendar.legend` et `backend.posts.grid.calendar_*` (fr, en, es).
+
+---
+
 ## [1.16.0] - 2026-10-05
 
 ### Ajouté

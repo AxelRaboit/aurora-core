@@ -1283,6 +1283,14 @@ backend:
             calendar_title: Title
             calendar_entries: Planned posts
             calendar_entries_hint: "One line per post: the date (YYYY-MM-DD), the network, the title, separated by bars « | »."
+            calendar_entry: "Post {number}"
+            calendar_entry_date: "Date"
+            calendar_entry_kind: "Format or network"
+            calendar_entry_title: "Subject"
+            calendar_entry_add: "Add a post"
+            calendar_entry_remove: "Remove this post"
+            calendar_entries_table_hint: "The format (carousel, post, reel, story) or the network gives the cell its colour, and the legend follows under the calendar."
+            calendar_note: "Note under the calendar"
             feed_github: Add the GitHub releases
             feed_github_hint: "Mixes the latest releases of the repositories below into the publications, when the GitHub integration is on."
             price_title: Title
@@ -1336,6 +1344,9 @@ backend:
                 chart_source: "Source: account statistics"
                 calendar_title: "October schedule"
                 calendar_data: "2026-10-03 {'|'} Instagram {'|'} Behind-the-scenes reel\n2026-10-07 {'|'} LinkedIn {'|'} Case study"
+                calendar_entry_kind: "Carousel"
+                calendar_entry_title: "[Subject of the post]"
+                calendar_note: "Stories go with the days a post comes out."
                 price_title: "The menu"
                 price_data: "# Starters\nSoup of the day {'|'} €8 {'|'} vegetarian {'|'} market-fresh\nBeef tartare {'|'} €14"
                 price_note: "Net prices, service included"
@@ -2012,6 +2023,8 @@ frontend:
         next: Next picture
     editorial:
         reading_time: '%minutes% min read'
+        calendar:
+            legend: "Legend"
         banner:
             carousel:
                 role: "carousel"
