@@ -5,7 +5,7 @@ projets clients doivent répercuter après avoir lancé `make aurora-update`.
 
 ---
 
-## [Unreleased]
+## [1.15.0] - 2026-10-05
 
 ### Ajouté
 - **Masquer un lien retiré ou expiré**, dans la fenêtre des liens d'un livrable comme dans le panneau de partage d'une présentation. Un lien retiré qu'on a ouvert garde sa ligne (qui a pu lire, combien de fois) et ne se supprime pas ; il encombrait pourtant la liste pour toujours. Le bouton « Masquer ce lien » l'en sort, un interrupteur « Afficher les liens masqués (n) » le ramène, étiqueté « Masqué ». Un lien encore vivant ne se masque pas (409) : il faut d'abord le retirer, sinon une adresse resterait active sans que personne ne la voie. Un lien jamais ouvert se supprime toujours. Journal d'audit : `deliverable_link.hidden`.
