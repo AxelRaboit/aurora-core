@@ -393,9 +393,11 @@ function actionsFor(deliverable) {
             <AppSearchInput v-model="search" :placeholder="t('backend.studio.deliverables.search_placeholder')" />
             <!-- Par catégorie ou en liste : le même interrupteur que la vue
                  des autres listes, à côté de la recherche. Sans catégorie, il
-                 n'y a rien à choisir. -->
+                 n'y a rien à choisir. Caché sur téléphone, comme celui des
+                 trames : empilé sous la recherche, il s'étirait sur toute une
+                 ligne pour deux icônes collées à gauche. -->
             <template v-if="categories.length" #inline>
-                <div class="flex shrink-0 border border-line rounded-lg p-0.5">
+                <div class="hidden shrink-0 border border-line rounded-lg p-0.5 sm:flex">
                     <AppIconButton
                         :title="t('backend.studio.deliverables.categories.layout_grouped')"
                         :active="'grouped' === layout"

@@ -451,7 +451,17 @@ const confirmBlocked = computed(
     <div class="aurora-stack">
         <!-- The same bar as every screen, with nothing on its right: this page's
              commands live in the « next step » card below. -->
-        <AppPageBar :back-href="indexPath" :back-label="t('shared.common.back')" />
+        <!-- Les autres gestes dans la barre, comme sur tous les écrans de
+             détail ; l'étape suivante garde son bouton dans sa carte, plus bas. -->
+        <AppPageBar :back-href="indexPath" :back-label="t('shared.common.back')">
+            <AppPageActions
+                v-if="otherActions.length"
+                :actions="otherActions"
+                :label="contract.reference ?? contract.customerName"
+                :busy="busy"
+                icon-only-on-phone
+            />
+        </AppPageBar>
 
         <header class="flex flex-wrap items-start justify-between gap-3">
             <div class="min-w-0 space-y-1">
@@ -480,9 +490,8 @@ const confirmBlocked = computed(
         <section class="aurora-card p-4 space-y-3" data-contract-step>
             <p class="text-xs uppercase tracking-wider text-muted">{{ t(`${F}.next_step`) }}</p>
             <p class="text-sm text-primary">{{ summary }}</p>
-            <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+            <div v-if="nextAction" class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
                 <AppButton
-                    v-if="nextAction"
                     class="w-full sm:w-auto"
                     variant="primary"
                     size="md"
@@ -492,13 +501,6 @@ const confirmBlocked = computed(
                     <component :is="nextAction.icon" class="w-4 h-4" :stroke-width="2" />
                     {{ nextAction.title }}
                 </AppButton>
-                <AppPageActions
-                    v-if="otherActions.length"
-                    class="w-full sm:w-auto"
-                    :actions="otherActions"
-                    :label="contract.reference ?? contract.customerName"
-                    :busy="busy"
-                />
             </div>
         </section>
 
